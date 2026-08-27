@@ -36,7 +36,7 @@ export class HamsterScoutAI {
         this._attackInterval = this.cfg.attackInterval ?? 2500;
         this._attackDamage = this.cfg.attackDamage ?? 25;
         this._attackRange = this.cfg.attackRange ?? 600;
-        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
+        this._engageRange = this.cfg.engageRange ?? RTS_DEFAULT_ACQUIRE_RANGE;
         this._projectileSpeed = this.cfg.projectileSpeed ?? 600;
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
@@ -339,6 +339,8 @@ export class HamsterScoutAI {
             maxDist: applyElevatedRangedRange(m, this._attackRange + 150),
             wallContext: projectileWallContext(m),
             target,
+            remainingHits: Math.max(1, Math.floor(Number(this.cfg.projectileMaxHits) || 1)),
+            hitIds: new Set(),
         };
         this._playSound('attack'); // 出膛音效（2026-08-17 复用射手出膛素材）
     }
@@ -377,6 +379,9 @@ export class HamsterScoutAI {
             b.wallContext || projectileWallContext(m)
         );
         let hit = null;
+        if (!(b.hitIds instanceof Set)) b.hitIds = new Set();
+        const hitKey = (entity) => entity?.id ?? entity;
+        const alreadyHit = (entity) => !!entity && b.hitIds.has(hitKey(entity));
         const hits = (entity) => {
             const collider = entity?.collider;
             const bottom = collider?.bottomZ ?? (Number(entity?.z) || 0);
@@ -386,13 +391,13 @@ export class HamsterScoutAI {
                 && b.z <= top + PROJECTILE_HIT_RADIUS;
         };
         const t = b.target;
-        if (t && t.active && t.hp > 0 && hits(t)) {
+        if (t && t.active && t.hp > 0 && !alreadyHit(t) && hits(t)) {
             hit = t;
         } else {
             // 路径上经过的其他敌人也判定（与射手同思路）
             const game = (typeof window !== 'undefined' && window.Game) || null;
             for (const e of queryNearbyEntities(game?.entities, b, PROJECTILE_HIT_RADIUS + 64)) {
-                if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
+                if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || alreadyHit(e)) continue;
                 if (e._isEnergyNode) continue;
                 if (hits(e)) {
                     hit = e;
@@ -410,14 +415,21 @@ export class HamsterScoutAI {
             return;
         }
         if (hit) {
+            const maxHits = Math.max(1, Math.floor(Number(this.cfg.projectileMaxHits) || 1));
+            const completedHits = Math.max(0, maxHits - Math.max(1, Number(b.remainingHits) || 1));
+            const pierceMultiplier = Math.max(0, Math.min(1,
+                Number(this.cfg.projectilePierceDamageMultiplier) || 1));
+            const hitDamage = this._attackDamage * Math.pow(pierceMultiplier, completedHits);
             if (typeof hit.takeDamage === 'function') {
-                hit.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);
+                hit.takeDamage(m.getPhysicalAttackDamage(hitDamage, hit), m, 'physical', false);
             }
-            tryApplyMarkArrow(hit);
+            if (m.aiConfig?.appliesMarkArrow !== false) tryApplyMarkArrow(hit);
             if (EffectManager) {
-                EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${this._attackDamage}`, '#ffd27a'));
+                EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${Math.round(hitDamage)}`, '#ffd27a'));
             }
-            m._basic = null;
+            b.hitIds.add(hitKey(hit));
+            b.remainingHits = Math.max(0, (Number(b.remainingHits) || 1) - 1);
+            if (b.remainingHits <= 0) m._basic = null;
         } else if (b.dist >= b.maxDist) {
             m._basic = null; // 超出射程静默消失
         }

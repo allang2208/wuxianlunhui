@@ -1,0 +1,11 @@
+{
+  "source": "assets\\terrain\\energy_node_v3_1.png",
+  "output": "assets\\terrain\\energy_node_depleted_v3_1.png",
+  "operation": "depleted-cool-gray-no-glow-v1",
+  "size": [
+    903,
+    458
+  ],
+  "alphaPreserved": true,
+  "cyanPixelsMuted": 22091
+}

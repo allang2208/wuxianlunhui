@@ -237,6 +237,22 @@ check('等待截止时间不会被重复request续期',
     !traffic.request(queued, 'stair_a', 'up', 1050).timedOut
     && traffic.request(queued, 'stair_a', 'up', 1101).timedOut);
 
+const progressingTraffic = new ElevatedRouteTraffic({
+    reservationTtlMs: 40,
+    queueWaitTimeoutMs: 100,
+    pruneIntervalMs: 1,
+});
+const progressingHolder = { active: true };
+const progressingQueuedA = { active: true };
+const progressingQueuedB = { active: true };
+progressingTraffic.request(progressingHolder, 'stair_progress', 'down', 1000);
+progressingTraffic.request(progressingQueuedA, 'stair_progress', 'up', 1000);
+progressingTraffic.request(progressingQueuedB, 'stair_progress', 'up', 1000);
+progressingTraffic.prune(1050);
+check('队首上墙会续期尾部单位，但完全停滞仍会超时',
+    progressingTraffic.permission(progressingQueuedA, 'stair_progress', 'up')
+    && !progressingTraffic.request(progressingQueuedB, 'stair_progress', 'up', 1101).timedOut);
+
 const narrowTraffic = new ElevatedRouteTraffic({ pruneIntervalMs: 1 });
 const narrowUpA = { active: true };
 const narrowUpB = { active: true };
@@ -280,6 +296,71 @@ const wideB = { active: true };
 check('相邻宽楼梯组不受单梯占用锁限制',
     ElevatedNavigationController.canCrossPortal(wideA, 'wide_a', 'up')
     && ElevatedNavigationController.canCrossPortal(wideB, 'wide_b', 'down'));
+
+let explicitReplanCount = 0;
+const timeoutRoute = [
+    { x: 0, y: -14, z: 0, surfaceKind: 'ground', staircaseId: 'stair_retry' },
+    { x: 0, y: 0, z: 7, surfaceKind: 'stairs', staircaseId: 'stair_retry' },
+];
+ElevatedNavigationController.configure({
+    revision: () => 0,
+    replanRoute: () => {
+        explicitReplanCount++;
+        return {
+            x: 0,
+            y: 100,
+            z: 62.5,
+            surfaceKind: 'wall_walk',
+            route: timeoutRoute.map((step) => ({ ...step })),
+        };
+    },
+}, {
+    reservationTtlMs: 1000,
+    queueWaitTimeoutMs: 100,
+    progressTimeoutMs: 100,
+    pruneIntervalMs: 1,
+});
+ElevatedNavigationController.reset();
+const timeoutHolder = { active: true, x: 0, y: -14, z: 0, _surfaceKind: 'ground' };
+const timeoutQueued = { active: true, x: 0, y: -14, z: 0, _surfaceKind: 'ground' };
+const timeoutHolderCommand = {
+    point: { route: timeoutRoute.map((step) => ({ ...step })) },
+    routeIndex: 1,
+};
+const timeoutQueuedCommand = {
+    point: { route: timeoutRoute.map((step) => ({ ...step })) },
+    routeIndex: 1,
+};
+ElevatedNavigationController.gateRouteAdvance(
+    timeoutHolder,
+    timeoutHolderCommand,
+    timeoutHolderCommand.point.route,
+    1,
+    false,
+    1000
+);
+ElevatedNavigationController.gateRouteAdvance(
+    timeoutQueued,
+    timeoutQueuedCommand,
+    timeoutQueuedCommand.point.route,
+    1,
+    false,
+    1000
+);
+ElevatedNavigationController.prepareExplicitRoute(timeoutQueued, timeoutQueuedCommand, 1050);
+const timedOutReservation = ElevatedNavigationController.gateRouteAdvance(
+    timeoutQueued,
+    timeoutQueuedCommand,
+    timeoutQueuedCommand.point.route,
+    1,
+    false,
+    1101
+);
+ElevatedNavigationController.prepareExplicitRoute(timeoutQueued, timeoutQueuedCommand, 1102);
+check('显式上墙队列超时后必须重规划，不能永久停在旧入口',
+    timedOutReservation.timedOut === true
+    && explicitReplanCount === 1
+    && timeoutQueuedCommand.routeIndex === 0);
 
 ElevatedNavigationController.configure(null, {
     reservationTtlMs: 1000,

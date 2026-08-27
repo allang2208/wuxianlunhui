@@ -193,7 +193,11 @@ export class Zombie extends Enemy {
         const pixelScale = baseSpriteSize / referenceCell;
         const spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
         const footY = layout.footY ?? frameHeight;
-        this.footOffsetY = (footY - frameHeight / 2) * pixelScale;
+        // 四套 v2 动画的 Alpha 脚线统一在 footY，但普通僵尸的地面 footprint
+        // 以 Collider 中心为准，并由 colliderOffsetY 相对逻辑坐标下移。视觉脚点
+        // 必须落在同一中心；这里只调整 Sprite 锚点，不改 Collider/攻击/寻路数值。
+        const footprintOffsetY = Number(this.colliderOffsetY) || 0;
+        this.footOffsetY = (footY - frameHeight / 2) * pixelScale - footprintOffsetY;
         const collisionWidth = renderCfg.collisionWidth || 30;
         const collisionHeight = renderCfg.collisionHeight || 50;
 

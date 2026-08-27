@@ -1,0 +1,38 @@
+{
+  "version": 4,
+  "camera": {
+    "projection": "orthographic",
+    "elevation": 30.0,
+    "modelRootRotationZ": 44.8,
+    "tileProjection": "2:1 diamond details only, no post-warp",
+    "propOrthoScale": 6.4,
+    "propBottomRatio": 0.875
+  },
+  "baseContract": "world-aligned seamless sand remains below transparent details",
+  "tiles": [
+    "desert_detail_pebbles_00",
+    "desert_detail_pebbles_01",
+    "desert_detail_pebbles_02"
+  ],
+  "props": [
+    "desert_prop_pebbles_0",
+    "desert_prop_pebbles_1",
+    "desert_prop_dry_branch",
+    "desert_prop_bone_scatter",
+    "desert_prop_clay_shards",
+    "desert_prop_dead_root",
+    "desert_prop_stone_slab",
+    "desert_prop_sandstone_chunks",
+    "desert_prop_thorn_scrub",
+    "desert_prop_dry_grass_tuft",
+    "desert_prop_animal_skull",
+    "desert_prop_rib_cage",
+    "desert_prop_broken_pot",
+    "desert_prop_weathered_jar",
+    "desert_prop_rusted_scrap",
+    "desert_prop_rope_coil",
+    "desert_prop_cloth_scrap",
+    "desert_prop_salt_crystals"
+  ],
+  "model": "tools/ai-gen/_world122_desert_terrain_20260826/world122_desert_terrain.blend"
+}

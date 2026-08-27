@@ -1,0 +1,45 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\house_lv5\\refine_48step_v02_seed123360\\house_lv5\\house_lv5_refine_v03_body.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\house_lv5\\house_lv5_runtime_candidate.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 8,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    190,
+    33,
+    841,
+    920
+  ],
+  "fileSize": [
+    651,
+    887
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    647,
+    883
+  ],
+  "displayW": 330,
+  "displayH": 450,
+  "footOffsetY": 223,
+  "scaleX": 0.5069124423963134,
+  "scaleY": 0.5073280721533259
+}

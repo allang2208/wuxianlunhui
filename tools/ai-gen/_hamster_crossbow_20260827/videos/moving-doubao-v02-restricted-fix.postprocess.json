@@ -1,0 +1,11 @@
+{
+  "source": "videos\\moving-doubao-v02.mp4",
+  "output": "videos\\moving-doubao-v02-restricted-fix.mp4",
+  "frames": 121,
+  "scope": [
+    "erase warm-color pixels only in fixed lower-left long-tail band",
+    "recolor warm-color exposed toe pixels only in fixed lower-foot band"
+  ],
+  "trajectoryChanged": false,
+  "bodyWeaponCameraRepainted": false
+}

@@ -1,0 +1,11 @@
+视频工具参数：总时长必须设置为4秒（duration=4），画幅16:9。不得使用默认10秒。
+
+Animate the exact first-frame hamster only. One sudden non-looping death collapse. No kneeling, no sitting, no aiming and no staging the rifle.
+
+At 0.0 seconds both hands clamp the identical rifle tightly across his chest. He immediately tucks his chin, turns his goggles and face down-left away from the camera, loses balance and falls as one rigid unit onto his left side. The fall is fully complete by 0.9 seconds. The face remains mostly concealed by the hood, lowered goggles and downward angle. Hold the exact corpse pose completely motionless from 0.9 through 4.0 seconds.
+
+Rigid identity lock: adult golden-brown face and cream muzzle never change size, age or shape; mouth stays closed; ears remain fully covered by the continuous closed ghillie hood; the same black dual-tube night-vision goggles stay lowered and fixed; same olive ghillie suit and gear; exactly two hands; exactly one identical long suppressed bolt-action sniper rifle.
+
+The rifle remains rigid, complete and pressed against the torso throughout the fall and corpse pose. Its folded bipod remains folded against the barrel and never touches the floor. No kneeling, sitting, bracing, aiming, deployed bipod, rifle standing on legs, weapon transformation, missing suppressor or bent barrel.
+
+Static camera, fixed scale/exposure, white background. Keep body and rifle inside the left 70 percent. No face expression, open mouth, young face, visible ears, hood opening, moved goggles, extra limbs, black block, flicker, blood, gore, firing, smoke, text or watermark.

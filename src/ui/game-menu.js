@@ -23,6 +23,7 @@ import { UIState } from './ui-state.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { UnitDisplaySettings } from './unit-display-settings.js';
 import { EnvironmentLightingSettings } from './environment-lighting-settings.js';
+import { CivilianVisualSettings } from '../world/civilian-visual-runtime.js';
 
 const CONTROL_GUIDE = [
     ['WASD / 鼠标', '移动 / 瞄准'],
@@ -130,6 +131,7 @@ export const GameMenu = {
         settingsView.appendChild(this._buildSlider('master', '音量', '主音量，作用于所有声音'));
         settingsView.appendChild(this._buildSlider('music', '背景音量', '地牢模式中播放的 BGM'));
         settingsView.appendChild(this._buildUnitDisplaySettings());
+        settingsView.appendChild(this._buildCivilianVisualSettings());
         settingsView.appendChild(this._buildEnvironmentLightingSettings());
 
         // 全屏切换（Electron 打包版经 preload IPC；浏览器开发环境禁用）
@@ -313,6 +315,34 @@ export const GameMenu = {
         return section;
     },
 
+    _buildCivilianVisualSettings() {
+        const section = document.createElement('section');
+        section.className = 'game-menu-unit-display';
+        const title = document.createElement('div');
+        title.className = 'game-menu-unit-display-title';
+        title.textContent = '居民动画与内存';
+        section.appendChild(title);
+        const hint = document.createElement('div');
+        hint.className = 'game-menu-unit-display-hint';
+        hint.textContent = '只影响非战斗仓鼠精灵；房屋、岗位与生产逻辑继续运行';
+        section.appendChild(hint);
+        const group = document.createElement('fieldset');
+        group.className = 'game-menu-unit-display-group';
+        group.style.gridColumn = '1 / -1';
+        const row = document.createElement('label');
+        row.className = 'game-menu-unit-display-option';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.dataset.civilianAnimationsDisabled = 'true';
+        input.addEventListener('change', () => CivilianVisualSettings.setDisabled(input.checked));
+        const text = document.createElement('span');
+        text.textContent = '取消非战斗居民动画（释放内存）';
+        row.append(input, text);
+        group.appendChild(row);
+        section.appendChild(group);
+        return section;
+    },
+
     /** 打开菜单时同步滑块与当前音量（含持久化读回的数值） */
     _syncSliders() {
         if (!this._masterSlider) return;
@@ -323,6 +353,7 @@ export const GameMenu = {
         this._musicSlider.value = String(mu);
         this._musicVal.textContent = Math.round(mu * 100) + '%';
         this._syncUnitDisplaySettings();
+        this._syncCivilianVisualSettings();
         this._syncEnvironmentLightingSettings();
     },
 
@@ -343,6 +374,11 @@ export const GameMenu = {
         }
         const quality = this._overlay.querySelector('select[data-environment-lighting-quality]');
         if (quality) quality.value = settings.quality || 'high';
+    },
+
+    _syncCivilianVisualSettings() {
+        const input = this._overlay?.querySelector('input[data-civilian-animations-disabled]');
+        if (input) input.checked = CivilianVisualSettings.isDisabled();
     },
 
     /** 同步"全屏切换"按钮：打包版显示当前状态，浏览器开发环境禁用 */

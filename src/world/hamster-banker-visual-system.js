@@ -7,6 +7,7 @@ import {
     resolveCivilianVisualPosition,
     sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
+import { CivilianVisualSettings } from './civilian-visual-runtime.js';
 
 function randomRange(range, fallbackMin, fallbackMax) {
     const min = Math.max(0, Number(range?.[0]) || fallbackMin);
@@ -276,6 +277,10 @@ export const HamsterBankerVisualSystem = {
 
     updateBuilding(building, dt) {
         if (building?._economyType !== 'bank') return;
+        if (!CivilianVisualSettings.isEnabled()) {
+            this.clearBuilding(building);
+            return;
+        }
         const config = bankerVisualConfig();
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         const assigned = Math.max(0, Math.floor(Number(building._assignedWorkers) || 0));
@@ -288,6 +293,10 @@ export const HamsterBankerVisualSystem = {
 
         let record = this._records.get(building);
         if (record && record.scene !== scene) {
+            this.clearBuilding(building);
+            record = null;
+        }
+        if (record?.workers?.some((worker) => !worker?.sprite?.active)) {
             this.clearBuilding(building);
             record = null;
         }

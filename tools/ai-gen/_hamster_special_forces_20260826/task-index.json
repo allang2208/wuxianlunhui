@@ -1,0 +1,141 @@
+{
+  "unitId": "hamster_special_forces",
+  "unitName": "仓鼠特战",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "size": "1024x576",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-special-forces-mother-v01.png",
+  "identityMotherRgba": "mother/hamster-special-forces-mother-v01-rgba.png",
+  "reference": "references/hamster-special-forces-white-1024x576.png",
+  "referenceReport": "reference-report.json",
+  "acceptedConcept": "../../../assets/concepts/hamster-special-forces/hamster-special-forces-shotgun-concept-v03.png",
+  "assetStatus": "final_transparent_sheets_completed_not_runtime_integrated",
+  "runtimeIntegrationActive": false,
+  "producerBuildingIntegration": false,
+  "identityLocks": [
+    "large round golden hamster head and cream muzzle",
+    "broad round torso, thick waist, short stout limbs and low center of gravity",
+    "sand digital camouflage uniform and tan plate carrier",
+    "sand-camouflage high-cut helmet with both ears visible through openings",
+    "black wraparound sunglasses",
+    "one unchanged modern black pump-action combat shotgun"
+  ],
+  "tasks": [
+    {
+      "motion": "idle",
+      "kind": "idle",
+      "prompt": "prompts/idle.txt",
+      "promptSha256": "a702897ee34bef2e426f919932aa0cb4727a72c1262753cc9b578e9ca81d448f",
+      "loopRequested": true,
+      "firstFrame": "references/hamster-special-forces-white-1024x576.png",
+      "lastFrame": "prompt_only_return_to_first_pose_no_pixel_lock",
+      "plannedOutput": "videos/hamster_special_forces_idle_doubao.mp4",
+      "selectedOutput": "videos/hamster_special_forces_idle_doubao.mp4",
+      "status": "final_transparent_sheet_completed_not_runtime_integrated",
+      "sourceSheet": "source-sheets-pre-interpolation/idle.png",
+      "finalSheet": "sheets/interpolated/idle.png",
+      "finalPreview": "previews/interpolated/idle-interpolated.gif",
+      "finalContact": "previews/interpolated/idle-interpolated-contact.png",
+      "finalFrameCount": 24,
+      "finalFrameRate": 16,
+      "attemptsRetained": [
+        "videos/hamster_special_forces_idle_doubao.mp4"
+      ],
+      "selectionNote": "v01 keeps the approved low-ready pose and clean white field; v02 is steadier but raises the shotgun and introduces floor reflection"
+    },
+    {
+      "motion": "running",
+      "kind": "run",
+      "prompt": "prompts/v02/running.txt",
+      "promptSha256": "d406655cba6b8c83da3bdfec470d4a5d018456ef4e40b303e5d499c3c72f4ec0",
+      "loopRequested": true,
+      "firstFrame": "references/hamster-special-forces-white-1024x576.png",
+      "lastFrame": "prompt_only_return_to_first_pose_no_pixel_lock",
+      "plannedOutput": "videos/hamster_special_forces_running_doubao_v02.mp4",
+      "selectedOutput": "videos/hamster_special_forces_running_doubao_v02.mp4",
+      "status": "final_transparent_sheet_completed_not_runtime_integrated",
+      "sourceSheet": "source-sheets-pre-interpolation/running.png",
+      "finalSheet": "sheets/interpolated/running.png",
+      "finalPreview": "previews/interpolated/running-interpolated.gif",
+      "finalContact": "previews/interpolated/running-interpolated-contact.png",
+      "finalFrameCount": 28,
+      "finalFrameRate": 24,
+      "attemptsRetained": [
+        "videos/hamster_special_forces_running_doubao_v02.mp4"
+      ],
+      "selectionNote": "v02 returns to the first-frame stance and scale; per-frame height and foot alignment still need normalization during sprite rebuild"
+    },
+    {
+      "motion": "attacking",
+      "kind": "attack",
+      "prompt": "prompts/v02/attacking.txt",
+      "promptSha256": "f1b9fee24cc925a2ee1d22850c4856a0e785e476f5263830852da8bfe4f8467f",
+      "loopRequested": false,
+      "firstFrame": "references/hamster-special-forces-white-1024x576.png",
+      "lastFrame": "same_as_first_frame_for_controlled_recovery_only",
+      "plannedOutput": "videos/hamster_special_forces_attacking_doubao_v02.mp4",
+      "selectedOutput": "videos/hamster_special_forces_attacking_doubao_v02.mp4",
+      "status": "final_transparent_sheet_completed_not_runtime_integrated",
+      "sourceSheet": "source-sheets-pre-interpolation/attacking.png",
+      "finalSheet": "sheets/interpolated/attacking.png",
+      "finalPreview": "previews/interpolated/attacking-interpolated.gif",
+      "finalContact": "previews/interpolated/attacking-interpolated-contact.png",
+      "finalFrameCount": 41,
+      "finalFrameRate": 24,
+      "attemptsRetained": [
+        "videos/hamster_special_forces_attacking_doubao_v02.mp4"
+      ],
+      "selectionNote": "v02 has the clearer single-shot recovery; detached smoke and shell artifacts must be removed as non-subject connected components during cutout",
+      "sequence": "raise, aim, fire one shell, compact recoil, pump once, eject at most one shell, recover"
+    },
+    {
+      "motion": "dying",
+      "kind": "die",
+      "prompt": "prompts/dying.txt",
+      "promptSha256": "ce6203d479bb76973fd269c9ef0be61c4efe4ce0c3d4ac5065f8e84b7385e6fb",
+      "loopRequested": false,
+      "firstFrame": "references/hamster-special-forces-white-1024x576.png",
+      "lastFrame": null,
+      "plannedOutput": "videos/hamster_special_forces_dying_doubao.mp4",
+      "selectedOutput": "videos/hamster_special_forces_dying_doubao.mp4",
+      "status": "final_transparent_sheet_completed_not_runtime_integrated",
+      "sourceSheet": "source-sheets-pre-interpolation/dying.png",
+      "finalSheet": "sheets/interpolated/dying.png",
+      "finalPreview": "previews/interpolated/dying-interpolated.gif",
+      "finalContact": "previews/interpolated/dying-interpolated-contact.png",
+      "finalFrameCount": 31,
+      "finalFrameRate": 20,
+      "attemptsRetained": [
+        "videos/hamster_special_forces_dying_doubao.mp4"
+      ],
+      "selectionNote": "falls onto the left side by the middle of the clip and holds the final corpse pose through the end",
+      "sequence": "knees buckle, collapse backward-left, settle by about 3.2 seconds, hold corpse through clip end"
+    }
+  ],
+  "cleanup": {
+    "date": "2026-08-26",
+    "policy": "keep accepted MP4/provenance/prompts, source sheets, final sheets, previews, reports and reproduction scripts; quarantine rejected MP4s and rebuildable frame-analysis caches outside the repository",
+    "rejectedVideosQuarantined": [
+      "hamster_special_forces_idle_doubao_v02.mp4",
+      "hamster_special_forces_running_doubao.mp4",
+      "hamster_special_forces_attacking_doubao.mp4"
+    ],
+    "rejectedPromptAndProvenanceRetained": true
+  },
+  "postprocessPlan": {
+    "backgroundRemoval": "BiRefNet-general with white-edge decontamination",
+    "cellSize": 512,
+    "loopActions": ["idle", "running"],
+    "oneShotActions": ["attacking", "dying"],
+    "interpolation": "RIFE v4.6 2x; loop wrap only for idle/running; no last-to-first wrap for attacking/dying",
+    "requiredEvidence": [
+      "source MP4",
+      "source sheet before interpolation",
+      "final transparent sprite sheet",
+      "preview GIF",
+      "contact sheet and alpha/footline/blank-cell report"
+    ]
+  }
+}

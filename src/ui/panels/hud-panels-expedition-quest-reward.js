@@ -50,13 +50,21 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionDungeonSelect.id = 'expeditionDungeonSelect';
     expeditionDungeonSelect.className = 'expedition-dungeon-select';
     expeditionDungeonSelect.onchange = function() { ExpeditionSystem.onDungeonSelect(this.value); };
-    // 地牢选项由 data/dungeon-config.json 的 dungeonList 驱动（新增地牢只需改配置）
-    const dungeonList = DungeonConfig.getDungeonList();
-    for (const [value, info] of Object.entries(dungeonList)) {
-        const opt = document.createElement('option');
-        opt.value = value;
-        opt.textContent = (info && info.name) || value;
-        expeditionDungeonSelect.appendChild(opt);
+    // 父标题按地牢系列分组，子项保持初级→中级→高级；解锁状态在每次打开面板时刷新。
+    for (const group of DungeonConfig.getDungeonGroups()) {
+        const optionGroup = document.createElement('optgroup');
+        optionGroup.className = 'expedition-dungeon-group';
+        optionGroup.label = `${group.icon ? `${group.icon} ` : ''}${group.name}`;
+        optionGroup.dataset.dungeonSeries = group.key;
+        for (const info of group.items) {
+            const opt = document.createElement('option');
+            opt.value = info.type;
+            opt.textContent = info.name || info.type;
+            opt.dataset.baseLabel = opt.textContent;
+            opt.dataset.unlockAfter = info.unlockAfter || '';
+            optionGroup.appendChild(opt);
+        }
+        expeditionDungeonSelect.appendChild(optionGroup);
     }
     expeditionDungeonSelector.appendChild(dungeonLabel);
     expeditionDungeonSelector.appendChild(expeditionDungeonSelect);
@@ -65,7 +73,7 @@ export function createHudPanelsExpeditionQuestReward() {
     const expeditionInfoRow = document.createElement('div');
     expeditionInfoRow.className = 'expedition-info-row';
     const expeditionInfoDefs = [
-        { label: '地牢名称', id: 'expeditionDungeonName', val: '☠ 僵尸地牢高级' },
+        { label: '地牢名称', id: 'expeditionDungeonName', val: '☠ 僵尸地牢-初级' },
         { label: '节点数', id: 'expeditionNodeCount', val: '35~40' },
         { label: '战斗节点', id: 'expeditionBattleRatio', val: '70%' },
         { label: '地牢等级', id: 'expeditionLevel', val: '1级', highlight: true },
@@ -135,14 +143,35 @@ export function createHudPanelsExpeditionQuestReward() {
     rewardPanel.id = 'rewardPanel';
     rewardPanel.className = 'reward-panel';
     rewardPanel.style.display = 'none';
+    rewardPanel.setAttribute('role', 'dialog');
+    rewardPanel.setAttribute('aria-modal', 'true');
+    rewardPanel.setAttribute('aria-labelledby', 'rewardPanelTitle');
+    rewardPanel.setAttribute('aria-describedby', 'rewardPanelSubtitle');
+    const rewardPanelShell = document.createElement('div');
+    rewardPanelShell.className = 'reward-panel-shell';
+    const rewardPanelHeader = document.createElement('header');
+    rewardPanelHeader.className = 'reward-panel-header';
+    const rewardPanelEyebrow = document.createElement('div');
+    rewardPanelEyebrow.className = 'reward-panel-eyebrow';
+    rewardPanelEyebrow.textContent = 'COMPLETION ARCHIVE // REWARD SELECTION';
     const rewardPanelTitle = document.createElement('div');
+    rewardPanelTitle.id = 'rewardPanelTitle';
     rewardPanelTitle.className = 'reward-panel-title';
-    rewardPanelTitle.textContent = '🎉 任务完成 - 选择奖励';
+    rewardPanelTitle.textContent = '任务完成 · 选择奖励';
+    const rewardPanelSubtitle = document.createElement('div');
+    rewardPanelSubtitle.id = 'rewardPanelSubtitle';
+    rewardPanelSubtitle.className = 'reward-panel-subtitle';
+    rewardPanelSubtitle.textContent = '从三份结算档案中选择一项额外奖励，确认后立即发放';
     const rewardCardsContainer = document.createElement('div');
     rewardCardsContainer.className = 'reward-cards-container';
     rewardCardsContainer.id = 'rewardCardsContainer';
-    rewardPanel.appendChild(rewardPanelTitle);
-    rewardPanel.appendChild(rewardCardsContainer);
+    rewardCardsContainer.setAttribute('aria-live', 'polite');
+    rewardPanelHeader.appendChild(rewardPanelEyebrow);
+    rewardPanelHeader.appendChild(rewardPanelTitle);
+    rewardPanelHeader.appendChild(rewardPanelSubtitle);
+    rewardPanelShell.appendChild(rewardPanelHeader);
+    rewardPanelShell.appendChild(rewardCardsContainer);
+    rewardPanel.appendChild(rewardPanelShell);
     root.appendChild(rewardPanel);
 
     return root;

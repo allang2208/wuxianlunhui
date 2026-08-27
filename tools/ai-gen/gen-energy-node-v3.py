@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""世界-122 能源水晶 v3 批量生图调度器（2026-08-16）。
+"""世界-122 旧能源晶簇 v3 批量生图调度器（历史保留）。
+
+运行时已迁移到三种贴地裸露矿脉。正式资产请使用
+`build-energy-vein-runtime-assets.py`；本脚本不得再直接覆盖运行时贴图。
 
 思路：
   1. 程序化绘制 12 张深度控制图——每张一种独立形态（单柱/双生/三冠/团簇/扇簇/尖塔/
      碎晶/环晶/晶脊/斜晶/对裂/野晶），底座统一画成 30° 菱形土堆接地线；
-  2. 每张深度图分别走 FLUX.2 dev + Depth ControlNet + --transparent：
+  2. 每张深度图分别走 FLUX.2 Klein 4B + Depth ControlNet + --transparent：
      normal 12 张 + depleted 12 张（同深度图，只换枯竭态提示词）；
   3. 出图在 Y:\\工作\\无尽轮回\\scratch\\energy-node-v3\\raw\\，--install 时复制到
      assets/terrain/energy_node_v3_<n>.png / energy_node_depleted_v3_<n>.png。
@@ -270,7 +273,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="192.168.3.142")
     ap.add_argument("--port", type=int, default=8188)
-    ap.add_argument("--model", default="flux2-dev-depth")
+    ap.add_argument("--model", default="flux2-klein-4b-depth")
     ap.add_argument("--strength", type=float, default=0.72)
     ap.add_argument("--size", default="1024x1024")
     ap.add_argument("--steps", type=int, default=24)
@@ -282,7 +285,13 @@ def main():
     ap.add_argument("--no-refine", action="store_true", help="透明抠图跳过 BiRefNet/GrabCut 精修（5080 快速出图时推荐）")
     ap.add_argument("--resume", action="store_true", help="已存在 out.png 且 >10KB 则跳过")
     ap.add_argument("--install", action="store_true", help="复制最终抠图到 assets/terrain")
+    ap.add_argument("--allow-legacy-crystal-install", action="store_true",
+                    help="显式允许历史晶簇覆盖运行时资产（仅回退/考古用途）")
     args = ap.parse_args()
+
+    if args.install and not args.allow_legacy_crystal_install:
+        raise SystemExit(
+            "legacy crystal install is disabled; use build-energy-vein-runtime-assets.py")
 
     os.makedirs(DEPTH_DIR, exist_ok=True)
     os.makedirs(RAW_DIR, exist_ok=True)

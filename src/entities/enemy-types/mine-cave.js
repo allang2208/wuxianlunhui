@@ -1,5 +1,7 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
+import { applyBuildingFootprint } from '../../world/building-footprint.js';
+import { setupStructureDepth } from '../../world/structure-depth.js';
 import { summonMonster } from './_shared/summon-helper.js';
 
 /**
@@ -22,8 +24,26 @@ export class MineCave extends Enemy {
 
         // 站桩锁死（集合体同款）
         this.noSeparation = true;
+        this.immovable = true;
         // 贴图自带底座：不生成脚下阴影（GameScene._syncEntityShadows 跳过）
         this._noShadow = true;
+        // 保留 Enemy 的可受伤/刷怪生命周期，只把最终物理体与遮挡切到统一建筑协议。
+        // 旧 collisionRadius + render.collisionWidth/Height/colliderOffset 机制已从配置删除。
+        const renderCfg = this.config?.render || {};
+        this.spriteCfg = {
+            idleKey: 'enemy_mine_cave',
+            size: renderCfg.spriteSize || 128,
+            sizeH: renderCfg.spriteHeight || 102,
+            footOffsetY: renderCfg.footOffsetY ?? 52,
+            visualFootprint: renderCfg.visualFootprint
+                ? { ...renderCfg.visualFootprint }
+                : null,
+            autoFootprint: false,
+        };
+        this.footOffsetY = this.spriteCfg.footOffsetY;
+        applyBuildingFootprint(this, 1);
+        setupStructureDepth(this);
+        this.rebuildCollider();
         // 常驻状态免疫：免疫一切 buff/debuff（DamageableEntity 统一拦截）
         this.applyStatusImmune(Number.MAX_SAFE_INTEGER);
         this._anchorX = x;
@@ -69,45 +89,51 @@ export class MineCave extends Enemy {
 
         // 洞口绿烟
         this._ensureSmoke();
+        if (this._smokeEmitter?.active) {
+            const caveDepth = Number.isFinite(this._structureRenderDepth)
+                ? this._structureRenderDepth
+                : (Number.isFinite(this._faceDepth) ? this._faceDepth : this.y + 11);
+            this._smokeEmitter.setDepth(caveDepth + 0.01);
+        }
 
         // 定时生成矿工（每 10s）
         this._spawnTimer -= dt;
         if (this._spawnTimer <= 0) {
-            this._spawnTimer = this._spawnInterval;
-            this._spawnMiner();
+            this._spawnTimer = this._spawnMiner() ? this._spawnInterval : 500;
         }
         // 定时生成提灯（每 45s）
         this._lanternSpawnTimer -= dt;
         if (this._lanternSpawnTimer <= 0) {
-            this._lanternSpawnTimer = this._lanternSpawnInterval;
-            this._spawnLanternMiner();
+            this._lanternSpawnTimer = this._spawnLanternMiner() ? this._lanternSpawnInterval : 500;
         }
     }
 
     _spawnMiner() {
-        summonMonster(this, {
+        if (typeof this._spawnFactory !== 'function') return true;
+        return summonMonster(this, {
             factory: this._spawnFactory,
             count: 1,
             mode: 'forward',
-            radius: 15,
+            radius: enemyConfigData.minerZombie?.collisionRadius ?? 36.3,
             forwardX: this._spawnForwardX,
             forwardDirX: this._spawnDirX,
             tag: 'mineCave_miner',
             playFx: true,
-        });
+        }).length > 0;
     }
 
     _spawnLanternMiner() {
-        summonMonster(this, {
+        if (typeof this._lanternSpawnFactory !== 'function') return true;
+        return summonMonster(this, {
             factory: this._lanternSpawnFactory,
             count: 1,
             mode: 'forward',
-            radius: 15,
+            radius: enemyConfigData.lanternMinerZombie?.collisionRadius ?? 38.75,
             forwardX: this._spawnForwardX,
             forwardDirX: this._spawnDirX,
             tag: 'mineCave_lantern',
             playFx: true,
-        });
+        }).length > 0;
     }
 
     /** 召唤物生成点黑色粒子（地牢刷怪同款 playDungeonSpawnParticles） */
@@ -139,8 +165,11 @@ export class MineCave extends Enemy {
             lifespan: cfg.lifespan ?? 4000,
             blendMode: 'ADD',
         });
-        // 高于矿洞贴图（实体 depth = 脚底 Y+10），低于前景实体
-        em.setDepth(this.y + 11);
+        // 绿烟跟随标准建筑主体 depth；不再假设旧单位脚底 y+10。
+        const caveDepth = Number.isFinite(this._structureRenderDepth)
+            ? this._structureRenderDepth
+            : (Number.isFinite(this._faceDepth) ? this._faceDepth : this.y + 11);
+        em.setDepth(caveDepth + 0.01);
         em.addToUpdateList();
         this._smokeEmitter = em;
     }
@@ -162,11 +191,9 @@ export class MineCave extends Enemy {
 
     _getPhaserOptions() {
         const renderCfg = this.config?.render || {};
-        const spriteSize = renderCfg.spriteSize || 400;
+        const spriteSize = renderCfg.spriteSize || 128;
         return {
             spriteSize,
-            collisionWidth: renderCfg.collisionWidth || 200,
-            collisionHeight: renderCfg.collisionHeight || 100,
             textOffsetY: -spriteSize / 2 - 10,
             flipX: this._spawnDirX < 0, // 召唤方向朝左时镜像贴图（洞口朝向与出怪一致）
             animState: 'idle',

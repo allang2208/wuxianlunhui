@@ -40,6 +40,7 @@
     "cavalry": 950,
     "portal": 900,
     "troopProducer": 650,
-    "defenseTower": 1200
+    "defenseTower": 1200,
+    "drone": 900
   }
 }

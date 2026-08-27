@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_crossbow_20260827\\references\\hamster-crossbow-moving-keyframe-v02-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_crossbow_20260827\\prompts\\moving-doubao-v02-action-keyframe.txt",
+  "promptChars": 2697,
+  "promptSha256": "3175a57179af69d7d51c3009f7f0a6eb7fcbf24ce350894b0ee6dd7e812b7b68",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T01:44:29.090Z",
+  "sourceUrlScheme": "https"
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rank true same-phase loop endpoints in a white-background character video."""
+"""Rank true same-phase loop endpoints in white- or green-background videos."""
 
 from __future__ import annotations
 
@@ -16,8 +16,17 @@ def decode(path: Path) -> list[np.ndarray]:
         return [frame.to_ndarray(format="rgb24") for frame in container.decode(video=0)]
 
 
-def normalize_subject(frame: np.ndarray, size: int = 256, target_height: int = 224):
-    distance = 255 - frame.min(axis=2)
+def normalize_subject(
+    frame: np.ndarray,
+    size: int = 256,
+    target_height: int = 224,
+    background: str = "white",
+):
+    if background == "green":
+        matte = np.array([0, 255, 0], dtype=np.int16)
+        distance = np.linalg.norm(frame.astype(np.int16) - matte, axis=2)
+    else:
+        distance = 255 - frame.min(axis=2)
     rough = (distance > 18).astype(np.uint8)
     rough = cv2.morphologyEx(rough, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
     count, labels, stats, _ = cv2.connectedComponentsWithStats(rough, 8)
@@ -34,6 +43,7 @@ def normalize_subject(frame: np.ndarray, size: int = 256, target_height: int = 2
     resized_w = max(1, round(width * scale))
     rgb = cv2.resize(crop, (resized_w, target_height), interpolation=cv2.INTER_AREA)
     alpha = cv2.resize(mask, (resized_w, target_height), interpolation=cv2.INTER_NEAREST)
+    rgb[alpha == 0] = 255
     canvas = np.full((size, size, 3), 255, np.uint8)
     canvas_mask = np.zeros((size, size), np.uint8)
     offset_x = (size - resized_w) // 2
@@ -68,12 +78,16 @@ def main() -> None:
     parser.add_argument("--max-period", type=int, default=32)
     parser.add_argument("--sample-step", type=int, default=1)
     parser.add_argument("--mode", choices=("walking", "maintenance"), required=True)
+    parser.add_argument("--background", choices=("white", "green"), default="white")
     parser.add_argument("--top", type=int, default=20)
     args = parser.parse_args()
 
     frames = decode(args.video)
     end = min(args.end, len(frames) - 1)
-    normalized = {index: normalize_subject(frames[index]) for index in range(args.start, end + 1)}
+    normalized = {
+        index: normalize_subject(frames[index], background=args.background)
+        for index in range(args.start, end + 1)
+    }
     ranked = []
     step = max(1, args.sample_step)
     for start in range(args.start, end + 1):

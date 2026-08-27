@@ -1,27 +1,26 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\wind_power_plant\\refine_48step_from_v02_seed122561\\wind_power_plant\\wind_power_plant_refine_v02_raw.png",
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\dedicated_cutout\\wind_power_plant\\wind_power_plant_body.png",
   "output": "assets\\terrain\\wind_power_plant.png",
-  "method": "green-channel advantage key plus dilated Blender silhouette",
-  "depthMask": "tools\\ai-gen\\_settlement_building_pack_20260821\\wind_power_plant\\wind_power_plant_depth.png",
+  "method": "accepted RGBA alpha preserved; deterministic tight crop only",
   "cropBox": [
-    41,
-    59,
-    976,
-    954
+    31,
+    15,
+    979,
+    939
   ],
   "fileSize": [
-    935,
-    895
+    948,
+    924
   ],
   "alphaBBox": [
     4,
     4,
-    931,
-    891
+    944,
+    920
   ],
   "displayW": 512,
-  "displayH": 490,
-  "footOffsetY": 243,
-  "scaleX": 0.5475935828877005,
-  "scaleY": 0.547486033519553
+  "displayH": 499,
+  "footOffsetY": 247,
+  "scaleX": 0.540084388185654,
+  "scaleY": 0.54004329004329
 }

@@ -1,0 +1,61 @@
+{
+  "version": 4,
+  "base": {
+    "key": "floor_sand_seamless",
+    "src": "assets/terrain/floor_sand_seamless.png",
+    "backgroundColor": "#160f0a",
+    "textureScaleY": 0.5774
+  },
+  "detailLayer": {
+    "enabled": true,
+    "key": "desert_terrain_detail_tiles",
+    "src": "assets/terrain/desert_terrain_detail_tiles.png",
+    "frameWidth": 128,
+    "frameHeight": 64,
+    "frameCount": 3,
+    "displayWidth": 130,
+    "displayHeight": 65,
+    "density": 0.14,
+    "alpha": 0.88,
+    "seedSalt": 18847,
+    "frameWeights": [0.85, 0.8, 0.75],
+    "grid": {
+      "originX": 4232,
+      "originY": 4080,
+      "stepX": 128,
+      "stepY": 32,
+      "rowOffsetX": 64
+    },
+    "edgeInset": 72
+  },
+  "deco": {
+    "placementMode": "world-grid",
+    "cellSize": 248,
+    "density": 0.62,
+    "jitterMin": 0.18,
+    "jitterMax": 0.82,
+    "scaleJitter": 0.14,
+    "edgeInset": 96,
+    "seedSalt": 27183,
+    "assets": [
+      { "key": "desert_prop_pebbles_0", "src": "assets/terrain/desert-props/desert_prop_pebbles_0.png", "weight": 1.35, "size": 82, "originY": 0.875 },
+      { "key": "desert_prop_pebbles_1", "src": "assets/terrain/desert-props/desert_prop_pebbles_1.png", "weight": 1.25, "size": 78, "originY": 0.875 },
+      { "key": "desert_prop_dry_branch", "src": "assets/terrain/desert-props/desert_prop_dry_branch.png", "weight": 0.2, "size": 88, "originY": 0.875 },
+      { "key": "desert_prop_bone_scatter", "src": "assets/terrain/desert-props/desert_prop_bone_scatter.png", "weight": 0.48, "size": 82, "originY": 0.875 },
+      { "key": "desert_prop_clay_shards", "src": "assets/terrain/desert-props/desert_prop_clay_shards.png", "weight": 0.65, "size": 76, "originY": 0.875 },
+      { "key": "desert_prop_dead_root", "src": "assets/terrain/desert-props/desert_prop_dead_root.png", "weight": 0.4, "size": 92, "originY": 0.875 },
+      { "key": "desert_prop_stone_slab", "src": "assets/terrain/desert-props/desert_prop_stone_slab.png", "weight": 0.85, "size": 86, "originY": 0.875 },
+      { "key": "desert_prop_sandstone_chunks", "src": "assets/terrain/desert-props/desert_prop_sandstone_chunks.png", "weight": 0.8, "size": 88, "originY": 0.875 },
+      { "key": "desert_prop_thorn_scrub", "src": "assets/terrain/desert-props/desert_prop_thorn_scrub.png", "weight": 0.5, "size": 94, "originY": 0.875 },
+      { "key": "desert_prop_dry_grass_tuft", "src": "assets/terrain/desert-props/desert_prop_dry_grass_tuft.png", "weight": 0.65, "size": 80, "originY": 0.875 },
+      { "key": "desert_prop_animal_skull", "src": "assets/terrain/desert-props/desert_prop_animal_skull.png", "weight": 0.28, "size": 82, "originY": 0.875 },
+      { "key": "desert_prop_rib_cage", "src": "assets/terrain/desert-props/desert_prop_rib_cage.png", "weight": 0.25, "size": 90, "originY": 0.875 },
+      { "key": "desert_prop_broken_pot", "src": "assets/terrain/desert-props/desert_prop_broken_pot.png", "weight": 0.42, "size": 78, "originY": 0.875 },
+      { "key": "desert_prop_weathered_jar", "src": "assets/terrain/desert-props/desert_prop_weathered_jar.png", "weight": 0.32, "size": 76, "originY": 0.875 },
+      { "key": "desert_prop_rusted_scrap", "src": "assets/terrain/desert-props/desert_prop_rusted_scrap.png", "weight": 0.35, "size": 84, "originY": 0.875 },
+      { "key": "desert_prop_rope_coil", "src": "assets/terrain/desert-props/desert_prop_rope_coil.png", "weight": 0.38, "size": 76, "originY": 0.875 },
+      { "key": "desert_prop_cloth_scrap", "src": "assets/terrain/desert-props/desert_prop_cloth_scrap.png", "weight": 0.45, "size": 82, "originY": 0.875 },
+      { "key": "desert_prop_salt_crystals", "src": "assets/terrain/desert-props/desert_prop_salt_crystals.png", "weight": 0.55, "size": 78, "originY": 0.875 }
+    ]
+  }
+}

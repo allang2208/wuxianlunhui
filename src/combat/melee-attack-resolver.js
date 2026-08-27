@@ -242,15 +242,36 @@ export function createBasicMeleeTimeline(source) {
         activeStartFrame,
         clampFrame(configuredActive[1] ?? configuredActive[0])
     );
+    const configuredFrameDurations = Array.isArray(configured.frameDurations)
+        ? configured.frameDurations
+        : (Array.isArray(layout.frameDurations) ? layout.frameDurations : null);
+    const frameDurations = configuredFrameDurations?.length === frameCount
+        && configuredFrameDurations.every(value => finiteNumber(value, 0) > 0)
+        ? configuredFrameDurations.map(value => finiteNumber(value, 1))
+        : null;
+    const resolvedDurationMs = frameDurations
+        ? frameDurations.reduce((sum, value) => sum + value, 0)
+        : durationMs;
+    const frameStartMs = frameDurations
+        ? frameDurations.reduce((starts, _value, index) => {
+            if (index > 0) starts.push(starts[index - 1] + frameDurations[index - 1]);
+            return starts;
+        }, [0])
+        : null;
+    const frameBoundaryMs = (frame) => frameStartMs
+        ? (frame >= frameCount ? resolvedDurationMs : frameStartMs[frame])
+        : resolvedDurationMs * frame / frameCount;
     return {
-        durationMs,
+        durationMs: resolvedDurationMs,
         frameCount,
+        frameDurations,
+        frameStartMs,
         contactFrame,
         activeStartFrame,
         activeEndFrame,
-        contactMs: durationMs * contactFrame / frameCount,
-        activeStartMs: durationMs * activeStartFrame / frameCount,
-        activeEndMs: durationMs * (activeEndFrame + 1) / frameCount,
+        contactMs: frameBoundaryMs(contactFrame),
+        activeStartMs: frameBoundaryMs(activeStartFrame),
+        activeEndMs: frameBoundaryMs(activeEndFrame + 1),
         rebaseOnImpact: configured.rebaseOnImpact === true,
     };
 }
@@ -268,10 +289,14 @@ export function stepBasicMeleeTimeline(pending, dt) {
         previousMs + Math.max(0, finiteNumber(dt, 0))
     );
     pending.timelineElapsedMs = elapsedMs;
-    const frameIndex = Math.min(
+    let frameIndex = Math.min(
         timeline.frameCount - 1,
         Math.floor(elapsedMs / timeline.durationMs * timeline.frameCount)
     );
+    if (timeline.frameStartMs) {
+        frameIndex = timeline.frameStartMs.findLastIndex(startMs => elapsedMs >= startMs);
+        frameIndex = Math.max(0, Math.min(timeline.frameCount - 1, frameIndex));
+    }
     const shouldCheckImpact = previousMs < timeline.activeEndMs
         && elapsedMs >= timeline.activeStartMs;
     const shouldEmitContactCue = previousMs < timeline.contactMs

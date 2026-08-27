@@ -1,0 +1,7 @@
+Keep the exact hamster champion identity from the reference image: tan-and-white hamster, weathered Roman legionary segmented armor, layered shoulder guards, red tunic and pteruges, red helmet crest, metal greaves, and brown armored leather boots covering both feet. Keep the exact Scottish Highland two-handed claymore: long straight double-edged blade, forward-sloping quatrefoil guard, leather two-hand grip, and wheel pommel.
+
+Animate a steady in-place combat run facing right. Left and right legs alternate naturally in one regular two-step cycle. Both hands continuously hold the same claymore diagonally forward. The Roman greaves and armored leather boots must remain fully present on both legs in every frame; the feet must never become bare paws, bare toes, or unarmored animal feet. Armor plates, boots, straps, red crest, sword blade, guard, grip, and pommel remain rigidly coherent without changing shape, disappearing, or swapping sides. Keep the same body proportions and the same right-facing three-quarter view.
+
+Full hamster and full sword remain inside frame with generous margins. Static camera, fixed scale, fixed horizontal position, pure white background, soft even light. Begin and finish on the same running phase for a seamless loop.
+
+No sliding, no forward travel across the canvas, no turning toward camera, no bare feet, no missing greaves, no missing boots, no shield, axe, spear, halberd, extra weapon, extra limbs, weapon morphing, camera tracking, zoom, crop, ground shadow, scenery, text, or watermark.

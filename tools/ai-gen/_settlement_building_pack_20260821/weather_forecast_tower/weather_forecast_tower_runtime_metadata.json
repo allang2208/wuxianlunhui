@@ -1,0 +1,41 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\weather_forecast_tower_runtime_style_refine_48_raw\\weather_forecast_tower_refine48_v01.png",
+  "output": "assets\\terrain\\weather_forecast_tower.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    201,
+    91,
+    807,
+    809
+  ],
+  "fileSize": [
+    606,
+    718
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    602,
+    714
+  ],
+  "displayW": 256,
+  "displayH": 303,
+  "footOffsetY": 150,
+  "scaleX": 0.42244224422442245,
+  "scaleY": 0.4220055710306407
+}

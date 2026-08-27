@@ -1,0 +1,30 @@
+{
+  "asset": "hamster_ninja",
+  "stage": "identity_mother_candidate",
+  "version": 2,
+  "generatedAt": "2026-08-26",
+  "generator": "built-in ImageGen precise edit stage",
+  "animationProviderPlanned": "doubao-desktop",
+  "animationModelPlanned": "Seedance 2.0 Mini",
+  "editTarget": "hamster-ninja-mother-v01.png",
+  "editScope": "head wrap and eye slit only",
+  "prompt": "hamster-ninja-mother-v02-eye-wrap-edit-prompt.txt",
+  "promptSha256": "7fe2435abddaa9657441a2a7a01107e444177bf0f7cde3bfbdc9b91a2a340fd4",
+  "output": "hamster-ninja-mother-v02.png",
+  "outputSha256": "deed0e4290da68d2c044788b5b8378c3380d97a32349c5020b88c439880c8851",
+  "canvas": {
+    "width": 1672,
+    "height": 941,
+    "format": "PNG"
+  },
+  "status": "superseded_by_v03_readability_refinement",
+  "runtimeIntegrationActive": false,
+  "requestedAnimations": [
+    "idle",
+    "running",
+    "attacking",
+    "dying",
+    "smoke_bomb_at_feet"
+  ],
+  "notes": "Approved mother identity will be prepared as a clean reference for five separate Doubao Seedance action videos."
+}

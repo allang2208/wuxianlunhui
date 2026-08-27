@@ -6,8 +6,11 @@
  */
 export const WORLD_RENDER_LAYERS = Object.freeze({
     TERRAIN: -1000,
-    FIELD: -996,
     ROAD: -995,
+    ROAD_EDGE: -994.95,
+    ROAD_DECAL: -994.9,
+    // 农田菱形会与相邻道路产生像素重叠，必须盖过完整道路层族。
+    FIELD: -994.85,
     GROUND_RANGE: -994.8,
     STRUCTURE_SHADOW: -994.4,
     GROUND_WEATHER: -994.3,

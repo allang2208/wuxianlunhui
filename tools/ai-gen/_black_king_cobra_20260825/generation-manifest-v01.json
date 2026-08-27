@@ -1,0 +1,106 @@
+{
+  "assetId": "black_king_cobra",
+  "stage": "runtime_integrated",
+  "version": "v01",
+  "createdDate": "2026-08-25",
+  "mother": {
+    "generator": "Codex built-in image_gen",
+    "generatorModel": "not exposed by built-in tool",
+    "seed": null,
+    "promptFile": "mother-prompt-v01.txt",
+    "outputFile": "mother-v01.png",
+    "accepted": true,
+    "acceptedDate": "2026-08-25"
+  },
+  "references": {
+    "acceptedMother": "references/black-king-cobra-mother-accepted.png",
+    "idle": "references/black-king-cobra-idle-white.png",
+    "walkingSource": "references/black-king-cobra-walking-source-white.png",
+    "walking": "references/black-king-cobra-walking-white.png",
+    "attacking": "references/black-king-cobra-attacking-white.png",
+    "dying": "references/black-king-cobra-dying-white.png"
+  },
+  "videoStandard": {
+    "size": "1024x576",
+    "durationSeconds": 5,
+    "doubaoFirst": true,
+    "fallback": "H3 only after actual Doubao quota or permission blocking, explicit user selection, or special quality need",
+    "currentDoubaoModel": "Seedance 2.0 Mini"
+  },
+  "states": {
+    "idle": {
+      "provider": "h3",
+      "model": "MiniMax H3",
+      "file": "video/black-king-cobra-idle-h3.mp4",
+      "sha256": "82c92a5fb1b9a672307660f35e932bf52c0faaf87939415b77a8a16d399ae3a6",
+      "seed": 836204117,
+      "frames": 124,
+      "loopRequested": true,
+      "prompt": "prompts/black-king-cobra-idle.txt",
+      "reference": "references/black-king-cobra-idle-white.png",
+      "preview": "previews/black-king-cobra-idle-contact.png",
+      "note": "Completed before the user changed the default provider rule to Doubao-first."
+    },
+    "walking": {
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "file": "video/black-king-cobra-walking-doubao.mp4",
+      "sha256": "a772b7ea959f808aa5dd798ab879739f44313e921718773da28cf4e2c54d1fed",
+      "frames": 121,
+      "loopRequested": true,
+      "prompt": "prompts/black-king-cobra-walking.txt",
+      "reference": "references/black-king-cobra-walking-white.png",
+      "provenance": "video/black-king-cobra-walking-doubao.mp4.json",
+      "preview": "previews/black-king-cobra-walking-contact.png"
+    },
+    "attacking": {
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "file": "video/black-king-cobra-attacking-doubao.mp4",
+      "sha256": "c9502e6d9483c91e1d5eaed850d43688d5a9c701b1b8f839a476975621b81262",
+      "frames": 121,
+      "loopRequested": true,
+      "prompt": "prompts/black-king-cobra-attacking.txt",
+      "reference": "references/black-king-cobra-attacking-white.png",
+      "provenance": "video/black-king-cobra-attacking-doubao.mp4.json",
+      "preview": "previews/black-king-cobra-attacking-contact.png"
+    },
+    "dying": {
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "file": "video/black-king-cobra-dying-doubao.mp4",
+      "sha256": "f07466ad9a160823b65a931344447be8b6bacf4996f4573089a29269ce370d87",
+      "frames": 121,
+      "loopRequested": false,
+      "prompt": "prompts/black-king-cobra-dying.txt",
+      "reference": "references/black-king-cobra-dying-white.png",
+      "provenance": "video/black-king-cobra-dying-doubao.mp4.json",
+      "preview": "previews/black-king-cobra-dying-contact.png"
+    }
+  },
+  "supersededAttempts": [
+    {
+      "state": "walking",
+      "provider": "h3",
+      "seed": 1457338902,
+      "result": "local wait terminated immediately after the user changed the provider standard; no MP4 retained or delivered"
+    }
+  ],
+  "runtimeIntegrated": true,
+  "spriteSheetsBuilt": true,
+  "sheetManifest": "sheet-manifest.json",
+  "runtimeAssets": {
+    "idle": "assets/enemies/black_king_cobra/idle.png",
+    "walking": "assets/enemies/black_king_cobra/walking.png",
+    "attacking": "assets/enemies/black_king_cobra/attacking.png",
+    "dying": "assets/enemies/black_king_cobra/dying.png"
+  },
+  "notes": [
+    "Ordinary non-magical adult black king cobra with a realistic PBR game-asset style.",
+    "Idle preserves the accepted one-and-a-half-turn raised coil; walking uses an identity-preserving horizontal side reference.",
+    "Doubao source videos contained a pale floor, contact shadow and corner mark; BiRefNet maximum-component extraction removed them from runtime content.",
+    "The user's follow-up moved directly into combat setup, which accepted the four state videos and opened the sprite/runtime stage.",
+    "Attack source frame 77 is the measured farthest-forward head pose and maps to zero-based runtime release frame 13.",
+    "Walking uses one 0.448 state-level scale correction because its separately prepared source was 2.25x thicker than the shared coiled-state baseline; no per-frame scaling is used."
+  ]
+}

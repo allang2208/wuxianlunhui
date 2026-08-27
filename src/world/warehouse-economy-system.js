@@ -1,3 +1,4 @@
+import populationEconomyConfig from '../../data/population-economy.json';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { TechnologySystem } from './technology-system.js';
@@ -13,6 +14,13 @@ function moduleValue(building, moduleId) {
         Math.max(0, Math.floor(Number(module.maxLevel) || 0))
     );
     return (Number(module.base) || 0) + (Number(module.per) || 0) * level;
+}
+
+function warehouseLevelConfig(building) {
+    const levels = populationEconomyConfig.warehouse?.levels || [];
+    if (levels.length <= 0) return null;
+    const level = Math.max(1, Math.floor(Number(building?._economyLevel) || 1));
+    return levels.find((entry) => Number(entry.level) === level) || levels[levels.length - 1];
 }
 
 export const WarehouseEconomySystem = {
@@ -48,9 +56,20 @@ export const WarehouseEconomySystem = {
         return getBuildingModuleUpgradeCost(building?._cfg, moduleId, this.getModuleLevel(building, moduleId));
     },
 
-    getCapacity(building) {
-        return Math.max(0, Math.floor(moduleValue(building, 'warehouse_capacity')
+    getLevelConfig(building) {
+        return warehouseLevelConfig(building);
+    },
+
+    getBaseCapacity(building) {
+        return Math.max(0, Math.floor(Number(warehouseLevelConfig(building)?.storageCapacity)
             || Number(building?._cfg?.storageCapacity) || 0));
+    },
+
+    getCapacity(building) {
+        return Math.max(0, Math.floor(
+            this.getBaseCapacity(building)
+            + Math.max(0, moduleValue(building, 'warehouse_capacity'))
+        ));
     },
 
     getEnergyFactor(building) {

@@ -1,45 +1,55 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\armory\\refine_48step_seed123162\\armory_refine48_from123162_seed1231622_raw.png",
-  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\armory\\armory_runtime.png",
-  "sourceMode": "RGB",
-  "background": [
-    253,
-    235,
-    0
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\final_cutout_trials\\armory_t40_enclosed\\armory_t40_enclosed_body.png",
+  "output": "assets\\terrain\\armory.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    254,
+    231,
+    6
   ],
-  "matteColor": null,
   "matteEdgeWidth": 4.0,
-  "matteTolerance": 165.0,
+  "matteTolerance": 110.0,
   "nearestOpaqueEdgeRgb": true,
   "nearestOpaqueAlpha": 0.98,
-  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\armory\\armory_depth.png",
-  "maskDilate": 0,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
   "fillAlphaHoles": false,
   "fillHoleMatteDistance": null,
-  "removeEnclosedMatte": true,
-  "enclosedMatteChromaDistance": 0.085,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
   "maskAddRects": [],
   "restoreAlphaRects": [],
   "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
   "cropBox": [
     71,
-    169,
-    954,
+    168,
+    953,
     920
   ],
   "fileSize": [
-    883,
-    751
+    882,
+    752
   ],
   "alphaBBox": [
     4,
     4,
-    879,
-    747
+    878,
+    748
   ],
   "displayW": 288,
-  "displayH": 245,
+  "displayH": 246,
   "footOffsetY": 121,
-  "scaleX": 0.3261608154020385,
-  "scaleY": 0.3262316910785619
+  "scaleX": 0.32653061224489793,
+  "scaleY": 0.3271276595744681
 }

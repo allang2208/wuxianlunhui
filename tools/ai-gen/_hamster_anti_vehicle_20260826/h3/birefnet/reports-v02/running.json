@@ -1,0 +1,41 @@
+{
+  "action": "running",
+  "video": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_running_h3.mp4",
+  "sourceFrames": [
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64
+  ],
+  "appendedIdleRegeneration": false,
+  "sourceFrameCount": 12,
+  "scale": 0.9579439252336449,
+  "alphaPixelsPerFrame": [
+    56589,
+    61036,
+    55456,
+    52880,
+    57252,
+    60977,
+    55350,
+    53138,
+    58940,
+    58259,
+    51941,
+    53686
+  ],
+  "emptyFrames": [],
+  "touchingFrames": [],
+  "alphaBottomMin": 458,
+  "alphaBottomMax": 459,
+  "transparentRgbMax": 0,
+  "pipeline": "BiRefNet-general alpha plus white-background foreground decontamination"
+}

@@ -1,0 +1,71 @@
+{
+  "pipeline": "Blender geometry -> transparent render -> spritesheet assembly",
+  "editableModel": "zombie_dungeon_wall_kit.blend",
+  "gatePolicy": "bare six-cell iron leaf; matching endpoint jambs come from runtime zombie wall blocks; three depth slices",
+  "geometry": {
+    "wall": {
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "wallH": 132,
+      "halfThick": 13
+    },
+    "gate": {
+      "canvas": [
+        640,
+        640
+      ],
+      "frames": 16,
+      "base": [
+        [
+          32.0003,
+          299.9994
+        ],
+        [
+          608.0002,
+          588.0004
+        ]
+      ],
+      "gateX": [
+        32,
+        608
+      ],
+      "wallH": 225.7447,
+      "slope": 0.500002,
+      "halfThick": 13,
+      "depthSlices": 3
+    }
+  },
+  "modelRenderAssets": {
+    "zombie_wall_block.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "236dbe5c9ec9ef4b4ac199bd2b77779e63d81e05c3070752a8c1d7e1416c83c9"
+    },
+    "zombie_gate.png": {
+      "size": [
+        2560,
+        2560
+      ],
+      "frameSize": [
+        640,
+        640
+      ],
+      "frames": 16,
+      "sha256": "2f6e24fc651ac8222b4bee262f4c8607782618cada054e882cf851dc6020015d"
+    }
+  },
+  "preview": "preview.png",
+  "diamondPreview": "diamond-preview.png"
+}

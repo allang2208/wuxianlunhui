@@ -1,0 +1,22 @@
+{
+  "resident_01": {
+    "idle": [57, 100],
+    "walking": [50, 79]
+  },
+  "resident_02": {
+    "idle": [93, 120],
+    "walking": [66, 115]
+  },
+  "resident_03": {
+    "idle": [82, 115],
+    "walking": [46, 76]
+  },
+  "resident_04": {
+    "idle": [92, 112],
+    "walking": [71, 96]
+  },
+  "resident_05": {
+    "idle": [97, 120],
+    "walking": [85, 117]
+  }
+}

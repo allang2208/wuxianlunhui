@@ -68,6 +68,17 @@ function warningHours(config) {
     return Math.max(0, leadDays) * 24;
 }
 
+function ensurePlannedDurationDays() {
+    if (state.durationDays > 0) return state.durationDays;
+    state.durationDays = randomInRange(rangeOf(sandstormConfig().durationDays, 1, 2));
+    return state.durationDays;
+}
+
+function durationLabel(durationDays) {
+    const days = Math.max(0, Number(durationDays) || 0);
+    return days >= 1 ? `${days.toFixed(1)} 天` : `${(days * 24).toFixed(1)} 小时`;
+}
+
 function scheduleNext(fromGameTimeMs) {
     const config = sandstormConfig();
     const interval = rangeOf(config.intervalDays, 3, 6);
@@ -79,13 +90,11 @@ function scheduleNext(fromGameTimeMs) {
     state.warningAtGameTimeMs = Math.max(fromGameTimeMs, nextStartAt - leadMs);
     state.startedAtGameTimeMs = null;
     state.activeUntilGameTimeMs = null;
-    state.durationDays = 0;
+    state.durationDays = randomInRange(rangeOf(config.durationDays, 1, 2));
 }
 
 function beginStorm(startAtGameTimeMs, { source = 'random', notifyPlayer = true } = {}) {
-    const config = sandstormConfig();
-    const duration = rangeOf(config.durationDays, 1, 2);
-    const durationDays = randomInRange(duration);
+    const durationDays = ensurePlannedDurationDays();
     const startAt = Math.max(0, Number(startAtGameTimeMs) || 0);
     state.phase = 'active';
     state.nextStartAtGameTimeMs = null;
@@ -111,6 +120,8 @@ function endStorm(endedAtGameTimeMs, notifyPlayer = true) {
 }
 
 export const World122SandstormSystem = {
+    forecastSceneIds: [TARGET_SCENE_ID],
+
     reset() {
         state = initialState();
     },
@@ -174,6 +185,44 @@ export const World122SandstormSystem = {
         const value = Number(configuredValue);
         return configuredValue !== null && configuredValue !== undefined && Number.isFinite(value)
             ? Math.max(0, value) : 0.5;
+    },
+
+    getForecastEvents({
+        sceneId = TARGET_SCENE_ID,
+        nowGameTimeMs = currentGameTimeMs(),
+        horizonEndGameTimeMs = Number.POSITIVE_INFINITY,
+        showDuration = false,
+    } = {}) {
+        if (sceneId !== TARGET_SCENE_ID || sandstormConfig().enabled === false) return [];
+        const now = Math.max(0, Number(nowGameTimeMs) || 0);
+        this.update(now, { notifyPlayer: false });
+        const active = state.phase === 'active';
+        const startsAtGameTimeMs = active
+            ? state.startedAtGameTimeMs : state.nextStartAtGameTimeMs;
+        if (!hasFiniteTime(startsAtGameTimeMs)) return [];
+        if (!active && Number(startsAtGameTimeMs) > Number(horizonEndGameTimeMs)) return [];
+        const durationDays = ensurePlannedDurationDays();
+        const endsAtGameTimeMs = active
+            ? state.activeUntilGameTimeMs
+            : Number(startsAtGameTimeMs) + durationDays * dayDurationMs();
+        return [{
+            id: `sandstorm:${TARGET_SCENE_ID}:${Math.floor(Number(startsAtGameTimeMs))}`,
+            sceneId: TARGET_SCENE_ID,
+            worldName: GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界122',
+            weatherKind: 'special',
+            specialWeatherId: 'sandstorm',
+            icon: '🌪',
+            label: `${GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界122'} · 沙尘暴`,
+            intensityId: 'disaster',
+            intensityName: '沙尘暴',
+            startsAtGameTimeMs: Number(startsAtGameTimeMs),
+            atGameTimeMs: active ? now : Number(startsAtGameTimeMs),
+            endsAtGameTimeMs: active || showDuration ? Number(endsAtGameTimeMs) : undefined,
+            durationLabel: showDuration ? durationLabel(durationDays) : null,
+            warningLevel: 'critical',
+            warningLabel: '沙尘暴灾害预警',
+            status: active ? 'active' : 'upcoming',
+        }];
     },
 
     serialize() {

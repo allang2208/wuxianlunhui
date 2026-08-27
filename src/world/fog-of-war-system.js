@@ -216,11 +216,11 @@ function castShadowOctant(state, target, occlusion, originColumn, originRow, dis
     }
 }
 
-function revealWithOcclusion(state, target, entity, radius, occlusion) {
+function revealWithOcclusion(state, target, entity, radius, occlusion, ignoreOcclusion = false) {
     const x = Number(entity?.x);
     const y = Number(entity?.y);
     if (!Number.isFinite(x) || !Number.isFinite(y) || radius <= 0) return;
-    if (!occlusion || occlusion.blockedCells <= 0) {
+    if (ignoreOcclusion || !occlusion || occlusion.blockedCells <= 0) {
         revealCircle(state, target, x, y, radius);
         return;
     }
@@ -327,15 +327,24 @@ export const FogOfWarSystem = {
                 rawSourceCount += 1;
                 const column = Math.floor(position.x / state.cellSize);
                 const row = Math.floor(position.y / state.cellSize);
-                const key = column + row * state.columns;
+                const ignoreOcclusion = VisionSourceRegistry.ignoresOcclusion(entity);
+                // 高空和普通视野同格时必须分别计算，避免普通源吞掉高空开雾。
+                const key = `${column + row * state.columns}:${ignoreOcclusion ? 1 : 0}`;
                 const existing = uniqueSources.get(key);
                 if (!existing || radius > existing.radius) {
-                    uniqueSources.set(key, { entity, radius });
+                    uniqueSources.set(key, { entity, radius, ignoreOcclusion });
                 }
             }
         }
         for (const source of uniqueSources.values()) {
-            revealWithOcclusion(state, nextVisible, source.entity, source.radius, occlusion);
+            revealWithOcclusion(
+                state,
+                nextVisible,
+                source.entity,
+                source.radius,
+                occlusion,
+                source.ignoreOcclusion
+            );
         }
         const sourceCount = uniqueSources.size;
 

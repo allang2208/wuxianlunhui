@@ -456,10 +456,39 @@ class Combatant extends DamageableEntity {
         }
         // 与玩家路径（player/update.js）同口径：时长全部读武器 heatParams，
         // 不再硬编码 3 秒冷却（旧实现忽略配置，冷却恒为 3000ms）
-        const hp = weapon.heatParams || {};
-        const overheatTime = Math.max(500, hp.overheatTime || 5000);
-        const cooldownTime = Math.max(500, hp.overheatCooldownTime || hp.overheatRecoverTime || 1500);
-        const recoverTime = Math.max(500, hp.overheatRecoverTime || hp.overheatCooldownTime || 1500);
+        const hp = weapon.heatParams || weapon.energyLMGParams || {};
+        const ce = weapon._craftEffects || {};
+        const recoverPercent = 1 + (Number(ce.overheatRecoverPercent) || 0);
+        const overheatTime = Math.max(500,
+            (Number(hp.overheatTime) || 5000) + (Number(ce.overheatTimeDelta) || 0));
+        const cooldownTime = Math.max(500,
+            ((Number(hp.overheatCooldownTime) || Number(hp.overheatRecoverTime) || 1500)
+                + (Number(ce.overheatRecoverDelta) || 0)) * recoverPercent);
+        const recoverTime = Math.max(500,
+            ((Number(hp.overheatRecoverTime) || Number(hp.overheatCooldownTime) || 1500)
+                + (Number(ce.overheatRecoverDelta) || 0)) * recoverPercent);
+
+        // 红热增压武器只在实际出弹时累积热量；过热后持续开火会锁住红热状态，
+        // 松开扳机、换弹或失去目标后才进入恢复。其他机枪保留原有按时间过热逻辑。
+        if (weapon.overdriveHeatParams) {
+            if (this._overheatOverheated && isFiring) {
+                this._overheatValue = 1;
+                this._overheatRecoverTimer = cooldownTime;
+            } else if (this._overheatOverheated) {
+                this._overheatRecoverTimer -= dt;
+                this._overheatValue = Math.max(0, this._overheatValue - dt / recoverTime);
+                if (this._overheatRecoverTimer <= 0 || this._overheatValue <= 0) {
+                    this._overheatOverheated = false;
+                    this._overheatRecoverTimer = 0;
+                    this._overheatValue = 0;
+                }
+            } else if (!isFiring) {
+                this._overheatValue = Math.max(0, this._overheatValue - dt / cooldownTime);
+            }
+            this._overheatActive = this._overheatValue > 0;
+            this._overheatWeaponType = weapon.weaponType;
+            return;
+        }
 
         if (isFiring && !this._overheatOverheated) {
             // 开火时累积过热
@@ -521,7 +550,8 @@ class Combatant extends DamageableEntity {
         // 检查换弹
         if (this._isReloading(slot)) return false;
         // 检查过热
-        if (this._overheatOverheated && item.weaponType === this._overheatWeaponType) return false;
+        const mayFireOverheated = item.overdriveHeatParams?.continueFiring === true;
+        if (this._overheatOverheated && item.weaponType === this._overheatWeaponType && !mayFireOverheated) return false;
         // 检查冷却
         const attackKey = item.attackKey || item.weaponType;
         if (this.attacks[attackKey] && !this.attacks[attackKey].canUse()) return false;
@@ -762,8 +792,13 @@ class Combatant extends DamageableEntity {
                 droneCritBonus = (effect.critBonusPercent || 10) * this._droneVulnerabilityStacks;
             }
         }
-        const finalCritRate = Math.max(0, critRate + enchantCritBonus + droneCritBonus - critRes);
+        const shotCritBonus = Number(hitContext?.critChanceBonusPercent) || 0;
+        const finalCritRate = Math.max(0, critRate + enchantCritBonus + droneCritBonus + shotCritBonus - critRes);
         const isCrit = Math.random() * 100 < finalCritRate;
+        if (hitContext && typeof hitContext === 'object') {
+            hitContext._resolvedCritTarget = this;
+            hitContext._resolvedCrit = isCrit;
+        }
 
         let finalDamage = damage;
         if (isCrit && source && source.skills && source.skills.criticalStrike) {

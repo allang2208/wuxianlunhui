@@ -1,0 +1,85 @@
+{
+  "sourceFrame": 14,
+  "sourcePolygon": [
+    [
+      222,
+      116
+    ],
+    [
+      247,
+      120
+    ],
+    [
+      266,
+      137
+    ],
+    [
+      278,
+      161
+    ],
+    [
+      275,
+      187
+    ],
+    [
+      260,
+      210
+    ],
+    [
+      235,
+      226
+    ],
+    [
+      209,
+      224
+    ],
+    [
+      185,
+      208
+    ],
+    [
+      165,
+      189
+    ],
+    [
+      161,
+      164
+    ],
+    [
+      171,
+      140
+    ],
+    [
+      194,
+      122
+    ]
+  ],
+  "sourceCrop": [
+    157,
+    110,
+    286,
+    235
+  ],
+  "sourceContentSize": [
+    113,
+    109
+  ],
+  "runtimeCanvas": [
+    256,
+    256
+  ],
+  "runtimeAlphaBBox": [
+    24,
+    27,
+    232,
+    228
+  ],
+  "assetAuthority": "user-processed same-name runtime replacement",
+  "runtimeSha256": "4792B2E6B710129C1D2436343B83D79170A0CD4308E7BD5F03BA85C3E78812D1",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "visiblePixels": 29573,
+  "transparentRgbPixels": 26315
+}

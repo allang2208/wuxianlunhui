@@ -1,0 +1,35 @@
+{
+  "asset": "hamster_ninja",
+  "stage": "identity_mother_candidate",
+  "version": 3,
+  "generatedAt": "2026-08-26",
+  "generator": "built-in ImageGen precise edit stage",
+  "animationProviderPlanned": "doubao-desktop",
+  "animationModelPlanned": "Seedance 2.0 Mini",
+  "editTarget": "hamster-ninja-mother-v02.png",
+  "editScope": "black-clothing value separation, eye shape, and ninjato readability",
+  "prompt": "hamster-ninja-mother-v03-readability-edit-prompt.txt",
+  "promptSha256": "87389c3079fbdf2a287dabc70d88c8cc98f0c10cb4a1839c766603895c62f33b",
+  "output": "hamster-ninja-mother-v03.png",
+  "outputSha256": "469cff4300f27e97ed4c8fa04aedd13c07f5ae28c8c9cf463481d1ac84cf4e76",
+  "canvas": {
+    "width": 1672,
+    "height": 941,
+    "format": "PNG"
+  },
+  "status": "superseded_by_v04_golden_eye_fur",
+  "runtimeIntegrationActive": false,
+  "requestedAnimations": [
+    "idle",
+    "running",
+    "attacking",
+    "dying",
+    "smoke_bomb_at_feet"
+  ],
+  "plannedSpecialEffectSplit": {
+    "characterAnimation": "draw and throw one smoke bomb at the feet",
+    "runtimeVisual": "separate ground smoke anchored to collider.x/y",
+    "combatChange": false
+  },
+  "notes": "This v03 preserves the approved identity while improving low-resolution readability before Doubao action generation."
+}

@@ -710,10 +710,13 @@ check('左键点击=移动+取消选中（game.js）',
     && /setCommand\(PartySystem\.selectedIds, 'move'[\s\S]{0,100}clearSelection\(\)/.test(gameSrc));
 check('右键移动=最高优先级（guard 前打断）', /cmd\.mode === 'hold' \|\| cmd\.mode === 'move'/.test(aiSrc));
 check('右键移动+绿色箭头（game.js）',
-    /Input\.mouse\.rightPressed[\s\S]{0,340}setCommand\(PartySystem\.selectedIds, 'move'[\s\S]{0,220}showMoveMarker/.test(gameSrc)
-    && /showMoveMarker\(rw\.x, rw\.y\)[\s\S]{0,120}rightPressed = false/.test(gameSrc));
+    /Input\.mouse\.rightPressed[\s\S]{0,1800}setCommand\(memberId, 'move'[\s\S]{0,500}showMoveMarker/.test(gameSrc)
+    && /showMoveMarker\([\s\S]{0,120}point\.x, point\.y, point\.z, point\.renderDepth[\s\S]{0,180}rightPressed = false/.test(gameSrc));
 const sceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
-check('GameScene 竖直向下绿色箭头', /showMoveMarker\(x, y\) \{[\s\S]{0,260}0x3dff6a/.test(sceneSrc));
+check('GameScene 高架绿色箭头按地面深度与表面高度渲染',
+    /showMoveMarker\(x, groundY, z = 0, surfaceDepth = null\) \{[\s\S]{0,500}0x3dff6a/.test(sceneSrc)
+    && /displayY = groundY - \(Number\(z\) \|\| 0\)/.test(sceneSrc)
+    && /Math\.max\([\s\S]{0,80}groundY \+ 15[\s\S]{0,100}supportDepth \+ 2/.test(sceneSrc));
 
 // --- 档案恢复保留 AI 配置（2026-08-16：伊莉丝指令“执行了但画面不动”根因回归） ---
 {

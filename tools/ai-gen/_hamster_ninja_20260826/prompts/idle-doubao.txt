@@ -1,0 +1,11 @@
+The exact original anthropomorphic hamster game character from the first frame performs a calm idle loop in place. This is a fictional game character, not a real person. Maintain the same low three-quarter right-facing angle and compact ready stance.
+
+Motion: subtle believable breathing through the chest and shoulders, one or two tiny natural blinks, minimal eye movement, and restrained secondary movement in the cloth belt ends and waist pouch. Both feet remain planted on the same baseline. The pelvis, torso center and root X position remain fixed. No step, no sideways weight travel, no weapon draw and no attack. Complete at least two gentle breathing cycles within the clip.
+
+Identity locks: preserve the exact warm golden-yellow hamster fur visible only in the narrow opening around the eyes and nose bridge, the same two glossy dark-brown eyes, body proportions, fully wrapped black hood and face covering, concealed ears, concealed muzzle, concealed nose and concealed whiskers. Preserve the layered charcoal-black shinobi clothing, black gloves, wrapped boots, waist pouch and exactly one short ninjato fully sheathed at the left waist. Keep the black materials separated by their original subtle charcoal value and fabric texture.
+
+Camera and framing: static locked orthographic camera, matching the reference low three-quarter right-facing view. No camera motion, turn, flip, zoom, crop, reframing or tracking. Keep the complete silhouette centered at the same scale with generous pure #FFFFFF margins. No floor line, ground plane, contact shadow, cast shadow, reflection, scenery, particles, text, logo or watermark. Preserve the reference material shading without adding dynamic or dramatic light.
+
+Loop: return to the exact first-frame pose, root position, scale, sword orientation and motion phase with no freeze, snap or artificial slowdown.
+
+Avoid: exposed ears or muzzle, losing the golden eye-mask fur, all-black featureless eye opening, identity drift, extra limbs, extra sword, sword draw, foot sliding, root drift, turning frontal, morphing, strong motion blur, cuts or black flashes.

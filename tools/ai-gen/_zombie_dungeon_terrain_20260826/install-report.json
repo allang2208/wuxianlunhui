@@ -1,0 +1,342 @@
+{
+  "version": 2,
+  "seamContract": {
+    "projection": "building-standard 2:1 square grid (26.565 degrees)",
+    "brickPeriod": [
+      128,
+      64
+    ],
+    "texturePeriod": [
+      1024,
+      512
+    ],
+    "materialReference": "assets/terrain/blackbrick.png",
+    "style": "road-matched low-frequency dark stone; broad worn variation, thin joints, restrained bevels and no full-surface grain",
+    "periodicSampleMaxRgbDelta": 0
+  },
+  "assets": [
+    {
+      "path": "assets/terrain/floor_dungeon_black_bricks_seamless.png",
+      "size": [
+        1024,
+        512
+      ],
+      "alphaBBox": [
+        0,
+        0,
+        1024,
+        512
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_loose_cobbles.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        201,
+        173,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_brick_fragments.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        204,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_mortar_rubble.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_broken_chain.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        200,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_iron_nails.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        204,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_broken_shackles.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        198,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_bone_splinters.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_skull_shards.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_torn_cloth.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_rope_coil.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_wax_drips.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_broken_pottery.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        199,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_rusty_plate.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        202,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_key_ring.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        204,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_coin_scatter.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_torn_parchment.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_damp_moss.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        204,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/dungeon-props/dungeon_prop_rat_bones.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        204,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    }
+  ]
+}

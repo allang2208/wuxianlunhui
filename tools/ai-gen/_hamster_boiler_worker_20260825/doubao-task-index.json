@@ -1,0 +1,65 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "1:1",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "styleVersion": "v2-approved",
+  "automaticRetries": 0,
+  "runtimeIntegrationActive": true,
+  "tasks": [
+    {
+      "motion": "idle",
+      "reference": "references/hamster-boiler-worker-v2-empty-white.png",
+      "prompt": "prompts/idle-closed-mouth.txt",
+      "fillOnlyVerified": true,
+      "promptEditorNormalizedChars": 852,
+      "promptCharsWithLoopSuffix": 858,
+      "promptSha256WithLoopSuffix": "6368bac93646a87b6c49f1cf51083e061207f11870ec6a48e1497deeaebebf90",
+      "status": "completed",
+      "video": "videos/idle-closed-mouth.mp4",
+      "window": [37, 100],
+      "sprite": { "frameCount": 8, "endFrame": 7 }
+    },
+    {
+      "motion": "empty_running",
+      "reference": "references/hamster-boiler-worker-v2-empty-white.png",
+      "prompt": "prompts/empty-running.txt",
+      "fillOnlyVerified": true,
+      "promptEditorNormalizedChars": 626,
+      "promptCharsWithLoopSuffix": 631,
+      "promptSha256WithLoopSuffix": "422122f62bdfdefe1e81db0143cb0ef6a5ae2689fec34762efb35b622650abe6",
+      "status": "completed",
+      "video": "videos/empty-running.mp4",
+      "window": [30, 49],
+      "sprite": { "frameCount": 12, "endFrame": 11 }
+    },
+    {
+      "motion": "food_loaded_running",
+      "reference": "references/hamster-boiler-worker-v2-food-white.png",
+      "prompt": "prompts/food-loaded-running.txt",
+      "fillOnlyVerified": true,
+      "promptEditorNormalizedChars": 687,
+      "promptCharsWithLoopSuffix": 692,
+      "promptSha256WithLoopSuffix": "3fe684d363e9ec2aaa4ed33263efd6b7606e10a40d6ed6bc4fafec4d158251a8",
+      "status": "completed",
+      "video": "videos/food-loaded-running.mp4",
+      "window": [85, 102],
+      "sprite": { "frameCount": 12, "endFrame": 11, "holdFrame": 6 }
+    },
+    {
+      "motion": "energy_loaded_running",
+      "reference": "references/hamster-boiler-worker-v2-energy-white.png",
+      "prompt": "prompts/energy-loaded-running.txt",
+      "fillOnlyVerified": true,
+      "promptEditorNormalizedChars": 679,
+      "promptCharsWithLoopSuffix": 684,
+      "promptSha256WithLoopSuffix": "9ad1a13a1e4737c3e4c2c742d4f7f18a12a5fa852ecacd2dcc0e734b8334578c",
+      "status": "completed",
+      "video": "videos/energy-loaded-running.mp4",
+      "window": [50, 72],
+      "sprite": { "frameCount": 12, "endFrame": 11, "holdFrame": 6 }
+    }
+  ],
+  "blocker": null
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_ninja_20260826\\references\\hamster-ninja-idle-run-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_ninja_20260826\\prompts\\running-doubao.txt",
+  "promptChars": 2237,
+  "promptSha256": "657502130171820f7cc4058d11591de3318a98b2b33fe544d21aeb85ec456bb1",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T03:15:27.297Z",
+  "sourceUrlScheme": "https"
+}

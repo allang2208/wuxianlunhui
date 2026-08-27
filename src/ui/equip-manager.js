@@ -3,12 +3,13 @@ import { EnergyManager } from '../systems/energy-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { applyConsumableEffect } from '../config/consumable.js';
         // Item Tooltip System v2 - Cache Bust
-import { EquipDataManager } from './equip-data-manager.js';
+import { EquipDataManager, completeWeaponFields } from './equip-data-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { isTwoHanded, getEquipSound } from '../config/gun-ammo.js';
+import { AUTO_GUN_FAMILY } from '../config/weapon-families.js';
 import { CraftSystem } from './craft-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { FusionSystem } from './fusion-system.js';
@@ -21,6 +22,7 @@ import { QuickBar } from './quick-bar.js';
 import { createDragDropManager } from './equip/drag-drop-manager.js';
 import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInventorySlots } from './equip/slot-renderer.js';
 import { canEquipSlot, isOffhandSupportItem } from './equip/equip-rules.js';
+import { isGoldItem } from '../items/item-stack-rules.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;
@@ -71,14 +73,8 @@ import { canEquipSlot, isOffhandSupportItem } from './equip/equip-rules.js';
                     player.equippedRangedType = 'bow';
                 } else if (w2 && (w2.rangedType === 'pistol' || w2.weaponType === 'pistol')) {
                     player.equippedRangedType = 'pistol';
-                } else if (w2 && w2.weaponType === 'pkm') {
-                    player.equippedRangedType = 'pkm';
-                } else if (w2 && w2.weaponType === 'akm') {
-                    player.equippedRangedType = 'akm';
-                } else if (w2 && w2.weaponType === 'm416') {
-                    player.equippedRangedType = 'm416';
-                } else if (w2 && w2.weaponType === 'qbz191') {
-                    player.equippedRangedType = 'qbz191';
+                } else if (w2 && AUTO_GUN_FAMILY.includes(w2.weaponType)) {
+                    player.equippedRangedType = w2.weaponType;
                 }
                 // 同步当前武器栏的近战武器贴图
                 const currentWeapon = player.equipments[player.weaponMode];
@@ -228,14 +224,8 @@ import { canEquipSlot, isOffhandSupportItem } from './equip/equip-rules.js';
                         player.equippedRangedType = 'bow';
                     } else if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') {
                         player.equippedRangedType = 'pistol';
-                    } else if (currentItem.weaponType === 'pkm') {
-                        player.equippedRangedType = 'pkm';
-                    } else if (currentItem.weaponType === 'akm') {
-                        player.equippedRangedType = 'akm';
-                    } else if (currentItem.weaponType === 'm416') {
-                        player.equippedRangedType = 'm416';
-                    } else if (currentItem.weaponType === 'qbz191') {
-                        player.equippedRangedType = 'qbz191';
+                    } else if (AUTO_GUN_FAMILY.includes(currentItem.weaponType)) {
+                        player.equippedRangedType = currentItem.weaponType;
                     } else if (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;
                     }
@@ -291,14 +281,8 @@ import { canEquipSlot, isOffhandSupportItem } from './equip/equip-rules.js';
                         if (currentItem.weaponAsset && currentItem.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = loadImage(currentItem.weaponAsset.muzzleImage);
                         }
-                    } else if (currentItem.weaponType === 'pkm') {
-                        player.equippedRangedType = 'pkm';
-                    } else if (currentItem.weaponType === 'akm') {
-                        player.equippedRangedType = 'akm';
-                    } else if (currentItem.weaponType === 'm416') {
-                        player.equippedRangedType = 'm416';
-                    } else if (currentItem.weaponType === 'qbz191') {
-                        player.equippedRangedType = 'qbz191';
+                    } else if (AUTO_GUN_FAMILY.includes(currentItem.weaponType)) {
+                        player.equippedRangedType = currentItem.weaponType;
                     } else if (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword') {
                         player.hasMeleeWeapon = true;
                     }
@@ -400,8 +384,9 @@ import { canEquipSlot, isOffhandSupportItem } from './equip/equip-rules.js';
             },
             addToInventory(item) {
                 if (!this.backpackItems) this.backpackItems = [];
+                completeWeaponFields(item);
                 // 金币特殊处理：使用 GoldManager 合并到已有金币堆叠中
-                if (item && item.category === 'gold' && GoldManager) {
+                if (isGoldItem(item) && GoldManager) {
                     return GoldManager.mergeGold(item);
                 }
                 // 世界-122 能源不再进入玩家背包，旧掉落/旧存档拾取统一直入仓库。

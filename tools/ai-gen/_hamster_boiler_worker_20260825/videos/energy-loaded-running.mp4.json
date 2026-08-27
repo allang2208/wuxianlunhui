@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "1:1",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_boiler_worker_20260825\\references\\hamster-boiler-worker-v2-energy-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_boiler_worker_20260825\\prompts\\energy-loaded-running.txt",
+  "promptChars": 684,
+  "promptSha256": "9ad1a13a1e4737c3e4c2c742d4f7f18a12a5fa852ecacd2dcc0e734b8334578c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-25T07:09:12.404Z",
+  "sourceUrlScheme": "https"
+}

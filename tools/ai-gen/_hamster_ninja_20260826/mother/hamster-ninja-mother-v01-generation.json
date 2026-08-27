@@ -1,0 +1,30 @@
+{
+  "asset": "hamster_ninja",
+  "stage": "identity_mother_candidate",
+  "version": 1,
+  "generatedAt": "2026-08-26",
+  "generator": "built-in ImageGen identity stage",
+  "animationProviderPlanned": "doubao-desktop",
+  "animationModelPlanned": "Seedance 2.0 Mini",
+  "reference": "../../_hamster_halberd_20260825/mother/hamster-halberdier-mother-v04-ear-armor-plume.png",
+  "referenceRole": "style, camera, scale, lighting, and anthropomorphic hamster proportion only",
+  "prompt": "hamster-ninja-mother-v01-prompt.txt",
+  "promptSha256": "e724d0d6635ea67acbc0ac978e7467e0971b3e6d9a5b5133e4d34f893ec31486",
+  "output": "hamster-ninja-mother-v01.png",
+  "outputSha256": "91dcd4969e838c10764625d70fa52e0ffe8396b97898a735b9cb1648ba5812ad",
+  "canvas": {
+    "width": 1672,
+    "height": 941,
+    "format": "PNG"
+  },
+  "status": "superseded_by_v02_eye_wrap_correction",
+  "runtimeIntegrationActive": false,
+  "requestedAnimations": [
+    "idle",
+    "running",
+    "attacking",
+    "dying",
+    "smoke_bomb_at_feet"
+  ],
+  "notes": "Per the project pipeline, Doubao action-video generation starts only after the identity mother image is approved."
+}

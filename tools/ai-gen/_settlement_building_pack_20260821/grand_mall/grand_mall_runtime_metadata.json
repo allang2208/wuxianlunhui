@@ -1,0 +1,45 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\grand_mall\\grand_mall_refine_v02_notext_body.png",
+  "output": "assets\\terrain\\grand_mall.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 8,
+  "removedComponents": 3,
+  "removedComponentPixels": 9,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    211,
+    98,
+    827,
+    876
+  ],
+  "fileSize": [
+    616,
+    778
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    612,
+    774
+  ],
+  "displayW": 300,
+  "displayH": 379,
+  "footOffsetY": 188,
+  "scaleX": 0.487012987012987,
+  "scaleY": 0.487146529562982
+}

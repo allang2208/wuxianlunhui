@@ -1,0 +1,55 @@
+{
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\dedicated_cutout\\steam_power_plant\\steam_power_plant_body.png",
+  "output": "assets\\terrain\\steam_power_plant.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    47,
+    193,
+    19
+  ],
+  "matteEdgeWidth": 4.0,
+  "matteTolerance": 110.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    170,
+    204,
+    882,
+    921
+  ],
+  "fileSize": [
+    712,
+    717
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    708,
+    713
+  ],
+  "displayW": 300,
+  "displayH": 302,
+  "footOffsetY": 149,
+  "scaleX": 0.42134831460674155,
+  "scaleY": 0.4211994421199442
+}

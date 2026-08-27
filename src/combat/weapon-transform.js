@@ -472,23 +472,31 @@ class WeaponTransform {
 
     /**
      * 冲刺攻击剑柄锚手（dashHand 模式）：
-     * 以 sword.dash 30 点中心轨迹反推「握把点」——dash 旧轨迹是 DevTool 按武器贴图中心调定的
-     * （用户实机验收"大体正确"），中心轨迹与握把点相差 R(rot)·(0, -gripOffset)。
-     * 因此握把点 = 中心 − R(rot)·(0, -gripOffset)，即：
-     *   hand.x = center.x - gripOffset * sin(center.rotation)
-     *   hand.y = center.y + gripOffset * cos(center.rotation)
-     * 角度不再沿用旧轨迹角度，而是按 dashHand.fromRotation → toRotation 线性扫过
-     * 180°（默认 -90° → +90°，即"后 → 前"）。返回结构与 perFrame 一致，
-     * 额外带 gripX/gripY（归一化剑柄 origin），GameScene 直接用 origin 钉住剑柄。
+     * - perFrameGrip：正式轨迹直接记录逐帧握把点与刃向；
+     * - gripArc（旧回退）：从旧武器中心轨迹反推握把，再覆盖为配置弧度。
+     * 两种模式都返回 gripX/gripY，GameScene 以剑柄 origin 钉住角色手部。
      */
-    static getDashHandPosition(player, weaponType, progress) {
+    static getDashHandPosition(player, weaponType, progress, handCfgKey = 'dashHand') {
+        const wac = WeaponAnimConfig[weaponType] || {};
+        if (!wac[handCfgKey]) return null;
+        const handCfg = wac[handCfgKey] || {};
+        // 新突刺轨迹直接记录逐帧握把点；不再把已是握把的数据当旧武器中心二次反推，
+        // 也不再用 gripArc 强制覆盖成 180° 过顶挥砍。
+        if (handCfg.type === 'perFrameGrip') {
+            const trackKey = handCfg.trackKey || 'dash';
+            return this.getInterpolatedGripPerFramePosition(
+                player,
+                weaponType,
+                progress,
+                true,
+                trackKey,
+                'attack'
+            );
+        }
+
         const center = this.getInterpolatedPerFramePosition(player, weaponType, progress, true, 'dash');
         if (!center) return null;
-
-        const wac = WeaponAnimConfig[weaponType] || {};
-        if (!wac.dashHand) return null;
         const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
-        const handCfg = wac.dashHand || {};
         const fromDeg = handCfg.fromRotation !== undefined ? handCfg.fromRotation : -90;
         const toDeg = handCfg.toRotation !== undefined ? handCfg.toRotation : 90;
         const t = Math.max(0, Math.min(1, progress));
@@ -512,15 +520,13 @@ class WeaponTransform {
 
     /**
      * 冲刺收势起点（与 dashHand 末帧同姿态）：
-     * 收势分支仍以武器中心为 origin，因此把 dashHand 末帧的握把点 + 180° 扫击末角
-     * 反推回中心点：中心 = 握把 + R(rotation)·(0, -gripOffset)。
-     * 这样 freeze 末帧（origin=剑柄）→ recover 首帧（origin=中心）剑柄位置连续，
-     * 只从 dashHand.toRotation 滑向 idle，不会跳回旧 dash 轨迹的 115°。
+     * 收势分支仍以武器中心为 origin，因此把末帧握把点与实际末帧刃向反推回中心：
+     * 中心 = 握把 + R(rotation)·(0, -gripOffset)。freeze → recover 因而位置/角度连续。
      */
-    static getDashRecoverStartPosition(player, weaponType) {
+    static getDashRecoverStartPosition(player, weaponType, handCfgKey = 'dashHand') {
         const wac = WeaponAnimConfig[weaponType] || {};
-        if (!wac.dashHand) return null; // 无 dashHand 配置时保持旧 dash 轨迹收势口径
-        const hand = this.getDashHandPosition(player, weaponType, 1);
+        if (!wac[handCfgKey]) return null; // 无指定 dashHand 配置时保持旧 dash 轨迹收势口径
+        const hand = this.getDashHandPosition(player, weaponType, 1, handCfgKey);
         if (!hand) return null;
         const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
         const centerX = hand.x + gripOffset * Math.sin(hand.rotation);
@@ -541,36 +547,100 @@ class WeaponTransform {
      * 位置插值与世界换算与 getInterpolatedPerFramePosition 同口径，仅追加 gripX/gripY；
      * sizeState 用于让 walking 等姿态沿用自身的显示尺寸口径。
      */
-    static getInterpolatedGripPerFramePosition(player, weaponType, progress, facingRight = true, cfgKey = 'attack', sizeState = 'attack') {
+    static getTextureGrip(weaponType, textureKey, displaySize = null) {
+        const wac = WeaponAnimConfig[weaponType] || {};
+        const configured = textureKey && wac.textureGrips?.[textureKey];
+        if (configured && Number.isFinite(Number(configured.x)) && Number.isFinite(Number(configured.y))) {
+            return {
+                x: Math.max(0, Math.min(1, Number(configured.x))),
+                y: Math.max(0, Math.min(1, Number(configured.y))),
+            };
+        }
+        const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
+        return {
+            x: 0.5,
+            y: 0.5 + gripOffset / Math.max(1, displaySize?.height || 1),
+        };
+    }
+
+    static getInterpolatedGripPerFramePosition(player, weaponType, progress, facingRight = true, cfgKey = 'attack', sizeState = 'attack', textureKey = null) {
         const pos = this.getInterpolatedPerFramePosition(player, weaponType, progress, facingRight, cfgKey);
         if (!pos) return null;
-        const wac = WeaponAnimConfig[weaponType] || {};
-        const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
         const size = this.getWeaponSize(weaponType, pos.scale, sizeState);
+        const grip = this.getTextureGrip(weaponType, textureKey, size);
         return {
             ...pos,
-            gripX: 0.5,
-            gripY: 0.5 + gripOffset / Math.max(1, size.height || 1),
+            gripX: grip.x,
+            gripY: grip.y,
         };
     }
 
     /**
-     * 普通攻击收势起点（与 anchor='grip' 末帧同姿态）：
-     * 收势分支仍以武器中心为 origin，把末帧握把点 + 末帧刃向反推回中心：
-     * 中心 = 握把 + R(rotation)·(0, -gripOffset)（同 getDashRecoverStartPosition 公式）。
+     * 普通攻击收势起点（默认末帧，也可指定被技能截停的轨迹进度）：
+     * 收势分支仍以武器中心为 origin，把目标握把点 + 当帧刃向反推回中心：
+     * 中心 = 握把 + R(rotation)·(0, -gripOffset×stretchY)（同攻击显示口径）。
      * 无 anchor='grip' 配置时返回 null，调用方回退旧中心轨迹末帧。
      */
-    static getAttackRecoverStartPosition(player, weaponType, cfgKey = 'attack') {
+    static getAttackRecoverStartPosition(player, weaponType, cfgKey = 'attack', progress = 1, textureKey = null) {
         const wac = WeaponAnimConfig[weaponType] || {};
         const block = wac[cfgKey] || wac.attack;
         if (!block || block.anchor !== 'grip') return null;
-        const hand = this.getInterpolatedGripPerFramePosition(player, weaponType, 1, true, cfgKey);
+        const hand = this.getInterpolatedGripPerFramePosition(
+            player,
+            weaponType,
+            Math.max(0, Math.min(1, Number(progress) || 0)),
+            true,
+            cfgKey,
+            'attack',
+            textureKey
+        );
         if (!hand) return null;
         const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
+        // 攻击分支先设置 grip origin、再应用 stretchY；因此视觉上的中心到剑柄距离也会
+        // 随 stretchY 缩放。收势反推中心必须使用同一距离，否则截停帧会首帧跳位。
+        const displayedGripOffset = gripOffset * (hand.stretchY ?? 1);
         return {
             ...hand,
-            x: hand.x + gripOffset * Math.sin(hand.rotation),
-            y: hand.y - gripOffset * Math.cos(hand.rotation),
+            x: hand.x + displayedGripOffset * Math.sin(hand.rotation),
+            y: hand.y - displayedGripOffset * Math.cos(hand.rotation),
+        };
+    }
+
+    /**
+     * 普通近战分段收势轨迹：位置与角度分别走三次贝塞尔。
+     * profile 的 outX/outY 是攻击末帧离开方向，inX/inY 是 idle 终点前控制点相对终点的偏移；
+     * X 与角度偏移随朝向镜像，Y 保持屏幕坐标口径。端点严格等于攻击末帧与 idle，避免切换跳位。
+     */
+    static getAttackRecoverPose(start, end, progress, profile, facingRight = true) {
+        if (!start || !end || !profile) return null;
+        const t = Math.max(0, Math.min(1, progress));
+        const omt = 1 - t;
+        const b0 = omt * omt * omt;
+        const b1 = 3 * omt * omt * t;
+        const b2 = 3 * omt * t * t;
+        const b3 = t * t * t;
+        const mirror = facingRight ? 1 : -1;
+
+        const c1x = start.x + mirror * (Number(profile.outX) || 0);
+        const c1y = start.y + (Number(profile.outY) || 0);
+        const c2x = end.x + mirror * (Number(profile.inX) || 0);
+        const c2y = end.y + (Number(profile.inY) || 0);
+
+        // 先把 idle 角度搬到离 start 最近的等价角，再用分段控制角保持末帧转向连续。
+        let endDelta = end.rotation - start.rotation;
+        endDelta = Math.atan2(Math.sin(endDelta), Math.cos(endDelta));
+        const endRotation = start.rotation + endDelta;
+        const rotationMirror = facingRight ? 1 : -1;
+        const c1Rotation = start.rotation
+            + rotationMirror * (Number(profile.outRotationDeg) || 0) * Math.PI / 180;
+        const c2Rotation = endRotation
+            + rotationMirror * (Number(profile.inRotationDeg) || 0) * Math.PI / 180;
+
+        return {
+            x: b0 * start.x + b1 * c1x + b2 * c2x + b3 * end.x,
+            y: b0 * start.y + b1 * c1y + b2 * c2y + b3 * end.y,
+            rotation: b0 * start.rotation + b1 * c1Rotation + b2 * c2Rotation + b3 * endRotation,
+            sizeProgress: Easing.easeInOutCubic(t),
         };
     }
 

@@ -1,0 +1,64 @@
+{
+  "id": "solar_power_plant",
+  "status": "runtime_installed",
+  "selectedStructureCandidate": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/structure_12step_seed123400/solar_power_plant/solar_power_plant_structure_v04_raw.png",
+  "selectedRefineCandidate": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/refine_48step_from_v04_seed123410/solar_power_plant/solar_power_plant_refine_v02_raw.png",
+  "acceptedKeyedSource": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/refine_48step_from_v04_seed123410/solar_power_plant/solar_power_plant_refine_v02_keyed.png",
+  "runtimeAsset": "assets/terrain/solar_power_plant.png",
+  "thumbnailAsset": "assets/ui/building-thumbnails/solar_power_plant.png",
+  "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/solar_power_plant_runtime_metadata.json",
+  "assetSha256": "26177F996310E9D90BA58688273FD01DE5779E1094C9821A22A4553AE07473BB",
+  "generation": {
+    "styleVersion": "world122-building-v2",
+    "model": "flux2-dev-depth",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "seed": 123411,
+    "nonstandardOverride": false
+  },
+  "cutout": {
+    "method": "deterministic keyed RGBA; bounded HSV green cleanup beneath the panel field; nearest opaque edge RGB repair; one-pixel inner defringe; tiny component cleanup",
+    "sourceSize": [1024, 1024],
+    "cropBox": [149, 268, 910, 877],
+    "outputSize": [761, 609],
+    "alphaBBox": [4, 4, 757, 605],
+    "officeGlazingPreserved": true
+  },
+  "runtime": {
+    "displayW": 512,
+    "displayH": 410,
+    "footOffsetY": 202,
+    "logicalFootprint": [512, 256],
+    "gridSize": [4, 4],
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.680488,
+      "widthRatio": 1,
+      "depthRatio": 0.62439,
+      "scaleMode": "strict"
+    }
+  },
+  "staticValidation": {
+    "mode": "RGBA",
+    "alphaComponentsAbove16": 33,
+    "alphaPixelsAbove16": 215291,
+    "largestAlphaComponentAbove16": 214970,
+    "semiTransparentPixels": 0,
+    "transparentDirtyRgbPixels": 0,
+    "rgbaCornersTransparent": true,
+    "touchesCanvas": false,
+    "mappedFootprintExact": true,
+    "panelLegsMayRemainAsSmallDisconnectedAlphaComponents": true
+  },
+  "installed": [
+    "assets/terrain/solar_power_plant.png",
+    "assets/ui/building-thumbnails/solar_power_plant.png",
+    "data/producer-buildings.json",
+    "data/structure-ground-fits.json",
+    "data/environment-lighting-assets.json"
+  ]
+}

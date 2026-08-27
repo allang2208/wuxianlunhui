@@ -1,6 +1,8 @@
 
 import { PATH_DEFERRED } from './pathfinder.js';
 
+let nextPathRequestId = 1;
+
 /**
  * PathManager — 智能路径管理器（参考《环世界》）
  *
@@ -26,9 +28,40 @@ class PathManager {
         this.lastRecalcTime = 0;     // 上次重算时间
         this.stuckCount = 0;         // 连续修复失败次数
         this.topologyVersion = -1;   // 当前路径生成时的障碍拓扑版本
+        this.friendlyGateAccessVersion = -1; // 自动门通行策略版本（仅玩家/侍从路径使用）
         // [PERF-2026-08-03] 首寻路错峰：创建后随机延迟 0~250ms，避免刷怪瞬间多只怪同帧冷寻路
         this._firstRecalcAt = Date.now() + Math.random() * 250;
         this._lastWarnAt = 0;        // console.warn 节流
+        this._requestId = `path-manager:${enemy?.id ?? 'anonymous'}:${nextPathRequestId++}`;
+        this._pathOptionState = {
+            friendlyGateAccess: false,
+            incremental: true,
+            requestId: this._requestId,
+            sharedCrowdPath: false,
+            sharedTargetKey: '',
+        };
+    }
+
+    /** 只有实际会触发门感应的玩家/侍从使用自动门低成本档。 */
+    _pathOptions() {
+        const unit = this.enemy;
+        if (!unit) return null;
+        const friendly = unit._faction === 'player' || unit._faction === 'companion';
+        const sharedCrowdPath = unit._defenseMonster === true;
+        const target = unit.target;
+        this._pathOptionState.friendlyGateAccess = friendly;
+        // 玩家 RTS 点击要求同步反馈；AI/侍从通过 PathWorkScheduler 跨帧续算。
+        this._pathOptionState.incremental = unit._faction !== 'player';
+        this._pathOptionState.sharedCrowdPath = sharedCrowdPath;
+        this._pathOptionState.sharedTargetKey = sharedCrowdPath && target
+            ? String(target.id ?? target._navObstacleId
+                ?? `${Math.floor(target.x / 240)},${Math.floor(target.y / 240)}`)
+            : '';
+        return this._pathOptionState;
+    }
+
+    getPathRequestId() {
+        return this._requestId;
     }
 
     // ==================== 路径设置 ====================
@@ -57,6 +90,8 @@ class PathManager {
         this.stuckCount = 0;
         this.lastRecalcTime = Date.now();
         this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
+        this.friendlyGateAccessVersion = pathPlanner?.getFriendlyGateAccessVersion?.()
+            ?? this.friendlyGateAccessVersion;
     }
 
     /**
@@ -68,6 +103,7 @@ class PathManager {
         this.isValid = false;
         this.stuckCount = 0;
         this.topologyVersion = -1;
+        this.friendlyGateAccessVersion = -1;
     }
 
     // ==================== 每帧更新：有效性检查 ====================
@@ -79,6 +115,16 @@ class PathManager {
      */
     update(dt, pathPlanner, scheduler = null, priority = 0) {
         if (!this.path || !this.isValid) return;
+        const friendlyGatePolicyChanged = this._pathOptions()?.friendlyGateAccess === true
+            && pathPlanner?.getFriendlyGateAccessVersion
+            && pathPlanner.getFriendlyGateAccessVersion() !== this.friendlyGateAccessVersion;
+        if (friendlyGatePolicyChanged) {
+            // 门由常锁/常开/自动切换时，旧路径依然没有硬阻挡，普通有效性扫描不会重算。
+            // 先失效，下一帧由既有语义目标经 PathWorkScheduler 重新规划，避免继续走旧绕路。
+            this.isValid = false;
+            this.checkTimer = 0;
+            return;
+        }
         const topologyChanged = pathPlanner?.getTopologyVersion
             && pathPlanner.getTopologyVersion() !== this.topologyVersion;
         this.checkTimer -= dt;
@@ -100,6 +146,13 @@ class PathManager {
 
     runScheduledValidation(pathPlanner) {
         if (!this.path || !this.isValid) return false;
+        // 拓扑变化后，验证会在 isPointBlocked/isSegmentBlocked 前读空间哈希。
+        // 先跨帧预热，禁止 scheduler 的 validation 旁路触发同步全量重建。
+        if (pathPlanner?.advanceNavigationWithinFrameBudget
+            && !pathPlanner.advanceNavigationWithinFrameBudget()) {
+            this.checkTimer = 0;
+            return PATH_DEFERRED;
+        }
         this.checkTimer = this.checkInterval;
         const result = this._checkValidity(pathPlanner);
         if (result === PATH_DEFERRED) {
@@ -150,6 +203,7 @@ class PathManager {
      */
     _repairPath(blockedIdx, pathPlanner) {
         const radius = this.enemy.groundRadius;
+        const pathOptions = this._pathOptions();
         const nextIdx = Math.min(this.path.length - 1, blockedIdx + 2); // 向后看 2 个节点
         const end = this.path[nextIdx];
 
@@ -157,7 +211,9 @@ class PathManager {
         // （旧实现回退到阻挡点前 2 个节点，怪物会掉头折返已走过的路径点，表现为"瞬间反向"）
         let altPath = null;
         try {
-            altPath = pathPlanner.findPath(this.enemy.x, this.enemy.y, end.x, end.y, radius);
+            altPath = pathPlanner.findPath(
+                this.enemy.x, this.enemy.y, end.x, end.y, radius, pathOptions
+            );
         } catch (e) {
             this._warn('[PathManager] findPath failed: ' + e.message);
         }
@@ -179,7 +235,9 @@ class PathManager {
         const finalTarget = this.path[this.path.length - 1];
         let newPath = null;
         try {
-            newPath = pathPlanner.findPath(this.enemy.x, this.enemy.y, finalTarget.x, finalTarget.y, radius);
+            newPath = pathPlanner.findPath(
+                this.enemy.x, this.enemy.y, finalTarget.x, finalTarget.y, radius, pathOptions
+            );
         } catch (e) {
             this._warn('[PathManager] full recalc failed: ' + e.message);
         }
@@ -265,9 +323,12 @@ class PathManager {
         // [PERF-2026-08-03] 首寻路错峰（含卡住 bypass）：刷怪同帧错开，冷路径不集中在同一帧
         if (Date.now() < this._firstRecalcAt) return false;
         const radius = this.enemy.groundRadius;
+        const pathOptions = this._pathOptions();
         let path = null;
         try {
-            path = pathPlanner.findPath(this.enemy.x, this.enemy.y, targetX, targetY, radius);
+            path = pathPlanner.findPath(
+                this.enemy.x, this.enemy.y, targetX, targetY, radius, pathOptions
+            );
         } catch (e) {
             this._warn('[PathManager] forceRecalc failed: ' + e.message);
         }
@@ -281,7 +342,9 @@ class PathManager {
 
         // [NEW] A* 失败：尝试 RegionIndex 找最近出口
         // 只在封闭空间（如地牢战斗房间）使用，开放地图不适用
-        const exitResult = pathPlanner.findPathToExit(this.enemy.x, this.enemy.y, targetX, targetY, radius);
+        const exitResult = pathPlanner.findPathToExit(
+            this.enemy.x, this.enemy.y, targetX, targetY, radius, pathOptions
+        );
         if (exitResult === PATH_DEFERRED) return PATH_DEFERRED;
         if (exitResult && exitResult.path) {
             this.setPath(exitResult.path, pathPlanner);

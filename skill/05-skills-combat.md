@@ -113,6 +113,13 @@
 - **色块/粒子风格优先**（impact_dot + ADD + 多层 tint / fillCircle 色块链）——避免线条感。
 - 禁止 per-object filters（数量多即卡）；深度=实体 depth+2 或地面 y-998 口径；位置/观感类必须 CDP 实机验证。
 
+##### 角色锚点扇形照射特效（2026-08-25，美杜莎石化凝视）
+
+- **判定与外轮廓同源**：System 先从技能配置读取 `range/arcDegrees`，伤害扇形、最外层照射面和调试范围全部消费同一数值；Effect 只负责绘制，禁止自行选敌、结算伤害或用“看起来差不多”的另一套角度。
+- **锚点取最终显示态**：眼睛、口器或武器发射点应从当前 Sprite 的真实显示尺寸、origin、局部归一化锚点和 `flipX` 推导，每帧在动画/翻转/动态深度完成后更新；逻辑判定仍以 Collider footprint 为中心，不能为了迁就视觉修改伤害原点。
+- **手电筒式体积锥**：最外层使用无描边填充面严格覆盖完整扇形，向内叠加低透明主色、柔光与稀疏色块/尘粒形成体积；禁止用两条硬边线冒充照射范围，也避免 per-object filter。
+- **生命周期完整**：NORMAL/ADD Graphics 一并进入 `worldEffectsGroup`、迷雾枚举和最终 Sprite depth；短时展开后在动作末尾自然淡出，被打断、死亡或场景清理时走快速淡出并成对销毁，不得让 VFX 残留改变控制或伤害持续时间。
+
 #### 6. 图标与音效（可选但推荐）
 
 - 图标（本地 ComfyUI 出图，2026-08-03 起）：先读文首「本地 AI 出图工作流」——用本地 ComfyUI 生成
@@ -254,14 +261,6 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 
 ---
 
-### 魔法施法快照与统一结算契约（2026-08-24）
-
-- 延迟释放、投射物和持续区域在通过目标/距离/资源门槛后创建 `createMagicCastContext()`；快照固定当前主手法杖制作效果、六维、穿透、暴击率、暴击伤害和法袍魔伤，命中时不得再读取玩家当前装备。
-- 所有 `takeDamage(amount, source, type, knockback, hitContext)` 覆写都必须透传第 5 参数。带快照时 `Combatant` 不再预掷一次魔法暴击，统一由 `DamageableEntity` 结算，避免双重暴击或倍率丢失。
-- 技能伤害/治疗公式读取 `context.stats`；`lightHeal` 只进入治疗，`magicDamage` 只进入伤害，连锁伤害不能污染治疗。制作词条的连锁、急速等尾段效果也读取施法快照，不能在命中时换杖套利。
-- 冷却统一按 `(1 - 法杖急速) × (1 - 法袍减冷却)` 乘一次，系统与快捷栏共用同一技能分类/冷却入口，禁止技能内部重复缩短。
-- MP 常态按秒恢复，权威公式来自 `data/combat-formulas.json`：`1.0 + 精神×0.08 + 智力×0.02`；战斗内外不分状态，HUD/属性面板/tooltip 必须统一显示“每秒”。
-
 ### 持续直线魔法束去线条化模板（2026-08-25，夜与火之剑定稿）
 
 适用于夜与火之剑这类持续数秒、随释放者锚点移动、但方向与长度锁定的直线魔法束。不要照搬旧版“定时生成大量细直线”的做法，也不要直接复用雷枪的一次性 tween；持续束应由独立 Effect 类在 `EffectManager` 中按 `dt` 驱动。
@@ -272,10 +271,20 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 - **起落节奏**：前约 240ms 用 ease-out 把束长从 0 展开，前约 180ms 渐入，结束前约 380ms 渐隐；剑尖与射束末端分别用多层圆形色块形成汇聚和散逸，不使用 per-object filter。
 - **逻辑与视觉同源**：System 先完成墙体截断，`NightFlameBeamEffect.length`、持续伤害 `VerticalRect.length` 与调试范围提示必须消费同一个 `clampedLength`；特效类只画画面，不读取目标或结算伤害。
 - **跟随与迷雾**：每帧只更新 effect 的 `x/y` 跟随武器释放点，锁定 `angle/length`；NORMAL/ADD 两个 Graphics 都加入 `worldEffectsGroup`，`getFogVisuals()` 必须同时返回两层，结束时成对 destroy。
+- **释放阶段必须分离**：`windup → beam → recover` 各自持有明确状态；前摇只播人物攻击动画，到配置释放帧才创建 beam/范围提示并开始持续伤害，持续期定格释放帧。beam 计时结束要先硬销毁伤害范围和视觉，再启动 recover，禁止 recover 仍带光柱或用总墙钟让前摇偷走持续时间。
+- **剑尖锚点与图层同源**：Effect 暴露 `setOrigin()`/`setDepth()`，场景在武器姿态及动态深度完成后，用真实 `weaponSprite` 剑尖世界坐标同步主体、辉光与范围提示，并把两层光柱统一放在 `weaponSprite.depth + ε`；不要在逻辑层用玩家中心和估算握点长期推算剑尖，也不要让 ADD 辉光落回武器层下方。
 
 参考实现：`src/effects/nightflame-effect.js` + `src/entities/components/special-attack-system.js`。
 
 ---
+
+### 魔法施法快照与统一结算契约（2026-08-24）
+
+- 延迟释放、投射物和持续区域在通过目标/距离/资源门槛后创建 `createMagicCastContext()`；快照固定当前主手法杖制作效果、六维、穿透、暴击率、暴击伤害和法袍魔伤，命中时不得再读取玩家当前装备。
+- 所有 `takeDamage(amount, source, type, knockback, hitContext)` 覆写都必须透传第 5 参数。带快照时 `Combatant` 不再预掷一次魔法暴击，统一由 `DamageableEntity` 结算，避免双重暴击或倍率丢失。
+- 技能伤害/治疗公式读取 `context.stats`；`lightHeal` 只进入治疗，`magicDamage` 只进入伤害，连锁伤害不能污染治疗。制作词条的连锁、急速等尾段效果也读取施法快照，不能在命中时换杖套利。
+- 冷却统一按 `(1 - 法杖急速) × (1 - 法袍减冷却)` 乘一次，系统与快捷栏共用同一技能分类/冷却入口，禁止技能内部重复缩短。
+- MP 常态按秒恢复，权威公式来自 `data/combat-formulas.json`：`1.0 + 精神×0.08 + 智力×0.02`；战斗内外不分状态，HUD/属性面板/tooltip 必须统一显示“每秒”。
 
 #### 临时线障碍法术（冰墙口径）
 
@@ -317,6 +326,8 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 ### Buff/Debuff 添加标准工作流（新状态效果一律按此开展）
 
 **内置机制：状态免疫（statusImmune，2026-07-25）**：`applyStatusImmune(duration)` 授予后，`addStatusEffect` 与全部 apply*（眩晕/恐惧/激励/中毒/流血/致残/束缚/双易伤）统一拦截其他任何 buff/debuff（免疫本身除外）；永久免疫传 `Number.MAX_SAFE_INTEGER`。范例：`mine-cave.js` 矿洞常驻免疫。
+
+**玩家普通攻击眩晕阶级合同（2026-08-25）**：三段普通攻击继续读取各自 `hitCheck.stunMs`；普通与精英怪完整承受原时长，领主按 `combat-config.json#basicAttackStun.lordResistance` 使用体质线性公式判定豁免，首领保持不受普通攻击眩晕。只有豁免成功才设置短时黄光贴图反馈；技能眩晕、状态免疫和其他控制来源不得复用这次领主专属随机判定。
 
 #### 1. 注册显示配置（src/entities/damageable-entity.js `STATUS_CONFIG`）
 `type: { icon, name, color }`——逻辑层 `statusEffects` 数组（{type, duration, remaining, stacks}）与 UI 显示共用。

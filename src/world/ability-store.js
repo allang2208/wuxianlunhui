@@ -8,10 +8,16 @@ import { getBuildingUpgradeAbility } from './building-upgrade-projects.js';
 
 /** 全局能力等级：{ [abilityId]: level } */
 export const GLOBAL_ABILITY_LEVELS = {};
+const LEGACY_LOCAL_RESEARCH_IDS = Object.freeze([
+    'research_staff',
+    'research_base_points',
+]);
+let pendingLegacyLocalResearchLevels = {};
 
 /** 新游戏重置：保持导出对象引用不变。 */
 export function resetAbilityLevels() {
     for (const key of Object.keys(GLOBAL_ABILITY_LEVELS)) delete GLOBAL_ABILITY_LEVELS[key];
+    pendingLegacyLocalResearchLevels = {};
 }
 
 /** 存档用纯数据快照。 */
@@ -26,8 +32,22 @@ export function restoreAbilityLevels(data) {
     for (const [abilityId, rawLevel] of Object.entries(data)) {
         const maxLevel = getBuildingUpgradeAbility(abilityId)?.maxLevel ?? 10;
         const level = Math.min(maxLevel, Math.max(0, Math.floor(Number(rawLevel) || 0)));
+        if (LEGACY_LOCAL_RESEARCH_IDS.includes(abilityId)) {
+            if (level > 0) pendingLegacyLocalResearchLevels[abilityId] = level;
+            continue;
+        }
         if (level > 0) GLOBAL_ABILITY_LEVELS[abilityId] = level;
     }
+}
+
+/**
+ * 旧档把研究员扩编和精密设备保存在全局能力表；新版在恢复全部位面快照时
+ * 一次性取出并写入旧档中每座已有研究院，随后不再让新建研究院继承。
+ */
+export function takeLegacyLocalResearchLevels() {
+    const levels = { ...pendingLegacyLocalResearchLevels };
+    pendingLegacyLocalResearchLevels = {};
+    return levels;
 }
 
 /** 当前能力全局等级 */

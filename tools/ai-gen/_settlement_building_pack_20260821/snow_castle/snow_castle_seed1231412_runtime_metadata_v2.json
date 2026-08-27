@@ -1,0 +1,43 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\snow_castle\\refine_48step_seed123141\\snow_castle_refine48_from123141_seed1231412_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\snow_castle\\snow_castle_seed1231412_runtime_candidate_v2.png",
+  "sourceMode": "RGB",
+  "background": [
+    53,
+    232,
+    5
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 6.0,
+  "matteTolerance": 150.0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.06,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    133,
+    69,
+    888,
+    922
+  ],
+  "fileSize": [
+    755,
+    853
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    751,
+    849
+  ],
+  "displayW": 288,
+  "displayH": 325,
+  "footOffsetY": 161,
+  "scaleX": 0.38145695364238413,
+  "scaleY": 0.3810082063305979
+}

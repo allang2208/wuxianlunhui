@@ -1,0 +1,48 @@
+{
+  "reviewState": "approved_and_installed",
+  "formalAssetsOverwritten": true,
+  "methodReference": {
+    "asset": "hamster_barracks_lv3",
+    "model": "flux2-klein-4b-world122-building-depth",
+    "principle": "accepted raw init plus matching Blender Depth, low-denoise material-only edit",
+    "borrowedSettings": {
+      "depthStrength": 0.9,
+      "denoise": 0.2
+    }
+  },
+  "rerollSettings": {
+    "steps": 36,
+    "variantsPerAsset": 1,
+    "model": "flux2-klein-4b-world122-building-depth",
+    "depthStrength": 0.9,
+    "denoise": 0.2,
+    "styleVersion": "world122-building-v4"
+  },
+  "candidates": [
+    {
+      "id": "house_lv6",
+      "reason": "previous Klein candidate had a slightly shifted view",
+      "init": "tools/ai-gen/_settlement_building_pack_20260821/house_lv6/refine_48step_strong_localfix_from_v01_seed123420/house_lv6/house_lv6_refine_v01_raw.png",
+      "depth": "tools/ai-gen/_settlement_building_pack_20260821/house_lv6/house_lv6_depth.png",
+      "seed": 127001,
+      "raw": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/house_lv6/house_lv6_refine_v01_raw.png"
+    },
+    {
+      "id": "warehouse_lv3",
+      "reason": "previous Klein candidate changed authored freight-lift details",
+      "init": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_refine_v02_raw.png",
+      "depth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_depth.png",
+      "seed": 127011,
+      "raw": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/warehouse_lv3/warehouse_lv3_refine_v01_raw.png"
+    },
+    {
+      "id": "warehouse_lv4",
+      "reason": "previous Klein candidate changed authored lift and sorting details; legacy full-depth export was partial",
+      "init": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/refine_48step_doorfix_depth_from_v01_seed122501/warehouse_lv4/warehouse_lv4_refine_v02_raw.png",
+      "depth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_body_depth.png",
+      "seed": 127021,
+      "raw": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/warehouse_lv4/warehouse_lv4_refine_v01_raw.png"
+    }
+  ],
+  "reviewSheet": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/review_raw/page_01.png"
+}

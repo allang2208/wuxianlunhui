@@ -38,6 +38,9 @@ export const DamageableEffectManager = {
     add(...args) {
         return runtime.effectManager?.add?.(...args);
     },
+    spawnPooledCosmetic(...args) {
+        return runtime.effectManager?.spawnPooledCosmetic?.(...args);
+    },
     createDamageText(...args) {
         return runtime.effectManager?.createDamageText?.(...args);
     },

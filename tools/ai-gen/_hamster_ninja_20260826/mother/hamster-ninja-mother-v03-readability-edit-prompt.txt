@@ -1,0 +1,15 @@
+Use case: precise-object-edit
+Asset type: production identity mother frame for a Phaser friendly-unit animation pipeline
+Edit target: the provided hamster ninja v02 mother image.
+
+Apply exactly three tightly scoped refinements:
+
+1. Black-clothing readability at small game scale: keep the entire outfit black, but create clearer large-value separation using restrained near-black charcoal differences. Make the crossed chest wraps, forearm wraps, waist belt, tunic skirt panels, outer trouser folds, shin wraps, gloves, and tabi edges each readable as distinct large forms. Use matte black and dark graphite only, with no colored trim, no bright gray, no metallic shine, and no change to garment design. Prioritize broad value blocks over tiny texture.
+
+2. Eyes: make both visible eyes about 8 to 10 percent smaller, vertically narrower, slightly more almond-shaped and alert. They must remain glossy dark-brown hamster eyes, not goggles or lenses. Keep the eye slit narrow and preserve the hard identity rule: the whole head, ears, muzzle, nose, cheeks, whiskers, neck, skin and fur remain completely wrapped; only the two eyes themselves are visible, with no exposed fur or skin around or between them.
+
+3. Ninjato scabbard readability: preserve exactly one short straight ninjato in its same left-waist position, angle and size. Clarify the full matte-black scabbard silhouette with a restrained dark-graphite edge and visible belt attachment so it does not disappear into the tunic. Keep the sword fully sheathed; do not add, duplicate, draw, move or resize the weapon.
+
+Preserve everything else exactly: one compact anthropomorphic hamster, identical body proportions and head size, same neutral low three-quarter right-facing stance, same hand and foot positions, same pouch, same layered shinobi clothing construction, same orthographic camera, subject scale, center, baseline, generous margins, flat pure-white background, soft diffuse lighting and no cast shadow. Do not redesign or introduce any new object.
+
+Avoid: exposed fur or skin, visible muzzle or ears, larger eyes, round doll eyes, goggles, visor, colored accents, gray costume, samurai armor, glossy cloth, drawn sword, extra weapon, shuriken, smoke, pose drift, anatomy drift, crop, camera change, background change, text, logo or watermark.

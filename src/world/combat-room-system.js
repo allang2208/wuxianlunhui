@@ -181,8 +181,8 @@ export const CombatRoomSystem = {
         // 1. 保存当前场景状态
         this._backupSceneState();
 
-        // 2. 确定场地大小。雪原初级专用 worldBlock1x1 严格复用世界单格
-        // 128×64 footprint；其他地牢继续沿用原 30° 视觉菱形。
+        // 2. 确定场地大小。worldBlock1x1 标准严格复用世界单格 128×64 footprint；
+        // 当前墙样式只替换模块外观，不改变共享转角、门洞和碰撞几何。
         const roomSize = options.roomSize || this._rollRoomSize(isBoss);
         this._roomSize = roomSize;
         const roomProfile = DungeonConfig.getCombatRoomConfig(options.dungeonType);
@@ -388,7 +388,7 @@ export const CombatRoomSystem = {
         try {
             if (!createMineCave) return;
 
-            const caveRadius = 90; // 矿洞碰撞半径
+            const caveRadius = ONE_CELL_BUILDING_FOOT.clearRadius; // 标准1×1建筑安全外框
             const minDist = 150, maxDist = 300;
             let caveX = foreman.x, caveY = foreman.y;
             let found = false;
@@ -401,8 +401,8 @@ export const CombatRoomSystem = {
 
             // 召唤出口校验：出怪点与外延探测点都可行走（出怪卡墙角的根因——
             // 矿洞贴墙时出怪点嵌墙，WallSystem.resolve 沿墙切向弹出把矿工挤进墙角死袋）
-            const forwardX = 50; // enemy-config mineCave.attackSkills.spawn.forwardX
-            const probeRadius = 15; // 矿工 groundRadius 量级
+            const forwardX = 100; // enemy-config mineCave.attackSkills.spawn.forwardX
+            const probeRadius = 39; // 覆盖提灯矿工 38.75 的真实 groundRadius
             const exitWalkable = (x, y, dir) => {
                 if (!WallSystem || typeof WallSystem.canMoveTo !== 'function') return true;
                 return WallSystem.canMoveTo(x + forwardX * dir, y, probeRadius)
@@ -1025,8 +1025,8 @@ export const CombatRoomSystem = {
         this._roomConstruction = roomProfile.wallConstruction || 'continuous';
         this._gridGateCells = Math.max(2, Math.round(roomProfile.gateCells || 6));
 
-        // 1. 连续墙竞技场解析通道预制；世界单格冰墙竞技场直接使用整数格几何。
-        const arenaCfg = DungeonConfig.getCombatArenaConfig();
+        // 1. 连续墙竞技场解析通道预制；单格墙标准直接使用整数格几何。
+        const arenaCfg = DungeonConfig.getCombatArenaConfig(options.dungeonType);
         const analysisV1 = worldBlockArena ? null : this._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V1);
         if (!worldBlockArena && !analysisV1) {
             console.warn('[CombatRoomSystem] 竞技场：无可用通道预制（combatArena.passagePrefabs），回退单房间');
@@ -1595,7 +1595,7 @@ export const CombatRoomSystem = {
             : [{ start: a[0], end: b[1] }, { start: a[1], end: b[0] }];
     },
 
-    /** 冰封格心通道地板：四个角就是两端门洞端点，和房间地板在真实边线上并集。 */
+    /** 整数格通道地板：四个角就是两端门洞端点，和房间地板在真实边线上并集。 */
     _worldBlockPassageFloorQuad(passage, roomA, roomB) {
         const openingA = roomA._gridOpenings[roomA.outEdge];
         const openingB = roomB._gridOpenings[roomB.inEdge];
@@ -1617,7 +1617,7 @@ export const CombatRoomSystem = {
     },
 
     /**
-     * 冰封房间间通道：两侧墙按整数个 128×64 格心铺设；首末格与房墙门端共享，
+     * 单格墙房间间通道：两侧墙按整数个 128×64 格心铺设；首末格与房墙门端共享，
      * 只补各自朝通道方向的半段碰撞，中间格保持完整一格，边界因此连续且无重叠墙块。
      */
     _placeWorldBlockPassage(passage, roomA, roomB) {
@@ -1706,7 +1706,7 @@ export const CombatRoomSystem = {
         const ht = isoHalfThick(g);
         const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
         const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
-        const isFrozenSpikeGate = piece.tex === ISO_WALL_GEO.frozen_gate.tex;
+        const depthSliceCount = Math.max(1, Math.round(g.depthSlices || 1));
         const sprites = [];
         const depthSegments = [];
         const makeSprite = (crop = null, depth = (g1.y + g2.y) / 2) => {
@@ -1731,14 +1731,14 @@ export const CombatRoomSystem = {
             return gateSprite;
         };
 
-        if (isFrozenSpikeGate) {
-            // 冰锥门横跨六格，整图单 depth 会让浅端压在相邻冰墙之上。按长门三段
+        if (depthSliceCount > 1) {
+            // 六格长门整图单 depth 会让浅端压在相邻单格墙之上。按配置切片
             // 合同拆成浅/中/深三块：每段随自己的底边排序，并比同线墙块的 +4 偏置
             // 低 0.1，保证门体收在墙后；三块仍共用同一帧和同一世界变换，接缝零位移。
             const span = hole[1] - hole[0];
-            for (let index = 0; index < 3; index++) {
-                const tx0 = hole[0] + span * index / 3;
-                const tx1 = hole[0] + span * (index + 1) / 3;
+            for (let index = 0; index < depthSliceCount; index++) {
+                const tx0 = hole[0] + span * index / depthSliceCount;
+                const tx1 = hole[0] + span * (index + 1) / depthSliceCount;
                 const sA = baseAt(tx0);
                 const sB = baseAt(tx1);
                 const depth = Math.max(sA.y, sB.y) + 3.9;
@@ -2321,7 +2321,7 @@ export const CombatRoomSystem = {
     },
 
     /**
-     * 雪原初级竞技场：以世界位面 1×1 墙块为唯一模块沿四边铺成闭合墙环。
+     * 单格墙标准：以世界位面 1×1 墙块为唯一模块沿四边铺成闭合墙环。
      * 墙块中心严格落在 128×64 菱形网格点；四个转角各只复用一个墙块。
      * 偶数格边让中央六格门洞端点同样落在格心，门端墙块只保留朝墙外侧的半段碰撞。
      */
@@ -2333,9 +2333,10 @@ export const CombatRoomSystem = {
         this._gridGateSpan = openings[openingEdge] || null;
     },
 
-    /** 单格冰墙视觉件：贴图锚、碰撞面线与 depth 只在这里计算。 */
+    /** 当前地牢样式的单格墙视觉件：贴图锚、碰撞面线与 depth 只在这里计算。 */
     _makeWorldBlockPiece(center, baseSegments, extra = {}) {
-        const geo = ISO_WALL_GEO.frozen_block;
+        const style = WallSystem.getWallStyle ? WallSystem.getWallStyle() : null;
+        const geo = ISO_WALL_GEO[style?.block || 'frozen_block'];
         if (!geo) return null;
         const scaleX = (geo.displayW || geo.displaySize || 260) / geo.w;
         const scaleY = (geo.displayH || geo.displaySize || 260) / geo.h;
@@ -2357,7 +2358,7 @@ export const CombatRoomSystem = {
     },
 
     /**
-     * 向当前墙列表追加一间单格冰墙房；openingEdges 的门洞使用“端点墙块 + 中间空格”结构。
+     * 向当前墙列表追加一间单格墙房；openingEdges 的门洞使用“端点墙块 + 中间空格”结构。
      * 返回每个门洞的精确跨度、失败回填件及两个端点共享墙块。
      */
     _appendWorldBlockRoomWalls(room, openingEdges = []) {
@@ -2431,6 +2432,34 @@ export const CombatRoomSystem = {
             }
         });
         return openings;
+    },
+
+    /**
+     * 在竞技场末房中央追加一间实体单格墙宝箱房。
+     * 这里只负责与战斗房同标准的格网墙体与六格门洞；宝箱、独立门闸和倒计时
+     * 仍归 ChestRoomSystem 管理，避免占用战斗房出口的全局 WallGate。
+     */
+    appendWorldBlockTreasureRoom(bounds) {
+        if (!bounds || this._roomConstruction !== 'worldBlock1x1') return null;
+        const edgeCells = 12;
+        const cellW = ONE_CELL_BUILDING_FOOT.w;
+        const cellD = ONE_CELL_BUILDING_FOOT.d;
+        const room = {
+            cx: bounds.cx,
+            cy: bounds.cy,
+            rx: edgeCells * cellW / 2,
+            ry: edgeCells * cellD / 2,
+            edgeCells,
+        };
+        const before = WallSystem.isoVisuals.length;
+        const openings = this._appendWorldBlockRoomWalls(room, ['RB']);
+        const opening = openings.RB || null;
+        if (!opening) return null;
+        return {
+            ...room,
+            opening,
+            pieces: WallSystem.isoVisuals.slice(before),
+        };
     },
 
     _spawnPlayer(player, edge, roomSize) {

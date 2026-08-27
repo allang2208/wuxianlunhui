@@ -1,0 +1,328 @@
+{
+  "version": 4,
+  "assets": [
+    {
+      "path": "assets/terrain/desert_terrain_detail_tiles.png",
+      "size": [
+        384,
+        64
+      ],
+      "alphaBBox": [
+        4,
+        8,
+        367,
+        63
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_pebbles_0.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_pebbles_1.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_dry_branch.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        90,
+        198,
+        168,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_bone_scatter.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_clay_shards.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        204,
+        160,
+        241
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_dead_root.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        200,
+        167,
+        244
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_stone_slab.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        90,
+        202,
+        166,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_sandstone_chunks.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        91,
+        201,
+        165,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_thorn_scrub.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        89,
+        198,
+        168,
+        244
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_dry_grass_tuft.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        98,
+        191,
+        158,
+        239
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_animal_skull.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        203,
+        161,
+        241
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_rib_cage.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        88,
+        198,
+        168,
+        244
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_broken_pot.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        197,
+        160,
+        240
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_weathered_jar.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        100,
+        185,
+        157,
+        239
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_rusted_scrap.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        94,
+        206,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_rope_coil.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        207,
+        160,
+        240
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_cloth_scrap.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        95,
+        207,
+        161,
+        241
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/desert-props/desert_prop_salt_crystals.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        95,
+        201,
+        161,
+        241
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    }
+  ]
+}

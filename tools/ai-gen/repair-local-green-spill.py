@@ -33,6 +33,12 @@ def main() -> None:
     parser.add_argument("--min-green", type=int, default=90)
     parser.add_argument("--green-margin", type=int, default=35)
     parser.add_argument("--min-alpha", type=int, default=16)
+    parser.add_argument(
+        "--max-edge-distance",
+        type=float,
+        default=0.0,
+        help="Limit repairs to this many pixels inside the alpha edge; 0 disables the limit",
+    )
     args = parser.parse_args()
 
     rgba = np.asarray(Image.open(args.input).convert("RGBA"), dtype=np.uint8).copy()
@@ -54,6 +60,9 @@ def main() -> None:
     region = np.zeros((height, width), dtype=bool)
     region[y0:y1, x0:x1] = True
     repair = green_dominant & region
+    if args.max_edge_distance > 0:
+        edge_distance = distance_transform_edt(alpha >= args.min_alpha)
+        repair &= edge_distance <= args.max_edge_distance
     repair_count = int(repair.sum())
     if repair_count == 0:
         raise SystemExit("no matching green-spill pixels found inside repair rect")

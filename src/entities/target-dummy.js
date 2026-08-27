@@ -1,10 +1,10 @@
 import { WallSystem } from '../world/wall-system.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { SmokeEffect } from '../effects/smoke-effect.js';
 import { DamageableEntity } from './damageable-entity.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { EffectFactory } from '../utils/effect-factory.js';
 
         class TargetDummy extends DamageableEntity {
             constructor(x, y, config = {}) { 
@@ -39,7 +39,12 @@ import { EffectManager } from '../effects/effect-manager.js';
                 // 无限生命值：不扣血，但显示命中效果
                 if (this._dpsTracking) {
                     this.hitFlash = this.hitFlashDuration;
-                    EffectManager.createDamageText(this.x, this.y - this.size, damage, false);
+                    EffectManager.createDamageText(this.x, this.y - this.size, damage, false, {
+                        target: this,
+                        source,
+                        damageType,
+                        isMelee,
+                    });
                     // 暴击音效（如果source有暴击信息）
                     // 不调用父类takeDamage，避免死亡和额外逻辑
                     return;
@@ -49,6 +54,7 @@ import { EffectManager } from '../effects/effect-manager.js';
             update(dt = 16.67) {
                 // 更新中毒效果
                 this._updatePoison(16);
+                this._updateCorrosion(dt);
                 if (this._dpsTracking) {
                     // 更新击退
                     if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
@@ -62,7 +68,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                                 const angle = Math.atan2(this.knockbackY, this.knockbackX);
                                 this.x = resolved.x - Math.cos(angle) * 5;
                                 this.baseY += (resolved.y - this.y) - Math.sin(angle) * 5;
-                                if (EffectManager) EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                                EffectFactory.createSmokeEffect(resolved.x, resolved.y);
                                 this.knockbackX = 0;
                                 this.knockbackY = 0;
                             } else {
@@ -104,7 +110,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                             const angle = Math.atan2(this.knockbackY, this.knockbackX);
                             this.x = resolved.x - Math.cos(angle) * 5;
                             this.baseY += (resolved.y - this.y) - Math.sin(angle) * 5;
-                            if (EffectManager) EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                            EffectFactory.createSmokeEffect(resolved.x, resolved.y);
                             this.knockbackX = 0;
                             this.knockbackY = 0;
                         } else {

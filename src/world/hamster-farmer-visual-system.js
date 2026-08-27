@@ -7,6 +7,7 @@ import {
     resolveCivilianVisualPosition,
     sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
+import { CivilianVisualSettings } from './civilian-visual-runtime.js';
 
 function randomRange(range, fallbackMin, fallbackMax) {
     const min = Math.max(0, Number(range?.[0]) || fallbackMin);
@@ -180,6 +181,10 @@ export const HamsterFarmerVisualSystem = {
 
     updateBuilding(building, dt) {
         if (building?._economyType !== 'windmill') return;
+        if (!CivilianVisualSettings.isEnabled()) {
+            this.clearBuilding(building);
+            return;
+        }
         const config = farmerVisualConfig();
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         const cells = fieldCells(building);
@@ -193,6 +198,12 @@ export const HamsterFarmerVisualSystem = {
 
         let record = this._records.get(building);
         if (record && record.scene !== scene) {
+            this.clearBuilding(building);
+            record = null;
+        }
+        // 纹理卸载会立即销毁 Sprite；即使玩家在下一帧前迅速重新开启动画，
+        // 也要丢弃旧视觉记录并重建，不能让数组长度挡住恢复。
+        if (record?.workers?.some((worker) => !worker?.sprite?.active)) {
             this.clearBuilding(building);
             record = null;
         }

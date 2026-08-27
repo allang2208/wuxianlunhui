@@ -572,19 +572,19 @@
         .skill-card .skill-level { font-size: 11px; color: #4a3f35; }
         .skill-card .skill-exp-bar { width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden; }
         .skill-card .skill-exp-fill { height: 100%; background: linear-gradient(to right, #7a9a6a, #a0c080); border-radius: 3px; transition: width 0.3s; }
-        .skill-detail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; padding: 16px; overflow-y: auto; box-sizing: border-box; }
-        .sd-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(200, 200, 200, 0.5); }
-        .sd-back { background: #f0f0f0; border: 1px solid rgba(200, 200, 200, 0.6); color: #2a2520; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif; font-size: 13px; transition: all 0.2s; }
-        .sd-back:hover { background: #e8e8e8; }
-        .sd-title { font-size: 18px; color: #2a2520; font-weight: 700; }
+        .skill-detail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; color: var(--bp-ui-text, #d7dde0); background: var(--bp-ui-shell, #20262b); padding: 16px; overflow-y: auto; box-sizing: border-box; }
+        .sd-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--bp-ui-line, #59636a); }
+        .sd-back { background: var(--bp-ui-control, #30383e); border: 1px solid var(--bp-ui-line, #59636a); color: var(--bp-ui-text, #d7dde0); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif; font-size: 13px; transition: all 0.2s; }
+        .sd-back:hover { background: var(--bp-ui-surface-hover, #424c53); }
+        .sd-title { font-size: 18px; color: var(--bp-ui-text, #d7dde0); font-weight: 700; }
         .sd-body { display: flex; flex-direction: column; gap: 12px; }
-        .sd-section { background: #f8f8f8; border-radius: 8px; padding: 12px; border: 1px solid rgba(200, 200, 200, 0.4); }
-        .sd-section h4 { color: #4a3f35; font-size: 14px; margin-bottom: 8px; }
-        .sd-section p { color: #2a2520; font-size: 13px; line-height: 1.6; }
+        .sd-section { background: var(--bp-ui-surface, #2a3136); border-radius: 8px; padding: 12px; border: 1px solid var(--bp-ui-line, #59636a); }
+        .sd-section h4 { color: var(--bp-ui-white, #f2f5f6); font-size: 14px; margin-bottom: 8px; }
+        .sd-section p { color: var(--bp-ui-text-muted, #aeb8bd); font-size: 13px; line-height: 1.6; }
         .sd-stat-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
-        .sd-stat-row .sd-stat-name { color: #6a5d4f; }
-        .sd-stat-row .sd-stat-val { color: #2a2520; font-weight: 600; }
-        .sd-stat-row .sd-stat-val.pos { color: #2a7a2a; }
+        .sd-stat-row .sd-stat-name { color: var(--bp-ui-text-muted, #aeb8bd); }
+        .sd-stat-row .sd-stat-val { color: var(--bp-ui-text, #d7dde0); font-weight: 600; }
+        .sd-stat-row .sd-stat-val.pos { color: var(--bp-ui-accent-bright, #78dbe7); }
         .sd-exp-track { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
         .sd-exp-bar { flex: 1; height: 10px; background: rgba(0,0,0,0.1); border-radius: 5px; overflow: hidden; }
         .sd-exp-fill { height: 100%; background: linear-gradient(to right, #7a9a6a, #a0c080); border-radius: 5px; transition: width 0.3s; }
@@ -1821,6 +1821,19 @@
             --timeline-event-color: #45bfff;
             --timeline-event-glow: rgba(69, 191, 255, .9);
             --timeline-event-pulse-duration: 2s;
+        }
+        .world-timeline-event-line.weather-warning-warning,
+        .world-timeline-event.weather-warning-warning {
+            --timeline-event-color: #ffd45c;
+            --timeline-event-glow: rgba(255, 194, 56, .96);
+            color: #ffe38a;
+        }
+        .world-timeline-event-line.weather-warning-critical,
+        .world-timeline-event.weather-warning-critical {
+            --timeline-event-color: #ff665c;
+            --timeline-event-glow: rgba(255, 74, 66, .98);
+            --timeline-event-pulse-duration: 1.15s;
+            color: #ff9b91;
         }
         .world-timeline-event-line {
             position: absolute;

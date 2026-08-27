@@ -54,6 +54,7 @@ export class HamsterCamelCavalry extends HamsterLightCavalry {
 
     update(dt, entities) {
         super.update(dt, entities);
+        if (this.hasStatusEffect('petrified')) return;
         if (this.active === false || this._dying || !(this.data?.hp > 0) || !(this._camelFrightReduction > 0)) return;
         this._camelFrightTimer -= dt;
         if (this._camelFrightTimer > 0) return;

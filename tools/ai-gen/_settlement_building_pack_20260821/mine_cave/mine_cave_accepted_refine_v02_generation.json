@@ -1,0 +1,32 @@
+{
+  "pipeline": "world122-building-candidates",
+  "styleVersion": "world122-building-v2",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "assetId": "mine_cave",
+  "stage": "refine",
+  "model": "flux2-dev-depth",
+  "size": "1024x1024",
+  "steps": 48,
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "depthStrength": 0.75,
+  "edgeControl": false,
+  "edgeStrength": null,
+  "denoise": 0.3,
+  "seed": 122302,
+  "promptFile": "tools\\ai-gen\\_settlement_building_pack_20260821\\mine_cave\\mine_cave_refine_prompt.txt",
+  "depthImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\mine_cave\\mine_cave_body_depth.png",
+  "postprocessDepthImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\mine_cave\\mine_cave_cutout_depth.png",
+  "initImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\mine_cave\\mine_cave_accepted_structure_v01_raw.png",
+  "nonstandardOverride": false,
+  "postprocess": {
+    "keyThreshold": 60,
+    "preserveHiddenKeyRgb": true,
+    "restoreDeltaDepthImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\mine_cave\\mine_cave_body_depth.png",
+    "restoreHalo": 160,
+    "maskEdgePad": 48,
+    "postScale": 0.5,
+    "matteEdgeWidth": 3
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "idle": [37, 100],
+  "empty_running": [30, 49],
+  "food_loaded_running": [85, 102],
+  "energy_loaded_running": [50, 72]
+}

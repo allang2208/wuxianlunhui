@@ -1,0 +1,37 @@
+{
+  "sourceBody": "assets/terrain/weather_forecast_tower.png",
+  "panelTexture": "assets/terrain/weather_forecast_tower_panel.png",
+  "overlaySheet": "assets/terrain/weather_forecast_tower_vane.png",
+  "frameSize": [
+    160,
+    128
+  ],
+  "frameCount": 32,
+  "sheetColumns": 8,
+  "bodyPivot": [
+    282,
+    65
+  ],
+  "overlayFramePivot": [
+    80,
+    64
+  ],
+  "modelPivot": [
+    487,
+    156
+  ],
+  "overlayScale": 0.68,
+  "staticClearRect": [
+    210,
+    22,
+    352,
+    126
+  ],
+  "mastKeepRect": [
+    279,
+    0,
+    286,
+    136
+  ],
+  "runtimeContract": "static body + independent overlay; 2x2 footprint unchanged"
+}

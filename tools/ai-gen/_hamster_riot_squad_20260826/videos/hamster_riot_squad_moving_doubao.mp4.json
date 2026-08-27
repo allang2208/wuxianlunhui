@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_riot_squad_20260826\\references\\hamster-riot-squad-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_riot_squad_20260826\\prompts\\moving.txt",
+  "promptChars": 3470,
+  "promptSha256": "24fffac73563a9b0d647699f297662e135698227a7cd8c9ce9a409d96bbf8be2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T14:36:41.800Z",
+  "sourceUrlScheme": "https"
+}

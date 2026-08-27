@@ -1,0 +1,22 @@
+{
+  "pipeline": "world122-building-candidates",
+  "styleVersion": "world122-building-runtime-settlement-v2",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style-runtime-settlement-v2.md",
+  "assetId": "weather_forecast_tower_style_v2",
+  "stage": "structure",
+  "model": "flux2-klein-4b-world122-building-body-depth",
+  "size": "1024x1024",
+  "steps": 12,
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "depthStrength": 0.84,
+  "edgeControl": false,
+  "edgeStrength": null,
+  "denoise": null,
+  "seed": 824503,
+  "promptFile": "tools\\ai-gen\\_settlement_building_pack_20260821\\weather_forecast_tower_style_v2_candidates\\weather_forecast_tower_style_v2\\weather_forecast_tower_style_v2_structure_prompt.txt",
+  "depthImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\weather_forecast_tower_style_v2_candidates\\weather_forecast_tower_style_v2\\weather_forecast_tower_style_v2_structure_depth.png",
+  "initImage": null,
+  "nonstandardOverride": false
+}

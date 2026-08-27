@@ -1,0 +1,277 @@
+{
+  "video": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_sniper_20260826\\videos\\running-h3-v02.mp4",
+  "fps": 24.0,
+  "method": "largest subject component normalized to fixed height and footline; rank by lower-36-percent leg IoU, whole-subject IoU and visible RGB delta",
+  "topCandidates": [
+    {
+      "start": 66,
+      "end": 88,
+      "period": 22,
+      "overallIou": 0.9732267590938832,
+      "legIou": 0.9452012574739568,
+      "visibleDelta": 12.425518989562988,
+      "score": 2.9284143356409587
+    },
+    {
+      "start": 65,
+      "end": 87,
+      "period": 22,
+      "overallIou": 0.9774569937958263,
+      "legIou": 0.9471621869834078,
+      "visibleDelta": 13.319950103759766,
+      "score": 2.928014304121726
+    },
+    {
+      "start": 32,
+      "end": 54,
+      "period": 22,
+      "overallIou": 0.9720601780779858,
+      "legIou": 0.9422684516995968,
+      "visibleDelta": 13.651846885681152,
+      "score": 2.908532302960287
+    },
+    {
+      "start": 67,
+      "end": 89,
+      "period": 22,
+      "overallIou": 0.9733481598392998,
+      "legIou": 0.9425690486628672,
+      "visibleDelta": 14.67517375946045,
+      "score": 2.900248329303003
+    },
+    {
+      "start": 31,
+      "end": 53,
+      "period": 22,
+      "overallIou": 0.9699562593786916,
+      "legIou": 0.9365462242788225,
+      "visibleDelta": 13.365553855895996,
+      "score": 2.8967024142331415
+    },
+    {
+      "start": 21,
+      "end": 44,
+      "period": 23,
+      "overallIou": 0.9718375131454646,
+      "legIou": 0.9364050127813455,
+      "visibleDelta": 15.288890838623047,
+      "score": 2.8790396328781944
+    },
+    {
+      "start": 44,
+      "end": 66,
+      "period": 22,
+      "overallIou": 0.9693183026693608,
+      "legIou": 0.9380629931043052,
+      "visibleDelta": 15.901396751403809,
+      "score": 2.874042919984794
+    },
+    {
+      "start": 53,
+      "end": 76,
+      "period": 23,
+      "overallIou": 0.9671870022300095,
+      "legIou": 0.936895102160524,
+      "visibleDelta": 17.273117065429688,
+      "score": 2.855625056328866
+    },
+    {
+      "start": 46,
+      "end": 68,
+      "period": 22,
+      "overallIou": 0.9713336767134966,
+      "legIou": 0.9364828758804955,
+      "visibleDelta": 17.87171745300293,
+      "score": 2.8528788291205576
+    },
+    {
+      "start": 45,
+      "end": 68,
+      "period": 23,
+      "overallIou": 0.9698602368505281,
+      "legIou": 0.9289349438960084,
+      "visibleDelta": 16.348756790161133,
+      "score": 2.8500295455201354
+    },
+    {
+      "start": 42,
+      "end": 64,
+      "period": 22,
+      "overallIou": 0.9674081557998153,
+      "legIou": 0.9314320024016812,
+      "visibleDelta": 17.045997619628906,
+      "score": 2.8460985848872253
+    },
+    {
+      "start": 20,
+      "end": 44,
+      "period": 24,
+      "overallIou": 0.9652089578557573,
+      "legIou": 0.9355676477862973,
+      "visibleDelta": 18.118568420410156,
+      "score": 2.84227209878151
+    },
+    {
+      "start": 63,
+      "end": 86,
+      "period": 23,
+      "overallIou": 0.9663930265530097,
+      "legIou": 0.9232252621429432,
+      "visibleDelta": 17.187236785888672,
+      "score": 2.8256162354085985
+    },
+    {
+      "start": 22,
+      "end": 45,
+      "period": 23,
+      "overallIou": 0.9669202602296563,
+      "legIou": 0.9316098276494316,
+      "visibleDelta": 19.406597137451172,
+      "score": 2.8223959096838946
+    },
+    {
+      "start": 47,
+      "end": 69,
+      "period": 22,
+      "overallIou": 0.9682620087336244,
+      "legIou": 0.9177310729215049,
+      "visibleDelta": 16.50238800048828,
+      "score": 2.8222464891560524
+    },
+    {
+      "start": 54,
+      "end": 77,
+      "period": 23,
+      "overallIou": 0.9606649534211371,
+      "legIou": 0.9313037073410263,
+      "visibleDelta": 19.38893699645996,
+      "score": 2.815643739606796
+    },
+    {
+      "start": 64,
+      "end": 87,
+      "period": 23,
+      "overallIou": 0.9664640536575142,
+      "legIou": 0.9306105313661989,
+      "visibleDelta": 19.85579490661621,
+      "score": 2.8152492735969896
+    },
+    {
+      "start": 62,
+      "end": 85,
+      "period": 23,
+      "overallIou": 0.9646470955652717,
+      "legIou": 0.9265732067643176,
+      "visibleDelta": 19.02947425842285,
+      "score": 2.812813407862542
+    },
+    {
+      "start": 33,
+      "end": 55,
+      "period": 22,
+      "overallIou": 0.9631692974311359,
+      "legIou": 0.9204991796350619,
+      "visibleDelta": 17.5582218170166,
+      "score": 2.8126852744581066
+    },
+    {
+      "start": 30,
+      "end": 53,
+      "period": 23,
+      "overallIou": 0.9606004347757097,
+      "legIou": 0.9230395491205908,
+      "visibleDelta": 17.89249610900879,
+      "score": 2.8123624817509216
+    },
+    {
+      "start": 23,
+      "end": 47,
+      "period": 24,
+      "overallIou": 0.9657147847349576,
+      "legIou": 0.9136527503198046,
+      "visibleDelta": 16.83356285095215,
+      "score": 2.807415206929006
+    },
+    {
+      "start": 67,
+      "end": 90,
+      "period": 23,
+      "overallIou": 0.9641348700694394,
+      "legIou": 0.9213462368242619,
+      "visibleDelta": 18.40774154663086,
+      "score": 2.8070191756165066
+    },
+    {
+      "start": 28,
+      "end": 51,
+      "period": 23,
+      "overallIou": 0.9613173788435694,
+      "legIou": 0.9213793796812949,
+      "visibleDelta": 18.503612518310547,
+      "score": 2.8033158889593133
+    },
+    {
+      "start": 45,
+      "end": 67,
+      "period": 22,
+      "overallIou": 0.9633796799060013,
+      "legIou": 0.9205809641532756,
+      "visibleDelta": 19.183090209960938,
+      "score": 2.7968268989435985
+    },
+    {
+      "start": 18,
+      "end": 41,
+      "period": 23,
+      "overallIou": 0.9651142538665181,
+      "legIou": 0.9261531060196043,
+      "visibleDelta": 20.816160202026367,
+      "score": 2.794489485089384
+    },
+    {
+      "start": 19,
+      "end": 43,
+      "period": 24,
+      "overallIou": 0.9621305094849048,
+      "legIou": 0.917884650372976,
+      "visibleDelta": 19.072757720947266,
+      "score": 2.7907491630959793
+    },
+    {
+      "start": 42,
+      "end": 65,
+      "period": 23,
+      "overallIou": 0.9627168890051443,
+      "legIou": 0.9225650332728372,
+      "visibleDelta": 20.230430603027344,
+      "score": 2.7900556561751126
+    },
+    {
+      "start": 38,
+      "end": 60,
+      "period": 22,
+      "overallIou": 0.9636920309283701,
+      "legIou": 0.9120067643742954,
+      "visibleDelta": 18.20484733581543,
+      "score": 2.788058439193666
+    },
+    {
+      "start": 51,
+      "end": 74,
+      "period": 23,
+      "overallIou": 0.9606701597774759,
+      "legIou": 0.922899307298464,
+      "visibleDelta": 20.861000061035156,
+      "score": 2.7824386352237456
+    },
+    {
+      "start": 60,
+      "end": 83,
+      "period": 23,
+      "overallIou": 0.9598991475567294,
+      "legIou": 0.9086395233366436,
+      "visibleDelta": 17.728252410888672,
+      "score": 2.7816235747884583
+    }
+  ]
+}

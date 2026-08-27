@@ -1,0 +1,13 @@
+{
+  "asset": "hamster_ninja_smoke_bomb_action_guide",
+  "version": 2,
+  "generatedAt": "2026-08-26",
+  "generator": "built-in ImageGen edit",
+  "editTarget": "../mother/hamster-ninja-mother-v04.png",
+  "prompt": "smoke-bomb-guide-v02-imagegen-prompt.txt",
+  "promptSha256": "58e93896a0cf86de54a451fe2515fb11ef6c4dfd163dd3d584cc046acc40cc65",
+  "output": "hamster-ninja-smoke-bomb-guide-v02.png",
+  "outputSha256": "edd6884b4d20a86ca34e330a919cb40b81084e9be00cd9f5b7df85bc39244810",
+  "purpose": "Pose-conditioned first-frame guide for the second Doubao smoke-bomb attempt; does not replace the approved identity mother.",
+  "runtimeIntegrationActive": false
+}

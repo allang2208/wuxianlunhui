@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_king_cobra_20260825\\references\\black-king-cobra-dying-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_king_cobra_20260825\\prompts\\black-king-cobra-dying.txt",
+  "promptChars": 2353,
+  "promptSha256": "dcc7474ab7c440a89882496489a2ca94b5d94ba590bafa1b98dd433f5ea8deb3",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-25T07:38:08.348Z",
+  "sourceUrlScheme": "https"
+}

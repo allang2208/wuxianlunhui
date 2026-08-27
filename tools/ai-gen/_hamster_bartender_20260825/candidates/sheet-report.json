@@ -1,0 +1,127 @@
+{
+  "status": "review-only; not connected to runtime configuration",
+  "cell": 256,
+  "feetY": 236,
+  "sourceMotionSet": "assets/companions/hamster_boiler_worker",
+  "styleTransform": "local deterministic burgundy vest/apron and muted brass recolour",
+  "model": null,
+  "externalUpload": false,
+  "actions": {
+    "idle": {
+      "output": "tools/ai-gen/_hamster_bartender_20260825/candidates/sheets/idle.png",
+      "source": "videos/idle-closed-mouth.mp4",
+      "window": [
+        37,
+        100
+      ],
+      "sourceIndices": [
+        37,
+        48,
+        57,
+        65,
+        75,
+        83,
+        90,
+        99
+      ],
+      "frameCount": 8,
+      "endFrame": 7,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 2,
+      "frameRate": 8,
+      "footRatio": 0.921875,
+      "validation": {
+        "alphaPixelsMin": 14235,
+        "alphaPixelsMax": 14719,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 14.379123415265765,
+        "loopSeamDelta": 9.334718704223633
+      }
+    },
+    "empty_running": {
+      "output": "tools/ai-gen/_hamster_bartender_20260825/candidates/sheets/empty_running.png",
+      "source": "videos/empty-running.mp4",
+      "window": [
+        30,
+        49
+      ],
+      "sourceIndices": [
+        30,
+        33,
+        34,
+        36,
+        37,
+        38,
+        40,
+        42,
+        43,
+        45,
+        46,
+        48
+      ],
+      "frameCount": 12,
+      "endFrame": 11,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 3,
+      "frameRate": 12,
+      "footRatio": 0.921875,
+      "validation": {
+        "alphaPixelsMin": 15861,
+        "alphaPixelsMax": 17854,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 34.78114492242987,
+        "loopSeamDelta": 20.662817001342773
+      }
+    },
+    "food_loaded_running": {
+      "output": "tools/ai-gen/_hamster_bartender_20260825/candidates/sheets/food_loaded_running.png",
+      "source": "videos/food-loaded-running.mp4",
+      "window": [
+        85,
+        102
+      ],
+      "sourceIndices": [
+        85,
+        86,
+        87,
+        89,
+        90,
+        92,
+        94,
+        95,
+        97,
+        98,
+        99,
+        101
+      ],
+      "frameCount": 12,
+      "endFrame": 11,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 3,
+      "frameRate": 12,
+      "footRatio": 0.921875,
+      "validation": {
+        "alphaPixelsMin": 15084,
+        "alphaPixelsMax": 16024,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 22.900453740900215,
+        "loopSeamDelta": 25.20988655090332
+      }
+    }
+  }
+}

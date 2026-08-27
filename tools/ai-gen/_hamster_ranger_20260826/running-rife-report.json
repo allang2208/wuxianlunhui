@@ -1,0 +1,51 @@
+{
+  "name": "hamster-ranger-running",
+  "sourceSheet": "tools\\ai-gen\\_hamster_ranger_20260826\\source-sheets-pre-interpolation\\running.png",
+  "outputSheet": "tools\\ai-gen\\_hamster_ranger_20260826\\sheets\\interpolated\\running.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "pipelineVersion": "rife-v4.6-rgba-v2-temporal-dark-repair",
+  "mode": "loop",
+  "loopStartSourceIndex": 0,
+  "sourceFrameCount": 8,
+  "outputFrameCount": 16,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 2,
+  "sourceFrameRate": 12.0,
+  "outputFrameRate": 24.0,
+  "durationPreserved": true,
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 350,
+    "alphaBottomMax": 351,
+    "middleFrameFootShifts": [
+      0,
+      0,
+      -1,
+      1,
+      0,
+      0,
+      -1,
+      3
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 44.77007007598877,
+    "adjacentDeltaMeanAfter": 29.143340587615967
+  }
+}

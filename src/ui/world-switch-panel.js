@@ -195,8 +195,14 @@ export const WorldSwitchPanel = {
             if (preview.wavesCleared.length) parts.push(`预估击退至第 ${Math.max(...preview.wavesCleared)} 波`);
             if (preview.victory) parts.push('预估防守胜利');
             if (preview.energyMined > 0) parts.push(`离线采矿 +${Math.round(preview.energyMined)}`);
+            if (preview.deepDrillEnergyMined > 0) {
+                parts.push(`深钻采掘 +${Math.round(preview.deepDrillEnergyMined)}`);
+            }
             if (preview.resonatorEnergyProduced > 0) {
                 parts.push(`位面谐振 +${preview.resonatorEnergyProduced}`);
+            }
+            if (preview.steamEnergyProduced > 0) {
+                parts.push(`蒸汽发电 +${preview.steamEnergyProduced}`);
             }
             if (preview.titheEnergy > 0) parts.push(`什一税 +${preview.titheEnergy}`);
             if (preview.unitsProduced > 0) parts.push(`新兵 +${preview.unitsProduced}`);

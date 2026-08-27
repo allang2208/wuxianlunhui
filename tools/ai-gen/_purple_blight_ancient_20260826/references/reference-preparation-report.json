@@ -1,0 +1,103 @@
+{
+  "mother": "mother\\purple-blight-ancient-mother-v03-stationary-photorealistic-white.png",
+  "alpha": "references\\purple-blight-ancient-mother-v03-alpha.png",
+  "cutout": "references\\purple-blight-ancient-mother-v03-cutout.png",
+  "background": "#FF00FF",
+  "references": {
+    "idle": {
+      "file": "references\\purple-blight-ancient-reference-idle-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        239,
+        69,
+        621,
+        518
+      ],
+      "margins": {
+        "left": 239,
+        "right": 403,
+        "top": 69,
+        "bottom": 58
+      }
+    },
+    "spellcast": {
+      "file": "references\\purple-blight-ancient-reference-spellcast-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        261,
+        110,
+        599,
+        507
+      ],
+      "margins": {
+        "left": 261,
+        "right": 425,
+        "top": 110,
+        "bottom": 69
+      }
+    },
+    "attack": {
+      "file": "references\\purple-blight-ancient-reference-attack-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        240,
+        127,
+        559,
+        501
+      ],
+      "margins": {
+        "left": 240,
+        "right": 465,
+        "top": 127,
+        "bottom": 75
+      }
+    },
+    "throw": {
+      "file": "references\\purple-blight-ancient-reference-throw-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        217,
+        138,
+        521,
+        495
+      ],
+      "margins": {
+        "left": 217,
+        "right": 503,
+        "top": 138,
+        "bottom": 81
+      }
+    },
+    "death": {
+      "file": "references\\purple-blight-ancient-reference-death-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        298,
+        138,
+        583,
+        472
+      ],
+      "margins": {
+        "left": 298,
+        "right": 441,
+        "top": 138,
+        "bottom": 104
+      }
+    }
+  }
+}

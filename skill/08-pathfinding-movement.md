@@ -190,7 +190,8 @@ if (enemy._pathManager) {
    从 106ms → ~10ms。动态障碍成本（250ms 更新）不进 memo，每格实时叠加。
 2. **每帧寻路预算**：`PathFinder.beginFrame()` 由 `MovementSystem.beginFrame()` 在
    game.js 主循环每帧调用一次；`frameBudgetMs` 耗尽后 `findPath`/`findPathToExit` 返回
-   `PATH_DEFERRED` 哨兵，PathManager 保留旧路径、下帧重试。**禁止**把超预算当"不可达"处理。
+   `PATH_DEFERRED` 哨兵，PathManager 保留旧路径、下帧重试。空间哈希冷重建、建筑终点投影、
+   区域索引与反向流场建设也必须消费同一 deadline。**禁止**把超预算当"不可达"处理。
 3. **不可达负缓存**：A* 失败结果按 500ms 短 TTL 入 `_pathCache`，卡住重算循环不再每 500ms
    付一次冷 A*（20ms → 0.01ms）。`findPathToExit` 另有独立 500ms 出口缓存 + 预算门禁。
 4. **首寻路错峰**：PathManager 创建后 `_firstRecalcAt = now + rand×250ms`，刷怪同帧错开。
@@ -198,11 +199,13 @@ if (enemy._pathManager) {
    共享对象，原地改写是别名 bug。
 6. **缓存 LRU + 告警节流**：`_setCache` 满容量先清过期再淘汰最旧；A*/forceRecalc 失败告警
    1s 节流，避免卡住循环刷屏。
-7. **全局任务队列（2026-08-23）**：敌人的首次重算、目标变化、卡住强制重算和路径有效性
+7. **全局任务队列（2026-08-23；2026-08-25 跨帧续算补强）**：敌人的首次重算、目标变化、卡住强制重算和路径有效性
    检查统一进入 `PathWorkScheduler`，按卡住紧急 > 过门追击 > 防守怪 > 普通怪排序；同一
    `PathManager` 的重复任务必须合并，重算会吞并旧有效性检查。每帧最多执行 2 次重算、5 次
    有效性检查；排空耗时达到 3ms 后不得再启动新任务。`PATH_DEFERRED` 必须保留任务到下一帧，不能当失败。
-   玩家 RTS 的 `PathManager` 保持同步直算，不进入敌人队列，避免输入响应增加一帧延迟。
+   deferred 作业优先连续续算以尽快产出共享路径，但最多连续 8 个切片后让出队列，防止不可达作业饿死其他请求。
+   玩家 RTS 的 `PathManager` 保持同步直算，不进入敌人队列，避免输入响应增加一帧延迟。性能报告中
+   `path.validationMs/recalcMs` 表示当帧队列实际执行时间，`LastMs/PeakMs` 分别表示最近一次和本次运行生命期峰值。
 
 **2026-08-03 剩余清单已清（改代码前必读）**：
 1. **临时线障碍只做局部失效**：冰墙一次施法只往 `WallSystem.isoSegments` 推一条带
@@ -228,10 +231,11 @@ if (enemy._pathManager) {
   `_specialTacticalTarget` > `_tacticalTarget` > BattleCommander > `enemy.target` > `_lastKnownTargetPos`。
   **防守怪（`_defenseMonster`）不走 BattleCommander**（战术点围绕玩家，与基地/掩体目标冲突，
   game.js 收集处 + 优先级判断双保险）；chargeStraight 怪只认 enemy.target 直线。
-- **分段接力寻路 [RELAY]**：目标超 MAX_PATHFIND_RANGE(800) 时 `_pickRelayPoint`
-  （主方向 +±30°/±60° 共 5 条 `WallSystem.blocked` 射线，选 600~700px 通畅点）逐段 A*，
-  `_relayTarget` 非永久状态，接近 <120px/路径失效/终点偏 >100px 接力下一段；帧预算 3ms、
-  PATH_DEFERRED、500ms 最小重算全部复用现有机制。例外：chargeStraight、战术目标移动保持直线。
+- **分层接力寻路 [HIERARCHY+RELAY]**：目标超 MAX_PATHFIND_RANGE(800) 时先由
+  `HierarchicalRoutePlanner` 在 640px 扇区图搜索共享门户序列；粗层搜索受独立 0.6ms 帧预算约束，
+  `HIERARCHY_DEFERRED` 时保留旧路径、下帧继续。随后选不超过 700px 的门户交给细层 A*；无可用粗层路线
+  才回退主方向 +±30°/±60° 五射线。`_relayTarget` 仍是非永久状态，接近 <120px/路径失效/终点偏 >100px
+  推进下一段；PATH_DEFERRED、500ms 最小重算全部复用现有机制。例外：chargeStraight、战术目标移动保持直线。
 - **掩体可攻击链路三件套**：① `_coverSeg._owner` 回链 DefenseCover；② 卡住 500ms 且目标够不着时
   `_retargetBlockingCover` 直接转火贴身掩体（绕过感知 1.3× 滞回）；③ LOS/Combat 对掩体目标
   `blocked(..., {segs:[target._coverSeg]})` 忽略自身 face 段——不忽略则从墙背面接近永判无视线、拒不出手。
@@ -262,9 +266,13 @@ if (enemy._pathManager) {
   局部清）；只有整图切换（地牢/战斗房/Boss 房/setup/teardown）才 `invalidateCache` 全清。
 - **半径桶**：`RADIUS_BUCKETS=[20,40,90]`（>90 各自成桶），桶上界为代表半径（只保守不穿墙）；
   `_cellMemo`/`_pathCache`/RegionIndex 全部按桶共享——新怪加半径不用管，自动归桶。
-- **门闸寻路**：关门 `_gate` 段进 SpatialHash 作 `GATE_SOFT_COST=6` 软成本（不阻挡，绕路优先、
-  唯一通路仍穿门）；门洞段额外标 `_gateHole`，被关着的门洞贴身挡住的怪门前等待不重算
-  （`_findBlockingGateHole`，门开自然恢复）；门开关 toggle 必须 invalidateRegion。
+- **门闸寻路**：关门 `_gate` 段进 SpatialHash，但不是硬阻挡。敌军、竞技场门与常锁门继续使用
+  `GATE_SOFT_COST=6`（绕路优先、唯一通路仍穿门）；玩家/友军仅对 `_opensForFriendly` 且非
+  `locked` 的自动门使用正常成本，让实际会为其开启的门参与最短路线。`_cellMemo/_pathCache/_exitCache`
+  必须把 `friendlyGateAccess` 纳入 key，禁止敌我复用错误路径；门的 auto/locked/open 模式切换还要
+  递增友军门策略版本，使已经持有路线的玩家/友军失效并经原目标重算，物理开关门继续
+  `invalidateRegion`。门洞段额外标 `_gateHole`，被关门贴身挡住的怪门前等待不重算
+  （`_findBlockingGateHole`，门开自然恢复）。
 - **结构目标 LOS 总口径**：`_isDefenseStructure` 在攻击距离内（distanceToEntityShape +
   attackDistance ?? attackRange×1.15）免 LOS——perception `_checkLineOfSight`、
   combat-system LOS 分支、attack.js `checkTriangleHit` 命中判定**三处必须同口径**，
@@ -284,11 +292,17 @@ if (enemy._pathManager) {
   不可用；用目标锁定/追击距离/转火断言替代（验证 `tools/cdp-defense-amove.mjs`）。
 
 **全局怪物移速倍率（全部模式通用）**
-- `data/combat-config.json` `enemyDefaults.globalSpeedMultiplier`（当前 0.75）→ Enemy 构造器
+- `data/combat-config.json` `enemyDefaults.globalSpeedMultiplier`（当前 0.60）→ Enemy 构造器
   单点缩放 speed/maxSpeed/_baseSpeed；speed=0 站桩怪（矿洞/墓碑/煮锅/集合体）天然排除；
   浅拷贝 config 同步 config.speed（time-agent 运行时回读路径，不污染 enemyConfigData 单例）；
   冲锋/扑击/lunge 攻击位移与击退不在本链路，祭品减速（getTributeMonsterMoveSlowMul）独立叠加。
 - 契约测试：`scripts/test-monster-speed.mjs`（数据契约 + 源码接线，防接线被改没）。
+
+**全局可生产兵种常规移速倍率**
+- `data/combat-config.json` `friendlyUnitDefaults.globalSpeedMultiplier`（当前 0.85）由
+  `unit-upgrade-store.getUnitUpgradePatch()` 在兵种自身 `walkSpeed` 与移动升级倍率之间统一叠加；
+  普通生产建筑和跨位面军事工厂都消费该最终补丁，覆盖 `UNIT_KIND_CFG` 登记的15种军事单位。
+- 玩家、队友、矿工和平民不在本链路；骑士冲锋等技能位移不受影响。
 
 **道路范围移速（世界-122，2026-08-19）**
 - `BuildingRoadSystem.movementMultiplierAt(x,y)`按脚底所在格返回`1.2/1.0`，自动建筑道路环与
@@ -337,6 +351,10 @@ if (enemy._pathManager) {
 - **多单位交通必须排队**：楼梯按 portal/方向维护预约与超时，入口 FIFO；首个友军取得楼梯身份后
   同方向可单列流水通行，反方向保持互斥。墙顶终点再分配 footprint 内的站位槽；禁止让整组选中
   单位共享同一入口点或最终墙中心。
+- **地面队列只规划终点槽，不做逐帧刚性编队（2026-08-23）**：复数 RTS 移动按真实地面 `u/v`
+  坐标生成朝移动方向旋转的方阵，以最大单位半径确定安全间距，并在下令时用 O(n²) 最近槽分配一次。
+  每个单位继续独立投影合法落点、寻路和避障；窄门/建筑可自然打散，禁止新增每帧队长追随、全组
+  重排或共享单条刚性路径，否则会与墙体、高架、不同移速和寻路预算冲突。
 - **指挥点击不等于索敌改造**：RTS 右键链路只负责屏幕点拾取、`resolveSurfaceTarget`、按单位选择
   可用楼梯和消费显式 route。修复“点击墙顶却走到墙下”时先查拾取与命令契约，不得顺手修改敌军
   `PerceptionSystem`。自主追击跨层目标才进入上述 surface-nav 适配层。
@@ -352,6 +370,16 @@ if (enemy._pathManager) {
   同方向友军追加为流水持有者，反方向与敌军仍互斥。预约 TTL、排队超时、入口半径、重规划周期和
   失败恢复上限全部由 `defense-structures.json.wallWalk.surfaceNavigation` 驱动；规划时把队列长度折算为
   入口代价，分流到较空闲楼梯。
+- **入口等待态不得参与友军分离（2026-08-23）**：`_surfaceNavWaiting` 已由 FIFO 明确禁止穿越
+  Portal；等待者若继续参与地面 unit-vs-unit 分离，会把获权者推出入口并让整个队列反复回靠。
+  `shouldIgnoreFriendlyElevatedSeparation` 因此把队列态视为高架交通的一部分，只关闭相关友军之间的
+  footprint 推挤；墙体、建筑、楼梯边线、防坠线、Portal 许可和反向互斥仍必须照常执行。
+- **排队超时必须表示“无进展”（2026-08-23）**：长队不能从入队时起共享一个不再变化的绝对截止时间，
+  否则队首持续通行时最后几人仍会超时重排。只在队首获权、前方条目取消/失效等导致该单位的 FIFO 顺位
+  实际前进时重置等待窗口；重复 `request` 、普通每帧 `touch` 不得续期，保证真正停滞仍能进入恢复。
+- **队列超时必须闭环回到重规划（2026-08-23）**：显式 RTS 路线退出 FIFO 后，下一帧必须释放旧预约、清旧路径、
+  重算高架路线并允许重新入队。禁止用 `0` 作强制超时哨兵后再用 `value || now` 读取：`0` 会被每帧替换为
+  当前时间，使超时信号永远无法触发恢复。时间哨兵应使用有限数检查，或写入 `now - progressTimeoutMs`。
 - 友军卡死瞬移、随机 unstuck 与地面路径修复在排队/楼梯/墙顶阶段暂停；表面控制器使用进度超时重算，
   连续恢复失败后释放预约并延迟重试，避免永久占用入口。
 - 所有高架位移入口都必须在位置解析前发布本帧实际移动意图。玩家由控制器写

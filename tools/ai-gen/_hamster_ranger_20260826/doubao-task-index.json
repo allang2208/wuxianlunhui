@@ -1,0 +1,113 @@
+{
+  "provider": "mixed: h3-lan-5080 plus deterministic local keyframes",
+  "model": "MiniMax H3 / built-in imagegen / BiRefNet-general / RIFE v4.6",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-ranger-mother-v01.png",
+  "assetStatus": "runtime_assets_and_code_integration_complete",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "runtimeIntegrationActive": true,
+  "producerBuildingIntegration": true,
+  "recruitmentGateNote": "游侠与长戟均已完成；完成斥候营地科技后，草屋二级两条生产槽按整级门槛正式启用。",
+  "projectile": {
+    "provider": "built-in imagegen",
+    "prompt": "prompts/crossbow-bolt-imagegen.txt",
+    "source": "references/crossbow-bolt-imagegen.png",
+    "runtime": "assets/companions/hamster_ranger/projectile.png",
+    "frameSize": [512, 512],
+    "contentWidth": 448,
+    "tipDirection": "right"
+  },
+  "tasks": [
+    {
+      "motion": "idle",
+      "prompt": "prompts/idle-doubao.txt",
+      "loopRequested": true,
+      "status": "sprite_candidate_complete",
+      "video": "videos/idle-h3.mp4",
+      "seed": 82601,
+      "steps": 20,
+      "sourceSheet": "source-sheets-pre-interpolation/idle.png",
+      "spriteSheet": "sheets/interpolated/idle.png",
+      "preview": "previews/interpolated/hamster-ranger-idle-interpolated.gif",
+      "frameCount": 24,
+      "frameRate": 8,
+      "repeat": -1
+    },
+    {
+      "motion": "running",
+      "prompt": "prompts/running-h3-v02-keyframe.txt",
+      "loopRequested": true,
+      "status": "sprite_candidate_complete",
+      "reference": "references/hamster-ranger-running-keyframe-v02.png",
+      "video": "videos/running-h3-v02.mp4",
+      "seed": 82612,
+      "steps": 20,
+      "sourceSheet": "source-sheets-pre-interpolation/running.png",
+      "spriteSheet": "sheets/interpolated/running.png",
+      "preview": "previews/interpolated/hamster-ranger-running-interpolated.gif",
+      "frameCount": 16,
+      "frameRate": 24,
+      "repeat": -1,
+      "reviewNote": "24-frame contact review keeps the crossbow and dagger throughout. The crossbow overlaps the chest armor during the rear arm-swing phase but does not disappear or morph into a long gun.",
+      "rejectedCandidates": [
+        {
+          "attempt": "running-h3-v01",
+          "reason": "invented long tail and lost the left-hand dagger"
+        }
+      ]
+    },
+    {
+      "motion": "attacking",
+      "prompt": "deterministic loaded-aim to empty-release to loaded-aim keyframe sequence",
+      "loopRequested": false,
+      "status": "sprite_candidate_complete_local_keyframe_fallback",
+      "references": [
+        "references/hamster-ranger-attack-aim-keyframe-v01.png",
+        "references/hamster-ranger-attack-release-keyframe-v01.png"
+      ],
+      "implementationNote": "The runtime combat system should spawn the bolt. The animation source should show only a silent mechanical recoil and recovery, with no projectile or combustion effect.",
+      "sourceSheet": "source-sheets-pre-interpolation/attacking-keyframes.png",
+      "spriteSheet": "sheets/interpolated/attacking.png",
+      "preview": "previews/interpolated/hamster-ranger-attacking-interpolated.gif",
+      "frameCount": 5,
+      "frameRate": 10,
+      "repeat": 0,
+      "runtimeBoltSpawnFrame": 2,
+      "rejectedCandidates": [
+        {
+          "attempt": "attacking-h3-v01",
+          "reason": "compact hand crossbow morphed into a rifle-like long weapon and the dagger disappeared"
+        },
+        {
+          "attempt": "attacking-h3-v02",
+          "reason": "generated muzzle flash and smoke; the transverse bow limbs briefly collapsed into a gun-like silhouette"
+        },
+        {
+          "attempt": "attacking-h3-v03",
+          "reason": "still generated a combustion-like light burst despite hard negative constraints"
+        },
+        {
+          "attempt": "attacking-h3-v04",
+          "reason": "invented an even larger flame, smoke and debris event from an empty-channel mechanical-recovery prompt"
+        }
+      ]
+    },
+    {
+      "motion": "dying",
+      "prompt": "prompts/dying-doubao.txt",
+      "loopRequested": false,
+      "status": "sprite_candidate_complete",
+      "video": "videos/dying-h3.mp4",
+      "seed": 82604,
+      "steps": 20,
+      "sourceSheet": "source-sheets-pre-interpolation/dying.png",
+      "spriteSheet": "sheets/interpolated/dying.png",
+      "preview": "previews/interpolated/hamster-ranger-dying-interpolated.gif",
+      "frameCount": 25,
+      "frameRate": 24,
+      "repeat": 0
+    }
+  ]
+}

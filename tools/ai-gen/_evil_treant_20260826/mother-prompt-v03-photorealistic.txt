@@ -1,0 +1,18 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser monster, rebuilt to match an established realistic asset library
+
+Input images: Images 1-4 are the ONLY visual-style references. Match their photographic realism, soft white-studio presentation, anatomically believable volume, restrained materials, continuous midtones, low local microcontrast, simple readable silhouette, and subtle natural sharpness. They are style references only; do not copy human, snake, bear, wolf, clothing, fur, armor, or animal anatomy.
+
+Primary request: Create exactly one mobile evil treant named "邪恶树精" as if it were a real living organism photographed in the same studio and rendered by the same realistic character-asset pipeline as the reference monsters.
+
+Body topology: one continuous living tree organism with a moderately thick trunk torso, exactly two branch arms, exactly two short root legs and two broad stump feet, one restrained face naturally formed by knots in the upper trunk, and two dim violet eyes. The silhouette is simple and biological: only four to six main broken crown boughs, no dense twig halo, no decorative spikes.
+
+Realistic material treatment: use large continuous areas of mature gray-brown bark with only a limited number of natural deep cracks. Bark plates must be broad and calm, not thousands of tiny chips. Smooth weathered wood transitions, sparse patches of real moss and lichen, small exposed heartwood areas, subtle damp roughness. Purple corruption appears only as two or three muted fungal lesions and a faint violet discoloration inside a few existing cracks; no chest jewel and no luminous network.
+
+Photographic style contract: realistic creature photography / high-end VFX creature maquette photographed at life scale, soft large-source studio light, gentle shadowless modeling, broad smooth tonal gradients, low sharpening, low texture-frequency contrast, natural lens softness, no aggressive clarity, no crunchy detail. Materials must read first as real bark and living plant tissue, not as a procedural texture or sculpted fantasy armor.
+
+Pose and framing: calm neutral idle, right-facing three-quarter side view matching the reference character angle, slight elevated camera, both arms relaxed and separated, both stump feet planted on one horizontal baseline. Full body visible, generous white margins, subject about 52% of canvas width and 68% of canvas height.
+
+Background: flat pure white #FFFFFF, no horizon, no visible floor, no cast shadow, no scenery.
+
+Avoid: carved wooden statue, collectible figurine, concept-art render, grimdark sculpture, procedural bark noise, displacement noise, sandpaper grain, pebbled texture, repeated tiny bark flakes, excessive grooves, excessive sharpened edges, crunchy clarity, oversharpening, high local contrast, dense branches, antlers, armor, weapon, stone, neon purple, glowing cracks across the body, extra limbs, extra faces, particles, aura, smoke, ground, rocks, text, logo, watermark, cartoon, anime, low-poly toy, glossy plastic.

@@ -13,7 +13,7 @@ import { Companion } from './companion.js';
 import { HamsterScoutAI } from '../ai/hamster-scout-ai.js';
 import hamsterScoutConfig from '../../data/hamster-scout-config.json';
 
-const DYING_DURATION_MS = 1000; // dying 11 帧 @12fps ≈ 917ms，留余量
+const MIN_DYING_DURATION_MS = 1000;
 
 export class HamsterScout extends Companion {
     constructor(x, y, overrides = {}) {
@@ -49,6 +49,10 @@ export class HamsterScout extends Companion {
         };
         this._dying = false;
         this._deathTimer = 0;
+        const dyingAnim = archive.animations?.dying || {};
+        const dyingFrameCount = Math.max(1, Number(dyingAnim.frameCount) || 1);
+        const dyingFrameRate = Math.max(1, Number(dyingAnim.frameRate) || 12);
+        this._dyingDurationMs = Math.max(MIN_DYING_DURATION_MS, dyingFrameCount / dyingFrameRate * 1000 + 60);
         this._ai = new HamsterScoutAI(this);
         this._animState = 'idle';
         this.configureCollisionFromArchive(archive);
@@ -80,7 +84,7 @@ export class HamsterScout extends Companion {
         this.vy = 0;
         this.isMoving = false;
         this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._deathTimer = this._dyingDurationMs;
     }
 
     /** 产兵建筑/兵营升级同步（2026-08-17）：攻击间隔/伤害/射程/移速/生命实时生效 */
@@ -113,6 +117,10 @@ export class HamsterScout extends Companion {
         }
         if (this.data.hp <= 0) {
             this._startDying();
+            return;
+        }
+        if (this.hasStatusEffect('petrified')) {
+            this.vx = 0; this.vy = 0; this.isMoving = false;
             return;
         }
         if (this._ai) {

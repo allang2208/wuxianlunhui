@@ -35,11 +35,19 @@ DEFAULT_RIFE = (
     / "rife-ncnn-vulkan.exe"
 )
 MODEL = "rife-v4.6"
-PIPELINE_VERSION = "rife-v4.6-rgba-v2-temporal-dark-repair"
+PIPELINE_VERSION = "rife-v4.6-rgba-v3-temporal-chroma-repair"
 VISIBLE_DARK_ALPHA = 96
 VISIBLE_DARK_MAX_RGB = 24
 VISIBLE_DARK_DILATION = 12
 VISIBLE_DARK_REPAIR_MIN_PIXELS = 8
+VISIBLE_RED_ALPHA = 96
+VISIBLE_RED_MIN_R = 80
+VISIBLE_RED_EXCESS = 55
+VISIBLE_RED_NEIGHBOURHOOD = 31
+VISIBLE_RED_EXCESS_MARGIN = 20
+VISIBLE_RED_REPAIR_MIN_PIXELS = 6
+LARGE_DARK_REPAIR_HOLD_PIXELS = 1000
+LARGE_RED_REPAIR_HOLD_PIXELS = 100
 
 
 def extract_cells(
@@ -199,9 +207,74 @@ def repair_temporal_dark_outliers(
     return repaired, count, False
 
 
+def red_excess(frame: np.ndarray) -> np.ndarray:
+    """How strongly red dominates green/blue at each pixel."""
+    rgb = frame[..., :3].astype(np.int16)
+    return rgb[..., 0] - np.maximum(rgb[..., 1], rgb[..., 2])
+
+
+def temporal_red_outlier_mask(
+    middle: np.ndarray, first: np.ndarray, second: np.ndarray
+) -> np.ndarray:
+    """Find red chroma invented beyond either neighbouring source key."""
+    first_excess = np.where(first[..., 3] > 8, red_excess(first), 0)
+    second_excess = np.where(second[..., 3] > 8, red_excess(second), 0)
+    allowed_excess = np.maximum(
+        ndimage.maximum_filter(first_excess, size=VISIBLE_RED_NEIGHBOURHOOD),
+        ndimage.maximum_filter(second_excess, size=VISIBLE_RED_NEIGHBOURHOOD),
+    )
+    middle_excess = red_excess(middle)
+    return (
+        (middle[..., 3] > VISIBLE_RED_ALPHA)
+        & (middle[..., 0] > VISIBLE_RED_MIN_R)
+        & (middle_excess > VISIBLE_RED_EXCESS)
+        & (middle_excess > allowed_excess + VISIBLE_RED_EXCESS_MARGIN)
+    )
+
+
+def repair_temporal_red_outliers(
+    middle: np.ndarray, first: np.ndarray, second: np.ndarray
+) -> tuple[np.ndarray, int]:
+    """Replace unsupported RIFE red blocks from the nearest valid texture."""
+    outliers = temporal_red_outlier_mask(middle, first, second)
+    count = int(outliers.sum())
+    if count < VISIBLE_RED_REPAIR_MIN_PIXELS:
+        return middle, 0
+
+    repaired = middle.copy()
+    source_rgb = np.rint(
+        (
+            bleed_rgb(first).astype(np.float32)
+            + bleed_rgb(second).astype(np.float32)
+        )
+        * 0.5
+    ).astype(np.uint8)
+    ys, xs = np.where(outliers)
+    repaired[ys, xs, :3] = source_rgb[ys, xs]
+    residual = temporal_red_outlier_mask(repaired, first, second)
+    if residual.any():
+        first_excess = np.where(first[..., 3] > 8, red_excess(first), 0)
+        second_excess = np.where(second[..., 3] > 8, red_excess(second), 0)
+        allowed_excess = np.maximum(
+            ndimage.maximum_filter(first_excess, size=VISIBLE_RED_NEIGHBOURHOOD),
+            ndimage.maximum_filter(second_excess, size=VISIBLE_RED_NEIGHBOURHOOD),
+        )
+        base = np.maximum(repaired[..., 1], repaired[..., 2]).astype(np.int16)
+        permitted = np.minimum(
+            VISIBLE_RED_EXCESS,
+            allowed_excess + VISIBLE_RED_EXCESS_MARGIN,
+        )
+        red_limit = np.clip(base + permitted, 0, 255).astype(np.uint8)
+        repaired[..., 0][residual] = np.minimum(
+            repaired[..., 0][residual], red_limit[residual]
+        )
+    return repaired, count
+
+
 def assemble_middle(
-    first: np.ndarray, second: np.ndarray, middle_rgb: Path, middle_alpha: Path
-) -> tuple[np.ndarray, int, int, bool]:
+    first: np.ndarray, second: np.ndarray, middle_rgb: Path, middle_alpha: Path,
+    repair_red_outliers: bool, hold_large_repair: bool,
+) -> tuple[np.ndarray, int, int, int, bool]:
     rgb = np.asarray(Image.open(middle_rgb).convert("RGB")).copy()
     alpha = np.asarray(Image.open(middle_alpha).convert("L")).copy()
     alpha[alpha <= 2] = 0
@@ -219,13 +292,25 @@ def assemble_middle(
     middle, repaired_dark_pixels, held_source_key = repair_temporal_dark_outliers(
         middle, first, second
     )
+    repaired_red_pixels = 0
+    if repair_red_outliers:
+        middle, repaired_red_pixels = repair_temporal_red_outliers(
+            middle, first, second
+        )
+    if hold_large_repair and (
+        repaired_dark_pixels >= LARGE_DARK_REPAIR_HOLD_PIXELS
+        or repaired_red_pixels >= LARGE_RED_REPAIR_HOLD_PIXELS
+    ):
+        middle = first.copy()
+        held_source_key = True
     middle[middle[..., 3] == 0, :3] = 0
-    return middle, dy, repaired_dark_pixels, held_source_key
+    return middle, dy, repaired_dark_pixels, repaired_red_pixels, held_source_key
 
 
 def interpolate_pair(
-    first: np.ndarray, second: np.ndarray, pair_dir: Path, rife: Path
-) -> tuple[np.ndarray, int, int, bool]:
+    first: np.ndarray, second: np.ndarray, pair_dir: Path, rife: Path,
+    repair_red_outliers: bool, hold_large_repair: bool,
+) -> tuple[np.ndarray, int, int, int, bool]:
     pair_dir.mkdir(parents=True, exist_ok=True)
     first_rgb = pair_dir / "first-rgb.png"
     second_rgb = pair_dir / "second-rgb.png"
@@ -239,17 +324,22 @@ def interpolate_pair(
     Image.fromarray(second[..., 3], "L").save(second_alpha)
     run_rife(rife, first_rgb, second_rgb, middle_rgb)
     run_rife(rife, first_alpha, second_alpha, middle_alpha)
-    return assemble_middle(first, second, middle_rgb, middle_alpha)
+    return assemble_middle(
+        first, second, middle_rgb, middle_alpha,
+        repair_red_outliers, hold_large_repair,
+    )
 
 
 def interpolate(
     originals: list[np.ndarray], mode: str, work_dir: Path, rife: Path,
-    loop_start_index: int = 0,
-) -> tuple[list[np.ndarray], list[int], list[int], list[bool]]:
+    loop_start_index: int = 0, repair_red_outliers: bool = False,
+    hold_large_repair: bool = False,
+) -> tuple[list[np.ndarray], list[int], list[int], list[int], list[bool]]:
     pair_count = len(originals) if mode == "loop" else len(originals) - 1
     frames: list[np.ndarray] = []
     shifts: list[int] = []
     dark_repairs: list[int] = []
+    red_repairs: list[int] = []
     held_source_keys: list[bool] = []
 
     rgb_input = work_dir / "sequence-rgb-input"
@@ -277,30 +367,36 @@ def interpolate(
             # Directory mode numbers outputs from 1. With 2N-1 outputs, even
             # filenames are the half-step frames between adjacent source keys.
             output_number = index * 2 + 2
-            middle, dy, repaired_dark_pixels, held_source_key = assemble_middle(
+            middle, dy, repaired_dark_pixels, repaired_red_pixels, held_source_key = assemble_middle(
                 originals[index], originals[next_index],
                 rgb_output / f"{output_number:08d}.png",
                 alpha_output / f"{output_number:08d}.png",
+                repair_red_outliers,
+                hold_large_repair,
             )
         else:
-            middle, dy, repaired_dark_pixels, held_source_key = interpolate_pair(
+            middle, dy, repaired_dark_pixels, repaired_red_pixels, held_source_key = interpolate_pair(
                 originals[index], originals[next_index],
                 work_dir / f"pair-{index:03d}", rife,
+                repair_red_outliers,
+                hold_large_repair,
             )
         frames.extend([originals[index], middle])
         shifts.append(dy)
         dark_repairs.append(repaired_dark_pixels)
+        red_repairs.append(repaired_red_pixels)
         held_source_keys.append(held_source_key)
         print(
             f"[rife-sheet] pair {index + 1}/{pair_count} "
             f"source={index}->{next_index} foot_dy={dy} "
             f"dark_repaired={repaired_dark_pixels} "
+            f"red_repaired={repaired_red_pixels} "
             f"hold_fallback={held_source_key}",
             flush=True,
         )
     if mode == "one-shot":
         frames.append(originals[-1])
-    return frames, shifts, dark_repairs, held_source_keys
+    return frames, shifts, dark_repairs, red_repairs, held_source_keys
 
 
 def compose(frames: list[np.ndarray], cols: int) -> np.ndarray:
@@ -393,7 +489,8 @@ def adjacent_mean(
 
 def validate(
     originals: list[np.ndarray], frames: list[np.ndarray], mode: str,
-    shifts: list[int], dark_repairs: list[int], held_source_keys: list[bool],
+    shifts: list[int], dark_repairs: list[int], red_repairs: list[int],
+    held_source_keys: list[bool], repair_red_outliers: bool,
     loop_start_index: int,
 ) -> dict[str, object]:
     bboxes = [alpha_bbox(frame) for frame in frames]
@@ -418,6 +515,7 @@ def validate(
         int(np.count_nonzero(frame[..., :3][frame[..., 3] == 0])) for frame in frames
     )
     remaining_dark_outliers: dict[int, int] = {}
+    remaining_red_outliers: dict[int, int] = {}
     pair_count = len(originals) if mode == "loop" else len(originals) - 1
     for index in range(pair_count):
         next_index = index + 1
@@ -430,6 +528,14 @@ def validate(
         )
         if count >= VISIBLE_DARK_REPAIR_MIN_PIXELS:
             remaining_dark_outliers[index * 2 + 1] = count
+        if repair_red_outliers:
+            red_count = int(
+                temporal_red_outlier_mask(
+                    frames[index * 2 + 1], originals[index], originals[next_index]
+                ).sum()
+            )
+            if red_count >= VISIBLE_RED_REPAIR_MIN_PIXELS:
+                remaining_red_outliers[index * 2 + 1] = red_count
     return {
         "emptyFrames": empty,
         "touchingFrames": touching,
@@ -437,10 +543,12 @@ def validate(
         "alphaBottomMax": max(value for value in bottoms if value is not None),
         "middleFrameFootShifts": shifts,
         "middleFrameVisibleDarkPixelsRepaired": dark_repairs,
+        "middleFrameVisibleRedPixelsRepaired": red_repairs,
         "middleFrameHeldSourceKeyFallbacks": [
             index * 2 + 1 for index, held in enumerate(held_source_keys) if held
         ],
         "visibleDarkOutlierFrames": remaining_dark_outliers,
+        "visibleRedOutlierFrames": remaining_red_outliers,
         "originalKeyFramesPreservedAtEvenIndices": originals_preserved,
         "nonzeroRgbInTransparentPixels": transparent_rgb,
         "adjacentDeltaMeanBefore": adjacent_mean(
@@ -469,6 +577,8 @@ def main() -> None:
     parser.add_argument("--preview-dir", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--rife", type=Path, default=DEFAULT_RIFE)
+    parser.add_argument("--repair-red-outliers", action="store_true")
+    parser.add_argument("--hold-large-repair", action="store_true")
     args = parser.parse_args()
 
     if not args.rife.exists():
@@ -486,8 +596,9 @@ def main() -> None:
             shutil.copy2(args.sheet, args.backup)
 
     with tempfile.TemporaryDirectory(prefix=f"rife-{args.name}-") as temp:
-        frames, shifts, dark_repairs, held_source_keys = interpolate(
-            originals, args.mode, Path(temp), args.rife, args.loop_start_index
+        frames, shifts, dark_repairs, red_repairs, held_source_keys = interpolate(
+            originals, args.mode, Path(temp), args.rife, args.loop_start_index,
+            args.repair_red_outliers, args.hold_large_repair,
         )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -499,7 +610,7 @@ def main() -> None:
         "name": args.name,
         "sourceSheet": str(args.sheet),
         "outputSheet": str(args.out),
-        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
         "pipelineVersion": PIPELINE_VERSION,
         "mode": args.mode,
         "loopStartSourceIndex": args.loop_start_index if args.mode == "loop" else None,
@@ -515,7 +626,8 @@ def main() -> None:
         "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
         "validation": validate(
             originals, frames, args.mode, shifts, dark_repairs,
-            held_source_keys, args.loop_start_index,
+            red_repairs, held_source_keys, args.repair_red_outliers,
+            args.loop_start_index,
         ),
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)

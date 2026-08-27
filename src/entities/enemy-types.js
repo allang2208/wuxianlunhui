@@ -11,6 +11,24 @@ import {
     createBasicMeleeSnapshot,
 } from '../combat/melee-attack-resolver.js';
 import { burstParticles } from '../effects/combat-fx.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { VenomSprayEffect } from '../effects/venom-spray-effect.js';
+import { MedusaPetrifyingGazeFx } from '../effects/medusa-petrifying-gaze-fx.js';
+import { VineEntangleEffect } from '../effects/vine-entangle-effect.js';
+import { DamagePipeline } from '../combat/damage-pipeline.js';
+import { isFriendlyFire } from './damageable-entity.js';
+import { PartySystem } from '../systems/party-system.js';
+import { GroundEllipse, GroundSector } from '../physics/skill-shapes.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+import { surfaceEffectFromEntity } from '../physics/elevation.js';
+import { playSoundFrom } from './enemy-types/_shared/enemy-utils.js';
+import {
+    createGroundWarning,
+    destroyWarning,
+    fireGroundShockwave,
+    keepWarningAlive,
+    launchArcProjectile,
+} from '../effects/combat-fx.js';
 import {
     hasRangedLineOfSight,
     rangedLineOfSightCacheToken,
@@ -1449,6 +1467,8 @@ class ZombieDogEnemy extends CircleEnemy {
         this._animStateTimer = 0;
         this._lastHorizontalFacing = 'right';
         this._attackDuration = this._getFrameLayout('attack').duration ?? 700;
+        this._loopingSoundState = null;
+        this._loopingSoundTimer = 0;
 
         // 死亡动画播放完成后保留尸体 1 秒，再交给通用清理链销毁。
         this._preserveCorpse = true;
@@ -1463,6 +1483,8 @@ class ZombieDogEnemy extends CircleEnemy {
             return;
         }
         super.update(dt, entities);
+        // 石化需冻结当前动作帧，不能像眩晕/冻结那样把动画计时继续推进。
+        if (this.hasStatusEffect?.('petrified')) return;
         // 递减攻击动画计时器；计时器归零后不再显示 attack 动画
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
@@ -1513,6 +1535,37 @@ class ZombieDogEnemy extends CircleEnemy {
                 this._animStateTimer = 0;
             }
         }
+        this._syncConfiguredLoopSound(dt);
+    }
+
+    _syncConfiguredLoopSound(dt) {
+        const state = this._animState === 'run' ? 'walk' : this._animState;
+        if (state !== 'idle' && state !== 'walk') {
+            this._loopingSoundState = null;
+            this._loopingSoundTimer = 0;
+            return;
+        }
+        const sounds = this.config?.sounds || {};
+        if (!sounds[state]) return;
+        const layout = this._getFrameLayout(state);
+        const frameDuration = Number(layout?.frameRate) > 0
+            ? 1000 * Math.max(1, Number(layout?.frameCount) || 1) / Number(layout.frameRate)
+            : 0;
+        const interval = Math.max(
+            250,
+            Number(sounds[`${state}Interval`]) || Number(layout?.duration) || frameDuration || 2000
+        );
+        if (this._loopingSoundState !== state) {
+            this._loopingSoundState = state;
+            this._loopingSoundTimer = state === 'idle'
+                ? Math.random() * Math.min(interval, 750)
+                : 0;
+        } else {
+            this._loopingSoundTimer = Math.max(0, this._loopingSoundTimer - Math.max(0, Number(dt) || 0));
+        }
+        if (this._loopingSoundTimer > 0) return;
+        playSoundFrom(this, state);
+        this._loopingSoundTimer = interval;
     }
 
     /**
@@ -1530,6 +1583,7 @@ class ZombieDogEnemy extends CircleEnemy {
         this._attackAnimTimer = this._attackTimer;
         this._animFrame = 0;
         this._animTimer = 0;
+        playSoundFrom(this, 'attack');
     }
 
     _getFrameLayout(state = this._animState) {
@@ -1564,6 +1618,7 @@ class ZombieDogEnemy extends CircleEnemy {
 
     onDeath(source) {
         if (this._deathStarted) return;
+        playSoundFrom(this, 'death');
         this._deathStarted = true;
         this._attackTimer = 0;
         this.vx = 0;
@@ -1671,6 +1726,1262 @@ function createBrownBear(x, y, overrides = {}) {
     const baseTextures = base.textures || {};
     const overrideTextures = overrides.textures || {};
     return new BrownBearEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 普通邪恶树精：复用四动作普通近战和死亡保尸时序。逻辑 run 与 walk
+ * 共用同一套沉重步行动画，死亡终帧保留碎裂后的木材堆。
+ */
+class EvilTreantEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.evilTreant,
+            ...config,
+        });
+    }
+
+    _getEvilTreantVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getEvilTreantVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_evil_treant_${this._getEvilTreantVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getEvilTreantVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_evil_treant_${visualState}_v1`;
+        return options;
+    }
+}
+
+function createEvilTreant(x, y, overrides = {}) {
+    const base = enemyConfigData.evilTreant || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new EvilTreantEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 紫蚀古树首领：固定树桩型区域控制者。
+ *
+ * - 近距：锁向的地面扇形巨臂横扫；
+ * - 远距：投石 1 秒落地，红圈与 GroundEllipse 同源，命中眩晕；
+ * - 控制：施法后地面红圈预警，物理伤害 + 3 秒束缚；至少命中一个目标后排队衔接投石。
+ *
+ * 不存在移动视觉态，逻辑位移也强制锁回出生根点。
+ */
+class PurpleBlightAncientEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.purpleBlightAncient,
+            ...config,
+        });
+        this._rootX = x;
+        this._rootY = y;
+        this.speed = 0;
+        this.maxSpeed = 0;
+        this._baseSpeed = 0;
+        this.immovable = true;
+
+        this._bossAction = null;
+        this._bossActionTimer = 0;
+        this._bossActionDuration = 0;
+        this._bossActionReleased = false;
+        this._bossActionTarget = null;
+        this._bossActionPoint = null;
+        this._meleeCooldown = 0;
+        this._rockCooldown = Math.max(0, Number(this.config?.attackSkills?.rockThrow?.initialCooldownMs) || 0);
+        this._vineCooldown = Math.max(0, Number(this.config?.attackSkills?.vineEntangle?.initialCooldownMs) || 0);
+        this._pendingVineWarnings = [];
+        this._rockProjectiles = [];
+        this._queuedComboThrow = null;
+        this._impactGraphics = [];
+
+        // 三种动作全部由本类管理；关闭 ZombieDog 的通用单体突刺，避免同帧重复攻击。
+        const melee = this.attacks?.melee;
+        if (melee) melee.canUse = () => false;
+    }
+
+    _getPurpleAncientVisualState(state = this._animState) {
+        if (state === 'death') return 'death';
+        if (this._bossAction === 'vine') return 'spellcast';
+        if (this._bossAction === 'rock') return 'throw';
+        if (this._bossAction === 'melee') return 'attack';
+        return 'idle';
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getPurpleAncientVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_purple_blight_ancient_${this._getPurpleAncientVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getPurpleAncientVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_purple_blight_ancient_${visualState}_v1`;
+        options.dynamicSpriteSize = true;
+        return options;
+    }
+
+    update(dt, entities) {
+        if (!this.active) {
+            super.update(dt, entities);
+            return;
+        }
+
+        const attackDt = this.getAttackIntervalDelta(dt);
+        this._meleeCooldown = Math.max(0, this._meleeCooldown - attackDt);
+        this._rockCooldown = Math.max(0, this._rockCooldown - attackDt);
+        this._vineCooldown = Math.max(0, this._vineCooldown - attackDt);
+        this._updateQueuedCombo(dt);
+        this._updateVineWarnings(dt, entities);
+        this._updateRockWarnings();
+
+        const controlled = this.hasStatusEffect?.('stun')
+            || this.hasStatusEffect?.('frozen')
+            || this.hasStatusEffect?.('fear')
+            || this.hasStatusEffect?.('petrified');
+        if (controlled && this._bossAction) this._cancelBossAction();
+        if (this._bossAction) this._updateBossAction(dt, entities);
+
+        super.update(dt, entities);
+        this._lockToRoots();
+
+        if (!this.active || this._isDead || controlled) return;
+        if (!this._bossAction) this._chooseBossAction(this.target);
+        this._animState = this._getPurpleAncientVisualState();
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+    }
+
+    _lockToRoots() {
+        this.x = this._rootX;
+        this.y = this._rootY;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this.collider) {
+            this.collider.x = this._rootX;
+            this.collider.y = this._rootY;
+            this.collider.syncPosition?.();
+        }
+    }
+
+    _isValidHostile(target, allowStructure = true) {
+        if (!target || target === this || !target.active || target._isDead
+            || target.hittable === false || !(target.hp > 0)) return false;
+        if (!allowStructure && target._isDefenseStructure) return false;
+        return !isFriendlyFire(this, target)
+            && !(this._faction === 'enemy' && target._faction === 'enemy');
+    }
+
+    _hostiles(entities) {
+        const source = entities?.values
+            ? entities.values()
+            : (Array.isArray(entities) ? entities : []);
+        const values = new Set(source);
+        for (const member of PartySystem.members || []) values.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            values.add(friendly);
+        }
+        return [...values].filter(target => this._isValidHostile(target));
+    }
+
+    _chooseBossAction(target) {
+        if (this._queuedComboThrow) {
+            const comboTarget = this._queuedComboThrow.target;
+            if (!this._isValidHostile(comboTarget)) {
+                this._queuedComboThrow = null;
+            } else {
+                if (this._queuedComboThrow.delayMs <= 0) {
+                    this._queuedComboThrow = null;
+                    this._startRockThrow(comboTarget, true);
+                }
+                // 藤蔓命中后的 450ms 衔接窗口内禁止普通横扫/投石抢占动作。
+                return;
+            }
+        }
+        // 藤蔓红圈尚未结算时保持待机；落空后本帧即可恢复普通攻击选择。
+        if (this._pendingVineWarnings.length > 0) {
+            return;
+        }
+        if (!this._isValidHostile(target)) return;
+        const distance = distanceToEntityShape(target, this.x, this.y);
+        const meleeCfg = this.config?.attackSkills?.armSweep || {};
+        const vineCfg = this.config?.attackSkills?.vineEntangle || {};
+        const rockCfg = this.config?.attackSkills?.rockThrow || {};
+
+        if (this._vineCooldown <= 0
+            && distance <= (Number(vineCfg.castRange) || 800)
+            && hasRangedLineOfSight(this, target)) {
+            this._startVineCast(target);
+            return;
+        }
+        if (this._meleeCooldown <= 0 && distance <= (Number(meleeCfg.triggerRange) || 300)) {
+            this._startMeleeSweep(target);
+            return;
+        }
+        if (this._rockCooldown <= 0
+            && distance <= (Number(rockCfg.triggerRange) || 900)
+            && hasRangedLineOfSight(this, target)) {
+            this._startRockThrow(target, false);
+        }
+    }
+
+    _startAction(kind, target, duration) {
+        this._bossAction = kind;
+        this._bossActionTimer = duration;
+        this._bossActionDuration = duration;
+        this._bossActionReleased = false;
+        this._bossActionTarget = target;
+        this._bossActionPoint = target
+            ? { x: target.collider?.x ?? target.x, y: target.collider?.y ?? target.y }
+            : null;
+        this._frozenForCast = true;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animState = this._getPurpleAncientVisualState();
+        this._animStateTimer = 0;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        if (target) {
+            this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
+            this._lastHorizontalFacing = target.x < this.x ? 'left' : 'right';
+        }
+        this._lockToRoots();
+        playSoundFrom(this, kind);
+    }
+
+    _startMeleeSweep(target) {
+        const cfg = this.config?.attackSkills?.armSweep || {};
+        const duration = Math.max(100, Number(cfg.durationMs) || 1500);
+        this._meleeCooldown = Math.max(0, Number(cfg.cooldown) || 2400);
+        this._startAction('melee', target, duration);
+    }
+
+    _startRockThrow(target, combo) {
+        const cfg = this.config?.attackSkills?.rockThrow || {};
+        const duration = Math.max(100, Number(cfg.durationMs) || 1500);
+        this._rockCooldown = Math.max(0, Number(cfg.cooldown) || 8000);
+        this._startAction('rock', target, duration);
+        this._bossActionCombo = combo === true;
+    }
+
+    _startVineCast(target) {
+        const cfg = this.config?.attackSkills?.vineEntangle || {};
+        const duration = Math.max(100, Number(cfg.durationMs) || 1700);
+        this._vineCooldown = Math.max(0, Number(cfg.cooldown) || 14000);
+        this._startAction('vine', target, duration);
+    }
+
+    _updateBossAction(dt, entities) {
+        const kind = this._bossAction;
+        const cfg = kind === 'melee'
+            ? this.config?.attackSkills?.armSweep || {}
+            : kind === 'rock'
+                ? this.config?.attackSkills?.rockThrow || {}
+                : this.config?.attackSkills?.vineEntangle || {};
+        this._bossActionTimer = Math.max(0, this._bossActionTimer - Math.max(0, Number(dt) || 0));
+        const elapsed = this._bossActionDuration - this._bossActionTimer;
+        const visualLayout = this._getFrameLayout(this._getPurpleAncientVisualState());
+        const frameCount = Math.max(1, Math.floor(Number(visualLayout?.frameCount) || 1));
+        const configuredReleaseFrame = Number(cfg.releaseFrame);
+        const releaseAtMs = Number.isFinite(configuredReleaseFrame)
+            ? this._bossActionDuration * Math.max(
+                0,
+                Math.min(frameCount - 1, Math.floor(configuredReleaseFrame))
+            ) / frameCount
+            : this._bossActionDuration * Math.max(
+                0,
+                Math.min(1, Number(cfg.releaseRatio) || 0.5)
+            );
+        if (!this._bossActionReleased && elapsed >= releaseAtMs) {
+            this._bossActionReleased = true;
+            if (kind === 'melee') this._resolveMeleeSweep(entities);
+            else if (kind === 'rock') this._releaseRockThrow();
+            else this._releaseVineWarning();
+        }
+        this._frozenForCast = true;
+        this._animState = this._getPurpleAncientVisualState();
+        this._lockToRoots();
+        if (this._bossActionTimer <= 0) this._cancelBossAction();
+    }
+
+    _resolveMeleeSweep(entities) {
+        const cfg = this.config?.attackSkills?.armSweep || {};
+        const range = Math.max(1, Number(cfg.range) || 280);
+        const arc = Math.max(1, Number(cfg.arcDegrees) || 150) * Math.PI / 180;
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        const shape = new GroundSector(
+            originX,
+            originY,
+            this.rotation || 0,
+            range,
+            arc,
+            surfaceEffectFromEntity(this)
+        );
+        const damage = Math.max(1, Math.round((this.data?.atk || 1) * (Number(cfg.damageMultiplier) || 1)));
+        for (const target of this._hostiles(entities)) {
+            if (!shape.intersectsEntity(target)) continue;
+            const tx = target.collider?.x ?? target.x;
+            const ty = target.collider?.y ?? target.y;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (WallSystem?.blocked?.(originX, originY, tx, ty, ignore)) continue;
+            DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: cfg.damageType || 'physical',
+                knockback: Number(cfg.knockback) || 36,
+                angle: Math.atan2(ty - originY, tx - originX),
+                isMelee: true,
+                confirmedHitContext: { skillId: 'purpleAncientArmSweep' },
+            });
+        }
+    }
+
+    _releaseRockThrow() {
+        const cfg = this.config?.attackSkills?.rockThrow || {};
+        const point = this._bossActionPoint;
+        if (!point) return;
+        const flightMs = Math.max(1, Number(cfg.flightMs) || 1000);
+        const radius = Math.max(1, Number(cfg.impactRadius) || 170);
+        const warning = createGroundWarning(point.x, point.y, radius);
+        const throwLayout = this._getFrameLayout('throw');
+        const referenceCell = Number(this.config?.textures?.referenceCell) || 512;
+        const frameWidth = Number(throwLayout?.frameWidth) || referenceCell;
+        const footY = Number(throwLayout?.footY) || (Number(throwLayout?.frameHeight) || referenceCell);
+        const pixelScale = (Number(this.config?.render?.spriteSize) || 151) / referenceCell;
+        const sourceX = Number(cfg.releasePointX);
+        const sourceY = Number(cfg.releasePointY);
+        const sourceOffsetX = Number.isFinite(sourceX)
+            ? (sourceX - frameWidth / 2) * pixelScale
+            : -(Number(cfg.muzzleForward) || 75);
+        const sourceOffsetY = Number.isFinite(sourceY)
+            ? (sourceY - footY) * pixelScale
+            : -(Number(cfg.muzzleUpY) || 205);
+        // 投石母版朝右时岩石由画面左手脱离；朝左播放会水平镜像。
+        // 直接从母版坐标换算，保证投射物首帧中心与手中岩石中心重合。
+        const mirroredOffsetX = this._lastHorizontalFacing === 'left'
+            ? -sourceOffsetX
+            : sourceOffsetX;
+        const sx = this.x + mirroredOffsetX;
+        const sy = this.y + sourceOffsetY;
+        const projectileEntry = { projectile: null, warning };
+        const projectile = launchArcProjectile({
+            textureKey: cfg.projectileTexture || 'enemy_ore_spider_projectile',
+            size: Math.max(20, Number(cfg.projectileSize) || 72),
+            sx,
+            sy,
+            tx: point.x,
+            ty: point.y,
+            arcHeight: Math.max(0, Number(cfg.arcHeight) || 150),
+            duration: flightMs,
+            spin: Number(cfg.spin) || Math.PI * 1.5,
+            depth: this.y + 30,
+            onImpact: (x, y) => {
+                destroyWarning(warning);
+                this._rockProjectiles = this._rockProjectiles.filter(entry => entry !== projectileEntry);
+                if (this.active && !this._isDead) this._resolveRockImpact(x, y);
+            },
+        });
+        projectileEntry.projectile = projectile;
+        if (projectile) this._rockProjectiles.push(projectileEntry);
+    }
+
+    _resolveRockImpact(x, y) {
+        const cfg = this.config?.attackSkills?.rockThrow || {};
+        const radius = Math.max(1, Number(cfg.impactRadius) || 170);
+        const shape = new GroundEllipse(
+            x,
+            y,
+            radius,
+            radius * PERSPECTIVE_SCALE_Y,
+            surfaceEffectFromEntity(this)
+        );
+        const damage = Math.max(1, Math.round((this.data?.atk || 1) * (Number(cfg.damageMultiplier) || 1.35)));
+        const impact = fireGroundShockwave({
+            x,
+            y,
+            maxRadius: radius,
+            strokeColor: 0x8a7354,
+            fillColor: 0x6a5138,
+            duration: 460,
+            flicker: false,
+        });
+        if (impact) this._impactGraphics.push(impact);
+        const entities = typeof window !== 'undefined' ? window.Game?.entities : null;
+        for (const target of this._hostiles(entities)) {
+            if (!shape.intersectsEntity(target)) continue;
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: cfg.damageType || 'physical',
+                isMelee: false,
+                confirmedHitContext: { skillId: 'purpleAncientRockThrow' },
+            });
+            const parried = target.shieldSystem && target.shieldSystem._lastParried;
+            if (result.hit && !parried && target.active && !target._isDead && target.hp > 0) {
+                target.applyStun?.(Math.max(0, Number(cfg.stunMs) || 1500));
+            }
+        }
+    }
+
+    _updateRockWarnings() {
+        for (const entry of this._rockProjectiles) {
+            if (!keepWarningAlive(entry.warning)) entry.warning = null;
+        }
+    }
+
+    _releaseVineWarning() {
+        const cfg = this.config?.attackSkills?.vineEntangle || {};
+        const point = this._bossActionPoint;
+        if (!point) return;
+        const radius = Math.max(1, Number(cfg.radius) || 220);
+        this._pendingVineWarnings.push({
+            x: point.x,
+            y: point.y,
+            timer: Math.max(1, Number(cfg.warningMs) || 1200),
+            warning: createGroundWarning(point.x, point.y, radius),
+            preferredTarget: this._bossActionTarget,
+            surfaceContext: surfaceEffectFromEntity(this),
+        });
+    }
+
+    _updateVineWarnings(dt, entities) {
+        const step = Math.max(0, Number(dt) || 0);
+        for (let i = this._pendingVineWarnings.length - 1; i >= 0; i--) {
+            const pending = this._pendingVineWarnings[i];
+            pending.timer -= step;
+            if (!keepWarningAlive(pending.warning)) pending.warning = null;
+            if (pending.timer > 0) continue;
+            pending.warning = destroyWarning(pending.warning);
+            this._pendingVineWarnings.splice(i, 1);
+            if (this.active && !this._isDead) this._resolveVineEntangle(pending, entities);
+        }
+    }
+
+    _resolveVineEntangle(pending, entities) {
+        const cfg = this.config?.attackSkills?.vineEntangle || {};
+        const radius = Math.max(1, Number(cfg.radius) || 220);
+        const shape = new GroundEllipse(
+            pending.x,
+            pending.y,
+            radius,
+            radius * PERSPECTIVE_SCALE_Y,
+            pending.surfaceContext
+        );
+        const damage = Math.max(1, Math.round((this.data?.atk || 1) * (Number(cfg.damageMultiplier) || 0.85)));
+        const boundTargets = [];
+        for (const target of this._hostiles(entities)) {
+            if (!shape.intersectsEntity(target)) continue;
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: cfg.damageType || 'physical',
+                isMelee: false,
+                confirmedHitContext: { skillId: 'purpleAncientVineEntangle' },
+            });
+            const parried = target.shieldSystem && target.shieldSystem._lastParried;
+            if (!result.hit || parried || !target.active || target._isDead || !(target.hp > 0)
+                || target.hasStatusEffect?.('statusImmune')) continue;
+            target.applyBind?.(Math.max(0, Number(cfg.bindMs) || 3000));
+            EffectManager.add(new VineEntangleEffect(target, {
+                durationMs: Math.max(0, Number(cfg.bindMs) || 3000),
+                displaySize: Number(cfg.effectDisplaySize) || 220,
+            }));
+            boundTargets.push(target);
+        }
+        if (!boundTargets.length) return;
+        const comboTarget = boundTargets.includes(pending.preferredTarget)
+            ? pending.preferredTarget
+            : boundTargets.reduce((best, target) => {
+                if (!best) return target;
+                const targetDist = Math.hypot(target.x - pending.x, target.y - pending.y);
+                const bestDist = Math.hypot(best.x - pending.x, best.y - pending.y);
+                return targetDist < bestDist ? target : best;
+            }, null);
+        this._queuedComboThrow = {
+            target: comboTarget,
+            delayMs: Math.max(0, Number(cfg.comboDelayMs) || 450),
+        };
+    }
+
+    _updateQueuedCombo(dt) {
+        if (!this._queuedComboThrow) return;
+        this._queuedComboThrow.delayMs = Math.max(
+            0,
+            this._queuedComboThrow.delayMs - Math.max(0, Number(dt) || 0)
+        );
+        if (!this._isValidHostile(this._queuedComboThrow.target)) this._queuedComboThrow = null;
+    }
+
+    _cancelBossAction() {
+        this._bossAction = null;
+        this._bossActionTimer = 0;
+        this._bossActionDuration = 0;
+        this._bossActionReleased = false;
+        this._bossActionTarget = null;
+        this._bossActionPoint = null;
+        this._bossActionCombo = false;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this._animStateTimer = 0;
+        this.aiTimer = 0;
+    }
+
+    _destroyCustomEffects() {
+        for (const pending of this._pendingVineWarnings) destroyWarning(pending.warning);
+        this._pendingVineWarnings = [];
+        for (const entry of this._rockProjectiles) {
+            destroyWarning(entry.warning);
+            entry.projectile?.cancel?.();
+        }
+        this._rockProjectiles = [];
+        for (const graphics of this._impactGraphics) {
+            if (graphics?.active) graphics.destroy();
+        }
+        this._impactGraphics = [];
+        this._queuedComboThrow = null;
+    }
+
+    onDeath(source) {
+        this._cancelBossAction();
+        this._destroyCustomEffects();
+        super.onDeath(source);
+    }
+}
+
+function createPurpleBlightAncient(x, y, overrides = {}) {
+    const base = enemyConfigData.purpleBlightAncient || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new PurpleBlightAncientEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 自然系精英食人花：四动作近战模板；普通攻击确认命中且未被弹反后，
+ * 读取配置给目标叠加逐层消退的腐蚀。
+ */
+class CarnivorousPitcherEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.carnivorousPitcher,
+            ...config,
+        });
+    }
+
+    _getCarnivorousPitcherVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getCarnivorousPitcherVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_carnivorous_pitcher_${this._getCarnivorousPitcherVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getCarnivorousPitcherVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_carnivorous_pitcher_${visualState}_v1`;
+        return options;
+    }
+
+    _onConfirmedHitEntity(target) {
+        if (!target?.active || target._isDead || !(target.hp > 0)
+            || typeof target.applyCorrosion !== 'function') return;
+        const corrosion = this.config?.attackSkills?.corrosionOnHit || {};
+        const stacks = Math.max(0, Math.floor(Number(corrosion.stacks) || 0));
+        if (stacks <= 0) return;
+        target.applyCorrosion(
+            stacks,
+            Math.max(1, Number(corrosion.durationMs) || 5000),
+            Math.max(0, Number(corrosion.defenseReductionPerStack) || 0.05)
+        );
+    }
+}
+
+function createCarnivorousPitcher(x, y, overrides = {}) {
+    const base = enemyConfigData.carnivorousPitcher || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new CarnivorousPitcherEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 普通棕蛇：复用已验证的四动作普通近战/死亡保尸时序。逻辑 run 继续
+ * 播放同一套蜿蜒 walking；每次实际命中且未被弹反后叠加配置化中毒。
+ */
+class BrownSnakeEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.brownSnake,
+            ...config,
+        });
+        // 低矮贴地素材不叠加通用椭圆阴影，避免蛇腹下方出现独立黑色地块。
+        this._noShadow = true;
+    }
+
+    _getBrownSnakeVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getBrownSnakeVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_brown_snake_${this._getBrownSnakeVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getBrownSnakeVisualState();
+        const layout = this._getFrameLayout(visualState);
+        const visualScale = Math.max(0.01, Number(layout.visualScale) || 1);
+        if (visualScale !== 1) {
+            options.spriteSize *= visualScale;
+            this.footOffsetY *= visualScale;
+        }
+        options.animState = visualState;
+        options.animKey = `enemy_brown_snake_${visualState}_v1`;
+        return options;
+    }
+
+    _onConfirmedHitEntity(target) {
+        if (!target?.active || target._isDead || !(target.hp > 0)
+                || typeof target.applyPoison !== 'function') return;
+        const poison = this.config?.attackSkills?.poisonOnHit || {};
+        const stacks = Math.max(0, Math.floor(Number(poison.stacks) || 0));
+        if (stacks > 0) target.applyPoison(stacks);
+    }
+}
+
+function createBrownSnake(x, y, overrides = {}) {
+    const base = enemyConfigData.brownSnake || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new BrownSnakeEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 黑色眼镜蛇王：沿用蛇类四动作与定向普通近战，在独立冷却上追加一次
+ * 锁方向的扇形毒液喷射。普通咬击与喷射都通过确认命中钩子叠毒。
+ */
+class BlackKingCobraEnemy extends BrownSnakeEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.blackKingCobra,
+            ...config,
+        });
+        this._venomSprayCfg = this.config?.attackSkills?.venomSpray || {};
+        this._venomSprayCooldown = Math.max(0, Number(this._venomSprayCfg.initialCooldownMs) || 0);
+        this._venomSprayActive = false;
+        this._venomSprayTimer = 0;
+        this._venomSprayReleased = false;
+        this._venomSprayAngle = 0;
+    }
+
+    _getBrownSnakeVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getTextureKey() {
+        return `enemy_black_king_cobra_${this._getBrownSnakeVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = ZombieDogEnemy.prototype._getPhaserOptions.call(this);
+        const visualState = this._getBrownSnakeVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_black_king_cobra_${visualState}_v1`;
+        return options;
+    }
+
+    update(dt, entities) {
+        super.update(dt, entities);
+        if (!this.active) return;
+
+        const attackDt = this.getAttackIntervalDelta(dt);
+        this._venomSprayCooldown = Math.max(0, this._venomSprayCooldown - attackDt);
+        const controlled = this.hasStatusEffect
+            && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('fear'));
+
+        if (this._venomSprayActive) {
+            if (controlled) this._cancelVenomSpray();
+            else this._updateVenomSpray(dt, entities);
+        } else if (!controlled && this._venomSprayCooldown <= 0 && this._canStartVenomSpray(this.target)) {
+            this._startVenomSpray(this.target);
+        }
+
+        // ZombieDog 的速度动画状态机不认识施法态；基类更新后锁回攻击母版。
+        if (this._venomSprayActive) this._animState = 'attack';
+    }
+
+    _canStartVenomSpray(target) {
+        if (!target?.active || target._isDead || target.hittable === false
+            || target._faction === 'enemy' || !(target.hp > 0)) return false;
+        if (this._attackTimer > 0 || this._attackAnimTimer > 0
+            || this._pendingThrust?.active || this._attackTelegraphTimer > 0) return false;
+        const range = Math.max(0, Number(this._venomSprayCfg.triggerRange) || 450);
+        if (distanceToEntityShape(target, this.x, this.y) > range) return false;
+        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+        return hasRangedLineOfSight(this, target, 8, ignore);
+    }
+
+    _startVenomSpray(target) {
+        const duration = Math.max(100, Number(this._venomSprayCfg.durationMs) || 1200);
+        this._venomSprayActive = true;
+        this._venomSprayTimer = duration;
+        this._venomSprayReleased = false;
+        this._venomSprayAngle = Math.atan2(target.y - this.y, target.x - this.x);
+        this._venomSprayCooldown = Math.max(0, Number(this._venomSprayCfg.cooldown) || 9000);
+        this._frozenForCast = true;
+        this._animState = 'attack';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.rotation = this._venomSprayAngle;
+        this._lastHorizontalFacing = Math.cos(this._venomSprayAngle) < 0 ? 'left' : 'right';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+        playSoundFrom(this, 'venom');
+    }
+
+    _updateVenomSpray(dt, entities) {
+        const duration = Math.max(100, Number(this._venomSprayCfg.durationMs) || 1200);
+        this._venomSprayTimer = Math.max(0, this._venomSprayTimer - Math.max(0, Number(dt) || 0));
+        const frameCount = Math.max(1, Math.floor(Number(this._venomSprayCfg.frameCount) || 21));
+        const releaseFrame = Math.max(0, Math.min(
+            frameCount - 1,
+            Math.floor(Number(this._venomSprayCfg.releaseFrame) || 0)
+        ));
+        const releaseAtMs = duration * releaseFrame / frameCount;
+        const elapsed = duration - this._venomSprayTimer;
+        if (!this._venomSprayReleased && elapsed >= releaseAtMs) {
+            this._venomSprayReleased = true;
+            this._releaseVenomSpray(entities);
+        }
+        this._frozenForCast = true;
+        this._animState = 'attack';
+        this.rotation = this._venomSprayAngle;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._venomSprayTimer <= 0) this._cancelVenomSpray();
+    }
+
+    _releaseVenomSpray(entities) {
+        const cfg = this._venomSprayCfg;
+        const range = Math.max(1, Number(cfg.range) || 420);
+        const arcDegrees = Math.max(1, Number(cfg.arcDegrees) || 82);
+        const halfArc = arcDegrees * Math.PI / 360;
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        const damage = Math.max(1, Math.round(
+            (this.data?.atk || this.data?.str || 20) * (Number(cfg.damageMultiplier) || 0.85)
+        ));
+        const values = entities?.values ? entities.values() : (entities || []);
+
+        for (const target of values) {
+            if (!target || target === this || !target.active || target._isDead
+                || target.hittable === false || target._faction === 'enemy' || !(target.hp > 0)) continue;
+            const targetX = target.collider?.x ?? target.x;
+            const targetY = target.collider?.y ?? target.y;
+            if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+            const dx = targetX - originX;
+            const dy = targetY - originY;
+            const distance = Math.hypot(dx, dy);
+            const targetRadius = Math.max(0, Number(target.collisionRadius ?? target.collider?.radius) || 0);
+            if (distance - targetRadius > range) continue;
+            let diff = Math.atan2(dy, dx) - this._venomSprayAngle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            const angularPadding = distance > targetRadius && distance > 0
+                ? Math.asin(Math.min(1, targetRadius / distance))
+                : Math.PI;
+            if (Math.abs(diff) > halfArc + angularPadding) continue;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (!hasRangedLineOfSight(this, target, 8, ignore)) continue;
+
+            DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: cfg.damageType || 'magic',
+                isMelee: false,
+                confirmedHitContext: {
+                    skillId: 'venomSpray',
+                    poisonStacksOverride: Math.max(0, Math.floor(Number(cfg.poisonStacks) || 0)),
+                },
+            });
+        }
+
+        EffectManager.add(new VenomSprayEffect({
+            x: originX,
+            y: originY,
+            angle: this._venomSprayAngle,
+            range,
+            arcDegrees,
+            durationMs: cfg.effectDurationMs,
+            particleCount: cfg.particleCount,
+        }));
+    }
+
+    _cancelVenomSpray() {
+        this._venomSprayActive = false;
+        this._venomSprayTimer = 0;
+        this._venomSprayReleased = false;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this._animStateTimer = 0;
+        this._animFrame = 0;
+        this.aiTimer = 0;
+    }
+
+    _onConfirmedHitEntity(target, context = {}) {
+        if (!target?.active || target._isDead || !(target.hp > 0)
+            || typeof target.applyPoison !== 'function') return;
+        const normalStacks = this.config?.attackSkills?.poisonOnHit?.stacks;
+        const stacks = Math.max(0, Math.floor(Number(
+            context.poisonStacksOverride ?? normalStacks
+        ) || 0));
+        if (stacks > 0) target.applyPoison(stacks);
+    }
+
+    onDeath(source) {
+        this._venomSprayActive = false;
+        this._venomSprayTimer = 0;
+        this._venomSprayReleased = false;
+        this._frozenForCast = false;
+        super.onDeath(source);
+    }
+}
+
+function createBlackKingCobra(x, y, overrides = {}) {
+    const base = enemyConfigData.blackKingCobra || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new BlackKingCobraEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 美杜莎领主：甩尾在第 12 帧结算锁向地面扇形 AOE；石化凝视在
+ * 独立动画第 11 帧释放扇形魔法伤害，并调用通用 applyPetrify 状态入口。
+ */
+class MedusaEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.medusa,
+            ...config,
+        });
+        this._petrifyingGazeCfg = this.config?.attackSkills?.petrifyingGaze || {};
+        this._petrifyingGazeCooldown = Math.max(
+            0,
+            Number(this._petrifyingGazeCfg.initialCooldownMs) || 0
+        );
+        this._petrifyingGazeActive = false;
+        this._petrifyingGazeTimer = 0;
+        this._petrifyingGazeReleased = false;
+        this._petrifyingGazeAngle = 0;
+        this._petrifyingGazeFx = null;
+
+        // 逐帧普通攻击时间轴继续负责起手、锁向和第12帧触发；接触判定
+        // 改由美杜莎专属地面扇形处理，避免通用解析器退回单体主目标语义。
+        const meleeAttack = this.attacks?.melee;
+        if (meleeAttack?.checkTriangleHit) {
+            const fallbackCheck = meleeAttack.checkTriangleHit.bind(meleeAttack);
+            meleeAttack.checkTriangleHit = (source) => {
+                if (source === this) {
+                    this._resolveTailSweepAoe();
+                    return;
+                }
+                fallbackCheck(source);
+            };
+        }
+    }
+
+    _getMedusaVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getMedusaVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_medusa_${this._getMedusaVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getMedusaVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_medusa_${visualState}_v1`;
+        return options;
+    }
+
+    _resolveTailSweepAoe() {
+        const pending = this._pendingThrust;
+        if (!pending?.active || pending.tailSweepResolved) return;
+        pending.tailSweepResolved = true;
+
+        const cfg = this.config?.basicMelee?.area || {};
+        const range = Math.max(1, Number(cfg.range) || 230);
+        const arcDegrees = Math.max(1, Number(cfg.arcDegrees) || 140);
+        const arcRadians = arcDegrees * Math.PI / 180;
+        const originX = Number.isFinite(Number(pending.x))
+            ? Number(pending.x)
+            : (this.collider?.x ?? this.x);
+        const originY = Number.isFinite(Number(pending.y))
+            ? Number(pending.y)
+            : (this.collider?.y ?? this.y);
+        const angle = Number.isFinite(Number(pending.angle))
+            ? Number(pending.angle)
+            : (this.rotation || 0);
+        const shape = new GroundSector(
+            originX,
+            originY,
+            angle,
+            range,
+            arcRadians,
+            surfaceEffectFromEntity(this)
+        );
+
+        const candidates = new Set(pending.entities || []);
+        for (const member of PartySystem.members || []) candidates.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            candidates.add(friendly);
+        }
+
+        const baseDamage = Math.max(1, Math.floor(
+            ((Number(pending.damage?.min) || 0) + (Number(pending.damage?.max) || 0)) / 2
+            + (Number(pending.damageBonus) || 0)
+        ));
+        const damageMultiplier = Math.max(0, Number(cfg.damageMultiplier) || 1);
+        const damage = Math.max(1, Math.floor(baseDamage * damageMultiplier));
+        const knockback = Number.isFinite(Number(cfg.knockback))
+            ? Number(cfg.knockback)
+            : pending.knockback;
+
+        for (const target of candidates) {
+            if (!target || target === this || !target.active || target._isDead
+                || target.hittable === false || !(target.hp > 0) || pending.hitSet.has(target)) continue;
+            if (isFriendlyFire(this, target)
+                || (this._faction === 'enemy' && target._faction === 'enemy')) continue;
+            if (!shape.intersectsEntity(target)) continue;
+
+            const targetX = target.collider?.x ?? target.x;
+            const targetY = target.collider?.y ?? target.y;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (WallSystem?.blocked?.(originX, originY, targetX, targetY, ignore)) {
+                const structureInReach = target._isDefenseStructure
+                    && distanceToEntityShape(target, originX, originY) <= range;
+                if (!structureInReach) continue;
+            }
+
+            const radialAngle = Math.atan2(targetY - originY, targetX - originX);
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: pending.damageType || 'physical',
+                knockback,
+                angle: radialAngle,
+                isMelee: true,
+                confirmedHitContext: { skillId: 'tailSweep' },
+            });
+            if (!result.hit) continue;
+            pending.hitSet.add(target);
+            if (result.skillExpEligible) {
+                pending.totalHitCount += 1;
+                if (result.killed && !target._summoned) pending.totalKillCount += 1;
+            }
+        }
+    }
+
+    update(dt, entities) {
+        super.update(dt, entities);
+        if (!this.active || this.hasStatusEffect?.('petrified')) return;
+
+        const attackDt = this.getAttackIntervalDelta(dt);
+        this._petrifyingGazeCooldown = Math.max(0, this._petrifyingGazeCooldown - attackDt);
+        const controlled = this.hasStatusEffect
+            && (this.hasStatusEffect('stun')
+                || this.hasStatusEffect('frozen')
+                || this.hasStatusEffect('fear'));
+
+        if (this._petrifyingGazeActive) {
+            if (controlled) this._cancelPetrifyingGaze();
+            else this._updatePetrifyingGaze(dt, entities);
+        } else if (!controlled
+            && this._petrifyingGazeCooldown <= 0
+            && this._canStartPetrifyingGaze(this.target)) {
+            this._startPetrifyingGaze(this.target);
+        }
+
+        if (this._petrifyingGazeActive) this._animState = 'petrify';
+    }
+
+    _canStartPetrifyingGaze(target) {
+        if (!target?.active || target._isDead || target.hittable === false
+            || !['player', 'companion'].includes(target._faction) || !(target.hp > 0)) return false;
+        if (this._attackTimer > 0 || this._attackAnimTimer > 0
+            || this._pendingThrust?.active || this._attackTelegraphTimer > 0) return false;
+        const range = Math.max(0, Number(this._petrifyingGazeCfg.triggerRange) || 560);
+        if (distanceToEntityShape(target, this.x, this.y) > range) return false;
+        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+        return hasRangedLineOfSight(this, target, 8, ignore);
+    }
+
+    _startPetrifyingGaze(target) {
+        const duration = Math.max(100, Number(this._petrifyingGazeCfg.durationMs) || 1500);
+        this._petrifyingGazeActive = true;
+        this._petrifyingGazeTimer = duration;
+        this._petrifyingGazeReleased = false;
+        this._petrifyingGazeAngle = Math.atan2(target.y - this.y, target.x - this.x);
+        this._petrifyingGazeCooldown = Math.max(
+            0,
+            Number(this._petrifyingGazeCfg.cooldown) || 14000
+        );
+        this._frozenForCast = true;
+        this._animState = 'petrify';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.rotation = this._petrifyingGazeAngle;
+        this._lastHorizontalFacing = Math.cos(this._petrifyingGazeAngle) < 0 ? 'left' : 'right';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+        playSoundFrom(this, 'petrify');
+    }
+
+    _updatePetrifyingGaze(dt, entities) {
+        const cfg = this._petrifyingGazeCfg;
+        const duration = Math.max(100, Number(cfg.durationMs) || 1500);
+        this._petrifyingGazeTimer = Math.max(
+            0,
+            this._petrifyingGazeTimer - Math.max(0, Number(dt) || 0)
+        );
+        const frameCount = Math.max(1, Math.floor(Number(cfg.frameCount) || 21));
+        const releaseFrame = Math.max(
+            0,
+            Math.min(frameCount - 1, Math.floor(Number(cfg.releaseFrame) || 0))
+        );
+        const releaseAtMs = duration * releaseFrame / frameCount;
+        const elapsed = duration - this._petrifyingGazeTimer;
+        if (!this._petrifyingGazeReleased && elapsed >= releaseAtMs) {
+            this._petrifyingGazeReleased = true;
+            this._releasePetrifyingGaze(entities);
+        }
+        this._frozenForCast = true;
+        this._animState = 'petrify';
+        this.rotation = this._petrifyingGazeAngle;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._petrifyingGazeTimer <= 0) this._cancelPetrifyingGaze();
+    }
+
+    _releasePetrifyingGaze(entities) {
+        const cfg = this._petrifyingGazeCfg;
+        const range = Math.max(1, Number(cfg.range) || 500);
+        const arcDegrees = Math.max(1, Number(cfg.arcDegrees) || 80);
+        const halfArc = arcDegrees * Math.PI / 360;
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        const damage = Math.max(1, Math.round(
+            (this.data?.matk || this.data?.int || 20) * (Number(cfg.damageMultiplier) || 1.25)
+        ));
+        const petrifyDuration = Math.max(0, Number(cfg.petrifyDurationMs) || 5000);
+        const magicDamageTakenMultiplier = Math.max(
+            1,
+            Number(cfg.magicDamageTakenMultiplier) || 1.5
+        );
+        const frameCount = Math.max(1, Math.floor(Number(cfg.frameCount) || 21));
+        const releaseFrame = Math.max(
+            0,
+            Math.min(frameCount - 1, Math.floor(Number(cfg.releaseFrame) || 0))
+        );
+        const castDuration = Math.max(100, Number(cfg.durationMs) || 1500);
+        const remainingCastMs = Math.max(
+            160,
+            castDuration - castDuration * releaseFrame / frameCount
+        );
+        if (this._petrifyingGazeFx?.active) this._petrifyingGazeFx.requestFadeOut(80);
+        this._petrifyingGazeFx = new MedusaPetrifyingGazeFx(this, {
+            angle: this._petrifyingGazeAngle,
+            range,
+            arcDegrees,
+            durationMs: remainingCastMs,
+            visual: cfg.visualEffect,
+        });
+        EffectManager.add(this._petrifyingGazeFx);
+        const values = new Set(entities?.values ? entities.values() : (entities || []));
+        for (const member of PartySystem.members || []) values.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            values.add(friendly);
+        }
+
+        for (const target of values) {
+            if (!target || target === this || !target.active || target._isDead
+                || target.hittable === false || !['player', 'companion'].includes(target._faction)
+                || target._isDefenseStructure || !(target.hp > 0)) continue;
+            const targetX = target.collider?.x ?? target.x;
+            const targetY = target.collider?.y ?? target.y;
+            if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) continue;
+            const dx = targetX - originX;
+            const dy = targetY - originY;
+            const distance = Math.hypot(dx, dy);
+            const targetRadius = Math.max(
+                0,
+                Number(target.collisionRadius ?? target.collider?.radius) || 0
+            );
+            if (distance - targetRadius > range) continue;
+            let diff = Math.atan2(dy, dx) - this._petrifyingGazeAngle;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            const angularPadding = distance > targetRadius && distance > 0
+                ? Math.asin(Math.min(1, targetRadius / distance))
+                : Math.PI;
+            if (Math.abs(diff) > halfArc + angularPadding) continue;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (!hasRangedLineOfSight(this, target, 8, ignore)) continue;
+
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: cfg.damageType || 'magic',
+                isMelee: false,
+                confirmedHitContext: { skillId: 'petrifyingGaze' },
+            });
+            if (result.hit && target.active && !target._isDead && target.hp > 0) {
+                target.applyPetrify?.(petrifyDuration, magicDamageTakenMultiplier);
+            }
+        }
+    }
+
+    _cancelPetrifyingGaze() {
+        if (this._petrifyingGazeFx?.active) this._petrifyingGazeFx.requestFadeOut(140);
+        this._petrifyingGazeActive = false;
+        this._petrifyingGazeTimer = 0;
+        this._petrifyingGazeReleased = false;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this._animStateTimer = 0;
+        this._animFrame = 0;
+        this.aiTimer = 0;
+    }
+
+    onDeath(source) {
+        if (this._petrifyingGazeFx?.active) this._petrifyingGazeFx.requestFadeOut(120);
+        this._petrifyingGazeActive = false;
+        this._petrifyingGazeTimer = 0;
+        this._petrifyingGazeReleased = false;
+        this._frozenForCast = false;
+        super.onDeath(source);
+    }
+}
+
+function createMedusa(x, y, overrides = {}) {
+    const base = enemyConfigData.medusa || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new MedusaEnemy(x, y, {
         ...overrides,
         ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
         textures: {
@@ -2136,4 +3447,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

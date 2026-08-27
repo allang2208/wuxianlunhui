@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_purple_blight_ancient_20260826\\references\\purple-blight-ancient-reference-attack-magenta.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_purple_blight_ancient_20260826\\prompts\\purple-blight-ancient-attack-doubao.txt",
+  "promptChars": 369,
+  "promptSha256": "53c54d715dd7973420c2f2c22828c10f1e3a92a86a235f5418e019203c329ae4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T07:43:06.230Z",
+  "sourceUrlScheme": "https"
+}

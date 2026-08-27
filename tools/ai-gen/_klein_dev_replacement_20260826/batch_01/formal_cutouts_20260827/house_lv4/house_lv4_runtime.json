@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_01\\formal_cutouts_20260827\\house_lv4\\house_lv4_mask_p3.png",
+  "output": "assets\\terrain\\house_lv4.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    161,
+    80,
+    869,
+    922
+  ],
+  "fileSize": [
+    708,
+    842
+  ],
+  "alphaBBox": [
+    0,
+    0,
+    708,
+    842
+  ],
+  "displayW": 311,
+  "displayH": 370,
+  "footOffsetY": 185,
+  "scaleX": 0.4392655367231638,
+  "scaleY": 0.43942992874109266
+}

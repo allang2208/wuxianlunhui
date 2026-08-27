@@ -1,0 +1,9 @@
+Use case: identity-preserve
+Asset type: rocket-attack key pose for the same Phaser friendly-unit character
+Primary request: Change only the pose and weapon handling of the exact same hamster anti-vehicle trooper from the reference image. The character has taken the single-soldier anti-tank rocket launcher from the back and is aiming it horizontally toward the right from the shoulder, ready to fire. The compact submachine gun is now secured on a chest sling and remains visible but is not held.
+Identity invariants: preserve the exact same hamster face, golden-brown fur, rounded ears, whiskers, body proportions, sand digital camouflage uniform, helmet, tan tactical vest, knee pads, boots, colors, materials and realistic PBR 3D game-asset style.
+Pose: stable braced firing stance, low three-quarter view facing right, both paws correctly supporting the launcher, launcher tube clear of the head, feet on one baseline.
+Composition: exactly one full-body subject, centered, generous margins around launcher muzzle, rear tube, ears and boots.
+Scene/backdrop: flat pure white #FFFFFF, no horizon, no floor, no cast shadow.
+Constraints: exactly one launcher and one slung submachine gun; exactly two arms and two legs; no firing effect yet; no text, logo or watermark.
+Avoid: extra weapons, duplicated launcher, fused paws, tube through body, wrong firing direction, cropped equipment, background scenery, smoke, muzzle flash, explosion, cartoon, anime, chibi, flat illustration.

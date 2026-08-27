@@ -180,7 +180,7 @@ const DevTool = {
     ANIM_NAME: {
         idle: '待机', walk: '移动', running: '奔跑', attack: '攻击',
         attack2: '二段攻击', attack3: '三段攻击', dash: '冲刺攻击', recover: '收势',
-        dash_recover: '冲刺收势', dodge_roll: '翻滚', dodge_jump: '跳跃闪避',
+        dash_recover: '冲刺收势', whirlwind_recover: '风车收势', dodge_roll: '翻滚', dodge_jump: '跳跃闪避',
         cast: '空手施法', staff_cast: '法杖施法',
         bow_draw: '拉弓', bow_release: '射箭',
         gun_idle: '持枪待机', gun_idle_pistol: '持枪待机·手枪', gun_idle_dual: '持枪待机·双持', gun_fire: '射击',
@@ -192,7 +192,7 @@ const DevTool = {
     PANEL_ANIM_TO_CONFIG: {
         idle: 'idle', walk: 'walk', running: 'run', attack: 'attack_sword',
         attack2: 'attack_sword_2', attack3: 'attack_sword_3', dash: 'dash_attack', recover: 'recover',
-        dash_recover: 'dash_recover', dodge_roll: 'dodge_roll', dodge_jump: 'dodge_jump',
+        dash_recover: 'dash_recover', whirlwind_recover: 'whirlwind_recover', dodge_roll: 'dodge_roll', dodge_jump: 'dodge_jump',
         cast: 'cast', staff_cast: 'staff_cast',
         bow_draw: 'bow_draw', bow_release: 'bow_release',
         gun_idle: 'gun_idle', gun_idle_pistol: 'gun_idle_pistol', gun_idle_dual: 'gun_idle_dual', gun_fire: 'gun_fire',

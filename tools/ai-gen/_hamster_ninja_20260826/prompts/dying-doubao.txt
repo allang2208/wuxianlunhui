@@ -1,0 +1,9 @@
+The exact original anthropomorphic hamster game character from the first frame performs one irreversible, non-graphic death fall and remains down. This is a fictional game character, not a real person. Maintain the same low three-quarter right-facing angle.
+
+Action phases: an invisible impact causes a brief readable recoil, the knees buckle, balance fails and the character collapses downward and slightly backward-left. The fall has believable body weight and joint motion. The character reaches one final grounded corpse pose, settles naturally, and holds that final pose through the end of the clip. No recovery, reverse playback, repeated fall, attack or standing back up.
+
+Identity and prop locks: preserve the exact warm golden-yellow hamster fur visible only around the eyes and nose bridge, glossy dark-brown eyes, compact proportions, fully wrapped black hood and face covering, concealed ears, concealed muzzle, concealed nose and concealed whiskers. Preserve the layered charcoal-black shinobi clothing, gloves, wrapped boots, pouch and exactly one short ninjato fully sheathed and intact at the left waist throughout the fall.
+
+Camera and framing: static locked orthographic camera matching the reference low three-quarter right-facing view. No camera motion, turn, flip, zoom, crop, reframing or tracking. Keep the complete standing-to-ground trajectory and final corpse silhouette inside the frame with generous pure #FFFFFF margins. No floor line, ground plane, contact shadow, cast shadow, reflection, scenery, particles, smoke, blood, gore, dismemberment, text, logo or watermark. Preserve the reference material shading without adding dynamic or dramatic light.
+
+Avoid: exposed ears or muzzle, losing the golden eye-mask fur, all-black featureless eye opening, recovery, looping, duplicated fall, attack, drawn or duplicated sword, detached equipment, extra limbs, floating corpse, identity drift, morphing, excessive motion blur, cuts or black flashes.

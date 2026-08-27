@@ -3,6 +3,7 @@
 // 新增武器只需在 EquipDataManager 中配置 attackFormula，无需修改代码
 
 import { findWeaponConfig } from '../ui/equip-data-manager.js';
+import { isRifle, isMachineGun as isMachineGunType } from './gun-ammo.js';
 
 /**
  * 根据公式配置计算武器攻击力
@@ -45,11 +46,17 @@ function calculateAttackFormula(formula, playerData, enhanceLevel, variant) {
  */
 function getAttackFormula(item) {
     if (!item) return null;
+    // 枪械平衡以 EquipDataManager 当前版本为真源：旧存档可能序列化了旧公式，若仍优先
+    // 读取实例会绕过本次基础/强化系数校准。强化等级、改造和附魔仍由实例单独叠加。
+    const canonical = findWeaponConfig(item.weaponId, item.name);
+    if (canonical?.category === 'weapon_ranged' && canonical.ammoConfig && canonical.attackFormula) {
+        return canonical.attackFormula;
+    }
     // 优先使用 item 上定义的 attackFormula
     if (item.attackFormula) return item.attackFormula;
 
     // EquipDataManager 全量源补全（修复商店货/旧存档实例缺 attackFormula 导致的"-"与错误 base）
-    const cfg = findWeaponConfig(item.weaponId, item.name);
+    const cfg = canonical || findWeaponConfig(item.weaponId, item.name);
     if (cfg && cfg.attackFormula) return cfg.attackFormula;
 
     // 从 stats 的 "物理攻击" 字段推断基础值
@@ -108,7 +115,7 @@ function computeWeaponAttack(item, playerData, skills) {
     }
 
     // 步枪精通加成
-    if ((wType === 'akm' || wType === 'qbz191' || wType === 'm416') && skills && skills.rifleMastery) {
+    if (isRifle(wType) && skills && skills.rifleMastery) {
         const rm = skills.rifleMastery.getEffect(skills.rifleMastery.level);
         weaponAtk = Math.round(weaponAtk * (1 + rm.damagePercent) + rm.damageBonus);
     }
@@ -142,7 +149,7 @@ function computeWeaponAttack(item, playerData, skills) {
 
 // 辅助函数：判断是否为机枪
 function isMachineGun(weaponType) {
-    return weaponType === 'pkm' || weaponType === 'qjb201' || weaponType === 'energy_lmg';
+    return isMachineGunType(weaponType);
 }
 
 /**

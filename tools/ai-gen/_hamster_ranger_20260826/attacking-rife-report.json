@@ -1,0 +1,39 @@
+{
+  "name": "hamster-ranger-attacking",
+  "sourceSheet": "tools\\ai-gen\\_hamster_ranger_20260826\\source-sheets-pre-interpolation\\attacking-keyframes.png",
+  "outputSheet": "tools\\ai-gen\\_hamster_ranger_20260826\\sheets\\interpolated\\attacking.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "pipelineVersion": "rife-v4.6-rgba-v2-temporal-dark-repair",
+  "mode": "one-shot",
+  "loopStartSourceIndex": null,
+  "sourceFrameCount": 3,
+  "outputFrameCount": 5,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 1,
+  "sourceFrameRate": 5.0,
+  "outputFrameRate": 10.0,
+  "durationPreserved": true,
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 350,
+    "alphaBottomMax": 350,
+    "middleFrameFootShifts": [
+      0,
+      0
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      0,
+      0
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 20.369659423828125,
+    "adjacentDeltaMeanAfter": 10.564936697483063
+  }
+}

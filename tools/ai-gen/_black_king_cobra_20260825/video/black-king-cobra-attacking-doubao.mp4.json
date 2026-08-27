@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_king_cobra_20260825\\references\\black-king-cobra-attacking-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_king_cobra_20260825\\prompts\\black-king-cobra-attacking.txt",
+  "promptChars": 2678,
+  "promptSha256": "3f6dd57cbf7e3e6c0e23db34cf14d4dc8be88e03af0bb566d8ca440312ba5135",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-25T07:36:06.585Z",
+  "sourceUrlScheme": "https"
+}

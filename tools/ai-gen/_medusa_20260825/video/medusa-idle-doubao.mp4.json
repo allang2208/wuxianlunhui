@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_medusa_20260825\\references\\medusa-coiled-video-safe.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_medusa_20260825\\prompts\\medusa-idle.txt",
+  "promptChars": 774,
+  "promptSha256": "1f8dd64172f4e948e7183441718a6b009db831fde43859ec20d2bb36c64e54fa",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-25T08:44:09.763Z",
+  "sourceUrlScheme": "https"
+}

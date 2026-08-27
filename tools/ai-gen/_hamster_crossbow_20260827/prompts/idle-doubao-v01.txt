@@ -1,0 +1,7 @@
+Keep the exact hamster crossbowman identity from the reference image: golden-and-white hamster with the same narrow refined face, dark engraved kettle helmet, olive quilted gambeson, brown studded leather cuirass and shoulder guards, leather gloves, belt, bolt quiver, armored boots, and the exact same large medieval windlass crossbow with wooden stock, steel limbs, bowstring, crank mechanism, rail, stirrup, and loaded bolt.
+
+Animate only a restrained combat idle while facing screen right in the same three-quarter view. The hamster stays planted at the exact same position and scale. Add subtle breathing, a tiny natural head and whisker movement, and a very small weight shift. Both hands continuously support the same crossbow in the same low-ready pose. The loaded bolt remains seated on the rail. Helmet, ears, face, gambeson, cuirass, gloves, quiver, bolts, boots, crossbow stock, limbs, string, crank, stirrup, and bolt stay rigidly coherent.
+
+Static locked camera, fixed framing, pure white background, soft even light. Full body, both boots, quiver, and the complete crossbow remain inside frame with generous margins. Begin and finish in exactly the same neutral pose and same breathing phase for a seamless loop.
+
+No walking, running, aiming, firing, reloading, loose projectile, weapon morphing, missing bowstring, extra weapon, extra limbs, turning toward camera, camera motion, zoom, crop, floor, shadow, scenery, text, logo, or watermark.

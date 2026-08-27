@@ -1,0 +1,47 @@
+{
+  "batch": 1,
+  "status": "approved_and_installed",
+  "generationMode": "single-pass model-plus-original",
+  "model": "flux2-klein-4b-world122-building-depth",
+  "steps": 36,
+  "depthStrength": 0.88,
+  "denoise": 0.55,
+  "variantsPerAsset": 1,
+  "controlSource": "Blender full building Depth at the authored World-122 isometric camera",
+  "initSource": "the corresponding accepted 1024x1024 green-background source image",
+  "formalAssetsOverwritten": true,
+  "installedAt": "2026-08-27",
+  "installedSelection": {
+    "originalBatchCandidates": [
+      "house_lv1",
+      "house_lv2",
+      "house_lv3",
+      "house_lv4",
+      "house_lv5",
+      "house_lv7",
+      "warehouse_lv2"
+    ],
+    "approvedRerolls": [
+      "house_lv6",
+      "warehouse_lv3",
+      "warehouse_lv4"
+    ]
+  },
+  "candidates": [
+    "model_plus_original_36/house_lv1/house_lv1_refine_v01_raw.png",
+    "model_plus_original_36/house_lv2/house_lv2_refine_v01_raw.png",
+    "model_plus_original_36/house_lv3/house_lv3_refine_v01_raw.png",
+    "model_plus_original_36/house_lv4/house_lv4_refine_v01_raw.png",
+    "model_plus_original_36/house_lv5/house_lv5_refine_v01_raw.png",
+    "model_plus_original_36/house_lv6/house_lv6_refine_v01_raw.png",
+    "model_plus_original_36/house_lv7/house_lv7_refine_v01_raw.png",
+    "model_plus_original_36/warehouse_lv2/warehouse_lv2_refine_v01_raw.png",
+    "model_plus_original_36/warehouse_lv3/warehouse_lv3_refine_v01_raw.png",
+    "model_plus_original_36/warehouse_lv4/warehouse_lv4_refine_v01_raw.png"
+  ],
+  "reviewSheets": [
+    "review_sheets_raw/page_01.png",
+    "review_sheets_raw/page_02.png"
+  ],
+  "note": "Earlier model-only 12-step and model-only 36-step experiments are rejected. The approved install uses seven original model-plus-original candidates plus the three accepted rerolls. Formal cutouts use per-asset edge-connected green keying, complete matching Depth where valid, and tightly authored alpha cleanup outside the building/plinth silhouette; warehouse_lv2 explicitly does not use its mismatched legacy Depth."
+}

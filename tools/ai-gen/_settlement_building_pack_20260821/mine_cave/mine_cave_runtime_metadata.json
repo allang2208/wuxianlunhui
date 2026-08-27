@@ -1,0 +1,45 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\mine_cave\\mine_cave_accepted_refine_v02_body.png",
+  "output": "assets\\enemies\\mine_cave\\mine_cave.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    41,
+    160,
+    43
+  ],
+  "matteEdgeWidth": 3.0,
+  "matteTolerance": 500.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    339,
+    567,
+    739,
+    887
+  ],
+  "fileSize": [
+    400,
+    320
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    396,
+    316
+  ],
+  "displayW": 129,
+  "displayH": 103,
+  "footOffsetY": 50,
+  "scaleX": 0.3225,
+  "scaleY": 0.321875
+}

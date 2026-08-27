@@ -382,7 +382,7 @@ export class TacticalSquadAI {
             const equip = player.equipments[slot];
             if (!equip) continue;
             const wt = equip.weaponType, rt = equip.rangedType;
-            if (wt === 'pkm' || wt === 'akm' || wt === 'qbz191' || wt === 'qjb201' ||
+            if (equip.category === 'weapon_ranged' || wt === 'pkm' || wt === 'akm' || wt === 'qbz191' || wt === 'qjb201' ||
                 wt === 'pistol' || wt === 'bow' || wt === 'energy_lmg' || wt === 'deagle' || wt === 'p4040' ||
                 rt === 'pistol' || rt === 'machine_gun' || rt === 'rifle' || rt === 'shotgun') return true;
         }

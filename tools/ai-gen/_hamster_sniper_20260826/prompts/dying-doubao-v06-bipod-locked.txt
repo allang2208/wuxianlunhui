@@ -1,0 +1,11 @@
+视频工具参数：总时长必须设置为4秒（duration=4），画幅16:9。不得使用默认10秒。
+
+Animate only the exact adult hamster special-forces sniper from the first frame. Create one sudden, non-looping death collapse. Do not kneel, sit, aim, brace the weapon or perform a staged fall.
+
+At 0.0 seconds, both hands tightly clamp the identical rifle flat against his chest. He immediately tucks his chin and turns the goggles and face down-left, then loses all strength and falls as one rigid compact unit onto his left side. He is fully lying on the ground by 0.9 seconds. From 0.9 through 4.0 seconds, hold one exact corpse pose with absolutely no motion.
+
+Identity is rigidly locked to the first frame: same adult golden-brown face, same cream muzzle size, mouth closed, same black dual-tube night-vision goggles lowered over the eyes, both ears completely hidden by one continuous closed ghillie hood, same olive ghillie suit and gear, exactly two hands and exactly one complete long suppressed bolt-action sniper rifle.
+
+Treat the rifle underside as one permanently welded flat black rail. The folded bipod is fused flush into the underside and is NOT an articulated object. It cannot open, split, rotate, extend, touch the floor or become support legs. Never create any tripod, bipod legs, feet, hinges, stand, brace or prop beneath the rifle. During the corpse pose, the rifle lies flat against the torso and ground with the entire underside mostly hidden by the body. Keep the suppressor and barrel straight and complete.
+
+Static camera, fixed character scale, fixed exposure, plain white background. Keep the body and full rifle inside the left 70 percent of frame. No facial expression, open mouth, young or rounded face, visible ear, hood opening, raised or changed goggles, extra limb, weapon mutation, deployed support, black block, flicker, blood, gore, firing, smoke, text or watermark.

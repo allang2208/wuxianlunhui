@@ -590,6 +590,8 @@ class HamsterBarracksPanel extends BasePanel {
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
             closeOnOutsidePointer: true,
+            shouldCloseOnOutsidePointer: (event) =>
+                !window.Game?.BuildingSystem?._eventHitsBuilding?.(event),
             mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
         });
         this.barracks = null;
@@ -990,6 +992,7 @@ export const HamsterBarracksSystem = {
         if (!picked) return false;
         if (panel.isOpen && panel.barracks === picked) panel.close();
         else panel.openFor(picked, player);
+        Game?.BuildingSystem?._keepOnlyBuildingDetailPanel?.(panel.isOpen ? panel : null);
         return true;
     },
 

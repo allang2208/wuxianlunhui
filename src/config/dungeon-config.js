@@ -1,4 +1,6 @@
 import dungeonConfigData from '../../data/dungeon-config.json';
+import dungeonTerrainConfig from '../../data/dungeon-terrain.json';
+import swampDungeonTerrainConfig from '../../data/swamp-dungeon-terrain.json';
 import { getTributeCombatChanceDelta, getTributeEliteChanceDelta } from './tribute-effects.js';
 
 // 难度等级顺序（与 dungeon-event-definitions.js GRADE_ORDER 保持一致）
@@ -112,7 +114,56 @@ export const DungeonConfig = {
      */
     getDungeonFloorProfile(dungeonType) {
         const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
-        return cfg.floor || null;
+        const floor = cfg.floor || null;
+        if (floor?.terrainProfile === 'zombieDungeonStone') {
+            const base = dungeonTerrainConfig.base || {};
+            return {
+                tiles: Array.isArray(base.tiles) ? [...base.tiles] : (base.key ? [base.key] : []),
+                glow: false,
+                continuous: base.continuous === true,
+                backgroundColor: base.backgroundColor || '#050505',
+                overlapX: base.overlapX ?? 0,
+                overlapY: base.overlapY ?? 0,
+                textureScaleY: base.textureScaleY ?? 0.5774,
+                cellDetails: dungeonTerrainConfig.detailLayer
+                    ? { ...dungeonTerrainConfig.detailLayer, grid: { ...dungeonTerrainConfig.detailLayer.grid } }
+                    : null,
+                deco: dungeonTerrainConfig.deco
+                    ? {
+                        ...dungeonTerrainConfig.deco,
+                        assets: (dungeonTerrainConfig.deco.assets || []).map(asset => ({ ...asset })),
+                    }
+                    : null,
+            };
+        }
+        if (floor?.terrainProfile === 'swampDungeonWetland') {
+            const base = swampDungeonTerrainConfig.base || {};
+            return {
+                tiles: base.key ? [base.key] : [],
+                glow: false,
+                continuous: true,
+                backgroundColor: base.backgroundColor || '#0d120b',
+                textureScaleY: base.textureScaleY ?? 0.5774,
+                cellDetails: swampDungeonTerrainConfig.detailLayer
+                    ? { ...swampDungeonTerrainConfig.detailLayer, grid: { ...swampDungeonTerrainConfig.detailLayer.grid } }
+                    : null,
+                deco: swampDungeonTerrainConfig.deco
+                    ? {
+                        ...swampDungeonTerrainConfig.deco,
+                        assets: (swampDungeonTerrainConfig.deco.assets || []).map(asset => ({ ...asset })),
+                    }
+                    : null,
+            };
+        }
+        if (!floor) return null;
+        return {
+            ...floor,
+            tiles: Array.isArray(floor.tiles) ? [...floor.tiles] : [],
+            cellDetails: floor.cellDetails ? { ...floor.cellDetails, grid: { ...floor.cellDetails.grid } } : null,
+            deco: floor.deco
+                ? { ...floor.deco, assets: (floor.deco.assets || []).map(asset => ({ ...asset })) }
+                : null,
+        };
     },
 
     getEliteCombatChance(dungeonType) {
@@ -126,6 +177,37 @@ export const DungeonConfig = {
     // 出征界面地牢列表（展示元数据）
     getDungeonList() {
         return dungeonConfigData.dungeonList || {};
+    },
+
+    /** 出征下拉框分组；父级按系列排序，子项按初级→中级→高级排序。 */
+    getDungeonGroups() {
+        const groups = new Map();
+        for (const [type, info] of Object.entries(this.getDungeonList())) {
+            const series = info.series || type;
+            if (!groups.has(series)) {
+                groups.set(series, {
+                    key: series,
+                    name: info.seriesName || info.name || type,
+                    icon: info.seriesIcon || '',
+                    order: Number(info.seriesOrder) || 999,
+                    items: [],
+                });
+            }
+            groups.get(series).items.push({ ...info, type });
+        }
+        return Array.from(groups.values())
+            .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, 'zh-CN'))
+            .map((group) => ({
+                ...group,
+                items: group.items.sort((a, b) =>
+                    (Number(a.tierOrder) || 999) - (Number(b.tierOrder) || 999)
+                    || a.name.localeCompare(b.name, 'zh-CN')),
+            }));
+    },
+
+    /** 同系列的前置通关地牢；无前置时返回 null。 */
+    getDungeonUnlockRequirement(dungeonType) {
+        return this.getDungeonList()[dungeonType]?.unlockAfter || null;
     },
 
     /**
@@ -148,7 +230,7 @@ export const DungeonConfig = {
     },
 
     /** 多房竞技场配置：等级/战斗类型房间数、通道预制与迷宫布局参数。 */
-    getCombatArenaConfig() {
+    getCombatArenaConfig(dungeonType = null) {
         const DEFAULT_ARENA = {
             roomCountByGrade: {
                 F: { normal: 1, elite: 1 },
@@ -165,12 +247,17 @@ export const DungeonConfig = {
             // 多房迷宫（2026-08-08）：roomCount ≥ 4 启用蛇形网格；默认三房直线
             maze: { enabled: false, roomCount: 5, rows: 0 },
         };
-        return deepMerge(DEFAULT_ARENA, dungeonConfigData.combatArena || {});
+        let cfg = deepMerge(DEFAULT_ARENA, dungeonConfigData.combatArena || {});
+        if (dungeonType) {
+            const perDungeon = (dungeonConfigData[this._keyFor(dungeonType)] || {}).combatArena;
+            if (perDungeon) cfg = deepMerge(cfg, perDungeon);
+        }
+        return cfg;
     },
 
     /** 普通/精英战的房间数真源；地牢级 normalRoomCount/eliteRoomCount 可个别覆盖。 */
     getCombatArenaRoomCount(dungeonType, isElite = false) {
-        const cfg = this.getCombatArenaConfig();
+        const cfg = this.getCombatArenaConfig(dungeonType);
         const dungeonCfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
         const perDungeon = dungeonCfg.combatArena || {};
         const explicit = isElite ? perDungeon.eliteRoomCount : perDungeon.normalRoomCount;

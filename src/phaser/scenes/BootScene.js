@@ -4,31 +4,48 @@
 // ============================================================
 import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
+import { buildingArtUrl } from '../../config/building-art-revision.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { loadWallPrefabs, loadObstacleLayout, loadObstacleDefaults } from '../../world/wall-prefabs.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 import companionConfigData from '../../../data/companion-config.json';
+import populationEconomyConfig from '../../../data/population-economy.json';
 import hamsterMinerConfig from '../../../data/hamster-miner-config.json';
 import hamsterWarriorConfig from '../../../data/hamster-warrior-config.json';
+import hamsterChampionConfig from '../../../data/hamster-champion-config.json';
 import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
 import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterPhalanxConfig from '../../../data/hamster-phalanx-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
+import hamsterHalberdierConfig from '../../../data/hamster-halberdier-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
+import hamsterRangerConfig from '../../../data/hamster-ranger-config.json';
+import hamsterCrossbowConfig from '../../../data/hamster-crossbow-config.json';
+import hamsterSniperConfig from '../../../data/hamster-sniper-config.json';
 import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json';
+import hamsterAntiVehicleConfig from '../../../data/hamster-anti-vehicle-config.json';
 import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
 import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
 import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
+import hamsterNinjaConfig from '../../../data/hamster-ninja-config.json';
+import hamsterSamuraiConfig from '../../../data/hamster-samurai-config.json';
 import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
 import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorConfig from '../../../data/jaguar-warrior-config.json';
 import junglePriestConfig from '../../../data/jungle-priest-config.json';
 import desertPriestConfig from '../../../data/desert-priest-config.json';
 import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-config.json';
-import populationEconomyConfig from '../../../data/population-economy.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
+import desertTerrainConfig from '../../../data/desert-terrain.json';
+import dungeonTerrainConfig from '../../../data/dungeon-terrain.json';
+import swampDungeonTerrainConfig from '../../../data/swamp-dungeon-terrain.json';
+import roadsideDecorationConfig from '../../../data/roadside-decorations.json';
 import enemyConfigData from '../../../data/enemy-config.json';
+import {
+    queueCivilianVisualAssets,
+    registerCivilianVisualAnimations,
+} from '../../world/civilian-visual-runtime.js';
 
 export class BootScene extends Scene {
     constructor() {
@@ -80,9 +97,13 @@ export class BootScene extends Scene {
                 // 手部分层（handLayer，如 walk）：身体层（去手）+ 手层（只手），武器渲染在两者之间，
                 // 视觉上"手握剑"（武器不再盖住手部贴图）
                 if (def.handLayer) {
-                    this.load.spritesheet(`${texKey}_body`, def.handLayer.body, {
-                        frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
-                    });
+                    // overlayOnly 复用原正式人物动画作为身体层，只把手掌重复叠到武器前景；
+                    // 避免切换为 _body 动画键后破坏既有攻击轨迹的时间源。
+                    if (!def.handLayer.overlayOnly) {
+                        this.load.spritesheet(`${texKey}_body`, def.handLayer.body, {
+                            frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
+                        });
+                    }
                     this.load.spritesheet(`${texKey}_hand`, def.handLayer.hand, {
                         frameWidth: def.frameWidth, frameHeight: def.frameHeight, endFrame: (def.frameCount || 1) - 1
                     });
@@ -104,7 +125,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -115,52 +136,8 @@ export class BootScene extends Scene {
             }
         }
 
-        // 风车岗位的仓鼠农民只加载 Phaser 视觉资源，不进入友军配置或实体注册链。
-        const farmerVisual = populationEconomyConfig.windmill?.workerVisual;
-        for (const [animKey, def] of Object.entries(farmerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            this.load.spritesheet(`worker_${farmerVisual.id}_${animKey}`, def.src, {
-                frameWidth: def.frameWidth || 512,
-                frameHeight: def.frameHeight || 512,
-                endFrame: (def.frameCount || 1) - 1,
-            });
-        }
-        const engineerVisual = populationEconomyConfig.workshop?.engineerVisual;
-        for (const [animKey, def] of Object.entries(engineerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            this.load.spritesheet(`worker_${engineerVisual.id}_${animKey}`, def.src, {
-                frameWidth: def.frameWidth || 512,
-                frameHeight: def.frameHeight || 512,
-                endFrame: (def.frameCount || 1) - 1,
-            });
-        }
-        const bankerVisual = populationEconomyConfig.bank?.workerVisual;
-        for (const [animKey, def] of Object.entries(bankerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            this.load.spritesheet(`worker_${bankerVisual.id}_${animKey}`, def.src, {
-                frameWidth: def.frameWidth || 512,
-                frameHeight: def.frameHeight || 512,
-                endFrame: (def.frameCount || 1) - 1,
-            });
-        }
-        const bakerVisual = populationEconomyConfig.bakery?.workerVisual;
-        for (const [animKey, def] of Object.entries(bakerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            this.load.spritesheet(`worker_${bakerVisual.id}_${animKey}`, def.src, {
-                frameWidth: def.frameWidth || 512,
-                frameHeight: def.frameHeight || 512,
-                endFrame: (def.frameCount || 1) - 1,
-            });
-        }
-        const maintainerVisual = populationEconomyConfig.armory?.workerVisual;
-        for (const [animKey, def] of Object.entries(maintainerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            this.load.spritesheet(`worker_${maintainerVisual.id}_${animKey}`, def.src, {
-                frameWidth: def.frameWidth || 512,
-                frameHeight: def.frameHeight || 512,
-                endFrame: (def.frameCount || 1) - 1,
-            });
-        }
+        // 所有非战斗仓鼠平民统一从人口经济配置注册；设置关闭时启动阶段完全不加载。
+        queueCivilianVisualAssets(this);
 
         // ---- 武器资源 ----
         const weaponTextures = getWeaponTextureLoadList();
@@ -201,21 +178,80 @@ export class BootScene extends Scene {
         // 世界-125 遗迹大石板地砖（2:1 菱形，砖缝与建筑底边同口径）
         this.load.image('ruinslab_1', 'assets/terrain/ruinslab-1.png');
         this.load.image('ruinslab_2', 'assets/terrain/ruinslab-2.png');
-        // 沼泽地装饰道具（柴堆/草茎/树桩/苔石，战斗房地块随机点缀）
-        this.load.image('swamp_deco_3', 'assets/terrain/swamp_deco_3.png');
-        this.load.image('swamp_deco_4', 'assets/terrain/swamp_deco_4.png');
-        this.load.image('swamp_deco_5', 'assets/terrain/swamp_deco_5.png');
-        this.load.image('swamp_deco_6', 'assets/terrain/swamp_deco_6.png');
-        // 沼泽地地砖（沼泽地-高级地牢；当前试用 AI 新砖 swampbrick-new1 单款，旧 3 张备份于 swampbrick_old/）
-        this.load.image('swampbrick_new1', 'assets/terrain/swampbrick-new1.png');
         this.load.image('yellowmud_new1', 'assets/terrain/yellowmud-new1.png');
         this.load.image('floor_mud_seamless', 'assets/terrain/floor_mud_seamless.png');
         this.load.image('floor_sand_seamless', 'assets/terrain/floor_sand_seamless.png');
+        const dungeonBase = dungeonTerrainConfig.base || {};
+        if (dungeonBase.key && dungeonBase.src) this.load.image(dungeonBase.key, dungeonBase.src);
+        const dungeonDetailLayer = dungeonTerrainConfig.detailLayer || {};
+        if (dungeonDetailLayer.key && dungeonDetailLayer.src) {
+            this.load.spritesheet(dungeonDetailLayer.key, dungeonDetailLayer.src, {
+                frameWidth: dungeonDetailLayer.frameWidth || 128,
+                frameHeight: dungeonDetailLayer.frameHeight || 64,
+                endFrame: Math.max(0, (dungeonDetailLayer.frameCount || 1) - 1),
+            });
+        }
+        const loadedDungeonDeco = new Set();
+        for (const asset of dungeonTerrainConfig.deco?.assets || []) {
+            if (!asset?.key || !asset?.src || loadedDungeonDeco.has(asset.key)) continue;
+            loadedDungeonDeco.add(asset.key);
+            this.load.image(asset.key, asset.src);
+        }
+        const swampDungeonBase = swampDungeonTerrainConfig.base || {};
+        if (swampDungeonBase.key && swampDungeonBase.src) {
+            this.load.image(swampDungeonBase.key, swampDungeonBase.src);
+        }
+        const swampDungeonDetailLayer = swampDungeonTerrainConfig.detailLayer || {};
+        if (swampDungeonDetailLayer.key && swampDungeonDetailLayer.src) {
+            this.load.spritesheet(swampDungeonDetailLayer.key, swampDungeonDetailLayer.src, {
+                frameWidth: swampDungeonDetailLayer.frameWidth || 128,
+                frameHeight: swampDungeonDetailLayer.frameHeight || 64,
+                endFrame: Math.max(0, (swampDungeonDetailLayer.frameCount || 1) - 1),
+            });
+        }
+        const loadedSwampDungeonDeco = new Set();
+        for (const asset of swampDungeonTerrainConfig.deco?.assets || []) {
+            if (!asset?.key || !asset?.src || loadedSwampDungeonDeco.has(asset.key)) continue;
+            loadedSwampDungeonDeco.add(asset.key);
+            this.load.image(asset.key, asset.src);
+        }
+        const desertDetailLayer = desertTerrainConfig.detailLayer || {};
+        if (desertDetailLayer.key && desertDetailLayer.src) {
+            this.load.spritesheet(desertDetailLayer.key, desertDetailLayer.src, {
+                frameWidth: desertDetailLayer.frameWidth || 128,
+                frameHeight: desertDetailLayer.frameHeight || 64,
+                endFrame: Math.max(0, (desertDetailLayer.frameCount || 1) - 1),
+            });
+        }
         this.load.spritesheet('building_road_tiles', 'assets/terrain/building_road_tiles.png', {
             frameWidth: 128,
             frameHeight: 64,
-            endFrame: 3,
+            endFrame: 11,
         });
+        const loadedStreetProps = new Set();
+        for (const layer of Object.values(roadsideDecorationConfig.layers || {})) {
+            for (const profile of Object.values(layer?.profiles || {})) {
+                for (const asset of profile || []) {
+                    if (!asset?.key || !asset?.src || loadedStreetProps.has(asset.key)) continue;
+                    loadedStreetProps.add(asset.key);
+                    this.load.image(asset.key, asset.src);
+                }
+            }
+        }
+        for (const variants of Object.values(roadsideDecorationConfig.edgeLayer?.variants || {})) {
+            for (const asset of variants || []) {
+                if (!asset?.key || !asset?.src || loadedStreetProps.has(asset.key)) continue;
+                loadedStreetProps.add(asset.key);
+                this.load.image(asset.key, asset.src);
+            }
+        }
+        for (const asset of Object.values(
+            roadsideDecorationConfig.dynamic?.nightTextureSwaps || {}
+        )) {
+            if (!asset?.key || !asset?.src || loadedStreetProps.has(asset.key)) continue;
+            loadedStreetProps.add(asset.key);
+            this.load.image(asset.key, asset.src);
+        }
         this.load.image('floor_snow_fresh_seamless', 'assets/terrain/floor_snow_fresh_seamless.png');
         this.load.image('floor_snow_packed_seamless', 'assets/terrain/floor_snow_packed_seamless.png');
         this.load.image('floor_snow_wind_seamless', 'assets/terrain/floor_snow_wind_seamless.png');
@@ -231,11 +267,13 @@ export class BootScene extends Scene {
         for (let i = 1; i <= 4; i++) {
             this.load.image(`deco_forest_grass_${i}`, `assets/terrain/deco_forest_grass_${i}.png`);
         }
-        // 世界-122 荒漠植物点缀（2026-08-16：束草/蒿灌木/龙舌兰/风滚草，微俯 30° 直立 + 低饱和）
-        this.load.image('deco_desert_1', 'assets/terrain/deco_desert_1.png');
-        this.load.image('deco_desert_2', 'assets/terrain/deco_desert_2.png');
-        this.load.image('deco_desert_3', 'assets/terrain/deco_desert_3.png');
-        this.load.image('deco_desert_4', 'assets/terrain/deco_desert_4.png');
+        // 世界-122模型化小件：配置统一控制来源、权重、体量和世界格网散布；仙人掌走独立障碍物层。
+        const loadedDesertDeco = new Set();
+        for (const asset of desertTerrainConfig.deco?.assets || []) {
+            if (!asset?.key || !asset?.src || loadedDesertDeco.has(asset.key)) continue;
+            loadedDesertDeco.add(asset.key);
+            this.load.image(asset.key, asset.src);
+        }
         // 世界-122 仙人掌障碍物（2026-08-16：4 姿态同风格低对比，cactusScatter 散布）
         this.load.image('obstacle_cactus_saguaro2arm', 'assets/terrain/obstacle_cactus_saguaro2arm.png');
         this.load.image('obstacle_cactus_saguaro1arm', 'assets/terrain/obstacle_cactus_saguaro1arm.png');
@@ -244,8 +282,19 @@ export class BootScene extends Scene {
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
-        // 世界-122 能源资源点：4 种 AI 尖塔晶簇优先；缺图时 EnergyNodeSystem 自动生成兜底。
-        // AI 成品（4 形态 × 正常/枯竭）：只加载 assets/terrain 下实际存在的文件。
+        // 世界-122 能源资源点：道路式四邻拼接为主（frame=4-bit 邻接掩码）。
+        this.load.spritesheet(
+            'energy_node_directional_tiles',
+            'assets/terrain/energy_node_directional_tiles.png',
+            { frameWidth: 128, frameHeight: 64, endFrame: 15 }
+        );
+        this.load.spritesheet(
+            'energy_node_directional_depleted_tiles',
+            'assets/terrain/energy_node_directional_depleted_tiles.png',
+            { frameWidth: 128, frameHeight: 64, endFrame: 15 }
+        );
+        // 旧 3 种贴地裸露矿脉继续保留为资源缺失兜底。
+        // AI 成品（3 形态 × 正常/枯竭）：只加载 assets/terrain 下实际存在的文件。
         // 未生成的文件不会发起请求，避免 Phaser 报 Failed to process file 刷屏。
         // 注意：新放入 assets 的 v3 图片需重启 Vite 后才会被 glob 收录。
         const v3AssetModules = import.meta.glob(
@@ -273,6 +322,9 @@ export class BootScene extends Scene {
         this.load.image('frozen_wall_straight', 'assets/terrain/frozen_wall_straight.png');
         this.load.image('frozen_wall_block', 'assets/terrain/frozen_wall_block.png');
         this.load.spritesheet('frozen_gate', 'assets/terrain/frozen_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
+        // 僵尸地牢：Blender 黑方砖单格墙 + 16 帧锈铁升降闸（冰封整数格墙合同）。
+        this.load.image('zombie_wall_block', 'assets/terrain/zombie_wall_block.png');
+        this.load.spritesheet('zombie_gate', 'assets/terrain/zombie_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）
@@ -297,8 +349,12 @@ export class BootScene extends Scene {
         // 沙袋/木制拒马（等距版，2026-08-03 本地 ComfyUI 出图 + 抠图入库，摆墙编辑器障碍物类）
         this.load.image('obstacle_sandbag', 'assets/terrain/obstacle_sandbag.png');
         this.load.image('obstacle_barricade', 'assets/terrain/obstacle_barricade.png');
-        // 2026-08-17：1×1 方格块（基地方块环/方块墙，单一贴图无 v/h 变体）
+        // 2026-08-25：1×1 方块墙五级材质；几何、显示尺寸与墙体物理统一复用同一模型。
+        this.load.image('obstacle_block_sand', 'assets/terrain/obstacle_block_sand.png');
+        this.load.image('obstacle_block_brick', 'assets/terrain/obstacle_block_brick.png');
         this.load.image('obstacle_block', 'assets/terrain/obstacle_block.png');
+        this.load.image('obstacle_block_concrete', 'assets/terrain/obstacle_block_concrete.png');
+        this.load.image('obstacle_block_rune', 'assets/terrain/obstacle_block_rune.png');
         // 2026-08-17：4 格门图标（面板缩略图 + 放置幽灵预览）
         this.load.image('gate_4cell', 'assets/terrain/gate_4cell.png');
         // 世界-122 掩体（F→A 六档；v1=定稿 + v2~v5 随机变体库，2026-08-05 入库）
@@ -324,36 +380,74 @@ export class BootScene extends Scene {
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
         // 世界-122 基地核心（Blender 建模：立方体 + 扁平底座 + 大理石贴图，2026-08-16）
         this.load.image('defense_base', 'assets/terrain/defense_base.png');
-        // 世界-122 城墙楼梯：以 obstacle_block 方块墙为基准，四方向分别直接渲染。
-        for (const key of [
+        // 世界-122 城墙楼梯：五档墙材共用同一母模型，四方向/上下段分别直接渲染。
+        const wallStairBaseKeys = [
             'wall_stair_lower_e1_pos', 'wall_stair_upper_e1_pos',
             'wall_stair_lower_e1_neg', 'wall_stair_upper_e1_neg',
             'wall_stair_lower_e2_pos', 'wall_stair_upper_e2_pos',
             'wall_stair_lower_e2_neg', 'wall_stair_upper_e2_neg',
-        ]) {
-            this.load.image(key, `assets/terrain/${key}.png`);
+        ];
+        for (const tier of ['sand', 'brick', 'black_brick', 'concrete', 'rune']) {
+            for (const baseKey of wallStairBaseKeys) {
+                const key = `${baseKey}_${tier}`;
+                this.load.image(key, `assets/terrain/${key}.png`);
+            }
         }
         // 旧存档射击台纹理保留加载，仅读取兼容，不再出现在建造面板。
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
         // 世界-122 建筑（2026-08-17 换素材：军营/矿场/铁匠铺，英文文件名）
-        this.load.image('barracks', 'assets/terrain/barracks.png');
+        this.load.image('barracks', buildingArtUrl('barracks', 'assets/terrain/barracks.png'));
         this.load.image('mine', 'assets/terrain/mine.png');
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
         this.load.image('church', 'assets/terrain/church.png');
         // 世界-122 研究院（确认稿按 alpha>16 紧身裁透明边）
         this.load.image('research_institute', 'assets/terrain/research_institute.png');
-        this.load.image('warehouse', 'assets/terrain/warehouse.png');
+        this.load.image('research_institute_lv2', 'assets/terrain/research_institute_lv2.png');
+        this.load.image('research_institute_lv3', 'assets/terrain/research_institute_lv3.png');
+        for (const researchBuildingId of [
+            'high_energy_laboratory',
+            'high_energy_research_laboratory',
+            'planar_observation_array',
+            'interplane_research_hub',
+        ]) {
+            const researchBuildingConfig = producerBuildingsConfig[researchBuildingId];
+            if (researchBuildingConfig?.tex && researchBuildingConfig?.assetPath) {
+                this.load.image(researchBuildingConfig.tex, researchBuildingConfig.assetPath);
+            }
+        }
+        const weatherTowerConfig = producerBuildingsConfig.weather_forecast_tower;
+        this.load.image(weatherTowerConfig.tex, weatherTowerConfig.assetPath);
+        if (weatherTowerConfig.panelTex && weatherTowerConfig.panelAssetPath) {
+            this.load.image(weatherTowerConfig.panelTex, weatherTowerConfig.panelAssetPath);
+        }
+        const weatherTowerAnimation = weatherTowerConfig.animation;
+        if (weatherTowerAnimation?.textureKey && weatherTowerAnimation?.assetPath) {
+            this.load.spritesheet(weatherTowerAnimation.textureKey, weatherTowerAnimation.assetPath, {
+                frameWidth: weatherTowerAnimation.frameWidth,
+                frameHeight: weatherTowerAnimation.frameHeight,
+                endFrame: (weatherTowerAnimation.frameCount || 1) - 1,
+            });
+        }
+        for (const level of populationEconomyConfig.warehouse?.levels || []) {
+            if (level.tex && level.assetPath) {
+                this.load.image(level.tex, buildingArtUrl(level.tex, level.assetPath));
+            }
+        }
         this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
-        this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
+        this.load.image('thatch_hut', buildingArtUrl('thatch_hut', 'assets/terrain/thatch_hut.png'));
         this.load.image('desert_mansion', 'assets/terrain/desert_mansion.png');
         this.load.image('explorer_camp', 'assets/terrain/explorer_camp.png');
         this.load.image('jungle_temple', 'assets/terrain/jungle_temple.png');
         this.load.image('snow_castle', 'assets/terrain/snow_castle.png');
         this.load.image('cavalry_school', 'assets/terrain/cavalry_school.png');
-        // 人口经济建筑：房屋三级、风车、银行、市场、经济工坊、军械库与面包屋均接入 PNG。
-        this.load.image('house_lv1', 'assets/terrain/house_lv1.png');
-        this.load.image('house_lv2', 'assets/terrain/house_lv2.png');
-        this.load.image('house_lv3', 'assets/terrain/house_lv3.png');
+        // 人口经济建筑：房屋七级、风车、银行、市场、经济工坊、军械库与面包屋均接入 PNG。
+        this.load.image('house_lv1', buildingArtUrl('house_lv1', 'assets/terrain/house_lv1.png'));
+        this.load.image('house_lv2', buildingArtUrl('house_lv2', 'assets/terrain/house_lv2.png'));
+        this.load.image('house_lv3', buildingArtUrl('house_lv3', 'assets/terrain/house_lv3.png'));
+        this.load.image('house_lv4', buildingArtUrl('house_lv4', 'assets/terrain/house_lv4.png'));
+        this.load.image('house_lv5', buildingArtUrl('house_lv5', 'assets/terrain/house_lv5.png'));
+        this.load.image('house_lv6', buildingArtUrl('house_lv6', 'assets/terrain/house_lv6.png'));
+        this.load.image('house_lv7', buildingArtUrl('house_lv7', 'assets/terrain/house_lv7.png'));
         const windmillConfig = producerBuildingsConfig.wheat_windmill;
         this.load.image(windmillConfig?.panelTex || 'wheat_windmill', 'assets/terrain/wheat_windmill.png');
         if (windmillConfig?.tex && windmillConfig?.assetPath) {
@@ -367,22 +461,66 @@ export class BootScene extends Scene {
                 endFrame: (windmillAnimation.frameCount || 1) - 1,
             });
         }
+        const windPowerConfig = producerBuildingsConfig.wind_power_plant;
+        if (windPowerConfig?.panelTex) {
+            this.load.image(windPowerConfig.panelTex,
+                buildingArtUrl(windPowerConfig.panelTex,
+                    windPowerConfig.panelAssetPath || 'assets/terrain/wind_power_plant.png'));
+        }
+        if (windPowerConfig?.tex && windPowerConfig?.assetPath) {
+            this.load.image(windPowerConfig.tex,
+                buildingArtUrl(windPowerConfig.tex, windPowerConfig.assetPath));
+        }
+        const windPowerAnimation = windPowerConfig?.animation;
+        if (windPowerAnimation?.textureKey && windPowerAnimation?.assetPath) {
+            this.load.spritesheet(windPowerAnimation.textureKey,
+                buildingArtUrl(windPowerAnimation.textureKey, windPowerAnimation.assetPath), {
+                frameWidth: windPowerAnimation.frameWidth,
+                frameHeight: windPowerAnimation.frameHeight,
+                endFrame: (windPowerAnimation.frameCount || 1) - 1,
+            });
+        }
+        // 建筑专属静态接地层：道路填充之上、建筑主体之下。配置驱动加载，避免
+        // 再维护研究院/教堂硬编码名单；没有 groundContact 的建筑不增加纹理。
+        for (const buildingConfig of Object.values(producerBuildingsConfig)) {
+            for (const tier of buildingConfig?.recruitmentTiers || []) {
+                const visual = tier?.visual;
+                if (visual?.tex && visual?.assetPath) {
+                    this.load.image(visual.tex, buildingArtUrl(visual.tex, visual.assetPath));
+                }
+            }
+            const contact = buildingConfig?.groundContact;
+            if (contact?.textureKey && contact?.assetPath) {
+                this.load.image(contact.textureKey, contact.assetPath);
+            }
+            const foreground = buildingConfig?.foregroundOverlay;
+            if (foreground?.textureKey && foreground?.assetPath) {
+                this.load.image(foreground.textureKey, foreground.assetPath);
+            }
+        }
         this.load.image('bank', 'assets/terrain/bank.png');
+        this.load.image('royal_mint', buildingArtUrl('royal_mint', 'assets/terrain/royal_mint.png'));
+        this.load.image('grand_mall', 'assets/terrain/grand_mall.png');
+        this.load.image('stock_exchange', 'assets/terrain/stock_exchange.png');
         this.load.image('market', 'assets/terrain/market.png');
         this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
-        this.load.image('armory', 'assets/terrain/armory.png');
-        this.load.image('bakery', 'assets/terrain/bakery.png');
+        this.load.image('armory', buildingArtUrl('armory', 'assets/terrain/armory.png'));
+        this.load.image('field_hospital', 'assets/terrain/field_hospital.png');
+        this.load.image('bakery', buildingArtUrl('bakery', 'assets/terrain/bakery.png'));
+        this.load.image('chain_restaurant', 'assets/terrain/chain_restaurant.png');
+        this.load.image('cheese_farm', 'assets/terrain/cheese_farm.png');
+        this.load.image('cheese_farm_structure_occluder', 'assets/terrain/cheese_farm_structure_occluder.png');
+        this.load.image('steam_power_plant',
+            buildingArtUrl('steam_power_plant', 'assets/terrain/steam_power_plant.png'));
+        this.load.image('deep_drill', 'assets/terrain/deep_drill.png');
+        this.load.image('tavern', 'assets/terrain/tavern.png');
         this.load.image('planar_resonator', 'assets/terrain/planar_resonator.png');
-        // 建筑亮窗蒙版与主体保持完全相同的源画布；运行时以 ADD 模式叠加并独立闪烁。
-        const loadedWindowGlowKeys = new Set();
-        for (const buildingCfg of Object.values(producerBuildingsConfig)) {
-            const glowCfg = buildingCfg?.windowGlow;
-            const glowAssets = [glowCfg, ...Object.values(glowCfg?.variants || {})];
-            for (const glowAsset of glowAssets) {
-                if (!glowAsset?.textureKey || !glowAsset?.assetPath
-                    || loadedWindowGlowKeys.has(glowAsset.textureKey)) continue;
-                loadedWindowGlowKeys.add(glowAsset.textureKey);
-                this.load.image(glowAsset.textureKey, glowAsset.assetPath);
+        // 四、五级能源/金币建筑的主体纹理仍由配置 key 驱动；若 Boot 未注册，
+        // 建造幽灵与中立建筑渲染都会因 textures.exists() 失败回退为 neutral_circle。
+        for (const buildingKey of ['solar_power_plant', 'computing_center']) {
+            const buildingConfig = producerBuildingsConfig[buildingKey];
+            if (buildingConfig?.tex && buildingConfig?.assetPath) {
+                this.load.image(buildingConfig.tex, buildingConfig.assetPath);
             }
         }
         this.load.spritesheet('building_field_tiles', 'assets/terrain/building_field_tiles.png', { frameWidth: 128, frameHeight: 64 });
@@ -401,7 +539,11 @@ export class BootScene extends Scene {
         // 陷阱（僵尸地牢战斗房：格栅盖静态帧 + 地刺 13 帧动画，512² 帧）
         this.load.image('trap_idle', 'assets/terrain/trap_idle.png');
         this.load.spritesheet('trap_anim', 'assets/terrain/trap_anim.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
-        this.load.image('drone', 'assets/skills/drone.png');
+        this.load.spritesheet('drone_hover', 'assets/skills/drone-hover.png', {
+            frameWidth: 128,
+            frameHeight: 128,
+            endFrame: 7,
+        });
 
         // ---- 敌人资源 ----
         // 黑狼使用独立静态待机图；其余现役怪物资源在下方按各自配置加载。
@@ -456,6 +598,111 @@ export class BootScene extends Scene {
         loadBrownBearSheet('walk', 'enemy_brown_bear_walk', 'assets/enemies/brown_bear/walking.png');
         loadBrownBearSheet('attack', 'enemy_brown_bear_attack', 'assets/enemies/brown_bear/attacking.png');
         loadBrownBearSheet('death', 'enemy_brown_bear_death', 'assets/enemies/brown_bear/dying.png');
+
+        // 邪恶树精四动作母版：walking 同时承担逻辑 walk/run，死亡终帧为木材碎片堆。
+        const evilTreantTextures = enemyConfigData.evilTreant?.textures || {};
+        const evilTreantLayouts = evilTreantTextures.frameLayouts || {};
+        const loadEvilTreantSheet = (state, textureKey, fallbackPath) => {
+            const layout = evilTreantLayouts[state] || {};
+            this.load.spritesheet(textureKey, evilTreantTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadEvilTreantSheet('idle', 'enemy_evil_treant_idle', 'assets/enemies/evil_treant/idle.png');
+        loadEvilTreantSheet('walk', 'enemy_evil_treant_walk', 'assets/enemies/evil_treant/walking.png');
+        loadEvilTreantSheet('attack', 'enemy_evil_treant_attack', 'assets/enemies/evil_treant/attacking.png');
+        loadEvilTreantSheet('death', 'enemy_evil_treant_death', 'assets/enemies/evil_treant/dying.png');
+
+        // 紫蚀古树固定型五动作：没有 walk/run，施法、横扫、投掷分别使用独立时序。
+        const purpleBlightAncientTextures = enemyConfigData.purpleBlightAncient?.textures || {};
+        const purpleBlightAncientLayouts = purpleBlightAncientTextures.frameLayouts || {};
+        const loadPurpleBlightAncientSheet = (state, textureKey, fallbackPath) => {
+            const layout = purpleBlightAncientLayouts[state] || {};
+            this.load.spritesheet(textureKey, purpleBlightAncientTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadPurpleBlightAncientSheet('idle', 'enemy_purple_blight_ancient_idle', 'assets/enemies/purple_blight_ancient/idle.png');
+        loadPurpleBlightAncientSheet('spellcast', 'enemy_purple_blight_ancient_spellcast', 'assets/enemies/purple_blight_ancient/spellcast.png');
+        loadPurpleBlightAncientSheet('attack', 'enemy_purple_blight_ancient_attack', 'assets/enemies/purple_blight_ancient/attack.png');
+        loadPurpleBlightAncientSheet('throw', 'enemy_purple_blight_ancient_throw', 'assets/enemies/purple_blight_ancient/throw.png');
+        loadPurpleBlightAncientSheet('death', 'enemy_purple_blight_ancient_death', 'assets/enemies/purple_blight_ancient/death.png');
+        this.load.image('purple_ancient_rock', 'assets/enemies/purple_blight_ancient/rock.png');
+        const vineEntangleVisual = enemyConfigData.purpleBlightAncient?.attackSkills?.vineEntangle?.visualEffect || {};
+        this.load.spritesheet('fx_vine_entangle', vineEntangleVisual.texture || 'assets/effects/vine_entangle.png', {
+            frameWidth: vineEntangleVisual.frameWidth || 512,
+            frameHeight: vineEntangleVisual.frameHeight || 512,
+            endFrame: Math.max(0, (vineEntangleVisual.frameCount || 1) - 1),
+        });
+
+        // 食人花四动作：攻击与死亡使用加宽帧格，避免捕虫囊前探或倒伏被裁切。
+        const carnivorousPitcherTextures = enemyConfigData.carnivorousPitcher?.textures || {};
+        const carnivorousPitcherLayouts = carnivorousPitcherTextures.frameLayouts || {};
+        const loadCarnivorousPitcherSheet = (state, textureKey, fallbackPath) => {
+            const layout = carnivorousPitcherLayouts[state] || {};
+            this.load.spritesheet(textureKey, carnivorousPitcherTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadCarnivorousPitcherSheet('idle', 'enemy_carnivorous_pitcher_idle', 'assets/enemies/carnivorous_pitcher/idle.png');
+        loadCarnivorousPitcherSheet('walk', 'enemy_carnivorous_pitcher_walk', 'assets/enemies/carnivorous_pitcher/walking.png');
+        loadCarnivorousPitcherSheet('attack', 'enemy_carnivorous_pitcher_attack', 'assets/enemies/carnivorous_pitcher/attacking.png');
+        loadCarnivorousPitcherSheet('death', 'enemy_carnivorous_pitcher_death', 'assets/enemies/carnivorous_pitcher/dying.png');
+
+        // 棕蛇四动作母版：walking 同时承担逻辑 walk/run；帧宽按动作独立配置。
+        const brownSnakeTextures = enemyConfigData.brownSnake?.textures || {};
+        const brownSnakeLayouts = brownSnakeTextures.frameLayouts || {};
+        const loadBrownSnakeSheet = (state, textureKey, fallbackPath) => {
+            const layout = brownSnakeLayouts[state] || {};
+            this.load.spritesheet(textureKey, brownSnakeTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadBrownSnakeSheet('idle', 'enemy_brown_snake_idle', 'assets/enemies/brown_snake/idle.png');
+        loadBrownSnakeSheet('walk', 'enemy_brown_snake_walk', 'assets/enemies/brown_snake/walking.png');
+        loadBrownSnakeSheet('attack', 'enemy_brown_snake_attack', 'assets/enemies/brown_snake/attacking.png');
+        loadBrownSnakeSheet('death', 'enemy_brown_snake_death', 'assets/enemies/brown_snake/dying.png');
+
+        // 黑色眼镜蛇王：walking 使用宽帧保留完整蛇身；攻击帧保留源视频前探位移。
+        const blackKingCobraTextures = enemyConfigData.blackKingCobra?.textures || {};
+        const blackKingCobraLayouts = blackKingCobraTextures.frameLayouts || {};
+        const loadBlackKingCobraSheet = (state, textureKey, fallbackPath) => {
+            const layout = blackKingCobraLayouts[state] || {};
+            this.load.spritesheet(textureKey, blackKingCobraTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadBlackKingCobraSheet('idle', 'enemy_black_king_cobra_idle', 'assets/enemies/black_king_cobra/idle.png');
+        loadBlackKingCobraSheet('walk', 'enemy_black_king_cobra_walk', 'assets/enemies/black_king_cobra/walking.png');
+        loadBlackKingCobraSheet('attack', 'enemy_black_king_cobra_attack', 'assets/enemies/black_king_cobra/attacking.png');
+        loadBlackKingCobraSheet('death', 'enemy_black_king_cobra_death', 'assets/enemies/black_king_cobra/dying.png');
+
+        // 美杜莎五动作：walking/甩尾/死亡使用加宽帧格，不可按 512 强制裁切。
+        const medusaTextures = enemyConfigData.medusa?.textures || {};
+        const medusaLayouts = medusaTextures.frameLayouts || {};
+        const loadMedusaSheet = (state, textureKey, fallbackPath) => {
+            const layout = medusaLayouts[state] || {};
+            this.load.spritesheet(textureKey, medusaTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadMedusaSheet('idle', 'enemy_medusa_idle', 'assets/enemies/medusa/idle.png');
+        loadMedusaSheet('walk', 'enemy_medusa_walk', 'assets/enemies/medusa/walking.png');
+        loadMedusaSheet('attack', 'enemy_medusa_attack', 'assets/enemies/medusa/tail_sweep.png');
+        loadMedusaSheet('petrify', 'enemy_medusa_petrify', 'assets/enemies/medusa/petrifying_gaze.png');
+        loadMedusaSheet('death', 'enemy_medusa_death', 'assets/enemies/medusa/dying.png');
 
         // 黑熊四动作母版：攻击使用加宽帧格保留扑击位移与镜头安全区。
         const blackBearTextures = enemyConfigData.blackBear?.textures || {};
@@ -696,7 +943,14 @@ export class BootScene extends Scene {
             if (def.type !== 'sheet') continue;
             const texKey = playerTextureKey(animKey);
             const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-            const frameObjs = this.anims.generateFrameNumbers(texKey, { start, end });
+            // frameSequence 允许按源帧编号重排/重复动作片段（例如风车只重复完整旋转段）。
+            // 保留 textureFrame 真源，武器层可按当前源帧读取同编号握柄轨迹。
+            const frameSequence = Array.isArray(def.frameSequence) && def.frameSequence.length
+                ? def.frameSequence
+                : null;
+            const frameObjs = frameSequence
+                ? frameSequence.map(frame => ({ key: texKey, frame }))
+                : this.anims.generateFrameNumbers(texKey, { start, end });
             // frameWeights（可选，占比数组）：按权重分配【原总时长】——总时长锁定（帧数/帧率），
             // 只改各帧占比（如末帧定格更久 [1,1,1,1,1,1,1,3]），武器轨迹/命中时序完全不受影响
             if (def.frameWeights && def.frameWeights.length) {
@@ -722,21 +976,44 @@ export class BootScene extends Scene {
             });
             // 手部分层动画：body 用身体贴图（与主动画同帧区间/节奏），hand 由 GameScene 每帧手动同步帧
             if (def.handLayer) {
-                this.anims.create({
-                    key: `${texKey}_body`,
-                    frames: this.anims.generateFrameNumbers(`${texKey}_body`, { start, end }),
-                    frameRate: def.frameRate || 12,
-                    repeat: def.repeat !== undefined ? def.repeat : -1,
-                });
+                if (!def.handLayer.overlayOnly) {
+                    const bodyKey = `${texKey}_body`;
+                    const bodyFrames = frameSequence
+                        ? frameSequence.map(frame => ({ key: bodyKey, frame }))
+                        : this.anims.generateFrameNumbers(bodyKey, { start, end });
+                    // body 动画必须与主动画使用完全相同的源帧序和逐帧时长；否则
+                    // handLayer 动作采用正播→倒播闭环时，人物仍会按 0..N 单向播放，
+                    // 武器/手层即使读取源帧也会在收回段错序。
+                    if (def.frameWeights && def.frameWeights.length) {
+                        const totalMs = ((end - start + 1) / (def.frameRate || 12)) * 1000;
+                        const wSum = def.frameWeights.reduce((a, b) => a + (b || 0), 0) || 1;
+                        bodyFrames.forEach((frame, index) => {
+                            const weight = def.frameWeights[index];
+                            if (weight !== undefined) frame.duration = (weight / wSum) * totalMs;
+                        });
+                    } else if (def.frameDurations && def.frameDurations.length) {
+                        bodyFrames.forEach((frame, index) => {
+                            const duration = def.frameDurations[index];
+                            if (duration !== undefined) frame.duration = duration;
+                        });
+                    }
+                    this.anims.create({
+                        key: bodyKey,
+                        frames: bodyFrames,
+                        frameRate: def.frameRate || 12,
+                        repeat: def.repeat !== undefined ? def.repeat : -1,
+                    });
+                }
                 // 手层帧序守卫：body/hand 必须同网格同帧序（_syncPlayerHandLayer 按帧号直接跟随），
                 // 帧数不一致会在运行时错位，加载期直接告警
-                const bodyTex = this.textures.get(`${texKey}_body`);
+                const bodyTex = this.textures.get(def.handLayer.overlayOnly ? texKey : `${texKey}_body`);
                 const handTex = this.textures.get(`${texKey}_hand`);
                 if (bodyTex && handTex) {
                     const bodyCount = bodyTex.getFrameNames ? bodyTex.getFrameNames().length : 0;
                     const handCount = handTex.getFrameNames ? handTex.getFrameNames().length : 0;
                     if (bodyCount !== handCount) {
-                        console.warn(`[BootScene] 手层帧数不匹配：${texKey}_body(${bodyCount}) vs ${texKey}_hand(${handCount})——手 sprite 逐帧跟随会错位`);
+                        const bodyLabel = def.handLayer.overlayOnly ? texKey : `${texKey}_body`;
+                        console.warn(`[BootScene] 手层帧数不匹配：${bodyLabel}(${bodyCount}) vs ${texKey}_hand(${handCount})——手 sprite 逐帧跟随会错位`);
                     }
                 }
             }
@@ -801,9 +1078,9 @@ export class BootScene extends Scene {
         // 起步 + 第 6~24 帧循环；仓鼠射手 attack = 13 帧单次 + projectile 单帧贴图；
         // 仓鼠盾卫 attack = 12 帧单次（第 10 帧判定伤害由 AI 计时）；
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
-        // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
+        // 仓鼠斥候/游侠/狙击手 attack 单次播放，投射物出膛帧由各自 AI 配置驱动；
         // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;
@@ -835,90 +1112,24 @@ export class BootScene extends Scene {
             }
         }
 
-        // 风车装饰农民动画：独立 worker_ 前缀，避免被 Companion/友军单位渲染链误收。
-        const farmerVisual = populationEconomyConfig.windmill?.workerVisual;
-        for (const [animKey, def] of Object.entries(farmerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            const key = `worker_${farmerVisual.id}_${animKey}`;
-            if (this.anims.exists(key)) continue;
-            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+        // 统一 worker_ 注册表覆盖当前与未来所有非战斗仓鼠平民。
+        registerCivilianVisualAnimations(this);
+        // 配置化生产建筑运动层：主体保持静态，风车叶片、天气塔风向仪等由 overlay Sprite 播放。
+        const producerOverlayAnimations = Object.values(producerBuildingsConfig)
+            .map((config) => config?.animation)
+            .filter((animation) => animation?.textureKey);
+        for (const overlayAnimation of producerOverlayAnimations) {
+            if (this.anims.exists(overlayAnimation.textureKey)) continue;
             this.anims.create({
-                key,
-                frames: this.anims.generateFrameNumbers(key, { start, end }),
-                frameRate: def.frameRate || 12,
-                repeat: def.repeat !== undefined ? def.repeat : -1,
-            });
-        }
-        // 麦田风车纯叶片动画：主体保持静态，由中立建筑渲染链创建独立 overlay Sprite 播放。
-        const windmillAnimation = producerBuildingsConfig.wheat_windmill?.animation;
-        if (windmillAnimation?.textureKey && !this.anims.exists(windmillAnimation.textureKey)) {
-            this.anims.create({
-                key: windmillAnimation.textureKey,
-                frames: this.anims.generateFrameNumbers(windmillAnimation.textureKey, {
+                key: overlayAnimation.textureKey,
+                frames: this.anims.generateFrameNumbers(overlayAnimation.textureKey, {
                     start: 0,
-                    end: (windmillAnimation.frameCount || 1) - 1,
+                    end: (overlayAnimation.frameCount || 1) - 1,
                 }),
-                frameRate: windmillAnimation.frameRate || 8.7,
-                repeat: windmillAnimation.repeat ?? -1,
+                frameRate: overlayAnimation.frameRate || 8,
+                repeat: overlayAnimation.repeat ?? -1,
             });
         }
-        // 工坊岗位的仓鼠工程师同样只注册 worker_ 动画，不进入实体、物理或友军链。
-        const engineerVisual = populationEconomyConfig.workshop?.engineerVisual;
-        for (const [animKey, def] of Object.entries(engineerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            const key = `worker_${engineerVisual.id}_${animKey}`;
-            if (this.anims.exists(key)) continue;
-            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-            this.anims.create({
-                key,
-                frames: this.anims.generateFrameNumbers(key, { start, end }),
-                frameRate: def.frameRate || 12,
-                repeat: def.repeat !== undefined ? def.repeat : -1,
-            });
-        }
-        // 银行岗位的仓鼠银行家沿用纯视觉 worker_ 管线。
-        const bankerVisual = populationEconomyConfig.bank?.workerVisual;
-        for (const [animKey, def] of Object.entries(bankerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            const key = `worker_${bankerVisual.id}_${animKey}`;
-            if (this.anims.exists(key)) continue;
-            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-            this.anims.create({
-                key,
-                frames: this.anims.generateFrameNumbers(key, { start, end }),
-                frameRate: def.frameRate || 12,
-                repeat: def.repeat !== undefined ? def.repeat : -1,
-            });
-        }
-        // 面包师沿用纯视觉 worker_ 管线，物流阶段由 BakeryEconomySystem 状态映射。
-        const bakerVisual = populationEconomyConfig.bakery?.workerVisual;
-        for (const [animKey, def] of Object.entries(bakerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            const key = `worker_${bakerVisual.id}_${animKey}`;
-            if (this.anims.exists(key)) continue;
-            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-            this.anims.create({
-                key,
-                frames: this.anims.generateFrameNumbers(key, { start, end }),
-                frameRate: def.frameRate || 12,
-                repeat: def.repeat !== undefined ? def.repeat : -1,
-            });
-        }
-        // 军械库维护师沿用纯视觉 worker_ 管线，只巡检建筑，不进入实体或维修数值链。
-        const maintainerVisual = populationEconomyConfig.armory?.workerVisual;
-        for (const [animKey, def] of Object.entries(maintainerVisual?.animations || {})) {
-            if (!def?.src) continue;
-            const key = `worker_${maintainerVisual.id}_${animKey}`;
-            if (this.anims.exists(key)) continue;
-            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-            this.anims.create({
-                key,
-                frames: this.anims.generateFrameNumbers(key, { start, end }),
-                frameRate: def.frameRate || 12,
-                repeat: def.repeat !== undefined ? def.repeat : -1,
-            });
-        }
-
         // 武器枪口点自动烘焙：扫描每把武器贴图，取【最大连通体】（枪身本体，8 邻域）的
         // 最右端内容点（含 1px 细枪管尖）——开火位置/枪口火焰统一用贴图最前端，逐枪免调 muzzle；
         // 4 倍降采样提速；运行时 subsystems 读取
@@ -1098,6 +1309,139 @@ export class BootScene extends Scene {
         createBrownBearAnim('walk', 'enemy_brown_bear_walk');
         createBrownBearAnim('attack', 'enemy_brown_bear_attack');
         createBrownBearAnim('death', 'enemy_brown_bear_death');
+
+        // 邪恶树精动画：idle/walk 循环，attack/death 各播放一次并停在末帧。
+        const evilTreantLayouts = enemyConfigData.evilTreant?.textures?.frameLayouts || {};
+        const createEvilTreantAnim = (state, textureKey) => {
+            const layout = evilTreantLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_evil_treant_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createEvilTreantAnim('idle', 'enemy_evil_treant_idle');
+        createEvilTreantAnim('walk', 'enemy_evil_treant_walk');
+        createEvilTreantAnim('attack', 'enemy_evil_treant_attack');
+        createEvilTreantAnim('death', 'enemy_evil_treant_death');
+
+        // 紫蚀古树：固定树桩没有移动动画；idle 循环，其余四动作均单次播放。
+        const purpleBlightAncientLayouts = enemyConfigData.purpleBlightAncient?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'spellcast', 'attack', 'throw', 'death']) {
+            const layout = purpleBlightAncientLayouts[state] || {};
+            const animation = {
+                key: `enemy_purple_blight_ancient_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_purple_blight_ancient_${state}`, {
+                    start: 0,
+                    end: Math.max(0, (layout.frameCount || 1) - 1),
+                }),
+                repeat: layout.repeat ?? (state === 'idle' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        }
+        const vineEntangleVisual = enemyConfigData.purpleBlightAncient?.attackSkills?.vineEntangle?.visualEffect || {};
+        this.anims.create({
+            key: 'fx_vine_entangle_v1',
+            frames: this.anims.generateFrameNumbers('fx_vine_entangle', {
+                start: 0,
+                end: Math.max(0, (vineEntangleVisual.frameCount || 1) - 1),
+            }),
+            frameRate: vineEntangleVisual.frameRate || 12,
+            repeat: vineEntangleVisual.repeat ?? 0,
+        });
+
+        // 食人花动画：idle/walk 循环，attack/death 单次播放并停在末帧。
+        const carnivorousPitcherLayouts = enemyConfigData.carnivorousPitcher?.textures?.frameLayouts || {};
+        const createCarnivorousPitcherAnim = (state, textureKey) => {
+            const layout = carnivorousPitcherLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_carnivorous_pitcher_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createCarnivorousPitcherAnim('idle', 'enemy_carnivorous_pitcher_idle');
+        createCarnivorousPitcherAnim('walk', 'enemy_carnivorous_pitcher_walk');
+        createCarnivorousPitcherAnim('attack', 'enemy_carnivorous_pitcher_attack');
+        createCarnivorousPitcherAnim('death', 'enemy_carnivorous_pitcher_death');
+
+        // 棕蛇动画：idle/walk 循环，attack/death 各播放一次并停在末帧。
+        const brownSnakeLayouts = enemyConfigData.brownSnake?.textures?.frameLayouts || {};
+        const createBrownSnakeAnim = (state, textureKey) => {
+            const layout = brownSnakeLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_brown_snake_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createBrownSnakeAnim('idle', 'enemy_brown_snake_idle');
+        createBrownSnakeAnim('walk', 'enemy_brown_snake_walk');
+        createBrownSnakeAnim('attack', 'enemy_brown_snake_attack');
+        createBrownSnakeAnim('death', 'enemy_brown_snake_death');
+
+        // 黑色眼镜蛇王：idle/walk 循环，attack/death 单次播放并停在末帧。
+        const blackKingCobraLayouts = enemyConfigData.blackKingCobra?.textures?.frameLayouts || {};
+        const createBlackKingCobraAnim = (state, textureKey) => {
+            const layout = blackKingCobraLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_black_king_cobra_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createBlackKingCobraAnim('idle', 'enemy_black_king_cobra_idle');
+        createBlackKingCobraAnim('walk', 'enemy_black_king_cobra_walk');
+        createBlackKingCobraAnim('attack', 'enemy_black_king_cobra_attack');
+        createBlackKingCobraAnim('death', 'enemy_black_king_cobra_death');
+
+        // 美杜莎甩尾逐帧时长为绝对毫秒：蓄力正常、横扫加速、回收恢复。
+        const medusaLayouts = enemyConfigData.medusa?.textures?.frameLayouts || {};
+        const createMedusaAnim = (state, textureKey) => {
+            const layout = medusaLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const frames = this.anims.generateFrameNumbers(
+                textureKey,
+                { start: 0, end: frameCount - 1 }
+            );
+            if (Array.isArray(layout.frameDurations)) {
+                frames.forEach((frame, index) => {
+                    const duration = layout.frameDurations[index];
+                    if (duration !== undefined) frame.duration = duration;
+                });
+            }
+            const animation = {
+                key: `enemy_medusa_${state}_v1`,
+                frames,
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration && !layout.frameDurations) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 12;
+            this.anims.create(animation);
+        };
+        createMedusaAnim('idle', 'enemy_medusa_idle');
+        createMedusaAnim('walk', 'enemy_medusa_walk');
+        createMedusaAnim('attack', 'enemy_medusa_attack');
+        createMedusaAnim('petrify', 'enemy_medusa_petrify');
+        createMedusaAnim('death', 'enemy_medusa_death');
 
         // 黑熊动画：walking 由实体映射给 walk/run，攻击与死亡只播放一次。
         const blackBearLayouts = enemyConfigData.blackBear?.textures?.frameLayouts || {};

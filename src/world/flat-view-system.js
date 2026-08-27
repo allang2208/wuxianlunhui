@@ -151,6 +151,8 @@ export const FlatViewSystem = {
         return !!(
             activeGame.RTSCommand?.enabled
             || activeGame._observerMode
+            || activeGame._buildMode
+            || activeGame.BuildingSystem?.active
         );
     },
 
@@ -247,8 +249,11 @@ export const FlatViewSystem = {
         if (!this.enabled || !scene?._neutralSprites) return;
         for (const entity of this._collectStructures(game)) {
             const neutral = scene._neutralSprites.get(entity);
+            neutral?.groundContactSprite?.setVisible?.(false);
             neutral?.overlaySprite?.setVisible?.(false);
-            neutral?.windowGlowSprite?.setVisible?.(false);
+            neutral?.foregroundSprite?.setVisible?.(false);
+            neutral?.workingEffectGraphics?.setVisible?.(false);
+            neutral?.staffingWarningGraphics?.setVisible?.(false);
         }
     },
 
@@ -359,7 +364,9 @@ export const FlatViewSystem = {
             : [neutral?.sprite];
         for (const object of uniqueActiveObjects([
             ...neutralBodies,
-            neutral?.backSprite,
+            neutral?.groundContactSprite,
+            neutral?.overlaySprite,
+            neutral?.foregroundSprite,
             tower?.base,
             tower?.arm,
             tower?.weapon,
@@ -470,8 +477,8 @@ export const FlatViewSystem = {
     _flattenWorldGate(graphics) {
         const gate = typeof window !== 'undefined' ? window.WallGate : null;
         if (!gate?.sprite?.active || !Array.isArray(gate._seg)) return;
-        this._hide(gate.sprite);
-        this._hide(gate.glowSprite);
+        for (const sprite of gate.sprites?.length ? gate.sprites : [gate.sprite]) this._hide(sprite);
+        for (const sprite of gate.glowSprites?.length ? gate.glowSprites : [gate.glowSprite]) this._hide(sprite);
         const open = gate.state === 'open' || gate.state === 'opening';
         const style = open ? STYLE.gateOpen : STYLE.gateClosed;
         const points = stripAroundSegment(gate._seg[0], gate._seg[1], 12);

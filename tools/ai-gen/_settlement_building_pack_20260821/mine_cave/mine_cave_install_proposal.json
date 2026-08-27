@@ -1,0 +1,45 @@
+{
+  "assetId": "mine_cave",
+  "acceptedStructure": "mine_cave_accepted_structure_v01_raw.png",
+  "acceptedRefine": "mine_cave_accepted_refine_v02_raw.png",
+  "acceptedBody": "mine_cave_accepted_refine_v02_body.png",
+  "acceptedCutout": "mine_cave_accepted_refine_v02_cutout.png",
+  "runtimeAsset": "assets/enemies/mine_cave/mine_cave.png",
+  "runtimeFileSize": [400, 320],
+  "logicalFootprint": {
+    "cells": 1,
+    "width": 128,
+    "depth": 64
+  },
+  "render": {
+    "spriteSize": 128,
+    "spriteHeight": 102,
+    "footOffsetY": 52,
+    "visualFootprint": {
+      "centerXRatio": 0.47159,
+      "centerYRatio": 0.692778,
+      "widthRatio": 1.003706,
+      "depthRatio": 0.627349,
+      "scaleMode": "strict"
+    }
+  },
+  "smoke": {
+    "offsetX": 33,
+    "offsetY": 5
+  },
+  "pipeline": {
+    "styleVersion": "world122-building-v2",
+    "structureSteps": 12,
+    "structureDepthStrength": 0.78,
+    "refineSteps": 48,
+    "refineDepthStrength": 0.75,
+    "refineDenoise": 0.3,
+    "keyThreshold": 60,
+    "postprocessDepth": "mine_cave_cutout_depth.png",
+    "restoreDeltaDepth": "mine_cave_body_depth.png",
+    "restoreHalo": 160,
+    "maskEdgePad": 48,
+    "postScale": 0.5,
+    "matteEdgeWidth": 3
+  }
+}

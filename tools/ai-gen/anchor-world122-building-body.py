@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 
 def _opaque_contact(alpha: np.ndarray, threshold: int = 96) -> tuple[float, int] | None:
@@ -128,12 +128,19 @@ def main() -> None:
     parser.add_argument("--display-height", type=float, default=256)
     parser.add_argument("--nominal-width", type=float, default=256)
     parser.add_argument("--nominal-height", type=float, default=128)
+    parser.add_argument("--edge-pad", type=int, default=0,
+                        help="depth-silhouette dilation retained while aligning thin generated details")
     args = parser.parse_args()
     body = np.asarray(Image.open(args.body).convert("RGBA")).copy()
     depth = np.asarray(Image.open(args.depth).convert("RGBA"))
     if body.shape[:2] != depth.shape[:2]:
         raise SystemExit(f"size mismatch: body={body.shape[:2]} depth={depth.shape[:2]}")
     depth_mask = (depth[..., :3].max(axis=2) > 4).astype(np.uint8) * 255
+    clip_mask = depth_mask
+    if args.edge_pad > 0:
+        clip_mask = np.asarray(
+            Image.fromarray(depth_mask, "L").filter(ImageFilter.MaxFilter(args.edge_pad * 2 + 1))
+        )
     body_x, body_bottom = support_anchor(body[..., 3])
     depth_x, depth_bottom = support_anchor(depth_mask)
     # First match the deterministic canvas center and bottom row.  The
@@ -149,14 +156,14 @@ def main() -> None:
     dx = int(round(depth_center - body_center))
     dy = int(depth_bottom - body_bottom)
     aligned = translate_rgba(body, dx, dy)
-    aligned[..., 3] = np.minimum(aligned[..., 3], depth_mask)
+    aligned[..., 3] = np.minimum(aligned[..., 3], clip_mask)
     fit_dx = _runtime_visual_offset_px(
         aligned[..., 3], args.display_width, args.display_height,
         args.nominal_width, args.nominal_height,
     )
     if abs(fit_dx) >= 0.5:
         aligned = translate_rgba(aligned, int(round(fit_dx)), 0)
-        aligned[..., 3] = np.minimum(aligned[..., 3], depth_mask)
+        aligned[..., 3] = np.minimum(aligned[..., 3], clip_mask)
     dx_total = dx + int(round(fit_dx))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(aligned, "RGBA").save(args.out)

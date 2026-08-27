@@ -308,6 +308,17 @@ export function getActiveCivilianVisuals({ excludeKinds = [] } = {}) {
     return result;
 }
 
+/** 设置页释放内存时立即清空所有纯视觉平民；业务记录与建筑经济不受影响。 */
+export function destroyAllCivilianVisualsImmediate() {
+    for (const worker of Array.from(activeCivilians)) {
+        activeCivilians.delete(worker);
+        if (worker?._fadeTween?.isPlaying) worker._fadeTween.stop();
+        worker._fadeTween = null;
+        if (worker?.sprite?.active) worker.sprite.destroy();
+        if (worker) worker.sprite = null;
+    }
+}
+
 function auditCivilianStructureContracts() {
     const entities = (typeof window !== 'undefined') ? window.Game?.entities : null;
     if (!entities?.values) return;

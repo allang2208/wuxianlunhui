@@ -16,6 +16,7 @@ const PROFILE_CONFIG_KEYS = Object.freeze({
     troopProducer: 'troopProducer',
     defenseTower: 'defenseTower',
     candle: 'candle',
+    drone: 'drone',
 });
 
 const PROFILE_DEFAULTS = Object.freeze({
@@ -28,6 +29,7 @@ const PROFILE_DEFAULTS = Object.freeze({
     troopProducer: 650,
     defenseTower: 1200,
     candle: 260,
+    drone: 900,
 });
 
 function positiveNumber(value, fallback) {
@@ -50,7 +52,7 @@ function inferProfile(entity, game) {
     if (entity._isHamsterKnight || entity._isHamsterLightCavalry) return 'cavalry';
     if (entity._isFriendlyUnit || entity._isHamsterWarrior || entity._isHamsterShooter
         || entity._isHamsterGuard || entity._isHamsterMilitia || entity._isHamsterMusketeer
-        || entity._isHamsterPriest || entity._isHamsterMiner) return 'military';
+        || entity._isHamsterPriest || entity._isHamsterMiner || entity._isHamsterNinja) return 'military';
     return faction === 'companion' ? 'companion' : null;
 }
 
@@ -95,6 +97,8 @@ export const VisionSourceRegistry = {
             radiusBonus: Number(options.radiusBonus) || 0,
             manual: options.manual !== false,
             sceneId: options.sceneId || this._sceneId,
+            ignoreOcclusion: options.ignoreOcclusion === true,
+            ignoreVisionDebuffs: options.ignoreVisionDebuffs === true,
         };
         this._records.set(entity, record);
         this._activeSources.add(entity);
@@ -103,6 +107,8 @@ export const VisionSourceRegistry = {
             update: (next = {}) => {
                 if (next.profile) record.profile = next.profile;
                 if (Number.isFinite(Number(next.radiusBonus))) record.radiusBonus = Number(next.radiusBonus);
+                if (typeof next.ignoreOcclusion === 'boolean') record.ignoreOcclusion = next.ignoreOcclusion;
+                if (typeof next.ignoreVisionDebuffs === 'boolean') record.ignoreVisionDebuffs = next.ignoreVisionDebuffs;
             },
         };
     },
@@ -170,7 +176,8 @@ export const VisionSourceRegistry = {
         if (!profile) return 0;
         const explicitRadius = Number(entity.fogSightRadius ?? entity.config?.fogSightRadius);
         const configKey = PROFILE_CONFIG_KEYS[profile] || profile;
-        const ignoresVisionDebuffs = entity.fogSightDebuffImmune === true
+        const ignoresVisionDebuffs = record?.ignoreVisionDebuffs === true
+            || entity.fogSightDebuffImmune === true
             || entity.config?.fogSightDebuffImmune === true;
         let radius = positiveNumber(explicitRadius,
             positiveNumber(visionConfig[configKey], PROFILE_DEFAULTS[profile] || 0));
@@ -201,6 +208,12 @@ export const VisionSourceRegistry = {
         return Math.max(0, radius);
     },
 
+    ignoresOcclusion(entity) {
+        return this._records.get(entity)?.ignoreOcclusion === true
+            || entity?.fogSightIgnoreOcclusion === true
+            || entity?.config?.fogSightIgnoreOcclusion === true;
+    },
+
     describe(visionConfig = {}) {
         const result = [];
         for (const entity of this._activeSources) {
@@ -215,6 +228,7 @@ export const VisionSourceRegistry = {
                 x: Number(entity.x),
                 y: Number(entity.y),
                 radius,
+                ignoreOcclusion: this.ignoresOcclusion(entity),
             });
         }
         return result;

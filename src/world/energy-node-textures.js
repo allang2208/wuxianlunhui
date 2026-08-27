@@ -1,25 +1,24 @@
 /**
- * 世界-122 能源水晶 v3 纹理生成器（运行时程序化版，2026-08-16）。
+ * 世界-122 裸露能量矿脉 v3 纹理生成器（运行时程序化兜底）。
  *
  * 设计目标：
- * - 使用四种 AI 生成的尖塔晶簇（双尖/冠状/分叉/密集）；
- * - 每颗节点从四形态池随机抽选，并随机水平镜像；
- * - 不再绘制土堆或方块底座，节点只显示自然矿石与晶体；
+ * - 使用三种贴地形态（横向裂隙/中心矿窝/Y形分叉）；
+ * - 每颗节点从三形态池随机抽选，并随机水平镜像；
+ * - 逻辑占格仍为1格，视觉只显示26.565°碎石 footprint 与宽扁能量块；
  * - 生成结果只作为兜底。若 BootScene 已加载 AI 生图管线产出的
  *    energy_node_v3_<n> / energy_node_depleted_v3_<n>，则优先使用 AI 贴图。
  */
 
-export const ENERGY_NODE_V3_COUNT = 4;
+export const ENERGY_NODE_V3_COUNT = 3;
 
-const FLOOR_SLOPE = 0.5774; // tan(30°)，与 wall-system FLOOR_SLOPE 对齐
+const FLOOR_SLOPE = 0.5;    // 2:1 等距地面轴，屏幕角 atan(0.5)=26.565°
 const BASE_INSET = 2;       // 土堆前顶点离画布底边的像素（贴图底部即实体脚底）
 const TAU = Math.PI * 2;
 
 const FORMS = [
-    { key: 'twin_spires', label: '双尖主晶', w: 192, seed: 1202, glow: 0.9 },
-    { key: 'triple_crown', label: '冠状晶簇', w: 208, seed: 1303, glow: 1.0 },
-    { key: 'leaning_spire', label: '分叉主晶', w: 184, seed: 2010, glow: 1.0 },
-    { key: 'dense_cluster', label: '密集晶群', w: 224, seed: 1404, glow: 1.05 },
+    { key: 'horizontal_vein', label: '横向裂隙', w: 224, h: 128, seed: 1202, glow: 0.9 },
+    { key: 'center_pocket', label: '中心矿窝', w: 224, h: 128, seed: 1303, glow: 1.0 },
+    { key: 'branching_vein', label: 'Y形分叉', w: 224, h: 128, seed: 2010, glow: 1.0 },
 ];
 
 // 正常态 3 套蓝青色系；枯竭态统一灰绿（只保留几何差异，避免“耗尽后仍像活矿”）
@@ -73,6 +72,120 @@ function withAlpha(rgb, a) {
 function hexToRgba(hex, a) {
     const n = parseInt(hex.slice(1), 16);
     return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
+function drawExposedVeinFallback(form, depleted) {
+    const c = document.createElement('canvas');
+    c.width = form.w;
+    c.height = form.h;
+    const ctx = c.getContext('2d');
+    const rand = mulberry32(form.seed);
+    const cx = form.w / 2;
+    const baseY = form.h - BASE_INSET;
+    const halfW = form.w * 0.47;
+    const halfD = halfW * FLOOR_SLOPE;
+    const centerY = baseY - halfD;
+    const left = [cx - halfW, centerY];
+    const back = [cx, centerY - halfD];
+    const right = [cx + halfW, centerY];
+    const front = [cx, baseY];
+    const rock = depleted
+        ? ['#171b1a', '#242a27', '#343b37', '#505954']
+        : ['#151a1c', '#242b2e', '#353e42', '#525e63'];
+    const ore = depleted
+        ? ['#293235', '#48565a', '#758287']
+        : ['#05283b', '#087aa2', '#5de8ff'];
+
+    // A continuous two-axis alpha envelope keeps the exact 26.565° contact
+    // edges; dense chips above it make the surface read as rubble, not a slab.
+    const groundGrad = ctx.createLinearGradient(0, back[1], 0, front[1]);
+    groundGrad.addColorStop(0, rock[1]);
+    groundGrad.addColorStop(1, rock[0]);
+    ctx.fillStyle = groundGrad;
+    polygon(ctx, [left, back, right, front]);
+    ctx.fill();
+
+    for (let i = 0; i < 170; i++) {
+        let u = 0;
+        let v = 0;
+        do {
+            u = rand() * 2 - 1;
+            v = rand() * 2 - 1;
+        } while (Math.abs(u) + Math.abs(v) > 0.98);
+        const x = cx + u * halfW;
+        const y = centerY + v * halfD;
+        const rx = 0.7 + rand() * 2.2;
+        const ry = 0.45 + rand() * 1.2;
+        ctx.fillStyle = rock[1 + Math.floor(rand() * 3)];
+        ctx.beginPath();
+        ctx.ellipse(x, y, rx, ry, rand() * Math.PI, 0, TAU);
+        ctx.fill();
+    }
+
+    const layouts = {
+        horizontal_vein: [
+            [-0.31, 0.02], [-0.20, 0.00], [-0.09, 0.02],
+            [0.03, -0.01], [0.15, 0.01], [0.28, -0.02],
+        ],
+        center_pocket: [
+            [-0.13, -0.08], [0.02, -0.12], [0.16, -0.04],
+            [-0.15, 0.08], [0.00, 0.08], [0.15, 0.09], [0.02, 0.00],
+        ],
+        branching_vein: [
+            [0.00, -0.20], [0.00, -0.09], [0.00, 0.02],
+            [-0.10, 0.12], [-0.22, 0.20], [0.11, 0.12], [0.23, 0.20],
+        ],
+    };
+    const plates = layouts[form.key] || layouts.horizontal_vein;
+    const largeRocks = [
+        [-0.34, -0.16], [-0.12, -0.25], [0.15, -0.24], [0.35, -0.12],
+        [-0.36, 0.14], [-0.17, 0.25], [0.18, 0.25], [0.36, 0.13],
+    ];
+    const items = [];
+    for (const [u, v] of largeRocks) {
+        items.push({ type: 'rock', x: cx + u * halfW * 1.9,
+            y: centerY + v * halfD * 1.9, seed: rand() });
+    }
+    for (const [u, v] of plates) {
+        items.push({ type: 'ore', x: cx + u * halfW * 1.75,
+            y: centerY + v * halfD * 1.8, seed: rand() });
+    }
+    items.sort((a, b) => a.y - b.y);
+    for (const item of items) {
+        if (item.type === 'rock') {
+            const rx = 8 + item.seed * 4;
+            const ry = 4.5 + item.seed * 2.2;
+            const grad = ctx.createLinearGradient(0, item.y - ry, 0, item.y + ry);
+            grad.addColorStop(0, rock[3]);
+            grad.addColorStop(1, rock[1]);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(item.x, item.y, rx, ry, item.seed * 0.7, 0, TAU);
+            ctx.fill();
+            continue;
+        }
+        const rx = 8.5 + item.seed * 3;
+        const ry = 3.8 + item.seed * 1.6;
+        const grad = ctx.createLinearGradient(0, item.y - ry, 0, item.y + ry);
+        grad.addColorStop(0, ore[2]);
+        grad.addColorStop(0.45, ore[1]);
+        grad.addColorStop(1, ore[0]);
+        ctx.fillStyle = grad;
+        polygon(ctx, [
+            [item.x - rx, item.y], [item.x - rx * 0.55, item.y - ry],
+            [item.x + rx * 0.35, item.y - ry * 0.9], [item.x + rx, item.y],
+            [item.x + rx * 0.45, item.y + ry], [item.x - rx * 0.45, item.y + ry],
+        ]);
+        ctx.fill();
+        ctx.strokeStyle = depleted ? 'rgba(165,180,184,0.35)' : 'rgba(160,244,255,0.7)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(item.x - rx * 0.5, item.y + ry * 0.1);
+        ctx.lineTo(item.x, item.y - ry * 0.45);
+        ctx.lineTo(item.x + rx * 0.48, item.y + ry * 0.25);
+        ctx.stroke();
+    }
+    return c;
 }
 
 function polygon(ctx, pts) {
@@ -356,6 +469,11 @@ function buildFormShards(form, rand) {
 }
 
 function renderCanvas(form, depleted) {
+    if (form.key === 'horizontal_vein'
+        || form.key === 'center_pocket'
+        || form.key === 'branching_vein') {
+        return drawExposedVeinFallback(form, depleted);
+    }
     const h = 256;
     const c = document.createElement('canvas');
     c.width = form.w;
@@ -410,26 +528,27 @@ export function ensureEnergyNodeTextures(scene) {
         const normalKey = `energy_node_gen_${i}`;
         const depletedKey = `energy_node_dep_gen_${i}`;
         const form = FORMS[i - 1];
+        const height = form.h || 256;
         if (!scene.textures.exists(normalKey)) {
-            const tex = scene.textures.createCanvas(normalKey, form.w, 256);
+            const tex = scene.textures.createCanvas(normalKey, form.w, height);
             const c = renderCanvas(form, false);
             const ctx = tex.getContext();
-            ctx.clearRect(0, 0, form.w, 256);
+            ctx.clearRect(0, 0, form.w, height);
             ctx.drawImage(c, 0, 0);
             tex.refresh();
         }
         if (!scene.textures.exists(depletedKey)) {
-            const tex = scene.textures.createCanvas(depletedKey, form.w, 256);
+            const tex = scene.textures.createCanvas(depletedKey, form.w, height);
             const c = renderCanvas(form, true);
             const ctx = tex.getContext();
-            ctx.clearRect(0, 0, form.w, 256);
+            ctx.clearRect(0, 0, form.w, height);
             ctx.drawImage(c, 0, 0);
             tex.refresh();
         }
     }
 }
 
-/** 取第 idx（1 基）个尖塔形态的纹理键：优先 AI 成品，缺图时用程序化版 */
+/** 取第 idx（1 基）个裸露矿脉形态纹理键：优先 AI 成品，缺图时用程序化版 */
 export function energyNodeVariantPair(scene, idx) {
     const n = Math.max(1, Math.min(ENERGY_NODE_V3_COUNT, idx));
     const aiKey = `energy_node_v3_${n}`;
@@ -443,6 +562,28 @@ export function energyNodeVariantPair(scene, idx) {
         depletedKey: `energy_node_dep_gen_${n}`,
         source: 'procedural-v3',
     };
+}
+
+/**
+ * 道路式四邻拼接能源矿：frame 直接使用 4-bit 邻接掩码。
+ * bit 0/1/2/3 分别代表 +i/-i/+j/-j，完整覆盖孤立、端头、直线、转角、T 字与十字。
+ */
+export const ENERGY_NODE_CONNECTION_BITS = Object.freeze({
+    I_POSITIVE: 1,
+    I_NEGATIVE: 2,
+    J_POSITIVE: 4,
+    J_NEGATIVE: 8,
+});
+
+export const ENERGY_NODE_DIRECTIONAL_FRAME_COUNT = 16;
+
+export function energyNodeDirectionalPair(scene) {
+    const key = 'energy_node_directional_tiles';
+    const depletedKey = 'energy_node_directional_depleted_tiles';
+    if (scene?.textures?.exists(key) && scene.textures.exists(depletedKey)) {
+        return { key, depletedKey, source: 'directional-roadstyle-v1' };
+    }
+    return null;
 }
 
 /** 形态描述（调试/审计用） */

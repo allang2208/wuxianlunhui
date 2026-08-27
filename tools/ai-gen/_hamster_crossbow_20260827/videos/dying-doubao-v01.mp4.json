@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_crossbow_20260827\\references\\hamster-crossbow-extra-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_crossbow_20260827\\prompts\\dying-doubao-v01.txt",
+  "promptChars": 2351,
+  "promptSha256": "18e519043f3ef59c719381977f9c753399f4102c3a1639db1d0db20c9639f624",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T01:59:25.093Z",
+  "sourceUrlScheme": "https"
+}

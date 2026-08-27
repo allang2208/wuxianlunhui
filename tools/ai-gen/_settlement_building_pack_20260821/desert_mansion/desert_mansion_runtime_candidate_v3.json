@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\desert_mansion\\desert_mansion_keyed_t90.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\desert_mansion\\desert_mansion_runtime_candidate_v3.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    253,
+    244,
+    3
+  ],
+  "matteEdgeWidth": 8.0,
+  "matteTolerance": 170.0,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\desert_mansion\\desert_mansion_layout_v3_depth.png",
+  "maskDilate": 10,
+  "fillAlphaHoles": true,
+  "fillHoleMatteDistance": 24.0,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "cropBox": [
+    87,
+    76,
+    936,
+    920
+  ],
+  "fileSize": [
+    849,
+    844
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    845,
+    840
+  ],
+  "displayW": 288,
+  "displayH": 286,
+  "footOffsetY": 142,
+  "scaleX": 0.3392226148409894,
+  "scaleY": 0.33886255924170616
+}

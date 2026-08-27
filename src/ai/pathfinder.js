@@ -2,6 +2,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { regionIndex } from './region-index.js';
 import { dynamicObstacleMap } from './dynamic-obstacle-map.js';
 import { circleIntersectsIsoFootprint, isoFootprintVertices } from '../physics/iso-footprint.js';
+import performanceConfig from '../../data/performance-config.json';
 
 /** 寻路帧预算耗尽时的哨兵返回值：调用方应保留旧路径、下一帧重试，而非当作"不可达" */
 export const PATH_DEFERRED = Symbol('PATH_DEFERRED');
@@ -15,8 +16,9 @@ const CELL_STRIDE = 131072;
 // 桶外（>90）半径保持原值各自成桶。实际半径集合 10/28/33/40/60/90/180 → 桶 20/40/40/40/90/90/180。
 const RADIUS_BUCKETS = [20, 40, 90];
 
-// [GATE-SOFT-COST] 门闸软成本乘数：关着的门段（_gate 标记）纳入 SpatialHash 但不作阻挡，
-// 只给贴身格子加成本乘数。取 6 的依据：门段 halfThick(≈26) + 半径桶 20 的贴身带宽约 46px，
+// [GATE-SOFT-COST] 门闸软成本乘数：关着的门段（_gate 标记）纳入 SpatialHash 但不作阻挡。
+// 敌军、竞技场门与常锁门给贴身格子加成本乘数；可触发自动门的玩家/友军按正常通路计算。
+// 取 6 的依据：门段 halfThick(≈26) + 半径桶 20 的贴身带宽约 46px，
 // 跨门一次约经过 2 个格子，附加成本 ≈ 2×(6-1)×40 = 400px 等效绕程——战斗房尺度
 // （500~1000px）内有可绕路线时优先绕门，绕行代价 >400px 或门是唯一通路时仍规划穿门
 // （保持"不把临时障碍当永久墙"的原设计意图）。开门时门洞段已从 isoSegments splice 掉，
@@ -124,6 +126,67 @@ class BinaryHeap {
     }
 }
 
+/* 跨帧 A* 使用的整数索引堆；状态只保存 typed-array，避免每个待处理任务持有数千格对象。 */
+class IndexHeap {
+    constructor(scores, capacity) {
+        this.scores = scores;
+        this.content = [];
+        this.positions = new Int32Array(capacity);
+        this.positions.fill(-1);
+    }
+    size() { return this.content.length; }
+    push(index) {
+        const old = this.positions[index];
+        if (old >= 0) {
+            this._sinkUp(old);
+            this._sinkDown(this.positions[index]);
+            return;
+        }
+        this.positions[index] = this.content.length;
+        this.content.push(index);
+        this._sinkUp(this.content.length - 1);
+    }
+    pop() {
+        const result = this.content[0];
+        const end = this.content.pop();
+        this.positions[result] = -1;
+        if (this.content.length > 0) {
+            this.content[0] = end;
+            this.positions[end] = 0;
+            this._sinkDown(0);
+        }
+        return result;
+    }
+    _swap(a, b) {
+        const av = this.content[a], bv = this.content[b];
+        this.content[a] = bv; this.content[b] = av;
+        this.positions[av] = b; this.positions[bv] = a;
+    }
+    _sinkUp(pos) {
+        while (pos > 0) {
+            const parent = Math.floor((pos - 1) / 2);
+            if (this.scores[this.content[pos]] >= this.scores[this.content[parent]]) break;
+            this._swap(pos, parent);
+            pos = parent;
+        }
+    }
+    _sinkDown(pos) {
+        const length = this.content.length;
+        while (true) {
+            const left = pos * 2 + 1;
+            const right = left + 1;
+            let best = pos;
+            if (left < length
+                && this.scores[this.content[left]] < this.scores[this.content[best]]) best = left;
+            if (right < length
+                && this.scores[this.content[right]] < this.scores[this.content[best]]) best = right;
+            if (best === pos) break;
+            this._swap(pos, best);
+            pos = best;
+        }
+    }
+}
+
 /* ---------- 空间哈希（加速障碍物查询）---------- */
 class SpatialHash {
     constructor(cellSize = 40) {
@@ -131,11 +194,21 @@ class SpatialHash {
         this.cells = new Map(); // key: cx + cy*CELL_STRIDE（整数） -> [{type:'wall'|'tree'|'seg', obj}]
         this._wallHash = null;
         this._treeHash = null;
+        this._rebuildJob = null;
+        this.maxTreeRadius = 0;
+        this._lastRebuildCells = 0;
     }
     clear() {
         this.cells.clear();
         this._wallHash = null;
         this._treeHash = null;
+        this._rebuildJob = null;
+        this.maxTreeRadius = 0;
+        this._lastRebuildCells = 0;
+    }
+
+    cancelRebuild() {
+        this._rebuildJob = null;
     }
     _getKey(cx, cy) {
         // [PERF-2026-08-08] 整数 key 替代 `${cx},${cy}` 字符串拼接
@@ -146,70 +219,133 @@ class SpatialHash {
     }
     // 从 WallSystem 重建空间哈希
     rebuild() {
-        this.clear();
-        if (!WallSystem) return;
-        // 注意：常规动态门闸不作永久阻挡，只提供软成本；冰墙是短时但明确不可通行的
-        // 战术线障碍，必须进入寻路并在创建/销毁时由技能系统局部失效缓存，否则单位会
-        // 沿旧路径撞在墙根。**掩体墙段（_cover 标记）是静态实体**，同样必须纳入寻路
-        // （2026-08-08 用户反馈：世界-122 怪物寻路把基地掩体墙当可通行，直线穿墙后在
-        // 左右下夹角被 resolve 卡在墙根土块上抖动；纳入后怪物绕墙走、从门洞进入）。
-        // 矩形墙壁
-        if (WallSystem.walls) {
-            for (const w of WallSystem.walls) {
-                const minCX = Math.floor(w.x / this.cellSize);
-                const maxCX = Math.floor((w.x + w.w) / this.cellSize);
-                const minCY = Math.floor(w.y / this.cellSize);
-                const maxCY = Math.floor((w.y + w.h) / this.cellSize);
-                for (let cx = minCX; cx <= maxCX; cx++) {
-                    for (let cy = minCY; cy <= maxCY; cy++) {
-                        const key = this._getKey(cx, cy);
-                        if (!this.cells.has(key)) this.cells.set(key, []);
-                        this.cells.get(key).push({ type: 'wall', obj: w });
-                    }
-                }
-            }
-        }
-        // 圆形树木
-        if (WallSystem.trees) {
-            for (const t of WallSystem.trees) {
-                const treeR = t.collisionRadius || t.radius * 0.6;
-                const minCX = Math.floor((t.x - treeR) / this.cellSize);
-                const maxCX = Math.floor((t.x + treeR) / this.cellSize);
-                const minCY = Math.floor((t.y - treeR) / this.cellSize);
-                const maxCY = Math.floor((t.y + treeR) / this.cellSize);
-                for (let cx = minCX; cx <= maxCX; cx++) {
-                    for (let cy = minCY; cy <= maxCY; cy++) {
-                        const key = this._getKey(cx, cy);
-                        if (!this.cells.has(key)) this.cells.set(key, []);
-                        this.cells.get(key).push({ type: 'tree', obj: t });
-                    }
-                }
-            }
-        }
-        // 静态掩体墙段（DefenseCover._coverSeg）：按线段包围盒塞格，阻挡口径与
-        // WallSystem.canMoveTo 一致（点到线段距离 < 半径 + halfThick）。
-        // [GATE-SOFT-COST] 门闸段（_gate 标记）也纳入哈希但类型为 'gate'：
-        // isBlocked/_getCellData 的阻挡判定都不认它（保持可通行语义），
-        // 只在 _getCellData 里给贴身格子加 GATE_SOFT_COST 软成本乘数；
-        // 开门时门洞段已被 WallGate.setPassable 从 isoSegments splice 掉，成本自然归零
-        if (WallSystem.isoSegments) {
-            for (const s of WallSystem.isoSegments) {
-                if (!s._cover && !s._gate && !s._iceWall) continue;
-                const type = (s._cover || s._iceWall) ? 'seg' : 'gate';
-                const minCX = Math.floor(Math.min(s.x1, s.x2) / this.cellSize);
-                const maxCX = Math.floor(Math.max(s.x1, s.x2) / this.cellSize);
-                const minCY = Math.floor(Math.min(s.y1, s.y2) / this.cellSize);
-                const maxCY = Math.floor(Math.max(s.y1, s.y2) / this.cellSize);
-                for (let cx = minCX; cx <= maxCX; cx++) {
-                    for (let cy = minCY; cy <= maxCY; cy++) {
-                        const key = this._getKey(cx, cy);
-                        if (!this.cells.has(key)) this.cells.set(key, []);
-                        this.cells.get(key).push({ type, obj: s });
-                    }
-                }
-            }
+        this._rebuildJob = null;
+        while (!this.advanceRebuild(Infinity)) {
+            // Infinity deadline: synchronous compatibility path.
         }
     }
+
+    _createRebuildEntry(type, object) {
+        let minCX, maxCX, minCY, maxCY;
+        if (type === 'wall') {
+            minCX = Math.floor(object.x / this.cellSize);
+            maxCX = Math.floor((object.x + object.w) / this.cellSize);
+            minCY = Math.floor(object.y / this.cellSize);
+            maxCY = Math.floor((object.y + object.h) / this.cellSize);
+        } else if (type === 'tree') {
+            const treeR = object.collisionRadius || object.radius * 0.6;
+            minCX = Math.floor((object.x - treeR) / this.cellSize);
+            maxCX = Math.floor((object.x + treeR) / this.cellSize);
+            minCY = Math.floor((object.y - treeR) / this.cellSize);
+            maxCY = Math.floor((object.y + treeR) / this.cellSize);
+        } else {
+            minCX = Math.floor(Math.min(object.x1, object.x2) / this.cellSize);
+            maxCX = Math.floor(Math.max(object.x1, object.x2) / this.cellSize);
+            minCY = Math.floor(Math.min(object.y1, object.y2) / this.cellSize);
+            maxCY = Math.floor(Math.max(object.y1, object.y2) / this.cellSize);
+        }
+        return { type, obj: object, minCX, maxCX, minCY, maxCY };
+    }
+
+    _createRebuildJob() {
+        const entries = [];
+        let totalCells = 0;
+        let maxTreeRadius = 0;
+        const add = (type, object) => {
+            const entry = this._createRebuildEntry(type, object);
+            entries.push(entry);
+            totalCells += (entry.maxCX - entry.minCX + 1)
+                * (entry.maxCY - entry.minCY + 1);
+            if (type === 'tree' && object.radius > maxTreeRadius) {
+                maxTreeRadius = object.radius;
+            }
+        };
+        if (WallSystem?.walls) {
+            for (const wall of WallSystem.walls) add('wall', wall);
+        }
+        if (WallSystem?.trees) {
+            for (const tree of WallSystem.trees) add('tree', tree);
+        }
+        if (WallSystem?.isoSegments) {
+            for (const segment of WallSystem.isoSegments) {
+                if (!segment._cover && !segment._gate && !segment._iceWall) continue;
+                add((segment._cover || segment._iceWall) ? 'seg' : 'gate', segment);
+            }
+        }
+        return {
+            entries,
+            cells: new Map(),
+            entryIndex: 0,
+            current: null,
+            maxTreeRadius,
+            processedCells: 0,
+            totalCells,
+        };
+    }
+
+    advanceRebuild(deadline = Infinity) {
+        if (!this._rebuildJob) this._rebuildJob = this._createRebuildJob();
+        const job = this._rebuildJob;
+        while (job.entryIndex < job.entries.length || job.current) {
+            if (!job.current) {
+                const entry = job.entries[job.entryIndex++];
+                job.current = {
+                    entry,
+                    minCX: entry.minCX,
+                    maxCX: entry.maxCX,
+                    minCY: entry.minCY,
+                    maxCY: entry.maxCY,
+                    cx: entry.minCX,
+                    cy: entry.minCY,
+                };
+            }
+            const current = job.current;
+            const key = this._getKey(current.cx, current.cy);
+            let bucket = job.cells.get(key);
+            if (!bucket) {
+                bucket = [];
+                job.cells.set(key, bucket);
+            }
+            bucket.push(current.entry);
+            job.processedCells++;
+            current.cy++;
+            if (current.cy > current.maxCY) {
+                current.cy = current.minCY;
+                current.cx++;
+                if (current.cx > current.maxCX) job.current = null;
+            }
+            if (performance.now() >= deadline) return false;
+        }
+        this.cells = job.cells;
+        this.maxTreeRadius = job.maxTreeRadius;
+        this._lastRebuildCells = job.totalCells;
+        this._wallHash = null;
+        this._treeHash = null;
+        this._rebuildJob = null;
+        return true;
+    }
+
+    getRebuildStats() {
+        const job = this._rebuildJob;
+        if (!job) {
+            return {
+                pending: 0,
+                processedCells: this._lastRebuildCells,
+                totalCells: this._lastRebuildCells,
+                progress: this._lastRebuildCells > 0 ? 100 : 0,
+            };
+        }
+        const progress = job.totalCells > 0
+            ? Math.min(100, job.processedCells / job.totalCells * 100)
+            : 100;
+        return {
+            pending: 1,
+            processedCells: job.processedCells,
+            totalCells: job.totalCells,
+            progress,
+        };
+    }
+
     // 检查点是否在障碍物内（只检查相关 cell）
     isBlocked(x, y, radius) {
         // 快速 AABB 检查：先检查中心点所在的 cell，再扩展 radius 范围
@@ -275,52 +411,107 @@ class PathFinder {
         this._pathCache = new Map(); // key -> { path, timestamp }
         this._cacheMaxAge = 3000;    // 缓存有效期 3 秒
         this._cacheMaxSize = 50;     // 最多缓存 50 条路径
-        // [PERF-2026-08-03] 静态格子结果记忆化：按(格子坐标, 半径)缓存 blocked/moveCost。
+        // [PERF-2026-08-03] 静态格子结果记忆化：按(格子坐标, 半径, 门通行档)缓存 blocked/moveCost。
         // 同一几何下多只怪共享一份结果，避免每次寻路都重建整张成本网格（实测占冷路径 ~92%）
         this._cellMemo = new Map();
         this._memoRadii = new Set(); // memo 中出现过的桶半径（invalidateRegion 按格清除时枚举用）
         this._geometryVersion = 0;   // 几何版本：invalidateCache() 自增，几何变化时清 memo
+        this._friendlyGateAccessVersion = 0; // 自动门模式变化：通知玩家/侍从丢弃旧成本路径
         // [PERF-2026-08-03] 每帧寻路预算：主线程 A* 同步执行，超预算请求返回 PATH_DEFERRED，
         // 由调用方保留旧路径、下一帧重试（MovementSystem.beginFrame 每帧重置）
-        this.frameBudgetMs = 3;
+        this.frameBudgetMs = Math.max(
+            1,
+            Number(performanceConfig.pathQueue?.finderBudgetMs)
+                || Number(performanceConfig.pathQueue?.drainBudgetMs)
+                || 3
+        );
         this._frameUsedMs = 0;
         // 出口路径短时缓存（A* 失败后卡住重算每 500ms 都会走到这里，原来每次都全量重建 RegionIndex）
         this._exitCache = new Map(); // key -> { result, timestamp }
         // 与完整 A* 分离的短时连通性预读取。同一拓扑版本、同一半径桶与相近端点
         // 复用一次 Flood Fill 结论，避免多选单位/卡死重算在同帧重复扫描连通区。
         this._reachabilityCache = new Map();
+        // 可跨帧暂停/续算的 A* 作业；requestId 由 PathManager 稳定提供。
+        this._pendingSearches = new Map();
+        this._pendingEndpointProjections = new Map();
+        this._endpointProjectionCache = new Map();
+        // 防御波次共享的稀疏流场：格子记录应接入哪一段公共路径，局部避障仍由 MovementSystem 负责。
+        this._sharedFlowFields = new Map();
+        this._sharedFlowMaxAge = Math.max(
+            500,
+            Number(performanceConfig.pathQueue?.sharedFlowTtlMs) || 2500
+        );
+        this._sharedFlowMaxSize = Math.max(
+            8,
+            Number(performanceConfig.pathQueue?.sharedFlowMaxFields) || 48
+        );
+        this._incrementalSlices = 0;
+        this._hashBuildSlices = 0;
+        this._projectionSlices = 0;
+        this._sharedFlowHits = 0;
+        this._sharedIntegrationHits = 0;
+        this._sharedFlowBuildSlices = 0;
+        this._negativeCacheHits = 0;
         this._lastWarnAt = 0;        // console.warn 节流（卡住重算循环曾刷屏）
           // 世界-122 能源矿等“非墙体实体圆障碍”：只给寻路用，不写进 WallSystem，
           // 避免影响塔弹道/墙体碰撞语义。EnergyNodeSystem.setup/teardown 负责登记。
           this._entityCircleObstacles = [];
           this._entityFootprintObstacles = [];
+          this._entityFootprintCells = new Map();
+          this._entityFootprintCellSize = 160;
+          this._entityFootprintQueryEpoch = 0;
+          this._entityFootprintQueryBuffer = [];
           this._entityFootprintSignature = '';
           this._lastEntityFootprintSyncAt = 0;
+          this._footprintSyncMs = 0;
+          this._lastFootprintSyncMs = 0;
+          this._peakFootprintSyncMs = 0;
+          this._footprintSyncRuns = 0;
           this._hasEntityObstacles = false;
     }
 
-    // 确保空间哈希已构建
-    _ensureHash() {
-        if (!this._hashValid) {
-            this.spatialHash.rebuild();
-            // 预计算最大树木半径，供 _getMoveCost 的 SpatialHash 查询使用
-            this._maxTreeRadius = 0;
-            if (WallSystem && WallSystem.trees) {
-                for (const t of WallSystem.trees) {
-                    if (t.radius > this._maxTreeRadius) this._maxTreeRadius = t.radius;
-                }
-            }
-            this._hashValid = true;
-        }
+    // 确保空间哈希已构建；有限 deadline 下可跨帧续建。
+    _ensureHash(deadline = Infinity) {
+        if (this._hashValid) return true;
+        if (!this.spatialHash.advanceRebuild(deadline)) return false;
+        this._maxTreeRadius = this.spatialHash.maxTreeRadius;
+        this._hashValid = true;
+        return true;
+    }
+
+    isNavigationReady() {
+        return this._hashValid;
+    }
+
+    ensureNavigationReady(deadline = Infinity) {
+        const ready = this._ensureHash(deadline);
+        if (!ready && deadline !== Infinity) this._hashBuildSlices++;
+        return ready;
+    }
+
+    /** AI 验证/寻路入口共用：在 finder 帧预算内续建导航索引并记账。 */
+    advanceNavigationWithinFrameBudget() {
+        if (this._hashValid) return true;
+        if (!this._budgetAvailable()) return false;
+        const startedAt = performance.now();
+        const remaining = Math.max(0, this.frameBudgetMs - this._frameUsedMs);
+        const ready = this.ensureNavigationReady(startedAt + remaining);
+        this._chargeBudget(startedAt);
+        return ready;
     }
 
     // 墙壁变化时调用（如动态生成墙壁后）
     invalidateCache() {
         this._hashValid = false;
+        this.spatialHash.cancelRebuild();
         this._maxTreeRadius = 0;
         this._pathCache.clear();
         this._exitCache.clear();
         this._reachabilityCache.clear();
+        this._pendingSearches.clear();
+        this._pendingEndpointProjections.clear();
+        this._endpointProjectionCache.clear();
+        this._sharedFlowFields.clear();
         // [PERF-2026-08-03] 几何变化：递增版本并清空格子记忆化
         this._geometryVersion++;
         this._cellMemo.clear();
@@ -343,6 +534,10 @@ class PathFinder {
           this._pathCache.clear();
           this._exitCache.clear();
           this._reachabilityCache.clear();
+          this._pendingSearches.clear();
+          this._pendingEndpointProjections.clear();
+          this._endpointProjectionCache.clear();
+          this._sharedFlowFields.clear();
           this._cellMemo.clear();
           this._geometryVersion++;
           regionIndex.markDirty();
@@ -356,12 +551,58 @@ class PathFinder {
               const dx = x - o.x, dy = y - o.y;
               if (dx * dx + dy * dy < rr * rr) return true;
           }
-          for (const o of this._entityFootprintObstacles) {
+          for (const o of this._queryEntityFootprints(x, y, radius)) {
               if (x + radius < o.minX || x - radius > o.maxX
                   || y + radius < o.minY || y - radius > o.maxY) continue;
               if (circleIntersectsIsoFootprint(x, y, radius, o.entity)) return true;
           }
           return false;
+      }
+
+      _rebuildEntityFootprintIndex() {
+          this._entityFootprintCells.clear();
+          const cellSize = this._entityFootprintCellSize;
+          for (const obstacle of this._entityFootprintObstacles) {
+              const minCX = Math.floor(obstacle.minX / cellSize);
+              const maxCX = Math.floor(obstacle.maxX / cellSize);
+              const minCY = Math.floor(obstacle.minY / cellSize);
+              const maxCY = Math.floor(obstacle.maxY / cellSize);
+              for (let cx = minCX; cx <= maxCX; cx++) {
+                  for (let cy = minCY; cy <= maxCY; cy++) {
+                      const key = cx + cy * CELL_STRIDE;
+                      let bucket = this._entityFootprintCells.get(key);
+                      if (!bucket) {
+                          bucket = [];
+                          this._entityFootprintCells.set(key, bucket);
+                      }
+                      bucket.push(obstacle);
+                  }
+              }
+          }
+      }
+
+      _queryEntityFootprints(x, y, radius) {
+          const result = this._entityFootprintQueryBuffer;
+          result.length = 0;
+          if (this._entityFootprintObstacles.length === 0) return result;
+          const epoch = ++this._entityFootprintQueryEpoch;
+          const cellSize = this._entityFootprintCellSize;
+          const minCX = Math.floor((x - radius) / cellSize);
+          const maxCX = Math.floor((x + radius) / cellSize);
+          const minCY = Math.floor((y - radius) / cellSize);
+          const maxCY = Math.floor((y + radius) / cellSize);
+          for (let cx = minCX; cx <= maxCX; cx++) {
+              for (let cy = minCY; cy <= maxCY; cy++) {
+                  const bucket = this._entityFootprintCells.get(cx + cy * CELL_STRIDE);
+                  if (!bucket) continue;
+                  for (const obstacle of bucket) {
+                      if (obstacle._queryEpoch === epoch) continue;
+                      obstacle._queryEpoch = epoch;
+                      result.push(obstacle);
+                  }
+              }
+          }
+          return result;
       }
 
       /**
@@ -371,6 +612,17 @@ class PathFinder {
        */
       syncEntityFootprintObstacles(entities, now = Date.now()) {
           if (now - this._lastEntityFootprintSyncAt < 250) return false;
+          const startedAt = performance.now();
+          const finish = (result) => {
+              this._lastFootprintSyncMs = Math.max(0, performance.now() - startedAt);
+              this._peakFootprintSyncMs = Math.max(
+                  this._peakFootprintSyncMs,
+                  this._lastFootprintSyncMs
+              );
+              this._footprintSyncMs += this._lastFootprintSyncMs;
+              this._footprintSyncRuns++;
+              return result;
+          };
           this._lastEntityFootprintSyncAt = now;
           let source = [];
           if (entities instanceof Map) source = entities.values();
@@ -401,20 +653,40 @@ class PathFinder {
           }
           signatureParts.sort();
           const signature = signatureParts.join('|');
-          if (signature === this._entityFootprintSignature) return false;
+          if (signature === this._entityFootprintSignature) return finish(false);
           this._entityFootprintSignature = signature;
           this._entityFootprintObstacles = next;
+          this._rebuildEntityFootprintIndex();
           this._hasEntityObstacles = this._entityCircleObstacles.length > 0 || next.length > 0;
           this._pathCache.clear();
           this._exitCache.clear();
           this._reachabilityCache.clear();
+          this._pendingSearches.clear();
+          this._pendingEndpointProjections.clear();
+          this._endpointProjectionCache.clear();
+          this._sharedFlowFields.clear();
           this._geometryVersion++;
           regionIndex.markDirty();
-          return true;
+          return finish(true);
       }
 
       getTopologyVersion() {
           return this._geometryVersion;
+      }
+
+      cancelIncrementalRequest(requestId) {
+          if (requestId === undefined || requestId === null) return false;
+          return this._pendingSearches.delete(requestId);
+      }
+
+      getFriendlyGateAccessVersion() {
+          return this._friendlyGateAccessVersion;
+      }
+
+      /** 自动门模式改变时，同时失效局部缓存并让已在行进的玩家/侍从重新规划。 */
+      notifyFriendlyGateAccessChanged(minX, minY, maxX, maxY) {
+          this._friendlyGateAccessVersion++;
+          this.invalidateRegion(minX, minY, maxX, maxY);
       }
 
       isPointBlocked(x, y, radius = 20) {
@@ -497,16 +769,43 @@ class PathFinder {
         const g0y = Math.floor(y0 / this.gridSize), g1y = Math.floor(y1 / this.gridSize);
         for (let gx = g0x; gx <= g1x; gx++) {
             for (let gy = g0y; gy <= g1y; gy++) {
-                const base = (gx + gy * CELL_STRIDE) * 4096;
-                for (const r of this._memoRadii) this._cellMemo.delete(base + r);
+                for (const r of this._memoRadii) {
+                    const base = ((gx + gy * CELL_STRIDE) * 4096 + r) * 2;
+                    this._cellMemo.delete(base);
+                    this._cellMemo.delete(base + 1);
+                }
             }
         }
-        // 4) SpatialHash（掩体 _cover 段来源）无增量移除：标脏后下次 _ensureHash 全量重建，
-        //    重建读 WallSystem.isoSegments 当前状态，增删后的段自然反映，不漏
+        // 4) SpatialHash（掩体 _cover 段来源）无增量移除：标脏后跨帧构建新索引，
+        //    完成后原子交换；重建读 WallSystem.isoSegments 当前状态，增删后的段自然反映，不漏
         this._hashValid = false;
+        this.spatialHash.cancelRebuild();
         this._maxTreeRadius = 0;
         this._geometryVersion++;
         this._reachabilityCache.clear();
+        this._pendingEndpointProjections.clear();
+        this._endpointProjectionCache.clear();
+        for (const [requestId, state] of this._pendingSearches) {
+            if (inWindow(state.startX, state.startY) || inWindow(state.endX, state.endY)
+                || (state.minX <= maxX && state.minX + state.cols * this.gridSize >= minX
+                    && state.minY <= maxY && state.minY + state.rows * this.gridSize >= minY)) {
+                this._pendingSearches.delete(requestId);
+            }
+        }
+        for (const [key, field] of this._sharedFlowFields) {
+            let hit = field.meta
+                && (inWindow(field.meta.sx, field.meta.sy) || inWindow(field.meta.ex, field.meta.ey));
+            if (!hit && field.path) {
+                hit = field.path.some(node => inWindow(node.x, node.y));
+            }
+            if (!hit && Number.isFinite(field.minX) && Number.isFinite(field.minY)) {
+                const fieldMaxX = field.minX + field.cols * this.gridSize;
+                const fieldMaxY = field.minY + field.rows * this.gridSize;
+                hit = field.minX <= x1 && fieldMaxX >= x0
+                    && field.minY <= y1 && fieldMaxY >= y0;
+            }
+            if (hit) this._sharedFlowFields.delete(key);
+        }
         // RegionIndex：保持 markDirty 惰性重建（机制不变）
         regionIndex.markDirty();
     }
@@ -517,15 +816,78 @@ class PathFinder {
      */
     beginFrame() {
         this._frameUsedMs = 0;
+        this._footprintSyncMs = 0;
+        this._footprintSyncRuns = 0;
+        const now = Date.now();
+        regionIndex.beginFrame?.(now);
+        for (const [requestId, state] of this._pendingSearches) {
+            if (now - state.lastTouchedAt > 3000) this._pendingSearches.delete(requestId);
+        }
+        for (const [key, state] of this._pendingEndpointProjections) {
+            if (now - state.lastTouchedAt > 3000) this._pendingEndpointProjections.delete(key);
+        }
+        for (const [key, entry] of this._endpointProjectionCache) {
+            if (now - entry.timestamp > 1000) this._endpointProjectionCache.delete(key);
+        }
+    }
+
+    _getSharedFlowBuildStats() {
+        let pendingFields = 0;
+        let processedCells = 0;
+        let totalCells = 0;
+        let buildableFields = 0;
+        for (const field of this._sharedFlowFields.values()) {
+            if (field.negative || field.status === 'corridor' || !field.count) continue;
+            buildableFields++;
+            if (field.status === 'ready') continue;
+            pendingFields++;
+            totalCells += field.count * 2;
+            processedCells += Math.min(field.count, field.buildIndex || 0)
+                + Math.min(field.count, field.closedCount || 0);
+        }
+        const progress = pendingFields > 0 && totalCells > 0
+            ? Math.min(100, processedCells / totalCells * 100)
+            : (buildableFields > 0 ? 100 : 0);
+        return { pendingFields, processedCells, totalCells, progress };
     }
 
     getPerformanceStats() {
+        const regionStats = regionIndex.getPerformanceStats?.() || {};
+        const hashStats = this.spatialHash.getRebuildStats?.() || {};
+        const flowStats = this._getSharedFlowBuildStats();
         return {
             frameBudgetMs: this.frameBudgetMs,
             frameUsedMs: this._frameUsedMs,
             budgetRemainingMs: Math.max(0, this.frameBudgetMs - this._frameUsedMs),
-            pathCacheEntries: this.pathCache?.size || 0,
+            pathCacheEntries: this._pathCache?.size || 0,
             reachabilityCacheEntries: this._reachabilityCache?.size || 0,
+            pendingSearches: this._pendingSearches?.size || 0,
+            sharedFlowFields: this._sharedFlowFields?.size || 0,
+            sharedFlowHits: this._sharedFlowHits,
+            sharedIntegrationHits: this._sharedIntegrationHits,
+            sharedFlowBuildSlices: this._sharedFlowBuildSlices,
+            negativeCacheHits: this._negativeCacheHits,
+            incrementalSlices: this._incrementalSlices,
+            hashBuildSlices: this._hashBuildSlices,
+            hashRebuildPending: hashStats.pending || 0,
+            hashRebuildProcessedCells: hashStats.processedCells || 0,
+            hashRebuildTotalCells: hashStats.totalCells || 0,
+            hashBuildProgress: this._hashValid
+                ? 100
+                : (hashStats.pending ? (hashStats.progress || 0) : 0),
+            projectionSlices: this._projectionSlices,
+            flowBuildPending: flowStats.pendingFields,
+            flowBuildProcessedCells: flowStats.processedCells,
+            flowBuildTotalCells: flowStats.totalCells,
+            flowBuildProgress: flowStats.progress,
+            footprintSyncMs: this._footprintSyncMs,
+            footprintLastSyncMs: this._lastFootprintSyncMs,
+            footprintPeakSyncMs: this._peakFootprintSyncMs,
+            footprintSyncRuns: this._footprintSyncRuns,
+            regionRebuildPending: regionStats.rebuildPending || 0,
+            regionRebuildProcessedCells: regionStats.rebuildProcessedCells || 0,
+            regionRebuildTotalCells: regionStats.rebuildTotalCells || 0,
+            regionExitSearchPending: regionStats.exitSearchPending || 0,
         };
     }
 
@@ -542,15 +904,6 @@ class PathFinder {
         if (now - this._lastWarnAt > 1000) {
             this._lastWarnAt = now;
             console.warn(msg);
-        }
-    }
-
-    // [NEW] 确保 RegionIndex 已构建（用于地牢战斗房间等封闭空间）
-    // [PERF-2026-08-08] 按桶半径建索引：同桶怪复用同一索引，不同桶才触发全量重建
-    _ensureRegionIndex(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius) {
-        const r = this._bucketRadius(entityRadius);
-        if (regionIndex.checkDirty(r)) {
-            regionIndex.rebuild(worldMinX, worldMinY, worldMaxX, worldMaxY, r);
         }
     }
 
@@ -586,7 +939,7 @@ class PathFinder {
               if (d2 < softR * softR && cost < 3.0) cost = 3.0;
           }
           if (!blocked) {
-              for (const o of this._entityFootprintObstacles) {
+              for (const o of this._queryEntityFootprints(x, y, r)) {
                   if (x + r < o.minX || x - r > o.maxX
                       || y + r < o.minY || y - r > o.maxY) continue;
                   if (circleIntersectsIsoFootprint(x, y, r, o.entity)) {
@@ -598,14 +951,16 @@ class PathFinder {
           return { blocked, cost };
       }
 
-      _getCellData(x, y, entityRadius) {
+      _getCellData(x, y, entityRadius, options = null) {
         this._ensureHash();
         // 契约：仅允许格子中心坐标调用（k×40+20）——memo 按格子复用，
         // 同格子内的不同采样点共享同一结果，只有中心采样才保证一致性
         const r = this._bucketRadius(entityRadius);
         const gx = Math.floor(x / this.gridSize);
         const gy = Math.floor(y / this.gridSize);
-        const memoKey = (gx + gy * CELL_STRIDE) * 4096 + r;
+        const friendlyGateAccess = options?.friendlyGateAccess === true;
+        const memoKey = ((gx + gy * CELL_STRIDE) * 4096 + r) * 2
+            + (friendlyGateAccess ? 1 : 0);
         const cached = this._cellMemo.get(memoKey);
         if (cached) return this._withEntityObstacles(x, y, r, cached);
 
@@ -653,12 +1008,15 @@ class PathFinder {
                               break outer;
                           }
                       } else if (item.type === 'gate') {
-                          // [GATE-SOFT-COST] 门闸段不阻挡（不设 blocked，isBlocked 同口径不认），
-                          // 只给贴身格子加软成本乘数；与掩体阻挡判定同口径距离
+                          // 门段不作永久阻挡；友军可开启的自动门按普通格，其他关闭门保留软成本。
                           const s = item.obj;
                           if (this.spatialHash._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2)
                               < r + (s.halfThick || 26)) {
-                              if (cost < GATE_SOFT_COST) cost = GATE_SOFT_COST;
+                              const friendlyAutoGate = friendlyGateAccess
+                                  && s._opensForFriendly === true
+                                  && s._gateOwner?.gateMode !== 'locked';
+                              const gateCost = friendlyAutoGate ? 1 : GATE_SOFT_COST;
+                              if (cost < gateCost) cost = gateCost;
                           }
                       }
                   }
@@ -670,7 +1028,7 @@ class PathFinder {
         // （6144×4096 下 40 怪 × 每路径数百格 ≈ 数万条，上限取 10 万防频繁触顶清空）
         if (this._cellMemo.size > 100000) this._cellMemo.clear();
         this._cellMemo.set(memoKey, result);
-        return result;
+        return this._withEntityObstacles(x, y, r, result);
     }
 
     // [ENHANCE] 区域连通性检查：使用 Flood Fill 快速判断目标是否可达
@@ -735,16 +1093,25 @@ class PathFinder {
 
     // [NEW] 当目标不可达时，找到当前区域边界上离目标最近的出口
     // 返回 { path: [{x,y}, ...], isExitPath: true } 或 null
-    findPathToExit(startX, startY, targetX, targetY, entityRadius) {
+    findPathToExit(startX, startY, targetX, targetY, entityRadius, options = null) {
         // [PERF-2026-08-03] 出口路径短时缓存：A* 失败后卡住重算每 500ms 都会走到这里，
         // 原来每次都全量重建 RegionIndex（2~5ms，大地图更高），缓存后重复失败近零成本
-        const exitKey = `${this._getCacheKey(startX, startY, targetX, targetY, entityRadius)},exit`;
+        const exitKey = `${this._getCacheKey(
+            startX, startY, targetX, targetY, entityRadius, options
+        )},exit`;
         const cached = this._exitCache.get(exitKey);
         if (cached && Date.now() - cached.timestamp < 500) return cached.result;
 
-        // 出口搜索同样受帧预算约束（RegionIndex 全量重建不便宜）
-        if (!this._budgetAvailable()) return PATH_DEFERRED;
+        // 只有显式增量 AI 请求可以延后；玩家 RTS/地图生成等直接调用保持同步。
+        const incremental = options?.incremental === true;
+        if (incremental && !this._budgetAvailable()) return PATH_DEFERRED;
         const budgetStart = performance.now();
+        let outerBudgetCharged = false;
+        const chargeOuterBudget = () => {
+            if (outerBudgetCharged) return;
+            this._chargeBudget(budgetStart);
+            outerBudgetCharged = true;
+        };
 
         // 先确保 RegionIndex 已构建（使用当前 WallSystem 的边界）
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -758,20 +1125,39 @@ class PathFinder {
         }
         let result = null;
         if (minX !== Infinity) {
-            this._ensureRegionIndex(minX, minY, maxX, maxY, entityRadius);
-            // 找最近出口
-            const exit = regionIndex.findNearestExit(startX, startY, targetX, targetY, entityRadius);
+            const radius = this._bucketRadius(entityRadius);
+            const remaining = Math.max(0, this.frameBudgetMs - this._frameUsedMs);
+            const deadline = incremental ? budgetStart + remaining : Infinity;
+            if (regionIndex.checkDirty(radius)) {
+                const rebuilt = regionIndex.advanceRebuild(
+                    minX, minY, maxX, maxY, radius, deadline,
+                    (x, y, r) => this._isBlocked(x, y, r)
+                );
+                if (!rebuilt) {
+                    chargeOuterBudget();
+                    return PATH_DEFERRED;
+                }
+            }
+            const exitSearch = regionIndex.findNearestExitIncremental(
+                exitKey, startX, startY, targetX, targetY, deadline
+            );
+            if (!exitSearch.done) {
+                chargeOuterBudget();
+                return PATH_DEFERRED;
+            }
+            const exit = exitSearch.result;
             if (exit) {
                 // 用 A* 走到出口
-                const path = this.findPath(startX, startY, exit.x, exit.y, entityRadius);
+                // RegionIndex 计费到此结束；findPath 会自行计入 A*，禁止外层再次覆盖计费。
+                chargeOuterBudget();
+                const path = this.findPath(startX, startY, exit.x, exit.y, entityRadius, options);
                 if (path === PATH_DEFERRED) {
-                    this._chargeBudget(budgetStart);
                     return PATH_DEFERRED;
                 }
                 if (path) result = { path, isExitPath: true, exitX: exit.x, exitY: exit.y };
             }
         }
-        this._chargeBudget(budgetStart);
+        chargeOuterBudget();
         // 结果（含 null）短时缓存；防无限增长
         // [PERF-2026-08-08] meta 记录起终点：invalidateRegion 局部失效按区域相交判断
         if (this._exitCache.size > 100) this._exitCache.clear();
@@ -784,7 +1170,7 @@ class PathFinder {
     }
 
     // [ENHANCE] 缓存管理
-    _getCacheKey(startX, startY, endX, endY, radius) {
+    _getCacheKey(startX, startY, endX, endY, radius, options = null) {
         // 坐标量化到 gridSize 的倍数，减少缓存 key 的精度
         // [PERF-2026-08-08] 半径归并为桶：同桶怪共享路径缓存
         const gs = this.gridSize;
@@ -792,7 +1178,8 @@ class PathFinder {
         const qy = Math.floor(startY / gs) * gs;
         const qex = Math.floor(endX / gs) * gs;
         const qey = Math.floor(endY / gs) * gs;
-        return `${qx},${qy},${qex},${qey},${this._bucketRadius(radius)}`;
+        const gateProfile = options?.friendlyGateAccess === true ? 'friendly-gate' : 'default-gate';
+        return `${qx},${qy},${qex},${qey},${this._bucketRadius(radius)},${gateProfile}`;
     }
 
     // 读取路径缓存：未命中返回 undefined；命中返回 path（可能为 null = 不可达负缓存）
@@ -827,7 +1214,7 @@ class PathFinder {
         this._pathCache.set(key, { path, timestamp: Date.now(), ttl, meta });
     }
 
-    _buildGrid(startX, startY, endX, endY, entityRadius) {
+    _buildGrid(startX, startY, endX, endY, entityRadius, options = null) {
         const directDist = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
         const searchRange = Math.min(
             this.maxSearchRange,
@@ -854,10 +1241,7 @@ class PathFinder {
                 const x = minX + c * this.gridSize + this.gridSize / 2;
                 const y = minY + r * this.gridSize + this.gridSize / 2;
                 // [PERF-2026-08-03] 合并单趟查询 + 跨寻路记忆化（原为每次 _isBlocked + _getMoveCost 两次空间查询）
-                const cellData = this._withEntityObstacles(
-                      x, y, this._bucketRadius(entityRadius),
-                      this._getCellData(x, y, entityRadius)
-                  );
+                const cellData = this._getCellData(x, y, entityRadius, options);
                 const blocked = cellData.blocked;
                 // 动态障碍成本每格实时叠加（250ms 更新，不进静态 memo）
                 const dynamicCost = blocked ? 1.0 : dynamicObstacleMap.getCost(x, y);
@@ -957,11 +1341,526 @@ class PathFinder {
         return smoothed;
     }
 
-    findPath(startX, startY, endX, endY, entityRadius) {
+    _sharedFlowKey(endX, endY, radius, options) {
+        const sector = Math.max(this.gridSize * 4,
+            Number(performanceConfig.pathQueue?.sharedFlowSectorPx) || 240);
+        const gateProfile = options?.friendlyGateAccess === true ? 1 : 0;
+        const targetGroup = options?.sharedTargetKey || '';
+        return `${this._bucketRadius(radius)}:${gateProfile}`
+            + `:${targetGroup}:${Math.floor(endX / sector)},${Math.floor(endY / sector)}`;
+    }
+
+    _getSharedPath(startX, startY, endX, endY, radius, options) {
+        if (options?.sharedCrowdPath !== true) return undefined;
+        const key = this._sharedFlowKey(endX, endY, radius, options);
+        const field = this._sharedFlowFields.get(key);
+        if (!field) return undefined;
+        if (Date.now() - field.timestamp > this._sharedFlowMaxAge) {
+            this._sharedFlowFields.delete(key);
+            return undefined;
+        }
+        if (field.negative) {
+            const sector = Math.max(this.gridSize * 4,
+                Number(performanceConfig.pathQueue?.sharedFlowSectorPx) || 240);
+            const startSector = `${Math.floor(startX / sector)},${Math.floor(startY / sector)}`;
+            if (field.startSector !== startSector) return undefined;
+            this._negativeCacheHits++;
+            return null;
+        }
+        field.timestamp = Date.now();
+        const corridorPath = this._pathFromSharedCorridor(
+            field, startX, startY, endX, endY, radius
+        );
+        if (corridorPath) {
+            this._sharedFlowHits++;
+            return corridorPath;
+        }
+        if (field.status === 'corridor') return undefined;
+        const fieldGoal = field.path[field.path.length - 1];
+        const bucket = this._bucketRadius(radius);
+        if (!fieldGoal || Math.hypot(fieldGoal.x - endX, fieldGoal.y - endY) > 280
+            || this._raycastBlocked(fieldGoal.x, fieldGoal.y, endX, endY, bucket)) {
+            return undefined;
+        }
+        const col = Math.floor((startX - field.minX) / this.gridSize);
+        const row = Math.floor((startY - field.minY) / this.gridSize);
+        if (row < 0 || row >= field.rows || col < 0 || col >= field.cols) return undefined;
+        const startIndex = row * field.cols + col;
+        if (field.status !== 'ready' && !field.closed[startIndex]) {
+            if (!this._budgetAvailable()) return PATH_DEFERRED;
+            const sliceStart = performance.now();
+            const remaining = Math.max(0, this.frameBudgetMs - this._frameUsedMs);
+            const available = this._advanceSharedFlow(
+                field, sliceStart + remaining, startIndex
+            );
+            this._chargeBudget(sliceStart);
+            if (!available && field.status !== 'ready') {
+                this._sharedFlowBuildSlices++;
+                return PATH_DEFERRED;
+            }
+        }
+        if (!Number.isFinite(field.integration[startIndex])) return undefined;
+        const path = this._pathFromIntegrationField(
+            field, startIndex, startX, startY, endX, endY, radius
+        );
+        if (path) {
+            this._sharedFlowHits++;
+            this._sharedIntegrationHits++;
+        }
+        return path || undefined;
+    }
+
+    _pathFromSharedCorridor(field, startX, startY, endX, endY, radius) {
+        const gx = Math.floor(startX / this.gridSize);
+        const gy = Math.floor(startY / this.gridSize);
+        let joinIndex = field.corridor?.get(gx + gy * CELL_STRIDE);
+        if (joinIndex === undefined) {
+            for (let ring = 1; ring <= 2 && joinIndex === undefined; ring++) {
+                for (let dx = -ring; dx <= ring && joinIndex === undefined; dx++) {
+                    for (let dy = -ring; dy <= ring; dy++) {
+                        if (Math.abs(dx) !== ring && Math.abs(dy) !== ring) continue;
+                        joinIndex = field.corridor?.get((gx + dx) + (gy + dy) * CELL_STRIDE);
+                        if (joinIndex !== undefined) break;
+                    }
+                }
+            }
+        }
+        if (joinIndex === undefined) return null;
+        const join = field.path[joinIndex];
+        const last = field.path[field.path.length - 1];
+        const bucket = this._bucketRadius(radius);
+        if (!join || !last
+            || this._raycastBlocked(startX, startY, join.x, join.y, bucket)
+            || Math.hypot(last.x - endX, last.y - endY) > 280
+            || this._raycastBlocked(last.x, last.y, endX, endY, bucket)) return null;
+        const path = [{ x: startX, y: startY }, ...field.path.slice(joinIndex)];
+        if (Math.hypot(last.x - endX, last.y - endY) > this.gridSize) {
+            path.push({ x: endX, y: endY });
+        }
+        return path;
+    }
+
+    _createSharedFlowField(path, endX, endY, radius, options) {
+        const padding = Math.max(80,
+            Number(performanceConfig.pathQueue?.sharedFlowPaddingPx) || 240);
+        const maxCells = Math.max(512,
+            Number(performanceConfig.pathQueue?.sharedFlowMaxCells) || 4096);
+        let pathMinX = Infinity, pathMinY = Infinity, pathMaxX = -Infinity, pathMaxY = -Infinity;
+        for (const node of path) {
+            pathMinX = Math.min(pathMinX, node.x); pathMaxX = Math.max(pathMaxX, node.x);
+            pathMinY = Math.min(pathMinY, node.y); pathMaxY = Math.max(pathMaxY, node.y);
+        }
+        const minX = Math.floor((pathMinX - padding) / this.gridSize) * this.gridSize;
+        const minY = Math.floor((pathMinY - padding) / this.gridSize) * this.gridSize;
+        const cols = Math.ceil((pathMaxX + padding - minX) / this.gridSize);
+        const rows = Math.ceil((pathMaxY + padding - minY) / this.gridSize);
+        const count = cols * rows;
+        const corridor = new Map();
+        for (let i = path.length - 1; i >= 0; i--) {
+            const a = path[i];
+            const b = path[Math.min(path.length - 1, i + 1)];
+            const samples = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / this.gridSize));
+            for (let s = 0; s <= samples; s++) {
+                const t = s / samples;
+                const gx = Math.floor((a.x + (b.x - a.x) * t) / this.gridSize);
+                const gy = Math.floor((a.y + (b.y - a.y) * t) / this.gridSize);
+                for (let ox = -2; ox <= 2; ox++) {
+                    for (let oy = -2; oy <= 2; oy++) {
+                        const cellKey = gx + ox + (gy + oy) * CELL_STRIDE;
+                        if (!corridor.has(cellKey)) corridor.set(cellKey, i);
+                    }
+                }
+            }
+        }
+        const field = {
+            negative: false,
+            status: count <= maxCells ? 'build' : 'corridor',
+            path: path.map(node => ({ x: node.x, y: node.y })),
+            corridor,
+            meta: { sx: path[0].x, sy: path[0].y, ex: endX, ey: endY },
+            timestamp: Date.now(),
+            minX, minY, cols, rows, count,
+            radius: this._bucketRadius(radius),
+            options: { friendlyGateAccess: options?.friendlyGateAccess === true },
+        };
+        if (field.status === 'corridor') return field;
+        field.blocked = new Uint8Array(count);
+        field.moveCost = new Float32Array(count);
+        field.integration = new Float64Array(count); field.integration.fill(Infinity);
+        field.next = new Int32Array(count); field.next.fill(-1);
+        field.closed = new Uint8Array(count);
+        field.heap = new IndexHeap(field.integration, count);
+        field.buildIndex = 0;
+        field.closedCount = 0;
+        field.goalIndex = -1;
+        return field;
+    }
+
+    _advanceSharedFlow(field, deadline, desiredIndex = -1) {
+        const checkMask = 15;
+        if (field.status === 'build') {
+            while (field.buildIndex < field.count) {
+                const index = field.buildIndex++;
+                const row = Math.floor(index / field.cols);
+                const col = index - row * field.cols;
+                const x = field.minX + col * this.gridSize + this.gridSize / 2;
+                const y = field.minY + row * this.gridSize + this.gridSize / 2;
+                const cell = this._getCellData(x, y, field.radius, field.options);
+                field.blocked[index] = cell.blocked ? 1 : 0;
+                field.moveCost[index] = cell.blocked ? Infinity : cell.cost;
+                if ((index & checkMask) === 0 && performance.now() >= deadline) return false;
+            }
+            const endC = Math.floor((field.meta.ex - field.minX) / this.gridSize);
+            const endR = Math.floor((field.meta.ey - field.minY) / this.gridSize);
+            field.goalIndex = this._nearestOpenIndex(field, endR, endC);
+            if (field.goalIndex < 0) {
+                field.status = 'ready';
+                return true;
+            }
+            field.integration[field.goalIndex] = 0;
+            field.heap.push(field.goalIndex);
+            field.status = 'integrate';
+        }
+        const dirs = [-1,-1, -1,0, -1,1, 0,-1, 0,1, 1,-1, 1,0, 1,1];
+        let expansions = 0;
+        while (field.heap.size() > 0) {
+            const current = field.heap.pop();
+            if (field.closed[current]) continue;
+            field.closed[current] = 1;
+            field.closedCount++;
+            if (current === desiredIndex) return true;
+            const row = Math.floor(current / field.cols);
+            const col = current - row * field.cols;
+            for (let d = 0; d < dirs.length; d += 2) {
+                const dr = dirs[d], dc = dirs[d + 1];
+                const nr = row + dr, nc = col + dc;
+                if (nr < 0 || nr >= field.rows || nc < 0 || nc >= field.cols) continue;
+                const neighbor = nr * field.cols + nc;
+                if (field.blocked[neighbor] || field.closed[neighbor]) continue;
+                if (dr !== 0 && dc !== 0) {
+                    if (field.blocked[nr * field.cols + col]
+                        || field.blocked[row * field.cols + nc]) continue;
+                }
+                const tentative = field.integration[current]
+                    + (dr !== 0 && dc !== 0 ? 1.414 : 1)
+                    * field.moveCost[current] * this.gridSize;
+                if (tentative >= field.integration[neighbor]) continue;
+                field.integration[neighbor] = tentative;
+                field.next[neighbor] = current;
+                field.heap.push(neighbor);
+            }
+            if ((++expansions & checkMask) === 0 && performance.now() >= deadline) return false;
+        }
+        field.status = 'ready';
+        return true;
+    }
+
+    _pathFromIntegrationField(field, startIndex, startX, startY, endX, endY, radius) {
+        if (startIndex !== field.goalIndex && field.next[startIndex] < 0) return null;
+        const path = [{ x: startX, y: startY }];
+        let current = startIndex;
+        let previousDirection = null;
+        let previousIndex = current;
+        for (let steps = 0; steps < field.count && current !== field.goalIndex; steps++) {
+            const next = field.next[current];
+            if (next < 0 || next === current) return null;
+            const row = Math.floor(current / field.cols);
+            const col = current - row * field.cols;
+            const nextRow = Math.floor(next / field.cols);
+            const nextCol = next - nextRow * field.cols;
+            const direction = `${nextRow - row},${nextCol - col}`;
+            if (previousDirection !== null && direction !== previousDirection) {
+                const prevRow = Math.floor(previousIndex / field.cols);
+                const prevCol = previousIndex - prevRow * field.cols;
+                path.push({
+                    x: field.minX + prevCol * this.gridSize + this.gridSize / 2,
+                    y: field.minY + prevRow * this.gridSize + this.gridSize / 2,
+                });
+            }
+            previousDirection = direction;
+            previousIndex = next;
+            current = next;
+        }
+        if (current !== field.goalIndex) return null;
+        const goalRow = Math.floor(current / field.cols);
+        const goalCol = current - goalRow * field.cols;
+        path.push({
+            x: field.minX + goalCol * this.gridSize + this.gridSize / 2,
+            y: field.minY + goalRow * this.gridSize + this.gridSize / 2,
+        });
+        const last = path[path.length - 1];
+        if (Math.hypot(last.x - endX, last.y - endY) > this.gridSize
+            && !this._raycastBlocked(last.x, last.y, endX, endY, this._bucketRadius(radius))) {
+            path.push({ x: endX, y: endY });
+        }
+        return path;
+    }
+
+    _projectBlockedEndpointIncremental(endX, endY, radius, maxDistance = 360) {
+        const bucket = this._bucketRadius(radius);
+        const cacheKey = `${this._geometryVersion}:${bucket}:`
+            + `${Math.floor(endX / this.gridSize)},${Math.floor(endY / this.gridSize)}`;
+        const cached = this._endpointProjectionCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp <= 1000) return cached.result;
+        if (!this._budgetAvailable()) return PATH_DEFERRED;
+        let state = this._pendingEndpointProjections.get(cacheKey);
+        if (!state) {
+            const step = Math.max(this.gridSize, bucket);
+            state = {
+                endX, endY, bucket, maxDistance, step,
+                distance: step, sample: 0, samples: 0,
+                lastTouchedAt: Date.now(),
+            };
+            this._pendingEndpointProjections.set(cacheKey, state);
+        }
+        state.lastTouchedAt = Date.now();
+        const startedAt = performance.now();
+        const deadline = startedAt + Math.max(0, this.frameBudgetMs - this._frameUsedMs);
+        while (state.distance <= state.maxDistance) {
+            if (state.samples === 0) {
+                state.samples = Math.max(
+                    12,
+                    Math.ceil(Math.PI * 2 * state.distance / state.step)
+                );
+                state.sample = 0;
+            }
+            while (state.sample < state.samples) {
+                const angle = state.sample++ / state.samples * Math.PI * 2;
+                const x = state.endX + Math.cos(angle) * state.distance;
+                const y = state.endY + Math.sin(angle) * state.distance;
+                if (!this._isBlocked(x, y, state.bucket)) {
+                    const result = { x, y };
+                    this._pendingEndpointProjections.delete(cacheKey);
+                    this._endpointProjectionCache.set(cacheKey, { result, timestamp: Date.now() });
+                    this._chargeBudget(startedAt);
+                    return result;
+                }
+                if (performance.now() >= deadline) {
+                    this._projectionSlices++;
+                    this._chargeBudget(startedAt);
+                    return PATH_DEFERRED;
+                }
+            }
+            state.distance += state.step;
+            state.samples = 0;
+        }
+        this._pendingEndpointProjections.delete(cacheKey);
+        this._endpointProjectionCache.set(cacheKey, { result: null, timestamp: Date.now() });
+        this._chargeBudget(startedAt);
+        return null;
+    }
+
+    _rememberSharedPath(path, endX, endY, radius, options, negative = false,
+        startX = 0, startY = 0) {
+        if (options?.sharedCrowdPath !== true) return;
+        const key = this._sharedFlowKey(endX, endY, radius, options);
+        if (this._sharedFlowFields.size >= this._sharedFlowMaxSize) {
+            let oldestKey = null, oldestAt = Infinity;
+            for (const [candidateKey, field] of this._sharedFlowFields) {
+                if (field.timestamp < oldestAt) {
+                    oldestAt = field.timestamp;
+                    oldestKey = candidateKey;
+                }
+            }
+            if (oldestKey !== null) this._sharedFlowFields.delete(oldestKey);
+        }
+        if (negative) {
+            const existing = this._sharedFlowFields.get(key);
+            if (existing && !existing.negative) return;
+            const sector = Math.max(this.gridSize * 4,
+                Number(performanceConfig.pathQueue?.sharedFlowSectorPx) || 240);
+            this._sharedFlowFields.set(key, {
+                negative: true,
+                startSector: `${Math.floor(startX / sector)},${Math.floor(startY / sector)}`,
+                meta: { sx: startX, sy: startY, ex: endX, ey: endY },
+                timestamp: Date.now(),
+            });
+            return;
+        }
+        if (!path || path.length < 2) return;
+        const existing = this._sharedFlowFields.get(key);
+        if (existing && !existing.negative) return;
+        this._sharedFlowFields.set(
+            key,
+            this._createSharedFlowField(path, endX, endY, radius, options)
+        );
+    }
+
+    _createIncrementalSearch(startX, startY, endX, endY, entityRadius, cacheKey, options) {
+        const directDist = Math.hypot(endX - startX, endY - startY);
+        const searchRange = Math.min(this.maxSearchRange,
+            Math.max(this.minSearchRange, directDist + 200));
+        const minX = Math.floor((Math.min(startX, endX) - searchRange) / this.gridSize)
+            * this.gridSize;
+        const minY = Math.floor((Math.min(startY, endY) - searchRange) / this.gridSize)
+            * this.gridSize;
+        const maxX = Math.max(startX, endX) + searchRange;
+        const maxY = Math.max(startY, endY) + searchRange;
+        const cols = Math.ceil((maxX - minX) / this.gridSize);
+        const rows = Math.ceil((maxY - minY) / this.gridSize);
+        const count = cols * rows;
+        const g = new Float64Array(count); g.fill(Infinity);
+        const f = new Float64Array(count); f.fill(Infinity);
+        const parent = new Int32Array(count); parent.fill(-1);
+        return {
+            requestId: options.requestId,
+            signature: cacheKey,
+            lastTouchedAt: Date.now(),
+            cacheKey, options, startX, startY, endX, endY,
+            radius: this._bucketRadius(entityRadius),
+            cacheMeta: { sx: startX, sy: startY, ex: endX, ey: endY },
+            minX, minY, cols, rows, count,
+            blocked: new Uint8Array(count),
+            moveCost: new Float32Array(count),
+            g, f, parent,
+            closed: new Uint8Array(count),
+            heap: new IndexHeap(f, count),
+            buildIndex: 0,
+            phase: 'build',
+            iterations: 0,
+            maxIterations: Math.min(count * 2, 5000),
+            bestIndex: -1,
+            endIndex: -1,
+        };
+    }
+
+    _nearestOpenIndex(state, row, col) {
+        const { rows, cols, blocked } = state;
+        if (row >= 0 && row < rows && col >= 0 && col < cols
+            && !blocked[row * cols + col]) return row * cols + col;
+        for (let ring = 1; ring < Math.max(rows, cols); ring++) {
+            for (let dr = -ring; dr <= ring; dr++) {
+                for (let dc = -ring; dc <= ring; dc++) {
+                    if (Math.abs(dr) !== ring && Math.abs(dc) !== ring) continue;
+                    const nr = row + dr, nc = col + dc;
+                    if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+                    const index = nr * cols + nc;
+                    if (!blocked[index]) return index;
+                }
+            }
+        }
+        return -1;
+    }
+
+    _reconstructIncrementalPath(state, endIndex) {
+        const path = [];
+        let index = endIndex;
+        while (index >= 0) {
+            const row = Math.floor(index / state.cols);
+            const col = index - row * state.cols;
+            path.push({
+                x: state.minX + col * this.gridSize + this.gridSize / 2,
+                y: state.minY + row * this.gridSize + this.gridSize / 2,
+            });
+            index = state.parent[index];
+        }
+        path.reverse();
+        const smoothed = this._smoothPath(path, state.radius);
+        this._setCache(state.cacheKey, smoothed, this._cacheMaxAge, state.cacheMeta);
+        return smoothed;
+    }
+
+    _advanceIncrementalSearch(state, deadline) {
+        const checkEvery = 16;
+        if (state.phase === 'build') {
+            while (state.buildIndex < state.count) {
+                const index = state.buildIndex++;
+                const row = Math.floor(index / state.cols);
+                const col = index - row * state.cols;
+                const x = state.minX + col * this.gridSize + this.gridSize / 2;
+                const y = state.minY + row * this.gridSize + this.gridSize / 2;
+                const cell = this._getCellData(x, y, state.radius, state.options);
+                state.blocked[index] = cell.blocked ? 1 : 0;
+                const crowdCost = state.options?.sharedCrowdPath === true || cell.blocked
+                    ? 1 : dynamicObstacleMap.getCost(x, y);
+                state.moveCost[index] = cell.blocked ? Infinity : cell.cost * crowdCost;
+                if ((index & (checkEvery - 1)) === 0 && performance.now() >= deadline) {
+                    return PATH_DEFERRED;
+                }
+            }
+            const startC = Math.floor((state.startX - state.minX) / this.gridSize);
+            const startR = Math.floor((state.startY - state.minY) / this.gridSize);
+            const endC = Math.floor((state.endX - state.minX) / this.gridSize);
+            const endR = Math.floor((state.endY - state.minY) / this.gridSize);
+            const startIndex = this._nearestOpenIndex(state, startR, startC);
+            state.endIndex = this._nearestOpenIndex(state, endR, endC);
+            if (startIndex < 0 || state.endIndex < 0) return null;
+            const sr = Math.floor(startIndex / state.cols);
+            const sc = startIndex - sr * state.cols;
+            const sx = state.minX + sc * this.gridSize + this.gridSize / 2;
+            const sy = state.minY + sr * this.gridSize + this.gridSize / 2;
+            state.g[startIndex] = 0;
+            state.f[startIndex] = Math.max(Math.abs(state.endX - sx), Math.abs(state.endY - sy));
+            state.bestIndex = startIndex;
+            state.heap.push(startIndex);
+            state.phase = 'astar';
+        }
+        const dirs = [-1,-1, -1,0, -1,1, 0,-1, 0,1, 1,-1, 1,0, 1,1];
+        while (state.heap.size() > 0) {
+            if (++state.iterations > state.maxIterations) {
+                this._warn('[PathFinder] incremental A* iteration limit reached, returning best-effort path');
+                return this._reconstructIncrementalPath(state, state.bestIndex);
+            }
+            const current = state.heap.pop();
+            if (state.closed[current]) continue;
+            state.closed[current] = 1;
+            const row = Math.floor(current / state.cols);
+            const col = current - row * state.cols;
+            const x = state.minX + col * this.gridSize + this.gridSize / 2;
+            const y = state.minY + row * this.gridSize + this.gridSize / 2;
+            const best = state.bestIndex;
+            const br = Math.floor(best / state.cols);
+            const bc = best - br * state.cols;
+            const bx = state.minX + bc * this.gridSize + this.gridSize / 2;
+            const by = state.minY + br * this.gridSize + this.gridSize / 2;
+            if (Math.max(Math.abs(state.endX - x), Math.abs(state.endY - y))
+                < Math.max(Math.abs(state.endX - bx), Math.abs(state.endY - by))) {
+                state.bestIndex = current;
+            }
+            if (current === state.endIndex) return this._reconstructIncrementalPath(state, current);
+            for (let d = 0; d < dirs.length; d += 2) {
+                const dr = dirs[d], dc = dirs[d + 1];
+                const nr = row + dr, nc = col + dc;
+                if (nr < 0 || nr >= state.rows || nc < 0 || nc >= state.cols) continue;
+                const next = nr * state.cols + nc;
+                if (state.blocked[next] || state.closed[next]) continue;
+                if (dr !== 0 && dc !== 0) {
+                    const sideA = nr * state.cols + col;
+                    const sideB = row * state.cols + nc;
+                    if (state.blocked[sideA] || state.blocked[sideB]) continue;
+                }
+                const tentative = state.g[current]
+                    + (dr !== 0 && dc !== 0 ? 1.414 : 1)
+                    * state.moveCost[next] * this.gridSize;
+                if (tentative >= state.g[next]) continue;
+                state.g[next] = tentative;
+                state.parent[next] = current;
+                const nx = state.minX + nc * this.gridSize + this.gridSize / 2;
+                const ny = state.minY + nr * this.gridSize + this.gridSize / 2;
+                state.f[next] = tentative
+                    + Math.max(Math.abs(state.endX - nx), Math.abs(state.endY - ny));
+                state.heap.push(next);
+            }
+            if ((state.iterations & (checkEvery - 1)) === 0 && performance.now() >= deadline) {
+                return PATH_DEFERRED;
+            }
+        }
+        return null;
+    }
+
+    findPath(startX, startY, endX, endY, entityRadius, options = null) {
+        // 墙/树/掩体空间哈希冷重建也必须受帧预算约束。玩家直接指令仍保持
+        // 同步语义；AI 请求则保留旧路径并在下帧续建新索引。
+        if (options?.incremental === true && !this._hashValid) {
+            if (!this.advanceNavigationWithinFrameBudget()) return PATH_DEFERRED;
+        }
         // 攻击建筑等语义目标会把中心点交给寻路；中心成为硬障碍后先投影到最近开放点，
         // 让战斗继续以目标实体为准、路径只负责走到 footprint 外侧。
         if (this._isBlocked(endX, endY, this._bucketRadius(entityRadius))) {
-            const projected = this.findNearestWalkablePoint(endX, endY, entityRadius, 360);
+            const projected = options?.incremental === true
+                ? this._projectBlockedEndpointIncremental(endX, endY, entityRadius, 360)
+                : this.findNearestWalkablePoint(endX, endY, entityRadius, 360);
+            if (projected === PATH_DEFERRED) return PATH_DEFERRED;
             if (!projected) return null;
             endX = projected.x;
             endY = projected.y;
@@ -970,33 +1869,87 @@ class PathFinder {
         // 如果起点/终点附近有动态障碍，跳过缓存，避免使用过期的低成本路径
         const dynamicCostStart = dynamicObstacleMap.getCost(startX, startY);
         const dynamicCostEnd = dynamicObstacleMap.getCost(endX, endY);
-        const cacheKey = this._getCacheKey(startX, startY, endX, endY, entityRadius);
-        const cacheUsable = dynamicCostStart <= 1.1 && dynamicCostEnd <= 1.1;
-        if (cacheUsable) {
-            const cachedPath = this._getCachedPath(cacheKey);
-            if (cachedPath !== undefined) return cachedPath; // null = 不可达负缓存
+        const cacheKey = this._getCacheKey(startX, startY, endX, endY, entityRadius, options);
+        const cacheUsable = options?.sharedCrowdPath === true
+            || (dynamicCostStart <= 1.1 && dynamicCostEnd <= 1.1);
+        const cachedPath = this._getCachedPath(cacheKey);
+        // 动态拥挤只改变软成本，不改变静态可达性：负缓存始终可读；正路径仍按拥挤策略决定。
+        if (cachedPath === null) {
+            this._negativeCacheHits++;
+            return null;
+        }
+        if (cacheUsable && cachedPath !== undefined) {
+            if (options?.sharedCrowdPath === true) {
+                this._pendingSearches.delete(`shared:${cacheKey}`);
+                this._rememberSharedPath(
+                    cachedPath, endX, endY, entityRadius, options,
+                    false, startX, startY
+                );
+            }
+            return cachedPath;
+        }
+        const sharedPath = this._getSharedPath(
+            startX, startY, endX, endY, entityRadius, options
+        );
+        if (sharedPath !== undefined) {
+            if (sharedPath !== PATH_DEFERRED && options?.sharedCrowdPath === true) {
+                this._pendingSearches.delete(`shared:${cacheKey}`);
+            }
+            return sharedPath;
         }
         // [PERF-2026-08-03] 帧预算：主线程 A* 超预算返回 PATH_DEFERRED，
         // 调用方保留旧路径/下帧重试，避免刷怪瞬间多只怪同帧寻路造成长卡顿
-        if (!this._budgetAvailable()) return PATH_DEFERRED;
+        const incremental = options?.incremental === true
+            && options?.requestId !== undefined;
+        if (incremental && !this._budgetAvailable()) return PATH_DEFERRED;
         const budgetStart = performance.now();
-        const path = this._searchPath(startX, startY, endX, endY, entityRadius, cacheKey);
+        let path;
+        if (incremental) {
+            const signature = cacheKey;
+            // 同起终点的入侵单位续算同一个作业；首个完成后其余单位直接命中路径/流场。
+            const pendingKey = options.sharedCrowdPath === true
+                ? `shared:${cacheKey}`
+                : options.requestId;
+            let state = this._pendingSearches.get(pendingKey);
+            if (!state || state.signature !== signature) {
+                state = this._createIncrementalSearch(
+                    startX, startY, endX, endY, entityRadius, cacheKey, options
+                );
+                this._pendingSearches.set(pendingKey, state);
+            }
+            state.lastTouchedAt = Date.now();
+            const remaining = Math.max(0, this.frameBudgetMs - this._frameUsedMs);
+            path = this._advanceIncrementalSearch(state, budgetStart + remaining);
+            if (path === PATH_DEFERRED) this._incrementalSlices++;
+            else this._pendingSearches.delete(pendingKey);
+        } else {
+            path = this._searchPath(
+                startX, startY, endX, endY, entityRadius, cacheKey, options
+            );
+        }
         this._chargeBudget(budgetStart);
-        if (path === null && cacheUsable) {
+        if (path === PATH_DEFERRED) return PATH_DEFERRED;
+        if (path === null) {
             // [PERF-2026-08-03] 不可达负缓存（短 TTL）：避免卡住重算循环每 500ms 付一次冷 A* 成本
             this._setCache(cacheKey, null, 500, { sx: startX, sy: startY, ex: endX, ey: endY });
+            this._rememberSharedPath(
+                null, endX, endY, entityRadius, options, true, startX, startY
+            );
         }
+        if (path) this._rememberSharedPath(path, endX, endY, entityRadius, options);
         return path;
     }
 
     // 原 findPath 主体：连通性预检 → 建网格 → A*
-    _searchPath(startX, startY, endX, endY, entityRadius, cacheKey) {
+    _searchPath(startX, startY, endX, endY, entityRadius, cacheKey, options = null) {
         // [ENHANCE] 先检查区域连通性，避免无效 A* 计算
         if (!this.isReachable(startX, startY, endX, endY, entityRadius)) {
             return null;
         }
         const cacheMeta = { sx: startX, sy: startY, ex: endX, ey: endY };
-        const { grid, minX, minY, cols, rows } = this._buildGrid(startX, startY, endX, endY, entityRadius);
+        const { grid, minX, minY, cols, rows } = this._buildGrid(
+            startX, startY, endX, endY, entityRadius, options
+        );
         const startC = Math.floor((startX - minX) / this.gridSize);
         const startR = Math.floor((startY - minY) / this.gridSize);
         const endC = Math.floor((endX - minX) / this.gridSize);

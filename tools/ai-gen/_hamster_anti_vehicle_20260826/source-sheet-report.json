@@ -1,0 +1,22 @@
+{
+  "frameSize": [
+    512,
+    512
+  ],
+  "sourceFootY": 458,
+  "sourceFrames": {
+    "idle": 4,
+    "running": 6,
+    "attacking": 4,
+    "rocket_attacking": 5,
+    "dying": 6
+  },
+  "rocketAction": {
+    "launchSourceIndex": 2,
+    "discardSourceIndex": 3,
+    "finalPose": "SMG idle with regenerated launcher on back"
+  },
+  "method": "deterministic affine key poses derived from two ImageGen identity frames",
+  "mother": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\mother\\hamster-anti-vehicle-mother-v01-rgba.png",
+  "rocketPose": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\mother\\hamster-anti-vehicle-rocket-pose-v01-rgba.png"
+}

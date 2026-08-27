@@ -6,6 +6,9 @@ const MAX_RECALCS = Math.max(1, Number(queueConfig.maxRecalculationsPerFrame) ||
 const MAX_VALIDATIONS = Math.max(1, Number(queueConfig.maxValidationsPerFrame) || 5);
 const MAX_QUEUED = Math.max(32, Number(queueConfig.maxQueuedJobs) || 256);
 const DRAIN_BUDGET_MS = Math.max(1, Number(queueConfig.drainBudgetMs) || 3);
+const RESUME_DEFERRED_FIRST = queueConfig.resumeDeferredFirst !== false;
+const MAX_DEFERRED_STREAK = Math.max(1,
+    Number(queueConfig.maxDeferredSlicesBeforeYield) || 8);
 const nowMs = () => globalThis.performance?.now?.() ?? Date.now();
 
 class PathWorkSchedulerImpl {
@@ -14,6 +17,10 @@ class PathWorkSchedulerImpl {
         this._validations = new Map();
         this._sequence = 0;
         this._frameStats = {};
+        this._lastValidationMs = 0;
+        this._peakValidationMs = 0;
+        this._lastRecalculationMs = 0;
+        this._peakRecalculationMs = 0;
         this.beginFrame();
     }
 
@@ -24,6 +31,10 @@ class PathWorkSchedulerImpl {
             deferredJobs: 0,
             droppedJobs: 0,
             drainMs: 0,
+            validationMs: 0,
+            recalculationMs: 0,
+            validationAttempts: 0,
+            recalculationAttempts: 0,
         };
     }
 
@@ -47,6 +58,7 @@ class PathWorkSchedulerImpl {
             priority: Number(priority) || 0,
             sequence: this._sequence++,
             kind: 'recalculation',
+            deferredStreak: 0,
         });
         this._trimQueue();
         return true;
@@ -73,36 +85,63 @@ class PathWorkSchedulerImpl {
 
     drain() {
         const startedAt = nowMs();
+        // 预留一次低成本有效性检查，避免持续重算把 validation 永久挤出共享 3ms 预算。
+        const validationAttempts = this._validations.size > 0
+            ? this._drainMap(this._validations, 1, startedAt, (job) => (
+                job.manager.runScheduledValidation(job.planner)
+            ), 'completedValidations', 'validationMs', 'validationAttempts')
+            : 0;
         this._drainMap(this._recalculations, MAX_RECALCS, startedAt, (job) => (
             job.manager.forceRecalc(job.planner, job.targetX, job.targetY, job.bypassLimit)
-        ), 'completedRecalculations');
-        this._drainMap(this._validations, MAX_VALIDATIONS, startedAt, (job) => (
-            job.manager.runScheduledValidation(job.planner)
-        ), 'completedValidations');
+        ), 'completedRecalculations', 'recalculationMs', 'recalculationAttempts');
+        const remainingValidations = Math.max(0, MAX_VALIDATIONS - validationAttempts);
+        if (remainingValidations > 0) {
+            this._drainMap(this._validations, remainingValidations, startedAt, (job) => (
+                job.manager.runScheduledValidation(job.planner)
+            ), 'completedValidations', 'validationMs', 'validationAttempts');
+        }
         this._frameStats.drainMs = Math.max(0, nowMs() - startedAt);
         return this.getDebugModel();
     }
 
-    _drainMap(queue, limit, startedAt, execute, completedKey) {
+    _drainMap(queue, limit, startedAt, execute, completedKey, elapsedKey, attemptsKey) {
         const jobs = [...queue.values()].sort((a, b) => b.priority - a.priority || a.sequence - b.sequence);
         let processed = 0;
         for (const job of jobs) {
             if (processed >= limit || nowMs() - startedAt >= DRAIN_BUDGET_MS) break;
             queue.delete(job.manager);
             if (job.manager.enemy && !job.manager.enemy.active) {
+                job.planner?.cancelIncrementalRequest?.(job.manager.getPathRequestId?.());
                 this._frameStats.droppedJobs++;
                 continue;
             }
+            const jobStartedAt = nowMs();
             const result = execute(job);
+            const elapsed = Math.max(0, nowMs() - jobStartedAt);
+            this._frameStats[elapsedKey] += elapsed;
+            this._frameStats[attemptsKey]++;
+            if (job.kind === 'validation') {
+                this._lastValidationMs = elapsed;
+                this._peakValidationMs = Math.max(this._peakValidationMs, elapsed);
+            } else {
+                this._lastRecalculationMs = elapsed;
+                this._peakRecalculationMs = Math.max(this._peakRecalculationMs, elapsed);
+            }
             processed++;
             if (result === PATH_DEFERRED) {
-                job.sequence = this._sequence++;
+                // 续算任务优先完成，尽快产出可供整批单位复用的路径/流场；验证仍由 drain 首槽保障。
+                job.deferredStreak = (job.deferredStreak || 0) + 1;
+                if (!RESUME_DEFERRED_FIRST || job.deferredStreak >= MAX_DEFERRED_STREAK) {
+                    job.sequence = this._sequence++;
+                    job.deferredStreak = 0;
+                }
                 queue.set(job.manager, job);
                 this._frameStats.deferredJobs++;
             } else {
                 this._frameStats[completedKey]++;
             }
         }
+        return processed;
     }
 
     _trimQueue() {
@@ -124,6 +163,10 @@ class PathWorkSchedulerImpl {
             queuedValidations: this._validations.size,
             queuedTotal: this._recalculations.size + this._validations.size,
             maxQueuedJobs: MAX_QUEUED,
+            validationLastMs: this._lastValidationMs,
+            validationPeakMs: this._peakValidationMs,
+            recalculationLastMs: this._lastRecalculationMs,
+            recalculationPeakMs: this._peakRecalculationMs,
         };
     }
 }

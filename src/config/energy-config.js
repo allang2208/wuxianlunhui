@@ -5,7 +5,9 @@ export const ENERGY_CONFIG = {
     gatherRatio: 1.0,          // 每次攻击按造成伤害的 100% 产出能源
     depletedHoldMs: 650,       // 采空后先显示暗灰裂纹态，再进入建筑同款沉陷
     footprintCells: 1,        // 每个矿点固定占用一个 128×64 等距格（逻辑占格，不阻挡移动）
-    nodeSize: 112,             // 显示宽度基准：留在 1×1 格宽 128px 内，仍保留少量尺寸抖动
+    nodeSize: 128,             // 实体尺寸基准与 1×1 等距格宽一致
+    visualDisplayWidth: 130,   // 紧裁矿床比 128px 逻辑格宽多 2px，完整压住单格接缝
+    visualStitchScale: { min: 1.0, max: 1.05 }, // 仅 Sprite 可向邻格每侧侵入约 4px，拼成连续矿脉
     nodeRadius: 0,             // 物理碰撞半径：能源矿不再阻挡单位
     gatherRadius: 45,          // 采集接近半径（独立于物理碰撞，保证矿工仍可停在合适位置挥锄）
     storage: { min: 5000, max: 8000 }, // 单点储量（= hp）

@@ -1,0 +1,22 @@
+{
+  "pipeline": "world122-building-candidates",
+  "styleVersion": "world122-building-v2",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "assetId": "royal_mint",
+  "stage": "structure",
+  "model": "flux2-dev-depth",
+  "size": "1024x1024",
+  "steps": 12,
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "depthStrength": 0.78,
+  "edgeControl": false,
+  "edgeStrength": null,
+  "denoise": null,
+  "seed": 122252,
+  "promptFile": "tools\\ai-gen\\_settlement_building_pack_20260821\\royal_mint\\candidates\\royal_mint\\royal_mint_structure_prompt.txt",
+  "depthImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\royal_mint\\candidates\\royal_mint\\royal_mint_structure_depth.png",
+  "initImage": null,
+  "nonstandardOverride": false
+}

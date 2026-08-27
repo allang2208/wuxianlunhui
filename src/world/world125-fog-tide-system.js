@@ -3,12 +3,32 @@ import { hasEnemyFamily } from '../config/enemy-family.js';
 import { CandleSanctuarySystem } from './candle-sanctuary-system.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 
+const VERSION = 2;
 const TARGET_SCENE_ID = 'scene11';
-let active = false;
+const PHASES = new Set(['clear', 'warning', 'active']);
+
 let currentSceneId = null;
 let trackedPlayer = null;
 let playerShelterSampled = false;
 let playerSheltered = false;
+
+function initialState() {
+    return {
+        version: VERSION,
+        phase: 'clear',
+        nextStartAtGameTimeMs: null,
+        warningAtGameTimeMs: null,
+        startedAtGameTimeMs: null,
+        activeUntilGameTimeMs: null,
+        durationDays: 0,
+    };
+}
+
+let state = initialState();
+
+function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+}
 
 function resolvedSceneId(sceneId) {
     if (sceneId) return sceneId;
@@ -16,9 +36,42 @@ function resolvedSceneId(sceneId) {
     return runtimeSceneId || currentSceneId;
 }
 
-function gameplayConfig() {
+function fogTideConfig() {
     return GAME_CONFIG.scenes?.[TARGET_SCENE_ID]
-        ?.environmentEffects?.dungeonAtmosphere?.fogTide?.gameplay || {};
+        ?.environmentEffects?.dungeonAtmosphere?.fogTide || {};
+}
+
+function gameplayConfig() {
+    return fogTideConfig().gameplay || {};
+}
+
+function scheduleConfig() {
+    return fogTideConfig().schedule || {};
+}
+
+function dayDurationMs() {
+    return Math.max(1,
+        Number(EnvironmentLightingSystem.getConfig()?.dayDurationMs) || 12 * 60 * 1000);
+}
+
+function currentGameTimeMs() {
+    return Math.max(0,
+        Number(EnvironmentLightingSystem.serializeTime()?.elapsedMs) || 0);
+}
+
+function rangeOf(value, fallbackMin, fallbackMax) {
+    const min = Number.isFinite(Number(value?.min)) ? Number(value.min) : fallbackMin;
+    const max = Number.isFinite(Number(value?.max)) ? Number(value.max) : fallbackMax;
+    return { min: Math.min(min, max), max: Math.max(min, max) };
+}
+
+function randomInRange(range) {
+    return range.min + Math.random() * Math.max(0, range.max - range.min);
+}
+
+function hasFiniteTime(value) {
+    return value !== null && value !== undefined && value !== ''
+        && Number.isFinite(Number(value));
 }
 
 function finiteMultiplier(value, fallback) {
@@ -42,49 +95,132 @@ function clearTrackedPlayer() {
     playerSheltered = false;
 }
 
+function ensurePlannedDurationDays() {
+    if (state.durationDays > 0) return state.durationDays;
+    state.durationDays = randomInRange(rangeOf(scheduleConfig().durationDays, 0.75, 1.5));
+    return state.durationDays;
+}
+
+function durationLabel(durationDays) {
+    const days = Math.max(0, Number(durationDays) || 0);
+    return days >= 1 ? `${days.toFixed(1)} 天` : `${(days * 24).toFixed(1)} 小时`;
+}
+
+function scheduleNext(fromGameTimeMs) {
+    const cfg = scheduleConfig();
+    const interval = rangeOf(cfg.intervalDays, 4, 7);
+    const from = Math.max(0, Number(fromGameTimeMs) || 0);
+    const nextStart = from + randomInRange(interval) * dayDurationMs();
+    const warningLeadDays = Math.max(0, Number(cfg.warningLeadDays) || 0.35);
+    state = {
+        version: VERSION,
+        phase: 'clear',
+        nextStartAtGameTimeMs: nextStart,
+        warningAtGameTimeMs: Math.max(from, nextStart - warningLeadDays * dayDurationMs()),
+        startedAtGameTimeMs: null,
+        activeUntilGameTimeMs: null,
+        durationDays: randomInRange(rangeOf(cfg.durationDays, 0.75, 1.5)),
+    };
+}
+
+function beginFogTide(startAtGameTimeMs, { notifyPlayer = true } = {}) {
+    const startAt = Math.max(0, Number(startAtGameTimeMs) || 0);
+    const durationDays = ensurePlannedDurationDays();
+    state.phase = 'active';
+    state.nextStartAtGameTimeMs = null;
+    state.warningAtGameTimeMs = null;
+    state.startedAtGameTimeMs = startAt;
+    state.activeUntilGameTimeMs = startAt + durationDays * dayDurationMs();
+    clearTrackedPlayer();
+    if (notifyPlayer && currentSceneId === TARGET_SCENE_ID) {
+        notify('☠ 死寂雾潮涌入：视野受限，亡者进入猎场状态', {
+            color: '#a9c2b3',
+            duration: 3600,
+        });
+    }
+}
+
+function endFogTide(endedAtGameTimeMs, notifyPlayer = true) {
+    if (notifyPlayer && currentSceneId === TARGET_SCENE_ID) {
+        notify('死寂雾潮已经消散', { color: '#d7c99b' });
+    }
+    clearTrackedPlayer();
+    scheduleNext(endedAtGameTimeMs);
+}
+
 export const World125FogTideSystem = {
+    forecastSceneIds: [TARGET_SCENE_ID],
+
     reset() {
-        active = false;
+        state = initialState();
         currentSceneId = null;
         clearTrackedPlayer();
     },
 
+    update(gameTimeMs = currentGameTimeMs(), { notifyPlayer = true } = {}) {
+        if (fogTideConfig().enabled === false || scheduleConfig().enabled === false) return;
+        const now = Math.max(0, Number(gameTimeMs) || 0);
+        if (state.phase === 'clear' && !hasFiniteTime(state.nextStartAtGameTimeMs)) {
+            scheduleNext(now);
+        }
+        for (let guard = 0; guard < 12; guard++) {
+            if (state.phase === 'clear'
+                && hasFiniteTime(state.warningAtGameTimeMs)
+                && now >= state.warningAtGameTimeMs) {
+                state.phase = 'warning';
+                if (notifyPlayer && currentSceneId === TARGET_SCENE_ID) {
+                    notify('⚠ 死寂雾潮正在逼近，守夜烛台将成为安全区', {
+                        color: '#c8d8cc',
+                        duration: 4200,
+                    });
+                }
+                continue;
+            }
+            if (state.phase === 'warning'
+                && hasFiniteTime(state.nextStartAtGameTimeMs)
+                && now >= state.nextStartAtGameTimeMs) {
+                beginFogTide(state.nextStartAtGameTimeMs, { notifyPlayer });
+                continue;
+            }
+            if (state.phase === 'active'
+                && hasFiniteTime(state.activeUntilGameTimeMs)
+                && now >= state.activeUntilGameTimeMs) {
+                endFogTide(state.activeUntilGameTimeMs, notifyPlayer);
+                continue;
+            }
+            break;
+        }
+    },
+
     syncScene(sceneId) {
         currentSceneId = sceneId || null;
-        if (currentSceneId !== TARGET_SCENE_ID) {
-            active = false;
-            clearTrackedPlayer();
-        }
-        return active;
+        if (currentSceneId !== TARGET_SCENE_ID) clearTrackedPlayer();
+        return this.isActive(currentSceneId);
     },
 
     isActive(sceneId = null) {
         const targetScene = resolvedSceneId(sceneId);
-        const enabled = GAME_CONFIG.scenes?.[TARGET_SCENE_ID]
-            ?.environmentEffects?.dungeonAtmosphere?.fogTide?.enabled !== false;
-        return enabled && targetScene === TARGET_SCENE_ID && active;
+        return fogTideConfig().enabled !== false
+            && targetScene === TARGET_SCENE_ID
+            && state.phase === 'active';
     },
 
     setActive(nextActive, sceneId = TARGET_SCENE_ID) {
         if (sceneId !== TARGET_SCENE_ID) {
             return { ok: false, reason: '死寂雾潮只能在世界-125触发', model: this.getDebugModel(sceneId) };
         }
-        const enabled = GAME_CONFIG.scenes?.[TARGET_SCENE_ID]
-            ?.environmentEffects?.dungeonAtmosphere?.fogTide?.enabled !== false;
-        if (!enabled) return { ok: false, reason: '死寂雾潮配置未启用', model: this.getDebugModel(sceneId) };
-        const next = !!nextActive;
-        const changed = next !== active;
-        active = next;
-        clearTrackedPlayer();
-        if (changed) {
-            notify(active
-                ? '☠ 死寂雾潮涌入：视野受限，亡者进入猎场状态'
-                : '死寂雾潮已经消散', {
-                color: active ? '#a9c2b3' : '#d7c99b',
-                duration: active ? 3600 : 2600,
-            });
+        if (fogTideConfig().enabled === false) {
+            return { ok: false, reason: '死寂雾潮配置未启用', model: this.getDebugModel(sceneId) };
         }
-        return { ok: true, active, model: this.getDebugModel(sceneId) };
+        const next = !!nextActive;
+        const changed = next !== this.isActive(sceneId);
+        if (next) {
+            state.durationDays = randomInRange(rangeOf(scheduleConfig().durationDays, 0.75, 1.5));
+            beginFogTide(currentGameTimeMs(), { notifyPlayer: changed });
+        } else {
+            endFogTide(currentGameTimeMs(), changed);
+        }
+        return { ok: true, active: this.isActive(sceneId), model: this.getDebugModel(sceneId) };
     },
 
     debugToggle(sceneId = TARGET_SCENE_ID) {
@@ -106,14 +242,12 @@ export const World125FogTideSystem = {
         if (entity) entity._world125CandleSheltered = sheltered;
         if (!sheltered) return finiteMultiplier(config.unitVisionMultiplier, 0.6);
 
-        // 夜晚全局视野先乘 0.5；庇护区再乘 0.9，最终得到用户指定的 0.45。
         const isNight = EnvironmentLightingSystem.getVisionRangeMultiplier(visionConfig) < 1;
         return isNight
             ? finiteMultiplier(config.shelteredNightWeatherMultiplier, 0.9)
             : finiteMultiplier(config.shelteredDayWeatherMultiplier, 1);
     },
 
-    /** 玩家进入/离开守夜烛台范围时给出一次明确反馈；友军的倍率仍由视野注册表逐单位计算。 */
     syncPlayerShelter(entity, sceneId = TARGET_SCENE_ID) {
         if (trackedPlayer && trackedPlayer !== entity) trackedPlayer._world125CandleSheltered = false;
         trackedPlayer = entity || null;
@@ -146,20 +280,100 @@ export const World125FogTideSystem = {
 
     getZombieAttackIntervalMultiplier(entity, sceneId) {
         if (!this.isActive(sceneId) || !this.isZombie(entity)) return 1;
-        return Math.max(0.01, finiteMultiplier(gameplayConfig().zombieAttackIntervalMultiplier, 0.85));
+        return Math.max(0.01,
+            finiteMultiplier(gameplayConfig().zombieAttackIntervalMultiplier, 0.85));
     },
 
     getZombieAttackTimeScale(entity, sceneId) {
         return 1 / this.getZombieAttackIntervalMultiplier(entity, sceneId);
     },
 
+    serialize() {
+        return clone(state);
+    },
+
+    restore(data) {
+        state = initialState();
+        clearTrackedPlayer();
+        if (!data || typeof data !== 'object') return;
+        const phase = PHASES.has(data.phase) ? data.phase : 'clear';
+        state = {
+            version: VERSION,
+            phase,
+            nextStartAtGameTimeMs: hasFiniteTime(data.nextStartAtGameTimeMs)
+                ? Math.max(0, Number(data.nextStartAtGameTimeMs)) : null,
+            warningAtGameTimeMs: hasFiniteTime(data.warningAtGameTimeMs)
+                ? Math.max(0, Number(data.warningAtGameTimeMs)) : null,
+            startedAtGameTimeMs: hasFiniteTime(data.startedAtGameTimeMs)
+                ? Math.max(0, Number(data.startedAtGameTimeMs)) : null,
+            activeUntilGameTimeMs: hasFiniteTime(data.activeUntilGameTimeMs)
+                ? Math.max(0, Number(data.activeUntilGameTimeMs)) : null,
+            durationDays: Math.max(0, Number(data.durationDays) || 0),
+        };
+        if (state.phase === 'clear'
+            && (!hasFiniteTime(state.nextStartAtGameTimeMs)
+                || !hasFiniteTime(state.warningAtGameTimeMs))) state = initialState();
+        if (state.phase === 'warning'
+            && (!hasFiniteTime(state.nextStartAtGameTimeMs)
+                || !hasFiniteTime(state.warningAtGameTimeMs))) state = initialState();
+        if (state.phase === 'active'
+            && (!hasFiniteTime(state.startedAtGameTimeMs)
+                || !hasFiniteTime(state.activeUntilGameTimeMs)
+                || state.activeUntilGameTimeMs <= state.startedAtGameTimeMs)) state = initialState();
+    },
+
+    getForecastEvents({
+        sceneId = TARGET_SCENE_ID,
+        nowGameTimeMs = currentGameTimeMs(),
+        horizonEndGameTimeMs = Number.POSITIVE_INFINITY,
+        showDuration = false,
+    } = {}) {
+        if (sceneId !== TARGET_SCENE_ID || fogTideConfig().enabled === false) return [];
+        const now = Math.max(0, Number(nowGameTimeMs) || 0);
+        this.update(now, { notifyPlayer: false });
+        const active = state.phase === 'active';
+        const startsAtGameTimeMs = active
+            ? state.startedAtGameTimeMs : state.nextStartAtGameTimeMs;
+        if (!hasFiniteTime(startsAtGameTimeMs)) return [];
+        if (!active && Number(startsAtGameTimeMs) > Number(horizonEndGameTimeMs)) return [];
+        const durationDays = ensurePlannedDurationDays();
+        const endsAtGameTimeMs = active
+            ? state.activeUntilGameTimeMs
+            : Number(startsAtGameTimeMs) + durationDays * dayDurationMs();
+        return [{
+            id: `fog-tide:${TARGET_SCENE_ID}:${Math.floor(Number(startsAtGameTimeMs))}`,
+            sceneId: TARGET_SCENE_ID,
+            worldName: GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界125',
+            weatherKind: 'special',
+            specialWeatherId: 'fog_tide',
+            icon: '☣',
+            label: `${GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界125'} · 死寂雾潮`,
+            intensityId: 'disaster',
+            intensityName: '死寂雾潮',
+            startsAtGameTimeMs: Number(startsAtGameTimeMs),
+            atGameTimeMs: active ? now : Number(startsAtGameTimeMs),
+            endsAtGameTimeMs: active || showDuration ? Number(endsAtGameTimeMs) : undefined,
+            durationLabel: showDuration ? durationLabel(durationDays) : null,
+            warningLevel: 'critical',
+            warningLabel: '死寂雾潮灾害预警',
+            status: active ? 'active' : 'upcoming',
+        }];
+    },
+
     getDebugModel(sceneId = TARGET_SCENE_ID) {
         const config = gameplayConfig();
+        const now = currentGameTimeMs();
+        const transitionAt = state.phase === 'active'
+            ? state.activeUntilGameTimeMs
+            : (state.phase === 'warning' ? state.nextStartAtGameTimeMs : state.warningAtGameTimeMs);
         return {
             targetSceneId: TARGET_SCENE_ID,
-            enabled: GAME_CONFIG.scenes?.[TARGET_SCENE_ID]
-                ?.environmentEffects?.dungeonAtmosphere?.fogTide?.enabled !== false,
+            enabled: fogTideConfig().enabled !== false,
             active: this.isActive(sceneId),
+            phase: state.phase,
+            remainingMs: hasFiniteTime(transitionAt)
+                ? Math.max(0, Number(transitionAt) - now) : null,
+            dayDurationMs: dayDurationMs(),
             visualOnly: false,
             unitVisionMultiplier: finiteMultiplier(config.unitVisionMultiplier, 0.6),
             shelteredDayWeatherMultiplier: finiteMultiplier(config.shelteredDayWeatherMultiplier, 1),
@@ -168,6 +382,7 @@ export const World125FogTideSystem = {
             zombieAttackIntervalMultiplier: finiteMultiplier(config.zombieAttackIntervalMultiplier, 0.85),
             candleCount: CandleSanctuarySystem.getBuildings().length,
             playerSheltered,
+            ...clone(state),
         };
     },
 };

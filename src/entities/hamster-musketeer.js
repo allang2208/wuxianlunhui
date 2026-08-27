@@ -107,6 +107,10 @@ export class HamsterMusketeer extends Companion {
             this._startDying();
             return;
         }
+        if (this.hasStatusEffect('petrified')) {
+            this.vx = 0; this.vy = 0; this.isMoving = false;
+            return;
+        }
         const game = typeof window !== 'undefined' ? window.Game : null;
         this._ai.update(dt, entities, (game && game.player && !game._observerMode) ? game.player : null); // 观察模式：仓鼠部队不跟随不在场的玩家
     }

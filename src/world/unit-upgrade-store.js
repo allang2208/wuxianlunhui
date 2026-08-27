@@ -7,20 +7,29 @@
 // ============================================================
 import militiaCfg from '../../data/hamster-militia-config.json';
 import warriorCfg from '../../data/hamster-warrior-config.json';
+import championCfg from '../../data/hamster-champion-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
+import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
+import rangerCfg from '../../data/hamster-ranger-config.json';
+import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
+import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import ninjaCfg from '../../data/hamster-ninja-config.json';
+import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
 import explorerCfg from '../../data/hamster-explorer-config.json';
 import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
 import junglePriestCfg from '../../data/jungle-priest-config.json';
 import desertPriestCfg from '../../data/desert-priest-config.json';
+import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 
 /** 全局升级等级：{ [kind]: { [moduleId]: level } }（满级由建筑模块配置 maxLevel 控制） */
@@ -59,14 +68,22 @@ export function restoreUnitUpgrades(data) {
 export const UNIT_KIND_CFG = {
     militia: militiaCfg,
     warrior: warriorCfg,
+    champion: championCfg,
     shooter: shooterCfg,
     guard: guardCfg,
     phalanx: phalanxCfg,
+    halberd: halberdierCfg,
     scout: scoutCfg,
+    ranger: rangerCfg,
+    crossbow: crossbowCfg,
+    sniper: sniperCfg,
     musketeer: musketeerCfg,
+    anti_vehicle: antiVehicleCfg,
     priest: priestCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
+    ninja: ninjaCfg,
+    samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg,
     bounty_hunter: bountyHunterCfg,
@@ -75,26 +92,41 @@ export const UNIT_KIND_CFG = {
     desert_priest: desertPriestCfg,
 };
 
+/** 全体可生产军事单位的常规移动倍率；冲锋等技能位移不走本链路。 */
+function getFriendlyUnitSpeedMultiplier() {
+    const value = Number(COMBAT_CONFIG.friendlyUnitDefaults?.globalSpeedMultiplier);
+    return Number.isFinite(value) && value >= 0 ? value : 1;
+}
+
 /** 实体识别兵种 key（非战斗兵种返回 null） */
 export function getUnitKind(unit) {
     if (!unit) return null;
+    // 冠军继承民兵近战生命周期，必须先于 _isHamsterMilitia 判断。
+    if (unit._isHamsterChampion) return 'champion';
     if (unit._isHamsterMilitia) return 'militia';
     if (unit._isHamsterExplorer) return 'explorer';
     if (unit._isHamsterBountyHunter) return 'bounty_hunter';
     if (unit._isJaguarWarrior) return 'jaguar_warrior';
     if (unit._isJunglePriest) return 'jungle_priest';
     if (unit._isDesertPriest) return 'desert_priest';
+    if (unit._isHamsterSamurai) return 'samurai';
     if (unit._isHamsterWarrior) return 'warrior';
     if (unit._isHamsterShooter) return 'shooter';
     // 方阵继承盾卫，必须先于 _isHamsterGuard 判断。
     if (unit._isHamsterPhalanx) return 'phalanx';
     if (unit._isHamsterGuard) return 'guard';
+    if (unit._isHamsterHalberdier) return 'halberd';
+    if (unit._isHamsterRanger) return 'ranger';
+    if (unit._isHamsterCrossbow) return 'crossbow';
+    if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
+    if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
     if (unit._isHamsterKnight) return 'knight';
     if (unit._isHamsterCamelCavalry) return 'camel_cavalry';
     if (unit._isHamsterLightCavalry) return 'light_cavalry';
+    if (unit._isHamsterNinja) return 'ninja';
     return null;
 }
 
@@ -172,6 +204,7 @@ export function getUpgradeMultsFromLevels(modulesCfg, levels = {}, kind = null) 
         fogSightRadiusBonus: 0,
         holyLightRangeBonus: 0,
         titheEnergyPerTick: 0,
+        duelistDamageMultiplier: 1.5,
     };
     for (const [moduleId, module] of Object.entries(modulesCfg || {})) {
         if (kind && Array.isArray(module?.unitKinds) && !module.unitKinds.includes(kind)) continue;
@@ -227,7 +260,9 @@ export function getUnitUpgradePatch(kind, modulesCfg) {
         attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
         attackDamageMult: mults.attackDamageMult,
         attackRange: Math.max(0, Math.round((baseAi.attackRange ?? 0) + mults.attackRangeBonus)),
-        walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
+        walkSpeed: Math.max(20, Math.round(
+            (baseAi.walkSpeed ?? 120) * getFriendlyUnitSpeedMultiplier() * mults.moveSpeedMult
+        )),
         baseMaxHp: Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult)),
         holyLightCooldownMult: mults.holyLightCooldownMult,
         holyLightLevel: mults.holyLightLevel,
@@ -241,6 +276,7 @@ export function getUnitUpgradePatch(kind, modulesCfg) {
         fogSightRadiusBonus: mults.fogSightRadiusBonus,
         holyLightRangeBonus: mults.holyLightRangeBonus,
         titheEnergyPerTick: mults.titheEnergyPerTick,
+        duelistDamageMultiplier: mults.duelistDamageMultiplier,
         familyDamageMultipliers: getUnitFamilyDamageMultipliers(kind, modulesCfg),
         castRange: Math.max(0, Math.round((baseAi.castRange ?? 0) + mults.holyLightRangeBonus)),
         titheIntervalMs: Number(titheModule?.tickMs) || 0,

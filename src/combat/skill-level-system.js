@@ -25,15 +25,16 @@ export const SkillLevelSystem = {
     },
 
     // Refresh skill UI if panels are open
-    refreshUI(currentSkillId, extraSkillId) {
+    refreshUI(currentSkillId, ...extraSkillIds) {
         const detail = getElement('skillDetail');
         const detailOpen = detail && detail.style.display !== 'none' && detail.style.display !== '';
         if (detailOpen || (SystemUI && SystemUI.isOpen && SystemUI.currentTab === 'skill')) {
             if (SkillManager) {
                 SkillManager.renderSkillGrid();
                 if (SkillManager._currentDetailSkillId === currentSkillId ||
-                    (extraSkillId && SkillManager._currentDetailSkillId === extraSkillId)) {
-                    const skill = this._getSkillById(currentSkillId);
+                    extraSkillIds.includes(SkillManager._currentDetailSkillId)) {
+                    const skill = this._getSkillById(SkillManager._currentDetailSkillId)
+                        || this._getSkillById(currentSkillId);
                     if (skill) SkillManager.renderSkillDetail(skill);
                 }
             }

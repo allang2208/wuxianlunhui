@@ -8,7 +8,7 @@
 用法（ComfyUI venv python）：
   # 怪物 idle：5080 生图候选（自动选背景色）→ BiRefNet 抠图 → 512 归一化
   python ai-asset.py monster idle --name bear --ref assets/enemies/bear_idle.png
-  # 怪物动画视频：默认 5080 H3；可切本地豆包 Seedance 2.0 Mini 快速抽候选
+  # 怪物动画视频：默认先用本地豆包免费额度；额度耗尽或明确指定时切 5080 H3
   python ai-asset.py monster video --name bear --kind run --ref assets/enemies/bear_idle.png
   python ai-asset.py monster video --provider doubao --candidates 3 --name bear --kind run --ref assets/enemies/bear_idle.png
   # 怪物动画 sheet：视频 → 周期/窗口检测 → BiRefNet 重建 → CLEAN 验证
@@ -56,8 +56,8 @@ def ensure_dir(p):
 
 
 def add_video_provider_args(parser):
-    parser.add_argument("--provider", choices=["h3", "doubao"], default="h3",
-                        help="视频后端：h3=远程 5080 MiniMax H3（默认）；doubao=本地豆包客户端")
+    parser.add_argument("--provider", choices=["h3", "doubao"], default="doubao",
+                        help="视频后端：doubao=本地豆包免费额度优先（默认）；h3=额度耗尽、特殊需求或明确指定时使用远程 5080 MiniMax H3")
     parser.add_argument("--candidates", type=int, default=1,
                         help="豆包连续抽取候选数；默认 1（每个候选都会消耗额度）")
     parser.add_argument("--doubao-model", default="Seedance 2.0 Mini",
@@ -66,6 +66,10 @@ def add_video_provider_args(parser):
                         help="豆包客户端本地自动化端口")
     parser.add_argument("--doubao-attach-only", action="store_true",
                         help="只连接已用自动化端口启动的豆包，不自动启动客户端")
+    parser.add_argument("--doubao-new-chat", action="store_true",
+                        help="每次生成前新建豆包对话，隔离旧视频与本次结果")
+    parser.add_argument("--doubao-confirm-paid", action="store_true",
+                        help="仅在用户已明确授权时，确认豆包页面的付费额度提示")
 
 
 def video_command(args, prompt, out, loop=False):
@@ -82,6 +86,10 @@ def video_command(args, prompt, out, loop=False):
             cmd += ["--loop"]
         if args.doubao_attach_only:
             cmd += ["--attach-only"]
+        if args.doubao_new_chat:
+            cmd += ["--new-chat"]
+        if args.doubao_confirm_paid:
+            cmd += ["--confirm-paid"]
         return cmd
 
     if args.candidates != 1:
@@ -122,7 +130,7 @@ def prepare_doubao_background_prompt(args, prompt, out_dir):
 
 
 def monster_idle(args):
-    out_dir = os.path.join(SCRATCH, f"{args.name}_idle")
+    out_dir = os.path.abspath(args.out_dir) if args.out_dir else os.path.join(SCRATCH, f"{args.name}_idle")
     ensure_dir(out_dir)
     # 背景色注入（--bg-color 时对提示词副本做纯色底替换；dry-run 只打印不写文件）
     prompt_file = args.prompt
@@ -410,11 +418,13 @@ def main():
     p.add_argument("--name", required=True)
     p.add_argument("--ref", required=True, help="参考图（首帧锁体型，也是自动选背景色的依据）")
     p.add_argument("--prompt", required=True, help="提示词文件路径")
-    p.add_argument("--model", default="flux2-dev-fp8")
+    p.add_argument("--model", default="flux2-klein-4b-nolora")
     p.add_argument("--seeds", default="1001,1002,1003,1004,1005",
                    help="逗号分隔 seed 列表")
     p.add_argument("--bg-color", default=None, help="#RRGGBB 或 auto（默认参考图自动选）")
     p.add_argument("--timeout", type=int, default=600)
+    p.add_argument("--out-dir", default=None,
+                   help="显式候选输出目录；缺省仍写入统一 scratch")
     p.set_defaults(func=monster_idle)
 
     p = msub.add_parser("video", parents=[common], help="生成动画视频（H3，5080）")

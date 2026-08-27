@@ -6,10 +6,14 @@
   "referenceMode": "first-frame image",
   "identityMother": "mother/hamster-halberdier-mother-v04-ear-armor-plume.png",
   "reference": "references/hamster-halberdier-v04-white.png",
-  "assetStatus": "reserved_art_only",
-  "runtimeIntegrationActive": false,
-  "producerBuildingIntegration": false,
-  "reservationNote": "保留母图、视频、正式精灵表与预览；未经用户另行明确指示，不创建单位配置、实体、AI，也不接入任何出兵建筑。",
+  "assetStatus": "runtime_assets_and_code_integration_complete",
+  "runtimeIntegrationActive": true,
+  "producerBuildingIntegration": true,
+  "runtimeConfig": "data/hamster-halberdier-config.json",
+  "runtimeEntity": "src/entities/hamster-halberdier.js",
+  "runtimeHitFrame": 23,
+  "runtimeHitFrameConvention": "zero-based; config attackDamageFrame is one-based 24",
+  "recruitmentGateNote": "长戟与游侠均已登记，草屋二级编制科技完成后按槽位替换未来招募。",
   "tasks": [
     {
       "motion": "idle",

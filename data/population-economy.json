@@ -1,5 +1,5 @@
 {
-  "_comment": "人口经济唯一数值源。房屋提供容量；研究院、风车、市场和位面谐振塔按数值岗位工作；银行按范围内房屋人口离散结算；同一前台位面的市场共享交易压力。",
+  "_comment": "人口经济唯一数值源。房屋提供容量；食物、能源、金币建筑都由真实岗位驱动，前后台位面采用同一公式；同一前台位面的市场共享交易压力。",
   "tickMs": 1000,
   "civilianVisual": {
     "fadeOutDurationMs": 320,
@@ -8,14 +8,70 @@
   },
   "house": {
     "upgradeCompleteSound": "assets/sounds/ui/house_upgrade_complete.mp3",
+    "residentVisual": {
+      "countsByLevel": { "1": 2, "2": 3, "3": 4, "4": 5, "5": 6, "6": 7, "7": 8 },
+      "displaySize": 96,
+      "originY": 0.92,
+      "moveSpeed": [28, 42],
+      "idleDurationMs": [2000, 6000],
+      "localSpawnDistance": [150, 210],
+      "localActivityRadius": 220,
+      "localVerticalScale": 0.62,
+      "localMoveGraceMs": 3500,
+      "roadDetectionRadius": 420,
+      "maxRoadEntryCandidates": 16,
+      "roadEntryArrivalDistance": 10,
+      "roadSeekDelayMs": [400, 1600],
+      "roadSeekRetryMs": [1600, 3200],
+      "roadSeekStuckMs": 3000,
+      "roadSeekFailedCooldownMs": 6000,
+      "laneJitter": 12,
+      "skins": [
+        {
+          "id": "hamster_resident_01",
+          "animations": {
+            "idle": { "src": "assets/companions/hamster_residents/resident_01/idle.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 8, "frames": [0, 7], "frameRate": 8, "repeat": -1, "scale": 1, "footRatio": 0.92 },
+            "walking": { "src": "assets/companions/hamster_residents/resident_01/walking.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1, "scale": 1, "footRatio": 0.92 }
+          }
+        },
+        {
+          "id": "hamster_resident_02",
+          "animations": {
+            "idle": { "src": "assets/companions/hamster_residents/resident_02/idle.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 8, "frames": [0, 7], "frameRate": 8, "repeat": -1, "scale": 1, "footRatio": 0.92 },
+            "walking": { "src": "assets/companions/hamster_residents/resident_02/walking.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1, "scale": 1, "footRatio": 0.92 }
+          }
+        },
+        {
+          "id": "hamster_resident_03",
+          "animations": {
+            "idle": { "src": "assets/companions/hamster_residents/resident_03/idle.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 8, "frames": [0, 7], "frameRate": 8, "repeat": -1, "scale": 1, "footRatio": 0.92 },
+            "walking": { "src": "assets/companions/hamster_residents/resident_03/walking.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1, "scale": 1, "footRatio": 0.92 }
+          }
+        },
+        {
+          "id": "hamster_resident_04",
+          "animations": {
+            "idle": { "src": "assets/companions/hamster_residents/resident_04/idle.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 8, "frames": [0, 7], "frameRate": 8, "repeat": -1, "scale": 1, "footRatio": 0.92 },
+            "walking": { "src": "assets/companions/hamster_residents/resident_04/walking.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1, "scale": 1, "footRatio": 0.92 }
+          }
+        },
+        {
+          "id": "hamster_resident_05",
+          "animations": {
+            "idle": { "src": "assets/companions/hamster_residents/resident_05/idle.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 8, "frames": [0, 7], "frameRate": 8, "repeat": -1, "scale": 1, "footRatio": 0.92 },
+            "walking": { "src": "assets/companions/hamster_residents/resident_05/walking.png", "frameWidth": 256, "frameHeight": 256, "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1, "scale": 1, "footRatio": 0.92 }
+          }
+        }
+      ]
+    },
     "levels": [
       {
         "level": 1,
         "populationCapacity": 6,
         "tex": "house_lv1",
         "displayW": 270,
-        "displayH": 260,
-        "footOffsetY": 129,
+        "displayH": 262,
+        "footOffsetY": 131,
         "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75, "widthRatio": 0.948148, "depthRatio": 0.492308, "scaleMode": "strict" }
       },
       {
@@ -24,7 +80,7 @@
         "populationCapacity": 10,
         "tex": "house_lv2",
         "displayW": 270,
-        "displayH": 267,
+        "displayH": 264,
         "footOffsetY": 132,
         "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.754682, "widthRatio": 0.948148, "depthRatio": 0.479401, "scaleMode": "strict" },
         "upgradeCost": { "gold": 250, "energy": 500, "timeMs": 15000 }
@@ -35,57 +91,182 @@
         "populationCapacity": 16,
         "tex": "house_lv3",
         "displayW": 298,
-        "displayH": 298,
-        "footOffsetY": 148,
+        "displayH": 288,
+        "footOffsetY": 144,
         "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.781879, "widthRatio": 0.85906, "depthRatio": 0.42953, "scaleMode": "strict" },
         "upgradeCost": { "gold": 600, "energy": 1200, "timeMs": 30000 }
+      },
+      {
+        "level": 4,
+        "technologyUnlockId": "house_level_4",
+        "populationCapacity": 24,
+        "tex": "house_lv4",
+        "displayW": 311,
+        "displayH": 370,
+        "footOffsetY": 185,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8253333333333334, "widthRatio": 0.8231511254019293, "depthRatio": 0.3413333333333333, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 1200, "energy": 2400, "timeMs": 60000 }
+      },
+      {
+        "level": 5,
+        "technologyUnlockId": "house_level_5",
+        "populationCapacity": 34,
+        "tex": "house_lv5",
+        "displayW": 330,
+        "displayH": 401,
+        "footOffsetY": 200,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8533333333333334, "widthRatio": 0.7757575757575758, "depthRatio": 0.28444444444444444, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 2400, "energy": 4800, "timeMs": 90000 }
+      },
+      {
+        "level": 6,
+        "technologyUnlockId": "house_level_6",
+        "populationCapacity": 46,
+        "tex": "house_lv6",
+        "displayW": 340,
+        "displayH": 483,
+        "footOffsetY": 239,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8623188405797102, "widthRatio": 0.7529411764705882, "depthRatio": 0.2650103519668737, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 4800, "energy": 9600, "timeMs": 180000 }
+      },
+      {
+        "level": 7,
+        "technologyUnlockId": "house_level_7",
+        "populationCapacity": 60,
+        "tex": "house_lv7",
+        "displayW": 360,
+        "displayH": 482,
+        "footOffsetY": 241,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8698630136986302, "widthRatio": 0.7111111111111111, "depthRatio": 0.25048923679060664, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 9600, "energy": 19200, "timeMs": 300000 }
+      }
+    ]
+  },
+  "warehouse": {
+    "nonWorkforce": true,
+    "levels": [
+      {
+        "level": 1,
+        "name": "简易仓库",
+        "storageCapacity": 15000,
+        "tex": "warehouse",
+        "assetPath": "assets/terrain/warehouse.png",
+        "displayW": 278,
+        "displayH": 310,
+        "footOffsetY": 154,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.790323, "widthRatio": 0.920863, "depthRatio": 0.412903, "scaleMode": "strict" }
+      },
+      {
+        "level": 2,
+        "name": "扩建仓库",
+        "technologyUnlockId": "warehouse_level_2",
+        "storageCapacity": 45000,
+        "tex": "warehouse_lv2",
+        "assetPath": "assets/terrain/warehouse_lv2.png",
+        "displayW": 278,
+        "displayH": 350,
+        "footOffsetY": 175,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.813559, "widthRatio": 0.920863, "depthRatio": 0.361582, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 1200, "energy": 4000, "timeMs": 60000 }
+      },
+      {
+        "level": 3,
+        "name": "机械仓库",
+        "technologyUnlockId": "warehouse_level_3",
+        "storageCapacity": 120000,
+        "tex": "warehouse_lv3",
+        "assetPath": "assets/terrain/warehouse_lv3.png",
+        "displayW": 286,
+        "displayH": 360,
+        "footOffsetY": 178,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8166666666666667, "widthRatio": 0.8951048951048951, "depthRatio": 0.35555555555555557, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 4500, "energy": 15000, "timeMs": 120000 }
+      },
+      {
+        "level": 4,
+        "name": "自动化仓库",
+        "technologyUnlockId": "warehouse_level_4",
+        "storageCapacity": 300000,
+        "tex": "warehouse_lv4",
+        "assetPath": "assets/terrain/warehouse_lv4.png",
+        "displayW": 294,
+        "displayH": 356,
+        "footOffsetY": 176,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8146067415730337, "widthRatio": 0.8707482993197279, "depthRatio": 0.3595505617977528, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 14000, "energy": 50000, "timeMs": 180000 }
+      },
+      {
+        "level": 5,
+        "name": "相位仓库",
+        "technologyUnlockId": "warehouse_level_5",
+        "storageCapacity": 750000,
+        "tex": "warehouse_lv5",
+        "assetPath": "assets/terrain/warehouse_lv5.png",
+        "displayW": 300,
+        "displayH": 366,
+        "footOffsetY": 181,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.822493, "widthRatio": 0.853333, "depthRatio": 0.346883, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 40000, "energy": 150000, "timeMs": 300000 }
       }
     ]
   },
   "research": {
     "upgradeCompleteSound": "assets/sounds/ui/house_upgrade_complete.mp3",
-    "workerSlots": 3,
-    "workerSlotsAbilityId": "research_staff",
+    "workerSlots": 6,
+    "workerSlotsModule": "research_staff",
     "workerLabel": "研究员",
-    "workerEfficiencyShare": 0.2,
-    "fullEfficiencyWorkerCount": 5,
-    "baseResearchAbilityId": "research_base_points",
+    "workerEfficiencyShare": 0.1,
+    "fullEfficiencyWorkerCount": 10,
+    "baseResearchModuleId": "research_base_points",
     "levels": [
       {
         "level": 1,
         "baseResearchPointsPerSecond": 1,
         "tex": "research_institute",
         "displayW": 256,
-        "displayH": 234,
-        "footOffsetY": 116,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" }
+        "displayH": 273,
+        "footOffsetY": 135,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.760073, "widthRatio": 1, "depthRatio": 0.468864, "scaleMode": "strict" }
       },
       {
         "level": 2,
         "technologyUnlockId": "research_institute_level_2",
-        "baseResearchPointsPerSecond": 1.5,
-        "tex": "research_institute",
+        "baseResearchPointsPerSecond": 1.25,
+        "tex": "research_institute_lv2",
         "displayW": 256,
-        "displayH": 234,
-        "footOffsetY": 116,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" },
-        "upgradeCost": { "gold": 1200, "energy": 2400, "timeMs": 60000 }
+        "displayH": 304,
+        "footOffsetY": 150,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.782895, "widthRatio": 1, "depthRatio": 0.421053, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 2000, "energy": 4000, "timeMs": 90000 }
       },
       {
         "level": 3,
         "technologyUnlockId": "research_institute_level_3",
-        "baseResearchPointsPerSecond": 2,
-        "tex": "research_institute",
+        "baseResearchPointsPerSecond": 1.5,
+        "tex": "research_institute_lv3",
         "displayW": 256,
-        "displayH": 234,
-        "footOffsetY": 116,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" },
-        "upgradeCost": { "gold": 3000, "energy": 6000, "timeMs": 120000 }
+        "displayH": 346,
+        "footOffsetY": 171,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.809249, "widthRatio": 1, "depthRatio": 0.369942, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 5000, "energy": 10000, "timeMs": 180000 }
       }
     ]
   },
+  "weather_forecast": {
+    "workerSlots": 1,
+    "workerLabel": "气象员",
+    "workerEfficiencyShare": 1,
+    "researchModuleId": "weather_forecast_cycles"
+  },
+  "researchCluster": {
+    "radius": 640,
+    "bonusPerDistinctFacilityType": 0.03,
+    "maxBonus": 0.12,
+    "description": "科研设施在640px内与已上岗的不同种类科研设施相邻时，每种获得3%科研增效，最多12%；同类建筑不重复计数。"
+  },
   "windmill": {
     "workerSlots": 4,
+    "workerSlotsModule": "windmill_field_expansion",
     "workerLabel": "农夫",
     "foodPerWorkerPerSecond": 1.5,
     "visualWorkerCap": 4,
@@ -163,7 +344,7 @@
       "name": "仓鼠银行家",
       "displaySize": 128,
       "originY": 0.82,
-      "moveSpeed": 90,
+      "moveSpeed": 45,
       "wanderRadius": 260,
       "idleDurationMs": [900, 2200],
       "speechCooldownMs": [8000, 14000],
@@ -204,6 +385,36 @@
         }
       }
     }
+  },
+  "royal_mint": {
+    "workerSlotsModule": "mint_staff",
+    "workerLabel": "铸币工",
+    "settlementIntervalMs": 10000,
+    "foodPerWorkerPerSettlement": 40
+  },
+  "grand_mall": {
+    "workerSlotsModule": "grand_mall_staff",
+    "workerLabel": "商场职员",
+    "settlementIntervalMs": 1000,
+    "workerEfficiencyPerEmployee": 0.1
+  },
+  "stock_exchange": {
+    "workerSlots": 6,
+    "workerLabel": "证券职员",
+    "settlementIntervalMs": 1000,
+    "baseGoldPerSecond": 20,
+    "goldPerPopulationPerSecond": 0.05,
+    "goldBalanceRatePerSecond": 0.000002,
+    "energyPerSecond": 80,
+    "workerEfficiencyPerEmployee": 0.1666667
+  },
+  "computing_center": {
+    "workerSlots": 6,
+    "workerSlotsModule": "computing_staff",
+    "workerLabel": "算力工程师",
+    "settlementIntervalMs": 1000,
+    "goldBalanceRatePerSecond": 0.000003,
+    "workerEfficiencyPerEmployee": 0.1
   },
   "market": {
     "workerSlots": 2,
@@ -285,9 +496,23 @@
     }
   },
   "planar_resonator": {
-    "workerSlots": 5,
+    "workerSlots": 2,
     "workerSlotsModule": "resonator_staff",
     "workerLabel": "谐振技师",
+    "workerEfficiencyShare": 0.25,
+    "fullEfficiencyWorkerCount": 4
+  },
+  "wind_power_plant": {
+    "workerSlots": 3,
+    "workerSlotsModule": "wind_maintenance_staff",
+    "workerLabel": "风机技师",
+    "workerEfficiencyShare": 0.25,
+    "fullEfficiencyWorkerCount": 4
+  },
+  "solar_power_plant": {
+    "workerSlots": 3,
+    "workerSlotsModule": "solar_maintenance_staff",
+    "workerLabel": "光伏技师",
     "workerEfficiencyShare": 0.2,
     "fullEfficiencyWorkerCount": 5
   },
@@ -353,6 +578,14 @@
       }
     }
   },
+  "field_hospital": {
+    "workerSlots": 5,
+    "workerSlotsModule": "hospital_staff",
+    "workerLabel": "医护",
+    "workerEfficiencyShare": 0.2,
+    "fullEfficiencyWorkerCount": 5,
+    "treatmentIntervalMs": 500
+  },
   "bakery": {
     "workerSlots": 1,
     "workerLabel": "面包师",
@@ -413,5 +646,288 @@
       "strawberry", "grape", "watermelon", "chili", "matsutake",
       "blueberry", "dragonFruit", "snowLotus", "ginseng", "flatPeach"
     ]
+  },
+  "chain_restaurant": {
+    "workerSlots": 1,
+    "workerLabel": "外卖员",
+    "visualWorkerCap": 1,
+    "visualMode": "chain_restaurant_logistics",
+    "inputFoodPerBatch": 80,
+    "baseProcessTimeMs": 8000,
+    "baseOutputMultiplier": 8,
+    "baseMoveSpeed": 90,
+    "arrivalDistance": 40,
+    "restaurantServiceRadius": 210,
+    "warehouseServiceRadius": 180,
+    "moveGraceMs": 5000,
+    "workerVisual": {
+      "id": "hamster_delivery_worker",
+      "name": "仓鼠外卖员",
+      "displaySize": 128,
+      "originY": 0.935547,
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_delivery_worker/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "frames": [0, 11],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "empty_running": {
+          "src": "assets/companions/hamster_delivery_worker/empty_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "frames": [0, 23],
+          "frameRate": 24,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "loaded_running": {
+          "src": "assets/companions/hamster_delivery_worker/loaded_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 32,
+          "frames": [0, 31],
+          "frameRate": 24,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        }
+      }
+    }
+  },
+  "steam_power_plant": {
+    "workerSlots": 2,
+    "workerLabel": "锅炉工",
+    "visualWorkerCap": 2,
+    "visualMode": "steam_logistics",
+    "inputFoodPerBatch": 120,
+    "baseProcessTimeMs": 15000,
+    "baseEnergyPerBatch": 90,
+    "baseMoveSpeed": 80,
+    "arrivalDistance": 40,
+    "plantServiceRadius": 200,
+    "warehouseServiceRadius": 180,
+    "moveGraceMs": 5000,
+    "workerVisual": {
+      "id": "hamster_boiler_worker",
+      "name": "仓鼠锅炉工",
+      "displaySize": 91.6,
+      "originY": 0.921875,
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_boiler_worker/idle.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 8,
+          "frames": [0, 7],
+          "frameRate": 8,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.921875
+        },
+        "empty_running": {
+          "src": "assets/companions/hamster_boiler_worker/empty_running.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 12,
+          "frames": [0, 11],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 0.977578,
+          "footRatio": 0.921875
+        },
+        "food_loaded_running": {
+          "src": "assets/companions/hamster_boiler_worker/food_loaded_running.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 12,
+          "frames": [0, 11],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 0.990909,
+          "footRatio": 0.921875,
+          "holdFrame": 6
+        },
+        "energy_loaded_running": {
+          "src": "assets/companions/hamster_boiler_worker/energy_loaded_running.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 12,
+          "frames": [0, 11],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 0.990909,
+          "footRatio": 0.921875,
+          "holdFrame": 6
+        }
+      }
+    }
+  },
+  "cheese_farm": {
+    "workerSlots": 1,
+    "workerLabel": "牛倌",
+    "visualWorkerCap": 1,
+    "visualMode": "cheese_farm_logistics",
+    "baseProcessTimeMs": 20000,
+    "baseFoodPerBatch": 180,
+    "baseMoveSpeed": 80,
+    "arrivalDistance": 40,
+    "farmServiceRadius": 280,
+    "warehouseServiceRadius": 180,
+    "moveGraceMs": 5000,
+    "baseCowCount": 2,
+    "workerDoorPoint": [480, 326],
+    "workerRoadEntryPoint": [612, 384],
+    "workerVisual": {
+      "id": "hamster_cowherd",
+      "name": "仓鼠牛倌",
+      "displaySize": 92,
+      "originY": 0.921875,
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_cowherd/idle.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 8,
+          "frames": [0, 7],
+          "frameRate": 8,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.921875
+        },
+        "empty_running": {
+          "src": "assets/companions/hamster_cowherd/empty_running.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 9,
+          "frames": [0, 8],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.921875
+        },
+        "cheese_loaded_running": {
+          "src": "assets/companions/hamster_cowherd/cheese_loaded_running.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 8,
+          "frames": [0, 7],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.921875,
+          "holdFrame": 4
+        }
+      }
+    },
+    "cowVisual": {
+      "id": "holstein_cow",
+      "name": "黑白奶牛",
+      "displayWidth": 112,
+      "displayHeight": 75,
+      "originY": 0.921875,
+      "animations": {
+        "walking": {
+          "src": "assets/companions/holstein_cow/walking.png",
+          "frameWidth": 384,
+          "frameHeight": 256,
+          "frameCount": 23,
+          "frames": [0, 22],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.921875
+        },
+        "grazing": {
+          "src": "assets/companions/holstein_cow/grazing.png",
+          "frameWidth": 384,
+          "frameHeight": 256,
+          "frameCount": 16,
+          "frames": [0, 15],
+          "frameRate": 4,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.921875
+        }
+      },
+      "sourceCanvas": { "width": 898, "height": 514 },
+      "safeWaypoints": [
+        [741, 224], [704, 279], [654, 271], [685, 244],
+        [646, 287], [607, 307], [570, 331], [535, 356],
+        [501, 370], [445, 395], [375, 389], [335, 386]
+      ]
+    }
+  },
+  "deep_drill": {
+    "workerSlots": 4,
+    "workerLabel": "深钻工",
+    "workerEfficiencyShare": 0.25,
+    "fullEfficiencyWorkerCount": 4,
+    "miningRange": 600,
+    "miningTickMs": 1000,
+    "energyPerWorkerPerSecond": 15
+  },
+  "tavern": {
+    "workerSlots": 1,
+    "workerLabel": "酒保",
+    "visualWorkerCap": 1,
+    "visualMode": "tavern_logistics",
+    "inputFoodPerBatch": 120,
+    "baseServiceTimeMs": 60000,
+    "baseOutputBonus": 0.12,
+    "baseMoveSpeed": 80,
+    "arrivalDistance": 40,
+    "tavernServiceRadius": 200,
+    "warehouseServiceRadius": 180,
+    "moveGraceMs": 5000,
+    "workerVisual": {
+      "id": "hamster_bartender",
+      "name": "仓鼠酒保",
+      "displaySize": 91.6,
+      "originY": 0.921875,
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_bartender/idle.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 8,
+          "frames": [0, 7],
+          "frameRate": 8,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.921875
+        },
+        "empty_running": {
+          "src": "assets/companions/hamster_bartender/empty_running.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 12,
+          "frames": [0, 11],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 0.977578,
+          "footRatio": 0.921875
+        },
+        "food_loaded_running": {
+          "src": "assets/companions/hamster_bartender/food_loaded_running.png",
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "frameCount": 12,
+          "frames": [0, 11],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 0.990909,
+          "footRatio": 0.921875,
+          "holdFrame": 6
+        }
+      }
+    }
   }
 }

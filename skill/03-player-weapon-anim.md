@@ -68,6 +68,7 @@
 - **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
 - **近战连段与收势（2026-07-27；三段已落地 2026-08-13）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口）——窗口内定格末帧等待连段；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。**三段连段（挥击×2+突刺×1，2026-08-13）**：stage 1 过顶下劈 `attack_sword`（12帧/600ms）→ 2 肩高快劈 `attack_sword_2`（12帧/600ms）→ 3 弓步突刺 `attack_sword_3`（16帧/800ms，终结段）→ 回 1；段数映射/定格/收势梯度收口 `src/entities/player/anim-state.js`（`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`，纹理/轨迹块缺失逐级回退 stage3→2→1），时长配置 `data/combat-config.json` `meleeCombo.stageN{HoldMs,RecoverMs}`（500/200/**0** + -/300/400；2026-08-16 用户指定：终结段播完直接收势回 idle，不留定格窗口——三连击严格 1→2→3→收势，无 3→1 回环，想恢复回环改回 300）；武器轨迹块 `sword.attack/attack2/attack3`（12/12/16 点，attack3=sector、125°、damageMul 2.0，初始种子值待 DevTool 逐帧精调）。新 sheet 格 512×512（管线 `tools/prep-melee3-sheets.py`，色偏中性化+留档），frameWeights 口径已退役统一 frameDurations。
 - **三段收势曲线（2026-08-24）**：`sword.attack/attack2/attack3.recover` 分别配置 `outX/outY/inX/inY` 与 `outRotationDeg/inRotationDeg`；位置和角度走三次贝塞尔，端点严格继承攻击末帧与 idle，控制点维持各段末帧运动方向并随左右朝向镜像。第二段用较大的回撤弧消除“大位移小转角”的横向平移感，第三段先延续突刺末帧转向再回正，缩放使用 `easeInOutCubic`。三段仍复用同一人物 `recover` sheet 与既有 330/300/400ms 时长；冲刺及无 recover 配置的武器保留原线性兜底。
+- **特殊攻击复用连段帧（2026-08-25，夜与火之剑）**：右键只启动 `attack_sword_3`，释放帧读取 `sword.attack3.hitCheck.frame` 并从 1 基转换为 0 基；到帧后显式停动画、贴回该源帧并定格覆盖 beam，光柱结束先销毁视觉再播 recover。武器必须消费当前 attack3 源帧、`playerSprite.flipX` 与具体贴图的 `textureGrip`，禁止把作者握柄轨迹绕人物中心旋到锁定光柱角——光柱方向与侧视握柄轨迹应解耦。recover 从截停进度反推同一姿态，优先读取人物 recover 动画的实际 progress，墙钟只作回退，左右镜像、握点补偿与三次贝塞尔曲线全程同源。
 
 - **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
 - **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
@@ -166,6 +167,7 @@
 4. **双手枪冲刺开火（V0.262/263）**：开火=非奔跑——`_twoHandedGunFiring` 从 `_isSprinting` 与烟尘门排除（腿回 walklegs、武器回 walking 位、不出烟尘）；**注意第二道闸**：枪开火 `weaponAnim.state='attacking'` 会触发 `_updatePlayerAnimation` 的"攻击不覆盖"early-return 冻结腿层——已加枪械放行（近战守卫不变；枪攻击动画在武器层，playerSprite 只载腿/躯干）。
 5. **武器位置基准（AKM 标准，六双手枪械已逐字段同步）**：holdOffsetX −64 / holdOffsetY −4（top/idle/walk 全状态块）、grip (0.29,0.54)、idleScale/idleRotation 统一；**合理保留的 per-weapon 差异**：muzzle（按各自贴图枪管实测）、recoilAmount/timingMul/renderParams（手感参数）。手枪类基准=沙漠之鹰（另一族，不混）。
 6. **回退路径**：删配置里 aimFrames 节即自动回 Tier1 aimLift 抬升（配置保留休眠）；完整回退点 `backup/2026-07-27-aimanim/`（纯 aimLift）与 `backup/2026-07-27-aimanim-v2/`（重做前快照）。
+7. **步枪 ADS 纵向微调口径（2026-08-26）**：需要让武器与持枪手臂一起升降时，在`public/data/weapon-anim-config.json`对应枪型使用逐武器`aimAdjustY`；正值为下移，运行时在`_computeGunAnchor()`的`aimFrames`分支随`_aimEase`混合，因此腰射保持不变，持枪手臂会追随同一握把锚点。`aimSpriteOffsetY`在记录`_gunGripWorld`后才移动渲染贴图，不会带动手臂，只允许用于贴图自身握点/透明画布偏差。两者不得无意叠加；把旧枪从贴图补偿迁移到手臂联动补偿时，应移除等值`aimSpriteOffsetY`以保持最终武器位置不重复偏移。按整类调整时以`src/config/gun-ammo.js`的`WEAPON_CATEGORIES.rifle`为范围真源，逐项显式落盘并排除机枪、手枪和霰弹枪；当前自动步枪统一基线为`aimAdjustY: 5`。
 
 ---
 
@@ -622,6 +624,11 @@ Phaser Sprite.x / y / rotation / scale
   把能源物品重新塞回背包。
 - 新游戏初始物品的唯一模板是 `EquipDataManager.TEST_BACKPACK_ITEMS`。删除模板中的金币只影响新建背包；
   不得在 `EquipManager.init()` 里过滤金币，否则会误删旧存档与正常拾取所得金币。
+- **建筑/招募调试开关（2026-08-25）**：技能页提供“建筑升级瞬间完成”“造兵瞬间完成”“造兵无视人口”
+  三个运行时开关，统一由 `src/config/dev-cheats.js` 判定。瞬间升级只归零现有 `*Upgrade.remainMs`，必须继续
+  走正式扣费、科技门禁与完成结算；瞬间造兵只跳过生产读条，粮食、科技、出口碰撞和位面特色编制保持；
+  无视人口只绕过全局军事人口门禁，已出兵数量仍进入 HUD/快照且关闭后超额部队不删除。前台生产建筑与
+  `world122-sim` 后台结算必须消费同一三个开关，禁止只在面板上改进度文本或复制业务分支。
 
 ---
 

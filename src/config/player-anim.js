@@ -45,7 +45,13 @@ function getPlayerAnimDurationMs(animKey) {
     }
     if (!def.frameRate) return 0;
     const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-    return Math.round(((end - start + 1) / def.frameRate) * 1000);
+    // frameWeights 与 BootScene 同口径：重排/重复帧仍锁定原动作总时长；
+    // 没有权重时，frameSequence 才按实际播放项数自然延长动画。
+    const sequenceCount = Array.isArray(def.frameSequence) ? def.frameSequence.length : 0;
+    const playbackFrameCount = def.frameWeights?.length
+        ? end - start + 1
+        : (sequenceCount || end - start + 1);
+    return Math.round((playbackFrameCount / def.frameRate) * 1000);
 }
 
 /**
@@ -58,7 +64,10 @@ export function getSpriteFrameBounds(animKey) {
     const def = PLAYER_ANIMS[animKey];
     if (!def || def.type !== 'sheet') return null;
     const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-    const n = end - start + 1;
+    const sequence = Array.isArray(def.frameSequence) && def.frameSequence.length
+        ? def.frameSequence
+        : null;
+    const n = sequence ? sequence.length : end - start + 1;
     let per;
     if (def.frameWeights && def.frameWeights.length) {
         const wsum = def.frameWeights.reduce((a, b) => a + (b || 0), 0) || 1;
@@ -84,11 +93,15 @@ export function getSpriteFrameBounds(animKey) {
 export function getSpriteFrameAtProgress(animKey, progress) {
     const bounds = getSpriteFrameBounds(animKey);
     if (!bounds || bounds.length === 0) return 0;
+    const def = PLAYER_ANIMS[animKey];
+    const sequence = Array.isArray(def?.frameSequence) && def.frameSequence.length
+        ? def.frameSequence
+        : null;
     const p = Math.max(0, Math.min(1, progress));
     for (let i = 0; i < bounds.length; i++) {
-        if (p < bounds[i]) return i;
+        if (p < bounds[i]) return sequence ? sequence[i] : i;
     }
-    return bounds.length - 1;
+    return sequence ? sequence[sequence.length - 1] : bounds.length - 1;
 }
 
 export { PLAYER_ANIMS, playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs };

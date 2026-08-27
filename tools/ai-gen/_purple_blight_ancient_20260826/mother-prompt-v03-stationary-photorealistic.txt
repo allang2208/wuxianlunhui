@@ -1,0 +1,20 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for an immobile Phaser boss monster, rebuilt to match an established realistic asset library
+
+Input images: Images 1-4 are the ONLY visual-style references. Match their photographic realism, soft white-studio presentation, anatomically believable volume, restrained materials, continuous midtones, low local microcontrast, simple readable silhouette, and subtle natural sharpness. They are style references only; do not copy human, snake, bear, wolf, clothing, fur, armor, or animal anatomy.
+
+Primary request: Create exactly one colossal stationary corrupted ancient treant boss named "紫蚀古树王" as if a real ancient living tree organism were photographed in the same studio and processed through the same realistic creature-asset pipeline as the reference monsters.
+
+Critical topology: the boss cannot move and has absolutely no legs, knees, feet, crotch, humanoid waist, or open gap below the torso. From the chest downward there is one single continuous very thick trunk. That trunk widens directly into one broad low stump fused to a radial field of natural buttress roots on one baseline. It must read instantly as a rooted ancient standing tree, never as a biped.
+
+Upper body: one restrained face naturally formed by knots in the upper trunk, exactly two dim violet eyes, exactly two enormous articulated branch arms. The left arm is thick and low for sweeping attacks. The right arm bends slightly upward and ends in one open four-digit wooden hand for throwing and spellcasting. Only six to eight large broken crown boughs, no dense twig halo.
+
+Realistic material treatment: large continuous areas of old near-black brown bark with a limited number of broad cracks. Broad weathered bark plates, subtle reddish heartwood inside a few openings, sparse moss and lichen patches, soft natural cavities and low-contrast dampness. Purple corruption is restrained: one muted violet fungal hollow in the chest and two or three faint subsurface purple stains, not a crystal and not a glowing crack network.
+
+Photographic style contract: realistic ancient-tree photography / high-end VFX creature maquette photographed at life scale, soft large-source studio light, gentle shadowless modeling, broad smooth tonal gradients, low sharpening, low texture-frequency contrast, natural lens softness, no aggressive clarity and no crunchy detail. Materials must read as real bark and living plant tissue, not procedural displacement, carved armor or a fantasy sculpture.
+
+Pose and framing: calm stationary idle, right-facing three-quarter side view matching the reference character angle, slight elevated camera. The trunk is upright with a slight forward lean; both arms are separated and fully visible; right palm open. Complete root flare visible with generous white margins. Subject about 64% of canvas width and 67% of canvas height.
+
+Background: flat pure white #FFFFFF, no horizon, no visible floor, no cast shadow, no scenery.
+
+Avoid: any legs, split lower trunk, two lower columns, knees, feet, crotch, arch beneath body, walking pose, carved wooden statue, collectible figurine, concept-art render, grimdark sculpture, procedural bark noise, displacement noise, sandpaper grain, pebbled texture, repeated tiny bark flakes, excessive grooves, oversharpening, high local contrast, dense twig crown, manufactured crown, antlers, armor, weapon, neon purple, massive glowing crystal, body-wide luminous cracks, extra arms or faces, particles, aura, smoke, ground, rocks, text, logo, watermark, cartoon, anime, low-poly toy, glossy plastic.

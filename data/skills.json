@@ -188,6 +188,10 @@
       "icon": "🌀",
       "iconImage": "assets/skills/风车.png",
       "description": "以自身为中心高速旋转武器，对周围敌人造成毁灭性打击",
+      "sounds": {
+        "footFriction": "assets/sounds/skills/player_whirlwind_foot_friction.wav",
+        "footFrictionVolume": 0.72
+      },
       "maxLevel": 20,
       "tags": [
         {
@@ -495,7 +499,7 @@
       "id": "shieldDefense",
       "name": "持盾防御",
       "icon": "🛡",
-      "iconImage": "assets/skills/Meshy_AI_Shield Block Sword Warrior.png",
+      "iconImage": "assets/skills/持盾防御.png",
       "description": "精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果",
       "maxLevel": 20,
       "tags": [
@@ -986,7 +990,7 @@
       "name": "无人机",
       "icon": "🚁",
       "iconImage": "assets/skills/无人机.png",
-      "description": "释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加",
+      "description": "部署高空侦察无人机开拓迷雾，并在近圈为全队标记敌方弱点",
       "maxLevel": 20,
       "tags": [
         {
@@ -1005,7 +1009,9 @@
         "mpCost": 50,
         "duration": "15 + level * 1",
         "moveSpeed": 500,
-        "radius": 300
+        "visionRadius": "900 + level * 25",
+        "markRadius": "280 + level * 6",
+        "markLingerMs": 2000
       },
       "expFormula": "100 + (level - 1) * 100",
       "expRewards": {

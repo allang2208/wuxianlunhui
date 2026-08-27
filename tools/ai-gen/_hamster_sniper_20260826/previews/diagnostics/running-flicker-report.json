@@ -1,0 +1,1112 @@
+{
+  "sourceIndices": [
+    40,
+    42,
+    44,
+    46,
+    48,
+    50,
+    52,
+    54,
+    56,
+    58,
+    60,
+    62,
+    64
+  ],
+  "sourceMetrics": [
+    {
+      "alphaArea": 6170,
+      "bbox": [
+        213,
+        239,
+        353,
+        350
+      ],
+      "center": [
+        259.6962722852512,
+        288.97244732576985
+      ],
+      "foregroundLumaMean": 68.70206451416016,
+      "foregroundLumaP10": 25.185400009155273
+    },
+    {
+      "alphaArea": 6363,
+      "bbox": [
+        208,
+        242,
+        357,
+        350
+      ],
+      "center": [
+        258.6071035674996,
+        292.77212006914976
+      ],
+      "foregroundLumaMean": 67.23348236083984,
+      "foregroundLumaP10": 26.54439926147461
+    },
+    {
+      "alphaArea": 6458,
+      "bbox": [
+        210,
+        242,
+        360,
+        351
+      ],
+      "center": [
+        258.70842366057605,
+        293.0792815113038
+      ],
+      "foregroundLumaMean": 68.98320007324219,
+      "foregroundLumaP10": 25.611042022705078
+    },
+    {
+      "alphaArea": 6827,
+      "bbox": [
+        203,
+        246,
+        361,
+        351
+      ],
+      "center": [
+        258.54123333821593,
+        298.099897465944
+      ],
+      "foregroundLumaMean": 68.50188446044922,
+      "foregroundLumaP10": 24.09008026123047
+    },
+    {
+      "alphaArea": 6962,
+      "bbox": [
+        205,
+        238,
+        363,
+        350
+      ],
+      "center": [
+        259.89801781097384,
+        290.29804653835106
+      ],
+      "foregroundLumaMean": 70.31820678710938,
+      "foregroundLumaP10": 27.052318572998047
+    },
+    {
+      "alphaArea": 6686,
+      "bbox": [
+        203,
+        242,
+        360,
+        350
+      ],
+      "center": [
+        259.50239306012566,
+        293.1553993419085
+      ],
+      "foregroundLumaMean": 67.83967590332031,
+      "foregroundLumaP10": 26.04759979248047
+    },
+    {
+      "alphaArea": 6385,
+      "bbox": [
+        208,
+        241,
+        356,
+        350
+      ],
+      "center": [
+        259.08159749412687,
+        291.43978073610026
+      ],
+      "foregroundLumaMean": 69.08644104003906,
+      "foregroundLumaP10": 24.119199752807617
+    },
+    {
+      "alphaArea": 6402,
+      "bbox": [
+        211,
+        244,
+        355,
+        350
+      ],
+      "center": [
+        258.77975632614806,
+        294.4397063417682
+      ],
+      "foregroundLumaMean": 67.15321350097656,
+      "foregroundLumaP10": 22.088878631591797
+    },
+    {
+      "alphaArea": 6584,
+      "bbox": [
+        212,
+        234,
+        357,
+        350
+      ],
+      "center": [
+        259.9822296476306,
+        285.51609963548
+      ],
+      "foregroundLumaMean": 68.29258728027344,
+      "foregroundLumaP10": 24.36638069152832
+    },
+    {
+      "alphaArea": 6740,
+      "bbox": [
+        209,
+        238,
+        361,
+        350
+      ],
+      "center": [
+        259.29584569732936,
+        289.86097922848666
+      ],
+      "foregroundLumaMean": 66.0069580078125,
+      "foregroundLumaP10": 24.673879623413086
+    },
+    {
+      "alphaArea": 6790,
+      "bbox": [
+        209,
+        238,
+        363,
+        350
+      ],
+      "center": [
+        259.0858615611193,
+        290.42650957290135
+      ],
+      "foregroundLumaMean": 70.06356048583984,
+      "foregroundLumaP10": 26.548961639404297
+    },
+    {
+      "alphaArea": 7078,
+      "bbox": [
+        202,
+        245,
+        365,
+        351
+      ],
+      "center": [
+        259.0784119807855,
+        298.2115004238485
+      ],
+      "foregroundLumaMean": 67.4376449584961,
+      "foregroundLumaP10": 23.778242111206055
+    },
+    {
+      "alphaArea": 7272,
+      "bbox": [
+        205,
+        235,
+        367,
+        350
+      ],
+      "center": [
+        260.8227447744774,
+        288.84213421342133
+      ],
+      "foregroundLumaMean": 69.80874633789062,
+      "foregroundLumaP10": 26.33220100402832
+    }
+  ],
+  "sourcePairDiagnostics": [
+    {
+      "from": 0,
+      "to": 1,
+      "alphaIou": 0.788895232657722,
+      "bottom35AlphaIou": 0.16170212765957448,
+      "visibleDelta": 38.73698425292969
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "alphaIou": 0.8381362007168459,
+      "bottom35AlphaIou": 0.09621993127147767,
+      "visibleDelta": 27.035411834716797
+    },
+    {
+      "from": 2,
+      "to": 3,
+      "alphaIou": 0.7350137129424057,
+      "bottom35AlphaIou": 0.2535211267605634,
+      "visibleDelta": 44.680816650390625
+    },
+    {
+      "from": 3,
+      "to": 4,
+      "alphaIou": 0.674031807696977,
+      "bottom35AlphaIou": 0.28991596638655465,
+      "visibleDelta": 48.678924560546875
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "alphaIou": 0.7669601242879337,
+      "bottom35AlphaIou": 0.11652173913043479,
+      "visibleDelta": 40.00996780395508
+    },
+    {
+      "from": 5,
+      "to": 6,
+      "alphaIou": 0.8296472564389697,
+      "bottom35AlphaIou": 0.2541436464088398,
+      "visibleDelta": 32.64478302001953
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "alphaIou": 0.764210816777042,
+      "bottom35AlphaIou": 0.28620689655172415,
+      "visibleDelta": 41.89362716674805
+    },
+    {
+      "from": 7,
+      "to": 8,
+      "alphaIou": 0.6697955509836698,
+      "bottom35AlphaIou": 0.4711111111111111,
+      "visibleDelta": 49.15382766723633
+    },
+    {
+      "from": 8,
+      "to": 9,
+      "alphaIou": 0.7720441548078202,
+      "bottom35AlphaIou": 0.14285714285714285,
+      "visibleDelta": 39.751827239990234
+    },
+    {
+      "from": 9,
+      "to": 10,
+      "alphaIou": 0.8325883787078423,
+      "bottom35AlphaIou": 0.06822262118491922,
+      "visibleDelta": 29.860355377197266
+    },
+    {
+      "from": 10,
+      "to": 11,
+      "alphaIou": 0.6773101112723754,
+      "bottom35AlphaIou": 0.2222222222222222,
+      "visibleDelta": 49.821842193603516
+    },
+    {
+      "from": 11,
+      "to": 12,
+      "alphaIou": 0.6509433962264151,
+      "bottom35AlphaIou": 0.30952380952380953,
+      "visibleDelta": 49.7979736328125
+    },
+    {
+      "from": 12,
+      "to": 0,
+      "alphaIou": 0.7121385810724749,
+      "bottom35AlphaIou": 0.002070393374741201,
+      "visibleDelta": 43.859039306640625
+    }
+  ],
+  "finalMetrics": [
+    {
+      "alphaArea": 6170,
+      "bbox": [
+        213,
+        239,
+        353,
+        350
+      ],
+      "center": [
+        259.6962722852512,
+        288.97244732576985
+      ],
+      "foregroundLumaMean": 68.70206451416016,
+      "foregroundLumaP10": 25.185400009155273
+    },
+    {
+      "alphaArea": 6331,
+      "bbox": [
+        210,
+        241,
+        355,
+        350
+      ],
+      "center": [
+        259.1012478281472,
+        291.06918338335174
+      ],
+      "foregroundLumaMean": 62.039154052734375,
+      "foregroundLumaP10": 28.76099967956543
+    },
+    {
+      "alphaArea": 6363,
+      "bbox": [
+        208,
+        242,
+        357,
+        350
+      ],
+      "center": [
+        258.6071035674996,
+        292.77212006914976
+      ],
+      "foregroundLumaMean": 67.23348236083984,
+      "foregroundLumaP10": 26.54439926147461
+    },
+    {
+      "alphaArea": 6451,
+      "bbox": [
+        209,
+        241,
+        359,
+        350
+      ],
+      "center": [
+        258.72112850720816,
+        291.9252829018757
+      ],
+      "foregroundLumaMean": 49.55643844604492,
+      "foregroundLumaP10": 23.963199615478516
+    },
+    {
+      "alphaArea": 6458,
+      "bbox": [
+        210,
+        242,
+        360,
+        351
+      ],
+      "center": [
+        258.70842366057605,
+        293.0792815113038
+      ],
+      "foregroundLumaMean": 68.98320007324219,
+      "foregroundLumaP10": 25.611042022705078
+    },
+    {
+      "alphaArea": 6782,
+      "bbox": [
+        207,
+        246,
+        361,
+        351
+      ],
+      "center": [
+        258.9370392214686,
+        298.0951046888823
+      ],
+      "foregroundLumaMean": 63.40737533569336,
+      "foregroundLumaP10": 26.03832244873047
+    },
+    {
+      "alphaArea": 6827,
+      "bbox": [
+        203,
+        246,
+        361,
+        351
+      ],
+      "center": [
+        258.54123333821593,
+        298.099897465944
+      ],
+      "foregroundLumaMean": 68.50188446044922,
+      "foregroundLumaP10": 24.09008026123047
+    },
+    {
+      "alphaArea": 6945,
+      "bbox": [
+        205,
+        241,
+        363,
+        350
+      ],
+      "center": [
+        259.3792656587473,
+        293.18358531317494
+      ],
+      "foregroundLumaMean": 67.82844543457031,
+      "foregroundLumaP10": 29.128799438476562
+    },
+    {
+      "alphaArea": 6962,
+      "bbox": [
+        205,
+        238,
+        363,
+        350
+      ],
+      "center": [
+        259.89801781097384,
+        290.29804653835106
+      ],
+      "foregroundLumaMean": 70.31820678710938,
+      "foregroundLumaP10": 27.052318572998047
+    },
+    {
+      "alphaArea": 6796,
+      "bbox": [
+        204,
+        241,
+        361,
+        350
+      ],
+      "center": [
+        259.7675103001766,
+        292.2342554443791
+      ],
+      "foregroundLumaMean": 61.939605712890625,
+      "foregroundLumaP10": 24.903400421142578
+    },
+    {
+      "alphaArea": 6686,
+      "bbox": [
+        203,
+        242,
+        360,
+        350
+      ],
+      "center": [
+        259.50239306012566,
+        293.1553993419085
+      ],
+      "foregroundLumaMean": 67.83967590332031,
+      "foregroundLumaP10": 26.04759979248047
+    },
+    {
+      "alphaArea": 6488,
+      "bbox": [
+        207,
+        241,
+        357,
+        350
+      ],
+      "center": [
+        259.2735819975339,
+        291.82521578298395
+      ],
+      "foregroundLumaMean": 67.90657806396484,
+      "foregroundLumaP10": 25.378299713134766
+    },
+    {
+      "alphaArea": 6385,
+      "bbox": [
+        208,
+        241,
+        356,
+        350
+      ],
+      "center": [
+        259.08159749412687,
+        291.43978073610026
+      ],
+      "foregroundLumaMean": 69.08644104003906,
+      "foregroundLumaP10": 24.119199752807617
+    },
+    {
+      "alphaArea": 6433,
+      "bbox": [
+        210,
+        244,
+        355,
+        350
+      ],
+      "center": [
+        258.7431991294886,
+        294.72672159179234
+      ],
+      "foregroundLumaMean": 65.24052429199219,
+      "foregroundLumaP10": 25.123199462890625
+    },
+    {
+      "alphaArea": 6402,
+      "bbox": [
+        211,
+        244,
+        355,
+        350
+      ],
+      "center": [
+        258.77975632614806,
+        294.4397063417682
+      ],
+      "foregroundLumaMean": 67.15321350097656,
+      "foregroundLumaP10": 22.088878631591797
+    },
+    {
+      "alphaArea": 6594,
+      "bbox": [
+        212,
+        236,
+        357,
+        350
+      ],
+      "center": [
+        259.90931149529877,
+        287.3839854413103
+      ],
+      "foregroundLumaMean": 65.92342376708984,
+      "foregroundLumaP10": 25.087499618530273
+    },
+    {
+      "alphaArea": 6584,
+      "bbox": [
+        212,
+        234,
+        357,
+        350
+      ],
+      "center": [
+        259.9822296476306,
+        285.51609963548
+      ],
+      "foregroundLumaMean": 68.29258728027344,
+      "foregroundLumaP10": 24.36638069152832
+    },
+    {
+      "alphaArea": 6748,
+      "bbox": [
+        209,
+        238,
+        361,
+        350
+      ],
+      "center": [
+        259.4382039122703,
+        289.2062833432128
+      ],
+      "foregroundLumaMean": 65.75296020507812,
+      "foregroundLumaP10": 25.730939865112305
+    },
+    {
+      "alphaArea": 6740,
+      "bbox": [
+        209,
+        238,
+        361,
+        350
+      ],
+      "center": [
+        259.29584569732936,
+        289.86097922848666
+      ],
+      "foregroundLumaMean": 66.0069580078125,
+      "foregroundLumaP10": 24.673879623413086
+    },
+    {
+      "alphaArea": 6793,
+      "bbox": [
+        209,
+        238,
+        363,
+        350
+      ],
+      "center": [
+        259.18460179596644,
+        290.3368173119388
+      ],
+      "foregroundLumaMean": 69.70006561279297,
+      "foregroundLumaP10": 28.358959197998047
+    },
+    {
+      "alphaArea": 6790,
+      "bbox": [
+        209,
+        238,
+        363,
+        350
+      ],
+      "center": [
+        259.0858615611193,
+        290.42650957290135
+      ],
+      "foregroundLumaMean": 70.06356048583984,
+      "foregroundLumaP10": 26.548961639404297
+    },
+    {
+      "alphaArea": 7074,
+      "bbox": [
+        204,
+        244,
+        365,
+        350
+      ],
+      "center": [
+        259.14814814814815,
+        297.2134577325417
+      ],
+      "foregroundLumaMean": 66.90274810791016,
+      "foregroundLumaP10": 25.32984161376953
+    },
+    {
+      "alphaArea": 7078,
+      "bbox": [
+        202,
+        245,
+        365,
+        351
+      ],
+      "center": [
+        259.0784119807855,
+        298.2115004238485
+      ],
+      "foregroundLumaMean": 67.4376449584961,
+      "foregroundLumaP10": 23.778242111206055
+    },
+    {
+      "alphaArea": 7341,
+      "bbox": [
+        205,
+        236,
+        367,
+        350
+      ],
+      "center": [
+        260.8846206238932,
+        289.44871270944014
+      ],
+      "foregroundLumaMean": 69.62889862060547,
+      "foregroundLumaP10": 27.70199966430664
+    },
+    {
+      "alphaArea": 7272,
+      "bbox": [
+        205,
+        235,
+        367,
+        350
+      ],
+      "center": [
+        260.8227447744774,
+        288.84213421342133
+      ],
+      "foregroundLumaMean": 69.80874633789062,
+      "foregroundLumaP10": 26.33220100402832
+    },
+    {
+      "alphaArea": 6802,
+      "bbox": [
+        208,
+        237,
+        360,
+        350
+      ],
+      "center": [
+        259.8725374889738,
+        289.02058218171123
+      ],
+      "foregroundLumaMean": 61.932613372802734,
+      "foregroundLumaP10": 25.335800170898438
+    }
+  ],
+  "oddFrameDiagnostics": [
+    {
+      "index": 1,
+      "lumaRatioToNeighborMean": 0.912773082228193,
+      "alphaAreaRatioToNeighborMean": 1.0102928269368867,
+      "deltaFromLeft": 32.09250259399414,
+      "deltaToRight": 26.970386505126953
+    },
+    {
+      "index": 3,
+      "lumaRatioToNeighborMean": 0.7276118836622859,
+      "alphaAreaRatioToNeighborMean": 1.0063177599251227,
+      "deltaFromLeft": 35.05080795288086,
+      "deltaToRight": 36.72525405883789
+    },
+    {
+      "index": 5,
+      "lumaRatioToNeighborMean": 0.9223891529870655,
+      "alphaAreaRatioToNeighborMean": 1.021001129092962,
+      "deltaFromLeft": 39.766632080078125,
+      "deltaToRight": 17.865062713623047
+    },
+    {
+      "index": 7,
+      "lumaRatioToNeighborMean": 0.9772136702260409,
+      "alphaAreaRatioToNeighborMean": 1.0073246790920298,
+      "deltaFromLeft": 36.619300842285156,
+      "deltaToRight": 34.61186218261719
+    },
+    {
+      "index": 9,
+      "lumaRatioToNeighborMean": 0.8966496085015818,
+      "alphaAreaRatioToNeighborMean": 0.9958968347010551,
+      "deltaFromLeft": 33.80560302734375,
+      "deltaToRight": 24.128385543823242
+    },
+    {
+      "index": 11,
+      "lumaRatioToNeighborMean": 0.9918718149592304,
+      "alphaAreaRatioToNeighborMean": 0.9927320021421467,
+      "deltaFromLeft": 25.816221237182617,
+      "deltaToRight": 12.820646286010742
+    },
+    {
+      "index": 13,
+      "lumaRatioToNeighborMean": 0.9577317927263417,
+      "alphaAreaRatioToNeighborMean": 1.006178149683272,
+      "deltaFromLeft": 39.709510803222656,
+      "deltaToRight": 17.22864532470703
+    },
+    {
+      "index": 15,
+      "lumaRatioToNeighborMean": 0.9734288311168631,
+      "alphaAreaRatioToNeighborMean": 1.015555213306638,
+      "deltaFromLeft": 45.25410079956055,
+      "deltaToRight": 24.23061180114746
+    },
+    {
+      "index": 17,
+      "lumaRatioToNeighborMean": 0.9791985529665266,
+      "alphaAreaRatioToNeighborMean": 1.0129090363254278,
+      "deltaFromLeft": 38.054378509521484,
+      "deltaToRight": 8.26193618774414
+    },
+    {
+      "index": 19,
+      "lumaRatioToNeighborMean": 1.0244697585398628,
+      "alphaAreaRatioToNeighborMean": 1.004138950480414,
+      "deltaFromLeft": 27.773773193359375,
+      "deltaToRight": 6.530992031097412
+    },
+    {
+      "index": 21,
+      "lumaRatioToNeighborMean": 0.9731223503345086,
+      "alphaAreaRatioToNeighborMean": 1.0201903663109317,
+      "deltaFromLeft": 47.913639068603516,
+      "deltaToRight": 8.66808032989502
+    },
+    {
+      "index": 23,
+      "lumaRatioToNeighborMean": 1.014655437755595,
+      "alphaAreaRatioToNeighborMean": 1.023135888501742,
+      "deltaFromLeft": 48.453670501708984,
+      "deltaToRight": 11.3192720413208
+    },
+    {
+      "index": 25,
+      "lumaRatioToNeighborMean": 0.8942639638281457,
+      "alphaAreaRatioToNeighborMean": 1.0120517780092249,
+      "deltaFromLeft": 35.60806655883789,
+      "deltaToRight": 35.38389205932617
+    }
+  ],
+  "gifEncodingComparison": [
+    {
+      "index": 0,
+      "meanAbsoluteRgbDelta": 0.04594138816550926,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 1,
+      "meanAbsoluteRgbDelta": 0.038515444155092594,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 2,
+      "meanAbsoluteRgbDelta": 0.044831452546296294,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 3,
+      "meanAbsoluteRgbDelta": 0.035040961371527776,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 4,
+      "meanAbsoluteRgbDelta": 0.04572437427662037,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 5,
+      "meanAbsoluteRgbDelta": 0.04445845992476852,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 6,
+      "meanAbsoluteRgbDelta": 0.04908808955439815,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 7,
+      "meanAbsoluteRgbDelta": 0.04677553530092592,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 8,
+      "meanAbsoluteRgbDelta": 0.05122658058449074,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 9,
+      "meanAbsoluteRgbDelta": 0.04276756004050926,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 10,
+      "meanAbsoluteRgbDelta": 0.046723542390046294,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 11,
+      "meanAbsoluteRgbDelta": 0.04490831163194445,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 12,
+      "meanAbsoluteRgbDelta": 0.047761140046296294,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 13,
+      "meanAbsoluteRgbDelta": 0.043852629484953706,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 14,
+      "meanAbsoluteRgbDelta": 0.046305338541666664,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 15,
+      "meanAbsoluteRgbDelta": 0.04503038194444445,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 16,
+      "meanAbsoluteRgbDelta": 0.04846643518518518,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 17,
+      "meanAbsoluteRgbDelta": 0.044741030092592594,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 18,
+      "meanAbsoluteRgbDelta": 0.04711009837962963,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 19,
+      "meanAbsoluteRgbDelta": 0.05611843532986111,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 20,
+      "meanAbsoluteRgbDelta": 0.06016484013310185,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 21,
+      "meanAbsoluteRgbDelta": 0.05054615162037037,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 22,
+      "meanAbsoluteRgbDelta": 0.051972565827546294,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 23,
+      "meanAbsoluteRgbDelta": 0.05271629050925926,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 24,
+      "meanAbsoluteRgbDelta": 0.052910698784722224,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 25,
+      "meanAbsoluteRgbDelta": 0.040617766203703706,
+      "pixelsWithChannelDeltaOver30": 0
+    }
+  ],
+  "darkComponentDiagnostics": [
+    {
+      "index": 0,
+      "darkPixels": 2218,
+      "largestDarkComponent": 1509
+    },
+    {
+      "index": 1,
+      "darkPixels": 2527,
+      "largestDarkComponent": 1456
+    },
+    {
+      "index": 2,
+      "darkPixels": 2284,
+      "largestDarkComponent": 1625
+    },
+    {
+      "index": 3,
+      "darkPixels": 3650,
+      "largestDarkComponent": 2079
+    },
+    {
+      "index": 4,
+      "darkPixels": 2328,
+      "largestDarkComponent": 1636
+    },
+    {
+      "index": 5,
+      "darkPixels": 2578,
+      "largestDarkComponent": 1717
+    },
+    {
+      "index": 6,
+      "darkPixels": 2544,
+      "largestDarkComponent": 1750
+    },
+    {
+      "index": 7,
+      "darkPixels": 2389,
+      "largestDarkComponent": 1620
+    },
+    {
+      "index": 8,
+      "darkPixels": 2454,
+      "largestDarkComponent": 1194
+    },
+    {
+      "index": 9,
+      "darkPixels": 2744,
+      "largestDarkComponent": 1734
+    },
+    {
+      "index": 10,
+      "darkPixels": 2311,
+      "largestDarkComponent": 1611
+    },
+    {
+      "index": 11,
+      "darkPixels": 2245,
+      "largestDarkComponent": 1575
+    },
+    {
+      "index": 12,
+      "darkPixels": 2287,
+      "largestDarkComponent": 1604
+    },
+    {
+      "index": 13,
+      "darkPixels": 2375,
+      "largestDarkComponent": 1655
+    },
+    {
+      "index": 14,
+      "darkPixels": 2460,
+      "largestDarkComponent": 1741
+    },
+    {
+      "index": 15,
+      "darkPixels": 2481,
+      "largestDarkComponent": 1680
+    },
+    {
+      "index": 16,
+      "darkPixels": 2468,
+      "largestDarkComponent": 1709
+    },
+    {
+      "index": 17,
+      "darkPixels": 2532,
+      "largestDarkComponent": 1360
+    },
+    {
+      "index": 18,
+      "darkPixels": 2567,
+      "largestDarkComponent": 1865
+    },
+    {
+      "index": 19,
+      "darkPixels": 2379,
+      "largestDarkComponent": 1757
+    },
+    {
+      "index": 20,
+      "darkPixels": 2444,
+      "largestDarkComponent": 1745
+    },
+    {
+      "index": 21,
+      "darkPixels": 2726,
+      "largestDarkComponent": 1937
+    },
+    {
+      "index": 22,
+      "darkPixels": 2733,
+      "largestDarkComponent": 1948
+    },
+    {
+      "index": 23,
+      "darkPixels": 2594,
+      "largestDarkComponent": 1446
+    },
+    {
+      "index": 24,
+      "darkPixels": 2632,
+      "largestDarkComponent": 1465
+    },
+    {
+      "index": 25,
+      "darkPixels": 2642,
+      "largestDarkComponent": 1215
+    }
+  ],
+  "rawWindow": {
+    "indices": [
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64
+    ],
+    "adjacentSubjectDelta": [
+      5.615699768066406,
+      5.753293037414551,
+      6.261840343475342,
+      5.338536262512207,
+      6.359039783477783,
+      5.057384490966797,
+      4.861672401428223,
+      4.8901448249816895,
+      6.423964500427246,
+      6.01440954208374,
+      5.905416488647461,
+      5.022644996643066,
+      6.372893810272217,
+      4.86504602432251,
+      3.194999933242798,
+      4.006256103515625,
+      6.391081809997559,
+      6.07278299331665,
+      5.567303657531738,
+      5.647928714752197,
+      6.941371440887451,
+      5.379710674285889,
+      4.129456043243408,
+      4.608611106872559
+    ],
+    "fps": 24.0
+  }
+}

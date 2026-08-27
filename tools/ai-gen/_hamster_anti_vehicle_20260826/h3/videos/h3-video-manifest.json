@@ -1,0 +1,62 @@
+[
+  {
+    "name": "idle",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082611,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": true,
+    "reference": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\references\\hamster-anti-vehicle-smg-white-1024x576.png",
+    "prompt": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\prompts\\idle.txt",
+    "output": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_idle_h3.mp4"
+  },
+  {
+    "name": "running",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082612,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": true,
+    "reference": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\references\\hamster-anti-vehicle-smg-white-1024x576.png",
+    "prompt": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\prompts\\running.txt",
+    "output": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_running_h3.mp4"
+  },
+  {
+    "name": "smg_attacking",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082613,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": true,
+    "reference": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\references\\hamster-anti-vehicle-smg-white-1024x576.png",
+    "prompt": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\prompts\\smg_attack.txt",
+    "output": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_smg_attacking_h3.mp4"
+  },
+  {
+    "name": "rocket_attacking_v02",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082616,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 20,
+    "loopLocked": false,
+    "reference": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\references\\hamster-anti-vehicle-rocket-v02-rgba.png",
+    "prompt": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\prompts\\rocket_attack_v02_true_discard.txt",
+    "output": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_rocket_attacking_h3_v02.mp4"
+  },
+  {
+    "name": "dying",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082615,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": false,
+    "reference": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\references\\hamster-anti-vehicle-smg-white-1024x576.png",
+    "prompt": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\prompts\\dying.txt",
+    "output": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_dying_h3.mp4"
+  }
+]

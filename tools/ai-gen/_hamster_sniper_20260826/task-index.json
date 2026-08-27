@@ -1,0 +1,180 @@
+{
+  "unitId": "hamster_sniper",
+  "unitName": "仓鼠狙击手",
+  "route": "thatch_hut_level_3/scout",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "16:9",
+  "durationSeconds": 4,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-sniper-mother-v02.png",
+  "reference": "references/hamster-sniper-v02-white.png",
+  "motherPrompt": "mother/hamster-sniper-mother-v02-edit-prompt.txt",
+  "motherSource": "mother/hamster-sniper-mother-v01.png",
+  "revisionNote": "v02完全遮挡双耳，并增加下放式双筒夜视仪；身体、握枪与构图保持v01方案。",
+  "assetStatus": "complete_user_accepted",
+  "runtimeIntegrationActive": true,
+  "producerBuildingIntegration": true,
+  "completedAt": "2026-08-26",
+  "completionNote": "用户确认MiniMax H3 v02正式奔跑动画可用并要求完成导入；仓鼠狙击手素材、实体、远程AI、三级生产换代、预载动画、高视野与标记射击、狙击曳光弹、单位图标、共享升级、兵线、存档恢复和后台模拟均已接入。后续按用户要求将仓鼠草屋二、三级对应兵种显式登记到科技解锁项，完成特战基地整条路线开放。",
+  "reservationNote": "待机、攻击、死亡继续使用已确认版本；用户确认MiniMax H3 v02奔跑源视频后，已完成22帧自然循环、BiRefNet、固定129px有效身体高度/350-351脚线、RIFE 2x及黑闪门禁，44帧48fps正式表已覆盖运行时running.png。其余实体、预载/动画、高视野、标记射击、投射物视觉、单位图标、生产建筑、全局升级、兵线/存档与后台模拟保持接入。",
+  "tasks": [
+    {
+      "motion": "idle",
+      "kind": "idle",
+      "prompt": "prompts/idle-doubao.txt",
+      "promptSha256": "07a3b554c16b55e0c0c33472835c86d5705ce4d1ab9d849f407f3c2dd120b8a0",
+      "loopRequested": true,
+      "status": "final_asset_ready",
+      "video": "videos/idle-doubao.mp4",
+      "sourceSheet": "source-sheets-pre-interpolation/idle.png",
+      "finalSheet": "sheets/interpolated/idle.png",
+      "frameCount": 48,
+      "frameRate": 16
+    },
+    {
+      "motion": "running",
+      "kind": "run",
+      "prompt": "prompts/running-h3-v02-rigid-headgear.txt",
+      "promptSha256": "fa7ed78b43915b0da308578be89af57f8834a4f740672bd7e2c2debbd7179cf1",
+      "loopRequested": true,
+      "status": "final_asset_ready",
+      "video": "videos/running-h3-v02.mp4",
+      "rejectedPredecessor": {
+        "attempt": "running-doubao-v01",
+        "reason": "出现与仓鼠设定不符的独立长毛尾巴"
+      },
+      "reference": "references/hamster-sniper-v02-video-safe.png",
+      "sourceWindow": "raw frames 66..87 contiguous; raw frame 88 is same-phase validation endpoint",
+      "rejectedV02Diagnosis": {
+        "rifeDarkFlashFrame": 3,
+        "rifeDarkFlashLumaRatioToNeighborMean": 0.7276118836622859,
+        "rifeBlackBlock": {
+          "betweenRawFrames": [42, 44],
+          "threshold": "alpha > 96 and max(RGB) < 64",
+          "darkPixels": 3650,
+          "neighborDarkPixels": [2284, 2328],
+          "largestDarkComponent": 2079,
+          "gifMeanAbsoluteRgbDelta": 0.035040961371527776,
+          "gifPixelsWithChannelDeltaOver30": 3,
+          "conclusion": "黑块已存在于插帧PNG，不是GIF透明或调色板编码伪影"
+        },
+        "sourceSamplingProblem": "raw f40..64 step 2 discards native odd frames before RIFE reconstruction",
+        "loopSeam": "source f64 to f40",
+        "loopSeamBottom35AlphaIou": 0.002070393374741201
+      },
+      "v03Candidate": {
+        "status": "rejected_by_user_model_identity",
+        "sourceFrameCount": 16,
+        "frameCount": 32,
+        "sourceFrameRate": 24,
+        "frameRate": 48,
+        "validationStatus": "pass",
+        "wholeFrameLumaRatioMin": 0.9192687299016421,
+        "wholeFrameLumaRatioMax": 1.014234965610859,
+        "loopSeamDelta": 42.64865493774414,
+        "loopSeamLimit": 45.34190549850464
+      },
+      "h3Replacement": {
+        "provider": "MiniMax H3 i2v_firstframe",
+        "reference": "references/hamster-sniper-v02-video-safe.png",
+        "firstFrameEqualsLastFrame": true,
+        "durationSeconds": 5.17,
+        "frameCount": 124,
+        "size": "1024x576",
+        "v01": {
+          "status": "rejected",
+          "promptSha256": "478d76a3b7279485129d1cd15149f50522c499afe4828b06a3f663b605cad2d7",
+          "reason": "裤装和腿部吉利服改善，但双筒夜视仪仅在首尾保留，中段整段消失"
+        },
+        "v02": {
+          "status": "final_asset_ready",
+          "acceptedByUser": true,
+          "prompt": "prompts/running-h3-v02-rigid-headgear.txt",
+          "promptSha256": "fa7ed78b43915b0da308578be89af57f8834a4f740672bd7e2c2debbd7179cf1",
+          "video": "videos/running-h3-v02.mp4",
+          "videoSha256": "370eb0ade33202e9833d959b3d98c32333acc98fe49ae94d888523d3a05eed59",
+          "seed": 2026082602,
+          "steps": 20,
+          "preview": "previews/videos/running-h3-v02-preview.gif",
+          "contact": "previews/videos/running-h3-v02-contact.png",
+          "identityGate": "32个均匀抽样点中双筒夜视仪、迷彩裤、腿部吉利服、靴子、双手和完整狙击枪均连续存在",
+          "sourceSheet": "source-sheets-pre-interpolation/running-h3-v02.png",
+          "finalSheet": "sheets/interpolated/running-h3-v02.png",
+          "finalPreview": "previews/interpolated/running-h3-v02-interpolated.gif",
+          "sourceFrameCount": 22,
+          "finalFrameCount": 44,
+          "sourceFrameRate": 24,
+          "finalFrameRate": 48,
+          "sourceReport": "running-h3-v02-source-report.json",
+          "interpolationReport": "interpolation-reports/running-h3-v02.json",
+          "enhancedValidation": "running-h3-v02-final-validation.json",
+          "validationStatus": "pass",
+          "runtimeAsset": "assets/companions/hamster_sniper/running.png"
+        }
+      },
+      "nextAction": "已由用户确认可用并完成正式运行时接入",
+      "scaleValidation": {
+        "targetEffectiveBodyHeight": 129,
+        "footLineMin": 350,
+        "footLineMax": 351,
+        "referenceUnit": "hamster_ranger"
+      }
+    },
+    {
+      "motion": "attacking",
+      "kind": "attack",
+      "prompt": "prompts/attacking-doubao.txt",
+      "promptSha256": "b19aa517f317b3e13edc1a3902cfc9336d24883127005e9dd8ca7360ea89c28c",
+      "loopRequested": false,
+      "status": "final_asset_ready",
+      "video": "videos/attacking-doubao.mp4",
+      "sourceSheet": "source-sheets-pre-interpolation/attacking.png",
+      "finalSheet": "sheets/interpolated/attacking.png",
+      "frameCount": 39,
+      "frameRate": 24,
+      "projectileLaunchFrameOneBased": 17
+    },
+    {
+      "motion": "dying",
+      "kind": "die",
+      "prompt": "prompts/dying-doubao-v07-face-down.txt",
+      "promptSha256": "fd46269167f4339fbbb2ae1a37ddff38c0c75103f36609f870bb7123bfc7a028",
+      "loopRequested": false,
+      "status": "final_asset_ready",
+      "video": "videos/dying-doubao-v07.mp4",
+      "accepted": [
+        "4秒时长生成成功",
+        "快速向前俯卧，约0.7秒已完成倒地",
+        "尸体姿势从raw frame 16至96稳定",
+        "尸体阶段脸部与双耳被吉利服全遮挡",
+        "狙击枪、消音器和贴枪折叠两脚架保持完整",
+        "无黑块或抽帧"
+      ],
+      "rejected": [
+        "v03-v04脸部年龄与嘴部漂移",
+        "v04-v05两脚架展开",
+        "v06从raw frame 12起明显露出双耳"
+      ],
+      "evidence": [
+        "previews/videos/dying-v07-preview.gif",
+        "previews/window-analysis/dying-v07-dense-contact.jpg",
+        "previews/window-analysis/dying-v07-keyframes-original.jpg"
+      ],
+      "sourceSheet": "source-sheets-pre-interpolation/dying.png",
+      "finalSheet": "sheets/interpolated/dying.png",
+      "frameCount": 17,
+      "frameRate": 24,
+      "v06RejectedAttempt": {
+        "attempt": "dying-doubao-v06",
+        "promptSha256": "b02c45806584b08ba1d26473d69064cb92466540edeb7a88ca681d41157c7fa2",
+        "reason": "两脚架和倒地稳定性已修正，但双耳从raw frame 12起明显露出"
+      },
+      "sourceFrameRate": 24,
+      "sourceFrameCount": 9,
+      "sourceIndices": [0, 2, 4, 6, 8, 10, 12, 14, 16],
+      "interpolationReport": "interpolation-reports/dying.json",
+      "nextAction": "仓鼠狙击手完整兵种工作已收尾；后续仅在系列兵种统一数值审计时精调"
+    }
+  ]
+}

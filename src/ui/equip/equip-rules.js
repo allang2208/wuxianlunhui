@@ -1,4 +1,6 @@
 // ============================================================
+
+import { isTwoHanded } from '../../config/gun-ammo.js';
 // 共享装备规则（2026-08-12）
 // 玩家与侍从共用同一套装备判定/加成口径——队员装备不再各写一套。
 // canEquipSlot：从 drag-drop-manager 抽出（主手武器/副手支援物/双手互斥/按 equipSlot）。
@@ -58,5 +60,5 @@ export function getEquipmentBonuses(equipments) {
 export function isOneHandedItem(item) {
     if (!item) return false;
     if (typeof item.isTwoHanded === 'boolean') return !item.isTwoHanded;
-    return !['pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'].includes(item.weaponType);
+    return !isTwoHanded(item);
 }

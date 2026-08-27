@@ -30,7 +30,7 @@
                 "range": 165,
                 "knockback": 8,
                 "attackInterval": 500,
-                "hitType": "突刺（扇形判定）",
+                "hitType": "三段连击（扇形挥砍）",
                 "damageType": "物理"
             },
             "animation": {
@@ -60,7 +60,7 @@
             "weaponCategory": "mainhand",
             "weaponType": "sword",
             "weaponTypeTag": "近战武器",
-            "equipImage": "assets/weapons/EXsword_equipped_v2_.png",
+            "equipImage": "assets/weapons/rune_sword_ingame_v2.png",
             "stats": [
                 {
                     "name": "物理攻击",
@@ -78,7 +78,7 @@
                 "range": 165,
                 "knockback": 8,
                 "attackInterval": 500,
-                "hitType": "突刺（扇形判定）",
+                "hitType": "三段连击（扇形挥砍）",
                 "damageType": "物理"
             },
             "animation": {
@@ -108,7 +108,7 @@
             "weaponCategory": "mainhand",
             "weaponType": "sword",
             "weaponTypeTag": "近战武器",
-            "equipImage": "assets/weapons/Nightandflame_equip.png",
+            "equipImage": "assets/weapons/night_flame_sword_ingame_v2.png",
             "stats": [
                 {
                     "name": "物理攻击",
@@ -136,7 +136,7 @@
                 "range": 165,
                 "knockback": 8,
                 "attackInterval": 500,
-                "hitType": "突刺（扇形判定）",
+                "hitType": "三段连击（扇形挥砍）",
                 "damageType": "物理"
             },
             "animation": {
@@ -166,7 +166,7 @@
             "weaponCategory": "mainhand",
             "weaponType": "sword",
             "weaponTypeTag": "近战武器",
-            "equipImage": "assets/weapons/knights_sword_v3_equip.png",
+            "equipImage": "assets/weapons/knights_sword_ingame_v2.png",
             "stats": [
                 {
                     "name": "物理攻击",
@@ -179,7 +179,7 @@
                 "range": 165,
                 "knockback": 8,
                 "attackInterval": 500,
-                "hitType": "突刺（扇形判定）",
+                "hitType": "三段连击（扇形挥砍）",
                 "damageType": "物理"
             },
             "animation": {
@@ -399,10 +399,10 @@
             "name": "G18",
             "type": "手枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/G18icon.png",
+            "iconImage": "assets/icons/firearms/g18.png",
             "dropImage": "assets/icons/G18icon.png",
             "equipImage": "assets/icons/G18icon.png",
-            "slotImage": "assets/icons/G18icon.png",
+            "slotImage": "assets/icons/firearms/g18.png",
             "category": "weapon_ranged",
             "rarity": "rare",
             "level": 5,
@@ -484,10 +484,10 @@
             "name": "沙漠之鹰",
             "type": "手枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/DesertEagle_icon.png",
+            "iconImage": "assets/icons/firearms/desert-eagle.png",
             "dropImage": "assets/weapons/DesertEagle_equip.png",
             "equipImage": "assets/icons/DesertEagle_icon.png",
-            "slotImage": "assets/icons/DesertEagle_icon.png",
+            "slotImage": "assets/icons/firearms/desert-eagle.png",
             "category": "weapon_ranged",
             "rarity": "epic",
             "level": 15,
@@ -509,7 +509,7 @@
                     "value": "750"
                 }
             ],
-            "desc": "沙漠之鹰半自动手枪，深黄色曳光弹，可双持，连续开火0.5秒后计算散布",
+            "desc": "沙漠之鹰半自动手枪，深黄色曳光弹，可双持；连续射击会积累后坐扩散，短暂停火可恢复精度",
             "equipSlot": "weapon",
             "attack": {
                 "range": 750,
@@ -538,10 +538,10 @@
             "name": "P4040",
             "type": "手枪",
             "icon": "🔫",
-            "iconImage": "assets/weapons/P4040-icon.png",
+            "iconImage": "assets/icons/firearms/p4040.png",
             "dropImage": "assets/weapons/P4040-icon.png",
             "equipImage": "assets/weapons/P4040-icon.png",
-            "slotImage": "assets/weapons/P4040-icon.png",
+            "slotImage": "assets/icons/firearms/p4040.png",
             "category": "weapon_ranged",
             "rarity": "epic",
             "level": 15,
@@ -624,10 +624,10 @@
             "name": "Beretta 93R",
             "type": "手枪",
             "icon": "🔫",
-            "iconImage": "assets/weapons/beretta93r.png",
+            "iconImage": "assets/icons/firearms/beretta-93r.png",
             "dropImage": "assets/weapons/beretta93r.png",
             "equipImage": "assets/weapons/beretta93r.png",
-            "slotImage": "assets/weapons/beretta93r.png",
+            "slotImage": "assets/icons/firearms/beretta-93r.png",
             "category": "weapon_ranged",
             "rarity": "uncommon",
             "level": 8,
@@ -761,12 +761,13 @@
             "name": "PKM",
             "type": "机枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/pkm_side_clean.png",
+            "iconImage": "assets/icons/firearms/pkm.png",
             "category": "weapon_ranged",
             "rarity": "rare",
             "level": 10,
             "dropImage": "assets/icons/pkm_side_clean.png",
             "equipImage": "assets/icons/pkm_side_clean.png",
+            "slotImage": "assets/icons/firearms/pkm.png",
             "weaponCategory": "mainhand",
             "weaponType": "pkm",
             "weaponTypeTag": "远程武器",
@@ -858,8 +859,8 @@
             "name": "AKM",
             "type": "自动步枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/akm-equip.png",
-            "slotImage": "assets/icons/akm-equip.png",
+            "iconImage": "assets/icons/firearms/akm.png",
+            "slotImage": "assets/icons/firearms/akm.png",
             "equipImage": "assets/weapons/AKm.png",
             "category": "weapon_ranged",
             "rarity": "rare",
@@ -875,7 +876,7 @@
             "stats": [
                 {
                     "name": "物理攻击",
-                    "value": "9-14"
+                    "value": "8+智力×0.29+精神×0.29"
                 },
                 {
                     "name": "射程",
@@ -903,15 +904,170 @@
                 "timingMul": "0.1x (高速)",
                 "recoilAmount": "0.12rad",
                 "description": "AKM 以600RPM的射速连续射击，单次开火动画约100ms。采用后坐力抖动模式，与PKM共用相同动画系统。"
+            },
+            "attackFormula": {
+                "base": 8,
+                "enhanceFlat": 0.6,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.29,
+                        "perEnhance": 0.045
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.29,
+                        "perEnhance": 0.045
+                    }
+                ]
             }
+        },
+        "singularity_loom_lmg": {
+            "weaponId": "weapon36",
+            "name": "奇点织机",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/singularity-loom-lmg-equip.png",
+            "slotImage": "assets/icons/singularity-loom-lmg-equip.png",
+            "dropImage": "assets/weapons/singularity-loom-lmg-equip.png",
+            "equipImage": "assets/weapons/singularity-loom-lmg-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "mythic",
+            "level": 18,
+            "price": 1600,
+            "weaponCategory": "mainhand",
+            "weaponType": "singularity_loom_lmg",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/singularity-loom-lmg-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "12+力量×0.42+精神×0.42"
+                },
+                {
+                    "name": "射程",
+                    "value": "1800"
+                }
+            ],
+            "desc": "神话轻机枪“奇点织机”；主弹命中后会以青白引力弧弹射至400像素内最近的另一个目标，造成65%伤害，弹射不会递归。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1800,
+                "knockback": 2,
+                "attackInterval": 120,
+                "hitType": "青白奇点曳光弹（最近目标弹射）",
+                "damageType": "物理",
+                "projectileSpeed": 1500,
+                "damageFalloff": {
+                    "start": 900,
+                    "minMultiplier": 0.52
+                }
+            },
+            "animation": {
+                "type": "recoil（引力缓冲）",
+                "totalMs": "120ms（固定射击间隔）",
+                "windupMs": "≈22",
+                "swingMs": "≈38",
+                "recoveryMs": "≈60",
+                "holdOffset": "(-64, -6)",
+                "weaponSize": 104,
+                "timingMul": "0.12x",
+                "recoilAmount": "0.075rad",
+                "description": "主弹命中后产生一次青白引力弧，向最近的另一个目标弹射。"
+            },
+            "heatParams": { "overheatTime": 7200, "overheatRecoverTime": 2200, "overheatCooldownTime": 3000 },
+            "ricochetParams": { "range": 400, "damageMultiplier": 0.65, "knockback": 2 },
+            "attackKey": "singularity_loom_lmg",
+            "animConfigKey": "singularity_loom_lmg",
+            "fireSound": "assets/sounds/weapons/singularity_loom_lmg_fire.wav",
+            "equipSound": "assets/sounds/weapons/singularity_loom_lmg_equip.wav",
+            "canvasImageProp": "singularityLoomLmgImage",
+            "ammoConfig": { "max": 70, "reloadTime": 3500, "reloadSound": "assets/sounds/weapons/singularity_loom_lmg_reload.wav" },
+            "fireMode": "fullAuto",
+            "attackFormula": { "base": 12, "enhanceFlat": 0.9, "attrs": [{ "key": "str", "base": 0.42, "perEnhance": 0.065 }, { "key": "wis", "base": 0.42, "perEnhance": 0.065 }] },
+            "spreadParams": { "startShots": 10, "maxShots": 28, "recoveryMs": 360, "maxAngle": 17 }
+        },
+        "celestial_cartographer_lmg": {
+            "weaponId": "weapon37",
+            "name": "天穹测绘者",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/celestial-cartographer-lmg-equip.png",
+            "slotImage": "assets/icons/celestial-cartographer-lmg-equip.png",
+            "dropImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
+            "equipImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "mainhand",
+            "weaponType": "celestial_cartographer_lmg",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": { "image": "assets/weapons/celestial-cartographer-lmg-equip.png", "muzzleImage": "assets/effects/muzzle_flash_01.png" },
+            "stats": [{ "name": "物理攻击", "value": "13+力量×0.46+精神×0.46" }, { "name": "射程", "value": "1850" }],
+            "desc": "传说轻机枪“天穹测绘者”；连续有效命中第4次建立星图锚点，第8次完成测绘：命中另一目标会拉出经纬线扫过沿线敌人，继续压制锚点则降下天顶坠击。停火700ms后序列重置。",
+            "equipSlot": "weapon",
+            "attack": { "range": 1850, "knockback": 3, "attackInterval": 105, "hitType": "蓝金星图弹（经纬线/天顶坠击）", "damageType": "物理", "projectileSpeed": 1540, "damageFalloff": { "start": 940, "minMultiplier": 0.55 } },
+            "animation": { "type": "recoil（星盘稳像）", "totalMs": "105ms（固定射击间隔）", "windupMs": "≈20", "swingMs": "≈35", "recoveryMs": "≈50", "holdOffset": "(-64, -6)", "weaponSize": 104, "timingMul": "0.105x", "recoilAmount": "0.07rad", "description": "蓝金星图弹以连续有效命中建立锚点，并在终段绘制经纬线或降下天顶坠击。" },
+            "heatParams": { "overheatTime": 7600, "overheatRecoverTime": 2100, "overheatCooldownTime": 2900 },
+            "constellationParams": { "anchorHit": 4, "resolveHit": 8, "resetMs": 700, "lineWidth": 58, "lineMaxTargets": 6, "lineDamageMultiplier": 0.6, "focusDamageMultiplier": 1.05, "focusSplashRadius": 110, "focusSplashMultiplier": 0.35, "focusSplashMaxTargets": 4, "knockback": 2 },
+            "attackKey": "celestial_cartographer_lmg",
+            "animConfigKey": "celestial_cartographer_lmg",
+            "fireSound": "assets/sounds/weapons/celestial_cartographer_lmg_fire.wav",
+            "equipSound": "assets/sounds/weapons/celestial_cartographer_lmg_equip.wav",
+            "canvasImageProp": "celestialCartographerLmgImage",
+            "ammoConfig": { "max": 80, "reloadTime": 3400, "reloadSound": "assets/sounds/weapons/celestial_cartographer_lmg_reload.wav" },
+            "fireMode": "fullAuto",
+            "attackFormula": { "base": 13, "enhanceFlat": 1, "attrs": [{ "key": "str", "base": 0.46, "perEnhance": 0.07 }, { "key": "wis", "base": 0.46, "perEnhance": 0.07 }] },
+            "spreadParams": { "startShots": 11, "maxShots": 30, "recoveryMs": 340, "maxAngle": 16 }
+        },
+        "grave_covenant_cantor_lmg": {
+            "weaponId": "weapon38",
+            "name": "冥约颂炮",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
+            "slotImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
+            "dropImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+            "equipImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "mainhand",
+            "weaponType": "grave_covenant_cantor_lmg",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": { "image": "assets/weapons/grave-covenant-cantor-lmg-equip.png", "muzzleImage": "assets/effects/muzzle_flash_01.png" },
+            "stats": [{ "name": "物理攻击", "value": "15+力量×0.50+精神×0.48" }, { "name": "射程", "value": "1750" }],
+            "desc": "传说轻机枪“冥约颂炮”；有效命中依次刻下血、骨、烬三印，同一目标在5秒内集齐三印会触发黑弥撒，对130像素内最多5名敌人造成75%伤害。裁决伤害不会再次刻印。",
+            "equipSlot": "weapon",
+            "attack": { "range": 1750, "knockback": 4, "attackInterval": 135, "hitType": "赤金冥约弹（血骨烬三印裁决）", "damageType": "物理", "projectileSpeed": 1470, "damageFalloff": { "start": 860, "minMultiplier": 0.54 } },
+            "animation": { "type": "recoil（圣咏重拍）", "totalMs": "135ms（固定射击间隔）", "windupMs": "≈25", "swingMs": "≈45", "recoveryMs": "≈65", "holdOffset": "(-64, -6)", "weaponSize": 104, "timingMul": "0.135x", "recoilAmount": "0.09rad", "description": "赤金弹按血、骨、烬三拍轮转刻印，三印齐备后释放黑弥撒裁决。" },
+            "heatParams": { "overheatTime": 7800, "overheatRecoverTime": 2400, "overheatCooldownTime": 3200 },
+            "runeLitanyParams": { "markDurationMs": 5000, "verdictRadius": 130, "verdictMaxTargets": 5, "verdictDamageMultiplier": 0.75, "inheritanceRange": 360, "knockback": 3 },
+            "attackKey": "grave_covenant_cantor_lmg",
+            "animConfigKey": "grave_covenant_cantor_lmg",
+            "fireSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav",
+            "equipSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_equip.wav",
+            "canvasImageProp": "graveCovenantCantorLmgImage",
+            "ammoConfig": { "max": 72, "reloadTime": 3600, "reloadSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_reload.wav" },
+            "fireMode": "fullAuto",
+            "attackFormula": { "base": 15, "enhanceFlat": 1.05, "attrs": [{ "key": "str", "base": 0.50, "perEnhance": 0.075 }, { "key": "wis", "base": 0.48, "perEnhance": 0.072 }] },
+            "spreadParams": { "startShots": 8, "maxShots": 24, "recoveryMs": 430, "maxAngle": 20 }
         },
         "revolver357": {
             "weaponId": "weapon22",
             "name": ".357麦格农左轮",
             "type": "手枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/revolver357-equip.png",
-            "slotImage": "assets/icons/revolver357-equip.png",
+            "iconImage": "assets/icons/firearms/revolver-357.png",
+            "slotImage": "assets/icons/firearms/revolver-357.png",
             "equipImage": "assets/weapons/revolver357-equip.png",
             "category": "weapon_ranged",
             "rarity": "epic",
@@ -963,8 +1119,8 @@
             "name": "M416",
             "type": "自动步枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/m416-equip.png",
-            "slotImage": "assets/icons/m416-equip.png",
+            "iconImage": "assets/icons/firearms/m416.png",
+            "slotImage": "assets/icons/firearms/m416.png",
             "equipImage": "assets/weapons/m416-equip.png",
             "category": "weapon_ranged",
             "rarity": "uncommon",
@@ -980,14 +1136,14 @@
             "stats": [
                 {
                     "name": "物理攻击",
-                    "value": "8-13"
+                    "value": "7+智力×0.27+精神×0.27"
                 },
                 {
                     "name": "射程",
                     "value": "1150"
                 }
             ],
-            "desc": "M416自动步枪，750发/分钟，亮金色曳光弹，均衡可靠的模块化步枪",
+            "desc": "M416自动步枪，约550发/分钟，亮金色曳光弹，均衡可靠的模块化步枪",
             "equipSlot": "weapon",
             "attack": {
                 "range": 1150,
@@ -1007,7 +1163,23 @@
                 "weaponSize": 96,
                 "timingMul": "0.11x (高速)",
                 "recoilAmount": "0.11rad",
-                "description": "M416 以750RPM的射速连续射击，单次开火动画约110ms。采用后坐力抖动模式，与PKM/AKM共用相同动画系统。"
+                "description": "M416 以约550RPM的射速连续射击，单次开火动画约110ms。采用后坐力抖动模式，与PKM/AKM共用相同动画系统。"
+            },
+            "attackFormula": {
+                "base": 7,
+                "enhanceFlat": 0.5,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.27,
+                        "perEnhance": 0.04
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.27,
+                        "perEnhance": 0.04
+                    }
+                ]
             }
         },
         "qbz191": {
@@ -1015,8 +1187,8 @@
             "name": "QBZ-191",
             "type": "自动步枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/191icon.png",
-            "slotImage": "assets/icons/191icon.png",
+            "iconImage": "assets/icons/firearms/qbz-191.png",
+            "slotImage": "assets/icons/firearms/qbz-191.png",
             "equipImage": "assets/icons/191icon.png",
             "category": "weapon_ranged",
             "rarity": "rare",
@@ -1032,7 +1204,7 @@
             "stats": [
                 {
                     "name": "物理攻击",
-                    "value": "3-6"
+                    "value": "6+智力×0.21+精神×0.21"
                 },
                 {
                     "name": "射程",
@@ -1060,6 +1232,22 @@
                 "timingMul": "0.07x (高速)",
                 "recoilAmount": "0.10rad",
                 "description": "QBZ-191 以850RPM的射速连续射击，单次开火动画约70ms。采用后坐力抖动模式，与PKM/AKM共用相同动画系统。"
+            },
+            "attackFormula": {
+                "base": 6,
+                "enhanceFlat": 0.4,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.21,
+                        "perEnhance": 0.035
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.21,
+                        "perEnhance": 0.035
+                    }
+                ]
             }
         },
         "qjb201": {
@@ -1067,10 +1255,10 @@
             "name": "QJB-201",
             "type": "机枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/201-icon.png",
+            "iconImage": "assets/icons/firearms/qjb-201.png",
             "dropImage": "assets/icons/201-icon.png",
             "equipImage": "assets/icons/201-icon.png",
-            "slotImage": "assets/icons/201-icon.png",
+            "slotImage": "assets/icons/firearms/qjb-201.png",
             "category": "weapon_ranged",
             "rarity": "rare",
             "level": 12,
@@ -1120,10 +1308,10 @@
             "name": "Super90",
             "type": "散弹枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/M4s90_icon.png",
+            "iconImage": "assets/icons/firearms/super90.png",
             "dropImage": "assets/icons/M4s90_icon.png",
             "equipImage": "assets/icons/M4s90_icon.png",
-            "slotImage": "assets/icons/M4s90_icon.png",
+            "slotImage": "assets/icons/firearms/super90.png",
             "category": "weapon_ranged",
             "rarity": "epic",
             "level": 15,
@@ -1236,10 +1424,10 @@
             "name": "SAIGA-12K",
             "type": "散弹枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/S12k-icon.png",
+            "iconImage": "assets/icons/firearms/saiga-12k.png",
             "dropImage": "assets/icons/S12k-icon.png",
             "equipImage": "assets/icons/S12k-icon.png",
-            "slotImage": "assets/icons/S12k-icon.png",
+            "slotImage": "assets/icons/firearms/saiga-12k.png",
             "category": "weapon_ranged",
             "rarity": "epic",
             "level": 15,
@@ -2501,6 +2689,7 @@
             "name": "F 级时空锚点代币",
             "type": "地牢钥匙",
             "icon": "🌀",
+            "iconImage": "assets/ui/icons/dungeon-key-token.png",
             "category": "tribute",
             "rarity": "common",
             "level": 1,
@@ -2520,6 +2709,7 @@
             "name": "E 级时空锚点代币",
             "type": "地牢钥匙",
             "icon": "🌀",
+            "iconImage": "assets/ui/icons/dungeon-key-token.png",
             "category": "tribute",
             "rarity": "uncommon",
             "level": 1,
@@ -2539,6 +2729,7 @@
             "name": "D 级时空锚点代币",
             "type": "地牢钥匙",
             "icon": "🌀",
+            "iconImage": "assets/ui/icons/dungeon-key-token.png",
             "category": "tribute",
             "rarity": "rare",
             "level": 1,
@@ -2558,6 +2749,7 @@
             "name": "C 级时空锚点代币",
             "type": "地牢钥匙",
             "icon": "🌀",
+            "iconImage": "assets/ui/icons/dungeon-key-token.png",
             "category": "tribute",
             "rarity": "epic",
             "level": 1,
@@ -2577,6 +2769,7 @@
             "name": "B 级时空锚点代币",
             "type": "地牢钥匙",
             "icon": "🌀",
+            "iconImage": "assets/ui/icons/dungeon-key-token.png",
             "category": "tribute",
             "rarity": "mythic",
             "level": 1,
@@ -2596,6 +2789,7 @@
             "name": "A 级时空锚点代币",
             "type": "地牢钥匙",
             "icon": "🌀",
+            "iconImage": "assets/ui/icons/dungeon-key-token.png",
             "category": "tribute",
             "rarity": "legendary",
             "level": 1,
@@ -3776,7 +3970,7 @@
             "armorSetSlot": "helmet",
             "defense": {
                 "base": 12,
-                "perEnhance": 3.0
+                "perEnhance": 3
             },
             "bonusStats": {
                 "maxHp": 28
@@ -4054,7 +4248,7 @@
             "armorSetSlot": "helmet",
             "defense": {
                 "base": 12,
-                "perEnhance": 3.0
+                "perEnhance": 3
             },
             "bonusStats": {
                 "maxHp": 28
@@ -4148,593 +4342,1346 @@
             "iconImage": "assets/icons/equipment/圣辉轻靴.png"
         },
         "craft_salt_jar": {
-                "name": "粗陶盐罐",
-                "type": "祭品",
-                "icon": "🧂",
-                "category": "tribute",
-                "rarity": "common",
-                "level": 1,
-                "stack": 1,
-                "price": 100,
-                "effects": {
-                        "goldPercent": 1,
-                        "mpRegenPercent": -4
+            "name": "粗陶盐罐",
+            "type": "祭品",
+            "icon": "🧂",
+            "category": "tribute",
+            "rarity": "common",
+            "level": 1,
+            "stack": 1,
+            "price": 100,
+            "effects": {
+                "goldPercent": 1,
+                "mpRegenPercent": -4
+            },
+            "stats": [
+                {
+                    "name": "金币掉落",
+                    "value": "+1%"
                 },
-                "stats": [
-                        {
-                                "name": "金币掉落",
-                                "value": "+1%"
-                        },
-                        {
-                                "name": "魔法恢复",
-                                "value": "-4%"
-                        }
-                ],
-                "desc": "手捏粗陶，绳纹沿口。盐即是财，攥紧了口袋却干了喉咙。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/粗陶盐罐.png",
-                "dropImage": "assets/items/tributes/crafts/粗陶盐罐.png"
+                {
+                    "name": "魔法恢复",
+                    "value": "-4%"
+                }
+            ],
+            "desc": "手捏粗陶，绳纹沿口。盐即是财，攥紧了口袋却干了喉咙。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/粗陶盐罐.png",
+            "dropImage": "assets/items/tributes/crafts/粗陶盐罐.png"
         },
         "craft_vine_anklet": {
-                "name": "藤编足环",
-                "type": "祭品",
-                "icon": "🦶",
-                "category": "tribute",
-                "rarity": "common",
-                "level": 1,
-                "stack": 1,
-                "price": 100,
-                "effects": {
-                        "moveSpeedPercent": 1,
-                        "hpRegenPercent": -4
+            "name": "藤编足环",
+            "type": "祭品",
+            "icon": "🦶",
+            "category": "tribute",
+            "rarity": "common",
+            "level": 1,
+            "stack": 1,
+            "price": 100,
+            "effects": {
+                "moveSpeedPercent": 1,
+                "hpRegenPercent": -4
+            },
+            "stats": [
+                {
+                    "name": "移动速度",
+                    "value": "+1%"
                 },
-                "stats": [
-                        {
-                                "name": "移动速度",
-                                "value": "+1%"
-                        },
-                        {
-                                "name": "生命恢复",
-                                "value": "-4%"
-                        }
-                ],
-                "desc": "青藤三股绞编而成。赤足轻健，藤刺硌肉。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/藤编足环.png",
-                "dropImage": "assets/items/tributes/crafts/藤编足环.png"
+                {
+                    "name": "生命恢复",
+                    "value": "-4%"
+                }
+            ],
+            "desc": "青藤三股绞编而成。赤足轻健，藤刺硌肉。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/藤编足环.png",
+            "dropImage": "assets/items/tributes/crafts/藤编足环.png"
         },
         "craft_grass_nest": {
-                "name": "草编仓鼠窝",
-                "type": "祭品",
-                "icon": "🧺",
-                "category": "tribute",
-                "rarity": "common",
-                "level": 1,
-                "stack": 1,
-                "price": 100,
-                "effects": {
-                        "friendlyMaxHpPercent": 2,
-                        "moveSpeedPercent": -1
+            "name": "草编仓鼠窝",
+            "type": "祭品",
+            "icon": "🧺",
+            "category": "tribute",
+            "rarity": "common",
+            "level": 1,
+            "stack": 1,
+            "price": 100,
+            "effects": {
+                "friendlyMaxHpPercent": 2,
+                "moveSpeedPercent": -1
+            },
+            "stats": [
+                {
+                    "name": "友方单位生命",
+                    "value": "+2%"
                 },
-                "stats": [
-                        {
-                                "name": "友方单位生命",
-                                "value": "+2%"
-                        },
-                        {
-                                "name": "移动速度",
-                                "value": "-1%"
-                        }
-                ],
-                "desc": "给士兵们编的安乐窝，软乎保暖，就是背着沉。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/草编仓鼠窝.png",
-                "dropImage": "assets/items/tributes/crafts/草编仓鼠窝.png"
+                {
+                    "name": "移动速度",
+                    "value": "-1%"
+                }
+            ],
+            "desc": "给士兵们编的安乐窝，软乎保暖，就是背着沉。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/草编仓鼠窝.png",
+            "dropImage": "assets/items/tributes/crafts/草编仓鼠窝.png"
         },
         "craft_rune_plaque": {
-                "name": "木刻符牌",
-                "type": "祭品",
-                "icon": "🪵",
-                "category": "tribute",
-                "rarity": "common",
-                "level": 1,
-                "stack": 1,
-                "price": 100,
-                "effects": {
-                        "monsterAtkDownPercent": 1,
-                        "critPercent": -1
+            "name": "木刻符牌",
+            "type": "祭品",
+            "icon": "🪵",
+            "category": "tribute",
+            "rarity": "common",
+            "level": 1,
+            "stack": 1,
+            "price": 100,
+            "effects": {
+                "monsterAtkDownPercent": 1,
+                "critPercent": -1
+            },
+            "stats": [
+                {
+                    "name": "怪物攻击",
+                    "value": "-1%"
                 },
-                "stats": [
-                        {
-                                "name": "怪物攻击",
-                                "value": "-1%"
-                        },
-                        {
-                                "name": "暴击率",
-                                "value": "-1%"
-                        }
-                ],
-                "desc": "刻着歪斜符咒的木牌。符咒慑敌，也分了持牌人的心。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/木刻符牌.png",
-                "dropImage": "assets/items/tributes/crafts/木刻符牌.png"
+                {
+                    "name": "暴击率",
+                    "value": "-1%"
+                }
+            ],
+            "desc": "刻着歪斜符咒的木牌。符咒慑敌，也分了持牌人的心。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/木刻符牌.png",
+            "dropImage": "assets/items/tributes/crafts/木刻符牌.png"
         },
         "craft_soup_bowl": {
-                "name": "彩绘汤钵",
-                "type": "祭品",
-                "icon": "🥣",
-                "category": "tribute",
-                "rarity": "uncommon",
-                "level": 1,
-                "stack": 1,
-                "price": 200,
-                "effects": {
-                        "hpRegenPercent": 8,
-                        "goldPercent": -2
+            "name": "彩绘汤钵",
+            "type": "祭品",
+            "icon": "🥣",
+            "category": "tribute",
+            "rarity": "uncommon",
+            "level": 1,
+            "stack": 1,
+            "price": 200,
+            "effects": {
+                "hpRegenPercent": 8,
+                "goldPercent": -2
+            },
+            "stats": [
+                {
+                    "name": "生命恢复",
+                    "value": "+8%"
                 },
-                "stats": [
-                        {
-                                "name": "生命恢复",
-                                "value": "+8%"
-                        },
-                        {
-                                "name": "金币掉落",
-                                "value": "-2%"
-                        }
-                ],
-                "desc": "赭红底彩绘蛙纹。吃得滋补，宴席费钱。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/彩绘汤钵.png",
-                "dropImage": "assets/items/tributes/crafts/彩绘汤钵.png"
+                {
+                    "name": "金币掉落",
+                    "value": "-2%"
+                }
+            ],
+            "desc": "赭红底彩绘蛙纹。吃得滋补，宴席费钱。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/彩绘汤钵.png",
+            "dropImage": "assets/items/tributes/crafts/彩绘汤钵.png"
         },
         "craft_bone_mask": {
-                "name": "骨雕战面",
-                "type": "祭品",
-                "icon": "🎭",
-                "category": "tribute",
-                "rarity": "uncommon",
-                "level": 1,
-                "stack": 1,
-                "price": 200,
-                "effects": {
-                        "monsterDamageTakenPercent": 4,
-                        "mpRegenPercent": -2
+            "name": "骨雕战面",
+            "type": "祭品",
+            "icon": "🎭",
+            "category": "tribute",
+            "rarity": "uncommon",
+            "level": 1,
+            "stack": 1,
+            "price": 200,
+            "effects": {
+                "monsterDamageTakenPercent": 4,
+                "mpRegenPercent": -2
+            },
+            "stats": [
+                {
+                    "name": "怪物承伤",
+                    "value": "+4%"
                 },
-                "stats": [
-                        {
-                                "name": "怪物承伤",
-                                "value": "+4%"
-                        },
-                        {
-                                "name": "魔法恢复",
-                                "value": "-2%"
-                        }
-                ],
-                "desc": "獠牙怒目的半脸骨面具。未战，先怯敌三分。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/骨雕战面.png",
-                "dropImage": "assets/items/tributes/crafts/骨雕战面.png"
+                {
+                    "name": "魔法恢复",
+                    "value": "-2%"
+                }
+            ],
+            "desc": "獠牙怒目的半脸骨面具。未战，先怯敌三分。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/骨雕战面.png",
+            "dropImage": "assets/items/tributes/crafts/骨雕战面.png"
         },
         "craft_wax_candle": {
-                "name": "蜂蜡烛台",
-                "type": "祭品",
-                "icon": "🕯️",
-                "category": "tribute",
-                "rarity": "uncommon",
-                "level": 1,
-                "stack": 1,
-                "price": 200,
-                "effects": {
-                        "staminaRegenPercent": 4,
-                        "moveSpeedPercent": -1
+            "name": "蜂蜡烛台",
+            "type": "祭品",
+            "icon": "🕯️",
+            "category": "tribute",
+            "rarity": "uncommon",
+            "level": 1,
+            "stack": 1,
+            "price": 200,
+            "effects": {
+                "staminaRegenPercent": 4,
+                "moveSpeedPercent": -1
+            },
+            "stats": [
+                {
+                    "name": "体力恢复",
+                    "value": "+4%"
                 },
-                "stats": [
-                        {
-                                "name": "体力恢复",
-                                "value": "+4%"
-                        },
-                        {
-                                "name": "移动速度",
-                                "value": "-1%"
-                        }
-                ],
-                "desc": "烛照夜路，蜂蜡沉手。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/蜂蜡烛台.png",
-                "dropImage": "assets/items/tributes/crafts/蜂蜡烛台.png"
+                {
+                    "name": "移动速度",
+                    "value": "-1%"
+                }
+            ],
+            "desc": "烛照夜路，蜂蜡沉手。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/蜂蜡烛台.png",
+            "dropImage": "assets/items/tributes/crafts/蜂蜡烛台.png"
         },
         "craft_march_drum": {
-                "name": "仓鼠行军鼓",
-                "type": "祭品",
-                "icon": "🥁",
-                "category": "tribute",
-                "rarity": "uncommon",
-                "level": 1,
-                "stack": 1,
-                "price": 200,
-                "effects": {
-                        "friendlyAtkPercent": 3,
-                        "hpRegenPercent": -4
+            "name": "仓鼠行军鼓",
+            "type": "祭品",
+            "icon": "🥁",
+            "category": "tribute",
+            "rarity": "uncommon",
+            "level": 1,
+            "stack": 1,
+            "price": 200,
+            "effects": {
+                "friendlyAtkPercent": 3,
+                "hpRegenPercent": -4
+            },
+            "stats": [
+                {
+                    "name": "友方单位攻击",
+                    "value": "+3%"
                 },
-                "stats": [
-                        {
-                                "name": "友方单位攻击",
-                                "value": "+3%"
-                        },
-                        {
-                                "name": "生命恢复",
-                                "value": "-4%"
-                        }
-                ],
-                "desc": "鼓面绘着仓鼠爪印。鼓点催征，闻者忘餐。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/仓鼠行军鼓.png",
-                "dropImage": "assets/items/tributes/crafts/仓鼠行军鼓.png"
+                {
+                    "name": "生命恢复",
+                    "value": "-4%"
+                }
+            ],
+            "desc": "鼓面绘着仓鼠爪印。鼓点催征，闻者忘餐。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/仓鼠行军鼓.png",
+            "dropImage": "assets/items/tributes/crafts/仓鼠行军鼓.png"
         },
         "craft_jade_mantis": {
-                "name": "翡翠螳螂雕",
-                "type": "祭品",
-                "icon": "🦗",
-                "category": "tribute",
-                "rarity": "rare",
-                "level": 1,
-                "stack": 1,
-                "price": 400,
-                "effects": {
-                        "critPercent": 3,
-                        "defPercent": -3
+            "name": "翡翠螳螂雕",
+            "type": "祭品",
+            "icon": "🦗",
+            "category": "tribute",
+            "rarity": "rare",
+            "level": 1,
+            "stack": 1,
+            "price": 400,
+            "effects": {
+                "critPercent": 3,
+                "defPercent": -3
+            },
+            "stats": [
+                {
+                    "name": "暴击率",
+                    "value": "+3%"
                 },
-                "stats": [
-                        {
-                                "name": "暴击率",
-                                "value": "+3%"
-                        },
-                        {
-                                "name": "物理防御",
-                                "value": "-3%"
-                        }
-                ],
-                "desc": "薄翼刀锋，攻其不备，自守亦薄。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/翡翠螳螂雕.png",
-                "dropImage": "assets/items/tributes/crafts/翡翠螳螂雕.png"
+                {
+                    "name": "物理防御",
+                    "value": "-3%"
+                }
+            ],
+            "desc": "薄翼刀锋，攻其不备，自守亦薄。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/翡翠螳螂雕.png",
+            "dropImage": "assets/items/tributes/crafts/翡翠螳螂雕.png"
         },
         "craft_twin_dolls": {
-                "name": "双人陶偶",
-                "type": "祭品",
-                "icon": "🎎",
-                "category": "tribute",
-                "rarity": "rare",
-                "level": 1,
-                "stack": 1,
-                "price": 400,
-                "effects": {
-                        "mpRegenPercent": 12,
-                        "moveSpeedPercent": -2
+            "name": "双人陶偶",
+            "type": "祭品",
+            "icon": "🎎",
+            "category": "tribute",
+            "rarity": "rare",
+            "level": 1,
+            "stack": 1,
+            "price": 400,
+            "effects": {
+                "mpRegenPercent": 12,
+                "moveSpeedPercent": -2
+            },
+            "stats": [
+                {
+                    "name": "魔法恢复",
+                    "value": "+12%"
                 },
-                "stats": [
-                        {
-                                "name": "魔法恢复",
-                                "value": "+12%"
-                        },
-                        {
-                                "name": "移动速度",
-                                "value": "-2%"
-                        }
-                ],
-                "desc": "成对供奉才灵验。背负双偶，行路自沉。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/双人陶偶.png",
-                "dropImage": "assets/items/tributes/crafts/双人陶偶.png"
+                {
+                    "name": "移动速度",
+                    "value": "-2%"
+                }
+            ],
+            "desc": "成对供奉才灵验。背负双偶，行路自沉。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/双人陶偶.png",
+            "dropImage": "assets/items/tributes/crafts/双人陶偶.png"
         },
         "craft_flint_striker": {
-                "name": "燧石打火镰",
-                "type": "祭品",
-                "icon": "🔥",
-                "category": "tribute",
-                "rarity": "rare",
-                "level": 1,
-                "stack": 1,
-                "price": 400,
-                "effects": {
-                        "monsterDamageTakenPercent": 5,
-                        "mdefPercent": -3
+            "name": "燧石打火镰",
+            "type": "祭品",
+            "icon": "🔥",
+            "category": "tribute",
+            "rarity": "rare",
+            "level": 1,
+            "stack": 1,
+            "price": 400,
+            "effects": {
+                "monsterDamageTakenPercent": 5,
+                "mdefPercent": -3
+            },
+            "stats": [
+                {
+                    "name": "怪物承伤",
+                    "value": "+5%"
                 },
-                "stats": [
-                        {
-                                "name": "怪物承伤",
-                                "value": "+5%"
-                        },
-                        {
-                                "name": "魔法防御",
-                                "value": "-3%"
-                        }
-                ],
-                "desc": "火种燎原，玩火者自灼。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/燧石打火镰.png",
-                "dropImage": "assets/items/tributes/crafts/燧石打火镰.png"
+                {
+                    "name": "魔法防御",
+                    "value": "-3%"
+                }
+            ],
+            "desc": "火种燎原，玩火者自灼。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/燧石打火镰.png",
+            "dropImage": "assets/items/tributes/crafts/燧石打火镰.png"
         },
         "craft_general_figurine": {
-                "name": "将校泥塑",
-                "type": "祭品",
-                "icon": "🎖️",
-                "category": "tribute",
-                "rarity": "rare",
-                "level": 1,
-                "stack": 1,
-                "price": 400,
-                "effects": {
-                        "friendlyMaxHpPercent": 6,
-                        "atkPercent": -2
+            "name": "将校泥塑",
+            "type": "祭品",
+            "icon": "🎖️",
+            "category": "tribute",
+            "rarity": "rare",
+            "level": 1,
+            "stack": 1,
+            "price": 400,
+            "effects": {
+                "friendlyMaxHpPercent": 6,
+                "atkPercent": -2
+            },
+            "stats": [
+                {
+                    "name": "友方单位生命",
+                    "value": "+6%"
                 },
-                "stats": [
-                        {
-                                "name": "友方单位生命",
-                                "value": "+6%"
-                        },
-                        {
-                                "name": "物理攻击",
-                                "value": "-2%"
-                        }
-                ],
-                "desc": "泥塑的将校偶兵列阵持旗，替主分忧。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/将校泥塑.png",
-                "dropImage": "assets/items/tributes/crafts/将校泥塑.png"
+                {
+                    "name": "物理攻击",
+                    "value": "-2%"
+                }
+            ],
+            "desc": "泥塑的将校偶兵列阵持旗，替主分忧。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/将校泥塑.png",
+            "dropImage": "assets/items/tributes/crafts/将校泥塑.png"
         },
         "craft_gilded_pitcher": {
-                "name": "鎏金狩猎壶",
-                "type": "祭品",
-                "icon": "🏺",
-                "category": "tribute",
-                "rarity": "epic",
-                "level": 1,
-                "stack": 1,
-                "price": 800,
-                "effects": {
-                        "goldPercent": 8,
-                        "dropChancePercent": 7
+            "name": "鎏金狩猎壶",
+            "type": "祭品",
+            "icon": "🏺",
+            "category": "tribute",
+            "rarity": "epic",
+            "level": 1,
+            "stack": 1,
+            "price": 800,
+            "effects": {
+                "goldPercent": 8,
+                "dropChancePercent": 7
+            },
+            "stats": [
+                {
+                    "name": "金币掉落",
+                    "value": "+8%"
                 },
-                "stats": [
-                        {
-                                "name": "金币掉落",
-                                "value": "+8%"
-                        },
-                        {
-                                "name": "祭品掉落",
-                                "value": "+7%"
-                        }
-                ],
-                "desc": "壶身绘猎获满载图，讨个丰收口彩。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/鎏金狩猎壶.png",
-                "dropImage": "assets/items/tributes/crafts/鎏金狩猎壶.png"
+                {
+                    "name": "祭品掉落",
+                    "value": "+7%"
+                }
+            ],
+            "desc": "壶身绘猎获满载图，讨个丰收口彩。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/鎏金狩猎壶.png",
+            "dropImage": "assets/items/tributes/crafts/鎏金狩猎壶.png"
         },
         "craft_bear_skull": {
-                "name": "熊头骨壁挂",
-                "type": "祭品",
-                "icon": "🐻",
-                "category": "tribute",
-                "rarity": "epic",
-                "level": 1,
-                "stack": 1,
-                "price": 800,
-                "effects": {
-                        "atkPercent": 8,
-                        "killHpHealPercent": 2
+            "name": "熊头骨壁挂",
+            "type": "祭品",
+            "icon": "🐻",
+            "category": "tribute",
+            "rarity": "epic",
+            "level": 1,
+            "stack": 1,
+            "price": 800,
+            "effects": {
+                "atkPercent": 8,
+                "killHpHealPercent": 2
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "+8%"
                 },
-                "stats": [
-                        {
-                                "name": "物理攻击",
-                                "value": "+8%"
-                        },
-                        {
-                                "name": "击杀回血",
-                                "value": "+2%"
-                        }
-                ],
-                "desc": "猎人的勋章。浴血，更勇。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/熊头骨壁挂.png",
-                "dropImage": "assets/items/tributes/crafts/熊头骨壁挂.png"
+                {
+                    "name": "击杀回血",
+                    "value": "+2%"
+                }
+            ],
+            "desc": "猎人的勋章。浴血，更勇。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/熊头骨壁挂.png",
+            "dropImage": "assets/items/tributes/crafts/熊头骨壁挂.png"
         },
         "craft_vine_harp": {
-                "name": "藤月竖琴",
-                "type": "祭品",
-                "icon": "🎻",
-                "category": "tribute",
-                "rarity": "epic",
-                "level": 1,
-                "stack": 1,
-                "price": 800,
-                "effects": {
-                        "mpRegenPercent": 18,
-                        "expPercent": 7
+            "name": "藤月竖琴",
+            "type": "祭品",
+            "icon": "🎻",
+            "category": "tribute",
+            "rarity": "epic",
+            "level": 1,
+            "stack": 1,
+            "price": 800,
+            "effects": {
+                "mpRegenPercent": 18,
+                "expPercent": 7
+            },
+            "stats": [
+                {
+                    "name": "魔法恢复",
+                    "value": "+18%"
                 },
-                "stats": [
-                        {
-                                "name": "魔法恢复",
-                                "value": "+18%"
-                        },
-                        {
-                                "name": "经验获取",
-                                "value": "+7%"
-                        }
-                ],
-                "desc": "月下抚琴，心有所悟。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/藤月竖琴.png",
-                "dropImage": "assets/items/tributes/crafts/藤月竖琴.png"
+                {
+                    "name": "经验获取",
+                    "value": "+7%"
+                }
+            ],
+            "desc": "月下抚琴，心有所悟。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/藤月竖琴.png",
+            "dropImage": "assets/items/tributes/crafts/藤月竖琴.png"
         },
         "craft_command_podium": {
-                "name": "点将台微雕",
-                "type": "祭品",
-                "icon": "🏟️",
-                "category": "tribute",
-                "rarity": "epic",
-                "level": 1,
-                "stack": 1,
-                "price": 800,
-                "effects": {
-                        "friendlyAtkPercent": 7,
-                        "friendlyMoveSpeedPercent": 4
+            "name": "点将台微雕",
+            "type": "祭品",
+            "icon": "🏟️",
+            "category": "tribute",
+            "rarity": "epic",
+            "level": 1,
+            "stack": 1,
+            "price": 800,
+            "effects": {
+                "friendlyAtkPercent": 7,
+                "friendlyMoveSpeedPercent": 4
+            },
+            "stats": [
+                {
+                    "name": "友方单位攻击",
+                    "value": "+7%"
                 },
-                "stats": [
-                        {
-                                "name": "友方单位攻击",
-                                "value": "+7%"
-                        },
-                        {
-                                "name": "友方单位移速",
-                                "value": "+4%"
-                        }
-                ],
-                "desc": "掌上阅兵，号令三军。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/点将台微雕.png",
-                "dropImage": "assets/items/tributes/crafts/点将台微雕.png"
+                {
+                    "name": "友方单位移速",
+                    "value": "+4%"
+                }
+            ],
+            "desc": "掌上阅兵，号令三军。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/点将台微雕.png",
+            "dropImage": "assets/items/tributes/crafts/点将台微雕.png"
         },
         "craft_wolf_banner": {
-                "name": "狼烟图腾旗",
-                "type": "祭品",
-                "icon": "🚩",
-                "category": "tribute",
-                "rarity": "mythic",
-                "level": 1,
-                "stack": 1,
-                "price": 1600,
-                "effects": {
-                        "friendlyAtkPercent": 10,
-                        "atkPercent": 9
+            "name": "狼烟图腾旗",
+            "type": "祭品",
+            "icon": "🚩",
+            "category": "tribute",
+            "rarity": "mythic",
+            "level": 1,
+            "stack": 1,
+            "price": 1600,
+            "effects": {
+                "friendlyAtkPercent": 10,
+                "atkPercent": 9
+            },
+            "stats": [
+                {
+                    "name": "友方单位攻击",
+                    "value": "+10%"
                 },
-                "stats": [
-                        {
-                                "name": "友方单位攻击",
-                                "value": "+10%"
-                        },
-                        {
-                                "name": "物理攻击",
-                                "value": "+9%"
-                        },
-                        {
-                                "name": "狼烟结界",
-                                "value": "光环"
-                        }
-                ],
-                "desc": "旗面绘奔狼，猎猎如有狼烟升起。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/狼烟图腾旗.png",
-                "dropImage": "assets/items/tributes/crafts/狼烟图腾旗.png",
-                "special": {
-                        "friendlyAuraRadius": 1200,
-                        "friendlyAuraMoveSpeedPercent": 10
+                {
+                    "name": "物理攻击",
+                    "value": "+9%"
+                },
+                {
+                    "name": "狼烟结界",
+                    "value": "光环"
                 }
+            ],
+            "desc": "旗面绘奔狼，猎猎如有狼烟升起。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/狼烟图腾旗.png",
+            "dropImage": "assets/items/tributes/crafts/狼烟图腾旗.png",
+            "special": {
+                "friendlyAuraRadius": 1200,
+                "friendlyAuraMoveSpeedPercent": 10
+            }
         },
         "craft_bloodvine_staff": {
-                "name": "血藤缠杖",
-                "type": "祭品",
-                "icon": "🩸",
-                "category": "tribute",
-                "rarity": "mythic",
-                "level": 1,
-                "stack": 1,
-                "price": 1600,
-                "effects": {
-                        "matkPercent": 10,
-                        "hpRegenPercent": 22
+            "name": "血藤缠杖",
+            "type": "祭品",
+            "icon": "🩸",
+            "category": "tribute",
+            "rarity": "mythic",
+            "level": 1,
+            "stack": 1,
+            "price": 1600,
+            "effects": {
+                "matkPercent": 10,
+                "hpRegenPercent": 22
+            },
+            "stats": [
+                {
+                    "name": "魔法攻击",
+                    "value": "+10%"
                 },
-                "stats": [
-                        {
-                                "name": "魔法攻击",
-                                "value": "+10%"
-                        },
-                        {
-                                "name": "生命恢复",
-                                "value": "+22%"
-                        },
-                        {
-                                "name": "血藤寄生",
-                                "value": "吸血"
-                        }
-                ],
-                "desc": "血藤缠杖而生，饮血反哺。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/血藤缠杖.png",
-                "dropImage": "assets/items/tributes/crafts/血藤缠杖.png",
-                "special": {
-                        "friendlyLifestealPercent": 10
+                {
+                    "name": "生命恢复",
+                    "value": "+22%"
+                },
+                {
+                    "name": "血藤寄生",
+                    "value": "吸血"
                 }
+            ],
+            "desc": "血藤缠杖而生，饮血反哺。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/血藤缠杖.png",
+            "dropImage": "assets/items/tributes/crafts/血藤缠杖.png",
+            "special": {
+                "friendlyLifestealPercent": 10
+            }
         },
         "craft_jade_twins": {
-                "name": "双身翡翠神像",
-                "type": "祭品",
-                "icon": "🗿",
-                "category": "tribute",
-                "rarity": "legendary",
-                "level": 1,
-                "stack": 1,
-                "price": 3200,
-                "effects": {
-                        "hpRegenPercent": 30,
-                        "defPercent": 12
+            "name": "双身翡翠神像",
+            "type": "祭品",
+            "icon": "🗿",
+            "category": "tribute",
+            "rarity": "legendary",
+            "level": 1,
+            "stack": 1,
+            "price": 3200,
+            "effects": {
+                "hpRegenPercent": 30,
+                "defPercent": 12
+            },
+            "stats": [
+                {
+                    "name": "生命恢复",
+                    "value": "+30%"
                 },
-                "stats": [
-                        {
-                                "name": "生命恢复",
-                                "value": "+30%"
-                        },
-                        {
-                                "name": "物理防御",
-                                "value": "+12%"
-                        },
-                        {
-                                "name": "双身",
-                                "value": "募兵×2"
-                        }
-                ],
-                "desc": "背对背的翡翠双身像，一个看家，一个招兵。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/双身翡翠神像.png",
-                "dropImage": "assets/items/tributes/crafts/双身翡翠神像.png",
-                "special": {
-                        "recruitCountMul": 2
+                {
+                    "name": "物理防御",
+                    "value": "+12%"
+                },
+                {
+                    "name": "双身",
+                    "value": "募兵×2"
                 }
+            ],
+            "desc": "背对背的翡翠双身像，一个看家，一个招兵。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/双身翡翠神像.png",
+            "dropImage": "assets/items/tributes/crafts/双身翡翠神像.png",
+            "special": {
+                "recruitCountMul": 2
+            }
         },
         "craft_gold_astrolabe": {
-                "name": "黄金星象仪",
-                "type": "祭品",
-                "icon": "🌟",
-                "category": "tribute",
-                "rarity": "legendary",
-                "level": 1,
-                "stack": 1,
-                "price": 3200,
-                "effects": {
-                        "visionRangePercent": 100,
-                        "expPercent": 13
+            "name": "黄金星象仪",
+            "type": "祭品",
+            "icon": "🌟",
+            "category": "tribute",
+            "rarity": "legendary",
+            "level": 1,
+            "stack": 1,
+            "price": 3200,
+            "effects": {
+                "visionRangePercent": 100,
+                "expPercent": 13
+            },
+            "stats": [
+                {
+                    "name": "基础视野",
+                    "value": "+100%"
                 },
-                "stats": [
-                        {
-                                "name": "基础视野",
-                                "value": "+100%"
-                        },
-                        {
-                                "name": "经验获取",
-                                "value": "+13%"
-                        },
-                        {
-                                "name": "风调雨顺",
-                                "value": "产出×1.5"
-                        }
-                ],
-                "desc": "黄铜环圈咬合星图。观星知天时，风调雨顺。",
-                "maxStack": 999,
-                "iconImage": "assets/items/tributes/crafts/黄金星象仪.png",
-                "dropImage": "assets/items/tributes/crafts/黄金星象仪.png",
-                "special": {
-                        "productionResourcePercent": 50
+                {
+                    "name": "经验获取",
+                    "value": "+13%"
+                },
+                {
+                    "name": "风调雨顺",
+                    "value": "产出×1.5"
                 }
+            ],
+            "desc": "黄铜环圈咬合星图。观星知天时，风调雨顺。",
+            "maxStack": 999,
+            "iconImage": "assets/items/tributes/crafts/黄金星象仪.png",
+            "dropImage": "assets/items/tributes/crafts/黄金星象仪.png",
+            "special": {
+                "productionResourcePercent": 50
+            }
+        },
+        "stg44": {
+            "weaponId": "weapon23",
+            "name": "STG-44",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/stg44.png",
+            "slotImage": "assets/icons/firearms/stg44.png",
+            "dropImage": "assets/weapons/stg44-equip.png",
+            "equipImage": "assets/weapons/stg44-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "common",
+            "level": 6,
+            "price": 100,
+            "weaponCategory": "mainhand",
+            "weaponType": "stg44",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/stg44-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "7+智力×0.24+精神×0.24"
+                },
+                {
+                    "name": "射程",
+                    "value": "1400"
+                }
+            ],
+            "desc": "STG-44自动步枪，500发/分钟，亮金色曳光弹；单发沉重、后坐明显的早期突击步枪",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1400,
+                "knockback": 3,
+                "attackInterval": 120,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1180,
+                "damageFalloff": {
+                    "start": 620,
+                    "minMultiplier": 0.38
+                }
+            },
+            "animation": {
+                "type": "recoil（后坐力抖动）",
+                "totalMs": "120ms (约)",
+                "windupMs": "≈24",
+                "swingMs": "≈36",
+                "recoveryMs": "≈60",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 96,
+                "timingMul": "0.12x (中速)",
+                "recoilAmount": "0.14rad",
+                "description": "STG-44以500RPM连续射击，120ms开火周期和较明显后坐力换取稳定的单发压制感。"
+            },
+            "attackKey": "stg44",
+            "animConfigKey": "stg44",
+            "fireSound": "assets/sounds/weapons/stg44_fire.wav",
+            "equipSound": "assets/sounds/weapons/stg44_equip.wav",
+            "canvasImageProp": "stg44Image",
+            "ammoConfig": {
+                "max": 30,
+                "reloadTime": 1600,
+                "reloadSound": "assets/sounds/weapons/stg44_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 7,
+                "enhanceFlat": 0.55,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.24,
+                        "perEnhance": 0.04
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.24,
+                        "perEnhance": 0.04
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 4,
+                "maxShots": 14,
+                "recoveryMs": 520,
+                "maxAngle": 30
+            }
+        },
+        "qbz95": {
+            "weaponId": "weapon24",
+            "name": "QBZ-95",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/qbz-95.png",
+            "slotImage": "assets/icons/firearms/qbz-95.png",
+            "dropImage": "assets/weapons/qbz95-equip.png",
+            "equipImage": "assets/weapons/qbz95-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "uncommon",
+            "level": 9,
+            "price": 200,
+            "weaponCategory": "mainhand",
+            "weaponType": "qbz95",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/qbz95-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "6+智力×0.22+精神×0.22"
+                },
+                {
+                    "name": "射程",
+                    "value": "1480"
+                }
+            ],
+            "desc": "QBZ-95自动步枪，约650发/分钟，亮金色曳光弹；紧凑无托结构兼顾射速、操控与恢复",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1480,
+                "knockback": 2,
+                "attackInterval": 92,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1248,
+                "damageFalloff": {
+                    "start": 660,
+                    "minMultiplier": 0.4
+                }
+            },
+            "animation": {
+                "type": "recoil（后坐力抖动）",
+                "totalMs": "92ms (约)",
+                "windupMs": "≈18",
+                "swingMs": "≈28",
+                "recoveryMs": "≈46",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 96,
+                "timingMul": "0.09x (高速)",
+                "recoilAmount": "0.10rad",
+                "description": "QBZ-95以约650RPM连续射击，无托结构提供较快散布恢复，定位在M416与QBZ-191之间。"
+            },
+            "attackKey": "qbz95",
+            "animConfigKey": "qbz95",
+            "fireSound": "assets/sounds/weapons/qbz95_fire.wav",
+            "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+            "canvasImageProp": "qbz95Image",
+            "ammoConfig": {
+                "max": 30,
+                "reloadTime": 1250,
+                "reloadSound": "assets/sounds/weapons/qbz95_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 6,
+                "enhanceFlat": 0.4,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.22,
+                        "perEnhance": 0.035
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.22,
+                        "perEnhance": 0.035
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 7,
+                "maxShots": 19,
+                "recoveryMs": 360,
+                "maxAngle": 23
+            }
+        },
+        "frontier_rifle": {
+            "weaponId": "weapon25",
+            "name": "边境突击步枪",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/frontier-rifle.png",
+            "slotImage": "assets/icons/firearms/frontier-rifle.png",
+            "dropImage": "assets/weapons/frontier-rifle-equip.png",
+            "equipImage": "assets/weapons/frontier-rifle-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "epic",
+            "level": 15,
+            "price": 800,
+            "weaponCategory": "mainhand",
+            "weaponType": "frontier_rifle",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/frontier-rifle-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "6+智力×0.28+精神×0.28"
+                },
+                {
+                    "name": "射程",
+                    "value": "1650"
+                }
+            ],
+            "desc": "边境突击步枪，约770发/分钟；轻量化机匣与配重枪托让连续射击兼具速度、精度和恢复。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1650,
+                "knockback": 1,
+                "attackInterval": 78,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1360,
+                "damageFalloff": {
+                    "start": 760,
+                    "minMultiplier": 0.46
+                }
+            },
+            "animation": {
+                "type": "recoil（后坐力抖动）",
+                "totalMs": "78ms (约)",
+                "windupMs": "≈16",
+                "swingMs": "≈23",
+                "recoveryMs": "≈39",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 96,
+                "timingMul": "0.08x (高速)",
+                "recoilAmount": "0.08rad",
+                "description": "边境突击步枪以约770RPM连续射击，强调快速恢复和中距离稳定压制。"
+            },
+            "attackKey": "frontier_rifle",
+            "animConfigKey": "frontier_rifle",
+            "fireSound": "assets/sounds/weapons/m416_fire.wav",
+            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "canvasImageProp": "frontierRifleImage",
+            "ammoConfig": {
+                "max": 32,
+                "reloadTime": 1150,
+                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 6,
+                "enhanceFlat": 0.55,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.28,
+                        "perEnhance": 0.045
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.28,
+                        "perEnhance": 0.045
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 9,
+                "maxShots": 24,
+                "recoveryMs": 280,
+                "maxAngle": 18
+            }
+        },
+        "vengeance_rifle": {
+            "weaponId": "weapon26",
+            "name": "复仇之神",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/vengeance-rifle.png",
+            "slotImage": "assets/icons/firearms/vengeance-rifle.png",
+            "dropImage": "assets/weapons/vengeance-rifle-equip.png",
+            "equipImage": "assets/weapons/vengeance-rifle-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "epic",
+            "level": 15,
+            "price": 800,
+            "weaponCategory": "mainhand",
+            "weaponType": "vengeance_rifle",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/vengeance-rifle-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "12+智力×0.50+精神×0.50"
+                },
+                {
+                    "name": "射程",
+                    "value": "1850"
+                }
+            ],
+            "desc": "复仇之神三连发突击步枪；重型谐振机匣用短促齐射换取远距离精度与强击退。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1850,
+                "knockback": 4,
+                "attackInterval": 300,
+                "hitType": "深红曳光弹（三连发直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1440,
+                "damageFalloff": {
+                    "start": 900,
+                    "minMultiplier": 0.55
+                }
+            },
+            "animation": {
+                "type": "recoil（后坐力抖动）",
+                "totalMs": "300ms + 2×60ms burst",
+                "windupMs": "≈35",
+                "swingMs": "≈70",
+                "recoveryMs": "≈195",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 100,
+                "timingMul": "0.30x (三连发)",
+                "recoilAmount": "0.16rad",
+                "description": "复仇之神每次扣动扳机发射三发，发内间隔60ms，随后进入300ms射击周期。"
+            },
+            "attackKey": "vengeance_rifle",
+            "animConfigKey": "vengeance_rifle",
+            "fireSound": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
+            "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+            "canvasImageProp": "vengeanceRifleImage",
+            "ammoConfig": {
+                "max": 24,
+                "reloadTime": 1450,
+                "reloadSound": "assets/sounds/weapons/qbz95_reload.wav"
+            },
+            "fireMode": "semiAuto",
+            "attackFormula": {
+                "base": 12,
+                "enhanceFlat": 1,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.5,
+                        "perEnhance": 0.08
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.5,
+                        "perEnhance": 0.08
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 6,
+                "maxShots": 18,
+                "recoveryMs": 460,
+                "maxAngle": 14
+            },
+            "burstMode": 3
+        },
+        "astral_tide_rifle": {
+            "weaponId": "weapon27",
+            "name": "星潮协议",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/astral-tide-rifle.png",
+            "slotImage": "assets/icons/firearms/astral-tide-rifle.png",
+            "dropImage": "assets/weapons/astral-tide-rifle-equip.png",
+            "equipImage": "assets/weapons/astral-tide-rifle-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "mythic",
+            "level": 18,
+            "price": 1600,
+            "weaponCategory": "mainhand",
+            "weaponType": "astral_tide_rifle",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/astral-tide-rifle-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "6+智力×0.26+精神×0.26"
+                },
+                {
+                    "name": "射程",
+                    "value": "1700"
+                }
+            ],
+            "desc": "神话自动步枪“星潮协议”；相位线圈会在持续开火中逐步缩短攻击间隔，短战起步克制，长战进入高速压制。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1700,
+                "knockback": 2,
+                "attackInterval": 88,
+                "hitType": "青金相位曳光弹（持续射击升速）",
+                "damageType": "物理",
+                "projectileSpeed": 1400,
+                "damageFalloff": {
+                    "start": 800,
+                    "minMultiplier": 0.48
+                }
+            },
+            "animation": {
+                "type": "recoil（持续射击升速）",
+                "totalMs": "88ms→60ms",
+                "windupMs": "≈14",
+                "swingMs": "≈22",
+                "recoveryMs": "≈52→24",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 100,
+                "timingMul": "0.09x→0.06x（升速）",
+                "recoilAmount": "0.10rad",
+                "description": "星潮协议从约682RPM线性升至1000RPM，约2秒达到峰值；松开扳机450ms后用1.6秒衰减。"
+            },
+            "attackKey": "astral_tide_rifle",
+            "animConfigKey": "astral_tide_rifle",
+            "fireSound": "assets/sounds/weapons/m416_fire.wav",
+            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "canvasImageProp": "astralTideRifleImage",
+            "ammoConfig": {
+                "max": 36,
+                "reloadTime": 1100,
+                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 6,
+                "enhanceFlat": 0.5,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.26,
+                        "perEnhance": 0.043
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.26,
+                        "perEnhance": 0.043
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 8,
+                "maxShots": 22,
+                "recoveryMs": 320,
+                "maxAngle": 20
+            },
+            "rampFireParams": {
+                "minCooldown": 60,
+                "rampUpTime": 2000,
+                "decayDelay": 450,
+                "decayTime": 1600
+            }
+        },
+        "zero_point_rifle": {
+            "weaponId": "weapon28",
+            "name": "零点仲裁",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/zero-point-arbitrator.png",
+            "slotImage": "assets/icons/firearms/zero-point-arbitrator.png",
+            "dropImage": "assets/weapons/zero-point-arbitrator-equip.png",
+            "equipImage": "assets/weapons/zero-point-arbitrator-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "mythic",
+            "level": 18,
+            "price": 1600,
+            "weaponCategory": "mainhand",
+            "weaponType": "zero_point_rifle",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/zero-point-arbitrator-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "6+智力×0.28+精神×0.28"
+                },
+                {
+                    "name": "射程",
+                    "value": "1800"
+                }
+            ],
+            "desc": "神话自动步枪“零点仲裁”；普通弹首次命中会积累校准，连续确认8发后，下一发转化为1.8倍伤害、额外穿透2个目标的相位仲裁弹。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1800,
+                "knockback": 1,
+                "attackInterval": 82,
+                "hitType": "洋红相位弹（命中校准/仲裁穿透）",
+                "damageType": "物理",
+                "projectileSpeed": 1500,
+                "damageFalloff": {
+                    "start": 900,
+                    "minMultiplier": 0.55
+                }
+            },
+            "animation": {
+                "type": "recoil（命中校准）",
+                "totalMs": "82ms (约)",
+                "windupMs": "≈16",
+                "swingMs": "≈24",
+                "recoveryMs": "≈42",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 100,
+                "timingMul": "0.08x",
+                "recoilAmount": "0.07rad",
+                "description": "约732RPM精准连射；每8发普通弹首次命中后，下一发转化为相位仲裁弹。"
+            },
+            "attackKey": "zero_point_rifle",
+            "animConfigKey": "zero_point_rifle",
+            "fireSound": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
+            "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+            "canvasImageProp": "zeroPointRifleImage",
+            "ammoConfig": {
+                "max": 30,
+                "reloadTime": 1100,
+                "reloadSound": "assets/sounds/weapons/qbz95_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 6,
+                "enhanceFlat": 0.55,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.28,
+                        "perEnhance": 0.045
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.28,
+                        "perEnhance": 0.045
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 10,
+                "maxShots": 26,
+                "recoveryMs": 260,
+                "maxAngle": 13
+            },
+            "calibrationShotParams": {
+                "hitsRequired": 8,
+                "damageMultiplier": 1.8,
+                "piercingBonus": 2
+            }
+        },
+        "corona_cadence_rifle": {
+            "weaponId": "weapon29",
+            "name": "日冕裁律",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/corona-cadence-rifle.png",
+            "slotImage": "assets/icons/firearms/corona-cadence-rifle.png",
+            "dropImage": "assets/weapons/corona-cadence-rifle-equip.png",
+            "equipImage": "assets/weapons/corona-cadence-rifle-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "mainhand",
+            "weaponType": "corona_cadence_rifle",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/corona-cadence-rifle-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "6+智力×0.28+精神×0.28"
+                },
+                {
+                    "name": "射程",
+                    "value": "1750"
+                }
+            ],
+            "desc": "传说自动步枪“日冕裁律”；停火450ms会重置射击节律，第5—12发进入日冕稳定窗，造成1.28倍伤害且散布缩减55%，继续扫射则退出增益。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1750,
+                "knockback": 2,
+                "attackInterval": 76,
+                "hitType": "赤金日冕弹（中段节律强化）",
+                "damageType": "物理",
+                "projectileSpeed": 1480,
+                "damageFalloff": {
+                    "start": 850,
+                    "minMultiplier": 0.52
+                }
+            },
+            "animation": {
+                "type": "recoil（节律稳定窗）",
+                "totalMs": "76ms (约)",
+                "windupMs": "≈15",
+                "swingMs": "≈23",
+                "recoveryMs": "≈38",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 100,
+                "timingMul": "0.075x",
+                "recoilAmount": "0.08rad",
+                "description": "约789RPM；第5—12发进入日冕稳定窗，停火450ms重置。"
+            },
+            "attackKey": "corona_cadence_rifle",
+            "animConfigKey": "corona_cadence_rifle",
+            "fireSound": "assets/sounds/weapons/m416_fire.wav",
+            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "canvasImageProp": "coronaCadenceRifleImage",
+            "ammoConfig": {
+                "max": 32,
+                "reloadTime": 1100,
+                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 6,
+                "enhanceFlat": 0.55,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.28,
+                        "perEnhance": 0.045
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.28,
+                        "perEnhance": 0.045
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 9,
+                "maxShots": 24,
+                "recoveryMs": 280,
+                "maxAngle": 16
+            },
+            "rhythmBurstParams": {
+                "startShot": 5,
+                "endShot": 12,
+                "damageMultiplier": 1.28,
+                "resetMs": 450
+            }
+        },
+        "terminal_echo_rifle": {
+            "weaponId": "weapon30",
+            "name": "终末回声",
+            "type": "自动步枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/firearms/terminal-echo-rifle.png",
+            "slotImage": "assets/icons/firearms/terminal-echo-rifle.png",
+            "dropImage": "assets/weapons/terminal-echo-rifle-equip.png",
+            "equipImage": "assets/weapons/terminal-echo-rifle-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "mainhand",
+            "weaponType": "terminal_echo_rifle",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/terminal-echo-rifle-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "7+智力×0.27+精神×0.27"
+                },
+                {
+                    "name": "射程",
+                    "value": "1700"
+                }
+            ],
+            "desc": "传说自动步枪“终末回声”；连续射击第6发起进入收束，每层提高2%伤害并降低3.5%散布，最多10层，停火320ms后清零。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1700,
+                "knockback": 1,
+                "attackInterval": 82,
+                "hitType": "青白收束弹（持续射击强化）",
+                "damageType": "物理",
+                "projectileSpeed": 1500,
+                "damageFalloff": {
+                    "start": 800,
+                    "minMultiplier": 0.5
+                }
+            },
+            "animation": {
+                "type": "recoil（持续收束）",
+                "totalMs": "82ms (约)",
+                "windupMs": "≈16",
+                "swingMs": "≈24",
+                "recoveryMs": "≈42",
+                "holdOffset": "(0, 6)",
+                "weaponSize": 100,
+                "timingMul": "0.08x",
+                "recoilAmount": "0.075rad",
+                "description": "约732RPM；第6发起逐层收束，持续射击达到峰值。"
+            },
+            "attackKey": "terminal_echo_rifle",
+            "animConfigKey": "terminal_echo_rifle",
+            "fireSound": "assets/sounds/weapons/m416_fire.wav",
+            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "canvasImageProp": "terminalEchoRifleImage",
+            "ammoConfig": {
+                "max": 34,
+                "reloadTime": 1250,
+                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 7,
+                "enhanceFlat": 0.5,
+                "attrs": [
+                    {
+                        "key": "int",
+                        "base": 0.27,
+                        "perEnhance": 0.045
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.27,
+                        "perEnhance": 0.045
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 6,
+                "maxShots": 22,
+                "recoveryMs": 320,
+                "maxAngle": 19
+            },
+            "convergenceParams": {
+                "startShot": 6,
+                "maxStacks": 10,
+                "damagePerStack": 0.02,
+                "spreadPerStack": 0.035,
+                "resetMs": 320
+            }
         },
         "rpd": {
             "weaponId": "weapon31",
@@ -5159,320 +6106,6 @@
                 "maxShots": 24,
                 "recoveryMs": 450,
                 "maxAngle": 18
-            }
-        },
-        "singularity_loom_lmg": {
-            "weaponId": "weapon36",
-            "name": "奇点织机",
-            "type": "机枪",
-            "icon": "🔫",
-            "iconImage": "assets/icons/singularity-loom-lmg-equip.png",
-            "slotImage": "assets/icons/singularity-loom-lmg-equip.png",
-            "dropImage": "assets/weapons/singularity-loom-lmg-equip.png",
-            "equipImage": "assets/weapons/singularity-loom-lmg-equip.png",
-            "category": "weapon_ranged",
-            "rarity": "mythic",
-            "level": 18,
-            "price": 1600,
-            "weaponCategory": "mainhand",
-            "weaponType": "singularity_loom_lmg",
-            "weaponTypeTag": "远程武器",
-            "isTwoHanded": true,
-            "weaponAsset": {
-                "image": "assets/weapons/singularity-loom-lmg-equip.png",
-                "muzzleImage": "assets/effects/muzzle_flash_01.png"
-            },
-            "stats": [
-                {
-                    "name": "物理攻击",
-                    "value": "12+力量×0.42+精神×0.42"
-                },
-                {
-                    "name": "射程",
-                    "value": "1800"
-                }
-            ],
-            "desc": "神话轻机枪“奇点织机”；主弹命中后会以青白引力弧弹射至400像素内最近的另一个目标，造成65%伤害，弹射不会递归。",
-            "equipSlot": "weapon",
-            "attack": {
-                "range": 1800,
-                "knockback": 2,
-                "attackInterval": 120,
-                "hitType": "青白奇点曳光弹（最近目标弹射）",
-                "damageType": "物理",
-                "projectileSpeed": 1500,
-                "damageFalloff": {
-                    "start": 900,
-                    "minMultiplier": 0.52
-                }
-            },
-            "animation": {
-                "type": "recoil（引力缓冲）",
-                "totalMs": "120ms（固定射击间隔）",
-                "windupMs": "≈22",
-                "swingMs": "≈38",
-                "recoveryMs": "≈60",
-                "holdOffset": "(-64, -6)",
-                "weaponSize": 104,
-                "timingMul": "0.12x",
-                "recoilAmount": "0.075rad",
-                "description": "主弹命中后产生一次青白引力弧，向最近的另一个目标弹射。"
-            },
-            "heatParams": {
-                "overheatTime": 7200,
-                "overheatRecoverTime": 2200,
-                "overheatCooldownTime": 3000
-            },
-            "ricochetParams": {
-                "range": 400,
-                "damageMultiplier": 0.65,
-                "knockback": 2
-            },
-            "attackKey": "singularity_loom_lmg",
-            "animConfigKey": "singularity_loom_lmg",
-            "fireSound": "assets/sounds/weapons/singularity_loom_lmg_fire.wav",
-            "equipSound": "assets/sounds/weapons/singularity_loom_lmg_equip.wav",
-            "canvasImageProp": "singularityLoomLmgImage",
-            "ammoConfig": {
-                "max": 70,
-                "reloadTime": 3500,
-                "reloadSound": "assets/sounds/weapons/singularity_loom_lmg_reload.wav"
-            },
-            "fireMode": "fullAuto",
-            "attackFormula": {
-                "base": 12,
-                "enhanceFlat": 0.9,
-                "attrs": [
-                    {
-                        "key": "str",
-                        "base": 0.42,
-                        "perEnhance": 0.065
-                    },
-                    {
-                        "key": "wis",
-                        "base": 0.42,
-                        "perEnhance": 0.065
-                    }
-                ]
-            },
-            "spreadParams": {
-                "startShots": 10,
-                "maxShots": 28,
-                "recoveryMs": 360,
-                "maxAngle": 17
-            }
-        },
-        "celestial_cartographer_lmg": {
-            "weaponId": "weapon37",
-            "name": "天穹测绘者",
-            "type": "机枪",
-            "icon": "🔫",
-            "iconImage": "assets/icons/celestial-cartographer-lmg-equip.png",
-            "slotImage": "assets/icons/celestial-cartographer-lmg-equip.png",
-            "dropImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
-            "equipImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
-            "category": "weapon_ranged",
-            "rarity": "legendary",
-            "level": 21,
-            "price": 3200,
-            "weaponCategory": "mainhand",
-            "weaponType": "celestial_cartographer_lmg",
-            "weaponTypeTag": "远程武器",
-            "isTwoHanded": true,
-            "weaponAsset": {
-                "image": "assets/weapons/celestial-cartographer-lmg-equip.png",
-                "muzzleImage": "assets/effects/muzzle_flash_01.png"
-            },
-            "stats": [
-                {
-                    "name": "物理攻击",
-                    "value": "13+力量×0.46+精神×0.46"
-                },
-                {
-                    "name": "射程",
-                    "value": "1850"
-                }
-            ],
-            "desc": "传说轻机枪“天穹测绘者”；连续有效命中第4次建立星图锚点，第8次完成测绘：命中另一目标会拉出经纬线扫过沿线敌人，继续压制锚点则降下天顶坠击。停火700ms后序列重置。",
-            "equipSlot": "weapon",
-            "attack": {
-                "range": 1850,
-                "knockback": 3,
-                "attackInterval": 105,
-                "hitType": "蓝金星图弹（经纬线/天顶坠击）",
-                "damageType": "物理",
-                "projectileSpeed": 1540,
-                "damageFalloff": {
-                    "start": 940,
-                    "minMultiplier": 0.55
-                }
-            },
-            "animation": {
-                "type": "recoil（星盘稳像）",
-                "totalMs": "105ms（固定射击间隔）",
-                "windupMs": "≈20",
-                "swingMs": "≈35",
-                "recoveryMs": "≈50",
-                "holdOffset": "(-64, -6)",
-                "weaponSize": 104,
-                "timingMul": "0.105x",
-                "recoilAmount": "0.07rad",
-                "description": "蓝金星图弹以连续有效命中建立锚点，并在终段绘制经纬线或降下天顶坠击。"
-            },
-            "heatParams": {
-                "overheatTime": 7600,
-                "overheatRecoverTime": 2100,
-                "overheatCooldownTime": 2900
-            },
-            "constellationParams": {
-                "anchorHit": 4,
-                "resolveHit": 8,
-                "resetMs": 700,
-                "lineWidth": 58,
-                "lineMaxTargets": 6,
-                "lineDamageMultiplier": 0.6,
-                "focusDamageMultiplier": 1.05,
-                "focusSplashRadius": 110,
-                "focusSplashMultiplier": 0.35,
-                "focusSplashMaxTargets": 4,
-                "knockback": 2
-            },
-            "attackKey": "celestial_cartographer_lmg",
-            "animConfigKey": "celestial_cartographer_lmg",
-            "fireSound": "assets/sounds/weapons/celestial_cartographer_lmg_fire.wav",
-            "equipSound": "assets/sounds/weapons/celestial_cartographer_lmg_equip.wav",
-            "canvasImageProp": "celestialCartographerLmgImage",
-            "ammoConfig": {
-                "max": 80,
-                "reloadTime": 3400,
-                "reloadSound": "assets/sounds/weapons/celestial_cartographer_lmg_reload.wav"
-            },
-            "fireMode": "fullAuto",
-            "attackFormula": {
-                "base": 13,
-                "enhanceFlat": 1,
-                "attrs": [
-                    {
-                        "key": "str",
-                        "base": 0.46,
-                        "perEnhance": 0.07
-                    },
-                    {
-                        "key": "wis",
-                        "base": 0.46,
-                        "perEnhance": 0.07
-                    }
-                ]
-            },
-            "spreadParams": {
-                "startShots": 11,
-                "maxShots": 30,
-                "recoveryMs": 340,
-                "maxAngle": 16
-            }
-        },
-        "grave_covenant_cantor_lmg": {
-            "weaponId": "weapon38",
-            "name": "冥约颂炮",
-            "type": "机枪",
-            "icon": "🔫",
-            "iconImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
-            "slotImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
-            "dropImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
-            "equipImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
-            "category": "weapon_ranged",
-            "rarity": "legendary",
-            "level": 21,
-            "price": 3200,
-            "weaponCategory": "mainhand",
-            "weaponType": "grave_covenant_cantor_lmg",
-            "weaponTypeTag": "远程武器",
-            "isTwoHanded": true,
-            "weaponAsset": {
-                "image": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
-                "muzzleImage": "assets/effects/muzzle_flash_01.png"
-            },
-            "stats": [
-                {
-                    "name": "物理攻击",
-                    "value": "15+力量×0.50+精神×0.48"
-                },
-                {
-                    "name": "射程",
-                    "value": "1750"
-                }
-            ],
-            "desc": "传说轻机枪“冥约颂炮”；有效命中依次刻下血、骨、烬三印，同一目标在5秒内集齐三印会触发黑弥撒，对130像素内最多5名敌人造成75%伤害。裁决伤害不会再次刻印。",
-            "equipSlot": "weapon",
-            "attack": {
-                "range": 1750,
-                "knockback": 4,
-                "attackInterval": 135,
-                "hitType": "赤金冥约弹（血骨烬三印裁决）",
-                "damageType": "物理",
-                "projectileSpeed": 1470,
-                "damageFalloff": {
-                    "start": 860,
-                    "minMultiplier": 0.54
-                }
-            },
-            "animation": {
-                "type": "recoil（圣咏重拍）",
-                "totalMs": "135ms（固定射击间隔）",
-                "windupMs": "≈25",
-                "swingMs": "≈45",
-                "recoveryMs": "≈65",
-                "holdOffset": "(-64, -6)",
-                "weaponSize": 104,
-                "timingMul": "0.135x",
-                "recoilAmount": "0.09rad",
-                "description": "赤金弹按血、骨、烬三拍轮转刻印，三印齐备后释放黑弥撒裁决。"
-            },
-            "heatParams": {
-                "overheatTime": 7800,
-                "overheatRecoverTime": 2400,
-                "overheatCooldownTime": 3200
-            },
-            "runeLitanyParams": {
-                "markDurationMs": 5000,
-                "verdictRadius": 130,
-                "verdictMaxTargets": 5,
-                "verdictDamageMultiplier": 0.75,
-                "inheritanceRange": 360,
-                "knockback": 3
-            },
-            "attackKey": "grave_covenant_cantor_lmg",
-            "animConfigKey": "grave_covenant_cantor_lmg",
-            "fireSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav",
-            "equipSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_equip.wav",
-            "canvasImageProp": "graveCovenantCantorLmgImage",
-            "ammoConfig": {
-                "max": 72,
-                "reloadTime": 3600,
-                "reloadSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_reload.wav"
-            },
-            "fireMode": "fullAuto",
-            "attackFormula": {
-                "base": 15,
-                "enhanceFlat": 1.05,
-                "attrs": [
-                    {
-                        "key": "str",
-                        "base": 0.5,
-                        "perEnhance": 0.075
-                    },
-                    {
-                        "key": "wis",
-                        "base": 0.48,
-                        "perEnhance": 0.072
-                    }
-                ]
-            },
-            "spreadParams": {
-                "startShots": 8,
-                "maxShots": 24,
-                "recoveryMs": 430,
-                "maxAngle": 20
             }
         }
     }

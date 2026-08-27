@@ -1,11 +1,15 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks_lv2\\refine_48step_from_v02_seed122521\\hamster_barracks_lv2\\hamster_barracks_lv2_refine_v01_body.png",
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\dedicated_cutout\\hamster_barracks_lv2\\hamster_barracks_lv2_body.png",
   "output": "assets\\terrain\\hamster_barracks_lv2.png",
   "sourceMode": "RGBA",
   "background": null,
-  "matteColor": null,
-  "matteEdgeWidth": null,
-  "matteTolerance": null,
+  "matteColor": [
+    47,
+    193,
+    19
+  ],
+  "matteEdgeWidth": 4.0,
+  "matteTolerance": 110.0,
   "nearestOpaqueEdgeRgb": true,
   "nearestOpaqueAlpha": 0.98,
   "defringeInnerPixels": 0,
@@ -22,29 +26,30 @@
   "maskAddRects": [],
   "restoreAlphaRects": [],
   "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
   "clearGreenRects": [],
   "greenHueRange": null,
   "greenSaturationMin": null,
   "greenValueMin": null,
   "cropBox": [
-    197,
-    145,
-    858,
-    840
+    194,
+    228,
+    849,
+    919
   ],
   "fileSize": [
-    661,
-    695
+    655,
+    691
   ],
   "alphaBBox": [
     4,
     4,
-    657,
-    691
+    651,
+    687
   ],
   "displayW": 290,
-  "displayH": 305,
+  "displayH": 306,
   "footOffsetY": 151,
-  "scaleX": 0.43872919818456885,
-  "scaleY": 0.43884892086330934
+  "scaleX": 0.44274809160305345,
+  "scaleY": 0.44283646888567296
 }

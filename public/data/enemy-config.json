@@ -60,6 +60,302 @@
     },
     "height": 68.4
   },
+  "brownSnake": {
+    "id": "brownSnake",
+    "name": "棕蛇",
+    "hp": 135,
+    "maxHp": 135,
+    "size": 11,
+    "collisionRadius": 28,
+    "speed": 255,
+    "level": 5,
+    "color": "#704326",
+    "highlightColor": "rgba(145, 92, 52, 0.3)",
+    "str": 22,
+    "dex": 31,
+    "con": 20,
+    "int": 5,
+    "wis": 6,
+    "luck": 9,
+    "rank": "normal",
+    "attackRange": 140,
+    "attackDistance": 140,
+    "basicMelee": {
+      "approachReach": 140,
+      "impactReach": 130,
+      "width": 24,
+      "timeline": {
+        "durationMs": 900,
+        "frameCount": 21,
+        "contactFrame": 10,
+        "activeFrames": [9, 11]
+      }
+    },
+    "aiInterval": 1200,
+    "ai": {
+      "aggroRange": 2500,
+      "pacingRange": 180,
+      "loseTimeout": 2000
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/brown_snake/idle.mp3",
+      "idleInterval": 3000,
+      "walk": "assets/sounds/enemies/brown_snake/walking.mp3",
+      "walkInterval": 1667,
+      "attack": "assets/sounds/enemies/brown_snake/attacking.mp3",
+      "death": "assets/sounds/enemies/brown_snake/dying.mp3"
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1200,
+      "dynamicRange": 150,
+      "width": 24,
+      "knockback": 8
+    },
+    "attackSkills": {
+      "poisonOnHit": {
+        "stacks": 1
+      }
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "动物",
+    "description": "常见于温暖林地与湿地的棕色毒蛇。体魄和速度略逊于黑狼，但撕咬攻击力接近黑狼，并会在每次有效命中后叠加中毒。",
+    "skills": [
+      {
+        "name": "毒牙",
+        "desc": "每次撕咬实际命中且未被弹反时，为目标叠加 1 层中毒。"
+      }
+    ],
+    "attackType": "毒牙撕咬",
+    "render": {
+      "spriteSize": 151,
+      "collisionWidth": 110,
+      "collisionHeight": 45,
+      "footOffsetY": 45.42,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 110,
+        "height": 45,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "height": 46,
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1000
+    },
+    "textures": {
+      "idle": "assets/enemies/brown_snake/idle.png",
+      "walk": "assets/enemies/brown_snake/walking.png",
+      "attack": "assets/enemies/brown_snake/attacking.png",
+      "death": "assets/enemies/brown_snake/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 2,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "footY": 410,
+          "frameRate": 4,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 5,
+          "rows": 4,
+          "frameWidth": 1152,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "footY": 410,
+          "visualScale": 0.98952,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 1024,
+          "frameHeight": 512,
+          "frameCount": 21,
+          "footY": 410,
+          "duration": 900,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 18,
+          "footY": 410,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "blackKingCobra": {
+    "id": "blackKingCobra",
+    "name": "黑色眼镜蛇王",
+    "hp": 720,
+    "maxHp": 720,
+    "size": 20,
+    "collisionRadius": 42,
+    "speed": 190,
+    "level": 9,
+    "color": "#16171b",
+    "highlightColor": "rgba(86, 50, 108, 0.32)",
+    "str": 50,
+    "dex": 34,
+    "con": 38,
+    "int": 12,
+    "wis": 16,
+    "luck": 8,
+    "rank": "elite",
+    "type": "精英",
+    "category": "monster",
+    "family": "动物",
+    "attackRange": 190,
+    "attackDistance": 190,
+    "basicMelee": {
+      "approachReach": 190,
+      "impactReach": 185,
+      "width": 52,
+      "timeline": {
+        "durationMs": 1200,
+        "frameCount": 21,
+        "contactFrame": 13,
+        "activeFrames": [12, 14]
+      }
+    },
+    "aiInterval": 1100,
+    "ai": {
+      "aggroRange": 2500,
+      "pacingRange": 220,
+      "loseTimeout": 2000
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/black_king_cobra/idle.mp3",
+      "idleInterval": 3000,
+      "walk": "assets/sounds/enemies/black_king_cobra/walking.mp3",
+      "walkInterval": 1667,
+      "attack": "assets/sounds/enemies/black_king_cobra/attacking.mp3",
+      "venom": "assets/sounds/enemies/black_king_cobra/venom_spray.mp3",
+      "death": "assets/sounds/enemies/black_king_cobra/dying.mp3"
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1100,
+      "dynamicRange": 200,
+      "width": 52,
+      "knockback": 12
+    },
+    "attackSkills": {
+      "poisonOnHit": {
+        "stacks": 3
+      },
+      "venomSpray": {
+        "cooldown": 9000,
+        "initialCooldownMs": 2500,
+        "triggerRange": 450,
+        "range": 420,
+        "arcDegrees": 82,
+        "damageMultiplier": 0.85,
+        "damageType": "magic",
+        "poisonStacks": 5,
+        "durationMs": 1200,
+        "frameCount": 21,
+        "releaseFrame": 13,
+        "releaseSourceFrame": 77,
+        "effectDurationMs": 1000,
+        "particleCount": 84
+      }
+    },
+    "description": "体型与战斗数值接近红狼王的精英动物。普通毒牙每次有效命中叠加3层中毒，并会锁定方向喷出大范围紫色毒雾。",
+    "skills": [
+      {
+        "name": "王蛇毒牙",
+        "desc": "每次普通撕咬实际命中且未被弹反时，为目标叠加3层中毒。"
+      },
+      {
+        "name": "紫雾毒液喷射",
+        "desc": "播放攻击动画并锁定施法方向，在蛇头前探最远的第13帧喷射大量紫色毒液，对前方82度、420像素扇形内可见单位造成物攻×0.85魔法伤害并叠加5层中毒，冷却9秒。"
+      }
+    ],
+    "attackType": "毒牙撕咬与扇形毒雾",
+    "idleTexture": "assets/enemies/black_king_cobra/idle.png",
+    "idleFrameWidth": 512,
+    "idleSheetColumns": 6,
+    "render": {
+      "spriteSize": 210,
+      "collisionWidth": 145,
+      "collisionHeight": 150,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 145,
+        "height": 150,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "height": 152,
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1000
+    },
+    "textures": {
+      "idle": "assets/enemies/black_king_cobra/idle.png",
+      "walk": "assets/enemies/black_king_cobra/walking.png",
+      "attack": "assets/enemies/black_king_cobra/attacking.png",
+      "death": "assets/enemies/black_king_cobra/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 2,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "footY": 420,
+          "frameRate": 4,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 5,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "footY": 420,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 21,
+          "footY": 420,
+          "duration": 1200,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 17,
+          "footY": 420,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
   "brownBear": {
     "id": "brownBear",
     "name": "棕熊",
@@ -182,6 +478,601 @@
       }
     }
   },
+  "evilTreant": {
+    "id": "evilTreant",
+    "name": "邪恶树精",
+    "hp": 300,
+    "maxHp": 300,
+    "size": 18,
+    "collisionRadius": 36.3,
+    "speed": 180,
+    "level": 6,
+    "color": "#4b4034",
+    "highlightColor": "rgba(116, 70, 138, 0.3)",
+    "str": 34,
+    "dex": 18,
+    "con": 34,
+    "int": 6,
+    "wis": 10,
+    "luck": 8,
+    "rank": "normal",
+    "attackRange": 150,
+    "attackDistance": 150,
+    "basicMelee": {
+      "approachReach": 150,
+      "impactReach": 145,
+      "width": 60,
+      "timeline": {
+        "durationMs": 1500,
+        "frameCount": 35,
+        "contactFrame": 16,
+        "activeFrames": [15, 17]
+      }
+    },
+    "aiInterval": 1800,
+    "ai": {
+      "aggroRange": 2500,
+      "pacingRange": 180,
+      "loseTimeout": 2500
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/evil_treant/idle.mp3",
+      "idleInterval": 2500,
+      "walk": "assets/sounds/enemies/evil_treant/walking.mp3",
+      "walkInterval": 2500,
+      "attack": "assets/sounds/enemies/evil_treant/attacking.mp3",
+      "death": "assets/sounds/enemies/evil_treant/dying.mp3"
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1700,
+      "range": 150,
+      "dynamicRange": 170,
+      "width": 46,
+      "knockback": 22
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "自然",
+    "families": ["自然", "类人形"],
+    "description": "被紫色侵蚀力量扭曲的林地树精。它行动迟缓，却拥有接近棕熊的体魄与沉重木爪；死亡后躯体会崩裂成一堆失去活性的木材。",
+    "skills": [],
+    "attackType": "木爪横扫",
+    "render": {
+      "spriteSize": 260.7,
+      "collisionWidth": 90,
+      "collisionHeight": 170,
+      "footOffsetY": 117.08,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 90,
+        "height": 170,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1400
+    },
+    "textures": {
+      "idle": "assets/enemies/evil_treant/idle.png",
+      "walk": "assets/enemies/evil_treant/walking.png",
+      "attack": "assets/enemies/evil_treant/attacking.png",
+      "death": "assets/enemies/evil_treant/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 30,
+          "footY": 486,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 40,
+          "footY": 486,
+          "frameRate": 16,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 35,
+          "footY": 486,
+          "duration": 1500,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 896,
+          "frameHeight": 512,
+          "frameCount": 31,
+          "footY": 486,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "purpleBlightAncient": {
+    "id": "purpleBlightAncient",
+    "name": "紫蚀古树",
+    "hp": 2100,
+    "maxHp": 2100,
+    "size": 30,
+    "collisionRadius": 72,
+    "speed": 0,
+    "level": 12,
+    "color": "#332b31",
+    "highlightColor": "rgba(149, 76, 190, 0.34)",
+    "str": 70,
+    "dex": 24,
+    "con": 72,
+    "int": 44,
+    "wis": 52,
+    "luck": 14,
+    "rank": "boss",
+    "type": "首领",
+    "category": "monster",
+    "family": "自然",
+    "families": ["自然", "类人形", "大型"],
+    "immovable": true,
+    "attackRange": 900,
+    "attackDistance": 900,
+    "aiInterval": 700,
+    "ai": {
+      "aggroRange": 2800,
+      "pacingRange": 0,
+      "loseTimeout": 3500
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/purple_blight_ancient/idle.mp3",
+      "idleInterval": 4000,
+      "melee": "assets/sounds/enemies/purple_blight_ancient/arm_sweep.mp3",
+      "rock": "assets/sounds/enemies/purple_blight_ancient/rock_throw.mp3",
+      "vine": "assets/sounds/enemies/purple_blight_ancient/vine_cast.mp3",
+      "death": "assets/sounds/enemies/purple_blight_ancient/dying.mp3"
+    },
+    "attackSkills": {
+      "armSweep": {
+        "cooldown": 2400,
+        "triggerRange": 310,
+        "range": 300,
+        "arcDegrees": 150,
+        "damageMultiplier": 1,
+        "damageType": "physical",
+        "knockback": 36,
+        "durationMs": 1500,
+        "releaseFrame": 16
+      },
+      "rockThrow": {
+        "cooldown": 8000,
+        "initialCooldownMs": 2000,
+        "triggerRange": 900,
+        "durationMs": 1600,
+        "releaseFrame": 21,
+        "flightMs": 1000,
+        "impactRadius": 180,
+        "damageMultiplier": 1.35,
+        "damageType": "physical",
+        "stunMs": 1500,
+        "projectileTexture": "purple_ancient_rock",
+        "projectileSize": 101,
+        "releasePointX": 269.5,
+        "releasePointY": 197,
+        "arcHeight": 180,
+        "spin": 6.283185307179586
+      },
+      "vineEntangle": {
+        "cooldown": 14000,
+        "initialCooldownMs": 4000,
+        "castRange": 800,
+        "durationMs": 1700,
+        "releaseFrame": 14,
+        "warningMs": 1200,
+        "radius": 230,
+        "damageMultiplier": 0.85,
+        "damageType": "physical",
+        "bindMs": 3000,
+        "comboDelayMs": 450,
+        "effectDisplaySize": 260,
+        "visualEffect": {
+          "texture": "assets/effects/vine_entangle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 35,
+          "columns": 8,
+          "rows": 5,
+          "frameRate": 12,
+          "repeat": 0
+        }
+      }
+    },
+    "description": "被紫色侵蚀力量盘踞的固定型古树首领。它以巨臂横扫近敌，以延迟一秒落地的巨石轰击远处，并用藤蔓红圈封锁区域；缠绕命中后会立刻衔接一次投石。",
+    "skills": [
+      {
+        "name": "朽木横扫",
+        "desc": "每2.4秒可挥舞巨臂，攻击前方150度、300像素扇形区域，造成一次物理伤害并击退。"
+      },
+      {
+        "name": "古岩投掷",
+        "desc": "每8秒向900像素内的锁定落点投出巨石；巨石飞行1秒后在180像素椭圆范围落地，造成物理伤害并眩晕1.5秒。"
+      },
+      {
+        "name": "紫蚀藤牢",
+        "desc": "每14秒施法，在目标区域显示1.2秒红圈预警；结算时对230像素范围造成物理伤害并束缚3秒。至少命中一个可束缚目标后，450毫秒后强制衔接古岩投掷。"
+      }
+    ],
+    "attackType": "固定型扇形横扫、延迟投石AOE与藤蔓缠绕组合技",
+    "render": {
+      "spriteSize": 390,
+      "collisionWidth": 180,
+      "collisionHeight": 300,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 180,
+        "height": 300,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "height": 300,
+    "deathAnim": {
+      "duration": 2200,
+      "holdMs": 1600
+    },
+    "textures": {
+      "idle": "assets/enemies/purple_blight_ancient/idle.png",
+      "spellcast": "assets/enemies/purple_blight_ancient/spellcast.png",
+      "attack": "assets/enemies/purple_blight_ancient/attack.png",
+      "throw": "assets/enemies/purple_blight_ancient/throw.png",
+      "death": "assets/enemies/purple_blight_ancient/death.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": { "columns": 8, "rows": 4, "frameWidth": 512, "frameHeight": 512, "frameCount": 32, "footY": 486, "frameRate": 8, "repeat": -1 },
+        "spellcast": { "columns": 8, "rows": 4, "frameWidth": 640, "frameHeight": 512, "frameCount": 31, "footY": 486, "duration": 1700, "contactFrame": 14, "repeat": 0 },
+        "attack": { "columns": 8, "rows": 4, "frameWidth": 1024, "frameHeight": 512, "frameCount": 31, "footY": 486, "duration": 1500, "contactFrame": 16, "repeat": 0 },
+        "throw": { "columns": 8, "rows": 4, "frameWidth": 768, "frameHeight": 512, "frameCount": 31, "footY": 486, "duration": 1600, "contactFrame": 21, "repeat": 0 },
+        "death": { "columns": 8, "rows": 4, "frameWidth": 1024, "frameHeight": 576, "frameCount": 31, "footY": 432, "duration": 2200, "repeat": 0 }
+      }
+    }
+  },
+  "carnivorousPitcher": {
+    "id": "carnivorousPitcher",
+    "name": "食人花",
+    "hp": 735,
+    "maxHp": 735,
+    "size": 20,
+    "collisionRadius": 43.5,
+    "speed": 195,
+    "level": 9,
+    "color": "#536c32",
+    "highlightColor": "rgba(150, 184, 79, 0.32)",
+    "str": 50,
+    "dex": 32,
+    "con": 39,
+    "int": 9,
+    "wis": 13,
+    "luck": 7,
+    "rank": "elite",
+    "type": "精英",
+    "category": "monster",
+    "family": "自然",
+    "attackRange": 200,
+    "attackDistance": 200,
+    "basicMelee": {
+      "approachReach": 200,
+      "impactReach": 195,
+      "width": 80,
+      "timeline": {
+        "durationMs": 1458,
+        "frameCount": 35,
+        "contactFrame": 24,
+        "activeFrames": [23, 25]
+      }
+    },
+    "aiInterval": 1550,
+    "ai": {
+      "aggroRange": 2500,
+      "pacingRange": 220,
+      "loseTimeout": 2200
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/carnivorous_pitcher/idle.mp3",
+      "idleInterval": 5000,
+      "walk": "assets/sounds/enemies/carnivorous_pitcher/walking.mp3",
+      "walkInterval": 2500,
+      "attack": "assets/sounds/enemies/carnivorous_pitcher/attacking.mp3",
+      "death": "assets/sounds/enemies/carnivorous_pitcher/dying.mp3"
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1500,
+      "range": 200,
+      "dynamicRange": 220,
+      "width": 80,
+      "knockback": 18
+    },
+    "attackSkills": {
+      "corrosionOnHit": {
+        "stacks": 1,
+        "durationMs": 5000,
+        "defenseReductionPerStack": 0.05
+      }
+    },
+    "description": "以红狼王和黑色眼镜蛇王为数值基准的自然系精英。它用巨大捕虫囊撕咬目标，每次实际命中都会叠加一层逐层消退的腐蚀。",
+    "skills": [
+      {
+        "name": "腐蚀撕咬",
+        "desc": "每次普通攻击实际命中且未被弹反时叠加1层腐蚀；每层使目标物理防御降低5%，持续5秒，倒计时结束只消退1层。"
+      }
+    ],
+    "attackType": "捕虫囊撕咬",
+    "render": {
+      "spriteSize": 280,
+      "collisionWidth": 108,
+      "collisionHeight": 185,
+      "footOffsetY": 125.78,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 108,
+        "height": 185,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "deathAnim": {
+      "duration": 1688,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/carnivorous_pitcher/idle.png",
+      "walk": "assets/enemies/carnivorous_pitcher/walking.png",
+      "attack": "assets/enemies/carnivorous_pitcher/attacking.png",
+      "death": "assets/enemies/carnivorous_pitcher/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 40,
+          "footY": 486,
+          "frameRate": 8,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 40,
+          "footY": 486,
+          "frameRate": 16,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 1024,
+          "frameHeight": 512,
+          "frameCount": 35,
+          "footY": 486,
+          "duration": 1458,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 896,
+          "frameHeight": 512,
+          "frameCount": 27,
+          "footY": 486,
+          "duration": 1688,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "medusa": {
+    "id": "medusa",
+    "name": "美杜莎",
+    "hp": 1500,
+    "maxHp": 1500,
+    "size": 22,
+    "collisionRadius": 48,
+    "speed": 250,
+    "level": 12,
+    "color": "#24372f",
+    "highlightColor": "rgba(132, 142, 128, 0.32)",
+    "str": 64,
+    "dex": 46,
+    "con": 60,
+    "int": 48,
+    "wis": 52,
+    "luck": 16,
+    "rank": "lord",
+    "type": "领主",
+    "category": "monster",
+    "family": "其他",
+    "families": ["其他", "大型"],
+    "basicMeleeResolver": true,
+    "attackRange": 230,
+    "attackDistance": 230,
+    "basicMelee": {
+      "approachReach": 230,
+      "impactReach": 230,
+      "forwardOffset": 0,
+      "width": 58,
+      "area": {
+        "shape": "sector",
+        "range": 230,
+        "arcDegrees": 140,
+        "damageMultiplier": 1,
+        "knockback": 28
+      },
+      "timeline": {
+        "durationMs": 1550,
+        "frameCount": 23,
+        "contactFrame": 12,
+        "activeFrames": [11, 13],
+        "frameDurations": [100, 100, 100, 100, 100, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 85, 85, 85, 85, 85, 85]
+      }
+    },
+    "aiInterval": 1500,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 260,
+      "loseTimeout": 2500
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/medusa/idle.mp3",
+      "idleInterval": 3000,
+      "walk": "assets/sounds/enemies/medusa/walking.mp3",
+      "walkInterval": 2000,
+      "attack": "assets/sounds/enemies/medusa/tail_sweep.mp3",
+      "petrify": "assets/sounds/enemies/medusa/petrifying_gaze.mp3",
+      "death": "assets/sounds/enemies/medusa/dying.mp3"
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1500,
+      "dynamicRange": 250,
+      "width": 58,
+      "knockback": 28
+    },
+    "attackSkills": {
+      "petrifyingGaze": {
+        "cooldown": 14000,
+        "initialCooldownMs": 3500,
+        "triggerRange": 560,
+        "range": 500,
+        "arcDegrees": 80,
+        "damageMultiplier": 1.25,
+        "damageType": "magic",
+        "petrifyDurationMs": 5000,
+        "magicDamageTakenMultiplier": 1.5,
+        "durationMs": 1500,
+        "frameCount": 21,
+        "releaseFrame": 11,
+        "releaseSourceFrame": 66,
+        "visualEffect": {
+          "eyeAnchor": { "x": 0.455, "y": 0.19 },
+          "fadeInMs": 90,
+          "expandMs": 120,
+          "fadeOutMs": 280
+        }
+      }
+    },
+    "description": "与熊德鲁伊同级的控制型领主：生命与攻击接近，移动更慢；用沉重甩尾横扫前方群体，并以石化凝视封锁更远区域。",
+    "skills": [
+      {
+        "name": "甩尾重击",
+        "desc": "朝锁定方向横扫前方140度、230像素扇形区域，对范围内全部地面目标造成一次物理伤害并击退；总时长1.55秒，横扫段加速，在第12帧结算。"
+      },
+      {
+        "name": "石化凝视",
+        "desc": "双眼向前投射覆盖整个80度、500像素扇形的石化锥光，造成魔攻×1.25魔法伤害并石化5秒；石化单位停在当前帧、无法行动、魔法承伤提高50%。锥光末尾淡出，冷却14秒。"
+      }
+    ],
+    "attackType": "扇形甩尾AOE与石化凝视",
+    "render": {
+      "spriteSize": 220,
+      "collisionWidth": 110,
+      "collisionHeight": 180,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 110,
+        "height": 180,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "height": 180,
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/medusa/idle.png",
+      "walk": "assets/enemies/medusa/walking.png",
+      "attack": "assets/enemies/medusa/tail_sweep.png",
+      "petrify": "assets/enemies/medusa/petrifying_gaze.png",
+      "death": "assets/enemies/medusa/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 2,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "footY": 470,
+          "frameRate": 4,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 5,
+          "rows": 4,
+          "frameWidth": 1280,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "footY": 470,
+          "frameRate": 10,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 768,
+          "frameHeight": 512,
+          "frameCount": 23,
+          "footY": 470,
+          "duration": 1550,
+          "frameDurations": [100, 100, 100, 100, 100, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 85, 85, 85, 85, 85, 85],
+          "repeat": 0
+        },
+        "petrify": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 21,
+          "footY": 470,
+          "duration": 1500,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 17,
+          "footY": 470,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
   "blackBear": {
     "id": "blackBear",
     "name": "熊德鲁伊",
@@ -230,6 +1121,7 @@
     "type": "领主",
     "category": "monster",
     "family": "动物",
+    "families": ["动物", "大型"],
     "attackSkills": {
       "spellcasting": {
         "comment": "德鲁伊初始形态依次用攻击动画施放冰锥、闪电、火球。",
@@ -909,6 +1801,7 @@
     "type": "领主",
     "category": "monster",
     "family": "僵尸",
+    "families": ["僵尸", "大型"],
     "color": "#6a5a3a",
     "size": 18,
     "collisionRadius": 60,
@@ -1020,9 +1913,6 @@
     "family": "其他",
     "color": "#4a5a4a",
     "size": 120,
-    "collisionRadius": 180,
-    "noFootprint": true,
-    "height": 200,
     "hp": 1500,
     "maxHp": 1500,
     "speed": 0,
@@ -1046,27 +1936,27 @@
     },
     "smoke": {
       "comment": "洞口绿烟粒子（ADD 混合，白色烟雾纹理 + 绿色 tint；正交无透视）",
-      "offsetX": 100,
-      "offsetY": 90,
+      "offsetX": 33,
+      "offsetY": 5,
       "tint": "0x62cc62",
       "frequency": 120,
-      "scaleStart": 0.3,
-      "scaleEnd": 1.2,
-      "alpha": 0.6,
+      "scaleStart": 0.18,
+      "scaleEnd": 0.55,
+      "alpha": 0.48,
       "lifespan": 4000
     },
     "render": {
-      "spriteSize": 800,
-      "collisionWidth": 400,
-      "collisionHeight": 200,
-      "footOffsetY": 92,
-      "colliderOffsetY": -40,
+      "spriteSize": 128,
+      "spriteHeight": 102,
+      "footOffsetY": 52,
       "capsuleHudAnchor": true,
-      "projectileHitbox": {
-        "width": 400,
-        "height": 200,
-        "offsetX": 0,
-        "bottom": 0
+      "visualFootprint": {
+        "comment": "48步v02紧裁图；Blender Cutout Depth的2x2建模地面经0.5等比缩放后严格映射到标准1x1的128x64菱形",
+        "centerXRatio": 0.47159,
+        "centerYRatio": 0.692778,
+        "widthRatio": 1.003706,
+        "depthRatio": 0.627349,
+        "scaleMode": "strict"
       }
     },
     "textures": {
@@ -1168,6 +2058,7 @@
     "type": "精英",
     "category": "monster",
     "family": "僵尸",
+    "families": ["僵尸", "大型"],
     "color": "#9a7ab8",
     "size": 30,
     "collisionRadius": 77.5,
@@ -2036,6 +2927,7 @@
     "type": "领主",
     "category": "monster",
     "family": "僵尸",
+    "families": ["僵尸", "大型"],
     "color": "#7a5a6a",
     "size": 40,
     "collisionRadius": 59,
@@ -2244,6 +3136,7 @@
     "type": "领主",
     "category": "monster",
     "family": "僵尸",
+    "families": ["僵尸", "大型"],
     "color": "#5a6a3a",
     "size": 48,
     "collisionRadius": 46,
@@ -2445,6 +3338,7 @@
     "type": "领主",
     "category": "monster",
     "family": "特工",
+    "families": ["特工", "大型"],
     "color": "#5a6a8a",
     "size": 30,
     "collisionRadius": 40.25,
@@ -2478,7 +3372,7 @@
         "meleeCheckRange": 150,
         "farSwitchRange": 300,
         "farSwitchHoldMs": 3000,
-        "meleeMoveSpeed": 260,
+        "meleeMoveSpeed": 200,
         "walkIntroMs": 1200,
         "walk2IntroMs": 1267,
         "approachMaxRange": 1600,
@@ -2590,6 +3484,7 @@
     "type": "领主",
     "category": "monster",
     "family": "特工",
+    "families": ["特工", "大型"],
     "color": "#5a7a8a",
     "size": 30,
     "collisionRadius": 40.25,
@@ -2807,6 +3702,7 @@
     "type": "领主",
     "category": "monster",
     "family": "僵尸",
+    "families": ["僵尸", "大型"],
     "color": "#5a8a4a",
     "size": 16,
     "collisionRadius": 52.9,

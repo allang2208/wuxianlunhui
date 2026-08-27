@@ -1,25 +1,16 @@
-import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
-
 import { Input } from '../../ui/input.js';
-import { loadImage } from '../../utils/image-loader.js';
-// 无人机技能系统
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
-import { GroundCircle } from '../../physics/skill-shapes.js';
-import { surfaceEffectFromEntity } from '../../physics/elevation.js';
+import { CONFIG } from '../../config/config.js';
+import { SceneManager } from '../../world/scene-manager.js';
+import { VisionSourceRegistry } from '../../world/vision-source-registry.js';
+import { getDroneValues } from '../../config/skill-formulas.js';
 
-/** 无人机数值默认（配置唯一真相：skills.json droneSkill effectFormula 必有；缺省兜底统一收敛于此） */
-const DRONE_DEFAULTS = {
-    cooldown: 20,
-    mpCost: 50,
-    duration: 30,
-    moveSpeed: 500,
-    radius: 300,
-    damageBonusPercent: 10,
-    critBonusPercent: 10,
-};
+const HOSTILE_FACTIONS = new Set(['enemy', 'hostile', 'monster']);
+let nextDroneSourceId = 1;
 
+/** 高空侦察 + 近圈战术标记。等级与增益只在成功部署瞬间快照。 */
 export class DroneSystem {
     constructor(player) {
         this.player = player;
@@ -33,107 +24,134 @@ export class DroneSystem {
         this.vx = 0;
         this.vy = 0;
         this.speed = 500;
-        this.radius = 300;
-        this.image = loadImage('assets/skills/drone.png');
-        // 保存玩家原始镜头目标
+        this.visionRadius = 0;
+        this.markRadius = 0;
+        this.fogSightRadius = 0;
+        this.fogSightDebuffImmune = true;
+        this.fogVisionProfile = 'drone';
+        this._snapshot = null;
+        this._sourceId = `player-drone-${nextDroneSourceId++}`;
         this._savedCameraTarget = null;
-        // 跟踪当前被无人机影响的实体
         this._affectedEntities = new Set();
-        // 长按技能键命令的飞行目标点（null=无命令）
         this._moveTarget = null;
-        this._moveStallMs = 0; // 被墙挡停累积时间（防卡死）
-        // 长按命令后悬停：到达目标点后原地停留，不再跟随玩家（再次长按重新定位）
         this._holdPosition = false;
+        this._visionHandle = null;
+        this._visionSceneId = null;
     }
 
-    // 切换无人机状态
-    toggle() {
-        if (!this.active) {
-            // 释放无人机
-            this._deploy();
-        } else if (this.active && !this.controlling) {
-            // 进入操控模式
-            this._enterControl();
-        } else if (this.controlling) {
-            // 退出操控模式，不收回无人机，让无人机持续存在
-            this._exitControl();
-        }
+    toggle(options = {}) {
+        if (!this.active) return this._deploy(options);
+        if (!this.controlling) this._enterControl();
+        else this._exitControl();
+        return { ok: true, deployed: false };
     }
 
-    // 长按技能键：命令无人机飞往鼠标指针位置（未部署则先部署）
-    commandFlyToMouse() {
+    commandFlyToMouse(options = {}) {
+        const result = this.active ? { ok: true, deployed: false } : this._deploy(options);
+        if (!this.active) return result;
         const mw = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-        if (!this.active) this._deploy();
-        if (!this.active) return; // 技能缺失等防御
-        this._moveTarget = { x: mw.x, y: mw.y };
-        this._moveStallMs = 0;
-        this._holdPosition = true; // 到达后悬停，不再跟随玩家
-        EffectManager.add(new FloatingTextEffect(mw.x, mw.y - 12, '🛸 飞往目标点', '#5a7a9a'));
+        this._moveTarget = this._clampPoint(mw.x, mw.y);
+        this._holdPosition = true;
+        EffectManager.add(new FloatingTextEffect(this._moveTarget.x, this._moveTarget.y - 12, '无人机：航点锁定', '#66dbe8'));
+        return result;
     }
 
-    _deploy() {
-        const skill = this.player.skills && this.player.skills.droneSkill;
-        if (!skill) return;
-        const effect = { ...DRONE_DEFAULTS, ...skill.getEffect(skill.level) };
+    _deploy({ ignoreCosts = false } = {}) {
+        const skill = this.player.skills?.droneSkill;
+        if (!skill) return { ok: false, deployed: false };
+        const snapshot = getDroneValues(skill.level);
+        if (!ignoreCosts && (Number(this.player.data?.mp) || 0) < snapshot.mpCost) {
+            EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '法力不足', '#c86b6b'));
+            return { ok: false, deployed: false };
+        }
+        if (!ignoreCosts) this.player.data.mp = Math.max(0, this.player.data.mp - snapshot.mpCost);
+
+        this._snapshot = snapshot;
         this.active = true;
         this.controlling = false;
-        this.maxDuration = effect.duration * 1000;
+        this.maxDuration = snapshot.duration * 1000;
         this.duration = this.maxDuration;
-        this.speed = effect.moveSpeed;
-        this.radius = effect.radius;
+        this.speed = snapshot.moveSpeed;
+        this.visionRadius = snapshot.visionRadius;
+        this.markRadius = snapshot.markRadius;
+        this.fogSightRadius = snapshot.visionRadius;
         this.checkTimer = 0;
-        // 放置在玩家正前方50px
         const angle = this.player.rotation;
-        this.x = this.player.x + Math.cos(angle) * 50;
-        this.y = this.player.y + Math.sin(angle) * 50;
+        const point = this._clampPoint(this.player.x + Math.cos(angle) * 50, this.player.y + Math.sin(angle) * 50);
+        this.x = point.x;
+        this.y = point.y;
         this.vx = 0;
         this.vy = 0;
         this._moveTarget = null;
-        this._moveStallMs = 0;
-        this._holdPosition = false; // 重新部署时清除悬停状态
-        // 显示提示
-        EffectManager.add(new FloatingTextEffect(this.x, this.y - 20, '🛸 无人机已部署', '#5a7a9a'));
+        this._holdPosition = false;
+        this._ensureVisionSource(true);
+        EffectManager.add(new FloatingTextEffect(this.x, this.y - 20, '无人机已部署', '#66dbe8'));
+        return { ok: true, deployed: true, snapshot };
     }
 
     _enterControl() {
         this.controlling = true;
         this._savedCameraTarget = Renderer.cameraTarget || null;
         Renderer.cameraTarget = { x: this.x, y: this.y, isDrone: true };
-        EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '🛸 进入无人机操控', '#5a7a9a'));
+        EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '无人机：接管控制', '#66dbe8'));
     }
 
     _exitControl() {
         this.controlling = false;
-        if (this._savedCameraTarget) {
-            Renderer.cameraTarget = this._savedCameraTarget;
-        } else {
-            Renderer.cameraTarget = null;
-        }
+        Renderer.cameraTarget = this._savedCameraTarget || null;
         this._savedCameraTarget = null;
-        EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '🛸 退出无人机操控', '#5a7a9a'));
+        EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '无人机：自动巡航', '#66dbe8'));
     }
 
-    _deactivate() {
+    _deactivate({ immediateMarks = false, silent = false } = {}) {
+        if (this.controlling) this._exitControl();
         this.active = false;
-        this.controlling = false;
-        if (this._savedCameraTarget) {
-            Renderer.cameraTarget = this._savedCameraTarget;
-        } else {
-            Renderer.cameraTarget = null;
+        this._visionHandle?.dispose?.();
+        this._visionHandle = null;
+        this._visionSceneId = null;
+        for (const entity of this._affectedEntities) {
+            entity?.removeDroneVulnerability?.(this._sourceId, { immediate: immediateMarks });
         }
-        this._savedCameraTarget = null;
-        // 清除所有受影响实体的 debuff
-        this._affectedEntities.forEach(entity => {
-            if (entity && entity.removeDroneVulnerability) {
-                entity.removeDroneVulnerability();
-            }
-        });
         this._affectedEntities.clear();
-        EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '🛸 无人机已回收', '#5a7a9a'));
+        this._moveTarget = null;
+        this._snapshot = null;
+        if (!silent) EffectManager.add(new FloatingTextEffect(this.player.x, this.player.y - 20, '无人机任务结束', '#66dbe8'));
+    }
+
+    _ensureVisionSource(force = false) {
+        const sceneId = SceneManager.currentScene;
+        if (force || !this._visionHandle || sceneId !== this._visionSceneId) {
+            this._visionHandle?.dispose?.();
+            this._visionSceneId = sceneId;
+            this._visionHandle = VisionSourceRegistry.register(this, {
+                profile: 'drone', sceneId, ignoreOcclusion: true, ignoreVisionDebuffs: true,
+            });
+        }
+    }
+
+    _worldBounds() {
+        const scene = SceneManager.scenes?.[SceneManager.currentScene] || null;
+        return {
+            width: Math.max(32, Number(scene?.width) || Number(CONFIG.WORLD_WIDTH) || 4096),
+            height: Math.max(32, Number(scene?.height) || Number(CONFIG.WORLD_HEIGHT) || 4096),
+        };
+    }
+
+    _clampPoint(x, y) {
+        const bounds = this._worldBounds();
+        return {
+            x: Math.max(16, Math.min(bounds.width - 16, Number(x) || 16)),
+            y: Math.max(16, Math.min(bounds.height - 16, Number(y) || 16)),
+        };
     }
 
     update(dt, entities) {
         if (!this.active) return;
+        if (this._visionSceneId !== SceneManager.currentScene) {
+            this._deactivate({ immediateMarks: true, silent: true });
+            return;
+        }
+        this._ensureVisionSource();
         this.duration -= dt;
         if (this.duration <= 0) {
             this._deactivate();
@@ -141,108 +159,60 @@ export class DroneSystem {
         }
 
         const dtSec = dt / 1000;
-
-        // 长按命令飞行：操控模式下 WASD 输入立即取消命令（手动优先）
         if (this._moveTarget && this.controlling) {
-            const manual = Input.isPressed('KeyW') || Input.isPressed('ArrowUp') ||
-                Input.isPressed('KeyS') || Input.isPressed('ArrowDown') ||
-                Input.isPressed('KeyA') || Input.isPressed('ArrowLeft') ||
-                Input.isPressed('KeyD') || Input.isPressed('ArrowRight');
+            const manual = Input.isPressed('KeyW') || Input.isPressed('ArrowUp')
+                || Input.isPressed('KeyS') || Input.isPressed('ArrowDown')
+                || Input.isPressed('KeyA') || Input.isPressed('ArrowLeft')
+                || Input.isPressed('KeyD') || Input.isPressed('ArrowRight');
             if (manual) this._moveTarget = null;
         }
+
         if (this._moveTarget) {
-            // 长按命令：自动飞往目标点，到达或被挡停超时后结束
             const dx = this._moveTarget.x - this.x;
             const dy = this._moveTarget.y - this.y;
             const dist = Math.hypot(dx, dy);
-            const arriveRadius = 12;
-            if (dist <= arriveRadius) {
+            if (dist <= 12) {
                 this._moveTarget = null;
                 this.vx = 0;
                 this.vy = 0;
             } else {
                 const step = Math.min(dist, this.speed * dtSec);
-                const nx = this.x + (dx / dist) * step;
-                const ny = this.y + (dy / dist) * step;
-                let rx = nx, ry = ny;
-                if (WallSystem) {
-                    const resolved = WallSystem.resolve(this.x, this.y, nx, ny, 10);
-                    rx = resolved.x;
-                    ry = resolved.y;
-                }
-                // 防卡死：被墙挡住几乎无进展超过0.5s则放弃目标点
-                const moved = Math.hypot(rx - this.x, ry - this.y);
-                if (moved < 0.5) {
-                    this._moveStallMs += dt;
-                    if (this._moveStallMs > 500) this._moveTarget = null;
-                } else {
-                    this._moveStallMs = 0;
-                }
-                this.x = rx;
-                this.y = ry;
-            }
-            // 操控模式下镜头同步
-            if (this.controlling && Renderer.cameraTarget && Renderer.cameraTarget.isDrone) {
-                Renderer.cameraTarget.x = this.x;
-                Renderer.cameraTarget.y = this.y;
+                const point = this._clampPoint(this.x + dx / dist * step, this.y + dy / dist * step);
+                this.x = point.x;
+                this.y = point.y;
             }
         } else if (this.controlling) {
-            // WASD 控制无人机（使用 Set 的 has 方法，Input.keys 是 Set 不是对象）
-            let moveX = 0, moveY = 0;
+            let moveX = 0;
+            let moveY = 0;
             if (Input.isPressed('KeyW') || Input.isPressed('ArrowUp')) moveY -= 1;
             if (Input.isPressed('KeyS') || Input.isPressed('ArrowDown')) moveY += 1;
             if (Input.isPressed('KeyA') || Input.isPressed('ArrowLeft')) moveX -= 1;
             if (Input.isPressed('KeyD') || Input.isPressed('ArrowRight')) moveX += 1;
-            const len = Math.sqrt(moveX * moveX + moveY * moveY);
-            if (len > 0) {
-                moveX /= len;
-                moveY /= len;
-            }
-            this.vx += (moveX * this.speed - this.vx) * 0.7;
-            this.vy += (moveY * this.speed - this.vy) * 0.7;
-            if (moveX === 0) this.vx *= 0.82;
-            if (moveY === 0) this.vy *= 0.82;
-
-            // 更新位置
-            const nextX = this.x + this.vx * dtSec;
-            const nextY = this.y + this.vy * dtSec;
-            // 墙壁碰撞
-            if (WallSystem) {
-                const resolved = WallSystem.resolve(this.x, this.y, nextX, nextY, 10);
-                this.x = resolved.x;
-                this.y = resolved.y;
-            } else {
-                this.x = nextX;
-                this.y = nextY;
-            }
-            // 更新镜头目标
-            if (Renderer.cameraTarget && Renderer.cameraTarget.isDrone) {
-                Renderer.cameraTarget.x = this.x;
-                Renderer.cameraTarget.y = this.y;
-            }
-        } else if (this._holdPosition) {
-            // 长按命令后悬停：原地停留（再次长按重新定位）
-            this.vx *= 0.82;
-            this.vy *= 0.82;
-        } else {
-            // 非操控模式：跟随玩家，保持在其正前方
-            const followAngle = this.player.rotation;
-            const targetX = this.player.x + Math.cos(followAngle) * 50;
-            const targetY = this.player.y + Math.sin(followAngle) * 50;
-            const dx = targetX - this.x;
-            const dy = targetY - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            const len = Math.hypot(moveX, moveY) || 1;
+            this.vx += (moveX / len * this.speed - this.vx) * 0.7;
+            this.vy += (moveY / len * this.speed - this.vy) * 0.7;
+            if (!moveX) this.vx *= 0.82;
+            if (!moveY) this.vy *= 0.82;
+            const point = this._clampPoint(this.x + this.vx * dtSec, this.y + this.vy * dtSec);
+            this.x = point.x;
+            this.y = point.y;
+        } else if (!this._holdPosition) {
+            const angle = this.player.rotation;
+            const target = this._clampPoint(this.player.x + Math.cos(angle) * 50, this.player.y + Math.sin(angle) * 50);
+            const dx = target.x - this.x;
+            const dy = target.y - this.y;
+            const dist = Math.hypot(dx, dy);
             if (dist > 5) {
-                const maxMove = this.speed * dtSec;
-                const move = Math.min(dist, maxMove);
-                this.x += (dx / dist) * move;
-                this.y += (dy / dist) * move;
+                const step = Math.min(dist, this.speed * dtSec);
+                this.x += dx / dist * step;
+                this.y += dy / dist * step;
             }
-            this.vx *= 0.9;
-            this.vy *= 0.9;
         }
 
-        // 每0.25s检测范围内敌人并施加debuff
+        if (this.controlling && Renderer.cameraTarget?.isDrone) {
+            Renderer.cameraTarget.x = this.x;
+            Renderer.cameraTarget.y = this.y;
+        }
         this.checkTimer -= dt;
         if (this.checkTimer <= 0) {
             this.checkTimer = 250;
@@ -251,46 +221,34 @@ export class DroneSystem {
     }
 
     _applyDebuff(entities) {
-        const skill = this.player.skills && this.player.skills.droneSkill;
-        if (!skill) return;
-        const effect = { ...DRONE_DEFAULTS, ...skill.getEffect(skill.level) };
-        const _baseDamageBonus = effect.damageBonusPercent;
-        const _baseCritBonus = effect.critBonusPercent;
-        // 先收集当前在范围内的实体
-        const inRangeEntities = new Set();
-        const shape = new GroundCircle(this.x, this.y, this.radius, surfaceEffectFromEntity(this.player));
-        entities.forEach(entity => {
-            if (entity === this.player || !entity.active || !entity.hittable) return;
-            if (shape.intersectsEntity(entity)) {
-                inRangeEntities.add(entity);
-            }
-        });
-        // 新进入范围的实体：施加 debuff，播放特效
-        inRangeEntities.forEach(entity => {
-            if (!this._affectedEntities.has(entity)) {
-                if (entity.applyDroneVulnerability) {
-                    entity.applyDroneVulnerability(1);
-                }
-                this._affectedEntities.add(entity);
-            } else {
-                // 已在范围内的：刷新计时器
-                entity._droneVulnerabilityTimer = 5000;
-            }
-        });
-        // 离开范围的实体：移除 debuff
-        this._affectedEntities.forEach(entity => {
-            if (!inRangeEntities.has(entity)) {
-                if (entity && entity.removeDroneVulnerability) {
-                    entity.removeDroneVulnerability();
-                }
-            }
-        });
-        // 清理已离开范围的实体引用
-        this._affectedEntities.forEach(entity => {
-            if (!inRangeEntities.has(entity)) {
+        if (!this._snapshot) return;
+        const inRange = new Set();
+        // Game.entities 在不同调用链中可能是 Map 或数组；Map 的默认迭代项是
+        // [key, value]，必须显式取 values()，否则标记扫描会把键值对当成实体。
+        const iterable = typeof entities?.values === 'function' ? entities.values() : (entities || []);
+        for (const entity of iterable) {
+            if (!entity?.active || !entity.hittable || entity.hp <= 0) continue;
+            if (!HOSTILE_FACTIONS.has(entity._faction || entity.faction)) continue;
+            // 高空标记只看俯视距离，不受地表层、墙上层或飞行目标分类限制。
+            if (!entity.collider?.intersectsGroundCircle?.(this.x, this.y, this.markRadius)) continue;
+            inRange.add(entity);
+            entity.applyDroneVulnerability?.({
+                sourceId: this._sourceId,
+                damageBonusPercent: this._snapshot.damageBonusPercent,
+                critBonusPercent: this._snapshot.critBonusPercent,
+                duration: this._snapshot.markLingerMs,
+                owner: this.player,
+            });
+        }
+        for (const entity of this._affectedEntities) {
+            if (!entity?.active || entity.hp <= 0) {
+                entity?.removeDroneVulnerability?.(this._sourceId, { immediate: true });
+                this._affectedEntities.delete(entity);
+            } else if (!inRange.has(entity)) {
+                entity.removeDroneVulnerability?.(this._sourceId, { immediate: false });
                 this._affectedEntities.delete(entity);
             }
-        });
+        }
+        for (const entity of inRange) this._affectedEntities.add(entity);
     }
-
 }

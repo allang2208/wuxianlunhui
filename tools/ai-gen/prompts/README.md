@@ -3,15 +3,15 @@
 > 所有生图提示词必须从本库取用；新增资产类别先在库中建模板，禁止现场自由发挥。
 > 配套执行流程见 [WORKFLOW.md](../WORKFLOW.md)。
 
-> **入口优先级（2026-08-04 二轮调整）**：双机 ComfyUI（远程 5080 主力 + 本机 3080 Ti 兜底）
-> → 本地零成本；智谱 API 降级为第三兜底。**固定视角/方向默认走 FLUX.2 dev + Depth ControlNet**
-> （`flux2-dev-depth` + `--control-image` 深度图），不再只靠文字描述视角。
+> **入口优先级（2026-08-26）**：凡使用 FLUX，默认主模型统一为 Klein 4B；自由构图走
+> `flux2-klein-4b-nolora`，固定视角/方向走 **Klein 4B + Depth ControlNet**
+> （`flux2-klein-4b-depth` + `--control-image` 深度图）。Dev/Mesh 仅供明确指定的历史复现或对照实验。
 
 ## 库结构
 
 | 文件 | 适用 | 状态 |
 |---|---|---|
-| [world122-building-style.md](world122-building-style.md) | World-122 建筑12步/48步共享画风契约 | 正式唯一真源（world122-building-v2，半木石哥特 + 游戏化PBR） |
+| [world122-building-style.md](world122-building-style.md) | World-122 建筑12步/48步共享画风契约 | 正式唯一真源（world122-building-v4，游戏向次世代PBR；建筑语法服从白模与 manifest，不强制半木石或哥特） |
 | [cactus-obstacle-v2.md](cactus-obstacle-v2.md) | World-122 沙漠仙人掌4形态建模精修 | 正式固化（白模锁形 + 游戏化PBR + 柔和顶侧光） |
 | [snow-pine-obstacle-v2.md](snow-pine-obstacle-v2.md) | World-123 雪原松树5形态建模精修 | 正式固化（可编辑模型锁形 + 冷色游戏化PBR + 真透明） |
 | [skill-icon.md](skill-icon.md) | 魔法技能图标（六边形徽章系列） | 实战固化（暴风雪/陨星） |
@@ -49,8 +49,8 @@
 
 ## FLUX.2 固定视角/方向（2026-08-04 新增，双保险）
 
-1. **深度图锁构图**（首选）：`--model flux2-dev-depth --control-image <深度图>`
-   ——同系列复用已定稿图深度，或手绘剪影/白模提深度；强度 0.6~0.8。
+1. **深度图锁构图**（首选）：`--model flux2-klein-4b-depth --control-image <深度图>`
+   ——同系列复用已定稿图深度，或手绘剪影/白模提深度；World-122 正式建筑结构/精修强度固定为 0.88/0.82，其他资产读取各自 manifest 或模型配置。
 2. **JSON 结构化提示词**（BFL 官方支持）：FLUX.2 原生解析 JSON 提示，
    `camera: { "angle": "...", "lens": "...", "distance": "...", "depth_of_field": "..." }`
    与自然语言可混用；与深度图叠加效果最稳。

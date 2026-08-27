@@ -92,7 +92,7 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: (v) => (v && typeof v === 'object')
             ? `命中获得加速+${Math.round((v.speedPercent ?? 0.10) * 100)}%/${((v.durationMs ?? 2000) / 1000)}s`
             : '命中获得加速',
-        tooltip: '每次射击击中目标后获得限时移动速度提升',
+        tooltip: '命中后获得限时移动速度提升；支持每发子弹首次命中触发',
     },
     attackIntervalDelta: {
         category: 'mobility',
@@ -261,9 +261,11 @@ export const CRAFT_EFFECT_REGISTRY = {
         category: 'spread',
         applyMode: 'override',
         display: (v) => (v && typeof v === 'object')
-            ? `散布模板：开始${v.startDelay ?? 500}ms/最大${v.maxTime ?? 4000}ms/±${v.maxAngle ?? 25}°`
+            ? (v.startShots !== undefined || v.maxShots !== undefined
+                ? `散布模板：第${v.startShots ?? 0}发开始/第${v.maxShots ?? 1}发最大/±${v.maxAngle ?? 25}°`
+                : `散布模板：开始${v.startDelay ?? 500}ms/最大${v.maxTime ?? 4000}ms/±${v.maxAngle ?? 25}°`)
             : '散布模板覆盖',
-        tooltip: '整体覆盖渐进式散布参数（开始/到最大/最大角）',
+        tooltip: '整体覆盖渐进式散布参数（起始发数/最大发数/恢复/最大角）',
     },
     flechetteMode: {
         category: 'mode',
@@ -314,6 +316,42 @@ export const CRAFT_EFFECT_REGISTRY = {
         applyMode: 'multiply',
         display: (v) => `过热恢复${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
         tooltip: '按比例改变过热恢复时间（负值=恢复更快）',
+    },
+    overheatShotsRequiredDelta: {
+        category: 'overheat',
+        applyMode: 'add',
+        display: (v) => `进入红热所需射击${v >= 0 ? '+' : ''}${v}发`,
+        tooltip: '改变红热增压武器进入红热状态所需的连续射击数',
+    },
+    overheatPiercingBonus: {
+        category: 'overheat',
+        applyMode: 'add',
+        display: (v) => `红热时穿透+${v}`,
+        tooltip: '仅在武器进入红热状态后增加弹丸穿透目标数',
+    },
+    overheatCritChancePercent: {
+        category: 'overheat',
+        applyMode: 'add',
+        display: (v) => `红热时暴击率+${Math.round(v * 100)}%`,
+        tooltip: '仅在武器进入红热状态后提高暴击概率',
+    },
+    overheatDamageMultiplierDelta: {
+        category: 'overheat',
+        applyMode: 'add',
+        display: (v) => `红热伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变红热状态的独立伤害倍率',
+    },
+    overheatSpreadPercent: {
+        category: 'overheat',
+        applyMode: 'multiply',
+        display: (v) => `红热散布${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '改变红热状态下的弹道散布（负值=更准）',
+    },
+    overheatProjectileSpeedPercent: {
+        category: 'overheat',
+        applyMode: 'multiply',
+        display: (v) => `红热弹速${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '改变红热状态下的弹丸飞行速度',
     },
 
     // ========== 防御类 ==========

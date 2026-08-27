@@ -967,6 +967,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - **怪物多分类协议（2026-08-23）**：保留 `family` 作为主分类以兼容旧数据，新增可选 `families:string[]`
   表达多个归属；统一通过 `getEnemyFamilies/hasEnemyFamily` 查询，禁止新增 `config.family === ...` 单值判定。
   图鉴分类页和详情标签也必须消费完整标签集。同一机制命中多个 family 倍率时取最高值，不重复叠乘。
+- **大型词条基线（2026-08-26）**：当前所有 `type:"领主"` 的怪物统一在 `families` 中登记“大型”；
+  精英矿石蜘蛛也登记“大型”。新增领主时必须保留其既有主分类并补充该词条，已有“大型”时不得重复写入。
 
 #### 13.4 丛林祭司专属魔法升级（2026-08-23）
 

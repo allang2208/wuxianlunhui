@@ -11,6 +11,7 @@ class NightFlameBeamEffect {
         this._elapsed = 0;
         this._bodyGraphics = null;
         this._glowGraphics = null;
+        this._renderDepth = null;
 
         // 固定随机参数，逐帧只推进位置，避免旧版每 100ms 生成一批直线造成闪烁和线条感。
         this._motes = Array.from({ length: 30 }, (_, index) => ({
@@ -34,6 +35,24 @@ class NightFlameBeamEffect {
 
     getFogVisuals() {
         return [this._bodyGraphics, this._glowGraphics];
+    }
+
+    setOrigin(x, y) {
+        this.x = x;
+        this.y = y;
+        this._bodyGraphics?.setPosition(x, y);
+        this._glowGraphics?.setPosition(x, y);
+    }
+
+    /**
+     * 夜与火光柱必须盖住剑尖的发射接缝。深度由 GameScene 按当前
+     * weaponSprite 每帧回写，不再用剑尖 y 猜测，避免左右/遮挡仲裁后掉到武器下层。
+     */
+    setDepth(depth) {
+        if (!Number.isFinite(Number(depth))) return;
+        this._renderDepth = Number(depth);
+        this._bodyGraphics?.setDepth(this._renderDepth);
+        this._glowGraphics?.setDepth(this._renderDepth + 0.01);
     }
 
     _ensureGraphics() {
@@ -105,7 +124,7 @@ class NightFlameBeamEffect {
         const visibleLength = this.length * growEase;
         const pulse = 0.88 + Math.sin(this._elapsed * 0.012) * 0.12;
         const phase = this._elapsed * 0.0055;
-        const depth = this.y + 50;
+        const depth = Number.isFinite(this._renderDepth) ? this._renderDepth : this.y + 50;
 
         body.clear();
         glow.clear();
@@ -113,8 +132,8 @@ class NightFlameBeamEffect {
             graphics.setPosition(this.x, this.y);
             graphics.setRotation(this.angle);
         }
-        body.setDepth(depth - 1);
-        glow.setDepth(depth);
+        body.setDepth(depth);
+        glow.setDepth(depth + 0.01);
 
         // 暗色承托与三层填充式柔光主体：只填面、不描边，保留直射方向但去掉“成排直线”。
         this._fillRibbon(body, visibleLength, this.width * 0.76, 0x07132f, 0.34 * alpha, phase, 0.12);

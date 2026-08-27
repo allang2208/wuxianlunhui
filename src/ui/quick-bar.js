@@ -8,6 +8,8 @@ import { applyConsumableEffect } from '../config/consumable.js';
 import { getMagicCooldownMultiplier } from '../utils/magic-craft-helper.js';
 import { getSkillMagicCategory, getSkillMagicTier, meetsMagicWeaponReq } from '../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../config/dev-cheats.js';
+import { TWO_HANDED_WEAPONS } from '../config/gun-ammo.js';
+import { getPushStrikeValues } from '../config/skill-formulas.js';
 
 const isUnavailableSkill = (skill) => !skill || skill.hidden === true || skill.disabled === true;
 
@@ -62,9 +64,12 @@ export const QuickBar = {
             this.slots.push({ config, element: slot });
         });
     },
+    _isSupportedSpecialAttackItem(item) {
+        return !!item && (item.specialAttackType === 'nightFlame' || item.specialAttackType === 'runeSword');
+    },
     enableSpecialAttack(item) {
         // 只支持夜与火之剑和符文长剑的特殊攻击图标
-        if (!item || (item.specialAttackType !== 'nightFlame' && item.specialAttackType !== 'runeSword')) {
+        if (!this._isSupportedSpecialAttackItem(item)) {
             this.disableSpecialAttack();
             return;
         }
@@ -95,39 +100,10 @@ export const QuickBar = {
             this.disableSpecialAttack();
             return;
         }
-        const slots = ['weapon', 'weapon2', 'offhand', 'ring2'];
-        let currentItem = null;
-        let currentInCooldown = false;
-        let otherReady = null;
-        let otherCooldown = null;
-        for (const slot of slots) {
-            const item = player.equipments[slot];
-            if (item && item.specialAttackType) {
-                const cooldown = (player._specialAttackCooldowns && player._specialAttackCooldowns[item.specialAttackType]) || 0;
-                if (slot === player.weaponMode) {
-                    currentItem = item;
-                    currentInCooldown = cooldown > 0;
-                } else {
-                    if (!otherReady && cooldown <= 0) {
-                        otherReady = item;
-                    }
-                    if (!otherCooldown) {
-                        otherCooldown = item;
-                    }
-                }
-            }
-        }
-        if (currentItem && !currentInCooldown) {
-            this.enableSpecialAttack(currentItem);
-        } else if (otherReady) {
-            this.enableSpecialAttack(otherReady);
-        } else if (currentItem) {
-            this.enableSpecialAttack(currentItem);
-        } else if (otherCooldown) {
-            this.enableSpecialAttack(otherCooldown);
-        } else {
-            this.disableSpecialAttack();
-        }
+        // 右键触发链只读取当前启用主手，提示栏必须使用同一真源；禁止回退显示另一武器组。
+        const currentItem = player.equipments?.[player.weaponMode] || null;
+        if (this._isSupportedSpecialAttackItem(currentItem)) this.enableSpecialAttack(currentItem);
+        else this.disableSpecialAttack();
     },
     _setupDrop(slot, config) {
         slot.ondragover = (e) => {
@@ -391,8 +367,13 @@ export const QuickBar = {
         if (!slot) return;
         const player = Game.player;
         if (!player) return;
-        // 眩晕/冻结状态：不可使用技能/物品（冻结效果等同于眩晕）
-        if (player.isStunned || (player.hasStatusEffect && player.hasStatusEffect('frozen'))) return;
+        // 强控状态：不可使用技能/物品。
+        if (player.isStunned || (player.hasStatusEffect
+            && (player.hasStatusEffect('frozen') || player.hasStatusEffect('petrified')))) return;
+        // 风车伤害结束后的 260ms 专属收势：技能与物品均锁定，唯一取消入口是空格翻滚。
+        if (player._whirlwindRecovering) return;
+        // 推击 340ms 动作期间锁定快捷栏技能与物品，防止互斥技能重入。
+        if (player._isPushStrike) return;
         // 施法/后摇期间：不可释放技能/物品
         if (player._castState && player._castState !== 'idle') return;
         // 攻击期间禁止使用技能
@@ -411,7 +392,8 @@ export const QuickBar = {
             }
             const effect = skill.getEffect(skill.level);
             // Check cooldown
-            if (!isSkillCheatEnabled() && this.cooldowns[skillId] > 0) return;
+            const activeDroneControl = skillId === 'droneSkill' && player.droneSystem?.active;
+            if (!isSkillCheatEnabled() && this.cooldowns[skillId] > 0 && !activeDroneControl) return;
             // Check stamina for whirlwind
             if (skillId === 'whirlwind') {
                 // 应用改造效果：技能体力消耗
@@ -435,39 +417,29 @@ export const QuickBar = {
                 // Set cooldown in ms
                 if (!isSkillCheatEnabled()) this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
             } else if (skillId === 'pushStrike') {
-                const pushCost = (effect && typeof effect.staminaCost === 'number' && isFinite(effect.staminaCost)) ? effect.staminaCost : 0;
+                const pushValues = getPushStrikeValues(skill.level, player.data?.str);
+                const pushCost = pushValues.staminaCost;
                 if (!isSkillCheatEnabled() && player.data.stamina < pushCost) return;
-                // Check ranged weapon (including offhand when main is empty)
                 const currentWeapon = player.equipments[player.weaponMode];
-                const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
-                const offhandWeapon = player.equipments[offhandSlot];
-                const effectiveWeapon = (currentWeapon && currentWeapon.name) ? currentWeapon : offhandWeapon;
-                const isRanged = effectiveWeapon && (
-                    effectiveWeapon.weaponType === 'pistol' || effectiveWeapon.rangedType === 'pistol' ||
-                    effectiveWeapon.weaponType === 'pkm' || effectiveWeapon.weaponType === 'akm' || effectiveWeapon.weaponType === 'm416' ||
-                    effectiveWeapon.weaponType === 'qbz191' || effectiveWeapon.weaponType === 'bow'
-                );
-                if (!isRanged) {
-                    // 显示提示：持有远程武器才可使用
+                if (!TWO_HANDED_WEAPONS.includes(currentWeapon?.weaponType)) {
                     const hint = document.createElement('div');
-                    hint.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);background:rgba(120,50,50,0.9);color:#d4c5a9;font-size:18px;padding:10px 24px;border-radius:8px;border:2px solid #9a5a5a;z-index:99999;pointer-events:none;font-family:SimHei, "Microsoft YaHei", "黑体", sans-serif;white-space:nowrap;transition:opacity 0.5s;';
-                    hint.textContent = '⚠ 持有远程武器才可使用！';
+                    hint.className = 'cold-steel-toast cold-steel-toast--danger';
+                    hint.textContent = '⚠ 仅双手长枪可使用推击';
                     document.body.appendChild(hint);
                     requestAnimationFrame(() => { if (hint) hint.style.opacity = '0'; TimerManager.setTimeout(() => { if (hint && hint.parentNode) hint.remove(); }, 800); });
                     return;
                 }
-                player.triggerPushStrike();
+                const triggered = player.triggerPushStrike();
+                if (!triggered) return;
                 if (!isSkillCheatEnabled()) player.data.stamina -= pushCost;
                 if (player.data.stamina < 0) player.data.stamina = 0;
                 // Set cooldown in ms
-                if (!isSkillCheatEnabled()) this.cooldowns[skillId] = ((effect && typeof effect.cooldown === 'number' && isFinite(effect.cooldown)) ? effect.cooldown : 0) * 1000;
+                if (!isSkillCheatEnabled()) this.cooldowns[skillId] = pushValues.cooldown * 1000;
             } else if (skillId === 'droneSkill') {
-                // 无人机技能
-                if (player.droneSystem) {
-                    player.droneSystem.toggle();
+                const result = player.droneSystem?.toggle({ ignoreCosts: isSkillCheatEnabled() });
+                if (result?.deployed && !isSkillCheatEnabled()) {
+                    this.cooldowns[skillId] = effect.cooldown * 1000;
                 }
-                // 设置冷却时间
-                if (!isSkillCheatEnabled()) this.cooldowns[skillId] = effect.cooldown * 1000;
             } else if (skillId === 'iceSpike') {
                 // 冰锥技能
                 if (player.iceSpikeSystem) {
@@ -634,6 +606,8 @@ export const QuickBar = {
     holyJudgmentKeyDown(_keyCode) {
         const player = Game.player;
         if (!player || !player.holyJudgmentSystem) return;
+        if (player.isStunned || player.hasStatusEffect?.('frozen')
+            || player.hasStatusEffect?.('petrified')) return;
         player.holyJudgmentSystem.setHoldKey(_keyCode);
         player.holyJudgmentSystem.trigger(); // 开始蓄力（内部完成冷却/法杖/MP 门禁）
     },
@@ -646,18 +620,20 @@ export const QuickBar = {
     _droneMoveCommand() {
         const player = Game.player;
         if (!player || !player.droneSystem) return;
-        if (player.isStunned || (player.hasStatusEffect && player.hasStatusEffect('frozen'))) return;
+        if (player.isStunned || (player.hasStatusEffect
+            && (player.hasStatusEffect('frozen') || player.hasStatusEffect('petrified')))) return;
         if (player.weaponAnim && player.weaponAnim.state !== 'idle') return;
+        if (player._isPushStrike) return;
         if (player._specialAttackActive) return;
         const skill = player.skills && player.skills.droneSkill;
         if (!skill) return;
         const ds = player.droneSystem;
-        if (!ds.active) {
-            if (this.cooldowns['droneSkill'] > 0) return;
-            const effect = skill.getEffect(skill.level);
-            this.cooldowns['droneSkill'] = ((effect && effect.cooldown) || 15) * 1000;
+        if (!ds.active && !isSkillCheatEnabled() && this.cooldowns['droneSkill'] > 0) return;
+        const effect = skill.getEffect(skill.level);
+        const result = ds.commandFlyToMouse({ ignoreCosts: isSkillCheatEnabled() });
+        if (result?.deployed && !isSkillCheatEnabled()) {
+            this.cooldowns['droneSkill'] = ((effect && effect.cooldown) || 20) * 1000;
         }
-        ds.commandFlyToMouse();
     },
     // 按绑定查找背包中的目标物品：instanceId 优先（槽位变动不受影响），
     // 无 instanceId 或实例已消耗时回退同名消耗品（兼容旧绑定与模板物品）
@@ -694,7 +670,17 @@ export const QuickBar = {
                 if (this.cooldowns[skillId] < 0) this.cooldowns[skillId] = 0;
             }
         }
-        // 特殊攻击冷却同步（基于当前显示的特殊攻击武器）
+        // 特殊攻击显示与冷却都只跟随当前启用主手。额外做一次轻量自愈，覆盖装备拖拽、
+        // 读档或其他入口漏调 refreshSpecialAttack 的情况，但不在每帧重复重建 DOM。
+        if (Game.player) {
+            const player = Game.player;
+            const currentItem = player.equipments?.[player.weaponMode] || null;
+            const shouldEnable = this._isSupportedSpecialAttackItem(currentItem);
+            if ((shouldEnable && (!this.specialAttack.enabled || this.specialAttack.item !== currentItem))
+                || (!shouldEnable && this.specialAttack.enabled)) {
+                this.refreshSpecialAttack(player);
+            }
+        }
         if (this.specialAttack.enabled && Game.player) {
             const player = Game.player;
             const displayedItem = this.specialAttack.item;

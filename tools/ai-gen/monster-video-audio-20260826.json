@@ -1,0 +1,41 @@
+{
+  "date": "2026-08-26",
+  "pipeline": "selected action video audio -> atempo aligned to runtime animation duration -> short edge fades -> EBU R128 loudness normalization -> 44.1kHz stereo 160kbps MP3",
+  "runtimePlayback": "enemy-config.json sounds + playSoundFrom(world position)",
+  "monsters": {
+    "brownSnake": {
+      "sourceRoot": "tools/ai-gen/_brown_snake_20260825/video",
+      "outputRoot": "assets/sounds/enemies/brown_snake",
+      "actions": ["idle", "walking", "attacking", "dying"]
+    },
+    "blackKingCobra": {
+      "sourceRoot": "tools/ai-gen/_black_king_cobra_20260825/video",
+      "outputRoot": "assets/sounds/enemies/black_king_cobra",
+      "actions": ["idle", "walking", "attacking", "venom_spray", "dying"],
+      "note": "venom_spray reuses the selected attacking video audio because the skill reuses that action sheet"
+    },
+    "evilTreant": {
+      "sourceRoot": "tools/ai-gen/_evil_treant_20260826/video",
+      "outputRoot": "assets/sounds/enemies/evil_treant",
+      "actions": ["idle", "walking", "attacking", "dying"],
+      "note": "dying uses the selected fracture-v02 video"
+    },
+    "carnivorousPitcher": {
+      "sourceRoot": "tools/ai-gen/_carnivorous_pitcher_20260826/video",
+      "outputRoot": "assets/sounds/enemies/carnivorous_pitcher",
+      "actions": ["idle", "walking", "attacking", "dying"],
+      "note": "attacking uses the selected v02 video; rejected background-heavy v01 is excluded"
+    },
+    "purpleBlightAncient": {
+      "sourceRoot": "tools/ai-gen/_purple_blight_ancient_20260826/video",
+      "outputRoot": "assets/sounds/enemies/purple_blight_ancient",
+      "actions": ["idle", "arm_sweep", "rock_throw", "vine_cast", "dying"]
+    },
+    "medusa": {
+      "sourceRoot": "tools/ai-gen/_medusa_20260825/video",
+      "outputRoot": "assets/sounds/enemies/medusa",
+      "actions": ["idle", "walking", "tail_sweep", "petrifying_gaze", "dying"],
+      "note": "walking uses the selected v03 video"
+    }
+  }
+}

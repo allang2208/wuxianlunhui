@@ -1,0 +1,23 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+Input images: Image 1 is the approved hamster halberdier mother-frame reference for realistic PBR rendering, camera, framing, fur anatomy, and production polish only; Image 2 is the current hamster musketeer reference for refined friendly-unit equipment language; Image 3 is the current hamster scout reference for light agile silhouette; Image 4 is the current hamster shooter reference for brown leather ranger materials. Do not copy any existing weapon or exact costume.
+
+Primary request: Create exactly one adult anthropomorphic golden hamster ranger as a production-ready game-unit identity mother image. The ranger uses a compact one-handed crossbow in the hamster's anatomical right hand and a single dagger in the anatomical left hand.
+
+Subject identity: golden-brown and cream hamster fur; round hamster ears, glossy dark eyes, short muzzle, visible whiskers, compact believable hamster body. Agile medieval ranger equipment: fitted dark-brown leather jerkin over light mail, muted forest-green short hooded mantle with the hood down so both ears remain visible, layered leather shoulder protection, forearm bracers, narrow utility belt with a small bolt case, fitted dark trousers, and practical brown boots. Restrained cold-steel and aged-brass fittings; no heraldic logo.
+
+Weapons and handedness: the anatomical right hand alone holds exactly one compact one-handed medieval hand crossbow at a low-ready forward angle, clearly readable as a small pistol-sized crossbow with one short wooden stock, one steel bow limb, one string, one trigger and one loaded bolt. The anatomical left hand alone holds exactly one short single-edged steel dagger in a natural low guard beside the left thigh. Each hand grips only its assigned weapon; the two weapons remain visually separate from the body and from each other.
+
+Anatomy and materials: physically plausible anthropomorphic biped anatomy, correct arms, hands and feet, believable weight distribution; detailed layered fur, worn matte leather, fine chain links, woven cloth, brushed steel, aged brass and polished wood; realistic roughness and restrained color variation, no toy-like plastic.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, controlled saturation, clean readable silhouette; not a photograph and not a cartoon illustration.
+
+Pose: calm animation-friendly neutral combat stance, low three-quarter view facing right; both feet planted on one baseline, knees relaxed, torso upright with a slight alert forward turn. Anatomical right forearm extends slightly forward with the compact hand crossbow held at low ready; anatomical left arm rests lower with the dagger angled down and outward. Calm focused expression.
+
+Composition and camera: orthographic-style locked low three-quarter camera matching Image 1; complete single subject; full body, both ears, both hands, both feet, the complete crossbow including bow limb and loaded bolt, and the complete dagger including tip all inside frame. Combined silhouette occupies about 70% of canvas height, centered with generous white safety margins on every side; no cropping. Landscape 16:9 mother frame.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon or floor, soft flat diffuse studio light only, no directional shadow.
+
+Identity locks: exactly one hamster, exactly one one-handed crossbow in the anatomical right hand, exactly one dagger in the anatomical left hand, full silhouette, clean edges, no additional weapon.
+
+Avoid: swapped hands, two-handed crossbow grip, full-size crossbow, bow, longbow, musket, rifle, shield, sword, extra dagger, extra bolt floating outside the crossbow, extra quiver, extra or missing limbs or fingers, duplicated weapon parts, broken or fused hands, weapon intersecting face or torso, oversized weapons hiding the body, cropped ears, weapon tips or feet, front or top view, strong perspective, cinematic lighting, rim halo, cast shadow, reflection, scenery, particles, text, logo, watermark, anime, chibi, flat illustration, low-poly toy, glossy plastic.

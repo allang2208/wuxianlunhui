@@ -1,0 +1,51 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\stock_exchange\\refine_48step_v01_seed123320\\stock_exchange\\stock_exchange_refine_v01_body.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\stock_exchange\\stock_exchange_refine_v01_runtime_candidate.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    31,
+    239,
+    5
+  ],
+  "matteEdgeWidth": 5.0,
+  "matteTolerance": 135.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 2,
+  "minComponentPixels": 50,
+  "removedComponents": 1,
+  "removedComponentPixels": 49,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [
+    "360,0,660,270"
+  ],
+  "cropBox": [
+    89,
+    7,
+    967,
+    938
+  ],
+  "fileSize": [
+    878,
+    931
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    874,
+    927
+  ],
+  "displayW": 512,
+  "displayH": 543,
+  "footOffsetY": 269,
+  "scaleX": 0.5831435079726651,
+  "scaleY": 0.5832438238453276
+}

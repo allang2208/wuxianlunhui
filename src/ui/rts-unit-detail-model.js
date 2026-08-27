@@ -92,6 +92,7 @@ function abilityEffectText(abilityId, ability, level) {
         case 'sweep_aoe': return `横扫额外伤害 ${signedPercent(value, { absolute: true })}`;
         case 'mark_arrow': return `标记概率 ${signedPercent(value, { absolute: true })} · 目标承伤 +${compactNumber(finite(ability.damageAmplify) * 100)}%`;
         case 'armor_piercing_round': return `护甲穿透 ${signedPercent(value, { absolute: true })}`;
+        case 'giant_slayer': return `对骑兵/大型怪物伤害 +${signedPercent(value, { absolute: true })}`;
         case 'inspire_magic': return `持续 ${compactNumber(value / 1000)}s · 移速 +${compactNumber((finite(ability.speedMul, 1) - 1) * 100)}% · 物攻 +${compactNumber((finite(ability.atkMul, 1) - 1) * 100)}%`;
         default:
             if (ability?.displayMode === 'seconds') return `当前效果 ${compactNumber(value / 1000)}s`;
@@ -160,6 +161,7 @@ function actualStacks(entity, type, fallback = 1) {
     switch (type) {
         case 'poison': return finite(entity?._poisonStacks, fallback);
         case 'bleed': return finite(entity?._bleedStacks, fallback);
+        case 'corrosion': return finite(entity?._corrosionStacks, fallback);
         case 'magicVulnerability': return finite(entity?._magicVulnerabilityStacks, fallback);
         case 'droneVulnerability': return finite(entity?._droneVulnerabilityStacks, fallback);
         case 'haste': return finite(entity?._hasteStacks, fallback);
@@ -177,6 +179,7 @@ function actualRemaining(entity, type, fallback = 0) {
     switch (type) {
         case 'poison': return durationValue(entity?._poisonTimer, fallback);
         case 'bleed': return durationValue(entity?._bleedTimer, fallback);
+        case 'corrosion': return durationValue(entity?._corrosionTimer, fallback);
         case 'magicVulnerability': return durationValue(entity?._magicVulnerabilityTimer, fallback);
         case 'droneVulnerability': return durationValue(entity?._droneVulnerabilityTimer, fallback);
         case 'holyRenewal': return durationValue(entity?._holyRenewalTimer, fallback);
@@ -231,6 +234,10 @@ function effectDetail(entity, type, effect, stacks) {
             : '致残已登记 · 当前移动逻辑未应用减速';
         case 'poison': return `每秒 ${compactNumber(stacks, 0)} 点毒素伤害`;
         case 'bleed': return `每秒 ${Math.max(1, Math.floor(hp * 0.01 * stacks))} 点流血伤害`;
+        case 'corrosion': {
+            const perStack = finite(entity?._corrosionDefenseReductionPerStack, 0.05);
+            return `物理防御 -${compactNumber(Math.min(100, stacks * perStack * 100))}%`;
+        }
         case 'magicVulnerability': return `受到魔法伤害 +${compactNumber(stacks * 5)}%`;
         case 'droneVulnerability': return `基础全承伤 +${compactNumber(stacks * 10)}% · 被暴击率 +${compactNumber(stacks * 10)}%`;
         case 'marked': return `受到所有伤害 +${compactNumber(finite(effect?.value, 0.15) * 100)}%`;
@@ -278,6 +285,7 @@ function fallbackStatusCandidates(entity) {
     return [
         { type: 'poison', stacks: entity?._poisonStacks, remaining: entity?._poisonTimer },
         { type: 'bleed', stacks: entity?._bleedStacks, remaining: entity?._bleedTimer },
+        { type: 'corrosion', stacks: entity?._corrosionStacks, remaining: entity?._corrosionTimer },
         { type: 'magicVulnerability', stacks: entity?._magicVulnerabilityStacks, remaining: entity?._magicVulnerabilityTimer },
         { type: 'droneVulnerability', stacks: entity?._droneVulnerabilityStacks, remaining: entity?._droneVulnerabilityTimer },
         { type: 'haste', stacks: entity?._hasteStacks },

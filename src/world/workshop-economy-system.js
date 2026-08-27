@@ -10,6 +10,7 @@ import {
     resolveCivilianVisualPosition,
     sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
+import { CivilianVisualSettings } from './civilian-visual-runtime.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
 const HOSTILE_FACTIONS = new Set(['enemy', 'agent']);
@@ -324,6 +325,7 @@ export const WorkshopEconomySystem = {
     },
 
     _ensureSprites(building, record) {
+        if (!CivilianVisualSettings.isEnabled()) return;
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         const visual = engineerVisualConfig();
         const texture = engineerAnimationKey('idle');

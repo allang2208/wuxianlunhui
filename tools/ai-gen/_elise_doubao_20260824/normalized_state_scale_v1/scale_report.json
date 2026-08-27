@@ -1,0 +1,42 @@
+[
+  {
+    "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\companions\\elise\\running.png",
+    "output": "tools\\ai-gen\\_elise_doubao_20260824\\normalized_state_scale_v1\\running.png",
+    "factor": 0.943,
+    "frameCount": 19,
+    "beforeHeight": [
+      472,
+      505
+    ],
+    "afterHeight": [
+      445,
+      476
+    ],
+    "feet": [
+      599,
+      599
+    ],
+    "touchingFrames": [],
+    "state": "run"
+  },
+  {
+    "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\companions\\elise\\windmill.png",
+    "output": "tools\\ai-gen\\_elise_doubao_20260824\\normalized_state_scale_v1\\windmill.png",
+    "factor": 0.955,
+    "frameCount": 23,
+    "beforeHeight": [
+      364,
+      485
+    ],
+    "afterHeight": [
+      348,
+      463
+    ],
+    "feet": [
+      597,
+      599
+    ],
+    "touchingFrames": [],
+    "state": "windmill"
+  }
+]

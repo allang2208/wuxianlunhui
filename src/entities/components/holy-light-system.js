@@ -70,6 +70,19 @@ export class HolyLightSystem {
         return this.source && this.source._faction === 'player';
     }
 
+    _playCastSounds(paths) {
+        if (!Array.isArray(paths) || !SoundManager) return;
+        const src = this.source;
+        for (const path of paths) {
+            if (!path) continue;
+            if (!this._isPlayer() && typeof SoundManager.playWorld === 'function') {
+                SoundManager.playWorld(path, src.x, src.y);
+            } else if (typeof SoundManager.playFile === 'function') {
+                SoundManager.playFile(path);
+            }
+        }
+    }
+
     trigger() {
         const src = this.source;
         if (!src || (!isSkillCheatEnabled() && src._holyLightCooldown > 0)) return;
@@ -160,9 +173,7 @@ export class HolyLightSystem {
                 return;
             }
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
-            if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
-                for (const p of castSounds) SoundManager.playFile(p);
-            }
+            this._playCastSounds(castSounds);
             // 结算：友方回复生命 / 敌方造成伤害（僵尸类翻倍）
             const baseAmount = Math.floor(
                 ((effect.healBase ?? 0)
@@ -254,9 +265,7 @@ export class HolyLightSystem {
         const doRelease = () => {
             if (!src.active) return;
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
-            if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
-                for (const p of castSounds) SoundManager.playFile(p);
-            }
+            this._playCastSounds(castSounds);
             // 自愈
             const amount = Math.floor(
                 ((effect.healBase ?? 0)
@@ -339,9 +348,7 @@ export class HolyLightSystem {
         const doRelease = () => {
             if (!this._isReleaseTargetValid(target, maxRange)) return;
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
-            if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
-                for (const p of castSounds) SoundManager.playFile(p);
-            }
+            this._playCastSounds(castSounds);
             const baseAmount = Math.floor(
                 ((effect.healBase ?? 0)
                 + (castContext.stats.matk ?? 0) * (effect.magicMul ?? 0)

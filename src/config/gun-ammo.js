@@ -78,7 +78,9 @@ export const getFireMode = (item) => {
     if (!item) return null;
     if (item._craftEffects && item._craftEffects.fireModeOverride) return item._craftEffects.fireModeOverride;
     if (item.fireMode) return item.fireMode;
-    // 回退到旧版硬编码
+    const canonical = findWeaponConfig(item.weaponId, item.name);
+    if (canonical?.fireMode) return canonical.fireMode;
+    // 兼容没有权威条目的第三方/旧模组实例
     if (isSemiAuto(item.weaponId)) return 'semiAuto';
     if (isFullAuto(item.weaponId)) return 'fullAuto';
     if (item.weaponType === 'bow') return 'charge';
@@ -129,6 +131,14 @@ export const GUN_EQUIP_SOUND = {
     weapon12: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', // Super90 枪栓音效
     weapon21: 'assets/sounds/weapons/m416_equip.wav', // M416 装备音效
     weapon22: 'assets/sounds/weapons/revolver357_equip.wav', // .357麦格农左轮装备音效
+    weapon23: 'assets/sounds/weapons/stg44_equip.wav', // STG-44 装备音效
+    weapon24: 'assets/sounds/weapons/qbz95_equip.wav', // QBZ-95 装备音效
+    weapon25: 'assets/sounds/weapons/m416_equip.wav', // 边境突击步枪（临时占位）
+    weapon26: 'assets/sounds/weapons/qbz95_equip.wav', // 复仇之神（临时占位）
+    weapon27: 'assets/sounds/weapons/m416_equip.wav', // 星潮协议（临时占位）
+    weapon28: 'assets/sounds/weapons/qbz95_equip.wav', // 零点仲裁（临时占位）
+    weapon29: 'assets/sounds/weapons/m416_equip.wav', // 日冕裁律（临时占位）
+    weapon30: 'assets/sounds/weapons/m416_equip.wav', // 终末回声（临时占位）
 };
 export const getEquipSound = (item) => {
     if (!item) return null;

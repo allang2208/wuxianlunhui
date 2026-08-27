@@ -1,0 +1,55 @@
+{
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\final_cutout_trials\\royal_mint_t45_enclosed\\royal_mint_t45_enclosed_clean.png",
+  "output": "assets\\terrain\\royal_mint.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    47,
+    193,
+    19
+  ],
+  "matteEdgeWidth": 4.0,
+  "matteTolerance": 110.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    0,
+    0,
+    817,
+    826
+  ],
+  "fileSize": [
+    817,
+    826
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    813,
+    822
+  ],
+  "displayW": 300,
+  "displayH": 303,
+  "footOffsetY": 150,
+  "scaleX": 0.3671970624235006,
+  "scaleY": 0.3668280871670702
+}

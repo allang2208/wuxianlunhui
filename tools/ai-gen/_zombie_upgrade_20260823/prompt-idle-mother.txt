@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: production-ready 2D game enemy idle mother image for a dark isometric action RPG and later image-to-video animation
+Input images: Image 1 is the ordinary zombie identity reference; Images 2 and 3 define the miner-zombie and lantern-zombie art style, rendering density, lighting, and muted palette; Image 4 defines the newly upgraded poison-zombie family finish. Generate a new image, do not collage the references.
+Primary request: upgrade the exact ordinary zombie from Image 1 into the same visual family as Images 2-4 while preserving its recognizable ordinary-zombie identity.
+Subject: one full-body weaponless ordinary zombie, shirtless decayed torso, torn dark knee-length shorts, one visibly damaged/skeletal lower leg, gaunt elongated arms, bald corpse head, subtle red infected eyes, hunched right-facing side/three-quarter idle pose. No job equipment and no supernatural power.
+Style/medium: realistic dark-fantasy painted game sprite, photobashed painterly realism, crisp readable silhouette, detailed diseased skin, worn cloth, grounded material texture matching the reference zombie family.
+Composition/framing: centered square canvas, full body visible, feet on one stable horizontal baseline, character height about 72 percent of canvas, generous empty margin on every side, strict right-facing side three-quarter profile suitable as an image-to-video first frame.
+Lighting/mood: restrained soft frontal game-sprite lighting, grim and readable, no dramatic rim halo.
+Color palette: desaturated corpse beige, dirty brown, soot gray, muted olive-gray skin, small localized dark dried-blood accents; avoid bright green or neon colors.
+Constraints: genuine transparent background with clean alpha; preserve one connected anatomically coherent body and the identity cues from Image 1; no shadow, ground, scenery, text, border, watermark, weapon, pickaxe, lantern, poison, magic, particles, extra character, extra limbs, gore explosion, cropping, or contact with the canvas edge.

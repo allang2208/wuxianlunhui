@@ -6,6 +6,10 @@ import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { TechnologySystem } from './technology-system.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
+import { TavernEconomySystem } from './tavern-economy-system.js';
+import { BuildingRoadSystem } from './building-road-system.js';
+import { blockCellOf } from './gate4-grid.js';
+import { shortestRoadRoute } from './road-connectivity.js';
 import { routeBakeryPlantTributes } from './bakery-tribute-routing.js';
 import {
     resolveCivilianVisualPosition,
@@ -14,8 +18,21 @@ import {
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-function bakeryConfig() {
-    return populationEconomyConfig.bakery || {};
+function isFoodProcessor(building) {
+    return building?._economyType === 'bakery'
+        || building?._economyType === 'chain_restaurant';
+}
+
+function processorConfig(building) {
+    return populationEconomyConfig[building?._economyType] || {};
+}
+
+function processorLabel(building) {
+    return building?._economyType === 'chain_restaurant' ? '连锁餐馆' : '面包屋';
+}
+
+function processorModuleId(building, bakeryId, restaurantId) {
+    return building?._economyType === 'chain_restaurant' ? restaurantId : bakeryId;
 }
 
 function structureServiceRadius(structure, configuredRadius, fallbackRadius) {
@@ -90,23 +107,19 @@ function normalizeJob(building, saved) {
     };
 }
 
-function nearestWarehouse(x, y, predicate) {
-    return EnergyManager.getWarehouses()
-        .filter((warehouse) => predicate(warehouse))
-        .sort((a, b) => Math.hypot((a.x || 0) - x, (a.y || 0) - y)
-            - Math.hypot((b.x || 0) - x, (b.y || 0) - y))[0] || null;
-}
-
 /**
- * 面包屋离散生产真源。面包师只是一条挂在建筑上的经济岗位记录，不进入
+ * 面包屋/连锁餐馆离散生产真源。岗位只是一条挂在建筑上的经济记录，不进入
  * Game.entities、物理、战斗或独立存档；Sprite 只读取这条记录的位置和阶段。
  */
 export const BakeryEconomySystem = {
     _bakeries: new Set(),
 
     initializeBuilding(building, saved = {}) {
-        if (building?._economyType !== 'bakery') return;
-        building.modules = { ...(saved.bakeryModules || saved.modules || {}) };
+        if (!isFoodProcessor(building)) return;
+        const isRestaurant = building._economyType === 'chain_restaurant';
+        building.modules = { ...((isRestaurant
+            ? saved.chainRestaurantModules
+            : saved.bakeryModules) || saved.modules || {}) };
         for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
             building.modules[moduleId] = clamp(
                 Math.floor(Number(building.modules[moduleId]) || 0),
@@ -114,13 +127,20 @@ export const BakeryEconomySystem = {
                 Math.max(0, Math.floor(Number(module.maxLevel) || 0))
             );
         }
-        building._bakeryUpgrade = saved.bakeryUpgrade ? {
-            moduleId: saved.bakeryUpgrade.moduleId,
-            totalMs: Math.max(1, Number(saved.bakeryUpgrade.totalMs) || 1),
-            remainMs: Math.max(0, Number(saved.bakeryUpgrade.remainMs) || 0),
+        const savedUpgrade = isRestaurant ? saved.chainRestaurantUpgrade : saved.bakeryUpgrade;
+        building._bakeryUpgrade = savedUpgrade ? {
+            moduleId: savedUpgrade.moduleId,
+            totalMs: Math.max(1, Number(savedUpgrade.totalMs) || 1),
+            remainMs: Math.max(0, Number(savedUpgrade.remainMs) || 0),
         } : null;
-        building._bakeryJob = normalizeJob(building, saved.bakeryJob);
-        building._bakeryPendingTributeIds = Array.isArray(saved.bakeryPendingTributeIds)
+        building._bakeryJob = normalizeJob(building,
+            isRestaurant ? saved.chainRestaurantJob : saved.bakeryJob);
+        building._bakeryOutputRemainder = Math.max(0,
+            Number(isRestaurant
+                ? saved.chainRestaurantOutputRemainder
+                : saved.bakeryOutputRemainder) || 0);
+        building._bakeryPendingTributeIds = !isRestaurant
+            && Array.isArray(saved.bakeryPendingTributeIds)
             ? saved.bakeryPendingTributeIds.filter((id) => typeof id === 'string')
             : [];
         this._bakeries.add(building);
@@ -132,7 +152,7 @@ export const BakeryEconomySystem = {
 
     unregisterBuilding(building, { preserve = false } = {}) {
         this._bakeries.delete(building);
-        if (preserve || building?._economyType !== 'bakery') return;
+        if (preserve || !isFoodProcessor(building)) return;
         const job = building._bakeryJob;
         const recover = Math.max(0, Math.floor(Number(job?.cargoFood) || 0))
             + Math.max(0, Math.floor(Number(job?.pendingFood) || 0));
@@ -156,7 +176,7 @@ export const BakeryEconomySystem = {
     },
 
     startUpgrade(building, moduleId) {
-        if (building?._economyType !== 'bakery') return { ok: false, reason: '该建筑不是面包屋' };
+        if (!isFoodProcessor(building)) return { ok: false, reason: '该建筑不是粮食加工建筑' };
         const module = building._cfg.modules?.[moduleId];
         if (!module) return { ok: false, reason: '未知升级项目' };
         if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
@@ -165,7 +185,9 @@ export const BakeryEconomySystem = {
         }
         const level = this.getModuleLevel(building, moduleId);
         if (level >= (module.maxLevel || 0)) return { ok: false, reason: '升级项目已满级' };
-        if (building._bakeryUpgrade) return { ok: false, reason: '已有面包屋项目正在升级' };
+        if (building._bakeryUpgrade) {
+            return { ok: false, reason: `已有${processorLabel(building)}项目正在升级` };
+        }
         const cost = this.getUpgradeCost(building, moduleId);
         const payment = payBuildingUpgradeCost(cost);
         if (!payment.ok) return payment;
@@ -180,36 +202,80 @@ export const BakeryEconomySystem = {
     getProcessTimeMs(building) {
         return Math.max(100, moduleValue(
             building,
-            'bakery_quick_cooking',
-            Number(bakeryConfig().baseProcessTimeMs) || 10000
+            processorModuleId(building, 'bakery_quick_cooking', 'restaurant_central_kitchen'),
+            Number(processorConfig(building).baseProcessTimeMs) || 10000
         ));
     },
 
     getOutputMultiplier(building) {
         return Math.max(1, moduleValue(
             building,
-            'bakery_gourmet',
-            Number(bakeryConfig().baseOutputMultiplier) || 5
+            processorModuleId(building, 'bakery_gourmet', 'restaurant_signature_menu'),
+            Number(processorConfig(building).baseOutputMultiplier) || 5
         ));
     },
 
+    getInputFood(building) {
+        return Math.max(1, Math.floor(moduleValue(
+            building,
+            processorModuleId(building, '', 'restaurant_bulk_supply'),
+            Number(processorConfig(building).inputFoodPerBatch) || 50
+        )));
+    },
+
     getPlantTributeChance(building) {
+        if (building?._economyType !== 'bakery') return 0;
         return clamp(moduleValue(building, 'bakery_ingredient_processing', 0.01), 0, 1);
     },
 
     getMoveSpeed(building) {
-        const base = Math.max(1, Number(bakeryConfig().baseMoveSpeed) || 80);
-        return base * Math.max(0.01, moduleValue(building, 'bakery_quick_steps', 1));
+        const base = Math.max(1, Number(processorConfig(building).baseMoveSpeed) || 80);
+        return base * Math.max(0.01, moduleValue(
+            building,
+            processorModuleId(building, 'bakery_quick_steps', 'restaurant_express_delivery'),
+            1
+        ));
+    },
+
+    getRoadState(building) {
+        const warehouses = EnergyManager.getWarehouses();
+        const roadInfo = BuildingRoadSystem.getBuildingRoadInfo(building);
+        const warehouseSignature = warehouses.map((warehouse) => warehouse.id || `${warehouse.x},${warehouse.y}`)
+            .sort().join('|');
+        const signature = `${roadInfo.topologyRevision}:${roadInfo.wallRevision}:${warehouseSignature}`;
+        if (building?._bakeryRoadCache?.signature === signature) return building._bakeryRoadCache;
+        const reachable = roadInfo.connected
+            ? BuildingRoadSystem.getReachableBuildings(building, warehouses)
+            : [];
+        const state = {
+            signature,
+            roadConnected: reachable.length > 0,
+            connectedWarehouseCount: reachable.length,
+            roadDistance: reachable[0]?.distance ?? null,
+            reachable,
+            network: roadInfo.network,
+        };
+        if (building) {
+            building._bakeryRoadCache = state;
+            building._bakeryRoadConnected = state.roadConnected;
+        }
+        return state;
+    },
+
+    _selectReachableWarehouse(building, predicate) {
+        return this.getRoadState(building).reachable
+            .find(({ building: warehouse }) => predicate(warehouse))?.building || null;
     },
 
     getSnapshot(building) {
         const job = building?._bakeryJob || defaultJob(building);
-        const cfg = bakeryConfig();
+        const isRestaurant = building?._economyType === 'chain_restaurant';
+        const roadState = this.getRoadState(building);
         const phaseText = {
             idle: '等待仓库粮食',
             to_pickup: '前往仓库取粮',
-            to_bakery: '携带食材返回面包屋',
-            processing: '加工烘焙中',
+            to_bakery: isRestaurant ? '携带食材返回餐馆' : '携带食材返回面包屋',
+            processing: isRestaurant ? '中央厨房加工中' : '加工烘焙中',
             waiting_deposit: '等待仓库空位',
             to_deposit: '运送成品回仓库',
         }[job.phase] || '待命';
@@ -218,20 +284,28 @@ export const BakeryEconomySystem = {
             : (job.phaseTotalMs > 0
                 ? clamp(1 - job.phaseRemainMs / job.phaseTotalMs, 0, 1)
                 : 0);
+        const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier(building?._economyType);
+        const inputFood = this.getInputFood(building);
         return {
-            status: phaseText,
+            status: roadState.roadConnected ? phaseText : '需要道路连接',
             phase: job.phase,
             progress,
-            inputFood: Math.max(1, Math.floor(Number(cfg.inputFoodPerBatch) || 50)),
+            inputFood,
             processTimeMs: this.getProcessTimeMs(building),
             outputMultiplier: this.getOutputMultiplier(building),
-            outputFood: Math.floor((Number(cfg.inputFoodPerBatch) || 50) * this.getOutputMultiplier(building)),
+            tavernMultiplier,
+            outputFood: Math.floor(inputFood
+                * this.getOutputMultiplier(building) * tavernMultiplier),
             plantTributeChance: this.getPlantTributeChance(building),
             moveSpeed: this.getMoveSpeed(building),
             cargoFood: job.cargoFood,
             pendingFood: job.pendingFood,
             completedBatches: job.completedBatches,
             pendingTributes: building?._bakeryPendingTributeIds?.length || 0,
+            roadConnected: roadState.roadConnected,
+            blockReason: roadState.roadConnected ? '' : 'road_disconnected',
+            connectedWarehouseCount: roadState.connectedWarehouseCount,
+            roadDistance: roadState.roadDistance,
         };
     },
 
@@ -259,8 +333,9 @@ export const BakeryEconomySystem = {
     },
 
     _rollPlantTribute(building) {
+        if (building?._economyType !== 'bakery') return;
         if (Math.random() >= this.getPlantTributeChance(building)) return;
-        const ids = bakeryConfig().plantTributeItemIds || [];
+        const ids = processorConfig(building).plantTributeItemIds || [];
         if (!ids.length) return;
         building._bakeryPendingTributeIds.push(ids[Math.floor(Math.random() * ids.length)]);
         this._flushPendingTributes(building);
@@ -274,45 +349,154 @@ export const BakeryEconomySystem = {
         return resolveCivilianVisualPosition(building?.x || 0, building?.y || 0, { structures: [] });
     },
 
-    _warehouseServiceRadius(warehouse) {
-        const config = bakeryConfig();
-        return structureServiceRadius(warehouse, config.warehouseServiceRadius, 180);
+    _warehouseServiceRadius(building, warehouse) {
+        return structureServiceRadius(
+            warehouse,
+            processorConfig(building).warehouseServiceRadius,
+            180
+        );
     },
 
     _bakeryServiceRadius(building) {
-        const config = bakeryConfig();
-        return structureServiceRadius(building, config.bakeryServiceRadius, 200);
+        const config = processorConfig(building);
+        return structureServiceRadius(building,
+            config.restaurantServiceRadius ?? config.bakeryServiceRadius, 200);
     },
 
-    _beginMove(building, phase, warehouse) {
+    _clearMoveRoute(job) {
+        if (!job) return;
+        job._roadRoute = null;
+        job._roadRouteIndex = 0;
+        job._roadRouteSignature = null;
+        job._roadRoutePhase = null;
+        job._roadRouteWarehouseId = null;
+    },
+
+    _routeFromCurrent(building, phase, warehouse, roadState) {
+        const job = building?._bakeryJob;
+        const network = roadState?.network;
+        if (!job || !network) return null;
+        const [i, j] = blockCellOf(job.x, job.y);
+        const currentKey = `${i},${j}`;
+        if (!network.byKey.has(currentKey)) return null;
+        const destination = phase === 'to_bakery' ? building : warehouse;
+        if (!destination) return null;
+        return shortestRoadRoute(
+            network,
+            [currentKey],
+            BuildingRoadSystem.getBuildingRoadAccessKeys(destination)
+        );
+    },
+
+    _buildMoveRoute(building, phase, warehouse, roadState, { fromCurrent = false } = {}) {
+        if (fromCurrent) {
+            const currentRoute = this._routeFromCurrent(building, phase, warehouse, roadState);
+            if (currentRoute?.length) return currentRoute;
+        }
+        const cached = roadState?.reachable
+            ?.find((entry) => entry.building === warehouse)?.route;
+        if (!cached?.length) return null;
+        return phase === 'to_bakery' ? [...cached].reverse() : [...cached];
+    },
+
+    _beginMove(building, phase, warehouse, {
+        roadState = null,
+        fromCurrent = false,
+    } = {}) {
         const job = building._bakeryJob;
-        const target = phase === 'to_bakery'
-            ? this._bakeryPoint(building)
-            : this._warehousePoint(warehouse);
-        const distance = Math.hypot(target.x - job.x, target.y - job.y);
-        const duration = distance / Math.max(1, this.getMoveSpeed(building)) * 1000;
-        const grace = Math.max(0, Number(bakeryConfig().moveGraceMs) || 5000);
+        const currentRoadState = roadState || this.getRoadState(building);
+        const route = this._buildMoveRoute(
+            building,
+            phase,
+            warehouse,
+            currentRoadState,
+            { fromCurrent }
+        );
+        this._clearMoveRoute(job);
+        const grace = Math.max(0, Number(processorConfig(building).moveGraceMs) || 5000);
         job.phase = phase;
         job.targetWarehouseId = warehouse?.id ?? job.targetWarehouseId;
+        if (!route?.length) {
+            job.phaseTotalMs = 0;
+            job.phaseRemainMs = 0;
+            return false;
+        }
+        let routeIndex = 0;
+        if (!fromCurrent && route.length > 1) {
+            let bestDistance = Number.POSITIVE_INFINITY;
+            for (let index = 0; index < route.length; index++) {
+                const node = route[index];
+                const candidate = Math.hypot(node.x - job.x, node.y - job.y);
+                if (candidate < bestDistance) {
+                    bestDistance = candidate;
+                    routeIndex = index;
+                }
+            }
+        }
+        let distance = 0;
+        let previousX = job.x;
+        let previousY = job.y;
+        for (let index = routeIndex; index < route.length; index++) {
+            distance += Math.hypot(route[index].x - previousX, route[index].y - previousY);
+            previousX = route[index].x;
+            previousY = route[index].y;
+        }
+        job._roadRoute = route;
+        job._roadRouteIndex = routeIndex;
+        job._roadRouteSignature = currentRoadState.signature;
+        job._roadRoutePhase = phase;
+        job._roadRouteWarehouseId = warehouse?.id ?? null;
+        const duration = distance / Math.max(1, this.getMoveSpeed(building)) * 1000;
         job.phaseTotalMs = duration + grace;
         job.phaseRemainMs = duration + grace;
+        return true;
+    },
+
+    _ensureMoveRoute(building, phase, warehouse, roadState) {
+        const job = building?._bakeryJob;
+        if (!job) return false;
+        const warehouseId = warehouse?.id ?? null;
+        const reusable = job._roadRoute?.length > 0
+            && job._roadRouteSignature === roadState?.signature
+            && job._roadRoutePhase === phase
+            && (phase === 'to_bakery' || job._roadRouteWarehouseId === warehouseId);
+        if (reusable) return true;
+        return this._beginMove(building, phase, warehouse, {
+            roadState,
+            fromCurrent: true,
+        });
     },
 
     _move(building, target, dt, { serviceStructure = null, serviceRadius = 0 } = {}) {
         const job = building._bakeryJob;
-        if (isWithinServiceRange(job, serviceStructure, serviceRadius)) {
+        const route = job._roadRoute || [];
+        const routeIndex = Math.max(0, Math.floor(Number(job._roadRouteIndex) || 0));
+        if (routeIndex >= route.length
+            && isWithinServiceRange(job, serviceStructure, serviceRadius)) {
             job.phaseRemainMs = 0;
             return true;
         }
         const labor = PopulationEconomySystem.getLaborEfficiency();
         const speed = this.getMoveSpeed(building) * labor;
-        const dx = target.x - job.x;
-        const dy = target.y - job.y;
+        const waypoint = route[routeIndex] || target;
+        const dx = waypoint.x - job.x;
+        const dy = waypoint.y - job.y;
         const distance = Math.hypot(dx, dy);
-        const arrival = Math.max(2, Number(bakeryConfig().arrivalDistance) || 18);
-        if (distance <= arrival) {
-            job.x = target.x;
-            job.y = target.y;
+        const arrival = Math.max(2, Number(processorConfig(building).arrivalDistance) || 18);
+        const waypointArrival = routeIndex < route.length ? Math.min(arrival, 6) : arrival;
+        if (distance <= waypointArrival) {
+            job.x = waypoint.x;
+            job.y = waypoint.y;
+            if (routeIndex < route.length) {
+                const nextRouteIndex = routeIndex + 1;
+                job._roadRouteIndex = nextRouteIndex;
+                if (nextRouteIndex >= route.length
+                    && isWithinServiceRange(job, serviceStructure, serviceRadius)) {
+                    job.phaseRemainMs = 0;
+                    return true;
+                }
+                return false;
+            }
             job.phaseRemainMs = 0;
             return true;
         }
@@ -326,24 +510,28 @@ export const BakeryEconomySystem = {
         job.x = resolved.x;
         job.y = resolved.y;
         job.phaseRemainMs = Math.max(0, job.phaseRemainMs - elapsed);
-        if (isWithinServiceRange(job, serviceStructure, serviceRadius)) {
+        if (routeIndex >= route.length
+            && isWithinServiceRange(job, serviceStructure, serviceRadius)) {
             job.phaseRemainMs = 0;
             return true;
         }
-        if (Math.hypot(target.x - job.x, target.y - job.y) <= arrival) return true;
-        // 面包师是纯视觉岗位，不具备寻路。碰撞滑行仍未抵达时允许阶段超时完成，
-        // 避免密集建筑、墙体或旧存档中的零计时移动把整条生产链永久锁死。
+        if (routeIndex >= route.length
+            && Math.hypot(target.x - job.x, target.y - job.y) <= arrival) return true;
+        // 仍有道路航点时禁止用超时跳过路线，避免隔墙扣粮或交货；只有道路路线已经
+        // 消费完、旧档脚点却未落入服务半径时，才保留原有宽限兜底。
+        if (routeIndex < route.length) return false;
         return job.phaseRemainMs <= 0;
     },
 
     _beginPickup(building) {
         const job = building._bakeryJob;
-        const input = Math.max(1, Math.floor(Number(bakeryConfig().inputFoodPerBatch) || 50));
-        const warehouse = nearestWarehouse(job.x, job.y, (entry) =>
+        const input = this.getInputFood(building);
+        const warehouse = this._selectReachableWarehouse(building, (entry) =>
             Math.max(0, Math.floor(Number(entry.storedFood) || 0)) >= input);
         if (!warehouse) {
             job.phase = 'idle';
             job.targetWarehouseId = null;
+            this._clearMoveRoute(job);
             return;
         }
         this._beginMove(building, 'to_pickup', warehouse);
@@ -351,10 +539,11 @@ export const BakeryEconomySystem = {
 
     _takeInput(building, warehouse) {
         const job = building._bakeryJob;
-        const input = Math.max(1, Math.floor(Number(bakeryConfig().inputFoodPerBatch) || 50));
+        const input = this.getInputFood(building);
         if (!EnergyManager.deductFoodFromWarehouse(warehouse, input)) {
             job.phase = 'idle';
             job.targetWarehouseId = null;
+            this._clearMoveRoute(job);
             return;
         }
         job.cargoFood = input;
@@ -363,20 +552,23 @@ export const BakeryEconomySystem = {
 
     _beginDeposit(building) {
         const job = building._bakeryJob;
-        const warehouse = nearestWarehouse(job.x, job.y, (entry) =>
+        const warehouse = this._selectReachableWarehouse(building, (entry) =>
             EnergyManager.getWarehouseFreeCapacity(entry) >= EnergyManager.getWarehouseFoodFactor(entry));
         if (!warehouse) {
             job.phase = 'waiting_deposit';
             job.targetWarehouseId = null;
+            this._clearMoveRoute(job);
             return;
         }
         this._beginMove(building, 'to_deposit', warehouse);
     },
 
     updateBuilding(building, dt) {
-        if (building?._economyType !== 'bakery' || !building.active) return;
+        if (!isFoodProcessor(building) || !building.active) return;
         this._updateUpgrade(building, dt);
         this._flushPendingTributes(building);
+        const roadState = this.getRoadState(building);
+        if (!roadState.roadConnected) return;
         if (Math.max(0, Math.floor(Number(building._assignedWorkers) || 0)) <= 0) return;
         const job = building._bakeryJob;
         if (job.phase === 'idle') {
@@ -385,18 +577,33 @@ export const BakeryEconomySystem = {
         }
         if (job.phase === 'to_pickup') {
             const warehouse = EnergyManager.getWarehouseById(job.targetWarehouseId);
-            if (!warehouse) {
-                job.phase = 'idle';
-                job.targetWarehouseId = null;
+            const reachable = roadState.reachable.some((entry) => entry.building === warehouse);
+            if (!warehouse || !reachable) {
+                const input = this.getInputFood(building);
+                const replacement = this._selectReachableWarehouse(building, (entry) =>
+                    Math.max(0, Math.floor(Number(entry.storedFood) || 0)) >= input);
+                if (!replacement) {
+                    job.phase = 'idle';
+                    job.targetWarehouseId = null;
+                    this._clearMoveRoute(job);
+                    return;
+                }
+                this._beginMove(building, 'to_pickup', replacement, {
+                    roadState,
+                    fromCurrent: true,
+                });
                 return;
             }
+            if (!this._ensureMoveRoute(building, 'to_pickup', warehouse, roadState)) return;
             if (this._move(building, this._warehousePoint(warehouse), dt, {
                 serviceStructure: warehouse,
-                serviceRadius: this._warehouseServiceRadius(warehouse),
+                serviceRadius: this._warehouseServiceRadius(building, warehouse),
             })) this._takeInput(building, warehouse);
             return;
         }
         if (job.phase === 'to_bakery') {
+            const sourceWarehouse = EnergyManager.getWarehouseById(job.targetWarehouseId);
+            if (!this._ensureMoveRoute(building, 'to_bakery', sourceWarehouse, roadState)) return;
             if (this._move(building, this._bakeryPoint(building), dt, {
                 serviceStructure: building,
                 serviceRadius: this._bakeryServiceRadius(building),
@@ -409,6 +616,7 @@ export const BakeryEconomySystem = {
                 job.offlineProgressMs = 0;
                 job.phaseRemainMs = 0;
                 job.phaseTotalMs = 0;
+                this._clearMoveRoute(job);
             }
             return;
         }
@@ -417,12 +625,16 @@ export const BakeryEconomySystem = {
                 * WorkshopEconomySystem.getEfficiencyMultiplier(building);
             job.processRemainMs -= Math.max(0, Number(dt) || 0) * efficiency;
             if (job.processRemainMs > 0) return;
+            const consumedFood = Math.max(1,
+                Math.floor(Number(job.cargoFood) || this.getInputFood(building)));
+            const exactOutput = building._bakeryOutputRemainder
+                + consumedFood
+                    * this.getOutputMultiplier(building)
+                    * TavernEconomySystem.getPlaneOutputMultiplier(building._economyType)
+                    * getProductionResourceMul();
+            job.pendingFood = Math.max(1, Math.floor(exactOutput));
+            building._bakeryOutputRemainder = exactOutput - job.pendingFood;
             job.cargoFood = 0;
-            job.pendingFood = Math.max(1, Math.floor(
-                (Number(bakeryConfig().inputFoodPerBatch) || 50)
-                * this.getOutputMultiplier(building)
-                * getProductionResourceMul()
-            ));
             this._rollPlantTribute(building);
             this._beginDeposit(building);
             return;
@@ -433,20 +645,34 @@ export const BakeryEconomySystem = {
         }
         if (job.phase === 'to_deposit') {
             const warehouse = EnergyManager.getWarehouseById(job.targetWarehouseId);
-            if (!warehouse) {
-                job.phase = 'waiting_deposit';
-                job.targetWarehouseId = null;
+            const reachable = roadState.reachable.some((entry) => entry.building === warehouse);
+            if (!warehouse || !reachable) {
+                const replacement = this._selectReachableWarehouse(building, (entry) =>
+                    EnergyManager.getWarehouseFreeCapacity(entry)
+                        >= EnergyManager.getWarehouseFoodFactor(entry));
+                if (!replacement) {
+                    job.phase = 'waiting_deposit';
+                    job.targetWarehouseId = null;
+                    this._clearMoveRoute(job);
+                    return;
+                }
+                this._beginMove(building, 'to_deposit', replacement, {
+                    roadState,
+                    fromCurrent: true,
+                });
                 return;
             }
+            if (!this._ensureMoveRoute(building, 'to_deposit', warehouse, roadState)) return;
             if (!this._move(building, this._warehousePoint(warehouse), dt, {
                 serviceStructure: warehouse,
-                serviceRadius: this._warehouseServiceRadius(warehouse),
+                serviceRadius: this._warehouseServiceRadius(building, warehouse),
             })) return;
             const stored = EnergyManager.depositFoodToWarehouse(warehouse, job.pendingFood);
             job.pendingFood = Math.max(0, job.pendingFood - stored);
             if (job.pendingFood > 0) {
                 job.phase = 'waiting_deposit';
                 job.targetWarehouseId = null;
+                this._clearMoveRoute(job);
                 return;
             }
             job.completedBatches++;
@@ -454,6 +680,7 @@ export const BakeryEconomySystem = {
             job.targetWarehouseId = null;
             job.phaseRemainMs = 0;
             job.phaseTotalMs = 0;
+            this._clearMoveRoute(job);
         }
     },
 };

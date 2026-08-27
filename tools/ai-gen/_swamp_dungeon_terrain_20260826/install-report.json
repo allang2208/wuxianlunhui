@@ -1,0 +1,345 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "path": "assets/terrain/floor_swamp_wet_seamless.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "alphaBBox": [
+        0,
+        0,
+        1024,
+        1024
+      ],
+      "alphaExtrema": [
+        255,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp_dungeon_detail_tiles.png",
+      "size": [
+        512,
+        64
+      ],
+      "alphaBBox": [
+        40,
+        1,
+        484,
+        63
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_mud_clods.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        202,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_wet_pebbles.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        167,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_moss_stones.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        202,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_reed_tuft.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        185,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_cattails.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        168,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_lily_pads.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_duckweed.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_mushrooms.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        198,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_rotten_planks.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_root_tangle.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_twig_bundle.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_snail_shells.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        199,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_frog_bones.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_broken_bowl.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_rusty_hook.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_reed_coil.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_swamp_flowers.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        197,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/terrain/swamp-dungeon-props/swamp_prop_egg_cluster.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        205,
+        164,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    }
+  ]
+}

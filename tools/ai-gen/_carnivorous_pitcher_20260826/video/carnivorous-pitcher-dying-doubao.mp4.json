@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_carnivorous_pitcher_20260826\\references\\carnivorous-pitcher-reference-dying-magenta.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_carnivorous_pitcher_20260826\\prompts\\carnivorous-pitcher-dying-doubao.txt",
+  "promptChars": 717,
+  "promptSha256": "9eeff1a8c97697b2c1eb586b8fa47ebc9cb330a3fb5f9e7fc2d8aa0c80c983d0",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T06:27:52.493Z",
+  "sourceUrlScheme": "https"
+}

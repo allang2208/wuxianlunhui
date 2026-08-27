@@ -1,0 +1,190 @@
+{
+  "assetId": "warehouse_lv5",
+  "label": "仓库 LV5 · 相位仓库",
+  "status": "runtime_asset_installed",
+  "sourceFamily": "warehouse_lv4",
+  "sourceModel": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_model.blend",
+  "assetClass": "building",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "dimensions": {
+    "foundation": [500, 414, 16],
+    "body": [382, 286, 424],
+    "roof": [434, 338, 116]
+  },
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/warehouse_lv5_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/warehouse_lv5_model_preview.png",
+    "approvalPreview": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/warehouse_lv5_model_approval_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/warehouse_lv5_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/warehouse_lv5_body_depth.png",
+    "runtime": "assets/terrain/warehouse_lv5.png",
+    "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/warehouse_lv5_runtime_metadata.json"
+  },
+  "inheritedStructure": [
+    "exactly four connected storeys",
+    "one continuous steep gable roof",
+    "exactly two unobstructed reinforced ground loading bays",
+    "attached stone buttresses, lower iron bands and front loading dock",
+    "second-floor front loading balcony and perpendicular fourth-floor side balcony",
+    "exactly one exterior cargo lift with two rails, one cage, one pulley and one powered winch",
+    "exactly one enclosed automatic sorter with one short conveyor bridge",
+    "one routing manifold, exactly two enclosed chutes and exactly two receiving bins"
+  ],
+  "lv5Structure": [
+    "one enclosed phase-vault housing wrapped around the inherited lower routing leg",
+    "exactly one embedded faceted phase core",
+    "exactly one complete aged-brass stabilizer energy ring with four fixed clamps",
+    "exactly two sealed wall-mounted reserve canisters",
+    "one short crossfeed conduit and one direct sorter coupler",
+    "all phase hardware remains attached to the same visible wall and inside the original 2x2 foundation"
+  ],
+  "modelReview": {
+    "reviewedAt": "2026-08-26",
+    "approvalPreviewOpened": true,
+    "result": "final white model keeps the four-storey warehouse silhouette and two front loading doors readable; the raised wall-mounted phase vault shows one blue faceted core, one brass stabilizer ring and two sealed reserve canisters without reading as a ground-level portal doorway"
+  },
+  "modelApproval": {
+    "approvedByUserAt": "2026-08-26",
+    "approvalMessage": "同意继续12步"
+  },
+  "structureGeneration": {
+    "reviewedAt": "2026-08-26",
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 12,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "nonstandardOverride": false,
+    "primaryBatch": {
+      "directory": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/candidates/warehouse_lv5",
+      "seeds": [122491, 122492, 122493],
+      "review": {
+        "v01": "rejected: a second cyan phase face reads as an extra core or portal",
+        "v02": "structure pass and recommended: four connected storeys, one roof, two ground loading doors, one cargo lift, one enclosed sorter, one core inside one brass ring, two upper reserve canisters, and the inherited lower two chutes plus two receiving bins remain distinguishable",
+        "v03": "rejected: a smaller second cyan core appears below the main ring and the ground doorway count is ambiguous"
+      }
+    },
+    "retryBatch": {
+      "directory": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/candidates_retry2/warehouse_lv5",
+      "seeds": [122494, 122495, 122496],
+      "reason": "tightened the asset-specific count contract after the first raw review without changing the approved depth, shared style or standard generation parameters",
+      "review": "rejected as a batch: every image duplicates the cyan phase core or portal treatment; several also add an ambiguous third ground door or extra tank clusters"
+    },
+    "recommendedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/candidates/warehouse_lv5/warehouse_lv5_structure_v02_raw.png"
+  },
+  "structureSelection": {
+    "selectedByUserAt": "2026-08-26",
+    "selectionMessage": "继续",
+    "selectedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/candidates/warehouse_lv5/warehouse_lv5_structure_v02_raw.png"
+  },
+  "refineGeneration": {
+    "reviewedAt": "2026-08-26",
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "nonstandardOverride": false,
+    "directory": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/candidates/warehouse_lv5",
+    "seeds": [122491, 122492],
+    "review": {
+      "v01": "rejected: the small lower cyan fitting gains its own complete brass loop and reads as a duplicated miniature phase core or ring",
+      "v02": "recommended: preserves the selected four-storey, one-roof, two-door, one-lift and one-sorter structure while improving roof, plaster, timber, stone, iron and brass materials; the small lower cyan fitting remains an attached coupler vial rather than a second ringed core"
+    },
+    "recommendedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/candidates/warehouse_lv5/warehouse_lv5_refine_v02_raw.png",
+    "alphaReview": "raw candidates are authoritative for selection; auxiliary transparent bodies retain the cyan phase core but still show a few localized green-key pixels near railing holes and the right ground edge. Full-canvas removeAllGreen was evaluated and rejected because it punctures cyan core pixels; repair only the selected body with bounded local green-spill replacement after user selection.",
+    "styleComplianceAudit": "rejected after strict comparison with the accepted warehouse LV4: v02 is structurally usable but its bright brass, clean white or blue laboratory-like canisters and luminous lower cyan fitting do not satisfy the restrained warehouse-family material and unique-cyan contracts."
+  },
+  "styleRetryGeneration": {
+    "reviewedAt": "2026-08-26",
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "assetPromptClass": "phase_storage_warehouse",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "nonstandardOverride": false,
+    "directory": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/refine_style_retry2/warehouse_lv5",
+    "seeds": [122493, 122494],
+    "promptCorrection": "removed the unrelated generic scholarly-detail refinement branch for this asset and enforced the warehouse-specific LV4 darkness, weathering, opaque blackened-iron canisters, non-luminous lower coupler and single-cyan-core contracts.",
+    "review": {
+      "v01": "rejected as a final candidate: the roof, plaster, timber, stone, iron and brass are darker and more weathered, and its reserve canisters are the better of this pair, but a second cyan lower fitting and a bright blue balcony object violate the unique-cyan contract; localized green-key pixels remain near the right ground edge.",
+      "v02": "rejected as a final candidate: material restraint is improved, but the lower fitting still reads as a second cyan core and the right balcony retains a turquoise vessel plus a clean pale canister; localized green-key pixels remain near the right ground edge."
+    },
+    "result": "neither raw candidate is eligible for final selection under the strict style contract; v01 is the preferred base only for a bounded local masked correction, not an accepted asset."
+  },
+  "localStyleCorrectionGeneration": {
+    "reviewedAt": "2026-08-26",
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "initImage": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/refine_style_retry2/warehouse_lv5/warehouse_lv5_refine_v01_raw.png",
+    "maskImage": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/warehouse_lv5_style_correction_mask.png",
+    "standardBatch": {
+      "directory": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/refine_style_localfix_standard_seed122505/warehouse_lv5",
+      "denoise": 0.3,
+      "seeds": [122505, 122506],
+      "nonstandardOverride": false,
+      "review": "rejected: both candidates retained cyan or blue readings inside the masked lower coupler and balcony equipment; v01 enlarged the balcony cyan object, proving that the standard low-redraw setting could not replace the inherited local color semantics."
+    },
+    "replacementBatch": {
+      "directory": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/refine_style_localfix_d085_seed122507/warehouse_lv5",
+      "denoise": 0.85,
+      "seeds": [122507, 122508],
+      "nonstandardOverride": true,
+      "reason": "the documented bounded-mask exception was required to replace strongly inherited local components while retaining the standard 48 steps, Depth 0.75, CFG 3.5 and Euler/simple sampler contract.",
+      "review": {
+        "v01": "rejected: it removes the duplicate cyan lower fitting and uses dark weathered hardware, but the balcony reads as three reserve canisters rather than exactly two canisters plus a service box.",
+        "v02": "recommended for user selection: it preserves the complete warehouse architecture, main core and ring while replacing the lower duplicate cyan fitting with non-luminous blackened-iron and aged-brass pipe hardware; the balcony now contains exactly two opaque blackened-iron reserve canisters plus one dark service box and no blue laboratory vessel."
+      },
+      "recommendedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/refine_style_localfix_d085_seed122507/warehouse_lv5/warehouse_lv5_refine_v02_raw.png"
+    },
+    "filterAudit": "no cinematic grade, bloom, runtime shader, sharpening, denoise or saturation filter was applied to the generated candidate. Low saturation, controlled neutral contrast, weathered PBR response and soft upper-left top-side light remain prompt-level parts of the canonical style. Candidate postprocessing only generated green-key, silhouette, anchor and review-preview derivatives; any later RGB-only saturation or edge cleanup must preserve the selected alpha and wait for user acceptance.",
+    "alphaReview": "the v02 transparent body preserves the structure but still carries visible green-screen RGB along parts of the silhouette and the right ground edge. Do not use full-canvas removeAllGreen because it can puncture the cyan core; after selection, repair the accepted body with alpha-locked edge despill and bounded local green replacement."
+  },
+  "finalSelection": {
+    "approvedByUserAt": "2026-08-26",
+    "approvalMessage": "我已经处理完了，继续",
+    "selectedRaw": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/refine_style_localfix_d085_seed122507/warehouse_lv5/warehouse_lv5_refine_v02_raw.png",
+    "acceptedRgbaSource": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv5/refine_style_localfix_d085_seed122507/warehouse_lv5/warehouse_lv5_refine_v02.png",
+    "runtimeAsset": "assets/terrain/warehouse_lv5.png",
+    "runtimeSize": [630, 775],
+    "displaySize": [300, 369],
+    "footOffsetY": 183,
+    "alphaContract": "the accepted user alpha was preserved byte-for-byte inside crop [195,115,825,890]; finalization changed only RGB, cleared RGB where alpha is zero, and tightly cropped with four pixels of padding.",
+    "rgbCleanup": "known green matte RGB was removed from semi-transparent and two-pixel boundary regions using nearest reliable opaque subject color; four bounded outer-edge spill regions and one lower phase-foot region were repaired without changing alpha.",
+    "archiveCleanup": "after formal acceptance, 108 rejected or reproducible intermediate files (86786437 bytes) were removed; the editable model, previews, depth sources, prompts, generation metadata, selected raw, accepted user RGBA, final mask, runtime metadata and formal runtime asset were retained."
+  },
+  "negativeConstraints": [
+    "no fifth floor",
+    "no second building, detached annex or engine house",
+    "no second roof, tower, chimney or smokestack",
+    "no second cargo lift or long exterior conveyor network",
+    "no second phase core, second energy ring or portal doorway",
+    "no floating machinery, robot arm, robot or vehicle",
+    "no people, readable text, broad neon glow or oversized foundation"
+  ],
+  "nextStage": "runtime asset and lighting derivatives are installed; await user runtime verification of the LV4-to-LV5 upgrade swap, display scale, foot alignment, road overlap, cyan-core readability and day/night shadow response"
+}

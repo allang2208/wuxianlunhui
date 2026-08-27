@@ -1,0 +1,19 @@
+{
+  "assetOnly": true,
+  "runtimeIntegration": false,
+  "source": "two approved still keyframes plus BiRefNet alpha masks; no generated video frames",
+  "sequence": [
+    "loaded aim",
+    "empty release",
+    "loaded aim"
+  ],
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "feetY": 351,
+  "targetEffectiveBodyHeight": 129,
+  "fixedScale": 0.16454081632653061,
+  "sourceFrameCount": 3,
+  "sourceCols": 3,
+  "rifeMode": "one-shot",
+  "runtimeBoltSpawnKey": "release keyframe after interpolation"
+}

@@ -20,9 +20,11 @@ class DamagePipeline {
      * @param {number} [options.knockback] 击退距离
      * @param {number} [options.angle] 击退角度
      * @param {object} [options.currentWeapon] 当前武器（未提供则自动解析）
+     * @param {object} [options.effectContext] 单次攻击/投射物上下文，用于限制穿透多目标重复触发自身增益
      * @param {{value:number}} [options.hitCountRef] 命中计数引用
      * @param {{value:number}} [options.killCountRef] 击杀计数引用
      * @param {boolean} [options.isMelee=true] 是否为近战攻击（影响盾牌弹反效果）
+     * @param {object} [options.confirmedHitContext] 传给来源确认命中钩子的技能上下文
      * @returns {{hit:boolean,killed:boolean,skillExpEligible:boolean}}
      */
     static applyHit(source, target, options = {}) {
@@ -32,9 +34,11 @@ class DamagePipeline {
             knockback,
             angle,
             currentWeapon,
+            effectContext,
             hitCountRef,
             killCountRef,
-            isMelee = true
+            isMelee = true,
+            confirmedHitContext = null
         } = options;
         if (isMelee && !canMeleeShareSurface(source, target)) {
             return { hit: false, killed: false, skillExpEligible: false };
@@ -54,7 +58,7 @@ class DamagePipeline {
 
         const wasAlive = target.hp > 0;
         const skillExpEligible = target._grantsSkillTrainingExp !== false;
-        target.takeDamage(damage, source, damageType, isMelee);
+        target.takeDamage(damage, source, damageType, isMelee, effectContext?._hitContext || null);
         const killed = wasAlive && target.hp <= 0;
 
         // 枪械手感反馈（COD/Sakanako 式命中确认链）：远程命中 → hitmarker 三级 + 音效 + trauma + 击杀 hitstop
@@ -73,6 +77,18 @@ class DamagePipeline {
 
         // 盾牌弹反成功后，不应再对持盾者施加击退、 craft 特效等后续效果
         const parried = target.shieldSystem && target.shieldSystem._lastParried;
+
+        // 仅在伤害调用完成、确认未被弹反后触发的附加效果入口。
+        // 需要“每次实际命中”语义的怪物效果（如棕蛇毒牙）走这里，避免在
+        // takeDamage 之前无法识别弹反，也不改变旧 _onHitEntity 的既有时序。
+        if (!parried && typeof source._onConfirmedHitEntity === 'function') {
+            source._onConfirmedHitEntity(target, {
+                killed,
+                ...(confirmedHitContext && typeof confirmedHitContext === 'object'
+                    ? confirmedHitContext
+                    : {}),
+            });
+        }
 
         if (skillExpEligible && hitCountRef && typeof hitCountRef.value === 'number') {
             hitCountRef.value++;
@@ -108,10 +124,14 @@ class DamagePipeline {
                 const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : damage;
                 target.takeDamage(weaponAtk, source, 'magic', false);
             }
-            // 命中获得加速 buff（P4040 轻量化快速板机）：给攻击者自身上 haste
-            if (ce.onHitSpeedBuff && source && typeof source.applyHaste === 'function') {
+            // P4040 轻量化快速板机：独立武器加速，同一穿透弹只在首次命中触发。
+            if (ce.onHitSpeedBuff && source && typeof source.applyWeaponHaste === 'function') {
                 const b = ce.onHitSpeedBuff;
-                source.applyHaste(b.durationMs ?? 2000, { speedMul: 1 + (b.speedPercent ?? 0.10) });
+                const alreadyTriggered = b.triggerPerProjectile && effectContext?._onHitSpeedBuffTriggered;
+                if (!alreadyTriggered) {
+                    source.applyWeaponHaste(b.durationMs ?? 2000, b.speedPercent ?? 0.10);
+                    if (b.triggerPerProjectile && effectContext) effectContext._onHitSpeedBuffTriggered = true;
+                }
             }
         }
 

@@ -12,7 +12,7 @@ import { Companion } from './companion.js';
 import { HamsterMilitiaAI } from '../ai/hamster-militia-ai.js';
 import hamsterMilitiaConfig from '../../data/hamster-militia-config.json';
 
-const DYING_DURATION_MS = 1167; // dying 14 帧 @12fps = 1167ms
+const MIN_DYING_DURATION_MS = 1167;
 
 export class HamsterMilitia extends Companion {
     constructor(x, y, overrides = {}) {
@@ -39,7 +39,8 @@ export class HamsterMilitia extends Companion {
         this.hittable = true;
         this.hitFlash = 0;
         const renderConfig = archive.render || {};
-        this.footOffsetY = Math.max(0, Number(renderConfig.footOffsetY) || 84);
+        // 草叉是细长装备，不计入仓鼠主体体量；本兜底与主体轮廓标定后的脚线一致。
+        this.footOffsetY = Math.max(0, Number(renderConfig.footOffsetY) || 58.199449);
         this.config = {
             render: {
                 ...renderConfig,
@@ -49,6 +50,10 @@ export class HamsterMilitia extends Companion {
         };
         this._dying = false;
         this._deathTimer = 0;
+        const dyingAnim = archive.animations?.dying || {};
+        const dyingFrameCount = Math.max(1, Number(dyingAnim.frameCount) || 1);
+        const dyingFrameRate = Math.max(1, Number(dyingAnim.frameRate) || 12);
+        this._dyingDurationMs = Math.max(MIN_DYING_DURATION_MS, dyingFrameCount / dyingFrameRate * 1000 + 60);
         this._ai = new HamsterMilitiaAI(this);
         this._animState = 'idle';
         this.configureCollisionFromArchive(archive);
@@ -79,7 +84,7 @@ export class HamsterMilitia extends Companion {
         this.vy = 0;
         this.isMoving = false;
         this.maxSpeed = 0;
-        this._deathTimer = DYING_DURATION_MS;
+        this._deathTimer = this._dyingDurationMs;
     }
 
     /** 仓鼠兵营/产兵建筑升级同步（2026-08-16）：攻击间隔/伤害/移速/生命实时生效 */
@@ -87,10 +92,12 @@ export class HamsterMilitia extends Companion {
         if (this._ai) {
             if (u.attackInterval) this._ai._attackInterval = u.attackInterval;
             if (u.attackDamage) this._ai._attackDamage = u.attackDamage;
+            if (u.attackRange) this._ai._attackRange = u.attackRange;
         }
         if (this.aiConfig) {
             if (u.attackInterval) this.aiConfig.attackInterval = u.attackInterval;
             if (u.attackDamage) this.aiConfig.attackDamage = u.attackDamage;
+            if (u.attackRange) this.aiConfig.attackRange = u.attackRange;
             if (u.walkSpeed) this.aiConfig.walkSpeed = u.walkSpeed;
         }
         if (u.baseMaxHp && this._maxHpOverride !== u.baseMaxHp) {
@@ -110,6 +117,10 @@ export class HamsterMilitia extends Companion {
         }
         if (this.data.hp <= 0) {
             this._startDying();
+            return;
+        }
+        if (this.hasStatusEffect('petrified')) {
+            this.vx = 0; this.vy = 0; this.isMoving = false;
             return;
         }
         if (this._ai) {

@@ -3,10 +3,14 @@ import gameConfig from '../../data/game-config.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { TechnologySystem } from './technology-system.js';
 import { getWorldSnapshot } from './world122-snapshot.js';
+import {
+    WeatherForecastTowerSystem,
+    WEATHER_FORECAST_TOWER_ID,
+} from './weather-forecast-tower-system.js';
+import { WorldSpecialWeatherRegistry } from './world-special-weather-registry.js';
 
-const VERSION = 1;
+const VERSION = 2;
 const FORECAST_TECH_ID = 'weather_forecasting';
-const FORECAST_TOWER_ID = 'weather_forecast_tower';
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 let state = { version: VERSION, worlds: {} };
@@ -38,10 +42,23 @@ function targetSceneIds() {
     const config = rainConfig();
     const excludedTypes = Array.isArray(config.excludedSceneTypes)
         ? config.excludedSceneTypes : ['dungeon'];
-    return config.enabled === false || scheduleConfig().enabled === false
-        ? []
-        : (Array.isArray(config.targetSceneIds) ? config.targetSceneIds.filter((sceneId) =>
-            sceneId && !excludedTypes.includes(gameConfig.scenes?.[sceneId]?.type)) : []);
+    if (config.enabled === false || scheduleConfig().enabled === false) return [];
+
+    const explicitIds = new Set(Array.isArray(config.targetSceneIds)
+        ? config.targetSceneIds.filter(Boolean) : []);
+    const targetTypes = new Set(Array.isArray(config.targetSceneTypes)
+        ? config.targetSceneTypes.filter(Boolean) : []);
+    return Object.entries(gameConfig.scenes || {})
+        .filter(([sceneId, sceneConfig]) => {
+            if (!sceneId || excludedTypes.includes(sceneConfig?.type)) return false;
+            // 单场景显式 false 始终可退出全局类型继承；显式 true 可让特殊类型接入。
+            const sceneRainSetting = sceneConfig?.environmentEffects?.rain?.enabled;
+            if (sceneRainSetting === false) return false;
+            return explicitIds.has(sceneId)
+                || targetTypes.has(sceneConfig?.type)
+                || sceneRainSetting === true;
+        })
+        .map(([sceneId]) => sceneId);
 }
 
 function forcedIntensityId(sceneId) {
@@ -71,22 +88,65 @@ function pickIntensityId(sceneId) {
     return entries[entries.length - 1][0];
 }
 
-function scheduleNext(sceneId, anchorGameTimeMs) {
+function createScheduleEntry(sceneId, anchorGameTimeMs, cycle = 1) {
     const config = scheduleConfig();
     const gapDays = readDayRange(config.intervalDays, 0.8, 2.2);
     const durationDays = readDayRange(config.durationDays, 0.25, 0.6);
-    const previous = state.worlds[sceneId];
     const startAtGameTimeMs = Math.max(0, Number(anchorGameTimeMs) || 0)
         + randomRange(gapDays) * dayDurationMs();
     const endAtGameTimeMs = startAtGameTimeMs
         + randomRange(durationDays) * dayDurationMs();
-    state.worlds[sceneId] = {
-        cycle: Math.max(0, Math.floor(Number(previous?.cycle) || 0)) + 1,
+    return {
+        cycle: Math.max(1, Math.floor(Number(cycle) || 1)),
         intensityId: pickIntensityId(sceneId),
         startAtGameTimeMs,
         endAtGameTimeMs,
     };
+}
+
+function scheduleNext(sceneId, anchorGameTimeMs) {
+    const previous = state.worlds[sceneId];
+    state.worlds[sceneId] = createScheduleEntry(
+        sceneId,
+        anchorGameTimeMs,
+        Math.max(0, Math.floor(Number(previous?.cycle) || 0)) + 1
+    );
     return state.worlds[sceneId];
+}
+
+function isValidScheduleEntry(entry) {
+    return !!entry && Number(entry.startAtGameTimeMs) >= 0
+        && Number(entry.endAtGameTimeMs) > Number(entry.startAtGameTimeMs);
+}
+
+function normalizeScheduleEntry(sceneId, source) {
+    if (!isValidScheduleEntry(source)) return null;
+    return {
+        cycle: Math.max(1, Math.floor(Number(source.cycle) || 1)),
+        intensityId: resolveSceneIntensityId(sceneId, source.intensityId),
+        startAtGameTimeMs: Math.max(0, Number(source.startAtGameTimeMs) || 0),
+        endAtGameTimeMs: Math.max(0, Number(source.endAtGameTimeMs) || 0),
+    };
+}
+
+function ensureForecastQueue(sceneId, entry, horizonEndGameTimeMs) {
+    const queue = (Array.isArray(entry.forecastQueue) ? entry.forecastQueue : [])
+        .map((candidate) => normalizeScheduleEntry(sceneId, candidate))
+        .filter(Boolean);
+    let previous = queue[queue.length - 1] || entry;
+    let safety = 64;
+    // 队列至少保留一个落在监测窗口外的边界事件，避免每次 HUD 刷新重新抽取下一轮。
+    while (previous.startAtGameTimeMs <= horizonEndGameTimeMs && safety-- > 0) {
+        const next = createScheduleEntry(
+            sceneId,
+            previous.endAtGameTimeMs,
+            Math.max(1, Math.floor(Number(previous.cycle) || 1)) + 1
+        );
+        queue.push(next);
+        previous = next;
+    }
+    entry.forecastQueue = queue;
+    return queue;
 }
 
 function ensureSchedule(sceneId, nowGameTimeMs) {
@@ -96,7 +156,14 @@ function ensureSchedule(sceneId, nowGameTimeMs) {
     }
     let safety = 64;
     while (nowGameTimeMs >= entry.endAtGameTimeMs && safety-- > 0) {
-        entry = scheduleNext(sceneId, entry.endAtGameTimeMs);
+        const queue = Array.isArray(entry.forecastQueue) ? [...entry.forecastQueue] : [];
+        const queuedNext = normalizeScheduleEntry(sceneId, queue.shift());
+        if (queuedNext) {
+            entry = { ...queuedNext, forecastQueue: queue };
+            state.worlds[sceneId] = entry;
+        } else {
+            entry = scheduleNext(sceneId, entry.endAtGameTimeMs);
+        }
     }
     entry.intensityId = resolveSceneIntensityId(sceneId, entry.intensityId);
     return entry;
@@ -106,16 +173,58 @@ function isLiveScene(sceneId) {
     return typeof window !== 'undefined' && window.SceneManager?.currentScene === sceneId;
 }
 
-function hasForecastTower(sceneId) {
-    if (!TechnologySystem.isCompleted(FORECAST_TECH_ID)) return false;
+function forecastProfileRank(profile) {
+    const levels = Object.values(profile?.levels || {}).reduce(
+        (sum, level) => sum + Math.max(0, Math.floor(Number(level) || 0)),
+        0
+    );
+    return [
+        levels,
+        Math.max(0, Number(profile?.horizonDays) || 0),
+        profile?.disasterWarning ? 1 : 0,
+        profile?.showDuration ? 1 : 0,
+        Math.max(0, Number(profile?.researchPointsPerSecond) || 0),
+    ];
+}
+
+function isProfileBetter(candidate, current) {
+    if (!current) return true;
+    const left = forecastProfileRank(candidate);
+    const right = forecastProfileRank(current);
+    for (let i = 0; i < left.length; i++) {
+        if (left[i] !== right[i]) return left[i] > right[i];
+    }
+    return false;
+}
+
+function selectBestForecastProfile(buildings, snapshot = false) {
+    let best = null;
+    for (const building of buildings || []) {
+        const operational = snapshot
+            ? WeatherForecastTowerSystem.isSnapshotOperational(building)
+            : WeatherForecastTowerSystem.isOperational(building);
+        if (!operational) continue;
+        const profile = snapshot
+            ? WeatherForecastTowerSystem.getProfileFromSnapshot(building)
+            : WeatherForecastTowerSystem.getProfile(building);
+        if (isProfileBetter(profile, best)) best = profile;
+    }
+    return best;
+}
+
+function getForecastTowerProfile(sceneId) {
+    if (!TechnologySystem.isCompleted(FORECAST_TECH_ID)) return null;
     if (isLiveScene(sceneId)) {
         const liveBuildings = typeof window !== 'undefined'
             ? window.Game?.ProducerBuildingSystem?.buildings : null;
-        return (liveBuildings || []).some((building) =>
-            building?.active !== false && building?.hp > 0 && building.cfgKey === FORECAST_TOWER_ID);
+        const buildings = (liveBuildings || []).filter((candidate) =>
+            candidate?.active !== false && candidate?.hp > 0
+            && candidate.cfgKey === WEATHER_FORECAST_TOWER_ID);
+        return selectBestForecastProfile(buildings);
     }
-    return (getWorldSnapshot(sceneId)?.structures || []).some((building) =>
-        building?.hp > 0 && building.cfgKey === FORECAST_TOWER_ID);
+    const snapshots = (getWorldSnapshot(sceneId)?.structures || []).filter((building) =>
+        building?.hp > 0 && building.cfgKey === WEATHER_FORECAST_TOWER_ID);
+    return selectBestForecastProfile(snapshots, true);
 }
 
 function intensityName(intensityId) {
@@ -145,6 +254,12 @@ function isScheduledActive(entry, nowGameTimeMs) {
         && nowGameTimeMs < entry.endAtGameTimeMs;
 }
 
+function weatherDurationLabel(entry) {
+    const hours = Math.max(0, Number(entry.endAtGameTimeMs) - Number(entry.startAtGameTimeMs))
+        / dayDurationMs() * 24;
+    return hours >= 24 ? `${(hours / 24).toFixed(1)} 天` : `${hours.toFixed(1)} 小时`;
+}
+
 export const WorldWeatherSystem = {
     reset() {
         state = { version: VERSION, worlds: {} };
@@ -161,13 +276,12 @@ export const WorldWeatherSystem = {
         if (!data || typeof data !== 'object') return;
         for (const sceneId of targetSceneIds()) {
             const source = data.worlds?.[sceneId];
-            if (!source || !(Number(source.endAtGameTimeMs) > Number(source.startAtGameTimeMs))) continue;
-            state.worlds[sceneId] = {
-                cycle: Math.max(1, Math.floor(Number(source.cycle) || 1)),
-                intensityId: resolveSceneIntensityId(sceneId, source.intensityId),
-                startAtGameTimeMs: Math.max(0, Number(source.startAtGameTimeMs) || 0),
-                endAtGameTimeMs: Math.max(0, Number(source.endAtGameTimeMs) || 0),
-            };
+            const entry = normalizeScheduleEntry(sceneId, source);
+            if (!entry) continue;
+            entry.forecastQueue = (Array.isArray(source.forecastQueue) ? source.forecastQueue : [])
+                .map((candidate) => normalizeScheduleEntry(sceneId, candidate))
+                .filter(Boolean);
+            state.worlds[sceneId] = entry;
         }
     },
 
@@ -204,28 +318,60 @@ export const WorldWeatherSystem = {
         const now = Math.max(0, Number(nowGameTimeMs) || 0);
         this.update(now);
         const events = [];
-        for (const sceneId of targetSceneIds()) {
-            if (!hasForecastTower(sceneId)) continue;
-            const entry = state.worlds[sceneId];
-            const active = isScheduledActive(entry, now);
-            events.push({
-                id: `weather:${sceneId}:${entry.cycle}`,
-                type: 'weather',
-                typeLabel: '天气',
-                icon: iconForIntensity(entry.intensityId),
-                iconPath: iconPathForIntensity(entry.intensityId),
-                label: `${worldName(sceneId)} · ${intensityName(entry.intensityId)}`,
-                atGameTimeMs: active ? now : entry.startAtGameTimeMs,
-                startsAtGameTimeMs: entry.startAtGameTimeMs,
-                endsAtGameTimeMs: entry.endAtGameTimeMs,
-                status: active ? 'active' : 'upcoming',
-                sceneId,
-                worldName: worldName(sceneId),
-                intensityId: entry.intensityId,
-                intensityName: intensityName(entry.intensityId),
-            });
+        const rainSceneIds = new Set(targetSceneIds());
+        const forecastSceneIds = new Set([
+            ...rainSceneIds,
+            ...WorldSpecialWeatherRegistry.getSceneIds(),
+        ]);
+        for (const sceneId of forecastSceneIds) {
+            const profile = getForecastTowerProfile(sceneId);
+            if (!profile) continue;
+            const horizonEnd = now + Math.max(0, Number(profile.horizonDays) || 0) * dayDurationMs();
+            const entry = rainSceneIds.has(sceneId) ? state.worlds[sceneId] : null;
+            if (entry) {
+                const futureQueue = ensureForecastQueue(sceneId, entry, horizonEnd);
+                const candidates = [entry, ...futureQueue];
+                candidates.forEach((candidate, index) => {
+                    const active = index === 0 && isScheduledActive(candidate, now);
+                    if (!active && candidate.startAtGameTimeMs > horizonEnd) return;
+                    const warningLevel = candidate.intensityId === 'storm' ? 'critical'
+                        : (candidate.intensityId === 'heavy' ? 'warning' : null);
+                    const warningLabel = warningLevel === 'critical'
+                        ? '强度：暴风雨'
+                        : (warningLevel === 'warning' ? '强度：大雨' : null);
+                    events.push({
+                        id: `weather:${sceneId}:${candidate.cycle}`,
+                        type: 'weather',
+                        typeLabel: '天气',
+                        weatherKind: 'rain',
+                        icon: iconForIntensity(candidate.intensityId),
+                        iconPath: iconPathForIntensity(candidate.intensityId),
+                        label: `${warningLabel ? '⚠ ' : ''}${worldName(sceneId)} · ${intensityName(candidate.intensityId)}`,
+                        atGameTimeMs: active ? now : candidate.startAtGameTimeMs,
+                        startsAtGameTimeMs: candidate.startAtGameTimeMs,
+                        endsAtGameTimeMs: active || profile.showDuration
+                            ? candidate.endAtGameTimeMs : undefined,
+                        durationLabel: profile.showDuration ? weatherDurationLabel(candidate) : null,
+                        warningLevel,
+                        warningLabel,
+                        forecastCycleIndex: index,
+                        status: active ? 'active' : 'upcoming',
+                        sceneId,
+                        worldName: worldName(sceneId),
+                        intensityId: candidate.intensityId,
+                        intensityName: intensityName(candidate.intensityId),
+                    });
+                });
+            }
+            if (profile.disasterWarning) {
+                events.push(...WorldSpecialWeatherRegistry.getForecastEvents(sceneId, {
+                    nowGameTimeMs: now,
+                    horizonEndGameTimeMs: horizonEnd,
+                    showDuration: profile.showDuration,
+                }));
+            }
         }
-        return events;
+        return events.sort((a, b) => Number(a.atGameTimeMs) - Number(b.atGameTimeMs));
     },
 
     debugToggle(sceneId, intensityId = null, { currentSceneId = sceneId, loading = false } = {}) {
@@ -258,6 +404,7 @@ export const WorldWeatherSystem = {
         const entry = enabled ? ensureSchedule(sceneId, now) : null;
         const visual = enabled ? this.getVisualState(sceneId, now) : { active: false, intensityId: null, source: null };
         const shownIntensity = visual.intensityId || entry?.intensityId || rainConfig().defaultIntensity || 'light';
+        const forecastProfile = getForecastTowerProfile(sceneId);
         return {
             sceneId,
             enabled,
@@ -271,7 +418,8 @@ export const WorldWeatherSystem = {
             nextStartAtGameTimeMs: entry?.startAtGameTimeMs ?? null,
             endAtGameTimeMs: entry?.endAtGameTimeMs ?? null,
             forecastUnlocked: TechnologySystem.isCompleted(FORECAST_TECH_ID),
-            forecastTowerActive: hasForecastTower(sceneId),
+            forecastTowerActive: !!forecastProfile,
+            forecastProfile,
             quality: rainConfig().quality || 'medium',
             intensities: Object.entries(rainConfig().intensities || {})
                 .filter(([id]) => !forcedIntensityId(sceneId) || id === forcedIntensityId(sceneId))

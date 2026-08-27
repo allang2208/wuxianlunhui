@@ -5,13 +5,19 @@ import {
     registerCivilianVisual,
     resolveCivilianVisualPosition,
 } from './civilian-visual-utils.js';
+import { CivilianVisualSettings } from './civilian-visual-runtime.js';
 
-function bakerVisualConfig() {
-    return populationEconomyConfig.bakery?.workerVisual || null;
+function isFoodProcessor(building) {
+    return building?._economyType === 'bakery'
+        || building?._economyType === 'chain_restaurant';
 }
 
-function animationKey(state) {
-    const id = bakerVisualConfig()?.id;
+function bakerVisualConfig(building) {
+    return populationEconomyConfig[building?._economyType]?.workerVisual || null;
+}
+
+function animationKey(building, state) {
+    const id = bakerVisualConfig(building)?.id;
     return id ? `worker_${id}_${state}` : '';
 }
 
@@ -48,16 +54,16 @@ function syncAnimation(worker, state) {
     }
     showWorker(worker);
     if (worker.visualState === state) return;
-    const key = animationKey(state);
+    const key = animationKey(worker?.building, state);
     if (!key || !worker.sprite?.scene?.anims?.exists(key)) return;
     worker.visualState = state;
     worker.sprite.play(key, true);
-    applyCivilianAnimSize(worker.sprite, bakerVisualConfig(), state);
+    applyCivilianAnimSize(worker.sprite, bakerVisualConfig(worker?.building), state);
 }
 
 function createWorker(scene, building) {
-    const config = bakerVisualConfig();
-    const idleKey = animationKey('idle');
+    const config = bakerVisualConfig(building);
+    const idleKey = animationKey(building, 'idle');
     if (!config || !idleKey || !scene?.textures?.exists(idleKey) || !scene?.add?.sprite) return null;
     const job = building?._bakeryJob;
     const point = resolveCivilianVisualPosition(
@@ -96,18 +102,24 @@ function destroyWorker(worker) {
 }
 
 /**
- * 面包师只把 BakeryEconomySystem 的岗位记录投影成 Phaser Sprite；经济阶段、坐标、
- * 仓库扣取与存入仍由面包屋经济系统单独持有，视觉对象不进入实体、物理或存档链。
+ * 面包师/外卖员只把粮食加工岗位记录投影成 Phaser Sprite；经济阶段、坐标、仓库
+ * 扣取与存入仍由建筑经济系统单独持有，视觉对象不进入实体、物理或存档链。
  */
 export const HamsterBakerVisualSystem = {
     _records: new Map(),
 
     updateBuilding(building) {
-        if (building?._economyType !== 'bakery') return;
+        if (!isFoodProcessor(building)) return;
+        if (!CivilianVisualSettings.isEnabled()) {
+            this.clearBuilding(building);
+            return;
+        }
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        const config = bakerVisualConfig();
+        const config = bakerVisualConfig(building);
         const assigned = Math.max(0, Math.floor(Number(building._assignedWorkers) || 0));
-        const cap = Math.max(0, Math.floor(Number(populationEconomyConfig.bakery?.visualWorkerCap) || 0));
+        const cap = Math.max(0, Math.floor(Number(
+            populationEconomyConfig[building._economyType]?.visualWorkerCap
+        ) || 0));
         if (!building.active || !scene || !config || assigned <= 0 || cap <= 0) {
             this.clearBuilding(building);
             return;
@@ -115,6 +127,10 @@ export const HamsterBakerVisualSystem = {
 
         let worker = this._records.get(building);
         if (worker && worker.scene !== scene) {
+            this.clearBuilding(building);
+            worker = null;
+        }
+        if (worker && !worker.sprite?.active) {
             this.clearBuilding(building);
             worker = null;
         }

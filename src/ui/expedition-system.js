@@ -12,6 +12,7 @@ import { WarehouseSystem } from './warehouse-system.js';
 import { SystemUI } from './system-ui.js';
 import { SoundManager } from './sound-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
+import { WorldProgressionSystem } from '../world/world-progression-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { PartySystem } from '../systems/party-system.js';
 import { RecruitUI } from './recruit-ui.js';
@@ -21,7 +22,6 @@ import { syncTributeBuffs } from '../config/tribute-effects.js';
 import { RARITY_ORDER, RARITY_COLORS, RARITY_LABELS } from '../config/rarity.js';
 import { GRADE_ORDER, RESTRICTED_EVENT_META } from '../world/dungeon-event-definitions.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { BOSS_REWARD_CONFIG } from '../world/boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { CONFIG } from '../config/config.js';
 import {
@@ -39,7 +39,6 @@ export const ExpeditionSystem = {
         this._isOpen = true;
         // 打开出征面板时关闭组队面板
         EventBus.emit('ui:panel-open', { panel: 'expedition' });
-        this.selectedDungeon = 'zombie'; // 默认选中僵尸地牢（可选列表见 dungeon-config.json dungeonList）
 
         // 打开面板时刷新玩家属性，确保没有残留祭品加成
         if (player && typeof player.calculateCombatStats === 'function') {
@@ -59,10 +58,13 @@ export const ExpeditionSystem = {
         const panel = getElement('expeditionPanel');
         if (panel) panel.classList.add('active');
 
-        // 重置地牢选择器
+        // 刷新逐级解锁状态，并默认选中第一个已解锁的低级地牢。
+        this._refreshDungeonOptions();
+        const defaultDungeon = this._getFirstUnlockedDungeon() || 'zombieBeginner';
+        this.selectedDungeon = defaultDungeon;
         const select = getElement('expeditionDungeonSelect');
-        if (select) select.value = 'zombie';
-        this._updateDungeonInfo('zombie');
+        if (select) select.value = defaultDungeon;
+        this._updateDungeonInfo(defaultDungeon);
 
         // 出征条件说明弹窗（左侧）
         this._showRulePanel();
@@ -152,9 +154,52 @@ export const ExpeditionSystem = {
 
     // 地牢选择变更
     onDungeonSelect(value) {
+        if (!this.isDungeonUnlocked(value)) {
+            this._showMessage(this._getDungeonLockMessage(value), 'error');
+            const select = getElement('expeditionDungeonSelect');
+            if (select) select.value = this.selectedDungeon || this._getFirstUnlockedDungeon() || '';
+            return;
+        }
         this.selectedDungeon = value;
         this._updateDungeonInfo(value);
         this._updateRulePanelCurrent();
+    },
+
+    isDungeonUnlocked(dungeonType) {
+        const required = DungeonConfig.getDungeonUnlockRequirement(dungeonType);
+        return !required || WorldProgressionSystem.hasCompletedDungeon(required);
+    },
+
+    _getDungeonLockMessage(dungeonType) {
+        const list = DungeonConfig.getDungeonList();
+        const required = DungeonConfig.getDungeonUnlockRequirement(dungeonType);
+        const currentName = list[dungeonType]?.name || dungeonType;
+        const requiredName = list[required]?.name || required;
+        return required ? `需先通关${requiredName}，才能解锁${currentName}` : '';
+    },
+
+    _refreshDungeonOptions() {
+        const select = getElement('expeditionDungeonSelect');
+        if (!select) return;
+        const list = DungeonConfig.getDungeonList();
+        select.querySelectorAll('option').forEach((option) => {
+            const required = DungeonConfig.getDungeonUnlockRequirement(option.value);
+            const locked = !this.isDungeonUnlocked(option.value);
+            const baseLabel = option.dataset.baseLabel || list[option.value]?.name || option.value;
+            option.disabled = locked;
+            option.textContent = locked
+                ? `${baseLabel}（未解锁：先通关${list[required]?.name || required}）`
+                : baseLabel;
+            option.title = locked ? this._getDungeonLockMessage(option.value) : '';
+        });
+    },
+
+    _getFirstUnlockedDungeon() {
+        for (const group of DungeonConfig.getDungeonGroups()) {
+            const first = group.items.find((item) => this.isDungeonUnlocked(item.type));
+            if (first) return first.type;
+        }
+        return null;
     },
 
     /** 当前选择地牢的配置等级。 */
@@ -268,12 +313,8 @@ export const ExpeditionSystem = {
             lines.push(`宝箱房(${grade}级)：必得强化石×${chestGrade.enhancementStone ?? 1} + 改造券×${chestGrade.reforgeTicket ?? 1}`);
             lines.push(`<span class="rule-sub">75% 金币 ${chestGrade.gold} / 25% 粉尘 ${chestGrade.materialDust}</span>`);
         }
-        // Boss 奖励卡中的武器稀有度（boss-reward-system 配置）
-        const bonusCards = (BOSS_REWARD_CONFIG.reward && BOSS_REWARD_CONFIG.reward.bonusCards) || [];
-        const bossWeapon = bonusCards.flatMap(c => c.rewards || []).find(r => r.type === 'weapon');
-        if (bossWeapon) {
-            lines.push(`Boss 奖励武器：${this._rarityText(bossWeapon.rarity || 'epic')}`);
-        }
+        // 通关奖励面板实际从 RewardSystem 的优质武器池抽取 rare / epic。
+        lines.push(`通关奖励武器：${this._rarityText('rare')} ~ ${this._rarityText('epic')}`);
         // 事件等级：通用事件（奖励按当前难度档）+ 限定事件 ±1 范围内的等级跨度
         const idx = Math.max(0, GRADE_ORDER.indexOf(grade));
         const inRange = Object.values(RESTRICTED_EVENT_META)
@@ -309,6 +350,12 @@ export const ExpeditionSystem = {
     // 确认出征 — 自动从背包优先、仓库其次消耗对应等级钥匙
     async depart() {
         if (SceneManager?.isLoading) return;
+        const dungeonType = this.selectedDungeon || 'zombieBeginner';
+        if (!this.isDungeonUnlocked(dungeonType)) {
+            this._refreshDungeonOptions();
+            this._showMessage(this._getDungeonLockMessage(dungeonType), 'error');
+            return;
+        }
         const grade = this._getSelectedGrade();
         const key = getDungeonKeyRequirement(grade);
         if (this._getKeyCount(grade) <= 0) {
@@ -316,7 +363,6 @@ export const ExpeditionSystem = {
             this._updateRulePanelCurrent();
             return;
         }
-        const dungeonType = this.selectedDungeon || 'zombie';
         if (!this._consumeDungeonKey(grade)) {
             this._showMessage(`${key.name} 消耗失败，请重试`, 'error');
             this._updateRulePanelCurrent();

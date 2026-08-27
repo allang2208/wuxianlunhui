@@ -1,7 +1,7 @@
 {
   "assetId": "warehouse_lv4",
   "label": "仓库 LV4 · 自动化仓库",
-  "status": "refine_v02_selected_and_integrated",
+  "status": "klein_low_redraw_selected_and_integrated",
   "sourceFamily": "warehouse_lv3",
   "sourceModel": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_model.blend",
   "assetClass": "building",
@@ -21,8 +21,8 @@
     "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_body_depth.png",
     "refineDoorDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_refine_door_depth.png",
     "refineCorrectionMask": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_door_shadow_correction_mask.png",
-    "selectedRefineRaw": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/refine_48step_doorfix_depth_from_v01_seed122501/warehouse_lv4/warehouse_lv4_refine_v02_raw.png",
-    "selectedRefineBody": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/refine_48step_doorfix_depth_from_v01_seed122501/warehouse_lv4/warehouse_lv4_refine_v02_body.png",
+    "selectedRefineRaw": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/warehouse_lv4/warehouse_lv4_refine_v01_raw.png",
+    "selectedRefineBody": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/accepted_cutout/warehouse_lv4_body.png",
     "runtimeAsset": "assets/terrain/warehouse_lv4.png",
     "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_runtime_metadata.json"
   },
@@ -48,18 +48,20 @@
     "selected": "v02",
     "selectedBy": "user",
     "selectedAt": "2026-08-26",
-    "source": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/refine_48step_doorfix_depth_from_v01_seed122501/warehouse_lv4/warehouse_lv4_refine_v02_body.png",
-    "review": "approved after the user confirmed the corrected v02 cutout was already valid; both loading doors remain readable and the erroneous lower machine and external backdrop shadow are absent"
+    "source": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/accepted_cutout/warehouse_lv4_body.png",
+    "review": "approved after user review of the 36-step Klein low-redraw candidate; complete Body Depth preserved camera and automation details, and the dedicated building chroma key removed the generated green backdrop shadow"
   },
   "refineCorrection": {
-    "steps": 48,
-    "depthStrength": 0.75,
-    "denoise": 0.85,
-    "maskChannel": "red",
-    "seeds": [122501, 122502],
+    "steps": 36,
+    "depthStrength": 0.9,
+    "denoise": 0.2,
+    "model": "flux2-klein-4b-world122-building-depth",
+    "styleVersion": "world122-building-v4",
+    "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_body_depth.png",
+    "seeds": [127021],
     "nonstandardOverride": true,
     "removeAllGreen": true,
-    "purpose": "remove the lower machine blocking the right loading door and exclude the generated backdrop shadow"
+    "purpose": "preserve the accepted architecture and sorter details while upgrading PBR materials; exclude every generated backdrop shadow through dedicated building chroma keying and complete Body Depth alpha limiting"
   },
   "inheritedStructure": [
     "exactly four connected storeys",

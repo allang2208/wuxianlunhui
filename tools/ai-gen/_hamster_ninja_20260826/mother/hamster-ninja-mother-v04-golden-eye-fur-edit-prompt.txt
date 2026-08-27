@@ -1,0 +1,11 @@
+Use case: precise-object-edit
+Asset type: production identity mother frame for a Phaser friendly-unit animation pipeline
+Edit target: the provided hamster ninja v03 mother image.
+
+Change only the eye opening and the small area immediately around the eyes. Moderately widen the horizontal cloth opening and reveal a clearly readable band of the hamster's natural warm golden-yellow short fur around both eyes and across the narrow bridge between them. Show enough golden fur to define authentic hamster eye sockets and restore unmistakable hamster identity at small game scale. Preserve the same two glossy dark-brown eyes, their current size, alert expression and direction.
+
+The exposure must remain limited to the upper eye-mask zone. The black hood and face covering must still completely conceal both ears, the top and sides of the head outside the slit, forehead outside the slit, cheeks below the eyes, muzzle, nose, mouth, whiskers, chin and neck. No ear, nose, muzzle or whisker may become visible.
+
+Preserve everything else exactly: identical body and head proportions, black shinobi outfit and its charcoal value separation, crossed chest wraps, gloves, belt, pouch, exactly one fully sheathed ninjato and belt attachment, stance, hands, feet, low three-quarter right-facing orthographic camera, subject scale, position, baseline, white background, soft diffuse lighting, margins and no shadow.
+
+Avoid: all-black eye area, black fur, gray fur, white fur, exposed muzzle, nose, whiskers or ears, open hood, enlarged eye opening extending onto cheeks, goggles, visor, eye-size changes, outfit changes, weapon changes, pose drift, crop, camera change, background change, text, logo or watermark.

@@ -32,6 +32,7 @@ update(dt, entities) {
                     this.hitFlash = Math.max(0, this.hitFlash - dt);
                 }
                 this.updateStatusEffects(dt);
+                if (typeof this._updateCorrosion === 'function') this._updateCorrosion(dt);
                 // 伤害型状态效果：中毒/流血由下方玩家专属块处理（data.hp 口径 + 无敌开关）；
                 // 基类 _updatePoison/_updateBleed 走 this.hp（敌人字段），玩家再调会双重驱动计时器
                 if (typeof this._updateMagicVulnerability === 'function') this._updateMagicVulnerability(dt);
@@ -50,6 +51,14 @@ update(dt, entities) {
                         }
                     }
                     return; // 死亡期间不执行任何其他逻辑
+                }
+                // 石化不重置当前攻击/施法状态；本帧直接停止，由表现层锁住当前帧。
+                if (this.hasStatusEffect && this.hasStatusEffect('petrified')) {
+                    this.vx = 0;
+                    this.vy = 0;
+                    this.isMoving = false;
+                    this._rtsController?.hold?.();
+                    return;
                 }
                 // ===== 眩晕/冻结状态处理 =====
                 // 冻结效果等同于眩晕；任一存在即进入控制状态
@@ -245,6 +254,12 @@ update(dt, entities) {
                 let primaryPressed = rtsEnabled ? !!rtsIntent.primaryPressed : Input.mouse.leftPressed;
                 let secondaryDown = rtsEnabled ? false : Input.mouse.rightDown;
                 let secondaryPressed = rtsEnabled ? false : Input.mouse.rightPressed;
+                if (this._isPushStrike) {
+                    primaryDown = false;
+                    primaryPressed = false;
+                    secondaryDown = false;
+                    secondaryPressed = false;
+                }
                 const directMouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
                 const controlAimWorld = rtsEnabled
                     ? (rtsIntent.aimWorld || {
@@ -285,7 +300,7 @@ update(dt, entities) {
                         this.animTime += 0.4;
                     }
                 } else if (!isDroneControlling) {
-                    let sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse();
+                    let sprint = Input.isSprint() && this.data.stamina > 0 && this._isSprintDirectionAllowed();
                     // 防御状态：禁止奔跑
                     if (this.shieldSystem && this.shieldSystem.defending) sprint = false;
                     // 攻击期间禁止奔跑（平衡调整：单手持枪（含双持手枪）可跑步开火；
@@ -331,6 +346,9 @@ update(dt, entities) {
                         const hastePerStack = this._hastePerStackMul || 0.10;
                         targetSpeed *= (1 + hasteStacks * hastePerStack);
                     }
+                    if (this.hasStatusEffect && this.hasStatusEffect('weaponHaste')) {
+                        targetSpeed *= this._weaponHasteMul || 1.10;
+                    }
                     // 寒冷 debuff：按层数降低移速（加法叠加最终乘算）
                     if (this.hasStatusEffect && this.hasStatusEffect('chill')) {
                         targetSpeed *= (typeof this.getChillSpeedMul === 'function' ? this.getChillSpeedMul() : 1);
@@ -360,16 +378,21 @@ update(dt, entities) {
                     if (this._isDashing) targetSpeed = 0.1;
                     // 冲刺末帧定格期：同普通攻击不可移动（输入无效，动画播完前不许动）
                     if (this._dashRecoverAt) targetSpeed = 0;
-                    // 风车攻击动画期间：移动速度为0.1px/帧（结束后恢复）
-                    if (this._isWhirlwind) targetSpeed = 0.1;
-                    // 推击攻击动画期间：移动速度为0.1px/帧（结束后恢复）
-                    if (this._isPushStrike) targetSpeed = 0.1;
+                    // 风车动作是围绕自身轴线旋转：锁住根节点，避免帧动画与逻辑位置互相拉扯。
+                    if (this._isWhirlwind || this._whirlwindRecovering) targetSpeed = 0;
+                    // 推击只允许身体视觉短促前倾，逻辑碰撞体不前移。
+                    if (this._isPushStrike) targetSpeed = 0;
                     // 特殊攻击动画期间：完全不能移动
                     if (this._specialAttackActive) targetSpeed = 0;
 
                     // 近战攻击期间：完全禁止移动（但可以用闪避取消）
                     isMeleeAttacking = this.weaponAnim && this.weaponAnim.isAttacking && currentEquip && (currentEquip.category === 'weapon_melee' || currentEquip.weaponType === 'sword');
                     let moveInput = move;
+                    if (this._isWhirlwind || this._whirlwindRecovering) {
+                        moveInput = { x: 0, y: 0 };
+                        this.vx = 0;
+                        this.vy = 0;
+                    }
                     if (isMeleeAttacking) {
                         targetSpeed = 0;
                         moveInput = { x: 0, y: 0 };
@@ -427,7 +450,7 @@ update(dt, entities) {
                     // 冲刺/末帧定格/复位期间朝向冻结（武器朝向绑定身体 flipX，不随鼠标移动）
                 } else if (this._specialAttackActive) {
                     this.rotation = this._specialAttackLockedAngle;
-                } else if (!this._isWhirlwind && !this.isDodging) {
+                } else if (!this._isWhirlwind && !this._whirlwindRecovering && !this.isDodging) {
                     this.rotation = Math.atan2(dy, dx);
                     // 根据鼠标方向确定4方向朝向
                     const absDx = Math.abs(dx);
@@ -448,7 +471,7 @@ update(dt, entities) {
                 const _thGunEquip = this.equipments[this.weaponMode];
                 const _twoHandedGunCombat = !!(_thGunEquip && isGunWeapon(_thGunEquip) && isTwoHanded(_thGunEquip)
                     && (primaryDown || secondaryDown)); // 左键开火或右键瞄准
-                const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunCombat;
+                const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isSprintDirectionAllowed() && !_twoHandedGunCombat;
                 this._isSprinting = _sprintActive; // 保存供render使用
                 this._rtsRunVisual = !!(rtsEnabled && rtsIntent.runVisual && this.isMoving);
                 // ===== 行走/奔跑动画已由 Phaser 处理 =====
@@ -457,7 +480,7 @@ update(dt, entities) {
                     this.animTime += 0.15;
                 }
                 const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                    const sprint = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunCombat;
+                    const sprint = Input.isSprint() && this.data.stamina > 0 && this._isSprintDirectionAllowed() && !_twoHandedGunCombat;
                     if (speed > 1.0 && sprint) {
                         if (!this.dustTimer) this.dustTimer = 0;
                         this.dustTimer += dt;
@@ -481,7 +504,8 @@ update(dt, entities) {
                         this.dustTimer = 0;
                     }
                 const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
-                const isSprinting = Input.isSprint() && this.data.stamina > 0 && this.isMoving && this._isFacingMouse();
+                const isSprinting = Input.isSprint() && this.data.stamina > 0 && this.isMoving
+                    && this._isSprintDirectionAllowed() && this._hasHorizontalDashInput();
                 // 体力值异常时先复位，防止 NaN 永久阻塞恢复
                 if (!isFinite(this.data.stamina) || this.data.stamina < 0) this.data.stamina = 0;
                 // 冲刺攻击计时：追踪长按Shift持续时间
@@ -489,7 +513,7 @@ update(dt, entities) {
                     this._sprintDuration += dt;
                     // 计算触发时间：基础333ms，每级减少3%
                     const activeDashSkill = this._getActiveDashSkillId();
-                    const dashLevel = (this.skills && this.skills[activeDashSkill] && this.skills[activeDashSkill].level) || 1;
+                    const dashLevel = this._getDashSkillLevel(activeDashSkill);
                     const triggerTime = 333 * (1 - (dashLevel - 1) * 0.03);
                     // 冲刺攻击可发动条件检查（与下方dash触发保持同步）
                     const currentWeapon = this.equipments[this.weaponMode];
@@ -570,164 +594,80 @@ update(dt, entities) {
                     this.data.mp = Math.min(this.data.maxMp, this.data.mp + this.data.mpRegen * getTributeMpRegenMultiplier() * (dt / 1000));
                 }
                 Object.values(this.attacks).forEach(a => a.update(dt));
-                // ===== 枪类武器弹道扩散计时更新（主副手独立） =====
+                // ===== 枪类武器弹道扩散（按实际发射数累计，主副手独立） =====
                 const _currentWep2 = this.equipments[this.weaponMode];
                 const _isGun = _currentWep2 && isGunWeapon(_currentWep2);
                 // 双持判断
                 const _offSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
                 const _offItem = this.equipments[_offSlot];
                 const _isDual = _offItem && _offItem.name && !_offItem.isTwoHanded;
-                // 主手散布计时：左键按下时主手武器累计散布
-                if (_isGun && primaryDown) {
-                    this._gunSpreadTimer += dt;
-                    this._gunSpreadWeapon = _currentWep2.weaponType;
-                } else {
-                    this._gunSpreadTimer = Math.max(0, this._gunSpreadTimer - dt * 2);
-                    if (this._gunSpreadTimer <= 0) this._gunSpreadWeapon = null;
-                }
-                // 副手散布计时：双持时右键按下且副手为枪械时累计散布
-                const _offIsGun = _offItem && isGunWeapon(_offItem);
-                if (_isDual && _offIsGun && secondaryDown) {
-                    this._gunSpreadTimerOff += dt;
-                    this._gunSpreadWeaponOff = _offItem.weaponType;
-                } else {
-                    this._gunSpreadTimerOff = Math.max(0, this._gunSpreadTimerOff - dt * 2);
-                    if (this._gunSpreadTimerOff <= 0) this._gunSpreadWeaponOff = null;
-                }
-                // 准星单发 kick 衰减（recoilRecoveryDelta 改造：恢复时间毫秒增减，下限 20ms）
-                if (this._crosshairShotKick > 0) {
-                    const craftEffects = _currentWep2 && _currentWep2._craftEffects;
-                    const _kickDecayMs = Math.max(20, 80 + ((craftEffects && craftEffects.recoilRecoveryDelta) || 0));
-                    this._crosshairShotKick = Math.max(0, this._crosshairShotKick - dt / _kickDecayMs);
-                }
-                // 预计算主手散布因子（供准星显示与主手开火使用）
+                // 只有实际射出的子弹会在 _registerGunSpreadShot 中增加热量；松开扳机后
+                // 按各枪 recoveryMs 从最大热量恢复到零，点射可以主动重置精度。
                 if (_isGun) {
-                    const wt = _currentWep2.weaponType;
-                    const craftEffects = _currentWep2 && _currentWep2._craftEffects;
-                    // 独头弹模式：特殊散布系统（后坐力层数控制）
-                    if (wt === 'shotgun' && craftEffects && craftEffects.slugMode) {
-                        this._currentSpreadFactor = 1;
-                        this._currentSpreadMaxAngle = this._slugRecoilLayers * 5 + (craftEffects.maxSpreadAngleDelta || 0);
-                        if (this._currentSpreadMaxAngle < 0) this._currentSpreadMaxAngle = 0;
-                    } else {
-                        // 普通枪械散布系统
-                        let spreadStartDelay = 500; // 默认：0.5秒后开始散布
-                        let spreadMaxTime = 4000;
-                        let maxSpreadAngle = 25;
-                        // 武器特异化散布参数（全自动板机 spreadParamsOverride 整体覆盖优先，其次武器配置）
-                        const sp = (craftEffects && craftEffects.spreadParamsOverride) || _currentWep2.spreadParams;
-                        if (sp) {
-                            if (sp.startDelay !== undefined) spreadStartDelay = sp.startDelay;
-                            if (sp.maxTime !== undefined) spreadMaxTime = sp.maxTime;
-                            if (sp.maxAngle !== undefined) maxSpreadAngle = sp.maxAngle;
-                        }
-                        // 能量机枪：动态散布参数覆盖
-                        if (wt === 'energy_lmg') {
-                            const elp = this._getEnergyLMGParams();
-                            spreadMaxTime = elp.spreadMaxTime;
-                            maxSpreadAngle = elp.maxSpreadAngle;
-                        }
-                        // 瞄准模式：散布开始延迟 +1s
-                        if (this._aimModeActive) {
-                            spreadStartDelay += 1000;
-                        }
-                        // 应用改造效果
-                        if (craftEffects) {
-                            spreadStartDelay += craftEffects.spreadStartDelta || 0;
-                            if (spreadStartDelay < 0) spreadStartDelay = 0;
-                            spreadMaxTime += craftEffects.spreadTimeDelta || 0;
-                            if (spreadMaxTime < 500) spreadMaxTime = 500;
-                            maxSpreadAngle += craftEffects.maxSpreadAngleDelta || 0;
-                            // 全自动专属增量（枪口/枪管改造附带，仅全自动板机改造后生效）
-                            if (craftEffects.fireModeOverride === 'fullAuto') {
-                                spreadStartDelay += craftEffects.autoSpreadStartDelta || 0;
-                                if (spreadStartDelay < 0) spreadStartDelay = 0;
-                                spreadMaxTime += craftEffects.autoSpreadTimeDelta || 0;
-                                if (spreadMaxTime < 500) spreadMaxTime = 500;
-                                maxSpreadAngle += craftEffects.autoMaxSpreadAngleDelta || 0;
-                            }
-                            // 移动/静止散布倍率（两脚架/无托平衡等改造）：按移动状态对最大散布角乘算——
-                            // combatant.js 的 _computeSpreadForWeapon 含此逻辑但 _updateSpreadTimers 无调用者，
-                            // 玩家实际散布在此计算，必须在此消费（2026-08-11 修复）
-                            const spreadMoveMul = craftEffects.moveSpreadPercent || 0;
-                            const spreadStaticMul = craftEffects.stationarySpreadPercent || 0;
-                            maxSpreadAngle *= Math.max(0.1, this.isMoving ? (1 + spreadMoveMul) : (1 + spreadStaticMul));
-                        }
-                        this._currentSpreadFactor = (spreadMaxTime <= 0)
-                            ? (this._gunSpreadTimer > spreadStartDelay ? 1 : 0)
-                            : Math.min(1, Math.max(0, this._gunSpreadTimer - spreadStartDelay) / spreadMaxTime);
-                        this._currentSpreadMaxAngle = maxSpreadAngle;
+                    const tuning = this._getGunSpreadTuning(_currentWep2);
+                    if (this._gunSpreadWeapon !== _currentWep2) {
+                        this._gunSpreadShots = 0;
+                        this._gunSpreadWeapon = _currentWep2;
                     }
+                    if (!primaryDown) {
+                        this._gunSpreadShots = Math.max(0, (Number(this._gunSpreadShots) || 0)
+                            - dt * tuning.maxShots / tuning.recoveryMs);
+                    }
+                    this._currentSpreadFactor = this._spreadFactorFromShots(this._gunSpreadShots, tuning);
+                    this._currentSpreadMaxAngle = tuning.maxAngle;
                 } else {
+                    this._gunSpreadShots = 0;
+                    this._gunSpreadWeapon = null;
                     this._currentSpreadFactor = 0;
                     this._currentSpreadMaxAngle = 0;
                 }
-                // 预计算副手散布因子（供副手开火使用）
-                if (_offIsGun) {
-                    const offWt = _offItem.weaponType;
-                    const offCraftEffects = _offItem && _offItem._craftEffects;
-                    if (offWt === 'shotgun' && offCraftEffects && offCraftEffects.slugMode) {
-                        this._currentSpreadFactorOff = 1;
-                        this._currentSpreadMaxAngleOff = this._slugRecoilLayers * 5 + (offCraftEffects.maxSpreadAngleDelta || 0);
-                        if (this._currentSpreadMaxAngleOff < 0) this._currentSpreadMaxAngleOff = 0;
-                    } else {
-                        let offSpreadStartDelay = 500;
-                        let offSpreadMaxTime = 4000;
-                        let offMaxSpreadAngle = 25;
-                        const offSp = (offCraftEffects && offCraftEffects.spreadParamsOverride) || _offItem.spreadParams;
-                        if (offSp) {
-                            if (offSp.startDelay !== undefined) offSpreadStartDelay = offSp.startDelay;
-                            if (offSp.maxTime !== undefined) offSpreadMaxTime = offSp.maxTime;
-                            if (offSp.maxAngle !== undefined) offMaxSpreadAngle = offSp.maxAngle;
-                        }
-                        if (offWt === 'energy_lmg') {
-                            const offElp = this._getEnergyLMGParams(); // 能量轻机枪参数从主手装备读取（Player 只持一把能量轻机枪）
-                            offSpreadMaxTime = offElp.spreadMaxTime;
-                            offMaxSpreadAngle = offElp.maxSpreadAngle;
-                        }
-                        if (this._aimModeActive) {
-                            offSpreadStartDelay += 1000;
-                        }
-                        if (offCraftEffects) {
-                            offSpreadStartDelay += offCraftEffects.spreadStartDelta || 0;
-                            if (offSpreadStartDelay < 0) offSpreadStartDelay = 0;
-                            offSpreadMaxTime += offCraftEffects.spreadTimeDelta || 0;
-                            if (offSpreadMaxTime < 500) offSpreadMaxTime = 500;
-                            offMaxSpreadAngle += offCraftEffects.maxSpreadAngleDelta || 0;
-                            // 全自动专属增量（仅全自动板机改造后生效，与主手同口径）
-                            if (offCraftEffects.fireModeOverride === 'fullAuto') {
-                                offSpreadStartDelay += offCraftEffects.autoSpreadStartDelta || 0;
-                                if (offSpreadStartDelay < 0) offSpreadStartDelay = 0;
-                                offSpreadMaxTime += offCraftEffects.autoSpreadTimeDelta || 0;
-                                if (offSpreadMaxTime < 500) offSpreadMaxTime = 500;
-                                offMaxSpreadAngle += offCraftEffects.autoMaxSpreadAngleDelta || 0;
-                            }
-                            // 副手同口径：移动/静止散布倍率
-                            const offSpreadMoveMul = offCraftEffects.moveSpreadPercent || 0;
-                            const offSpreadStaticMul = offCraftEffects.stationarySpreadPercent || 0;
-                            offMaxSpreadAngle *= Math.max(0.1, this.isMoving ? (1 + offSpreadMoveMul) : (1 + offSpreadStaticMul));
-                        }
-                        this._currentSpreadFactorOff = (offSpreadMaxTime <= 0)
-                            ? (this._gunSpreadTimerOff > offSpreadStartDelay ? 1 : 0)
-                            : Math.min(1, Math.max(0, this._gunSpreadTimerOff - offSpreadStartDelay) / offSpreadMaxTime);
-                        this._currentSpreadMaxAngleOff = offMaxSpreadAngle;
+
+                const _offIsGun = _offItem && isGunWeapon(_offItem);
+                if (_isDual && _offIsGun) {
+                    const offTuning = this._getGunSpreadTuning(_offItem);
+                    if (this._gunSpreadWeaponOff !== _offItem) {
+                        this._gunSpreadShotsOff = 0;
+                        this._gunSpreadWeaponOff = _offItem;
                     }
+                    if (!secondaryDown) {
+                        this._gunSpreadShotsOff = Math.max(0, (Number(this._gunSpreadShotsOff) || 0)
+                            - dt * offTuning.maxShots / offTuning.recoveryMs);
+                    }
+                    this._currentSpreadFactorOff = this._spreadFactorFromShots(this._gunSpreadShotsOff, offTuning);
+                    this._currentSpreadMaxAngleOff = offTuning.maxAngle;
                 } else {
+                    this._gunSpreadShotsOff = 0;
+                    this._gunSpreadWeaponOff = null;
                     this._currentSpreadFactorOff = 0;
                     this._currentSpreadMaxAngleOff = 0;
+                }
+
+                // 准星单发 kick 以角度衰减；recoilRecoveryDelta 仍保留改造收益。
+                if (this._crosshairShotKick > 0) {
+                    const craftEffects = _currentWep2 && _currentWep2._craftEffects;
+                    const _kickDecayMs = Math.max(60, 180 + ((craftEffects && craftEffects.recoilRecoveryDelta) || 0));
+                    this._crosshairShotKick = Math.max(0, this._crosshairShotKick - dt * 2.4 / _kickDecayMs);
+                }
+                // 独头弹仍由专属层数系统覆盖发数散布；普通霰弹由 fixedSpread 显示真实弹丸锥。
+                const mainCraft = _currentWep2?._craftEffects;
+                if (_isGun && _currentWep2.weaponType === 'shotgun' && mainCraft?.slugMode) {
+                    const slugTuning = this._getSlugSpreadTuning(_currentWep2);
+                    this._currentSpreadFactor = 1;
+                    // 准星显示下一发可能达到的真实散布角。
+                    this._currentSpreadMaxAngle = Math.min(slugTuning.maxAngle,
+                        this._slugRecoilLayers * slugTuning.perShotAngle);
                 }
                 // ===== 独头弹后坐力恢复系统 =====
                 if (_currentWep2 && _currentWep2.weaponType === 'shotgun') {
                     const ce = _currentWep2._craftEffects;
                     if (ce && ce.slugMode) {
-                        if (primaryDown) {
+                        if (primaryDown && !this._isReloading(this.weaponMode)) {
                             // 射击时：重置恢复计时器
                             this._slugRecoilTimer = 0;
                         } else {
                             // 停止射击：开始恢复
                             this._slugRecoilTimer += dt;
-                            const baseRecovery = 500; // 默认后坐力恢复时间 500ms
-                            const recovery = Math.max(100, baseRecovery + (ce.slugRecoilRecovery || 0));
+                            const recovery = this._getSlugSpreadTuning(_currentWep2).recoveryMs;
                             if (this._slugRecoilTimer >= recovery) {
                                 // 达到恢复时间后，所有层数一次性清零
                                 this._slugRecoilLayers = 0;
@@ -738,6 +678,10 @@ update(dt, entities) {
                         this._slugRecoilLayers = 0;
                         this._slugRecoilTimer = 0;
                     }
+                } else {
+                    // 切离独头弹武器即清空专属后坐，避免换枪冻结层数再带回。
+                    this._slugRecoilLayers = 0;
+                    this._slugRecoilTimer = 0;
                 }
                 // ===== 机枪类武器过热系统更新（PKM、QJB-201、能量轻机枪） =====
                 const isHeatWeapon = item => item && isMachineGun(item.weaponType);
@@ -815,32 +759,57 @@ update(dt, entities) {
                             }
                         }
                     } else {
-                        // 停止开火
-                        let recoverTime = _currentWep2.weaponType === 'energy_lmg'
-                            ? (elp ? elp.overheatCooldownTime : 4000)
-                            : (hp.overheatCooldownTime || 1500);
-                        if (_currentWep2.weaponType === 'energy_lmg') recoverTime += ohRecDelta;
-                        if (recoverTime < 500) recoverTime = 500;
-                        this._lastOverheatCoolMs = recoverTime;
-                        this._overheatValue = Math.max(0, this._overheatValue - (dt / recoverTime));
-                        if (this._overheatValue <= 0) {
-                            this._overheatActive = false;
-                        }
+                        state.value = Math.max(0, state.value - dt / coolTime);
+                        if (state.value <= 0) state.active = false;
                     }
+                }
+                const currentHeat = this._overheatStates[this.weaponMode];
+                if (isHeatWeapon(_currentWep2) && currentHeat?.weapon === _currentWep2) {
+                    // 保留旧字段供HUD和现有射击闸门读取，但真源已经按槽位隔离。
+                    this._overheatActive = currentHeat.active;
+                    this._overheatValue = currentHeat.value;
+                    this._overheatOverheated = currentHeat.overheated;
+                    this._overheatRecoverTimer = currentHeat.recoverTimer;
+                    this._overheatWeaponType = _currentWep2.weaponType;
+                    this._lastOverheatRecoverMs = currentHeat.lastRecoverMs;
+                    this._lastOverheatCoolMs = currentHeat.lastCoolMs;
                 } else {
-                    // 非机枪武器：隐藏过热条，但保留过热/锁定状态（防止切换武器绕过冷却）。
-                    // 冷却计时与降温在离手期间继续推进（时间驱动），切回机枪后按剩余计时生效。
                     this._overheatActive = false;
-                    if (this._overheatOverheated) {
-                        this._overheatRecoverTimer -= dt;
-                        if (this._overheatRecoverTimer <= 0) {
-                            this._overheatOverheated = false;
-                            this._overheatRecoverTimer = 0;
-                            this._overheatValue = 0;
-                        }
-                    } else if (this._overheatValue > 0) {
-                        // 部分过热值按该机枪的冷却速率继续降温（默认 1500ms 满值排空）
-                        this._overheatValue = Math.max(0, this._overheatValue - dt / (this._lastOverheatCoolMs || 1500));
+                    this._overheatValue = 0;
+                    this._overheatOverheated = false;
+                    this._overheatRecoverTimer = 0;
+                    this._overheatWeaponType = null;
+                }
+                // ===== 神话步枪持续射击升速（按槽位隔离，切枪后衰减而非冻结） =====
+                if (!this._gunRampStates) this._gunRampStates = {};
+                for (const slot of ['weapon', 'weapon2']) {
+                    const item = this.equipments[slot];
+                    const ramp = item?.rampFireParams;
+                    if (!ramp) {
+                        delete this._gunRampStates[slot];
+                        continue;
+                    }
+                    let state = this._gunRampStates[slot];
+                    if (!state || state.weapon !== item) {
+                        state = this._gunRampStates[slot] = { weapon: item, progress: 0, decayDelay: 0 };
+                    }
+                    const ce = item._craftEffects || {};
+                    const rampUpTime = Math.max(400,
+                        (Number(ramp.rampUpTime) || 2000) + (Number(ce.rampUpTimeDelta) || 0));
+                    const decayDelay = Math.max(0, Number(ramp.decayDelay) || 0);
+                    const decayTime = Math.max(250, Number(ramp.decayTime) || 1500);
+                    const canRamp = slot === this.weaponMode
+                        && primaryDown
+                        && !this._isReloading(slot)
+                        && this.weaponSwitchCooldown <= 0
+                        && this._hasAmmo(slot);
+                    if (canRamp) {
+                        state.progress = Math.min(1, state.progress + dt / rampUpTime);
+                        state.decayDelay = decayDelay;
+                    } else if (state.decayDelay > 0) {
+                        state.decayDelay = Math.max(0, state.decayDelay - dt);
+                    } else {
+                        state.progress = Math.max(0, state.progress - dt / decayTime);
                     }
                 }
                 this.updateWeaponAnim(dt);
@@ -848,7 +817,7 @@ update(dt, entities) {
                 const mouseWorld = controlAimWorld;
                 // 左键拾取地面物品已取消 — 现在仅在鼠标悬停触发金色特效时自动拾取
                 // （逻辑移至 Game.update() 的悬停检测中）
-                if (!this.isDodging && !this._isDashing && !this._isWhirlwind && !this._isPushStrike && !this._specialAttackActive && !this._isDead) {
+                if (!this.isDodging && !this._isDashing && !this._isWhirlwind && !this._whirlwindRecovering && !this._isPushStrike && !this._specialAttackActive && !this._isDead) {
                     // ===== 盾防御状态管理 =====
                     // 规则（长期）：主手手枪+副手持盾 → 右键只触发盾格挡，无法进入瞄准；
                     // 主手非手枪枪械 → 右键优先瞄准，不进入盾防御；近战/空手照旧盾防御
@@ -1027,20 +996,23 @@ update(dt, entities) {
                         const mainFireTrigger = mainFireMode === 'semiAuto' ? primaryPressed : primaryDown;
                         // 左键：主手射击
                         if (mainHasAmmo && !mainReloading && this.weaponSwitchCooldown <= 0 && mainFireTrigger && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                            const mainInterval = this._getEffectiveGunAttackInterval(effectiveItem, attackKey);
+                            this.attacks[attackKey].maxCooldown = mainInterval;
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
-                            this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
+                            this.attacks[attackKey].cooldown = mainInterval;
                             this.triggerWeaponAnim();
                             // 半自动武器：消费掉点击事件，防止持续射击
                             if (mainFireMode === 'semiAuto') {
                                 Input.mouse.leftPressed = false;
                                 primaryPressed = false;
                                 // 爆发板机（craft burstMode=N）：一次扳机 N 连发，首发后按 60ms 间隔排队
-                                const _burstN = (effectiveItem._craftEffects && effectiveItem._craftEffects.burstMode) || 0;
+                                const _burstN = (effectiveItem._craftEffects && effectiveItem._craftEffects.burstMode) || effectiveItem.burstMode || 0;
                                 if (_burstN > 1) {
                                     this._burstLeft = _burstN - 1;
                                     this._burstDelay = 60;
                                     this._burstSlot = effectiveSlot;
                                     this._burstAttackKey = attackKey;
+                                    this._burstCooldown = mainInterval;
                                     this.attacks[attackKey].cooldown = 60; // 爆发内小间隔，末发后恢复标准冷却
                                 }
                             }
@@ -1057,10 +1029,10 @@ update(dt, entities) {
                                     this.triggerWeaponAnim();
                                     this._burstLeft--;
                                     this._burstDelay = 60;
-                                    this.attacks[bk].cooldown = this._burstLeft > 0 ? 60 : this.attacks[bk].maxCooldown;
+                                    this.attacks[bk].cooldown = this._burstLeft > 0 ? 60 : (this._burstCooldown || this.attacks[bk].maxCooldown);
                                 } else {
                                     this._burstLeft = 0;
-                                    this.attacks[bk].cooldown = this.attacks[bk].maxCooldown;
+                                    this.attacks[bk].cooldown = this._burstCooldown || this.attacks[bk].maxCooldown;
                                 }
                             }
                         }
@@ -1068,20 +1040,23 @@ update(dt, entities) {
                         const offhandFireMode = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.fireModeOverride) || (offhandItem && offhandItem.fireMode) || 'fullAuto';
                         const offhandFireTrigger = offhandFireMode === 'semiAuto' ? secondaryPressed : secondaryDown;
                         if (isDualWield && offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && offhandFireTrigger && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                            const offhandInterval = this._getEffectiveGunAttackInterval(offhandItem, offhandAttackKey);
+                            this.attacks[offhandAttackKey].maxCooldown = offhandInterval;
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: offhandSlot, fireOffhand: true };
-                            this.attacks[offhandAttackKey].cooldown = this.attacks[offhandAttackKey].maxCooldown;
+                            this.attacks[offhandAttackKey].cooldown = offhandInterval;
                             this.triggerOffhandWeaponAnim();
                             // 半自动副手：消费掉点击事件
                             if (offhandFireMode === 'semiAuto') {
                                 Input.mouse.rightPressed = false;
                                 secondaryPressed = false;
                                 // 爆发板机（craft burstMode=N）：副手同样生效——一次扳机 N 连发，60ms 间隔排队
-                                const _burstNOff = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.burstMode) || 0;
+                                const _burstNOff = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.burstMode) || (offhandItem && offhandItem.burstMode) || 0;
                                 if (_burstNOff > 1) {
                                     this._burstLeftOff = _burstNOff - 1;
                                     this._burstDelayOff = 60;
                                     this._burstSlotOff = offhandSlot;
                                     this._burstAttackKeyOff = offhandAttackKey;
+                                    this._burstCooldownOff = offhandInterval;
                                     this.attacks[offhandAttackKey].cooldown = 60; // 爆发内小间隔，末发后恢复标准冷却
                                 }
                             }
@@ -1098,28 +1073,32 @@ update(dt, entities) {
                                     this.triggerOffhandWeaponAnim();
                                     this._burstLeftOff--;
                                     this._burstDelayOff = 60;
-                                    this.attacks[bkOff].cooldown = this._burstLeftOff > 0 ? 60 : this.attacks[bkOff].maxCooldown;
+                                    this.attacks[bkOff].cooldown = this._burstLeftOff > 0 ? 60 : (this._burstCooldownOff || this.attacks[bkOff].maxCooldown);
                                 } else {
                                     this._burstLeftOff = 0;
-                                    this.attacks[bkOff].cooldown = this.attacks[bkOff].maxCooldown;
+                                    this.attacks[bkOff].cooldown = this._burstCooldownOff || this.attacks[bkOff].maxCooldown;
                                 }
                             }
                         }
                     } else if (isPkm) {
                         // PKM / AKM / 191 / 201 / 能量轻机枪 全自动模式：按住 leftDown 持续射击
                         const isEnergyLMG = effectiveItem.weaponType === 'energy_lmg';
-                        const attackKey = effectiveItem.weaponType === 'pkm' ? 'pkm' : (effectiveItem.weaponType === 'akm' ? 'akm' : (effectiveItem.weaponType === 'qbz191' ? 'qbz191' : (effectiveItem.weaponType === 'qjb201' ? 'qjb201' : (effectiveItem.weaponType === 'm416' ? 'm416' : 'energy_lmg'))));
+                        const attackKey = effectiveItem.weaponType;
 
                         // 检查弹药和换弹状态（能量轻机枪无限子弹，不检查弹药）
                         const hasAmmo = isEnergyLMG ? true : this._hasAmmo(effectiveSlot);
                         const isReloading = isEnergyLMG ? false : this._isReloading(effectiveSlot);
 
-                        // 过热时禁止射击（按武器类型匹配：只有引发过热的机枪被锁定，
-                        // 切到其他武器不受影响，但切回仍处于锁定计时中）
+                        // 普通机枪过热时禁止射击；红热增压武器显式允许继续开火。
+                        // 状态仍按武器类型匹配，切到其他武器不受影响。
                         const isOverheated = this._overheatOverheated && this._overheatWeaponType === effectiveItem.weaponType;
-                        if (isOverheated) {
-                            // 过热中，禁止开火
+                        const mayFireOverheated = effectiveItem.overdriveHeatParams?.continueFiring === true;
+                        if (isOverheated && !mayFireOverheated) {
+                            // 普通过热锁枪
                         } else if (hasAmmo && !isReloading && this.weaponSwitchCooldown <= 0 && primaryDown && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                            if (!isEnergyLMG) {
+                                this.attacks[attackKey].maxCooldown = this._getEffectiveGunAttackInterval(effectiveItem, attackKey);
+                            }
                             this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                             this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
                             this.triggerWeaponAnim();
@@ -1159,6 +1138,7 @@ update(dt, entities) {
                                     const offhandHasAmmo = this._hasAmmo(offhandSlot);
                                     const offhandReloading = this._isReloading(offhandSlot);
                                     if (offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && secondaryDown && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                                        this.attacks[offhandAttackKey].maxCooldown = this._getEffectiveGunAttackInterval(offhandItem, offhandAttackKey);
                                         this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: offhandSlot, fireOffhand: true };
                                         this.attacks[offhandAttackKey].cooldown = this.attacks[offhandAttackKey].maxCooldown;
                                         this.triggerOffhandWeaponAnim();
@@ -1182,6 +1162,7 @@ update(dt, entities) {
                         // Super90: 单次点击开火(leftPressed)；SAIGA-12K: 按住左键持续开火(leftDown)
                         const fireTrigger = isSaiga12k ? primaryDown : primaryPressed;
                         if (hasAmmo && !isReloading && this.weaponSwitchCooldown <= 0 && fireTrigger && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                            this.attacks[attackKey].maxCooldown = this._getEffectiveGunAttackInterval(effectiveItem, attackKey);
                             this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                             this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
                             this.triggerWeaponAnim();
@@ -1200,7 +1181,7 @@ update(dt, entities) {
                     } else if (primaryPressed) {
                         // 计算冲刺攻击触发时间：基础333ms，每级减少3%
                         const activeDashSkill = this._getActiveDashSkillId();
-                        const dashLevel = (this.skills && this.skills[activeDashSkill] && this.skills[activeDashSkill].level) || 1;
+                        const dashLevel = this._getDashSkillLevel(activeDashSkill);
                         const triggerTime = 333 * (1 - (dashLevel - 1) * 0.03);
                         if (isMelee && this._sprintDuration >= triggerTime && !this._isDashing && !(this.weaponAnim && this.weaponAnim.isAttacking)
                             && !this._attackRecovering && !this._dashRecoverAt) {

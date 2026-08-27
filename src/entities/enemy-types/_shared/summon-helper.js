@@ -1,4 +1,5 @@
 import { WallSystem } from '../../../world/wall-system.js';
+import { SpawnPlacement } from '../../../world/spawn-placement.js';
 
 /**
  * 怪物召唤统一接口（ROADMAP：各怪物类内重复召唤逻辑收口）
@@ -35,11 +36,29 @@ function getScene() {
  * @param {object} opts
  * @returns {{x:number, y:number}|null}
  */
-function findSpawnPosition(spawner, opts) {
+function findSpawnPosition(spawner, opts, entities) {
     const mode = opts.mode || 'radial';
     const radius = opts.radius ?? 15;
     const count = opts.count ?? 1;
     const index = opts.index ?? 0;
+
+    // 格网建筑统一走生产建筑安全出口：同时避开墙体、建筑 footprint、
+    // 动态单位与同帧预约，并验证一段可离场通道。矿洞等生成器不能再从
+    // 自己的建筑中心调用 WallSystem.resolve，否则射线起点就在碰撞体内。
+    if (spawner?._isGridBuilding && opts.buildingExit !== false) {
+        const dirX = opts.forwardDirX ?? 1;
+        const targetDistance = Math.max(128, Math.abs(opts.forwardX ?? 50));
+        const spot = SpawnPlacement.findAndReserve(spawner, {
+            unitRadius: radius,
+            entities,
+            wallSystem: WallSystem,
+            preferredTarget: {
+                x: spawner.x + Math.sign(dirX || 1) * targetDistance,
+                y: spawner.y,
+            },
+        });
+        return spot ? { ...spot, buildingExit: true } : null;
+    }
 
     let candidates = [];
 
@@ -123,6 +142,7 @@ function findSpawnPosition(spawner, opts) {
  * @param {number} [opts.offsetY=0] fixed 模式 Y 偏移
  * @param {number} [opts.forwardX=50] forward 模式前方距离
  * @param {number} [opts.forwardDirX=1] forward 模式方向（1 右 / -1 左）
+ * @param {boolean} [opts.buildingExit=true] 格网建筑是否改用统一安全出口与离场通道
  * @param {number} [opts.arc=Math.PI/3] sector 模式扇形张角
  * @param {string} [opts.tag='summon'] key 前缀
  * @param {boolean} [opts.playFx=true] 是否播放地牢刷怪粒子
@@ -148,14 +168,14 @@ export function summonMonster(spawner, opts = {}) {
     const created = [];
 
     for (let i = 0; i < count; i++) {
-        const pos = findSpawnPosition(spawner, { ...opts, index: i });
+        const pos = findSpawnPosition(spawner, { ...opts, index: i }, entities);
         if (!pos) continue;
 
         const entity = factory(pos.x, pos.y);
         if (!entity) continue;
 
         // 防卡墙：沿召唤者→落点射线解析
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
+        if (!pos.buildingExit && WallSystem && typeof WallSystem.resolve === 'function') {
             const r = WallSystem.resolve(spawner.x, spawner.y, entity.x, entity.y, entity.groundRadius || radius);
             entity.x = r.x;
             entity.y = r.y;
@@ -165,6 +185,12 @@ export function summonMonster(spawner, opts = {}) {
 
         // 召唤物统一标签
         entity._summoned = true;
+
+        // 生产建筑离场契约：MovementSystem 会在接管普通目标/寻路前优先走到
+        // 已验证的 egress，避免刚出生的单位被建筑边缘和其他召唤物夹住。
+        if (pos.buildingExit && Number.isFinite(pos.egressX) && Number.isFinite(pos.egressY)) {
+            entity._spawnEgress = { x: pos.egressX, y: pos.egressY };
+        }
 
         // 站桩单位锁死出生点
         if (setAnchor) {

@@ -13,10 +13,42 @@ const LANE_GAP = 22;
 const CARD_ORIGIN_X = 52;
 const CARD_ORIGIN_Y = 74;
 const BRANCHES = Object.freeze(['工程', '军事指挥', '经济与位面', '位面独特科技']);
+const MILITARY_BRANCH = '军事指挥';
+const ECONOMY_BRANCH = '经济与位面';
+const MILITARY_CARD_ORIGIN_X = 210;
+const ECONOMY_CARD_ORIGIN_X = 180;
+const MILITARY_SUB_BRANCH_ROWS = Object.freeze([
+    Object.freeze({ label: '指挥', lane: 0, span: 1 }),
+    Object.freeze({ label: '草屋→特战', lane: 1, span: 1 }),
+    Object.freeze({ label: '军营', lane: 2, span: 1 }),
+    Object.freeze({ label: '靶场', lane: 3, span: 1 }),
+    Object.freeze({ label: '骑兵学院', lane: 4, span: 1 }),
+    Object.freeze({ label: '教堂', lane: 5, span: 1 }),
+    Object.freeze({ label: '军事支援', lane: 6, span: 2 }),
+]);
+const ECONOMY_SUB_BRANCH_ROWS = Object.freeze([
+    Object.freeze({ label: '住房', lane: 0, span: 1 }),
+    Object.freeze({ label: '农业', lane: 1, span: 2 }),
+    Object.freeze({ label: '金币', lane: 3, span: 2 }),
+    Object.freeze({ label: '能源', lane: 5, span: 2 }),
+]);
+
+function cardOriginX(branch) {
+    if (branch === MILITARY_BRANCH) return MILITARY_CARD_ORIGIN_X;
+    if (branch === ECONOMY_BRANCH) return ECONOMY_CARD_ORIGIN_X;
+    return CARD_ORIGIN_X;
+}
+
+function subBranchRows(branch) {
+    if (branch === MILITARY_BRANCH) return MILITARY_SUB_BRANCH_ROWS;
+    if (branch === ECONOMY_BRANCH) return ECONOMY_SUB_BRANCH_ROWS;
+    return [];
+}
 
 function positionOf(node) {
+    const originX = cardOriginX(node?.branch);
     return {
-        x: CARD_ORIGIN_X + (Number(node.column) || 0) * (CARD_W + COL_GAP),
+        x: originX + (Number(node.column) || 0) * (CARD_W + COL_GAP),
         y: CARD_ORIGIN_Y + (Number(node.lane) || 0) * (CARD_H + LANE_GAP),
     };
 }
@@ -52,6 +84,21 @@ function researchModeLabel(mode) {
     if (mode === 'target') return '目标队列';
     if (mode === 'auto') return '自动随机';
     return '等待研究';
+}
+
+function renderRecruitmentTierLines(plan) {
+    const lines = Array.isArray(plan?.lines) ? plan.lines : [];
+    if (!lines.length) {
+        return `<li>${escapeHtml(plan?.note || '本级兵种路线尚未规划')}</li>`;
+    }
+    return lines.map((line) => {
+        const route = line.fromUnitName
+            ? `${line.fromUnitName} → ${line.unitName}`
+            : line.unitName;
+        const status = line.placeholder === true ? '待开发' : '已开发';
+        const profile = line.profile ? ` · ${line.profile}` : '';
+        return `<li><b>${escapeHtml(line.role || '兵种')}</b>：${escapeHtml(route)}${escapeHtml(profile)} <span>${status}</span></li>`;
+    }).join('');
 }
 
 export const TechnologyTreePanel = {
@@ -159,7 +206,12 @@ export const TechnologyTreePanel = {
             // 避免 WorldSimDriver 停止后进度条看似实时、实际数值却不动。
             if (this._pausedByPanel) {
                 const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
-                TechnologySystem.update(elapsedMs, instituteCount, TechnologySystem.lastResearchRate);
+                TechnologySystem.update(
+                    elapsedMs,
+                    instituteCount,
+                    TechnologySystem.lastResearchRate,
+                    TechnologySystem.lastRawResearchRate
+                );
             }
             this._refreshLiveProgress();
         }, 100);
@@ -183,6 +235,7 @@ export const TechnologyTreePanel = {
         }
         const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
         const rate = Math.max(0, Number(TechnologySystem.lastResearchRate) || 0);
+        const rawRate = Math.max(rate, Number(TechnologySystem.lastRawResearchRate) || 0);
         const queue = TechnologySystem.getResearchQueue();
         const etaIds = queue.length ? queue : (active ? [active.id] : []);
         const eta = TechnologySystem.getEstimatedSeconds(etaIds, rate);
@@ -190,8 +243,10 @@ export const TechnologyTreePanel = {
             const element = this._el.querySelector(`[data-live-role="${role}"]`);
             if (element) element.textContent = value;
         };
-        setText('institute-count', `研究院 ${instituteCount}`);
-        setText('research-rate', `研究速度 +${rate.toFixed(1)}/秒`);
+        setText('institute-count', `科研设施 ${instituteCount}`);
+        setText('research-rate', rawRate > rate + 0.05
+            ? `研究速度 +${rate.toFixed(1)}/秒（原始 ${rawRate.toFixed(1)}）`
+            : `研究速度 +${rate.toFixed(1)}/秒`);
         setText('research-mode', `模式 ${researchModeLabel(TechnologySystem.getResearchMode())}`);
         setText('research-current', `${active ? `${active.name} ${Math.floor(TechnologySystem.getProgress(active.id))}/${active.researchCost}` : '等待自动选择'} · ETA ${formatEta(eta)}`);
         if (active) {
@@ -335,11 +390,16 @@ export const TechnologyTreePanel = {
         if (!tabs) return;
         tabs.innerHTML = BRANCHES.map((branch) => {
             const nodes = this._nodesForBranch(branch);
-            const completed = nodes.filter((node) => TechnologySystem.isCompleted(node.id)).length;
+            const researchableNodes = nodes.filter((node) => node.placeholder !== true);
+            const baselineCount = nodes.filter((node) => node.baseline === true).length;
+            const plannedCount = nodes.filter((node) =>
+                node.placeholder === true && node.baseline !== true).length;
+            const completed = researchableNodes
+                .filter((node) => TechnologySystem.isCompleted(node.id)).length;
             const active = nodes.some((node) => node.id === TechnologySystem.state.activeTechId);
             return `<button type="button" class="technology-tree-branch-tab${branch === this._selectedBranch ? ' active' : ''}" data-branch="${escapeHtml(branch)}">
                 <span>${escapeHtml(branch)}</span>
-                <small>${completed}/${nodes.length}${active ? ' · 研发中' : ''}</small>
+                <small>${completed}/${researchableNodes.length}${baselineCount ? ` · ${baselineCount}基线` : ''}${plannedCount ? ` · ${plannedCount}规划` : ''}${active ? ' · 研发中' : ''}</small>
             </button>`;
         }).join('');
         tabs.querySelectorAll('[data-branch]').forEach((button) => {
@@ -362,6 +422,7 @@ export const TechnologyTreePanel = {
         const active = TechnologySystem.getNode(TechnologySystem.state.activeTechId);
         const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
         const rate = Math.max(0, Number(TechnologySystem.lastResearchRate) || 0);
+        const rawRate = Math.max(rate, Number(TechnologySystem.lastRawResearchRate) || 0);
         const queue = TechnologySystem.getResearchQueue();
         const mode = TechnologySystem.getResearchMode();
         const etaIds = queue.length ? queue : (active ? [active.id] : []);
@@ -372,8 +433,10 @@ export const TechnologyTreePanel = {
                 ? `${escapeHtml(active.name)} ${Math.floor(TechnologySystem.getProgress(active.id))}/${active.researchCost}`
                 : '等待自动选择';
             summary.innerHTML = `
-                <span data-live-role="institute-count">研究院 ${instituteCount}</span>
-                <span data-live-role="research-rate">研究速度 +${rate.toFixed(1)}/秒</span>
+                <span data-live-role="institute-count">科研设施 ${instituteCount}</span>
+                <span data-live-role="research-rate">${rawRate > rate + 0.05
+                    ? `研究速度 +${rate.toFixed(1)}/秒（原始 ${rawRate.toFixed(1)}）`
+                    : `研究速度 +${rate.toFixed(1)}/秒`}</span>
                 <span data-live-role="research-mode">模式 ${researchModeLabel(mode)}</span>
                 <strong data-live-role="research-current">${current} · ETA ${formatEta(eta)}</strong>`;
         }
@@ -385,7 +448,8 @@ export const TechnologyTreePanel = {
         const visibleIds = new Set(nodes.map((node) => node.id));
         const maxColumn = Math.max(0, ...nodes.map((node) => Number(node.column) || 0));
         const maxLane = Math.max(0, ...nodes.map((node) => Number(node.lane) || 0));
-        canvas.style.width = `${100 + (maxColumn + 1) * (CARD_W + COL_GAP)}px`;
+        const originX = cardOriginX(this._selectedBranch);
+        canvas.style.width = `${originX + (maxColumn + 1) * (CARD_W + COL_GAP) + 48}px`;
         canvas.style.height = `${Math.max(420, CARD_ORIGIN_Y + (maxLane + 1) * (CARD_H + LANE_GAP) + 40)}px`;
 
         const lines = nodes.flatMap((node) => (node.prerequisites || []).map((requiredId) => {
@@ -414,17 +478,28 @@ export const TechnologyTreePanel = {
 
         const cards = nodes.map((node) => {
             const pos = positionOf(node);
+            const placeholder = node.placeholder === true;
+            const baseline = node.baseline === true;
             const completed = TechnologySystem.isCompleted(node.id);
             const activeNode = TechnologySystem.state.activeTechId === node.id;
             const available = TechnologySystem.isAvailable(node.id);
             // 已完成状态优先于位面遮蔽：开发工具/旧档可以在位面尚未开放时
             // 合法写入位面专项科技完成项，不能再被 UI 伪装成“未知科技”。
-            const worldMasked = !completed && !TechnologySystem.isWorldRequirementMet(node.id);
-            const stateClass = completed ? 'completed' : activeNode ? 'active-tech' : available ? 'available' : 'locked';
+            const worldRequirementLocked = !completed
+                && !TechnologySystem.isWorldRequirementMet(node.id);
+            const worldMasked = worldRequirementLocked && !!node.requiredWorldId;
+            const worldCountLocked = worldRequirementLocked
+                && Math.max(0, Number(node.requiredWorldCount) || 0) > 0;
+            const stateClass = baseline ? 'baseline' : placeholder ? 'planned'
+                : completed ? 'completed' : activeNode ? 'active-tech' : available ? 'available' : 'locked';
             const progress = TechnologySystem.getProgress(node.id);
             const percent = completed ? 100 : Math.min(100, (progress / node.researchCost) * 100);
             const queuedAt = queueIndex.get(node.id);
-            const stateText = worldMasked ? '未知位面科技' : completed ? '已完成' : activeNode ? '研发中'
+            const stateText = baseline ? '现役一级'
+                : placeholder ? `规划占位 · ${node.researchCost}`
+                : worldMasked ? '未知位面科技'
+                : worldCountLocked ? `需要${node.requiredWorldCount}个位面`
+                : completed ? '已完成' : activeNode ? '研发中'
                 : queuedAt ? `队列 ${queuedAt}` : available ? '可研究' : '前置未满足';
             const pathClass = selectedPath.has(node.id) ? ' path-node' : '';
             const targetClass = TechnologySystem.state.targetTechId === node.id ? ' path-target' : '';
@@ -433,7 +508,7 @@ export const TechnologyTreePanel = {
                 data-tech-id="${escapeHtml(node.id)}" style="left:${pos.x}px;top:${pos.y}px">
                 ${queuedAt ? `<span class="technology-card-queue-index">${queuedAt}</span>` : ''}
                 ${renderTechnologyIcon(node, 'technology-card-icon')}
-                <span class="technology-card-copy"><strong>${escapeHtml(node.name)}</strong><small data-live-role="card-state">${stateText} · ${node.researchCost}</small></span>
+                <span class="technology-card-copy"><strong>${escapeHtml(node.name)}</strong><small data-live-role="card-state">${stateText}${placeholder ? '' : ` · ${node.researchCost}`}</small></span>
                 <span class="technology-card-progress"><i data-live-role="card-progress" style="width:${percent}%"></i></span>
             </button>`;
         }).join('');
@@ -441,8 +516,16 @@ export const TechnologyTreePanel = {
         const sectionTitle = this._selectedBranch === '位面独特科技'
             ? this._selectedBranch
             : `${this._selectedBranch}科技`;
-        const label = `<div class="technology-section-label${this._selectedBranch === '位面独特科技' ? ' plane' : ''}" style="top:28px">${escapeHtml(sectionTitle)}</div>`;
-        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${lines}</svg>${label}${cards}`;
+        const branchRows = subBranchRows(this._selectedBranch);
+        const label = `<div class="technology-section-label${this._selectedBranch === '位面独特科技' ? ' plane' : ''}" style="top:${branchRows.length ? 8 : 28}px">${escapeHtml(sectionTitle)}</div>`;
+        const subBranchLabels = branchRows.length
+            ? branchRows.map((row) => {
+                const top = CARD_ORIGIN_Y + row.lane * (CARD_H + LANE_GAP);
+                const height = row.span * (CARD_H + LANE_GAP) - LANE_GAP;
+                return `<div class="technology-subbranch-label row-label" style="left:28px;top:${top}px;width:${originX - 64}px;height:${height}px">${escapeHtml(row.label)}</div>`;
+            }).join('')
+            : '';
+        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${lines}</svg>${label}${subBranchLabels}${cards}`;
         canvas.querySelectorAll('[data-tech-id]').forEach((card) => {
             card.addEventListener('click', () => {
                 this._selectedId = card.dataset.techId;
@@ -462,7 +545,11 @@ export const TechnologyTreePanel = {
         }
         const completed = TechnologySystem.isCompleted(node.id);
         // 与卡片保持同一口径；已完成的位面科技必须显示真实详情与解锁内容。
-        const worldMasked = !completed && !TechnologySystem.isWorldRequirementMet(node.id);
+        const worldRequirementLocked = !completed
+            && !TechnologySystem.isWorldRequirementMet(node.id);
+        const worldMasked = worldRequirementLocked && !!node.requiredWorldId;
+        const worldCountLocked = worldRequirementLocked
+            && Math.max(0, Number(node.requiredWorldCount) || 0) > 0;
         const active = TechnologySystem.state.activeTechId === node.id;
         const isTarget = TechnologySystem.state.targetTechId === node.id;
         const progress = TechnologySystem.getProgress(node.id);
@@ -470,6 +557,9 @@ export const TechnologyTreePanel = {
         const plan = completed ? [] : TechnologySystem.getResearchPlan(node.id);
         const eta = TechnologySystem.getEstimatedSeconds(plan, TechnologySystem.lastResearchRate);
         const planNames = plan.map((id) => TechnologySystem.getNode(id)?.name || id);
+        const recruitmentTierPlan = TechnologySystem.getRecruitmentTierPlan(
+            node.recruitmentTierId
+        );
         if (worldMasked) {
             detail.innerHTML = `
                 <div class="technology-detail-icon">▦</div>
@@ -479,6 +569,27 @@ export const TechnologyTreePanel = {
                 <button class="technology-research-button" type="button" disabled>位面尚未解锁</button>`;
             return;
         }
+        if (node.placeholder === true) {
+            const baseline = node.baseline === true;
+            detail.innerHTML = `
+                ${renderTechnologyIcon(node, 'technology-detail-icon')}
+                <div class="technology-detail-branch">${escapeHtml(`${node.branch}科技 · ${node.subBranch || '规划'}`)}</div>
+                <h3>${escapeHtml(node.name)}</h3>
+                <p>${escapeHtml(node.description)}</p>
+                <h4>前置科技</h4>
+                <div class="technology-detail-prerequisites">${prerequisiteNames.map(escapeHtml).join('、') || '无'}</div>
+                <h4>${baseline ? '一级现役路线' : '升级替换路线'}</h4>
+                <ul class="technology-tier-route">${renderRecruitmentTierLines(recruitmentTierPlan)}</ul>
+                <h4>科研预算</h4>
+                <div class="technology-detail-prerequisites">${baseline
+                    ? '一级编制随建筑投入使用，无需额外科研'
+                    : `基础科研 ${node.baseResearchCost} · 成本曲线折算 ${node.researchCost} 点`}</div>
+                <p>${baseline
+                    ? '一级卡用于展示现役兵种基线；未开发的同级兵种仍保持占位。'
+                    : '整级兵种资源全部闭环后才会开放研究；完成时自动替换本建筑可招募兵种，已经出兵的旧单位不变。'}</p>
+                <button class="technology-research-button" type="button" disabled>${baseline ? '现役一级' : '规划占位'}</button>`;
+            return;
+        }
         detail.innerHTML = `
             ${renderTechnologyIcon(node, 'technology-detail-icon')}
             <div class="technology-detail-branch">${escapeHtml(node.section === 'plane' ? '位面独特科技' : `${node.branch}科技`)}</div>
@@ -486,17 +597,24 @@ export const TechnologyTreePanel = {
             <p>${escapeHtml(node.description)}</p>
             <div class="technology-detail-progress"><span><i data-live-role="detail-progress-bar" style="width:${completed ? 100 : (progress / node.researchCost) * 100}%"></i></span><b data-live-role="detail-progress-text">${completed ? '已完成' : `${Math.floor(progress)} / ${node.researchCost}`}</b></div>
             <h4>前置科技</h4>
-            <div class="technology-detail-prerequisites">${prerequisiteNames.length ? prerequisiteNames.map(escapeHtml).join('、') : (node.section === 'plane' ? '对应位面已解锁' : '无')}</div>
+            <div class="technology-detail-prerequisites">${[
+                ...(prerequisiteNames.length ? prerequisiteNames.map(escapeHtml) : []),
+                ...(node.requiredWorldCount ? [`控制至少${node.requiredWorldCount}个位面`] : []),
+            ].join('、') || (node.section === 'plane' ? '对应位面已解锁' : '无')}</div>
             <h4>解锁内容</h4>
             <ul>${(node.unlocks || []).map((unlock) => `<li>${escapeHtml(unlock.label || unlock.id)}</li>`).join('')}</ul>
+            ${recruitmentTierPlan ? `
+                <h4>升级替换路线</h4>
+                <ul class="technology-tier-route">${renderRecruitmentTierLines(recruitmentTierPlan)}</ul>
+                <p>建筑名称与贴图在科研完成后立即升级；本级两条兵种线全部开发并登记后，后续招募自动换代，已经出兵的旧单位不变。</p>` : ''}
             <h4>研究计划</h4>
             <div class="technology-detail-plan">
                 ${completed
                     ? '该科技已经完成'
                     : `${planNames.map(escapeHtml).join(' → ')}<b data-live-role="detail-eta">预计 ${formatEta(eta)}</b>`}
             </div>
-            <button class="technology-research-button${isTarget ? ' secondary' : ''}" type="button" ${completed ? 'disabled' : ''}>
-                ${completed ? '已完成' : isTarget ? '取消目标并恢复自动研究' : active && !TechnologySystem.state.targetTechId ? '转为研究目标' : '设为研究目标'}
+            <button class="technology-research-button${isTarget ? ' secondary' : ''}" type="button" ${completed || worldCountLocked ? 'disabled' : ''}>
+                ${completed ? '已完成' : worldCountLocked ? `需要控制${node.requiredWorldCount}个位面` : isTarget ? '取消目标并恢复自动研究' : active && !TechnologySystem.state.targetTechId ? '转为研究目标' : '设为研究目标'}
             </button>`;
         detail.querySelector('.technology-research-button')?.addEventListener('click', () => {
             const changed = isTarget
@@ -509,7 +627,9 @@ export const TechnologyTreePanel = {
     _countLiveInstitutes() {
         const buildings = Game?.ProducerBuildingSystem?.buildings || [];
         return buildings.filter((building) => building?.active !== false
-            && building?.cfgKey === 'research_institute'
+            && (building?._economyType === 'research'
+                || building?._economyType === 'weather_forecast'
+                || building?._economyType === 'advanced_research')
             && Number(building?.data?.hp ?? building?.hp ?? 1) > 0).length;
     },
 };

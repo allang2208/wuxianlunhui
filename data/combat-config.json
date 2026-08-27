@@ -17,6 +17,17 @@
     "stage3HoldMs": 0,
     "stage3RecoverMs": 400
   },
+  "basicAttackStun": {
+    "comment": "玩家普通攻击：普通/精英沿用配置眩晕；领主按体质概率豁免；首领保持原有不受普通攻击眩晕边界",
+    "lordResistance": {
+      "baseChance": 0.2,
+      "constitutionBaseline": 30,
+      "chancePerConstitution": 0.0125,
+      "minChance": 0.15,
+      "maxChance": 0.55,
+      "flashDurationMs": 300
+    }
+  },
   "slashAttack": {
     "cooldown": 500,
     "range": 100,
@@ -96,7 +107,10 @@
       "wis": 10,
       "luck": 10
     },
-    "globalSpeedMultiplier": 0.75
+    "globalSpeedMultiplier": 0.6
+  },
+  "friendlyUnitDefaults": {
+    "globalSpeedMultiplier": 0.85
   },
   "energyLMG": {
     "baseCooldown": 333,

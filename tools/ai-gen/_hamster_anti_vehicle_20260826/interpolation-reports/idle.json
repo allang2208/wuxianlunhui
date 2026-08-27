@@ -1,0 +1,43 @@
+{
+  "name": "hamster_anti_vehicle_idle",
+  "sourceSheet": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\source-sheets-pre-interpolation\\idle.png",
+  "outputSheet": "assets\\companions\\hamster_anti_vehicle\\idle.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "pipelineVersion": "rife-v4.6-rgba-v2-temporal-dark-repair",
+  "mode": "loop",
+  "loopStartSourceIndex": 0,
+  "sourceFrameCount": 4,
+  "outputFrameCount": 8,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 1,
+  "sourceFrameRate": 4.0,
+  "outputFrameRate": 8.0,
+  "durationPreserved": true,
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 453,
+    "alphaBottomMax": 456,
+    "middleFrameFootShifts": [
+      0,
+      1,
+      0,
+      -1
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 23.303653240203857,
+    "adjacentDeltaMeanAfter": 15.266947157680988
+  }
+}

@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: production-ready 2D game enemy idle character cutout for a dark isometric action RPG
+References: miner zombie and lantern miner zombie define the muted realistic art family; current spitter zombie defines the subject identity and silhouette.
+Subject: one full-body hunched poison-spitter zombie, long neck and dangling arms, right-facing side/three-quarter idle pose, open mouth with a restrained strand of viscous purple poison; no weapon or prop.
+Style: realistic dark-fantasy painted game sprite, photobashed painterly realism, worn cloth and decayed skin, crisp silhouette, matching the miner-zombie rendering density and edge treatment.
+Palette: desaturated dirty brown, soot gray, rotten beige, muted olive-gray skin, localized dark-purple poison accent; no bright green body.
+Composition: centered in a square frame, full body visible, feet on a stable baseline, generous margin, no cropping.
+Constraints: genuine transparent background, clean alpha, no shadow, scenery, text, border, watermark, extra character, weapon, lantern, pickaxe, particles, or halo.

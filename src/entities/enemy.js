@@ -570,7 +570,7 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
             /** 预警计时推进（基类 update 每帧调用）：死亡/眩晕立即取消，计时归零后执行攻击 */
             _updateAttackTelegraph(dt) {
                 if (!(this._attackTelegraphTimer > 0)) return;
-                if (this._isDead || !this.active || (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen')))) {
+                if (this._isDead || !this.active || (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('petrified')))) {
                     this._clearAttackTelegraph();
                     return;
                 }
@@ -657,7 +657,7 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
                     }
                 }
                 // 眩晕/冻结状态（通过状态栏系统检测）：无法移动、无法攻击（冻结效果等同于眩晕）
-                if (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen')) {
+                if (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('petrified')) {
                     this.vx = 0; this.vy = 0;
                     this.isMoving = false;
                     return;
@@ -711,20 +711,6 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
                     if (this.attacks.ranged) this.attacks.ranged.update(attackDt);
                     this.updateWeaponAnim(dt);
                 }
-            }
-            // 应用无人机易伤（无人机技能）
-            applyDroneVulnerability(_stacks) {
-                this._droneVulnerabilityStacks = 1; // 固定1层，不再叠加
-                this._droneVulnerabilityTimer = 999999; // [FIX] 设极大值，永不过期，由外部范围判定控制移除
-                if (EffectManager && EffectManager.add) {
-                    EffectManager.add(new DroneVulnerabilityEffect(this.x, this.y));
-                }
-            }
-            // 移除无人机易伤
-            removeDroneVulnerability() {
-                this._droneVulnerabilityStacks = 0;
-                this._droneVulnerabilityTimer = 0;
-                this.removeStatusEffect('droneVulnerability');
             }
             // [ANTI-TELEPORT] 限制每帧最大移动距离
             _clampMoveDistance(fromX, fromY, toX, toY, maxDist) {
@@ -918,18 +904,6 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
              */
 
         }
-
-        // 无人机易伤红色圆圈收缩特效：从半径200px收缩至圆心，持续1.5s
-        class DroneVulnerabilityEffect {
-            constructor(x, y) {
-                this.x = x; this.y = y;
-                this.life = 1500; this.maxLife = 1500; this.active = true;
-                this.maxRadius = 200;
-            }
-            update(dt = 16.67) {
-                this.life -= dt;
-                if (this.life <= 0) this.active = false;
-            }        }
 
             // Phaser 同步渲染方法（提取所有子类重复代码）
 export { Enemy };

@@ -489,14 +489,17 @@ export const QuestState = {
         if (GameUIManager) GameUIManager.updateUI();
     },
 
-    // 发放随机优质武器
+    // 发放随机高品质武器（ItemDatabase 键创建，禁止从无 id 的模板对象直接实例化）
     _grantRandomWeapon(player) {
-        const rareWeapons = Object.values(ItemDatabase.items || {}).filter(item =>
-            item.rarity === 'rare' || item.rarity === 'epic'
-        );
-        if (rareWeapons.length === 0) return;
-        const weapon = rareWeapons[Math.floor(Math.random() * rareWeapons.length)];
-        const instance = ItemDatabase.createInstance ? ItemDatabase.createInstance(weapon.id) : { ...weapon };
+        const weaponKeys = Object.keys(ItemDatabase.items || {}).filter(key => {
+            const item = ItemDatabase.items[key];
+            return item && (item.rarity === 'rare' || item.rarity === 'epic')
+                && String(item.category || '').startsWith('weapon');
+        });
+        if (weaponKeys.length === 0) return;
+        const key = weaponKeys[Math.floor(Math.random() * weaponKeys.length)];
+        const instance = ItemDatabase.createInstance(key);
+        if (!instance) return;
 
         // 尝试放入背包
         const maxSlots = EquipManager.maxBackpackSlots || 36;

@@ -97,6 +97,7 @@ export function setDungeonFloorProfile(profile) {
             textureScaleY: profile.textureScaleY ?? 0.5774,
             sandPatches: profile.sandPatches || null,
             surfacePatches: Array.isArray(profile.surfacePatches) ? profile.surfacePatches : null,
+            cellDetails: profile.cellDetails || null,
         }
         : null;
 }
@@ -183,6 +184,48 @@ function _seededRand(seed) {
     };
 }
 
+function _hash32(a, b, salt = 0) {
+    let value = Math.imul((Number(a) | 0) ^ 0x45d9f3b, 0x27d4eb2d)
+        ^ Math.imul((Number(b) | 0) ^ 0x165667b1, 0x85ebca6b)
+        ^ (Number(salt) | 0);
+    value ^= value >>> 16;
+    value = Math.imul(value, 0x7feb352d);
+    value ^= value >>> 15;
+    value = Math.imul(value, 0x846ca68b);
+    return (value ^ (value >>> 16)) >>> 0;
+}
+
+function _weightedIndex(weights, hash, count) {
+    const values = Array.from({ length: count }, (_, index) =>
+        Math.max(0, Number(weights?.[index]) || 0));
+    const total = values.reduce((sum, value) => sum + value, 0);
+    if (!(total > 0)) return count > 0 ? (hash % count) : -1;
+    let target = (hash / 0x100000000) * total;
+    let lastEligible = -1;
+    for (let index = 0; index < values.length; index++) {
+        if (!(values[index] > 0)) continue;
+        lastEligible = index;
+        target -= values[index];
+        if (target <= 0) return index;
+    }
+    return lastEligible;
+}
+
+function _weightedAsset(assets, roll) {
+    const total = assets.reduce((sum, asset) => sum + Math.max(0, Number(asset.weight) || 0), 0);
+    if (!(total > 0)) return assets[0] || null;
+    let target = roll * total;
+    let lastEligible = null;
+    for (const asset of assets) {
+        const weight = Math.max(0, Number(asset.weight) || 0);
+        if (!(weight > 0)) continue;
+        lastEligible = asset;
+        target -= weight;
+        if (target <= 0) return asset;
+    }
+    return lastEligible;
+}
+
 function _collectTiles(profile) {
     const tiles = [];
     for (const key of profile.tiles) {
@@ -233,6 +276,65 @@ function _drawIsoLayerChunk(ctx, tiles, ox, oy, w, h, overlapX = 0, overlapY = 0
     }
 }
 
+/**
+ * 道路同源的地貌细节格：底层仍是世界相位连续材质；World-122当前只启用透明碎石帧，
+ * 风纹、裂缝和冲蚀线保持零权重。格网固定为128×64、隔行偏移64px，格坐标与seed唯一决定结果。
+ */
+function _drawFloorCellDetails(ctx, profile, ox, oy, cw, ch, diamond) {
+    const details = profile.cellDetails;
+    if (!details || details.enabled === false || !details.key) return;
+    const atlas = _getSourceImage(details.key);
+    if (!atlas) return;
+    const frameWidth = Math.max(1, Number(details.frameWidth) || 128);
+    const frameHeight = Math.max(1, Number(details.frameHeight) || 64);
+    const frameCount = Math.max(1, Math.min(
+        Number(details.frameCount) || Math.floor(atlas.width / frameWidth),
+        Math.floor(atlas.width / frameWidth)
+    ));
+    const displayWidth = Math.max(1, Number(details.displayWidth) || frameWidth);
+    const displayHeight = Math.max(1, Number(details.displayHeight) || frameHeight);
+    const density = Math.max(0, Math.min(1, Number(details.density) || 0));
+    const alpha = Math.max(0, Math.min(1, Number(details.alpha) || 1));
+    const seedSalt = Number(details.seedSalt) || 0;
+    const grid = details.grid || {};
+    const originX = Number(grid.originX) || 0;
+    const originY = Number(grid.originY) || 0;
+    const stepX = Math.max(1, Number(grid.stepX) || 128);
+    const stepY = Math.max(1, Number(grid.stepY) || 32);
+    const rowOffsetX = Number(grid.rowOffsetX) || stepX / 2;
+    const edgeInset = Math.max(0, Number(details.edgeInset) || 0);
+    const rowStart = Math.floor((oy - originY - displayHeight) / stepY) - 1;
+    const rowEnd = Math.ceil((oy + ch - originY + displayHeight) / stepY) + 1;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    for (let row = rowStart; row <= rowEnd; row++) {
+        const y = originY + row * stepY;
+        const parity = ((row % 2) + 2) % 2;
+        const rowOriginX = originX + parity * rowOffsetX;
+        const columnStart = Math.floor((ox - rowOriginX - displayWidth) / stepX) - 1;
+        const columnEnd = Math.ceil((ox + cw - rowOriginX + displayWidth) / stepX) + 1;
+        for (let column = columnStart; column <= columnEnd; column++) {
+            const x = rowOriginX + column * stepX;
+            const u = Math.round((x - originX) / (stepX / 2));
+            const i = Math.round((row + u) / 2);
+            const j = row - i;
+            const densityHash = _hash32(i, j, seedSalt);
+            if (densityHash / 0x100000000 >= density) continue;
+            if (diamond && _floorRegionEdgeDistance(x, y, diamond) < edgeInset) continue;
+            if (_decoClearZones.length && _inDecoClearZone(x, y)) continue;
+            const frame = _weightedIndex(details.frameWeights,
+                _hash32(i, j, seedSalt ^ 0x6ac690c5), frameCount);
+            if (frame < 0) continue;
+            ctx.drawImage(atlas,
+                frame * frameWidth, 0, frameWidth, frameHeight,
+                x - ox - displayWidth / 2, y - oy - displayHeight / 2,
+                displayWidth, displayHeight);
+        }
+    }
+    ctx.restore();
+}
+
 /** 地板点缀（草簇等，2026-08-16）：
  * - 独立于地砖层的装饰贴图，固定朝向绘制（仅随机水平镜像，草簇本身径向对称安全），
  *   不做 X/Y 翻转——避免 8 向循环把有方向性的素材翻转；
@@ -241,22 +343,68 @@ function _drawIsoLayerChunk(ctx, tiles, ox, oy, w, h, overlapX = 0, overlapY = 0
  */
 function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
     const deco = profile.deco;
-    if (!deco || !Array.isArray(deco.textures) || deco.textures.length === 0) return;
-    const imgs = [];
-    for (const key of deco.textures) {
+    if (!deco) return;
+    const configuredAssets = Array.isArray(deco.assets) ? deco.assets : [];
+    const legacyAssets = Array.isArray(deco.textures)
+        ? deco.textures.map((key) => ({ key, weight: 1, size: deco.size ?? 100, originY: 0.5 }))
+        : [];
+    const assets = [];
+    for (const asset of configuredAssets.length ? configuredAssets : legacyAssets) {
+        const key = asset?.key;
+        if (!key) continue;
         const img = _getSourceImage(key);
-        if (img) imgs.push(img);
+        if (img) assets.push({ ...asset, key, img });
     }
-    if (imgs.length === 0) return;
+    if (assets.length === 0) return;
+    const entrySeed = deco.seed ?? 0x5f356495;
+
+    if (deco.placementMode === 'world-grid') {
+        const cellSize = Math.max(96, Number(deco.cellSize) || 248);
+        const density = Math.max(0, Math.min(1, Number(deco.density) || 0));
+        const jitterMin = Math.max(0, Math.min(1, Number(deco.jitterMin) || 0.18));
+        const jitterMax = Math.max(jitterMin, Math.min(1, Number(deco.jitterMax) || 0.82));
+        const scaleJitter = Math.max(0, Number(deco.scaleJitter) || 0);
+        const edgeInset = Math.max(0, Number(deco.edgeInset) || 0);
+        const seedSalt = Number(deco.seedSalt) || 0;
+        const maxSize = assets.reduce((best, asset) =>
+            Math.max(best, Math.max(1, Number(asset.size) || 100) * (1 + scaleJitter)), 100);
+        const columnStart = Math.floor((ox - maxSize) / cellSize);
+        const columnEnd = Math.ceil((ox + cw + maxSize) / cellSize);
+        const rowStart = Math.floor((oy - maxSize) / cellSize);
+        const rowEnd = Math.ceil((oy + ch + maxSize) / cellSize);
+        for (let row = rowStart; row <= rowEnd; row++) {
+            for (let column = columnStart; column <= columnEnd; column++) {
+                const rand = _seededRand(_hash32(column, row, entrySeed ^ seedSalt));
+                if (rand() >= density) continue;
+                const px = (column + jitterMin + rand() * (jitterMax - jitterMin)) * cellSize;
+                const py = (row + jitterMin + rand() * (jitterMax - jitterMin)) * cellSize;
+                if (diamond && _floorRegionEdgeDistance(px, py, diamond) < edgeInset) continue;
+                if (_decoClearZones.length && _inDecoClearZone(px, py)) continue;
+                const asset = _weightedAsset(assets, rand());
+                if (!asset) continue;
+                const jitter = 1 + (rand() * 2 - 1) * scaleJitter;
+                const height = Math.max(1, (Number(asset.size) || 100) * jitter);
+                const width = asset.img.width * (height / asset.img.height);
+                const originY = Math.max(0, Math.min(1, Number(asset.originY) || 0.5));
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, Math.min(1, Number(asset.alpha) || 1));
+                ctx.translate(px - ox, py - oy);
+                if (rand() < 0.5) ctx.scale(-1, 1);
+                ctx.drawImage(asset.img, -width / 2, -height * originY, width, height);
+                ctx.restore();
+            }
+        }
+        return;
+    }
+
     const perChunk = deco.perChunk ?? 30;
     const size = deco.size ?? 100;
     const minDist = deco.minDist ?? 120;
     // deco.seed 由场景入场时生成：同一次入场的分块重烘焙稳定复现，重新进入场景才换布局。
-    const entrySeed = deco.seed ?? 0x5f356495;
     const rand = _seededRand(((ox * 73856093) ^ (oy * 19349663) ^ entrySeed) >>> 0);
     const inDiamond = (gx, gy) => {
         if (!diamond) return true;
-        return (Math.abs(gx - diamond.cx) / diamond.rx + Math.abs(gy - diamond.cy) / diamond.ry) <= 0.94;
+        return _floorRegionEdgeDistance(gx, gy, diamond) >= 24;
     };
     const placed = [];
     let guard = 0;
@@ -272,7 +420,8 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
         // 其余草位置与清除前一致，重烘焙跨块无缝）
         if (_decoClearZones.length && _inDecoClearZone(ox + px, oy + py)) continue;
         placed.push([px, py]);
-        const img = imgs[(rand() * imgs.length) | 0];
+        const asset = _weightedAsset(assets, rand());
+        const img = asset.img;
         const jitter = 0.85 + rand() * 0.3;
         const h = size * jitter;
         const w = img.width * (h / img.height);
@@ -348,6 +497,23 @@ function _minDistToDiamond(gx, gy, diamond) {
         t = Math.max(0, Math.min(1, t));
         const px = x1 + dx * t, py = y1 + dy * t;
         best = Math.min(best, Math.hypot(gx - px, gy - py));
+    }
+    return best;
+}
+
+/**
+ * 点位于一个或多个菱形房间内部时，返回到所属房间边缘的最大安全距离；
+ * 位于全部房间外返回 -Infinity。数组口径用于三房竞技场，避免小件落到纯黑区或通道边缘。
+ */
+function _floorRegionEdgeDistance(gx, gy, region) {
+    const diamonds = Array.isArray(region) ? region : [region];
+    let best = -Infinity;
+    for (const diamond of diamonds) {
+        if (!diamond) continue;
+        const inside = Math.abs(gx - diamond.cx) / Math.max(1, diamond.rx)
+            + Math.abs(gy - diamond.cy) / Math.max(1, diamond.ry) <= 1;
+        if (!inside) continue;
+        best = Math.max(best, _minDistToDiamond(gx, gy, diamond));
     }
     return best;
 }
@@ -440,6 +606,57 @@ function _makeNoiseMask(ps, rand) {
     return mask;
 }
 
+/** 最终地貌合成完成后再画边界淡出，避免细节格或随机小件盖回黑色过渡带。 */
+function _drawChunkEdgeFade(ctx, ox, oy, cw, ch, mapW, mapH, diamond) {
+    const fade = FLOOR_EDGE_FADE;
+    if (diamond) {
+        const ddx = diamond.cx - ox;
+        const ddy = diamond.cy - oy;
+        for (let i = 0; i < fade; i += 2) {
+            const irx = diamond.rx - i;
+            const iry = diamond.ry - i * (diamond.ry / diamond.rx);
+            ctx.beginPath();
+            ctx.moveTo(ddx, ddy - iry);
+            ctx.lineTo(ddx + irx, ddy);
+            ctx.lineTo(ddx, ddy + iry);
+            ctx.lineTo(ddx - irx, ddy);
+            ctx.closePath();
+            ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+        return;
+    }
+    if (oy <= 0) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, fade);
+        gradient.addColorStop(0, 'rgba(0,0,0,1)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, cw, fade);
+    }
+    if (oy + ch >= mapH) {
+        const gradient = ctx.createLinearGradient(0, ch - fade, 0, ch);
+        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+        gradient.addColorStop(1, 'rgba(0,0,0,1)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, ch - fade, cw, fade);
+    }
+    if (ox <= 0) {
+        const gradient = ctx.createLinearGradient(0, 0, fade, 0);
+        gradient.addColorStop(0, 'rgba(0,0,0,1)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, fade, ch);
+    }
+    if (ox + cw >= mapW) {
+        const gradient = ctx.createLinearGradient(cw - fade, 0, cw, 0);
+        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+        gradient.addColorStop(1, 'rgba(0,0,0,1)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(cw - fade, 0, fade, ch);
+    }
+}
+
 /**
  * 烘焙单块地板（2048² 分块惰性加载用）。
  * 只在地图边界上的块，其对应外侧边叠加黑色渐隐（FLOOR_EDGE_FADE）。
@@ -502,59 +719,11 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
             }
         }
         ctx.restore();
-        // 边缘渐隐：仅贴地图边界的外侧边（内部块无渐变，跨块衔接干净）
-        const fade = FLOOR_EDGE_FADE;
-        if (diamond) {
-            // 菱形边缘墙脚接触阴影（与 applyDiamondFloor 同口径）：沿菱形边界向内的真渐变带。
-            // 块外部分自动被画布裁掉，只有菱形边界穿过本块时才可见。
-            const ddx = diamond.cx - ox;
-            const ddy = diamond.cy - oy;
-            for (let i = 0; i < fade; i += 2) {
-                const irx = diamond.rx - i;
-                const iry = diamond.ry - i * (diamond.ry / diamond.rx);
-                ctx.beginPath();
-                ctx.moveTo(ddx, ddy - iry);
-                ctx.lineTo(ddx + irx, ddy);
-                ctx.lineTo(ddx, ddy + iry);
-                ctx.lineTo(ddx - irx, ddy);
-                ctx.closePath();
-                ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-            }
-        } else {
-            if (oy <= 0) {
-                const g = ctx.createLinearGradient(0, 0, 0, fade);
-                g.addColorStop(0, 'rgba(0,0,0,1)');
-                g.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = g;
-                ctx.fillRect(0, 0, cw, fade);
-            }
-            if (oy + ch >= mapH) {
-                const g = ctx.createLinearGradient(0, ch - fade, 0, ch);
-                g.addColorStop(0, 'rgba(0,0,0,0)');
-                g.addColorStop(1, 'rgba(0,0,0,1)');
-                ctx.fillStyle = g;
-                ctx.fillRect(0, ch - fade, cw, fade);
-            }
-            if (ox <= 0) {
-                const g = ctx.createLinearGradient(0, 0, fade, 0);
-                g.addColorStop(0, 'rgba(0,0,0,1)');
-                g.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = g;
-                ctx.fillRect(0, 0, fade, ch);
-            }
-            if (ox + cw >= mapW) {
-                const g = ctx.createLinearGradient(cw - fade, 0, cw, 0);
-                g.addColorStop(0, 'rgba(0,0,0,0)');
-                g.addColorStop(1, 'rgba(0,0,0,1)');
-                ctx.fillStyle = g;
-                ctx.fillRect(cw - fade, 0, fade, ch);
-            }
-        }
-        // 沙地软边补丁（连续模式用）→ 地板点缀（草簇固定朝向）
+        // 连续底材之上依次叠加格网地貌、软边补丁和世界坐标小件；边界淡出必须最后绘制。
+        _drawFloorCellDetails(ctx, profile, ox, oy, cw, ch, diamond);
         _drawSandPatches(ctx, profile, ox, oy, cw, ch, diamond);
         _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond);
+        _drawChunkEdgeFade(ctx, ox, oy, cw, ch, mapW, mapH, diamond);
     } else {
         const tc = fallbackTerrain || DEFAULT_FALLBACK_TERRAIN;
         ctx.fillStyle = tc.floorColor;
@@ -657,6 +826,10 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
             }
         }
         ctx.restore();
+
+        // 连续底材之上的确定性碎石细节与18种无碰撞小物；矩形地板由四周淡出最后收边。
+        _drawFloorCellDetails(ctx, profile, 0, 0, size, size, null);
+        _drawFloorDecoChunk(ctx, profile, 0, 0, size, size, null);
 
         // 4. 边缘过渡：在场地四周叠加黑->透明的渐变，与纯黑背景融合
         const fade = FLOOR_EDGE_FADE;
@@ -776,6 +949,11 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
         }
         ctx.restore();
 
+        // 小件中心按菱形内缩筛选，视觉尺寸也留足边距；墙脚淡出仍最后绘制。
+        const floorDiamond = { cx, cy, rx, ry };
+        _drawFloorCellDetails(ctx, profile, 0, 0, width, height, floorDiamond);
+        _drawFloorDecoChunk(ctx, profile, 0, 0, width, height, floorDiamond);
+
         // 3. 墙脚接触阴影（标准：所有墙壁-地板衔接处统一）：沿菱形边缘向内的真渐变带，
         // 墙根处最暗（约 40% 黑）→ 向内 64px 渐隐到 0。逐笔 alpha 递减叠加自然成梯度；
         // 旧版是 16 笔等 alpha(0.12) 平刷——整带只有约 15% 平黑，亮地砖上几乎不可见
@@ -891,6 +1069,10 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
             }
         }
         ctx.restore();
+
+        // 18种无碰撞小物只进入房间菱形，不进入狭窄通道；通道继续保持清晰通行轮廓。
+        _drawFloorCellDetails(ctx, profile, 0, 0, width, height, diamonds);
+        _drawFloorDecoChunk(ctx, profile, 0, 0, width, height, diamonds);
 
         // 3. 墙脚接触阴影（与 E/F 单房间 applyDiamondFloor 同口径的连续渐变带）：
         //    - 房间菱形：整圈内缩渐变描边（含门口，老代码原文，门洞处不断头）；

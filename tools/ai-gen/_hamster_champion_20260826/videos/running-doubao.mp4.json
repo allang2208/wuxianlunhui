@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_20260826\\references\\hamster-champion-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_20260826\\videos\\running-doubao_doubao_bg.txt",
+  "promptChars": 1250,
+  "promptSha256": "d93f7f4265b90be5f1cedf6c93737b8b2e44c7db2a559367e41dac3f38a9d30c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T13:47:14.790Z",
+  "sourceUrlScheme": "https"
+}

@@ -1,0 +1,15 @@
+Use case: identity-preserve
+Asset type: corrected attack keyframe for a Phaser friendly-unit animation pipeline
+Input image: edit target and exact identity reference.
+
+Primary request: Change only the pose of the exact hamster ranger into a controlled one-handed crossbow aiming stance toward the right. Preserve the exact face, golden-brown and cream fur, body proportions, ears, forest-green mantle, brown leather armor, chainmail, belt, trousers, boots, materials, camera, scale and pure white background.
+
+Pose and handedness: both feet remain planted on one baseline in a compact braced stance. The anatomical right arm alone is raised and extended forward, holding the exact same compact pistol-sized one-handed crossbow horizontally toward the right with one short wooden stock, one steel bow limb, one string, one trigger and one loaded bolt. The anatomical left hand alone holds the exact same short dagger in a low defensive reverse grip beside the left hip; the entire dagger blade and tip remain clearly visible and separated from the body. The crossbow is held one-handed only and remains visibly compact.
+
+Critical identity lock: exactly one hamster, exactly one compact one-handed crossbow in the anatomical right hand, exactly one dagger in the anatomical left hand, no visible tail, no additional weapon.
+
+Composition: full hamster, ears, both hands, both feet, complete crossbow bow limb and complete dagger tip inside the 16:9 frame with generous white margins. Same orthographic-style low three-quarter camera and subject scale as the source.
+
+Change only: arm, hand, torso and stance pose plus physically necessary cloth occlusion.
+
+Avoid: rifle, musket, long gun, longbow, full-size crossbow, two-handed crossbow grip, swapped hands, missing dagger, extra weapon, extra bolt, weapon duplication, visible tail, extra limbs, changed face, changed clothing, changed materials, camera change, cropping, cast shadow, floor, scenery, text, logo or watermark.

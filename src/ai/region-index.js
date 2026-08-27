@@ -22,11 +22,21 @@ class RegionIndex {
         this._dirty = true;
         this._lastWallHash = null;
         this._lastRadius = null; // [PERF-2026-08-08] 上次重建用的（桶）半径：半径档变化才需重建
+        this._rebuildJob = null;
+        this._exitSearchJobs = new Map();
     }
 
     // 标记需要重新计算
     markDirty() {
         this._dirty = true;
+        this._rebuildJob = null;
+        this._exitSearchJobs.clear();
+    }
+
+    beginFrame(now = Date.now()) {
+        for (const [key, job] of this._exitSearchJobs) {
+            if (now - job.lastTouchedAt > 3000) this._exitSearchJobs.delete(key);
+        }
     }
 
     // 检查是否需要重算（墙壁变化时）
@@ -58,76 +68,159 @@ class RegionIndex {
 
     // 全图 Flood Fill 重算区域索引
     rebuild(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius) {
+        this._rebuildJob = null;
+        while (!this.advanceRebuild(
+            worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius, Infinity
+        )) {
+            // Infinity deadline: loop only documents the synchronous compatibility contract.
+        }
+    }
+
+    _createRebuildJob(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius,
+        isBlockedFn = null) {
         const step = this.gridSize;
         const startGX = Math.floor(worldMinX / step);
         const startGY = Math.floor(worldMinY / step);
         const endGX = Math.ceil(worldMaxX / step);
         const endGY = Math.ceil(worldMaxY / step);
+        const cols = endGX - startGX + 1;
+        const rows = endGY - startGY + 1;
+        const count = cols * rows;
+        return {
+            signature: `${startGX},${startGY},${endGX},${endGY}:${entityRadius}`,
+            startGX, startGY, endGX, endGY, cols, rows, count, entityRadius,
+            isBlockedFn,
+            blocked: new Uint8Array(count),
+            regionIds: new Int32Array(count),
+            queue: new Int32Array(count),
+            phase: 'blocked',
+            buildIndex: 0,
+            scanIndex: 0,
+            commitIndex: 0,
+            nextRegionId: 1,
+            regionBounds: new Map(),
+            regions: new Map(),
+            fill: null,
+        };
+    }
 
-        this.regions.clear();
-        this.regionBounds.clear();
-        this.nextRegionId = 1;
-
-        // 预计算每个格子的阻挡状态
-        const blockedGrid = new Map();
-        for (let gy = startGY; gy <= endGY; gy++) {
-            for (let gx = startGX; gx <= endGX; gx++) {
-                const x = gx * step + step / 2;
-                const y = gy * step + step / 2;
-                blockedGrid.set(`${gx},${gy}`, this._isBlockedQuick(x, y, entityRadius));
-            }
+    /** 跨帧重建；完成前旧索引保持可读，提交阶段一次性替换。 */
+    advanceRebuild(worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius,
+        deadline = Infinity, isBlockedFn = null) {
+        const step = this.gridSize;
+        const signature = `${Math.floor(worldMinX / step)},${Math.floor(worldMinY / step)},`
+            + `${Math.ceil(worldMaxX / step)},${Math.ceil(worldMaxY / step)}:${entityRadius}`;
+        let job = this._rebuildJob;
+        if (!job || job.signature !== signature) {
+            job = this._createRebuildJob(
+                worldMinX, worldMinY, worldMaxX, worldMaxY, entityRadius, isBlockedFn
+            );
+            this._rebuildJob = job;
+        } else if (isBlockedFn) {
+            job.isBlockedFn = isBlockedFn;
         }
-
-        // Flood Fill
-        for (let gy = startGY; gy <= endGY; gy++) {
-            for (let gx = startGX; gx <= endGX; gx++) {
-                const key = `${gx},${gy}`;
-                if (this.regions.has(key)) continue;
-                if (blockedGrid.get(key)) {
-                    this.regions.set(key, -1); // -1 = 阻挡
-                    continue;
+        if (job.phase === 'blocked') {
+            while (job.buildIndex < job.count) {
+                const index = job.buildIndex++;
+                const row = Math.floor(index / job.cols);
+                const col = index - row * job.cols;
+                const x = (job.startGX + col) * step + step / 2;
+                const y = (job.startGY + row) * step + step / 2;
+                job.blocked[index] = (job.isBlockedFn
+                    ? job.isBlockedFn(x, y, entityRadius)
+                    : this._isBlockedQuick(x, y, entityRadius)) ? 1 : 0;
+                if (performance.now() >= deadline) return false;
+            }
+            job.phase = 'scan';
+        }
+        const dirs = [-1,0, 1,0, 0,-1, 0,1, -1,-1, -1,1, 1,-1, 1,1];
+        while (job.phase === 'scan' || job.phase === 'fill') {
+            if (job.phase === 'scan') {
+                while (job.scanIndex < job.count) {
+                    const index = job.scanIndex++;
+                    if (job.blocked[index]) {
+                        job.regionIds[index] = -1;
+                        if ((index & 31) === 0 && performance.now() >= deadline) return false;
+                        continue;
+                    }
+                    if (job.regionIds[index] !== 0) {
+                        if ((index & 31) === 0 && performance.now() >= deadline) return false;
+                        continue;
+                    }
+                    const regionId = job.nextRegionId++;
+                    job.regionIds[index] = regionId;
+                    job.queue[0] = index;
+                    job.fill = {
+                        regionId,
+                        head: 0,
+                        tail: 1,
+                        cells: [],
+                        minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity,
+                    };
+                    job.phase = 'fill';
+                    break;
                 }
-
-                // 新区域
-                const regionId = this.nextRegionId++;
-                const queue = [{ gx, gy }];
-                this.regions.set(key, regionId);
-                const cells = [{ gx, gy, x: gx * step + step / 2, y: gy * step + step / 2 }];
-
-                while (queue.length > 0) {
-                    const { gx: cx, gy: cy } = queue.shift();
-                    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
-                    for (const [dx, dy] of dirs) {
-                        const ngx = cx + dx;
-                        const ngy = cy + dy;
-                        if (ngx < startGX || ngx > endGX || ngy < startGY || ngy > endGY) continue;
-                        const nkey = `${ngx},${ngy}`;
-                        if (this.regions.has(nkey)) continue;
-                        if (blockedGrid.get(nkey)) {
-                            this.regions.set(nkey, -1);
+                if (job.scanIndex >= job.count && job.phase === 'scan') {
+                    job.phase = 'commit';
+                    break;
+                }
+            }
+            if (job.phase === 'fill') {
+                const fill = job.fill;
+                while (fill.head < fill.tail) {
+                    const index = job.queue[fill.head++];
+                    const row = Math.floor(index / job.cols);
+                    const col = index - row * job.cols;
+                    const gx = job.startGX + col;
+                    const gy = job.startGY + row;
+                    const x = gx * step + step / 2;
+                    const y = gy * step + step / 2;
+                    fill.cells.push({ gx, gy, x, y });
+                    fill.minX = Math.min(fill.minX, x); fill.maxX = Math.max(fill.maxX, x);
+                    fill.minY = Math.min(fill.minY, y); fill.maxY = Math.max(fill.maxY, y);
+                    for (let d = 0; d < dirs.length; d += 2) {
+                        const nr = row + dirs[d + 1];
+                        const nc = col + dirs[d];
+                        if (nr < 0 || nr >= job.rows || nc < 0 || nc >= job.cols) continue;
+                        const next = nr * job.cols + nc;
+                        if (job.regionIds[next] !== 0) continue;
+                        if (job.blocked[next]) {
+                            job.regionIds[next] = -1;
                             continue;
                         }
-                        this.regions.set(nkey, regionId);
-                        cells.push({ gx: ngx, gy: ngy, x: ngx * step + step / 2, y: ngy * step + step / 2 });
-                        queue.push({ gx: ngx, gy: ngy });
+                        job.regionIds[next] = fill.regionId;
+                        job.queue[fill.tail++] = next;
                     }
+                    if (performance.now() >= deadline) return false;
                 }
-
-                // 记录区域边界和格子列表
-                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-                for (const c of cells) {
-                    minX = Math.min(minX, c.x);
-                    maxX = Math.max(maxX, c.x);
-                    minY = Math.min(minY, c.y);
-                    maxY = Math.max(maxY, c.y);
-                }
-                this.regionBounds.set(regionId, { minX, maxX, minY, maxY, cells });
+                job.regionBounds.set(fill.regionId, {
+                    minX: fill.minX, maxX: fill.maxX,
+                    minY: fill.minY, maxY: fill.maxY,
+                    cells: fill.cells,
+                });
+                job.fill = null;
+                job.phase = 'scan';
             }
         }
-
-        this._dirty = false;
-        this._lastWallHash = this._computeWallHash();
-        this._lastRadius = entityRadius;
+        if (job.phase === 'commit') {
+            while (job.commitIndex < job.count) {
+                const index = job.commitIndex++;
+                const row = Math.floor(index / job.cols);
+                const col = index - row * job.cols;
+                job.regions.set(`${job.startGX + col},${job.startGY + row}`, job.regionIds[index]);
+                if ((index & 31) === 0 && performance.now() >= deadline) return false;
+            }
+            this.regions = job.regions;
+            this.regionBounds = job.regionBounds;
+            this.nextRegionId = job.nextRegionId;
+            this._dirty = false;
+            this._lastWallHash = this._computeWallHash();
+            this._lastRadius = entityRadius;
+            this._rebuildJob = null;
+            this._exitSearchJobs.clear();
+            return true;
+        }
+        return false;
     }
 
     // 快速阻挡检测（不使用 SpatialHash，避免循环依赖）
@@ -187,32 +280,52 @@ class RegionIndex {
     // 找到当前区域边界上，离目标点最近的出口格子
     // 返回 { x, y, dist } 或 null
     findNearestExit(currentX, currentY, targetX, targetY, _entityRadius) {
+        const result = this.findNearestExitIncremental(
+            'sync', currentX, currentY, targetX, targetY, Infinity
+        );
+        return result.result;
+    }
+
+    findNearestExitIncremental(requestKey, currentX, currentY, targetX, targetY,
+        deadline = Infinity) {
         const currentRegionId = this.getRegionId(currentX, currentY);
-        if (currentRegionId <= 0) return null;
+        if (currentRegionId <= 0) return { done: true, result: null };
 
         const region = this.regionBounds.get(currentRegionId);
-        if (!region) return null;
+        if (!region) return { done: true, result: null };
 
-        // 找到区域边界格子中，离目标最近的
-        let nearest = null;
-        let minDist = Infinity;
-        const _step = this.gridSize;
-
-        for (const cell of region.cells) {
+        const signature = `${currentRegionId}:${Math.floor(targetX / this.gridSize)},`
+            + `${Math.floor(targetY / this.gridSize)}`;
+        let job = this._exitSearchJobs.get(requestKey);
+        if (!job || job.signature !== signature) {
+            job = {
+                signature,
+                index: 0,
+                nearest: null,
+                minDist: Infinity,
+                lastTouchedAt: Date.now(),
+            };
+            this._exitSearchJobs.set(requestKey, job);
+        }
+        job.lastTouchedAt = Date.now();
+        while (job.index < region.cells.length) {
+            const cell = region.cells[job.index++];
             const cx = cell.x;
             const cy = cell.y;
-            // 检查这个格子是否是边界（至少一个方向相邻被阻挡或不同区域）
             const isBoundary = this._isBoundaryCell(cell.gx, cell.gy, currentRegionId);
-            if (!isBoundary) continue;
-
-            const dist = (cx - targetX) ** 2 + (cy - targetY) ** 2;
-            if (dist < minDist) {
-                minDist = dist;
-                nearest = { x: cx, y: cy, dist: Math.sqrt(dist) };
+            if (isBoundary) {
+                const dist = (cx - targetX) ** 2 + (cy - targetY) ** 2;
+                if (dist < job.minDist) {
+                    job.minDist = dist;
+                    job.nearest = { x: cx, y: cy, dist: Math.sqrt(dist) };
+                }
+            }
+            if ((job.index & 31) === 0 && performance.now() >= deadline) {
+                return { done: false, result: null };
             }
         }
-
-        return nearest;
+        this._exitSearchJobs.delete(requestKey);
+        return { done: true, result: job.nearest };
     }
 
     // 检查格子是否是区域边界（相邻有阻挡或不同区域）
@@ -227,6 +340,18 @@ class RegionIndex {
             }
         }
         return false;
+    }
+
+    getPerformanceStats() {
+        return {
+            rebuildPending: this._rebuildJob ? 1 : 0,
+            rebuildProcessedCells: this._rebuildJob
+                ? Math.max(this._rebuildJob.buildIndex, this._rebuildJob.commitIndex)
+                : 0,
+            rebuildTotalCells: this._rebuildJob?.count || 0,
+            exitSearchPending: this._exitSearchJobs.size,
+            regionCount: this.regionBounds.size,
+        };
     }
 
     // 调试：绘制区域可视化

@@ -1,0 +1,187 @@
+{
+  "unitId": "hamster_riot_squad",
+  "unitName": "仓鼠防暴队",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "size": "1024x576",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-riot-squad-mother-v01-rgba.png",
+  "reference": "references/hamster-riot-squad-white-1024x576.png",
+  "referenceReport": "reference-report.json",
+  "acceptedConcept": "../../../assets/concepts/hamster-riot-squad/hamster-riot-squad-concept-v01-rgba.png",
+  "assetStatus": "four_source_videos_ready_for_user_review_moving_h3_v04_projection_locked_attack_v01_cleanup_required",
+  "activeVideoProvider": "MiniMax H3 ImageToVideo",
+  "previousDoubaoPause": {
+    "pausedAt": "2026-08-26",
+    "reason": "Doubao daily free video quota exhausted; no paid quota authorized.",
+    "resolvedBy": "User explicitly switched the remaining work to MiniMax H3 on 2026-08-27."
+  },
+  "runtimeIntegrationActive": false,
+  "identityLocks": [
+    "large round golden hamster head and cream muzzle",
+    "broad round torso, thick waist, short stout limbs and low center of gravity",
+    "sand digital camouflage uniform and tan tactical ballistic vest",
+    "sand-camouflage high-cut helmet with both ears visible",
+    "black wraparound sunglasses",
+    "one full-height black-and-tan transparent riot shield on screen right",
+    "one unchanged compact black short-barreled shotgun on screen left"
+  ],
+  "tasks": [
+    {
+      "motion": "idle",
+      "kind": "idle",
+      "prompt": "prompts/idle.txt",
+      "promptChars": 3106,
+      "promptSha256": "20926052dc895e2271e90f6d053776ef38dba8159bac0fd8ccf8915620e49812",
+      "loopRequested": true,
+      "plannedOutput": "videos/hamster_riot_squad_idle_doubao.mp4",
+      "provenance": "videos/hamster_riot_squad_idle_doubao.mp4.json",
+      "preview": "previews/idle-source-contact.jpg",
+      "status": "doubao_v01_rejected_h3_v02_visual_review_passed_pending_user_acceptance",
+      "rejectedOutput": {
+        "video": "videos/hamster_riot_squad_idle_doubao.mp4",
+        "reason": "The uniform and vest separated during the idle motion and exposed belly fur. Rejected by the user on 2026-08-27."
+      },
+      "h3Replacement": {
+        "provider": "MiniMax H3 ImageToVideo",
+        "prompt": "prompts/idle-v02.txt",
+        "promptChars": 3938,
+        "promptSha256": "595e5f1d29d8a53b0df20b4d723af23ad3c99f315f8a270f2057ffcf494b2d1a",
+        "referenceSha256": "05f7aedb58eb2dff781e006ff88b16c3558d2a8f3319ac6b57c4b3a59ca6b33b",
+        "video": "videos/hamster_riot_squad_idle_h3_v02.mp4",
+        "videoSha256": "23a0dffe342458d62295b52e48a2aecd62235829fc292755d6e92d5ec53f73c1",
+        "provenance": "videos/hamster_riot_squad_idle_h3_v02.mp4.json",
+        "seed": 252795615,
+        "durationSeconds": 5.17,
+        "frameCount": 124,
+        "fps": 24,
+        "size": "1024x576",
+        "steps": 16,
+        "loopLocked": true,
+        "previewGif": "previews/videos/idle-h3-v02-source-preview.gif",
+        "contactSheet24": "previews/videos/idle-h3-v02-source-contact-24.jpg",
+        "contactSheet32": "previews/videos/idle-h3-v02-source-contact-32-large.jpg",
+        "visualReview": "32 evenly sampled frames checked: uniform shirt, vest and waistband continuously cover the torso with no exposed belly; shield and short shotgun remain intact and on their original sides.",
+        "status": "visual_review_passed_pending_user_acceptance"
+      }
+    },
+    {
+      "motion": "moving",
+      "kind": "run",
+      "prompt": "prompts/moving.txt",
+      "promptChars": 3347,
+      "promptSha256": "da4c477c3d6489262936b7996137cf18d25cca0079e8747850e2d1ae4380ffff",
+      "loopRequested": true,
+      "plannedOutput": "videos/hamster_riot_squad_moving_doubao.mp4",
+      "provenance": "videos/hamster_riot_squad_moving_doubao.mp4.json",
+      "previewGif": "previews/videos/moving-source-preview.gif",
+      "contactSheet24": "previews/videos/moving-source-contact-24.jpg",
+      "status": "doubao_v01_and_h3_v03_rejected_h3_v04_visual_review_passed_pending_user_acceptance",
+      "rejectedOutput": {
+        "video": "videos/hamster_riot_squad_moving_doubao.mp4",
+        "reason": "The movement view did not face screen right clearly enough. Rejected by the user on 2026-08-27."
+      },
+      "discardedReference": {
+        "image": "references/hamster-riot-squad-side-right-v02-imagegen.png",
+        "reason": "Strict 90-degree side profile made the shield nearly edge-on and did not match the established infantry movement view. No H3 video was generated from this reference."
+      },
+      "h3Candidates": [
+        {
+          "version": "v03",
+          "prompt": "prompts/moving-h3-v03-low-three-quarter.txt",
+          "video": "videos/hamster_riot_squad_moving_h3_v03.mp4",
+          "provenance": "videos/hamster_riot_squad_moving_h3_v03.mp4.json",
+          "seed": 583606991,
+          "previewGif": "previews/videos/moving-h3-v03-source-preview.gif",
+          "contactSheet32": "previews/videos/moving-h3-v03-source-contact-32-large.jpg",
+          "status": "rejected_by_user",
+          "reason": "The camera-facing projection drifted during the middle of the movement and the body and shield visibly rotated away from the required fixed infantry view."
+        },
+        {
+          "version": "v04",
+          "provider": "MiniMax H3 ImageToVideo",
+          "prompt": "prompts/moving-h3-v04-projection-lock.txt",
+          "promptChars": 4115,
+          "promptSha256": "62eb4d04c073e61402cef3514eb590faf4aebc94a6b872fbd4ebe912dd7fda74",
+          "reference": "references/hamster-riot-squad-low-three-quarter-right-v03-white-1024x576.png",
+          "referenceSha256": "384fff6b38ce34185283e5824fb9395b4e1339519814dec3a25800d5c621cbf5",
+          "referenceView": "static locked orthographic low three-quarter view facing right",
+          "angleReference": "../_hamster_phalanx_20260826/references/walking-v02/hamster-phalanx-double-axe-white-1024x576.png",
+          "video": "videos/hamster_riot_squad_moving_h3_v04.mp4",
+          "videoSha256": "c0f8dda93110194100116fe3aaaa2c050156bad1d660a9f524ac90d5d51d787e",
+          "provenance": "videos/hamster_riot_squad_moving_h3_v04.mp4.json",
+          "seed": 1547613572,
+          "durationSeconds": 5.17,
+          "frameCount": 124,
+          "fps": 24,
+          "size": "1024x576",
+          "steps": 16,
+          "loopLocked": true,
+          "previewGif": "previews/videos/moving-h3-v04-source-preview.gif",
+          "contactSheet24": "previews/videos/moving-h3-v04-source-contact-24.jpg",
+          "contactSheet32": "previews/videos/moving-h3-v04-source-contact-32-large.jpg",
+          "visualReview": "32 evenly sampled frames checked: the shield pane width, chest projection and shotgun angle remain stable through the middle of the cycle; the previous view rotation is suppressed while the legs alternate and the belly remains covered.",
+          "status": "visual_review_passed_pending_user_acceptance"
+        }
+      ]
+    },
+    {
+      "motion": "attacking",
+      "kind": "attack",
+      "prompt": "prompts/attacking.txt",
+      "promptChars": 3243,
+      "promptSha256": "08a3ba87ce58b8833d21abb0808b5a5f41ed5692c3272e8147f7891eaebb8164",
+      "loopRequested": false,
+      "plannedOutput": "videos/hamster_riot_squad_attacking_doubao.mp4",
+      "status": "h3_v01_selected_source_candidate_cleanup_required",
+      "h3Candidates": [
+        {
+          "version": "v01",
+          "video": "videos/hamster_riot_squad_attacking_h3_v01.mp4",
+          "provenance": "videos/hamster_riot_squad_attacking_h3_v01.mp4.json",
+          "seed": 2098884412,
+          "videoSha256": "59e7d8d9f78d8210f107d252ff827c131d926f15b89673281a78da7505d0cdba",
+          "previewGif": "previews/videos/attacking-h3-v01-source-preview.gif",
+          "contactSheet24": "previews/videos/attacking-h3-v01-source-contact-24.jpg",
+          "contactSheet32": "previews/videos/attacking-h3-v01-source-contact-32-large.jpg",
+          "status": "selected_source_candidate_cleanup_required",
+          "note": "One controlled attack cycle. Remove one detached ejected shell during source rebuild."
+        },
+        {
+          "version": "v02",
+          "video": "videos/hamster_riot_squad_attacking_h3_v02.mp4",
+          "provenance": "videos/hamster_riot_squad_attacking_h3_v02.mp4.json",
+          "prompt": "prompts/attacking-v02.txt",
+          "promptSha256": "9e22f57040b053cc293c3ed693397c49f10b0004df37cfe66a4e682d395a9482",
+          "seed": 434128258,
+          "videoSha256": "344ffed74f4bf384f54d4145a77a8db5f90a9638b4afe45c820fe54e913df54d",
+          "previewGif": "previews/videos/attacking-h3-v02-source-preview.gif",
+          "contactSheet32": "previews/videos/attacking-h3-v02-source-contact-32-large.jpg",
+          "status": "rejected_visual_review",
+          "reason": "Repeated oversized muzzle-fire bursts violated the exactly-one-shot action contract."
+        }
+      ]
+    },
+    {
+      "motion": "dying",
+      "kind": "die",
+      "prompt": "prompts/dying.txt",
+      "promptChars": 2843,
+      "promptSha256": "5b14e4260b40924dd65dff8fb09d7c668966a43883ea3ac8d15fc5e9c7e9f025",
+      "loopRequested": false,
+      "plannedOutput": "videos/hamster_riot_squad_dying_doubao.mp4",
+      "status": "h3_v01_visual_review_passed_pending_user_acceptance",
+      "h3Replacement": {
+        "video": "videos/hamster_riot_squad_dying_h3_v01.mp4",
+        "provenance": "videos/hamster_riot_squad_dying_h3_v01.mp4.json",
+        "seed": 1061478937,
+        "videoSha256": "d34dfc0d617d21a78bae94a455dc2a1914621d477e33aee435cbaedeb3913b03",
+        "previewGif": "previews/videos/dying-h3-v01-source-preview.gif",
+        "contactSheet24": "previews/videos/dying-h3-v01-source-contact-24.jpg",
+        "contactSheet32": "previews/videos/dying-h3-v01-source-contact-32-large.jpg",
+        "status": "visual_review_passed_pending_user_acceptance"
+      }
+    }
+  ]
+}

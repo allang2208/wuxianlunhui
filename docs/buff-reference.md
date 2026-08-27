@@ -8,6 +8,7 @@
 |--------|------|------|------|----------|--------------|
 | `stun` | 眩晕 | 💫 | 无法移动、攻击、使用技能/物品、调整朝向；会**强制中断**正在进行中的动作（攻击/施法等），即使尚未进行伤害判定也回到 idle | 盾牌弹反、技能命中、怪物攻击 | `damageable-entity.js:applyStun`<br>`movement-system.js` / `player/update.js` / `player/subsystems.js` |
 | `frozen` | 冻结 | 🧊 | **效果等同于眩晕**；额外使目标受到的非魔法伤害 +50%；视觉表现为一个半透明冰块覆盖目标 | 寒冷 20 层转化、特定改造/技能 | `damageable-entity.js:applyFreeze`<br>`damageable-entity.js` 伤害结算段<br>`phaser/scenes/GameScene.js:_syncFreezeEffects` |
+| `petrified` | 石化 | 🗿 | 持续期间锁住受影响时的当前动画帧，无法移动或执行任何动作；贴图转为黑白；受到的魔法/电系伤害 +50%；解除后从原帧继续并恢复彩色 | 美杜莎“石化凝视” | `damageable-entity.js:applyPetrify`<br>`companion.js:applyPetrify`<br>`phaser/scenes/GameScene.js:_syncPetrifyEffects` |
 | `bind` | 束缚 | ⛓️ | 无法移动；玩家束缚时不能闪避 | 部分技能/怪物 | `damageable-entity.js:applyBind`<br>`movement-system.js` / `player/subsystems.js` |
 | `fear` | 恐惧 | 😱 | 强制朝恐惧源反方向逃跑；每层移速 -33%，最多 3 层（最高 -99%）；期间强制取消防御 | 特定怪物/技能 | `damageable-entity.js:applyFear`<br>`player/update.js` / `movement-system.js` |
 | `slow` | 减速/致残 | 🐌 | 移动速度 ×50% | 怪物技能 | `damageable-entity.js:applyCripple`<br>`player/update.js` |
@@ -24,6 +25,7 @@
 | 类型键 | 名称 | 图标 | 效果 | 典型来源 | 关键代码位置 |
 |--------|------|------|------|----------|--------------|
 | `magicVulnerability` | 魔力易伤 | 🔮 | 每层使受到的魔法伤害 +5% | 夜与火之剑、符文长剑、改造词条 | `damageable-entity.js:applyMagicVulnerability`<br>`damageable-entity.js` 伤害结算段 |
+| `corrosion` | 腐蚀 | 🧪 | 每层使物理防御 -5%；5s 倒计时结束只消退 1 层，再开始下一层倒计时；有效防御最低为 0 | 食人花“腐蚀撕咬” | `damageable-entity.js:applyCorrosion`<br>`damageable-entity.js` 物理防御结算段 |
 | `droneVulnerability` | 无人机易伤 | 🛸 | 每层使受到的所有伤害 +10%（基础），并 +10% 被暴击率；受无人机技能等级加成 | 无人机技能标记 | `damageable-entity.js:applyDroneVulnerability`<br>`player/subsystems.js` / `enemy.js` |
 | `electrified` | 感电 | ⚡ | 每层使受到的电系伤害 +3%；**叠满 5 层触发过载**：眩晕 1.2s + 对周围 150px 敌方单位传导一次电击并清空全部层数 | 闪电、雷暴领域、雷神审判 | `damageable-entity.js:applyElectrified`<br>`damageable-entity.js` 伤害结算段 |
 
@@ -91,6 +93,7 @@
 | 中毒伤害 | 每秒 `层数` 点 | `poison` |
 | 流血伤害 | 每秒 `层数 × 1% 当前生命` | `bleed` |
 | 魔力易伤 | 每层 +5% 魔法伤害 | `magicVulnerability` |
+| 腐蚀 | 每层 -5% 物理防御；5s 到期消退 1 层 | `corrosion` |
 | 无人机易伤 | 每层 +10% 全伤害、+10% 被暴击率 | `droneVulnerability` |
 | 感电 | 每层 +3% 电系伤害；叠满 5 层过载（眩晕 1.2s + 周围 150px 电弧传导） | `electrified` |
 | 骆驼惊吓 | 600px内敌方伤害输出 -10%~-20%，同类不叠加 | `camelFright` |
@@ -100,10 +103,11 @@
 | 链式强化 | 每层 +2% 下次魔法伤害、+5% 下次魔法 MP 消耗 | `chainSpell` |
 | 寒冷 | 每层 -5% 移速，可叠加；20 层转冻结并扣 10 层；冻结期间不叠加 | `chill` |
 | 冻结 | 等同于眩晕；非魔法伤害 +50%；冰块视觉 | `frozen` |
+| 石化 | 锁定当前帧并黑白化；无法行动；魔法/电系承伤 +50% | `petrified` |
 | 灼伤 | 每 0.5s 受到施法者 matk×0.5 魔法伤害 | `burn` |
 | 女神祝福 | 物攻/魔攻 +15% | 按场消耗 |
 | 恶魔祈祷 | 物攻/魔攻 +33% | 永久，通常有代价 |
 
 ---
 
-*最后更新：2026-08-23（新增骆驼惊吓伤害输出减益）*
+*最后更新：2026-08-26（新增食人花腐蚀减防）*

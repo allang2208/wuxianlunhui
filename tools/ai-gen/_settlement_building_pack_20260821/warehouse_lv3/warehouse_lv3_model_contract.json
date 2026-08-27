@@ -1,7 +1,7 @@
 {
   "assetId": "warehouse_lv3",
   "label": "仓库 LV3 · 机械仓库",
-  "status": "refine_v02_selected_and_integrated",
+  "status": "klein_low_redraw_selected_and_integrated",
   "sourceFamily": "warehouse_lv2",
   "sourceModel": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/warehouse_lv2_model.blend",
   "assetClass": "building",
@@ -20,8 +20,8 @@
     "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_body_depth.png",
     "structureCandidateRoot": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3",
     "selectedStructureRaw": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_structure_v02_raw.png",
-    "userCutout": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_refine_v02.png",
-    "greenCleanedCutout": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_refine_v02_green_cleaned.png",
+    "selectedRefineRaw": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/warehouse_lv3/warehouse_lv3_refine_v01_raw.png",
+    "selectedRefineBody": "tools/ai-gen/_klein_dev_replacement_20260826/batch_01/reroll_01_barracks_v3_method/accepted_cutout/warehouse_lv3_body.png",
     "runtimeAsset": "assets/terrain/warehouse_lv3.png",
     "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_runtime_metadata.json"
   },
@@ -59,28 +59,26 @@
   },
   "refineGeneration": {
     "pipeline": "world122-building-candidates",
-    "styleVersion": "world122-building-v2",
+    "styleVersion": "world122-building-v4",
     "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
-    "model": "flux2-dev-depth",
+    "model": "flux2-klein-4b-world122-building-depth",
     "size": "1024x1024",
-    "steps": 48,
-    "depthStrength": 0.75,
-    "denoise": 0.3,
-    "cfg": 3.5,
+    "steps": 36,
+    "depthStrength": 0.9,
+    "denoise": 0.2,
+    "cfg": 1.0,
     "sampler": "euler",
     "scheduler": "simple",
     "edgeControl": false,
-    "nonstandardOverride": false,
-    "seeds": [122471, 122472],
-    "keyThreshold": 40,
-    "removeEnclosedKey": true
+    "nonstandardOverride": true,
+    "seeds": [127011],
+    "keyMethod": "soft RGB-distance building chroma key 40/90, nearest opaque edge RGB, then full Depth alpha limit"
   },
   "refineReview": {
-    "selected": "v02",
-    "recommended": "v02",
-    "viableAlternative": "v01",
-    "v01": "preserves the selected four-storey single-roof silhouette and one attached lift; material weathering is complete, but the three bright brass gear faces read slightly more ornamental and visually busy",
-    "v02": "preserves the selected four-storey single-roof silhouette and one attached lift; the rail, open cage, pulley, grounded drive housing and restrained weathered materials read most clearly as one practical mechanised warehouse system"
+    "selected": "klein_v01",
+    "selectedBy": "user",
+    "selectedAt": "2026-08-26",
+    "review": "36-step low-redraw candidate preserves the accepted camera, rail, open cage, pulley, cable, grounded drive housing and practical gear train while upgrading the PBR material response"
   },
   "inheritedStructure": [
     "exactly four connected storeys",

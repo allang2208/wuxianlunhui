@@ -18,10 +18,9 @@ function farmConfig() {
     return populationEconomyConfig.cheese_farm || {};
 }
 
-function farmWorkerPoint(building) {
+function farmCanvasPoint(building, point) {
     const cfg = farmConfig();
     const source = cfg.cowVisual?.sourceCanvas || {};
-    const point = Array.isArray(cfg.workerServicePoint) ? cfg.workerServicePoint : null;
     if (!point || !Number(source.width) || !Number(source.height)) {
         return { x: Number(building?.x) || 0, y: Number(building?.y) || 0 };
     }
@@ -33,6 +32,22 @@ function farmWorkerPoint(building) {
         x: (Number(building?.x) || 0) + (Number(point[0]) / Number(source.width) - 0.5) * displayW,
         y: spriteCenterY + (Number(point[1]) / Number(source.height) - 0.5) * displayH,
     };
+}
+
+function farmWorkerPoint(building) {
+    const cfg = farmConfig();
+    const point = Array.isArray(cfg.workerDoorPoint)
+        ? cfg.workerDoorPoint
+        : (Array.isArray(cfg.workerServicePoint) ? cfg.workerServicePoint : null);
+    return farmCanvasPoint(building, point);
+}
+
+function farmRoadEntryPoint(building) {
+    const cfg = farmConfig();
+    const point = Array.isArray(cfg.workerRoadEntryPoint)
+        ? cfg.workerRoadEntryPoint
+        : (Array.isArray(cfg.workerDoorPoint) ? cfg.workerDoorPoint : cfg.workerServicePoint);
+    return farmCanvasPoint(building, point);
 }
 
 function structureServiceRadius(structure, configuredRadius, fallbackRadius) {
@@ -85,7 +100,7 @@ function normalizeJob(building, saved) {
     if (!saved || typeof saved !== 'object') return base;
     const phase = ['processing', 'waiting_deposit', 'to_deposit', 'to_farm']
         .includes(saved.phase) ? saved.phase : 'processing';
-    return {
+    const normalized = {
         ...base,
         phase,
         x: Number.isFinite(Number(saved.x)) ? Number(saved.x) : base.x,
@@ -99,6 +114,12 @@ function normalizeJob(building, saved) {
         completedBatches: Math.max(0, Math.floor(Number(saved.completedBatches) || 0)),
         offlineProgressMs: Math.max(0, Number(saved.offlineProgressMs) || 0),
     };
+    // 熟成不需要牛倌进入建筑内部；旧快照若记录了其他位置，也统一回到门口待命。
+    if (phase === 'processing') {
+        normalized.x = base.x;
+        normalized.y = base.y;
+    }
+    return normalized;
 }
 
 /**
@@ -212,9 +233,20 @@ export const CheeseFarmSystem = {
             .sort().join('|');
         const signature = `${roadInfo.topologyRevision}:${roadInfo.wallRevision}:${warehouseSignature}`;
         if (building?._cheeseFarmRoadCache?.signature === signature) return building._cheeseFarmRoadCache;
-        const reachable = roadInfo.connected
-            ? BuildingRoadSystem.getReachableBuildings(building, warehouses)
-            : [];
+        const reachable = [];
+        if (roadInfo.connected) {
+            for (const warehouse of warehouses) {
+                if (!warehouse || warehouse.active === false) continue;
+                const route = this._buildDoorRoadRoute(building, warehouse, roadInfo);
+                if (!route?.length) continue;
+                reachable.push({
+                    building: warehouse,
+                    route,
+                    distance: Math.max(0, route.length - 1),
+                });
+            }
+            reachable.sort((a, b) => a.distance - b.distance);
+        }
         const state = {
             signature,
             roadConnected: reachable.length > 0,
@@ -234,7 +266,7 @@ export const CheeseFarmSystem = {
         const job = building?._cheeseFarmJob || defaultJob(building);
         const roadState = this.getRoadState(building);
         const phaseText = {
-            processing: '奶酪熟成中',
+            processing: '门口待命 · 奶酪熟成中',
             waiting_deposit: '等待仓库空位',
             to_deposit: '抱着奶酪前往仓库',
             to_farm: '空手返回牧场',
@@ -295,6 +327,36 @@ export const CheeseFarmSystem = {
         return resolveCivilianVisualPosition(point.x, point.y, { structures: [] });
     },
 
+    _farmRoadEntryPoint(building) {
+        const point = farmRoadEntryPoint(building);
+        return resolveCivilianVisualPosition(point.x, point.y, { structures: [] });
+    },
+
+    _orderedFarmRoadAccessKeys(building, network) {
+        if (!network) return [];
+        const roadEntry = this._farmRoadEntryPoint(building);
+        return BuildingRoadSystem.getBuildingRoadAccessKeys(building)
+            .filter((key) => network.byKey.has(key))
+            .sort((a, b) => {
+                const cellA = network.byKey.get(a);
+                const cellB = network.byKey.get(b);
+                return Math.hypot(cellA.x - roadEntry.x, cellA.y - roadEntry.y)
+                    - Math.hypot(cellB.x - roadEntry.x, cellB.y - roadEntry.y);
+            });
+    },
+
+    _buildDoorRoadRoute(building, warehouse, roadInfo) {
+        const network = roadInfo?.network;
+        if (!network || !warehouse) return null;
+        const warehouseKeys = BuildingRoadSystem.getBuildingRoadAccessKeys(warehouse);
+        // 优先从前方栅栏门对应的道路入口上路；若该入口不连通，才尝试下一入口。
+        for (const startKey of this._orderedFarmRoadAccessKeys(building, network)) {
+            const route = shortestRoadRoute(network, [startKey], warehouseKeys);
+            if (route?.length) return route;
+        }
+        return null;
+    },
+
     _clearMoveRoute(job) {
         if (!job) return;
         job._roadRoute = null;
@@ -311,19 +373,35 @@ export const CheeseFarmSystem = {
         const [i, j] = blockCellOf(job.x, job.y);
         const currentKey = `${i},${j}`;
         if (!network.byKey.has(currentKey)) return null;
-        const destination = phase === 'to_farm' ? building : warehouse;
-        if (!destination) return null;
-        return shortestRoadRoute(network, [currentKey], BuildingRoadSystem.getBuildingRoadAccessKeys(destination));
+        if (phase === 'to_farm') {
+            for (const targetKey of this._orderedFarmRoadAccessKeys(building, network)) {
+                const route = shortestRoadRoute(network, [currentKey], [targetKey]);
+                if (route?.length) return route;
+            }
+            return null;
+        }
+        if (!warehouse) return null;
+        return shortestRoadRoute(
+            network,
+            [currentKey],
+            BuildingRoadSystem.getBuildingRoadAccessKeys(warehouse)
+        );
     },
 
     _buildMoveRoute(building, phase, warehouse, roadState, { fromCurrent = false } = {}) {
         if (fromCurrent) {
             const currentRoute = this._routeFromCurrent(building, phase, warehouse, roadState);
-            if (currentRoute?.length) return currentRoute;
+            if (currentRoute?.length) {
+                const route = [...currentRoute];
+                if (phase === 'to_farm') route.push(this._farmPoint(building));
+                return route;
+            }
         }
         const cached = roadState?.reachable?.find((entry) => entry.building === warehouse)?.route;
         if (!cached?.length) return null;
-        return phase === 'to_farm' ? [...cached].reverse() : [...cached];
+        const route = phase === 'to_farm' ? [...cached].reverse() : [...cached];
+        if (phase === 'to_farm') route.push(this._farmPoint(building));
+        return route;
     },
 
     _beginMove(building, phase, warehouse, roadState = this.getRoadState(building), fromCurrent = false) {
@@ -337,17 +415,7 @@ export const CheeseFarmSystem = {
             job.phaseRemainMs = 0;
             return false;
         }
-        let routeIndex = 0;
-        if (!fromCurrent && route.length > 1) {
-            let bestDistance = Number.POSITIVE_INFINITY;
-            for (let index = 0; index < route.length; index++) {
-                const candidate = Math.hypot(route[index].x - job.x, route[index].y - job.y);
-                if (candidate < bestDistance) {
-                    bestDistance = candidate;
-                    routeIndex = index;
-                }
-            }
-        }
+        const routeIndex = 0;
         let distance = 0;
         let previousX = job.x;
         let previousY = job.y;
@@ -436,6 +504,14 @@ export const CheeseFarmSystem = {
         this._clearMoveRoute(job);
     },
 
+    _syncProcessingDoorPoint(building) {
+        const job = building?._cheeseFarmJob;
+        if (!job || job.phase !== 'processing') return;
+        const point = farmWorkerPoint(building);
+        job.x = point.x;
+        job.y = point.y;
+    },
+
     _beginDeposit(building) {
         const job = building._cheeseFarmJob;
         const warehouse = this._selectWarehouse(building);
@@ -451,6 +527,7 @@ export const CheeseFarmSystem = {
     updateBuilding(building, dt) {
         if (building?._economyType !== 'cheese_farm' || !building.active) return;
         this._updateUpgrade(building, dt);
+        this._syncProcessingDoorPoint(building);
         const roadState = this.getRoadState(building);
         if (!roadState.roadConnected) return;
         if (Math.max(0, Math.floor(Number(building._assignedWorkers) || 0)) <= 0) return;

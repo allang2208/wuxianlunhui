@@ -1,6 +1,7 @@
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import { TechnologySystem } from './technology-system.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -69,6 +70,10 @@ export const BankEconomySystem = {
         if (building?._economyType !== 'bank') return { ok: false, reason: '该建筑不是银行' };
         const module = building._cfg.modules?.[moduleId];
         if (!module) return { ok: false, reason: '未知升级项目' };
+        if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+            return { ok: false, reason: `需要先完成科技：${technologyName || moduleId}` };
+        }
         const level = this.getModuleLevel(building, moduleId);
         if (level >= (module.maxLevel || 0)) return { ok: false, reason: '升级项目已满级' };
         if (building._bankUpgrade) return { ok: false, reason: '已有银行项目正在升级' };

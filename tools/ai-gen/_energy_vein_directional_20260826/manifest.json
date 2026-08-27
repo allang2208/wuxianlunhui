@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "status": "directional_model_sources",
+  "reference": "tools/ai-gen/_world122_street_decor_20260825/world122_street_decor.blend",
+  "bits": {
+    "iPositive": 1,
+    "iNegative": 2,
+    "jPositive": 4,
+    "jNegative": 8
+  },
+  "camera": {
+    "projection": "orthographic",
+    "elevation": 30.0,
+    "modelRootRotationZ": 44.8,
+    "sourceFrame": [
+      1024,
+      512
+    ],
+    "runtimeFrame": [
+      128,
+      64
+    ],
+    "postWarp": false
+  },
+  "model": "tools/ai-gen/_energy_vein_directional_20260826/energy_vein_directional_master.blend",
+  "liveFrames": "tools/ai-gen/_energy_vein_directional_20260826/live_frames",
+  "depletedFrames": "tools/ai-gen/_energy_vein_directional_20260826/depleted_frames"
+}

@@ -1,6 +1,7 @@
-"""Finalize the accepted V2 body, panel image and independent rotor sheet."""
+"""Finalize an accepted panel/body pair and its independent rotor sheet."""
 
 from pathlib import Path
+import argparse
 import json
 
 import numpy as np
@@ -10,17 +11,13 @@ from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parent
 PROJECT = ROOT.parents[3]
-SELECTED_RAW = (ROOT / "refine_48step_from_v02_seed122561" / "wind_power_plant"
-                / "wind_power_plant_refine_v02_raw.png")
-USER_BODY = ROOT / "wind_power_plant_body_user.png"
-FULL_DEPTH = ROOT / "wind_power_plant_depth.png"
 ROTOR_DIR = ROOT / "rotor_sources"
 
 PANEL_OUTPUT = PROJECT / "assets" / "terrain" / "wind_power_plant.png"
 BODY_OUTPUT = PROJECT / "assets" / "terrain" / "wind_power_plant_body.png"
 ROTOR_OUTPUT = PROJECT / "assets" / "terrain" / "wind_power_plant_rotor.png"
 PREVIEW_OUTPUT = ROOT / "wind_power_plant_layered_contact.png"
-GIF_OUTPUT = ROOT / "wind_power_plant_rotation_preview.gif"
+GIF_OUTPUT = ROOT / "wind_power_plant_klein_rotation_preview.gif"
 PANEL_METADATA = ROOT / "wind_power_plant_runtime_metadata.json"
 BODY_METADATA = ROOT / "wind_power_plant_body_runtime_metadata.json"
 ANIMATION_METADATA = ROOT / "wind_power_plant_animation_metadata.json"
@@ -35,7 +32,7 @@ ROTOR_FRAME_RATE = 12
 
 def manual_rgba_import(source_path: Path, output_path: Path,
                        metadata_path: Path) -> tuple[Image.Image, dict]:
-    """Import the user's hand-cut body without re-keying or moving its pixels."""
+    """Import an accepted RGBA layer without re-keying or moving its pixels."""
     source = Image.open(source_path).convert("RGBA")
     if source.size != (1024, 1024):
         raise SystemExit(f"manual body must remain 1024x1024, got {source.size}")
@@ -66,7 +63,7 @@ def manual_rgba_import(source_path: Path, output_path: Path,
     metadata = {
         "source": str(source_path.relative_to(PROJECT)).replace("/", "\\"),
         "output": str(output_path.relative_to(PROJECT)).replace("/", "\\"),
-        "method": "user-supplied RGBA alpha preserved; deterministic tight crop only",
+        "method": "accepted RGBA alpha preserved; deterministic tight crop only",
         "cropBox": list(crop),
         "fileSize": [file_width, file_height],
         "alphaBBox": [int(local_xs.min()), int(local_ys.min()),
@@ -204,13 +201,28 @@ def compose_preview(body: Image.Image, rotor: Image.Image, body_meta: dict,
 
 
 def main() -> None:
-    panel, panel_meta = green_cutout(
-        SELECTED_RAW, FULL_DEPTH, PANEL_OUTPUT, PANEL_METADATA)
-    if not USER_BODY.exists():
-        raise SystemExit(
-            "accepted user body is required: wind_power_plant_body_user.png")
+    parser = argparse.ArgumentParser(
+        description="Install an accepted wind-station panel/body and rebuild its rotor sheet.")
+    parser.add_argument("--panel-source", required=True, type=Path,
+                        help="accepted 1024x1024 RGBA full station including the source-angle rotor")
+    parser.add_argument("--body-source", required=True, type=Path,
+                        help="accepted 1024x1024 RGBA static body with the rotor removed")
+    parser.add_argument("--selected-raw", required=True, type=Path,
+                        help="accepted full RGB raw used to texture the authored rotor geometry")
+    args = parser.parse_args()
+    args.panel_source = args.panel_source.resolve()
+    args.body_source = args.body_source.resolve()
+    args.selected_raw = args.selected_raw.resolve()
+
+    for label, path in (("panel", args.panel_source), ("body", args.body_source),
+                        ("selected raw", args.selected_raw)):
+        if not path.exists():
+            raise SystemExit(f"accepted {label} source is missing: {path}")
+
+    panel, panel_meta = manual_rgba_import(
+        args.panel_source, PANEL_OUTPUT, PANEL_METADATA)
     body, body_meta = manual_rgba_import(
-        USER_BODY, BODY_OUTPUT, BODY_METADATA)
+        args.body_source, BODY_OUTPUT, BODY_METADATA)
 
     hub = rotor_hub_source()
     frames = [
@@ -232,6 +244,7 @@ def main() -> None:
     crop_x0, crop_y0, crop_x1, crop_y1 = body_meta["cropBox"]
     body_center_source = ((crop_x0 + crop_x1) / 2.0, (crop_y0 + crop_y1) / 2.0)
     animation = {
+        "source": str(args.selected_raw.relative_to(PROJECT)).replace("/", "\\"),
         "textureKey": "wind_power_plant_rotor",
         "assetPath": "assets/terrain/wind_power_plant_rotor.png",
         "frameWidth": ROTOR_FRAME_SIZE,
@@ -271,7 +284,7 @@ def main() -> None:
         contact.alpha_composite(preview, (
             (slot % 2) * 620, (slot // 2) * 580))
     draw = ImageDraw.Draw(contact)
-    draw.text((18, 18), "Wind power plant V2 - body + independent 24-frame rotor",
+    draw.text((18, 18), "Wind power plant Klein - body + independent 24-frame rotor",
               fill=(235, 238, 242, 255))
     contact.save(PREVIEW_OUTPUT, optimize=True)
 

@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_housing_upgrade_models_20260823\\house_lv2\\s48\\house_lv2_s48_seed123121_raw.png",
+  "output": "tools\\ai-gen\\_housing_upgrade_models_20260823\\house_lv2\\s48\\house_lv2_s48_seed123121_runtime_candidate.png",
+  "sourceMode": "RGB",
+  "background": [
+    45,
+    202,
+    38
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 3.0,
+  "matteTolerance": 110.0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.06,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "cropBox": [
+    94,
+    96,
+    933,
+    927
+  ],
+  "fileSize": [
+    839,
+    831
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    835,
+    827
+  ],
+  "displayW": 270,
+  "displayH": 267,
+  "footOffsetY": 132,
+  "scaleX": 0.3218116805721097,
+  "scaleY": 0.3212996389891697
+}

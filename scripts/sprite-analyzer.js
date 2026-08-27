@@ -16,7 +16,7 @@
  *     node scripts/sprite-analyzer.js assets/character/walk.png --grid 512x516
  *
  *   自动识别对象：
- *     node scripts/sprite-analyzer.js assets/enemies/spider.png
+ *     node scripts/sprite-analyzer.js assets/enemies/ore_spider/idle.png
  *
  *   批量分析目录：
  *     node scripts/sprite-analyzer.js assets/enemies --grid 512x512 --output reports/sprites.json
