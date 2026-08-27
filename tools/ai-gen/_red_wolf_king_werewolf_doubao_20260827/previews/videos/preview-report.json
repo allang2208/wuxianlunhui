@@ -1,0 +1,44 @@
+{
+  "transform-v02": {
+    "source": "videos/transform-h3-v02.mp4",
+    "sourceFrames": 124,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/transform-v02-preview.gif",
+    "contact": "previews/videos/transform-v02-contact.png"
+  },
+  "werewolf-run-v02": {
+    "source": "videos/werewolf-run-h3-v02.mp4",
+    "sourceFrames": 124,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/werewolf-run-v02-preview.gif",
+    "contact": "previews/videos/werewolf-run-v02-contact.png"
+  },
+  "werewolf-attack-v02": {
+    "source": "videos/werewolf-attack-h3-v02.mp4",
+    "sourceFrames": 124,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/werewolf-attack-v02-preview.gif",
+    "contact": "previews/videos/werewolf-attack-v02-contact.png"
+  },
+  "werewolf-howl-v01": {
+    "source": "videos/werewolf-howl-h3-v01.mp4",
+    "sourceFrames": 124,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/werewolf-howl-v01-preview.gif",
+    "contact": "previews/videos/werewolf-howl-v01-contact.png"
+  },
+  "werewolf-dying-v01": {
+    "source": "videos/werewolf-dying-h3-v01.mp4",
+    "sourceFrames": 124,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/werewolf-dying-v01-preview.gif",
+    "contact": "previews/videos/werewolf-dying-v01-contact.png"
+  },
+  "werewolf-pounce-v01": {
+    "source": "videos/werewolf-pounce-h3-v01.mp4",
+    "sourceFrames": 124,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/werewolf-pounce-v01-preview.gif",
+    "contact": "previews/videos/werewolf-pounce-v01-contact.png"
+  }
+}

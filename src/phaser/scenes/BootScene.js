@@ -18,11 +18,13 @@ import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
 import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterPhalanxConfig from '../../../data/hamster-phalanx-config.json';
 import hamsterRiotSquadConfig from '../../../data/hamster-riot-squad-config.json';
+import hamsterSpecialForcesConfig from '../../../data/hamster-special-forces-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
 import hamsterHalberdierConfig from '../../../data/hamster-halberdier-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
 import hamsterRangerConfig from '../../../data/hamster-ranger-config.json';
 import hamsterCrossbowConfig from '../../../data/hamster-crossbow-config.json';
+import hamsterLongbowConfig from '../../../data/hamster-longbow-config.json';
 import hamsterAssaultConfig from '../../../data/hamster-assault-config.json';
 import hamsterHeavyMachineGunnerConfig from '../../../data/hamster-heavy-machine-gunner-config.json';
 import hamsterSniperConfig from '../../../data/hamster-sniper-config.json';
@@ -130,7 +132,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterAssaultConfig, hamsterHeavyMachineGunnerConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterCavalryConfig, hamsterWingedHussarConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterSpecialForcesConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterLongbowConfig, hamsterAssaultConfig, hamsterHeavyMachineGunnerConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterCavalryConfig, hamsterWingedHussarConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -557,19 +559,20 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_black_wolf_run', 'assets/enemies/black_wolf_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
         this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        // 红狼王狼形六动作 + 变身 + 狼人五动作（2026-08-23），手动 setFrame 路径。
-        this.load.spritesheet('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        // 红狼王狼形六动作 + 变身 + 狼人六动作（含二阶段飞扑），手动 setFrame 路径。
+        this.load.spritesheet('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
+        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king/running.png', { frameWidth: 640, frameHeight: 640, endFrame: 31 });
         this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king/attack.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
-        this.load.spritesheet('enemy_red_wolf_king_pounce', 'assets/enemies/red_wolf_king/pounce.png', { frameWidth: 640, frameHeight: 640, endFrame: 22 });
-        this.load.spritesheet('enemy_red_wolf_king_dying', 'assets/enemies/red_wolf_king/dying.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king/howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        this.load.spritesheet('enemy_red_wolf_king_transform', 'assets/enemies/red_wolf_king/transform.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
+        this.load.spritesheet('enemy_red_wolf_king_pounce', 'assets/enemies/red_wolf_king/pounce.png', { frameWidth: 960, frameHeight: 960, endFrame: 22 });
+        this.load.spritesheet('enemy_red_wolf_king_dying', 'assets/enemies/red_wolf_king/dying.png', { frameWidth: 640, frameHeight: 640, endFrame: 22 });
+        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king/howl.png', { frameWidth: 640, frameHeight: 640, endFrame: 22 });
+        this.load.spritesheet('enemy_red_wolf_king_transform', 'assets/enemies/red_wolf_king/transform.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
         this.load.spritesheet('enemy_red_wolf_king_werewolf_idle', 'assets/enemies/red_wolf_king/werewolf_idle.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_run', 'assets/enemies/red_wolf_king/werewolf_running.png', { frameWidth: 640, frameHeight: 640, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_run', 'assets/enemies/red_wolf_king/werewolf_running.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
         this.load.spritesheet('enemy_red_wolf_king_werewolf_attack', 'assets/enemies/red_wolf_king/werewolf_attacking.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_howl', 'assets/enemies/red_wolf_king/werewolf_howling.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
-        this.load.spritesheet('enemy_red_wolf_king_werewolf_dying', 'assets/enemies/red_wolf_king/werewolf_dying.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_pounce', 'assets/enemies/red_wolf_king/werewolf_pouncing.png', { frameWidth: 640, frameHeight: 640, endFrame: 26 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_howl', 'assets/enemies/red_wolf_king/werewolf_howling.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_dying', 'assets/enemies/red_wolf_king/werewolf_dying.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
 
         // 僵尸犬 H3 五动作母版：路径、帧格和有效帧数统一读取 enemy-config。
         const zombieDogTextures = enemyConfigData.zombieDog?.textures || {};
@@ -1085,7 +1088,7 @@ export class BootScene extends Scene {
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候/游侠/狙击手 attack 单次播放，投射物出膛帧由各自 AI 配置驱动；
         // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterAssaultConfig, hamsterHeavyMachineGunnerConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterCavalryConfig, hamsterWingedHussarConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterSpecialForcesConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterLongbowConfig, hamsterAssaultConfig, hamsterHeavyMachineGunnerConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterCavalryConfig, hamsterWingedHussarConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

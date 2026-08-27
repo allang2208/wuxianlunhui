@@ -1,0 +1,25 @@
+Create a brand-new production identity mother image for the RED WOLF KING'S WEREWOLF FORM, a grounded realistic creature for a dark fantasy game.
+
+REFERENCE ROLES:
+1) The red wolf reference is the exact identity source: preserve its long lupine skull and muzzle, alert pointed ears, amber eyes, deep burgundy/crimson fur with restrained near-black natural accents, and recognizable Red Wolf King character identity.
+2) The black druid reference is the target rendering language: realistic PBR materials, restrained neutral studio lighting, natural anatomical weight, crisp but non-glossy surface detail, right-facing lightly top-down three-quarter side presentation, and clean white production-sheet framing.
+3) The Medusa reference is the target creature-design quality: believable nonhuman anatomy, organic material transitions, realistic surface variation, and a fully resolved dark-fantasy monster rather than a superhero or stylized mascot.
+
+SUBJECT DESIGN:
+A full-body upright werewolf derived from the approved red wolf, facing right in a lightly top-down two-thirds side view. Torso opened roughly 25–30 degrees toward camera so both shoulders, arms, clawed hands, digitigrade legs, paws, and the tail are clearly readable. Neutral alert identity pose suitable for later animation reference, not an action pose.
+
+Build a genuinely lupine humanoid anatomy, NOT a human bodybuilder with a wolf head: elongated rib cage, subtly forward-hunched spine, high mobile shoulder blades, sloped shoulders, deep but narrow chest, lean functional waist without carved abs, long powerful forearms, large relaxed clawed hands, slightly shorter upper arms, strong digitigrade thighs and hocks, broad weight-bearing wolf paws, and a heavy natural tail emerging correctly from the pelvis. Musculature must be functional and mostly expressed through silhouette and fur tension, not inflated exposed pecs or a six-pack. The head-to-body transition must be anatomically integrated with a thick furred neck and ruff.
+
+FUR AND COLOR:
+Photoreal strand-level fur with varied length: shorter on muzzle, forearms and lower legs; denser layered ruff, shoulders, spine and tail. Deep burgundy and dark crimson should remain the dominant color. Near-black appears only as organic low-frequency mottling and deeper strand roots along muzzle, ears, back ridge, forearms, lower legs and tail tip—never as hard graphic blocks. Matte weathered fur, subtle scars and natural irregularities, restrained saturation, no shiny plastic coat.
+
+COMPOSITION AND LIGHT:
+Single isolated subject, entire body visible with generous safety margins on all sides, centered on pure white seamless background. Soft neutral top-side studio light, clear readable form, nearly shadowless white field. Match the realistic grounded finish and scale-readability of the two style references.
+
+STRICTLY AVOID:
+human bodybuilder proportions, superhero V torso, inflated chest, carved abdominal muscles, symmetrical gym physique, human feet, plantigrade legs, tiny paws, short muzzle, bear head, hyena head, armor, clothing, belts, weapons, jewelry, glowing magic, flames, scenery, floor plane, cast shadow, dramatic colored rim light, comic-book rendering, cartoon style, anime, painterly concept-art strokes, oversaturation, glossy plastic fur, hard black-red color blocking, cropped ears/hands/feet/tail, duplicate limbs, extra fingers, text, logo, watermark.
+
+Reference files:
+- red-wolf-king-mother-v01.png: identity, head, fur palette
+- black-druid-imagegen-angle-v2-white.png: realistic PBR render, lighting, view
+- medusa-mother-v02-white.png: grounded creature anatomy and organic material finish

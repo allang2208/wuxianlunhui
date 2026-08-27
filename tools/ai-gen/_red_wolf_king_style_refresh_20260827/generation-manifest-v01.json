@@ -1,0 +1,71 @@
+{
+  "date": "2026-08-27",
+  "provider": "MiniMax H3 on remote RTX 5080 ComfyUI",
+  "entrypoint": "tools/ai-gen/ai-asset.py video generate --provider h3",
+  "settings": {
+    "size": "1024x576",
+    "durationSeconds": 5.17,
+    "frameCount": 124,
+    "fps": 24,
+    "steps": 16,
+    "background": "#00D9FF"
+  },
+  "actions": {
+    "idle": {
+      "seed": 827501,
+      "loopLocked": true,
+      "reference": "references/red-wolf-normal-cyan.png",
+      "prompt": "prompts/idle-v01.txt",
+      "video": "videos/red-wolf-idle-h3-v01.mp4",
+      "preview": "previews/videos/red-wolf-idle-h3-v01-preview.gif",
+      "status": "candidate-pass"
+    },
+    "running": {
+      "seed": 827502,
+      "loopLocked": true,
+      "reference": "references/red-wolf-forward-cyan.png",
+      "prompt": "prompts/running-v01.txt",
+      "video": "videos/red-wolf-running-h3-v01.mp4",
+      "preview": "previews/videos/red-wolf-running-h3-v01-preview.gif",
+      "status": "candidate-pass-root-stabilization-needed"
+    },
+    "attack-bite": {
+      "seed": 827503,
+      "loopLocked": true,
+      "reference": "references/red-wolf-forward-cyan.png",
+      "prompt": "prompts/attack-bite-v01.txt",
+      "video": "videos/red-wolf-attack-bite-h3-v01.mp4",
+      "preview": "previews/videos/red-wolf-attack-bite-h3-v01-preview.gif",
+      "status": "candidate-pass-trim-action-window"
+    },
+    "pounce": {
+      "seed": 827504,
+      "loopLocked": true,
+      "reference": "references/red-wolf-pounce-cyan.png",
+      "prompt": "prompts/pounce-v01.txt",
+      "video": "videos/red-wolf-pounce-h3-v01.mp4",
+      "preview": "previews/videos/red-wolf-pounce-h3-v01-preview.gif",
+      "status": "candidate-pass-preserve-source-trajectory"
+    },
+    "howl": {
+      "seed": 827505,
+      "loopLocked": true,
+      "reference": "references/red-wolf-normal-cyan.png",
+      "prompt": "prompts/howl-v01.txt",
+      "video": "videos/red-wolf-howl-h3-v01.mp4",
+      "preview": "previews/videos/red-wolf-howl-h3-v01-preview.gif",
+      "status": "candidate-pass"
+    },
+    "dying": {
+      "seed": 827506,
+      "loopLocked": false,
+      "reference": "references/red-wolf-normal-cyan.png",
+      "prompt": "prompts/dying-v01.txt",
+      "video": "videos/red-wolf-dying-h3-v01.mp4",
+      "preview": "previews/videos/red-wolf-dying-h3-v01-preview.gif",
+      "status": "candidate-pass-one-way-corpse-hold"
+    }
+  },
+  "runtimeStatus": "integrated as size-normalized RIFE v4.6 wolf-form runtime sheets",
+  "runtimeBuildReport": "runtime-build-report.json"
+}

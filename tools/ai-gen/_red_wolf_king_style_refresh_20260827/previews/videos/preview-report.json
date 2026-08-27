@@ -1,0 +1,68 @@
+{
+  "idle": {
+    "video": "videos/red-wolf-idle-h3-v01.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/red-wolf-idle-h3-v01-preview.gif",
+    "contact": "previews/videos/red-wolf-idle-h3-v01-contact.png"
+  },
+  "running": {
+    "video": "videos/red-wolf-running-h3-v01.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/red-wolf-running-h3-v01-preview.gif",
+    "contact": "previews/videos/red-wolf-running-h3-v01-contact.png"
+  },
+  "attack-bite": {
+    "video": "videos/red-wolf-attack-bite-h3-v01.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/red-wolf-attack-bite-h3-v01-preview.gif",
+    "contact": "previews/videos/red-wolf-attack-bite-h3-v01-contact.png"
+  },
+  "pounce": {
+    "video": "videos/red-wolf-pounce-h3-v01.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/red-wolf-pounce-h3-v01-preview.gif",
+    "contact": "previews/videos/red-wolf-pounce-h3-v01-contact.png"
+  },
+  "howl": {
+    "video": "videos/red-wolf-howl-h3-v01.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/red-wolf-howl-h3-v01-preview.gif",
+    "contact": "previews/videos/red-wolf-howl-h3-v01-contact.png"
+  },
+  "dying": {
+    "video": "videos/red-wolf-dying-h3-v01.mp4",
+    "frameCount": 124,
+    "fps": 24.0,
+    "size": [
+      1024,
+      576
+    ],
+    "gif": "previews/videos/red-wolf-dying-h3-v01-preview.gif",
+    "contact": "previews/videos/red-wolf-dying-h3-v01-contact.png"
+  }
+}

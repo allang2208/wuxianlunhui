@@ -954,6 +954,7 @@ export function previewWorld122Report() {
         skipWaves: true,
         isRecruitmentTierUnlocked: (id) =>
             TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
+        isUnitUnlocked: (id) => TechnologySystem?.isUnlocked?.('unit', id) === true,
     });
 }
 
@@ -1368,6 +1369,7 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             gameTimeMs: nowGame,
             isRecruitmentTierUnlocked: (id) =>
                 TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
+            isUnitUnlocked: (id) => TechnologySystem?.isUnlocked?.('unit', id) === true,
             grant: (reward) => {
                 // 银行金币依次进入背包、主人空间仓库；溢出量由结算记在对应银行，回场后落地。
                 if (reward.gold && PopulationEconomySystem?.routeProducedGold) {

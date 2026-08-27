@@ -1,0 +1,8 @@
+Use case: background-extraction
+Asset type: transparent game projectile sprite.
+
+Input image: projectile/hamster-longbow-projectile-v01-candidate.png is the edit target.
+
+Primary request: remove the entire checkerboard and all background pixels, replacing them with genuine RGBA transparency.
+
+Constraints: change only the background. Preserve the arrow itself exactly: same geometry, strict horizontal alignment, screen-right-pointing iron bodkin arrowhead, golden-brown wooden shaft, cream-and-brown feather fletching, bindings, lighting, material detail, scale, position, and complete uncropped silhouette. Keep exactly one arrow. Produce clean alpha edges around the feathers, shaft, nock, bindings, and arrowhead. No checkerboard pattern, no white or gray matte, no floor, no cast shadow, no glow, no motion trail, no text, no logo, no watermark.

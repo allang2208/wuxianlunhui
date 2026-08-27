@@ -1,0 +1,23 @@
+{
+  "source": "videos/werewolf-pounce-h3-v01.mp4",
+  "output": "references/werewolf-pounce-v01-scale-normalized-motion.mp4",
+  "purpose": "H3 motion reference only; never a runtime animation source",
+  "frameCount": 124,
+  "fps": 24.0,
+  "scaleMetric": "largest-component distance-transform p95",
+  "targetThickness": 27.396894454956055,
+  "sourceThicknessRange": [
+    25.968996047973633,
+    43.7720947265625
+  ],
+  "appliedScaleRange": [
+    0.6562569341646574,
+    1.0370324898606227
+  ],
+  "normalizedThicknessRange": [
+    25.78759765625,
+    29.572093963623047
+  ],
+  "previewGif": "previews/motion-reference/werewolf-pounce-v01-scale-normalized-motion.gif",
+  "contact": "previews/motion-reference/werewolf-pounce-v01-scale-normalized-motion-contact.png"
+}

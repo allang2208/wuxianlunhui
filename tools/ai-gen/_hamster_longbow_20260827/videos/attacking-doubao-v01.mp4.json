@@ -1,0 +1,18 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_longbow_20260827\\references\\hamster-longbow-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_longbow_20260827\\prompts\\attacking-doubao-v01.txt",
+  "promptChars": 1969,
+  "promptSha256": "ce39be533ae883efd6fff232092c4466ca8862aa1c899ff87f83a0cb6a4bc165",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T08:54:43.133Z",
+  "sourceUrlScheme": "https",
+  "videoSha256": "766cea5f7c58c098146dec56918c2b2c8b4af4670c215c2e8cee6e078f4ef1d0"
+}

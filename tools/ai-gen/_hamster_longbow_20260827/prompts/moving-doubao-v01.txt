@@ -1,0 +1,9 @@
+Keep the exact approved hamster longbow archer identity from the reference image: the same adult golden Syrian hamster, broad short body, cream muzzle, forest-green hooded mantle, brown leather brigandine, muted green clothing, bracers, belt pouches, trousers, practical leather boots, one back quiver with long arrows, and exactly one tall English-style yew longbow with two continuous limbs and one intact taut string.
+
+The intentionally small full-body scale and wide empty framing are mandatory. Keep exactly this scale and horizontal position. Never enlarge, zoom, crop, reframe, track, or pan. The complete hood, both boots, quiver, arrows, both bow tips, grip, and full bowstring remain visible with very large white margins in every frame.
+
+Animate a steady in-place tactical walk toward screen right in the exact same right-facing three-quarter infantry view. Left and right legs alternate naturally through one complete two-step cycle with clear planted boot contacts, restrained knee lift, slight torso bob, and no forward travel. Both boot toes, knees, pelvis, chest, and nose continue pointing right-forward; never turn toward the camera. The bow-holding hand carries the same longbow upright and slightly forward. The free hand stays clear of the string. No arrow is drawn or fired. All equipment remains coherent.
+
+Static locked orthographic-style camera, fixed scale and position, flat solid pure white background, soft even light, no floor or shadow. Begin and finish on the same walking phase for a natural loop.
+
+No running, sliding, hopping, root drift, foot teleport, front-facing turn, aiming, firing, loose arrow, visible long tail, rat tail, bare feet, missing boots, extra limbs, fused hands, extra bow, crossbow, firearm, broken bow, missing string, weapon morphing, identity drift, camera motion, blur, cuts, scenery, text, logo, or watermark.

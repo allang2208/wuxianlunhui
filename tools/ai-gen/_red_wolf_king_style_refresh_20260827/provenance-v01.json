@@ -1,0 +1,14 @@
+{
+  "date": "2026-08-27",
+  "generator": "OpenAI built-in image_gen",
+  "output": "red-wolf-king-mother-v01.png",
+  "references": [
+    "assets/enemies/red_wolf_king/idle.png",
+    "tools/ai-gen/_black_bear_20260824/mother/black-bear-imagegen-white.png"
+  ],
+  "referenceRoles": [
+    "RedWolfKing identity reference only",
+    "recent realistic monster style and production-finish reference only"
+  ],
+  "status": "accepted-by-user-for-animation"
+}

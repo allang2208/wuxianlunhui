@@ -14,11 +14,13 @@ import { HamsterShooter } from '../entities/hamster-shooter.js';
 import { HamsterGuard } from '../entities/hamster-guard.js';
 import { HamsterPhalanx } from '../entities/hamster-phalanx.js';
 import { HamsterRiotSquad } from '../entities/hamster-riot-squad.js';
+import { HamsterSpecialForces } from '../entities/hamster-special-forces.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterHalberdier } from '../entities/hamster-halberdier.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterRanger } from '../entities/hamster-ranger.js';
 import { HamsterCrossbow } from '../entities/hamster-crossbow.js';
+import { HamsterLongbow } from '../entities/hamster-longbow.js';
 import { HamsterAssault } from '../entities/hamster-assault.js';
 import { HamsterHeavyMachineGunner } from '../entities/hamster-heavy-machine-gunner.js';
 import { HamsterSniper } from '../entities/hamster-sniper.js';
@@ -71,11 +73,13 @@ import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
+import specialForcesCfg from '../../data/hamster-special-forces-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
@@ -174,11 +178,13 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     guard: '仓鼠盾卫',
     phalanx: '仓鼠方阵',
     riot_special: '仓鼠防暴队',
+    special_forces: '仓鼠特战',
     militia: '仓鼠民兵',
     halberd: '仓鼠长戟',
     scout: '仓鼠斥候',
     ranger: '仓鼠游侠',
     crossbow: '仓鼠弩手',
+    longbow: '仓鼠长弓',
     assault: '仓鼠突击',
     heavy_machine_gunner: '仓鼠重机枪',
     sniper: '仓鼠狙击手',
@@ -248,6 +254,7 @@ function cloneProducerRuntimeConfig(cfg) {
         groundContact: cfg.groundContact ? { ...cfg.groundContact } : undefined,
         foregroundOverlay: cfg.foregroundOverlay ? { ...cfg.foregroundOverlay } : undefined,
         unitTypes: (cfg.unitTypes || []).map((unit) => ({ ...unit })),
+        supplementalUnitUnlocks: [...(cfg.supplementalUnitUnlocks || [])],
         recruitmentTiers: (cfg.recruitmentTiers || []).map((tier) => ({
             ...tier,
             visual: tier.visual ? {
@@ -281,11 +288,13 @@ const PRODUCER_UNIT_CFG = {
     guard: guardCfg,
     phalanx: phalanxCfg,
     riot_special: riotSquadCfg,
+    special_forces: specialForcesCfg,
     militia: militiaCfg,
     halberd: halberdierCfg,
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    longbow: longbowCfg,
     assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
@@ -314,11 +323,13 @@ const PRODUCER_UNIT_CLASS = {
     guard: HamsterGuard,
     phalanx: HamsterPhalanx,
     riot_special: HamsterRiotSquad,
+    special_forces: HamsterSpecialForces,
     militia: HamsterMilitia,
     halberd: HamsterHalberdier,
     scout: HamsterScout,
     ranger: HamsterRanger,
     crossbow: HamsterCrossbow,
+    longbow: HamsterLongbow,
     assault: HamsterAssault,
     heavy_machine_gunner: HamsterHeavyMachineGunner,
     sniper: HamsterSniper,
@@ -346,11 +357,13 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     guard: 'data/hamster-guard-config.json',
     phalanx: 'data/hamster-phalanx-config.json',
     riot_special: 'data/hamster-riot-squad-config.json',
+    special_forces: 'data/hamster-special-forces-config.json',
     militia: 'data/hamster-militia-config.json',
     halberd: 'data/hamster-halberdier-config.json',
     scout: 'data/hamster-scout-config.json',
     ranger: 'data/hamster-ranger-config.json',
     crossbow: 'data/hamster-crossbow-config.json',
+    longbow: 'data/hamster-longbow-config.json',
     assault: 'data/hamster-assault-config.json',
     heavy_machine_gunner: 'data/hamster-heavy-machine-gunner-config.json',
     sniper: 'data/hamster-sniper-config.json',
@@ -561,6 +574,7 @@ export class ProducerBuilding extends DamageableEntity {
         setupStructureDepth(this);
         const isRecruitmentTierUnlocked = (id) =>
             TechnologySystem.isUnlocked('recruitmentTier', id);
+        const isUnitUnlocked = (id) => TechnologySystem.isUnlocked('unit', id);
         const unlockedRecruitmentTier = getUnlockedRecruitmentTier(cfg, isRecruitmentTierUnlocked);
         this.level = Math.max(1, Number(unlockedRecruitmentTier?.level) || 1);
         this._applyRecruitmentTierVisual(unlockedRecruitmentTier);
@@ -570,13 +584,15 @@ export class ProducerBuilding extends DamageableEntity {
             : 10;
         this.modules = {};            // { moduleId: level }
         const configuredUnitType = cfg.defaultUnitType || (cfg.unitTypes?.[0]?.key) || 'shooter';
-        const recruitableUnitTypes = getRecruitableUnitTypes(cfg, isRecruitmentTierUnlocked);
+        const recruitableUnitTypes = getRecruitableUnitTypes(
+            cfg, isRecruitmentTierUnlocked, isUnitUnlocked
+        );
         const tierUnitType = resolveRecruitmentUnitType(
-            cfg, configuredUnitType, isRecruitmentTierUnlocked
+            cfg, configuredUnitType, isRecruitmentTierUnlocked, isUnitUnlocked
         );
         const firstUnlockedUnitType = recruitableUnitTypes.find((unit) =>
-            TechnologySystem.isUnlocked('unit', unit.key))?.key;
-        this.unitType = TechnologySystem.isUnlocked('unit', tierUnitType)
+            isUnitUnlocked(unit.key))?.key;
+        this.unitType = isUnitUnlocked(tierUnitType)
             ? tierUnitType
             : (firstUnlockedUnitType || tierUnitType);
         this.units = [];              // 本建筑拥有的军事单位
@@ -660,6 +676,10 @@ export class ProducerBuilding extends DamageableEntity {
         return TechnologySystem.isUnlocked('recruitmentTier', id);
     }
 
+    _isUnitUnlocked(id) {
+        return TechnologySystem.isUnlocked('unit', id);
+    }
+
     getRecruitmentTier() {
         return getActiveRecruitmentTier(
             this._cfg, (id) => this._isRecruitmentTierUnlocked(id)
@@ -674,7 +694,9 @@ export class ProducerBuilding extends DamageableEntity {
 
     getRecruitableUnitTypes() {
         return getRecruitableUnitTypes(
-            this._cfg, (id) => this._isRecruitmentTierUnlocked(id)
+            this._cfg,
+            (id) => this._isRecruitmentTierUnlocked(id),
+            (id) => this._isUnitUnlocked(id)
         );
     }
 
@@ -730,7 +752,10 @@ export class ProducerBuilding extends DamageableEntity {
         const visualTier = this.getRecruitmentVisualTier();
         const nextLevel = Math.max(1, Number(visualTier?.level) || 1);
         const nextUnitType = resolveRecruitmentUnitType(
-            this._cfg, this.unitType, (id) => this._isRecruitmentTierUnlocked(id)
+            this._cfg,
+            this.unitType,
+            (id) => this._isRecruitmentTierUnlocked(id),
+            (id) => this._isUnitUnlocked(id)
         );
         const changed = nextLevel !== this.level || nextUnitType !== this.unitType;
         this.level = nextLevel;

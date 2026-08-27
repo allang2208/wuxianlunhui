@@ -27,6 +27,11 @@ export const isMilitaryPopulationIgnored = () => !!(
     typeof window !== 'undefined' && window.Game && window.Game._devIgnoreMilitaryPopulation
 );
 
+/** 科技树所选目标立即走正式研发完成链；未完成前置会按研究计划一并完成。 */
+export const isInstantTechnologyResearchEnabled = () => !!(
+    typeof window !== 'undefined' && window.Game && window.Game._devInstantTechnologyResearch
+);
+
 /**
  * 建筑实例和 World-122 快照都把当前读条保存在自身的 `*Upgrade` 字段。
  * 开关开启时只归零剩余时间，让各业务系统在原完成入口结算等级与副作用。

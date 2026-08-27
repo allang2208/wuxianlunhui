@@ -778,7 +778,7 @@ class BlackWolf extends Enemy {
  * 红狼王（elite，2026-08-23 母版六动作 + 狼人变身）：
  * - 狼形使用 idle / running / bite / pounce / howl / dying 六套母版；
  * - HP ≤ 阈值播放新 H3 狼→狼人变身，完成后保持狼人末帧承接二阶段；
- * - 攻击与飞扑使用 640 格，运行时按 512 基准归一化显示尺寸与脚底；
+ * - 狼形和狼人飞扑均使用独立母版，640 格按 512 基准归一化显示尺寸与脚底；
  * - 动画继续走 Phaser setFrame 帧索引路径，死亡接入保尸生命周期。
  */
 class RedWolfKing extends BlackWolf {
@@ -808,7 +808,7 @@ class RedWolfKing extends BlackWolf {
             pacing: 160
         };
         // 六套母版狼形贴图；walk/pacing 共用 running。transform 是本轮新 H3
-        // 首尾帧视频导出的 20 帧序列，不复用已经退出运行时的旧狼人资产。
+        // 首尾帧视频导出的 21 帧序列，不复用已经退出运行时的旧狼人资产。
         const runningSprite = loadImage(spritePaths.run || spritePaths.side || 'assets/enemies/red_wolf_king/running.png');
         this._wolfSprites = {
             side: runningSprite,
@@ -828,13 +828,16 @@ class RedWolfKing extends BlackWolf {
             idle: loadImage(spritePaths.werewolfIdle || 'assets/enemies/red_wolf_king/werewolf_idle.png'),
             run: loadImage(spritePaths.werewolfRun || 'assets/enemies/red_wolf_king/werewolf_running.png'),
             attack: loadImage(spritePaths.werewolfAttack || 'assets/enemies/red_wolf_king/werewolf_attacking.png'),
+            pounce: loadImage(spritePaths.werewolfPounce || 'assets/enemies/red_wolf_king/werewolf_pouncing.png'),
             howl: loadImage(spritePaths.werewolfHowl || 'assets/enemies/red_wolf_king/werewolf_howling.png'),
             dying: loadImage(spritePaths.werewolfDying || 'assets/enemies/red_wolf_king/werewolf_dying.png'),
         };
         this._sprites = this._wolfSprites;
         // 二阶段配置：全属性强化、变身减伤和专属暴击，完成后切入狼人五动作。
         this._transformCfg = this._animCfg.transform || {};
-        this._werewolfVisualScaleTarget = this._transformCfg.werewolfVisualScale ?? 1.25;
+        // v03 狼人虽然站立体高更高，但两足轮廓远窄于四足狼；按用户实测定稿为 1.8，
+        // 确保变身后具备明确的首领体量。碰撞倍率仍独立配置，视觉修正不扩大攻击/受击判定。
+        this._werewolfVisualScaleTarget = this._transformCfg.werewolfVisualScale ?? 1.8;
         this._werewolfCollisionScaleTarget = this._transformCfg.werewolfCollisionScale ?? 1.25;
         this._werewolfCollisionBase = null;
         this._appliedWerewolfCollisionScale = 1;
@@ -849,6 +852,7 @@ class RedWolfKing extends BlackWolf {
         this._transformTriggered = false;
         this._transformTimer = 0;
         this._howlTimer = 0;
+        this._howlResumeVelocity = null;
         // 双攻击：近距离撕咬 / 中距离飞扑。
         this._attackTypes = anim.attackTypes || {};
         this._attackType = 'bite';
@@ -923,6 +927,17 @@ class RedWolfKing extends BlackWolf {
             if (this._howlTimer <= 0) {
                 this._howlTimer = 0;
                 this._frozenForCast = false;
+                const resume = this._howlResumeVelocity;
+                if (resume && this.target && this.target.active) {
+                    const resumeSpeed = Math.hypot(resume.x, resume.y);
+                    const dx = this.target.x - this.x;
+                    const dy = this.target.y - this.y;
+                    const distance = Math.hypot(dx, dy);
+                    this.vx = distance > 0.001 ? dx / distance * resumeSpeed : 0;
+                    this.vy = distance > 0.001 ? dy / distance * resumeSpeed : 0;
+                    this.isMoving = Math.hypot(this.vx, this.vy) > 0.1;
+                }
+                this._howlResumeVelocity = null;
             }
         }
         super.update(dt, entities);
@@ -933,7 +948,7 @@ class RedWolfKing extends BlackWolf {
             && !this._isTransforming && this._howlTimer <= 0) {
             this._startHowl(entities);
         }
-        // 变身期完整播放20帧；完成后保留 BlackWolf 的真实 idle/run/attack 状态，
+        // 变身期完整播放21帧；完成后保留 BlackWolf 的真实 idle/run/attack 状态，
         // 仅在主动嚎叫期间强制切到狼人 howl。
         if (this._isTransforming) {
             this._animState = 'transform';
@@ -970,6 +985,10 @@ class RedWolfKing extends BlackWolf {
         this._animFrame = 0;
         this._animTimer = 0;
         this._frozenForCast = true;
+        this._howlResumeVelocity = {
+            x: Number.isFinite(this.vx) ? this.vx : 0,
+            y: Number.isFinite(this.vy) ? this.vy : 0,
+        };
         this.vx = 0; this.vy = 0; this.isMoving = false;
         const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
         for (const e of list) {
@@ -1070,8 +1089,8 @@ class RedWolfKing extends BlackWolf {
         for (const key of ['speed', 'maxSpeed', '_baseSpeed']) {
             if (typeof this[key] === 'number' && this[key] > 0) this[key] *= multiplier;
         }
-        // 二阶段只使用狼人普通攻击与嚎叫；狼人没有飞扑母版，也不再进入狼形飞扑状态。
-        this._usesPounce = false;
+        // 二阶段沿用同一飞扑状态机，但切换到狼人专属飞扑母版；变身完成后允许立即使用。
+        this._usesPounce = true;
         this._pounceCooldown = 0;
         // 运行时面板同步显示二阶段的真实暴击率；伤害倍率在专属命中入口结算。
         this.data.crit = (this._transformCfg.criticalChance ?? 0.5) * 100;
@@ -1098,7 +1117,7 @@ class RedWolfKing extends BlackWolf {
     }
 
     _startPounce() {
-        if (!this.active || this._deathStarted || this._isTransforming || this._isTransformed || this._howlTimer > 0) return;
+        if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return;
         this._attackType = 'pounce';
         super._startPounce();
     }
@@ -1168,6 +1187,7 @@ class RedWolfKing extends BlackWolf {
         this._deathStarted = true;
         this._isTransforming = false;
         this._howlTimer = 0;
+        this._howlResumeVelocity = null;
         this._frozenForCast = true;
         this._attackAnimTimer = 0;
         this.vx = 0;
@@ -1197,7 +1217,7 @@ class RedWolfKing extends BlackWolf {
         const duration = death.duration ?? 2000;
         const holdMs = death.holdMs ?? 1000;
         const layout = this._isTransformed
-            ? (this._frameLayouts?.werewolfDying || { cols: 5, rows: 4, frames: 20 })
+            ? (this._frameLayouts?.werewolfDying || { cols: 5, rows: 5, frames: 21 })
             : (this._frameLayouts?.dying || { cols: 4, rows: 3, frames: 12 });
         const lastFrame = Math.min(layout.frames - 1, death.lastFrame ?? (layout.frames - 1));
         this._animState = 'death';
@@ -1236,7 +1256,11 @@ class RedWolfKing extends BlackWolf {
             if (this._howlTimer > 0 || this._animState === 'howl') {
                 return 'enemy_red_wolf_king_werewolf_howl';
             }
-            if (this._animState === 'attack') return 'enemy_red_wolf_king_werewolf_attack';
+            if (this._animState === 'attack') {
+                return this._attackType === 'pounce'
+                    ? 'enemy_red_wolf_king_werewolf_pounce'
+                    : 'enemy_red_wolf_king_werewolf_attack';
+            }
             return 'enemy_red_wolf_king_werewolf_run';
         }
         if (this._isAnimationFrozen()) return 'enemy_red_wolf_king_idle';
@@ -1255,22 +1279,24 @@ class RedWolfKing extends BlackWolf {
     _getFrameLayout(state) {
         const layouts = this._frameLayouts || {};
         if (this._deathStarted || state === 'death') return this._isTransformed
-            ? (layouts.werewolfDying || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 })
+            ? (layouts.werewolfDying || { cols: 5, rows: 5, frames: 21, frameWidth: 640, frameHeight: 640, footY: 590 })
             : (layouts.dying || { cols: 4, rows: 3, frames: 12 });
         if (this._isTransforming || state === 'transform') {
-            return layouts.transform || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
+            return layouts.transform || { cols: 5, rows: 5, frames: 21, frameWidth: 640, frameHeight: 640, footY: 590 };
         }
         if (this._isTransformed) {
             if (this._isAnimationFrozen() || state === 'idle' || this._animState === 'idle') {
-                return layouts.werewolfIdle || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
+                return layouts.werewolfIdle || { cols: 10, rows: 2, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
             }
             if (this._howlTimer > 0 || state === 'howl' || this._animState === 'howl') {
-                return layouts.werewolfHowl || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
+                return layouts.werewolfHowl || { cols: 5, rows: 5, frames: 21, frameWidth: 640, frameHeight: 640, footY: 590 };
             }
             if (this._animState === 'attack') {
-                return layouts.werewolfAttack || { cols: 6, rows: 4, frames: 21, frameWidth: 640, frameHeight: 640, footY: 590 };
+                return this._attackType === 'pounce'
+                    ? (layouts.werewolfPounce || { cols: 5, rows: 6, frames: 27, frameWidth: 640, frameHeight: 640, footY: 590 })
+                    : (layouts.werewolfAttack || { cols: 5, rows: 5, frames: 21, frameWidth: 640, frameHeight: 640, footY: 590 });
             }
-            return layouts.werewolfRun || { cols: 8, rows: 6, frames: 12, frameWidth: 640, frameHeight: 640, footY: 606 };
+            return layouts.werewolfRun || { cols: 10, rows: 2, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
         }
         if (this._isAnimationFrozen()) return layouts.idle || { cols: 4, rows: 3, frames: 12 };
         if (this._howlTimer > 0 || this._animState === 'howl') {
@@ -1337,11 +1363,6 @@ class RedWolfKing extends BlackWolf {
         const freezeWolfFrame = !this._deathStarted && !this._isTransforming && !this._isTransformed
             && this._isAnimationFrozen();
         opts.frame = freezeWolfFrame ? 0 : this._animFrame;
-        // 普通攻击素材各帧水平内容中心漂移较大；只在咬击阶段启用逐帧 X 校正。
-        // 飞扑保留真实位移与素材自身动态，不复用这组偏移。
-        if (!this._isTransformed && this._animState === 'attack' && this._attackType === 'bite') {
-            opts.frameOffsetKey = 'enemy_red_wolf_king_attack';
-        }
         return opts;
     }
 
@@ -1356,7 +1377,9 @@ class RedWolfKing extends BlackWolf {
             if (this._deathStarted) werewolf = this._werewolfSprites.dying;
             else if (this._isAnimationFrozen() || this._animState === 'idle') werewolf = this._werewolfSprites.idle;
             else if (this._howlTimer > 0 || this._animState === 'howl') werewolf = this._werewolfSprites.howl;
-            else if (this._animState === 'attack') werewolf = this._werewolfSprites.attack;
+            else if (this._animState === 'attack') werewolf = this._attackType === 'pounce'
+                ? this._werewolfSprites.pounce
+                : this._werewolfSprites.attack;
             const layout = this._getFrameLayout(this._animState);
             const shouldFlip = this._facing === 'left' ||
                 ((this._facing === 'up' || this._facing === 'down') && (

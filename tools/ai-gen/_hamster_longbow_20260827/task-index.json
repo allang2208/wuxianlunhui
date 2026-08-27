@@ -1,0 +1,159 @@
+{
+  "task": "hamster_longbow_four_action_doubao_video",
+  "date": "2026-08-27",
+  "sourceMother": "mother/hamster-longbow-mother-v04-infantry-view-candidate.png",
+  "sourceApproval": "../_hamster_missing_mothers_20260826/task-index.json#longbow",
+  "provider": "doubao-desktop",
+  "modelRequested": "Seedance 2.0 Mini",
+  "entrypoint": "tools/ai-gen/ai-asset.py video generate --provider doubao",
+  "rawDurationSeconds": 5,
+  "sizeRequested": "1024x576",
+  "reference": "references/hamster-longbow-safe-white-1024x576.png",
+  "runtimeIntegrationActive": true,
+  "status": "completed_rife_sprite_sheets_and_runtime_integration",
+  "sourceSheetReport": "source-sheet-report.json",
+  "runtimeConfig": "../../../data/hamster-longbow-config.json",
+  "runtimeEntity": "../../../src/entities/hamster-longbow.js",
+  "runtimeAssetDirectory": "../../../assets/companions/hamster_longbow",
+  "normalization": {
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "feetY": 351,
+    "effectiveStandingBodyHeight": 129,
+    "longbowExcludedFromBodyScale": true,
+    "sourceFacing": "right",
+    "runtimeDirectionHandling": "right-facing source; existing sprite flipX mirrors the complete unit for left-facing movement and attacks"
+  },
+  "downloadRecovery": {
+    "reason": "the automatic download listener reused the preceding completed card for moving and dying",
+    "resubmitted": false,
+    "quotaConsumedByRecovery": false,
+    "recoveryMethod": "download the exact video source bound to each innermost completed card",
+    "uniqueVideoCount": 4
+  },
+  "projectileCandidate": {
+    "status": "completed_and_runtime_integrated",
+    "candidate": "projectile/hamster-longbow-projectile-final-512.png",
+    "cleanSource": "projectile/hamster-longbow-projectile-v04-clean-transparent-source.png",
+    "removedOpaqueSourceCandidate": "projectile/hamster-longbow-projectile-v01-candidate.png",
+    "transparentSourceCandidate": "projectile/hamster-longbow-projectile-v02-transparent-candidate.png",
+    "prompt": "prompts/projectile-imagegen-v03-clean-alpha.txt",
+    "sourcePrompt": "prompts/projectile-imagegen-v01.txt",
+    "generator": "codex_builtin_imagegen",
+    "normalizer": "normalize-projectile.py",
+    "normalizationReport": "projectile/hamster-longbow-projectile-final-512.json",
+    "sourceFacing": "right",
+    "intendedRuntimeTipDirection": "right",
+    "projectileContentWidth": 448,
+    "runtimeIntegrationActive": true,
+    "imageSize": [512, 512],
+    "sha256": "628426ac8c34416e6b5642357c06f632554fac73db1b193811e5dd38b290a73e",
+    "cleanSourceSha256": "832751c89d53f73630a5c602245dbc2c444dfd0044acb6c6bcd752c426140cf0",
+    "alpha": {
+      "extrema": [0, 255],
+      "contentBounds": [32, 230, 480, 281],
+      "cornerPixelsTransparent": true,
+      "transparentRgbNonzeroPixelCount": 0
+    },
+    "sourceCandidateIssue": "v01 rendered the checkerboard as opaque RGB; v02 replaced it with genuine alpha transparency and is the retained edit source",
+    "rejectedAttempts": [
+      {
+        "removedCandidate": "projectile/hamster-longbow-projectile-v03-rejected-baked-checkerboard.png",
+        "artifactRemoved": true,
+        "prompt": "prompts/projectile-imagegen-v03-clean-alpha.txt",
+        "sha256": "4471da035dc54bb837b1bd22eff9fa29b30FDB50F96E2E697D92AC38F09B3961",
+        "reason": "imagegen cleaned the visible fringe but baked the checkerboard into an RGB image with no alpha channel"
+      }
+    ]
+  },
+  "motherRevision": {
+    "reason": "user_rejected_v02_and_v03_camera_angles_before_video_generation",
+    "candidate": "mother/hamster-longbow-mother-v04-infantry-view-candidate.png",
+    "prompt": "prompts/mother-v04-infantry-view.txt",
+    "generator": "codex_builtin_imagegen",
+    "approvalStatus": "user_approved_by_requesting_doubao_animation_generation",
+    "cameraReferences": [
+      "../_hamster_champion_20260826/mother/hamster-champion-mother-v01.png",
+      "../_hamster_phalanx_20260826/mother/hamster-phalanx-mother-v02-double-axe.png",
+      "../_hamster_missing_mothers_20260826/mother/hamster-assault-mother-v03-compact-body-white.png"
+    ],
+    "rejectedCandidates": [
+      {
+        "removedCandidate": "../_hamster_missing_mothers_20260826/mother/hamster-longbow-mother-v02-unified-white.png",
+        "artifactRemoved": true,
+        "reason": "body and stance remained too front-facing"
+      },
+      {
+        "removedCandidate": "mother/hamster-longbow-mother-v03-right-three-quarter-candidate.png",
+        "artifactRemoved": true,
+        "reason": "face moved toward profile but torso, pelvis and feet remained mismatched and too front-facing"
+      }
+    ],
+    "supersedesRemovedCandidate": "../_hamster_missing_mothers_20260826/mother/hamster-longbow-mother-v02-unified-white.png"
+  },
+  "tasks": [
+    {
+      "motion": "idle",
+      "loopRequested": true,
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "status": "completed_rife_runtime_integrated",
+      "video": "videos/idle-doubao-v01.mp4",
+      "provenance": "videos/idle-doubao-v01.mp4.json",
+      "sourceSheet": "source-sheets-pre-interpolation/idle.png",
+      "finalSheet": "sheets/interpolated/idle.png",
+      "rifeReport": "idle-rife-report.json",
+      "preview": "previews/interpolated/hamster-longbow-idle-interpolated.gif",
+      "sourceFrameCount": 25,
+      "outputFrameCount": 50,
+      "outputFrameRate": 9.6
+    },
+    {
+      "motion": "moving",
+      "loopRequested": true,
+      "prompt": "prompts/moving-doubao-v01.txt",
+      "status": "completed_rife_runtime_integrated",
+      "video": "videos/moving-doubao-v01.mp4",
+      "provenance": "videos/moving-doubao-v01.mp4.json",
+      "sourceSheet": "source-sheets-pre-interpolation/running.png",
+      "finalSheet": "sheets/interpolated/running.png",
+      "rifeReport": "running-rife-report.json",
+      "preview": "previews/interpolated/hamster-longbow-running-interpolated.gif",
+      "sourceFrameCount": 31,
+      "outputFrameCount": 62,
+      "outputFrameRate": 12
+    },
+    {
+      "motion": "attacking",
+      "loopRequested": false,
+      "returnsToReadyPose": true,
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "status": "completed_rife_runtime_integrated",
+      "video": "videos/attacking-doubao-v01.mp4",
+      "provenance": "videos/attacking-doubao-v01.mp4.json",
+      "sourceSheet": "source-sheets-pre-interpolation/attacking.png",
+      "finalSheet": "sheets/interpolated/attacking.png",
+      "rifeReport": "attacking-rife-report.json",
+      "preview": "previews/interpolated/hamster-longbow-attacking-interpolated.gif",
+      "sourceFrameCount": 31,
+      "outputFrameCount": 61,
+      "outputFrameRate": 12,
+      "runtimeLaunchFrame": 45
+    },
+    {
+      "motion": "dying",
+      "loopRequested": false,
+      "oneWay": true,
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "status": "completed_rife_runtime_integrated",
+      "video": "videos/dying-doubao-v01.mp4",
+      "provenance": "videos/dying-doubao-v01.mp4.json",
+      "sourceSheet": "source-sheets-pre-interpolation/dying.png",
+      "finalSheet": "sheets/interpolated/dying.png",
+      "rifeReport": "dying-rife-report.json",
+      "preview": "previews/interpolated/hamster-longbow-dying-interpolated.gif",
+      "sourceFrameCount": 25,
+      "outputFrameCount": 49,
+      "outputFrameRate": 12
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "id": "hamster_special_forces",
+  "name": "仓鼠特战",
+  "title": "仓鼠军营三级输出·特战",
+  "desc": "身穿沙色战术装备、使用泵动霰弹枪的三级突击单位，以较高单轮伤害和窄角近距散射替代冠军路线；不继承盾卫自动防御或火枪穿甲弹。",
+  "role": "special_forces",
+  "growthRule": "warrior",
+  "avatar": "🐹🥽🔫",
+  "weaponType": "shotgun",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 420,
+  "baseData": {
+    "str": 24,
+    "dex": 18,
+    "int": 3,
+    "con": 28,
+    "wis": 4,
+    "luck": 8
+  },
+  "statFormula": "enemy",
+  "groundRadius": 21,
+  "collisionRadius": 21,
+  "bodyHeight": 100,
+  "size": 64,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/companions/hamster_musketeer/fire.mp3"
+  },
+  "ai": {
+    "role": "shotgun_assault",
+    "walkSpeed": 125,
+    "runSpeed": 125,
+    "attackInterval": 2500,
+    "attackDamage": 96,
+    "attackRange": 300,
+    "attackArcDegrees": 30,
+    "engageRange": 900,
+    "muzzleOffsetX": 18,
+    "muzzleOffsetY": -2,
+    "muzzleHeight": 58,
+    "attackSparkCount": 24,
+    "attackEffectDurationMs": 220,
+    "attackAnimFps": 24,
+    "attackLaunchFrame": 17,
+    "followOffset": 155,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 313.664397,
+  "spriteOffsetY": -58.199449,
+  "render": {
+    "footOffsetY": 58.199449,
+    "hudOffsetY": 119,
+    "collisionWidth": 42,
+    "collisionHeight": 100
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_special_forces/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 24,
+      "frames": [0, 23],
+      "frameRate": 16,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_special_forces/walking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 28,
+      "frames": [0, 27],
+      "frameRate": 24,
+      "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_special_forces/attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 41,
+      "frames": [0, 40],
+      "frameRate": 24,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_special_forces/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 31,
+      "frames": [0, 30],
+      "frameRate": 20,
+      "repeat": 0
+    }
+  }
+}

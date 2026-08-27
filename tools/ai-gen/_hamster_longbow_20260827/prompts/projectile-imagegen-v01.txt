@@ -1,0 +1,21 @@
+Use case: stylized-concept
+Asset type: transparent game projectile sprite for the World-122 hamster longbow infantry unit.
+
+Input images:
+- Image 1 is the approved hamster longbow mother reference. Use it only to match the grounded realistic PBR game-art finish, warm yew/wood colors, and the natural arrows carried in the back quiver.
+- Image 2 is the preferred technical composition reference: one complete projectile in strict side view, perfectly horizontal, pointing to screen right, centered with generous transparent margins.
+- Image 3 is only a technical framing reference. Do not copy its thick heavy crossbow-bolt proportions.
+
+Primary request: generate exactly one elegant English longbow war arrow, designed as the projectile fired by the approved hamster longbow archer.
+
+Subject and materials: a long, slender, straight warm golden-brown ash or birch wooden shaft; a compact dark hand-forged iron bodkin arrowhead with a sharp readable point; three natural goose-feather fletchings at the rear, cream-white with restrained dark brown markings; fine dark leather or linen binding at the fletching and arrowhead socket. The arrow must look lighter, longer, and more refined than the heavy crossbow bolt.
+
+Style/medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, physically believable wood grain, iron, feather barbs, and wrapping; readable at small gameplay size.
+
+Composition/framing: strict orthographic side profile; shaft exactly level on the horizontal axis; arrowhead points exactly toward screen right; nock and fletching are on screen left; the entire arrow is visible without cropping; centered on a 1:1 canvas; arrow spans about 82% of canvas width and 12-16% of canvas height; generous transparent padding on all sides.
+
+Scene/backdrop: genuinely transparent RGBA background.
+
+Lighting: soft flat diffuse studio lighting only, enough to read material detail, with no cast shadow.
+
+Constraints: exactly one arrow; fully opaque projectile with clean alpha edges; no duplicated feathers; no bent shaft; no perspective tilt; no motion blur; no glow; no trail; no floor; no shadow; no bow; no hamster; no quiver; no hands; no scenery; no text; no logo; no watermark.

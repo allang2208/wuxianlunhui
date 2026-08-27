@@ -15,6 +15,10 @@ export class HamsterCrossbow extends HamsterScout {
         super(x, y, archive);
         this._isHamsterCrossbow = true;
         this.animId = 'hamster_crossbow';
+        // HamsterCrossbow reuses the scout entity/AI implementation only; it is
+        // a regular shooting-range unit and must not inherit the scout's 1450
+        // fog-of-war vision profile through _isHamsterScout.
+        this.fogVisionProfile = 'military';
         this._ai = new HamsterScoutAI(this);
     }
 

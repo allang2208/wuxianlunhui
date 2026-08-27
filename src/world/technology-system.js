@@ -5,9 +5,9 @@ import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 32;
+const VERSION = 40;
 const RESEARCH_COST_CURVE_VERSION = 19;
-const RESEARCH_NODE_COST_MIGRATION_VERSION = 30;
+const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
 const PREVIOUS_RESEARCH_COSTS_BY_VERSION = Object.freeze([
     Object.freeze({
         beforeVersion: 29,
@@ -22,6 +22,27 @@ const PREVIOUS_RESEARCH_COSTS_BY_VERSION = Object.freeze([
         costs: Object.freeze({
             planar_observation_science: 8100,
             interplane_research_coordination: 18000,
+        }),
+    }),
+    Object.freeze({
+        beforeVersion: 33,
+        costs: Object.freeze({
+            thatch_hut_level_2: 1500,
+            thatch_hut_level_3: 9900,
+            hamster_barracks_level_2: 1500,
+            hamster_barracks_level_3: 9900,
+            shooting_range_level_2: 1500,
+            shooting_range_level_3: 9900,
+            cavalry_school_level_2: 1500,
+            cavalry_school_level_3: 9900,
+            church_level_2: 1500,
+            church_level_3: 9900,
+        }),
+    }),
+    Object.freeze({
+        beforeVersion: 35,
+        costs: Object.freeze({
+            gunpowder: 260,
         }),
     }),
 ]);
@@ -70,6 +91,9 @@ const planeResearchNodes = Array.isArray(technologyTree.planeResearch)
     ? technologyTree.planeResearch.map((node) => withResolvedResearchCost(node, true)) : [];
 const nodes = [...treeNodes, ...planeResearchNodes];
 const nodesById = new Map(nodes.map((node) => [node.id, node]));
+const INITIALLY_COMPLETED_TECH_IDS = Object.freeze(nodes
+    .filter((node) => node.initiallyCompleted === true && node.placeholder !== true)
+    .map((node) => node.id));
 const unlockOwners = new Map();
 const V3_ECONOMY_MIGRATION_TECH_IDS = Object.freeze([
     'settlement_planning', 'housing_optimization', 'agricultural_division',
@@ -173,7 +197,7 @@ for (const node of nodes) {
 function emptyState() {
     return {
         version: VERSION,
-        completed: [],
+        completed: [...INITIALLY_COMPLETED_TECH_IDS],
         activeTechId: null,
         activeSource: null,
         targetTechId: null,
@@ -200,6 +224,9 @@ function validateTechnologyTreeConfig(config) {
 
     if (!Array.isArray(config?.nodes)) errors.push('nodes 必须是数组');
     if (!Array.isArray(config?.planeResearch)) errors.push('planeResearch 必须是数组');
+    if (config?.prerequisiteMode !== 'all') {
+        errors.push('prerequisiteMode 必须为 all；多前置科技只允许全部完成后解锁');
+    }
     if (!(Number(config?.pointsPerInstitutePerSecond) > 0)) {
         errors.push('pointsPerInstitutePerSecond 必须大于 0');
     }
@@ -258,6 +285,10 @@ function validateTechnologyTreeConfig(config) {
         }
         if (!Array.isArray(node.prerequisites)) errors.push(`${id} 的 prerequisites 必须是数组`);
         if (!Array.isArray(node.unlocks)) errors.push(`${id} 的 unlocks 必须是数组`);
+        if (node.initiallyCompleted === true) {
+            if (node.placeholder === true) errors.push(`${id} 初始完成科技不能同时是规划占位`);
+            if ((node.prerequisites || []).length) errors.push(`${id} 初始完成科技不能拥有前置科技`);
+        }
 
         for (const unlock of node.unlocks || []) {
             if (!ALLOWED_UNLOCK_TYPES.has(unlock?.type)) {
@@ -286,6 +317,40 @@ function validateTechnologyTreeConfig(config) {
         for (const requiredId of node.prerequisites || []) {
             if (requiredId === node.id) errors.push(`${node.id} 不能依赖自身`);
             else if (!ids.has(requiredId)) errors.push(`${node.id} 引用了不存在的前置科技：${requiredId}`);
+        }
+    }
+
+    // 可研究的募兵等级必须已经完成整级运行时闭环，并显式拥有该级全部兵种。
+    // 一级基线卡与规划占位不参与此门禁，它们分别只承担说明和未来路线展示。
+    for (const node of sourceNodes) {
+        if (!node?.recruitmentTierId) continue;
+        const tier = recruitmentTierPlansById.get(node.recruitmentTierId);
+        if (!tier) {
+            errors.push(`${node.id} 引用了不存在的募兵等级：${node.recruitmentTierId}`);
+            continue;
+        }
+        if (node.placeholder === true || node.baseline === true) continue;
+        const building = producerConfigs.find((config) => config.id === tier.buildingId);
+        const buildingUnitIds = new Set((building?.unitTypes || [])
+            .map((unit) => typeof unit === 'string' ? unit : unit?.key)
+            .filter(Boolean));
+        const lines = Array.isArray(tier.lines) ? tier.lines : [];
+        const incompleteUnits = lines
+            .filter((line) => line?.placeholder === true
+                || !line?.unitKey || !buildingUnitIds.has(line.unitKey))
+            .map((line) => line?.unitKey || '(empty)');
+        if (!lines.length || incompleteUnits.length) {
+            errors.push(`${node.id} 已开放研究但募兵等级尚未完整落盘：${incompleteUnits.join(', ') || '(no lines)'}`);
+            continue;
+        }
+        const unlockedUnitIds = new Set((node.unlocks || [])
+            .filter((unlock) => unlock?.type === 'unit')
+            .map((unlock) => unlock.id));
+        const missingUnlockOwners = lines
+            .map((line) => line.unitKey)
+            .filter((unitId) => !unlockedUnitIds.has(unitId));
+        if (missingUnlockOwners.length) {
+            errors.push(`${node.id} 未显式登记整级兵种所有权：${missingUnlockOwners.join(', ')}`);
         }
     }
 
@@ -327,6 +392,30 @@ function validateTechnologyTreeConfig(config) {
     }
     for (const id of ids) {
         if (!reachable.has(id)) warnings.push(`科技 ${id} 无法从任何根科技到达`);
+    }
+
+    // 占位科技不可研究，因此任何正式节点只要依赖占位祖先，都会成为界面可见但永久不可达的死路。
+    // 这与普通图论可达性不同，必须按实际研究门禁单独审计。
+    const sourceNodesById = new Map(sourceNodes
+        .filter((node) => node?.id)
+        .map((node) => [node.id, node]));
+    const findPlaceholderAncestors = (id, seen = new Set()) => {
+        if (seen.has(id)) return new Set();
+        seen.add(id);
+        const found = new Set();
+        for (const requiredId of sourceNodesById.get(id)?.prerequisites || []) {
+            const required = sourceNodesById.get(requiredId);
+            if (required?.placeholder === true) found.add(requiredId);
+            for (const nestedId of findPlaceholderAncestors(requiredId, seen)) found.add(nestedId);
+        }
+        return found;
+    };
+    for (const node of sourceNodes) {
+        if (!node?.id || node.placeholder === true) continue;
+        const placeholderAncestors = [...findPlaceholderAncestors(node.id)];
+        if (placeholderAncestors.length) {
+            warnings.push(`正式科技 ${node.id} 被规划占位前置阻断：${placeholderAncestors.join(', ')}`);
+        }
     }
 
     return Object.freeze({
@@ -399,11 +488,32 @@ export const TechnologySystem = {
             || WorldProgressionSystem.getTravelWorlds().length >= requiredWorldCount;
     },
 
+    getPrerequisiteStatus(id) {
+        const node = this.getNode(id);
+        const requiredIds = Array.isArray(node?.prerequisites)
+            ? [...node.prerequisites] : [];
+        const completedIds = requiredIds.filter((requiredId) => this.isCompleted(requiredId));
+        const missingIds = requiredIds.filter((requiredId) => !this.isCompleted(requiredId));
+        return {
+            mode: technologyTree.prerequisiteMode || 'all',
+            requiredIds,
+            completedIds,
+            missingIds,
+            completedCount: completedIds.length,
+            totalCount: requiredIds.length,
+            isMet: missingIds.length === 0,
+        };
+    },
+
+    arePrerequisitesMet(id) {
+        return this.getPrerequisiteStatus(id).isMet;
+    },
+
     isAvailable(id) {
         const node = this.getNode(id);
         return !!node && node.placeholder !== true
             && this.isWorldRequirementMet(id) && !this.isCompleted(id)
-            && (node.prerequisites || []).every((requiredId) => this.isCompleted(requiredId));
+            && this.arePrerequisitesMet(id);
     },
 
     getAvailableNodes() {
@@ -632,6 +742,29 @@ export const TechnologySystem = {
         );
     },
 
+    /**
+     * 开发工具专用：按正式研究计划依次完成前置与目标科技。
+     * 每个节点仍复用 `_completeResearch()`，保留解锁事件、消费方刷新、队列推进与完成通知。
+     */
+    completeResearchNow(id) {
+        const target = this.getNode(id);
+        if (!target || target.placeholder === true || this.isCompleted(id)
+            || !this.isWorldRequirementMet(id)) return [];
+
+        const plan = this.getResearchPlan(id);
+        if (!plan.length) return [];
+
+        const completedIds = [];
+        for (const nodeId of plan) {
+            const node = this.getNode(nodeId);
+            if (!node || !this.isAvailable(nodeId)) break;
+            this.state.progressById[node.id] = node.researchCost;
+            this._completeResearch(node);
+            completedIds.push(node.id);
+        }
+        return completedIds;
+    },
+
     unlockAll({ source = 'dev' } = {}) {
         const before = this.state.completed.length;
         this.state.completed = nodes
@@ -673,6 +806,9 @@ export const TechnologySystem = {
                 return !!node && node.placeholder !== true;
             }))]
             : [];
+        for (const id of INITIALLY_COMPLETED_TECH_IDS) {
+            if (!completed.includes(id)) completed.push(id);
+        }
         if (Number(saved.version) < 3) {
             for (const id of V3_ECONOMY_MIGRATION_TECH_IDS) {
                 if (nodesById.has(id) && !completed.includes(id)) completed.push(id);
@@ -722,6 +858,40 @@ export const TechnologySystem = {
             && nodesById.has('high_energy_laboratory_science')
             && !completed.includes('high_energy_laboratory_science')) {
             completed.push('high_energy_laboratory_science');
+        }
+        // v35 把军事建筑改为纵向时代骨架，并让黑火药成为全部三级编制的共同前置。
+        // 旧档已经完成的军事科技保持权限，同时补齐其新增的非占位前置，避免出现完成节点倒挂。
+        if (Number(saved.version) < 35) {
+            const completedSet = new Set(completed);
+            const includeMilitaryPrerequisites = (id) => {
+                const node = this.getNode(id);
+                for (const requiredId of node?.prerequisites || []) {
+                    const required = this.getNode(requiredId);
+                    if (!required || required.placeholder === true || completedSet.has(requiredId)) continue;
+                    completedSet.add(requiredId);
+                    completed.push(requiredId);
+                    includeMilitaryPrerequisites(requiredId);
+                }
+            };
+            for (const id of [...completed]) {
+                if (this.getNode(id)?.branch === '军事指挥') includeMilitaryPrerequisites(id);
+            }
+        }
+        // v39 将仓鼠草屋I级改为初始完成的军事纵向骨架起点，并把仓鼠草屋军备
+        // 移到侦察编制之后。旧档若已完成军备，补齐新增前置，避免完成节点倒挂。
+        if (Number(saved.version) < 39
+            && completed.includes('military_organization')
+            && nodesById.has('recon_doctrine')
+            && !completed.includes('recon_doctrine')) {
+            completed.push('recon_doctrine');
+        }
+        // v40 在仓鼠长弓完成运行时闭环后恢复靶场II→III的正常换代顺序。
+        // 曾在临时绕行版本完成三级的旧档补齐二级，保持高阶权限且避免完成节点倒挂。
+        if (Number(saved.version) < 40
+            && completed.includes('shooting_range_level_3')
+            && nodesById.has('shooting_range_level_2')
+            && !completed.includes('shooting_range_level_2')) {
+            completed.push('shooting_range_level_2');
         }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {
