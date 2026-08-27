@@ -1,0 +1,74 @@
+{
+  "task": "hamster_assault_four_action_doubao_video",
+  "date": "2026-08-27",
+  "sourceMother": "../_hamster_missing_mothers_20260826/mother/hamster-assault-mother-v03-compact-body-white.png",
+  "sourceApproval": "../_hamster_missing_mothers_20260826/task-index.json#assault",
+  "bodyReference": "../_hamster_missing_mothers_20260826/mother/hamster-crossbow-mother-v05-face-refined-white.png",
+  "provider": "doubao-desktop",
+  "modelRequested": "Seedance 2.0 Mini",
+  "rawDurationSeconds": 5,
+  "sizeRequested": "1024x576",
+  "sourceVideoActualSize": "1280x720",
+  "reference": "references/hamster-assault-compact-white-1024x576.png",
+  "runtimeIntegrationActive": true,
+  "status": "four_action_doubao_normalized_rife_runtime_integrated",
+  "attackContract": "one controlled rifle shot at output frame 21; 72 base physical damage, 1800ms interval and 720px base range",
+  "sourceSheetReport": "source-sheet-report.json",
+  "interpolationReport": "interpolation-report.json",
+  "cleanup": {
+    "background": "BiRefNet-general with white-matte edge decontamination",
+    "runningTail": "restricted warm-fur removal left of the holster; trousers, knee pads and boots protected",
+    "attackSmoke": "low-chroma cleanup only in the muzzle-forward ROI"
+  },
+  "formalSheets": "sheets/interpolated",
+  "tasks": [
+    {
+      "motion": "idle",
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "rife_complete",
+      "video": "videos/idle-doubao-v01.mp4",
+      "provenance": "videos/idle-doubao-v01.mp4.json",
+      "sheet": "sheets/interpolated/idle.png",
+      "frameCount": 24,
+      "frameRate": 16,
+      "previewGif": "previews/interpolated/hamster-assault-idle-interpolated.gif"
+    },
+    {
+      "motion": "running",
+      "prompt": "prompts/running-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "rife_complete",
+      "video": "videos/running-doubao-v01.mp4",
+      "provenance": "videos/running-doubao-v01.mp4.json",
+      "sheet": "sheets/interpolated/running.png",
+      "frameCount": 20,
+      "frameRate": 24,
+      "previewGif": "previews/interpolated/hamster-assault-running-interpolated.gif"
+    },
+    {
+      "motion": "attacking",
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "rife_complete",
+      "video": "videos/attacking-doubao-v01.mp4",
+      "provenance": "videos/attacking-doubao-v01.mp4.json",
+      "sheet": "sheets/interpolated/attacking.png",
+      "frameCount": 41,
+      "frameRate": 24,
+      "previewGif": "previews/interpolated/hamster-assault-attacking-interpolated.gif"
+    },
+    {
+      "motion": "dying",
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "rife_complete",
+      "video": "videos/dying-doubao-v01.mp4",
+      "provenance": "videos/dying-doubao-v01.mp4.json",
+      "sheet": "sheets/interpolated/dying.png",
+      "frameCount": 31,
+      "frameRate": 20,
+      "previewGif": "previews/interpolated/hamster-assault-dying-interpolated.gif"
+    }
+  ]
+}

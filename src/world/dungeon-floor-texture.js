@@ -770,6 +770,49 @@ export function getDungeonFloorProfile() {
 }
 
 /**
+ * 按世界坐标相位烘焙一块透明多边形地板。
+ * 门外入场地块等局部扩展必须走这里，避免把整张地砖缩放成独立相位而与主地板错缝。
+ * @param {Array<{x:number,y:number}>} points 世界坐标多边形
+ * @param {{padding?:number}} [options]
+ * @returns {{canvas:HTMLCanvasElement,x:number,y:number,w:number,h:number}|null}
+ */
+export function bakeDungeonFloorPatch(points, options = {}) {
+    if (!Array.isArray(points) || points.length < 3) return null;
+    const padding = Math.max(0, Math.ceil(Number(options.padding) || 0));
+    const minX = Math.floor(Math.min(...points.map(p => p.x))) - padding;
+    const minY = Math.floor(Math.min(...points.map(p => p.y))) - padding;
+    const maxX = Math.ceil(Math.max(...points.map(p => p.x))) + padding;
+    const maxY = Math.ceil(Math.max(...points.map(p => p.y))) + padding;
+    const w = Math.max(1, maxX - minX);
+    const h = Math.max(1, maxY - minY);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    const profile = _getProfile();
+    const tiles = _collectTiles(profile);
+    if (tiles.length === 0) return null;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(points[0].x - minX, points[0].y - minY);
+    for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x - minX, points[i].y - minY);
+    }
+    ctx.closePath();
+    ctx.clip();
+    if (profile.continuous) {
+        _drawContinuousLayer(ctx, tiles[0].img, minX, minY, w, h,
+            profile.textureScaleY ?? 0.5774);
+    } else {
+        _drawIsoLayerChunk(ctx, tiles, minX, minY, w, h,
+            profile.overlapX ?? 0, profile.overlapY ?? 0);
+    }
+    ctx.restore();
+    return { canvas, x: minX, y: minY, w, h };
+}
+
+/**
  * 烘焙地牢地板到离屏 canvas
  * @param {number} size 场地边长（正方形）
  * @param {object} [fallbackTerrain] 回退网格地板样式

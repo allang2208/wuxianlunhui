@@ -140,6 +140,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
    - **Dev/旧正式图替换为 Klein 的高保真低重绘实验**：只有玩家明确要求“模型+原图”并指定单张重抽时，才允许以已接受的完整纯绿底 raw 为 `--init-image`、以同角度 Blender Depth 为控制，采用单张36步、Depth 0.90、`denoise=0.20`和`--allow-nonstandard`。它借鉴仓鼠军营 LV3 的 Klein-from-Dev 方法，只改善现有PBR表面，不得改镜头、层数、门窗、机械构件或地台。提交前必须并排核对原raw、Depth和新raw的可见侧、屋脊方向、阳台/升降机侧与四角地台；若旧`*_depth.png`只含局部纠错件，必须改用经查看确认覆盖完整主体的`*_body_depth.png`，禁止用残缺Depth冒充锁角度控制。该例外不改变新建筑默认12/48步标准。
    - **提示词零投影阴影合同**：公共画风、类别提示和资产负面词都必须明确要求“absolutely no cast shadow of any kind”，同时排除 ground shadow、backdrop shadow、green-screen shadow gradient 和模型/地台外的 detached ambient shadow；`contact occlusion`只允许存在于构件接触处。raw出现外部投影阴影时不得直接入库；结构已确认且阴影完全位于Depth外时，可在专用抠绿后用完整Depth约束Alpha清除，不能把阴影当地台或材质保留。
    - **正式抠绿只走建筑专用工具**：禁止把通用GrabCut、BiRefNet或临时HSV脚本作为建筑正式Alpha真源。统一从已接受raw运行`key-world122-building-body.py`，再运行`mask-world122-building-body.py`以完整Depth/Body Depth限制模型外Alpha，最后用`finalize-building-runtime.py --preserve-alpha-exact --nearest-opaque-edge-rgb`紧裁。含植被、橄榄帆布或绿色玻璃时使用边缘连通RGB抠绿并保留封闭主体色；确认主体没有任何绿色材质的纯绿幕资产才可显式`--remove-all-green`。阈值或软抠区间必须按该张raw实测，不继承其他建筑常数；正式前必须在高对比棋盘底检查绿边、透明孔、模型外阴影和透明像素脏RGB。
+   - **人工交接源先验通道、不得信文件名**：`raw_green`、`cutout`、`rgba`等后缀只能作为线索，接手前必须实查PNG色彩模式、Alpha分布与四角像素。若所谓绿幕原图已经是RGBA且背景Alpha=0，就按人工透明源处理，冻结现有Alpha，只允许透明RGB清零、紧裁与等比标定，禁止再次抠绿、`removeAllGreen`或用Depth回填。此类用户/人工源即使尚无运行时引用也属于最小可编辑链；只有正式资产已接受且manifest指向唯一canonical source后，才删除同内容交付副本。
    - 已通过整体48步但仍有局部错件时，继续使用 `generate-world122-building-candidates.py --stage refine --mask-image <mask.png>`，以待修48步raw为init、同一Depth为控制，只让白色/红色蒙版区重绘；生成器会把`maskImage/maskChannel`写入元数据。若局部结构替换必须提高denoise，必须同时使用`--allow-nonstandard`并保留原标准48步raw，审阅联系图只收入修正达标版本。蒙版外不得改变楼层、塔冠、花园或地基；入口返修继续禁止开放门洞、发光坡道、桥、楼梯和额外平台。
    - **验收纠错以最新明确确认定稿**：玩家若在拒稿、索取 raw 或准备人工处理后，明确说明此前判断有误并确认既有候选可直接使用，则该最新确认覆盖此前拒稿状态；回到该候选的原始生成路径核对身份并直接按既有 Alpha 收口，禁止再次生图、重新抠图或继续等待人工文件。为方便玩家处理而复制到建筑根目录的同内容 raw 只是交付副本，不能覆盖候选目录中的生成真源；定稿后删除该重复副本，manifest、运行元数据和模型合同统一指向唯一 accepted raw/body。
 7. **真透明与 footprint 验收**：先查 RGBA、最大连通域、黄色/绿色残边、孤立像素和投影阴影；抠图不干净就暂停入库并向玩家汇报。正式图必须紧裁且等比缩放，`scaleX≈scaleY`；不能用固定宽高强拉。alpha 自动锚点若仍让贴图偏出地基，使用资产级 `anchorAdjustX/anchorAdjustY`，并保证建造幽灵与实体同源，禁止改全局 footprint 迁就一张贴图。
@@ -695,6 +696,10 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 - 一律 512×512 格子；工头 walk 旧规格：15 帧 8×4 网格 → 新版 20 帧 5×4 网格。
 - BootScene：`load.spritesheet` 的 `endFrame = 帧数-1`；`anims.create` frames 0..N-1、
   walk 用 `repeat:-1`；frameRate 按观感调（工头 20 帧 8fps=2.5s/圈，10fps 偏快）。
+- **友军动画必须同时通过“贴图预载 + 动画创建”两张名单**：把单位配置加入
+  `load.spritesheet` 遍历只会让 `textures.exists(key)` 为真，不会自动生成 Phaser 动画键；还必须加入
+  `anims.create` 遍历，并逐状态核对 `this.anims.exists(companion_<id>_<state>)`。同一张源表复用为
+  `attack/charge` 时也要分别注册两个纹理键和动画键，否则 AI 状态与命中效果正常、画面却不会播放对应动作。
 - `_getTextureKey()` 必须与动画源 spritesheet 一致；换素材前先备份旧图到
   `Y:\工作\无尽轮回\scratch\backup\`（git 里也有历史版本，可放心清）。
 

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_cavalry_pair_20260827\\references\\hamster-cavalry-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_cavalry_pair_20260827\\prompts\\cavalry\\running-doubao-v01.txt",
+  "promptChars": 2134,
+  "promptSha256": "81d26484baa8870ced921c50671a07aeb7380656765aa73386ebeec5d5ef1c59",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T05:37:47.433Z",
+  "sourceUrlScheme": "https"
+}

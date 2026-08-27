@@ -23,7 +23,10 @@ import { CONFIG } from '../config/config.js';
 import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { rollDungeonBossGold, rollDungeonCombatGold } from '../config/dungeon-rewards.js';
-import { applyDungeonFloor, applyDiamondFloor, applyArenaFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
+import {
+    applyDungeonFloor, applyDiamondFloor, applyArenaFloor,
+    bakeDungeonFloorPatch, getDungeonFloorProfile,
+} from './dungeon-floor-texture.js';
 import { WallGate } from './wall-gate.js';
 import { TrapSystem } from './trap-system.js';
 import { GateLight } from '../effects/gate-light.js';
@@ -641,11 +644,339 @@ export const CombatRoomSystem = {
         return this._tileGeo[tileKey];
     },
 
-    /** 门外白区：吸附地板晶格的一块黑砖（与房内地板无缝），远角径向圆滑淡出；
-     *  默认出口门（WallGate + 当前 _diamond）；也可传 entryInfo/entryDiamond 给入场门生成入口地块 */
-    _spawnGateExitZone(info = WallGate.getGateInfo(), diamond = this._diamond) {
+    /** 点是否位于任意简单多边形内（门外视觉与离场判定共用同一份边界）。 */
+    _pointInPolygon(x, y, points) {
+        if (!Array.isArray(points) || points.length < 3) return false;
+        let inside = false;
+        for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+            const a = points[i], b = points[j];
+            const crosses = (a.y > y) !== (b.y > y)
+                && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x;
+            if (crosses) inside = !inside;
+        }
+        return inside;
+    },
+
+    /** 销毁一块门外地块的视觉与活动边界。 */
+    _destroyGateZone(zone) {
+        if (!zone) return;
+        for (const s of zone._sprites || []) {
+            if (s && s.scene) {
+                s.scene.tweens.killTweensOf(s);
+                s.destroy();
+            }
+        }
+        for (const seg of zone._segments || []) {
+            const index = WallSystem.isoSegments ? WallSystem.isoSegments.indexOf(seg) : -1;
+            if (index >= 0) WallSystem.isoSegments.splice(index, 1);
+        }
+    },
+
+    /**
+     * 僵尸单格墙门外地块：严格复用世界建筑128×64格网。
+     * 门内1格与门外1格保持门洞原宽，随后两侧各扩1格，向门外延伸5格形成规整入场平台；
+     * 门内边保持开放，其余直段、整格肩位与外缘都是仅限移动的隐形边界。
+     */
+    _spawnWorldBlockGateZone(info, diamond, gridSpan, isEntry) {
+        const scene = window.__phaserScene;
+        if (!scene || !gridSpan?.rawA || !gridSpan?.rawB || !gridSpan?.step) return null;
+        const gateCenter = info.center;
+        const centerDx = gateCenter.x - diamond.cx;
+        const centerDy = gateCenter.y - diamond.cy;
+        const outward = {
+            x: Math.sign(centerDx || 1) * ONE_CELL_BUILDING_FOOT.w / 2,
+            y: Math.sign(centerDy || 1) * ONE_CELL_BUILDING_FOOT.d / 2,
+        };
+        const tangent = { x: gridSpan.step.x, y: gridSpan.step.y };
+        const sidePaddingCells = 1;
+        const insideOverlapCells = 1;
+        const outsideDepthCells = 5;
+        const nearA = {
+            x: gridSpan.rawA.x - outward.x * insideOverlapCells,
+            y: gridSpan.rawA.y - outward.y * insideOverlapCells,
+        };
+        const nearB = {
+            x: gridSpan.rawB.x - outward.x * insideOverlapCells,
+            y: gridSpan.rawB.y - outward.y * insideOverlapCells,
+        };
+        const mouthA = {
+            x: gridSpan.rawA.x + outward.x,
+            y: gridSpan.rawA.y + outward.y,
+        };
+        const mouthB = {
+            x: gridSpan.rawB.x + outward.x,
+            y: gridSpan.rawB.y + outward.y,
+        };
+        const shoulderA = {
+            x: mouthA.x - tangent.x * sidePaddingCells,
+            y: mouthA.y - tangent.y * sidePaddingCells,
+        };
+        const shoulderB = {
+            x: mouthB.x + tangent.x * sidePaddingCells,
+            y: mouthB.y + tangent.y * sidePaddingCells,
+        };
+        const farA = {
+            x: gridSpan.rawA.x - tangent.x * sidePaddingCells + outward.x * outsideDepthCells,
+            y: gridSpan.rawA.y - tangent.y * sidePaddingCells + outward.y * outsideDepthCells,
+        };
+        const farB = {
+            x: gridSpan.rawB.x + tangent.x * sidePaddingCells + outward.x * outsideDepthCells,
+            y: gridSpan.rawB.y + tangent.y * sidePaddingCells + outward.y * outsideDepthCells,
+        };
+        // 先以六格原宽穿过门柱，再在门外一格处做整格肩位扩宽；禁止地板压到门柱墙脚。
+        const points = [
+            nearA, nearB, mouthB, shoulderB,
+            farB, farA, shoulderA, mouthA,
+        ];
+        const baked = bakeDungeonFloorPatch(points, { padding: 36 });
+        if (!baked) return null;
+
+        const zoneKey = isEntry ? 'gate_zone_tile_entry' : 'gate_zone_tile';
+        if (scene.textures.exists(zoneKey)) scene.textures.remove(zoneKey);
+        scene.textures.addCanvas(zoneKey, baked.canvas);
+        const tile = scene.add.image(baked.x, baked.y, zoneKey);
+        tile.setOrigin(0, 0);
+        tile.setDepth(-999);
+
+        // 规则轮廓只在外侧发光；门内重叠带不画光边，避免主地板上出现一条横向接缝。
+        const glowCanvas = document.createElement('canvas');
+        glowCanvas.width = baked.w;
+        glowCanvas.height = baked.h;
+        const gctx = glowCanvas.getContext('2d');
+        gctx.shadowColor = '#ffffff';
+        gctx.shadowBlur = 16;
+        gctx.globalAlpha = 0.75;
+        gctx.drawImage(baked.canvas, 0, 0);
+        gctx.globalAlpha = 1;
+        gctx.globalCompositeOperation = 'destination-out';
+        gctx.drawImage(baked.canvas, 0, 0);
+        const glowData = gctx.getImageData(0, 0, baked.w, baked.h);
+        const outwardLen = Math.hypot(outward.x, outward.y) || 1;
+        for (let py = 0; py < baked.h; py++) {
+            for (let px = 0; px < baked.w; px++) {
+                const worldX = baked.x + px;
+                const worldY = baked.y + py;
+                const outwardDistance = ((worldX - gateCenter.x) * outward.x
+                    + (worldY - gateCenter.y) * outward.y) / outwardLen;
+                if (outwardDistance <= outwardLen * 1.35) {
+                    glowData.data[(py * baked.w + px) * 4 + 3] = 0;
+                }
+            }
+        }
+        gctx.putImageData(glowData, 0, 0);
+        gctx.globalCompositeOperation = 'source-over';
+        const glowKey = isEntry ? 'gate_zone_glow_entry' : 'gate_zone_glow';
+        if (scene.textures.exists(glowKey)) scene.textures.remove(glowKey);
+        scene.textures.addCanvas(glowKey, glowCanvas);
+        const glow = scene.add.image(baked.x, baked.y, glowKey);
+        glow.setOrigin(0, 0);
+        glow.setDepth(-998);
+        scene.tweens.add({
+            targets: glow,
+            alpha: { from: 0.22, to: 0.38 },
+            yoyo: true,
+            repeat: -1,
+            duration: 1200,
+            ease: 'Sine.easeInOut',
+        });
+
+        const segments = [
+            [nearA, mouthA],
+            [mouthA, shoulderA],
+            [shoulderA, farA],
+            [farA, farB],
+            [farB, shoulderB],
+            [shoulderB, mouthB],
+            [mouthB, nearB],
+        ].map(([a, b]) => ({
+            x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+            halfThick: 2,
+            _gateZoneBoundary: true,
+            _movementOnly: true,
+        }));
+        for (const segment of segments) WallSystem.isoSegments.push(segment);
+
+        const centerCells = 3;
+        const cx = gateCenter.x + outward.x * centerCells;
+        const cy = gateCenter.y + outward.y * centerCells;
+        const xs = points.map(p => p.x), ys = points.map(p => p.y);
+        return {
+            x: Math.min(...xs), y: Math.min(...ys),
+            w: Math.max(...xs) - Math.min(...xs),
+            h: Math.max(...ys) - Math.min(...ys),
+            cx, cy,
+            points,
+            _sprites: [tile, glow],
+            _segments: segments,
+        };
+    },
+
+    /**
+     * 沼泽连续墙门外地块：轮廓、世界相位烘焙、出生/离场命中和活动边界全部复用
+     * 僵尸门外飞地合同；唯一差异是格距从藤门真实底边跨度按六格反推，并沿30°墙体双轴展开。
+     */
+    _spawnSwampGateZone(info, diamond, isEntry) {
+        const scene = window.__phaserScene;
+        const gateSeg = info?.seg;
+        if (!scene || !Array.isArray(gateSeg) || gateSeg.length < 2) return null;
+        const rawA = gateSeg[0], rawB = gateSeg[1];
+        if (!rawA || !rawB) return null;
+
+        const gateDx = rawB.x - rawA.x;
+        const gateDy = rawB.y - rawA.y;
+        const gateLen = Math.hypot(gateDx, gateDy);
+        if (gateLen < 1) return null;
+        const tangentUnit = { x: gateDx / gateLen, y: gateDy / gateLen };
+        const centerDx = info.center.x - diamond.cx;
+        const centerDy = info.center.y - diamond.cy;
+        const centerLen = Math.hypot(centerDx, centerDy) || 1;
+        const outwardUnit = { x: centerDx / centerLen, y: centerDy / centerLen };
+
+        // 藤门视觉跨度等价六格门洞；由真实跨度反推单格，四方向共用同一格距。
+        // 合理夹限只防异常素材几何把平台放大/缩小，正常 swamp_gate 约落在76px。
+        const cellStep = Math.max(56, Math.min(88, gateLen / Math.max(2, this._gridGateCells || 6)));
+        const outward = { x: outwardUnit.x * cellStep, y: outwardUnit.y * cellStep };
+        const tangent = { x: tangentUnit.x * cellStep, y: tangentUnit.y * cellStep };
+        const sidePaddingCells = 1;
+        const insideOverlapCells = 1;
+        const outsideDepthCells = 5;
+        const nearA = {
+            x: rawA.x - outward.x * insideOverlapCells,
+            y: rawA.y - outward.y * insideOverlapCells,
+        };
+        const nearB = {
+            x: rawB.x - outward.x * insideOverlapCells,
+            y: rawB.y - outward.y * insideOverlapCells,
+        };
+        const mouthA = { x: rawA.x + outward.x, y: rawA.y + outward.y };
+        const mouthB = { x: rawB.x + outward.x, y: rawB.y + outward.y };
+        const shoulderA = {
+            x: mouthA.x - tangent.x * sidePaddingCells,
+            y: mouthA.y - tangent.y * sidePaddingCells,
+        };
+        const shoulderB = {
+            x: mouthB.x + tangent.x * sidePaddingCells,
+            y: mouthB.y + tangent.y * sidePaddingCells,
+        };
+        const farA = {
+            x: rawA.x - tangent.x * sidePaddingCells + outward.x * outsideDepthCells,
+            y: rawA.y - tangent.y * sidePaddingCells + outward.y * outsideDepthCells,
+        };
+        const farB = {
+            x: rawB.x + tangent.x * sidePaddingCells + outward.x * outsideDepthCells,
+            y: rawB.y + tangent.y * sidePaddingCells + outward.y * outsideDepthCells,
+        };
+        const points = [
+            nearA, nearB, mouthB, shoulderB,
+            farB, farA, shoulderA, mouthA,
+        ];
+        const baked = bakeDungeonFloorPatch(points, { padding: 36 });
+        if (!baked) return null;
+
+        const zoneKey = isEntry ? 'gate_zone_tile_entry' : 'gate_zone_tile';
+        if (scene.textures.exists(zoneKey)) scene.textures.remove(zoneKey);
+        scene.textures.addCanvas(zoneKey, baked.canvas);
+        const tile = scene.add.image(baked.x, baked.y, zoneKey);
+        tile.setOrigin(0, 0);
+        tile.setDepth(-999);
+
+        const glowCanvas = document.createElement('canvas');
+        glowCanvas.width = baked.w;
+        glowCanvas.height = baked.h;
+        const gctx = glowCanvas.getContext('2d');
+        gctx.shadowColor = '#ffffff';
+        gctx.shadowBlur = 16;
+        gctx.globalAlpha = 0.75;
+        gctx.drawImage(baked.canvas, 0, 0);
+        gctx.globalAlpha = 1;
+        gctx.globalCompositeOperation = 'destination-out';
+        gctx.drawImage(baked.canvas, 0, 0);
+        // 门槛与房内地板的重叠带不发光，只保留平台外侧轮廓。
+        const glowData = gctx.getImageData(0, 0, baked.w, baked.h);
+        for (let py = 0; py < baked.h; py++) {
+            for (let px = 0; px < baked.w; px++) {
+                const worldX = baked.x + px;
+                const worldY = baked.y + py;
+                const outwardDistance = (worldX - info.center.x) * outwardUnit.x
+                    + (worldY - info.center.y) * outwardUnit.y;
+                if (outwardDistance <= cellStep * 1.35) {
+                    glowData.data[(py * baked.w + px) * 4 + 3] = 0;
+                }
+            }
+        }
+        gctx.putImageData(glowData, 0, 0);
+        gctx.globalCompositeOperation = 'source-over';
+        const glowKey = isEntry ? 'gate_zone_glow_entry' : 'gate_zone_glow';
+        if (scene.textures.exists(glowKey)) scene.textures.remove(glowKey);
+        scene.textures.addCanvas(glowKey, glowCanvas);
+        const glow = scene.add.image(baked.x, baked.y, glowKey);
+        glow.setOrigin(0, 0);
+        glow.setDepth(-998);
+        scene.tweens.add({
+            targets: glow,
+            alpha: { from: 0.22, to: 0.38 },
+            yoyo: true,
+            repeat: -1,
+            duration: 1200,
+            ease: 'Sine.easeInOut',
+        });
+
+        const segments = [
+            [nearA, mouthA],
+            [mouthA, shoulderA],
+            [shoulderA, farA],
+            [farA, farB],
+            [farB, shoulderB],
+            [shoulderB, mouthB],
+            [mouthB, nearB],
+        ].map(([a, b]) => ({
+            x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+            halfThick: 2,
+            _gateZoneBoundary: true,
+            _movementOnly: true,
+        }));
+        for (const segment of segments) WallSystem.isoSegments.push(segment);
+
+        const centerCells = 3;
+        const cx = info.center.x + outward.x * centerCells;
+        const cy = info.center.y + outward.y * centerCells;
+        const xs = points.map(point => point.x);
+        const ys = points.map(point => point.y);
+        return {
+            x: Math.min(...xs), y: Math.min(...ys),
+            w: Math.max(...xs) - Math.min(...xs),
+            h: Math.max(...ys) - Math.min(...ys),
+            cx, cy,
+            points,
+            _sprites: [tile, glow],
+            _segments: segments,
+        };
+    },
+
+    /** 门外白区：默认出口门；也可传入场门信息生成入场地块。 */
+    _spawnGateExitZone(info = WallGate.getGateInfo(), diamond = this._diamond, gridSpan = this._gridGateSpan) {
         const scene = window.__phaserScene;
         if (!scene || !info || !info.center || !diamond) return null;
+        const isEntry = !!this._arenaEntryZoneBaking;
+        if (this._roomConstruction === 'worldBlock1x1' && gridSpan) {
+            const zone = this._spawnWorldBlockGateZone(info, diamond, gridSpan, isEntry);
+            if (isEntry) {
+                this._arenaEntryZoneBaking = false;
+                return zone;
+            }
+            this._gateZone = zone;
+            return zone;
+        }
+        const wallStyle = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos() : null;
+        if (wallStyle?.gate === 'swamp_gate' && info.seg) {
+            const zone = this._spawnSwampGateZone(info, diamond, isEntry);
+            if (isEntry) {
+                this._arenaEntryZoneBaking = false;
+                return zone;
+            }
+            this._gateZone = zone;
+            return zone;
+        }
         // 外法线（背离菱形中心）
         const dx = info.center.x - diamond.cx, dy = info.center.y - diamond.cy;
         const dl = Math.hypot(dx, dy) || 1;
@@ -704,7 +1035,7 @@ export const CombatRoomSystem = {
         }
         ctx.putImageData(imgData, 0, 0);
         console.log(`[GateZone] bake v5: 远侧线性淡出 | tile=${tileKey} geo=${geo.w}x${geo.h}`);
-        const zoneKey = this._arenaEntryZoneBaking ? 'gate_zone_tile_entry' : 'gate_zone_tile';
+        const zoneKey = isEntry ? 'gate_zone_tile_entry' : 'gate_zone_tile';
         if (scene.textures.exists(zoneKey)) scene.textures.remove(zoneKey);
         scene.textures.addCanvas(zoneKey, canvas);
 
@@ -735,7 +1066,7 @@ export const CombatRoomSystem = {
         gctx.fillStyle = grad2;
         gctx.fillRect(0, 0, bw, bh);
         gctx.globalCompositeOperation = 'source-over';
-        const glowKey = this._arenaEntryZoneBaking ? 'gate_zone_glow_entry' : 'gate_zone_glow';
+        const glowKey = isEntry ? 'gate_zone_glow_entry' : 'gate_zone_glow';
         if (scene.textures.exists(glowKey)) scene.textures.remove(glowKey);
         scene.textures.addCanvas(glowKey, glowC);
         const glow = scene.add.image(lx, ly, glowKey);
@@ -749,7 +1080,7 @@ export const CombatRoomSystem = {
             cx: lx, cy: ly, // 贴砖中心（光晕锚点）
             _sprites: [tile, glow],
         };
-        if (this._arenaEntryZoneBaking) {
+        if (isEntry) {
             this._arenaEntryZoneBaking = false;
             return zone; // 入场地块：调用方存放到 _arena.entryZone
         }
@@ -764,6 +1095,7 @@ export const CombatRoomSystem = {
         const d = this._diamond;
         const outside = Math.abs(player.x - d.cx) / d.rx + Math.abs(player.y - d.cy) / d.ry > 1;
         if (!outside) return false;
+        if (z.points) return this._pointInPolygon(player.x, player.y, z.points);
         return player.x >= z.x && player.x <= z.x + z.w && player.y >= z.y && player.y <= z.y + z.h;
     },
 
@@ -800,12 +1132,7 @@ export const CombatRoomSystem = {
             window.__phaserScene._purgeXRayCircles();
         }
         if (this._gateZone) {
-            for (const s of this._gateZone._sprites) {
-                if (s && s.scene) {
-                    s.scene.tweens.killTweensOf(s);
-                    s.destroy();
-                }
-            }
+            this._destroyGateZone(this._gateZone);
             this._gateZone = null;
         }
         // 地板装饰点缀清理
@@ -1194,7 +1521,8 @@ export const CombatRoomSystem = {
             this._arenaEntryZoneBaking = true;
             entryZone = this._spawnGateExitZone(
                 { center: entryGate.center, seg: [entryGate.baseA, entryGate.baseB], flip: entryGate.sprite ? entryGate.sprite.flipX : false },
-                { cx: r1d.cx, cy: r1d.cy, rx: r1d.rx, ry: r1d.ry }
+                { cx: r1d.cx, cy: r1d.cy, rx: r1d.rx, ry: r1d.ry },
+                entrySpan
             );
             if (this._arena) {
                 this._arena.entryGate = entryGate;
@@ -2238,14 +2566,7 @@ export const CombatRoomSystem = {
             }
         }
         // 入场地块贴砖销毁
-        if (this._arena.entryZone && this._arena.entryZone._sprites) {
-            for (const s of this._arena.entryZone._sprites) {
-                if (s && s.scene) {
-                    s.scene.tweens.killTweensOf(s);
-                    s.destroy();
-                }
-            }
-        }
+        this._destroyGateZone(this._arena.entryZone);
         this._arena = null;
     },
 

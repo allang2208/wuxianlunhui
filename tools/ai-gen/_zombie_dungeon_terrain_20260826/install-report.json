@@ -12,6 +12,10 @@
     ],
     "materialReference": "assets/terrain/blackbrick.png",
     "style": "road-matched low-frequency dark stone; broad worn variation, thin joints, restrained bevels and no full-surface grain",
+    "tileMaterialVariants": 32,
+    "brokenCellsPerTexturePeriod": 4,
+    "brokenProbability": 0.0625,
+    "brokenStyle": "one small chipped corner plus one thin two-segment hairline crack",
     "periodicSampleMaxRgbDelta": 0
   },
   "assets": [

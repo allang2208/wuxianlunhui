@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_cavalry_pair_20260827\\references\\hamster-winged-hussar-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_cavalry_pair_20260827\\prompts\\winged_hussar\\attacking-doubao-v01.txt",
+  "promptChars": 2027,
+  "promptSha256": "487495c6a54dcc9ed3ee24e30d6fb959461f3db264f69eab97f0a8f4243fb120",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T05:57:29.168Z",
+  "sourceUrlScheme": "https"
+}

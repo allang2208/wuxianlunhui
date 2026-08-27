@@ -21,6 +21,11 @@ BASE_WIDTH = BRICK_WIDTH * BRICK_PERIODS_X
 BASE_HEIGHT = BRICK_HEIGHT * BRICK_PERIODS_Y
 STONE_REFERENCE = ASSETS / "blackbrick.png"
 STONE_SAMPLE_SIZE = 256
+TILE_TINTS = (
+    (-4, -3, -1), (-2, -1, 1), (0, 0, 0), (2, 1, 0),
+    (3, 2, 1), (-1, 0, 2), (1, 2, 3), (0, -1, -2),
+)
+BROKEN_CELLS = frozenset({(4, 0), (1, 2), (6, 4), (3, 7)})
 
 
 def clean_alpha(image: Image.Image, threshold=6) -> Image.Image:
@@ -40,6 +45,46 @@ def _tile_hash(i: int, j: int) -> int:
     return value ^ (value >> 15)
 
 
+def _segment_distance(px: float, py: float, ax: float, ay: float,
+                      bx: float, by: float) -> float:
+    dx, dy = bx - ax, by - ay
+    denom = dx * dx + dy * dy
+    if denom <= 1e-9:
+        return math.hypot(px - ax, py - ay)
+    t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / denom))
+    return math.hypot(px - (ax + dx * t), py - (ay + dy * t))
+
+
+def _broken_mark(fi: float, fj: float, tile_i: int, tile_j: int,
+                 tile_seed: int) -> str | None:
+    """Sparse deterministic chip/crack: exactly 4 of the repeating 8x8 cells."""
+    if (tile_i, tile_j) not in BROKEN_CELLS:
+        return None
+
+    variant = (tile_seed >> 17) & 3
+    u, v = fi, fj
+    if variant & 1:
+        u = 1.0 - u
+    if variant & 2:
+        v = 1.0 - v
+
+    chip_size = 0.095 + ((tile_seed >> 21) & 3) * 0.008
+    chip_edge = chip_size + math.sin((u - v) * 31.0 + variant) * 0.006
+    if u + v < chip_edge:
+        return "chip"
+
+    bend_x = 0.43 + (((tile_seed >> 23) & 7) - 3) * 0.012
+    bend_y = 0.47 + (((tile_seed >> 26) & 7) - 3) * 0.013
+    start = (0.16, 0.19 + variant * 0.035)
+    bend = (bend_x, bend_y)
+    end = (0.78, 0.73 - variant * 0.028)
+    distance = min(
+        _segment_distance(u, v, *start, *bend),
+        _segment_distance(u, v, *bend, *end),
+    )
+    return "crack" if distance < 0.013 else None
+
+
 def _load_stone_reference():
     """Reduce the legacy stone to road-style broad, low-frequency surface variation."""
     image = Image.open(STONE_REFERENCE).convert("RGB")
@@ -49,11 +94,11 @@ def _load_stone_reference():
     inset = 24
     image = image.crop((inset, inset, image.width - inset, image.height - inset))
     image = ImageEnhance.Color(image).enhance(0.55)
-    image = ImageEnhance.Contrast(image).enhance(0.92)
+    image = ImageEnhance.Contrast(image).enhance(0.62)
     image = ImageEnhance.Brightness(image).enhance(0.68)
-    image = image.resize((48, 48), Image.Resampling.LANCZOS)
+    image = image.resize((16, 16), Image.Resampling.LANCZOS)
     image = image.resize((STONE_SAMPLE_SIZE, STONE_SAMPLE_SIZE), Image.Resampling.BICUBIC)
-    image = image.filter(ImageFilter.GaussianBlur(1.15))
+    image = image.filter(ImageFilter.GaussianBlur(3.0))
     return image.load()
 
 
@@ -72,6 +117,8 @@ def _brick_pixel(x: float, y: float, stone_pixels) -> tuple[int, int, int]:
     edge_j0, edge_j1 = fj, 1.0 - fj
     edge = min(edge_i0, edge_i1, edge_j0, edge_j1)
     tile_seed = _tile_hash(i_cell, j_cell)
+    tile_i = i_cell % BRICK_PERIODS_X
+    tile_j = j_cell % BRICK_PERIODS_Y
 
     mortar = 0.018
     bevel = 0.082
@@ -80,25 +127,34 @@ def _brick_pixel(x: float, y: float, stone_pixels) -> tuple[int, int, int]:
         tone = 5 + grain
         return tone, tone + 1, tone + 2
 
+    broken_mark = _broken_mark(fi, fj, tile_i, tile_j, tile_seed)
+    if broken_mark == "chip":
+        return 5, 6, 7
+    if broken_mark == "crack":
+        return 8, 9, 11
+
     # The original blackbrick source now supplies only broad worn-stone tone.
     # Geometry remains analytical, so style can never bend the 2:1 grid or
     # break the texture period.
-    sample_x = min(STONE_SAMPLE_SIZE - 1, max(0, int(fi * STONE_SAMPLE_SIZE)))
-    sample_y = min(STONE_SAMPLE_SIZE - 1, max(0, int(fj * STONE_SAMPLE_SIZE)))
+    material_variant = (tile_seed >> 13) & 3
+    sample_u = 1.0 - fi if material_variant & 1 else fi
+    sample_v = 1.0 - fj if material_variant & 2 else fj
+    sample_x = min(STONE_SAMPLE_SIZE - 1, max(0, int(sample_u * STONE_SAMPLE_SIZE)))
+    sample_y = min(STONE_SAMPLE_SIZE - 1, max(0, int(sample_v * STONE_SAMPLE_SIZE)))
     ref_r, ref_g, ref_b = stone_pixels[sample_x, sample_y]
-    tile_bias = int((tile_seed >> 9) % 9) - 5
+    tile_tint = TILE_TINTS[(tile_seed >> 9) & 7]
     # Keep the same soft upper-left light as the building pipeline. The source
     # provides natural roughness; this bevel only keeps each floor cell readable.
     bevel_light = 0.0
     if edge < bevel:
         strength = min(1.0, (bevel - edge) / max(0.001, bevel - mortar))
         if min(edge_i0, edge_j0) == edge:
-            bevel_light = 3.2 * strength
+            bevel_light = 2.2 * strength
         else:
-            bevel_light = -2.4 * strength
+            bevel_light = -1.7 * strength
 
-    return tuple(max(7, min(72, round(channel + tile_bias + bevel_light)))
-                 for channel in (ref_r - 3, ref_g - 2, ref_b))
+    return tuple(max(7, min(72, round(channel + tint + bevel_light)))
+                 for channel, tint in zip((ref_r - 3, ref_g - 2, ref_b), tile_tint))
 
 
 def build_black_brick_base() -> tuple[Image.Image, dict]:
@@ -126,6 +182,10 @@ def build_black_brick_base() -> tuple[Image.Image, dict]:
         "texturePeriod": [BASE_WIDTH, BASE_HEIGHT],
         "materialReference": str(STONE_REFERENCE.relative_to(REPO)).replace("\\", "/"),
         "style": "road-matched low-frequency dark stone; broad worn variation, thin joints, restrained bevels and no full-surface grain",
+        "tileMaterialVariants": len(TILE_TINTS) * 4,
+        "brokenCellsPerTexturePeriod": len(BROKEN_CELLS),
+        "brokenProbability": len(BROKEN_CELLS) / (BRICK_PERIODS_X * BRICK_PERIODS_Y),
+        "brokenStyle": "one small chipped corner plus one thin two-segment hairline crack",
         "periodicSampleMaxRgbDelta": max_delta,
     }
 

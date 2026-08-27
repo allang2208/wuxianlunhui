@@ -235,8 +235,8 @@
       "prerequisites": ["gunpowder"], "description": "规划科研：二级编制完成后，射手与重火力生产槽自动替换为仓鼠长弓与仓鼠火枪。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_2", "label": "靶场二级编制" }]
     },
     {
-      "id": "shooting_range_level_3", "name": "靶场·III级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_3.png", "branch": "军事指挥", "subBranch": "靶场", "column": 5, "lane": 3, "researchCost": 2200, "placeholder": true, "recruitmentTierId": "shooting_range_level_3",
-      "prerequisites": ["shooting_range_level_2"], "description": "规划科研：三级编制完成后，射手与重火力生产槽自动替换为仓鼠突击与仓鼠重机枪。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "靶场三级编制" }]
+      "id": "shooting_range_level_3", "name": "靶场·III级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_3.png", "branch": "军事指挥", "subBranch": "靶场", "column": 5, "lane": 3, "researchCost": 2200, "recruitmentTierId": "shooting_range_level_3",
+      "prerequisites": ["shooting_range_level_2"], "description": "三级编制：射手与重火力生产槽替换为仓鼠突击与仓鼠重机枪。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "靶场三级编制" }, { "type": "unit", "id": "assault", "label": "仓鼠突击" }, { "type": "unit", "id": "heavy_machine_gunner", "label": "仓鼠重机枪" }]
     },
     {
       "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 1, "lane": 4, "researchCost": 140,
@@ -256,8 +256,8 @@
       "prerequisites": ["heavy_cavalry"], "description": "现役一级编制：仓鼠轻骑与仓鼠骑士作为骑兵学院两条基础兵种线，无需额外科研。", "unlocks": []
     },
     {
-      "id": "cavalry_school_level_2", "name": "骑兵学院·II级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_2.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 4, "lane": 4, "researchCost": 500, "placeholder": true, "recruitmentTierId": "cavalry_school_level_2",
-      "prerequisites": ["heavy_cavalry"], "description": "规划科研：二级编制完成后，轻骑与重骑生产槽自动替换为仓鼠骑兵与仓鼠翼骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_2", "label": "骑兵学院二级编制" }]
+      "id": "cavalry_school_level_2", "name": "骑兵学院·II级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_2.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 4, "lane": 4, "researchCost": 500, "recruitmentTierId": "cavalry_school_level_2",
+      "prerequisites": ["heavy_cavalry"], "description": "二级编制完成后，轻骑与重骑生产槽自动替换为仓鼠骑兵与仓鼠翼骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_2", "label": "骑兵学院二级编制" }, { "type": "unit", "id": "cavalry", "label": "仓鼠骑兵" }, { "type": "unit", "id": "winged_hussar", "label": "仓鼠翼骑兵" }]
     },
     {
       "id": "cavalry_school_level_3", "name": "骑兵学院·III级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 4, "researchCost": 2200, "placeholder": true, "recruitmentTierId": "cavalry_school_level_3",

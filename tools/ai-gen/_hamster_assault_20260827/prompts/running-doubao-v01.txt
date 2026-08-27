@@ -1,0 +1,11 @@
+Keep the exact compact hamster assault trooper identity from the reference image: the same broad short golden-and-white hamster, face, ears, clear amber goggles, open high-cut helmet, sand-and-olive ripstop uniform, coyote plate carrier and pouches, backpack, knee pads, gloves, boots, holster, and the exact same compact black assault rifle with one barrel, one curved magazine, one red-dot optic and one stock.
+
+This is a short-tailed hamster. Its tiny natural tail stays completely hidden behind the uniform and backpack. Never generate a visible long tail, rat tail, mouse tail, rope-like appendage, or extra appendage. Both feet remain fully enclosed in the same boots at all times; no toes, claws, bare paws, sandals, or missing boot fronts.
+
+The intentionally compact full-body scale and wide empty framing of the reference image are mandatory. Keep the hamster at exactly this small size and left-side position. Never enlarge, zoom, crop, reframe, track, pan, or move the camera. Both boots, the backpack, and every part of the rifle must remain visible with very large white margins in every frame.
+
+Animate a steady in-place tactical run facing screen right in the same three-quarter view. The short thick legs alternate naturally through one complete regular two-step running cycle. The hamster does not travel across the canvas and does not turn toward the camera. Keep the low hamster center of gravity, broad belly and compact silhouette; do not lengthen the legs or transform the body into human proportions. The torso has restrained vertical motion. Both hands continuously hold the same rifle close to the chest in a stable low-ready carry, muzzle pointing right and slightly downward. The rifle does not swing wildly, change sides, bend, shrink, duplicate, or transform. All equipment remains attached and coherent.
+
+Static locked wide camera, fixed scale and horizontal position, pure white background, soft even light. Begin and finish on the same running phase with the same boot forward for a seamless loop.
+
+No sliding, forward travel, aiming, firing, muzzle flash, smoke, reloading, visible tail, rat anatomy, bare feet, missing equipment, extra weapon, extra limbs, weapon morphing, camera tracking, zoom, crop, floor, shadow, scenery, text, logo, or watermark.

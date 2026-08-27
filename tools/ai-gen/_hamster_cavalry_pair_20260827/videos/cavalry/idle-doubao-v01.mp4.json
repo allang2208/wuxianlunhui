@@ -1,0 +1,16 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "reference": "../../references/hamster-cavalry-safe-white-1024x576.png",
+  "prompt": "../../prompts/cavalry/idle-doubao-v01.txt",
+  "promptChars": 2185,
+  "promptSha256": "833e181a09389443952c531efb3e8514d54aba850d5b62dcf6c209e48dee1db5",
+  "durationSeconds": 5,
+  "sizeRequested": "1024x576",
+  "sourceVideoActualSize": "1280x720",
+  "loopRequested": true,
+  "submissionResult": "timed_out_after_1800s_then_recovered_from_exact_latest_completed_card_without_resubmission",
+  "recoveredFromConversation": true,
+  "recoveredAt": "2026-08-27T05:34:38Z",
+  "sourceUrlScheme": "https"
+}
