@@ -1,0 +1,11 @@
+{
+  "panelSource": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\dedicated_cutout\\wind_power_plant\\wind_power_plant_body.png",
+  "rotorFreeFill": "tools\\ai-gen\\_settlement_building_pack_20260821\\wind_power_plant\\wind_power_plant_body_user.png",
+  "rotorMask": "tools\\ai-gen\\_settlement_building_pack_20260821\\wind_power_plant\\rotor_sources\\rotor_mask.png",
+  "output": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\formal_cutouts\\wind_power_plant\\wind_power_plant_body_source.png",
+  "maskDilate": 31,
+  "maskFeather": 1.5,
+  "hubClearRadius": 300,
+  "hubClearMaxY": 370,
+  "method": "authored Blender rotor mask over accepted rotor-free fill"
+}

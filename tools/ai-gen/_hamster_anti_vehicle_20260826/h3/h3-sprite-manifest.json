@@ -1,0 +1,64 @@
+{
+  "unit": "hamster_anti_vehicle",
+  "provider": "minimax-hailuo-h3",
+  "video": {
+    "resolution": "1024x576",
+    "fps": 24,
+    "frameCountPerClip": 124
+  },
+  "alpha": {
+    "background": "pure white",
+    "model": "BiRefNet-general",
+    "edgeDecontamination": "white-background foreground reconstruction",
+    "transparentRgbCleared": true,
+    "note": "BiRefNet replaces the rejected threshold-only cutout; enclosed strap gaps and outer edges are true alpha."
+  },
+  "actions": {
+    "idle": {
+      "video": "videos/hamster_anti_vehicle_idle_h3.mp4",
+      "sourceFrames": [0, 16, 33, 49, 66, 82, 98, 115],
+      "mode": "loop",
+      "outputFrameCount": 16,
+      "outputFrameRate": 8
+    },
+    "running": {
+      "video": "videos/hamster_anti_vehicle_running_h3.mp4",
+      "sourceFrames": [20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64],
+      "mode": "loop",
+      "outputFrameCount": 24,
+      "outputFrameRate": 20
+    },
+    "attacking": {
+      "video": "videos/hamster_anti_vehicle_smg_attacking_h3.mp4",
+      "sourceFrames": [25, 33, 41, 49, 57, 66, 74],
+      "mode": "one-shot",
+      "outputFrameCount": 13,
+      "outputFrameRate": 20,
+      "launchFrameOneBased": 9
+    },
+    "rocket_attacking": {
+      "video": "videos/hamster_anti_vehicle_rocket_attacking_h3_v02.mp4",
+      "sourceFrames": [0, 8, 16, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 67, 69, 73, 77, 81, 85, 89, 93, 97, 101, 105, 109, 113, 117, 121, 123],
+      "appendedFinalFrame": "idle video frame 0, used only after the thrown tube exits to regenerate a fresh back launcher",
+      "mode": "one-shot",
+      "outputFrameCount": 61,
+      "outputFrameRate": 24,
+      "launchFrameOneBased": 29,
+      "discardFrameOneBased": 45,
+      "discardedLauncherEdgeFade": "left 56px smoothstep alpha fade on source frames 89, 93, and 97",
+      "sequence": "take launcher from back, shoulder and fire, discard empty tube, return to SMG with regenerated back launcher"
+    },
+    "dying": {
+      "video": "videos/hamster_anti_vehicle_dying_h3.mp4",
+      "sourceFrames": [25, 29, 33, 37, 41, 45, 49, 53, 57, 61, 65, 69, 73, 77, 81],
+      "mode": "one-shot",
+      "outputFrameCount": 29,
+      "outputFrameRate": 24
+    }
+  },
+  "interpolation": {
+    "engine": "RIFE v4.6",
+    "factor": 2,
+    "rgbaMode": "RGB and alpha interpolated separately with nearest-color bleed, temporal red-block repair, and source-key hold on severe deformation"
+  }
+}

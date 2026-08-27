@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """世界-122 防守地图素材批量生图（2026-08-04）。
 
-模型：FLUX.2 Dev fp8 跨机 Mesh（5080 Icarus + 本机 Daedalus，8 步 turbo）。
+模型：FLUX.2 Klein 4B 无 LoRA（默认自由构图入口）。
 产出：Y:\\工作\\无尽轮回\\scratch\\world122\\raw\\*.png（白底原图，后续 prep-obstacle 抠图入库）。
 
 用法：
@@ -19,7 +19,7 @@ from prompt_principles import STYLE_BASELINE
 DIR = os.path.dirname(os.path.abspath(__file__))
 GEN = os.path.join(DIR, "comfyui-gen.py")
 HOST = "192.168.3.142"
-MODEL = "flux2-dev-mesh"
+MODEL = "flux2-klein-4b-nolora"
 OUT_DIR = r"Y:\工作\无尽轮回\scratch\world122\raw"
 
 STYLE = STYLE_BASELINE

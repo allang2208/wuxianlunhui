@@ -1,0 +1,10 @@
+{
+  "sampleRate": 44100,
+  "channels": 2,
+  "frames": 24255,
+  "durationSeconds": 0.55,
+  "peakDbfs": -0.7242432955221323,
+  "rmsDbfs": -9.361561431266692,
+  "spectralCentroidHz": 224.56975731036658,
+  "energyBelow500Hz": 0.8574772414963471
+}

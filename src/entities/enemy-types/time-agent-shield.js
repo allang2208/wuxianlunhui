@@ -77,7 +77,7 @@ export class TimeAgentShield extends Enemy {
         // 装备沙漠之鹰（共享装配：实例化装备/绑定攻击/伤害与击退覆盖/AI 散布）
         const skills0 = this._getSkillConfigs();
         setupGun(this, {
-            equipKey: 'desert_eagle',
+            weaponId: 'weapon10',
             attackKey: 'deagle',
             damage: { min: this.data.atk, max: this.data.atk }, // 伤害取怪物面板物攻
             knockback: skills0.shoot.knockback ?? 0,             // 命中不击退（盾位设定）

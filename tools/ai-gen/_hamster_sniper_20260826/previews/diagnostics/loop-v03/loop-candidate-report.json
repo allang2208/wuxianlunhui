@@ -1,0 +1,277 @@
+{
+  "video": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_sniper_20260826\\videos\\running-doubao-v02.mp4",
+  "fps": 24.0,
+  "method": "largest subject component normalized to fixed height and footline; rank by lower-36-percent leg IoU, whole-subject IoU and visible RGB delta",
+  "topCandidates": [
+    {
+      "start": 78,
+      "end": 94,
+      "period": 16,
+      "overallIou": 0.9886950245555678,
+      "legIou": 0.9725509649682281,
+      "visibleDelta": 4.317906856536865,
+      "score": 3.085128078920301
+    },
+    {
+      "start": 82,
+      "end": 98,
+      "period": 16,
+      "overallIou": 0.9897264028315036,
+      "legIou": 0.972435023734549,
+      "visibleDelta": 4.402786731719971,
+      "score": 3.0850555877303116
+    },
+    {
+      "start": 84,
+      "end": 100,
+      "period": 16,
+      "overallIou": 0.9853274832997352,
+      "legIou": 0.961981316532696,
+      "visibleDelta": 4.831229209899902,
+      "score": 3.0533740875726676
+    },
+    {
+      "start": 74,
+      "end": 90,
+      "period": 16,
+      "overallIou": 0.984764304494804,
+      "legIou": 0.960184772668652,
+      "visibleDelta": 5.11810302734375,
+      "score": 3.0459897740924005
+    },
+    {
+      "start": 80,
+      "end": 96,
+      "period": 16,
+      "overallIou": 0.9831348268582412,
+      "legIou": 0.9596417910447761,
+      "visibleDelta": 4.905914306640625,
+      "score": 3.045287624090342
+    },
+    {
+      "start": 83,
+      "end": 99,
+      "period": 16,
+      "overallIou": 0.9801174875734298,
+      "legIou": 0.9578183054469511,
+      "visibleDelta": 4.958718299865723,
+      "score": 3.0377305765580647
+    },
+    {
+      "start": 79,
+      "end": 95,
+      "period": 16,
+      "overallIou": 0.9788994621431527,
+      "legIou": 0.9575601374570447,
+      "visibleDelta": 4.981082439422607,
+      "score": 3.0357209401544254
+    },
+    {
+      "start": 66,
+      "end": 82,
+      "period": 16,
+      "overallIou": 0.9836326225215114,
+      "legIou": 0.9542395693135935,
+      "visibleDelta": 4.762618541717529,
+      "score": 3.035333489594242
+    },
+    {
+      "start": 58,
+      "end": 74,
+      "period": 16,
+      "overallIou": 0.9848246868431129,
+      "legIou": 0.9585787751285647,
+      "visibleDelta": 5.950488567352295,
+      "score": 3.0341931064524323
+    },
+    {
+      "start": 81,
+      "end": 97,
+      "period": 16,
+      "overallIou": 0.974165459507479,
+      "legIou": 0.9515956254203931,
+      "visibleDelta": 3.714473009109497,
+      "score": 3.0305311053412494
+    },
+    {
+      "start": 80,
+      "end": 95,
+      "period": 15,
+      "overallIou": 0.9780057259454928,
+      "legIou": 0.9538260806533453,
+      "visibleDelta": 4.731470584869385,
+      "score": 3.029108397534159
+    },
+    {
+      "start": 62,
+      "end": 78,
+      "period": 16,
+      "overallIou": 0.9831246979593745,
+      "legIou": 0.9551764159702878,
+      "visibleDelta": 5.810281753540039,
+      "score": 3.0264099955586072
+    },
+    {
+      "start": 80,
+      "end": 94,
+      "period": 14,
+      "overallIou": 0.9836488068579151,
+      "legIou": 0.9595056222422546,
+      "visibleDelta": 6.927298069000244,
+      "score": 3.025288195100873
+    },
+    {
+      "start": 68,
+      "end": 84,
+      "period": 16,
+      "overallIou": 0.9812338137707912,
+      "legIou": 0.9498186503770163,
+      "visibleDelta": 4.7476348876953125,
+      "score": 3.023358495723274
+    },
+    {
+      "start": 77,
+      "end": 93,
+      "period": 16,
+      "overallIou": 0.9656242213809788,
+      "legIou": 0.9581263485373075,
+      "visibleDelta": 5.22880744934082,
+      "score": 3.0212141136696475
+    },
+    {
+      "start": 83,
+      "end": 98,
+      "period": 15,
+      "overallIou": 0.9798547025328883,
+      "legIou": 0.9505138040441351,
+      "visibleDelta": 5.021024703979492,
+      "score": 3.020774824390191
+    },
+    {
+      "start": 70,
+      "end": 86,
+      "period": 16,
+      "overallIou": 0.9806924675528369,
+      "legIou": 0.9471646442230511,
+      "visibleDelta": 4.451291084289551,
+      "score": 3.019941774000654
+    },
+    {
+      "start": 72,
+      "end": 88,
+      "period": 16,
+      "overallIou": 0.9797269570707071,
+      "legIou": 0.9492870368143891,
+      "visibleDelta": 4.952938556671143,
+      "score": 3.0186290524956516
+    },
+    {
+      "start": 67,
+      "end": 83,
+      "period": 16,
+      "overallIou": 0.9783247495971437,
+      "legIou": 0.9476374156219864,
+      "visibleDelta": 4.7473063468933105,
+      "score": 3.0156540004965806
+    },
+    {
+      "start": 71,
+      "end": 87,
+      "period": 16,
+      "overallIou": 0.9761965457905806,
+      "legIou": 0.9482899324875733,
+      "visibleDelta": 4.721036911010742,
+      "score": 3.0152240281531344
+    },
+    {
+      "start": 59,
+      "end": 74,
+      "period": 15,
+      "overallIou": 0.9809864457831325,
+      "legIou": 0.9546152937005082,
+      "visibleDelta": 6.661499977111816,
+      "score": 3.0145250921531326
+    },
+    {
+      "start": 64,
+      "end": 78,
+      "period": 14,
+      "overallIou": 0.983150246247563,
+      "legIou": 0.9572120812946933,
+      "visibleDelta": 7.506213188171387,
+      "score": 3.0139546932141745
+    },
+    {
+      "start": 84,
+      "end": 99,
+      "period": 15,
+      "overallIou": 0.9768016613105719,
+      "legIou": 0.9443189464577526,
+      "visibleDelta": 4.189053058624268,
+      "score": 3.012412812931385
+    },
+    {
+      "start": 75,
+      "end": 91,
+      "period": 16,
+      "overallIou": 0.9724034477832277,
+      "legIou": 0.9521174614731222,
+      "visibleDelta": 5.7100019454956055,
+      "score": 3.0099618435691404
+    },
+    {
+      "start": 60,
+      "end": 74,
+      "period": 14,
+      "overallIou": 0.9847163450633168,
+      "legIou": 0.9594223962118194,
+      "visibleDelta": 8.55752182006836,
+      "score": 3.0098703985286357
+    },
+    {
+      "start": 73,
+      "end": 89,
+      "period": 16,
+      "overallIou": 0.9704870280565292,
+      "legIou": 0.9480186306010112,
+      "visibleDelta": 4.7237372398376465,
+      "score": 3.008890642980378
+    },
+    {
+      "start": 69,
+      "end": 85,
+      "period": 16,
+      "overallIou": 0.9671186276722664,
+      "legIou": 0.9469911481849953,
+      "visibleDelta": 4.658928394317627,
+      "score": 3.00390986973608
+    },
+    {
+      "start": 63,
+      "end": 78,
+      "period": 15,
+      "overallIou": 0.9787916578429297,
+      "legIou": 0.9471929243721326,
+      "visibleDelta": 5.971798419952393,
+      "score": 3.0028981072620975
+    },
+    {
+      "start": 64,
+      "end": 94,
+      "period": 30,
+      "overallIou": 0.9820664627994463,
+      "legIou": 0.9540749414519907,
+      "visibleDelta": 7.962839603424072,
+      "score": 3.0014029379595857
+    },
+    {
+      "start": 64,
+      "end": 80,
+      "period": 16,
+      "overallIou": 0.9793316122754844,
+      "legIou": 0.9454897881996974,
+      "visibleDelta": 5.831945896148682,
+      "score": 3.0010896873533324
+    }
+  ]
+}

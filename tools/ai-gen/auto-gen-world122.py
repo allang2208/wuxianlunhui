@@ -17,7 +17,7 @@ Reuses item/prompt definitions from gen-world122-assets.py.
 
 Usage:
   python auto-gen-world122.py --auto --keys cover_B_v cover_D_v \
-      --model flux2-dev-fp8 --glm-gate --retries 4
+      --model flux2-klein-4b-nolora --glm-gate --retries 4
 """
 
 import argparse
@@ -193,7 +193,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--keys", nargs="*", default=None, help="item keys, e.g. cover_B_v cover_D_v")
-    ap.add_argument("--model", default=None, help="models.json model (default: flux2-dev-mesh)")
+    ap.add_argument("--model", default=None, help="models.json model (default: flux2-klein-4b-nolora)")
     ap.add_argument("--host", default=None, help="ComfyUI host (default: 192.168.3.142)")
     ap.add_argument("--timeout", type=int, default=900, help="per-generation timeout")
     ap.add_argument("--bg", choices=["solid", "white"], default="solid",
@@ -205,8 +205,8 @@ def main():
                     help="cover audit does not require h/v pair MIRROR")
     ap.add_argument("--verify", action="store_true",
                     help="check assets vs manifest and no-shadow rule, then exit")
-    ap.add_argument("--fallback-model", default="flux2-dev-fp8",
-                    help="model to fall back to when the primary mesh model fails")
+    ap.add_argument("--fallback-model", default="sdxl",
+                    help="non-FLUX fallback when the default Klein model fails")
     ap.add_argument("--fallback-host", default=None,
                     help="host for the fallback model (default: same as --host)")
     args = ap.parse_args()

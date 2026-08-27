@@ -1,0 +1,160 @@
+{
+  "cell": 256,
+  "feetY": 236,
+  "targetHeight": 218,
+  "fixedScale": 0.4074766355140187,
+  "actions": {
+    "idle": {
+      "source": "videos/idle-closed-mouth.mp4",
+      "window": [
+        37,
+        100
+      ],
+      "sourceIndices": [
+        37,
+        48,
+        57,
+        65,
+        75,
+        83,
+        90,
+        99
+      ],
+      "frameCount": 8,
+      "endFrame": 7,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 2,
+      "frameRate": 8,
+      "footRatio": 0.921875,
+      "validation": {
+        "alphaPixelsMin": 14235,
+        "alphaPixelsMax": 14719,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 14.935518945966448,
+        "loopSeamDelta": 9.781205177307129
+      }
+    },
+    "empty_running": {
+      "source": "videos/empty-running.mp4",
+      "window": [
+        30,
+        49
+      ],
+      "sourceIndices": [
+        30,
+        33,
+        34,
+        36,
+        37,
+        38,
+        40,
+        42,
+        43,
+        45,
+        46,
+        48
+      ],
+      "frameCount": 12,
+      "endFrame": 11,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 3,
+      "frameRate": 12,
+      "footRatio": 0.921875,
+      "validation": {
+        "alphaPixelsMin": 15861,
+        "alphaPixelsMax": 17854,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 35.84079950506037,
+        "loopSeamDelta": 21.19586181640625
+      }
+    },
+    "food_loaded_running": {
+      "source": "videos/food-loaded-running.mp4",
+      "window": [
+        85,
+        102
+      ],
+      "sourceIndices": [
+        85,
+        86,
+        87,
+        89,
+        90,
+        92,
+        94,
+        95,
+        97,
+        98,
+        99,
+        101
+      ],
+      "frameCount": 12,
+      "endFrame": 11,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 3,
+      "frameRate": 12,
+      "footRatio": 0.921875,
+      "validation": {
+        "alphaPixelsMin": 15084,
+        "alphaPixelsMax": 16024,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 23.51032681898637,
+        "loopSeamDelta": 25.760896682739258
+      }
+    },
+    "energy_loaded_running": {
+      "source": "videos/energy-loaded-running.mp4",
+      "window": [
+        50,
+        72
+      ],
+      "sourceIndices": [
+        50,
+        53,
+        55,
+        57,
+        59,
+        61,
+        62,
+        64,
+        66,
+        67,
+        69,
+        71
+      ],
+      "frameCount": 12,
+      "endFrame": 11,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 3,
+      "frameRate": 12,
+      "footRatio": 0.921875,
+      "validation": {
+        "alphaPixelsMin": 14652,
+        "alphaPixelsMax": 15407,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 26.11719547618519,
+        "loopSeamDelta": 25.641687393188477
+      }
+    }
+  }
+}

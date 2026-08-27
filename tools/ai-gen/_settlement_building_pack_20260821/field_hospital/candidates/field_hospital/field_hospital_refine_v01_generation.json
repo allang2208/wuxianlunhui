@@ -1,0 +1,22 @@
+{
+  "pipeline": "world122-building-candidates",
+  "styleVersion": "world122-building-v2",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "assetId": "field_hospital",
+  "stage": "refine",
+  "model": "flux2-dev-depth",
+  "size": "1024x1024",
+  "steps": 48,
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "depthStrength": 0.75,
+  "edgeControl": false,
+  "edgeStrength": null,
+  "denoise": 0.3,
+  "seed": 122241,
+  "promptFile": "tools\\ai-gen\\_settlement_building_pack_20260821\\field_hospital\\candidates\\field_hospital\\field_hospital_refine_prompt.txt",
+  "depthImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\field_hospital\\candidates\\field_hospital\\field_hospital_refine_depth.png",
+  "initImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\field_hospital\\candidates\\field_hospital\\field_hospital_structure_v04_raw.png",
+  "nonstandardOverride": false
+}

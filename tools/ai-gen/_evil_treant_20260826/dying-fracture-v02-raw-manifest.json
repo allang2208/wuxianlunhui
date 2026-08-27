@@ -1,0 +1,68 @@
+{
+  "asset": "evil-treant",
+  "variant": "dying-fracture-v02",
+  "sourceVideo": "video\\evil-treant-dying-fracture-v02-h3.mp4",
+  "prompt": "prompts/evil-treant-dying-fracture-v02-h3.txt",
+  "seed": 2026082605,
+  "background": "#00FFFF",
+  "normalization": "one fixed scale from the first neutral standing frame",
+  "targetNeutralHeight": 430.0,
+  "sourceNeutralHeight": 345.0,
+  "scale": 1.2463768115942029,
+  "fragmentMask": {
+    "method": "BiRefNet-general hard alpha with multi-component retention",
+    "minimumComponentArea": 24
+  },
+  "action": {
+    "file": "generated\\v02\\raw\\dying.png",
+    "preview": "previews\\v02\\raw\\dying.gif",
+    "frameWidth": 896,
+    "frameHeight": 512,
+    "columns": 8,
+    "rows": 2,
+    "frameCount": 16,
+    "footY": 486,
+    "sourceFrames": [
+      0,
+      32,
+      40,
+      44,
+      48,
+      52,
+      56,
+      60,
+      64,
+      68,
+      72,
+      76,
+      80,
+      84,
+      92,
+      123
+    ],
+    "mode": "source_motion_grounded",
+    "scale": 1.2463768115942029,
+    "alphaPixels": [
+      40630,
+      54249
+    ],
+    "feetRange": [
+      481,
+      487
+    ],
+    "centerRange": [
+      410.0,
+      452.0
+    ],
+    "blankFrames": [],
+    "edgeHitFrames": [],
+    "semiPixels": 0,
+    "transparentRgbPixels": 0,
+    "duration": 1800,
+    "repeat": 0,
+    "effectiveHeightRange": [
+      185.0,
+      435.0
+    ]
+  }
+}

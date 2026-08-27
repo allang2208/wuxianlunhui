@@ -43,12 +43,6 @@
       "constructionEnabled": true,
       "requirements": { "completedDungeons": ["frozenBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
-      "featureBuilding": {
-        "cfgKey": "snow_castle",
-        "offsetX": -330,
-        "offsetY": 180,
-        "migrationId": "scene9_snow_castle_initial_v1"
-      },
       "resetPolicy": { "baseSeed": 123009 }
     },
     "scene10": {

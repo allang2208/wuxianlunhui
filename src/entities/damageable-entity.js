@@ -2,12 +2,11 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { WallSystem } from '../world/wall-system.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { SmokeEffect } from '../effects/smoke-effect.js';
 import { LightningBoltEffect } from '../effects/lightning-bolt.js';
 import { Entity } from './entity.js';
 import { getCurrentDungeonType } from '../config/exp-system.js';
 import { DungeonRunStats } from '../world/dungeon-run-stats.js';
-import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
+import { DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
@@ -32,6 +31,7 @@ import { applyOutgoingDamageModifiers } from '../combat/outgoing-damage-modifier
 
 // 友方阵营组：玩家与友军互相免疫伤害（防御塔/基地/掩体/伙伴等，2026-08-14）
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
+const DRONE_BENEFICIARY_FACTIONS = new Set(['player', 'companion', 'ally', 'friendly']);
 
 /** 友方免伤判定：source 与 target 同属友方阵营组则禁止伤害 */
 export function isFriendlyFire(source, target) {
@@ -79,6 +79,17 @@ export function isFriendlyFire(source, target) {
                 this.rebuildCollider();
                 // ===== 状态栏系统（每个实体独立） =====
                 this.statusEffects = []; // { type, duration, remaining, icon, name, color, stacks }
+                this._droneVulnerabilityStacks = 0;
+                this._droneVulnerabilityTimer = 0;
+                this._droneVulnerabilityData = null;
+                this._droneVulnerabilitySources = new Map();
+                // 腐蚀使用与毒液相同的“共享倒计时、每次到期消退一层”语义。
+                // 数值只在伤害结算读取，不直接改写 data.def，避免解除时污染基础属性。
+                this._corrosionStacks = 0;
+                this._corrosionTimer = 0;
+                this._corrosionDuration = 5000;
+                this._corrosionDefenseReductionPerStack = 0.05;
+                this._corrosionEffectId = null;
             }
             takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
                 // 友方免伤：玩家/友军不能伤害同为友方的单位（防御塔/基地/掩体/伙伴）
@@ -116,6 +127,9 @@ export function isFriendlyFire(source, target) {
                                 def = Math.floor(def * (1 - currentWpn._craftEffects.armorPenetrationPercent));
                             }
                         }
+                        // 腐蚀按层削减目标本次结算使用的物理防御，不改写基础 def。
+                        // 层数不设人为上限，但有效防御最低为 0。
+                        def = Math.max(0, Math.floor(def * this.getCorrosionDefenseMul()));
                     }
                     if (atk > 0) {
                         // 防御减伤公式：伤害 = atk * (1 - def / (def + 60))
@@ -139,6 +153,14 @@ export function isFriendlyFire(source, target) {
                     if ((damageType === 'magic' || damageType === 'electric') && this._magicVulnerabilityStacks > 0) {
                         baseDamage = Math.floor(baseDamage * (1 + this._magicVulnerabilityStacks * 0.05));
                     }
+                    // 石化独立乘区：受到的魔法/电系伤害提高 50%。
+                    if ((damageType === 'magic' || damageType === 'electric')
+                        && this.hasStatusEffect && this.hasStatusEffect('petrified')) {
+                        const petrified = this.statusEffects.find(
+                            effect => effect.type === 'petrified' && effect.remaining > 0
+                        );
+                        baseDamage = Math.floor(baseDamage * Math.max(1, Number(petrified?.value) || 1.5));
+                    }
                     // 应用感电：电系伤害每层 +3%（感电叠满 5 层触发过载，见 applyElectrified）
                     if (damageType === 'electric' && this._electrifiedStacks > 0) {
                         baseDamage = Math.floor(baseDamage * (1 + this._electrifiedStacks * 0.03));
@@ -148,15 +170,11 @@ export function isFriendlyFire(source, target) {
                     if (!isMelee && (damageType === 'ranged' || damageType === 'physical') && this._rangedDamageReduction > 0) {
                         baseDamage = Math.floor(baseDamage * (1 - this._rangedDamageReduction));
                     }
-                    // 应用无人机易伤：所有伤害每层+10%（基础）+ 等级加成（在source上计算）
-                    if (this._droneVulnerabilityStacks > 0) {
-                        let droneBonus = 0.10 * this._droneVulnerabilityStacks;
-                        // 如果source有无人机技能，应用等级加成
-                        if (source && source.skills && source.skills.droneSkill) {
-                            const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
-                            droneBonus = ((effect.damageBonusPercent || 10) / 100) * this._droneVulnerabilityStacks;
-                        }
-                        baseDamage = Math.floor(baseDamage * (1 + droneBonus));
+                    // 无人机易伤使用部署快照；玩家、同伴与友军共享收益，不再反查攻击者技能等级。
+                    if (this._droneVulnerabilityData && DRONE_BENEFICIARY_FACTIONS.has(source?._faction)) {
+                        baseDamage = Math.floor(baseDamage * (
+                            1 + this._droneVulnerabilityData.damageBonusPercent / 100
+                        ));
                     }
                     // 祭品效果（数据驱动）：怪物承伤加成（敌方阵营承伤时）
                     if (this._faction === 'enemy') {
@@ -207,22 +225,21 @@ export function isFriendlyFire(source, target) {
                             }
                         }
                     }
+                    critRate += Number(hitContext?.critChanceBonusPercent) || 0;
                     // 无人机易伤：暴击率加成
-                    if (this._droneVulnerabilityStacks > 0) {
-                        let droneCritBonus = 10 * this._droneVulnerabilityStacks;
-                        if (source && source.skills && source.skills.droneSkill) {
-                            const effect = source.skills.droneSkill.getEffect(source.skills.droneSkill.level);
-                            droneCritBonus = (effect.critBonusPercent || 10) * this._droneVulnerabilityStacks;
-                        }
-                        critRate += droneCritBonus;
+                    if (this._droneVulnerabilityData && DRONE_BENEFICIARY_FACTIONS.has(source?._faction)) {
+                        critRate += this._droneVulnerabilityData.critBonusPercent;
                     }
                     const critRes = this.data.critRes || 0;
                     const finalCritRate = Math.max(0, critRate - critRes);
                     // 专属攻击可在攻击者侧完成倍率结算，并把同一次结果交给统一飘字入口。
                     // 目前红狼人二阶段使用该标记实现精确 50% / 2.5 倍，不重复随机或重复乘伤。
-                    isCrit = typeof source._forcedHitCritical === 'boolean'
-                        ? source._forcedHitCritical
-                        : Math.random() * 100 < finalCritRate;
+                    isCrit = hitContext?._resolvedCritTarget === this
+                        && typeof hitContext._resolvedCrit === 'boolean'
+                        ? hitContext._resolvedCrit
+                        : (typeof source._forcedHitCritical === 'boolean'
+                            ? source._forcedHitCritical
+                            : Math.random() * 100 < finalCritRate);
                     // 物理攻击仍由各自攻击管线预结算暴击；魔法在统一承伤入口实际应用倍率。
                     if (isCrit && isMagicDamage && hitContext?.applyMagicCrit) {
                         baseDamage = Math.floor(baseDamage * (1 + (hitContext.magicCritDamageBonus || 0)));
@@ -237,7 +254,7 @@ export function isFriendlyFire(source, target) {
                     baseDamage = Math.max(baseDamage, this.hp);
                 }
                 // 来源侧减益在最终伤害链消费；不直接乘除敌人的基础攻击力。
-                baseDamage = applyOutgoingDamageModifiers(baseDamage, source);
+                baseDamage = applyOutgoingDamageModifiers(baseDamage, source, this);
                 // 重甲套自动格挡（最后乘法结算；强化不影响概率）：
                 // 壁垒（优质）= 30% 概率减少 80% 伤害；镇岳（稀有）= 40% 概率减少 85% 伤害；
                 // 天罡（史诗）= 50% 概率减少 90% 伤害；神域（神话重甲）= 60% 概率减少 90% 伤害
@@ -290,7 +307,12 @@ export function isFriendlyFire(source, target) {
                 }
                 // 显示伤害数字
                 if (EffectManager && EffectManager.createDamageText) {
-                    EffectManager.createDamageText(this.x, this.y - this.size, baseDamage, isCrit);
+                    EffectManager.createDamageText(this.x, this.y - this.size, baseDamage, isCrit, {
+                        target: this,
+                        source,
+                        damageType,
+                        isMelee,
+                    });
                 }
                 const isKill = this.hp <= 0;
                 // 供 DamagePipeline 读取的本次命中暴击标记（hitmarker 分级用，每次 takeDamage 重置）
@@ -319,9 +341,13 @@ export function isFriendlyFire(source, target) {
                     }
                 }
                 // 无人机技能经验：击杀被无人机影响的敌人（召唤物不提供修炼值）
-                if (this._grantsSkillTrainingExp !== false
-                    && !this._summoned && isKill && source && source.skills && SkillManager && SkillManager.addDroneExp) {
-                    SkillManager.addDroneExp(source, this);
+                if (this._grantsSkillTrainingExp !== false && !this._summoned && isKill
+                    && this._droneVulnerabilityData && SkillManager?.addDroneExp) {
+                    SkillManager.addDroneExp(this._droneVulnerabilityData.owner || source, this);
+                }
+                // 经验结算必须先读取标记快照；结算完成后死亡目标立即释放全部无人机来源。
+                if (isKill && this._droneVulnerabilitySources?.size) {
+                    this.removeDroneVulnerability(null, { immediate: true });
                 }
             }
             onDeath(source) {
@@ -348,7 +374,15 @@ export function isFriendlyFire(source, target) {
                 EffectManager.add(new DeathEffect(this.x, this.y, this.size));
                 if (source) {
                     const angle = Math.atan2(source.y - this.y, source.x - this.x);
-                    EffectManager.add(new BloodMistEffect(this.x, this.y, angle + Math.PI));
+                    EffectManager.spawnPooledCosmetic(
+                        'bloodMist',
+                        'BloodMistEffect',
+                        this.x,
+                        this.y,
+                        this.x,
+                        this.y,
+                        angle + Math.PI
+                    );
                 }
                 // 掉落金币（不再掉落 G18）；召唤物（_summoned 标签）不掉金币/经验
                 if (this._isEnemyEntity === true && !this._summoned && !this._noGoldDrop) {
@@ -427,6 +461,7 @@ export function isFriendlyFire(source, target) {
             }
             applyKnockback(angle, totalPx) {
                 if (this.immovable) return; // 不可位移实体（掩体/建筑）拒绝一切击退
+                if (this.hasStatusEffect?.('petrified')) return;
                 // 统一单位：totalPx 表示总击退距离（像素）
                 const friction = this.knockbackFriction || 0.88;
                 // 物理公式：总位移 = initialSpeed / (1 - friction)
@@ -452,17 +487,20 @@ export function isFriendlyFire(source, target) {
                     buff: { icon: '✨', name: '增益', color: '#9a9a5a' },
                     shield: { icon: '🛡️', name: '护盾', color: '#5a8a9a' },
                     bleed: { icon: '🩸', name: '流血', color: '#9a3a3a' },
+                    corrosion: { icon: '🧪', name: '腐蚀', color: '#9ab84f' },
                     inspire: { icon: '📣', name: '激励', color: '#ffb347' },
                     magicVulnerability: { icon: '🔮', name: '魔力易伤', color: '#8a5a9a' },
                     droneVulnerability: { icon: '🛸', name: '无人机易伤', color: '#5a7a9a' },
                     fear: { icon: '😱', name: '恐惧', color: '#7a5ac8' },
                     statusImmune: { icon: '🔰', name: '状态免疫', color: '#5ac8c8' },
                     haste: { icon: '💨', name: '加速', color: '#5ac85a' },
+                    weaponHaste: { icon: '➤', name: '命中动能', color: '#69e7e3' },
                     holyRenewal: { icon: '💚', name: '圣光续疗', color: '#7aff9a' },
                     chainSpell: { icon: '🔗', name: '链式强化', color: '#8a7a6a' },
                     chill: { icon: '❄️', name: '寒冷', color: '#7ab8e0' },
                     burn: { icon: '🔥', name: '灼伤', color: '#ff6b35' },
                     frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff' },
+                    petrified: { icon: '🗿', name: '石化', color: '#929292' },
                     flameArmor: { icon: '🔥', name: '灼锋焰甲', color: '#ff7a3a' },
                     electrified: { icon: '⚡', name: '感电', color: '#b98cff' },
                     marked: { icon: '🎯', name: '标记', color: '#ffd700' },
@@ -508,6 +546,33 @@ export function isFriendlyFire(source, target) {
                 return this.statusEffects.some(e => e.type === type && e.remaining > 0);
             }
 
+            /** 石化为独立强控：不重置动作，表现层会停在当前帧并黑白化。 */
+            applyPetrify(duration = 5000, magicDamageTakenMultiplier = 1.5) {
+                if (this._isDead || this.hp <= 0 || this.hasStatusEffect('statusImmune')) return false;
+                const effect = this.addStatusEffect('petrified', duration, {
+                    stacks: 1,
+                    value: Math.max(1, Number(magicDamageTakenMultiplier) || 1.5),
+                });
+                if (!effect) return false;
+                this.vx = 0;
+                this.vy = 0;
+                this.isMoving = false;
+                this.knockbackX = 0;
+                this.knockbackY = 0;
+                if (this._faction === 'player' && StatusBar) {
+                    this._petrifiedEffectId = StatusBar.addEffect('petrified', duration, { stacks: 1 });
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(
+                        this.x,
+                        this.y - this.size - 10,
+                        '🗿 石化！',
+                        '#929292'
+                    ));
+                }
+                return true;
+            }
+
             /** 骆驼骑兵持续光环：同类刷新取更强减伤，不叠加。 */
             applyCamelFright(duration, reduction = 0.1) {
                 if (this.hasStatusEffect('statusImmune')) return null;
@@ -540,12 +605,15 @@ export function isFriendlyFire(source, target) {
                 if (this.statusEffects.length === 0) return;
                 for (let i = this.statusEffects.length - 1; i >= 0; i--) {
                     const e = this.statusEffects[i];
+                    // 腐蚀由 _updateCorrosion 管理逐层消退；通用计时器不能一次删掉全部层数。
+                    if (e.type === 'corrosion') continue;
                     e.remaining -= dt;
                     if (e.remaining <= 0) {
                         // 激励到期：还原攻击/移速乘算
                         if (e.type === 'inspire') this._onInspireEnd();
                         // 加速到期：清空层数
                         if (e.type === 'haste') this._onHasteEnd();
+                        if (e.type === 'weaponHaste') this._weaponHasteMul = 1;
                         // 链式强化到期：清空层数
                         if (e.type === 'chainSpell') this._onChainSpellEnd();
                         // 灼锋焰甲到期：结算经验并回收武器火焰（玩家专有，方法在 subsystems mixin）
@@ -596,13 +664,12 @@ export function isFriendlyFire(source, target) {
              * 不改 maxSpeed 数据层，到期自动失效无需还原。
              *
              * @param {number} duration - 本次层数的持续时间（毫秒）
-             * @param {Object} opts - { speedMul?: 总倍率（兼容旧配置）, perStackMul?: 每层加成 }
+             * @param {Object} opts - { speedMul?: 总倍率, perStackMul?: 每层加成 }
              */
             applyHaste(duration, opts = {}) {
                 if (this.hasStatusEffect('statusImmune')) return;
                 // 兼容旧调用 speedMul=1.10 表示每层 +10%；新调用建议直接传 perStackMul=0.10
                 const perStackMul = opts.perStackMul ?? (opts.speedMul ? opts.speedMul - 1 : 0.10);
-
                 const existing = this.statusEffects.find(e => e.type === 'haste');
                 if (existing) {
                     existing.stacks += 1;
@@ -626,6 +693,26 @@ export function isFriendlyFire(source, target) {
             /** 加速到期还原（updateStatusEffects 钩子） */
             _onHasteEnd() {
                 this._hasteStacks = 0;
+            }
+
+            /** P4040 命中动能：独立于通用 haste，重复命中只刷新，不延长其他来源的加速。 */
+            applyWeaponHaste(duration = 2000, speedPercent = 0.10) {
+                if (this.hasStatusEffect('statusImmune')) return;
+                this._weaponHasteMul = 1 + Math.max(0, Number(speedPercent) || 0);
+                const existing = this.statusEffects.find(e => e.type === 'weaponHaste');
+                if (existing) {
+                    existing.remaining = duration;
+                    existing.duration = Math.max(existing.duration, duration);
+                } else {
+                    this.addStatusEffect('weaponHaste', duration, {
+                        name: '命中动能', icon: '➤', color: '#69e7e3'
+                    });
+                }
+                if (this._faction === 'player' && StatusBar) {
+                    StatusBar.addEffect('weaponHaste', duration, {
+                        name: '命中动能', icon: '➤', color: '#69e7e3'
+                    });
+                }
             }
 
             /** 链式强化到期还原（updateStatusEffects 钩子） */
@@ -769,6 +856,89 @@ export function isFriendlyFire(source, target) {
                 }
                 if (this._poisonEffect) this._poisonEffect.reset();
             }
+            // --- 状态效果：腐蚀（每层物理防御 -5%，5s 到期消退一层） ---
+            _updateCorrosion(dt) {
+                if (this._corrosionStacks <= 0) return;
+                this._corrosionTimer -= dt;
+                const effect = this.statusEffects.find(e => e.type === 'corrosion');
+                if (effect) effect.remaining = Math.max(0, this._corrosionTimer);
+                if (this._corrosionTimer > 0) return;
+
+                this._corrosionStacks = Math.max(0, this._corrosionStacks - 1);
+                if (this._corrosionStacks > 0) {
+                    this._corrosionTimer = this._corrosionDuration;
+                    if (effect) {
+                        effect.duration = this._corrosionDuration;
+                        effect.remaining = this._corrosionDuration;
+                        effect.stacks = this._corrosionStacks;
+                        effect.name = `腐蚀 x${this._corrosionStacks}`;
+                    }
+                    if (this._faction === 'player' && StatusBar) {
+                        this._corrosionEffectId = StatusBar.addEffect(
+                            'corrosion',
+                            this._corrosionDuration,
+                            { stacks: this._corrosionStacks }
+                        );
+                    }
+                    return;
+                }
+
+                this.clearCorrosion();
+            }
+            applyCorrosion(stacks = 1, duration = 5000, defenseReductionPerStack = 0.05) {
+                if (this._isDead || this.hasStatusEffect('statusImmune')) return null;
+                const addedStacks = Math.max(0, Math.floor(Number(stacks) || 0));
+                if (addedStacks <= 0) return null;
+
+                this._corrosionDuration = Math.max(1, Number(duration) || 5000);
+                this._corrosionDefenseReductionPerStack = Math.max(
+                    this._corrosionDefenseReductionPerStack || 0,
+                    Math.max(0, Number(defenseReductionPerStack) || 0.05)
+                );
+                this._corrosionStacks += addedStacks;
+                this._corrosionTimer = this._corrosionDuration;
+                const effect = this.addStatusEffect('corrosion', this._corrosionDuration, {
+                    stacks: this._corrosionStacks,
+                    value: this._corrosionDefenseReductionPerStack,
+                });
+                if (!effect) return null;
+                effect.duration = this._corrosionDuration;
+                effect.remaining = this._corrosionDuration;
+                effect.stacks = this._corrosionStacks;
+                effect.name = `腐蚀 x${this._corrosionStacks}`;
+
+                if (this._faction === 'player' && StatusBar) {
+                    this._corrosionEffectId = StatusBar.addEffect(
+                        'corrosion',
+                        this._corrosionDuration,
+                        { stacks: this._corrosionStacks }
+                    );
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(
+                        this.x,
+                        this.y - this.size - 10,
+                        `🧪 腐蚀 +${addedStacks}层`,
+                        '#9ab84f'
+                    ));
+                }
+                return effect;
+            }
+            getCorrosionDefenseMul() {
+                if (!(this._corrosionStacks > 0)) return 1;
+                const reduction = this._corrosionStacks
+                    * Math.max(0, Number(this._corrosionDefenseReductionPerStack) || 0.05);
+                return Math.max(0, 1 - reduction);
+            }
+            clearCorrosion() {
+                this._corrosionStacks = 0;
+                this._corrosionTimer = 0;
+                this.removeStatusEffect('corrosion');
+                if (this._corrosionEffectId && StatusBar) {
+                    StatusBar.removeEffect(this._corrosionEffectId);
+                    this._corrosionEffectId = null;
+                }
+            }
             // --- 状态效果：流血（每层每秒 1% 当前生命值，持续 10s，到期减一层） ---
             _updateBleed(dt) {
                 if (this._bleedStacks <= 0) return;
@@ -818,7 +988,7 @@ export function isFriendlyFire(source, target) {
             }
             applyBind(duration) {
                 if (this.hasStatusEffect('statusImmune')) return;
-                if (StatusBar) {
+                if (this._faction === 'player' && StatusBar) {
                     this._bindEffectId = StatusBar.addEffect('bind', duration, { name: '束缚', icon: '⛓️', color: '#7a5a8a' });
                 }
                 this.addStatusEffect('bind', duration, { name: '束缚', icon: '⛓️', color: '#7a5a8a' });
@@ -856,20 +1026,60 @@ export function isFriendlyFire(source, target) {
             }
             // --- 状态效果：无人机易伤 ---
             _updateDroneVulnerability(dt) {
-                if (this._droneVulnerabilityStacks <= 0) return;
-                this._droneVulnerabilityTimer -= dt;
-                if (this._droneVulnerabilityTimer <= 0) {
-                    this._droneVulnerabilityStacks = Math.max(0, this._droneVulnerabilityStacks - 1);
-                    if (this._droneVulnerabilityStacks > 0) this._droneVulnerabilityTimer = 5000;
+                if (!this._droneVulnerabilitySources?.size) {
+                    this._droneVulnerabilityStacks = 0;
+                    this._droneVulnerabilityTimer = 0;
+                    this._droneVulnerabilityData = null;
+                    this.removeStatusEffect('droneVulnerability');
+                    return;
                 }
+                for (const [sourceId, mark] of this._droneVulnerabilitySources) {
+                    mark.remaining -= dt;
+                    if (mark.remaining <= 0) this._droneVulnerabilitySources.delete(sourceId);
+                }
+                const marks = [...this._droneVulnerabilitySources.values()];
+                if (marks.length === 0) {
+                    this._droneVulnerabilityStacks = 0;
+                    this._droneVulnerabilityTimer = 0;
+                    this._droneVulnerabilityData = null;
+                    this.removeStatusEffect('droneVulnerability');
+                    return;
+                }
+                marks.sort((a, b) => (b.damageBonusPercent - a.damageBonusPercent)
+                    || (b.critBonusPercent - a.critBonusPercent));
+                this._droneVulnerabilityData = marks[0];
+                this._droneVulnerabilityStacks = 1;
+                this._droneVulnerabilityTimer = Math.max(...marks.map(mark => mark.remaining));
+                const status = this.statusEffects.find(e => e.type === 'droneVulnerability');
+                if (status) status.remaining = this._droneVulnerabilityTimer;
             }
-            applyDroneVulnerability(stacks) {
-                if (this.hasStatusEffect('statusImmune')) return;
-                this._droneVulnerabilityStacks += stacks;
-                this._droneVulnerabilityTimer = 999999;
-                if (EffectManager) {
-                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, `🛸 无人机易伤 +${stacks}层`, '#5a7a9a'));
+            applyDroneVulnerability(options = {}) {
+                if (this._isDead || this.hp <= 0 || this.hasStatusEffect('statusImmune')) return false;
+                const normalized = typeof options === 'number'
+                    ? { sourceId: 'legacy-drone', damageBonusPercent: 10, critBonusPercent: 10, duration: 2000 }
+                    : options;
+                const sourceId = String(normalized.sourceId || 'player-drone');
+                const duration = Math.max(1, Number(normalized.duration) || 2000);
+                const wasMarked = this._droneVulnerabilitySources.size > 0;
+                this._droneVulnerabilitySources.set(sourceId, {
+                    sourceId,
+                    damageBonusPercent: Math.max(0, Number(normalized.damageBonusPercent) || 10),
+                    critBonusPercent: Math.max(0, Number(normalized.critBonusPercent) || 10),
+                    owner: normalized.owner || null,
+                    remaining: duration,
+                });
+                this._updateDroneVulnerability(0);
+                this.addStatusEffect('droneVulnerability', duration, { name: '战术弱点标记', icon: '⌖', color: '#66dbe8' });
+                if (!wasMarked && EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 10, '战术锁定', '#66dbe8'));
                 }
+                return true;
+            }
+            removeDroneVulnerability(sourceId = null, { immediate = true } = {}) {
+                if (!sourceId) this._droneVulnerabilitySources.clear();
+                else if (immediate) this._droneVulnerabilitySources.delete(String(sourceId));
+                // 非立即移除只停止刷新，当前快照自然残留至自身 remaining 归零。
+                this._updateDroneVulnerability(0);
             }
 
             // --- 状态效果：圣光续疗（HoT，每秒恢复最大生命值百分比） ---
@@ -1247,6 +1457,7 @@ export function isFriendlyFire(source, target) {
                 // 更新伤害型状态效果（中毒、流血、易伤、灼伤）
                 this._updatePoison(dt);
                 this._updateBleed(dt);
+                this._updateCorrosion(dt);
                 this._updateMagicVulnerability(dt);
                 this._updateDroneVulnerability(dt);
                 this._updateBurn(dt);
@@ -1276,7 +1487,14 @@ export function isFriendlyFire(source, target) {
                             this.x = resolved.x - Math.cos(angle) * 5;
                             this.y = resolved.y - Math.sin(angle) * 5;
                             // 撞墙烟雾效果：在墙面位置产生
-                            if (EffectManager) EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                            EffectManager.spawnPooledCosmetic(
+                                'smoke',
+                                'SmokeEffect',
+                                resolved.x,
+                                resolved.y,
+                                resolved.x,
+                                resolved.y
+                            );
                             this.knockbackX = 0;
                             this.knockbackY = 0;
                         } else {
@@ -1292,6 +1510,30 @@ export function isFriendlyFire(source, target) {
                     if (Math.abs(this.knockbackX) < 0.1) this.knockbackX = 0;
                     if (Math.abs(this.knockbackY) < 0.1) this.knockbackY = 0;
                 }
+                if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
+            }
+
+            /**
+             * 主循环对石化敌人的最小更新：状态/DoT/治疗仍按真实 dt 推进，
+             * 但不进入任何子类 AI、攻击或动画状态机。
+             */
+            updateWhilePetrified(dt) {
+                this.updateStatusEffects(dt);
+                this._updatePoison(dt);
+                this._updateBleed(dt);
+                this._updateCorrosion(dt);
+                this._updateMagicVulnerability(dt);
+                this._updateDroneVulnerability(dt);
+                this._updateBurn(dt);
+                this._updateHolyRenewal(dt);
+                this._updateChill(dt);
+                this._updateFreeze(dt);
+                this._updateElectrified(dt);
+                this.vx = 0;
+                this.vy = 0;
+                this.isMoving = false;
+                this.knockbackX = 0;
+                this.knockbackY = 0;
                 if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
             }
             renderHealthBar(ctx) {

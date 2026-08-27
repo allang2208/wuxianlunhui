@@ -1,0 +1,68 @@
+{
+  "mother": "mother\\evil-treant-mother-v03-photorealistic-white.png",
+  "alpha": "references\\evil-treant-mother-v03-birefnet-alpha.png",
+  "cutout": "references\\evil-treant-mother-v03-cutout.png",
+  "background": "#00FFFF",
+  "references": {
+    "loop": {
+      "file": "references\\evil-treant-h3-reference-loop-cyan.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        323,
+        80,
+        537,
+        495
+      ],
+      "subjectHeightRatio": 0.7204861111111112,
+      "margins": {
+        "left": 323,
+        "right": 487,
+        "top": 80,
+        "bottom": 81
+      }
+    },
+    "attack": {
+      "file": "references\\evil-treant-h3-reference-attack-cyan.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        250,
+        104,
+        446,
+        484
+      ],
+      "subjectHeightRatio": 0.6597222222222222,
+      "margins": {
+        "left": 250,
+        "right": 578,
+        "top": 104,
+        "bottom": 92
+      }
+    },
+    "dying": {
+      "file": "references\\evil-treant-h3-reference-dying-cyan.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        351,
+        115,
+        530,
+        461
+      ],
+      "subjectHeightRatio": 0.6006944444444444,
+      "margins": {
+        "left": 351,
+        "right": 494,
+        "top": 115,
+        "bottom": 115
+      }
+    }
+  }
+}

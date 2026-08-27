@@ -1,0 +1,290 @@
+{
+  "sourceContract": "accepted Doubao clips; 1280x720, 121 frames, 24fps",
+  "background": "#FF00FF",
+  "normalization": "fixed per-action scale from first neutral effective rooted height",
+  "targetNeutralHeight": 360.0,
+  "sourceNeutralHeights": {
+    "idle": 553.0,
+    "spellcast": 489.0,
+    "attack": 461.0,
+    "throw": 440.0,
+    "death": 409.0
+  },
+  "actionScales": {
+    "idle": 0.650994575045208,
+    "spellcast": 0.7361963190184049,
+    "attack": 0.7809110629067245,
+    "throw": 0.8181818181818182,
+    "death": 0.8801955990220048
+  },
+  "rootAnchor": "lower root-crown alpha median x",
+  "footY": 486,
+  "actions": {
+    "idle": {
+      "file": "generated\\raw\\idle.png",
+      "preview": "previews\\raw\\idle.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 16,
+      "footY": 486,
+      "sourceFrames": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+        72,
+        80,
+        88,
+        96,
+        104,
+        112,
+        120
+      ],
+      "mode": "stabilized",
+      "scale": 0.650994575045208,
+      "alphaPixels": [
+        53249,
+        54757
+      ],
+      "feetRange": [
+        484,
+        486
+      ],
+      "centerRange": [
+        255.0,
+        257.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 4,
+      "repeat": -1,
+      "effectiveHeightRange": [
+        357.0,
+        362.0
+      ]
+    },
+    "spellcast": {
+      "file": "generated\\raw\\spellcast.png",
+      "preview": "previews\\raw\\spellcast.gif",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 16,
+      "footY": 486,
+      "sourceFrames": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+        72,
+        80,
+        88,
+        96,
+        104,
+        112,
+        120
+      ],
+      "mode": "source_motion_grounded",
+      "scale": 0.7361963190184049,
+      "alphaPixels": [
+        52945,
+        61792
+      ],
+      "feetRange": [
+        484,
+        486
+      ],
+      "centerRange": [
+        320.0,
+        332.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1700,
+      "repeat": 0,
+      "effectiveHeightRange": [
+        356.0,
+        455.0
+      ],
+      "contactSourceFrame": 56,
+      "contactFrame": 7
+    },
+    "attack": {
+      "file": "generated\\raw\\attack.png",
+      "preview": "previews\\raw\\attack.gif",
+      "frameWidth": 1024,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 16,
+      "footY": 486,
+      "sourceFrames": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+        72,
+        80,
+        88,
+        96,
+        104,
+        112,
+        120
+      ],
+      "mode": "source_motion_grounded",
+      "scale": 0.7809110629067245,
+      "alphaPixels": [
+        49814,
+        62053
+      ],
+      "feetRange": [
+        483,
+        486
+      ],
+      "centerRange": [
+        505.0,
+        525.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1500,
+      "repeat": 0,
+      "effectiveHeightRange": [
+        339.0,
+        360.0
+      ],
+      "contactSourceFrame": 64,
+      "contactFrame": 8
+    },
+    "throw": {
+      "file": "generated\\raw\\throw.png",
+      "preview": "previews\\raw\\throw.gif",
+      "frameWidth": 768,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 16,
+      "footY": 486,
+      "sourceFrames": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+        72,
+        80,
+        88,
+        96,
+        104,
+        112,
+        120
+      ],
+      "mode": "source_motion_grounded",
+      "scale": 0.8181818181818182,
+      "alphaPixels": [
+        52532,
+        69315
+      ],
+      "feetRange": [
+        484,
+        486
+      ],
+      "centerRange": [
+        385.0,
+        450.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1600,
+      "repeat": 0,
+      "effectiveHeightRange": [
+        331.0,
+        369.0
+      ],
+      "contactSourceFrame": 88,
+      "contactFrame": 11
+    },
+    "death": {
+      "file": "generated\\raw\\death.png",
+      "preview": "previews\\raw\\death.gif",
+      "frameWidth": 1024,
+      "frameHeight": 576,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 16,
+      "footY": 432,
+      "sourceFrames": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+        72,
+        80,
+        88,
+        96,
+        104,
+        112,
+        120
+      ],
+      "mode": "source_motion",
+      "scale": 0.8801955990220048,
+      "alphaPixels": [
+        46995,
+        68642
+      ],
+      "feetRange": [
+        432,
+        544
+      ],
+      "centerRange": [
+        505.0,
+        742.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 2200,
+      "repeat": 0,
+      "effectiveHeightRange": [
+        191.0,
+        371.0
+      ]
+    }
+  }
+}

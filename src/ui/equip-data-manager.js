@@ -5,9 +5,10 @@ export const EquipDataManager = {
     TEST_EQUIPMENTS: {
         helmet: null, // 旧防具/饰品已删除（2026-08-01），初始装备暂不佩戴防具
         necklace: null,
-        weapon: { weaponId: 'weapon1', name: '生锈的长剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/1-rusty_sword_macro.png', equipImage: 'assets/weapons/1-rusty_sword_euip.png', category: 'weapon_melee', equipSlot: 'weapon', stats: [{ name: '物理攻击', value: '12-18' }, { name: '暴击率', value: '+3%', pos: true }], desc: '一把锈迹斑斑的旧剑', level: 1, rarity: 'common', weaponType: 'sword',
+        weapon: { weaponId: 'weapon1', name: '生锈的长剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/1-rusty_sword_macro.png', slotImage: 'assets/icons/1-rusty_sword_macro.png', dropImage: 'assets/weapons/1-rusty_sword_euip.png', equipImage: 'assets/weapons/1-rusty_sword_euip.png', category: 'weapon_melee', equipSlot: 'weapon', stats: [{ name: '物理攻击', value: '12-18' }, { name: '暴击率', value: '+3%', pos: true }], desc: '一把锈迹斑斑的旧剑', level: 1, rarity: 'common', price: 100, weaponCategory: 'mainhand', weaponType: 'sword', weaponTypeTag: '近战武器', isTwoHanded: false,
+            weaponAsset: { image: 'assets/weapons/1-rusty_sword_euip.png' },
             attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
-            attack: { range: 124, knockback: 6, attackInterval: 500, hitType: '突刺（扇形判定）', damageType: '物理' },
+            attack: { range: 165, knockback: 6, attackInterval: 500, hitType: '三段连击（扇形挥砍）', damageType: '物理' },
             attackFormula: { base: 12, enhanceFlat: 1, attrs: [{ key: 'str', base: 0.8, perEnhance: 0.2 }, { key: 'dex', base: 0.8, perEnhance: 0.2 }] } },
         weapon2: null,
         armor: null,
@@ -24,41 +25,41 @@ export const EquipDataManager = {
     ],
     G18_PISTOL_ITEM: {
         weaponId: 'weapon9',
-        name: 'G18', type: '手枪', icon: '🔫', iconImage: 'assets/icons/G18icon.png',
+        name: 'G18', type: '手枪', icon: '🔫', iconImage: 'assets/icons/firearms/g18.png',
         dropImage: 'assets/icons/G18icon.png',
         equipImage: 'assets/icons/G18icon.png',
-        slotImage: 'assets/icons/G18icon.png',
+        slotImage: 'assets/icons/firearms/g18.png',
         category: 'weapon_ranged', rarity: 'rare', level: 5,
         weaponCategory: 'mainhand', weaponType: 'pistol',
         weaponTypeTag: '远程武器', isTwoHanded: false,
         weaponAsset: { image: 'assets/icons/G18icon.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '物理攻击', value: '1-3' }, { name: '射程', value: '650' }],
+        stats: [{ name: '物理攻击', value: '3+敏捷×0.15+精神×0.15' }, { name: '射程', value: '850' }],
         desc: 'G18 全自动手枪，1100发/分钟，淡金色曳光弹，可双持',
         equipSlot: 'weapon',
-        attack: { range: 650, knockback: 0, attackInterval: 55, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
+        attack: { range: 850, knockback: 0, attackInterval: 55, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248, damageFalloff: { start: 360, minMultiplier: 0.35 } },
         attackKey: 'pistol', offhandAttackKey: 'pistolOffhand', animConfigKey: 'pistol', fireSound: 'assets/sounds/weapons/akm_burst.mp3', isDarkGold: false, canvasImageProp: 'pistolImage',
-        ammoConfig: { max: 12, reloadTime: 1000 }, fireMode: 'fullAuto',
-        attackFormula: { base: 5, enhanceFlat: 1, attrs: [{ key: 'dex', base: 0.35, perEnhance: 0.15 }, { key: 'wis', base: 0.4, perEnhance: 0.15 }] },
-        spreadParams: { startDelay: 0, maxTime: 300, maxAngle: 25 }
+        ammoConfig: { max: 12, reloadTime: 1050 }, fireMode: 'fullAuto',
+        attackFormula: { base: 3, enhanceFlat: 0.2, attrs: [{ key: 'dex', base: 0.15, perEnhance: 0.025 }, { key: 'wis', base: 0.15, perEnhance: 0.025 }] },
+        spreadParams: { startShots: 2, maxShots: 9, recoveryMs: 420, maxAngle: 25 }
     },
         DESERT_EAGLE_ITEM: {
         weaponId: 'weapon10',
-        name: '沙漠之鹰', type: '手枪', icon: '🔫', iconImage: 'assets/icons/DesertEagle_icon.png',
+        name: '沙漠之鹰', type: '手枪', icon: '🔫', iconImage: 'assets/icons/firearms/desert-eagle.png',
         dropImage: 'assets/icons/DesertEagle_icon.png',
         equipImage: 'assets/icons/DesertEagle_icon.png',
-        slotImage: 'assets/icons/DesertEagle_icon.png',
+        slotImage: 'assets/icons/firearms/desert-eagle.png',
         category: 'weapon_ranged', rarity: 'epic', level: 15,
         weaponCategory: 'mainhand', weaponType: 'pistol',
         weaponTypeTag: '远程武器', isTwoHanded: false,
         weaponAsset: { image: 'assets/icons/DesertEagle_icon.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '物理攻击', value: '3-8' }, { name: '射程', value: '750' }],
-        desc: '沙漠之鹰半自动手枪，深黄色曳光弹，可双持，连续开火0.5秒后计算散布',
+        stats: [{ name: '物理攻击', value: '30+敏捷×1+精神×2' }, { name: '射程', value: '1050' }],
+        desc: '沙漠之鹰半自动手枪，深黄色曳光弹，可双持；连续射击会积累后坐扩散，短暂停火可恢复精度',
         equipSlot: 'weapon',
-        attack: { range: 750, knockback: 10, attackInterval: 800, hitType: '深黄色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
+        attack: { range: 1050, knockback: 10, attackInterval: 800, hitType: '深黄色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248, damageFalloff: { start: 720, minMultiplier: 0.5 } },
         attackKey: 'deagle', offhandAttackKey: 'deagleOffhand', animConfigKey: 'deagle', fireSound: 'assets/sounds/weapons/cs_deagle_35_80.wav', isDarkGold: true, canvasImageProp: 'deagleImage',
         ammoConfig: { max: 6, reloadTime: 1750 }, fireMode: 'semiAuto',
         attackFormula: { base: 30, enhanceFlat: 0, attrs: [{ key: 'dex', base: 1, perEnhance: 0 }, { key: 'wis', base: 2, perEnhance: 0 }] },
-        spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 30 },
+        spreadParams: { startShots: 1, maxShots: 3, recoveryMs: 700, maxAngle: 30 },
         craftConfig: {
             weaponId: 'weapon10',
             slots: [
@@ -74,59 +75,59 @@ export const EquipDataManager = {
     },
     REVOLVER357_ITEM: {
         weaponId: 'weapon22',
-        name: '.357麦格农左轮', type: '手枪', icon: '🔫', iconImage: 'assets/icons/revolver357-equip.png',
-        slotImage: 'assets/icons/revolver357-equip.png',
+        name: '.357麦格农左轮', type: '手枪', icon: '🔫', iconImage: 'assets/icons/firearms/revolver-357.png',
+        slotImage: 'assets/icons/firearms/revolver-357.png',
         equipImage: 'assets/weapons/revolver357-equip.png',
         category: 'weapon_ranged', rarity: 'epic', level: 15,
         weaponCategory: 'mainhand', weaponType: 'pistol',
         weaponTypeTag: '远程武器', isTwoHanded: false,
         weaponAsset: { image: 'assets/weapons/revolver357-equip.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '物理攻击', value: '4-9' }, { name: '射程', value: '700' }],
+        stats: [{ name: '物理攻击', value: '26+敏捷×0.8+精神×1.6' }, { name: '射程', value: '1000' }],
         desc: '.357麦格农左轮手枪，6发弹巢，亮银色曳光弹，威力巨大的经典左轮',
         equipSlot: 'weapon',
-        attack: { range: 700, knockback: 12, attackInterval: 700, hitType: '亮银色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248 },
+        attack: { range: 1000, knockback: 12, attackInterval: 700, hitType: '亮银色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248, damageFalloff: { start: 680, minMultiplier: 0.5 } },
         attackKey: 'revolver', offhandAttackKey: 'revolverOffhand', animConfigKey: 'revolver', fireSound: 'assets/sounds/weapons/revolver357_fire.mp3', equipSound: 'assets/sounds/weapons/revolver357_equip.wav', canvasImageProp: 'revolverImage',
         ammoConfig: { max: 6, reloadTime: 900, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav', reloadFinishSound: 'assets/sounds/weapons/revolver357_reload_last.wav' }, fireMode: 'semiAuto',
         attackFormula: { base: 26, enhanceFlat: 0, attrs: [{ key: 'dex', base: 0.8, perEnhance: 0.1 }, { key: 'wis', base: 1.6, perEnhance: 0.15 }] },
-        spreadParams: { startDelay: 500, maxTime: 4000, maxAngle: 28 }
+        spreadParams: { startShots: 1, maxShots: 3, recoveryMs: 650, maxAngle: 28 }
     },
     P4040_ITEM: {
         weaponId: 'weapon18',
-        name: 'P4040', type: '手枪', icon: '🔫', iconImage: 'assets/weapons/P4040-icon.png',
+        name: 'P4040', type: '手枪', icon: '🔫', iconImage: 'assets/icons/firearms/p4040.png',
         dropImage: 'assets/weapons/P4040-icon.png',
         equipImage: 'assets/weapons/P4040-icon.png',
-        slotImage: 'assets/weapons/P4040-icon.png',
+        slotImage: 'assets/icons/firearms/p4040.png',
         category: 'weapon_ranged', rarity: 'epic', level: 15,
         weaponCategory: 'mainhand', weaponType: 'pistol',
         weaponTypeTag: '远程武器', isTwoHanded: false,
         weaponAsset: { image: 'assets/weapons/P4040-icon.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '物理攻击', value: '2-4' }, { name: '射程', value: '750' }],
+        stats: [{ name: '物理攻击', value: '8+敏捷×0.75+精神×1' }, { name: '射程', value: '1000' }],
         desc: 'P4040 半自动手枪，高射速半自动射击，可双持',
         equipSlot: 'weapon',
-        attack: { range: 750, knockback: 2, attackInterval: 300, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248, bulletSpeed: 1248 },
+        attack: { range: 1000, knockback: 2, attackInterval: 300, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 1248, bulletSpeed: 1248, damageFalloff: { start: 620, minMultiplier: 0.42 } },
         attackKey: 'p4040', offhandAttackKey: 'p4040Offhand', animConfigKey: 'p4040', fireSound: 'assets/sounds/weapons/apex2_shot_1s.wav', isDarkGold: true, canvasImageProp: 'p4040Image',
         ammoConfig: { max: 12, reloadTime: 1200 }, fireMode: 'semiAuto',
         attackFormula: { base: 8, enhanceFlat: 1, attrs: [{ key: 'dex', base: 0.75, perEnhance: 0.15 }, { key: 'wis', base: 1, perEnhance: 0.25 }] },
-        spreadParams: { startDelay: 0, maxTime: 0, maxAngle: 1 }
+        spreadParams: { startShots: 1, maxShots: 4, recoveryMs: 360, maxAngle: 1 }
     },
     BERETTA93R_ITEM: {
         weaponId: 'weapon19',
-        name: 'Beretta 93R', type: '手枪', icon: '🔫', iconImage: 'assets/weapons/beretta93r.png',
+        name: 'Beretta 93R', type: '手枪', icon: '🔫', iconImage: 'assets/icons/firearms/beretta-93r.png',
         dropImage: 'assets/weapons/beretta93r.png',
         equipImage: 'assets/weapons/beretta93r.png',
-        slotImage: 'assets/weapons/beretta93r.png',
+        slotImage: 'assets/icons/firearms/beretta-93r.png',
         category: 'weapon_ranged', rarity: 'uncommon', level: 8,
         weaponCategory: 'mainhand', weaponType: 'pistol',
         weaponTypeTag: '远程武器', isTwoHanded: false,
         weaponAsset: { image: 'assets/weapons/beretta93r.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '物理攻击', value: '8+敏捷×0.5+精神×0.5' }, { name: '射程', value: '700' }],
+        stats: [{ name: '物理攻击', value: '8+敏捷×0.5+精神×0.5' }, { name: '射程', value: '950' }],
         desc: 'Beretta 93R 半自动手枪，9发弹夹，可双持，扳机位可改造三连发/全自动',
         equipSlot: 'weapon',
-        attack: { range: 700, knockback: 0, attackInterval: 225, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 800 },
+        attack: { range: 950, knockback: 0, attackInterval: 225, hitType: '淡金色曳光弹（直线弹道）', damageType: '物理', projectileSpeed: 800, damageFalloff: { start: 560, minMultiplier: 0.4 } },
         attackKey: 'beretta93r', offhandAttackKey: 'beretta93rOffhand', animConfigKey: 'beretta93r', fireSound: 'assets/sounds/weapons/beretta93r_fire.mp3', isDarkGold: true, canvasImageProp: 'beretta93rImage',
         ammoConfig: { max: 9, reloadTime: 1500 }, fireMode: 'semiAuto',
         attackFormula: { base: 8, enhanceFlat: 0.75, attrs: [{ key: 'dex', base: 0.5, perEnhance: 0.1 }, { key: 'wis', base: 0.5, perEnhance: 0.15 }] },
-        spreadParams: { startDelay: 0, maxTime: 0, maxAngle: 5 },
+        spreadParams: { startShots: 1, maxShots: 5, recoveryMs: 340, maxAngle: 5 },
         craftConfig: {
             weaponId: 'weapon19',
             slots: [
@@ -649,14 +650,14 @@ export const EquipDataManager = {
         weaponId: 'weapon4',
         name: '符文长剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/EXsword_icon.png',
         dropImage: 'assets/weapons/EXsword_equipped_v2_.png',
-        equipImage: 'assets/weapons/EXsword_equipped_v2_.png',
+        equipImage: 'assets/weapons/rune_sword_ingame_v2.png',
         category: 'weapon_melee', rarity: 'uncommon', level: 5,
         weaponCategory: 'mainhand', weaponType: 'sword',
         weaponTypeTag: '近战武器',
         stats: [{ name: '物理攻击', value: '45-55' }, { name: '暴击率', value: '+5%', pos: true }],
         desc: '剑身上铭刻着上古符文的传奇长剑，符文之力蕴含其中，持有者能感受到符文中流淌的力量。剑刃在挥动时会留下淡蓝色的符文残影，威力远超凡铁。',
         equipSlot: 'weapon',
-        attack: { range: 77, rangeBonus: 50, knockback: 8, attackInterval: 500, damageType: '物理' },
+        attack: { range: 165, knockback: 8, attackInterval: 500, hitType: '三段连击（扇形挥砍）', damageType: '物理' },
         attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
         attackFormula: { base: 16, enhanceFlat: 2, attrs: [{ key: 'int', base: 2, perEnhance: 0.4 }, { key: 'str', base: 1.2, perEnhance: 0.2 }] },
         specialAttack: {
@@ -672,14 +673,14 @@ export const EquipDataManager = {
         weaponId: 'weapon5',
         name: '夜与火之剑', type: '单手剑', icon: '⚔', iconImage: 'assets/icons/Nightandflame_macro.png',
         dropImage: 'assets/weapons/Nightandflame_equip.png',
-        equipImage: 'assets/weapons/Nightandflame_equip.png',
+        equipImage: 'assets/weapons/night_flame_sword_ingame_v2.png',
         category: 'weapon_melee', rarity: 'rare', level: 10,
         weaponCategory: 'mainhand', weaponType: 'sword',
         weaponTypeTag: '近战武器',
         stats: [{ name: '物理攻击', value: '60-75' }, { name: '暴击率', value: '+5%', pos: true }],
         desc: '一把在暗夜中燃烧着淡蓝色火焰的传奇之剑，传说中它同时寄宿着夜之力与火之力。持有者可以释放其中的火焰之力，发射毁灭性的光柱。',
         equipSlot: 'weapon',
-        attack: { range: 77, rangeBonus: 25, knockback: 8, attackInterval: 500, damageType: '物理' },
+        attack: { range: 165, knockback: 8, attackInterval: 500, hitType: '三段连击（扇形挥砍）', damageType: '物理' },
         attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
         attackFormula: { base: 24, enhanceFlat: 2.2, attrs: [{ key: 'int', base: 2, perEnhance: 0.5 }, { key: 'str', base: 1.2, perEnhance: 0.2 }] },
         specialAttack: {
@@ -695,22 +696,22 @@ export const EquipDataManager = {
     },
     ENERGY_LMG_ITEM: {
         weaponId: 'weapon15',
-        name: '能量轻机枪', type: '机枪', icon: '🔫', iconImage: 'assets/icons/devotion-icon.png',
+        name: '能量轻机枪', type: '机枪', icon: '🔫', iconImage: 'assets/icons/firearms/energy-lmg.png',
         dropImage: 'assets/icons/devotion-icon.png',
         equipImage: 'assets/icons/devotion-icon.png',
-        slotImage: 'assets/icons/devotion-icon.png',
+        slotImage: 'assets/icons/firearms/energy-lmg.png',
         category: 'weapon_ranged', rarity: 'epic', level: 15,
         weaponCategory: 'mainhand', weaponType: 'energy_lmg',
         weaponTypeTag: '远程武器', isTwoHanded: true,
         weaponAsset: { image: 'assets/icons/devotion-icon.png', muzzleImage: 'assets/effects/muzzle_flash_01.png' },
-        stats: [{ name: '魔法攻击', value: '6+力量/精神' }, { name: '射程', value: '1200' }],
+        stats: [{ name: '魔法攻击', value: '4+力量×0.2+精神×0.2' }, { name: '射程', value: '1600' }],
         desc: '能量轻机枪，发射高能粒子束，无限能量供给。按住鼠标持续开火，射速随时间线性提升，过热后需冷却。',
         equipSlot: 'weapon',
-        attack: { range: 1200, knockback: 0, attackInterval: 333, hitType: '亮绿色曳光弹（直线弹道）', damageType: '魔法', projectileSpeed: 1248 },
+        attack: { range: 1600, knockback: 0, attackInterval: 333, hitType: '亮绿色曳光弹（直线弹道）', damageType: '魔法', projectileSpeed: 1248, damageFalloff: { start: 700, minMultiplier: 0.35 } },
         attackKey: 'energy_lmg', animConfigKey: 'energy_lmg', fireSound: 'assets/sounds/weapons/akm_burst.mp3', canvasImageProp: 'energyLmgImage',
         ammoConfig: { max: Infinity, reloadTime: 0 }, fireMode: 'fullAuto',
-        attackFormula: { base: 6, enhanceFlat: 0, attrs: [{ key: 'str', base: 0.35, perEnhance: 0.10 }, { key: 'wis', base: 0.35, perEnhance: 0.15 }] },
-        spreadParams: { startDelay: 0, maxTime: 2500, maxAngle: 15 },
+        attackFormula: { base: 4, enhanceFlat: 0, attrs: [{ key: 'str', base: 0.2, perEnhance: 0.03 }, { key: 'wis', base: 0.2, perEnhance: 0.035 }] },
+        spreadParams: { startShots: 4, maxShots: 18, recoveryMs: 600, maxAngle: 18 },
         energyLMGParams: {
             baseCooldown: 333,
             maxCooldown: 50,
@@ -784,29 +785,24 @@ export const EquipDataManager = {
 
 };
 
-// ==================== 武器字段补全（单一全量源） ====================
-// EquipDataManager 是唯一包含全部武器 attackFormula/ammoConfig/attackKey 等完整字段的数据源。
-// equipment.json/商店列表/旧存档实例可能缺字段——统一经 completeWeaponFields 补全，
-// 不再在各处维护第二份字段清单（main.js 启动合并与 shop-system 商品列表共用）。
-
-// 与 main.js 启动合并同口径的补全字段清单
-const COMPLETE_WEAPON_FIELDS = [
-    'attackFormula', 'matkFormula', 'ammoConfig', 'spreadParams', 'heatParams',
-    'energyLMGParams', 'fireMode', 'animConfigKey', 'attackKey',
-    'offhandAttackKey', 'canvasImageProp', 'specialAttackType',
-    'sound', 'chargeAttack', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
-    'isDarkGold', 'dropImage', 'equipImage', 'slotImage',
-    'spriteOffsetX', 'spriteOffsetY', 'aimSpriteOffsetX', 'aimSpriteOffsetY', 'castAnimKey'
-];
+// ==================== 武器定义归一（单一全量源） ====================
+// EquipDataManager 是唯一武器静态定义源。equipment.json、商店、掉落、任务奖励、仓库和旧存档
+// 只负责提供物品实例及其动态状态；只要能按 weaponId/name 命中，这里的静态字段就全部覆盖。
+// enhanceLevel、_craftData/_craftEffects、_enchantData/_enchantEffects、stack、slot、instanceId 等
+// 实例字段不在权威定义对象中，因此 Object.assign 不会删除或重置它们。
 
 let _weaponConfigIndex = null;
 function _buildWeaponConfigIndex() {
     const byWeaponId = new Map();
     const byName = new Map();
+    const staticFields = new Set(['animation']); // 旧商店曾额外写入的静态字段，也必须按真源删除。
     const add = (cfg) => {
         if (!cfg || typeof cfg !== 'object' || !cfg.weaponId) return;
         if (!byWeaponId.has(cfg.weaponId)) byWeaponId.set(cfg.weaponId, cfg);
         if (cfg.name && !byName.has(cfg.name)) byName.set(cfg.name, cfg);
+        for (const field of Object.keys(cfg)) {
+            if (field !== 'price') staticFields.add(field); // price/shopPrice 属于交易入口元数据。
+        }
     };
     for (const v of Object.values(EquipDataManager)) {
         add(v);
@@ -815,7 +811,7 @@ function _buildWeaponConfigIndex() {
             for (const inner of Object.values(v)) add(inner);
         }
     }
-    _weaponConfigIndex = { byWeaponId, byName };
+    _weaponConfigIndex = { byWeaponId, byName, staticFields };
 }
 
 /**
@@ -829,21 +825,16 @@ export function findWeaponConfig(weaponId, name) {
 }
 
 /**
- * 用 EquipDataManager 的完整配置补全武器实例缺失的字段（只补 undefined，不覆盖实例自有值）
+ * 用 EquipDataManager 的完整配置归一武器实例；全部静态字段以当前版本权威定义为准。
  * @returns {Object} 原 item（原地补全）
  */
 export function completeWeaponFields(item) {
     if (!item || typeof item !== 'object') return item;
     const cfg = findWeaponConfig(item.weaponId, item.name);
     if (!cfg) return item;
-    // 法杖强化曲线属于版本平衡真值；旧存档只保留强化等级/改造，不保留过时倍率。
-    if (cfg.weaponType === 'staff' && cfg.matkFormula) {
-        item.matkFormula = cfg.matkFormula;
+    for (const field of _weaponConfigIndex.staticFields) {
+        if (!Object.prototype.hasOwnProperty.call(cfg, field)) delete item[field];
     }
-    for (const field of COMPLETE_WEAPON_FIELDS) {
-        if (cfg[field] !== undefined && item[field] === undefined) {
-            item[field] = cfg[field];
-        }
-    }
+    Object.assign(item, cfg);
     return item;
 }

@@ -3,7 +3,7 @@
 > 目标：替换 v1/v2「统一簇形、平底 billboard」的粗糙水晶。要求**12 种可辨识形态**，
 > 不再统一格式；每颗节点的底座必须带 30° 接地线，与掩体/墙地板衔接同一套视觉规则。
 > 生成入口：`tools/ai-gen/gen-energy-node-v3.py`（自动画 12 张深度控制图 →
-> `flux2-dev-depth --transparent` 出图 → 抠图 → 可选安装到 `assets/terrain/`）。
+> `flux2-klein-4b-depth --transparent` 出图 → 抠图 → 可选安装到 `assets/terrain/`）。
 
 ## 0. 参考图搜索约定
 

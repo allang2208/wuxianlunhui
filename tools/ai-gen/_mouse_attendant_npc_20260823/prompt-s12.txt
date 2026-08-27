@@ -1,0 +1,13 @@
+single full-body female NPC character sprite for a dark fantasy hub world, the Mouse Attendant,
+preserve the exact identity and costume design from the supplied reference image: young adult woman,
+long blonde drill curls, warm brown eyes, deep burgundy red Victorian Lolita maid dress,
+cream lace bonnet and lace trim, small burgundy bows, ornate storybook mouse and doll embroidery
+across the skirt, cream lace-up stockings and ivory shoes, the same pale patterned attendant tote bag,
+calm welcoming expression, polite composed attendant pose with both feet visible,
+front-facing with a very slight three-quarter turn, full body centered, compact readable silhouette,
+soft hand-painted anime illustration, delicate watercolor-like shading, fine warm linework,
+match the elegant storybook character-art style, color handling, facial rendering and material detail
+of the supplied project character reference, suitable for the same game scene as the Mouse King,
+character occupies about 76 percent of the canvas height, feet aligned near 89 percent canvas height,
+no ground plane, no cast shadow, no scenery, no furniture, no text, no logo, no watermark,
+exactly one character, complete body, no crop, no extra limbs, no duplicate accessories

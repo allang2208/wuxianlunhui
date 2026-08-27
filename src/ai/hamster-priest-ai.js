@@ -7,6 +7,7 @@
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { HolyLightSystem } from '../entities/components/holy-light-system.js';
+import { SoundManager } from '../ui/sound-manager.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import { EnergyManager } from '../systems/energy-manager.js';
@@ -310,6 +311,11 @@ export class HamsterPriestAI {
                 atkMul: INSPIRE_MAGIC.atkMul ?? 1.5,
             });
             affected++;
+        }
+        const soundPath = m.sounds?.inspire;
+        if (affected > 0 && soundPath) {
+            if (typeof SoundManager?.playWorld === 'function') SoundManager.playWorld(soundPath, m.x, m.y);
+            else SoundManager?.playFile?.(soundPath);
         }
         this._inspireMagicCooldown = INSPIRE_MAGIC.cooldownMs ?? 30000;
         return affected;

@@ -20,8 +20,10 @@ const DEFAULT_PORT = 9333;
 const DEFAULT_MODEL = 'Seedance 2.0 Mini';
 const ERROR_TEXTS = [
   '额度不足', '已达上限', '用量已达', '生成失败', '生成超时', '内容不合规',
+  '免费次数用完',
   '未认证人脸', '出于肖像保护考虑', '暂不支持上传真实人脸素材', '暂不支持',
   '服务繁忙', '网络异常', '请稍后重试',
+  '视频时长超出支持范围',
 ];
 
 function fail(message) {
@@ -34,7 +36,7 @@ function parseArgs(argv) {
     const token = argv[i];
     if (!token.startsWith('--')) fail(`unexpected argument: ${token}`);
     const key = token.slice(2);
-    if (['attach-only', 'inspect', 'download-latest', 'fill-only', 'keep-open', 'loop', 'help', 'h'].includes(key)) {
+    if (['attach-only', 'inspect', 'download-latest', 'fill-only', 'submit-filled', 'wait-current', 'keep-open', 'loop', 'new-chat', 'confirm-paid', 'scroll-latest', 'play-latest', 'help', 'h'].includes(key)) {
       out[key] = true;
       continue;
     }
@@ -54,6 +56,10 @@ Usage:
     [--candidates 1] [--timeout 1800] [--cdp-port 9333]
   node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
     --download-latest --out output.mp4
+  node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
+    --play-latest --completed-offset 1 --download-latest --out previous.mp4
+  node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
+    --submit-filled --confirm-paid --out output.mp4
 
 Notes:
   - Fully exit a normally-launched Doubao client before first use.
@@ -61,6 +67,10 @@ Notes:
     uploads, submits, downloads, or consumes quota.
   - --download-latest downloads the last ready video already visible in the
     current conversation. It never uploads, submits, or consumes quota.
+  - --play-latest may use --completed-offset N to open the Nth earlier completed
+    card before recovery (0 = newest). Verify the recovered file is unique.
+  - --submit-filled submits the already-filled composer once, waits for a
+    genuinely new video URL, and never uploads or rewrites the prompt.
 `);
 }
 
@@ -222,7 +232,10 @@ class CdpSession {
       expression, returnByValue, awaitPromise, userGesture: true,
     });
     if (result.exceptionDetails) {
-      throw new Error(result.exceptionDetails.text || 'page evaluation failed');
+      throw new Error(result.exceptionDetails.exception?.description
+        || result.exceptionDetails.exception?.value
+        || result.exceptionDetails.text
+        || 'page evaluation failed');
     }
     return returnByValue ? result.result?.value : result.result;
   }
@@ -333,8 +346,12 @@ async function composerDiagnostics(session) {
         role: el.getAttribute('role') || '',
         text: norm(el.innerText || el.textContent).slice(0, 120),
         aria: norm(el.getAttribute('aria-label')).slice(0, 120),
+        title: norm(el.getAttribute('title')).slice(0, 120),
         placeholder: norm(el.getAttribute('placeholder')).slice(0, 120),
+        left: Math.round(el.getBoundingClientRect().left),
         top: Math.round(el.getBoundingClientRect().top),
+        width: Math.round(el.getBoundingClientRect().width),
+        height: Math.round(el.getBoundingClientRect().height),
         pressed: el.getAttribute('aria-pressed') || '',
         state: el.getAttribute('data-state') || '',
         className: norm(el.className).slice(0, 160),
@@ -425,6 +442,23 @@ async function isVideoComposer(session) {
   })()`);
 }
 
+async function isAbstractedVideoSkill(session) {
+  return session.evaluate(`(() => {
+    const exit = document.querySelector('[data-testid="skill_input_exit_button"][data-value="17"]');
+    if (!exit) return false;
+    const r = exit.getBoundingClientRect();
+    const s = getComputedStyle(exit);
+    if (!exit.closest('[data-testid="chat_input"]')
+      || r.width <= 2 || r.height <= 2 || s.display === 'none') return false;
+    const root = exit.closest('button,[role="button"]')?.parentElement || exit.parentElement;
+    return String(root?.innerText || root?.textContent || '').includes('视频生成');
+  })()`);
+}
+
+async function isVideoComposerReady(session) {
+  return (await isVideoComposer(session)) || (await isAbstractedVideoSkill(session));
+}
+
 async function waitUntil(check, timeoutMs, intervalMs = 500) {
   const deadline = Date.now() + timeoutMs;
   let lastError;
@@ -442,8 +476,25 @@ async function waitUntil(check, timeoutMs, intervalMs = 500) {
 }
 
 async function ensureVideoComposer(session) {
-  if (await isVideoComposer(session)) return;
-  let clicked = await clickText(session, { text: '视频生成', exact: true, bottom: true });
+  if (await isVideoComposerReady(session)) return;
+  // A completed video can leave the “图片与视频” viewer tab open. Its main
+  // chat editor is not the Seedance composer, so close the viewer first.
+  const closedViewer = await session.evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(el =>
+      String(el.getAttribute('aria-label') || '').startsWith('关闭标签页：图片与视频'));
+    if (!button) return false;
+    button.click();
+    return true;
+  })()`);
+  if (closedViewer) await sleep(800);
+  // Cold-started desktop clients can expose the page target before the mode
+  // buttons finish rendering. Wait for the real entry instead of treating the
+  // initial empty shell as an account/permission failure.
+  const initialEntry = await waitUntil(
+    () => pointByText(session, { text: '视频生成', exact: true, bottom: true }),
+    12000,
+  );
+  let clicked = await clickPoint(session, initialEntry);
   if (!clicked) {
     const modeMenu = await clickText(session, { text: '对话', exact: true, bottom: true });
     if (modeMenu) {
@@ -467,13 +518,56 @@ async function ensureVideoComposer(session) {
     }
   }
   if (!clicked) {
+    const skillsEntry = await clickText(session, { text: '技能 · 连接器 · 伙伴', exact: true });
+    if (skillsEntry) {
+      let videoEntry = await waitUntil(
+        () => pointByText(session, { text: '视频生成', exact: true, bottom: true }),
+        3000,
+      );
+      if (!videoEntry) {
+        const search = await session.evaluate(`(() => {
+          const el = [...document.querySelectorAll('input')].find(input => {
+            const r = input.getBoundingClientRect();
+            const s = getComputedStyle(input);
+            return input.getAttribute('placeholder') === '搜索技能'
+              && r.width > 5 && r.height > 5 && s.display !== 'none' && s.visibility !== 'hidden';
+          });
+          return el || null;
+        })()`, { returnByValue: false });
+        if (search?.objectId) {
+          await session.send('DOM.focus', { objectId: search.objectId });
+          await session.send('Input.dispatchKeyEvent', {
+            type: 'keyDown', key: 'a', code: 'KeyA', modifiers: 2, windowsVirtualKeyCode: 65,
+          });
+          await session.send('Input.dispatchKeyEvent', {
+            type: 'keyUp', key: 'a', code: 'KeyA', modifiers: 2, windowsVirtualKeyCode: 65,
+          });
+          await session.send('Input.insertText', { text: '视频生成' });
+          videoEntry = await waitUntil(
+            () => pointByText(session, { regex: '^视频生成(?:\\s|$)', bottom: true }),
+            10000,
+          );
+        }
+      }
+      clicked = await clickPoint(session, videoEntry);
+      if (clicked) await sleep(1200);
+    }
+  }
+  if (!clicked) {
     const controls = await composerDiagnostics(session);
     fail(`could not find the Doubao “视频生成” entry; relevant controls=${JSON.stringify(controls)}`);
   }
-  let ready = await waitUntil(() => isVideoComposer(session), 5000);
+  let ready = await waitUntil(() => isVideoComposerReady(session), 5000);
+  if (!ready) {
+    const useButton = await pointByText(session, { regex: '^(立即使用|使用)$', bottom: true });
+    if (useButton) {
+      await clickPoint(session, useButton);
+      ready = await waitUntil(() => isVideoComposerReady(session), 10000);
+    }
+  }
   if (!ready) {
     await domClickText(session, { text: '视频生成', exact: true, bottom: true });
-    ready = await waitUntil(() => isVideoComposer(session), 10000);
+    ready = await waitUntil(() => isVideoComposerReady(session), 10000);
   }
   if (!ready) {
     const controls = await composerDiagnostics(session);
@@ -481,11 +575,29 @@ async function ensureVideoComposer(session) {
   }
 }
 
+async function startNewConversation(session) {
+  await session.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
+  await session.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape' });
+  await sleep(300);
+  const before = await session.evaluate('location.href');
+  const clicked = await clickText(session, { text: '新对话', exact: true });
+  if (!clicked) fail('could not find the Doubao “新对话” entry');
+  await sleep(1200);
+  const after = await session.evaluate('location.href');
+  console.log(`[doubao] opened a fresh conversation (${before} -> ${after})`);
+}
+
 async function chooseModel(session, model) {
   const point = await pointByText(session, {
     regex: '^(模型\\s*)?Seedance\\s+[^\\n]{1,40}$', flags: 'i', bottom: true,
   });
-  if (!point) fail('could not find the Seedance model selector');
+  if (!point) {
+    if (await isAbstractedVideoSkill(session)) {
+      console.log(`[doubao] active video skill confirmed; backend model is managed by Doubao and not exposed in this UI (requested=${model})`);
+      return 'managed';
+    }
+    fail('could not find the Seedance model selector');
+  }
   await clickPoint(session, point);
   const option = await waitUntil(() => pointByText(session, { text: model, exact: true }), 8000);
   if (!option) fail(`model option not found: ${model}`);
@@ -493,6 +605,7 @@ async function chooseModel(session, model) {
   await sleep(500);
   const text = await bodyText(session);
   if (!text.includes(model)) fail(`Doubao did not select ${model}`);
+  return 'explicit';
 }
 
 function ratioFromSize(size) {
@@ -508,13 +621,29 @@ function ratioFromSize(size) {
 }
 
 async function setParameters(session, ratio, duration) {
-  const selector = await pointByText(session, {
+  const selector = await waitUntil(() => pointByText(session, {
     regex: '^(自动|3:4|4:3|9:16|16:9|1:1|21:9)\\s*[·・]\\s*\\d+s$', bottom: true,
-  });
-  if (!selector) fail('could not find the Seedance parameter selector');
+  }), 10000, 500);
+  if (!selector) {
+    if (await isAbstractedVideoSkill(session)) {
+      console.log(`[doubao] video skill parameters are prompt-managed in this UI; required prompt contract=${ratio}, ${duration}s`);
+      return 'prompt';
+    }
+    fail('could not find the Seedance parameter selector');
+  }
   await clickPoint(session, selector);
-  const ratioPoint = await waitUntil(() => pointByText(session, { text: ratio, exact: true }), 8000);
-  if (!ratioPoint) fail(`ratio option not found: ${ratio}`);
+  let ratioPoint = await waitUntil(() => pointByText(session, { text: ratio, exact: true }), 3500);
+  if (!ratioPoint) {
+    const escapedRatio = ratio.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    ratioPoint = await waitUntil(() => pointByText(session, {
+      regex: `^${escapedRatio}(?:\\s|$)`,
+    }), 4500);
+  }
+  if (!ratioPoint) {
+    const controls = await composerDiagnostics(session);
+    console.log(`[doubao] parameter menu controls=${JSON.stringify(controls.slice(-24))}`);
+    fail(`ratio option not found: ${ratio}`);
+  }
   await clickPoint(session, ratioPoint);
 
   const slider = await session.evaluate(`(() => {
@@ -537,6 +666,7 @@ async function setParameters(session, ratio, duration) {
   await session.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 300, y: 300, button: 'left', clickCount: 1 });
   await session.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 300, y: 300, button: 'left', clickCount: 1 });
   await sleep(300);
+  return 'explicit';
 }
 
 async function existingFileInput(session) {
@@ -552,18 +682,46 @@ async function existingFileInput(session) {
   })()`, { returnByValue: false });
 }
 
+async function composerImageState(session) {
+  return session.evaluate(`(() => {
+    const visible = el => {
+      const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el);
+      return r.width > 12 && r.height > 12 && r.top > innerHeight * .42 &&
+        s.display !== 'none' && s.visibility !== 'hidden';
+    };
+    return [...document.querySelectorAll('img')].filter(visible).map(img => ({
+      src: String(img.currentSrc || img.src || ''),
+      alt: String(img.alt || ''),
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+    })).filter(item => item.src);
+  })()`);
+}
+
+async function composerAttachmentState(session) {
+  return session.evaluate(`(() => {
+    const prompt = ${PROMPT_EDITOR_SCRIPT};
+    const root = prompt?.closest('[data-testid="chat_input"]');
+    if (!root?.querySelector('#flow-end-msg-send')) return [];
+    const visible = el => {
+      const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el);
+      return r.width > 12 && r.height > 12 && s.display !== 'none' && s.visibility !== 'hidden';
+    };
+    return [...root.querySelectorAll('img')].filter(visible).map(img => ({
+      src: String(img.currentSrc || img.src || ''),
+      alt: String(img.alt || ''),
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+    })).filter(item => item.src);
+  })()`);
+}
+
 async function plusPoint(session) {
   return session.evaluate(`(() => {
     const visible = el => { const r=el.getBoundingClientRect(); return r.width>4 && r.height>4; };
-    const promptCandidates = [...document.querySelectorAll('textarea,input,[contenteditable="true"],div,span')]
-      .filter(visible).filter(el => String(el.placeholder || el.innerText || '').includes('描述你想要的视频'));
-    promptCandidates.sort((a,b)=>{
-      const ar=a.getBoundingClientRect(), br=b.getBoundingClientRect();
-      const aPreferred=a.matches('textarea,input,[contenteditable="true"]')?-1000000:0;
-      const bPreferred=b.matches('textarea,input,[contenteditable="true"]')?-1000000:0;
-      return aPreferred+ar.width*ar.height-(bPreferred+br.width*br.height);
-    });
-    const prompt = promptCandidates[0];
+    const prompt = ${PROMPT_EDITOR_SCRIPT};
     let root=prompt;
     for(let i=0; root && i<7; i++, root=root.parentElement){
       const buttons=[...root.querySelectorAll('button,[role="button"]')].filter(visible);
@@ -577,16 +735,54 @@ async function plusPoint(session) {
   })()`);
 }
 
+async function submitPoint(session) {
+  return session.evaluate(`(() => {
+    const visible = el => {
+      const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el);
+      return r.width > 4 && r.height > 4 && s.display !== 'none' && s.visibility !== 'hidden';
+    };
+    const prompt = ${PROMPT_EDITOR_SCRIPT};
+    if (!prompt) return null;
+    const pr = prompt.getBoundingClientRect();
+    let root = prompt;
+    for (let i = 0; root && i < 7; i += 1, root = root.parentElement) {
+      const rr = root.getBoundingClientRect();
+      const buttons = [...root.querySelectorAll('button,[role="button"]')]
+        .filter(visible)
+        .map(el => ({ el, r: el.getBoundingClientRect() }))
+        .filter(item => item.r.left >= pr.left + pr.width * .55
+          && item.r.right <= rr.right + 2
+          && item.r.top >= pr.top - 8
+          && item.r.bottom <= pr.bottom + 8);
+      if (buttons.length) {
+        buttons.sort((a, b) => b.r.right - a.r.right || b.r.bottom - a.r.bottom);
+        const r = buttons[0].r;
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      }
+    }
+    return null;
+  })()`);
+}
+
 async function uploadReference(session, filePath) {
+  const removed = await session.evaluate(`(() => {
+    const prompt = ${PROMPT_EDITOR_SCRIPT};
+    const root = prompt?.closest('[data-testid="chat_input"]');
+    const buttons = root ? [...root.querySelectorAll('[data-testid="attachment-delete-btn"]')] : [];
+    buttons.forEach(button => button.click());
+    return buttons.length;
+  })()`);
+  if (removed) {
+    const cleared = await waitUntil(async () => (await composerAttachmentState(session)).length === 0, 5000, 250);
+    if (!cleared) fail('could not clear stale composer attachments before reference upload');
+    console.log(`[doubao] cleared ${removed} stale composer attachment(s)`);
+  }
+  const beforeImages = await composerAttachmentState(session);
+  const beforeSources = new Set(beforeImages.map(item => item.src));
   await session.send('DOM.enable');
   await session.send('Page.setInterceptFileChooserDialog', { enabled: true });
   try {
-    const object = await existingFileInput(session);
-    if (object?.objectId) {
-      await session.send('DOM.setFileInputFiles', { objectId: object.objectId, files: [filePath] });
-      await sleep(1200);
-      return;
-    }
     const point = await plusPoint(session);
     if (!point) fail('could not find the reference upload button');
     const chooserPromise = session.waitEvent('Page.fileChooserOpened', 12000);
@@ -598,14 +794,61 @@ async function uploadReference(session, filePath) {
   } finally {
     await session.send('Page.setInterceptFileChooserDialog', { enabled: false }).catch(() => {});
   }
-  await sleep(1200);
+  const preview = await waitUntil(async () => {
+    const images = await composerAttachmentState(session);
+    return images.find(item => !beforeSources.has(item.src)) || null;
+  }, 12000, 500);
+  if (!preview) {
+    const input = await existingFileInput(session);
+    const selected = input?.objectId ? await session.send('Runtime.callFunctionOn', {
+      objectId: input.objectId,
+      functionDeclaration: 'function(){return this.files?.[0]?.name || ""}',
+      returnByValue: true,
+    }).then(result => result.result?.value || '').catch(() => '') : '';
+    fail(`reference upload was not confirmed by a new preview (selected=${selected || 'none'}); task was not submitted`);
+  }
+  console.log(`[doubao] reference preview confirmed: ${path.basename(filePath)} ${preview.width}x${preview.height}`);
 }
 
 async function fillPrompt(session, prompt) {
   const editor = await promptEditor(session);
   if (!editor?.objectId) fail('could not find the video prompt editor');
+  const expected = prompt.replace(/\s+/g, ' ').trim();
+  const tiptap = await session.evaluate(`(prompt => {
+    const el = ${PROMPT_EDITOR_SCRIPT};
+    const tiptapEditor = el?.editor;
+    if (!tiptapEditor?.commands?.setContent) return null;
+    try {
+      const paragraphs = String(prompt).split(/\\n+/).map(value => value.trim()).filter(Boolean);
+      const doc = {
+        type: 'doc',
+        content: paragraphs.map(value => ({
+          type: 'paragraph', content: [{ type: 'text', text: value }],
+        })),
+      };
+      tiptapEditor.commands.setContent(doc, { emitUpdate: true });
+      tiptapEditor.commands.focus('end');
+      return { used: true, text: String(tiptapEditor.getText?.({ blockSeparator: '\\n' }) || '') };
+    } catch (error) {
+      return { used: false, error: String(error?.stack || error) };
+    }
+  })(${JSON.stringify(prompt)})`);
+  if (tiptap?.used) {
+    await sleep(500);
+    const actual = String(tiptap.text || '').replace(/\s+/g, ' ').trim();
+    const domState = await promptEditorState(session);
+    const domActual = String(domState?.value || '').replace(/\s+/g, ' ').trim();
+    if (actual === expected && domActual === expected) {
+      const sha256 = crypto.createHash('sha256').update(prompt, 'utf8').digest('hex');
+      console.log(`[doubao] prompt editor verified through Tiptap state: ${actual.length} chars sha256=${sha256}`);
+      return;
+    }
+  } else if (tiptap?.error) {
+    console.log(`[doubao] Tiptap state update unavailable; falling back to browser input: ${tiptap.error.split('\n')[0]}`);
+  }
   const before = await promptEditorState(session);
   await clickPoint(session, before);
+  await session.send('DOM.focus', { objectId: editor.objectId }).catch(() => {});
   await session.send('Input.dispatchKeyEvent', {
     type: 'keyDown', key: 'a', code: 'KeyA', modifiers: 2, windowsVirtualKeyCode: 65,
   });
@@ -614,9 +857,33 @@ async function fillPrompt(session, prompt) {
   });
   await session.send('Input.insertText', { text: prompt });
   await sleep(500);
-  const after = await promptEditorState(session);
-  const expected = prompt.replace(/\s+/g, ' ').trim();
-  const actual = String(after?.value || '').replace(/\s+/g, ' ').trim();
+  let after = await promptEditorState(session);
+  let actual = String(after?.value || '').replace(/\s+/g, ' ').trim();
+  if (actual !== expected) {
+    // Some Doubao desktop builds intermittently drop one large IME insertion
+    // even though the ProseMirror editor is visible. Refocus and type bounded
+    // chunks through CDP; full read-back verification remains mandatory.
+    await session.send('DOM.focus', { objectId: editor.objectId }).catch(() => {});
+    await session.send('Input.dispatchKeyEvent', {
+      type: 'keyDown', key: 'a', code: 'KeyA', modifiers: 2, windowsVirtualKeyCode: 65,
+    });
+    await session.send('Input.dispatchKeyEvent', {
+      type: 'keyUp', key: 'a', code: 'KeyA', modifiers: 2, windowsVirtualKeyCode: 65,
+    });
+    await session.send('Input.dispatchKeyEvent', {
+      type: 'keyDown', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8,
+    });
+    await session.send('Input.dispatchKeyEvent', {
+      type: 'keyUp', key: 'Backspace', code: 'Backspace', windowsVirtualKeyCode: 8,
+    });
+    for (let offset = 0; offset < prompt.length; offset += 256) {
+      await session.send('Input.insertText', { text: prompt.slice(offset, offset + 256) });
+      await sleep(40);
+    }
+    await sleep(500);
+    after = await promptEditorState(session);
+    actual = String(after?.value || '').replace(/\s+/g, ' ').trim();
+  }
   if (actual !== expected) {
     fail(`prompt editor verification failed: expected ${expected.length} chars, read back ${actual.length}; task was not submitted`);
   }
@@ -625,32 +892,142 @@ async function fillPrompt(session, prompt) {
 }
 
 async function videoSources(session) {
-  return session.evaluate(`[...document.querySelectorAll('video')].map((video,index)=>({
-    index, src: video.currentSrc || video.src || '', readyState: video.readyState,
-    width: video.videoWidth, height: video.videoHeight,
-    visible: !!(video.offsetWidth || video.offsetHeight || video.getClientRects().length)
-  })).filter(item=>item.src)`);
+  return session.evaluate(String.raw`(() => {
+    const found = [...document.querySelectorAll('video')].map((video,index)=>({
+      index, src: video.currentSrc || video.src || video.querySelector('source')?.src || '',
+      readyState: video.readyState, width: video.videoWidth, height: video.videoHeight,
+      visible: !!(video.offsetWidth || video.offsetHeight || video.getClientRects().length)
+    })).filter(item=>item.src);
+    const known = new Set(found.map(item => item.src));
+    for (const [index, entry] of performance.getEntriesByType('resource').entries()) {
+      const src = String(entry.name || '');
+      if (!src || known.has(src) || !/(?:mime_type=video|\/video\/tos\/|\.mp4(?:\?|$))/i.test(src)) continue;
+      known.add(src);
+      found.push({index:10000+index,src,readyState:1,width:0,height:0,visible:false,resource:true});
+    }
+    return found;
+  })()`);
 }
 
-async function submitOnce(session, prompt) {
-  await fillPrompt(session, prompt);
+async function submitCurrentPrompt(session, prompt, confirmPaid = false) {
+  await session.send('Emulation.setFocusEmulationEnabled', { enabled: true }).catch(() => {});
+  await session.send('Emulation.setPageVisibilityOverride', { visibilityState: 'visible' }).catch(() => {});
+  await session.send('Page.setWebLifecycleState', { state: 'active' }).catch(() => {});
+  await session.evaluate('window.focus()').catch(() => {});
+  const interactive = await waitUntil(() => session.evaluate(`({
+    visibility: document.visibilityState, focus: document.hasFocus(),
+  })`).then(state => state.focus || state.visibility === 'visible'), 3000, 250);
+  if (!interactive) fail('Doubao page remained hidden and unfocused; task was not submitted');
+  console.log(`[doubao] background page interaction state visibility=${interactive.visibility} focus=${interactive.focus}`);
   const before = await bodyText(session);
+  const promptSignature = prompt.replace(/\s+/g, ' ').trim().slice(0, 120);
   await session.send('Input.dispatchKeyEvent', {
     type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13,
   });
   await session.send('Input.dispatchKeyEvent', {
     type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13,
   });
+  await sleep(1200);
+  const afterEnter = await promptEditorState(session);
+  if (String(afterEnter?.value || '').trim()) {
+    const point = await submitPoint(session);
+    if (!point) fail('Enter did not submit and the constrained composer submit button was not found');
+    await clickPoint(session, point);
+    console.log('[doubao] Enter did not submit; clicked the constrained composer submit button');
+    const pointClickStarted = await waitUntil(async () => {
+      const text = await bodyText(session);
+      const editor = await promptEditorState(session);
+      return !String(editor?.value || '').trim()
+        || text.includes('将消耗付费额度')
+        || text.includes('生成中')
+        || text.includes('正在生成');
+    }, 2500, 250);
+    if (!pointClickStarted) {
+      const domClicked = await session.evaluate(`(() => {
+        const button = document.querySelector('#flow-end-msg-send[data-testid="chat_input_send_button"]');
+        if (!button || button.getAttribute('aria-disabled') === 'true'
+          || button.getAttribute('data-disabled') === 'true') return false;
+        button.click();
+        return true;
+      })()`);
+      if (!domClicked) fail('the exact enabled composer submit button was not available');
+      console.log('[doubao] coordinate click had no effect; clicked the exact enabled submit node');
+      const domClickStarted = await waitUntil(async () => {
+        const text = await bodyText(session);
+        const editor = await promptEditorState(session);
+        return !String(editor?.value || '').trim()
+          || text.includes('将消耗付费额度')
+          || text.includes('生成中')
+          || text.includes('正在生成');
+      }, 3000, 250);
+      if (!domClickStarted) {
+        const editor = await promptEditor(session);
+        if (!editor?.objectId) fail('could not refocus the prompt editor for Ctrl+Enter submission');
+        await session.send('DOM.focus', { objectId: editor.objectId }).catch(() => {});
+        await session.send('Input.dispatchKeyEvent', {
+          type: 'keyDown', key: 'Enter', code: 'Enter', modifiers: 2, windowsVirtualKeyCode: 13,
+        });
+        await session.send('Input.dispatchKeyEvent', {
+          type: 'keyUp', key: 'Enter', code: 'Enter', modifiers: 2, windowsVirtualKeyCode: 13,
+        });
+        console.log('[doubao] click submission had no effect; used the configured Ctrl+Enter send shortcut');
+        const shortcutStarted = await waitUntil(async () => {
+          const text = await bodyText(session);
+          const state = await promptEditorState(session);
+          return !String(state?.value || '').trim()
+            || text.includes('将消耗付费额度')
+            || text.includes('生成中')
+            || text.includes('正在生成');
+        }, 3000, 250);
+        if (!shortcutStarted) {
+          const reactInvoked = await session.evaluate(`(() => {
+            const button = document.querySelector('#flow-end-msg-send[data-testid="chat_input_send_button"]');
+            if (!button) return false;
+            const key = Object.getOwnPropertyNames(button).find(name => name.startsWith('__reactProps$'));
+            const handler = key ? button[key]?.onClick : null;
+            if (typeof handler !== 'function') return false;
+            handler.call(button);
+            return true;
+          })()`);
+          if (!reactInvoked) fail('the exact send button React handler was not available');
+          console.log('[doubao] UI events had no effect; invoked the exact bound React send handler');
+        }
+      }
+    }
+  }
+  const paidConfirmation = await waitUntil(async () => {
+    const text = await bodyText(session);
+    return text.includes('将消耗付费额度') && text.includes('确认生成');
+  }, 5000, 500);
+  if (paidConfirmation) {
+    if (!confirmPaid) {
+      fail('Doubao requires paid quota confirmation; rerun only with explicit user authorization and --confirm-paid');
+    }
+    const confirmed = await clickText(session, { text: '确认生成', exact: true });
+    if (!confirmed) fail('paid quota was authorized but the “确认生成” button was not found');
+    console.log('[doubao] paid quota confirmation accepted by explicit --confirm-paid authorization');
+    await sleep(800);
+  }
   const accepted = await waitUntil(async () => {
     const text = await bodyText(session);
     const error = ERROR_TEXTS.find(item => countText(text, item) > countText(before, item));
     if (error) fail(`Doubao rejected the task: ${error}`);
-    return text.includes('生成中') || text.includes('正在生成') || text.length > before.length + 20;
+    const editor = await promptEditorState(session);
+    const posted = !String(editor?.value || '').trim()
+      && text.replace(/\s+/g, ' ').includes(promptSignature);
+    return text.includes('生成中') || text.includes('正在生成')
+      || countText(text, '视频生成已提交') > countText(before, '视频生成已提交')
+      || posted || text.length > before.length + 20;
   }, 15000, 800);
   if (!accepted) {
     fail('Doubao did not confirm task submission; the tool will not retry automatically to avoid double quota use');
   }
   return before;
+}
+
+async function submitOnce(session, prompt, confirmPaid = false) {
+  await fillPrompt(session, prompt);
+  return submitCurrentPrompt(session, prompt, confirmPaid);
 }
 
 function countText(haystack, needle) {
@@ -665,13 +1042,26 @@ async function waitForResult(session, baseline, baselineText, timeoutMs) {
     const error = ERROR_TEXTS.find(item => countText(text, item) > countText(baselineText, item));
     if (error) fail(`Doubao stopped generation: ${error}`);
     const videos = await videoSources(session);
-    const newSource = videos.find(item => item.readyState >= 1 && !baselineSet.has(item.src));
+    const completedNow = countText(text, '你的视频生成好了') > baselineCompleted;
+    const newSource = videos.find(item => !baselineSet.has(item.src)
+      && (item.readyState >= 1 || (completedNow && /^https?:/i.test(item.src))));
     if (newSource) return newSource;
-    // Doubao may reuse a blob: URL or replace a video element in place. Once
-    // the conversation gains a fresh completion marker, the last ready video
-    // is the newly generated result even when its URL matches the baseline.
-    if (countText(text, '你的视频生成好了') > baselineCompleted) {
-      return [...videos].reverse().find(item => item.readyState >= 1) || null;
+    // Completion text alone is insufficient: a stale conversation can retain
+    // an older <video> while a new result card is still being hydrated. Scroll
+    // the page to the newest card, then keep waiting for a genuinely new URL.
+    // Never download the old last video merely because a marker appeared.
+    if (completedNow) {
+      await session.evaluate(`(() => {
+        document.querySelector('#to-bottom-button')?.click();
+        const nodes = [...document.querySelectorAll('*')];
+        const target = nodes.reverse().find(el => String(el.innerText || '').includes('你的视频生成好了'));
+        target?.scrollIntoView({block:'end'});
+        window.scrollTo(0, document.body.scrollHeight);
+        const cards=[...document.querySelectorAll('[data-container-type="block-v1"]')]
+          .filter(el=>String(el.innerText||'').includes('你的视频生成好了'));
+        cards.at(-1)?.querySelector('[class*="block-video-"]')?.click();
+        return true;
+      })()`);
     }
     return null;
   }, timeoutMs, 3000);
@@ -754,31 +1144,178 @@ async function main() {
     prompt += '\nThe motion forms one complete cycle and returns to the exact starting pose, position, scale, and camera framing at the end.';
   }
 
-  if (!args.inspect && !args['download-latest']) {
+  if (!args.inspect && !args['download-latest'] && !args['submit-filled'] && !args['wait-current']) {
     if (!ref || !fs.existsSync(ref)) fail('provide an existing --ref image');
     if (!prompt) fail('provide --prompt or --prompt-file');
     if (!out) fail('provide --out');
   }
   if (args['download-latest'] && !out) fail('--download-latest requires --out');
+  if (args['submit-filled'] && !out) fail('--submit-filled requires --out');
+  if (args['wait-current'] && !out) fail('--wait-current requires --out');
 
   const bootstrap = await ensureDebugClient(options);
   const targets = bootstrap.targets;
   const { session, state } = await selectDoubaoPage(targets);
   let completed = false;
   try {
+    if (args['open-conversation']) {
+      const opened = await clickText(session, { text: String(args['open-conversation']), exact: true });
+      if (!opened) fail(`conversation not found: ${args['open-conversation']}`);
+      await sleep(1500);
+    }
+    if (args['scroll-latest']) {
+      await session.evaluate(`document.querySelector('#to-bottom-button')?.click() || false`);
+      await sleep(1200);
+    }
+    if (args['play-latest']) {
+      const completedOffset = Math.max(0, Number.parseInt(args['completed-offset'] || '0', 10) || 0);
+      await session.evaluate(`(() => {
+        document.querySelector('#to-bottom-button')?.click();
+        const cards=[...document.querySelectorAll('[data-container-type="block-v1"]')]
+          .filter(el=>String(el.innerText||'').includes('你的视频生成好了'));
+        const card=cards.at(-1-${completedOffset}); card?.scrollIntoView({block:'end'});
+        card?.querySelector('[class*="block-video-"]')?.click(); return !!card;
+      })()`);
+      await sleep(1500);
+    }
     if (args.inspect) {
       const text = await bodyText(session);
+      const viewport = await session.evaluate(`({
+        width: innerWidth, height: innerHeight, dpr: devicePixelRatio,
+        visibility: document.visibilityState, hasFocus: document.hasFocus(),
+      })`);
       const editor = await promptEditorState(session);
       const controls = await composerDiagnostics(session);
+      const composerImages = await composerImageState(session);
+      const abstractedVideoSkill = await isAbstractedVideoSkill(session);
+      const abstractedSkillDebug = await session.evaluate(`(() => {
+        const exit = document.querySelector('[data-testid="skill_input_exit_button"][data-value="17"]');
+        if (!exit) return null;
+        const r = exit.getBoundingClientRect();
+        const s = getComputedStyle(exit);
+        const parent = exit.closest('button,[role="button"]')?.parentElement || exit.parentElement;
+        return {
+          text: String(parent?.innerText || parent?.textContent || '').replace(/\s+/g, ' ').trim(),
+          left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height),
+          display: s.display, visibility: s.visibility, opacity: s.opacity,
+          inCurrentComposer: Boolean(exit.closest('[data-testid="chat_input"]')),
+          html: String(parent?.outerHTML || '').slice(0, 2500),
+        };
+      })()`);
+      const sendButtonDebug = await session.evaluate(`(() => {
+        const button = document.querySelector('#flow-end-msg-send[data-testid="chat_input_send_button"]');
+        if (!button) return null;
+        const keys = Object.getOwnPropertyNames(button);
+        const reactPropsKey = keys.find(key => key.startsWith('__reactProps$')) || '';
+        const reactProps = reactPropsKey ? button[reactPropsKey] : null;
+        return {
+          disabled: button.disabled,
+          ariaDisabled: button.getAttribute('aria-disabled'),
+          dataDisabled: button.getAttribute('data-disabled'),
+          activeElement: document.activeElement === button,
+          ownKeys: keys.filter(key => /react|vue|event|click/i.test(key)),
+          reactPropsKey,
+          reactPropKeys: reactProps ? Object.keys(reactProps).filter(key => /click|mouse|pointer|disabled/i.test(key)) : [],
+          onClickType: typeof reactProps?.onClick,
+          onClickSource: typeof reactProps?.onClick === 'function'
+            ? String(reactProps.onClick).slice(0, 500) : '',
+        };
+      })()`);
+      const editorDebug = await session.evaluate(`(() => {
+        const editor = ${PROMPT_EDITOR_SCRIPT};
+        if (!editor) return null;
+        const ownKeys = Object.getOwnPropertyNames(editor);
+        const pm = editor.pmViewDesc || null;
+        const pmKeys = pm ? Object.getOwnPropertyNames(pm) : [];
+        let root = pm;
+        for (let i = 0; root?.parent && i < 12; i += 1) root = root.parent;
+        return {
+          ownKeys: ownKeys.filter(key => /pm|prose|view|editor|react/i.test(key)),
+          editorKeys: editor.editor ? Object.getOwnPropertyNames(editor.editor).filter(key => !key.startsWith('_')) : [],
+          commandKeys: editor.editor?.commands ? Object.keys(editor.editor.commands).slice(0, 80) : [],
+          pmKeys: pmKeys.filter(key => !key.startsWith('_')),
+          rootKeys: root ? Object.getOwnPropertyNames(root).filter(key => !key.startsWith('_')) : [],
+          rootHasView: Boolean(root?.view),
+          rootViewKeys: root?.view ? Object.getOwnPropertyNames(root.view).filter(key => !key.startsWith('_')) : [],
+        };
+      })()`);
+      const composerLocalDebug = await session.evaluate(`(() => {
+        const editor = ${PROMPT_EDITOR_SCRIPT};
+        const root = editor?.closest('[data-testid="chat_input"]');
+        if (!root?.querySelector('#flow-end-msg-send')) return null;
+        const visible = el => {
+          const r = el.getBoundingClientRect();
+          const s = getComputedStyle(el);
+          return r.width > 2 && r.height > 2 && s.display !== 'none' && s.visibility !== 'hidden';
+        };
+        const items = [...root.querySelectorAll('img,button,[role="button"],[data-testid],[data-value]')]
+          .filter(visible).map(el => {
+            const r = el.getBoundingClientRect();
+            return {
+              tag: el.tagName,
+              testid: el.getAttribute('data-testid') || '',
+              value: el.getAttribute('data-value') || '',
+              src: String(el.currentSrc || el.src || '').slice(0, 240),
+              text: String(el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120),
+              left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height),
+            };
+          });
+        return { text: String(root.innerText || '').slice(0, 1200), items };
+      })()`);
+      const attachmentDebug = await session.evaluate(`(() => {
+        const prompt = ${PROMPT_EDITOR_SCRIPT};
+        const root = prompt?.closest('[data-testid="chat_input"]');
+        return root ? [...root.querySelectorAll('[data-testid="attachment-image-card"]')].map(card => {
+          const key = Object.getOwnPropertyNames(card).find(name => name.startsWith('__reactProps$'));
+          const props = key ? card[key] : null;
+          const shallow = {};
+          for (const [name, value] of Object.entries(props || {})) {
+            if (['string', 'number', 'boolean'].includes(typeof value)) shallow[name] = value;
+            else if (value && typeof value === 'object') shallow[name] = {
+              keys: Object.keys(value).slice(0, 60),
+              status: value.status ?? value.uploadStatus ?? value.state ?? null,
+              name: value.name ?? value.fileName ?? null,
+              type: value.type ?? value.mimeType ?? null,
+            };
+          }
+          return { propKeys: Object.keys(props || {}), shallow };
+        }) : [];
+      })()`);
       const videos = await videoSources(session);
-      console.log(JSON.stringify({ title: state.title, url: state.url, model, ratio, duration,
+      let pointState = null;
+      if (args.point) {
+        const [x, y] = String(args.point).split(',').map(Number);
+        pointState = await session.evaluate(`(() => {
+          let el=document.elementFromPoint(${x},${y}); const items=[];
+          for(let i=0;el&&i<12;i++,el=el.parentElement){const r=el.getBoundingClientRect();items.push({
+            tag:el.tagName,role:el.getAttribute('role')||'',aria:el.getAttribute('aria-label')||'',
+            title:el.getAttribute('title')||'',text:String(el.innerText||el.textContent||'').trim().slice(0,160),
+            left:Math.round(r.left),top:Math.round(r.top),width:Math.round(r.width),height:Math.round(r.height),
+            html:el.outerHTML.slice(0,1200)});} return items;
+        })()`);
+      }
+      if (args.screenshot) {
+        const shot = await session.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+        const screenshotPath = path.resolve(args.screenshot);
+        fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
+        fs.writeFileSync(screenshotPath, Buffer.from(shot.data, 'base64'));
+        console.log(`[doubao] screenshot -> ${screenshotPath}`);
+      }
+      console.log(JSON.stringify({ title: state.title, url: state.url, model, ratio, duration, viewport, pointState,
         editor: editor ? { tag: editor.tag, placeholder: editor.placeholder, valueLength: editor.value.length } : null,
-        controls, videos, visibleText: text.slice(-6000) }, null, 2));
+        controls, composerImages, abstractedVideoSkill, abstractedSkillDebug,
+        sendButtonDebug, editorDebug, composerLocalDebug, attachmentDebug,
+        videos, visibleText: text.slice(-6000) }, null, 2));
       return;
     }
     if (args['download-latest']) {
       const videos = await videoSources(session);
-      const video = [...videos].reverse().find(item => item.readyState >= 1);
+      const completedText = await bodyText(session);
+      const hasCompletedVideo = completedText.includes('你的视频生成好了');
+      const video = [...videos].reverse().find(item => item.readyState >= 1 && !item.resource && item.visible) ||
+        [...videos].reverse().find(item => item.readyState >= 1 && !item.resource) ||
+        [...videos].reverse().find(item => item.readyState >= 1) ||
+        (hasCompletedVideo ? [...videos].reverse().find(item => /^https?:/i.test(item.src)) : null);
       if (!video) fail('no ready video is visible in the current Doubao conversation');
       await downloadVideo(session, video.src, out);
       writeManifest(out, {
@@ -789,26 +1326,80 @@ async function main() {
       return;
     }
 
+    if (args['submit-filled']) {
+      if (prompt) await fillPrompt(session, prompt);
+      const editor = await promptEditorState(session);
+      const existingPrompt = String(editor?.value || '').trim();
+      if (!existingPrompt) fail('--submit-filled requires a non-empty current prompt editor');
+      const baseline = await videoSources(session);
+      const baselineText = await submitCurrentPrompt(
+        session, existingPrompt, Boolean(args['confirm-paid']),
+      );
+      console.log('[doubao] existing filled composer submitted; waiting for result');
+      const video = await waitForResult(session, baseline, baselineText, timeoutMs);
+      await downloadVideo(session, video.src, out);
+      writeManifest(out, {
+        provider: 'doubao-desktop', recoveredFromFilledComposer: true,
+        promptChars: existingPrompt.length,
+        promptSha256: crypto.createHash('sha256').update(existingPrompt, 'utf8').digest('hex'),
+        generatedAt: new Date().toISOString(), sourceUrlScheme: String(video.src).split(':')[0],
+      });
+      completed = true;
+      return;
+    }
+    if (args['wait-current']) {
+      const baseline = await videoSources(session);
+      const baselineText = await bodyText(session);
+      const editor = await promptEditorState(session);
+      const paidConfirmation = baselineText.includes('将消耗付费额度')
+        && baselineText.includes('确认生成');
+      const started = paidConfirmation || !String(editor?.value || '').trim()
+        || baselineText.includes('生成中') || baselineText.includes('正在生成')
+        || baselineText.includes('视频生成已提交');
+      if (!started) fail('--wait-current found no submitted or pending-confirmation task');
+      if (paidConfirmation) {
+        if (!args['confirm-paid']) fail('pending generation requires explicit --confirm-paid authorization');
+        const confirmed = await clickText(session, { text: '确认生成', exact: true });
+        if (!confirmed) fail('pending paid confirmation button was not found');
+        console.log('[doubao] pending paid generation confirmed by explicit --confirm-paid authorization');
+        await sleep(800);
+      }
+      console.log('[doubao] waiting for the already-submitted current task');
+      const video = await waitForResult(session, baseline, baselineText, timeoutMs);
+      await downloadVideo(session, video.src, out);
+      writeManifest(out, {
+        provider: 'doubao-desktop', recoveredFromCurrentSubmission: true,
+        generatedAt: new Date().toISOString(), sourceUrlScheme: String(video.src).split(':')[0],
+      });
+      completed = true;
+      return;
+    }
+
     await ensureVideoComposer(session);
+    if (args['new-chat']) {
+      await startNewConversation(session);
+      await ensureVideoComposer(session);
+    }
     console.log(`[doubao] model=${model} ratio=${ratio} duration=${duration}s candidates=${candidates}`);
     for (let index = 0; index < candidates; index += 1) {
       await ensureVideoComposer(session);
-      await chooseModel(session, model);
-      await setParameters(session, ratio, duration);
+      const modelSelection = await chooseModel(session, model);
+      const parameterSelection = await setParameters(session, ratio, duration);
       if (args['fill-only']) {
         await fillPrompt(session, prompt);
-        console.log('[doubao] fill-only verification passed; no file uploaded and no task submitted');
+        console.log(`[doubao] fill-only verification passed (${modelSelection}/${parameterSelection}); no file uploaded and no task submitted`);
         return;
       }
       const baseline = await videoSources(session);
       await uploadReference(session, ref);
-      const baselineText = await submitOnce(session, prompt);
+      const baselineText = await submitOnce(session, prompt, Boolean(args['confirm-paid']));
       console.log(`[doubao] candidate ${index + 1}/${candidates} submitted; waiting for result`);
       const video = await waitForResult(session, baseline, baselineText, timeoutMs);
       const outPath = candidatePath(out, index, candidates);
       await downloadVideo(session, video.src, outPath);
       writeManifest(outPath, {
-        provider: 'doubao-desktop', model, ratio, duration, loopRequested: Boolean(args.loop),
+        provider: 'doubao-desktop', model, modelSelection, ratio, duration,
+        parameterSelection, loopRequested: Boolean(args.loop),
         reference: ref, promptFile: args['prompt-file'] ? path.resolve(args['prompt-file']) : null,
         promptChars: prompt.length,
         promptSha256: crypto.createHash('sha256').update(prompt, 'utf8').digest('hex'),

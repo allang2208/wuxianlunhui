@@ -1,14 +1,15 @@
 """Repair projection gaps while retaining the selected V2 rotor appearance."""
 
 from pathlib import Path
+import argparse
 import math
 
 from PIL import Image, ImageChops, ImageFilter
 
 
 ROOT = Path(__file__).resolve().parent
-SOURCE = (ROOT / "refine_48step_from_v02_seed122561" / "wind_power_plant"
-          / "wind_power_plant_refine_v02_raw.png")
+DEFAULT_SOURCE = (ROOT / "refine_48step_from_v02_seed122561" / "wind_power_plant"
+                  / "wind_power_plant_refine_v02_raw.png")
 RENDERED = ROOT / "rotor_sources"
 
 
@@ -18,7 +19,14 @@ def mask(name: str) -> Image.Image:
 
 
 def main() -> None:
-    source = Image.open(SOURCE).convert("RGB")
+    parser = argparse.ArgumentParser(
+        description="Prepare the accepted wind-station raw for Blender rotor projection.")
+    parser.add_argument("source", nargs="?", type=Path, default=DEFAULT_SOURCE)
+    parser.add_argument("--output", type=Path,
+                        default=RENDERED / "rotor_projection_texture.png")
+    args = parser.parse_args()
+
+    source = Image.open(args.source).convert("RGB")
     skins = mask("rotor_blade_skins_mask.png").filter(ImageFilter.MaxFilter(15))
     spines = mask("rotor_blade_spines_mask.png").filter(ImageFilter.MaxFilter(15))
     hubs = mask("rotor_hub_mask.png").filter(ImageFilter.MaxFilter(15))
@@ -55,7 +63,8 @@ def main() -> None:
                     value = int(max(78, min(154, 119 + grain + streak)))
                     pixels[x, y] = (value, value + 3, value + 2)
 
-    destination = RENDERED / "rotor_projection_texture.png"
+    destination = args.output
+    destination.parent.mkdir(parents=True, exist_ok=True)
     output.save(destination, optimize=True)
     print(destination)
 

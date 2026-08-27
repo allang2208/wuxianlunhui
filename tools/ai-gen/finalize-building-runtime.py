@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from scipy import ndimage
 
 
@@ -94,6 +94,12 @@ def main():
                         help="Preserve alpha but replace every semi-transparent edge RGB pixel with the nearest opaque subject color")
     parser.add_argument("--nearest-opaque-alpha", type=float, default=0.98,
                         help="Minimum normalized alpha used as a reliable RGB source for --nearest-opaque-edge-rgb")
+    parser.add_argument("--defringe-inner-pixels", type=int, default=0,
+                        help="Preserve alpha but replace this many opaque boundary pixels with nearest interior RGB")
+    parser.add_argument("--min-component-pixels", type=int, default=0,
+                        help="Remove isolated alpha components smaller than this many source pixels")
+    parser.add_argument("--preserve-alpha-exact", action="store_true",
+                        help="For an accepted RGBA source, keep every alpha byte unchanged while repairing RGB and cropping")
     parser.add_argument("--mask-image", help="Depth/control render used to reject generated shadows outside the modeled silhouette")
     parser.add_argument("--mask-dilate", type=int, default=10,
                         help="Positive expands the model mask; negative contracts it to remove generated matte fringes")
@@ -111,6 +117,23 @@ def main():
                         help="Restore source opacity in a tightly bounded detail lost during flat-background extraction")
     parser.add_argument("--remove-matte-rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
                         help="Within a bounded source rect, clear alpha where RGB remains close to --matte-color")
+    parser.add_argument("--clear-matte-outside-polygon", action="append", default=[],
+                        metavar="X0,Y0;X1,Y1;...",
+                        help="Clear matte-colored pixels outside an authored keep polygon; requires --matte-color")
+    parser.add_argument("--clear-green-rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
+                        help="Within a bounded source rect, clear saturated HSV-green backdrop pixels")
+    parser.add_argument("--clear-alpha-rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
+                        help="Clear alpha inside a tightly bounded source rect known to contain only backdrop residue")
+    parser.add_argument("--clear-alpha-polygon", action="append", default=[], metavar="X0,Y0;X1,Y1;...",
+                        help="Clear alpha inside a tightly bounded source polygon known to contain only backdrop residue")
+    parser.add_argument("--green-hue-min", type=float, default=35.0,
+                        help="Minimum OpenCV-style HSV hue for --clear-green-rect")
+    parser.add_argument("--green-hue-max", type=float, default=75.0,
+                        help="Maximum OpenCV-style HSV hue for --clear-green-rect")
+    parser.add_argument("--green-saturation-min", type=int, default=80,
+                        help="Minimum HSV saturation for --clear-green-rect")
+    parser.add_argument("--green-value-min", type=int, default=20,
+                        help="Minimum HSV value for --clear-green-rect")
     parser.add_argument("--metadata")
     args = parser.parse_args()
 
@@ -208,6 +231,55 @@ def main():
             local_alpha = alpha[y0:y1, x0:x1]
             local_alpha[matte_distance[y0:y1, x0:x1] < float(args.matte_tolerance)] = 0.0
 
+    if args.clear_matte_outside_polygon:
+        if args.matte_color is None:
+            raise SystemExit("--clear-matte-outside-polygon requires --matte-color")
+        matte_distance = np.linalg.norm(rgb - args.matte_color, axis=2)
+        for raw_polygon in args.clear_matte_outside_polygon:
+            points = []
+            for raw_point in raw_polygon.split(";"):
+                x, y = (int(value) for value in raw_point.split(","))
+                points.append((max(0, min(source.width - 1, x)),
+                               max(0, min(source.height - 1, y))))
+            if len(points) < 3:
+                raise SystemExit("--clear-matte-outside-polygon needs at least three points")
+            polygon = Image.new("L", source.size, 0)
+            ImageDraw.Draw(polygon).polygon(points, fill=255)
+            keep = np.asarray(polygon, dtype=np.uint8) > 0
+            alpha[(~keep) & (matte_distance < float(args.matte_tolerance))] = 0.0
+
+    if args.clear_green_rect:
+        hsv = np.asarray(Image.fromarray(np.clip(rgb, 0, 255).astype(np.uint8), "RGB").convert("HSV"))
+        hue = hsv[..., 0].astype(np.float32) * (179.0 / 255.0)
+        green = ((hue >= float(args.green_hue_min))
+                 & (hue <= float(args.green_hue_max))
+                 & (hsv[..., 1] >= int(args.green_saturation_min))
+                 & (hsv[..., 2] >= int(args.green_value_min)))
+        for raw_rect in args.clear_green_rect:
+            x0, y0, x1, y1 = (int(value) for value in raw_rect.split(","))
+            x0, x1 = sorted((max(0, x0), min(source.width, x1)))
+            y0, y1 = sorted((max(0, y0), min(source.height, y1)))
+            local_alpha = alpha[y0:y1, x0:x1]
+            local_alpha[green[y0:y1, x0:x1]] = 0.0
+
+    for raw_rect in args.clear_alpha_rect:
+        x0, y0, x1, y1 = (int(value) for value in raw_rect.split(","))
+        x0, x1 = sorted((max(0, x0), min(source.width, x1)))
+        y0, y1 = sorted((max(0, y0), min(source.height, y1)))
+        alpha[y0:y1, x0:x1] = 0.0
+
+    for raw_polygon in args.clear_alpha_polygon:
+        points = []
+        for raw_point in raw_polygon.split(";"):
+            x, y = (int(value) for value in raw_point.split(","))
+            points.append((max(0, min(source.width - 1, x)),
+                           max(0, min(source.height - 1, y))))
+        if len(points) < 3:
+            raise SystemExit("--clear-alpha-polygon needs at least three points")
+        polygon = Image.new("L", source.size, 0)
+        ImageDraw.Draw(polygon).polygon(points, fill=255)
+        alpha[np.asarray(polygon, dtype=np.uint8) > 0] = 0.0
+
     # Flat-color RGB generations can contain a fully opaque one-pixel matte
     # rim that survives the soft alpha estimate.  Repair only the outer alpha
     # edge after optional hole filling so warm window interiors stay intact.
@@ -232,15 +304,45 @@ def main():
             _, nearest = ndimage.distance_transform_edt(~reliable, return_indices=True)
             rgb[edge] = rgb[nearest[0][edge], nearest[1][edge]]
 
+    defringe_inner_pixels = max(0, int(args.defringe_inner_pixels))
+    if defringe_inner_pixels > 0:
+        opaque = alpha > 0.02
+        interior = ndimage.binary_erosion(opaque, iterations=defringe_inner_pixels)
+        boundary = opaque & ~interior
+        reliable = interior & (alpha >= float(np.clip(args.nearest_opaque_alpha, 0.01, 1.0)))
+        if np.any(boundary) and np.any(reliable):
+            _, nearest = ndimage.distance_transform_edt(~reliable, return_indices=True)
+            rgb[boundary] = rgb[nearest[0][boundary], nearest[1][boundary]]
+
     if args.desaturate:
         amount = float(np.clip(args.desaturate, 0.0, 1.0))
         luminance = 0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2]
         rgb = luminance[..., None] + (rgb - luminance[..., None]) * (1.0 - amount)
 
-    alpha_u8 = np.clip(alpha * 255, 0, 255).astype(np.uint8)
-    # Discard sub-visible matte specks left by the soft edge blur.  Values at
-    # this level do not contribute useful antialiasing at game scale.
-    alpha_u8[alpha_u8 < 8] = 0
+    if args.preserve_alpha_exact:
+        if not has_real_alpha:
+            raise SystemExit("--preserve-alpha-exact requires an RGBA/LA source with real transparency")
+        alpha_u8 = rgba[..., 3].copy()
+    else:
+        alpha_u8 = np.clip(alpha * 255, 0, 255).astype(np.uint8)
+        # Discard sub-visible matte specks left by the soft edge blur.  Values at
+        # this level do not contribute useful antialiasing at game scale.
+        alpha_u8[alpha_u8 < 8] = 0
+    min_component_pixels = max(0, int(args.min_component_pixels))
+    removed_components = 0
+    removed_component_pixels = 0
+    if min_component_pixels > 1:
+        labels, component_count = ndimage.label(
+            alpha_u8 > 0, structure=np.ones((3, 3), dtype=np.uint8))
+        if component_count > 0:
+            sizes = np.bincount(labels.ravel())
+            small_labels = np.where(
+                (sizes < min_component_pixels) & (np.arange(len(sizes)) > 0))[0]
+            if len(small_labels):
+                remove_mask = np.isin(labels, small_labels)
+                removed_components = int(len(small_labels))
+                removed_component_pixels = int(np.count_nonzero(remove_mask))
+                alpha_u8[remove_mask] = 0
     ys, xs = np.where(alpha_u8 > 0)
     if not len(xs):
         raise SystemExit("empty alpha after extraction")
@@ -275,6 +377,11 @@ def main():
         "matteTolerance": float(args.matte_tolerance) if (args.matte_color is not None or background is not None) else None,
         "nearestOpaqueEdgeRgb": bool(args.nearest_opaque_edge_rgb),
         "nearestOpaqueAlpha": float(args.nearest_opaque_alpha) if args.nearest_opaque_edge_rgb else None,
+        "defringeInnerPixels": defringe_inner_pixels,
+        "minComponentPixels": min_component_pixels,
+        "removedComponents": removed_components,
+        "removedComponentPixels": removed_component_pixels,
+        "preserveAlphaExact": bool(args.preserve_alpha_exact),
         "maskImage": str(Path(args.mask_image)) if args.mask_image else None,
         "maskDilate": int(args.mask_dilate) if args.mask_image else None,
         "fillAlphaHoles": bool(args.fill_alpha_holes),
@@ -284,6 +391,13 @@ def main():
         "maskAddRects": args.mask_add_rect if args.mask_image else [],
         "restoreAlphaRects": args.restore_alpha_rect,
         "removeMatteRects": args.remove_matte_rect,
+        "clearMatteOutsidePolygons": args.clear_matte_outside_polygon,
+        "clearGreenRects": args.clear_green_rect,
+        "clearAlphaRects": args.clear_alpha_rect,
+        "clearAlphaPolygons": args.clear_alpha_polygon,
+        "greenHueRange": [float(args.green_hue_min), float(args.green_hue_max)] if args.clear_green_rect else None,
+        "greenSaturationMin": int(args.green_saturation_min) if args.clear_green_rect else None,
+        "greenValueMin": int(args.green_value_min) if args.clear_green_rect else None,
         "cropBox": [x0, y0, x1, y1],
         "fileSize": [final_w, final_h],
         "alphaBBox": [int(local_xs.min()), int(local_ys.min()),

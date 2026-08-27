@@ -227,6 +227,23 @@ class EnergyManagerImpl {
         return added;
     }
 
+    /** 显式物流岗位向已经到达的指定仓库交付能源，返回实际入库量。 */
+    depositEnergyToWarehouse(warehouseOrId, amount) {
+        const warehouse = typeof warehouseOrId === 'object'
+            ? warehouseOrId
+            : this.getWarehouseById(warehouseOrId);
+        if (!warehouse || warehouse.active === false) return 0;
+        const requested = Math.max(0, Math.floor(Number(amount) || 0));
+        if (requested <= 0) return 0;
+        const accepted = Math.min(requested, Math.floor(
+            this.getWarehouseFreeCapacity(warehouse) / this.getWarehouseEnergyFactor(warehouse)
+        ));
+        if (accepted <= 0) return 0;
+        warehouse.storedEnergy = Math.max(0, Math.floor(Number(warehouse.storedEnergy) || 0)) + accepted;
+        this._notifyUpdate();
+        return accepted;
+    }
+
     /** 兼容原调用：全部存入返回 true，部分/无法存入返回 false。 */
     addEnergy(amount) {
         const requested = Math.max(0, Math.floor(Number(amount) || 0));

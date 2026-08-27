@@ -1,0 +1,11 @@
+Keep the exact hamster crossbowman identity from the reference image: golden-and-white hamster with the same refined face, dark engraved kettle helmet, olive quilted gambeson, brown studded leather cuirass and shoulder guards, leather gloves, belt, bolt quiver, armored boots, and the exact same large medieval windlass crossbow with wooden stock, steel limbs, bowstring, crank mechanism, rail, and stirrup.
+
+This is a short-tailed hamster: its tiny natural tail stays completely hidden beneath the rear coat. Never generate a visible long tail, rat tail, mouse tail, rope-like appendage, or extra appendage. Both feet stay fully enclosed in the same armored leather boots through the collapse; no toes, claws, paws, bare feet, or missing boot fronts.
+
+The intentionally tiny full-body scale and wide empty framing of the reference image are mandatory. Keep the hamster at exactly this small scale. Never enlarge, zoom, crop, reframe, track, or pan. The complete standing pose, complete fallen body, attached quiver, and complete crossbow must remain visible with very large white margins during the entire collapse.
+
+Animate one grounded death while facing screen right. Begin in the original low-ready stance. The hamster suddenly loses strength, the knees buckle, the torso slumps and turns only slightly, and the body collapses onto one side. The same crossbow slips from the hands and falls beside the body without bouncing away. End fully motionless in a stable corpse pose. The quiver remains attached and its bolts stay contained. The helmet may tilt naturally but must remain present. The complete body and complete fallen crossbow remain visible and inside frame for the entire action.
+
+Preserve the same face, ears, helmet, gambeson, leather armor, gloves, belt, quiver, boots, crossbow stock, steel limbs, bowstring, crank, rail, and stirrup. Static locked wide camera, fixed scale and position, pure white background, soft even light. This is a one-way action and must not recover or loop.
+
+No visible tail, rat anatomy, bare feet, toes, claws, firing, projectile, reloading, gore, dismemberment, detached body parts, exploding bolts, weapon duplication, weapon morphing, broken crossbow, missing equipment, extra limbs, standing back up, crossfade, teleport, camera movement, zoom, crop, floor, shadow, scenery, text, logo, or watermark.

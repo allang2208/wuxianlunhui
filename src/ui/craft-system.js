@@ -65,6 +65,39 @@ function _buildDragGhostCell(item) {
     return cell;
 }
 
+// 新武器可声明 templateWeaponId 复用同族通用改造，只在 data 中追加本枪专属选项；
+// 解析结果仍是旧版完整 slots/options 结构，既有渲染和效果聚合无需分支。
+function _resolveWeaponCraftConfigs(rawConfigs) {
+    const resolved = {};
+    const clone = (value) => JSON.parse(JSON.stringify(value));
+    const resolve = (weaponId, stack = []) => {
+        if (resolved[weaponId]) return resolved[weaponId];
+        const own = rawConfigs[weaponId];
+        if (!own) return null;
+        if (stack.includes(weaponId)) throw new Error(`craft template cycle: ${[...stack, weaponId].join(' -> ')}`);
+        const ownCopy = clone(own);
+        const base = ownCopy.templateWeaponId
+            ? resolve(ownCopy.templateWeaponId, [...stack, weaponId])
+            : null;
+        if (!base) {
+            delete ownCopy.templateWeaponId;
+            resolved[weaponId] = ownCopy;
+            return ownCopy;
+        }
+        const merged = { ...clone(base), ...ownCopy };
+        merged.slots = ownCopy.slots || clone(base.slots);
+        merged.options = clone(base.options || {});
+        for (const [slotId, additions] of Object.entries(ownCopy.options || {})) {
+            merged.options[slotId] = [...(merged.options[slotId] || []), ...clone(additions)];
+        }
+        delete merged.templateWeaponId;
+        resolved[weaponId] = merged;
+        return merged;
+    };
+    for (const weaponId of Object.keys(rawConfigs)) resolve(weaponId);
+    return resolved;
+}
+
 const CraftSystem = {
     _isOpen: false,
     _currentNPC: null,
@@ -79,7 +112,7 @@ const CraftSystem = {
     _editTempSlots: null, // 编辑时使用的临时副本
 
     // 枪械改造配置（每种武器独立的slots和options）
-    _WEAPON_CRAFT_CONFIGS: craftConfigData,
+    _WEAPON_CRAFT_CONFIGS: _resolveWeaponCraftConfigs(craftConfigData),
 
     open(npc) {
         UIState.open('craft');
@@ -751,6 +784,18 @@ const CraftSystem = {
         }
     },
 
+    /**
+     * 单项改造券成本：普通首次安装1张、同槽替换4张；特殊改造可在配置中抬高首次成本。
+     * 替换时取两者较高值，避免先装普通件再用替换规则绕过特殊改造成本。
+     */
+    _getModTicketCost(slotId, option) {
+        const current = this._equippedItem?._craftData?.[slotId];
+        if (current === option?.id) return 0;
+        const replacementCost = current ? 4 : 1;
+        const configuredCost = Math.max(1, Math.ceil(Number(option?.ticketCost) || 1));
+        return Math.max(replacementCost, configuredCost);
+    },
+
     _onModCellClick(slotId) {
         const config = this._getCraftConfig(this._equippedItem.weaponId);
         if (!config) return;
@@ -767,16 +812,28 @@ const CraftSystem = {
 
         for (const opt of options) {
             const row = document.createElement('div');
-            row.className = 'craft-mod-option' + (current === opt.id ? ' selected' : '');
-            const ticketLabel = current ? '🔧 替换需4张改造券' : '🔧 需1张改造券';
+            const isSelected = current === opt.id;
+            const isSpecial = opt.specialModification === true;
+            const ticketCost = this._getModTicketCost(slotId, opt);
+            row.className = 'craft-mod-option'
+                + (isSelected ? ' selected' : '')
+                + (isSpecial ? ' special-modification' : '');
+            const specialBadge = isSpecial
+                ? '<span style="display:inline-block;margin-left:6px;padding:1px 5px;border:1px solid #69e7e3;border-radius:3px;color:#b9ffff;font-size:10px;vertical-align:2px;">特殊改造</span>'
+                : '';
+            const ticketLabel = isSelected
+                ? '✓ 已安装，不重复消耗'
+                : (isSpecial
+                    ? `◆ 特殊改造需${ticketCost}张改造券`
+                    : (current ? `🔧 替换需${ticketCost}张改造券` : `🔧 需${ticketCost}张改造券`));
             row.innerHTML = `
                 <div class="craft-mod-option-icon">${renderCraftIcon(opt.icon)}</div>
                 <div class="craft-mod-option-info">
-                    <div class="craft-mod-option-name">${opt.name}</div>
+                    <div class="craft-mod-option-name">${opt.name}${specialBadge}</div>
                     <div class="craft-mod-option-desc">${opt.desc}</div>
-                    <div class="craft-mod-option-cost" style="color:#e8a838;font-size:11px;margin-top:2px;">${ticketLabel}</div>
+                    <div class="craft-mod-option-cost" style="color:${isSpecial ? '#69e7e3' : '#e8a838'};font-size:11px;margin-top:2px;">${ticketLabel}</div>
                 </div>
-                <div class="craft-mod-option-action">${current === opt.id ? '✓ 已装备' : '点击装备'}</div>
+                <div class="craft-mod-option-action">${isSelected ? '✓ 已装备' : '点击装备'}</div>
             `;
             row.onclick = () => {
                 this._equipMod(slotId, opt.id);
@@ -813,9 +870,15 @@ const CraftSystem = {
         // 同槽同配件重复点击：不再扣券重挂（修复"✓已装备"仍白扣 4 张改造券）
         if (this._equippedItem._craftData && this._equippedItem._craftData[slotId] === modId) return;
 
-        const hasExisting = this._equippedItem._craftData && this._equippedItem._craftData[slotId];
-        const ticketCost = hasExisting ? 4 : 1;
-        const ticketName = hasExisting ? '改造券×4（替换已改造配件）' : '改造券×1';
+        const config = this._getCraftConfig(this._equippedItem.weaponId);
+        const option = config?.options?.[slotId]?.find(opt => opt.id === modId);
+        if (!option) return;
+        const hasExisting = !!this._equippedItem._craftData?.[slotId];
+        const isSpecial = option.specialModification === true;
+        const ticketCost = this._getModTicketCost(slotId, option);
+        const ticketName = isSpecial
+            ? `改造券×${ticketCost}（特殊改造${hasExisting ? '/替换' : ''}）`
+            : (hasExisting ? `改造券×${ticketCost}（替换已改造配件）` : `改造券×${ticketCost}`);
 
         // 检查改造券（背包优先，不足时全局调用仓库；按物品 id，无 id 的旧实例回退按名称）
         const isTicket = i => i.id === 'reforge_ticket' || (!i.id && i.name === '改造券');
@@ -846,7 +909,7 @@ const CraftSystem = {
         this._equippedItem._isCrafted = true;
         this._applyModEffects();
         this._renderMods();
-        EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `改造成功！消耗${ticketName}`, '#ffd700'));
+        EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, `${isSpecial ? '特殊改造' : '改造'}成功！消耗${ticketName}`, isSpecial ? '#69e7e3' : '#ffd700'));
     },
 
     _applyModEffects() {

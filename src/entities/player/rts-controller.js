@@ -1,5 +1,5 @@
 import { PathManager } from '../../ai/path-manager.js';
-import { pathFinder } from '../../ai/pathfinder.js';
+import { PATH_DEFERRED, pathFinder } from '../../ai/pathfinder.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from '../../ai/rts-command-utils.js';
 import { isGunWeapon } from '../../config/gun-ammo.js';
 import { WallSystem } from '../../world/wall-system.js';
@@ -7,6 +7,7 @@ import { WallSystem } from '../../world/wall-system.js';
 const PLAYER_RTS_ARRIVE_DISTANCE = 28;
 const PLAYER_RTS_PATH_RECALC_DISTANCE = 72;
 const PLAYER_RTS_RELAY_DISTANCE = 760;
+const PLAYER_RTS_NO_PATH_RETRY_MS = 400;
 
 function emptyIntent() {
     return {
@@ -27,6 +28,9 @@ export class PlayerRtsController {
         this.player = player;
         this.command = { mode: 'hold', point: null, target: null };
         this._pathManager = new PathManager(player);
+        // 玩家指令保持同步首寻路，不继承敌群生成时使用的 0~250ms 错峰。
+        this._pathManager._firstRecalcAt = 0;
+        this._pathRetryAt = 0;
         this._attackRouteAt = 0;
         this._attackRouteTargetX = null;
         this._attackRouteTargetY = null;
@@ -138,6 +142,7 @@ export class PlayerRtsController {
         const movementTarget = useSurfaceDirection
             ? destination
             : this._groundWaypoint(destination, dt, entities);
+        if (!movementTarget) return intent;
         const dx = movementTarget.x - this.player.x;
         const dy = movementTarget.y - this.player.y;
         const distance = Math.hypot(dx, dy);
@@ -164,8 +169,19 @@ export class PlayerRtsController {
         const endpointShift = pathEnd
             ? Math.hypot(pathEnd.x - pathTarget.x, pathEnd.y - pathTarget.y)
             : Infinity;
-        if (!this._pathManager.hasValidPath() || endpointShift > PLAYER_RTS_PATH_RECALC_DISTANCE) {
-            this._pathManager.forceRecalc(pathFinder, pathTarget.x, pathTarget.y);
+        const needsRecalc = !this._pathManager.hasValidPath()
+            || endpointShift > PLAYER_RTS_PATH_RECALC_DISTANCE;
+        const now = Date.now();
+        if (needsRecalc && now >= this._pathRetryAt) {
+            const result = this._pathManager.forceRecalc(
+                pathFinder,
+                pathTarget.x,
+                pathTarget.y,
+                true
+            );
+            if (result === PATH_DEFERRED) this._pathRetryAt = now;
+            else if (result === true) this._pathRetryAt = 0;
+            else this._pathRetryAt = now + PLAYER_RTS_NO_PATH_RETRY_MS;
         }
         this._pathManager.update(dt, pathFinder);
 
@@ -174,14 +190,20 @@ export class PlayerRtsController {
             this._pathManager.advanceWaypoint();
             waypoint = this._pathManager.getCurrentWaypoint();
         }
-        return waypoint || destination;
+        if (waypoint) return waypoint;
+        // 无路径、预算延迟或中继刚走完时保持原地；下一次重算成功前禁止直线穿越障碍。
+        if (this._pathManager.path && this._pathManager.isPathComplete()) {
+            this._pathManager._clearPath?.();
+            this._pathRetryAt = Math.min(this._pathRetryAt, now);
+        }
+        return null;
     }
 
     _attackMovePoint(target) {
         const now = Date.now();
         const moved = this._attackRouteTargetX === null
             || Math.hypot(target.x - this._attackRouteTargetX, target.y - this._attackRouteTargetY) > 40;
-        if (this.command.point && !moved && now < this._attackRouteAt) return this.command.point;
+        if (!moved && now < this._attackRouteAt) return this.command.point;
 
         const game = typeof window !== 'undefined' ? window.Game : null;
         const defenseSystem = game?.DefenseSystem;
@@ -197,14 +219,12 @@ export class PlayerRtsController {
         if (!point?.unreachable && defenseSystem?.routeSurfaceMoveForUnit) {
             point = defenseSystem.routeSurfaceMoveForUnit(this.player, point);
         }
-        if (!point || point.unreachable) {
-            point = { x: target.x, y: target.y, z: Number(target.z) || 0, surfaceKind: 'ground', route: [] };
-        }
+        if (!point || point.unreachable) point = null;
         this._attackRouteAt = now + 400;
         this._attackRouteTargetX = target.x;
         this._attackRouteTargetY = target.y;
         delete this.command.routeIndex;
-        return this._clonePoint(point);
+        return point ? this._clonePoint(point) : null;
     }
 
     _primaryFireIntent(target) {
@@ -268,6 +288,7 @@ export class PlayerRtsController {
 
     _clearPath() {
         this._pathManager?._clearPath?.();
+        this._pathRetryAt = 0;
     }
 
     _clearNavigation() {

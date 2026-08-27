@@ -1,0 +1,55 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\computing_center\\refine_48step_v01_alpha_gap_fix_seed123460\\computing_center\\computing_center_refine_v01_body.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\computing_center\\computing_center_refine_v01_runtime_candidate.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 2,
+  "minComponentPixels": 50,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearGreenRects": [
+    "520,880,630,910",
+    "800,720,895,815"
+  ],
+  "greenHueRange": [
+    35.0,
+    75.0
+  ],
+  "greenSaturationMin": 80,
+  "greenValueMin": 20,
+  "cropBox": [
+    147,
+    273,
+    900,
+    938
+  ],
+  "fileSize": [
+    753,
+    665
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    749,
+    661
+  ],
+  "displayW": 512,
+  "displayH": 452,
+  "footOffsetY": 223,
+  "scaleX": 0.6799468791500664,
+  "scaleY": 0.6796992481203008
+}

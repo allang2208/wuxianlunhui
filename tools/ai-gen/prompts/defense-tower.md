@@ -54,7 +54,7 @@ gun barrel, cannon, rifle, machine gun, pistol, weapon attached, weapon on the a
 1. 白模 spec：`_blockout_specs/defense_tower_v2.json`（底部圆环+圆柱基座+顶部安装盘+
    机械臂 shoulder/upper arm/elbow/forearm/末端法兰，elevation 30）。
 2. 深度：`blender-depth-render.py` → `_depth_templates/blender_defense_tower_v2_h.png`。
-3. 出图：`comfyui-gen.py --model flux2-dev-depth --control-image <深度图> --strength 0.8`。
+3. 出图：`comfyui-gen.py --model flux2-klein-4b-depth --control-image <深度图> --strength 0.8`。
 4. 抠图：`make-transparent-icon.py`（白底→透明）。
 5. 拆臂：`cut-defense-tower-arm-v2.py`（机械臂=顶部 y78~388，基座=安装盘+圆柱，
    输出 obstacle_defense_tower_arm.png / obstacle_defense_tower.png，并打印几何）。

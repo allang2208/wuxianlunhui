@@ -1,0 +1,41 @@
+{
+  "outputRoot": "tools/ai-gen/_settlement_building_pack_20260821/weather_forecast_tower_style_v2_candidates",
+  "host": "192.168.3.142",
+  "model": "flux2-klein-4b-world122-building-body-depth",
+  "styleVersion": "world122-building-v2",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 1.0,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "steps": 48,
+  "strength": 0.88,
+  "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 5,
+  "structureDepthStrength": 0.84,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 3,
+  "refineDenoise": 0.30,
+  "refineDepthStrength": 0.80,
+  "refineEdgeStrength": 0.38,
+  "structureSeedBase": 824500,
+  "refineSeedBase": 824600,
+  "structuralOverlapZ": 8,
+  "maskEdgePad": 16,
+  "assets": [
+    {
+      "id": "weather_forecast_tower_style_v2",
+      "label": "天气预报塔·运行时聚落风格V2",
+      "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/weather_forecast_tower/weather_forecast_tower_body_depth.png",
+      "removeAllGreen": true,
+      "paletteConstraint": "match the runtime bank and miner-camp roof family: deep desaturated weathered blue-gray slate with irregular large tile values; use warm aged ivory plaster, chunky medium-gray fieldstone, deep brown timber, charcoal iron, restrained tarnished brass and sparse warm amber window light. Cool blue glass is dark and restrained, never bright cyan. No sterile white stone, purple magic, neon accents, red roof or glossy futuristic metal.",
+      "primaryRequest": "a compact connected medieval meteorological observatory built on one broad square 2x2 footprint, with one low sturdy observation hall, exactly one integrated central octagonal observation tower, one large roof-mounted wind vane with a three-cup anemometer, one attached shallow dish-shaped weather radar and two attached rain gauges",
+      "structureRequest": "preserve the exact authored Blender silhouette as a thick, grounded World-122 settlement building: one broad connected observation hall, exactly one integrated central octagonal tower penetrating the main roof, one wide octagonal tower roof, one clearly attached central weather-instrument mast, one attached shallow meteorological radar dish on a roof pedestal and one attached gauge platform; the mast and weather radar are required functional silhouette masses, not optional ornament; no second tower, detached shed, floating instrument or communications satellite station",
+      "detailRequest": "refine the selected weather observatory while preserving its exact one-hall one-octagonal-tower silhouette, roofline, instrument placement and ground contact; apply the current runtime house, economic-workshop, market, bank and miner-camp rendering language; add chunky blue-gray slate courses, warm weathered plaster, irregular gray masonry, deep timber braces, dark iron brackets, tarnished brass instrument rims, sparse warm windows, a readable three-cup anemometer, wind-vane arrow, shallow weather radar reflector and two rain-gauge rims"
+    }
+  ]
+}

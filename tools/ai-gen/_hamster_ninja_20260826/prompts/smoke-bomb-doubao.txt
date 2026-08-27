@@ -1,0 +1,11 @@
+The exact original anthropomorphic hamster game character from the first frame performs exactly one smoke-bomb throwing action at the ground directly beneath the feet, then recovers to the original guard. This is a fictional game character, not a real person. Maintain the same low three-quarter right-facing angle.
+
+Action phases: reach once to the waist pouch, produce exactly one small matte dark round smoke bomb, lower into a compact crouch, lean toward the feet and sharply drop or underhand-throw the single bomb onto the ground directly below the character. Make the hand release and ground contact clearly readable. After release, the throwing hand withdraws and the character rises back into the exact starting ready stance. Exactly one bomb and one throw only.
+
+Important effect split: animate only the character, hand release and the small bomb trajectory. Do not generate any smoke cloud, explosion, fog, dust, particles, flash, glow, impact ring, ground mark or shadow. The runtime smoke visual will be created separately at the character's feet. The short ninjato remains fully sheathed and is never touched.
+
+Identity locks: preserve the exact warm golden-yellow hamster fur visible only around the eyes and nose bridge, glossy dark-brown eyes, compact proportions, fully wrapped black hood and face covering, concealed ears, concealed muzzle, concealed nose and concealed whiskers. Preserve the layered charcoal-black shinobi clothing, gloves, wrapped boots, waist pouch and exactly one short ninjato fully sheathed at the left waist.
+
+Camera and framing: static locked orthographic camera matching the reference low three-quarter right-facing view. No camera motion, turn, flip, zoom, crop, reframing or tracking. Keep the complete silhouette, hand, bomb path and feet visible at the same scale with generous pure #FFFFFF margins. No floor line, ground plane, contact shadow, cast shadow, reflection, scenery, text, logo or watermark. Preserve the reference material shading without adding dynamic or dramatic light.
+
+Avoid: smoke or explosion in the source video, exposed ears or muzzle, losing the golden eye-mask fur, all-black featureless eye opening, second bomb, repeated throw, sword draw, extra limbs, extra sword, bomb transforming into another object, identity drift, morphing, strong motion blur, cuts or black flashes.

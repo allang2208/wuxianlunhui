@@ -1,0 +1,11 @@
+The original game character in the first frame performs a calm idle cycle in place. This is an original anthropomorphic hamster game character and does not involve a real-person portrait. Preserve exactly the same hamster face, golden-brown and cream fur, body proportions, forest-green mantle, brown leather armor, chainmail, boots, compact one-handed crossbow in the anatomical right hand, and single dagger in the anatomical left hand.
+
+Motion: subtle believable breathing through the chest and shoulders, a very small vertical body rise and fall, slight whisker movement, and restrained cloth response. Both feet, pelvis, torso center and root X position remain fixed. The anatomical right hand continuously maintains a secure one-handed grip on the compact crossbow at low ready. The anatomical left hand continuously maintains a secure grip on the dagger angled down beside the left thigh. No hand swap, no aiming, no firing, no step and no weapon flourish.
+
+Camera and framing: preserve the first frame's right-facing low three-quarter view. Static locked orthographic camera with no pan, zoom, crop, reframing, rotation or tracking. Keep the complete hamster, both ears, both feet, the entire crossbow including bow limb and bolt, and the entire dagger inside the frame at the same scale and center with generous margins.
+
+Background: pure uniform #FFFFFF white with no floor, horizon, contact shadow, cast shadow, reflection, scenery, particles, text, logo or watermark. Soft flat diffuse light only.
+
+Loop: complete at least two natural idle cycles and return to the exact starting pose, root position, scale, crossbow angle, dagger angle and motion phase without freezing, snapping or artificial slowing.
+
+Avoid: swapped weapons or hands, two-handed crossbow grip, extra weapons, extra bolt, crossbow or dagger duplication, firing, attack, foot sliding, root drift, identity drift, changing clothing, changing face, long mouse tail, extra or broken limbs, fused fingers, weapon morphing, camera motion, cropping, dramatic lighting, motion blur, cuts or multiple characters.

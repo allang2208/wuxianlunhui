@@ -22,21 +22,18 @@
 
 | 场景 | 入口 | 命令 |
 |---|---|---|
-| **远程主力机（默认）** | 远程 5080 | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png` |
-| 远程·固定视角/方向 | 远程 5080 + Depth ControlNet | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png` |
-| 跨机双卡·最高质量提速（Daedalus 在线） | 5080 Icarus + 本机 3080 Ti Daedalus | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png`（8 步 turbo；Daedalus 需先启动，见 §1.6） |
-| 本地兜底 | 本机 3080 Ti | `python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`（已装 sdxl；FLUX.2 dev 建议 5080） |
+| **远程主力机（默认）** | 远程 5080 | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-nolora --prompt "..." --out out.png` |
+| 远程·固定视角/方向/结构 | 远程 5080 + Depth ControlNet | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth --control-image depth.png --prompt "..." --out out.png` |
+| 本地兜底 | 本机 3080 Ti | `python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png` |
 | **地面无缝纹理（泥/沙）** | floor-asset.py（comfyui-gen → make-seamless → desaturate） | `python tools/ai-gen/floor-asset.py mud --out assets/terrain/floor_mud_seamless.png --seed 9001` |
-| 透明主体素材 | 远程 5080（SDXL 兜底） | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --transparent --prompt "..." --out out.png`（AI 选纯色底 + 自动抠图，见 §3.7） |
+| 透明主体素材 | 远程 5080（SDXL 兜底） | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth --control-image depth.png --transparent --prompt "..." --out out.png`（AI 选纯色底 + 自动抠图，见 §3.7） |
 | 兜底·智谱 API | 智谱 | `python tools/ai-gen/zhipu-gen.py --prompt-file prompt.txt --model glm-image --size 1280x1280 --out ...`（双机不可用/免费额度场景） |
 | 兜底·ithinkai 中转站 | gpt-image-2 | `python tools/ai-gen/gptimage2-gen.py --prompt "..." --out out.png`（OpenAI 格式 API，按 token 计费、无水印；key 不落仓库，见下注） |
 | 同系列模板锁定重抽 | img2img | `python tools/ai-gen/gen-meteor-icon-template.py`（换参考图 + 提示词即可复用） |
 | 批量多图 | 智谱/ComfyUI | 参考 `tools/ai-gen/archive/one-off/` 下归档的一次性批量脚本（如 zhipu-gen-necklaces.py 多 prompt 逐张下载、gen-eclipse-set.py 批量入队轮询），仅作写法参考 |
 
 - 模型登记表：`tools/ai-gen/models.json`（`python tools/ai-gen/comfyui-gen.py --list-models` 查看）。
-  当前：`flux2-dev-fp8`（**5080 主力**，20~30 步/CFG≈3.5）+ `flux2-dev-depth`（同模型 +
-  Fun-Controlnet-Union 深度控制）+ `flux2-dev-mesh`（**跨机双卡**，8 步 turbo + Turbo LoRA 两端本地加载）+
-  `sdxl`（checkpoint，通用）+ `flux2-klein-4b`（FLUX.2 蒸馏，4 步备用）。
+  当前统一默认：自由FLUX生图=`flux2-klein-4b-nolora`，固定视角/结构=`flux2-klein-4b-depth`；技能、装备、墙材质等专用Klein LoRA只通过对应显式模型名启用。Dev/Dev Depth/Mesh保留为人工明确指定的研发或对照入口，不得由通用工作流自动选择。
   视频模型（MiniMax H3）不走 models.json——`tools/ai-gen/minimax-h3-gen.py` 独立硬编码工作流。
 - **`--negative` 仅对 SDXL（checkpoint）生效**：flux2/klein/mesh 的 BasicGuider 只接 positive，
   传负面词会打印"不支持负面词已忽略"警告并丢弃——负面约束（watermark/blurry 等）必须写进正向提示词。
@@ -55,16 +52,14 @@
   8188/专用网络；**机器休眠会断服务，需关休眠**）。本地启动 `start-comfyui.bat`
   （位于备份根目录 `E:\无尽轮回\长期备份\2026-7-13-1\`，不在 game-dev 仓库内）。
 
-### 1.5 FLUX.2 dev + Depth ControlNet（固定视角/方向，5080 主力）
+### 1.5 FLUX.2 Klein 4B + Depth ControlNet（固定视角/方向/结构，默认）
 
-**能力**：FLUX.2 dev fp8 出图质量/细节强于 klein，配合 `FLUX.2-dev-Fun-Controlnet-Union`
-（alibaba-pai，Depth/Canny/HED/Pose 单文件多模式 ControlNet）用**深度图锁定构图视角与方向**，
-提示词只负责主体/材质/风格——解决同系列"每次视角都不一样"的痛点。
+**能力**：FLUX.2 Klein 4B配合`FLUX.2-dev-Fun-Controlnet-Union`（Depth/Canny/HED/Pose单文件多模式ControlNet）用深度图锁定构图、视角、方向和主体结构。这里复用的是ControlNet，不是Dev主模型；默认主模型仍是Klein 4B。
 
-**命令**（`--model flux2-dev-depth` + `--control-image` 必传）：
+**命令**（`--model flux2-klein-4b-depth` + `--control-image` 必传）：
 
 ```bash
-python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth \
   --control-image tools/ai-gen/_depth_templates/depth_box.png \
   --prompt "a magic skill icon, purple hexagonal badge with gold trim, embossed crystal base, centered on white background, high detail" \
   --out Y:\工作\无尽轮回\scratch\badge_v2.png
@@ -98,8 +93,8 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
   出 `_v` 水平镜像。成品示例 `_depth_templates/blender_defense_tower_h.png` 等。
 
 **参数**：
-- ControlNet 强度 0.6~0.8（models.json 默认 0.75）；强度过高主体变形，过低视角锁不住。
-- 步数 20~30、CFG 2.5~4.0（推荐 3.5）；Euler。
+- 通用 `flux2-klein-4b-depth` 配置读取 `models.json`：24步、CFG 1.0、Euler/simple、ControlNet强度0.88；资产专用入口可由正式manifest覆盖，但不得沿用旧Dev的CFG 3.5/强度0.75参数。
+- World-122正式建筑不采用本节通用步数：必须走§1.5.1的12步结构粗筛/48步低重绘精修及对应Depth 0.88/0.82合同。
 - FLUX.2 支持 **JSON 结构化提示词**（BFL 官方）：`camera: {angle, lens, distance,
   depth_of_field}` 块可额外固定视角/镜头（docs.bfl.ai JSON Structured Prompting），
   与深度图双保险。
@@ -113,19 +108,18 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
 
 建筑不再用一次 48 步同时赌结构和细节。正式候选只有一个执行入口：
 `generate-world122-building-candidates.py`。该入口固定读取
-`prompts/world122-building-style.md`（`world122-building-v2`）作为12步和48步共享的不可变画风块；
+`prompts/world122-building-style.md`（`world122-building-v4`）作为12步和48步共享的不可变画风块；
 单栋建筑只在 manifest 中描述结构、功能细节和局部配色，不能覆盖共同的材质尺度、光照、边缘处理或渲染语言。
 禁止为正式建筑直接手写 `comfyui-gen.py` 命令；通用客户端只作为该入口的内部后端或明确标记的实验工具。
-生成脚本会同时校验版本号与模板路径：正式候选只接受 `world122-building-v2` 与
-`prompts/world122-building-style.md`。旧 `world122-building-v1`、天气塔实验用
-`world122-building-runtime-settlement-v2` 仅允许作为旧候选元数据中的历史版本标记；旧模板文件和任何建筑私有画风模板不得保留，不能继续提交正式候选。
-V2 强制所有新建筑主体使用中世纪欧洲半木石结构并融合克制的哥特细节（尖拱、彩色玻璃、立面雕花边饰），
-材质统一为游戏向PBR的风化石材、磨损木构与自然氧化黄铜，照明统一为柔和左上顶侧光和受控明暗。
-标准流程拆成两段，并始终保持主体与运行时道路铺地分离：
+生成脚本会同时校验版本号与模板路径：正式候选只接受 `world122-building-v4` 与
+`prompts/world122-building-style.md`。旧 `world122-building-v1/v2`、天气塔实验用
+`world122-building-runtime-settlement-v2` 仅允许作为旧候选元数据中的历史版本标记；旧模板文件和任何建筑私有画风模板不能继续提交正式候选。
+V4 只统一游戏向PBR材质、柔和左上顶侧光和年代化地台路由，不强制半木石、哥特、现代、工业或未来建筑语法；主体语法、层数、轮廓和组件位置完全服从白模与资产级 manifest。非现代建筑使用毛石地台，现代建筑按分类使用清水、磨损或预制混凝土地台；显式 `foundationStyle:none` 的自然结构、贴地矿床、便携道具和开放牧场复合物除外。
+标准流程拆成两段，并始终保持主体逻辑占格与运行时道路铺地分离；已建模的视觉地台属于主体贴图，不改变碰撞、寻路或 `visualFootprint`：
 
-1. **结构粗筛（12 步，默认每批 5 张）**：Blender 白模深度图锁定体块和视角；由同一深度图派生边缘图，用于检查屋脊、塔楼接缝和遮挡边界。远端插件确认支持 Hook 链后可加 `--edge-control` 启用第二路 ControlNet；当前默认只提交深度控制，避免旧版 `HooksContainer` 链式报错。提示词只描述主体、塔楼数量和封闭墙体，不生成望远镜、书架等小件；确有需要时仍可用 `--variants` 显式覆盖数量。
-2. **人工选结构**：只看视角、底边、主体居中、塔楼数量、屋顶连续性和墙体是否完整。优先选择带纯绿背景的 `_raw.png` 作为精修初始图；透明 PNG 必须先压回纯绿底，避免透明区在 ComfyUI 中变黑。
-3. **细节精修（48 步，低重绘）**：选中的结构图作为 `--init-image`，默认 denoise=0.30，并继续使用同一深度控制。远端插件兼容时可额外启用边缘控制。提示词只添加石材、瓦片、窗户、望远镜、星象仪和书架等细节，不准改变主体轮廓、塔楼数量和底边。
+1. **结构粗筛（12 步，默认每批 3 张）**：Blender 白模深度图锁定体块、视角和年代化地台；由同一深度图派生边缘图，用于检查屋脊、塔楼接缝和遮挡边界。多层建筑必须把每层承重壳拆成可计数对象，在白模中锁死层数、逐层宽深和上下对齐；若设计要求三层对接，就不允许一层缩进或上层漂移。敞开的门扇、暖暗门洞、无文字功能招牌和视觉地台属于轮廓/识别结构，必须建模并进入 Body Depth，不能只写进提示词。远端插件确认支持 Hook 链后可加 `--edge-control` 启用第二路 ControlNet；当前默认只提交深度控制，避免旧版 `HooksContainer` 链式报错。提示词只描述白模已经表达的主体和结构边界；只有用户明确要求或已标记实验时才用 `--variants` 覆盖默认数量。
+2. **人工选结构**：只看视角、底边、主体居中、明确的楼层数量/对齐、塔楼数量、敞门/招牌位置、屋顶连续性和墙体是否完整。优先选择带纯绿背景的 `_raw.png` 作为精修初始图；透明 PNG 必须先压回纯绿底，避免透明区在 ComfyUI 中变黑。
+3. **细节精修（48 步，默认每批 2 张，低重绘）**：选中的结构图作为 `--init-image`，默认 denoise=0.30，并继续使用同一深度控制和同一 `foundationStyle`。远端插件兼容时可额外启用边缘控制。提示词只增强白模已经锁定的表面与功能细节，不准改变主体轮廓、楼层、塔楼数量、组件位置、地台边界或接地线。
 4. **局部返修**：仅在结构已合格、局部仍有洞口或错误组件时使用 mask；白色区域重绘，黑色区域保留。局部返修属于显式非标准实验，不替代结构粗筛，也不能晋级为新的全图画风入口。
 
 研究院结构粗筛：
@@ -142,53 +136,55 @@ python tools/ai-gen/generate-world122-building-candidates.py \
 python tools/ai-gen/generate-world122-building-candidates.py \
   --stage refine --only research_institute \
   --init-image Y:/工作/无尽轮回/scratch/world122-buildings/research_institute/research_institute_structure_v03_raw.png \
-  --variants 3 --out Y:/工作/无尽轮回/scratch/world122-buildings
+  --out Y:/工作/无尽轮回/scratch/world122-buildings
 ```
 
 通用客户端支持重复 ControlNet、img2img 和局部 mask，但下列命令只用于已经通过结构与画风验收后的局部修复，不得替代正式建筑候选入口：
 
 ```bash
-python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth \
   --control-image depth.png --control-image edge.png \
   --control-strength 0.75 --control-strength 0.38 \
   --init-image selected-green.png --mask-image local-fix-mask.png --denoise 0.40 \
   --prompt-file refine-prompt.txt --out refined.png
 ```
 
-默认参数在 `world122-building-candidate-manifest.json`：`flux2-dev-depth`、1024²、CFG 3.5、Euler/simple；结构阶段 12 步/5 张、Depth 0.78；精修阶段 48 步/3 张、denoise 0.30、Depth 0.75；边缘约束登记为0.38但默认关闭。脚本会把画风版本、模板、模型和全部生成参数写入每张 raw 对应的 `_generation.json`。改变步数或 denoise 必须显式增加 `--allow-nonstandard`，并会在元数据中留下非标准记录；非标准实验不得和正式候选混放或直接入库。结构不完整时先改白模体块，不能靠提高精修步数修复缺墙、断塔或错误屋顶。
+默认参数在 `world122-building-candidate-manifest.json`：`flux2-klein-4b-depth`、1024²、CFG 1.0、Euler/simple；结构阶段 12 步/3 张、Depth 0.88；精修阶段 48 步/2 张、denoise 0.30、Depth 0.82；边缘约束登记为0.38但默认关闭。公共画风合同为 `world122-building-v4`：按次世代 PBR 逻辑做游戏向优化，石材保留自然风化肌理，木质构件呈现使用磨损，黄铜装饰自然做旧氧化；采用柔和顶侧光，在清晰建筑识别度与写实质感之间取得平衡，并按建筑年代强制路由石质或混凝土地台。脚本会把画风版本、模板、模型、`foundationStyle`和全部生成参数写入每张 raw 对应的 `_generation.json`。改变步数或 denoise 必须显式增加 `--allow-nonstandard`，并会在元数据中留下非标准记录；非标准实验不得和正式候选混放或直接入库。结构不完整时先改白模体块，不能靠提高精修步数修复缺墙、断塔或错误屋顶。
 
-**接地视觉规则**：新建筑在 Blender 阶段必须设计附着于主体墙脚的接地过渡，例如一层低矮勒脚石、门槛、扶壁脚块或极少量贴墙碎石；这些小件与主体相交且随 Body Depth 生成，不得扩展成覆盖完整2×2的独立地台。既有主体不重生成时，可以先另做同相机、真透明的建筑专属接地覆盖层候选；用户确认后把覆盖层裁成与正式主体相同画布，提升到 `assets/terrain/building-contact/`，并通过 `producer-buildings.json.groundContact` 配置接入。运行时必须使用 `rearFx` 作为主体下层、保持在道路填充上方，并同步建造幽灵、镜像、战争迷雾、地图模式、压平视图和销毁；不得参与主体alpha拟合、遮挡AABB、占格、碰撞、寻路或主体footprint，也不得重新启用已经取消的通用独立地基。
+消耗资源后开启全位面增效的功能建筑，入库不仅是贴图替换：业务状态机必须保存物流阶段、当前位置、目标仓库、携带资源、服务剩余时间和批次数，派生道路路线只在运行时重算；增效只能进入明确白名单的最终产出乘算，市场压力、价格、输入成本、处理速度和概率系统默认排除。前台与后台位面必须使用同一模块数值、同一批次消耗和同一服务有效时长口径，后台按实际生效时长加权且不得改变输入批次数。
 
-### 1.6 模型选择矩阵（内容 → 首选模型 → 规则，2026-08-04 定稿）
+1×1 的自然结构仍使用满画布 Blender Body Depth 和同一标准生成参数，以保留足够结构细节；在 manifest 中登记 `assetClass: "natural_structure"`、`footprintCells: 1`、`generationFootprintCells: 2`，候选后处理才围绕接地点等比缩放 0.5，并以单格菱形预览。结构验收始终查看纯绿底 raw：额外洞口、门窗、塔楼或房屋即淘汰，不能依赖 Depth 遮罩把错误藏掉。
 
-**决策总纲**：入库资产 = 质量优先（Dev）；批量/探索 = 速度优先（Klein 4B）；
-兜底 = SDXL / 智谱；视频 = 只有 MiniMax H3。Mesh 仅在 Daedalus 在线时启用，
-用于加速 Dev（8 步 turbo）或双卡精修（20 步无 turbo）。
+洞内暗部、晶体或光效与绿幕色系重叠时，生成仍使用锁定的 `Body Depth`，最终裁切通过 `postprocessDepthImage` 使用不含地台、但含洞内建模件的 Cutout Depth。抠图保留隐藏 RGB，只恢复 Cutout/Body Depth 差集，并清理恢复区外的绿主导像素；细轨、细杆允许在 anchor 与 mask 两步使用同一 `maskEdgePad` 抵消扩散图与白模的轻微轮廓偏差。不得把整张 Cutout Depth 强制恢复为不透明。
+
+**地台强制路由**：新建或重做的中型功能建筑必须在 Blender 阶段把完整低矮地台作为主体结构的一部分，并纳入 preview、Body Depth、12步和48步；地台必须完全收在建筑的2×2/3×3或资产已登记的可视占格内，外缘统一斜切以适配等距网格，同规格资产可无缝组合。非现代建筑统一使用“2.5D等距游戏资产毛石地台 / 中世纪题材不规则毛石干垒基底”：不规则毛石切型、随机磨损与倒角、天然填缝、风化毛石手工拼贴做旧，和主体规整石材形成层次。现代建筑统一使用“2.5D等距游戏资产清水混凝土地台”：现代城市型保留模板拼缝、细微气孔、平整收光、轻微雨蚀和局部返碱；工业/末世型增加边角磕碰、浅裂、浮尘污渍；近未来型使用预制拼缝、克制金属包边、预埋管线槽和非镜面的轻抛光。候选后处理默认保留已建模地台，不再自动执行伪地台删除；仅自然结构、贴地矿床、便携道具、开放牧场复合物等显式`foundationStyle:none`的非建筑例外禁止生成地台。该地台仍是纯视觉主体的一部分，不改变逻辑占格、碰撞、寻路或`visualFootprint`。
+
+### 1.6 模型选择矩阵（内容 → 首选模型 → 规则，2026-08-26 定稿）
+
+**决策总纲**：凡使用 FLUX，默认主模型统一为 Klein 4B。自由构图使用
+`flux2-klein-4b-nolora`；固定视角、方向或结构使用 `flux2-klein-4b-depth`；只有明确指定
+专用 LoRA 时才切换对应 Klein 配置。Dev、Dev Depth 和 Mesh 不参与自动路由，仅保留为人工指定的
+历史复现或对照实验选项。非 FLUX 兜底仍为 SDXL / 智谱；视频仍使用 MiniMax H3。
 
 | 内容/项目 | 首选模型 | 备选 | 规则与参数 |
 |---|---|---|---|
-| 技能图标·正式入库（六边形徽章系列） | FLUX.2 Dev（mesh 8 步 turbo 或单卡 24 步） | Klein 4B 初筛 → Dev 精修 | 模板锁定 img2img（同色调系参考）；内容框对标 fireball 基准；抠图 1024² 入库 |
-| 技能图标·候选/批量探索 | Klein 4B（4 步） | 智谱 glm-image | 粗筛后仅精品送 Dev 精修 |
-| 装备/首饰图标 | FLUX.2 Dev（单卡） | SDXL（风格已调流程可保留） | style_prefix 单件强制语法；1536² 归一化 + verify-eclipse-icons 复核 |
-| 障碍物/道具（同视角块） | FLUX.2 Dev + Depth ControlNet | Klein 4B | 深度图锁视角（§1.5）；同一视角块统一提示词；prep-obstacle 抠图 |
-| 怪物/角色贴图 | FLUX.2 Dev（mesh 加速） | — | 统一基准图 + 同色调系 img2img；sprite-normalizer 规格校验；动作帧走 img2video |
-| 投射物贴图 | FLUX.2 Dev（img2img 参考既有） | Klein 4B | 抠图入库；**纯色小物件（雪球等）禁止 AI**，运行时 createCanvas |
-| 透明主体 PNG（图标/装备/怪物/道具） | FLUX.2 Dev + `--transparent` | SDXL | AI 选纯色底 + 阈值抠图 + BiRefNet；**白主体禁白底**（§3.7） |
-| 背景/场景大图 | FLUX.2 Dev（单卡 20~30 步，1536²+） | — | 大图优先单卡避免 mesh 低显存开销；批量草稿可 mesh |
+| 技能图标·正式入库（六边形徽章系列） | Klein 4B（模板锁定 img2img） | 智谱 glm-image | 同色调系参考；内容框对标 fireball 基准；抠图 1024² 入库 |
+| 技能图标·候选/批量探索 | Klein 4B | 智谱 glm-image | 同一模型完成探索与精修，靠参考图、denoise、步数区分阶段 |
+| 装备/首饰图标 | Klein 4B | SDXL（风格已调流程可保留） | style_prefix 单件强制语法；1536² 归一化 + verify-eclipse-icons 复核 |
+| 障碍物/道具（同视角块） | Klein 4B + Depth ControlNet | Klein 4B 无控制 | 深度图锁视角（§1.5）；同一视角块统一提示词；prep-obstacle 抠图 |
+| 怪物/角色贴图 | Klein 4B | — | 统一基准图 + 同色调系 img2img；sprite-normalizer 规格校验；动作帧走 img2video |
+| 投射物贴图 | Klein 4B（img2img 参考既有） | — | 抠图入库；**纯色小物件（雪球等）禁止 AI**，运行时 createCanvas |
+| 透明主体 PNG（图标/装备/怪物/道具） | Klein 4B + `--transparent` | SDXL | AI 选纯色底 + 阈值抠图 + BiRefNet；**白主体禁白底**（§3.7） |
+| 背景/场景大图 | Klein 4B（按目标尺寸与步数生成） | — | 大图提高尺寸与步数；候选仍使用同一默认主模型 |
 | 视频/动画 | MiniMax H3（唯一） | — | `tools/ai-gen/minimax-h3-gen.py`；MP4 入 assets/videos 或抽帧转 sprite sheet |
 | 兜底链（双机不可用） | 智谱 API glm-image | — | 不支持负面词（写进正向）；去水印走 zhipu-process.py |
 
-**mesh 开关规则**：
-- 启用：Daedalus 在线（本机 `tools/ai-gen/start-daedalus.ps1 -SkipSmoke`，n_blocks=4，
-  Turbo LoRA 两端本地加载）+ 需要提速/双卡。
-- 关闭：Daedalus 未启动时 mesh 工作流会失败——回退 `flux2-dev-fp8`（单卡）或
-  `flux2-dev-depth`（锁视角）。
-- 质量档：8 步 turbo（默认，快）vs 20 步无 turbo（精修，慢）——正式精修建议 20 步。
-- 提速替代（待实测）：单卡 Dev + Depth ControlNet + Turbo LoRA（8 步，不加 mesh）——
-  若深度控制不变形，可作"锁视角 + 快"选项，届时注册 `flux2-dev-depth-turbo`。
+**显式旧模型规则**：Dev、Dev Depth 或 Mesh 只在调用者明确写出相应 `--model` 时运行，
+不得因“正式入库”“高质量”“批量”“Daedalus 在线”等条件自动切换。锁视角的默认回退始终是
+`flux2-klein-4b-depth`，自由构图的默认回退始终是 `flux2-klein-4b-nolora`。
 
-**机器分布规则**：5080 主力（Dev / Depth / Klein / MiniMax）；mesh 后端 = 本机
-3080 Ti（Daedalus）；本机单卡兜底 = SDXL；智谱 API 第三兜底。
+**机器分布规则**：5080 主力运行 Klein / Klein Depth / MiniMax；本机单卡兜底为 SDXL；
+智谱 API 为第三兜底。Daedalus 仅服务人工指定的旧 Mesh 对照实验。
 
 ## 2. 六步标准流程（所有资产通用）
 
@@ -207,11 +203,11 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
 ### 第 2 步：生成
 
 - 提示词从 `prompts/` 库取用：主题块 + 材质细节块 + 视角块 + 风格基准块 + 负面词块（拼接顺序固定）。
-- **固定视角/方向（默认路径）**：FLUX.2 dev + Depth ControlNet（`flux2-dev-depth`，
+- **固定视角/方向（默认路径）**：FLUX.2 Klein 4B + Depth ControlNet（`flux2-klein-4b-depth`，
   深度图经 `--control-image` 传入），同系列直接复用已定稿图的深度；视角/方向由深度图锁定，
   提示词不用反复强调视角。
-- **跨机双卡（Daedalus 在线时）**：`flux2-dev-mesh`（8 步 turbo + Turbo LoRA 两端本地加载，
-  服务端每步约 0.8s）；自由提示词的提速/批量用；锁视角流程仍走 depth（mesh 不支持 ControlNet，§1.6）。
+- **旧模型对照（仅显式指定）**：Dev / Dev Depth / Mesh 不参与默认流程；Mesh 不支持
+  ControlNet，不能替代 Klein Depth 的锁视角路径（§1.6）。
 - **模板锁定 img2img（同系列图标必用）**：参考图先压白底再上传
   （透明角直传会被合成黑底 → 出黑角图）；提示词强调 `same template/size/position as reference`。
 - 候选批量：不同 seed × 多档 denoise（如 0.62/0.68/0.74/0.80），产出 4~8 张候选后统一粗筛。
@@ -265,7 +261,7 @@ node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.
 
 ### 3.2 装备/首饰图标
 
-提示词模板：`prompts/equipment-icon.md`；流程：FLUX.2 Dev 文生图（首选；风格已调流程可保留
+提示词模板：`prompts/equipment-icon.md`；流程：FLUX.2 Klein 4B 文生图（默认；风格已调流程可保留
 SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归一化（0.90 / [0.72,1.4] / 居中）→
 `tools/ai-gen/verify-eclipse-icons.py` 复核 → 入库 `assets/icons/equipment/`（或 `assets/skills/` 对应引用路径）。
 
@@ -276,7 +272,7 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 
 #### 3.3.1 掩体（世界-122 防守地图，可被攻击的防御墙段）
 
-提示词模板：`prompts/cover.md`；模型：FLUX.2 dev + mesh（`flux2-dev-mesh`，批量脚本
+提示词模板：`prompts/cover.md`；模型：FLUX.2 Klein 4B（`flux2-klein-4b-nolora`，批量脚本
 `tools/ai-gen/gen-world122-assets.py`）。F→A 六档材质递进（木栅→沙袋→石垒→砖混→钢甲→符文钢），
 每档**水平摆/垂直摆两组贴图**（30° 底边斜向互为镜像）；生命值配置
 `{F:400, E:700, D:1100, C:1600, B:2200, A:3000}`，**def/mdef 均为 0**（怪物可攻击）。
@@ -285,7 +281,7 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 
 #### 3.3.2 防御塔（世界-122）
 
-提示词模板：`prompts/defense-tower.md`；模型：FLUX.2 dev + mesh。塔身=下方基座 +
+提示词模板：`prompts/defense-tower.md`；模型：FLUX.2 Klein 4B + Depth ControlNet。塔身=下方基座 +
 上方探出的机械臂（空置武器挂载点，供武器贴图挂载）；写实风格、六档共用同一视觉语言。
 抠图入库后 DefenseTower.spriteCfg 指向，footOffsetY 按内容底边校准。
 
@@ -293,7 +289,7 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 
 提示词模板：`prompts/energy-crystal-v3.md`；生成调度：`tools/ai-gen/gen-energy-node-v3.py`。
 流程：脚本程序化绘制 12 张深度控制图（每张一种独立形态，底座统一 30° 菱形土堆接地）
-→ `flux2-dev-depth --transparent` 逐张出图（normal + depleted 各 12）→ `--install` 入库
+→ `flux2-klein-4b-depth --transparent` 逐张出图（normal + depleted 各 12）→ `--install` 入库
 `assets/terrain/energy_node_v3_<n>.png` / `energy_node_depleted_v3_<n>.png`。
 
 快速验证：`python tools/ai-gen/gen-energy-node-v3.py --limit 1 --depth-only`（只看深度图），
@@ -333,7 +329,7 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 `run-player-attack-sword.py` → `analyze-player-attack-sword.py` →
 `build-player-attack-sheet.py`（详见 SKILL.md「主角一段攻击关键帧→H3 两段式挥砍重生」）。
 
-快速免费候选可走本地豆包客户端（默认 `Seedance 2.0 Mini`）：
+视频候选**默认先走本地豆包免费额度**；只有当页面明确显示当日额度耗尽、会员/权限阻断，或用户明确指定 H3、任务有豆包无法满足的特殊质量需求时，才追加 `--provider h3` 切远程 5080。豆包当前默认 `Seedance 2.0 Mini`，模型名称、倍率和免费状态以每次提交前页面实际显示为准：
 
 ```powershell
 python tools/ai-gen/ai-asset.py video generate --provider doubao `
@@ -344,7 +340,7 @@ python tools/ai-gen/ai-asset.py video generate --provider doubao `
 
 首次运行前完整退出普通启动的豆包一次；脚本会用 loopback CDP 启动客户端，绝不自动杀进程；成功下载后关闭自己启动的客户端与调试端口。
 多候选输出为 `_c01/_c02/...`，并各带 `.mp4.json` 来源记录。豆包端无像素级尾帧锁，循环动作
-仍须走原有抽帧、首尾缝、透明和 GIF 预览验收。额度不足、账号认证或一般风控提示出现即停止，不自动重投；
+仍须走原有抽帧、首尾缝、透明和 GIF 预览验收。额度不足、账号认证或一般风控提示出现即停止，不自动重投；确认免费额度不可用后才考虑 H3，不得仅凭旧的每日条数估算提前绕过豆包；
 若明确反馈“肖像保护/暂不支持真实人脸参考”，则按 `prompts/doubao-character-action-standard.md` 的肖像降级规则处理：
 删除提示词中的角色名和身份专名，统一改称“参考图中的原创游戏角色”、明确不涉及真人肖像，仅允许再提交一次；
 仍被拦截时停止图生视频，改走无专名文生视频或更换明显非真人风格的参考图。
@@ -391,7 +387,7 @@ python tools/ai-gen/ai-asset.py video generate --provider doubao `
   no whole weapon`；长条件（枪管/剑身/消音器/瞄具）加 `completely inside the frame with
   generous white margins`。黑色金属件直接白底出图（对比好，BiRefNet 抠得净）。
 - **批量生成**：
-  `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8
+  `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-nolora
   --prompt-file <Y:\...\prompts\gun\key.txt> --seed <递增> --out <Y:\...\raw\key.png>`
   4 并发；客户端超时（420s）后图仍会落盘 → 调度脚本按"文件存在且 >10KB"判成功并自动重试。
   调度器参考 `tools/ai-gen/_gun_gen.js` / `_sword_gen.js`。
@@ -447,7 +443,7 @@ python tools/ai-gen/ai-asset.py video generate --provider doubao `
     wire-contract 文件（codec/protocol/vec_io/lora_io）两端必须字节级一致；
     本机 safetensors 绑定崩溃已用 `safetensors_raw.py` 绕过，升级需复核补丁。
 12. **Mesh 不支持 ControlNet**：官方源码/issue 均无支持，架构上 Daedalus 后端收不到
-    ControlNet 条件——锁视角流程必须走单卡 `flux2-dev-depth`，mesh 只跑自由提示词。
+    ControlNet 条件——锁视角默认必须走 `flux2-klein-4b-depth`；Mesh 只保留为人工指定的旧对照实验。
 13. **测试视频/候选不提交仓库**：`assets/videos/` 已入 .gitignore；测试视频统一放
     `Y:\工作\无尽轮回\scratch\videos\`，仓库只保留被引用的最终资产。
 

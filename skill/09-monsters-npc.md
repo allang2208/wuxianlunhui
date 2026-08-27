@@ -913,6 +913,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   AimHelper.lead瞄目标贴图中心，第10帧出膛并播放fire.mp3。
 - 投射物不依赖图片，GameScene以Phaser Rectangle绘制54×4黄色ADD曳光弹，
   弹速1248（P4040同口径），AI负责飞行/墙阻挡/命中。
+- **同一攻击动作的多发弹道（仓鼠重机枪 2026-08-27）**：配置用 1-based
+  `attackLaunchFrames` 对齐动画中每个枪口闪光，兼容字段 `attackLaunchFrame` 固定等于首发帧，供攻击状态总时序使用。
+  AI 在首发时锁定本轮射击方向，并为每一发创建独立投射物放入单位专属数组；每发分别维护墙阻挡、命中集合、
+  穿透次数、伤害衰减与生命周期，禁止连续覆盖单一 `_basic` 投射物。GameScene 只同步数组内曳光弹的显示和销毁，
+  不承担命中或伤害；这样三连击可同时保留三条在途弹道，帧率波动也不会吞掉中间一发。
 - 靶场配置在producer-buildings `shooting_range`：按兵种区分产出速度——
   musketeer 60s / shooter 45s（unitTypes 条目 spawnIntervalMs 覆盖建筑级，
   `ProducerBuilding._unitSpawnIntervalMs` 查询）、上限5，复用通用升级和进度条；
@@ -967,6 +972,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - **怪物多分类协议（2026-08-23）**：保留 `family` 作为主分类以兼容旧数据，新增可选 `families:string[]`
   表达多个归属；统一通过 `getEnemyFamilies/hasEnemyFamily` 查询，禁止新增 `config.family === ...` 单值判定。
   图鉴分类页和详情标签也必须消费完整标签集。同一机制命中多个 family 倍率时取最高值，不重复叠乘。
+- **大型词条基线（2026-08-26）**：当前所有 `type:"领主"` 的怪物统一在 `families` 中登记“大型”；
+  精英矿石蜘蛛也登记“大型”。新增领主时必须保留其既有主分类并补充该词条，已有“大型”时不得重复写入。
 
 #### 13.4 丛林祭司专属魔法升级（2026-08-23）
 

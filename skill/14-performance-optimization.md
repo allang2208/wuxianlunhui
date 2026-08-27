@@ -148,6 +148,33 @@
 - 首次寻路错峰、不可达短 TTL、区域失效和 LRU 告警节流必须保留。
 - 静态且无行为需求的实体可进入业务定义的 dormant 状态；“镜头外”本身不是休眠条件。
 
+### 大规模 RTS 寻路合同（2026-08-25）
+
+- 超距移动先由 `HierarchicalRoutePlanner` 在 640px 扇区图上搜索门户序列，再把不超过
+  700px 的中继点交给细层寻路；扇区路线和门户按拓扑版本、半径桶共享，失败结果短时缓存。
+  粗层搜索本身也必须按 `hierarchy.frameBudgetMs` 保存 open/cameFrom/current-dir 状态跨帧续算。
+- AI 的细层 A* 必须把建网格和节点扩展保存为 typed-array 作业，`finderBudgetMs` 到期返回
+  `PATH_DEFERRED`，下帧以稳定 `requestId` 续算；只在任务开始前检查预算不算硬预算。
+- 位面入侵单位使用同目标共享流场：公共路径走廊先提供热路径后缀；走廊外但仍在共享窗口内的单位，
+  消费从目标反向扩展的积分 Dijkstra 场并沿 `next` 梯度取路。流场建格与积分扩展同样消费
+  `finderBudgetMs`、可跨帧暂停；接入前校验公共终点到本次终点的静态可达性。路径数组继续由
+  `PathManager` 防御性复制，局部转向继续由单位自身执行，不是刚性编队。
+- 全局路线不得把短时单位拥挤当作拓扑。防御波次的 A*/流场忽略 `DynamicObstacleMap` 成本，
+  单位间分离、侧翼、墙体 resolve 和卡住修复继续承担局部转向；静态建筑、墙、树和门成本仍参与规划。
+- 不可达缓存分两层：精确格起终点负缓存，以及包含起点扇区的共享负缓存；不得仅按目标扇区
+  把一个入口的失败扩散为整个地图不可达。
+- 建筑中心投影、`RegionIndex` 阻挡栅格/Flood Fill/原子提交、区域边界出口扫描都属于寻路预算，
+  必须在 deadline 到期时返回 `PATH_DEFERRED`；不得在进入 A* 前后留下同步全图扫描。
+- 墙/树/掩体 `SpatialHash` 冷重建同样必须按 deadline 跨帧；构建时保留上一份完整索引，
+  新索引完成后原子交换。玩家 RTS 同步指令保留直接完成的例外。
+- 普通建筑 iso footprint 必须先进入空间索引再参与格子查询；静态 memo 命中/未命中都只能
+  叠加一次实体障碍，禁止 `_getCellData` 与 `_buildGrid` 双重扫描。
+- 双份 `performance-config.json#pathQueue` 必须同步；报告至少导出 pendingSearches、
+  incrementalSlices、hashBuildSlices、projectionSlices、sharedFlowFields/hits/buildSlices、negativeCacheHits、
+  hierarchyRoutes/cacheHits/searches/pending/usedMs 与 regionRebuild/exitSearch 进度。细分归因还必须包含
+  validation/recalc 当帧、最近与峰值耗时，footprint/dynamicObstacle 同步耗时，以及
+  SpatialHash/反向流场的 pending、processedCells、totalCells 和 progress；这些指标只观测，不得改变调度行为。
+
 ## 14.6 多位面后台化
 
 非当前位面应从实体模拟切换为**可结算数据包**，但必须覆盖突发入侵、限时事件和玩家切回：

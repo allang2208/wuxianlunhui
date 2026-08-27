@@ -62,9 +62,14 @@ function isExcludedSceneType(config, sceneConfig) {
 
 function supportsScene(config, sceneId, sceneConfig) {
     const targets = Array.isArray(config?.targetSceneIds) ? config.targetSceneIds : [];
+    const targetTypes = Array.isArray(config?.targetSceneTypes) ? config.targetSceneTypes : [];
+    const sceneRainSetting = sceneConfig?.environmentEffects?.rain?.enabled;
     return config?.enabled !== false
-        && targets.includes(sceneId)
-        && !isExcludedSceneType(config, sceneConfig);
+        && !isExcludedSceneType(config, sceneConfig)
+        && sceneRainSetting !== false
+        && (targets.includes(sceneId)
+            || targetTypes.includes(sceneConfig?.type)
+            || sceneRainSetting === true);
 }
 
 function resolveIntensityId(config, intensityId) {

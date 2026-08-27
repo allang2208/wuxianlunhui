@@ -1,0 +1,11 @@
+The exact golden hamster heavy machine gunner from the first frame performs one complete powerful running cycle in place toward screen right. He transitions naturally from the starting low-ready stance into a compact forward-leaning run while carrying the same heavy belt-fed machine gun securely across the body, completes a clear alternating left-right foot cycle, and returns to the exact starting stance and gait phase at the end.
+
+Motion physics: short forceful strides appropriate for a broad heavily equipped hamster; knees lift and compress, boots alternate cleanly on one fixed ground baseline, hips and shoulders counter-rotate subtly, pouches and the short ammunition belt respond with restrained weight. The root remains fixed for a sprite animation: no travel across the canvas, skating, floating or hopping with both feet together. Keep the weapon rigid and controlled with the muzzle safely angled to the right; receiver, barrel, folded bipod, ammunition belt and box magazine remain intact and fully visible.
+
+Identity locks: preserve the exact face, body proportions, clear goggles, open tactical helmet, olive-and-tan uniform, plate carrier, pouches, gloves, knee pads, boots and exactly one coherent belt-fed machine gun. Right paw remains on the pistol grip and left paw supports the fore-end. No firing during the run.
+
+Camera and framing: static locked orthographic three-quarter front view facing right, no pan, zoom, crop, reframing, tracking, tilt or rotation. Same subject scale and center, generous margins, flat solid pure white background and soft diffuse light; no floor line, shadow, scenery, particles or text.
+
+Loop: one natural gait cycle ending in the exact same pose, position, scale, orientation and motion phase as the first frame, with no freeze or snap.
+
+Avoid: extra limbs, hand or weapon fusion, duplicated barrel, minigun conversion, detached or reversed ammunition belt, changing armor, identity drift, root drift, foot sliding, firing, camera motion, cropping, cuts, text, logo or watermark.

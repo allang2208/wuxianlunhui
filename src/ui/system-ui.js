@@ -147,7 +147,12 @@ export const SystemUI = {
         const pt = getElement('panelTitle');
         const titles = { status: '📊 角色状态', equip: '⚔ 装备与背包', skill: '✦ 技能系统', codex: '📖 图鉴' };
         if (pt) pt.textContent = titles[tab] || '角色系统';
-        queryAllElements('.panel-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+        queryAllElements('.panel-tab').forEach(t => {
+            const isActive = t.dataset.tab === tab;
+            t.classList.toggle('active', isActive);
+            t.setAttribute('aria-selected', String(isActive));
+            t.tabIndex = 0;
+        });
         queryAllElements('.tab-page').forEach(p => p.classList.remove('active'));
         const tabPage = queryElement(`.tab-page[data-page="${tab}"]`);
         if (tabPage) tabPage.classList.add('active');

@@ -32,7 +32,7 @@ hard lighting, directional light, rim light, glow behind subject, frame, border
 ## 命令
 
 ```bash
-python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth \
   --control-image depth.png --transparent \
   --prompt "a white knight armor with gold trim, game equipment icon" \
   --out final.png

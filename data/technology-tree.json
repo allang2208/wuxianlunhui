@@ -1,6 +1,22 @@
 {
-  "version": 7,
+  "version": 32,
   "pointsPerInstitutePerSecond": 1,
+  "researchCostCurve": {
+    "roundTo": 10,
+    "bands": [
+      { "maxBaseCost": 149, "multiplier": 1 },
+      { "maxBaseCost": 299, "multiplier": 1.5 },
+      { "maxBaseCost": 499, "multiplier": 2 },
+      { "maxBaseCost": 749, "multiplier": 3 },
+      { "multiplier": 4.5 }
+    ],
+    "planeResearchMultiplier": 4
+  },
+  "researchRateCurve": {
+    "fullEfficiencyRate": 12,
+    "overflowEfficiency": 0.2,
+    "maximumEffectiveRate": 36
+  },
   "nodes": [
     {
       "id": "engineering_drafting", "name": "工程制图", "icon": "📐", "iconPath": "assets/ui/technology-icons/engineering_drafting.png", "branch": "工程", "column": 0, "lane": 0, "researchCost": 60,
@@ -21,24 +37,73 @@
       ]
     },
     {
-      "id": "weather_forecasting", "name": "天气预测", "icon": "🌦", "branch": "工程", "column": 1, "lane": 1, "researchCost": 120,
+      "id": "wall_brickwork", "name": "烧制砖工艺", "icon": "🧱", "iconPath": "assets/ui/technology-icons/wall_brickwork.png", "branch": "工程", "column": 2, "lane": 3, "researchCost": 140,
+      "prerequisites": ["fortification_engineering"], "description": "改良窑炉、砂浆与错缝砌筑工艺，使方块墙由基础沙墙升级为耐候砖墙。",
+      "unlocks": [{ "type": "upgrade", "id": "wall_material_brick", "label": "二级墙体：砖墙" }]
+    },
+    {
+      "id": "wall_black_brickwork", "name": "黑砖砌筑", "icon": "⬛", "iconPath": "assets/ui/technology-icons/wall_black_brickwork.png", "branch": "工程", "column": 3, "lane": 3, "researchCost": 220,
+      "prerequisites": ["wall_brickwork"], "description": "通过高温烧结与致密砂浆强化砖体，使方块墙升级为深色高密度黑砖墙。",
+      "unlocks": [{ "type": "upgrade", "id": "wall_material_black_brick", "label": "三级墙体：黑砖墙" }]
+    },
+    {
+      "id": "wall_concrete_fortification", "name": "混凝土工事", "icon": "🏗️", "iconPath": "assets/ui/technology-icons/wall_concrete_fortification.png", "branch": "工程", "column": 4, "lane": 3, "researchCost": 360,
+      "prerequisites": ["wall_black_brickwork"], "description": "引入级配骨料与标准化浇筑技术，在保留砌块结构的同时升级为混凝土墙。",
+      "unlocks": [{ "type": "upgrade", "id": "wall_material_concrete", "label": "四级墙体：混凝土墙" }]
+    },
+    {
+      "id": "wall_rune_fortification", "name": "符文城防", "icon": "🔷", "iconPath": "assets/ui/technology-icons/wall_rune_fortification.png", "branch": "工程", "column": 5, "lane": 3, "researchCost": 560,
+      "prerequisites": ["wall_concrete_fortification"], "description": "把能量回路刻入黑色砌砖并稳定供能，使方块墙升级为高科技符文墙。",
+      "unlocks": [{ "type": "upgrade", "id": "wall_material_rune", "label": "五级墙体：高科技符文墙" }]
+    },
+    {
+      "id": "weather_forecasting", "name": "天气预测", "icon": "🌦", "iconPath": "assets/ui/technology-icons/weather_forecasting.png", "branch": "工程", "column": 1, "lane": 1, "researchCost": 120,
       "prerequisites": ["engineering_drafting"], "description": "建立跨位面气象观测与演算体系，允许建造天气预测塔并提前获知降雨。",
       "unlocks": [{ "type": "building", "id": "weather_forecast_tower", "label": "天气预测塔" }]
     },
     {
-      "id": "institutional_research", "name": "制度化科研", "icon": "📚", "branch": "工程", "column": 1, "lane": 2, "researchCost": 150,
-      "prerequisites": ["engineering_drafting"], "description": "建立标准研究岗位、精密仪器与跨位面分院制度，开放二级研究院及三项科研设施强化。",
+      "id": "advanced_meteorology", "name": "高级气象学", "icon": "📡", "iconPath": "assets/ui/technology-icons/weather_forecasting.png", "branch": "工程", "column": 2, "lane": 1, "researchCost": 260,
+      "prerequisites": ["weather_forecasting"], "description": "引入多站气压演算、连续天气模型与灾害预警协议，开放天气预测塔的四项观测升级。",
       "unlocks": [
-        { "type": "upgrade", "id": "research_institute_level_2", "label": "二级研究院" },
-        { "type": "upgrade", "id": "research_staff", "label": "扩编研究员" },
-        { "type": "upgrade", "id": "research_base_points", "label": "精密研究设备" },
-        { "type": "upgrade", "id": "research_institute_capacity", "label": "学术分院网络" }
+        { "type": "upgrade", "id": "weather_forecast_horizon", "label": "预报展望" },
+        { "type": "upgrade", "id": "weather_forecast_cycles", "label": "气象科研" },
+        { "type": "upgrade", "id": "weather_forecast_duration", "label": "时段解析" },
+        { "type": "upgrade", "id": "weather_forecast_storm_warning", "label": "灾害预警" }
       ]
     },
     {
-      "id": "advanced_academia", "name": "高塔学府", "icon": "🏛️", "branch": "工程", "column": 2, "lane": 2, "researchCost": 300,
-      "prerequisites": ["institutional_research"], "description": "把研究院扩建为拥有华丽塔楼、分科档案与高阶观测设备的学术中心，开放三级研究院。",
-      "unlocks": [{ "type": "upgrade", "id": "research_institute_level_3", "label": "三级研究院" }]
+      "id": "institutional_research", "name": "制度化科研", "icon": "📚", "iconPath": "assets/ui/technology-icons/institutional_research.png", "branch": "工程", "column": 1, "lane": 2, "researchCost": 150,
+      "prerequisites": ["engineering_drafting"], "description": "建立标准研究岗位、精密仪器与跨位面分所制度，开放二级研究所、两项本栋科研设施升级，并把每个位面研究所上限提升到2座。",
+      "unlocks": [
+        { "type": "upgrade", "id": "research_institute_level_2", "label": "二级研究所" },
+        { "type": "upgrade", "id": "research_staff", "label": "扩编研究员" },
+        { "type": "upgrade", "id": "research_base_points", "label": "精密研究设备" }
+      ]
+    },
+    {
+      "id": "advanced_academia", "name": "高塔学府", "icon": "🏛️", "iconPath": "assets/ui/technology-icons/advanced_academia.png", "branch": "工程", "column": 2, "lane": 2, "researchCost": 300,
+      "prerequisites": ["institutional_research"], "description": "把研究所扩建为拥有华丽塔楼、分科档案与高阶观测设备的学术中心，开放三级研究所，并把每个位面研究所上限提升到3座。",
+      "unlocks": [{ "type": "upgrade", "id": "research_institute_level_3", "label": "三级研究所" }]
+    },
+    {
+      "id": "high_energy_experimentation", "name": "义务教育", "icon": "🎓", "iconPath": "assets/ui/technology-icons/compulsory_education.png", "branch": "工程", "column": 3, "lane": 2, "researchCost": 700,
+      "prerequisites": ["advanced_academia", "steam_residential_engineering"], "description": "建立覆盖基础学科、工程训练与人才选拔的公共教育体系，把三级研究所扩展为综合高等教育平台，开放每个位面一座大学。",
+      "unlocks": [{ "type": "building", "id": "high_energy_laboratory", "label": "大学" }]
+    },
+    {
+      "id": "high_energy_laboratory_science", "name": "高能实验学", "icon": "⚛️", "iconPath": "assets/ui/technology-icons/high_energy_experimentation.png", "branch": "工程", "column": 4, "lane": 2, "researchCost": 1400,
+      "prerequisites": ["high_energy_experimentation"], "requiredWorldCount": 2, "description": "在大学教育与多位面能源基础上建立高能实验、危险物质约束和大型仪器规范，开放每个位面一座高能实验室。",
+      "unlocks": [{ "type": "building", "id": "high_energy_research_laboratory", "label": "高能实验室" }]
+    },
+    {
+      "id": "planar_observation_science", "name": "位面观测学", "icon": "📡", "iconPath": "assets/ui/technology-icons/planar_observation_science.png", "branch": "工程", "column": 5, "lane": 2, "researchCost": 2600,
+      "prerequisites": ["high_energy_laboratory_science", "modern_residential_systems"], "requiredWorldCount": 3, "description": "在至少三个位面的高能实验与观测数据之间建立同步模型，开放每个位面一座位面观测阵列。",
+      "unlocks": [{ "type": "building", "id": "planar_observation_array", "label": "位面观测阵列" }]
+    },
+    {
+      "id": "interplane_research_coordination", "name": "跨位面科研协同", "icon": "🧠", "iconPath": "assets/ui/technology-icons/interplane_research_coordination.png", "branch": "工程", "column": 6, "lane": 2, "researchCost": 5200,
+      "prerequisites": ["planar_observation_science", "ecological_vertical_city"], "requiredWorldCount": 5, "description": "在五个位面之间统一课题、档案与算力调度，开放全存档唯一的跨位面中枢，并为后续终局科技保留扩展节点。",
+      "unlocks": [{ "type": "building", "id": "interplane_research_hub", "label": "跨位面中枢" }]
     },
     {
       "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "iconPath": "assets/ui/technology-icons/defense_tower_engineering.png", "branch": "工程", "column": 2, "lane": 0, "researchCost": 240,
@@ -51,7 +116,7 @@
       "unlocks": [{ "type": "mechanic", "id": "building_relocation", "label": "建筑打包重建" }]
     },
     {
-      "id": "military_organization", "name": "军事组织", "icon": "⚔️", "iconPath": "assets/ui/technology-icons/military_organization.png", "branch": "军事指挥", "column": 0, "lane": 2, "researchCost": 60,
+      "id": "military_organization", "name": "军事组织", "icon": "⚔️", "iconPath": "assets/ui/technology-icons/military_organization.png", "branch": "军事指挥", "subBranch": "指挥", "column": 0, "lane": 0, "researchCost": 60,
       "prerequisites": [], "description": "建立军械生产、训练和指挥制度，开启专业兵种与战场指令研究。",
       "unlocks": [
         { "type": "building", "id": "blacksmith", "label": "铁匠铺" },
@@ -59,17 +124,17 @@
       ]
     },
     {
-      "id": "barracks_establishment", "name": "军营建制", "icon": "⛺", "iconPath": "assets/ui/technology-icons/barracks_establishment.png", "branch": "军事指挥", "column": 1, "lane": 2, "researchCost": 90,
+      "id": "barracks_establishment", "name": "军营建制", "icon": "⛺", "iconPath": "assets/ui/technology-icons/barracks_establishment.png", "branch": "军事指挥", "subBranch": "军营", "column": 1, "lane": 2, "researchCost": 90,
       "prerequisites": ["military_organization"], "description": "建立常备军训练、驻扎和补给制度，允许建造仓鼠军营。",
       "unlocks": [{ "type": "building", "id": "hamster_barracks", "label": "仓鼠军营" }]
     },
     {
-      "id": "armory_logistics", "name": "军械保障", "icon": "🗡️", "iconPath": "assets/ui/technology-icons/armory_logistics.png", "branch": "军事指挥", "column": 2, "lane": 6, "researchCost": 150,
+      "id": "armory_logistics", "name": "军械保障", "icon": "🗡️", "iconPath": "assets/ui/technology-icons/armory_logistics.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 2, "lane": 6, "researchCost": 150,
       "prerequisites": ["barracks_establishment"], "description": "建立军械保养、归档与前线补给制度，允许建造军械库并安排维护师岗位。",
       "unlocks": [{ "type": "building", "id": "armory", "label": "军械库" }]
     },
     {
-      "id": "armory_standardization", "name": "军需标准化", "icon": "⚙️", "iconPath": "assets/ui/technology-icons/armory_standardization.png", "branch": "军事指挥", "column": 3, "lane": 6, "researchCost": 220,
+      "id": "armory_standardization", "name": "军需标准化", "icon": "⚙️", "iconPath": "assets/ui/technology-icons/armory_standardization.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 3, "lane": 6, "researchCost": 220,
       "prerequisites": ["armory_logistics"], "description": "统一装备护理、服务半径、物资整理与维护编制，开放军械库的四项专属升级。",
       "unlocks": [
         { "type": "upgrade", "id": "armory_equipment_care", "label": "装备护理" },
@@ -79,141 +144,222 @@
       ]
     },
     {
-      "id": "tactical_command", "name": "战术指挥", "icon": "🎯", "iconPath": "assets/ui/technology-icons/tactical_command.png", "branch": "军事指挥", "column": 1, "lane": 0, "researchCost": 70,
+      "id": "tactical_command", "name": "战术指挥", "icon": "🎯", "iconPath": "assets/ui/technology-icons/tactical_command.png", "branch": "军事指挥", "subBranch": "指挥", "column": 1, "lane": 0, "researchCost": 70,
       "prerequisites": ["military_organization"], "description": "开放框选、编队与战场指令。",
       "unlocks": [{ "type": "mechanic", "id": "rts_command", "label": "RTS 指挥模式" }]
     },
     {
-      "id": "standing_orders", "name": "常备军令", "icon": "🚩", "iconPath": "assets/ui/technology-icons/standing_orders.png", "branch": "军事指挥", "column": 2, "lane": 0, "researchCost": 90,
+      "id": "standing_orders", "name": "常备军令", "icon": "🚩", "iconPath": "assets/ui/technology-icons/standing_orders.png", "branch": "军事指挥", "subBranch": "指挥", "column": 2, "lane": 0, "researchCost": 90,
       "prerequisites": ["tactical_command"], "description": "允许部队原地驻守，不再自动跟随玩家。",
       "unlocks": [{ "type": "mechanic", "id": "troop_hold", "label": "部队驻守" }]
     },
     {
-      "id": "rally_network", "name": "集结网络", "icon": "📍", "iconPath": "assets/ui/technology-icons/rally_network.png", "branch": "军事指挥", "column": 3, "lane": 0, "researchCost": 130,
+      "id": "rally_network", "name": "集结网络", "icon": "📍", "iconPath": "assets/ui/technology-icons/rally_network.png", "branch": "军事指挥", "subBranch": "指挥", "column": 3, "lane": 0, "researchCost": 130,
       "prerequisites": ["standing_orders"], "description": "允许为生产建筑和部队设置集结点。",
       "unlocks": [{ "type": "mechanic", "id": "troop_rally", "label": "集结点" }]
     },
     {
-      "id": "expedition_logistics", "name": "远征后勤", "icon": "🌐", "iconPath": "assets/ui/technology-icons/expedition_logistics.png", "branch": "军事指挥", "column": 4, "lane": 0, "researchCost": 220,
+      "id": "expedition_logistics", "name": "远征后勤", "icon": "🌐", "iconPath": "assets/ui/technology-icons/expedition_logistics.png", "branch": "军事指挥", "subBranch": "指挥", "column": 4, "lane": 0, "researchCost": 220,
       "prerequisites": ["rally_network"], "description": "建立跨位面补给体系，使部队能够跨世界增援。",
       "unlocks": [{ "type": "mechanic", "id": "cross_world_reinforcement", "label": "跨世界增援" }]
     },
     {
-      "id": "recon_doctrine", "name": "侦察编制", "icon": "🧭", "iconPath": "assets/ui/technology-icons/recon_doctrine.png", "branch": "军事指挥", "column": 1, "lane": 1, "researchCost": 80,
-      "prerequisites": ["military_organization"], "description": "训练快速侦察单位，为远征提供视野。",
-      "unlocks": [{ "type": "unit", "id": "scout", "label": "仓鼠侦察兵" }]
+      "id": "recon_doctrine", "name": "侦察编制", "icon": "🧭", "iconPath": "assets/ui/technology-icons/recon_doctrine.png", "branch": "军事指挥", "subBranch": "草屋", "column": 1, "lane": 1, "researchCost": 80,
+      "prerequisites": ["military_organization"], "description": "确立仓鼠草屋的反骑与侦察定位，开放承担视野及增益职责的斥候。",
+      "unlocks": [{ "type": "unit", "id": "scout", "label": "仓鼠斥候" }]
     },
     {
-      "id": "shield_formation", "name": "盾阵学", "icon": "🛡️", "iconPath": "assets/ui/technology-icons/shield_formation.png", "branch": "军事指挥", "column": 2, "lane": 2, "researchCost": 90,
+      "id": "thatch_hut_level_1", "name": "仓鼠草屋", "icon": "🛖", "iconPath": "assets/ui/technology-icons/thatch_hut_level_1.png", "branch": "军事指挥", "subBranch": "草屋", "column": 3, "lane": 1, "researchCost": 10, "placeholder": true, "baseline": true, "recruitmentTierId": "thatch_hut_level_1",
+      "prerequisites": ["recon_doctrine"], "description": "现役一级编制：仓鼠民兵与仓鼠斥候作为草屋两条基础兵种线，无需额外科研。", "unlocks": []
+    },
+    {
+      "id": "thatch_hut_level_2", "name": "斥候营地", "icon": "🛖", "iconPath": "assets/ui/technology-icons/thatch_hut_level_2.png", "branch": "军事指挥", "subBranch": "草屋", "column": 4, "lane": 1, "researchCost": 500, "recruitmentTierId": "thatch_hut_level_2",
+      "prerequisites": ["recon_doctrine"], "description": "完成科研后，仓鼠草屋立即升级为斥候营地，两条生产槽分别由仓鼠民兵、仓鼠斥候换代为仓鼠长戟、仓鼠游侠；已经出兵的旧单位不变。", "unlocks": [
+        { "type": "recruitmentTier", "id": "thatch_hut_level_2", "label": "斥候营地" },
+        { "type": "unit", "id": "halberd", "label": "仓鼠长戟" },
+        { "type": "unit", "id": "ranger", "label": "仓鼠游侠" }
+      ]
+    },
+    {
+      "id": "thatch_hut_level_3", "name": "特战基地", "icon": "🛖", "iconPath": "assets/ui/technology-icons/thatch_hut_level_3.png", "branch": "军事指挥", "subBranch": "草屋", "column": 5, "lane": 1, "researchCost": 2200, "recruitmentTierId": "thatch_hut_level_3",
+      "prerequisites": ["thatch_hut_level_2"], "description": "完成科研后，斥候营地立即升级为特战基地，两条生产槽分别由仓鼠长戟、仓鼠游侠换代为仓鼠反载、仓鼠狙击手；已经出兵的旧单位不变。", "unlocks": [
+        { "type": "recruitmentTier", "id": "thatch_hut_level_3", "label": "特战基地" },
+        { "type": "unit", "id": "anti_vehicle", "label": "仓鼠反载" },
+        { "type": "unit", "id": "sniper", "label": "仓鼠狙击手" }
+      ]
+    },
+    {
+      "id": "shield_formation", "name": "盾阵学", "icon": "🛡️", "iconPath": "assets/ui/technology-icons/shield_formation.png", "branch": "军事指挥", "subBranch": "军营", "column": 2, "lane": 2, "researchCost": 90,
       "prerequisites": ["barracks_establishment"], "description": "训练持盾卫士，增强前线承伤能力。",
       "unlocks": [{ "type": "unit", "id": "guard", "label": "仓鼠盾卫" }]
     },
     {
-      "id": "emplacement_shooting", "name": "阵地射击", "icon": "🏹", "iconPath": "assets/ui/technology-icons/emplacement_shooting.png", "branch": "军事指挥", "column": 1, "lane": 3, "researchCost": 120,
-      "prerequisites": ["military_organization"], "description": "建设射击训练设施，并训练远程射手。",
-      "unlocks": [
-        { "type": "building", "id": "shooting_range", "label": "射击场" },
-        { "type": "unit", "id": "shooter", "label": "仓鼠射手" }
+      "id": "hamster_barracks_level_1", "name": "仓鼠军营·I级", "icon": "⛺", "iconPath": "assets/ui/technology-icons/hamster_barracks_level_1.png", "branch": "军事指挥", "subBranch": "军营", "column": 3, "lane": 2, "researchCost": 10, "placeholder": true, "baseline": true, "recruitmentTierId": "hamster_barracks_level_1",
+      "prerequisites": ["shield_formation"], "description": "现役一级编制：仓鼠战士与仓鼠盾卫作为军营两条基础兵种线，无需额外科研。", "unlocks": []
+    },
+    {
+      "id": "hamster_barracks_level_2", "name": "仓鼠军营·II级", "icon": "⛺", "iconPath": "assets/ui/technology-icons/hamster_barracks_level_2.png", "branch": "军事指挥", "subBranch": "军营", "column": 4, "lane": 2, "researchCost": 500, "recruitmentTierId": "hamster_barracks_level_2",
+      "prerequisites": ["shield_formation"], "description": "完成科研后，军营两条生产槽分别由仓鼠战士、仓鼠盾卫换代为仓鼠冠军、仓鼠方阵；已经出兵的旧单位不变。", "unlocks": [
+        { "type": "recruitmentTier", "id": "hamster_barracks_level_2", "label": "仓鼠军营二级编制" },
+        { "type": "unit", "id": "champion", "label": "仓鼠冠军" },
+        { "type": "unit", "id": "phalanx", "label": "仓鼠方阵" }
       ]
     },
     {
-      "id": "gunpowder", "name": "火药学", "icon": "💥", "iconPath": "assets/ui/technology-icons/gunpowder.png", "branch": "军事指挥", "column": 2, "lane": 3, "researchCost": 170,
+      "id": "hamster_barracks_level_3", "name": "仓鼠军营·III级", "icon": "⛺", "iconPath": "assets/ui/technology-icons/hamster_barracks_level_3.png", "branch": "军事指挥", "subBranch": "军营", "column": 5, "lane": 2, "researchCost": 2200, "placeholder": true, "recruitmentTierId": "hamster_barracks_level_3",
+      "prerequisites": ["hamster_barracks_level_2"], "description": "规划科研：三级编制完成后，输出与防御生产槽自动替换为仓鼠动力甲与仓鼠防暴队。防暴队已完成，整层仍等待动力甲。", "unlocks": [
+        { "type": "recruitmentTier", "id": "hamster_barracks_level_3", "label": "仓鼠军营三级编制" },
+        { "type": "unit", "id": "riot_special", "label": "仓鼠防暴队" }
+      ]
+    },
+    {
+      "id": "emplacement_shooting", "name": "阵地射击", "icon": "🏹", "iconPath": "assets/ui/technology-icons/emplacement_shooting.png", "branch": "军事指挥", "subBranch": "靶场", "column": 1, "lane": 3, "researchCost": 120,
+      "prerequisites": ["military_organization"], "description": "建设射击训练设施，并训练仓鼠射手与仓鼠弩手。",
+      "unlocks": [
+        { "type": "building", "id": "shooting_range", "label": "靶场" },
+        { "type": "unit", "id": "shooter", "label": "仓鼠射手" },
+        { "type": "unit", "id": "crossbow", "label": "仓鼠弩手" }
+      ]
+    },
+    {
+      "id": "gunpowder", "name": "火药学", "icon": "💥", "iconPath": "assets/ui/technology-icons/gunpowder.png", "branch": "军事指挥", "subBranch": "靶场", "column": 2, "lane": 3, "researchCost": 170,
       "prerequisites": ["emplacement_shooting"], "description": "将火药武器编入军队，训练火枪手。",
       "unlocks": [{ "type": "unit", "id": "musketeer", "label": "仓鼠火枪手" }]
     },
     {
-      "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "column": 1, "lane": 4, "researchCost": 140,
-      "prerequisites": ["military_organization"], "description": "建设骑兵学校并训练轻骑兵。",
+      "id": "shooting_range_level_1", "name": "靶场·I级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_1.png", "branch": "军事指挥", "subBranch": "靶场", "column": 3, "lane": 3, "researchCost": 10, "placeholder": true, "baseline": true, "recruitmentTierId": "shooting_range_level_1",
+      "prerequisites": ["gunpowder"], "description": "一级编制基线：仓鼠射手负责高机动毒箭输出，仓鼠弩手负责低射速贯穿与穿甲重击。", "unlocks": []
+    },
+    {
+      "id": "shooting_range_level_2", "name": "靶场·II级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_2.png", "branch": "军事指挥", "subBranch": "靶场", "column": 4, "lane": 3, "researchCost": 500, "placeholder": true, "recruitmentTierId": "shooting_range_level_2",
+      "prerequisites": ["gunpowder"], "description": "规划科研：二级编制完成后，射手与重火力生产槽自动替换为仓鼠长弓与仓鼠火枪。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_2", "label": "靶场二级编制" }]
+    },
+    {
+      "id": "shooting_range_level_3", "name": "靶场·III级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_3.png", "branch": "军事指挥", "subBranch": "靶场", "column": 5, "lane": 3, "researchCost": 2200, "placeholder": true, "recruitmentTierId": "shooting_range_level_3",
+      "prerequisites": ["shooting_range_level_2"], "description": "规划科研：三级编制完成后，射手与重火力生产槽自动替换为仓鼠突击与仓鼠重机枪。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "靶场三级编制" }]
+    },
+    {
+      "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 1, "lane": 4, "researchCost": 140,
+      "prerequisites": ["military_organization"], "description": "建设骑兵学院并训练轻骑兵。",
       "unlocks": [
-        { "type": "building", "id": "cavalry_school", "label": "骑兵学校" },
+        { "type": "building", "id": "cavalry_school", "label": "骑兵学院" },
         { "type": "unit", "id": "light_cavalry", "label": "仓鼠轻骑兵" }
       ]
     },
     {
-      "id": "heavy_cavalry", "name": "重骑兵", "icon": "♞", "iconPath": "assets/ui/technology-icons/heavy_cavalry.png", "branch": "军事指挥", "column": 2, "lane": 4, "researchCost": 190,
+      "id": "heavy_cavalry", "name": "重骑兵", "icon": "♞", "iconPath": "assets/ui/technology-icons/heavy_cavalry.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 2, "lane": 4, "researchCost": 190,
       "prerequisites": ["cavalry_training"], "description": "用重甲与冲锋训练打造骑士部队。",
       "unlocks": [{ "type": "unit", "id": "knight", "label": "仓鼠骑士" }]
     },
     {
-      "id": "field_theology", "name": "战地神学", "icon": "⛪", "iconPath": "assets/ui/technology-icons/field_theology.png", "branch": "军事指挥", "column": 1, "lane": 5, "researchCost": 140,
-      "prerequisites": ["military_organization"], "description": "建设教堂，训练能够支援军队的牧师。",
+      "id": "cavalry_school_level_1", "name": "骑兵学院·I级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_1.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 3, "lane": 4, "researchCost": 10, "placeholder": true, "baseline": true, "recruitmentTierId": "cavalry_school_level_1",
+      "prerequisites": ["heavy_cavalry"], "description": "现役一级编制：仓鼠轻骑与仓鼠骑士作为骑兵学院两条基础兵种线，无需额外科研。", "unlocks": []
+    },
+    {
+      "id": "cavalry_school_level_2", "name": "骑兵学院·II级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_2.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 4, "lane": 4, "researchCost": 500, "placeholder": true, "recruitmentTierId": "cavalry_school_level_2",
+      "prerequisites": ["heavy_cavalry"], "description": "规划科研：二级编制完成后，轻骑与重骑生产槽自动替换为仓鼠骑兵与仓鼠翼骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_2", "label": "骑兵学院二级编制" }]
+    },
+    {
+      "id": "cavalry_school_level_3", "name": "骑兵学院·III级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 4, "researchCost": 2200, "placeholder": true, "recruitmentTierId": "cavalry_school_level_3",
+      "prerequisites": ["cavalry_school_level_2"], "description": "规划科研：三级编制完成后，轻骑与重骑生产槽自动替换为仓鼠侦察车与仓鼠坦克。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_3", "label": "骑兵学院三级编制" }]
+    },
+    {
+      "id": "field_theology", "name": "战地神学", "icon": "⛪", "iconPath": "assets/ui/technology-icons/field_theology.png", "branch": "军事指挥", "subBranch": "教堂", "column": 1, "lane": 5, "researchCost": 140,
+      "prerequisites": ["military_organization"], "description": "建设教堂，训练承担施法与支援职责的法术单位。",
       "unlocks": [
         { "type": "building", "id": "church", "label": "教堂" },
         { "type": "unit", "id": "priest", "label": "仓鼠牧师" }
       ]
     },
     {
-      "id": "settlement_planning", "name": "聚落规划", "icon": "🏘️", "iconPath": "assets/ui/technology-icons/settlement_planning.png", "branch": "经济与位面", "column": 0, "lane": 1, "researchCost": 60,
-      "prerequisites": [], "description": "梳理聚落道路、人口与生活设施，使基础房屋可以升级到二级。",
-      "unlocks": [{ "type": "upgrade", "id": "house_level_2", "label": "二级房屋" }]
+      "id": "church_level_1", "name": "教堂·I级", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_1.png", "branch": "军事指挥", "subBranch": "教堂", "column": 3, "lane": 5, "researchCost": 10, "placeholder": true, "baseline": true, "recruitmentTierId": "church_level_1",
+      "prerequisites": ["field_theology"], "description": "现役一级编制：仓鼠牧师作为当前法术与支援单位基线，无需额外科研。", "unlocks": []
     },
     {
-      "id": "housing_optimization", "name": "住房优化", "icon": "🏠", "iconPath": "assets/ui/technology-icons/housing_optimization.png", "branch": "经济与位面", "column": 1, "lane": 0, "researchCost": 120,
-      "prerequisites": ["settlement_planning"], "description": "改良房屋结构和公共空间，使房屋可以升级到三级。",
-      "unlocks": [{ "type": "upgrade", "id": "house_level_3", "label": "三级房屋" }]
+      "id": "church_level_2", "name": "教堂·II级", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_2.png", "branch": "军事指挥", "subBranch": "教堂", "column": 4, "lane": 5, "researchCost": 500, "placeholder": true, "recruitmentTierId": "church_level_2",
+      "prerequisites": ["field_theology"], "description": "规划科研：保留教堂二级编制与1500点折算科研预算，法术单位路线暂不扩展。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_2", "label": "教堂二级编制" }]
     },
     {
-      "id": "agricultural_division", "name": "农业分工", "icon": "🌾", "iconPath": "assets/ui/technology-icons/agricultural_division.png", "branch": "经济与位面", "column": 1, "lane": 1, "researchCost": 90,
-      "prerequisites": ["settlement_planning"], "description": "建立稳定的农事分工和粮食加工体系。",
-      "unlocks": [{ "type": "building", "id": "wheat_windmill", "label": "小麦风车" }]
+      "id": "church_level_3", "name": "教堂·III级", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_3.png", "branch": "军事指挥", "subBranch": "教堂", "column": 5, "lane": 5, "researchCost": 2200, "placeholder": true, "recruitmentTierId": "church_level_3",
+      "prerequisites": ["church_level_2"], "description": "规划科研：保留教堂三级编制与9900点折算科研预算，法术单位路线暂不扩展。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_3", "label": "教堂三级编制" }]
     },
     {
-      "id": "bakery_baking", "name": "面包烘焙", "icon": "🍞", "iconPath": "assets/ui/technology-icons/bakery_baking.png", "branch": "经济与位面", "column": 2, "lane": 1, "researchCost": 130,
-      "prerequisites": ["agricultural_division"], "description": "把稳定粮源转化为专业烘焙产业，允许建造面包屋并安排仓鼠面包师。",
-      "unlocks": [{ "type": "building", "id": "bakery", "label": "面包屋" }]
+      "id": "field_medicine", "name": "战地医疗", "icon": "⚕️", "iconPath": "assets/ui/technology-icons/field_medicine.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 3, "lane": 7, "researchCost": 150,
+      "prerequisites": ["shield_formation"], "description": "建立分诊、清创和固定救护设施，使受伤友军可以在据点附近持续接受治疗。",
+      "unlocks": [{ "type": "building", "id": "field_hospital", "label": "战地医院" }]
     },
     {
-      "id": "bakery_craft", "name": "烘焙工艺", "icon": "🥐", "iconPath": "assets/ui/technology-icons/bakery_craft.png", "branch": "经济与位面", "column": 3, "lane": 1, "researchCost": 180,
-      "prerequisites": ["bakery_baking"], "description": "标准化火候、配方、食材处理和短途搬运，开放面包屋的四项专属升级。",
+      "id": "medical_standardization", "name": "医疗标准化", "icon": "🩺", "iconPath": "assets/ui/technology-icons/medical_standardization.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 4, "lane": 7, "researchCost": 240,
+      "prerequisites": ["field_medicine"], "description": "统一巡诊、药剂、分诊和医护编制，开放战地医院的四项专属升级。",
       "unlocks": [
-        { "type": "upgrade", "id": "bakery_quick_cooking", "label": "快速烹饪" },
-        { "type": "upgrade", "id": "bakery_gourmet", "label": "美食家" },
-        { "type": "upgrade", "id": "bakery_ingredient_processing", "label": "食材处理" },
-        { "type": "upgrade", "id": "bakery_quick_steps", "label": "小步快跑" }
+        { "type": "upgrade", "id": "hospital_rounds", "label": "巡诊范围" },
+        { "type": "upgrade", "id": "hospital_medicine", "label": "药剂储备" },
+        { "type": "upgrade", "id": "hospital_triage", "label": "急救分诊" },
+        { "type": "upgrade", "id": "hospital_staff", "label": "医护编制" }
       ]
     },
-    {
-      "id": "market_circulation", "name": "市场流通", "icon": "⚖️", "iconPath": "assets/ui/technology-icons/market_circulation.png", "branch": "经济与位面", "column": 1, "lane": 2, "researchCost": 110,
-      "prerequisites": ["settlement_planning"], "description": "建立能源与金币的定价、交换和流通规则。",
-      "unlocks": [{ "type": "building", "id": "market", "label": "市场" }]
-    },
-    {
-      "id": "plane_rituals", "name": "位面祭祀", "icon": "🔱", "iconPath": "assets/ui/technology-icons/plane_rituals.png", "branch": "经济与位面", "column": 2, "lane": 3, "researchCost": 180,
-      "prerequisites": ["market_circulation"], "description": "建立与位面意志沟通的仪式规范，允许在世界-122建造位面祭坛。",
-      "unlocks": [{ "type": "building", "id": "plane_altar", "label": "位面祭坛" }]
-    },
-    {
-      "id": "credit_finance", "name": "信用金融", "icon": "🏦", "iconPath": "assets/ui/technology-icons/credit_finance.png", "branch": "经济与位面", "column": 2, "lane": 2, "researchCost": 170,
-      "prerequisites": ["housing_optimization", "market_circulation"], "description": "以聚落人口和市场流通为基础建立银行结算体系。",
-      "unlocks": [{ "type": "building", "id": "bank", "label": "银行" }]
-    },
-    {
-      "id": "economic_engineering", "name": "经济工程", "icon": "🛠️", "iconPath": "assets/ui/technology-icons/economic_engineering.png", "branch": "经济与位面", "column": 4, "lane": 1, "researchCost": 210,
-      "prerequisites": ["agricultural_division", "credit_finance"], "description": "用工程化管理提高生产建筑、岗位和维修体系的协同效率。",
-      "unlocks": [{ "type": "building", "id": "economic_workshop", "label": "经济工坊" }]
-    },
-    {
-      "id": "interplane_logistics_protocol", "name": "位面物流协议", "icon": "🌀", "iconPath": "assets/ui/technology-icons/interplane_logistics_protocol.png", "branch": "经济与位面", "column": 5, "lane": 1, "researchCost": 260,
-      "prerequisites": ["economic_engineering"], "description": "统一跨位面仓储和运输规范，允许升级仓库的跨位面协议。",
-      "unlocks": [{ "type": "upgrade", "id": "warehouse_cross_plane", "label": "仓库跨位面协议" }]
-    },
-    {
-      "id": "planar_resonance", "name": "位面谐振", "icon": "🔮", "branch": "经济与位面", "column": 5, "lane": 0, "researchCost": 280,
-      "prerequisites": ["economic_engineering"], "description": "把晶核的位面脉冲稳定转换为聚落能源，允许建造位面谐振塔并安排谐振技师。",
-      "unlocks": [{ "type": "building", "id": "planar_resonator", "label": "位面谐振塔" }]
-    },
-    {
-      "id": "resonance_calibration", "name": "谐振校准", "icon": "🎛️", "branch": "经济与位面", "column": 6, "lane": 0, "researchCost": 360,
-      "prerequisites": ["planar_resonance"], "description": "建立频率、晶核、导能与技师编制的标准调校流程，开放位面谐振塔的四项专属升级。",
-      "unlocks": [
-        { "type": "upgrade", "id": "resonator_frequency", "label": "谐振频率" },
-        { "type": "upgrade", "id": "resonator_crystal_output", "label": "晶核增幅" },
-        { "type": "upgrade", "id": "resonator_conversion", "label": "导能回收" },
-        { "type": "upgrade", "id": "resonator_staff", "label": "谐振技师" }
-      ]
-    }
+    { "id": "settlement_planning", "name": "聚落规划", "icon": "🏘️", "iconPath": "assets/ui/technology-icons/house_level_2.png", "branch": "经济与位面", "subBranch": "住房", "column": 1, "lane": 0, "researchCost": 60, "prerequisites": [], "description": "开放二级房屋；二级经济建筑均以本科技作为住房门槛。", "unlocks": [{ "type": "upgrade", "id": "house_level_2", "label": "二级房屋" }] },
+    { "id": "housing_optimization", "name": "住房优化", "icon": "🏠", "iconPath": "assets/ui/technology-icons/house_level_3.png", "branch": "经济与位面", "subBranch": "住房", "column": 3, "lane": 0, "researchCost": 120, "prerequisites": ["settlement_planning"], "description": "开放三级房屋；三级经济建筑均以本科技作为住房门槛。", "unlocks": [{ "type": "upgrade", "id": "house_level_3", "label": "三级房屋" }] },
+    { "id": "mansion_construction", "name": "洋楼营造", "icon": "🏡", "iconPath": "assets/ui/technology-icons/house_level_4.png", "branch": "经济与位面", "subBranch": "住房", "column": 5, "lane": 0, "researchCost": 200, "prerequisites": ["housing_optimization"], "description": "开放四级房屋；四级经济建筑均以本科技作为住房门槛。", "unlocks": [{ "type": "upgrade", "id": "house_level_4", "label": "四级房屋" }] },
+    { "id": "steam_residential_engineering", "name": "蒸汽住宅工程", "icon": "⚙️", "iconPath": "assets/ui/technology-icons/house_level_5.png", "branch": "经济与位面", "subBranch": "住房", "column": 7, "lane": 0, "researchCost": 320, "prerequisites": ["mansion_construction"], "description": "开放五级房屋；五级经济建筑均以本科技作为住房门槛。", "unlocks": [{ "type": "upgrade", "id": "house_level_5", "label": "五级房屋" }] },
+    { "id": "modern_residential_systems", "name": "现代住宅体系", "icon": "🏢", "iconPath": "assets/ui/technology-icons/house_level_6.png", "branch": "经济与位面", "subBranch": "住房", "column": 9, "lane": 0, "researchCost": 500, "prerequisites": ["steam_residential_engineering"], "description": "开放六级房屋，并作为六级农业、金币与能源科技的共同住房门槛。", "unlocks": [{ "type": "upgrade", "id": "house_level_6", "label": "六级房屋" }] },
+    { "id": "ecological_vertical_city", "name": "生态垂直都市", "icon": "🌿", "iconPath": "assets/ui/technology-icons/house_level_7.png", "branch": "经济与位面", "subBranch": "住房", "column": 11, "lane": 0, "researchCost": 750, "prerequisites": ["modern_residential_systems"], "description": "开放七级房屋，并作为七级农业与金币科技的共同住房门槛。", "unlocks": [{ "type": "upgrade", "id": "house_level_7", "label": "七级房屋" }] },
+
+    { "id": "agricultural_division", "name": "农业分工", "icon": "🌾", "iconPath": "assets/ui/technology-icons/agricultural_division.png", "branch": "经济与位面", "subBranch": "农业", "column": 0, "lane": 1, "researchCost": 80, "prerequisites": [], "description": "麦田风车可直接建造；完成研究后开放其四项升级。", "unlocks": [{ "type": "upgrade", "id": "windmill_seed_selection", "label": "精选麦种" }, { "type": "upgrade", "id": "windmill_sail_drive", "label": "风帆传动" }, { "type": "upgrade", "id": "windmill_field_expansion", "label": "田垄扩建" }, { "type": "upgrade", "id": "windmill_crop_rotation", "label": "轮作农法" }] },
+    { "id": "dairy_husbandry", "name": "乳品畜牧", "icon": "🐄", "iconPath": "assets/ui/technology-icons/dairy_husbandry.png", "branch": "经济与位面", "subBranch": "农业", "column": 1, "lane": 1, "researchCost": 170, "prerequisites": ["agricultural_division", "settlement_planning"], "description": "二级食物科技：需要二级住房体系，允许建造奶酪农场。", "unlocks": [{ "type": "building", "id": "cheese_farm", "label": "奶酪农场" }] },
+    { "id": "cheese_standardization", "name": "奶酪标准化", "icon": "🧀", "iconPath": "assets/ui/technology-icons/cheese_standardization.png", "branch": "经济与位面", "subBranch": "农业", "column": 2, "lane": 1, "researchCost": 220, "prerequisites": ["dairy_husbandry"], "description": "开放奶酪农场四项升级。", "unlocks": [{ "type": "upgrade", "id": "cheese_breed_selection", "label": "良种繁育" }, { "type": "upgrade", "id": "cheese_maturation", "label": "熟成工艺" }, { "type": "upgrade", "id": "cheese_pasture_expansion", "label": "牧场扩围" }, { "type": "upgrade", "id": "cheese_delivery_cart", "label": "轻便奶酪筐" }] },
+    { "id": "bakery_baking", "name": "面包烘焙", "icon": "🍞", "iconPath": "assets/ui/technology-icons/bakery_baking.png", "branch": "经济与位面", "subBranch": "农业", "column": 3, "lane": 1, "researchCost": 300, "prerequisites": ["dairy_husbandry", "housing_optimization"], "description": "三级食物科技：需要三级住房体系，允许建造面包屋。", "unlocks": [{ "type": "building", "id": "bakery", "label": "面包屋" }] },
+    { "id": "bakery_craft", "name": "烘焙工艺", "icon": "🥐", "iconPath": "assets/ui/technology-icons/bakery_craft.png", "branch": "经济与位面", "subBranch": "农业", "column": 4, "lane": 1, "researchCost": 380, "prerequisites": ["bakery_baking"], "description": "开放面包屋四项升级。", "unlocks": [{ "type": "upgrade", "id": "bakery_quick_cooking", "label": "快速烹饪" }, { "type": "upgrade", "id": "bakery_gourmet", "label": "美食家" }, { "type": "upgrade", "id": "bakery_ingredient_processing", "label": "食材处理" }, { "type": "upgrade", "id": "bakery_quick_steps", "label": "小步快跑" }] },
+    { "id": "tavern_management", "name": "酒馆经营", "icon": "🍺", "iconPath": "assets/ui/technology-icons/tavern_management.png", "branch": "经济与位面", "subBranch": "农业", "column": 7, "lane": 2, "researchCost": 420, "prerequisites": ["bakery_craft", "steam_residential_engineering"], "description": "五级食物科技：需要五级住房体系，从烘焙产业旁支开放酒馆。", "unlocks": [{ "type": "building", "id": "tavern", "label": "三层酒馆" }] },
+    { "id": "feast_standardization", "name": "宴饮标准化", "icon": "🍻", "iconPath": "assets/ui/technology-icons/feast_standardization.png", "branch": "经济与位面", "subBranch": "农业", "column": 11, "lane": 2, "researchCost": 500, "prerequisites": ["tavern_management", "ecological_vertical_city"], "description": "七级农业科技：需要七级住房体系，开放酒馆四项升级。", "unlocks": [{ "type": "upgrade", "id": "tavern_feast_sign", "label": "招牌宴席" }, { "type": "upgrade", "id": "tavern_cellar_rations", "label": "地窖配给" }, { "type": "upgrade", "id": "tavern_long_table", "label": "长桌宴饮" }, { "type": "upgrade", "id": "tavern_bartender_steps", "label": "酒保飞步" }] },
+    { "id": "chain_restaurant_management", "name": "连锁餐饮", "icon": "🍽️", "iconPath": "assets/ui/technology-icons/chain_restaurant_management.png", "branch": "经济与位面", "subBranch": "农业", "column": 5, "lane": 1, "researchCost": 520, "prerequisites": ["bakery_baking", "mansion_construction"], "description": "四级食物科技：需要四级住房体系，允许建造连锁餐馆。", "unlocks": [{ "type": "building", "id": "chain_restaurant", "label": "连锁餐馆" }] },
+    { "id": "chain_restaurant_standardization", "name": "中央厨房标准化", "icon": "👨‍🍳", "iconPath": "assets/ui/technology-icons/chain_restaurant_standardization.png", "branch": "经济与位面", "subBranch": "农业", "column": 9, "lane": 1, "researchCost": 650, "prerequisites": ["chain_restaurant_management", "modern_residential_systems"], "description": "六级农业科技：需要六级住房体系，开放连锁餐馆四项升级。", "unlocks": [{ "type": "upgrade", "id": "restaurant_central_kitchen", "label": "中央厨房" }, { "type": "upgrade", "id": "restaurant_signature_menu", "label": "招牌菜单" }, { "type": "upgrade", "id": "restaurant_bulk_supply", "label": "批量采购" }, { "type": "upgrade", "id": "restaurant_express_delivery", "label": "快递专线" }] },
+
+    { "id": "credit_finance", "name": "信用金融", "icon": "🏦", "iconPath": "assets/ui/technology-icons/credit_finance.png", "branch": "经济与位面", "subBranch": "金币", "column": 0, "lane": 3, "researchCost": 100, "prerequisites": [], "description": "银行可直接建造；完成研究后开放其四项升级。", "unlocks": [{ "type": "upgrade", "id": "bank_finance", "label": "金融工具" }, { "type": "upgrade", "id": "bank_staff", "label": "扩容人员" }, { "type": "upgrade", "id": "bank_mint", "label": "印钞机" }, { "type": "upgrade", "id": "bank_service_range", "label": "服务辐射" }] },
+    { "id": "sovereign_minting", "name": "主权铸币", "icon": "🪙", "iconPath": "assets/ui/technology-icons/sovereign_minting.png", "branch": "经济与位面", "subBranch": "金币", "column": 1, "lane": 3, "researchCost": 180, "prerequisites": ["credit_finance", "settlement_planning"], "description": "二级金币科技：需要二级住房体系，允许建造皇家铸币局。", "unlocks": [{ "type": "building", "id": "royal_mint", "label": "皇家铸币局" }] },
+    { "id": "mint_standardization", "name": "铸币标准化", "icon": "⚙️", "iconPath": "assets/ui/technology-icons/mint_standardization.png", "branch": "经济与位面", "subBranch": "金币", "column": 2, "lane": 3, "researchCost": 240, "prerequisites": ["sovereign_minting"], "description": "开放皇家铸币局四项升级。", "unlocks": [{ "type": "upgrade", "id": "mint_precision", "label": "精密币模" }, { "type": "upgrade", "id": "mint_press_speed", "label": "自动冲压" }, { "type": "upgrade", "id": "mint_energy_efficiency", "label": "能源熔铸" }, { "type": "upgrade", "id": "mint_staff", "label": "财政编制" }] },
+    { "id": "grand_commerce", "name": "综合商业", "icon": "🏬", "iconPath": "assets/ui/technology-icons/grand_commerce.png", "branch": "经济与位面", "subBranch": "金币", "column": 3, "lane": 3, "researchCost": 320, "prerequisites": ["sovereign_minting", "housing_optimization"], "description": "三级金币科技：需要三级住房体系，允许建造大商场。", "unlocks": [{ "type": "building", "id": "grand_mall", "label": "大商场" }] },
+    { "id": "mall_standardization", "name": "商场标准化", "icon": "🏷️", "iconPath": "assets/ui/technology-icons/mall_standardization.png", "branch": "经济与位面", "subBranch": "金币", "column": 4, "lane": 3, "researchCost": 400, "prerequisites": ["grand_commerce"], "description": "开放大商场四项升级。", "unlocks": [{ "type": "upgrade", "id": "grand_mall_showcase", "label": "精品橱窗" }, { "type": "upgrade", "id": "grand_mall_energy_atrium", "label": "节能中庭" }, { "type": "upgrade", "id": "grand_mall_business_radius", "label": "商圈扩张" }, { "type": "upgrade", "id": "grand_mall_staff", "label": "柜台扩编" }] },
+    { "id": "capital_markets", "name": "资本市场", "icon": "📈", "iconPath": "assets/ui/technology-icons/capital_markets.png", "branch": "经济与位面", "subBranch": "金币", "column": 5, "lane": 3, "researchCost": 520, "prerequisites": ["grand_commerce", "mansion_construction"], "description": "四级金币科技：需要四级住房体系，允许建造证券交易所。", "unlocks": [{ "type": "building", "id": "stock_exchange", "label": "证券交易所" }] },
+    { "id": "distributed_computing", "name": "分布式算力", "icon": "🖥️", "iconPath": "assets/ui/technology-icons/distributed_computing.png", "branch": "经济与位面", "subBranch": "金币", "column": 7, "lane": 3, "researchCost": 780, "prerequisites": ["capital_markets", "steam_residential_engineering"], "description": "五级金币科技：需要五级住房体系，允许建造算力重心。", "unlocks": [{ "type": "building", "id": "computing_center", "label": "算力重心" }] },
+    { "id": "computing_standardization", "name": "算力标准化", "icon": "🧠", "iconPath": "assets/ui/technology-icons/computing_standardization.png", "branch": "经济与位面", "subBranch": "金币", "column": 9, "lane": 3, "researchCost": 920, "prerequisites": ["distributed_computing", "modern_residential_systems"], "description": "六级金币科技：需要六级住房体系，开放算力重心四项升级。", "unlocks": [{ "type": "upgrade", "id": "computing_cluster_output", "label": "集群扩容" }, { "type": "upgrade", "id": "computing_population_model", "label": "人口模型" }, { "type": "upgrade", "id": "computing_power_efficiency", "label": "液冷节能" }, { "type": "upgrade", "id": "computing_staff", "label": "工程师席位" }] },
+    { "id": "market_circulation", "name": "市场流通", "icon": "⚖️", "iconPath": "assets/ui/technology-icons/market_circulation.png", "branch": "经济与位面", "subBranch": "金币", "column": 1, "lane": 4, "researchCost": 140, "prerequisites": ["credit_finance"], "description": "金币支线：开放能源与金币交易市场。", "unlocks": [{ "type": "building", "id": "market", "label": "市场" }] },
+    { "id": "plane_rituals", "name": "位面祭祀", "icon": "🔱", "iconPath": "assets/ui/technology-icons/plane_rituals.png", "branch": "经济与位面", "subBranch": "金币", "column": 12, "lane": 4, "researchCost": 650, "prerequisites": ["market_circulation", "ecological_vertical_city"], "description": "七级金币科技：需要七级住房体系，开放位面祭坛。", "unlocks": [{ "type": "building", "id": "plane_altar", "label": "位面祭坛" }] },
+
+    { "id": "mining_standardization", "name": "矿业标准化", "icon": "⛏️", "iconPath": "assets/ui/technology-icons/mining_standardization.png", "branch": "经济与位面", "subBranch": "能源", "column": 0, "lane": 6, "researchCost": 90, "prerequisites": [], "description": "矿工营地可直接建造；完成研究后开放其六项升级。", "unlocks": [{ "type": "upgrade", "id": "mining", "label": "采矿效率" }, { "type": "upgrade", "id": "attackSpd", "label": "工作加速" }, { "type": "upgrade", "id": "damage", "label": "采矿强化" }, { "type": "upgrade", "id": "moveSpd", "label": "机动强化" }, { "type": "upgrade", "id": "count", "label": "矿工增援" }, { "type": "upgrade", "id": "backpack", "label": "背包扩容" }] },
+    { "id": "deep_drilling", "name": "深钻工程", "icon": "⛏️", "iconPath": "assets/ui/technology-icons/deep_drilling.png", "branch": "经济与位面", "subBranch": "能源", "column": 1, "lane": 6, "researchCost": 180, "prerequisites": ["mining_standardization", "settlement_planning"], "description": "二级能源科技：需要二级住房体系，允许建造深钻井。", "unlocks": [{ "type": "building", "id": "deep_drill", "label": "深钻井" }] },
+    { "id": "deep_drill_bit", "name": "深层钻头", "icon": "🔩", "iconPath": "assets/ui/technology-icons/deep_drilling.png", "branch": "经济与位面", "subBranch": "能源", "column": 2, "lane": 7, "researchCost": 500, "prerequisites": ["deep_drilling"], "description": "深钻井采空 600px 范围内的地表矿脉后，可继续开采储量无限的深层矿脉；岗位、基础采速与全部产出倍率保持不变。", "unlocks": [{ "type": "mechanic", "id": "deep_vein_mining", "label": "深层矿脉开采" }] },
+    { "id": "steam_power", "name": "蒸汽动力", "icon": "♨️", "iconPath": "assets/ui/technology-icons/steam_power.png", "branch": "经济与位面", "subBranch": "能源", "column": 2, "lane": 6, "researchCost": 240, "prerequisites": ["deep_drilling"], "description": "能源支线：开放消耗食物的蒸汽电站。", "unlocks": [{ "type": "building", "id": "steam_power_plant", "label": "蒸汽电站" }] },
+    { "id": "steam_industry_standardization", "name": "蒸汽工业标准化", "icon": "⚙️", "iconPath": "assets/ui/technology-icons/steam_industry_standardization.png", "branch": "经济与位面", "subBranch": "能源", "column": 3, "lane": 6, "researchCost": 310, "prerequisites": ["steam_power"], "description": "开放蒸汽电站四项升级，并分出经济工程与位面物流协议。", "unlocks": [{ "type": "upgrade", "id": "steam_high_pressure_boiler", "label": "高压锅炉" }, { "type": "upgrade", "id": "steam_turbine_output", "label": "涡轮增压" }, { "type": "upgrade", "id": "steam_heat_recovery", "label": "余热回收" }, { "type": "upgrade", "id": "steam_transport_cart", "label": "运输推车" }] },
+    { "id": "economic_engineering", "name": "经济工程", "icon": "🛠️", "iconPath": "assets/ui/technology-icons/economic_engineering.png", "branch": "经济与位面", "subBranch": "能源", "column": 4, "lane": 6, "researchCost": 850, "prerequisites": ["steam_industry_standardization"], "description": "从蒸汽工业标准化分支开放经济工坊。", "unlocks": [{ "type": "building", "id": "economic_workshop", "label": "经济工坊" }] },
+    { "id": "interplane_logistics_protocol", "name": "位面物流协议", "icon": "🌀", "iconPath": "assets/ui/technology-icons/interplane_logistics_protocol.png", "branch": "经济与位面", "subBranch": "能源", "column": 5, "lane": 6, "researchCost": 980, "prerequisites": ["economic_engineering"], "description": "沿蒸汽工业支线统一跨位面仓储和运输规范。", "unlocks": [{ "type": "upgrade", "id": "warehouse_cross_plane", "label": "仓库跨位面协议" }] },
+    { "id": "wind_power", "name": "风力发电", "icon": "🌬️", "iconPath": "assets/ui/technology-icons/wind_power.png", "branch": "经济与位面", "subBranch": "能源", "column": 3, "lane": 5, "researchCost": 320, "prerequisites": ["deep_drilling", "housing_optimization"], "description": "三级能源科技：需要三级住房体系，允许建造风力电站。", "unlocks": [{ "type": "building", "id": "wind_power_plant", "label": "风力电站" }] },
+    { "id": "wind_power_standardization", "name": "风能标准化", "icon": "🌀", "iconPath": "assets/ui/technology-icons/wind_power_standardization.png", "branch": "经济与位面", "subBranch": "能源", "column": 4, "lane": 5, "researchCost": 400, "prerequisites": ["wind_power"], "description": "开放风力电站四项升级。", "unlocks": [{ "type": "upgrade", "id": "wind_blade_pitch", "label": "叶片变桨" }, { "type": "upgrade", "id": "wind_generator_output", "label": "发电机组" }, { "type": "upgrade", "id": "wind_rectifier_efficiency", "label": "整流储能" }, { "type": "upgrade", "id": "wind_maintenance_staff", "label": "维护编制" }] },
+    { "id": "solar_power", "name": "光伏发电", "icon": "☀️", "iconPath": "assets/ui/technology-icons/solar_power.png", "branch": "经济与位面", "subBranch": "能源", "column": 5, "lane": 5, "researchCost": 520, "prerequisites": ["wind_power", "mansion_construction"], "description": "四级能源科技：需要四级住房体系，允许建造光伏电站。", "unlocks": [{ "type": "building", "id": "solar_power_plant", "label": "光伏电站" }] },
+    { "id": "solar_power_standardization", "name": "光伏标准化", "icon": "🔋", "iconPath": "assets/ui/technology-icons/solar_power_standardization.png", "branch": "经济与位面", "subBranch": "能源", "column": 6, "lane": 5, "researchCost": 650, "prerequisites": ["solar_power"], "description": "开放光伏电站四项升级。", "unlocks": [{ "type": "upgrade", "id": "solar_tracking_cycle", "label": "追日阵列" }, { "type": "upgrade", "id": "solar_array_output", "label": "光伏矩阵" }, { "type": "upgrade", "id": "solar_storage_efficiency", "label": "储能逆变" }, { "type": "upgrade", "id": "solar_maintenance_staff", "label": "光伏编制" }] },
+    { "id": "planar_resonance", "name": "位面谐振", "icon": "🔮", "iconPath": "assets/ui/technology-icons/planar_resonance.png", "branch": "经济与位面", "subBranch": "能源", "column": 7, "lane": 5, "researchCost": 780, "prerequisites": ["solar_power", "steam_residential_engineering"], "description": "五级能源科技：需要五级住房体系，允许建造位面谐振塔。", "unlocks": [{ "type": "building", "id": "planar_resonator", "label": "位面谐振塔" }] },
+    { "id": "resonance_calibration", "name": "谐振校准", "icon": "🎛️", "iconPath": "assets/ui/technology-icons/resonance_calibration.png", "branch": "经济与位面", "subBranch": "能源", "column": 9, "lane": 5, "researchCost": 920, "prerequisites": ["planar_resonance", "modern_residential_systems"], "description": "六级能源科技：需要六级住房体系，开放位面谐振塔四项升级。", "unlocks": [{ "type": "upgrade", "id": "resonator_frequency", "label": "谐振频率" }, { "type": "upgrade", "id": "resonator_crystal_output", "label": "晶核增幅" }, { "type": "upgrade", "id": "resonator_conversion", "label": "导能回收" }, { "type": "upgrade", "id": "resonator_staff", "label": "谐振技师" }] },
+
+    { "id": "warehouse_expansion", "name": "仓储扩建", "icon": "📦", "iconPath": "assets/ui/technology-icons/interplane_logistics_protocol.png", "branch": "经济与位面", "subBranch": "仓储", "column": 2, "lane": 8, "researchCost": 500, "prerequisites": ["settlement_planning"], "description": "二级仓储科技：扩建装卸区与库房，将仓库升级为容量45000的扩建仓库。", "unlocks": [{ "type": "upgrade", "id": "warehouse_level_2", "label": "二级仓库：扩建仓库" }] },
+    { "id": "warehouse_mechanization", "name": "机械仓储", "icon": "⚙️", "iconPath": "assets/ui/technology-icons/steam_industry_standardization.png", "branch": "经济与位面", "subBranch": "仓储", "column": 4, "lane": 8, "researchCost": 650, "prerequisites": ["warehouse_expansion", "housing_optimization"], "description": "三级仓储科技：以机械装卸和标准库位扩大周转能力，将仓库升级为容量120000的机械仓库。", "unlocks": [{ "type": "upgrade", "id": "warehouse_level_3", "label": "三级仓库：机械仓库" }] },
+    { "id": "warehouse_automation", "name": "自动化仓储", "icon": "🦾", "iconPath": "assets/ui/technology-icons/computing_standardization.png", "branch": "经济与位面", "subBranch": "仓储", "column": 6, "lane": 8, "researchCost": 850, "prerequisites": ["warehouse_mechanization", "mansion_construction"], "description": "四级仓储科技：引入自动分拣与高密度库位，将仓库升级为容量300000的自动化仓库。", "unlocks": [{ "type": "upgrade", "id": "warehouse_level_4", "label": "四级仓库：自动化仓库" }] },
+    { "id": "warehouse_phase_storage", "name": "相位仓储", "icon": "🌀", "iconPath": "assets/ui/technology-icons/interplane_logistics_protocol.png", "branch": "经济与位面", "subBranch": "仓储", "column": 8, "lane": 8, "researchCost": 1200, "prerequisites": ["warehouse_automation", "steam_residential_engineering", "interplane_logistics_protocol"], "description": "五级仓储科技：利用稳定相位库区容纳后期资源规模，将仓库升级为容量750000的相位仓库。", "unlocks": [{ "type": "upgrade", "id": "warehouse_level_5", "label": "五级仓库：相位仓库" }] }
   ],
   "planeResearch": [
+    {
+      "id": "snow_castle_architecture", "name": "雪原城堡营造术", "icon": "🏯", "iconPath": "assets/ui/technology-icons/snow_castle_architecture.png", "branch": "位面独特科技", "section": "plane", "column": 2, "lane": 0, "researchCost": 260,
+      "prerequisites": [], "requiredWorldId": "scene9", "description": "掌握雪原城堡的冻土基础、覆雪屋顶与防御结构；完成后可在世界-123建造雪原城堡。",
+      "unlocks": [
+        { "type": "building", "id": "snow_castle", "label": "雪原城堡" }
+      ]
+    },
+    {
+      "id": "snow_ninjutsu", "name": "雪原忍术", "icon": "🥷", "iconPath": "assets/ui/technology-icons/snow_ninjutsu.png", "branch": "位面独特科技", "section": "plane", "column": 2, "lane": 1, "researchCost": 300,
+      "prerequisites": ["snow_castle_architecture"], "requiredWorldId": "scene9", "description": "在雪原城堡中研习潜行、烟遁与拔刀术；完成后可招募仓鼠忍者。",
+      "unlocks": [
+        { "type": "unit", "id": "ninja", "label": "仓鼠忍者" }
+      ]
+    },
     {
       "id": "dungeon_explorer_corps", "name": "地牢探险团", "icon": "🧭", "iconPath": "assets/ui/technology-icons/dungeon_explorer_corps.png", "branch": "位面独特科技", "section": "plane", "column": 0, "lane": 0, "researchCost": 260,
       "prerequisites": [], "requiredWorldId": "scene11", "description": "僵尸地牢位面解锁后即可研究；完成后开放探险家营地与该位面特色单位。",
@@ -233,19 +379,31 @@
     },
     {
       "id": "jungle_temple_rites", "name": "丛林神庙仪式", "icon": "🌿", "iconPath": "assets/ui/technology-icons/jungle_temple_rites.png", "branch": "位面独特科技", "section": "plane", "column": 1, "lane": 0, "researchCost": 280,
-      "prerequisites": [], "requiredWorldId": "scene10", "description": "沼泽林地位面解锁后即可研究；完成后开放丛林神庙与该位面特色单位。",
+      "prerequisites": [], "requiredWorldId": "scene10", "description": "沼泽林地位面解锁后即可研究；完成后开放丛林神庙与美洲豹战士。",
       "unlocks": [
         { "type": "building", "id": "jungle_temple", "label": "丛林神庙" },
-        { "type": "unit", "id": "jaguar_warrior", "label": "美洲豹战士" },
+        { "type": "unit", "id": "jaguar_warrior", "label": "美洲豹战士" }
+      ]
+    },
+    {
+      "id": "jungle_priesthood", "name": "丛林祭司传承", "icon": "🪶", "iconPath": "assets/ui/technology-icons/jungle_priesthood.png", "branch": "位面独特科技", "section": "plane", "column": 1, "lane": 1, "researchCost": 320,
+      "prerequisites": ["jungle_temple_rites"], "requiredWorldId": "scene10", "description": "在丛林神庙中继承自然灵术与三系法术仪轨；完成后可招募丛林祭司。",
+      "unlocks": [
         { "type": "unit", "id": "jungle_priest", "label": "丛林祭司" }
       ]
     },
     {
       "id": "desert_mansion_charter", "name": "沙漠官邸营造术", "icon": "🏛️", "iconPath": "assets/ui/technology-icons/desert_mansion_charter.png", "branch": "位面独特科技", "section": "plane", "column": 3, "lane": 0, "researchCost": 240,
-      "prerequisites": [], "requiredWorldId": "scene8", "description": "研究荒漠官邸的砂岩承重、穹顶与祭祀传统，完成后可在世界-122追加建造沙漠官邸并训练沙漠祭司。",
+      "prerequisites": [], "requiredWorldId": "scene8", "description": "研究荒漠官邸的砂岩承重、穹顶与防风结构；完成后可在世界-122追加建造沙漠官邸。",
       "unlocks": [
-        { "type": "building", "id": "desert_mansion", "label": "沙漠官邸" },
-        { "type": "unit", "id": "desert_priest", "label": "沙漠祭司" }
+        { "type": "building", "id": "desert_mansion", "label": "沙漠官邸" }
+      ]
+    },
+    {
+      "id": "desert_monastic_order", "name": "沙漠僧侣修行", "icon": "☀️", "iconPath": "assets/ui/technology-icons/desert_monastic_order.png", "branch": "位面独特科技", "section": "plane", "column": 3, "lane": 1, "researchCost": 280,
+      "prerequisites": ["desert_mansion_charter"], "requiredWorldId": "scene8", "description": "在沙漠官邸中研习日轮祷仪与流沙法术；完成后可招募沙漠僧侣。",
+      "unlocks": [
+        { "type": "unit", "id": "desert_priest", "label": "沙漠僧侣" }
       ]
     }
   ]

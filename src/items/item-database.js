@@ -1,3 +1,5 @@
+import { completeWeaponFields } from '../ui/equip-data-manager.js';
+
         const ItemDatabase = {
             items: {},
 
@@ -5,11 +7,15 @@
             load(data) {
                 if (data) {
                     this.items = data;
+                    for (const item of Object.values(this.items)) completeWeaponFields(item);
                     this._weaponIdIndex = null; // 失效 weaponId 反查索引
                 }
             },
 
-            get(id) { return this.items[id] ? { ...this.items[id], _id: id } : null; },
+            get(id) {
+                if (!this.items[id]) return null;
+                return completeWeaponFields({ ...this.items[id], _id: id });
+            },
 
             /** 按 weaponId 反查物品（懒构建索引，load/addItem 后自动失效重建） */
             getByWeaponId(weaponId) {
@@ -47,7 +53,7 @@
             },
             /** 新增物品并同步刷新图鉴 */
             addItem(id, itemData) {
-                this.items[id] = itemData;
+                this.items[id] = completeWeaponFields(itemData);
                 this._weaponIdIndex = null; // 失效 weaponId 反查索引
                 // 动态导入避免与 codex-manager 形成循环依赖
                 import('../ui/codex-manager.js').then(m => {
@@ -61,11 +67,11 @@
             createInstance(id, extra = {}) {
                 const base = this.get(id);
                 if (!base) return null;
-                return {
+                return completeWeaponFields({
                     ...JSON.parse(JSON.stringify(base)),
                     instanceId: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                     ...extra
-                };
+                });
             },
 
             /** 按稀有度随机抽取一件武器 */

@@ -1,0 +1,86 @@
+{
+  "asset": "evil-treant",
+  "displayName": "邪恶树精",
+  "date": "2026-08-26",
+  "provider": "MiniMax H3 via project ai-asset.py",
+  "endpoint": "192.168.3.142:8188",
+  "authorization": "user explicitly approved sending the cyan treant reference frames to this endpoint",
+  "modelContract": {
+    "size": [1024, 576],
+    "durationSeconds": 5.17,
+    "frameRate": 24,
+    "frameCount": 124,
+    "steps": 16,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "background": "#00FFFF"
+  },
+  "videos": {
+    "idle": {
+      "reference": "references/evil-treant-h3-reference-loop-cyan.png",
+      "prompt": "prompts/evil-treant-idle-h3.txt",
+      "seed": 2026082601,
+      "firstFrameLocked": true,
+      "lastFrameLockedToFirst": true,
+      "file": "video/evil-treant-idle-h3.mp4",
+      "sha256": "90e7d4659d3fbb9f4a550db517cef9af6d6527d87f414c7b8214d0c134842aa5"
+    },
+    "walking": {
+      "reference": "references/evil-treant-h3-reference-loop-cyan.png",
+      "prompt": "prompts/evil-treant-walking-h3.txt",
+      "seed": 2026082602,
+      "firstFrameLocked": true,
+      "lastFrameLockedToFirst": true,
+      "file": "video/evil-treant-walking-h3.mp4",
+      "sha256": "ae462bc551625b596e905b6796353a9f6e79377e03feb2e2871fb7268c7b8389"
+    },
+    "attacking": {
+      "reference": "references/evil-treant-h3-reference-attack-cyan.png",
+      "prompt": "prompts/evil-treant-attacking-h3.txt",
+      "seed": 2026082603,
+      "firstFrameLocked": true,
+      "lastFrameLockedToFirst": true,
+      "file": "video/evil-treant-attacking-h3.mp4",
+      "sha256": "1826152ed7f5b2bed1f71c9fae4cdc14e41849e35e2511b239419b69650f2119"
+    },
+    "dying": {
+      "reference": "references/evil-treant-h3-reference-dying-cyan.png",
+      "prompt": "prompts/evil-treant-dying-h3.txt",
+      "seed": 2026082604,
+      "firstFrameLocked": true,
+      "lastFrameLockedToFirst": false,
+      "file": "video/evil-treant-dying-h3.mp4",
+      "sha256": "5d3ee7838c25f98685f2846e5e9b98749be389daa2b52a8a3f4993f0d22398fa"
+    }
+  },
+  "spritePipeline": {
+    "cutout": "BiRefNet-general",
+    "builder": "build-sheets.py",
+    "rawManifest": "raw-sheet-manifest.json",
+    "interpolation": "RIFE v4.6 RGB/alpha split 2x",
+    "interpolationBuilder": "interpolate-sheets.py",
+    "finalManifest": "sprite-sheet-manifest.json",
+    "runtimeInstalled": true,
+    "runtimeAssetRoot": "assets/enemies/evil_treant",
+    "selectedDeathManifest": "dying-fracture-v02-sprite-manifest.json"
+  },
+  "finalSheets": {
+    "idle": {
+      "file": "generated/final/idle.png",
+      "sha256": "310f08ce94255c6a286082783e6c4079459c052770e4a41c8da48e40f17164db"
+    },
+    "walking": {
+      "file": "generated/final/walking.png",
+      "sha256": "f50931c6848d6fc81f5db35dbe120c6386397619c7db62b5cfbef99684736d52"
+    },
+    "attacking": {
+      "file": "generated/final/attacking.png",
+      "sha256": "887df64219e944b393d80d95889455dff14af9295dde747d70ed2a194001edb5"
+    },
+    "dying": {
+      "file": "generated/v02/final/dying.png",
+      "sha256": "35207209c65854240c56c8f5921d1e2c1ef9b17e294db4006ed73cec497a7801",
+      "variant": "dying-fracture-v02"
+    }
+  }
+}

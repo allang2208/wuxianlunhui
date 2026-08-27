@@ -1,0 +1,100 @@
+{
+  "id": "hamster_champion",
+  "name": "仓鼠冠军",
+  "title": "仓鼠军营二级双手剑士·军团冠军",
+  "desc": "身披罗马军团分节甲、双手挥舞苏格兰高地克莱默剑的重装输出步兵；比仓鼠战士更耐久、攻击更重，但移动与挥剑节奏更慢。",
+  "role": "champion",
+  "growthRule": "warrior",
+  "avatar": "🐹⚔️",
+  "weaponType": "highland_claymore",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 325,
+  "baseData": {
+    "str": 24,
+    "dex": 10,
+    "int": 3,
+    "con": 22,
+    "wis": 3,
+    "luck": 6
+  },
+  "statFormula": "enemy",
+  "groundRadius": 21,
+  "collisionRadius": 21,
+  "bodyHeight": 102,
+  "size": 64,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
+  "ai": {
+    "role": "melee_champion",
+    "walkSpeed": 105,
+    "runSpeed": 105,
+    "attackInterval": 2300,
+    "attackDamage": 70,
+    "attackRange": 75,
+    "engageRange": 900,
+    "attackAnimFps": 24,
+    "attackDamageFrame": 21,
+    "followOffset": 145,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 210,
+  "spriteOffsetY": -40.605469,
+  "render": {
+    "footOffsetY": 40.605469,
+    "hudOffsetY": 119,
+    "collisionWidth": 42,
+    "collisionHeight": 102
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_champion/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 48,
+      "frames": [0, 47],
+      "frameRate": 16,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_champion/running.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 40,
+      "frames": [0, 39],
+      "frameRate": 24,
+      "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_champion/attacking.png",
+      "frameWidth": 768,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 47,
+      "frames": [0, 46],
+      "frameRate": 24,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_champion/dying.png",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 31,
+      "frames": [0, 30],
+      "frameRate": 24,
+      "repeat": 0
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "_comment": "世界-122 建筑升级项目库。建筑通过 producer-buildings.json 或独立经济建筑配置的 upgradeProject 引用本文件；出兵模块未声明 unitKinds 时覆盖引用建筑的全部兵种，声明后只覆盖列出的特殊兵种；模块 effect 决定通用属性补丁，避免在建筑或 AI 中按模块名硬编码。",
   "combat_standard": {
-    "unitKinds": ["militia", "scout"],
+    "unitKinds": ["militia", "halberd", "scout", "ranger"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -43,7 +43,7 @@
     }
   },
   "shooting_range_special": {
-    "unitKinds": ["musketeer", "shooter"],
+    "unitKinds": ["crossbow", "musketeer", "shooter", "heavy_machine_gunner"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -53,7 +53,7 @@
     }
   },
   "barracks_defense": {
-    "unitKinds": ["warrior", "guard", "phalanx"],
+    "unitKinds": ["warrior", "champion", "guard", "phalanx", "riot_special"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -76,15 +76,22 @@
       "scoutVision": { "name": "侦察视野", "icon": "🔭", "iconImage": "assets/ui/building-upgrades/scout-vision.png", "effect": "fogSightRadiusBonus", "mode": "add", "per": 200, "maxLevel": 6, "unitKinds": ["explorer"], "desc": "仓鼠探险家视野 +{value}px；不受昼夜与特殊天气减益" }
     }
   },
+  "snow_samurai_standard": {
+    "unitKinds": ["samurai"],
+    "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
+    "modules": {
+      "duelist": { "name": "决斗者", "icon": "⚔️", "iconImage": "assets/ui/unit-icons/hamster_samurai.png", "effect": "duelistDamageMultiplier", "mode": "add", "per": 0.05, "maxLevel": 10, "unitKinds": ["samurai"], "desc": "对精英、首领与 Boss 的伤害倍率：基础 1.5 倍，每级 +0.05，满级 2 倍" }
+    }
+  },
   "miner_economy": {
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500 },
     "modules": {
-      "mining": { "name": "采矿效率", "icon": "⛏️", "iconImage": "assets/ui/building-upgrades/mining-efficiency.png", "effect": "miningMult", "per": 0.06, "maxLevel": 10, "energyByLevel": [250, 300, 350, 400, 450, 500, 575, 650, 725, 800], "desc": "采矿攻击力 +{pct}%" },
-      "attackSpd": { "name": "工作加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.01, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "采矿强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.015, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "mining": { "name": "采矿效率", "icon": "⛏️", "iconImage": "assets/ui/building-upgrades/mining-efficiency.png", "effect": "miningMult", "per": 0.03, "maxLevel": 10, "energyByLevel": [250, 300, 350, 400, 450, 500, 575, 650, 725, 800], "desc": "采矿攻击力 +{pct}%" },
+      "attackSpd": { "name": "工作加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.005, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "采矿强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.01, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
       "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
       "count": { "name": "矿工增援", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/hamster-reinforcement.png", "effect": "count", "mode": "add", "base": 4, "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "desc": "矿工人口岗位 {value}" },
-      "backpack": { "name": "背包扩容", "icon": "🎒", "effect": "backpackCapacityBonus", "mode": "add", "per": 100, "maxLevel": 5, "desc": "每名矿工背包容量 +{value}" }
+      "backpack": { "name": "背包扩容", "icon": "🎒", "iconImage": "assets/ui/building-upgrades/miner-backpack-expansion.png", "effect": "backpackCapacityBonus", "mode": "add", "per": 100, "maxLevel": 5, "desc": "每名矿工背包容量 +{value}" }
     }
   },
   "blacksmith_special": {
@@ -98,14 +105,21 @@
     },
     "abilities": {
       "poison_arrow": { "id": "poison_arrow", "name": "毒箭", "icon": "☠️", "iconImage": "assets/ui/building-upgrades/poison-arrow.png", "target": "shooter", "unitKinds": ["shooter"], "base": 0.2, "per": 0.05, "maxLevel": 10, "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）" },
-      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "仓鼠盾卫、仓鼠方阵", "unitKinds": ["guard", "phalanx"], "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "仓鼠盾卫与仓鼠方阵受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
+      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "仓鼠盾卫、仓鼠方阵、仓鼠防暴队", "unitKinds": ["guard", "phalanx", "riot_special"], "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "盾卫路线单位受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
       "sweep_aoe": { "id": "sweep_aoe", "name": "横扫", "icon": "💥", "iconImage": "assets/ui/building-upgrades/sweep-aoe.png", "target": "warrior", "unitKinds": ["warrior"], "base": 0.2, "per": 0.05, "maxLevel": 10, "rangeBonus": 30, "arcDegrees": 120, "desc": "仓鼠战士普攻附带前方扇形 AOE，造成 {dmg}% 额外伤害（每级 +5%）" },
       "mark_arrow": { "id": "mark_arrow", "name": "标记", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/mark-arrow.png", "target": "仓鼠斥候、仓鼠赏金猎人", "unitKinds": ["scout", "bounty_hunter"], "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候与赏金猎人命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
       "armor_piercing_round": { "id": "armor_piercing_round", "name": "穿甲弹", "icon": "🔩", "iconImage": "assets/ui/building-upgrades/armor-piercing-round.png", "target": "仓鼠火枪、仓鼠赏金猎人", "unitKinds": ["musketeer", "bounty_hunter"], "firstLevel": 0.25, "per": 0.025, "maxLevel": 10, "desc": "仓鼠火枪与赏金猎人获得 {pct} 护甲穿透（Lv.1 为 25%，之后每级 +2.5%）" },
+      "giant_slayer": { "id": "giant_slayer", "name": "巨人杀手", "icon": "🗡️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "target": "仓鼠民兵、仓鼠长戟、仓鼠反载", "unitKinds": ["militia", "halberd", "anti_vehicle"], "targetFamilies": ["骑兵", "大型"], "firstLevel": 0.25, "per": 0.05, "maxLevel": 10, "desc": "对带有“骑兵”或“大型”词条的怪物造成伤害 +{pct}（Lv.1 为 25%，之后每级 +5%）" },
       "inspire_magic": { "id": "inspire_magic", "name": "激励魔法", "icon": "📣", "iconImage": "assets/ui/building-upgrades/inspire-magic.png", "target": "priest", "unitKinds": ["priest"], "firstLevel": 10000, "per": 1111.111111111111, "displayMode": "seconds", "maxLevel": 10, "radius": 300, "cooldownMs": 30000, "speedMul": 1.33, "atkMul": 1.5, "desc": "仓鼠牧师每 {cooldown}s 为 {radius}px 内友军施加激励：移速 +33%、物攻 +50%，持续 {value}" }
     }
   },
   "research_standard": {
+    "moduleUpgrade": {
+      "goldByLevel": [350, 500, 700, 1000, 1400, 2000, 2800, 3900, 5400, 7500],
+      "energyByLevel": [500, 700, 1000, 1400, 2000, 2800, 3900, 5400, 7500, 10500],
+      "timeBaseMs": 60000,
+      "timeGrowthMs": 0
+    },
     "abilityUpgrade": {
       "goldBase": 320,
       "goldGrowth": 1.38,
@@ -115,25 +129,41 @@
       "timeGrowthMs": 0
     },
     "abilities": {
-      "research_structure_hp": { "id": "research_structure_hp", "name": "防御结构强化", "icon": "🧱", "iconImage": "assets/ui/building-upgrades/structure-hp.png", "target": "方块墙与4格门", "base": 0, "per": 0.1, "displayMode": "percent", "maxLevel": 10, "desc": "方块墙与4格门最大生命 +{pct}%（每级 +10%）" },
-      "research_passive_energy": { "id": "research_passive_energy", "name": "能源回收矩阵", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/passive-energy.png", "target": "全局能源", "base": 0, "per": 1, "displayMode": "flat", "maxLevel": 10, "desc": "每秒被动获得 {value} 能源（每级 +1）" },
-      "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "iconImage": "assets/ui/building-upgrades/recruit-speed.png", "target": "所有军事产兵建筑", "firstLevel": 0.1, "per": 0.02, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）" },
-      "research_staff": { "id": "research_staff", "name": "扩编研究员", "icon": "👥", "target": "所有研究院岗位", "base": 3, "per": 1, "displayMode": "flat", "maxLevel": 2, "desc": "每座研究院提供 {value} 个研究员岗位（基础 3 个，最高 5 个）" },
-      "research_base_points": { "id": "research_base_points", "name": "精密研究设备", "icon": "🔭", "target": "所有研究院基础科研", "base": 0, "per": 0.15, "displayMode": "decimal", "maxLevel": 10, "desc": "每座研究院基础科研点 +{value}/秒（每级 +0.15）" },
-      "research_institute_capacity": { "id": "research_institute_capacity", "name": "学术分院网络", "icon": "🏛️", "target": "每个位面研究院数量上限", "base": 1, "per": 1, "displayMode": "flat", "maxLevel": 2, "desc": "每个位面最多建设 {value} 座研究院（基础 1 座，最高 3 座）" }
+      "research_structure_hp": { "id": "research_structure_hp", "name": "防御结构强化", "icon": "🧱", "iconImage": "assets/ui/building-upgrades/structure-hp.png", "target": "方块墙与4格门", "base": 0, "per": 0.06, "displayMode": "percent", "maxLevel": 10, "desc": "方块墙与4格门最大生命 +{pct}%（每级 +6%）" },
+      "research_passive_energy": { "id": "research_passive_energy", "name": "能源回收矩阵", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/passive-energy.png", "target": "全局能源", "base": 0, "per": 2, "displayMode": "flat", "maxLevel": 10, "desc": "每秒被动获得 {value} 能源（每级 +2）" },
+      "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "iconImage": "assets/ui/building-upgrades/recruit-speed.png", "target": "所有军事产兵建筑", "firstLevel": 0.08, "per": 0.015, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 8%，之后每级 +1.5%）" },
+      "research_institute_capacity": { "id": "research_institute_capacity", "name": "旧版学术分院网络", "base": 1, "per": 1, "maxLevel": 2, "hidden": true, "legacyOnly": true }
+    },
+    "modules": {
+      "research_staff": { "name": "扩编研究员", "icon": "👥", "iconImage": "assets/ui/building-upgrades/research-staff.png", "effect": "researchStaffCapacity", "mode": "add", "base": 6, "per": 2, "maxLevel": 2, "desc": "本栋研究所提供 {value} 个研究员岗位（基础 6 个，扩编后 8/10 个）" },
+      "research_base_points": { "name": "精密研究设备", "icon": "🔭", "iconImage": "assets/ui/building-upgrades/research-equipment.png", "effect": "researchBasePoints", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "desc": "本栋研究所基础科研点 +{value}/秒（每级 +0.05）" }
+    }
+  },
+  "weather_forecast_analysis": {
+    "moduleUpgrade": {
+      "goldByLevel": [400, 650, 950],
+      "energyByLevel": [700, 1050, 1500],
+      "timeBaseMs": 30000,
+      "timeGrowthMs": 15000
+    },
+    "modules": {
+      "weather_forecast_horizon": { "name": "预报展望", "icon": "🔭", "iconImage": "assets/ui/building-upgrades/weather-forecast-horizon.png", "effect": "weatherForecastHorizonDays", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "desc": "显示未来 {value} 天内的全部天气，并区分已配置的天气强度" },
+      "weather_forecast_cycles": { "name": "气象科研", "icon": "🧮", "iconImage": "assets/ui/building-upgrades/weather-forecast-cycles.png", "effect": "weatherForecastResearchPoints", "mode": "add", "base": 0, "per": 0.25, "maxLevel": 3, "goldByLevel": [800, 1500, 2600], "energyByLevel": [1200, 2400, 4200], "timeByLevel": [60000, 90000, 120000], "desc": "单个气象员岗位产生 {value} 科研点/秒；满级提供 0.75 点/秒辅助科研" },
+      "weather_forecast_duration": { "name": "时段解析", "icon": "⏱️", "iconImage": "assets/ui/building-upgrades/weather-forecast-duration.png", "effect": "weatherForecastDurationDetails", "mode": "add", "base": 0, "per": 1, "maxLevel": 1, "goldByLevel": [1000], "energyByLevel": [1400], "timeByLevel": [60000], "desc": "在天气详情中显示预计结束时间与持续时长" },
+      "weather_forecast_storm_warning": { "name": "灾害预警", "icon": "⚠️", "iconImage": "assets/ui/building-upgrades/weather-forecast-storm-warning.png", "effect": "weatherForecastDisasterWarning", "mode": "add", "base": 0, "per": 1, "maxLevel": 1, "goldByLevel": [1500], "energyByLevel": [2400], "timeByLevel": [90000], "desc": "预测本塔所在位面的沙尘暴、死寂雾潮及后续注册的特殊天气事件" }
     }
   },
   "warehouse_logistics": {
     "moduleUpgrade": {
-      "goldByLevel": [300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200],
-      "energyByLevel": [500, 650, 800, 950, 1100, 1250, 1400, 1550, 1700, 1850],
-      "timeBaseMs": 30000,
+      "goldByLevel": [500, 700, 950, 1250, 1650, 2150, 2800, 3600, 4600, 5900],
+      "energyByLevel": [800, 1050, 1350, 1750, 2250, 2900, 3700, 4700, 5900, 7400],
+      "timeBaseMs": 45000,
       "timeGrowthMs": 5000
     },
     "modules": {
-      "warehouse_capacity": { "name": "立体货架", "icon": "📦", "iconImage": "assets/ui/building-upgrades/warehouse-capacity.png", "effect": "warehouseCapacity", "mode": "add", "base": 15000, "per": 5000, "maxLevel": 10, "desc": "本仓库容量 {value}" },
-      "warehouse_energy_density": { "name": "晶格压缩舱", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/energy-density.png", "effect": "warehouseEnergyDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "能源占用容量 -{pct}%" },
-      "warehouse_food_density": { "name": "密封谷仓", "icon": "🌾", "iconImage": "assets/ui/building-upgrades/food-density.png", "effect": "warehouseFoodDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "粮食占用容量 -{pct}%" },
+      "warehouse_capacity": { "name": "立体货架", "icon": "📦", "iconImage": "assets/ui/building-upgrades/warehouse-capacity.png", "effect": "warehouseCapacityBonus", "mode": "add", "base": 0, "per": 7500, "maxLevel": 10, "desc": "在仓库等级基础容量外增加 {value} 容量" },
+      "warehouse_energy_density": { "name": "晶格压缩舱", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/energy-density.png", "effect": "warehouseEnergyDensity", "mode": "add", "base": 0, "per": -0.04, "maxLevel": 10, "desc": "能源占用容量 -{pct}%" },
+      "warehouse_food_density": { "name": "密封谷仓", "icon": "🌾", "iconImage": "assets/ui/building-upgrades/food-density.png", "effect": "warehouseFoodDensity", "mode": "add", "base": 0, "per": -0.04, "maxLevel": 10, "desc": "粮食占用容量 -{pct}%" },
       "warehouse_cross_plane": { "name": "跨位面协议", "icon": "🌀", "iconImage": "assets/ui/building-upgrades/cross-plane.png", "effect": "warehouseCrossPlaneSurcharge", "mode": "add", "base": 0.5, "per": -0.05, "maxLevel": 10, "desc": "跨位面建造、出兵与升级额外消耗 {pct}%" }
     }
   },
@@ -149,10 +179,10 @@
   "planar_resonator_economy": {
     "moduleUpgrade": { "goldByLevel": [250, 350, 450, 600, 750, 950, 1200, 1500, 1900, 2400], "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {
-      "resonator_frequency": { "name": "谐振频率", "icon": "⏱️", "effect": "resonatorCycleMs", "mode": "add", "base": 10000, "per": -400, "maxLevel": 10, "desc": "每轮谐振周期 {seconds} 秒（每级 -0.4 秒）" },
-      "resonator_crystal_output": { "name": "晶核增幅", "icon": "💠", "iconImage": "assets/items/energy.png", "effect": "resonatorEnergyPerCycle", "mode": "add", "base": 100, "per": 5, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "晶核每轮产生 {value} 点原始能源（每级 +5）" },
+      "resonator_frequency": { "name": "谐振频率", "icon": "⏱️", "effect": "resonatorCycleMs", "mode": "add", "base": 10000, "per": -200, "maxLevel": 10, "desc": "每轮谐振周期 {seconds} 秒（每级 -0.2 秒）" },
+      "resonator_crystal_output": { "name": "晶核增幅", "icon": "💠", "iconImage": "assets/items/energy.png", "effect": "resonatorEnergyPerCycle", "mode": "add", "base": 2400, "per": 40, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "晶核每轮产生 {value} 点原始能源（每级 +40）" },
       "resonator_conversion": { "name": "导能回收", "icon": "♻️", "effect": "resonatorConversionRate", "mode": "add", "base": 0.8, "per": 0.02, "maxLevel": 10, "desc": "将晶核原始产能的 {pct}% 转化为可入库能源" },
-      "resonator_staff": { "name": "谐振技师", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "resonatorStaffCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [2000, 3500, 5500], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "谐振技师岗位 {value} 名" }
+      "resonator_staff": { "name": "谐振技师", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "resonatorStaffCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 2, "goldByLevel": [3500, 5500], "energyByLevel": [2000, 3200], "timeByLevel": [60000, 90000], "desc": "谐振技师岗位 {value} 名" }
     }
   },
   "armory_economy": {
@@ -164,22 +194,136 @@
       "armory_staff": { "name": "增加人员", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "armoryStaffCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [2000, 3500, 5500], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "维护师岗位 {value} 名" }
     }
   },
+  "field_hospital_economy": {
+    "moduleUpgrade": { "goldByLevel": [250, 350, 450, 600, 750, 950, 1200, 1500, 1900, 2400], "energy": 800, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "hospital_rounds": { "name": "巡诊范围", "icon": "🩺", "iconImage": "assets/ui/building-upgrades/hospital-rounds.png", "effect": "hospitalTreatmentRange", "mode": "add", "base": 700, "per": 50, "maxLevel": 10, "desc": "治疗半径 {value}px" },
+      "hospital_medicine": { "name": "药剂储备", "icon": "⚕️", "iconImage": "assets/ui/building-upgrades/hospital-medicine.png", "effect": "hospitalHealingRate", "mode": "add", "base": 0.03, "per": 0.003, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "满员时每秒恢复患者最大生命 {pct}%" },
+      "hospital_triage": { "name": "急救分诊", "icon": "🛏️", "iconImage": "assets/ui/building-upgrades/hospital-triage.png", "effect": "hospitalPatientCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [1600, 2600, 4200], "energyByLevel": [1000, 1700, 2800], "timeByLevel": [45000, 60000, 90000], "desc": "同时接诊 {value} 名患者" },
+      "hospital_staff": { "name": "医护编制", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/hospital-staff.png", "effect": "hospitalStaffCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [2000, 3500, 5500], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "医护岗位 {value} 名" }
+    }
+  },
   "bank_economy": {
     "moduleUpgrade": { "goldByLevel": [250, 350, 450, 600, 750, 950, 1200, 1500, 1900, 2400], "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {
       "bank_finance": { "name": "金融工具", "icon": "📈", "iconImage": "assets/ui/building-upgrades/bank-finance.png", "effect": "bankSettlementSpeed", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "金币结算速度 +{pct}%" },
-      "bank_staff": { "name": "扩容人员", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/bank-staff.png", "effect": "bankStaffCapacity", "mode": "add", "base": 1, "per": 1, "maxLevel": 2, "goldByLevel": [3000, 5000], "desc": "银行职员岗位 {value} 名" },
-      "bank_mint": { "name": "印钞机", "icon": "💵", "iconImage": "assets/ui/building-upgrades/bank-mint.png", "effect": "bankGoldPerPopulation", "mode": "add", "base": 0.1, "per": 0.05, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "每名服务人口每轮产生 {pct}% 金币" },
+      "bank_staff": { "name": "扩容人员", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/bank-staff.png", "effect": "bankStaffCapacity", "mode": "add", "base": 1, "per": 1, "maxLevel": 1, "goldByLevel": [3000], "desc": "银行职员岗位 {value} 名" },
+      "bank_mint": { "name": "印钞机", "icon": "💵", "iconImage": "assets/ui/building-upgrades/bank-mint.png", "effect": "bankGoldPerPopulation", "mode": "add", "base": 0.1, "per": 0.01, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "每名服务人口每轮产生 {pct}% 金币" },
       "bank_service_range": { "name": "服务辐射", "icon": "📡", "iconImage": "assets/ui/building-upgrades/cast-range.png", "effect": "bankServiceRange", "mode": "add", "base": 600, "per": 50, "maxLevel": 10, "desc": "服务半径 {value}px" }
+    }
+  },
+  "royal_mint_economy": {
+    "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energyByLevel": [900, 1200, 1600, 2100, 2700, 3400, 4300, 5400, 6800, 8500], "timeBaseMs": 45000, "timeGrowthMs": 5000 },
+    "modules": {
+      "mint_precision": { "name": "精密币模", "icon": "🪙", "iconImage": "assets/ui/building-upgrades/mint-precision.png", "effect": "mintGoldPerWorker", "mode": "add", "base": 7.5, "per": 0.75, "maxLevel": 10, "desc": "每名铸币工每批铸造 {value} 金币" },
+      "mint_press_speed": { "name": "自动冲压", "icon": "⚙️", "iconImage": "assets/ui/building-upgrades/mint-press-speed.png", "effect": "mintSettlementSpeed", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "desc": "铸币批次速度 +{pct}%" },
+      "mint_energy_efficiency": { "name": "能源熔铸", "icon": "🔥", "iconImage": "assets/ui/building-upgrades/mint-energy-efficiency.png", "effect": "mintEnergyPerWorker", "mode": "add", "base": 20, "per": -1, "maxLevel": 10, "desc": "每名铸币工每批消耗 {value} 能源" },
+      "mint_staff": { "name": "财政编制", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/mint-staff.png", "effect": "mintStaffCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 2, "goldByLevel": [4000, 6500], "energyByLevel": [5000, 8000], "timeByLevel": [60000, 90000], "desc": "铸币工岗位 {value} 名" }
+    }
+  },
+  "grand_mall_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [800, 1100, 1500, 2000, 2700, 3500, 4600, 6000, 7800, 10000],
+      "energyByLevel": [1200, 1600, 2200, 2900, 3800, 4900, 6300, 8100, 10400, 13300],
+      "timeBaseMs": 60000,
+      "timeGrowthMs": 5000
+    },
+    "modules": {
+      "grand_mall_showcase": { "name": "精品橱窗", "icon": "💎", "iconImage": "assets/ui/building-upgrades/grand-mall-showcase.png", "effect": "grandMallGoldPerPopulationPerSecond", "mode": "add", "base": 0.16, "per": 0.008, "maxLevel": 10, "desc": "每名覆盖人口每秒产生 {value} 金币" },
+      "grand_mall_energy_atrium": { "name": "节能中庭", "icon": "🌿", "iconImage": "assets/ui/building-upgrades/grand-mall-energy-atrium.png", "effect": "grandMallEnergyPerPopulationPerSecond", "mode": "add", "base": 0.08, "per": -0.002, "maxLevel": 10, "desc": "每名覆盖人口每秒消耗 {value} 能源" },
+      "grand_mall_business_radius": { "name": "商圈扩张", "icon": "📡", "iconImage": "assets/ui/building-upgrades/grand-mall-business-radius.png", "effect": "grandMallServiceRange", "mode": "add", "base": 900, "per": 60, "maxLevel": 10, "desc": "商场服务半径 {value}px" },
+      "grand_mall_staff": { "name": "柜台扩编", "icon": "🛎️", "iconImage": "assets/ui/building-upgrades/grand-mall-staff.png", "effect": "grandMallStaffCapacity", "mode": "add", "base": 6, "per": 1, "maxLevel": 4, "desc": "商场职员岗位 {value} 名；每人固定提供 10% 工作效率" }
+    }
+  },
+  "wheat_windmill_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [300, 450, 650, 900, 1200],
+      "energyByLevel": [500, 700, 950, 1250, 1600],
+      "timeBaseMs": 30000,
+      "timeGrowthMs": 10000
+    },
+    "modules": {
+      "windmill_seed_selection": { "name": "精选麦种", "icon": "🌾", "effect": "windmillFoodPerWorker", "mode": "add", "base": 1.5, "per": 0.1, "maxLevel": 5, "desc": "每名农夫产粮 {value}/秒（每级 +0.10）" },
+      "windmill_sail_drive": { "name": "风帆传动", "icon": "⚙️", "effect": "windmillDriveMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 4, "desc": "磨坊传动效率 +{pct}%（每级 +5%）" },
+      "windmill_field_expansion": { "name": "田垄扩建", "icon": "🐹", "effect": "windmillStaffCapacity", "mode": "add", "base": 4, "per": 1, "maxLevel": 2, "goldByLevel": [1800, 3200], "energyByLevel": [1200, 2200], "timeByLevel": [45000, 60000], "desc": "农夫岗位 {value} 名（基础 4 名，最高 6 名）" },
+      "windmill_crop_rotation": { "name": "轮作农法", "icon": "🔄", "effect": "windmillFieldMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 5, "desc": "外围田地产量 +{pct}%（每级 +5%）" }
     }
   },
   "bakery_economy": {
     "moduleUpgrade": { "goldByLevel": [250, 350, 450, 600, 750, 950, 1200, 1500, 1900, 2400], "energy": 600, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {
-      "bakery_quick_cooking": { "name": "快速烹饪", "icon": "🔥", "effect": "bakeryProcessTimeMs", "mode": "add", "base": 10000, "per": -500, "maxLevel": 10, "desc": "每批处理时间 {seconds} 秒（每级 -0.5 秒）" },
-      "bakery_gourmet": { "name": "美食家", "icon": "🥐", "effect": "bakeryOutputMultiplier", "mode": "add", "base": 5, "per": 0.5, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "每批产出为投入粮食的 {multiplier} 倍（每级 +0.5 倍）" },
+      "bakery_quick_cooking": { "name": "快速烹饪", "icon": "🔥", "effect": "bakeryProcessTimeMs", "mode": "add", "base": 10000, "per": -400, "maxLevel": 10, "desc": "每批处理时间 {seconds} 秒（每级 -0.4 秒）" },
+      "bakery_gourmet": { "name": "美食家", "icon": "🥐", "effect": "bakeryOutputMultiplier", "mode": "add", "base": 5, "per": 0.3, "maxLevel": 10, "goldByLevel": [400, 550, 700, 900, 1150, 1500, 1900, 2400, 3000, 3800], "desc": "每批产出为投入粮食的 {multiplier} 倍（每级 +0.3 倍）" },
       "bakery_ingredient_processing": { "name": "食材处理", "icon": "🌿", "effect": "bakeryPlantTributeChance", "mode": "add", "base": 0.01, "per": 0.002, "maxLevel": 10, "desc": "每批完成有 {chance}% 概率获得植物类祭品（每级 +0.2%）" },
       "bakery_quick_steps": { "name": "小步快跑", "icon": "👟", "effect": "bakeryMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "面包师移动速度 +{pct}%（每级 +5%）" }
+    }
+  },
+  "chain_restaurant_economy": {
+    "moduleUpgrade": { "goldByLevel": [600, 850, 1150, 1500, 1950, 2500, 3200, 4100, 5200, 6600], "energyByLevel": [900, 1200, 1550, 2000, 2550, 3250, 4100, 5200, 6550, 8200], "timeBaseMs": 45000, "timeGrowthMs": 5000 },
+    "modules": {
+      "restaurant_central_kitchen": { "name": "中央厨房", "icon": "🍳", "effect": "restaurantProcessTimeMs", "mode": "add", "base": 8000, "per": -200, "maxLevel": 10, "desc": "每批加工时间 {seconds} 秒（每级 -0.2 秒）" },
+      "restaurant_signature_menu": { "name": "招牌菜单", "icon": "🍽️", "effect": "restaurantOutputMultiplier", "mode": "add", "base": 8, "per": 0.3, "maxLevel": 10, "desc": "每批产出为投入食物的 {multiplier} 倍（每级 +0.3 倍）" },
+      "restaurant_bulk_supply": { "name": "批量采购", "icon": "📦", "effect": "restaurantInputFoodPerBatch", "mode": "add", "base": 80, "per": 2, "maxLevel": 10, "desc": "每批领取 {value} 食物，按当前产出倍率同步扩大单批成品" },
+      "restaurant_express_delivery": { "name": "快递专线", "icon": "🛵", "effect": "restaurantMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "外卖员移动速度 +{pct}%（每级 +5%）" }
+    }
+  },
+  "cheese_farm_economy": {
+    "moduleUpgrade": { "goldByLevel": [300, 450, 650, 900, 1200, 1550, 2000, 2550, 3200, 4000], "energy": 650, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "cheese_breed_selection": { "name": "良种繁育", "icon": "🧀", "effect": "cheeseFoodPerBatch", "mode": "add", "base": 180, "per": 9, "maxLevel": 10, "desc": "每批基础产出 {value} 食物" },
+      "cheese_maturation": { "name": "熟成工艺", "icon": "⏳", "effect": "cheeseProcessTimeMs", "mode": "add", "base": 20000, "per": -500, "maxLevel": 10, "desc": "每批熟成时间 {seconds} 秒" },
+      "cheese_pasture_expansion": { "name": "牧场扩围", "icon": "🐄", "effect": "cheeseCowCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 2, "goldByLevel": [2200, 3800], "energyByLevel": [1500, 2600], "timeByLevel": [45000, 60000], "desc": "牧场奶牛 {value} 头；每头都提高单批总产出" },
+      "cheese_delivery_cart": { "name": "轻便奶酪筐", "icon": "🧺", "effect": "cheeseMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "牛倌运输速度 +{pct}%" }
+    }
+  },
+  "steam_power_plant_economy": {
+    "moduleUpgrade": { "goldByLevel": [300, 450, 650, 900, 1200, 1550, 2000, 2550, 3200, 4000], "energy": 700, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "steam_high_pressure_boiler": { "name": "高压锅炉", "icon": "🔥", "iconImage": "assets/ui/building-upgrades/steam-high-pressure-boiler.png", "effect": "steamProcessTimeMs", "mode": "add", "base": 15000, "per": -500, "maxLevel": 10, "desc": "每批处理时间 {seconds} 秒（每级 -0.5 秒）" },
+      "steam_turbine_output": { "name": "涡轮增压", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/steam-turbine-output.png", "effect": "steamEnergyPerBatch", "mode": "add", "base": 90, "per": 4, "maxLevel": 10, "desc": "每名锅炉工每批产出 {value} 能源" },
+      "steam_heat_recovery": { "name": "余热回收", "icon": "♻️", "iconImage": "assets/ui/building-upgrades/steam-heat-recovery.png", "effect": "steamFoodPerBatch", "mode": "add", "base": 120, "per": -4, "maxLevel": 10, "desc": "每名锅炉工每批消耗 {value} 食物" },
+      "steam_transport_cart": { "name": "运输推车", "icon": "🛒", "iconImage": "assets/ui/building-upgrades/steam-transport-cart.png", "effect": "steamMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "锅炉工移动速度 +{pct}%（每级 +5%）" }
+    }
+  },
+  "wind_power_plant_economy": {
+    "moduleUpgrade": { "goldByLevel": [500, 700, 950, 1250, 1650, 2150, 2800, 3600, 4600, 5900], "energyByLevel": [850, 1150, 1500, 1950, 2500, 3200, 4050, 5100, 6400, 8000], "timeBaseMs": 45000, "timeGrowthMs": 5000 },
+    "modules": {
+      "wind_blade_pitch": { "name": "叶片变桨", "icon": "🌀", "effect": "windCycleMs", "mode": "add", "base": 5000, "per": -100, "maxLevel": 10, "desc": "风力结算周期 {seconds} 秒（每级 -0.1 秒）" },
+      "wind_generator_output": { "name": "发电机组", "icon": "⚡", "iconImage": "assets/items/energy.png", "effect": "windEnergyPerCycle", "mode": "add", "base": 500, "per": 10, "maxLevel": 10, "desc": "每轮产生 {value} 点原始能源（每级 +10）" },
+      "wind_rectifier_efficiency": { "name": "整流储能", "icon": "🔋", "effect": "windConversionRate", "mode": "add", "base": 0.85, "per": 0.015, "maxLevel": 10, "desc": "将叶轮原始产能的 {pct}% 转化为可入库能源" },
+      "wind_maintenance_staff": { "name": "维护编制", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "windStaffCapacity", "mode": "add", "base": 3, "per": 1, "maxLevel": 1, "goldByLevel": [5200], "energyByLevel": [4200], "timeByLevel": [90000], "desc": "风机技师岗位 {value} 名" }
+    }
+  },
+  "solar_power_plant_economy": {
+    "moduleUpgrade": { "goldByLevel": [900, 1200, 1600, 2100, 2750, 3550, 4550, 5800, 7400, 9400], "energyByLevel": [1400, 1850, 2400, 3100, 4000, 5100, 6500, 8250, 10400, 13100], "timeBaseMs": 60000, "timeGrowthMs": 6000 },
+    "modules": {
+      "solar_tracking_cycle": { "name": "追日阵列", "icon": "☀️", "iconImage": "assets/ui/building-upgrades/solar-tracking-cycle.png", "effect": "solarCycleMs", "mode": "add", "base": 4000, "per": -100, "maxLevel": 10, "desc": "光伏结算周期 {seconds} 秒（每级 -0.1 秒）" },
+      "solar_array_output": { "name": "光伏矩阵", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/solar-array-output.png", "effect": "solarEnergyPerCycle", "mode": "add", "base": 600, "per": 20, "maxLevel": 10, "desc": "每轮产生 {value} 点原始能源（每级 +20）" },
+      "solar_storage_efficiency": { "name": "储能逆变", "icon": "🔋", "iconImage": "assets/ui/building-upgrades/solar-storage-efficiency.png", "effect": "solarConversionRate", "mode": "add", "base": 0.9, "per": 0.01, "maxLevel": 10, "desc": "将光伏原始产能的 {pct}% 转化为可入库能源" },
+      "solar_maintenance_staff": { "name": "光伏编制", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/solar-maintenance-staff.png", "effect": "solarStaffCapacity", "mode": "add", "base": 3, "per": 1, "maxLevel": 2, "goldByLevel": [5200, 8200], "energyByLevel": [4800, 7600], "timeByLevel": [90000, 120000], "desc": "光伏技师岗位 {value} 名" }
+    }
+  },
+  "computing_center_economy": {
+    "moduleUpgrade": { "goldByLevel": [1200, 1600, 2150, 2850, 3750, 4900, 6350, 8200, 10500, 13400], "energyByLevel": [1800, 2400, 3150, 4100, 5300, 6800, 8700, 11100, 14100, 17900], "timeBaseMs": 75000, "timeGrowthMs": 7500 },
+    "modules": {
+      "computing_cluster_output": { "name": "集群扩容", "icon": "🖥️", "iconImage": "assets/ui/building-upgrades/computing-cluster-output.png", "effect": "computingBaseGoldPerSecond", "mode": "add", "base": 40, "per": 2, "maxLevel": 10, "desc": "基础算力收益 {value} 金币/秒" },
+      "computing_population_model": { "name": "人口模型", "icon": "🧠", "iconImage": "assets/ui/building-upgrades/computing-population-model.png", "effect": "computingGoldPerPopulationPerSecond", "mode": "add", "base": 0.08, "per": 0.004, "maxLevel": 10, "desc": "每名位面人口每秒贡献 {value} 金币" },
+      "computing_power_efficiency": { "name": "液冷节能", "icon": "❄️", "iconImage": "assets/ui/building-upgrades/computing-power-efficiency.png", "effect": "computingEnergyPerSecond", "mode": "add", "base": 140, "per": -4, "maxLevel": 10, "desc": "满负荷每秒消耗 {value} 能源" },
+      "computing_staff": { "name": "工程师席位", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/computing-staff.png", "effect": "computingStaffCapacity", "mode": "add", "base": 6, "per": 1, "maxLevel": 4, "goldByLevel": [6500, 9000, 12000, 15500], "energyByLevel": [6000, 8500, 11500, 15000], "timeByLevel": [90000, 105000, 120000, 150000], "desc": "算力工程师岗位 {value} 名；每人固定提供 10% 工作效率" }
+    }
+  },
+  "tavern_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [500, 700, 950, 1250, 1650, 2150, 2800, 3600, 4600, 5900],
+      "energyByLevel": [800, 1100, 1450, 1900, 2450, 3150, 4000, 5100, 6500, 8200],
+      "timeBaseMs": 45000,
+      "timeGrowthMs": 5000
+    },
+    "modules": {
+      "tavern_feast_sign": { "name": "招牌宴席", "icon": "🍻", "iconImage": "assets/ui/building-upgrades/tavern-feast-sign.png", "effect": "tavernOutputBonus", "mode": "add", "base": 0.12, "per": 0.015, "maxLevel": 10, "desc": "服务期间全位面目标经济产出 +{pct}%" },
+      "tavern_cellar_rations": { "name": "地窖配给", "icon": "🥖", "iconImage": "assets/ui/building-upgrades/tavern-cellar-rations.png", "effect": "tavernFoodPerBatch", "mode": "add", "base": 120, "per": -4, "maxLevel": 10, "desc": "每批宴饮消耗 {value} 食物" },
+      "tavern_long_table": { "name": "长桌宴饮", "icon": "🕯️", "iconImage": "assets/ui/building-upgrades/tavern-long-table.png", "effect": "tavernServiceTimeMs", "mode": "add", "base": 60000, "per": 3000, "maxLevel": 10, "desc": "每批宴饮持续 {seconds} 秒" },
+      "tavern_bartender_steps": { "name": "酒保飞步", "icon": "👟", "iconImage": "assets/ui/building-upgrades/tavern-bartender-steps.png", "effect": "tavernMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "酒保移动速度 +{pct}%" }
     }
   },
   "candle_sanctuary": {

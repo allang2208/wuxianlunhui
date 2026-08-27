@@ -39,7 +39,7 @@ feet at the bottom edge of the frame, no weapon, <风格基准>
 ## 深度图锁姿态/朝向（2026-08-04 新增，推荐）
 
 - 怪物跨动作一致性靠基准图 + img2video；单张新怪（或换皮）用
-  `--model flux2-dev-depth --control-image <剪影/参考深度图>` 锁住**侧视朝右、全身、脚贴底边**，
+  `--model flux2-klein-4b-depth --control-image <剪影/参考深度图>` 锁住**侧视朝右、全身、脚贴底边**，
   比纯文字"side view facing right"稳。
 - 姿态敏感场景（施法/挥击）可先用骨骼/剪影图出深度再生成，提示词只补材质与细节。
 

@@ -1,0 +1,9 @@
+视频工具参数：总时长必须设置为4秒（duration=4），画幅16:9。不得使用默认10秒。
+
+Animate only the exact first-frame hamster. Never redesign him.
+
+One 4-second non-looping death: during the first 2 seconds he recoils, buckles and falls onto his left side in the center-left safe area. By 2.2 seconds he is fully down. Hold that corpse pose motionless through the end.
+
+Identity lock: same adult golden-brown face and cream muzzle; ears hidden by closed ghillie hood; black dual-tube night-vision goggles stay lowered; same olive ghillie suit and gear; two hands; one identical long suppressed bolt-action sniper rifle. Rifle stays rigid against the torso; bipod stays folded.
+
+Only joints and pose move. Static camera, fixed scale/exposure, white background. Keep body and rifle in the left 70 percent; bottom-right empty. No morph, face/age change, visible ears, moved goggles, hood opening, weapon change, deployed bipod, missing suppressor, bent barrel, extra limbs, black block, flicker, blood, gore, firing, smoke, text or watermark.

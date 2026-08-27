@@ -12,6 +12,25 @@ import {
     MAGIC_CATEGORY_STYLE,
     MAGIC_TIER_STYLE,
 } from '../config/magic-categories.js';
+import { getDroneValues, getPushStrikeValues, getWhirlwindRadius } from '../config/skill-formulas.js';
+
+function buildSkillDetailModel(skill, displaySkill) {
+    const tags = skill.tags || [];
+    const active = tags.some(tag => tag.type === 'active');
+    let operation = active ? '拖入快捷栏后按绑定键释放' : '满足装备条件后自动生效';
+    let role = tags.find(tag => ['magic', 'melee', 'ranged', 'weapon'].includes(tag.type))?.name || '通用';
+    let restriction = active ? '动作互斥、资源与冷却满足时可用' : '被动效果按当前装备与状态结算';
+    if (skill.id === 'pushStrike') {
+        operation = '按快捷键发动；可中断当前换弹';
+        role = '贴身保命 / 近战钝击';
+        restriction = '仅步枪、机枪、能量机枪与霰弹枪等双手长枪';
+    } else if (skill.id === 'droneSkill') {
+        operation = '短按部署/接管/退出；长按指定航点';
+        role = '高空侦察 / 战术标记';
+        restriction = '部署消耗一次 MP 并进入冷却，控制切换不重复消耗';
+    }
+    return { role, operation, restriction, level: displaySkill.level };
+}
 export const SkillManager = {
     _currentDetailSkillId: null, // 追踪当前打开的技能详情ID
     _currentFilter: 'all', // 当前筛选条件：all|passive|active|magic
@@ -25,10 +44,10 @@ export const SkillManager = {
         SkillLevelSystem.addExp(skill, gained, player);
         SkillLevelSystem.refreshUI(skill.id);
     },
-    addMeleeExp(player, hitCount, killCount) {
+    addMeleeExp(player, hitCount, killCount, weaponItem = null) {
         if (!player || !player.skills) return;
-        // 检查当前武器是否为剑类（剑精通只对剑类武器生效）
-        const currentWeapon = player.equipments[player.weaponMode];
+        // 动作系统可传入起手武器快照，避免攻击途中装备变化让本次剑精通经验丢失。
+        const currentWeapon = weaponItem || player.equipments[player.weaponMode];
         if (!currentWeapon || !isSwordCategory(currentWeapon.weaponType)) return;
         const sm = player.skills.swordMastery;
         if (!sm || sm.level >= sm.maxLevel) return;
@@ -131,14 +150,15 @@ export const SkillManager = {
                 player.data.str += 1;
                 player.calculateCombatStats();
             };
-            effectText = `伤害倍率×${effect.damageMul.toFixed(2)}  力量+${effect.strBonus}  范围${effect.radius}px`;
+            const currentWeapon = player.equipments?.[player.weaponMode] || null;
+            effectText = `伤害倍率×${effect.damageMul.toFixed(2)}  力量+${effect.strBonus}  实际范围${getWhirlwindRadius(effect, currentWeapon)}px`;
         } else if (skill.id === 'pushStrike') {
             onShowCallback = () => {
                 player.data.str += 1;
                 player.calculateCombatStats();
             };
-            const curDamage = Math.round(player.data.str * effect.damageMul);
-            effectText = `伤害${curDamage}  范围${effect.radius}px  击退${effect.knockback}px  冷却${effect.cooldown.toFixed(1)}秒`;
+            const pushValues = getPushStrikeValues(skill.level, (Number(player.data.str) || 0) + 1);
+            effectText = `伤害${pushValues.damage}  范围${pushValues.radius}px  击退${pushValues.knockback}px  冷却${pushValues.cooldown.toFixed(2)}秒`;
         } else if (skill.id === 'criticalStrike') {
             onShowCallback = () => {
                 player.data.luck += 1;
@@ -177,7 +197,8 @@ export const SkillManager = {
             };
             effectText = `弓攻击+${effect.damageBonus}  伤害+${(effect.damagePercent * 100).toFixed(0)}%  冷却-${(effect.cooldownReduction * 100).toFixed(0)}%  敏捷+${effect.dexBonus}`;
         } else if (skill.id === 'droneSkill') {
-            effectText = `持续时间+${effect.duration}s  伤害加成+${effect.damageBonusPercent}%  暴击率+${effect.critBonusPercent}%  移速${effect.moveSpeed}px/s  范围${effect.radius}px`;
+            const droneValues = getDroneValues(skill.level);
+            effectText = `持续${droneValues.duration}s  易伤+${droneValues.damageBonusPercent}%  暴击率+${droneValues.critBonusPercent}%  侦察${droneValues.visionRadius}px  标记${droneValues.markRadius}px`;
         } else if (skill.id === 'iceSpike') {
             const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
             const baseDamage = effect.damageBase;
@@ -532,8 +553,9 @@ export const SkillManager = {
         }
         // 根据当前装备决定显示 dashAttack 还是 dashAttackThrust 或 dashAttackFire
         const currentWeapon = player.equipments[player.weaponMode];
-        const hasFireSkill = (player._skillOverrides && player._skillOverrides.dashAttackFire) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackFire);
-        const hasThrustSkill = (player._skillOverrides && player._skillOverrides.dashAttackThrust) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackThrust);
+        const currentOverrides = currentWeapon?.skillOverrides || {};
+        const hasFireSkill = !!currentOverrides.dashAttackFire;
+        const hasThrustSkill = !!currentOverrides.dashAttackThrust;
         let skillList;
         if (hasFireSkill && player.skills.dashAttackFire) {
             skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor, player.skills.sanctuaryDomain, player.skills.holyJudgment];
@@ -557,9 +579,9 @@ export const SkillManager = {
             if (!skill) return;
             const card = document.createElement('div');
             card.className = 'skill-card';
-            // dashAttackThrust 显示 dashAttack 的等级和经验
+            // 两个武器变体共享 dashAttack 的等级和经验，但保留各自效果公式。
             let displaySkill = skill;
-            if (skill.id === 'dashAttackThrust' && player.skills.dashAttack) {
+            if ((skill.id === 'dashAttackThrust' || skill.id === 'dashAttackFire') && player.skills.dashAttack) {
                 displaySkill = player.skills.dashAttack;
             }
             const expPercent = displaySkill.level >= displaySkill.maxLevel ? 100 : Math.min(100, (displaySkill.exp / displaySkill.maxExp) * 100);
@@ -604,15 +626,27 @@ export const SkillManager = {
         const detail = getElement('skillDetail');
         const body = getElement('sdBody');
         if (!detail || !body) return;
-        // dashAttackThrust 共享 dashAttack 的等级和效果
+        // 武器变体共享 dashAttack 的进度；效果必须读取变体自身 getEffect，不能套用普通冲刺公式。
         let displaySkill = skill;
-        if (skill.id === 'dashAttackThrust') {
+        if (skill.id === 'dashAttackThrust' || skill.id === 'dashAttackFire') {
             displaySkill = Game.player.skills.dashAttack || skill;
         }
-        const effect = displaySkill.getEffect(displaySkill.level);
-        const nextEffect = displaySkill.level < displaySkill.maxLevel ? displaySkill.getEffect(displaySkill.level + 1) : null;
+        const effect = skill.getEffect(displaySkill.level);
+        const nextEffect = displaySkill.level < displaySkill.maxLevel ? skill.getEffect(displaySkill.level + 1) : null;
         const expPercent = displaySkill.level >= displaySkill.maxLevel ? 100 : Math.min(100, (displaySkill.exp / displaySkill.maxExp) * 100);
-        let html = '';
+        const detailModel = buildSkillDetailModel(skill, displaySkill);
+        const title = getElement('sdTitle');
+        if (title) title.textContent = `${skill.name} · Lv.${displaySkill.level}`;
+        detail.setAttribute('aria-label', `${skill.name}技能详情，可上下滚动`);
+        let html = `<section class="sd-overview">
+            <div class="sd-overview-icon">${skill.iconImage ? `<img src="${skill.iconImage}" alt="">` : skill.icon}</div>
+            <div class="sd-overview-copy"><strong>${skill.name}</strong><p>${skill.description || ''}</p></div>
+            <dl class="sd-overview-meta">
+                <div><dt>定位</dt><dd>${detailModel.role}</dd></div>
+                <div><dt>操作</dt><dd>${detailModel.operation}</dd></div>
+                <div><dt>限制</dt><dd>${detailModel.restriction}</dd></div>
+            </dl>
+        </section>`;
         // 特性词条
         if (skill.tags && skill.tags.length > 0) {
             html += `<div class="sd-tags">`;
@@ -646,8 +680,8 @@ export const SkillManager = {
         } else if (skill.id === 'dashAttack' || skill.id === 'dashAttackThrust' || skill.id === 'dashAttackFire') {
             html += `<div class="sd-section"><h4>🧮 伤害公式</h4>`;
             if (skill.id === 'dashAttackThrust') {
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">第1/2击</span><span class="sd-stat-val pos">= 基础攻击力 × 0.80 + 技能等级 × 0.05</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">第3击</span><span class="sd-stat-val pos">= 基础攻击力 × 0.90 + 技能等级 × 0.10</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">第1/2击</span><span class="sd-stat-val pos">= 基础攻击力 × ${effect.damageMul.toFixed(2)} + ${effect.thrustLevelBonusEarly.toFixed(2)}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">第3击</span><span class="sd-stat-val pos">= 基础攻击力 × ${effect.damageMul.toFixed(2)} + ${effect.thrustLevelBonusLate.toFixed(2)}</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">基础攻击力</span><span class="sd-stat-val pos">= 武器基础攻击 + 属性加成 + 强化加成 + 精通加成</span></div>`;
             } else if (skill.id === 'dashAttackFire') {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">伤害</span><span class="sd-stat-val pos">= (物理攻击力 + 魔法攻击力) × ${effect.damageMul.toFixed(2)}</span></div>`;
@@ -661,10 +695,9 @@ export const SkillManager = {
             html += `<div class="sd-section"><h4>技能效果</h4>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却缩减</span><span class="sd-stat-val pos">${(effect.cooldownReduction * 100).toFixed(0)}%</span></div>`;
             // 击退距离/触发时间；攻击范围与实际判定同口径（dash-system._checkHit）
-            const baseKnockback = 8; // 默认武器击退
-            const knockbackDist = baseKnockback + 150 + displaySkill.level * 5;
-            const triggerTime = 333 * (1 - (displaySkill.level - 1) * 0.03);
             const curWpn = Game.player && Game.player.equipments ? Game.player.equipments[Game.player.weaponMode] : null;
+            const baseKnockback = (curWpn && curWpn.attack && curWpn.attack.knockback) || 8;
+            const triggerTime = 333 * (1 - (displaySkill.level - 1) * 0.03);
             const craftRangeDelta = (curWpn && curWpn._craftEffects && curWpn._craftEffects.rangeDelta) || 0;
             // 扇形范围：武器攻击范围 + rangeBonusBase + 等级×rangeLevelBonus + rangeBonusFlat
             const baseRange = (curWpn && curWpn.attack && curWpn.attack.range)
@@ -678,6 +711,12 @@ export const SkillManager = {
             const rectW = (Game.player && typeof Game.player._getSkillParam === 'function')
                 ? Game.player._getSkillParam('dashAttackThrust', 'hitCheck.width', effect.hitWidth || 0)
                 : (effect.hitWidth || 0);
+            const thrustDashDist = (Game.player && typeof Game.player._getSkillParam === 'function')
+                ? Game.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist || 0)
+                : (effect.dashDist || 0);
+            const knockbackDist = skill.id === 'dashAttackThrust'
+                ? thrustDashDist * (effect.speedMul || 1)
+                : baseKnockback + (effect.knockbackBonus || 0) + displaySkill.level * (effect.knockbackLevelBonus || 0);
             html += `<div class="sd-stat-row"><span class="sd-stat-name">击退距离</span><span class="sd-stat-val pos">${knockbackDist}px</span></div>`;
             if (skill.id === 'dashAttackThrust') {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">攻击范围（判定长度）</span><span class="sd-stat-val pos">${rectLen + craftRangeDelta}px</span></div>`;
@@ -694,9 +733,16 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">特效</span><span class="sd-stat-val pos">武器路径火焰轨迹</span></div>`;
             }
             if (nextEffect) {
-                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级伤害倍率</span><span class="sd-stat-val pos">×${nextEffect.damageMul.toFixed(2)}</span></div>`;
+                if (skill.id === 'dashAttackThrust') {
+                    html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级第1/2击</span><span class="sd-stat-val pos">×${nextEffect.damageMul.toFixed(2)} + ${nextEffect.thrustLevelBonusEarly.toFixed(2)}</span></div>`;
+                    html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级第3击</span><span class="sd-stat-val pos">×${nextEffect.damageMul.toFixed(2)} + ${nextEffect.thrustLevelBonusLate.toFixed(2)}</span></div>`;
+                } else {
+                    html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级伤害倍率</span><span class="sd-stat-val pos">×${nextEffect.damageMul.toFixed(2)}</span></div>`;
+                }
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却缩减</span><span class="sd-stat-val pos">${(nextEffect.cooldownReduction * 100).toFixed(0)}%</span></div>`;
-                const nextKnockback = baseKnockback + 150 + (displaySkill.level + 1) * 5;
+                const nextKnockback = skill.id === 'dashAttackThrust'
+                    ? thrustDashDist * (nextEffect.speedMul || 1)
+                    : baseKnockback + (nextEffect.knockbackBonus || 0) + (displaySkill.level + 1) * (nextEffect.knockbackLevelBonus || 0);
                 const nextTrigger = 333 * (1 - displaySkill.level * 0.03);
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级击退距离</span><span class="sd-stat-val pos">${nextKnockback}px</span></div>`;
                 if (skill.id === 'dashAttackThrust') {
@@ -714,42 +760,47 @@ export const SkillManager = {
                 }
             }
         } else if (skill.id === 'whirlwind') {
+            const currentWeapon = Game.player?.equipments?.[Game.player.weaponMode] || null;
+            const actualRadius = getWhirlwindRadius(effect, currentWeapon);
+            const nextRadius = nextEffect ? getWhirlwindRadius(nextEffect, currentWeapon) : 0;
             html += `<div class="sd-section"><h4>🧮 伤害公式</h4>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">伤害</span><span class="sd-stat-val pos">= 基础武器攻击力 × ${effect.damageMul.toFixed(2)}</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">基础武器攻击力</span><span class="sd-stat-val pos">= 武器基础攻击 + 属性加成 + 强化加成 + 精通加成</span></div>`;
             html += `</div>`;
             html += `<div class="sd-section"><h4>技能效果</h4>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">判定范围</span><span class="sd-stat-val pos">${effect.radius}px</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">爆炸眩晕</span><span class="sd-stat-val pos">${(effect.stunMs / 1000).toFixed(1)}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">实际判定范围</span><span class="sd-stat-val pos">${actualRadius}px（含剑类与锻造修正）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">硬直</span><span class="sd-stat-val pos">${(effect.stunDuration / 1000).toFixed(2)}秒</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown.toFixed(1)}秒</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">体力消耗</span><span class="sd-stat-val pos">${effect.staminaCost}</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">力量加成</span><span class="sd-stat-val pos">+${effect.strBonus}</span></div>`;
             if (nextEffect) {
                 html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级伤害倍率</span><span class="sd-stat-val pos">×${nextEffect.damageMul.toFixed(2)}</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级判定范围</span><span class="sd-stat-val pos">${nextEffect.radius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级实际范围</span><span class="sd-stat-val pos">${nextRadius}px</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown.toFixed(1)}秒</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级体力消耗</span><span class="sd-stat-val pos">${nextEffect.staminaCost}</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级力量加成</span><span class="sd-stat-val pos">+${nextEffect.strBonus}</span></div>`;
             }
         } else if (skill.id === 'pushStrike') {
-            const curDamage = Game.player ? Math.round(Game.player.data.str * effect.damageMul) : Math.round(10 * effect.damageMul);
+            const strength = Game.player?.data?.str || 0;
+            const pushValues = getPushStrikeValues(displaySkill.level, strength);
+            const nextPush = nextEffect ? getPushStrikeValues(displaySkill.level + 1, strength) : null;
             html += `<div class="sd-section"><h4>🧮 伤害公式</h4>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">伤害</span><span class="sd-stat-val pos">= 力量 × ${effect.damageMul.toFixed(2)}</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前力量</span><span class="sd-stat-val pos">${Game.player ? Game.player.data.str : 10}</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前伤害</span><span class="sd-stat-val pos">${curDamage}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">伤害</span><span class="sd-stat-val pos">= round(3 + 等级×0.35 + 力量×(0.35 + 等级×0.015))</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前力量</span><span class="sd-stat-val pos">${strength}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">当前伤害</span><span class="sd-stat-val pos">${pushValues.damage}</span></div>`;
             html += `</div>`;
             html += `<div class="sd-section"><h4>技能效果</h4>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">判定范围</span><span class="sd-stat-val pos">${effect.radius}px</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">击退距离</span><span class="sd-stat-val pos">${effect.knockback}px</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown.toFixed(1)}秒</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">体力消耗</span><span class="sd-stat-val pos">${effect.staminaCost}</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">眩晕时间</span><span class="sd-stat-val pos">1.5秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">判定</span><span class="sd-stat-val pos">${pushValues.radius}px / 90° / ${pushValues.hitCheckDelay}ms 结算</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">击退距离</span><span class="sd-stat-val pos">${pushValues.knockback}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${pushValues.cooldown.toFixed(2)}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">体力消耗</span><span class="sd-stat-val pos">${pushValues.staminaCost.toFixed(1)}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">硬直时间</span><span class="sd-stat-val pos">${pushValues.stunDuration}ms</span></div>`;
             if (nextEffect) {
-                const nextDamage = Game.player ? Math.round(Game.player.data.str * nextEffect.damageMul) : Math.round(10 * nextEffect.damageMul);
-                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级伤害</span><span class="sd-stat-val pos">${nextDamage}</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级判定范围</span><span class="sd-stat-val pos">${nextEffect.radius}px</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown.toFixed(1)}秒</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级体力消耗</span><span class="sd-stat-val pos">${nextEffect.staminaCost}</span></div>`;
+                html += `<div class="sd-stat-row sd-next-row"><span class="sd-stat-name">下一级伤害</span><span class="sd-stat-val pos">${nextPush.damage}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级判定范围</span><span class="sd-stat-val pos">${nextPush.radius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextPush.cooldown.toFixed(2)}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级体力消耗</span><span class="sd-stat-val pos">${nextPush.staminaCost.toFixed(1)}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级硬直</span><span class="sd-stat-val pos">${nextPush.stunDuration}ms</span></div>`;
             }
         } else if (skill.id === 'criticalStrike') {
             html += `<div class="sd-stat-row"><span class="sd-stat-name">暴击伤害加成</span><span class="sd-stat-val pos">+${(effect.damageBonus * 100).toFixed(0)}%</span></div>`;
@@ -812,18 +863,24 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级弓类攻击间隔缩短</span><span class="sd-stat-val pos">${(nextEffect.cooldownReduction * 100).toFixed(0)}%</span></div>`;
             }
         } else if (skill.id === 'droneSkill') {
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">持续时间</span><span class="sd-stat-val pos">${effect.duration}秒</span></div>`;
+            const droneValues = getDroneValues(displaySkill.level);
+            const nextDrone = nextEffect ? getDroneValues(displaySkill.level + 1) : null;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">持续时间</span><span class="sd-stat-val pos">${droneValues.duration}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">部署消耗 / 冷却</span><span class="sd-stat-val pos">${droneValues.mpCost} MP / ${droneValues.cooldown}秒</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">伤害加成</span><span class="sd-stat-val pos">+${effect.damageBonusPercent}%</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">暴击率加成</span><span class="sd-stat-val pos">+${effect.critBonusPercent}%</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">移速</span><span class="sd-stat-val pos">${effect.moveSpeed}px/s</span></div>`;
-            html += `<div class="sd-stat-row"><span class="sd-stat-name">影响范围</span><span class="sd-stat-val pos">${effect.radius}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">高空侦察半径</span><span class="sd-stat-val pos">${droneValues.visionRadius}px（忽略遮挡与环境减益）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">易伤标记半径</span><span class="sd-stat-val pos">${droneValues.markRadius}px（离圈残留2秒）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">受益单位</span><span class="sd-stat-val pos">玩家、同伴与全部友军</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">判定间隔</span><span class="sd-stat-val pos">0.25秒</span></div>`;
             if (nextEffect) {
                 html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级持续时间</span><span class="sd-stat-val pos">${nextEffect.duration}秒</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级伤害加成</span><span class="sd-stat-val pos">+${nextEffect.damageBonusPercent}%</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级暴击率加成</span><span class="sd-stat-val pos">+${nextEffect.critBonusPercent}%</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级移速</span><span class="sd-stat-val pos">${nextEffect.moveSpeed}px/s</span></div>`;
-                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级范围</span><span class="sd-stat-val pos">${nextEffect.radius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级侦察半径</span><span class="sd-stat-val pos">${nextDrone.visionRadius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级标记半径</span><span class="sd-stat-val pos">${nextDrone.markRadius}px</span></div>`;
             }
         } else if (skill.id === 'iceSpike') {
             const d = Game.player ? Game.player.data : { matk: 0, int: 10 };
@@ -972,6 +1029,8 @@ export const SkillManager = {
             html += `<div class="sd-stat-row"><span class="sd-stat-name">装备盾牌防御力加成</span><span class="sd-stat-val pos">+${(effect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">防御减伤加成</span><span class="sd-stat-val pos">+${(effect.damageReductionBonus * 100).toFixed(0)}%</span></div>`;
             html += `<div class="sd-stat-row"><span class="sd-stat-name">弹反眩晕加成</span><span class="sd-stat-val pos">+${effect.parryStunBonus.toFixed(2)}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">反制规则</span><span class="sd-stat-val pos">远程弹反不眩晕；近战弹反触发反制硬直</span></div>`;
+            html += `<p class="sd-note">承伤比例决定本次格挡后保留多少伤害；额外减伤是在该比例上的技能修正，两者不是同一数值。</p>`;
             if (nextEffect) {
                 html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(100,160,255,0.2);padding-top:8px;"><span class="sd-stat-name">下一级防御力加成</span><span class="sd-stat-val pos">+${(nextEffect.defBonusPercent * 100).toFixed(0)}%</span></div>`;
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级减伤加成</span><span class="sd-stat-val pos">+${(nextEffect.damageReductionBonus * 100).toFixed(0)}%</span></div>`;
@@ -1290,7 +1349,7 @@ export const SkillManager = {
             html += `<p>• 同时攻击到两个以上敌人时，额外获得 3 点经验</p>`;
             html += `<p>• 同时攻击到五个以上敌人时，额外获得 10 点经验</p>`;
             html += `<p>• 每次击杀目标增加 15 点经验</p>`;
-            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">触发条件：按快捷键触发技能，需装备远程武器（手枪/机枪/步枪/弓）且消耗体力</p>`;
+            html += `<p class="sd-note">触发条件：按快捷键发动，当前必须装备双手长枪；手枪、弓、近战与空手不可用。</p>`;
         } else if (skill.id === 'criticalStrike') {
             html += `<p>• 造成暴击时积累 1 点经验</p>`;
             html += `<p>• 暴击击杀敌人时增加 10 点经验</p>`;
@@ -1318,7 +1377,7 @@ export const SkillManager = {
             html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">被动技能：装备弓时自动生效</p>`;
         } else if (skill.id === 'droneSkill') {
             html += `<p>• 击杀被无人机影响的敌人增加 15 点经验</p>`;
-            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">主动技能：按快捷键释放/操控/回收无人机</p>`;
+            html += `<p class="sd-note">主动技能：短按部署/接管/退出控制，长按发送航点；只有成功部署扣蓝并进入冷却。</p>`;
         } else if (skill.id === 'iceSpike') {
             html += `<p>• 使用冰锥攻击到一个目标加 4 点经验</p>`;
             html += `<p>• 同时命中 2 个及以上目标，额外获得 10 点经验</p>`;
@@ -1399,8 +1458,20 @@ export const SkillManager = {
         }
         html += `</div>`;
         body.innerHTML = html;
+        // 统一模型的下一级比较：运行时 DOM 自动剔除与当前值相同的条目。
+        const rows = [...body.querySelectorAll('.sd-stat-row')];
+        for (const row of rows) {
+            const name = row.querySelector('.sd-stat-name')?.textContent?.trim() || '';
+            if (!name.startsWith('下一级')) continue;
+            const currentName = name.replace(/^下一级/, '');
+            const current = rows.find(candidate => candidate !== row
+                && candidate.querySelector('.sd-stat-name')?.textContent?.trim() === currentName);
+            if (current && current.querySelector('.sd-stat-val')?.textContent?.trim()
+                === row.querySelector('.sd-stat-val')?.textContent?.trim()) row.remove();
+        }
         detail.scrollTop = 0;
-        detail.style.display = 'block';
+        detail.style.display = 'flex';
+        detail.focus({ preventScroll: true });
         const backBtn = getElement('sdBackBtn');
         if (backBtn) {
             backBtn.onclick = () => {

@@ -14,6 +14,12 @@ OUT = os.path.join(ROOT, 'assets', 'terrain')
 WEAPONS = {
     # weaponId: (贴图路径, 裁剪框 x,y,w,h)
     'weapon6':  (os.path.join(ROOT, 'assets', 'icons', 'pkm_side_clean.png'), (1326, 950, 619, 149)),
+    'weapon31': (os.path.join(ROOT, 'assets', 'weapons', 'rpd-equip.png'), (1336, 863, 624, 498)),
+    'weapon32': (os.path.join(ROOT, 'assets', 'weapons', 'm249-equip.png'), (1336, 832, 624, 560)),
+    'weapon33': (os.path.join(ROOT, 'assets', 'weapons', 'ultimax100-equip.png'), (1336, 876, 624, 472)),
+    'weapon34': (os.path.join(ROOT, 'assets', 'weapons', 'mg42-equip.png'), (1336, 999, 624, 150)),
+    'weapon35': (os.path.join(ROOT, 'assets', 'weapons', 'fusion-core-lmg-equip.png'), (1336, 803, 624, 616)),
+    'weapon36': (os.path.join(ROOT, 'assets', 'weapons', 'singularity-loom-lmg-equip.png'), (1335, 925, 625, 300)),
     'weapon7':  (os.path.join(ROOT, 'assets', 'weapons', 'akm-equip.png'), (1337, 884, 623, 183)),
     'weapon23': (os.path.join(ROOT, 'assets', 'weapons', 'stg44-equip.png'), (1336, 818, 624, 588)),
     'weapon21': (os.path.join(ROOT, 'assets', 'weapons', 'm416-equip.png'), (1334, 828, 623, 193)),

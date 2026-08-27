@@ -1,0 +1,41 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\field_hospital\\candidates\\field_hospital\\field_hospital_refine_v03_body.png",
+  "output": "assets\\terrain\\field_hospital.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    89,
+    214,
+    953,
+    917
+  ],
+  "fileSize": [
+    864,
+    703
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    860,
+    699
+  ],
+  "displayW": 300,
+  "displayH": 244,
+  "footOffsetY": 121,
+  "scaleX": 0.3472222222222222,
+  "scaleY": 0.34708392603129445
+}

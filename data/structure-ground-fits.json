@@ -7,10 +7,10 @@
       "textureKey": "armory",
       "frameName": "__BASE",
       "sourcePath": "assets/terrain/armory.png",
-      "sourceWidth": 883,
-      "sourceHeight": 751,
+      "sourceWidth": 882,
+      "sourceHeight": 752,
       "displayWidth": 288,
-      "displayHeight": 245,
+      "displayHeight": 246,
       "nominalWidth": 256,
       "nominalHeight": 128,
       "centerAdjustX": 0,
@@ -28,33 +28,33 @@
         "explicitCalibration": true,
         "displayWidth": 288,
         "displayHeight": 245,
-        "scaleX": 0.32616077463194165,
-        "scaleY": 0.32623167833513694,
-        "uniformScale": 0.32616077463194165,
+        "scaleX": 0.32653057142857655,
+        "scaleY": 0.3257978596139466,
+        "uniformScale": 0.32653057142857655,
         "nonUniformScale": true,
         "visualOffsetX": 0,
         "footOffsetY": 121,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 441.5,
-        "sourceFootprintCenterY": 550,
-        "sourceFootprintFrontY": 746.5,
-        "sourceFootprintHalfDepth": 196,
-        "sourceFootprintWidth": 785,
-        "sourceFootprintDepth": 392.5,
+        "sourceFootprintCenterX": 441,
+        "sourceFootprintCenterY": 551,
+        "sourceFootprintFrontY": 747.5,
+        "sourceFootprintHalfDepth": 196.5,
+        "sourceFootprintWidth": 784,
+        "sourceFootprintDepth": 393,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
-        "groundCenterSourceX": 441.5,
-        "groundCenterSourceY": 550,
-        "groundSectionWidth": 785,
+        "groundCenterSourceX": 441,
+        "groundCenterSourceY": 551,
+        "groundSectionWidth": 784,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
-        "contactX": 441,
-        "bottomY": 745.4020025,
-        "sideY": 550.222403,
+        "contactX": 440.5,
+        "bottomY": 746.39588,
+        "sideY": 550.955056,
         "leftX": -128,
         "rightX": 128,
         "centerX": 0,
@@ -110,8 +110,8 @@
             "y": -64
           }
         ],
-        "frameWidth": 883,
-        "frameHeight": 751
+        "frameWidth": 882,
+        "frameHeight": 752
       }
     },
     {
@@ -120,7 +120,7 @@
       "textureKey": "bakery",
       "frameName": "__BASE",
       "sourcePath": "assets/terrain/bakery.png",
-      "sourceWidth": 876,
+      "sourceWidth": 877,
       "sourceHeight": 746,
       "displayWidth": 288,
       "displayHeight": 245,
@@ -141,31 +141,31 @@
         "explicitCalibration": true,
         "displayWidth": 288,
         "displayHeight": 245,
-        "scaleX": 0.3287670821917859,
+        "scaleX": 0.32839220524515905,
         "scaleY": 0.328418217734166,
-        "uniformScale": 0.3287670821917859,
+        "uniformScale": 0.32839220524515905,
         "nonUniformScale": true,
         "visualOffsetX": 0,
         "footOffsetY": 121,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 438,
+        "sourceFootprintCenterX": 438.5,
         "sourceFootprintCenterY": 546.5,
         "sourceFootprintFrontY": 741.5,
         "sourceFootprintHalfDepth": 195,
-        "sourceFootprintWidth": 778.5,
+        "sourceFootprintWidth": 779.5,
         "sourceFootprintDepth": 389.5,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
-        "groundCenterSourceX": 438,
+        "groundCenterSourceX": 438.5,
         "groundCenterSourceY": 546.5,
-        "groundSectionWidth": 778.5,
+        "groundSectionWidth": 779.5,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
-        "contactX": 437.5,
+        "contactX": 438,
         "bottomY": 740.4326149999999,
         "sideY": 546.559138,
         "leftX": -128,
@@ -223,7 +223,7 @@
             "y": -64
           }
         ],
-        "frameWidth": 876,
+        "frameWidth": 877,
         "frameHeight": 746
       }
     },
@@ -346,10 +346,10 @@
       "textureKey": "barracks",
       "frameName": "__BASE",
       "sourcePath": "assets/terrain/barracks.png",
-      "sourceWidth": 887,
-      "sourceHeight": 789,
+      "sourceWidth": 879,
+      "sourceHeight": 788,
       "displayWidth": 275,
-      "displayHeight": 245,
+      "displayHeight": 247,
       "nominalWidth": 256,
       "nominalHeight": 128,
       "centerAdjustX": 0,
@@ -367,33 +367,33 @@
         "explicitCalibration": true,
         "displayWidth": 275,
         "displayHeight": 245,
-        "scaleX": 0.31003385214822027,
-        "scaleY": 0.3105196329907324,
-        "uniformScale": 0.31003385214822027,
+        "scaleX": 0.3128555481859743,
+        "scaleY": 0.3109136934386902,
+        "uniformScale": 0.3128555481859743,
         "nonUniformScale": true,
         "visualOffsetX": 0,
         "footOffsetY": 120,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 443.5,
-        "sourceFootprintCenterY": 575,
-        "sourceFootprintFrontY": 781,
+        "sourceFootprintCenterX": 439.5,
+        "sourceFootprintCenterY": 574,
+        "sourceFootprintFrontY": 780,
         "sourceFootprintHalfDepth": 206,
-        "sourceFootprintWidth": 825.5,
-        "sourceFootprintDepth": 412,
+        "sourceFootprintWidth": 818.5,
+        "sourceFootprintDepth": 411.5,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
-        "groundCenterSourceX": 443.5,
-        "groundCenterSourceY": 575,
-        "groundSectionWidth": 825.5,
+        "groundCenterSourceX": 439.5,
+        "groundCenterSourceY": 574,
+        "groundSectionWidth": 818.5,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
-        "contactX": 443,
-        "bottomY": 779.9486495,
-        "sideY": 574.8425189999999,
+        "contactX": 439,
+        "bottomY": 778.958854,
+        "sideY": 574.1139479999999,
         "leftX": -128,
         "rightX": 128,
         "centerX": 0,
@@ -449,8 +449,8 @@
             "y": -64
           }
         ],
-        "frameWidth": 887,
-        "frameHeight": 789
+        "frameWidth": 879,
+        "frameHeight": 788
       }
     },
     {
@@ -681,6 +681,232 @@
     },
     {
       "algorithmVersion": 8,
+      "id": "chain_restaurant",
+      "textureKey": "chain_restaurant",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/chain_restaurant.png",
+      "sourceWidth": 848,
+      "sourceHeight": 903,
+      "displayWidth": 300,
+      "displayHeight": 319,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.799373,
+        "widthRatio": 0.853333,
+        "depthRatio": 0.401254,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 300,
+        "displayHeight": 319,
+        "scaleX": 0.35377372309852095,
+        "scaleY": 0.353266816393287,
+        "uniformScale": 0.35377372309852095,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 159.5,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 424,
+        "sourceFootprintCenterY": 722,
+        "sourceFootprintFrontY": 903,
+        "sourceFootprintHalfDepth": 181,
+        "sourceFootprintWidth": 723.5,
+        "sourceFootprintDepth": 362.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 424,
+        "groundCenterSourceY": 722,
+        "groundSectionWidth": 723.5,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 423.5,
+        "bottomY": 902,
+        "sideY": 721.833819,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 848,
+        "frameHeight": 903
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "cheese_farm",
+      "textureKey": "cheese_farm_structure_occluder",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/cheese_farm_structure_occluder.png",
+      "sourceWidth": 898,
+      "sourceHeight": 514,
+      "displayWidth": 512,
+      "displayHeight": 293,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.554608,
+        "widthRatio": 1,
+        "depthRatio": 0.87372,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 293,
+        "scaleX": 0.5701559020044543,
+        "scaleY": 0.5700389995744303,
+        "uniformScale": 0.5701559020044543,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 144,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 449,
+        "sourceFootprintCenterY": 285,
+        "sourceFootprintFrontY": 509.5,
+        "sourceFootprintHalfDepth": 224.5,
+        "sourceFootprintWidth": 898,
+        "sourceFootprintDepth": 449,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 449,
+        "groundCenterSourceY": 285,
+        "groundSectionWidth": 898,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 448.5,
+        "bottomY": 508.614552,
+        "sideY": 285.068512,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 898,
+        "frameHeight": 514
+      }
+    },
+    {
+      "algorithmVersion": 8,
       "id": "church",
       "textureKey": "church",
       "frameName": "__BASE",
@@ -790,6 +1016,232 @@
         ],
         "frameWidth": 856,
         "frameHeight": 827
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "computing_center",
+      "textureKey": "computing_center",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/computing_center.png",
+      "sourceWidth": 753,
+      "sourceHeight": 665,
+      "displayWidth": 512,
+      "displayHeight": 452,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.710177,
+        "widthRatio": 1,
+        "depthRatio": 0.566372,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 452,
+        "scaleX": 0.6799468791500664,
+        "scaleY": 0.6796988657896887,
+        "uniformScale": 0.6799468791500664,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 223,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 376.5,
+        "sourceFootprintCenterY": 472.5,
+        "sourceFootprintFrontY": 660.5,
+        "sourceFootprintHalfDepth": 188.5,
+        "sourceFootprintWidth": 753,
+        "sourceFootprintDepth": 376.5,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 376.5,
+        "groundCenterSourceY": 472.5,
+        "groundSectionWidth": 753,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 376,
+        "bottomY": 659.586395,
+        "sideY": 472.267705,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 753,
+        "frameHeight": 665
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "deep_drill",
+      "textureKey": "deep_drill",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/deep_drill.png",
+      "sourceWidth": 735,
+      "sourceHeight": 817,
+      "displayWidth": 300,
+      "displayHeight": 333,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.8033033033033032,
+        "widthRatio": 0.8533333333333334,
+        "depthRatio": 0.3843843843843844,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 300,
+        "displayHeight": 333,
+        "scaleX": 0.4081632653061224,
+        "scaleY": 0.40758873929008566,
+        "uniformScale": 0.4081632653061224,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 165,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 367.5,
+        "sourceFootprintCenterY": 656.5,
+        "sourceFootprintFrontY": 813.5,
+        "sourceFootprintHalfDepth": 157,
+        "sourceFootprintWidth": 627,
+        "sourceFootprintDepth": 314,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 367.5,
+        "groundCenterSourceY": 656.5,
+        "groundSectionWidth": 627,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 367,
+        "bottomY": 812.3198198198198,
+        "sideY": 656.2987987987988,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 735,
+        "frameHeight": 817
       }
     },
     {
@@ -1359,58 +1811,58 @@
     },
     {
       "algorithmVersion": 8,
-      "id": "house",
-      "textureKey": "house_lv1",
+      "id": "field_hospital",
+      "textureKey": "field_hospital",
       "frameName": "__BASE",
-      "sourcePath": "assets/terrain/house_lv1.png",
-      "sourceWidth": 855,
-      "sourceHeight": 823,
-      "displayWidth": 270,
-      "displayHeight": 260,
+      "sourcePath": "assets/terrain/field_hospital.png",
+      "sourceWidth": 864,
+      "sourceHeight": 703,
+      "displayWidth": 300,
+      "displayHeight": 244,
       "nominalWidth": 256,
       "nominalHeight": 128,
       "centerAdjustX": 0,
       "centerAdjustY": 0,
       "visualFootprint": {
         "centerXRatio": 0.5,
-        "centerYRatio": 0.75,
-        "widthRatio": 0.948148,
-        "depthRatio": 0.492308,
+        "centerYRatio": 0.7336065573770492,
+        "widthRatio": 0.8533333333333334,
+        "depthRatio": 0.5245901639344263,
         "scaleMode": "strict"
       },
       "fit": {
         "prismConstrained": true,
         "sourceRole": "structure-body",
         "explicitCalibration": true,
-        "displayWidth": 270,
-        "displayHeight": 260,
-        "scaleX": 0.3157895230263235,
-        "scaleY": 0.3159171780074138,
-        "uniformScale": 0.3157895230263235,
+        "displayWidth": 300,
+        "displayHeight": 244,
+        "scaleX": 0.34722222222222215,
+        "scaleY": 0.34708392603129445,
+        "uniformScale": 0.34722222222222215,
         "nonUniformScale": true,
         "visualOffsetX": 0,
-        "footOffsetY": 129,
+        "footOffsetY": 121,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 427.5,
-        "sourceFootprintCenterY": 617.5,
-        "sourceFootprintFrontY": 820,
-        "sourceFootprintHalfDepth": 202.5,
-        "sourceFootprintWidth": 810.5,
-        "sourceFootprintDepth": 405,
+        "sourceFootprintCenterX": 432,
+        "sourceFootprintCenterY": 515.5,
+        "sourceFootprintFrontY": 700,
+        "sourceFootprintHalfDepth": 184.5,
+        "sourceFootprintWidth": 737.5,
+        "sourceFootprintDepth": 369,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
-        "groundCenterSourceX": 427.5,
-        "groundCenterSourceY": 617.5,
-        "groundSectionWidth": 810.5,
+        "groundCenterSourceX": 432,
+        "groundCenterSourceY": 515.5,
+        "groundSectionWidth": 737.5,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
-        "contactX": 427,
-        "bottomY": 818.834742,
-        "sideY": 617.25,
+        "contactX": 431.5,
+        "bottomY": 699.1188524590164,
+        "sideY": 515.7254098360655,
         "leftX": -128,
         "rightX": 128,
         "centerX": 0,
@@ -1466,8 +1918,460 @@
             "y": -64
           }
         ],
-        "frameWidth": 855,
-        "frameHeight": 823
+        "frameWidth": 864,
+        "frameHeight": 703
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "grand_mall",
+      "textureKey": "grand_mall",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/grand_mall.png",
+      "sourceWidth": 616,
+      "sourceHeight": 778,
+      "displayWidth": 300,
+      "displayHeight": 379,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.827177,
+        "widthRatio": 0.853333,
+        "depthRatio": 0.337731,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 300,
+        "displayHeight": 379,
+        "scaleX": 0.48701317725250937,
+        "scaleY": 0.4871463430772725,
+        "uniformScale": 0.48701317725250937,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 188,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 308,
+        "sourceFootprintCenterY": 643.5,
+        "sourceFootprintFrontY": 775,
+        "sourceFootprintHalfDepth": 131.5,
+        "sourceFootprintWidth": 525.5,
+        "sourceFootprintDepth": 263,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 308,
+        "groundCenterSourceY": 643.5,
+        "groundSectionWidth": 525.5,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 307.5,
+        "bottomY": 773.921065,
+        "sideY": 643.543706,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 616,
+        "frameHeight": 778
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "high_energy_research_laboratory",
+      "textureKey": "high_energy_laboratory",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/high_energy_laboratory.png",
+      "sourceWidth": 763,
+      "sourceHeight": 811,
+      "displayWidth": 512,
+      "displayHeight": 521,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.74952,
+        "widthRatio": 1,
+        "depthRatio": 0.491363,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 521,
+        "scaleX": 0.6710353866317169,
+        "scaleY": 0.6424164607594347,
+        "uniformScale": 0.6710353866317169,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 258,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 381.5,
+        "sourceFootprintCenterY": 608,
+        "sourceFootprintFrontY": 807,
+        "sourceFootprintHalfDepth": 199,
+        "sourceFootprintWidth": 763,
+        "sourceFootprintDepth": 398.5,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 381.5,
+        "groundCenterSourceY": 608,
+        "groundSectionWidth": 763,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 381,
+        "bottomY": 806.1084165,
+        "sideY": 607.86072,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 763,
+        "frameHeight": 811
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "house",
+      "textureKey": "house_lv1",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv1.png",
+      "sourceWidth": 847,
+      "sourceHeight": 822,
+      "displayWidth": 270,
+      "displayHeight": 260,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.75,
+        "widthRatio": 0.948148,
+        "depthRatio": 0.492308,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 270,
+        "displayHeight": 260,
+        "scaleX": 0.31877218676210933,
+        "scaleY": 0.3163015054745761,
+        "uniformScale": 0.31877218676210933,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 129,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 423.5,
+        "sourceFootprintCenterY": 616.5,
+        "sourceFootprintFrontY": 819,
+        "sourceFootprintHalfDepth": 202.5,
+        "sourceFootprintWidth": 803,
+        "sourceFootprintDepth": 404.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 423.5,
+        "groundCenterSourceY": 616.5,
+        "groundSectionWidth": 803,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 423,
+        "bottomY": 817.8385880000001,
+        "sideY": 616.5,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 847,
+        "frameHeight": 822
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "house_lv1",
+      "textureKey": "house_lv1",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv1.png",
+      "sourceWidth": 847,
+      "sourceHeight": 822,
+      "displayWidth": 270,
+      "displayHeight": 262,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.75,
+        "widthRatio": 0.948148,
+        "depthRatio": 0.492308,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 270,
+        "displayHeight": 260,
+        "scaleX": 0.31877218676210933,
+        "scaleY": 0.3163015054745761,
+        "uniformScale": 0.31877218676210933,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 129,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 423.5,
+        "sourceFootprintCenterY": 616.5,
+        "sourceFootprintFrontY": 819,
+        "sourceFootprintHalfDepth": 202.5,
+        "sourceFootprintWidth": 803,
+        "sourceFootprintDepth": 404.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 423.5,
+        "groundCenterSourceY": 616.5,
+        "groundSectionWidth": 803,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 423,
+        "bottomY": 817.8385880000001,
+        "sideY": 616.5,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 847,
+        "frameHeight": 822
       }
     },
     {
@@ -1476,10 +2380,10 @@
       "textureKey": "house_lv2",
       "frameName": "__BASE",
       "sourcePath": "assets/terrain/house_lv2.png",
-      "sourceWidth": 837,
-      "sourceHeight": 829,
+      "sourceWidth": 830,
+      "sourceHeight": 813,
       "displayWidth": 270,
-      "displayHeight": 267,
+      "displayHeight": 264,
       "nominalWidth": 256,
       "nominalHeight": 128,
       "centerAdjustX": 0,
@@ -1497,33 +2401,146 @@
         "explicitCalibration": true,
         "displayWidth": 270,
         "displayHeight": 267,
-        "scaleX": 0.322580695564524,
-        "scaleY": 0.32207462031635786,
-        "uniformScale": 0.322580695564524,
+        "scaleX": 0.32530125564759826,
+        "scaleY": 0.3284131122291029,
+        "uniformScale": 0.32530125564759826,
         "nonUniformScale": true,
         "visualOffsetX": 0,
         "footOffsetY": 132,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 415,
+        "sourceFootprintCenterY": 613.5,
+        "sourceFootprintFrontY": 808.5,
+        "sourceFootprintHalfDepth": 195,
+        "sourceFootprintWidth": 787,
+        "sourceFootprintDepth": 390,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 415,
+        "groundCenterSourceY": 613.5,
+        "groundSectionWidth": 787,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 414.5,
+        "bottomY": 807.4329725,
+        "sideY": 613.556466,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 830,
+        "frameHeight": 813
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "house_lv3",
+      "textureKey": "house_lv3",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv3.png",
+      "sourceWidth": 837,
+      "sourceHeight": 810,
+      "displayWidth": 298,
+      "displayHeight": 288,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.781879,
+        "widthRatio": 0.85906,
+        "depthRatio": 0.42953,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 298,
+        "displayHeight": 298,
+        "scaleX": 0.3560336196984056,
+        "scaleY": 0.3679014070216858,
+        "uniformScale": 0.3560336196984056,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 148,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
         "sourceFootprintCenterX": 418.5,
-        "sourceFootprintCenterY": 625.5,
-        "sourceFootprintFrontY": 824.5,
-        "sourceFootprintHalfDepth": 198.5,
-        "sourceFootprintWidth": 793.5,
-        "sourceFootprintDepth": 397.5,
+        "sourceFootprintCenterY": 633.5,
+        "sourceFootprintFrontY": 807.5,
+        "sourceFootprintHalfDepth": 174,
+        "sourceFootprintWidth": 719,
+        "sourceFootprintDepth": 348,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
         "groundCenterSourceX": 418.5,
-        "groundCenterSourceY": 625.5,
-        "groundSectionWidth": 793.5,
+        "groundCenterSourceY": 633.5,
+        "groundSectionWidth": 719,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
         "contactX": 418,
-        "bottomY": 823.3430924999999,
-        "sideY": 625.6313779999999,
+        "bottomY": 806.28164,
+        "sideY": 633.32199,
         "leftX": -128,
         "rightX": 128,
         "centerX": 0,
@@ -1580,63 +2597,63 @@
           }
         ],
         "frameWidth": 837,
-        "frameHeight": 829
+        "frameHeight": 810
       }
     },
     {
       "algorithmVersion": 8,
-      "id": "house_lv3",
-      "textureKey": "house_lv3",
+      "id": "house_lv4",
+      "textureKey": "house_lv4",
       "frameName": "__BASE",
-      "sourcePath": "assets/terrain/house_lv3.png",
-      "sourceWidth": 846,
-      "sourceHeight": 846,
-      "displayWidth": 298,
-      "displayHeight": 298,
+      "sourcePath": "assets/terrain/house_lv4.png",
+      "sourceWidth": 708,
+      "sourceHeight": 842,
+      "displayWidth": 311,
+      "displayHeight": 370,
       "nominalWidth": 256,
       "nominalHeight": 128,
       "centerAdjustX": 0,
       "centerAdjustY": 0,
       "visualFootprint": {
         "centerXRatio": 0.5,
-        "centerYRatio": 0.781879,
-        "widthRatio": 0.85906,
-        "depthRatio": 0.42953,
+        "centerYRatio": 0.8253333333333334,
+        "widthRatio": 0.8231511254019293,
+        "depthRatio": 0.3413333333333333,
         "scaleMode": "strict"
       },
       "fit": {
         "prismConstrained": true,
         "sourceRole": "structure-body",
         "explicitCalibration": true,
-        "displayWidth": 298,
-        "displayHeight": 298,
-        "scaleX": 0.35224602799948634,
-        "scaleY": 0.35224602799948634,
-        "uniformScale": 0.35224602799948634,
-        "nonUniformScale": false,
+        "displayWidth": 311,
+        "displayHeight": 375,
+        "scaleX": 0.4392655367231639,
+        "scaleY": 0.44536817102137766,
+        "uniformScale": 0.4392655367231639,
+        "nonUniformScale": true,
         "visualOffsetX": 0,
-        "footOffsetY": 148,
+        "footOffsetY": 186,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 423,
-        "sourceFootprintCenterY": 661.5,
-        "sourceFootprintFrontY": 843,
-        "sourceFootprintHalfDepth": 181.5,
-        "sourceFootprintWidth": 727,
-        "sourceFootprintDepth": 363.5,
+        "sourceFootprintCenterX": 354,
+        "sourceFootprintCenterY": 695,
+        "sourceFootprintFrontY": 838.5,
+        "sourceFootprintHalfDepth": 143.5,
+        "sourceFootprintWidth": 583,
+        "sourceFootprintDepth": 287.5,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
-        "groundCenterSourceX": 423,
-        "groundCenterSourceY": 661.5,
-        "groundSectionWidth": 727,
+        "groundCenterSourceX": 354,
+        "groundCenterSourceY": 695,
+        "groundSectionWidth": 583,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
-        "contactX": 422.5,
-        "bottomY": 842.160824,
-        "sideY": 661.469634,
+        "contactX": 353.5,
+        "bottomY": 837.632,
+        "sideY": 694.9306666666666,
         "leftX": -128,
         "rightX": 128,
         "centerX": 0,
@@ -1692,8 +2709,460 @@
             "y": -64
           }
         ],
-        "frameWidth": 846,
-        "frameHeight": 846
+        "frameWidth": 708,
+        "frameHeight": 842
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "house_lv5",
+      "textureKey": "house_lv5",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv5.png",
+      "sourceWidth": 758,
+      "sourceHeight": 920,
+      "displayWidth": 330,
+      "displayHeight": 401,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.8533333333333334,
+        "widthRatio": 0.7757575757575758,
+        "depthRatio": 0.28444444444444444,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 330,
+        "displayHeight": 450,
+        "scaleX": 0.4353562005277045,
+        "scaleY": 0.48913043478260876,
+        "uniformScale": 0.4353562005277045,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 223,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 379,
+        "sourceFootprintCenterY": 785,
+        "sourceFootprintFrontY": 916,
+        "sourceFootprintHalfDepth": 131,
+        "sourceFootprintWidth": 588,
+        "sourceFootprintDepth": 261.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 379,
+        "groundCenterSourceY": 785,
+        "groundSectionWidth": 588,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 378.5,
+        "bottomY": 914.9111111111112,
+        "sideY": 785.0666666666667,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 758,
+        "frameHeight": 920
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "house_lv6",
+      "textureKey": "house_lv6",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv6.png",
+      "sourceWidth": 613,
+      "sourceHeight": 870,
+      "displayWidth": 340,
+      "displayHeight": 483,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.8623188405797102,
+        "widthRatio": 0.7529411764705882,
+        "depthRatio": 0.2650103519668737,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 340,
+        "displayHeight": 483,
+        "scaleX": 0.5546492659053833,
+        "scaleY": 0.5551724137931034,
+        "uniformScale": 0.5546492659053833,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 239,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 306.5,
+        "sourceFootprintCenterY": 750,
+        "sourceFootprintFrontY": 865.5,
+        "sourceFootprintHalfDepth": 115.5,
+        "sourceFootprintWidth": 461.5,
+        "sourceFootprintDepth": 230.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 306.5,
+        "groundCenterSourceY": 750,
+        "groundSectionWidth": 461.5,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 306,
+        "bottomY": 864.4968944099379,
+        "sideY": 750.2173913043479,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 613,
+        "frameHeight": 870
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "house_lv7",
+      "textureKey": "house_lv7",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv7.png",
+      "sourceWidth": 685,
+      "sourceHeight": 917,
+      "displayWidth": 360,
+      "displayHeight": 482,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.8698630136986302,
+        "widthRatio": 0.7111111111111111,
+        "depthRatio": 0.25048923679060664,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 360,
+        "displayHeight": 511,
+        "scaleX": 0.5255474452554744,
+        "scaleY": 0.5572519083969466,
+        "uniformScale": 0.5255474452554744,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 253,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 342.5,
+        "sourceFootprintCenterY": 797.5,
+        "sourceFootprintFrontY": 912.5,
+        "sourceFootprintHalfDepth": 115,
+        "sourceFootprintWidth": 487,
+        "sourceFootprintDepth": 229.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 342.5,
+        "groundCenterSourceY": 797.5,
+        "groundSectionWidth": 487,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 342,
+        "bottomY": 911.513698630137,
+        "sideY": 797.6643835616438,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 685,
+        "frameHeight": 917
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "interplane_research_hub",
+      "textureKey": "interplane_research_hub",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/interplane_research_hub.png",
+      "sourceWidth": 878,
+      "sourceHeight": 931,
+      "displayWidth": 512,
+      "displayHeight": 543,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.759669,
+        "widthRatio": 1,
+        "depthRatio": 0.471455,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 543,
+        "scaleX": 0.5831435079726651,
+        "scaleY": 0.583243675756113,
+        "uniformScale": 0.5831435079726651,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 269,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 439,
+        "sourceFootprintCenterY": 707.5,
+        "sourceFootprintFrontY": 926.5,
+        "sourceFootprintHalfDepth": 219.5,
+        "sourceFootprintWidth": 878,
+        "sourceFootprintDepth": 439,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 439,
+        "groundCenterSourceY": 707.5,
+        "groundSectionWidth": 878,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 438.5,
+        "bottomY": 925.7141415,
+        "sideY": 707.251839,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 878,
+        "frameHeight": 931
       }
     },
     {
@@ -2182,16 +3651,129 @@
     },
     {
       "algorithmVersion": 8,
+      "id": "planar_observation_array",
+      "textureKey": "planar_observation_array",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/planar_observation_array.png",
+      "sourceWidth": 935,
+      "sourceHeight": 895,
+      "displayWidth": 512,
+      "displayHeight": 462,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.800117,
+        "widthRatio": 1,
+        "depthRatio": 0.389277,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 657.5,
+        "scaleX": 0.5475935828877005,
+        "scaleY": 0.734781452675274,
+        "uniformScale": 0.5475935828877005,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 325.5,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 467.5,
+        "sourceFootprintCenterY": 716,
+        "sourceFootprintFrontY": 890.5,
+        "sourceFootprintHalfDepth": 174,
+        "sourceFootprintWidth": 935,
+        "sourceFootprintDepth": 348.5,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 467.5,
+        "groundCenterSourceY": 716,
+        "groundSectionWidth": 935,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 467,
+        "bottomY": 889.3061725,
+        "sideY": 716.1047149999999,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 935,
+        "frameHeight": 895
+      }
+    },
+    {
+      "algorithmVersion": 8,
       "id": "planar_resonator",
       "textureKey": "planar_resonator",
       "frameName": "__BASE",
       "sourcePath": "assets/terrain/planar_resonator.png",
       "sourceWidth": 877,
       "sourceHeight": 702,
-      "displayWidth": 278,
-      "displayHeight": 223,
-      "nominalWidth": 256,
-      "nominalHeight": 128,
+      "displayWidth": 556,
+      "displayHeight": 446,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
       "centerAdjustX": 0,
       "centerAdjustY": 0,
       "visualFootprint": {
@@ -2205,14 +3787,14 @@
         "prismConstrained": true,
         "sourceRole": "structure-body",
         "explicitCalibration": true,
-        "displayWidth": 278,
-        "displayHeight": 223,
-        "scaleX": 0.3169898442310791,
-        "scaleY": 0.3176638350360586,
-        "uniformScale": 0.3169898442310791,
+        "displayWidth": 556,
+        "displayHeight": 446,
+        "scaleX": 0.6339796884621582,
+        "scaleY": 0.6353276700721172,
+        "uniformScale": 0.6339796884621582,
         "nonUniformScale": true,
         "visualOffsetX": 0,
-        "footOffsetY": 110,
+        "footOffsetY": 220,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
@@ -2222,8 +3804,8 @@
         "sourceFootprintHalfDepth": 201.5,
         "sourceFootprintWidth": 807.5,
         "sourceFootprintDepth": 403,
-        "mappedFootprintWidth": 256,
-        "mappedFootprintDepth": 128,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
         "groundCenterSourceX": 438.5,
@@ -2234,27 +3816,27 @@
         "contactX": 438,
         "bottomY": 696.2779969999999,
         "sideY": 495.80715599999996,
-        "leftX": -128,
-        "rightX": 128,
+        "leftX": -256,
+        "rightX": 256,
         "centerX": 0,
-        "centerY": -64,
+        "centerY": -128,
         "groundSlope": 0.5,
         "groundAngleDeg": 26.56505117707799,
         "measuredSideCenter": 0,
-        "measuredSideRise": 64,
-        "collisionWidth": 256,
-        "collisionHeight": 128,
-        "collisionRadius": 128,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
         "localVertices": [
           {
             "key": "back",
             "x": 0,
-            "y": -128
+            "y": -256
           },
           {
             "key": "right",
-            "x": 128,
-            "y": -64
+            "x": 256,
+            "y": -128
           },
           {
             "key": "front",
@@ -2263,20 +3845,20 @@
           },
           {
             "key": "left",
-            "x": -128,
-            "y": -64
+            "x": -256,
+            "y": -128
           }
         ],
         "contactPolygon": [
           {
             "key": "back",
             "x": 0,
-            "y": -128
+            "y": -256
           },
           {
             "key": "right",
-            "x": 128,
-            "y": -64
+            "x": 256,
+            "y": -128
           },
           {
             "key": "front",
@@ -2285,8 +3867,8 @@
           },
           {
             "key": "left",
-            "x": -128,
-            "y": -64
+            "x": -256,
+            "y": -128
           }
         ],
         "frameWidth": 877,
@@ -2408,136 +3990,23 @@
     },
     {
       "algorithmVersion": 8,
-      "id": "weather_forecast_tower",
-      "textureKey": "research_institute",
-      "frameName": "__BASE",
-      "sourcePath": "assets/terrain/research_institute.png",
-      "sourceWidth": 873,
-      "sourceHeight": 798,
-      "displayWidth": 224,
-      "displayHeight": 205,
-      "nominalWidth": 256,
-      "nominalHeight": 128,
-      "centerAdjustX": 0,
-      "centerAdjustY": 0,
-      "visualFootprint": {
-        "centerXRatio": 0.5,
-        "centerYRatio": 0.722222,
-        "widthRatio": 1,
-        "depthRatio": 0.547009,
-        "scaleMode": "strict"
-      },
-      "fit": {
-        "prismConstrained": true,
-        "sourceRole": "structure-body",
-        "explicitCalibration": true,
-        "displayWidth": 256,
-        "displayHeight": 234,
-        "scaleX": 0.293241695303551,
-        "scaleY": 0.29323283987332144,
-        "uniformScale": 0.293241695303551,
-        "nonUniformScale": true,
-        "visualOffsetX": 0,
-        "footOffsetY": 116,
-        "alignmentMode": "explicit-footprint-center",
-        "centerLocked": true,
-        "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 436.5,
-        "sourceFootprintCenterY": 576.5,
-        "sourceFootprintFrontY": 794.5,
-        "sourceFootprintHalfDepth": 218.5,
-        "sourceFootprintWidth": 873,
-        "sourceFootprintDepth": 436.5,
-        "mappedFootprintWidth": 256,
-        "mappedFootprintDepth": 128,
-        "centerAdjustX": 0,
-        "centerAdjustY": 0,
-        "groundCenterSourceX": 436.5,
-        "groundCenterSourceY": 576.5,
-        "groundSectionWidth": 873,
-        "scaleLimitedByOuterBounds": false,
-        "scaleLimitedByBottom": false,
-        "contactX": 436,
-        "bottomY": 793.589747,
-        "sideY": 576.333156,
-        "leftX": -128,
-        "rightX": 128,
-        "centerX": 0,
-        "centerY": -64,
-        "groundSlope": 0.5,
-        "groundAngleDeg": 26.56505117707799,
-        "measuredSideCenter": 0,
-        "measuredSideRise": 64,
-        "collisionWidth": 256,
-        "collisionHeight": 128,
-        "collisionRadius": 128,
-        "localVertices": [
-          {
-            "key": "back",
-            "x": 0,
-            "y": -128
-          },
-          {
-            "key": "right",
-            "x": 128,
-            "y": -64
-          },
-          {
-            "key": "front",
-            "x": 0,
-            "y": 0
-          },
-          {
-            "key": "left",
-            "x": -128,
-            "y": -64
-          }
-        ],
-        "contactPolygon": [
-          {
-            "key": "back",
-            "x": 0,
-            "y": -128
-          },
-          {
-            "key": "right",
-            "x": 128,
-            "y": -64
-          },
-          {
-            "key": "front",
-            "x": 0,
-            "y": 0
-          },
-          {
-            "key": "left",
-            "x": -128,
-            "y": -64
-          }
-        ],
-        "frameWidth": 873,
-        "frameHeight": 798
-      }
-    },
-    {
-      "algorithmVersion": 8,
       "id": "research_institute",
       "textureKey": "research_institute",
       "frameName": "__BASE",
       "sourcePath": "assets/terrain/research_institute.png",
-      "sourceWidth": 873,
-      "sourceHeight": 798,
+      "sourceWidth": 577,
+      "sourceHeight": 616,
       "displayWidth": 256,
-      "displayHeight": 234,
+      "displayHeight": 273,
       "nominalWidth": 256,
       "nominalHeight": 128,
       "centerAdjustX": 0,
       "centerAdjustY": 0,
       "visualFootprint": {
         "centerXRatio": 0.5,
-        "centerYRatio": 0.722222,
+        "centerYRatio": 0.760073,
         "widthRatio": 1,
-        "depthRatio": 0.547009,
+        "depthRatio": 0.468864,
         "scaleMode": "strict"
       },
       "fit": {
@@ -2545,34 +4014,34 @@
         "sourceRole": "structure-body",
         "explicitCalibration": true,
         "displayWidth": 256,
-        "displayHeight": 234,
-        "scaleX": 0.293241695303551,
-        "scaleY": 0.29323283987332144,
-        "uniformScale": 0.293241695303551,
+        "displayHeight": 273,
+        "scaleX": 0.4436741767764298,
+        "scaleY": 0.44318226136407957,
+        "uniformScale": 0.4436741767764298,
         "nonUniformScale": true,
         "visualOffsetX": 0,
-        "footOffsetY": 116,
+        "footOffsetY": 135,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 436.5,
-        "sourceFootprintCenterY": 576.5,
-        "sourceFootprintFrontY": 794.5,
-        "sourceFootprintHalfDepth": 218.5,
-        "sourceFootprintWidth": 873,
-        "sourceFootprintDepth": 436.5,
+        "sourceFootprintCenterX": 288.5,
+        "sourceFootprintCenterY": 468,
+        "sourceFootprintFrontY": 612.5,
+        "sourceFootprintHalfDepth": 144.5,
+        "sourceFootprintWidth": 577,
+        "sourceFootprintDepth": 289,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
-        "groundCenterSourceX": 436.5,
-        "groundCenterSourceY": 576.5,
-        "groundSectionWidth": 873,
+        "groundCenterSourceX": 288.5,
+        "groundCenterSourceY": 468,
+        "groundSectionWidth": 577,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
-        "contactX": 436,
-        "bottomY": 793.589747,
-        "sideY": 576.333156,
+        "contactX": 288,
+        "bottomY": 611.61508,
+        "sideY": 468.204968,
         "leftX": -128,
         "rightX": 128,
         "centerX": 0,
@@ -2628,8 +4097,121 @@
             "y": -64
           }
         ],
-        "frameWidth": 873,
-        "frameHeight": 798
+        "frameWidth": 577,
+        "frameHeight": 616
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "royal_mint",
+      "textureKey": "royal_mint",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/royal_mint.png",
+      "sourceWidth": 817,
+      "sourceHeight": 826,
+      "displayWidth": 300,
+      "displayHeight": 303,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.7838283828382838,
+        "widthRatio": 0.8533333333333334,
+        "depthRatio": 0.42244224422442245,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 300,
+        "displayHeight": 303,
+        "scaleX": 0.3671970624235006,
+        "scaleY": 0.3668280871670702,
+        "uniformScale": 0.3671970624235006,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 150,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 408.5,
+        "sourceFootprintCenterY": 647.5,
+        "sourceFootprintFrontY": 822,
+        "sourceFootprintHalfDepth": 174.5,
+        "sourceFootprintWidth": 697,
+        "sourceFootprintDepth": 349,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 408.5,
+        "groundCenterSourceY": 647.5,
+        "groundSectionWidth": 697,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 408,
+        "bottomY": 820.9108910891089,
+        "sideY": 647.4422442244224,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 817,
+        "frameHeight": 826
       }
     },
     {
@@ -2860,58 +4442,171 @@
     },
     {
       "algorithmVersion": 8,
-      "id": "thatch_hut",
-      "textureKey": "thatch_hut",
+      "id": "solar_power_plant",
+      "textureKey": "solar_power_plant",
       "frameName": "__BASE",
-      "sourcePath": "assets/terrain/thatch_hut.png",
-      "sourceWidth": 3508,
-      "sourceHeight": 2868,
-      "displayWidth": 256,
-      "displayHeight": 209,
-      "nominalWidth": 256,
-      "nominalHeight": 128,
+      "sourcePath": "assets/terrain/solar_power_plant.png",
+      "sourceWidth": 761,
+      "sourceHeight": 609,
+      "displayWidth": 512,
+      "displayHeight": 410,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
       "centerAdjustX": 0,
       "centerAdjustY": 0,
       "visualFootprint": {
         "centerXRatio": 0.5,
-        "centerYRatio": 0.691388,
+        "centerYRatio": 0.680488,
         "widthRatio": 1,
-        "depthRatio": 0.61244,
+        "depthRatio": 0.62439,
         "scaleMode": "strict"
       },
       "fit": {
         "prismConstrained": true,
         "sourceRole": "structure-body",
         "explicitCalibration": true,
-        "displayWidth": 256,
-        "displayHeight": 209,
-        "scaleX": 0.07297605473204105,
-        "scaleY": 0.07287310506015356,
-        "uniformScale": 0.07297605473204105,
+        "displayWidth": 512,
+        "displayHeight": 410,
+        "scaleX": 0.6727989487516426,
+        "scaleY": 0.6732350741482965,
+        "uniformScale": 0.6727989487516426,
         "nonUniformScale": true,
         "visualOffsetX": 0,
-        "footOffsetY": 104,
+        "footOffsetY": 202,
         "alignmentMode": "explicit-footprint-center",
         "centerLocked": true,
         "sizeMatchedToFootprint": true,
-        "sourceFootprintCenterX": 1754,
-        "sourceFootprintCenterY": 1983,
-        "sourceFootprintFrontY": 2861,
-        "sourceFootprintHalfDepth": 878,
-        "sourceFootprintWidth": 3508,
-        "sourceFootprintDepth": 1756.5,
+        "sourceFootprintCenterX": 380.5,
+        "sourceFootprintCenterY": 414.5,
+        "sourceFootprintFrontY": 604.5,
+        "sourceFootprintHalfDepth": 190,
+        "sourceFootprintWidth": 761,
+        "sourceFootprintDepth": 380.5,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 380.5,
+        "groundCenterSourceY": 414.5,
+        "groundSectionWidth": 761,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 380,
+        "bottomY": 603.543947,
+        "sideY": 414.417192,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 761,
+        "frameHeight": 609
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "steam_power_plant",
+      "textureKey": "steam_power_plant",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/steam_power_plant.png",
+      "sourceWidth": 712,
+      "sourceHeight": 717,
+      "displayWidth": 300,
+      "displayHeight": 302,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.7814569536423841,
+        "widthRatio": 0.8533333333333334,
+        "depthRatio": 0.423841059602649,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 300,
+        "displayHeight": 302,
+        "scaleX": 0.42134831460674155,
+        "scaleY": 0.4211994421199442,
+        "uniformScale": 0.42134831460674155,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 149,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 356,
+        "sourceFootprintCenterY": 560.5,
+        "sourceFootprintFrontY": 712.5,
+        "sourceFootprintHalfDepth": 152,
+        "sourceFootprintWidth": 607.5,
+        "sourceFootprintDepth": 304,
         "mappedFootprintWidth": 256,
         "mappedFootprintDepth": 128,
         "centerAdjustX": 0,
         "centerAdjustY": 0,
-        "groundCenterSourceX": 1754,
-        "groundCenterSourceY": 1983,
-        "groundSectionWidth": 3508,
+        "groundCenterSourceX": 356,
+        "groundCenterSourceY": 560.5,
+        "groundSectionWidth": 607.5,
         "scaleLimitedByOuterBounds": false,
         "scaleLimitedByBottom": false,
-        "contactX": 1753.5,
-        "bottomY": 2860.139744,
-        "sideY": 1982.900784,
+        "contactX": 355.5,
+        "bottomY": 711.2516556291391,
+        "sideY": 560.3046357615895,
         "leftX": -128,
         "rightX": 128,
         "centerX": 0,
@@ -2967,8 +4662,460 @@
             "y": -64
           }
         ],
-        "frameWidth": 3508,
-        "frameHeight": 2868
+        "frameWidth": 712,
+        "frameHeight": 717
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "stock_exchange",
+      "textureKey": "stock_exchange",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/stock_exchange.png",
+      "sourceWidth": 878,
+      "sourceHeight": 931,
+      "displayWidth": 512,
+      "displayHeight": 543,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.759669,
+        "widthRatio": 1,
+        "depthRatio": 0.471455,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 543,
+        "scaleX": 0.5831435079726651,
+        "scaleY": 0.583243675756113,
+        "uniformScale": 0.5831435079726651,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 269,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 439,
+        "sourceFootprintCenterY": 707.5,
+        "sourceFootprintFrontY": 926.5,
+        "sourceFootprintHalfDepth": 219.5,
+        "sourceFootprintWidth": 878,
+        "sourceFootprintDepth": 439,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 439,
+        "groundCenterSourceY": 707.5,
+        "groundSectionWidth": 878,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 438.5,
+        "bottomY": 925.7141415,
+        "sideY": 707.251839,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 878,
+        "frameHeight": 931
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "tavern",
+      "textureKey": "tavern",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/tavern.png",
+      "sourceWidth": 683,
+      "sourceHeight": 759,
+      "displayWidth": 300,
+      "displayHeight": 333,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.747748,
+        "widthRatio": 0.853333,
+        "depthRatio": 0.384384,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 300,
+        "displayHeight": 333,
+        "scaleX": 0.43923882457912994,
+        "scaleY": 0.43873561660122923,
+        "uniformScale": 0.43923882457912994,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 146.5,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 341.5,
+        "sourceFootprintCenterY": 567.5,
+        "sourceFootprintFrontY": 713.5,
+        "sourceFootprintHalfDepth": 146,
+        "sourceFootprintWidth": 583,
+        "sourceFootprintDepth": 291.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 341.5,
+        "groundCenterSourceY": 567.5,
+        "groundSectionWidth": 583,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 341,
+        "bottomY": 712.41446,
+        "sideY": 567.5407319999999,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 683,
+        "frameHeight": 759
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "thatch_hut",
+      "textureKey": "thatch_hut",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/thatch_hut.png",
+      "sourceWidth": 873,
+      "sourceHeight": 725,
+      "displayWidth": 256,
+      "displayHeight": 213,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.691388,
+        "widthRatio": 1,
+        "depthRatio": 0.61244,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 256,
+        "displayHeight": 209,
+        "scaleX": 0.293241695303551,
+        "scaleY": 0.2882759521552006,
+        "uniformScale": 0.293241695303551,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 104,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 436.5,
+        "sourceFootprintCenterY": 501.5,
+        "sourceFootprintFrontY": 723.5,
+        "sourceFootprintHalfDepth": 222,
+        "sourceFootprintWidth": 873,
+        "sourceFootprintDepth": 444,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 436.5,
+        "groundCenterSourceY": 501.5,
+        "groundSectionWidth": 873,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 436,
+        "bottomY": 722.2658,
+        "sideY": 501.2563,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 873,
+        "frameHeight": 725
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "high_energy_laboratory",
+      "textureKey": "university",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/university.png",
+      "sourceWidth": 926,
+      "sourceHeight": 639,
+      "displayWidth": 512,
+      "displayHeight": 353,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.630312,
+        "widthRatio": 1,
+        "depthRatio": 0.725212,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 353,
+        "scaleX": 0.5529157667386609,
+        "scaleY": 0.5524260189996398,
+        "uniformScale": 0.5529157667386609,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 174,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 463,
+        "sourceFootprintCenterY": 403,
+        "sourceFootprintFrontY": 634.5,
+        "sourceFootprintHalfDepth": 231.5,
+        "sourceFootprintWidth": 926,
+        "sourceFootprintDepth": 463.5,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 463,
+        "groundCenterSourceY": 403,
+        "groundSectionWidth": 926,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 462.5,
+        "bottomY": 633.474602,
+        "sideY": 402.769368,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 926,
+        "frameHeight": 639
       }
     },
     {
@@ -3086,6 +5233,119 @@
     },
     {
       "algorithmVersion": 8,
+      "id": "weather_forecast_tower",
+      "textureKey": "weather_forecast_tower",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/weather_forecast_tower.png",
+      "sourceWidth": 606,
+      "sourceHeight": 718,
+      "displayWidth": 256,
+      "displayHeight": 303,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.783828,
+        "widthRatio": 1,
+        "depthRatio": 0.422442,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 256,
+        "displayHeight": 303,
+        "scaleX": 0.42244224422442245,
+        "scaleY": 0.42200581500275247,
+        "uniformScale": 0.42244224422442245,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 150,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 303,
+        "sourceFootprintCenterY": 563,
+        "sourceFootprintFrontY": 714.5,
+        "sourceFootprintHalfDepth": 151.5,
+        "sourceFootprintWidth": 606,
+        "sourceFootprintDepth": 303.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 303,
+        "groundCenterSourceY": 563,
+        "groundSectionWidth": 606,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 302.5,
+        "bottomY": 713.4451819999999,
+        "sideY": 562.788504,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 606,
+        "frameHeight": 718
+      }
+    },
+    {
+      "algorithmVersion": 8,
       "id": "wheat_windmill",
       "textureKey": "wheat_windmill_body",
       "frameName": "__BASE",
@@ -3196,6 +5456,119 @@
         "frameWidth": 512,
         "frameHeight": 640
       }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "wind_power_plant",
+      "textureKey": "wind_power_plant_body",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/wind_power_plant_body.png",
+      "sourceWidth": 948,
+      "sourceHeight": 815,
+      "displayWidth": 512,
+      "displayHeight": 440,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.718615,
+        "widthRatio": 1,
+        "depthRatio": 0.554113,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 512,
+        "displayHeight": 462,
+        "scaleX": 0.540084388185654,
+        "scaleY": 0.5668707094903978,
+        "uniformScale": 0.540084388185654,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 229,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 474,
+        "sourceFootprintCenterY": 585.5,
+        "sourceFootprintFrontY": 811.5,
+        "sourceFootprintHalfDepth": 226,
+        "sourceFootprintWidth": 948,
+        "sourceFootprintDepth": 451.5,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 474,
+        "groundCenterSourceY": 585.5,
+        "groundSectionWidth": 948,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 473.5,
+        "bottomY": 810.4722725,
+        "sideY": 585.671225,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 948,
+        "frameHeight": 815
+      }
     }
   ]
-}\n
+}

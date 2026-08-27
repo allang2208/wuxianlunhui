@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_sniper_20260826\\references\\hamster-sniper-v02-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_sniper_20260826\\prompts\\attacking-doubao.txt",
+  "promptChars": 2653,
+  "promptSha256": "08dff6cf4e257bf9a5e71a2176304b4a665ebc7ed19925ca97d47e21b7d9b72c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T09:07:20.765Z",
+  "sourceUrlScheme": "https"
+}

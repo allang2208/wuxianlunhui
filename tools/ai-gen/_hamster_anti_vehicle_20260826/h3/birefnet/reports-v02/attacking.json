@@ -1,0 +1,33 @@
+{
+  "action": "attacking",
+  "video": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_smg_attacking_h3.mp4",
+  "sourceFrames": [
+    25,
+    33,
+    41,
+    49,
+    57,
+    66,
+    74
+  ],
+  "appendedIdleRegeneration": false,
+  "sourceFrameCount": 7,
+  "scale": 0.9903381642512077,
+  "alphaPixelsPerFrame": [
+    63870,
+    64074,
+    64298,
+    64266,
+    82956,
+    63658,
+    63184
+  ],
+  "emptyFrames": [],
+  "touchingFrames": [
+    4
+  ],
+  "alphaBottomMin": 458,
+  "alphaBottomMax": 458,
+  "transparentRgbMax": 0,
+  "pipeline": "BiRefNet-general alpha plus white-background foreground decontamination"
+}

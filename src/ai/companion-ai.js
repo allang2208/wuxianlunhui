@@ -333,6 +333,13 @@ export class CompanionAI {
             this._stuckStreak = 0;
             return;
         }
+        // 石化期间不推进任何 AI、冷却、攻击或施法状态，保留当前动作帧。
+        if (c.hasStatusEffect?.('petrified')) {
+            c.vx = 0;
+            c.vy = 0;
+            c.isMoving = false;
+            return;
+        }
         // 施法站定/无生命不检测
         if (c._castState !== 'idle' || c._frozenForCast || c.data.hp <= 0) {
             this._stuckStreak = 0;

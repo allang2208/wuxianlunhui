@@ -7,7 +7,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { CraftSystem, renderCraftIcon } from './craft-system.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { UIState } from './ui-state.js';
-import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
+import { getAmmoConfig, resolveGunAttackInterval } from '../config/gun-ammo.js';
 import { buildFormulaDisplay, isMachineGun } from '../config/attack-formula.js';
 import { CRAFT_EFFECT_REGISTRY, getCraftEffectDisplay } from '../config/craft-effect-registry.js';
 import { RARITY_LABELS, RARITY_COLORS } from '../config/rarity.js';
@@ -189,7 +189,12 @@ export const EquipTooltipManager = {
                 const bulletSpeedVal = (attackParams && (attackParams.bulletSpeed !== undefined ? attackParams.bulletSpeed : attackParams.projectileSpeed));
                 extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">子弹速度</span><span class="tt-stat-val">${bulletSpeedVal !== undefined && bulletSpeedVal !== null ? bulletSpeedVal + 'px/s' : '-'}</span></div>`;
             }
-            extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击间隔</span><span class="tt-stat-val">${attackParams && attackParams.attackInterval ? attackParams.attackInterval + 'ms' : '-'}</span></div>`;
+            const effectiveAttackInterval = attackParams && attackParams.attackInterval
+                ? (fullItem.category === 'weapon_ranged' && getAmmoConfig(fullItem)
+                    ? resolveGunAttackInterval(fullItem, attackParams.attackInterval)
+                    : Math.max(40, Number(attackParams.attackInterval) + (Number(ce?.attackIntervalDelta) || 0)))
+                : 0;
+            extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">攻击间隔</span><span class="tt-stat-val">${effectiveAttackInterval ? effectiveAttackInterval + 'ms' : '-'}</span></div>`;
             extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">命中类型</span><span class="tt-stat-val">${attackParams && attackParams.hitType ? attackParams.hitType : '-'}</span></div>`;
             extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">伤害类型</span><span class="tt-stat-val">${attackParams && attackParams.damageType ? attackParams.damageType : '-'}</span></div>`;
             extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">击退距离</span><span class="tt-stat-val">${effectiveKnockback !== null ? effectiveKnockback + 'px' : '-'}</span></div>`;
@@ -203,13 +208,24 @@ export const EquipTooltipManager = {
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">子弹数</span><span class="tt-stat-val">无限</span></div>`;
                     } else {
                         // magazineOverride 优先于 magazineDelta（与实际生效逻辑一致）
-                        const effectiveMax = (ce && ce.magazineOverride) ? ce.magazineOverride : (ammoCap.max + (ce?.magazineDelta || 0));
-                        const effectiveReloadTime = ammoCap.reloadTime + (ce?.reloadTimeDelta || 0);
+                        let effectiveMax = (ce && ce.magazineOverride) ? ce.magazineOverride : (ammoCap.max + (ce?.magazineDelta || 0));
+                        if (ce?.magazinePercent) effectiveMax = Math.round(effectiveMax * (1 + ce.magazinePercent));
+                        effectiveMax = Math.max(1, effectiveMax);
+                        const effectiveReloadTime = Math.max(100, ammoCap.reloadTime + (ce?.reloadTimeDelta || 0));
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">子弹数</span><span class="tt-stat-val">${effectiveMax}发</span></div>`;
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">换弹时间</span><span class="tt-stat-val">${effectiveReloadTime}ms</span></div>`;
                     }
                 }
                 extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">射程</span><span class="tt-stat-val">${effectiveRange > 0 ? effectiveRange + 'px' : '-'}</span></div>`;
+                if (attackParams?.damageFalloff) {
+                    const falloffStart = Math.min(effectiveRange, Math.max(0,
+                        Number(attackParams.damageFalloff.start)
+                        + (rangeDelta >= 0 ? rangeDelta * 0.6 : rangeDelta)));
+                    const edgePercent = Math.round(Math.max(0.05, Math.min(1,
+                        Number(attackParams.damageFalloff.minMultiplier) || 0.4)) * 100);
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">满伤距离</span><span class="tt-stat-val">${Math.round(falloffStart)}px</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">射程末端伤害</span><span class="tt-stat-val">${edgePercent}%</span></div>`;
+                }
                 // 散布参数：散弹枪与其他枪械不同
                 if (fullItem.weaponType === 'shotgun') {
                     if (ce && ce.slugMode) {
@@ -218,14 +234,15 @@ export const EquipTooltipManager = {
                         const shotSpread = Math.max(0, baseShotSpread + (ce.shotSpreadDelta || 0));
                         const baseRecovery = 500;
                         const recovery = Math.max(100, baseRecovery + (ce.slugRecoilRecovery || 0));
+                        const baseCap = fullItem.weaponId === 'weapon12' ? 15 : 20;
+                        const spreadCap = Math.max(0, Math.min(45, baseCap + (ce.maxSpreadAngleDelta || 0)));
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">每次射击散布增加</span><span class="tt-stat-val">+${shotSpread}°</span></div>`;
+                        extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">最大散布角度</span><span class="tt-stat-val">±${spreadCap}°</span></div>`;
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">后坐力恢复时间</span><span class="tt-stat-val">${recovery}ms</span></div>`;
                     } else {
                         // 普通散弹枪模式：保持原有散布角度显示
                         let spreadAngle = 20; // 基础散布角度（普通模式每发弹丸±20°）
-                        if (ce && ce.maxSpreadAngleDelta) {
-                            spreadAngle += ce.maxSpreadAngleDelta;
-                        }
+                        spreadAngle += (ce?.maxSpreadAngleDelta || 0) + (ce?.shotSpreadDelta || 0);
                         if (spreadAngle < 0) spreadAngle = 0;
                         extraHtml += `<div class="tt-extra-row" id="tt-spread-angle"><span class="tt-stat-name">散布角度</span><span class="tt-stat-val" id="tt-spread-angle-val">±${spreadAngle}°</span></div>`;
                     }
@@ -234,27 +251,35 @@ export const EquipTooltipManager = {
                         const piercing = 1 + (ce.piercingBonus || 0);
                         extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">穿透目标</span><span class="tt-stat-val">${piercing}个</span></div>`;
                     }
-                } else if (getFireMode(fullItem) === 'semiAuto') {
-                    // 半自动武器（沙漠之鹰等）：显示每次射击散布增加和后坐力恢复时间
-                    const baseShotSpread = 5;
-                    const shotSpread = Math.max(0, baseShotSpread + (ce?.shotSpreadDelta || 0));
-                    const baseRecovery = 500;
-                    const recovery = Math.max(100, baseRecovery + (ce?.recoilRecoveryDelta || 0));
-                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">每次射击散布增加</span><span class="tt-stat-val">+${shotSpread}°</span></div>`;
-                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">后坐力恢复时间</span><span class="tt-stat-val">${recovery}ms</span></div>`;
                 } else {
-                    // 其他枪械（全自动）：渐进式散布（全自动板机 spreadParamsOverride 覆盖优先，其次配置读取）
+                    // 手枪/自动武器统一使用“实际发数热量”散布；全自动板机覆盖模板优先。
                     const sp = (ce && ce.spreadParamsOverride) || fullItem.spreadParams || { startDelay: 500, maxTime: 4000, maxAngle: 25 };
-                    let spreadStart = sp.startDelay || 500;
-                    let spreadMax = sp.maxTime || 4000;
+                    const intervalMs = resolveGunAttackInterval(fullItem, Number(fullItem.attack?.attackInterval) || 250);
+                    const msToShots = (ms) => Number(ms) / intervalMs;
+                    let spreadStart = Number.isFinite(Number(sp.startShots))
+                        ? Number(sp.startShots)
+                        : Math.max(0, msToShots(sp.startDelay ?? 500));
+                    let spreadMax = Number.isFinite(Number(sp.maxShots))
+                        ? Number(sp.maxShots)
+                        : spreadStart + Math.max(1, msToShots(sp.maxTime ?? 1800));
+                    let recovery = Math.max(100, Number(sp.recoveryMs) || Math.max(280, intervalMs * 2.5));
                     let spreadAngle = sp.maxAngle || 25;
                     const isAutoOverride = !!(ce && ce.fireModeOverride === 'fullAuto');
-                    const effectiveSpreadStart = spreadStart + (ce?.spreadStartDelta || 0) + (isAutoOverride ? (ce?.autoSpreadStartDelta || 0) : 0);
-                    const effectiveSpreadMax = spreadMax + (ce?.spreadTimeDelta || 0) + (isAutoOverride ? (ce?.autoSpreadTimeDelta || 0) : 0);
-                    const effectiveSpreadAngle = spreadAngle + (ce?.maxSpreadAngleDelta || 0) + (isAutoOverride ? (ce?.autoMaxSpreadAngleDelta || 0) : 0);
-                    extraHtml += `<div class="tt-extra-row" id="tt-spread-start"><span class="tt-stat-name">散布开始时间</span><span class="tt-stat-val" id="tt-spread-start-val">${effectiveSpreadStart > 0 ? (effectiveSpreadStart/1000).toFixed(1) + '秒' : '即时'}</span></div>`;
-                    extraHtml += `<div class="tt-extra-row" id="tt-spread-max"><span class="tt-stat-name">达到最大散布时间</span><span class="tt-stat-val" id="tt-spread-max-val">${(effectiveSpreadMax/1000).toFixed(1)}秒</span></div>`;
+                    const startDelta = msToShots((ce?.spreadStartDelta || 0) + (isAutoOverride ? (ce?.autoSpreadStartDelta || 0) : 0));
+                    const maxDelta = startDelta + msToShots((ce?.spreadTimeDelta || 0) + (isAutoOverride ? (ce?.autoSpreadTimeDelta || 0) : 0));
+                    const effectiveSpreadStart = Math.max(0, spreadStart + startDelta);
+                    const effectiveSpreadMax = Math.max(effectiveSpreadStart + 1, spreadMax + maxDelta);
+                    const growthShots = Math.max(1, effectiveSpreadMax - effectiveSpreadStart);
+                    const effectiveSpreadAngle = Math.max(0, Math.min(45,
+                        spreadAngle
+                        + (ce?.maxSpreadAngleDelta || 0)
+                        + (isAutoOverride ? (ce?.autoMaxSpreadAngleDelta || 0) : 0)
+                        + (ce?.shotSpreadDelta || 0) * growthShots));
+                    recovery = Math.max(100, recovery + (ce?.recoilRecoveryDelta || 0));
+                    extraHtml += `<div class="tt-extra-row" id="tt-spread-start"><span class="tt-stat-name">稳定射击窗口</span><span class="tt-stat-val" id="tt-spread-start-val">前${Math.floor(effectiveSpreadStart)}发</span></div>`;
+                    extraHtml += `<div class="tt-extra-row" id="tt-spread-max"><span class="tt-stat-name">最大散布发数</span><span class="tt-stat-val" id="tt-spread-max-val">第${Math.ceil(effectiveSpreadMax)}发</span></div>`;
                     extraHtml += `<div class="tt-extra-row" id="tt-spread-angle"><span class="tt-stat-name">最大散布角度</span><span class="tt-stat-val" id="tt-spread-angle-val">±${effectiveSpreadAngle}°</span></div>`;
+                    extraHtml += `<div class="tt-extra-row"><span class="tt-stat-name">散布恢复时间</span><span class="tt-stat-val">${Math.round(recovery)}ms</span></div>`;
                     // 能量轻机枪：特殊参数（从 energyLMGParams 配置读取）
                     if (fullItem.energyLMGParams) {
                         const elp = fullItem.energyLMGParams;
@@ -270,8 +295,7 @@ export const EquipTooltipManager = {
                 }
                 // 武器特效
                 let effectsHtml = '';
-                // 机枪系专属 -50% 移速（仅 pkm/qjb201/energy_lmg，与运行时 isPkmEquipped 同口径——
-                // 此前列表含 akm/qbz191，tooltip 虚标减速（运行时不生效），已对齐）
+                // 机枪系专属 -50% 移速，与运行时 isMachineGun 判定保持同口径。
                 if (fullItem.isTwoHanded && isMachineGun(fullItem.weaponType)) {
                     const baseReduction = 0.50;
                     const effectiveReduction = Math.max(0, baseReduction - (ce?.moveSpeedPercent || 0));

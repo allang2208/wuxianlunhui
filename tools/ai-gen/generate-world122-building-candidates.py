@@ -19,8 +19,21 @@ DEFAULT_MANIFEST = REPO / "tools/ai-gen/world122-building-candidate-manifest.jso
 COMFY_PY = REPO.parent / "ComfyUI/.venv/Scripts/python.exe"
 BLENDER = Path("E:/Program Files/Blender Foundation/Blender 5.1/blender.exe")
 FOOTPRINT_FIT_SCALE = 1.42
-CANONICAL_STYLE_VERSION = "world122-building-v2"
+CANONICAL_STYLE_VERSION = "world122-building-v4"
 CANONICAL_STYLE_TEMPLATE = "tools/ai-gen/prompts/world122-building-style.md"
+CANONICAL_STYLE_MARKERS = (
+    "primary visual target",
+    "next-generation physically plausible pbr logic optimized specifically for game readability",
+    "stone retains natural medium-scale weathering",
+    "wooden components show visible grain",
+    "brass decoration and fittings are sparse and functional",
+    "foundation routing",
+    "isometric rubble stone plinth for game assets",
+    "isometric fair-faced concrete plinth for modern game assets",
+    "soft neutral upper-left top-side illumination",
+    "balance immediate building recognition with believable realistic surface response",
+    "preserve the exact authored blender geometry",
+)
 
 
 def run(command: list[str], *, label: str, timeout: int = 780) -> None:
@@ -56,26 +69,156 @@ def style_contract_for(manifest: dict) -> tuple[str, str, str]:
     contract = style_path.read_text(encoding="utf-8").strip()
     if not contract:
         raise ValueError(f"style template is empty: {style_path}")
+    normalized_contract = contract.casefold()
+    missing_markers = [
+        marker for marker in CANONICAL_STYLE_MARKERS
+        if marker.casefold() not in normalized_contract
+    ]
+    if missing_markers:
+        raise ValueError(
+            "canonical building style template is incomplete; missing required markers: "
+            + ", ".join(missing_markers)
+        )
     return style_version, style_template, contract
 
 
-def prompt_for(asset: dict, manifest: dict, stage: str = "legacy") -> str:
+FOUNDATIONLESS_ASSET_CLASSES = {
+    "natural_structure",
+    "surface_deposit",
+    "prop",
+    "agricultural_compound",
+}
+FOUNDATION_STYLE_BY_ASSET_CLASS = {
+    "modern_field_barracks": "worn_concrete",
+    "modern_office": "fair_faced_concrete",
+    "modern_residential": "fair_faced_concrete",
+    "solar_power_station": "fair_faced_concrete",
+    "modern_data_center": "fair_faced_concrete",
+    "future_residential": "precast_concrete",
+}
+FOUNDATION_STYLES = {
+    "none",
+    "rubble_stone",
+    "fair_faced_concrete",
+    "worn_concrete",
+    "precast_concrete",
+}
+
+
+def foundation_style_for(asset: dict) -> str:
+    explicit = str(asset.get("foundationStyle", "")).strip().casefold()
+    if explicit:
+        if explicit not in FOUNDATION_STYLES:
+            raise ValueError(
+                f"unsupported foundationStyle={explicit!r} for asset {asset.get('id', '<unknown>')}"
+            )
+        return explicit
+    asset_class = str(asset.get("assetClass", "")).strip().casefold()
+    if asset_class in FOUNDATIONLESS_ASSET_CLASSES:
+        return "none"
+    return FOUNDATION_STYLE_BY_ASSET_CLASS.get(asset_class, "rubble_stone")
+
+
+def foundation_contract_for(asset: dict) -> tuple[str, str]:
+    style = foundation_style_for(asset)
+    if style == "none":
+        return style, (
+            "Foundation exception: this asset class is not a medium functional building; preserve its "
+            "authored ground contact and do not invent a building plinth, slab or pedestal."
+        )
+    if style == "rubble_stone":
+        return style, """Foundation contract — Isometric Rubble Stone Plinth for Game Assets:
+Use one low integrated medieval irregular dry-stacked rubble foundation, fully visible and completely contained inside the authored footprint. Build the surface from irregular hand-cut rubble slabs with varied stone sizing, randomized worn and beveled corners, natural filled-joint texture and a deliberately non-industrial hand-laid paving character. Give the complete outer perimeter one consistent isometric chamfer so equal-footprint assets align cleanly. Keep the plinth continuous, game-readable and materially distinct from the more regular masonry of the building body; no marble skirt, monolithic polished slab, oversized podium, detached platform or terrain patch."""
+    if style == "fair_faced_concrete":
+        return style, """Foundation contract — Isometric Fair-faced Concrete Plinth for Modern Game Assets:
+Use one low integrated cast-in-place concrete hardstand, fully visible and completely contained inside the authored footprint. Preserve restrained formwork panel seams, fine natural air pores and a mostly level trowelled finish, with light rain streaking, localized efflorescence and subtle service wear. Keep the perimeter uniformly chamfered for clean isometric-grid joining to asphalt, concrete roads and same-spec assets. Use no medieval rubble paving, marble podium, detached platform, oversized curb or terrain patch."""
+    if style == "worn_concrete":
+        return style, """Foundation contract — worn plain-concrete industrial plinth:
+Use one low integrated fair-faced concrete hardstand, fully visible and completely contained inside the authored footprint. Preserve formwork seams and fine air pores, then add restrained chipped corners, shallow cracks, dust, rain stains and practical industrial wear without turning the base into rubble. Keep the perimeter uniformly chamfered for clean isometric-grid joining; no medieval stone paving, marble podium, detached platform or terrain patch."""
+    return style, """Foundation contract — precast concrete joining plinth:
+Use one low integrated near-future precast concrete base, fully visible and completely contained inside the authored footprint. Preserve precise panel joints, fine concrete pores, a lightly polished but non-mirror finish, restrained metal edge protection and a few recessed utility channels already supported by the authored geometry. Keep the perimeter uniformly chamfered for clean isometric-grid joining; no medieval rubble paving, neon seams, floating slab, detached platform or terrain patch."""
+
+
+def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
+               masked_refine: bool = False) -> str:
     natural_structure = asset.get("assetClass") == "natural_structure"
+    surface_deposit = asset.get("assetClass") == "surface_deposit"
     prop_asset = asset.get("assetClass") == "prop"
+    industrial_structure = asset.get("assetClass") == "industrial_structure"
+    solar_power_station = asset.get("assetClass") == "solar_power_station"
+    modern_data_center = asset.get("assetClass") == "modern_data_center"
+    modern_field_barracks = asset.get("assetClass") == "modern_field_barracks"
+    roman_barracks = asset.get("assetClass") == "roman_barracks"
+    agricultural_compound = asset.get("assetClass") == "agricultural_compound"
+    modern_office = asset.get("assetClass") == "modern_office"
+    victorian_residential = asset.get("assetClass") == "victorian_residential"
+    modern_residential = asset.get("assetClass") == "modern_residential"
+    future_residential = asset.get("assetClass") == "future_residential"
+    phase_storage_warehouse = asset.get("assetClass") == "phase_storage_warehouse"
     if stage == "structure":
         request = asset.get("structureRequest", asset["primaryRequest"])
     elif stage == "refine":
-        request = asset.get("detailRequest", asset["primaryRequest"])
+        request = (asset.get("maskedRefineRequest") if masked_refine else None) \
+            or asset.get("detailRequest", asset["primaryRequest"])
     else:
         request = asset["primaryRequest"]
     if stage == "structure" and prop_asset:
         stage_contract = """Generation stage: structural prop draft only
 Structure contract: preserve the supplied treasure-chest body, domed lid, four feet, frame, lock and authored open-or-closed lid state as one portable object; every hardware component remains attached to the same chest
 Detail budget: use broad readable metal panels, frame bands, lock plate, medallion and handle shapes so the chest silhouette and lid state can be judged; omit tiny engraving that would collapse at game scale"""
+    elif stage == "structure" and agricultural_compound:
+        stage_contract = """Generation stage: structural agricultural-compound draft only
+Structure contract: preserve one complete broad low 4x4 pasture, one continuous post-and-rail perimeter fence with one centered open gate, exactly one small central dairy hall, exactly one connected open cowshed and exactly one connected enclosed cheese workshop; keep the three-building cluster near one quarter of the pasture area and leave the remaining pasture visibly open
+Detail budget: use broad readable grass, timber, stone, plaster, roof, thatch, cheese-press and aging-rack materials so the compound layout can be judged; omit tiny clutter, animals, workers, carts and decorative scenery"""
+    elif stage == "structure" and solar_power_station:
+        stage_contract = """Generation stage: structural photovoltaic-station draft only
+Structure contract: preserve one complete 4x4 foundation, exactly one connected two-storey flat-roof office at the rear-right, exactly eighteen aligned ground panels in the front 3x6 block, exactly nine aligned ground panels in the rear-left 3x3 block, exactly four aligned roof panels in one 2x2 block and exactly two attached inverter cabinets; every photovoltaic panel follows the same authored global lattice, pitch and row direction
+Detail budget: use broad readable concrete, mineral plaster, charcoal steel, deep blue photovoltaic glass, aged brass and restrained cyan indicator materials so the full panel field, exact two-storey office and attached power equipment can be judged; omit tiny controls, cables, lettering, people, vehicles and decorative scenery"""
+    elif stage == "structure" and modern_data_center:
+        stage_contract = """Generation stage: structural modern-data-center draft only
+Structure contract: preserve one complete 4x4 foundation, one exact four-storey central operations core, exactly two attached symmetric two-storey server wings, exactly two roof cooling banks with three radiator cassettes each, exactly two wall-mounted coolant tanks, paired low wide coolant trunks and one attached low central roof manifold; every floor stays a closed load-bearing mass and every cooling device remains bolted to the same connected facility
+Detail budget: use broad readable weathered concrete, mineral panels, charcoal steel, deep blue-green server glazing, aged brass and restrained cyan coolant so the exact floor counts, server wings, cooling banks, tanks, trunks, lobby and processor emblem can be judged; omit office furniture, loose server racks, people, vehicles, lettering and tiny sci-fi greebles"""
+    elif stage == "structure" and modern_field_barracks:
+        stage_contract = """Generation stage: structural modern-field-barracks draft only
+Structure contract: preserve one complete 2x2 foundation, exactly one compact connected olive ridge tent with one open tied-back entrance and two rolled windows, exactly one attached open four-post steel lookout tower with cross braces, observation deck, railings, fixed ladder and one small canvas canopy, exactly two short low sandbag stacks, one short connector landing, one three-crate ammunition stack, one two-crate and two-jerry-can supply group, and one tower-side radio and cable-spool service group; every tower component and equipment group remains grounded and physically joined to the same compact field compound
+Detail budget: use broad readable canvas, webbing, weathered steel, dusty concrete, dark glass, sandbag cloth and olive equipment paint so the single tent, single tower, entrance, ladder, connector and three organized equipment zones can be judged; omit troops, vehicles, weapons, fences, lettering and random loose field clutter"""
+    elif stage == "structure" and roman_barracks:
+        stage_contract = """Generation stage: structural Roman-barracks draft only
+Structure contract: preserve one complete 2x2 foundation, exactly one low connected rectangular barracks hall with one complete flat stone roof deck and low side and rear parapets, exactly two attached symmetric flat-topped square corner towers, one connected front curtain wall, one centered arched gatehouse, complete authored crenellated parapets and exactly two matching crimson Roman legion standards; the gate opening remains visible and every tower, wall and gatehouse intersects the same compact fort
+Detail budget: use broad readable weathered stone, warm mineral plaster, dark timber, blackened iron, aged brass and crimson cloth so the Roman military silhouette, flat roof, battlements, arch, two scuta and two standards can be judged; omit roof tiles, people, siege engines, loose weapons, lettering and tiny ornament"""
+    elif stage == "structure" and industrial_structure:
+        stage_contract = """Generation stage: structural open-machine building draft only
+Structure contract: preserve one connected open four-post derrick, its cross braces and roof canopy, the central bore and drill shaft, one attached side winch, one attached extraction manifold and the authored maintenance clutter; the spaces between the posts remain visibly open and every machine stays bolted to the same deck
+Detail budget: use broad readable timber, iron, brass, stone and energy-flow materials so the derrick, bore, winch, manifold, tool chest, spare pipes and spare drill bits can be judged; omit tiny gauges, lettering and decorative filigree"""
+    elif stage == "structure" and surface_deposit:
+        stage_contract = """Generation stage: structural surface-deposit draft only
+Structure contract: preserve one complete very shallow diamond-shaped rubble bed and the authored flat embedded ore plates; all four footprint corners remain visible; every element stays below knee height and there is no opening, entrance, arch, support, rail, wall or roof
+Detail budget: use broad readable fractured stones, low rubble clusters and wide partially buried ore faces so the footprint and vein layout can be judged; omit architecture, excavation infrastructure and tall crystal silhouettes"""
     elif stage == "structure" and natural_structure:
         stage_contract = """Generation stage: structural massing draft only
 Structure contract: create one low connected natural rock mound with exactly one authored cave opening; preserve the supplied support frame, arch and rails without adding any inhabited architecture; all rock masses remain solid and mutually intersecting
 Detail budget: use plain readable rock, timber and iron materials so the single opening, mound silhouette and attached supports can be judged; omit windows, doors, roofs, rooms, towers, signs and ornament"""
+    elif stage == "structure" and modern_office:
+        stage_contract = """Generation stage: structural modern-office draft only
+Structure contract: preserve one complete 4x4 foundation and exactly six vertically aligned connected storeys; keep the broad recessed glass lobby, repeated office curtain-wall bays, dark structural fins, flat roof slab, continuous low parapet and attached low roof crown; every floor remains a closed load-bearing mass behind its glazing
+Roof-equipment contract: preserve exactly one compact open-lattice communications antenna tower bolted to the roof crown, including its four-legged mount, cross braces, crossarm, three panel antennas and lightning rod; it is not a seventh storey or inhabited tower
+Detail budget: use broad readable cool stone, pale mineral wall panels, dark steel, blue-green glass, sparse amber glass and aged brass so the exact floor count, lobby, window rhythm, sign, flat roof and antenna silhouette can be judged; omit office furniture, people, vehicles, readable ticker text and any unmodelled rooftop equipment"""
+    elif stage == "structure" and victorian_residential:
+        stage_contract = """Generation stage: structural Victorian-residential draft only
+Structure contract: preserve one complete 2x2 foundation and exactly four connected readable storeys; keep one attached two-storey bay window, one attached wrought-iron balcony, one compact domestic steam riser with gauge, one continuous mansard-hipped roof, exactly one dormer and exactly one chimney; every wall and floor remains a closed inhabited residential mass
+Detail budget: use broad readable brick, aged cream stone-plaster, dark timber, wrought iron, old brass, slate and restrained amber glass so the four-storey townhouse silhouette can be judged; omit factory machinery, industrial pipe networks, workers, vehicles, text and loose street props"""
+    elif stage == "structure" and modern_residential:
+        stage_contract = """Generation stage: structural modern-residential draft only
+Structure contract: preserve one complete 2x2 foundation and exactly five connected vertically aligned residential storeys; keep the broad glass lobby, repeated apartment-window rhythm, exactly four attached staggered balconies, one flat roof with continuous low parapet, one attached low mechanical penthouse and exactly two roof solar panels
+Detail budget: use broad readable mineral plaster, warm-gray concrete, charcoal steel, blue-green residential glass, muted bronze and restrained balcony planting so the exact floor count and domestic character can be judged; omit office signage, commercial curtain-wall grids, vehicles, people and extra rooftop equipment"""
+    elif stage == "structure" and future_residential:
+        stage_contract = """Generation stage: structural future-residential draft only
+Structure contract: preserve one complete 2x2 foundation and exactly six independently readable curved elliptical residential floors with the authored alternating offsets and rotations; keep one continuous central oval tower core, curved glass ribbons, exactly three attached crescent sky gardens at levels two, four and six, one attached glass observation crown, one compact energy halo and exactly four roof solar petals; preserve the supplied arcs instead of rectangularizing the mass
+Detail budget: use broad readable ceramic composite, charcoal structural bands, restrained blue-green glass, aged champagne bronze and deep vegetation so the six curved levels, central core and three sky gardens can be judged; omit extra floors, detached pods, flying vehicles, text and tiny sci-fi greebles"""
+    elif stage == "structure" and phase_storage_warehouse:
+        stage_contract = """Generation stage: structural phase-storage warehouse draft only
+Structure contract: preserve one complete 2x2 four-storey connected medieval warehouse, one continuous steep gable roof, exactly two unobstructed ground loading doors, two inherited balconies, exactly one exterior cargo lift, exactly one enclosed sorter, one short conveyor, one routing manifold, two enclosed chutes, two receiving bins and one attached phase-vault assembly; that assembly has exactly one faceted core inside exactly one complete stabilizer ring, exactly two sealed reserve canisters, four ring clamps, one short crossfeed conduit and one direct sorter coupler
+Detail budget: use broad readable half timber, plaster, fieldstone, roof tile, blackened iron and dark tarnished brass materials so the warehouse hierarchy and single phase-vault assembly can be judged; only the one large faceted core may be cyan, while canisters, coupler and all other hardware remain non-luminous dark metal"""
     elif stage == "structure":
         stage_contract = """Generation stage: structural massing draft only
 Structure contract: create closed, continuous, solid architecture; preserve the exact count and placement of the main hall, roof masses and towers from the supplied controls; every tower wall must intersect the supporting roof or hall; all tower corners, roof faces and lower walls must be complete; windows are shallow closed recesses, never open holes
@@ -84,10 +227,61 @@ Detail budget: omit telescopes, armillary spheres, books, signs, pipes, furnitur
         stage_contract = """Generation stage: detail refinement of the supplied initial prop image
 Structure contract: preserve the initial image's exact chest proportions, lid angle, lock placement, medallion, handle, camera, center and ground-contact points; do not add, move, merge or remove any major chest component
 Detail budget: improve only blackened metal response, aged brass relief, restrained filigree, edge wear, hinges and dark interior lining"""
+    elif stage == "refine" and agricultural_compound:
+        stage_contract = """Generation stage: detail refinement of the supplied agricultural-compound image
+Structure contract: preserve the initial image's exact 4x4 pasture boundary, complete fence, centered open gate, small three-building cluster, broad empty grazing area, camera, center and ground-contact corners; do not add, move, enlarge, merge or remove any major component
+Detail budget: improve only pasture texture, weathered timber, fieldstone, plaster, roof tiles, cowshed thatch, cheese press, aging rack and restrained cheese-wheel surfaces"""
+    elif stage == "refine" and solar_power_station:
+        stage_contract = """Generation stage: detail refinement of the supplied photovoltaic-station image
+Structure contract: preserve the initial image's exact full 4x4 foundation, one exact two-storey rear-right office, front 3x6 ground-panel block, rear-left 3x3 ground-panel block, roof 2x2 panel block, two attached inverter cabinets, camera, center and ground-contact corners; do not add, move, rotate, stagger, merge or remove any panel, floor or major equipment component
+Detail budget: improve only weathered concrete and mineral plaster, charcoal frames, deep blue photovoltaic glass with broad cell divisions, restrained office glazing, aged brass sun emblem, inverter surfaces and tiny cyan status indicators"""
+    elif stage == "refine" and modern_data_center:
+        stage_contract = """Generation stage: detail refinement of the supplied modern-data-center image
+Structure contract: preserve the initial image's exact full 4x4 foundation, four-storey central core, two attached two-storey server wings, two three-cassette roof cooling banks, two wall-mounted coolant tanks, paired low cooling trunks, central manifold, lobby, processor emblem, camera, center and ground-contact corners; do not add, remove, move, merge or reinterpret any floor, wing or cooling component
+Detail budget: improve only weathered concrete and mineral panels, charcoal steel, server glazing, intake grilles, aged brass, restrained coolant surfaces and dim interior light"""
+    elif stage == "refine" and modern_field_barracks:
+        stage_contract = """Generation stage: detail refinement of the supplied modern-field-barracks image
+Structure contract: preserve the initial image's exact 2x2 footprint, single compact ridge tent, one tied-back entrance, two rolled windows, single four-post lookout tower, cross braces, deck, railings, ladder, canvas canopy, two low sandbag stacks, connector landing, authored three-crate ammunition stack, two-crate and two-jerry-can supply group, tower-side radio and cable spool, camera, center and ground-contact corners; do not add, remove, duplicate, move, merge or reinterpret any major component or equipment group
+Detail budget: improve only olive canvas weave and seams, dark webbing, weathered charcoal steel, dusty concrete, worn sandbag cloth, olive equipment paint, restrained dark glass and sparse amber utility light"""
+    elif stage == "refine" and roman_barracks:
+        stage_contract = """Generation stage: detail refinement of the supplied Roman-barracks image
+Structure contract: preserve the initial image's exact 2x2 footprint, one low connected barracks hall, one complete flat stone roof deck with low side and rear parapets, two flat-topped square corner towers, connected front curtain wall, centered arched gatehouse, all authored battlements, exactly two tower scuta, exactly two crimson legion standards, camera, center and ground-contact corners; do not add, remove, duplicate, move, merge or reinterpret any major component, flag or crenellation group
+Detail budget: improve only weathered limestone and fieldstone, warm mineral plaster, dark timber, blackened iron, aged brass, crimson cloth, shield surfaces and restrained amber gate light"""
+    elif stage == "refine" and industrial_structure:
+        stage_contract = """Generation stage: detail refinement of the supplied initial open-machine building image
+Structure contract: preserve the initial image's exact four-post derrick, open sides, roof canopy, central bore and shaft, side winch, extraction manifold, maintenance clutter, camera, center and ground-contact points; do not enclose the frame or add, move, merge or remove any major machine component
+Detail budget: improve only weathered timber, blackened iron, oxidized brass, worn stone, restrained cyan energy flow and practical maintenance-tool surfaces"""
+    elif stage == "refine" and surface_deposit:
+        stage_contract = """Generation stage: detail refinement of the supplied initial surface-deposit image
+Structure contract: preserve the initial image's exact low diamond footprint, four readable corners, flat ore layout, camera, center and ground-contact edge; do not add height, a cave, an entrance, architecture or excavation equipment
+Detail budget: improve only fractured-stone variation, chipped flat ore faces, restrained energy seams, dust and subtle contact occlusion"""
     elif stage == "refine" and natural_structure:
         stage_contract = """Generation stage: detail refinement of the supplied initial image
 Structure contract: preserve the initial image's exact single cave opening, natural rock silhouette, support frame, rails, camera, center and ground-contact edge; do not add, move or reinterpret any rock mass as architecture
 Detail budget: improve only rock weathering, arch masonry, timber grain, iron wear, rails and the specifically requested embedded crystals"""
+    elif stage == "refine" and modern_office:
+        stage_contract = """Generation stage: detail refinement of the supplied modern-office image
+Structure contract: preserve the initial image's exact 4x4 foundation, six-storey count, vertically aligned facade, lobby, office-window rhythm, flat parapet roof, attached low crown, sign, camera, center and ground-contact corners; do not rebuild, move, merge, remove or add any major architectural mass
+Roof-equipment contract: preserve the exact single roof-mounted lattice antenna tower, crossarm, three antenna panels and lightning rod from the initial image; do not remove, duplicate, enclose or turn it into an occupied floor
+Detail budget: improve only weathered cool stone, pale mineral panels, charcoal steel facade and antenna lattice, blue-green and amber glazing, aged brass hardware and lightning rod, restrained interior office light and the no-text opening-bell plus rising-chart emblem"""
+    elif stage == "refine" and victorian_residential:
+        stage_contract = """Generation stage: detail refinement of the supplied Victorian-residential image
+Structure contract: preserve the initial image's exact 2x2 foundation, four-storey count, attached two-storey bay, single balcony, domestic steam riser and gauge, mansard-hipped roof, one dormer, one chimney, camera, center and ground-contact corners; do not add, remove or rebuild any major architectural mass
+Detail budget: improve only aged brick, cream stone-plaster, dark timber, wrought iron, oxidized copper, old brass, slate, amber glazing and restrained domestic steam fittings"""
+    elif stage == "refine" and modern_residential:
+        stage_contract = """Generation stage: detail refinement of the supplied modern-residential image
+Structure contract: preserve the initial image's exact 2x2 foundation, five-storey count, glass lobby, apartment-window rhythm, four attached balconies, flat parapet roof, low mechanical penthouse, two solar panels, camera, center and ground-contact corners; do not add, remove or rebuild any major architectural mass
+Detail budget: improve only weathered mineral plaster, warm-gray concrete, charcoal steel, blue-green glazing, muted bronze, residential interior light and restrained balcony planting"""
+    elif stage == "refine" and future_residential:
+        stage_contract = """Generation stage: detail refinement of the supplied future-residential image
+Structure contract: preserve the initial image's exact 2x2 foundation, six curved elliptical floor plates and their alternating offsets, central oval tower core, curved glazing, three crescent sky gardens at levels two, four and six, glass observation crown, energy halo, four solar petals, camera, center and ground-contact corners; do not straighten, rectangularize, add, remove or detach any major mass
+Entrance correction contract: preserve exactly one closed ground-level entrance in the authored lower facade; replace its round porthole-like infill with two solid flush automatic door leaves sliding inward from left and right to meet at one crisp vertical center seam, with one restrained upper track and one lower guide; the entrance stays closed and attached directly to the facade with no open gap, ramp, bridge, glowing path or projecting platform; completely erase any duplicated upper round portal and rebuild that region as a closed uninterrupted horizontal curved residential glass ribbon plus continuous structural bands, with no opening, arch, recess, door or portal
+Detail budget: improve only off-white ceramic composite, charcoal bands, restrained blue-green glass, champagne bronze, deep vegetation, subtle residential light, the single bi-parting automatic entrance and physically integrated energy hardware"""
+    elif stage == "refine" and phase_storage_warehouse:
+        stage_contract = """Generation stage: detail refinement of the supplied phase-storage warehouse image
+Structure contract: preserve the initial image's exact 2x2 footprint, four connected storeys, one continuous gable roof, exactly two ground loading doors, two balconies, exactly one cargo lift, exactly one enclosed sorter, one short conveyor, one routing manifold, two enclosed chutes, two receiving bins and one attached phase-vault assembly; preserve exactly one large faceted core inside exactly one complete stabilizer ring, exactly two sealed reserve canisters, four ring clamps, one short crossfeed conduit, one direct sorter coupler, camera, center and ground-contact edge; do not add, remove, duplicate, relocate or reinterpret any architectural or mechanical component
+Color-isolation contract: the one large faceted phase core inside the single ring is the only cyan or blue luminous object anywhere in the image; both reserve canisters are sealed opaque blackened-iron cylinders with dark tarnished-brass collars, and the lower coupler is non-luminous blackened iron and brown-brass hardware with no blue liquid, lens, crystal, halo or ring
+Detail budget: match the accepted warehouse LV4 family's restrained darkness and weathering; improve only muted gray-purple roof tiles, aged cream plaster, dark-oak grain and joints, chipped fieldstone, matte worn iron, subdued brown tarnished brass with minimal highlights, restrained edge wear and the single controlled cyan core surface; keep contrast neutral and avoid clean laboratory glass, bright gold, polished metal or broad glow"""
     elif stage == "refine":
         stage_contract = """Generation stage: detail refinement of the supplied initial image
 Structure contract: preserve the initial image's exact building silhouette, tower count, tower placement, roofline, camera, center and ground-contact edge; do not rebuild, move, merge, remove or add any major architectural mass
@@ -113,19 +307,161 @@ Structure contract: preserve every major component indicated by the control silh
     if prop_asset:
         composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; all four authored feet remain grounded; preserve the exact open-or-closed lid state; no perspective convergence"
         negative_contract = "one portable treasure chest only; no house, no building facade, no roof reinterpretation, no tower, no room, no wall, no window, no door, no platform, no pedestal, no floor tile, no terrain, no cast shadow, no treasure pile, no coins, no weapons, no people, no animals, no text and no watermark"
+    elif agricultural_compound:
+        composition_contract = "strictly follow the supplied full-compound depth-control silhouette and orthographic 2.5D isometric view; centered; all four pasture corners and the complete fence remain visible; the centered gate stays open; the small main hall, cowshed and workshop remain grounded inside the rear portion while most of the pasture stays open; no perspective convergence"
+        negative_contract = "one complete medieval dairy-farm compound only; no enlarged building cluster, no extra farmhouse, no detached barn, no second cowshed, no second workshop, no silo, no windmill, no tower, no castle, no market stall, no cart, no wagon, no machinery beyond the supplied cheese press, no extra fence, no road, no stairs, no raised stone platform, no marble plinth, no trees, no crops, no people, no hamsters, no cowherds, no cows, no other animals, no signs, no readable text and no watermark; do not fill the broad pasture with loose clutter or scenery"
+    elif solar_power_station:
+        composition_contract = "strictly follow the supplied full 4x4 depth-control silhouette and orthographic 2.5D isometric view; centered; preserve one exact two-storey office at the rear-right; preserve the front 3x6 and rear-left 3x3 ground-panel blocks on one shared straight lattice plus one roof 2x2 block; all panel frames retain one common pitch, row direction, spacing and edge alignment; no perspective convergence"
+        negative_contract = "one connected modern photovoltaic power station only; no staggered, crooked, randomly rotated or missing panels, no extra panel beyond the supplied silhouette, no oversized gaps or empty lawn within the authored panel field, no third floor, extra office wing, detached annex, second building, pitched roof, tower, antenna, satellite dish, smokestack, cooling tower, wind turbine, generator hall, road, cars, trucks, plaza furniture, fences, trees, people, animals, readable text, numbers, logos or watermark"
+    elif modern_data_center:
+        composition_contract = "strictly follow the supplied full 4x4 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve one exact four-storey central operations core, exactly two attached symmetric two-storey server wings, exactly two roof cooling banks with three radiator cassettes each, exactly two wall-mounted coolant tanks, paired low wide coolant trunks and one attached low central roof manifold; no perspective convergence"
+        negative_contract = "one connected modern computing facility only; no fifth floor, no third wing floor, no antenna, satellite dish, tower, spire, dome, pitched roof, detached annex, second building, cooling tower, smokestack, solar panels, wind turbine, floating machinery, loose server cabinets, road, cars, plaza furniture, trees, people, readable text, numbers, logos or watermark; the processor sign stays one geometric nine-node emblem"
+    elif modern_field_barracks:
+        composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve exactly one compact military ridge tent, exactly one attached open four-post lookout tower with its authored deck, canopy and ladder, and exactly three organized equipment zones: a three-crate ammunition stack, a two-crate and two-jerry-can supply group, and a tower-side radio with cable spool; the entrance and ladder remain clear and every component stays connected to the same compact compound; no perspective convergence"
+        negative_contract = "one compact present-day infantry field barracks only; no medieval stone hall, half-timber facade, red tile roof, castle battlements, second tent, second tower, detached hut, bunker, perimeter fence, chain-link fence, barbed wire, camouflage-net canopy, obstacle course, radar, antenna mast, flag, soldiers, hamsters, people, guns, turret, tank, armored vehicle, truck, helicopter, national insignia, readable text, neon, sci-fi machinery, random or scattered clutter, extra crates or extra fuel cans, road, terrain, trees or watermark"
+    elif roman_barracks:
+        composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve exactly one low Roman barracks hall with one complete flat stone roof deck and low side and rear parapets, exactly two symmetric flat-topped crenellated corner towers, one connected front curtain, one centered arched gatehouse and exactly two matching crimson legion standards; the gate remains readable and every fortified element stays physically joined; no perspective convergence"
+        negative_contract = "one compact medieval Roman legion barracks only; no pitched roof, gable roof, red tiled roof, pointed tower roof, conical turret, Gothic spire, half-timber facade, cathedral window, third tower, second hall, second roof, detached wall, detached gate, courtyard expansion, amphitheater, palace, temple, aqueduct, colonnade forest, siege engine, ballista, catapult, vehicle, modern machinery, soldiers, hamsters, people, animals, loose weapons, extra flag, national flag, readable Latin letters, words, numerals, runes, neon, road, terrain, trees or watermark"
+    elif industrial_structure:
+        composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; all four derrick feet remain grounded on the same machine deck; posts remain vertical and open spaces remain open; every machine and maintenance object stays attached to the authored structure; no perspective convergence"
+        negative_contract = "one connected open medieval deep-drilling building on exactly one routed low rubble-stone plinth only; no enclosed house, no factory hall, no solid walls between the derrick posts, no second building, no second tower, no oil pumpjack, no oil well, no modern steel lattice tower, no crane boom, no smokestack, no cooling tower, no extra roof, no second platform, no detached machinery, no pipes extending beyond the supplied silhouette, no road, no stairs, no terrain, no grass, no trees, no people, no animals, no signs, no text and no watermark; the required plinth must remain inside the supplied footprint and must not become a detached slab, oversized podium or cast shadow"
+    elif surface_deposit:
+        composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; preserve one complete shallow projected 128x64 diamond with all four corners readable; every rubble and ore element remains low, grounded and inside that diamond; no perspective convergence"
+        negative_contract = "one bare surface mineral deposit only; no cave, no hole, no tunnel, no entrance, no portal, no arch, no doorway, no mountain, no cliff, no hill, no tall mound, no building, no house, no tower, no wall, no roof, no timber frame, no fence, no scaffolding, no bridge, no rail, no track, no cart, no machinery, no upright crystal, no pointed crystal, no spire, no pillar, no raised platform, no road, no stairs, no cast shadow, no grass, no trees, no people, no animals, no text and no watermark"
     elif natural_structure:
         composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; the rock mound ends exactly at the supplied ground line; attached timber posts remain vertical; no perspective convergence"
         negative_contract = "one natural rock structure only; exactly one cave opening and one entrance arch; no house, no tower, no upper floor, no roof, no facade, no window, no stained glass, no door, no chapel, no gatehouse, no second entrance, no extra arch, no detached building, no square floor, no paving, no road slab, no plinth, no pedestal, no cast shadow, no grass, no trees, no people, no animals, no flags, no text and no watermark"
+    elif modern_office:
+        composition_contract = "strictly follow the supplied full 4x4 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; exactly six vertically aligned storeys remain closed and connected; curtain-wall bays, lobby, flat roof and parapet follow the authored axes; preserve exactly one compact open-lattice communications antenna tower physically mounted on the attached roof crown; no perspective convergence"
+        negative_contract = "one connected six-storey modern-fantasy financial office building with exactly one authored roof antenna tower only; no medieval half-timber facade, no pitched roof, no inhabited tower, no spire, no dome, no seventh floor, no rooftop terrace, no second antenna tower, no satellite dish, no detached annex, no second building, no skybridge, no exposed utility pipes, no smokestack, no futuristic machinery, no mirror-chrome skyscraper, no neon billboard, no road, no cars, no plaza furniture, no trees, no people, no animals, no flags, no readable letters, words, numbers, runes, ticker text or watermark; all signs use only the supplied geometric bell, coin and rising-chart symbols"
+    elif victorian_residential:
+        composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; exactly four connected residential storeys, the attached two-storey bay, one balcony, compact steam riser, mansard-hipped roof, one dormer and one chimney remain physically joined; no perspective convergence"
+        negative_contract = "one compact four-storey Victorian steam-era townhouse only; no factory, boiler house, mill, warehouse, smokestack cluster, industrial pipe network, second house, detached annex, second roof, second dormer, second chimney, tower, turret, palace wing, fifth floor, modern curtain wall, futuristic parts, road, cars, fence, trees, people, animals, signs, readable text or watermark"
+    elif modern_residential:
+        composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; exactly five connected vertically aligned residential storeys, the glass lobby, four attached balconies, flat parapet roof, low mechanical penthouse and two solar panels follow the authored axes; no perspective convergence"
+        negative_contract = "one compact five-storey modern residential apartment building only; no office tower, corporate lobby signage, commercial curtain-wall grid, medieval half-timber facade, pitched roof, sixth floor, inhabited roof tower, antenna mast, satellite dish, detached annex, second building, skybridge, road, cars, plaza furniture, people, animals, readable text or watermark"
+    elif future_residential:
+        composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; exactly six independently readable curved elliptical residential floors retain their alternating offsets and rotations around one continuous oval tower core; preserve the curved glass ribbons, exactly three attached crescent sky gardens at levels two, four and six, one observation crown, one compact energy halo and four solar petals; no perspective convergence"
+        negative_contract = "one connected six-level curved future ecological residential tower with exactly one closed flush ground-level bi-parting automatic entrance only; no round porthole window, capsule window, circular hatch, upper-floor opening, upper-floor arch, upper-floor door, duplicated portal or pod-like facade attachment; no open entrance gap, luminous threshold, glowing ramp, bridge, stairs or projecting platform; do not rectangularize any floor into a straight slab block; no seventh floor, second tower, detached pod, floating garden, flying vehicle, skybridge, antenna forest, industrial pipes, medieval half-timber facade, Gothic spire, neon billboard, glossy chrome, road, cars, plaza furniture, people, animals, readable text or watermark"
     else:
         composition_contract = "strictly follow the supplied depth-control silhouette and its orthographic 2.5D isometric view; centered; architecture ends exactly at the supplied ground line; all walls remain vertical; no perspective convergence"
-        negative_contract = "no plumbing, pipes, water tubes, steam pipes, laboratory tubing, modern utilities, contemporary fixtures, industrial conduits, antennas, satellite dishes, exposed machinery, futuristic parts; no flat rooftop terrace, elevated deck, raised square platform, roof plaza, or detached upper block; the upper tower must sit directly on the supplied roof mass; one building only; building body only; absolutely no separate foundation; no plinth; no raised stone slab; no floor; no baked paving; no terrain; no grass; no trees; no stairs; no fence; no props outside the architecture; no people; no animals; no flags; no text; no watermark; at the ground line the lower wall material must continue unchanged to the bottom edge; render architecture only with transparent pixels outside the supplied silhouette; absolutely no platform, pavement, steps, curb, pedestal, foundation slab, floor tile, white marble skirt, pale stone band, or contrasting base strip (runtime road tiles are added only by the separate review composite)"
-    style_version, _style_template, style_contract = style_contract_for(manifest)
-    if prop_asset:
-        # Portable props keep the canonical material/lighting finish without
-        # receiving any of the building-only half-timber/Gothic vocabulary.
-        # Sending both vocabularies and trying to negate architecture later is
-        # not reliable: the model will often turn a chest panel into a facade.
-        style_contract = """Canonical World-122 portable-prop rendering subset:
+        negative_contract = "no plumbing, pipes, water tubes, steam pipes, laboratory tubing, modern utilities, contemporary fixtures, industrial conduits, antennas, satellite dishes, exposed machinery or futuristic parts unless explicitly authored for this asset; no flat rooftop terrace, elevated deck, raised square platform, roof plaza or detached upper block; the upper tower must sit directly on the supplied roof mass; one building and exactly one routed low foundation plinth only; no second slab, oversized podium, detached platform, terrain patch, grass, trees, stairs, fence, props outside the architecture, people, animals, flags, text or watermark; the required foundation must stay completely inside the supplied footprint with transparent pixels outside it, and must not become white marble, a pale decorative skirt, a floor tile beyond the footprint or a cast shadow"
+    style_version, _style_template, canonical_style_contract = style_contract_for(manifest)
+    foundation_style, foundation_contract = foundation_contract_for(asset)
+    class_style_contract = ""
+    if solar_power_station:
+        class_style_contract = """Canonical World-122 photovoltaic-station rendering subset:
+Style/medium: sober semi-realistic handcrafted modern renewable-energy facility with physically plausible game-ready PBR materials, clean readable engineering and the established World-122 isometric finish.
+Material grammar: weathered light-gray concrete and mineral plaster, charcoal structural steel and panel frames, restrained deep navy-blue photovoltaic glass with broad visible cell divisions, subdued blue-green office glass, naturally aged brass for the geometric sun emblem and tiny cyan status lights limited to the attached inverter cabinets.
+Color treatment: deliberately low saturation and controlled neutral contrast; blue glass, aged brass and cyan indicators are functional accents, never mirror-glossy, neon or corporate-bright.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize the complete aligned panel field, repeated broad panel-cell divisions, one exact two-storey office, four roof panels, two attached inverter cabinets and one geometric no-text sun emblem; avoid hairline wiring and photographic micro-reflections.
+Shape treatment: preserve the full low 4x4 station footprint and the authored common panel lattice; all frames remain parallel, equally pitched and regularly spaced around one compact flat-roof office.
+Absolute class lock: this object is one modern photovoltaic power station, not a medieval half-timber building, Gothic monument, futuristic megastructure, wind farm, thermal plant, office tower or landscaped campus."""
+    elif modern_data_center:
+        class_style_contract = """Canonical World-122 modern-data-center rendering subset:
+Style/medium: sober semi-realistic handcrafted modern computing facility with physically plausible game-ready PBR materials, clean readable engineering and the established World-122 isometric finish.
+Material grammar: weathered cool-gray concrete and mineral panels, charcoal structural steel and server louvers, restrained deep blue-green server and operations glass, naturally aged brass, controlled cyan limited to coolant and status surfaces.
+Color treatment: deliberately low saturation and controlled neutral contrast; glass, aged brass and cyan coolant are functional accents, never mirror-glossy, neon or corporate-bright.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize the exact four central floors, two two-storey server wings, broad lobby, repeated server windows and intake grilles, two three-cassette cooling banks, two attached coolant tanks, paired low trunks, central manifold and one nine-node processor emblem; avoid loose racks and tiny sci-fi greebles.
+Shape treatment: preserve one connected broad 4x4 facility with a central vertical operations core and lower symmetrical wings; all cooling devices stay physically attached and the silhouette remains compact rather than skyscraper-like.
+Absolute class lock: this object is one modern data center, not a medieval half-timber building, Gothic monument, office skyscraper, futuristic megastructure, cooling plant or landscaped campus; no pitched roof, antenna, satellite dish, tower, detached annex, cars, text, chrome or floating machinery."""
+    elif modern_field_barracks:
+        class_style_contract = """Canonical World-122 modern-field-barracks rendering subset:
+PRIMARY MATERIAL AND LIGHTING LOCK: render the authored modern military camp with next-generation physically plausible PBR material response optimized for strategy-game readability. This PBR and lighting language is the main style target, not optional polish and not photoreal military photography.
+Style/medium: sober semi-realistic handcrafted present-day military field architecture with clean readable massing, slightly stylized solid game-scale proportions and the established World-122 isometric finish.
+Material grammar: low-saturation olive-drab and dark forest canvas shows broad woven fibers, seams, restrained stains and practical service wear; dark webbing stays matte; charcoal structural steel shows believable edge wear and subdued oxidation; the authored concrete or stone footing retains natural medium-scale weathering, mineral variation and chipped edges without photographic micro-noise; authored wooden crate boards or timber fittings show visible grain, joints and restrained wear from repeated handling; sparse brass buckles, hinges and equipment fittings show naturally aged tarnish or muted verdigris, never glossy yellow gold. Muted khaki sandbag cloth, restrained deep-green glass and sparse warm amber utility light complete the material family.
+Material boundary: apply stone weathering, worn wood and aged brass only to the foundation, crates and small fittings already present in the authored structure. Do not invent stone walls, half-timber architecture, Gothic ornament, decorative brass panels or extra props to demonstrate these materials.
+Color treatment: deliberately low saturation and controlled neutral contrast; olive, khaki and amber are functional accents, never bright toy green, glossy, neon or national-color branding.
+Equipment grammar: retain the authored ammunition crates, jerry cans, field radio and cable spool as three compact, orderly work zones with worn olive paint and dark hardware; keep the entrance and fixed ladder visibly unobstructed and do not scatter extra props.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion, balancing immediate building recognition with believable PBR surface response. Use no exaggerated bright-dark contrast, hard directional shadow, cinematic rim light, colored grading, bloom, glow haze or cast shadow outside the building body.
+Detail scale: prioritize one large complete ridge tent, its open tied-back entrance and rolled windows, one open four-post lookout tower, cross braces, observation deck, rails, fixed ladder, small canvas canopy, two low sandbag stacks and one short connector; avoid hairline ropes and photographic micro-clutter.
+Shape treatment: preserve a compact grounded 2x2 field compound with the tent as the dominant low mass and the single tower as the only vertical landmark; every structural part stays robust, attached and readable at RTS scale.
+Absolute class lock: this object is one modern infantry field barracks, not a medieval half-timber building, castle, training obstacle course, fortified bunker, vehicle base, radar site or sci-fi outpost. Use no red tile, Gothic ornament, second tent, second tower, perimeter fence, barbed wire, camouflage-net canopy, vehicle, soldier, flag, logo or readable text."""
+    elif roman_barracks:
+        class_style_contract = """Canonical World-122 Roman-barracks rendering subset:
+Style/medium: sober semi-realistic handcrafted late-Roman to medieval frontier military architecture with physically plausible game-ready PBR materials, clean readable fortified massing and the established World-122 isometric finish.
+Material grammar: low-saturation weathered limestone and darker fieldstone, warm earth mineral plaster, a flat stone roof deck, dark oak gates, blackened iron, naturally aged brass and deep crimson legion cloth.
+Color treatment: deliberately low saturation and controlled neutral contrast; crimson and aged brass form one restrained military accent family, never bright toy red, glossy gold, national-color branding or neon.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize the low hall, one complete flat roof deck with low parapets, two flat crenellated towers, connected curtain wall, central arched gatehouse, broad battlements, two matching scuta and exactly two readable legion standards; keep stone courses, roof edging, flag trim and shield fittings broad enough for RTS scale.
+Shape treatment: preserve one compact grounded 2x2 Roman fort-barracks with a horizontal hall and symmetrical fortified front; all walls, towers and gatehouse remain connected and the flat battlement skyline stays distinct from Gothic castle spires.
+Absolute class lock: this object is one medieval Roman legion barracks, not a generic half-timber castle, Gothic church, fantasy citadel, classical temple, palace, amphitheater or modern base. Use no pitched roof, gable roof, roof tiles, pointed tower roofs, third tower, extra building, giant columns, siege engines, soldiers, extra flags, readable Latin text or national emblems."""
+    elif victorian_residential:
+        class_style_contract = """Canonical World-122 Victorian-residential rendering subset:
+Style/medium: sober semi-realistic handcrafted late-nineteenth-century residential architecture with physically plausible game-ready PBR materials, readable massing and the established World-122 isometric finish.
+Material grammar: low-saturation deep red-brown brick, warm aged cream dressed stone and mineral plaster, dark walnut timber, charcoal wrought iron, naturally oxidized copper and old brass, muted blue-gray slate, restrained amber residential glass.
+Color treatment: deliberately low saturation and controlled neutral contrast; amber, brass and copper are small aged accents, never glossy or neon.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize four readable storeys, one two-storey bay, one balcony, one domestic steam riser, one dormer and one chimney; keep brick courses and ironwork broad enough to read at game scale.
+Shape treatment: one elegant compact connected townhouse on a complete 2x2 foundation, transitioning naturally from the established LV4 house through richer masonry, ironwork and restrained domestic steam technology.
+Absolute class lock: this object is an inhabited Victorian steam-era residence, not a medieval half-timber house, factory, boiler hall, palace or industrial plant."""
+    elif modern_residential:
+        class_style_contract = """Canonical World-122 modern-residential rendering subset:
+Style/medium: sober semi-realistic handcrafted modern apartment architecture with physically plausible game-ready PBR materials, clean readable massing and the established World-122 isometric finish.
+Material grammar: weathered warm-gray concrete and mineral plaster, charcoal structural steel and slab bands, restrained blue-green residential glass, muted bronze trim, warm timber accents and sparse deep-green balcony planting.
+Color treatment: deliberately low saturation and controlled neutral contrast; glass, bronze and vegetation are restrained functional accents, never glossy, neon or corporate-bright.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize five readable storeys, a broad domestic lobby, repeated apartment windows, four attached balconies, flat parapet roof, low mechanical penthouse and two solar panels; avoid hairline glazing grids.
+Shape treatment: one compact connected five-storey apartment building on a complete 2x2 foundation, visibly modernized from LV5 while retaining tactile weathering and robust game-readable proportions.
+Absolute class lock: this object is a modern residence, not an office headquarters, glass skyscraper, medieval house, factory or futuristic megastructure."""
+    elif future_residential:
+        class_style_contract = """Canonical World-122 future-residential rendering subset:
+Style/medium: sober semi-realistic handcrafted near-future ecological residential architecture with physically plausible game-ready PBR materials, sculptural readable curves and the established World-122 isometric finish.
+Material grammar: warm off-white ceramic composite shells, charcoal structural bands, restrained blue-green and muted cyan residential glass, aged champagne-bronze joints, deep-green planted terraces and dark soil contained inside authored crescent gardens.
+Color treatment: deliberately low saturation and controlled neutral contrast; cyan is limited to glass and subtle energy hardware, with no bloom, neon wash or mirror chrome.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize six independently readable curved floors, their alternating offsets, one central oval core, three crescent gardens, curved glazing, one observation crown, one compact energy halo and four solar petals; avoid tiny sci-fi greebles.
+Shape treatment: preserve physical convex and concave floor arcs and continuous structural connections; the tower must read as an inhabitable vertical garden rather than stacked rectangular plates or floating pods.
+Absolute class lock: this object is one connected future ecological residence, not a corporate tower, space station, fantasy palace, second tower or collection of floating modules."""
+    elif agricultural_compound:
+        class_style_contract = """Canonical World-122 agricultural-compound rendering subset:
+Style/medium: sober semi-realistic handcrafted medieval strategy-game agricultural building with physically plausible game-ready PBR materials and slightly stylized readable proportions.
+Material grammar: a broad low dusty-olive pasture; weathered dark-oak post-and-rail fence; warm gray fieldstone; muted cream mineral plaster; subdued terracotta roof tile; dry straw thatch; charcoal iron; restrained old brass; natural golden cheese rind and sparse amber interior light.
+Color treatment: deliberately low saturation and controlled neutral contrast; grass, terracotta and cheese are muted functional colors, never neon or glossy.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize medium and large compound details that remain legible at game scale: complete fence rails and posts, open gate, three small roof masses, cowshed stall opening and trough, workshop press and aging rack, and the broad open pasture.
+Shape treatment: preserve the authored low 4x4 ground plane and exact small-building proportions; fences stay thin and continuous, roofs stay complete, all structures remain grounded and separated from the open grazing area.
+Absolute class lock: this object is one medieval cheese-farm compound, not a compact single building, castle, industrial facility, village cluster or scenery illustration. Do not invent animals, workers, vehicles, fields, trees or extra architecture."""
+    elif industrial_structure:
+        class_style_contract = """Canonical World-122 open industrial-building rendering subset:
+Style/medium: sober semi-realistic handcrafted medieval strategy-game building with physically plausible game-ready PBR materials and slightly stylized readable proportions.
+Material grammar: heavy weathered dark oak derrick posts and braces, charcoal-blackened wrought iron machinery, cool-gray worn stone machine deck, naturally oxidized old brass collars and gears, muted blue-gray roof covering and restrained cyan-blue energy visible only inside the bore and attached extraction cells.
+Color treatment: deliberately low saturation and controlled neutral contrast; cyan-blue and old brass are limited functional accents, never neon or glossy.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize medium and large mechanical details that remain legible at 48 pixels: four timber posts, cross braces, one roof canopy, one bore collar, one shaft, one side flywheel and drum, one extraction manifold, one tool chest, bundled spare pipes and spare drill bits.
+Shape treatment: preserve the open frame and clean orthographic silhouette; components are rugged and attached, with restrained bevels and wear rather than modern precision engineering.
+Absolute class lock: this object is an open medieval magitech deep-drilling economic building, not a house, enclosed factory, oil pumpjack, modern drilling tower or detached machinery yard."""
+    elif surface_deposit:
+        # Ground deposits need the common material/lighting response without the
+        # building or mine-cave vocabulary.  Negating those concepts after the
+        # full architecture prompt is unreliable and caused cave entrances,
+        # timber supports and rails to appear in energy-vein drafts.
+        class_style_contract = """Canonical World-122 ground-deposit rendering subset:
+Style/medium: sober semi-realistic handcrafted strategy-game ground resource with physically plausible game-ready PBR materials and slightly stylized readable proportions.
+Material grammar: low fractured charcoal and cool-gray stone, dusty rubble and broad flat mineral faces partially buried in the ground. Energy is visible only through restrained cyan-blue ore surfaces and narrow seams; it is never a liquid waterfall, portal or upright crystal.
+Color treatment: deliberately low saturation and controlled neutral contrast; cyan-blue is a limited resource accent rather than a full glowing terrain mass.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize medium and large ground details that remain legible at 48 pixels: the complete diamond boundary, rubble clusters, flat ore faces and fissure layout. Avoid hairline cracks and photographic gravel noise.
+Shape treatment: a very shallow footprint-following bed with irregular natural edges and low embedded pieces; no vertical focal mass, raised slab, architectural base or detached scenery.
+Absolute class lock: this object is a bare exposed surface mineral deposit, not a mine entrance, cave, building, ruin, platform or piece of infrastructure. Use no arches, portals, holes, walls, roofs, towers, timber framing, rails, carts or machinery."""
+    elif modern_office:
+        # Modern office buildings are an explicit, narrow World-122 variant.
+        # They keep the shared material/lighting/readability rules; architecture
+        # remains entirely defined by the authored model and asset manifest.
+        class_style_contract = """Canonical World-122 modern-office rendering subset:
+Style/medium: sober semi-realistic handcrafted strategy-game financial office building with physically plausible game-ready PBR materials, clean readable massing and slightly stylized robust proportions.
+Material grammar: weathered cool-gray dressed stone at the podium; pale mineral concrete-plaster wall panels; charcoal structural steel mullions and slab bands; naturally aged old brass hardware; restrained deep blue-green office glass, sparse amber lobby glass and dim interior office light.
+Color treatment: deliberately low saturation and controlled neutral contrast; blue-green, amber and muted green indicators are limited functional accents, never neon, glossy or full-screen emissive.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize medium and large office details that remain legible at game scale: six aligned slab bands, repeated curtain-wall bays, one broad lobby, dark corner fins, one flat parapet roof, one fixed geometric market sign and one readable roof-mounted lattice antenna silhouette. Avoid hairline curtain-wall grids and photographic micro-reflections.
+Shape treatment: one closed six-storey rectangular office block on a complete 4x4 foundation, plus one compact open steel communications antenna tower bolted to the low roof crown; restrained bevels and weathering integrate its modern vocabulary with World-122 without converting it into medieval timber architecture or a futuristic skyscraper.
+Absolute class lock: this object is one modern-fantasy stock exchange office building with exactly one authored roof antenna tower. Use no half-timber braces, pitched roof, inhabited tower, spire, second antenna tower, detached annex, vehicle, street furniture, corporate wordmark, readable ticker, real-world logo or sci-fi machinery."""
+    elif prop_asset:
+        # Portable props keep the canonical material/lighting finish while their
+        # category and geometry remain entirely defined by the asset contract.
+        class_style_contract = """Canonical World-122 portable-prop rendering subset:
 Style/medium: sober semi-realistic handcrafted strategy-game prop with physically plausible game-ready PBR materials and slightly stylized solid proportions.
 Material grammar: charcoal-blackened steel panels show broad subtle wear and restrained value variation; aged brass frame, lock, hinges, medallion, filigree and handle show subdued tarnish and readable bevels, never glossy yellow gold. The empty interior is matte nearly black.
 Color treatment: deliberately low saturation and controlled neutral contrast; charcoal, dark neutral steel and old brass only.
@@ -133,15 +469,22 @@ Lighting: soft neutral upper-left top-side illumination with broad gentle highli
 Detail scale: prioritize medium and large prop details that remain legible at 48 pixels: continuous frame bands, domed lid ribs, one lock plate, one lid medallion, broad embossed relief, hinges and one side handle. Avoid hairline ornament and photographic grime.
 Shape treatment: crisp but not razor-sharp silhouette, restrained bevels and modest edge wear; no toy plastic, painterly brushwork, cel shading or cartoon outline.
 Absolute class lock: this object is a portable metal treasure chest, not architecture. Use no masonry, plaster, timber framing, stained glass, windows, doors, walls, roofs, towers, buttresses, rooms or building foundations."""
+    local_refine_contract = ""
+    if stage == "refine" and masked_refine:
+        local_refine_contract = """Local masked-refinement contract: regenerate only the white/red mask regions and preserve every unmasked pixel, silhouette, opening, component position, material value, lighting value and green backdrop exactly. Apply the primary request only inside the mask; do not spread the correction or reinterpret adjacent architecture.
+"""
     return f"""Use case: stylized-concept
 Asset type: {asset_type}, previewed above the {footprint_contract}
 Pipeline/style version: {style_version}
 Primary request: exactly one {request}
 {stage_contract}
-{palette_contract}{style_contract}
+{local_refine_contract}{palette_contract}{canonical_style_contract}
+Foundation style id: {foundation_style}
+{foundation_contract}
+{class_style_contract}
 {style_scope}
 Composition/framing: {composition_contract}
-Lighting/mood: evenly lit neutral studio lighting; no bloom; no cast shadow
+Lighting/mood: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion limited to attached structural contacts; balance immediate building recognition with believable realistic PBR surface response; no bloom; generate absolutely no cast shadow of any kind, no ground shadow, no backdrop shadow, no green-screen shadow gradient and no detached ambient shadow outside the authored building or plinth
 Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
 Negative constraints: {negative_contract}
 {negative_request}
@@ -258,7 +601,8 @@ def _normalize_square_footprint(data: dict) -> None:
 
 def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int, *,
                    stage: str = "legacy", init_image: Path | None = None,
-                   edge_image: Path | None = None, steps_override: int | None = None,
+                   edge_image: Path | None = None, mask_image: Path | None = None,
+                   mask_channel: str = "red", steps_override: int | None = None,
                    denoise_override: float | None = None, seed_override: int | None = None,
                    use_edge_control: bool = False,
                    generation_timeout: int | None = None,
@@ -274,9 +618,15 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
     control_edge = edge_image or generated_edge
     prompt = asset_dir / f"{asset['id']}{prompt_suffix}_prompt.txt"
     load_spec(asset, spec)
-    prompt.write_text(prompt_for(asset, manifest, stage), encoding="utf-8")
-    if asset.get("controlImage"):
-        source_depth = Path(asset["controlImage"])
+    prompt.write_text(
+        prompt_for(asset, manifest, stage, masked_refine=mask_image is not None),
+        encoding="utf-8",
+    )
+    stage_control_image = (
+        asset.get("refineControlImage") if stage == "refine" else None
+    ) or asset.get("controlImage")
+    if stage_control_image:
+        source_depth = Path(stage_control_image)
         if not source_depth.is_absolute():
             source_depth = REPO / source_depth
         if not source_depth.is_file():
@@ -310,13 +660,13 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
         mask_edge_pad = int(manifest.get("legacyMaskEdgePad", 3))
     elif stage == "structure":
         steps = steps_override or int(manifest.get("structureSteps", 12))
-        depth_strength = float(manifest.get("structureDepthStrength", manifest.get("strength", 0.78)))
+        depth_strength = float(manifest.get("structureDepthStrength", manifest.get("strength", 0.88)))
         edge_strength = float(manifest.get("structureEdgeStrength", 0.38))
         denoise = None
         mask_edge_pad = int(manifest.get("maskEdgePad", 16))
     else:
         steps = steps_override or int(manifest.get("refineSteps", 48))
-        depth_strength = float(manifest.get("refineDepthStrength", 0.75))
+        depth_strength = float(manifest.get("refineDepthStrength", 0.82))
         edge_strength = float(manifest.get("refineEdgeStrength", 0.38))
         denoise = (denoise_override if denoise_override is not None
                    else float(manifest.get("refineDenoise", 0.30)))
@@ -325,7 +675,7 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
 
     request_timeout = int(generation_timeout or manifest.get("generationTimeout", 3600))
     style_version, style_template, _style_contract = style_contract_for(manifest)
-    cfg = float(manifest.get("cfg", 3.5))
+    cfg = float(manifest.get("cfg", 1.0))
     sampler = str(manifest.get("sampler", "euler"))
     scheduler = str(manifest.get("scheduler", "simple"))
     size = str(manifest.get("size", "1024x1024"))
@@ -374,6 +724,9 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
                 ])
             if stage == "refine":
                 command.extend(["--init-image", str(init_image), "--denoise", str(denoise)])
+                if mask_image:
+                    command.extend(["--mask-image", str(mask_image),
+                                    "--mask-channel", mask_channel])
             run(command, label=f"{asset['id']} {stage} v{variant:02d} generate",
                 timeout=request_timeout + 60)
         generation_metadata.write_text(json.dumps({
@@ -381,6 +734,7 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
             "styleVersion": style_version,
             "styleTemplate": style_template,
             "assetId": asset["id"],
+            "foundationStyle": foundation_style_for(asset),
             "stage": stage,
             "model": manifest["model"],
             "size": size,
@@ -398,6 +752,9 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
             "postprocessDepthImage": (str(postprocess_depth.relative_to(REPO))
                                       if postprocess_depth.is_relative_to(REPO) else str(postprocess_depth)),
             "initImage": str(init_image) if init_image else None,
+            "maskImage": str(mask_image) if mask_image else None,
+            "maskChannel": mask_channel if mask_image else None,
+            "localMaskedRefine": bool(mask_image),
             "nonstandardOverride": bool(
                 steps != standard_steps
                 or (stage == "refine" and abs(float(denoise) - standard_denoise) > 1e-9)
@@ -410,11 +767,17 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
                 key_command.extend(["--threshold", str(float(asset["keyThreshold"]))])
             if asset.get("preserveHiddenKeyRgb"):
                 key_command.append("--preserve-hidden-rgb")
+            if asset.get("removeEnclosedKey"):
+                key_command.append("--remove-enclosed-key")
             if asset.get("removeAllGreen"):
                 key_command.append("--remove-all-green")
             run(key_command, label=f"{asset['id']} v{variant:02d} key")
         if rebuild_derived or not cleaned.exists():
-            run([str(COMFY_PY), str(REPO / "tools/ai-gen/remove-world122-building-pseudo-plinth.py"), str(keyed), str(cleaned)], label=f"{asset['id']} v{variant:02d} clean")
+            if asset.get("removePseudoPlinth"):
+                run([str(COMFY_PY), str(REPO / "tools/ai-gen/remove-world122-building-pseudo-plinth.py"), str(keyed), str(cleaned)], label=f"{asset['id']} v{variant:02d} clean")
+            else:
+                shutil.copyfile(keyed, cleaned)
+                print(f"[{asset['id']} v{variant:02d} clean] preserved authored foundation/ground contact -> {cleaned}", flush=True)
         if rebuild_derived or not anchored.exists():
             footprint_cells = int(asset.get("generationFootprintCells", asset.get("footprintCells", 2)))
             nominal_width = float(asset.get("nominalFootprintWidth", 128 * footprint_cells))
@@ -462,7 +825,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--out", type=Path, default=None)
-    parser.add_argument("--variants", type=int, default=None)
+    parser.add_argument(
+        "--variants", type=int, default=None,
+        help="candidate-count override; defaults are structure=3 and refine=2",
+    )
     parser.add_argument("--only", nargs="*", default=None, help="asset ids to generate")
     parser.add_argument("--stage", choices=("legacy", "structure", "refine"), default="legacy",
                         help="legacy one-pass, 12-step structure draft, or img2img refinement")
@@ -470,6 +836,10 @@ def main() -> None:
                         help="selected structure image; required by --stage refine")
     parser.add_argument("--edge-image", type=Path,
                         help="optional authored edge control; defaults to edges derived from depth")
+    parser.add_argument("--mask-image", type=Path,
+                        help="optional local refine mask; white/red=regenerate, black=preserve")
+    parser.add_argument("--mask-channel", choices=("alpha", "red", "green", "blue"),
+                        default="red", help="channel read from --mask-image")
     parser.add_argument("--edge-control", action="store_true",
                         help="chain the derived edge map as a second ControlNet; requires a compatible remote plugin")
     parser.add_argument("--steps", type=int, help="override the selected stage's step count")
@@ -485,9 +855,9 @@ def main() -> None:
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     output_root = args.out or Path(manifest["outputRoot"])
     if args.stage == "structure":
-        variants = args.variants or manifest.get("structureVariants", 5)
+        variants = args.variants or manifest.get("structureVariants", 3)
     elif args.stage == "refine":
-        variants = args.variants or manifest.get("refineVariants", 3)
+        variants = args.variants or manifest.get("refineVariants", 2)
     else:
         variants = args.variants or manifest.get("variants", 2)
     selected = [a for a in manifest["assets"] if not args.only or a["id"] in args.only]
@@ -500,6 +870,10 @@ def main() -> None:
             parser.error("--stage refine requires exactly one selected asset via --only <asset_id>")
     if args.edge_image and not args.edge_image.exists():
         parser.error(f"--edge-image not found: {args.edge_image}")
+    if args.mask_image and args.stage != "refine":
+        parser.error("--mask-image is valid only with --stage refine")
+    if args.mask_image and not args.mask_image.exists():
+        parser.error(f"--mask-image not found: {args.mask_image}")
     if args.denoise is not None and args.stage != "refine":
         parser.error("--denoise is valid only with --stage refine")
     if args.denoise is not None and not 0.0 < args.denoise <= 1.0:
@@ -532,6 +906,7 @@ def main() -> None:
         generate_asset(
             staged_asset, manifest, output_root, variants,
             stage=args.stage, init_image=args.init_image, edge_image=args.edge_image,
+            mask_image=args.mask_image, mask_channel=args.mask_channel,
             steps_override=args.steps, denoise_override=args.denoise, seed_override=args.seed,
             use_edge_control=args.edge_control or bool(manifest.get("useEdgeControl", False)),
             generation_timeout=args.timeout,

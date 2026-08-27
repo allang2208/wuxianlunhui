@@ -1,0 +1,722 @@
+{
+  "assets": [
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/building_road_tiles_candidate.png",
+      "size": [
+        1536,
+        64
+      ],
+      "alphaBBox": [
+        0,
+        0,
+        1536,
+        64
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_housing_jars.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        94,
+        184,
+        162,
+        241
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_housing_firewood.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        80,
+        184,
+        173,
+        245
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_housing_basket_stool.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        91,
+        173,
+        165,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_housing_wash.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        87,
+        190,
+        167,
+        244
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_agri_grain_sacks.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        169,
+        170,
+        245
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_agri_produce_baskets.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        183,
+        170,
+        245
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_agri_hay_bundle.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        85,
+        181,
+        171,
+        246
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_agri_handcart.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        79,
+        160,
+        202,
+        249
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_gold_sealed_crates.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        85,
+        179,
+        171,
+        246
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_gold_parcels.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        179,
+        169,
+        245
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_gold_notice_board.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        91,
+        125,
+        165,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_gold_scale_crate.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        145,
+        170,
+        245
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_energy_coal_sacks.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        85,
+        171,
+        171,
+        246
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_energy_pipe_stack.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        81,
+        178,
+        175,
+        248
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_energy_gear_crate.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        85,
+        166,
+        171,
+        246
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_energy_tool_trolley.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        81,
+        148,
+        175,
+        248
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_footprints.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        104,
+        197,
+        134,
+        246
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_cart_ruts.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        72,
+        191,
+        184,
+        255
+      ],
+      "alphaExtrema": [
+        0,
+        253
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_straw_scatter.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        198,
+        157,
+        251
+      ],
+      "alphaExtrema": [
+        0,
+        250
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_water_spill.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        202,
+        160,
+        244
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_coal_smear.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        86,
+        204,
+        164,
+        244
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_oil_drips.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        103,
+        207,
+        168,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_wood_chips.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        99,
+        204,
+        162,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_trace_rope_scraps.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        104,
+        199,
+        163,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_fixture_lantern.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        104,
+        105,
+        161,
+        236
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_fixture_water_pump.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        134,
+        170,
+        242
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_fixture_bench.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        85,
+        142,
+        171,
+        246
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_fixture_fire_bucket_rack.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        130,
+        164,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_fixture_lantern_lit.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        104,
+        105,
+        161,
+        236
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_weather_puddle_0.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        82,
+        201,
+        164,
+        247
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_weather_puddle_1.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        83,
+        204,
+        170,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_weather_puddle_2.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        100,
+        201,
+        159,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/props/street_weather_puddle_3.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        93,
+        204,
+        173,
+        243
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_xp_0.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        80,
+        0,
+        128,
+        24
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_xp_1.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        80,
+        0,
+        128,
+        29
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_xn_0.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        0,
+        41,
+        45,
+        64
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_xn_1.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        0,
+        41,
+        57,
+        64
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_yp_0.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        0,
+        0,
+        48,
+        24
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_yp_1.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        0,
+        0,
+        48,
+        28
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_yn_0.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        83,
+        41,
+        128,
+        64
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "tools/ai-gen/_world122_street_decor_20260825/edge_assets_candidate/street_edge_yn_1.png",
+      "size": [
+        128,
+        64
+      ],
+      "alphaBBox": [
+        71,
+        41,
+        128,
+        64
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    }
+  ],
+  "preview": "tools/ai-gen/_world122_street_decor_20260825/world122_street_decor_preview.png",
+  "layoutPreview": "tools/ai-gen/_world122_street_decor_20260825/world122_street_layout_preview.png",
+  "edgePreview": "tools/ai-gen/_world122_street_decor_20260825/world122_street_edge_preview.png",
+  "dynamicPreview": "tools/ai-gen/_world122_street_decor_20260825/world122_street_dynamic_preview.png"
+}

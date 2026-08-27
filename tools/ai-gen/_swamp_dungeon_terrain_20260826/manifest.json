@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "camera": {
+    "projection": "orthographic",
+    "elevation": 30.0,
+    "modelRootRotationZ": 44.8,
+    "tileProjection": "2:1 diamond details only, no post-warp",
+    "propOrthoScale": 6.4,
+    "propBottomRatio": 0.875
+  },
+  "baseContract": "color-graded seamless wet mud beneath transparent details",
+  "collisionContract": "all 18 props are floor-baked visual-only decorations",
+  "tiles": [
+    "swamp_detail_mud_00",
+    "swamp_detail_mud_01",
+    "swamp_detail_mud_02",
+    "swamp_detail_mud_03"
+  ],
+  "props": [
+    "swamp_prop_mud_clods",
+    "swamp_prop_wet_pebbles",
+    "swamp_prop_moss_stones",
+    "swamp_prop_reed_tuft",
+    "swamp_prop_cattails",
+    "swamp_prop_lily_pads",
+    "swamp_prop_duckweed",
+    "swamp_prop_mushrooms",
+    "swamp_prop_rotten_planks",
+    "swamp_prop_root_tangle",
+    "swamp_prop_twig_bundle",
+    "swamp_prop_snail_shells",
+    "swamp_prop_frog_bones",
+    "swamp_prop_broken_bowl",
+    "swamp_prop_rusty_hook",
+    "swamp_prop_reed_coil",
+    "swamp_prop_swamp_flowers",
+    "swamp_prop_egg_cluster"
+  ],
+  "model": "tools/ai-gen/_swamp_dungeon_terrain_20260826/swamp_dungeon_terrain.blend"
+}

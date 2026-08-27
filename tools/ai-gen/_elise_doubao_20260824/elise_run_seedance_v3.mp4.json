@@ -1,0 +1,15 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "1:1",
+  "duration": 6,
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_elise_doubao_20260824\\elise_run_reference_v3_1024.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\prompts\\elise-run-doubao-v3.txt",
+  "promptChars": 871,
+  "promptSha256": "7999b145a0ae8ec54c5bbea28c0acdd848d19d8b8be76fb56c2e090a7d59d3cb",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-24T04:41:31.977Z",
+  "sourceUrlScheme": "https"
+}

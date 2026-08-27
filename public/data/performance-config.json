@@ -44,7 +44,23 @@
     "maxRecalculationsPerFrame": 2,
     "maxValidationsPerFrame": 5,
     "maxQueuedJobs": 256,
-    "drainBudgetMs": 3
+    "drainBudgetMs": 3,
+    "finderBudgetMs": 2.4,
+    "resumeDeferredFirst": true,
+    "maxDeferredSlicesBeforeYield": 8,
+    "sharedFlowSectorPx": 240,
+    "sharedFlowTtlMs": 2500,
+    "sharedFlowMaxFields": 48,
+    "sharedFlowPaddingPx": 240,
+    "sharedFlowMaxCells": 4096,
+    "hierarchy": {
+      "sectorSizePx": 640,
+      "portalSampleStepPx": 80,
+      "frameBudgetMs": 0.6,
+      "routeTtlMs": 3000,
+      "maxCachedRoutes": 96,
+      "maxVisitedSectors": 384
+    }
   },
   "gatePursuit": {
     "cacheTtlMs": 250,

@@ -1,0 +1,11 @@
+The exact original anthropomorphic hamster game character from the first frame performs an energetic agile running cycle in place toward the right. This is a fictional game character, not a real person. Maintain the same low three-quarter right-facing angle.
+
+Motion: a compact stealthy ninja run with clear alternating foot contacts, bent knees, a low stable center of gravity, coordinated arm swing and believable torso counter-rotation. The pelvis and root remain fixed in screen space for sprite extraction while the feet cycle cleanly beneath the body. The waist pouch, belt ends and fully sheathed short ninjato follow with restrained inertia. Complete at least two full run cycles and finish at the exact starting gait phase.
+
+Identity locks: preserve the exact warm golden-yellow hamster fur visible only around the eyes and nose bridge, the same glossy dark-brown eyes and compact proportions. The black hood and face covering continue to hide the entire head except the eye opening; ears, muzzle, nose and whiskers never become exposed. Preserve the layered charcoal-black shinobi clothing, gloves, wrapped boots, pouch and exactly one short ninjato fully sheathed at the left waist throughout.
+
+Camera and framing: static locked orthographic camera matching the reference low three-quarter right-facing view. No camera motion, turn, flip, zoom, crop, reframing or tracking. Keep the full body and sword silhouette visible at the same scale with generous pure #FFFFFF margins. No floor line, ground plane, contact shadow, cast shadow, reflection, scenery, particles, text, logo or watermark. Preserve the reference material shading without adding dynamic or dramatic light.
+
+Loop: return to the exact first-frame root position, pose family, scale and gait phase with no freeze, snap or artificial slowdown.
+
+Avoid: exposed ears or muzzle, losing the golden eye-mask fur, all-black featureless eye opening, forward travel, treadmill foot sliding, two-foot hopping, turning frontal, extra limbs, extra or drawn sword, weapon bending, identity drift, morphing, excessive motion blur, cuts or black flashes.

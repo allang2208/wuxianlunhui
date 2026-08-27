@@ -1,0 +1,20 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Primary request: Create exactly one ordinary non-magical adult black king cobra as a production-ready game monster identity, holding a calm but alert, animation-friendly neutral idle pose.
+
+Subject identity: a large real king cobra with a long continuous serpentine body; predominantly deep charcoal-black scales with subtle graphite and restrained cool blue-black variation; broad but anatomically correct king-cobra hood; small focused amber-brown eyes; a subtle muted smoky-gray chevron on the throat and faint natural scale banding, never bright or decorative. No crown, jewelry, armor, horns, wings, magical glow, venom effects, or fantasy ornaments.
+
+Anatomy and material: physically plausible king cobra anatomy, one head and one continuous body, correct transition from narrow head through expanded hood into neck and torso, believable muscular weight distribution, overlapping high-detail scales with realistic matte-to-satin roughness and restrained natural variation; no toy-like plastic surface.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, readable silhouette, controlled saturation, physically believable materials; not a photograph and not a cartoon illustration.
+
+Pose: the snake rests on the ground in one clean, readable coil of approximately one and a half turns; the body exits the rear-right side of the coil without crossing or knotting, then the upper third rises nearly straight upward in a gentle natural S-curve; the hood is clearly but not maximally expanded; head held level and facing right with a calm alert expression; lower coil and belly share one stable ground baseline. Keep every body segment visibly connected and ready to animate. Mouth closed, tongue not visible.
+
+Composition and camera: low three-quarter side view facing right, slightly elevated only enough to read the coil topology, orthographic-style locked camera; complete snake visible; subject occupies at most 62% of canvas width and 68% of canvas height; centered with generous empty margins on every side, especially above the raised head and in front of the face; no cropping.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon, no floor plane, no scenery; soft flat diffuse ambient studio light only, no directional shadow, no cast shadow, no reflection, no rim halo.
+
+Identity locks: exactly one snake; preserve the charcoal-black scale palette, amber-brown eyes, muted throat chevron, broad anatomically correct hood, one-and-a-half-turn coil, rear-right coil exit, raised upper body, and right-facing head; correct continuous anatomy; full clean silhouette.
+
+Avoid: extra or missing heads, split or duplicate tail, disconnected/fused/tangled body, impossible coil topology, body passing through itself, exaggerated monster fangs, open mouth, tongue, crown, armor, horns, wings, magic, glow, particles, cropping, front view, top-down view, perspective distortion, cinematic lighting, depth of field, shadow, reflection, scenery, text, logo, watermark, cartoon, anime, chibi, flat illustration, low-poly toy, glossy plastic.

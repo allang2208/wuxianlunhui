@@ -1,0 +1,42 @@
+{
+  "task": "hamster_crossbow_four_action_doubao_video",
+  "date": "2026-08-27",
+  "sourceMother": "../_hamster_missing_mothers_20260826/mother/hamster-crossbow-mother-v05-face-refined-white.png",
+  "sourceApproval": "../_hamster_missing_mothers_20260826/task-index.json#crossbow",
+  "provider": "doubao-desktop",
+  "modelRequested": "Seedance 2.0 Mini",
+  "modelUiVerification": "豆包页面只确认视频技能，后端具体模型由豆包托管且界面不可见",
+  "rawDurationSeconds": 5,
+  "sizeRequested": "1024x576",
+  "sourceVideoActualSize": "1280x720",
+  "runtimeIntegrationActive": true,
+  "status": "approved_normalized_rife_interpolated_and_integrated",
+  "runtime": {
+    "config": "../../../data/hamster-crossbow-config.json",
+    "assets": "../../../assets/companions/hamster_crossbow",
+    "icon": "../../../assets/ui/unit-icons/hamster-crossbow.png",
+    "sourceSheetReport": "source-sheet-report.json",
+    "interpolation": "RIFE v4.6 2x RGB/alpha split with temporal chroma repair",
+    "matteCleanup": { "actions": ["idle", "attacking"], "alphaCutoff": 24, "edgeRgb": "nearest reliable subject pixel", "status": "reprocessed_after_runtime_white-speck_feedback" },
+    "uniformSize": { "effectiveBodyHeight": 129, "feetY": 351, "frameSize": [512, 512] },
+    "actions": {
+      "idle": { "frameCount": 30, "frameRate": 12, "repeat": -1, "preview": "previews/interpolated/hamster-crossbow-idle-interpolated.gif" },
+      "moving": { "frameCount": 36, "frameRate": 16.30188679245283, "repeat": -1, "preview": "previews/interpolated/hamster-crossbow-running-interpolated.gif" },
+      "attacking": { "frameCount": 61, "frameRate": 12, "repeat": 0, "launchFrame": 37, "preview": "previews/interpolated/hamster-crossbow-attacking-interpolated.gif" },
+      "dying": { "frameCount": 61, "frameRate": 12, "repeat": 0, "preview": "previews/interpolated/hamster-crossbow-dying-interpolated.gif" }
+    },
+    "projectile": { "asset": "../../../assets/companions/hamster_crossbow/projectile.png", "tipDirection": "right", "maxHits": 2, "pierceDamageMultiplier": 0.75, "armorPenetrationPercent": 0.25 }
+  },
+  "references": {
+    "standard": "references/hamster-crossbow-white-1024x576.png",
+    "wideActionSafe": "references/hamster-crossbow-safe-1024x576.png",
+    "extraSafe": "references/hamster-crossbow-extra-safe-1024x576.png",
+    "movingActionKeyframeV02": "references/hamster-crossbow-moving-keyframe-v02-1024x576.png"
+  },
+  "tasks": [
+    { "motion": "idle", "loopRequested": true, "reference": "references/hamster-crossbow-extra-safe-1024x576.png", "prompt": "prompts/idle-doubao-v02-fixed-wide-shot.txt", "video": "videos/idle-doubao-v02-loop.mp4", "sourceVideo": "videos/idle-doubao-v02.mp4", "naturalCycle": { "sourceFrameRange": [34, 93], "nextClosureFrame": 94, "interpolation": false, "trajectoryEdited": false }, "status": "visually_passed_loop_source_candidate", "rejectedAttempt": { "video": "videos/idle-doubao-v01.mp4", "prompt": "prompts/idle-doubao-v01.txt", "reason": "Seedance主动放大主体，双脚与下半身全程超出原视频画面" } },
+    { "motion": "moving", "loopRequested": true, "reference": "references/hamster-crossbow-extra-safe-1024x576.png", "prompt": "prompts/moving-doubao-v01.txt", "video": "videos/moving-doubao-v01-loop.mp4", "sourceVideo": "videos/moving-doubao-v01.mp4", "restrictedFixedSource": "videos/moving-doubao-v01-restricted-fix.mp4", "naturalCycle": { "sourceFrameRange": [35, 87], "nextClosureFrame": 88, "interpolation": false, "trajectoryEdited": false }, "status": "visually_passed_loop_source_candidate", "rejectedAttempts": [ { "video": "videos/moving-doubao-v01.mp4", "prompt": "prompts/moving-doubao-v01.txt", "reason": "完整构图与步态成立，但生成了母图不存在的明显长鼠尾，且部分帧的后靴退化为裸足/脚趾；保留为受限修复源" }, { "video": "videos/moving-doubao-v02.mp4", "prompt": "prompts/moving-doubao-v02-action-keyframe.txt", "reason": "动作关键帧定向重试后长尾与裸足仍复发，并继承关键帧清尾区域的白色块状痕迹，判退且停止继续消耗额度" } ] },
+    { "motion": "attacking", "loopRequested": false, "reference": "references/hamster-crossbow-extra-safe-1024x576.png", "prompt": "prompts/attacking-doubao-v01.txt", "video": "videos/attacking-doubao-v01.mp4", "status": "visually_passed_source_candidate", "review": "单次抬弩、瞄准、约f66-f78弩矢离轨并释放、后坐与回收；无裁切、长尾、裸足、二次射击或武器丢失" },
+    { "motion": "dying", "loopRequested": false, "reference": "references/hamster-crossbow-extra-safe-1024x576.png", "prompt": "prompts/dying-doubao-v01.txt", "video": "videos/dying-doubao-v01.mp4", "status": "motion_passed_background_cleanup_required", "review": "单向屈膝侧倒，约f78后尸体与弩稳定；全程完整入镜、无长尾和复起；豆包把纯白背景改为浅灰影棚并放大，后续抠图阶段清理" }
+  ]
+}

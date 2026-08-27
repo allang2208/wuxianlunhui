@@ -131,6 +131,8 @@ export const ChestRoomSystem = {
      *   但 60s 倒计时等玩家进入末房 startCountdown() 后才走字）
      * @param {boolean} [opts.openArena] 开放式竞技场宝箱点：不套旧预制墙，
      *   仅保留刷怪排除区、宝箱、倒计时与奖励生命周期
+     * @param {Object} [opts.worldBlockRoom] CombatRoomSystem 预建的单格墙实体宝箱房；
+     *   本系统为其安装独立门闸、宝箱、倒计时和刷怪排除区
      */
     setup(dungeonType, bounds, opts = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -138,6 +140,9 @@ export const ChestRoomSystem = {
         if (!scene || !bounds) {
             console.warn('[ChestRoomSystem] setup 失败：场景或房间边界未就绪', { hasScene: !!scene, hasBounds: !!bounds });
             return false;
+        }
+        if (opts.worldBlockRoom) {
+            return this._setupWorldBlockChest(scene, dungeonType, bounds, opts);
         }
         // 世界单格冰墙竞技场已经由房间外墙完整围合；若再放历史「宝箱房」预制，
         // 会在末房中央混入 frozen_straight 连续墙。开放式宝箱点保留完整事件逻辑，
@@ -282,16 +287,67 @@ export const ChestRoomSystem = {
         return true;
     },
 
-    /**
-     * 世界单格竞技场的开放式宝箱点。末房本身就是封闭战斗空间，因此不重复生成
-     * 历史宝箱房墙；战斗完成前仍不能开箱，超时、奖励和离场守卫均复用原状态机。
-     */
-    _setupOpenArenaChest(scene, dungeonType, bounds, opts) {
-        this._pieces = [];
+    /** 把当前样式门贴图的整段底边精确映射到单格墙门洞 A→B。 */
+    _gatePieceForSpan(span) {
+        if (!span) return null;
+        const geoKey = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().gate : 'gate';
+        const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.gate;
+        const A = span.a, B = span.b;
+        const flip = !!span.flip;
+        const p0 = g.base[0];
+        const sx = Math.abs(B.x - A.x) / Math.max(1, Math.abs(g.base[1][0] - g.base[0][0]));
+        const sy = Math.abs(B.y - A.y) / Math.max(1, Math.abs(g.base[1][1] - g.base[0][1]));
+        let x0, y0;
+        if (!flip) {
+            x0 = A.x - p0[0] * sx;
+            y0 = A.y - p0[1] * sy;
+        } else {
+            x0 = A.x - (g.w - p0[0]) * sx;
+            y0 = A.y - p0[1] * sy;
+        }
+        return {
+            tex: g.tex,
+            x: x0 + g.w * sx / 2,
+            y: y0 + g.h * sy / 2,
+            scaleX: sx,
+            scaleY: sy,
+            flipX: flip,
+            flipY: false,
+            depth: span.depth,
+        };
+    },
+
+    /** 僵尸竞技场实体宝箱房：黑砖单格墙环 + 六格独立闸门。 */
+    _setupWorldBlockChest(scene, dungeonType, bounds, opts) {
+        const room = opts.worldBlockRoom;
+        const opening = room && room.opening;
+        if (!opening) return false;
+        this._pieces = Array.isArray(room.pieces) ? [...room.pieces] : [];
         this._gate = null;
         this._shadowGfx = null;
-        this._exclusion = { cx: bounds.cx, cy: bounds.cy, rx: 260, ry: 150 };
 
+        const gatePiece = this._gatePieceForSpan(opening);
+        if (gatePiece) this._placeGate(scene, gatePiece, 0, 0);
+        if (!this._gate) {
+            // 门资源异常时回填预留六格，保证宝箱房仍是闭合实体边界。
+            const fillPieces = (opening.fillPieces || []).filter(Boolean);
+            WallSystem.isoVisuals.push(...fillPieces);
+            this._pieces.push(...fillPieces);
+        }
+        WallSystem.rebuildIsoCollision();
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+
+        return this._setupArenaChestLifecycle(scene, dungeonType, bounds, opts, {
+            cx: room.cx,
+            cy: room.cy,
+            rx: room.rx + 60,
+            ry: room.ry + 60,
+        });
+    },
+
+    /** 开放式与实体单格墙宝箱房共用的宝箱、倒计时和事件状态机。 */
+    _setupArenaChestLifecycle(scene, dungeonType, bounds, opts, exclusion) {
+        this._exclusion = exclusion;
         const grade = this._gradeFor(dungeonType);
         const chestX = bounds.cx, chestY = bounds.cy;
         const sprite = scene.add.sprite(chestX, chestY, 'chest_closed');
@@ -315,6 +371,19 @@ export const ChestRoomSystem = {
     },
 
     /**
+     * 世界单格竞技场的开放式宝箱点。末房本身就是封闭战斗空间，因此不重复生成
+     * 历史宝箱房墙；战斗完成前仍不能开箱，超时、奖励和离场守卫均复用原状态机。
+     */
+    _setupOpenArenaChest(scene, dungeonType, bounds, opts) {
+        this._pieces = [];
+        this._gate = null;
+        this._shadowGfx = null;
+        return this._setupArenaChestLifecycle(scene, dungeonType, bounds, opts, {
+            cx: bounds.cx, cy: bounds.cy, rx: 260, ry: 150,
+        });
+    },
+
+    /**
      * 门墙放置：按预制件保存的变换（x/y/scale/flip）原样放置，初始关门。
      * 碰撞从件自身变换推导（_pieceBaseSegments + gateX 映射），与 wall-gate 同模型。
      * 图层：门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）——
@@ -325,11 +394,6 @@ export const ChestRoomSystem = {
         if (!scene.textures.exists(p.tex)) return;
         this._gateGeoKey = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex) || 'gate';
         const piece = { ...p, x: p.x + ox, y: p.y + oy };
-        const sprite = scene.add.sprite(piece.x, piece.y, p.tex, 0);
-        sprite.setOrigin(0.5, 0.5);
-        sprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
-        sprite.setFlipX(!!piece.flipX);
-
         // 碰撞：门两侧常开 + 门洞按开关启停（与 wall-gate 同模型）
         const [gA, gB] = WallSystem._pieceBaseSegments(piece)[0];
         const hole = isoGateHole(g);
@@ -337,9 +401,45 @@ export const ChestRoomSystem = {
         const ht = isoHalfThick(g);
         const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
         const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
-        // 门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案，与竞技场门同规则）
-        const gateDepth = (g1.y + g2.y) / 2;
-        sprite.setDepth(gateDepth);
+        const sprites = [];
+        const depthSegments = [];
+        const makeSprite = (crop, depth) => {
+            const gateSprite = scene.add.sprite(piece.x, piece.y, p.tex, 0);
+            gateSprite.setOrigin(0.5, 0.5);
+            gateSprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
+            gateSprite.setFlipX(!!piece.flipX);
+            gateSprite.setDepth(depth);
+            if (crop && typeof gateSprite.setCrop === 'function') {
+                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
+                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
+                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
+                    const result = originalSetFrame(frame, updateSize, updateOrigin);
+                    applyCrop();
+                    return result;
+                };
+                applyCrop();
+            }
+            sprites.push(gateSprite);
+            return gateSprite;
+        };
+        const depthSliceCount = Math.max(1, Math.round(g.depthSlices || 1));
+        if (depthSliceCount > 1) {
+            const span = hole[1] - hole[0];
+            for (let index = 0; index < depthSliceCount; index++) {
+                const tx0 = hole[0] + span * index / depthSliceCount;
+                const tx1 = hole[0] + span * (index + 1) / depthSliceCount;
+                const sA = baseAt(tx0);
+                const sB = baseAt(tx1);
+                const depth = Math.max(sA.y, sB.y) + 3.9;
+                const crop = { x: Math.floor(tx0), w: Math.ceil(tx1) - Math.floor(tx0) };
+                makeSprite(crop, depth);
+                depthSegments.push({ A: sA, B: sB, depth, crop });
+            }
+        } else {
+            const depth = (g1.y + g2.y) / 2;
+            makeSprite(null, depth);
+        }
+        const sprite = sprites[0] || null;
         const segs = [
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _chestGate: true },
             { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _chestGate: true },
@@ -349,7 +449,7 @@ export const ChestRoomSystem = {
             for (const s of segs) WallSystem.isoSegments.push(s);
             WallSystem.isoSegments.push(gateSeg); // 初始关门
         }
-        this._gate = { sprite, segs, gateSeg, open: false };
+        this._gate = { sprite, sprites, depthSegments, segs, gateSeg, open: false };
     },
 
     /** 打开宝箱房门墙：播 16 帧开门动画，门洞碰撞移除 */
@@ -368,7 +468,10 @@ export const ChestRoomSystem = {
                 from: 0, to: (gateGeo.frames || 16) - 1,
                 duration: GATE_ANIM_MS, ease: 'Linear',
                 onUpdate: (tw) => {
-                    if (gate.sprite && gate.sprite.active) gate.sprite.setFrame(Math.floor(tw.getValue()));
+                    const frame = Math.floor(tw.getValue());
+                    for (const sprite of gate.sprites || [gate.sprite]) {
+                        if (sprite && sprite.active) sprite.setFrame(frame);
+                    }
                 },
             });
         }
@@ -538,7 +641,9 @@ export const ChestRoomSystem = {
                     if (i >= 0) WallSystem.isoSegments.splice(i, 1);
                 }
             }
-            if (this._gate.sprite) this._gate.sprite.destroy();
+            for (const sprite of new Set([...(this._gate.sprites || []), this._gate.sprite].filter(Boolean))) {
+                sprite.destroy();
+            }
             this._gate = null;
         }
         if (this._chest) {

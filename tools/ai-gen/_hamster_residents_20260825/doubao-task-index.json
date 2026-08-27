@@ -1,0 +1,31 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "1:1",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "fillOnlyVerifiedBeforeEachSubmission": true,
+  "automaticRetries": 0,
+  "tasks": [
+    { "resident": 1, "motion": "idle", "video": "videos/resident-01-idle.mp4", "metadata": "videos/resident-01-idle.mp4.json", "downloadRecovery": "same completed conversation task" },
+    { "resident": 1, "motion": "walking", "video": "videos/resident-01-walking.mp4", "metadata": "videos/resident-01-walking.mp4.json" },
+    { "resident": 2, "motion": "idle", "video": "videos/resident-02-idle.mp4", "metadata": "videos/resident-02-idle.mp4.json" },
+    { "resident": 2, "motion": "walking", "video": "videos/resident-02-walking.mp4", "metadata": "videos/resident-02-walking.mp4.json" },
+    { "resident": 3, "motion": "idle", "video": "videos/resident-03-idle.mp4", "metadata": "videos/resident-03-idle.mp4.json" },
+    { "resident": 3, "motion": "walking", "video": "videos/resident-03-walking.mp4", "metadata": "videos/resident-03-walking.mp4.json" },
+    { "resident": 4, "motion": "idle", "video": "videos/resident-04-idle.mp4", "metadata": "videos/resident-04-idle.mp4.json" },
+    { "resident": 4, "motion": "walking", "video": "videos/resident-04-walking.mp4", "metadata": "videos/resident-04-walking.mp4.json" },
+    { "resident": 5, "motion": "idle", "video": "videos/resident-05-idle.mp4", "metadata": "videos/resident-05-idle.mp4.json" },
+    { "resident": 5, "motion": "walking", "video": "videos/resident-05-walking.mp4", "metadata": "videos/resident-05-walking.mp4.json" }
+  ],
+  "sheetContract": {
+    "cellSize": 256,
+    "idleFrameCount": 8,
+    "idleEndFrame": 7,
+    "walkingFrameCount": 12,
+    "walkingEndFrame": 11,
+    "feetY": 236
+  },
+  "windows": "windows.json",
+  "sheetReport": "sheet-report.json"
+}

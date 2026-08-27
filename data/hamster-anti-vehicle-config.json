@@ -1,0 +1,123 @@
+{
+  "id": "hamster_anti_vehicle",
+  "name": "仓鼠反载",
+  "title": "特战基地反载突击队员",
+  "desc": "身穿沙色迷彩、手持冲锋枪的仓鼠突击队员；周期性从背后取出一次性反坦克火箭筒，发射后抛弃空筒并换回冲锋枪。",
+  "role": "anti_vehicle",
+  "growthRule": "ranger",
+  "avatar": "🐹🚀",
+  "weaponType": "smg",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 180,
+  "baseData": {
+    "str": 12,
+    "dex": 20,
+    "int": 3,
+    "con": 12,
+    "wis": 4,
+    "luck": 8
+  },
+  "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_anti_vehicle_attack.mp3"
+  },
+  "ai": {
+    "role": "anti_vehicle_assault",
+    "walkSpeed": 145,
+    "runSpeed": 145,
+    "attackInterval": 500,
+    "attackDamage": 18,
+    "attackRange": 650,
+    "engageRange": 1000,
+    "projectileSpeed": 1600,
+    "attackAnimFps": 20,
+    "attackLaunchFrame": 9,
+    "rocketInitialDelayMs": 3000,
+    "rocketCooldownMs": 8000,
+    "rocketDamage": 240,
+    "rocketSplashRadius": 110,
+    "rocketProjectileSpeed": 780,
+    "rocketAttackAnimFps": 24,
+    "rocketLaunchFrame": 29,
+    "rocketDiscardFrame": 45,
+    "rocketAnimationIncludesDiscardedLauncher": true,
+    "rocketRecoveryMs": 1100,
+    "rocketAntiVehicleMultiplier": 1.5,
+    "followOffset": 160,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 116,
+  "spriteOffsetY": -45.3125,
+  "render": {
+    "footOffsetY": 45.3125,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_anti_vehicle/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameCount": 16,
+      "frames": [0, 15],
+      "frameRate": 8,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_anti_vehicle/running.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 24,
+      "frames": [0, 23],
+      "frameRate": 20,
+      "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_anti_vehicle/attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameCount": 13,
+      "frames": [0, 12],
+      "frameRate": 20,
+      "repeat": 0
+    },
+    "rocket_attack": {
+      "src": "assets/companions/hamster_anti_vehicle/rocket_attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 8,
+      "frameCount": 61,
+      "frames": [0, 60],
+      "frameRate": 24,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_anti_vehicle/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 29,
+      "frames": [0, 28],
+      "frameRate": 24,
+      "repeat": 0
+    }
+  }
+}

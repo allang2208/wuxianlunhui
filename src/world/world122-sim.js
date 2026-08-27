@@ -20,6 +20,7 @@ import {
     raiseSharedUnitUpgradeLevel,
 } from './unit-upgrade-store.js';
 import { RECRUIT_MODE, normalizeRecruitMode } from './recruit-mode.js';
+import { resolveRecruitmentUnitType } from './recruitment-tier.js';
 import { getProductionResourceMul } from '../config/tribute-effects.js';
 import {
     getBuildingUpgradeAbility,
@@ -28,14 +29,24 @@ import {
 import producerBuildingsJson from '../../data/producer-buildings.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import warriorCfg from '../../data/hamster-warrior-config.json';
+import championCfg from '../../data/hamster-champion-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
+import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
+import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
+import rangerCfg from '../../data/hamster-ranger-config.json';
+import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
+import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
+import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import ninjaCfg from '../../data/hamster-ninja-config.json';
+import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
 import explorerCfg from '../../data/hamster-explorer-config.json';
 import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
@@ -49,6 +60,15 @@ import skillsData from '../../data/skills.json';
 import combatFormulasData from '../../data/combat-formulas.json';
 import { createExplorerReward } from '../config/explorer-rewards.js';
 import { buildSkillFromJSON } from '../systems/skill-formula.js';
+import { blockCellCenter } from './gate4-grid.js';
+import { buildingRoadLayout } from './building-road-system.js';
+import { createRoadNetwork, shortestRoadRoute } from './road-connectivity.js';
+import { TechnologySystem } from './technology-system.js';
+import {
+    isInstantTroopProductionEnabled,
+    isMilitaryPopulationIgnored,
+    skipBuildingUpgradeWait,
+} from '../config/dev-cheats.js';
 
 /** 抽象结算估算常量（调整平衡只改这里） */
 export const WORLD122_SIM = {
@@ -62,14 +82,87 @@ export const WORLD122_SIM = {
 };
 
 const UNIT_CFGS = {
-    militia: militiaCfg, warrior: warriorCfg, shooter: shooterCfg,
-    guard: guardCfg, phalanx: phalanxCfg, scout: scoutCfg, musketeer: musketeerCfg, priest: priestCfg,
-    knight: knightCfg, light_cavalry: lightCavalryCfg,
+    militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
+    guard: guardCfg, phalanx: phalanxCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
+    knight: knightCfg, light_cavalry: lightCavalryCfg, ninja: ninjaCfg,
+    samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg, bounty_hunter: bountyHunterCfg,
     jaguar_warrior: jaguarWarriorCfg, jungle_priest: junglePriestCfg,
     desert_priest: desertPriestCfg,
 };
+
+function _snapshotRoadContext(snapshot) {
+    const cells = new Map();
+    const addCell = (cell) => {
+        const i = Number(cell?.i);
+        const j = Number(cell?.j);
+        if (!Number.isInteger(i) || !Number.isInteger(j)) return;
+        const key = `${i},${j}`;
+        const [x, y] = blockCellCenter(i, j);
+        cells.set(key, { key, i, j, x, y });
+    };
+    for (const road of snapshot.roads || []) addCell(road);
+    for (const structure of snapshot.structures || []) {
+        if (structure?.kind !== 'producer' || !(Number(structure.hp ?? 1) > 0)) continue;
+        const config = producerBuildingsJson[structure.cfgKey] || {};
+        if ((config.perimeterTile ?? 'road') !== 'road') continue;
+        for (const cell of buildingRoadLayout(
+            structure.x,
+            structure.y,
+            Number(config.footprintCells) || 2
+        ).roadCells) addCell(cell);
+    }
+    // 常开门允许后台道路通过；自动门离场后没有友军维持感应，按关闭状态结算。
+    const blockers = [];
+    for (const structure of snapshot.structures || []) {
+        if (!(Number(structure?.hp ?? 1) > 0)) continue;
+        if (structure.kind === 'block') {
+            blockers.push({ x: Number(structure.x) || 0, y: Number(structure.y) || 0 });
+        } else if (structure.kind === 'gate4') {
+            if (structure.gateMode !== 'open') {
+                blockers.push({ x: Number(structure.x) || 0, y: Number(structure.y) || 0 });
+            }
+            for (const pillar of structure.pillars || []) {
+                blockers.push({ x: Number(pillar.x) || 0, y: Number(pillar.y) || 0 });
+            }
+        }
+    }
+    const edgeBlocked = (from, to) => blockers.some((blocker) => {
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const lengthSq = dx * dx + dy * dy || 1;
+        const t = Math.max(0, Math.min(1,
+            ((blocker.x - from.x) * dx + (blocker.y - from.y) * dy) / lengthSq));
+        return Math.hypot(
+            blocker.x - (from.x + dx * t),
+            blocker.y - (from.y + dy * t)
+        ) < 36;
+    });
+    return { network: createRoadNetwork(cells.values(), { edgeBlocked }) };
+}
+
+function _snapshotBuildingAccessKeys(context, structure) {
+    const footprintCells = Number(producerBuildingsJson[structure?.cfgKey]?.footprintCells) || 2;
+    return buildingRoadLayout(structure.x, structure.y, footprintCells).roadCells
+        .map((cell) => cell.key)
+        .filter((key) => context.network.byKey.has(key));
+}
+
+function _snapshotReachableWarehouses(context, structure, warehouses) {
+    const starts = _snapshotBuildingAccessKeys(context, structure);
+    const reachable = [];
+    for (const warehouse of warehouses || []) {
+        const route = shortestRoadRoute(
+            context.network,
+            starts,
+            _snapshotBuildingAccessKeys(context, warehouse)
+        );
+        if (route) reachable.push({ warehouse, route });
+    }
+    reachable.sort((a, b) => a.route.length - b.route.length);
+    return reachable;
+}
 
 const JUNGLE_PRIEST_SIM_SKILLS = ['lightningStrike', 'iceSpike', 'fireball']
     .map((key) => buildSkillFromJSON(key, skillsData.skills?.[key] || {}));
@@ -115,11 +208,24 @@ function _economyModuleValue(structure, economyType, moduleId) {
     const module = project?.modules?.[moduleId];
     if (!module) return 0;
     const savedModules = {
+        research: structure?.researchModules,
+        windmill: structure?.windmillModules,
+        royal_mint: structure?.mintModules,
         bank: structure?.bankModules,
+        grand_mall: structure?.grandMallModules,
         bakery: structure?.bakeryModules,
+        chain_restaurant: structure?.chainRestaurantModules,
+        cheese_farm: structure?.cheeseFarmModules,
+        steam_power_plant: structure?.steamModules,
+        wind_power_plant: structure?.windPowerModules,
+        solar_power_plant: structure?.solarPowerModules,
+        computing_center: structure?.computingCenterModules,
+        tavern: structure?.tavernModules,
         armory: structure?.armoryModules,
         workshop: structure?.workshopModules,
         planar_resonator: structure?.resonatorModules,
+        weather_forecast: structure?.weatherModules,
+        field_hospital: structure?.hospitalModules,
     }[economyType];
     const level = Math.max(0, Math.min(
         Number(module.maxLevel) || 0,
@@ -136,8 +242,28 @@ function _bankModuleValue(structure, moduleId) {
     return _economyModuleValue(structure, 'bank', moduleId);
 }
 
+function _grandMallModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'grand_mall', moduleId);
+}
+
 function _bakeryModuleValue(structure, moduleId) {
     return _economyModuleValue(structure, 'bakery', moduleId);
+}
+
+function _chainRestaurantModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'chain_restaurant', moduleId);
+}
+
+function _cheeseFarmModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'cheese_farm', moduleId);
+}
+
+function _steamModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'steam_power_plant', moduleId);
+}
+
+function _tavernModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'tavern', moduleId);
 }
 
 function _armoryModuleValue(structure, moduleId) {
@@ -171,6 +297,10 @@ function _bankOverlapMultiplier(bankCount) {
 }
 
 function _economyWorkerSlots(structure, economyType) {
+    const facility = producerBuildingsJson[structure?.cfgKey]?.researchFacility;
+    if (economyType === 'advanced_research' && facility) {
+        return Math.max(0, Math.floor(Number(facility.workerSlots) || 0));
+    }
     const cfg = populationEconomyConfig[economyType] || {};
     if (cfg.workerSlotsAbilityId) {
         const ability = getBuildingUpgradeAbility(cfg.workerSlotsAbilityId);
@@ -186,6 +316,35 @@ function _economyWorkerSlots(structure, economyType) {
         return Math.max(0, Math.floor(value));
     }
     return Math.max(0, Math.floor(Number(cfg.workerSlots) || 0));
+}
+
+function _researchFacilityType(structure) {
+    const buildingCfg = producerBuildingsJson[structure?.cfgKey] || {};
+    const economyType = buildingCfg.economyType;
+    if (!['research', 'weather_forecast', 'advanced_research'].includes(economyType)) return '';
+    return buildingCfg.researchFacility?.clusterType || structure?.cfgKey || economyType;
+}
+
+function _snapshotResearchClusterMultiplier(target, economyStructures) {
+    const cfg = populationEconomyConfig.researchCluster || {};
+    const radius = Math.max(0, Number(cfg.radius) || 0);
+    const bonusPerType = Math.max(0, Number(cfg.bonusPerDistinctFacilityType) || 0);
+    const maxBonus = Math.max(0, Number(cfg.maxBonus) || 0);
+    const selfType = _researchFacilityType(target);
+    if (!selfType || radius <= 0 || bonusPerType <= 0) return 1;
+    const types = new Set();
+    for (const candidate of economyStructures || []) {
+        if (candidate === target || !(Number(candidate?.hp ?? 1) > 0)) continue;
+        if (Math.max(0, Math.floor(Number(candidate.assignedWorkers) || 0)) <= 0) continue;
+        const candidateType = _researchFacilityType(candidate);
+        if (!candidateType || candidateType === selfType) continue;
+        const distance = Math.hypot(
+            (Number(candidate.x) || 0) - (Number(target.x) || 0),
+            (Number(candidate.y) || 0) - (Number(target.y) || 0)
+        );
+        if (distance <= radius) types.add(candidateType);
+    }
+    return 1 + Math.min(maxBonus, types.size * bonusPerType);
 }
 
 function _workshopEfficiencyMultiplier(target, economyStructures) {
@@ -207,8 +366,182 @@ function _workshopEfficiencyMultiplier(target, economyStructures) {
     return 1 + strongest;
 }
 
+const TAVERN_OUTPUT_TARGETS = new Set([
+    'windmill', 'bakery', 'chain_restaurant', 'cheese_farm',
+    'miner_camp', 'deep_drill', 'steam_power_plant', 'wind_power_plant', 'solar_power_plant', 'planar_resonator',
+    'bank', 'royal_mint', 'grand_mall',
+    'research', 'weather_forecast', 'advanced_research',
+]);
+
+function _tavernConfiguredBonus(structure) {
+    return Math.max(0, _tavernModuleValue(structure, 'tavern_feast_sign')
+        || Number(populationEconomyConfig.tavern?.baseOutputBonus) || 0.12);
+}
+
+function _snapshotTavernMultiplier(economyType, economyStructures) {
+    if (!TAVERN_OUTPUT_TARGETS.has(economyType)) return 1;
+    let strongest = 0;
+    for (const tavern of economyStructures || []) {
+        if (producerBuildingsJson[tavern?.cfgKey]?.economyType !== 'tavern') continue;
+        const job = tavern.tavernJob;
+        if (!(Number(tavern.hp ?? 1) > 0)
+            || Math.floor(Number(tavern.assignedWorkers) || 0) <= 0
+            || job?.phase !== 'serving'
+            || !(Number(job.serviceRemainMs) > 0)) continue;
+        strongest = Math.max(strongest, _tavernConfiguredBonus(tavern));
+    }
+    return 1 + strongest;
+}
+
+function _advanceSnapshotTavernPosition(job, entry, phase) {
+    const sourceRoute = Array.isArray(entry?.route) ? entry.route : [];
+    const route = phase === 'to_tavern' ? [...sourceRoute].reverse() : sourceRoute;
+    if (route.length <= 0) return;
+    const totalMs = Math.max(1, Number(job.phaseTotalMs) || 1);
+    const progress = Math.max(0, Math.min(1,
+        1 - Math.max(0, Number(job.phaseRemainMs) || 0) / totalMs));
+    // 后台不物化 Sprite，但持久化位置仍落在道路折线上，保证切回前台后可以从当前道路格重算。
+    const points = route;
+    if (points.length === 1) {
+        job.x = points[0].x;
+        job.y = points[0].y;
+        return;
+    }
+    const segments = [];
+    let totalDistance = 0;
+    for (let index = 1; index < points.length; index++) {
+        const from = points[index - 1];
+        const to = points[index];
+        const distance = Math.hypot(to.x - from.x, to.y - from.y);
+        if (distance <= 0) continue;
+        segments.push({ from, to, distance });
+        totalDistance += distance;
+    }
+    if (totalDistance <= 0) return;
+    let targetDistance = totalDistance * progress;
+    for (const segment of segments) {
+        if (targetDistance > segment.distance) {
+            targetDistance -= segment.distance;
+            continue;
+        }
+        const ratio = targetDistance / segment.distance;
+        job.x = segment.from.x + (segment.to.x - segment.from.x) * ratio;
+        job.y = segment.from.y + (segment.to.y - segment.from.y) * ratio;
+        return;
+    }
+    const last = points[points.length - 1];
+    job.x = last.x;
+    job.y = last.y;
+}
+
+function _simulateTavernService(structure, elapsedMs, laborEfficiency,
+    roadContext, warehouses) {
+    const cfg = populationEconomyConfig.tavern || {};
+    const job = structure.tavernJob && typeof structure.tavernJob === 'object'
+        ? structure.tavernJob : {};
+    structure.tavernJob = job;
+    job.phase = ['idle', 'to_pickup', 'to_tavern', 'serving'].includes(job.phase)
+        ? job.phase : 'idle';
+    job.cargoFood = Math.max(0, Math.floor(Number(job.cargoFood) || 0));
+    job.completedBatches = Math.max(0, Math.floor(Number(job.completedBatches) || 0));
+    if (Math.floor(Number(structure.assignedWorkers) || 0) <= 0) {
+        return { activeMs: 0, foodSpent: 0 };
+    }
+    const reachableRoutes = _snapshotReachableWarehouses(roadContext, structure, warehouses);
+    const routeByWarehouse = new Map(reachableRoutes.map((entry) => [
+        entry.warehouse.id ?? `${entry.warehouse.x},${entry.warehouse.y}`,
+        entry,
+    ]));
+    const inputFood = Math.max(1, Math.floor(
+        _tavernModuleValue(structure, 'tavern_cellar_rations')
+            || Number(cfg.inputFoodPerBatch) || 120));
+    const serviceTimeMs = Math.max(100,
+        _tavernModuleValue(structure, 'tavern_long_table')
+            || Number(cfg.baseServiceTimeMs) || 60000);
+    const moveSpeed = Math.max(1, (Number(cfg.baseMoveSpeed) || 80)
+        * (_tavernModuleValue(structure, 'tavern_bartender_steps') || 1)
+        * Math.max(0.01, Number(laborEfficiency) || 0));
+    const routeDuration = (entry) => Math.max(100,
+        Math.max(1, (entry?.route?.length || 1) - 1) * 64 / moveSpeed * 1000);
+    let remaining = Math.max(0, Number(elapsedMs) || 0);
+    let activeMs = 0;
+    let foodSpent = 0;
+    let guard = 10000;
+    while (remaining > 0 && guard-- > 0) {
+        if (job.phase === 'serving') {
+            const serviceRemain = Math.max(0, Number(job.serviceRemainMs) || 0);
+            if (serviceRemain <= 0) {
+                job.phase = 'idle';
+                job.serviceTotalMs = 0;
+                job.completedBatches++;
+                continue;
+            }
+            const spent = Math.min(remaining, serviceRemain);
+            activeMs += spent;
+            remaining -= spent;
+            job.serviceRemainMs = serviceRemain - spent;
+            if (job.serviceRemainMs <= 0) {
+                job.serviceRemainMs = 0;
+                job.serviceTotalMs = 0;
+                job.phase = 'idle';
+                job.targetWarehouseId = null;
+                job.completedBatches++;
+            }
+            continue;
+        }
+        if (job.phase === 'idle') {
+            const entry = reachableRoutes.find(({ warehouse }) =>
+                Math.floor(Number(warehouse.storedFood) || 0) >= inputFood);
+            if (!entry) break;
+            job.targetWarehouseId = entry.warehouse.id ?? `${entry.warehouse.x},${entry.warehouse.y}`;
+            job.phase = 'to_pickup';
+            job.phaseTotalMs = routeDuration(entry);
+            job.phaseRemainMs = job.phaseTotalMs;
+            continue;
+        }
+        const entry = routeByWarehouse.get(job.targetWarehouseId)
+            || (job.phase === 'to_tavern' ? reachableRoutes[0] : null);
+        // 运输阶段断路或仓库失效时冻结位置、携粮与阶段，待回场后从当前道路格续作。
+        if (!entry) break;
+        let phaseRemain = Math.max(0, Number(job.phaseRemainMs) || 0);
+        if (phaseRemain <= 0) {
+            job.phaseTotalMs = routeDuration(entry);
+            phaseRemain = job.phaseTotalMs;
+        }
+        const spent = Math.min(remaining, phaseRemain);
+        remaining -= spent;
+        job.phaseRemainMs = phaseRemain - spent;
+        _advanceSnapshotTavernPosition(job, entry, job.phase);
+        if (job.phaseRemainMs > 0) break;
+        if (job.phase === 'to_pickup') {
+            if (!_deductFoodFromWarehouses([entry.warehouse], inputFood)) {
+                job.phase = 'idle';
+                job.targetWarehouseId = null;
+                continue;
+            }
+            foodSpent += inputFood;
+            job.cargoFood = inputFood;
+            job.phase = 'to_tavern';
+            job.phaseTotalMs = routeDuration(entry);
+            job.phaseRemainMs = job.phaseTotalMs;
+            job.x = Number(entry.warehouse.x) || job.x || structure.x || 0;
+            job.y = Number(entry.warehouse.y) || job.y || structure.y || 0;
+            continue;
+        }
+        job.x = Number(structure.x) || 0;
+        job.y = Number(structure.y) || 0;
+        job.cargoFood = 0;
+        job.phase = 'serving';
+        job.serviceTotalMs = serviceTimeMs;
+        job.serviceRemainMs = serviceTimeMs;
+        job.phaseRemainMs = 0;
+        job.phaseTotalMs = 0;
+    }
+    return { activeMs, foodSpent };
+}
+
 /**
- * 只读计算一个后台位面的研究院总科研速率。科技树是跨位面全局系统，因此
+ * 只读计算一个后台位面的研究院数量与全部科研速率（含气象科研）。科技树是跨位面全局系统，因此
  * WorldSimDriver 会把所有后台快照与当前前台位面的结果相加后统一推进。
  */
 export function getWorld122ResearchSummary(snapshot) {
@@ -245,33 +578,76 @@ export function getWorld122ResearchSummary(snapshot) {
     const laborEfficiency = assignedPopulation > 0
         ? Math.max(0, Math.min(1, populationCapacity / assignedPopulation))
         : 1;
+    const lastWeightedTavernMultiplier = Math.max(1,
+        Number(snapshot?.tavernLastWeightedMultiplier) || 1);
     const researchCfg = populationEconomyConfig.research || {};
     const researchLevels = researchCfg.levels || [];
-    const baseAbilityId = researchCfg.baseResearchAbilityId;
-    const baseBonus = baseAbilityId
-        ? Math.max(0, getAbilityValue(
-            getBuildingUpgradeAbility(baseAbilityId),
-            getAbilityLevel(baseAbilityId)
-        ))
-        : 0;
-    const workerShare = Math.max(0, Number(researchCfg.workerEfficiencyShare) || 0.2);
+    const baseModuleId = researchCfg.baseResearchModuleId || 'research_base_points';
+    const workerShare = Math.max(0, Number(researchCfg.workerEfficiencyShare) || 0.1);
     let count = 0;
     let rate = 0;
     for (const structure of economyStructures) {
-        if (producerBuildingsJson[structure.cfgKey]?.economyType !== 'research') continue;
-        count += 1;
-        const level = Math.max(1, Math.floor(Number(structure.economyLevel) || 1));
-        const levelCfg = researchLevels.find((entry) => entry.level === level)
-            || researchLevels[0] || {};
-        const baseRate = Math.max(0,
-            Number(levelCfg.baseResearchPointsPerSecond) || 0) + baseBonus;
-        const staffed = Math.min(
-            _economyWorkerSlots(structure, 'research'),
-            Math.max(0, Math.floor(Number(structure.assignedWorkers) || 0))
-        );
-        const staffFactor = Math.max(0, Math.min(1, staffed * workerShare));
-        rate += baseRate * staffFactor * laborEfficiency
-            * _workshopEfficiencyMultiplier(structure, economyStructures);
+        const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
+        if (economyType === 'research') {
+            count += 1;
+            const level = Math.max(1, Math.floor(Number(structure.economyLevel) || 1));
+            const levelCfg = researchLevels.find((entry) => entry.level === level)
+                || researchLevels[0] || {};
+            const baseRate = Math.max(0,
+                Number(levelCfg.baseResearchPointsPerSecond) || 0)
+                + Math.max(0, _economyModuleValue(structure, economyType, baseModuleId));
+            const staffed = Math.min(
+                _economyWorkerSlots(structure, 'research'),
+                Math.max(0, Math.floor(Number(structure.assignedWorkers) || 0))
+            );
+            const staffFactor = Math.max(0, Math.min(1, staffed * workerShare));
+            rate += baseRate * staffFactor * laborEfficiency
+                * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * (snapshot?.tavernLastWeightedMultiplier != null
+                    ? lastWeightedTavernMultiplier
+                    : _snapshotTavernMultiplier(economyType, economyStructures))
+                * _snapshotResearchClusterMultiplier(structure, economyStructures)
+                * getProductionResourceMul();
+        } else if (economyType === 'weather_forecast') {
+            count += 1;
+            const weatherCfg = populationEconomyConfig.weather_forecast || {};
+            const moduleId = weatherCfg.researchModuleId || 'weather_forecast_cycles';
+            const baseRate = Math.max(0,
+                _economyModuleValue(structure, economyType, moduleId));
+            const staffed = Math.min(
+                _economyWorkerSlots(structure, economyType),
+                Math.max(0, Math.floor(Number(structure.assignedWorkers) || 0))
+            );
+            const staffFactor = Math.max(0, Math.min(1,
+                staffed * (Number(weatherCfg.workerEfficiencyShare) || 1)));
+            rate += baseRate * staffFactor * laborEfficiency
+                * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * (snapshot?.tavernLastWeightedMultiplier != null
+                    ? lastWeightedTavernMultiplier
+                    : _snapshotTavernMultiplier(economyType, economyStructures))
+                * _snapshotResearchClusterMultiplier(structure, economyStructures)
+                * getProductionResourceMul();
+        } else if (economyType === 'advanced_research') {
+            count += 1;
+            const facility = producerBuildingsJson[structure.cfgKey]?.researchFacility || {};
+            const baseRate = Math.max(0,
+                Number(facility.baseResearchPointsPerSecond) || 0);
+            const slots = _economyWorkerSlots(structure, economyType);
+            const staffed = Math.min(
+                slots,
+                Math.max(0, Math.floor(Number(structure.assignedWorkers) || 0))
+            );
+            const workerShare = Math.max(0,
+                Number(facility.workerEfficiencyShare) || (slots > 0 ? 1 / slots : 0));
+            const staffFactor = Math.max(0, Math.min(1, staffed * workerShare));
+            rate += baseRate * staffFactor * laborEfficiency
+                * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * (snapshot?.tavernLastWeightedMultiplier != null
+                    ? lastWeightedTavernMultiplier
+                    : _snapshotTavernMultiplier(economyType, economyStructures))
+                * _snapshotResearchClusterMultiplier(structure, economyStructures)
+                * getProductionResourceMul();
+        }
     }
     return { count, rate };
 }
@@ -378,6 +754,15 @@ function _unitDps(kind, levelOverrides = null) {
     const interval = Math.max(300,
         (cfg.ai.attackInterval ?? 2000) * mults.attackIntervalMult * spellCooldownMult);
     let dps = dmg * 1000 / interval;
+    if (kind === 'anti_vehicle') {
+        const rocketDamage = (Number(cfg.ai.rocketDamage) || 0) * mults.attackDamageMult;
+        dps += rocketDamage * 1000 / Math.max(1000, Number(cfg.ai.rocketCooldownMs) || 8000);
+    }
+    const doubleStrikeChance = Math.max(0, Math.min(1,
+        Number(cfg.passives?.doubleStrikeChance) || 0));
+    const doubleStrikeMultiplier = Math.max(1,
+        Number(cfg.passives?.doubleStrikeMultiplier) || 1);
+    dps *= 1 + doubleStrikeChance * (doubleStrikeMultiplier - 1);
     if (kind === 'jungle_priest') {
         dps *= _junglePriestMagicDamageMult(mults.jungleMagicLevel);
     }
@@ -556,14 +941,20 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const commit = opts.commit !== false;
     const report = {
         elapsedMs, wavesCleared: [], victory: false, defeated: false,
-        energyMined: 0, passiveEnergy: 0, titheEnergy: 0, resonatorEnergyProduced: 0,
+        energyMined: 0, deepDrillEnergyMined: 0, passiveEnergy: 0, titheEnergy: 0, resonatorEnergyProduced: 0,
+        windEnergyProduced: 0, solarEnergyProduced: 0,
+        steamEnergyProduced: 0,
         goldProduced: 0, foodProduced: 0, unitsProduced: 0,
-        energySpentOnMiners: 0, foodSpentOnUnits: 0,
+        energySpentOnMiners: 0, energySpentOnMinting: 0, energySpentOnGrandMall: 0,
+        energySpentOnStockExchange: 0, energySpentOnComputing: 0,
+        foodSpentOnMinting: 0, foodSpentOnSteam: 0, foodSpentOnTavern: 0,
+        foodSpentOnUnits: 0,
         abilitiesCompleted: [], modulesCompleted: [], structuresLost: 0, baseDamage: 0,
         explorerRewards: [], plantTributesProduced: 0, enhancementStonesProduced: 0,
     };
     if (!snap || !snap.wave || !(elapsedMs > 0)) return report;
     const target = commit ? snap : JSON.parse(JSON.stringify(snap));
+    for (const structure of target.structures || []) skipBuildingUpgradeWait(structure);
     let t = elapsedMs / 1000; // 秒
     const cfg = target.config || {};
     const initialPassiveLevel = getAbilityLevel('research_passive_energy');
@@ -578,6 +969,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const completionTimes = {};
     const warehouses = (target.structures || []).filter((s) => s.kind === 'producer'
         && getProducerStorageCap(s) > 0);
+    const roadContext = _snapshotRoadContext(target);
     for (const warehouse of warehouses) {
         if (!warehouse.warehouseUpgrade) continue;
         warehouse.warehouseUpgrade.remainMs = Math.max(
@@ -654,6 +1046,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     Math.floor(Number(structure.economyUpgrade.targetLevel) || 1)
                 );
                 structure.economyUpgrade = null;
+                if (producerBuildingsJson[structure.cfgKey]?.economyType === 'warehouse') {
+                    structure.storageCapacity = getProducerStorageCap(structure);
+                }
             }
         }
         if (structure.workshopUpgrade) {
@@ -674,6 +1069,63 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 structure.workshopUpgrade = null;
             }
         }
+        if (structure.researchUpgrade) {
+            structure.researchUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.researchUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.researchUpgrade.remainMs <= 0) {
+                const moduleId = structure.researchUpgrade.moduleId;
+                const module = buildingUpgradesJson.research_standard?.modules?.[moduleId];
+                if (module) {
+                    structure.researchModules = structure.researchModules || {};
+                    structure.researchModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.researchModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.researchUpgrade = null;
+            }
+        }
+        if (structure.windmillUpgrade) {
+            structure.windmillUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.windmillUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.windmillUpgrade.remainMs <= 0) {
+                const moduleId = structure.windmillUpgrade.moduleId;
+                const module = buildingUpgradesJson.wheat_windmill_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.windmillModules = structure.windmillModules || {};
+                    structure.windmillModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.windmillModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.windmillUpgrade = null;
+            }
+        }
+        if (structure.mintUpgrade) {
+            structure.mintUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.mintUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.mintUpgrade.remainMs <= 0) {
+                const moduleId = structure.mintUpgrade.moduleId;
+                const module = buildingUpgradesJson.royal_mint_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.mintModules = structure.mintModules || {};
+                    structure.mintModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.mintModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.mintUpgrade = null;
+            }
+        }
         if (structure.armoryUpgrade) {
             structure.armoryUpgrade.remainMs = Math.max(
                 0,
@@ -690,6 +1142,25 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     );
                 }
                 structure.armoryUpgrade = null;
+            }
+        }
+        if (structure.hospitalUpgrade) {
+            structure.hospitalUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.hospitalUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.hospitalUpgrade.remainMs <= 0) {
+                const moduleId = structure.hospitalUpgrade.moduleId;
+                const module = buildingUpgradesJson.field_hospital_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.hospitalModules = structure.hospitalModules || {};
+                    structure.hospitalModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.hospitalModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.hospitalUpgrade = null;
             }
         }
         if (structure.bankUpgrade) {
@@ -710,6 +1181,24 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 structure.bankUpgrade = null;
             }
         }
+        if (structure.grandMallUpgrade) {
+            structure.grandMallUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.grandMallUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.grandMallUpgrade.remainMs <= 0) {
+                const moduleId = structure.grandMallUpgrade.moduleId;
+                const module = buildingUpgradesJson.grand_mall_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.grandMallModules = structure.grandMallModules || {};
+                    structure.grandMallModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0, Math.floor(Number(structure.grandMallModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.grandMallUpgrade = null;
+            }
+        }
         if (structure.bakeryUpgrade) {
             structure.bakeryUpgrade.remainMs = Math.max(
                 0,
@@ -726,6 +1215,80 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     );
                 }
                 structure.bakeryUpgrade = null;
+            }
+        }
+        if (structure.chainRestaurantUpgrade) {
+            structure.chainRestaurantUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.chainRestaurantUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.chainRestaurantUpgrade.remainMs <= 0) {
+                const moduleId = structure.chainRestaurantUpgrade.moduleId;
+                const module = buildingUpgradesJson.chain_restaurant_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.chainRestaurantModules = structure.chainRestaurantModules || {};
+                    structure.chainRestaurantModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0, Math.floor(Number(
+                            structure.chainRestaurantModules[moduleId]
+                        ) || 0)) + 1
+                    );
+                }
+                structure.chainRestaurantUpgrade = null;
+            }
+        }
+        if (structure.cheeseFarmUpgrade) {
+            structure.cheeseFarmUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.cheeseFarmUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.cheeseFarmUpgrade.remainMs <= 0) {
+                const moduleId = structure.cheeseFarmUpgrade.moduleId;
+                const module = buildingUpgradesJson.cheese_farm_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.cheeseFarmModules = structure.cheeseFarmModules || {};
+                    structure.cheeseFarmModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0, Math.floor(Number(structure.cheeseFarmModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.cheeseFarmUpgrade = null;
+            }
+        }
+        if (structure.steamUpgrade) {
+            structure.steamUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.steamUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.steamUpgrade.remainMs <= 0) {
+                const moduleId = structure.steamUpgrade.moduleId;
+                const module = buildingUpgradesJson.steam_power_plant_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.steamModules = structure.steamModules || {};
+                    structure.steamModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0, Math.floor(Number(structure.steamModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.steamUpgrade = null;
+            }
+        }
+        if (structure.tavernUpgrade) {
+            structure.tavernUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.tavernUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.tavernUpgrade.remainMs <= 0) {
+                const moduleId = structure.tavernUpgrade.moduleId;
+                const module = buildingUpgradesJson.tavern_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.tavernModules = structure.tavernModules || {};
+                    structure.tavernModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0, Math.floor(Number(structure.tavernModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.tavernUpgrade = null;
             }
         }
         if (structure.resonatorUpgrade) {
@@ -745,6 +1308,82 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     );
                 }
                 structure.resonatorUpgrade = null;
+            }
+        }
+        if (structure.windPowerUpgrade) {
+            structure.windPowerUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.windPowerUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.windPowerUpgrade.remainMs <= 0) {
+                const moduleId = structure.windPowerUpgrade.moduleId;
+                const module = buildingUpgradesJson.wind_power_plant_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.windPowerModules = structure.windPowerModules || {};
+                    structure.windPowerModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.windPowerModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.windPowerUpgrade = null;
+            }
+        }
+        if (structure.solarPowerUpgrade) {
+            structure.solarPowerUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.solarPowerUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.solarPowerUpgrade.remainMs <= 0) {
+                const moduleId = structure.solarPowerUpgrade.moduleId;
+                const module = buildingUpgradesJson.solar_power_plant_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.solarPowerModules = structure.solarPowerModules || {};
+                    structure.solarPowerModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.solarPowerModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.solarPowerUpgrade = null;
+            }
+        }
+        if (structure.computingCenterUpgrade) {
+            structure.computingCenterUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.computingCenterUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.computingCenterUpgrade.remainMs <= 0) {
+                const moduleId = structure.computingCenterUpgrade.moduleId;
+                const module = buildingUpgradesJson.computing_center_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.computingCenterModules = structure.computingCenterModules || {};
+                    structure.computingCenterModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.computingCenterModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.computingCenterUpgrade = null;
+            }
+        }
+        if (structure.weatherUpgrade) {
+            structure.weatherUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.weatherUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.weatherUpgrade.remainMs <= 0) {
+                const moduleId = structure.weatherUpgrade.moduleId;
+                const module = buildingUpgradesJson.weather_forecast_analysis?.modules?.[moduleId];
+                if (module) {
+                    structure.weatherModules = structure.weatherModules || {};
+                    structure.weatherModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.weatherModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.weatherUpgrade = null;
             }
         }
     }
@@ -793,10 +1432,268 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const laborEfficiency = assignedPopulation > 0
         ? Math.max(0, Math.min(1, populationCapacity / assignedPopulation))
         : 1;
+    let tavernWeightedMultiplier = 1;
+    for (const tavern of economyStructures) {
+        if (producerBuildingsJson[tavern.cfgKey]?.economyType !== 'tavern') continue;
+        const result = _simulateTavernService(
+            tavern,
+            elapsedMs,
+            laborEfficiency,
+            roadContext,
+            warehouses
+        );
+        report.foodSpentOnTavern += result.foodSpent;
+        const weightedBonus = _tavernConfiguredBonus(tavern)
+            * Math.max(0, Math.min(1, result.activeMs / elapsedMs));
+        tavernWeightedMultiplier = Math.max(tavernWeightedMultiplier, 1 + weightedBonus);
+    }
+    target.tavernLastWeightedMultiplier = tavernWeightedMultiplier;
     for (const structure of economyStructures) {
         const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
         const assigned = Math.max(0, Number(structure.assignedWorkers) || 0);
-        if (economyType === 'bank') {
+        if (economyType === 'royal_mint') {
+            const mintCfg = populationEconomyConfig.royal_mint || {};
+            const staffedCount = Math.min(
+                _economyWorkerSlots(structure, economyType),
+                Math.max(0, Math.floor(assigned))
+            );
+            const goldPerWorker = Math.max(0,
+                _economyModuleValue(structure, economyType, 'mint_precision'));
+            const energyPerWorker = Math.max(1,
+                _economyModuleValue(structure, economyType, 'mint_energy_efficiency'));
+            const settlementSpeed = Math.max(0.01,
+                1 + _economyModuleValue(structure, economyType, 'mint_press_speed'));
+            const baseIntervalMs = Math.max(100,
+                Number(mintCfg.settlementIntervalMs) || 10000);
+            const settlementIntervalMs = Math.max(100,
+                Math.round(baseIntervalMs / settlementSpeed));
+            const workshopMultiplier = _workshopEfficiencyMultiplier(
+                structure,
+                economyStructures
+            );
+            const goldPerSettlement = staffedCount * goldPerWorker
+                * laborEfficiency * workshopMultiplier * tavernWeightedMultiplier;
+            const energyPerSettlement = goldPerSettlement > 0
+                ? Math.max(1, Math.ceil(staffedCount * energyPerWorker * laborEfficiency))
+                : 0;
+            const foodPerWorker = Math.max(0,
+                Number(mintCfg.foodPerWorkerPerSettlement) || 60);
+            const foodPerSettlement = goldPerSettlement > 0
+                ? staffedCount * foodPerWorker
+                : 0;
+            const tickTotal = goldPerSettlement > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
+                : 0;
+            const readySettlements = Math.floor(tickTotal / settlementIntervalMs);
+            const availableEnergy = (warehouses || []).reduce(
+                (sum, warehouse) => sum + Math.max(0,
+                    Number(warehouse.storedEnergy) || 0),
+                0
+            );
+            const availableFood = (warehouses || []).reduce(
+                (sum, warehouse) => sum + Math.max(0,
+                    Number(warehouse.storedFood) || 0),
+                0
+            );
+            const energyAffordableSettlements = energyPerSettlement > 0
+                ? Math.floor(availableEnergy / energyPerSettlement)
+                : 0;
+            const foodAffordableSettlements = foodPerSettlement > 0
+                ? Math.floor(availableFood / foodPerSettlement)
+                : 0;
+            const settlements = Math.min(
+                readySettlements,
+                energyAffordableSettlements,
+                foodAffordableSettlements
+            );
+            const energyCost = settlements * energyPerSettlement;
+            const foodCost = settlements * foodPerSettlement;
+            if (energyCost > 0 && _deductFromWarehouses(warehouses, energyCost)) {
+                report.energySpentOnMinting += energyCost;
+            }
+            if (foodCost > 0 && _deductFoodFromWarehouses(warehouses, foodCost)) {
+                report.foodSpentOnMinting += foodCost;
+            }
+            structure.economyTickMs = settlements < readySettlements
+                ? Math.min(tickTotal - settlements * settlementIntervalMs, settlementIntervalMs)
+                : tickTotal - settlements * settlementIntervalMs;
+            const total = Math.max(0, Number(structure.mintGoldRemainder) || 0)
+                + goldPerSettlement * settlements * getProductionResourceMul();
+            const produced = Math.floor(total);
+            structure.mintGoldRemainder = total - produced;
+            report.goldProduced += produced;
+            if (commit && produced > 0 && typeof opts.grant === 'function') {
+                const routed = opts.grant({ gold: produced, x: structure.x, y: structure.y }) || {};
+                const overflow = Math.max(0, Math.floor(Number(routed.remaining) || 0));
+                if (overflow > 0) {
+                    structure.pendingGoldDrop = Math.max(0,
+                        Number(structure.pendingGoldDrop) || 0) + overflow;
+                }
+            }
+        } else if (economyType === 'grand_mall') {
+            const mallCfg = populationEconomyConfig.grand_mall || {};
+            const serviceRange = Math.max(0,
+                _grandMallModuleValue(structure, 'grand_mall_business_radius'));
+            const servicePopulation = economyStructures.reduce((sum, house) => {
+                if (producerBuildingsJson[house.cfgKey]?.economyType !== 'housing') return sum;
+                if (Math.hypot((house.x || 0) - (structure.x || 0),
+                    (house.y || 0) - (structure.y || 0)) > serviceRange) return sum;
+                const level = Math.max(1, Math.floor(Number(house.economyLevel) || 1));
+                const levelCfg = houseLevels.find((entry) => entry.level === level) || houseLevels[0];
+                return sum + Math.max(0, Number(levelCfg?.populationCapacity) || 0);
+            }, 0);
+            const staffCapacity = _economyWorkerSlots(structure, economyType);
+            const staffedCount = Math.min(staffCapacity, Math.max(0, Math.floor(assigned)));
+            const workerEfficiency = Math.max(0,
+                Number(mallCfg.workerEfficiencyPerEmployee) || 0.05);
+            const staffEfficiency = Math.max(0, Math.min(1,
+                staffedCount * workerEfficiency));
+            const goldRate = Math.max(0,
+                _grandMallModuleValue(structure, 'grand_mall_showcase'));
+            const energyRate = Math.max(0,
+                _grandMallModuleValue(structure, 'grand_mall_energy_atrium'));
+            const settlementIntervalMs = Math.max(100,
+                Number(mallCfg.settlementIntervalMs) || 1000);
+            const goldPerSettlement = servicePopulation * goldRate * staffEfficiency
+                * laborEfficiency
+                * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * tavernWeightedMultiplier
+                * settlementIntervalMs / 1000;
+            const energyPerSettlement = servicePopulation * energyRate * staffEfficiency
+                * laborEfficiency * settlementIntervalMs / 1000;
+            const tickTotal = goldPerSettlement > 0 && energyPerSettlement > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
+                : 0;
+            const readySettlements = Math.floor(tickTotal / settlementIntervalMs);
+            const availableEnergy = (warehouses || []).reduce(
+                (sum, warehouse) => sum + Math.max(0, Number(warehouse.storedEnergy) || 0),
+                0
+            );
+            const energyRemainder = Math.max(0,
+                Number(structure.grandMallEnergyRemainder) || 0);
+            const affordableSettlements = energyPerSettlement > 0
+                ? Math.max(0, Math.ceil(
+                    (availableEnergy + 1 - energyRemainder) / energyPerSettlement - 1e-12
+                ) - 1)
+                : 0;
+            const settlements = Math.min(readySettlements, affordableSettlements);
+            const energyTotal = energyRemainder + energyPerSettlement * settlements;
+            const energyCost = Math.floor(energyTotal + 1e-9);
+            if (energyCost > 0 && _deductFromWarehouses(warehouses, energyCost)) {
+                report.energySpentOnGrandMall += energyCost;
+            }
+            if (settlements > 0) {
+                structure.grandMallEnergyRemainder = energyTotal - energyCost;
+            }
+            structure.economyTickMs = settlements < readySettlements
+                ? Math.min(tickTotal - settlements * settlementIntervalMs, settlementIntervalMs)
+                : tickTotal - settlements * settlementIntervalMs;
+            const total = Math.max(0, Number(structure.grandMallGoldRemainder) || 0)
+                + goldPerSettlement * settlements * getProductionResourceMul();
+            const produced = Math.floor(total);
+            structure.grandMallGoldRemainder = total - produced;
+            report.goldProduced += produced;
+            if (commit && produced > 0 && typeof opts.grant === 'function') {
+                const routed = opts.grant({ gold: produced, x: structure.x, y: structure.y }) || {};
+                const overflow = Math.max(0, Math.floor(Number(routed.remaining) || 0));
+                if (overflow > 0) {
+                    structure.pendingGoldDrop = Math.max(0,
+                        Number(structure.pendingGoldDrop) || 0) + overflow;
+                }
+            }
+        } else if (economyType === 'stock_exchange' || economyType === 'computing_center') {
+            const isComputing = economyType === 'computing_center';
+            const exchangeCfg = populationEconomyConfig[economyType] || {};
+            const settlementIntervalMs = Math.max(100,
+                Number(exchangeCfg.settlementIntervalMs) || 1000);
+            const staffCapacity = _economyWorkerSlots(structure, economyType);
+            const staffedCount = Math.min(staffCapacity,
+                Math.max(0, Math.floor(assigned)));
+            const workerEfficiency = Math.max(0,
+                Number(exchangeCfg.workerEfficiencyPerEmployee) || 0);
+            const operatingFactor = Math.max(0, Math.min(1,
+                staffedCount * workerEfficiency)) * laborEfficiency;
+            const configuredBase = isComputing
+                ? _economyModuleValue(structure, economyType, 'computing_cluster_output')
+                : Math.max(0, Number(exchangeCfg.baseGoldPerSecond) || 0);
+            const populationRate = isComputing
+                ? _economyModuleValue(structure, economyType, 'computing_population_model')
+                : Math.max(0, Number(exchangeCfg.goldPerPopulationPerSecond) || 0);
+            const baseAndPopulation = (configuredBase
+                + populationCapacity * populationRate) * operatingFactor;
+            const goldBalanceRate = Math.max(0,
+                Number(exchangeCfg.goldBalanceRatePerSecond) || 0) * operatingFactor;
+            const configuredEnergyPerSecond = isComputing
+                ? _economyModuleValue(structure, economyType, 'computing_power_efficiency')
+                : Math.max(0, Number(exchangeCfg.energyPerSecond) || 0);
+            const energyPerSettlement = configuredEnergyPerSecond * operatingFactor
+                * settlementIntervalMs / 1000;
+            const tickTotal = baseAndPopulation > 0 && energyPerSettlement > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
+                : 0;
+            const readySettlements = Math.floor(tickTotal / settlementIntervalMs);
+            const availableEnergy = (warehouses || []).reduce(
+                (sum, warehouse) => sum + Math.max(0,
+                    Number(warehouse.storedEnergy) || 0),
+                0
+            );
+            let energyCost = 0;
+            let settlements = 0;
+            const energyRemainderField = isComputing
+                ? 'computingCenterEnergyRemainder'
+                : 'stockExchangeEnergyRemainder';
+            const goldRemainderField = isComputing
+                ? 'computingCenterGoldRemainder'
+                : 'stockExchangeGoldRemainder';
+            let energyRemainder = Math.max(0,
+                Number(structure[energyRemainderField]) || 0);
+            for (let i = 0; i < readySettlements; i += 1) {
+                const energyTotal = energyRemainder + energyPerSettlement;
+                const batchCost = Math.floor(energyTotal + 1e-9);
+                if (energyCost + batchCost > availableEnergy) break;
+                energyCost += batchCost;
+                energyRemainder = energyTotal - batchCost;
+                settlements += 1;
+            }
+            if (energyCost > 0 && _deductFromWarehouses(warehouses, energyCost)) {
+                if (isComputing) report.energySpentOnComputing += energyCost;
+                else report.energySpentOnStockExchange += energyCost;
+            }
+            if (settlements > 0) {
+                structure[energyRemainderField] = energyRemainder;
+            }
+            structure.economyTickMs = settlements < readySettlements
+                ? Math.min(tickTotal - settlements * settlementIntervalMs,
+                    settlementIntervalMs)
+                : tickTotal - settlements * settlementIntervalMs;
+            let currentGold = Math.max(0, Number(
+                typeof opts.getPlayerTotalGold === 'function'
+                    ? opts.getPlayerTotalGold()
+                    : opts.playerTotalGold
+            ) || 0);
+            let goldRemainder = Math.max(0,
+                Number(structure[goldRemainderField]) || 0);
+            let produced = 0;
+            for (let i = 0; i < settlements; i += 1) {
+                const total = goldRemainder + (baseAndPopulation
+                    + currentGold * goldBalanceRate)
+                    * settlementIntervalMs / 1000;
+                const batchGold = Math.floor(total);
+                goldRemainder = total - batchGold;
+                produced += batchGold;
+                currentGold += batchGold;
+            }
+            structure[goldRemainderField] = goldRemainder;
+            report.goldProduced += produced;
+            if (commit && produced > 0 && typeof opts.grant === 'function') {
+                const routed = opts.grant({ gold: produced, x: structure.x, y: structure.y }) || {};
+                const overflow = Math.max(0, Math.floor(Number(routed.remaining) || 0));
+                if (overflow > 0) {
+                    structure.pendingGoldDrop = Math.max(0,
+                        Number(structure.pendingGoldDrop) || 0) + overflow;
+                }
+            }
+        } else if (economyType === 'bank') {
             const serviceRange = _bankServiceRange(structure);
             const effectiveServicePopulation = economyStructures.reduce((sum, house) => {
                 if (producerBuildingsJson[house.cfgKey]?.economyType !== 'housing') return sum;
@@ -812,7 +1709,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const settlementIntervalMs = Math.max(100, Math.round(baseIntervalMs / settlementSpeed));
             const goldPerPopulation = Math.max(0, _bankModuleValue(structure, 'bank_mint'));
             const goldPerSettlement = effectiveServicePopulation * goldPerPopulation * assigned * laborEfficiency
-                * _workshopEfficiencyMultiplier(structure, economyStructures);
+                * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * tavernWeightedMultiplier;
             const tickTotal = goldPerSettlement > 0
                 ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
                 : 0;
@@ -831,16 +1729,64 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 }
             }
         } else if (economyType === 'windmill') {
-            const foodRate = Math.max(0, Number(populationEconomyConfig.windmill?.foodPerWorkerPerSecond) || 0);
+            const windmillCfg = populationEconomyConfig.windmill || {};
+            const foodRate = Math.max(0,
+                _economyModuleValue(structure, economyType, 'windmill_seed_selection')
+                    || Number(windmillCfg.foodPerWorkerPerSecond) || 0);
+            const driveMultiplier = Math.max(0,
+                _economyModuleValue(structure, economyType, 'windmill_sail_drive') || 1);
+            const fieldMultiplier = Math.max(0,
+                _economyModuleValue(structure, economyType, 'windmill_crop_rotation') || 1);
+            const staffCapacity = _economyWorkerSlots(structure, economyType);
+            const staffedCount = Math.min(staffCapacity, Math.max(0, Math.floor(assigned)));
             const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
-                + assigned * foodRate * laborEfficiency
-                    * _workshopEfficiencyMultiplier(structure, economyStructures) * t
+                + staffedCount * foodRate * driveMultiplier * fieldMultiplier * laborEfficiency
+                    * _workshopEfficiencyMultiplier(structure, economyStructures)
+                    * tavernWeightedMultiplier * t
                     * getProductionResourceMul();
             const produced = Math.floor(total);
             structure.workProductionRemainder = total - produced;
             const stored = _depositFoodToWarehouses(warehouses, produced);
             structure.workProductionRemainder += Math.max(0, produced - stored);
             report.foodProduced += stored;
+        } else if (economyType === 'wind_power_plant'
+            || economyType === 'solar_power_plant') {
+            const isSolar = economyType === 'solar_power_plant';
+            const windCfg = populationEconomyConfig[economyType] || {};
+            const cycleMs = Math.max(100,
+                _economyModuleValue(structure, economyType,
+                    isSolar ? 'solar_tracking_cycle' : 'wind_blade_pitch')
+                    || (isSolar ? 4000 : 5000));
+            const energyPerCycle = Math.max(0,
+                _economyModuleValue(structure, economyType,
+                    isSolar ? 'solar_array_output' : 'wind_generator_output'));
+            const conversionRate = Math.max(0, Math.min(1,
+                _economyModuleValue(structure, economyType,
+                    isSolar ? 'solar_storage_efficiency' : 'wind_rectifier_efficiency')));
+            const staffCapacity = _economyWorkerSlots(structure, economyType);
+            const staffedCount = Math.min(
+                staffCapacity,
+                Math.max(0, Math.floor(assigned))
+            );
+            const workerShare = Math.max(0,
+                Number(windCfg.workerEfficiencyShare) || (isSolar ? 0.2 : 0.25));
+            const staffFactor = Math.max(0, Math.min(1, staffedCount * workerShare));
+            const energyPerEffectiveCycle = energyPerCycle * conversionRate * staffFactor
+                * laborEfficiency * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * tavernWeightedMultiplier;
+            const tickTotal = energyPerEffectiveCycle > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
+                : 0;
+            const cycles = Math.floor(tickTotal / cycleMs);
+            structure.economyTickMs = tickTotal - cycles * cycleMs;
+            const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
+                + energyPerEffectiveCycle * cycles * getProductionResourceMul();
+            const produced = Math.floor(total);
+            structure.workProductionRemainder = total - produced;
+            const stored = _depositToWarehouses(warehouses, produced);
+            structure.workProductionRemainder += Math.max(0, produced - stored);
+            if (isSolar) report.solarEnergyProduced += stored;
+            else report.windEnergyProduced += stored;
         } else if (economyType === 'planar_resonator') {
             const resonatorCfg = populationEconomyConfig.planar_resonator || {};
             const cycleMs = Math.max(100,
@@ -858,7 +1804,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 Number(resonatorCfg.workerEfficiencyShare) || 0.2);
             const staffFactor = Math.max(0, Math.min(1, staffedCount * workerShare));
             const energyPerEffectiveCycle = energyPerCycle * conversionRate * staffFactor
-                * laborEfficiency * _workshopEfficiencyMultiplier(structure, economyStructures);
+                * laborEfficiency * _workshopEfficiencyMultiplier(structure, economyStructures)
+                * tavernWeightedMultiplier;
             const tickTotal = energyPerEffectiveCycle > 0
                 ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
                 : 0;
@@ -871,34 +1818,94 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const stored = _depositToWarehouses(warehouses, produced);
             structure.workProductionRemainder += Math.max(0, produced - stored);
             report.resonatorEnergyProduced += stored;
-        } else if (economyType === 'bakery') {
-            const bakeryCfg = populationEconomyConfig.bakery || {};
-            const inputFood = Math.max(1, Math.floor(Number(bakeryCfg.inputFoodPerBatch) || 50));
-            const processMs = Math.max(100, _bakeryModuleValue(structure, 'bakery_quick_cooking')
+        } else if (economyType === 'deep_drill') {
+            const drillCfg = populationEconomyConfig.deep_drill || {};
+            const range = Math.max(0, Number(drillCfg.miningRange) || 600);
+            const perWorker = Math.max(0,
+                Number(drillCfg.energyPerWorkerPerSecond) || 12);
+            const staffCapacity = _economyWorkerSlots(structure, economyType);
+            const staffedCount = Math.min(
+                staffCapacity,
+                Math.max(0, Math.floor(assigned))
+            );
+            const rawRate = staffedCount * perWorker * laborEfficiency;
+            const outputMultiplier = Math.max(0,
+                _workshopEfficiencyMultiplier(structure, economyStructures)
+                * tavernWeightedMultiplier
+                * getProductionResourceMul()
+            );
+            const exactRaw = Math.max(0, Number(structure.deepDrillRemainder) || 0)
+                + rawRate * t;
+            const rawBudget = Math.floor(exactRaw);
+            structure.deepDrillRemainder = exactRaw - rawBudget;
+            const warehouseFree = _energyStorableInWarehouses(warehouses);
+            const capacityRaw = outputMultiplier > 0
+                ? Math.floor((warehouseFree + 0.999999) / outputMultiplier)
+                : 0;
+            const usableRawBudget = Math.min(rawBudget, capacityRaw);
+            const surfaceMinedRaw = _mineFromNodesInRange(
+                target.nodes || [],
+                structure.x,
+                structure.y,
+                range,
+                usableRawBudget
+            );
+            const minedRaw = surfaceMinedRaw + (TechnologySystem.isUnlocked(
+                'mechanic', 'deep_vein_mining'
+            ) ? usableRawBudget - surfaceMinedRaw : 0);
+            const output = Math.min(warehouseFree,
+                Math.floor(minedRaw * outputMultiplier));
+            const stored = output > 0 ? _depositToWarehouses(warehouses, output) : 0;
+            structure.deepDrillMinedTotal = Math.max(0,
+                Number(structure.deepDrillMinedTotal) || 0) + stored;
+            report.deepDrillEnergyMined += stored;
+        } else if (economyType === 'bakery' || economyType === 'chain_restaurant') {
+            const isRestaurant = economyType === 'chain_restaurant';
+            const bakeryCfg = populationEconomyConfig[economyType] || {};
+            const jobField = isRestaurant ? 'chainRestaurantJob' : 'bakeryJob';
+            const remainderField = isRestaurant
+                ? 'chainRestaurantOutputRemainder'
+                : 'bakeryOutputRemainder';
+            const job = structure[jobField] && typeof structure[jobField] === 'object'
+                ? structure[jobField]
+                : {};
+            structure[jobField] = job;
+            if (!isRestaurant) {
+                structure.bakeryPendingTributeIds = Array.isArray(structure.bakeryPendingTributeIds)
+                    ? structure.bakeryPendingTributeIds : [];
+            }
+            const reachableWarehouseRoutes = _snapshotReachableWarehouses(
+                roadContext,
+                structure,
+                warehouses
+            );
+            const bakeryWarehouses = reachableWarehouseRoutes.map((entry) => entry.warehouse);
+            // 断路期间完整冻结粮食加工任务；不累积离线补偿时间，也不转移资源。
+            if (bakeryWarehouses.length <= 0) continue;
+            const moduleValue = isRestaurant ? _chainRestaurantModuleValue : _bakeryModuleValue;
+            const inputFood = Math.max(1, Math.floor(isRestaurant
+                ? (moduleValue(structure, 'restaurant_bulk_supply')
+                    || Number(bakeryCfg.inputFoodPerBatch) || 80)
+                : (Number(bakeryCfg.inputFoodPerBatch) || 50)));
+            const processMs = Math.max(100, moduleValue(structure,
+                isRestaurant ? 'restaurant_central_kitchen' : 'bakery_quick_cooking')
                 || Number(bakeryCfg.baseProcessTimeMs) || 10000);
-            const outputMultiplier = Math.max(1, _bakeryModuleValue(structure, 'bakery_gourmet')
+            const outputMultiplier = Math.max(1, moduleValue(structure,
+                isRestaurant ? 'restaurant_signature_menu' : 'bakery_gourmet')
                 || Number(bakeryCfg.baseOutputMultiplier) || 5);
             const moveSpeed = Math.max(1, (Number(bakeryCfg.baseMoveSpeed) || 80)
-                * (_bakeryModuleValue(structure, 'bakery_quick_steps') || 1));
-            const nearestDistance = warehouses.length > 0
-                ? Math.min(...warehouses.map((warehouse) => Math.hypot(
-                    (Number(warehouse.x) || 0) - (Number(structure.x) || 0),
-                    (Number(warehouse.y) || 0) - (Number(structure.y) || 0)
-                )))
-                : 0;
+                * (moduleValue(structure,
+                    isRestaurant ? 'restaurant_express_delivery' : 'bakery_quick_steps') || 1));
+            const nearestDistance = Math.max(
+                0,
+                (reachableWarehouseRoutes[0]?.route?.length - 1) * 64 || 0
+            );
             const workshopMultiplier = _workshopEfficiencyMultiplier(structure, economyStructures);
             const cycleMs = Math.max(100,
                 processMs / Math.max(0.01, workshopMultiplier)
                 + nearestDistance * 2 / moveSpeed * 1000);
-            const job = structure.bakeryJob && typeof structure.bakeryJob === 'object'
-                ? structure.bakeryJob
-                : {};
-            structure.bakeryJob = job;
-            structure.bakeryPendingTributeIds = Array.isArray(structure.bakeryPendingTributeIds)
-                ? structure.bakeryPendingTributeIds : [];
-
             if (assigned > 0 && (Number(job.pendingFood) || 0) > 0) {
-                const stored = _depositFoodToWarehouses(warehouses, job.pendingFood);
+                const stored = _depositFoodToWarehouses(bakeryWarehouses, job.pendingFood);
                 job.pendingFood = Math.max(0, Math.floor(Number(job.pendingFood) || 0) - stored);
                 report.foodProduced += stored;
             }
@@ -914,18 +1921,22 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     / Math.max(0.01, workshopMultiplier);
                 if (availableMs >= effectiveRemainingProcessMs) {
                     availableMs -= effectiveRemainingProcessMs;
-                    const produced = Math.max(1, Math.floor(
-                        inputFood * outputMultiplier * getProductionResourceMul()
-                    ));
-                    const stored = _depositFoodToWarehouses(warehouses, produced);
+                    const consumedFood = Math.max(1,
+                        Math.floor(Number(job.cargoFood) || inputFood));
+                    const exactOutput = Math.max(0, Number(structure[remainderField]) || 0)
+                        + consumedFood * outputMultiplier * tavernWeightedMultiplier
+                            * getProductionResourceMul();
+                    const produced = Math.max(1, Math.floor(exactOutput));
+                    structure[remainderField] = exactOutput - produced;
+                    const stored = _depositFoodToWarehouses(bakeryWarehouses, produced);
                     report.foodProduced += stored;
                     job.pendingFood = Math.max(0, produced - stored);
                     job.cargoFood = 0;
                     job.completedBatches = Math.max(0, Math.floor(Number(job.completedBatches) || 0)) + 1;
-                    const tributeChance = Math.max(0, Math.min(1,
-                        _bakeryModuleValue(structure, 'bakery_ingredient_processing') || 0.01));
-                    const tributeIds = bakeryCfg.plantTributeItemIds || [];
-                    if (tributeIds.length > 0 && Math.random() < tributeChance) {
+                    const tributeChance = isRestaurant ? 0 : Math.max(0, Math.min(1,
+                        moduleValue(structure, 'bakery_ingredient_processing') || 0.01));
+                    const tributeIds = isRestaurant ? [] : (bakeryCfg.plantTributeItemIds || []);
+                    if (!isRestaurant && tributeIds.length > 0 && Math.random() < tributeChance) {
                         const tributeId = tributeIds[Math.floor(Math.random() * tributeIds.length)];
                         const routed = commit && typeof opts.grant === 'function'
                             ? opts.grant({ tributeItemIds: [tributeId] }) || {}
@@ -945,19 +1956,21 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             }
             let guard = 10000;
             while (assigned > 0 && job.pendingFood <= 0 && availableMs >= cycleMs && guard-- > 0) {
-                if (!_deductFoodFromWarehouses(warehouses, inputFood)) break;
+                if (!_deductFoodFromWarehouses(bakeryWarehouses, inputFood)) break;
                 availableMs -= cycleMs;
-                const produced = Math.max(1, Math.floor(
-                    inputFood * outputMultiplier * getProductionResourceMul()
-                ));
-                const stored = _depositFoodToWarehouses(warehouses, produced);
+                const exactOutput = Math.max(0, Number(structure[remainderField]) || 0)
+                    + inputFood * outputMultiplier * tavernWeightedMultiplier
+                        * getProductionResourceMul();
+                const produced = Math.max(1, Math.floor(exactOutput));
+                structure[remainderField] = exactOutput - produced;
+                const stored = _depositFoodToWarehouses(bakeryWarehouses, produced);
                 report.foodProduced += stored;
                 job.pendingFood = Math.max(0, produced - stored);
                 job.completedBatches = Math.max(0, Math.floor(Number(job.completedBatches) || 0)) + 1;
-                const tributeChance = Math.max(0, Math.min(1,
-                    _bakeryModuleValue(structure, 'bakery_ingredient_processing') || 0.01));
-                const tributeIds = bakeryCfg.plantTributeItemIds || [];
-                if (tributeIds.length > 0 && Math.random() < tributeChance) {
+                const tributeChance = isRestaurant ? 0 : Math.max(0, Math.min(1,
+                    moduleValue(structure, 'bakery_ingredient_processing') || 0.01));
+                const tributeIds = isRestaurant ? [] : (bakeryCfg.plantTributeItemIds || []);
+                if (!isRestaurant && tributeIds.length > 0 && Math.random() < tributeChance) {
                     const tributeId = tributeIds[Math.floor(Math.random() * tributeIds.length)];
                     const routed = commit && typeof opts.grant === 'function'
                         ? opts.grant({ tributeItemIds: [tributeId] }) || {}
@@ -971,6 +1984,182 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             job.offlineProgressMs = Math.min(cycleMs, availableMs);
             if (job.cargoFood <= 0) job.phase = job.pendingFood > 0 ? 'waiting_deposit' : 'idle';
             job.targetWarehouseId = null;
+        } else if (economyType === 'cheese_farm') {
+            const cheeseCfg = populationEconomyConfig.cheese_farm || {};
+            const job = structure.cheeseFarmJob && typeof structure.cheeseFarmJob === 'object'
+                ? structure.cheeseFarmJob
+                : {};
+            structure.cheeseFarmJob = job;
+            const reachableWarehouseRoutes = _snapshotReachableWarehouses(
+                roadContext,
+                structure,
+                warehouses
+            );
+            const cheeseWarehouses = reachableWarehouseRoutes.map((entry) => entry.warehouse);
+            // 与前台一致：断路或无人时冻结熟成、运输与待入库成品。
+            if (cheeseWarehouses.length <= 0) continue;
+            const processMs = Math.max(1000,
+                _cheeseFarmModuleValue(structure, 'cheese_maturation')
+                    || Number(cheeseCfg.baseProcessTimeMs) || 20000);
+            const foodPerBatch = Math.max(1,
+                _cheeseFarmModuleValue(structure, 'cheese_breed_selection')
+                    || Number(cheeseCfg.baseFoodPerBatch) || 40);
+            const cowCount = Math.max(1, Math.floor(
+                _cheeseFarmModuleValue(structure, 'cheese_pasture_expansion')
+                    || Number(cheeseCfg.baseCowCount) || 2));
+            const baseCowCount = Math.max(1, Number(cheeseCfg.baseCowCount) || 2);
+            const moveSpeed = Math.max(1, (Number(cheeseCfg.baseMoveSpeed) || 80)
+                * (_cheeseFarmModuleValue(structure, 'cheese_delivery_cart') || 1));
+            const nearestDistance = Math.max(
+                0,
+                (reachableWarehouseRoutes[0]?.route?.length - 1) * 64 || 0
+            );
+            const workshopMultiplier = _workshopEfficiencyMultiplier(structure, economyStructures);
+            const cycleMs = Math.max(1000,
+                processMs / Math.max(0.01, workshopMultiplier)
+                + nearestDistance * 2 / moveSpeed * 1000);
+            if (assigned > 0 && (Number(job.pendingFood) || 0) > 0) {
+                const pendingBeforeDeposit = Math.max(0, Math.floor(Number(job.pendingFood) || 0));
+                const stored = _depositFoodToWarehouses(cheeseWarehouses, job.pendingFood);
+                job.pendingFood = Math.max(0, pendingBeforeDeposit - stored);
+                report.foodProduced += stored;
+                if (pendingBeforeDeposit > 0 && job.pendingFood <= 0) {
+                    job.completedBatches = Math.max(0,
+                        Math.floor(Number(job.completedBatches) || 0)) + 1;
+                }
+            }
+            let availableMs = Math.max(0, Number(job.offlineProgressMs) || 0)
+                + (assigned > 0 ? elapsedMs * Math.max(0, laborEfficiency) : 0);
+            job.offlineProgressMs = 0;
+            let guard = 10000;
+            while (assigned > 0 && job.pendingFood <= 0 && availableMs >= cycleMs && guard-- > 0) {
+                availableMs -= cycleMs;
+                const exactOutput = Math.max(0, Number(structure.cheeseFarmOutputRemainder) || 0)
+                    + foodPerBatch * cowCount / baseCowCount
+                        * tavernWeightedMultiplier * getProductionResourceMul();
+                const produced = Math.max(1, Math.floor(exactOutput));
+                structure.cheeseFarmOutputRemainder = exactOutput - produced;
+                const stored = _depositFoodToWarehouses(cheeseWarehouses, produced);
+                report.foodProduced += stored;
+                job.pendingFood = Math.max(0, produced - stored);
+                if (job.pendingFood <= 0) {
+                    job.completedBatches = Math.max(0,
+                        Math.floor(Number(job.completedBatches) || 0)) + 1;
+                }
+            }
+            job.offlineProgressMs = Math.min(cycleMs, availableMs);
+            job.phase = job.pendingFood > 0 ? 'waiting_deposit' : 'processing';
+            job.processTotalMs = processMs;
+            job.processRemainMs = Math.max(0,
+                processMs - Math.min(processMs, availableMs * workshopMultiplier));
+            job.targetWarehouseId = null;
+        } else if (economyType === 'steam_power_plant') {
+            const steamCfg = populationEconomyConfig.steam_power_plant || {};
+            const reachableWarehouseRoutes = _snapshotReachableWarehouses(
+                roadContext,
+                structure,
+                warehouses
+            );
+            const steamWarehouses = reachableWarehouseRoutes.map((entry) => entry.warehouse);
+            // 与前台一致：断路时冻结任务、携带食物、待存能源和计时。
+            if (steamWarehouses.length <= 0) continue;
+            const slotCount = Math.max(1, Math.floor(Number(steamCfg.workerSlots) || 2));
+            structure.steamJobs = Array.isArray(structure.steamJobs) ? structure.steamJobs : [];
+            while (structure.steamJobs.length < slotCount) {
+                structure.steamJobs.push({
+                    slot: structure.steamJobs.length,
+                    phase: 'idle',
+                    cargoFood: 0,
+                    pendingEnergy: 0,
+                    completedBatches: 0,
+                    offlineProgressMs: 0,
+                });
+            }
+            const activeCount = Math.min(slotCount, Math.max(0, Math.floor(assigned)));
+            const foodPerBatch = Math.max(1, Math.floor(
+                _steamModuleValue(structure, 'steam_heat_recovery')
+                    || Number(steamCfg.inputFoodPerBatch) || 120
+            ));
+            const energyPerBatch = Math.max(1, Math.floor(
+                _steamModuleValue(structure, 'steam_turbine_output')
+                    || Number(steamCfg.baseEnergyPerBatch) || 90
+            ));
+            const processMs = Math.max(100,
+                _steamModuleValue(structure, 'steam_high_pressure_boiler')
+                    || Number(steamCfg.baseProcessTimeMs) || 15000);
+            const moveSpeed = Math.max(1, (Number(steamCfg.baseMoveSpeed) || 80)
+                * (_steamModuleValue(structure, 'steam_transport_cart') || 1));
+            const nearestDistance = Math.max(0,
+                (reachableWarehouseRoutes[0]?.route?.length - 1) * 64 || 0);
+            const workshopMultiplier = _workshopEfficiencyMultiplier(structure, economyStructures);
+            const cycleMs = Math.max(100,
+                processMs / Math.max(0.01, workshopMultiplier)
+                    + nearestDistance * 2 / moveSpeed * 1000);
+
+            for (let index = 0; index < activeCount; index++) {
+                const job = structure.steamJobs[index];
+                job.cargoFood = Math.max(0, Math.floor(Number(job.cargoFood) || 0));
+                job.pendingEnergy = Math.max(0, Math.floor(Number(job.pendingEnergy) || 0));
+                job.completedBatches = Math.max(0, Math.floor(Number(job.completedBatches) || 0));
+                if (job.pendingEnergy > 0) {
+                    const stored = _depositToWarehouses(steamWarehouses, job.pendingEnergy);
+                    job.pendingEnergy = Math.max(0, job.pendingEnergy - stored);
+                    report.steamEnergyProduced += stored;
+                }
+
+                let availableMs = Math.max(0, Number(job.offlineProgressMs) || 0)
+                    + elapsedMs * Math.max(0, laborEfficiency);
+                job.offlineProgressMs = 0;
+                if (job.pendingEnergy <= 0 && job.cargoFood > 0) {
+                    const remainingProcessMs = job.phase === 'processing'
+                        ? Math.max(0, Number(job.processRemainMs) || processMs)
+                        : processMs;
+                    const effectiveRemaining = remainingProcessMs
+                        / Math.max(0.01, workshopMultiplier);
+                    if (availableMs >= effectiveRemaining) {
+                        availableMs -= effectiveRemaining;
+                        const exactOutput = Math.max(0,
+                            Number(structure.steamOutputRemainder) || 0)
+                            + energyPerBatch * tavernWeightedMultiplier
+                                * getProductionResourceMul();
+                        const produced = Math.max(1, Math.floor(exactOutput));
+                        structure.steamOutputRemainder = exactOutput - produced;
+                        const stored = _depositToWarehouses(steamWarehouses, produced);
+                        report.steamEnergyProduced += stored;
+                        job.pendingEnergy = Math.max(0, produced - stored);
+                        job.cargoFood = 0;
+                        job.completedBatches++;
+                    } else {
+                        job.phase = 'processing';
+                        job.processTotalMs = processMs;
+                        job.processRemainMs = Math.max(0,
+                            remainingProcessMs - availableMs * workshopMultiplier);
+                        availableMs = 0;
+                    }
+                }
+
+                let guard = 10000;
+                while (job.pendingEnergy <= 0 && availableMs >= cycleMs && guard-- > 0) {
+                    if (!_deductFoodFromWarehouses(steamWarehouses, foodPerBatch)) break;
+                    report.foodSpentOnSteam += foodPerBatch;
+                    availableMs -= cycleMs;
+                    const exactOutput = Math.max(0,
+                        Number(structure.steamOutputRemainder) || 0)
+                        + energyPerBatch * tavernWeightedMultiplier
+                            * getProductionResourceMul();
+                    const produced = Math.max(1, Math.floor(exactOutput));
+                    structure.steamOutputRemainder = exactOutput - produced;
+                    const stored = _depositToWarehouses(steamWarehouses, produced);
+                    report.steamEnergyProduced += stored;
+                    job.pendingEnergy = Math.max(0, produced - stored);
+                    job.completedBatches++;
+                }
+                job.offlineProgressMs = Math.min(cycleMs, availableMs);
+                job.phase = job.cargoFood > 0
+                    ? 'processing'
+                    : (job.pendingEnergy > 0 ? 'waiting_deposit' : 'idle');
+                job.targetWarehouseId = null;
+            }
         } else if (economyType === 'armory') {
             const armoryCfg = populationEconomyConfig.armory || {};
             const intervalMs = Math.max(1000, Number(armoryCfg.resourceSortIntervalMs) || 60000);
@@ -1126,24 +2315,39 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         ));
         let miners = Math.min(desiredCount, Math.max(0, Math.floor(Number(s.miners) || 0)));
         s.assignedWorkers = desiredCount;
-        if ((Number(s.carriedEnergy) || 0) > 0 && warehouseFree > 0) {
-            const moved = Math.min(Math.max(0, Number(s.carriedEnergy) || 0), warehouseFree);
-            s.carriedEnergy = Math.max(0, Number(s.carriedEnergy) - moved);
-            _depositToWarehouses(warehouses, moved);
+        const minerOutputMultiplier = tavernWeightedMultiplier * getProductionResourceMul();
+        let minerOutputRemainder = Math.max(0, Number(s.minerTavernRemainder) || 0);
+        const submitRawMinerEnergy = (rawAmount, countAsMined = true) => {
+            const raw = Math.max(0, Number(rawAmount) || 0);
+            if (raw <= 0 || warehouseFree <= 0) return { rawAccepted: 0, output: 0 };
+            const capacityRaw = Math.max(0,
+                (warehouseFree + 0.999999 - minerOutputRemainder)
+                    / Math.max(0.000001, minerOutputMultiplier));
+            const rawAccepted = Math.min(raw, capacityRaw);
+            const exactOutput = minerOutputRemainder + rawAccepted * minerOutputMultiplier;
+            const output = Math.min(warehouseFree, Math.floor(exactOutput));
+            const stored = output > 0 ? _depositToWarehouses(warehouses, output) : 0;
+            if (stored !== output) return { rawAccepted: 0, output: 0 };
+            minerOutputRemainder = exactOutput - output;
+            s.minerTavernRemainder = minerOutputRemainder;
             warehouseFree = _energyStorableInWarehouses(warehouses);
+            if (countAsMined) report.energyMined += output;
+            return { rawAccepted, output };
+        };
+        if ((Number(s.carriedEnergy) || 0) > 0 && warehouseFree > 0) {
+            const submitted = submitRawMinerEnergy(s.carriedEnergy, false);
+            s.carriedEnergy = Math.max(0, Number(s.carriedEnergy) - submitted.rawAccepted);
         }
         const wait = Math.min(Math.max(0, (s.respawnTimer || 0) / 1000), t);
         const mineSegment = (count, seconds) => {
             if (warehouseFree <= 0 || count <= 0 || seconds <= 0) return;
-            let want = getMinerEnergyPerSecond(s.modules || {}, count) * laborEfficiency
+            const want = getMinerEnergyPerSecond(s.modules || {}, count) * laborEfficiency
                 * Math.max(0, seconds);
-            want = Math.min(want, warehouseFree);
-            const mined = Math.min(_mineFromNodes(nodes, want), warehouseFree);
-            if (mined > 0) {
-                _depositToWarehouses(warehouses, mined);
-                warehouseFree = _energyStorableInWarehouses(warehouses);
-                report.energyMined += mined;
-            }
+            const capacityRaw = Math.max(0,
+                (warehouseFree + 0.999999 - minerOutputRemainder)
+                    / Math.max(0.000001, minerOutputMultiplier));
+            const mined = _mineFromNodes(nodes, Math.min(want, capacityRaw));
+            if (mined > 0) submitRawMinerEnergy(mined);
         };
         mineSegment(miners, wait);
         if ((s.respawnTimer || 0) <= elapsedMs) {
@@ -1180,6 +2384,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     // ---- 产兵结算（波次前先补员——产出的兵参与后续波次防守）----
     // 军事人口与经济岗位互不占用，但共同读取本位面房屋提供的 populationCapacity。
     // 外派/途中单位仍保存在原生产建筑的 troopLineDeployed 中，继续占原位面军事人口。
+    const instantTroopProduction = isInstantTroopProductionEnabled();
+    const ignoreMilitaryPopulation = isMilitaryPopulationIgnored();
     let militaryPopulationUsed = (target.structures || []).reduce((sum, structure) => {
         if (structure.kind !== 'barracks' && structure.kind !== 'producer') return sum;
         const cfg = _producerConfigOf(structure);
@@ -1190,6 +2396,20 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     for (const s of target.structures || []) {
         if (s.kind !== 'barracks' && s.kind !== 'producer') continue;
         const producerCfg = _producerConfigOf(s);
+        if (producerCfg && !producerCfg.parallelProduction && s.unitType) {
+            const nextUnitType = resolveRecruitmentUnitType(
+                producerCfg, s.unitType, opts.isRecruitmentTierUnlocked
+            );
+            if (nextUnitType && nextUnitType !== s.unitType) {
+                s.unitType = nextUnitType;
+                const unitCfg = (producerCfg.unitTypes || [])
+                    .find((unit) => unit.key === nextUnitType);
+                s.spawnTimer = Number(unitCfg?.spawnIntervalMs)
+                    || Number(producerCfg.spawnIntervalMs) || 0;
+                s.populationBlocked = false;
+                s.foodBlocked = false;
+            }
+        }
         if (producerCfg?.parallelProduction) {
             const roster = _normalizedRoster(s);
             const producerCap = _unitCapOf(s);
@@ -1217,7 +2437,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     ? Math.max(0, Math.floor(Number(unitCfg.unitCap) || 0))
                     : Number.POSITIVE_INFINITY;
                 if (!(baseInterval > 0) || cap <= 0) continue;
-                let timer = Math.max(0, Number(queue.timer) || 0);
+                let timer = instantTroopProduction ? 0 : Math.max(0, Number(queue.timer) || 0);
                 let localAlive = Math.max(0, Math.floor(Number(roster[kind]) || 0));
                 let assigned = localAlive + Math.max(0,
                     Math.floor(Number(s.troopLineDeployedRoster?.[kind]) || 0));
@@ -1239,7 +2459,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                         cap - assigned,
                         producerCap - producerAssigned
                     ));
-                    const populationRoom = Math.max(0, populationCapacity - militaryPopulationUsed);
+                    const populationRoom = ignoreMilitaryPopulation
+                        ? Number.POSITIVE_INFINITY
+                        : Math.max(0, populationCapacity - militaryPopulationUsed);
                     const spawnCost = Math.max(0, Math.ceil(
                         (Number(unitCfg.spawnFoodCost) || 0)
                             * _armoryResourceCostMultiplier(s, economyStructures)
@@ -1300,7 +2522,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         const baseInterval = _spawnIntervalOf(s);
         if (!(baseInterval > 0)) continue;
         const cap = _unitCapOf(s);
-        let timer = Math.max(0, s.spawnTimer || 0);
+        let timer = instantTroopProduction ? 0 : Math.max(0, s.spawnTimer || 0);
         const deployed = Math.max(0, Math.floor(Number(s.troopLineDeployed) || 0));
         let alive = _rosterCount(roster) + deployed;
         const segments = _abilityTimeline(
@@ -1326,7 +2548,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             }
             const ready = 1 + Math.floor(Math.max(0, timeLeft - timer) / interval);
             const unitRoom = Math.max(0, cap - alive);
-            const populationRoom = Math.max(0, populationCapacity - militaryPopulationUsed);
+            const populationRoom = ignoreMilitaryPopulation
+                ? Number.POSITIVE_INFINITY
+                : Math.max(0, populationCapacity - militaryPopulationUsed);
             const spawnCost = _unitSpawnFoodCost(s, economyStructures);
             const foodRoom = spawnCost > 0
                 ? Math.floor(_foodInWarehouses(warehouses) / spawnCost)
@@ -1491,14 +2715,19 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
 function getProducerStorageCap(s) {
     const cfg = producerBuildingsJson[s.cfgKey];
     if (!cfg || cfg.workshopType !== 'warehouse') return 0;
+    const warehouseLevels = populationEconomyConfig.warehouse?.levels || [];
+    const economyLevel = Math.max(1, Math.floor(Number(s.economyLevel) || 1));
+    const levelCfg = warehouseLevels.find((entry) => Number(entry.level) === economyLevel)
+        || warehouseLevels[warehouseLevels.length - 1];
+    const baseCapacity = Number(levelCfg?.storageCapacity) || Number(cfg.storageCapacity) || 5000;
     const module = buildingUpgradesJson.warehouse_logistics?.modules?.warehouse_capacity;
     const level = Math.max(0, Math.min(
         Number(module?.maxLevel) || 10,
         Math.floor(Number(s.warehouseModules?.warehouse_capacity) || 0)
     ));
     return Math.max(0, Math.floor(
-        (Number(module?.base) || Number(cfg.storageCapacity) || 5000)
-            + (Number(module?.per) || 0) * level
+        baseCapacity
+            + Math.max(0, (Number(module?.base) || 0) + (Number(module?.per) || 0) * level)
     ));
 }
 
@@ -1583,6 +2812,32 @@ function _mineFromNodes(nodes, amount) {
         if (left <= 0) break;
     }
     return amount - Math.max(0, left);
+}
+
+/** 深钻井优先采掘自身 600px 服务范围内的地表矿脉，深层矿脉只接管剩余原矿预算。 */
+function _mineFromNodesInRange(nodes, x, y, range, amount) {
+    const inRange = (nodes || [])
+        .filter((node) => !node.depleted && Number(node.hp) > 0
+            && Math.hypot((Number(node.x) || 0) - (Number(x) || 0),
+                (Number(node.y) || 0) - (Number(y) || 0)) <= range)
+        .sort((a, b) => Math.hypot((Number(a.x) || 0) - (Number(x) || 0),
+            (Number(a.y) || 0) - (Number(y) || 0))
+            - Math.hypot((Number(b.x) || 0) - (Number(x) || 0),
+                (Number(b.y) || 0) - (Number(y) || 0)));
+    let left = Math.max(0, Number(amount) || 0);
+    for (const node of inRange) {
+        const take = Math.min(Math.max(0, Number(node.hp) || 0), left);
+        node.hp -= take;
+        left -= take;
+        if (node.hp <= 0) {
+            node.depleted = true;
+            node.hp = 0;
+            node.respawnTimer = 0;
+            node.collapseTimer = 0;
+        }
+        if (left <= 0) break;
+    }
+    return Math.max(0, Number(amount) || 0) - left;
 }
 
 function _spawnIntervalOf(s) {

@@ -1,0 +1,13 @@
+The exact hamster special-forces sniper from the first frame performs one irreversible non-graphic death fall and settles into a complete motionless corpse pose. He never fires, attacks or recovers.
+
+Action phases: one invisible impact causes a brief loss of strength; his knees buckle, his grip weakens and the body collapses naturally down and slightly backward-left. The same long suppressed bolt-action sniper rifle falls with him as one rigid intact weapon, remaining clearly visible beside or across the body without crossing the frame edges. The continuous ghillie hood, loose camouflage fibers, tactical pouches and lowered night-vision goggles follow the fall with believable weight. He reaches the ground, makes one small natural settling motion, then remains fully still in the final corpse pose for the rest of the shot.
+
+Motion physics: one-way loss of balance, continuous connected anatomy, believable joint limits and gravity; no rubber motion, floating, explosion or body shrink. Both feet leave standing support naturally. The rifle may leave one hand during the final fall but must remain exactly one complete, unbroken weapon with suppressor, scope, magazine, folded bipod and buttstock present. The body and rifle remain on one consistent ground plane. No blood, gore, dismemberment or weapon penetration.
+
+Identity locks: preserve the exact golden-brown hamster face and cream muzzle, fully covered ears, olive-and-dry-grass ghillie hood and suit, lowered matte-black dual-tube night-vision goggles, camouflage trousers, boots and exactly one intact sniper rifle. The ears remain hidden and the goggles remain attached throughout the fall.
+
+Camera and framing: static locked orthographic low three-quarter view, no pan, zoom, tilt, crop, reframing or tracking. Keep the complete fallen body, ghillie fibers and full rifle inside the frame with generous white margins. Pure white background, soft diffuse light, no floor line, cast shadow, scenery, particles or text.
+
+One-shot ending: do not loop, reverse, stand back up, return to the first pose or fade away. Hold the final corpse pose naturally.
+
+Avoid: visible ears, detached or duplicated night vision, identity drift, extra or broken limbs, detached head, disappearing body, duplicated rifle, bent barrel, missing suppressor, broken scope, firing during the fall, muzzle flash, recovery, repeated falling, bouncing, camera movement, cropping, gore, text, logo or watermark.

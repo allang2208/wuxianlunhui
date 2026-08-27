@@ -94,7 +94,7 @@ export class ElevatedRouteTraffic {
                 return false;
             }
             if (!_validEntity(entity)) {
-                this._removeQueuedEntity(record, entity);
+                this._removeQueuedEntity(record, entity, now);
                 return false;
             }
             return true;
@@ -136,7 +136,7 @@ export class ElevatedRouteTraffic {
             const initialRecord = this._records.get(sid);
             const queued = initialRecord?.queue.find((entry) => entry.entity === entity);
             if (queued && queued.expiresAt <= now) {
-                this._removeQueuedEntity(initialRecord, entity);
+                this._removeQueuedEntity(initialRecord, entity, now);
                 return { ...this._result(initialRecord, false), timedOut: true };
             }
         }
@@ -178,11 +178,13 @@ export class ElevatedRouteTraffic {
             record.queue[queuedIndex].direction = dir;
             if (record.holders.size === 0) {
                 record.queue.splice(queuedIndex, 1);
+                this._markQueueProgress(record, now, queuedIndex);
                 this._grant(record, sid, entity, dir, now);
                 return this._result(record, true, entity);
             }
             if (this._canShareFriendlyLane(record, sid, entity, dir)) {
                 record.queue.splice(queuedIndex, 1);
+                this._markQueueProgress(record, now, queuedIndex);
                 this._grant(record, sid, entity, dir, now);
                 return this._result(record, true, entity);
             }
@@ -219,7 +221,7 @@ export class ElevatedRouteTraffic {
         if (state.role === 'holder') {
             return this._removeHolder(record, state.staircaseId, entity, Date.now());
         }
-        if (state.role === 'queued') return this._removeQueuedEntity(record, entity);
+        if (state.role === 'queued') return this._removeQueuedEntity(record, entity, Date.now());
         this._entityState.delete(entity);
         return false;
     }
@@ -360,13 +362,25 @@ export class ElevatedRouteTraffic {
                 continue;
             }
             this._grant(record, staircaseId, next.entity, next.direction, now);
+            this._markQueueProgress(record, now);
             break;
         }
     }
 
-    _removeQueuedEntity(record, entity) {
+    /** 仅在 FIFO 实际前进时续期；重复 request 不会延长一个完全停滞的队列。 */
+    _markQueueProgress(record, now = Date.now(), startIndex = 0) {
+        const firstAdvancedIndex = Math.max(0, Math.trunc(Number(startIndex) || 0));
+        for (let i = firstAdvancedIndex; i < record.queue.length; i++) {
+            record.queue[i].expiresAt = now + this._queueWaitTimeoutMs;
+        }
+    }
+
+    _removeQueuedEntity(record, entity, now = Date.now()) {
         const index = record.queue.findIndex((entry) => entry.entity === entity);
-        if (index >= 0) record.queue.splice(index, 1);
+        if (index >= 0) {
+            record.queue.splice(index, 1);
+            this._markQueueProgress(record, now, index);
+        }
         this._entityState.delete(entity);
         return index >= 0;
     }
@@ -385,6 +399,7 @@ export class ElevatedRouteTraffic {
             }
         }
         const nextQueue = [];
+        let firstAdvancedIndex = -1;
         for (const entry of record.queue) {
             if (!_validEntity(entry.entity) || entry.expiresAt <= now) {
                 if (_validEntity(entry.entity) && entry.expiresAt <= now) {
@@ -392,11 +407,15 @@ export class ElevatedRouteTraffic {
                 }
                 this._entityState.delete(entry.entity);
                 changed = true;
+                if (firstAdvancedIndex < 0) firstAdvancedIndex = nextQueue.length;
             } else {
                 nextQueue.push(entry);
             }
         }
         record.queue = nextQueue;
+        if (firstAdvancedIndex >= 0) {
+            this._markQueueProgress(record, now, firstAdvancedIndex);
+        }
         if (record.holders.size === 0) {
             record.direction = null;
             this._promoteNext(record, staircaseId, now);

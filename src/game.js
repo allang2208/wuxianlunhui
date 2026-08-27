@@ -21,7 +21,7 @@ import { PERSPECTIVE_SCALE_Y } from './config/perspective-config.js';
 import { resolveCircleFromIsoFootprint } from './physics/iso-footprint.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
-import { EquipDataManager } from './ui/equip-data-manager.js';
+import { EquipDataManager, completeWeaponFields } from './ui/equip-data-manager.js';
 import { GameUIManager } from './ui/game-ui-manager.js';
 import { EnchantScrollItems, MagicDustItem } from './config/enchant-config.js';
 import { EnhancementItems } from './ui/reward-system.js';
@@ -71,6 +71,7 @@ import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
+import { isGoldItem } from './items/item-stack-rules.js';
 import { NPC } from './entities/npc.js';
 import { ShopSystem } from './ui/shop-system.js';
 import { EnhanceSystem } from './ui/enhance-system.js';
@@ -167,6 +168,7 @@ export const Game = {
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
             window.World122SandstormSystem?.reset?.();
+            window.World125FogTideSystem?.reset?.();
             window.WorldWeatherSystem?.reset?.();
             window.WorldDestructionChallengeSystem?.reset?.();
             TroopLineSystem.reset();
@@ -1050,7 +1052,7 @@ export const Game = {
     },
     dropItem(x, y, itemTemplate) {
         // 通过 ItemFactory 创建独立物品实例
-        const itemInstance = ItemFactory.create(itemTemplate);
+        const itemInstance = completeWeaponFields(ItemFactory.create(itemTemplate));
         const drop = new DropItem(x, y, itemInstance);
         this.entities.set('drop_' + Date.now() + '_' + Math.floor(Math.random() * 1000), drop);
     },
@@ -1174,8 +1176,10 @@ export const Game = {
                     const itemData = entity.itemData;
                     // 可堆叠物品（金币/强化石/改造券等）：即使背包格子已满，只要现有堆叠未满就可以拾取
                     let canStack = false;
-                    if (itemData && itemData.maxStack && itemData.maxStack > 1) {
-                        const bp = EquipManager.backpackItems || [];
+                    const bp = EquipManager.backpackItems || [];
+                    if (isGoldItem(itemData)) {
+                        canStack = bp.some(isGoldItem);
+                    } else if (itemData && itemData.maxStack && itemData.maxStack > 1) {
                         for (const existing of bp) {
                             if (existing.name === itemData.name && (existing.stack || 1) < itemData.maxStack) {
                                 canStack = true;
@@ -1307,11 +1311,12 @@ export const Game = {
 if (this.player && this.player.droneSystem && this.player.droneSystem.controlling) {
             const drone = this.player.droneSystem;
             Camera.update({ x: drone.x, y: drone.y });
-        } else if (this._observerMode || (RTSCommand && RTSCommand.enabled)) {
-            // 观察/指挥模式（2026-08-19）：相机自由——RTSCommand 边缘平移直接驱动 Camera.x/y
+        } else if (this._observerMode || (RTSCommand && RTSCommand.enabled) || BuildingSystem?.active) {
+            // 观察/指挥/建筑模式：相机自由，由对应模式的边缘平移直接驱动 Camera.x/y。
         } else {
             Camera.update(this.player);
         }
+        BuildingSystem?.tick?.(dt, Input);
 
         // 读取交互距离配置
         const interactCfg = GAME_CONFIG.interactionDistances || {};
@@ -1346,9 +1351,30 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
         if (Input.mouse.rightPressed && PartySystem && PartySystem.selectedIds.length) {
             const rw = (Renderer && Renderer.screenToWorld) ? Renderer.screenToWorld(Input.mouse.x, Input.mouse.y) : null;
             if (rw) {
-                PartySystem.setCommand(PartySystem.selectedIds, 'move', { x: rw.x, y: rw.y });
-                if (window.__phaserScene && typeof window.__phaserScene.showMoveMarker === 'function') {
-                    window.__phaserScene.showMoveMarker(rw.x, rw.y);
+                const point = DefenseSystem?.resolveSurfaceTarget?.(rw.x, rw.y)
+                    || { x: rw.x, y: rw.y, z: 0, surfaceKind: 'ground', route: [] };
+                if (point.unreachable) {
+                    EffectManager.add(new FloatingTextEffect(
+                        point.x,
+                        point.y - (Number(point.z) || 0),
+                        point.reason || '目标不可达',
+                        '#ff8855'
+                    ));
+                } else {
+                    let commanded = 0;
+                    for (const memberId of PartySystem.selectedIds) {
+                        const member = PartySystem.getMember(memberId);
+                        if (!member || member.active === false) continue;
+                        const commandPoint = DefenseSystem?.routeSurfaceMoveForUnit?.(member, point) || point;
+                        if (commandPoint.unreachable) continue;
+                        commanded += PartySystem.setCommand(memberId, 'move', commandPoint);
+                    }
+                    if (commanded > 0 && window.__phaserScene
+                        && typeof window.__phaserScene.showMoveMarker === 'function') {
+                        window.__phaserScene.showMoveMarker(
+                            point.x, point.y, point.z, point.renderDepth
+                        );
+                    }
                 }
             }
             Input.mouse.rightPressed = false;
@@ -1489,6 +1515,12 @@ this._battleCommanderEnemies = [];
             // 碰撞编辑器冻结预览体：整帧跳过 update/感知/移动/战斗——自管技能的怪
             // （蝇手/突变体等 update 内自决策）靠字段冻结防不住，必须从主循环跳过
             if (e._editorFrozen) continue;
+            // 石化敌人不进入子类 update，否则自管技能会在 Enemy.update 提前返回后继续结算。
+            // 公共状态和 DoT 仍由专用入口推进，表现层同时锁住当前帧。
+            if (e.active && e instanceof Enemy && e.hasStatusEffect?.('petrified')) {
+                e.updateWhilePetrified?.(dt);
+                continue;
+            }
             // 休眠带（2026-08-19）：静态低耗实体（墙/门/台/矿点，构造时标 _dormantBand）
             // 按 ~1/4 帧率聚合 dt 更新——计时类语义不变（dt 累加），主循环遍历成本大降。
             if (e._dormantBand) {
@@ -1572,14 +1604,6 @@ const pickupCfg = GAME_CONFIG.pickup || {};
         const goldThrowOutRange = pickupCfg.goldThrowOutRange || 80;
         const goldAutoRangeSq = goldAutoRange * goldAutoRange;
         const goldThrowOutRangeSq = goldThrowOutRange * goldThrowOutRange;
-        const goldMaxStack = pickupCfg.goldMaxStack || 999;
-        let goldStackItem = null;
-        for (const bpItem of EquipManager.backpackItems) {
-            if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
-                goldStackItem = bpItem;
-                break;
-            }
-        }
 
         const portalCfg = GAME_CONFIG.portals?.mainHub || {};
         const portalTriggerDist = portalCfg.triggerDistance || interactCfg.portalTrigger || 30;
@@ -1598,7 +1622,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
             }
 
             // 金币自动拾取
-            if (entity instanceof DropItem && entity.itemData && entity.itemData.category === 'gold') {
+            if (entity instanceof DropItem && isGoldItem(entity.itemData)) {
                 const dx = entity.x - this.player.x;
                 const dy = entity.y - this.player.y;
                 const distSq = dx * dx + dy * dy;
@@ -1609,21 +1633,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                     if (!entity.itemData._wasOutOfRange) {
                         // still in throw-out range, skip
                     } else if (distSq <= goldAutoRangeSq) {
-                        // try stack/add
-                        let stacked = false;
-                        if (goldStackItem && goldStackItem.stack < (goldStackItem.maxStack || goldMaxStack)) {
-                            goldStackItem.stack += entity.itemData.stack;
-                            stacked = true;
-                        } else {
-                            for (const bpItem of EquipManager.backpackItems) {
-                                if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
-                                    bpItem.stack += entity.itemData.stack;
-                                    stacked = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (stacked) {
+                        if (EquipManager.addToBackpack(entity.itemData)) {
                             entity.active = false;
                             if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                             this.entities.delete(key);
@@ -1631,34 +1641,10 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                             if (SoundManager) {
                                 SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                             }
-                        } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
-                            EquipManager.addToBackpack(entity.itemData);
-                            entity.active = false;
-                            if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
-                            this.entities.delete(key);
-                            EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
-                            if (SoundManager) {
-                                SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
-                            }
-                        } else {
-                            BackpackDialogManager._showBackpackFullNotice();
                         }
                     }
                 } else if (distSq <= goldAutoRangeSq) {
-                    let stacked = false;
-                    if (goldStackItem && goldStackItem.stack < (goldStackItem.maxStack || goldMaxStack)) {
-                        goldStackItem.stack += entity.itemData.stack;
-                        stacked = true;
-                    } else {
-                        for (const bpItem of EquipManager.backpackItems) {
-                            if (bpItem.category === 'gold' && bpItem.stack < (bpItem.maxStack || goldMaxStack)) {
-                                bpItem.stack += entity.itemData.stack;
-                                stacked = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (stacked) {
+                    if (EquipManager.addToBackpack(entity.itemData)) {
                         entity.active = false;
                         if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
@@ -1666,17 +1652,6 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                         if (SoundManager) {
                             SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                         }
-                    } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
-                        EquipManager.addToBackpack(entity.itemData);
-                        entity.active = false;
-                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
-                        this.entities.delete(key);
-                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
-                        if (SoundManager) {
-                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
-                        }
-                    } else {
-                        BackpackDialogManager._showBackpackFullNotice();
                     }
                 }
                 // 能源自动拾取（世界-122 资源点产出；同金币自动吸附口径）
@@ -1902,26 +1877,43 @@ EffectManager.update(dt);
         const dx = enemy.x - target.x, dy = enemy.y - target.y;
         return dx * dx + dy * dy <= attackDist * attackDist;
     },
+    clearCollisionBuffers() {
+        if (this._collisionEntities) this._collisionEntities.length = 0;
+        if (this._collisionQueryBuffer) this._collisionQueryBuffer.length = 0;
+        this._collisionEntityIndex?.clear();
+    },
     // 实体碰撞体积解析：防止目标间堆叠（支持矩形、六边形、圆形）
     resolveCollisions() {
-        const entities = Array.from(this.entities.values()).filter(e => e.active && e.groundRadius > 0 && !e.noCollision && !e._editorFrozen);
+        const entities = this._collisionEntities || (this._collisionEntities = []);
+        entities.length = 0;
+        for (const entity of this.entities.values()) {
+            if (entity.active && entity.groundRadius > 0 && !entity.noCollision && !entity._editorFrozen) {
+                entities.push(entity);
+            }
+        }
         const player = this.player;
         // 网格宽相（2026-08-19）：O(n²) 全对遍历 → SpatialPartitionSystem 近邻查询；
         // 索引去重保持 i<j 成对口径；查询半径 = 自身半径 + 340（覆盖 4×4 基地半对角 ~286 + 对方半径余量）。
         // 注意：分离判定的 Y 逆透视压缩只会让"世界空间距离 ≤ 缩放空间距离"，世界半径查询不会漏对。
-        const useGrid = !!(SpatialPartitionSystem && typeof SpatialPartitionSystem.queryRadius === 'function');
-        const indexOf = new Map(entities.map((e, i) => [e, i]));
+        const useGrid = !!(SpatialPartitionSystem
+            && typeof SpatialPartitionSystem.queryRadiusInto === 'function');
+        const indexOf = this._collisionEntityIndex || (this._collisionEntityIndex = new Map());
+        indexOf.clear();
+        for (let i = 0; i < entities.length; i++) indexOf.set(entities[i], i);
+        const queryBuffer = this._collisionQueryBuffer || (this._collisionQueryBuffer = []);
         for (let i = 0; i < entities.length; i++) {
             const a = entities[i];
             const candidates = useGrid
-                ? SpatialPartitionSystem.queryRadius(a.x, a.y, a.groundRadius + 340, a)
-                : entities.slice(i + 1);
+                ? SpatialPartitionSystem.queryRadiusInto(
+                    a.x, a.y, a.groundRadius + 340, a, queryBuffer
+                )
+                : entities;
             for (const bRaw of candidates) {
                 const j = indexOf.get(bRaw);
                 if (j === undefined || j <= i) continue;
                 const b = bRaw;
-                // 友方单位真正取得楼梯/城墙表面身份后互相穿行；这里只关闭单位间分离，
-                // 墙体、防坠线、建筑碰撞和入口 Portal 排队仍由各自系统继续约束。
+                // 友方单位进入入口队列或取得楼梯/城墙表面身份后互相穿行；这里只关闭单位间分离，
+                // 墙体、防坠线、建筑碰撞和入口 Portal 许可仍由各自系统继续约束。
                 if (shouldIgnoreFriendlyElevatedSeparation(a, b)) continue;
                 // 墙梯接口/楼梯共享缝属于统一高架桥面，短暂关闭单位分离，
                 // 防止surface提交后又被同层单位推离桥面。

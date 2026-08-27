@@ -1,0 +1,12 @@
+Edit target: mother-v01-dark-background.png
+
+Change only the framing and studio background. Preserve exactly the same identity, face, snake hair, armor, anatomy, markings, pose and coil topology.
+
+- Replace the dark vignette with flat solid pure white #FFFFFF.
+- Remove cast/contact shadows, glow, floor, horizon, reflection and vignette.
+- Zoom out so the complete subject occupies no more than 60% of canvas width and 72% of canvas height.
+- Keep every snake-hair tip, both hands, the entire coil and the single tail tip visible.
+- Preserve at least 12% white margin above the hair and below the coil, plus generous room in front of the right-facing face.
+- Keep all belly contacts on one baseline with no visible ground.
+
+No identity drift, anatomy change, costume change, extra parts, crop, prop, magic, scenery, text, logo or watermark.

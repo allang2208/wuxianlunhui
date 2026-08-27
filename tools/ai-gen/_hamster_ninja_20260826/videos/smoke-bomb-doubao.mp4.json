@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_ninja_20260826\\references\\hamster-ninja-smoke-bomb-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_ninja_20260826\\prompts\\smoke-bomb-doubao.txt",
+  "promptChars": 2348,
+  "promptSha256": "2f164490ad0948ffd1d9180d6c67febe7ed9a6cedbe96f4e31867353344b63dd",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T03:23:46.387Z",
+  "sourceUrlScheme": "https"
+}

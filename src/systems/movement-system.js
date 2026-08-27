@@ -30,6 +30,10 @@ import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../con
 import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 import performanceConfig from '../../data/performance-config.json';
 import { PathWorkScheduler } from '../ai/path-work-scheduler.js';
+import {
+    HIERARCHY_DEFERRED,
+    HierarchicalRoutePlanner,
+} from '../ai/hierarchical-route-planner.js';
 import { PerformanceMonitor } from './performance-monitor.js';
 import {
     basicMeleeApproachRange,
@@ -61,7 +65,9 @@ const MovementSystem = {
         if (pathFinder && typeof pathFinder.beginFrame === 'function') {
             pathFinder.beginFrame();
         }
+        dynamicObstacleMap?.beginFrame?.();
         PathWorkScheduler.beginFrame();
+        HierarchicalRoutePlanner.beginFrame();
     },
 
     endFrame() {
@@ -75,9 +81,54 @@ const MovementSystem = {
         PerformanceMonitor.setCounter('path.droppedJobs', queueStats.droppedJobs);
         PerformanceMonitor.setCounter('path.maxQueuedJobs', queueStats.maxQueuedJobs);
         PerformanceMonitor.setCounter('path.drainMs', queueStats.drainMs);
+        PerformanceMonitor.setCounter('path.validationMs', queueStats.validationMs);
+        PerformanceMonitor.setCounter('path.recalcMs', queueStats.recalculationMs);
+        PerformanceMonitor.setCounter('path.validationAttempts', queueStats.validationAttempts);
+        PerformanceMonitor.setCounter('path.recalcAttempts', queueStats.recalculationAttempts);
+        PerformanceMonitor.setCounter('path.validationLastMs', queueStats.validationLastMs);
+        PerformanceMonitor.setCounter('path.validationPeakMs', queueStats.validationPeakMs);
+        PerformanceMonitor.setCounter('path.recalcLastMs', queueStats.recalculationLastMs);
+        PerformanceMonitor.setCounter('path.recalcPeakMs', queueStats.recalculationPeakMs);
         const finderStats = pathFinder?.getPerformanceStats?.();
         PerformanceMonitor.setCounter('path.finderUsedMs', finderStats?.frameUsedMs || 0);
         PerformanceMonitor.setCounter('path.cacheEntries', finderStats?.pathCacheEntries || 0);
+        PerformanceMonitor.setCounter('path.pendingSearches', finderStats?.pendingSearches || 0);
+        PerformanceMonitor.setCounter('path.sharedFlowFields', finderStats?.sharedFlowFields || 0);
+        PerformanceMonitor.setCounter('path.sharedFlowHits', finderStats?.sharedFlowHits || 0);
+        PerformanceMonitor.setCounter('path.sharedIntegrationHits', finderStats?.sharedIntegrationHits || 0);
+        PerformanceMonitor.setCounter('path.sharedFlowBuildSlices', finderStats?.sharedFlowBuildSlices || 0);
+        PerformanceMonitor.setCounter('path.negativeCacheHits', finderStats?.negativeCacheHits || 0);
+        PerformanceMonitor.setCounter('path.incrementalSlices', finderStats?.incrementalSlices || 0);
+        PerformanceMonitor.setCounter('path.hashBuildSlices', finderStats?.hashBuildSlices || 0);
+        PerformanceMonitor.setCounter('path.hashRebuildPending', finderStats?.hashRebuildPending || 0);
+        PerformanceMonitor.setCounter('path.hashRebuildProcessedCells', finderStats?.hashRebuildProcessedCells || 0);
+        PerformanceMonitor.setCounter('path.hashRebuildTotalCells', finderStats?.hashRebuildTotalCells || 0);
+        PerformanceMonitor.setCounter('path.hashBuildProgress', finderStats?.hashBuildProgress || 0);
+        PerformanceMonitor.setCounter('path.projectionSlices', finderStats?.projectionSlices || 0);
+        PerformanceMonitor.setCounter('path.flowBuildPending', finderStats?.flowBuildPending || 0);
+        PerformanceMonitor.setCounter('path.flowBuildProcessedCells', finderStats?.flowBuildProcessedCells || 0);
+        PerformanceMonitor.setCounter('path.flowBuildTotalCells', finderStats?.flowBuildTotalCells || 0);
+        PerformanceMonitor.setCounter('path.flowBuildProgress', finderStats?.flowBuildProgress || 0);
+        PerformanceMonitor.setCounter('path.footprintSyncMs', finderStats?.footprintSyncMs || 0);
+        PerformanceMonitor.setCounter('path.footprintLastSyncMs', finderStats?.footprintLastSyncMs || 0);
+        PerformanceMonitor.setCounter('path.footprintPeakSyncMs', finderStats?.footprintPeakSyncMs || 0);
+        PerformanceMonitor.setCounter('path.footprintSyncRuns', finderStats?.footprintSyncRuns || 0);
+        PerformanceMonitor.setCounter('path.regionRebuildPending', finderStats?.regionRebuildPending || 0);
+        PerformanceMonitor.setCounter('path.regionRebuildProcessedCells', finderStats?.regionRebuildProcessedCells || 0);
+        PerformanceMonitor.setCounter('path.regionRebuildTotalCells', finderStats?.regionRebuildTotalCells || 0);
+        PerformanceMonitor.setCounter('path.regionExitSearchPending', finderStats?.regionExitSearchPending || 0);
+        const hierarchyStats = HierarchicalRoutePlanner.getStats();
+        PerformanceMonitor.setCounter('path.hierarchyRoutes', hierarchyStats.cachedRoutes);
+        PerformanceMonitor.setCounter('path.hierarchyCacheHits', hierarchyStats.cacheHits);
+        PerformanceMonitor.setCounter('path.hierarchySearches', hierarchyStats.searches);
+        PerformanceMonitor.setCounter('path.hierarchyPending', hierarchyStats.pendingRoutes);
+        PerformanceMonitor.setCounter('path.hierarchyUsedMs', hierarchyStats.frameUsedMs);
+        const dynamicStats = dynamicObstacleMap?.getPerformanceStats?.() || {};
+        PerformanceMonitor.setCounter('path.dynamicObstacleMs', dynamicStats.frameUpdateMs || 0);
+        PerformanceMonitor.setCounter('path.dynamicObstacleLastMs', dynamicStats.lastUpdateMs || 0);
+        PerformanceMonitor.setCounter('path.dynamicObstaclePeakMs', dynamicStats.peakUpdateMs || 0);
+        PerformanceMonitor.setCounter('path.dynamicObstacleRebuilds', dynamicStats.frameRebuilds || 0);
+        PerformanceMonitor.setCounter('path.dynamicObstacleCells', dynamicStats.activeCells || 0);
         PerformanceMonitor.setCounter('gate.cacheRebuilds', this._gatePursuitCache.rebuilds);
         PerformanceMonitor.setCounter('gate.cachedGates', this._gatePursuitCache.gates.length);
         PerformanceMonitor.setCounter('gate.cachedTargets', this._gatePursuitCache.targets.length);
@@ -134,7 +185,7 @@ const MovementSystem = {
         }
 
         // 眩晕/冻结状态：强制停止（冻结效果等同于眩晕）
-        if (enemy._dashStunned || (enemy.hasStatusEffect && (enemy.hasStatusEffect('stun') || enemy.hasStatusEffect('frozen')))) {
+        if (enemy._dashStunned || (enemy.hasStatusEffect && (enemy.hasStatusEffect('stun') || enemy.hasStatusEffect('frozen') || enemy.hasStatusEffect('petrified')))) {
             enemy.vx = 0;
             enemy.vy = 0;
             enemy.isMoving = false;
@@ -591,6 +642,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (!needRecalc) return;
 
         const next = this._pickRelayPoint(enemy, tx, ty);
+        if (next === HIERARCHY_DEFERRED) return;
         enemy._relayTarget = next;
         this._requestPathRecalc(enemy, next.x, next.y);
     },
@@ -606,6 +658,16 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * @returns {{x:number, y:number}}
      */
     _pickRelayPoint(enemy, tx, ty) {
+        const hierarchical = HierarchicalRoutePlanner.getNextWaypoint(
+            enemy.x,
+            enemy.y,
+            tx,
+            ty,
+            enemy.groundRadius,
+            pathFinder,
+        );
+        if (hierarchical === HIERARCHY_DEFERRED) return HIERARCHY_DEFERRED;
+        if (hierarchical) return hierarchical;
         const dx = tx - enemy.x;
         const dy = ty - enemy.y;
         const dist = Math.hypot(dx, dy) || 1;
@@ -755,7 +817,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                     // [RELAY] 超距卡住：对中继点重算而非放弃（沿用同一中继目标，避免抖动）
                     // 直冲型怪物卡死（500ms 无位移）时同样允许接力重算——正常冲锋不受影响
                     if (!enemy._relayTarget) {
-                        enemy._relayTarget = this._pickRelayPoint(enemy, targetX, targetY);
+                        const relay = this._pickRelayPoint(enemy, targetX, targetY);
+                        if (relay === HIERARCHY_DEFERRED) return;
+                        enemy._relayTarget = relay;
                     }
                     this._requestPathRecalc(
                         enemy,
@@ -1093,8 +1157,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if ((enemy.ai && enemy.ai.chargeStraight) && inCombatRange) {
             return { dx: 0, dy: 0 };
         }
-        // 高架交通阶段的友军不消费单位间排斥；实际墙/梯边界仍由 WallSystem 与
-        // ElevatedNavigationController 处理，入口外排队也不会因此被绕过。
+        // 高架交通（含入口 FIFO 等待）阶段的友军不消费单位间排斥；实际墙/梯边界与
+        // Portal 方向许可仍由 WallSystem 与 ElevatedNavigationController 处理。
         if (isFriendlyElevatedTrafficUnit(enemy)) {
             return { dx: 0, dy: 0 };
         }

@@ -1,0 +1,249 @@
+{
+  "normalization": "fixed per-action scale from neutral-frame body thickness",
+  "targetBodyThickness": 48.0,
+  "sourceBodyThicknesses": {
+    "idle": 118.0,
+    "walking": 39.968994140625,
+    "attacking": 147.181396484375,
+    "dying": 147.5751953125
+  },
+  "stateScaleCorrections": {
+    "idle": 1.0,
+    "walking": 0.448,
+    "attacking": 1.0,
+    "dying": 1.0
+  },
+  "stateScaleContract": "one shared correction per source video; no per-frame scaling",
+  "scaleEvidence": {
+    "metric": "morphological-skeleton median local diameter on formal sheets",
+    "idleMedianPxBefore": 21.97,
+    "walkingMedianPxBefore": 49.37,
+    "walkingCorrection": 0.448,
+    "walkingExpectedMedianPxAfter": 22.12
+  },
+  "actionScales": {
+    "idle": 0.4067796610169492,
+    "walking": 0.5380170420186546,
+    "attacking": 0.3261281734413748,
+    "dying": 0.32525791274310634
+  },
+  "actions": {
+    "idle": {
+      "file": "generated\\final\\idle.png",
+      "preview": "previews\\final\\idle.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 2,
+      "frameCount": 12,
+      "footY": 420,
+      "sourceFrames": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110
+      ],
+      "mode": "stabilized",
+      "scale": 0.4067796610169492,
+      "bodyThicknessRange": [
+        47.56,
+        48.0
+      ],
+      "alphaPixels": [
+        8980,
+        9095
+      ],
+      "feetRange": [
+        419,
+        420
+      ],
+      "centerRange": [
+        255.5,
+        256.5
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 4,
+      "repeat": -1
+    },
+    "walking": {
+      "file": "generated\\final\\walking.png",
+      "preview": "previews\\final\\walking.gif",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "columns": 5,
+      "rows": 4,
+      "frameCount": 20,
+      "footY": 420,
+      "sourceFrames": [
+        0,
+        6,
+        12,
+        18,
+        24,
+        30,
+        36,
+        42,
+        48,
+        54,
+        60,
+        66,
+        72,
+        78,
+        84,
+        90,
+        96,
+        102,
+        108,
+        114
+      ],
+      "mode": "stabilized",
+      "scale": 0.5380170420186546,
+      "bodyThicknessRange": [
+        20.0,
+        30.0
+      ],
+      "alphaPixels": [
+        6537,
+        9973
+      ],
+      "feetRange": [
+        419,
+        420
+      ],
+      "centerRange": [
+        319.5,
+        321.5
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "attacking": {
+      "file": "generated\\final\\attacking.png",
+      "preview": "previews\\final\\attacking.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 4,
+      "frameCount": 21,
+      "footY": 420,
+      "sourceFrames": [
+        0,
+        6,
+        12,
+        18,
+        24,
+        30,
+        36,
+        42,
+        48,
+        54,
+        60,
+        66,
+        72,
+        77,
+        84,
+        90,
+        96,
+        102,
+        108,
+        114,
+        120
+      ],
+      "mode": "source_motion",
+      "scale": 0.3261281734413748,
+      "bodyThicknessRange": [
+        32.36,
+        52.0
+      ],
+      "alphaPixels": [
+        9070,
+        11948
+      ],
+      "feetRange": [
+        417,
+        424
+      ],
+      "centerRange": [
+        254.5,
+        322.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1200,
+      "repeat": 0,
+      "releaseSourceFrame": 77,
+      "releaseFrame": 13,
+      "releaseContract": "measured farthest-forward snake-head frame"
+    },
+    "dying": {
+      "file": "generated\\final\\dying.png",
+      "preview": "previews\\final\\dying.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 17,
+      "footY": 420,
+      "sourceFrames": [
+        0,
+        6,
+        12,
+        18,
+        24,
+        30,
+        36,
+        42,
+        48,
+        54,
+        60,
+        66,
+        72,
+        84,
+        96,
+        108,
+        120
+      ],
+      "mode": "source_motion_grounded",
+      "scale": 0.32525791274310634,
+      "bodyThicknessRange": [
+        48.0,
+        50.0
+      ],
+      "alphaPixels": [
+        8832,
+        9248
+      ],
+      "feetRange": [
+        417,
+        420
+      ],
+      "centerRange": [
+        250.0,
+        288.5
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1800,
+      "repeat": 0
+    }
+  }
+}

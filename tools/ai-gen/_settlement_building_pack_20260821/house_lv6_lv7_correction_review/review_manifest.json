@@ -1,0 +1,35 @@
+{
+  "status": "installed",
+  "createdAt": "2026-08-25",
+  "runtimeInstalled": true,
+  "selection": {
+    "selectedAt": "2026-08-25",
+    "lv6": "LV6 correction v01",
+    "lv7": "LV7 correction v02",
+    "basis": "LV6 v01 uses the more orderly modern residential paving; LV7 v02 uses flush pale paving that blends more naturally with the tower foundation. Both selected corrections are installed as the LV6 and LV7 runtime house assets."
+  },
+  "candidates": [
+    {
+      "reviewLabel": "LV6 correction v01",
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/house_lv6/refine_48step_strong_localfix_from_v01_seed123420/house_lv6/house_lv6_refine_v01_raw.png",
+      "reviewCopy": "tools/ai-gen/_settlement_building_pack_20260821/house_lv6_lv7_correction_review/house_lv6/house_lv6_correction_v01_raw.png",
+      "seed": 123420,
+      "steps": 48,
+      "depthStrength": 0.75,
+      "denoise": 0.85,
+      "nonstandardOverride": true,
+      "notes": "exactly two roof solar-panel assemblies; orderly warm-gray residential stone paving; no road or lane markings"
+    },
+    {
+      "reviewLabel": "LV7 correction v02",
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/house_lv7/refine_48step_groundcleanup_retry_seed123442/house_lv7/house_lv7_refine_v01_raw.png",
+      "reviewCopy": "tools/ai-gen/_settlement_building_pack_20260821/house_lv6_lv7_correction_review/house_lv7/house_lv7_correction_v02_raw.png",
+      "seed": 123442,
+      "steps": 48,
+      "depthStrength": 0.75,
+      "denoise": 0.90,
+      "nonstandardOverride": true,
+      "notes": "elevated cantilevered glass canopy; closed left-right bi-parting automatic door; flush pale tiled entrance paving; no ramp, platform or stairs"
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "asset": "brown_snake",
+  "date": "2026-08-25",
+  "stage": "spritesheets-complete",
+  "mother": {
+    "generator": "built-in-imagegen",
+    "whiteSource": "mother/brown-snake-imagegen-white.png",
+    "whiteSourceSha256": "9452038a90e73d7126ab687294c82e80f21e521e0e8a7f108d5f6be8100bfc74",
+    "rgba": "mother/brown-snake-mother-rgba.png",
+    "rgbaSha256": "3bebb276e7e121d545a502ae104436ed3b5b1b8ab3a5c1113caafcb43146974a",
+    "prompt": "mother/brown-snake-imagegen-prompt.txt"
+  },
+  "videoModel": {
+    "provider": "h3",
+    "host": "192.168.3.142",
+    "size": "1024x576",
+    "durationSeconds": 5,
+    "frames": 124,
+    "steps": 16,
+    "scheduler": "res_multistep/simple"
+  },
+  "states": {
+    "idle": {
+      "file": "video/brown-snake-idle-h3.mp4",
+      "sha256": "d79d451c947c7fc67f761aeb7d28b0b645d42529135ed4bf7571a2f8b3812466",
+      "seed": 523678623,
+      "reference": "references/brown-snake-idle-white.png",
+      "prompt": "prompts/brown-snake-idle.txt",
+      "promptChars": 1651,
+      "promptSha256": "a0f487e8255000092ff31621ffd1cc73cfc031d83decbc524317ce632c3b526b",
+      "lastFrameLocked": true,
+      "minimumMarginsPx": { "left": 128, "right": 183, "top": 304, "bottom": 160 }
+    },
+    "walking": {
+      "file": "video/brown-snake-walking-h3.mp4",
+      "sha256": "93786ce278156c544c02ec43bfb4a2ee4c967523c3f50eeb2c5909867e5f2f74",
+      "seed": 499868537,
+      "reference": "references/brown-snake-walking-white.png",
+      "prompt": "prompts/brown-snake-walking.txt",
+      "promptChars": 1396,
+      "promptSha256": "75e0f8466f5b14d5f9d010fdb81daad768318b7d6ed19d7739c64a13cf72436f",
+      "lastFrameLocked": true,
+      "minimumMarginsPx": { "left": 133, "right": 174, "top": 352, "bottom": 172 }
+    },
+    "attacking": {
+      "file": "video/brown-snake-attacking-h3.mp4",
+      "sha256": "fc5a2a63d2a06f63654d83780146c5f21e456806cfc24a0314b76fbee6ac7d9f",
+      "seed": 1170742702,
+      "reference": "references/brown-snake-attacking-white.png",
+      "prompt": "prompts/brown-snake-attacking.txt",
+      "promptChars": 1984,
+      "promptSha256": "f8de14d264bf1d2d8d912dc52b0df2e186bec0826f917f565a13061f3d951cf8",
+      "lastFrameLocked": true,
+      "minimumMarginsPx": { "left": 87, "right": 333, "top": 314, "bottom": 171 }
+    },
+    "dying": {
+      "file": "video/brown-snake-dying-h3.mp4",
+      "sha256": "362e29875aa38d8c72c9496507bbaa8fac8549df8e58646b93180dbc7ed0073d",
+      "seed": 424795492,
+      "reference": "references/brown-snake-dying-white.png",
+      "prompt": "prompts/brown-snake-dying.txt",
+      "promptChars": 1531,
+      "promptSha256": "e5a7b12e175a83ae186920d78e457569a370a55de3073249635a48b72e1252a4",
+      "lastFrameLocked": false,
+      "minimumMarginsPx": { "left": 146, "right": 286, "top": 301, "bottom": 172 }
+    }
+  },
+  "spriteSheets": {
+    "builder": "build-sheets.py",
+    "builderSha256": "afa94e11196c38bad64963cab3c56f7f1c7f514555793d8eeae61c06df898b9f",
+    "manifest": "sheet-manifest.json",
+    "normalization": "fixed per-action scale from neutral-frame body thickness",
+    "targetBodyThickness": 42,
+    "footY": 410,
+    "actions": {
+      "idle": {
+        "file": "generated/final/idle.png",
+        "sha256": "f8ad3cb2f197e25361345fe590a189a11d916c9d12ba6f23ca79680885d0cad4",
+        "frameWidth": 640,
+        "frameHeight": 512,
+        "columns": 6,
+        "rows": 2,
+        "frameCount": 12,
+        "frameRate": 4,
+        "repeat": -1,
+        "preview": "previews/final/idle.gif"
+      },
+      "walking": {
+        "file": "generated/final/walking.png",
+        "sha256": "93074adbe7b548bfb9c001718520524e6fbd32264bb75857f4b19237215c1ae5",
+        "frameWidth": 1152,
+        "frameHeight": 512,
+        "columns": 5,
+        "rows": 4,
+        "frameCount": 20,
+        "frameRate": 12,
+        "repeat": -1,
+        "preview": "previews/final/walking.gif"
+      },
+      "attacking": {
+        "file": "generated/final/attacking.png",
+        "sha256": "0ec9aff6fe44a3e2654851c5162d26dd1d1357e437f797b50bf25add34174fd2",
+        "frameWidth": 1024,
+        "frameHeight": 512,
+        "columns": 6,
+        "rows": 4,
+        "frameCount": 21,
+        "duration": 900,
+        "repeat": 0,
+        "preview": "previews/final/attacking.gif"
+      },
+      "dying": {
+        "file": "generated/final/dying.png",
+        "sha256": "a30f476180ab5b61e673becdc87d7963cb6b64668a35beeaa552777f65a7dc48",
+        "frameWidth": 640,
+        "frameHeight": 512,
+        "columns": 6,
+        "rows": 3,
+        "frameCount": 18,
+        "duration": 1800,
+        "repeat": 0,
+        "preview": "previews/final/dying.gif"
+      }
+    },
+    "staticChecks": {
+      "blankFrames": 0,
+      "edgeHitFrames": 0,
+      "semiTransparentPixels": 0,
+      "transparentRgbPixels": 0,
+      "bodyThicknessRangePx": [39.15, 42.34],
+      "groundLineRangePx": [409, 412]
+    }
+  },
+  "runtime": {
+    "assetDirectory": "assets/enemies/brown_snake",
+    "enemyConfigKey": "brownSnake",
+    "rank": "normal",
+    "family": "动物",
+    "hp": 135,
+    "speed": 255,
+    "physicalAttack": 27,
+    "poisonStacksPerConfirmedHit": 1,
+    "encounterPoolAssigned": false
+  },
+  "runtimeIntegrated": true
+}

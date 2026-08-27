@@ -1,0 +1,80 @@
+{
+  "sourceDirectory": "E:\\无尽轮回\\游戏\\素材库\\人物\\仓鼠武士",
+  "cell": [
+    512,
+    512
+  ],
+  "cols": 8,
+  "targetFootY": 456,
+  "actions": {
+    "idle": {
+      "source": "E:\\无尽轮回\\游戏\\素材库\\人物\\仓鼠武士\\idle.png",
+      "archivedSource": "tools\\ai-gen\\_hamster_samurai_20260826\\source-originals\\idle.png",
+      "baseSheet": "tools\\ai-gen\\_hamster_samurai_20260826\\base\\idle.png",
+      "frameCount": 13,
+      "anchorMode": "median",
+      "constantShiftY": 100,
+      "sourceBottomRange": [
+        355,
+        356
+      ],
+      "normalizedBottomRange": [
+        455,
+        456
+      ],
+      "edgeTouchFrames": []
+    },
+    "running": {
+      "source": "E:\\无尽轮回\\游戏\\素材库\\人物\\仓鼠武士\\running.png",
+      "archivedSource": "tools\\ai-gen\\_hamster_samurai_20260826\\source-originals\\running.png",
+      "baseSheet": "tools\\ai-gen\\_hamster_samurai_20260826\\base\\running.png",
+      "frameCount": 21,
+      "anchorMode": "median",
+      "constantShiftY": 97,
+      "sourceBottomRange": [
+        357,
+        362
+      ],
+      "normalizedBottomRange": [
+        454,
+        459
+      ],
+      "edgeTouchFrames": []
+    },
+    "attacking": {
+      "source": "E:\\无尽轮回\\游戏\\素材库\\人物\\仓鼠武士\\attacking.png",
+      "archivedSource": "tools\\ai-gen\\_hamster_samurai_20260826\\source-originals\\attacking.png",
+      "baseSheet": "tools\\ai-gen\\_hamster_samurai_20260826\\base\\attacking.png",
+      "frameCount": 22,
+      "anchorMode": "first",
+      "constantShiftY": 99,
+      "sourceBottomRange": [
+        357,
+        361
+      ],
+      "normalizedBottomRange": [
+        456,
+        460
+      ],
+      "edgeTouchFrames": []
+    },
+    "dying": {
+      "source": "E:\\无尽轮回\\游戏\\素材库\\人物\\仓鼠武士\\dying.png",
+      "archivedSource": "tools\\ai-gen\\_hamster_samurai_20260826\\source-originals\\dying.png",
+      "baseSheet": "tools\\ai-gen\\_hamster_samurai_20260826\\base\\dying.png",
+      "frameCount": 13,
+      "anchorMode": "first",
+      "constantShiftY": 92,
+      "sourceBottomRange": [
+        361,
+        371
+      ],
+      "normalizedBottomRange": [
+        453,
+        463
+      ],
+      "edgeTouchFrames": []
+    }
+  },
+  "icon": "assets\\ui\\unit-icons\\hamster_samurai.png"
+}

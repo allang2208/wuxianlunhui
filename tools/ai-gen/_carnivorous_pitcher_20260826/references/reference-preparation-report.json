@@ -1,0 +1,88 @@
+{
+  "mother": "mother\\carnivorous-pitcher-mother-v03-photorealistic-white.png",
+  "alpha": "references\\carnivorous-pitcher-mother-v03-alpha.png",
+  "cutout": "references\\carnivorous-pitcher-mother-v03-cutout.png",
+  "background": "#FF00FF",
+  "references": {
+    "idle": {
+      "file": "references\\carnivorous-pitcher-reference-idle-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        274,
+        69,
+        606,
+        507
+      ],
+      "subjectHeightRatio": 0.7604166666666666,
+      "margins": {
+        "left": 274,
+        "right": 418,
+        "top": 69,
+        "bottom": 69
+      }
+    },
+    "walking": {
+      "file": "references\\carnivorous-pitcher-reference-walking-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        283,
+        86,
+        597,
+        501
+      ],
+      "subjectHeightRatio": 0.7204861111111112,
+      "margins": {
+        "left": 283,
+        "right": 427,
+        "top": 86,
+        "bottom": 75
+      }
+    },
+    "attacking": {
+      "file": "references\\carnivorous-pitcher-reference-attacking-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        200,
+        121,
+        475,
+        484
+      ],
+      "subjectHeightRatio": 0.6302083333333334,
+      "margins": {
+        "left": 200,
+        "right": 549,
+        "top": 121,
+        "bottom": 92
+      }
+    },
+    "dying": {
+      "file": "references\\carnivorous-pitcher-reference-dying-magenta.png",
+      "canvas": [
+        1024,
+        576
+      ],
+      "subjectBbox": [
+        311,
+        121,
+        569,
+        461
+      ],
+      "subjectHeightRatio": 0.5902777777777778,
+      "margins": {
+        "left": 311,
+        "right": 455,
+        "top": 121,
+        "bottom": 115
+      }
+    }
+  }
+}

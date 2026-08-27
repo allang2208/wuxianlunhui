@@ -36,7 +36,26 @@
     "sampler": "euler",
     "size": "1024x1024",
     "negative": "",
-    "note": "FLUX.2 klein 4B 无 LoRA（装备/武器纯主体出图，12 步）；add-weapon 管线专用"
+    "note": "FLUX.2 Klein 4B 无 LoRA；项目所有自由 FLUX 生图的通用默认入口，资产专用 LoRA 仅通过显式模型名启用"
+  },
+  "flux2-klein-4b-depth": {
+    "type": "flux2",
+    "unet": "flux-2-klein-4b-fp8.safetensors",
+    "clip": "qwen_3_4b.safetensors",
+    "vae": "flux2-vae.safetensors",
+    "steps": 24,
+    "cfg": 1.0,
+    "guidance": 1.0,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "size": "1024x1024",
+    "negative": "",
+    "lora": null,
+    "lora_strength": 1.0,
+    "controlnet": "FLUX.2-dev-Fun-Controlnet-Union.safetensors",
+    "control_type": "depth",
+    "control_strength": 0.88,
+    "note": "FLUX.2 Klein 4B 无 LoRA + Fun-Controlnet-Union；项目所有需要 Blender Depth、剪影或固定视角的 FLUX 生图默认入口"
   },
   "flux2-klein-4b-equipment": {
     "type": "flux2",
@@ -117,7 +136,7 @@
     "controlnet": "FLUX.2-dev-Fun-Controlnet-Union.safetensors",
     "control_type": "depth",
     "control_strength": 0.88,
-    "note": "World-122 building style LoRA + reference foundation ControlNet; independent entry, does not replace the default Klein or Dev model"
+    "note": "Legacy v1 building-style LoRA plus foundation reference; historical reproduction only, never selected by the default workflow"
   },
   "flux2-klein-4b-world122-building-body-depth": {
     "type": "flux2",
@@ -137,7 +156,7 @@
     "controlnet": "FLUX.2-dev-Fun-Controlnet-Union.safetensors",
     "control_type": "depth",
     "control_strength": 0.88,
-    "note": "World-122 building style plus body-only LoRA; 48-step depth-controlled candidate generation with no external foundation"
+    "note": "Legacy v1 building-style plus body-only LoRA; historical reproduction only, never selected by the default workflow"
   },
   "flux2-klein-4b-world122-body-only-depth": {
     "type": "flux2",
@@ -155,7 +174,7 @@
     "controlnet": "FLUX.2-dev-Fun-Controlnet-Union.safetensors",
     "control_type": "depth",
     "control_strength": 0.88,
-    "note": "Body-only LoRA isolation check: 48-step depth-controlled building body without the legacy foundation-biased style LoRA"
+    "note": "Legacy body-only LoRA isolation profile; explicit comparison only, never selected by the default workflow"
   },
   "flux2-dev-fp8": {
     "type": "flux2",
@@ -171,7 +190,7 @@
     "negative": "",
     "lora": null,
     "lora_strength": 1.0,
-    "note": "FLUX.2 dev fp8（NVIDIA 合作量化，5080 主力）；20~30 步 / CFG 2.5~4.0 推荐 3.5；支持 JSON 结构化提示词（固定视角/方向）"
+    "note": "FLUX.2 Dev fp8（NVIDIA 合作量化）；保留为明确指定的非默认研发/对照入口，不得由通用工作流自动选择"
   },
   "flux2-dev-depth": {
     "type": "flux2",
@@ -190,7 +209,7 @@
     "controlnet": "FLUX.2-dev-Fun-Controlnet-Union.safetensors",
     "control_type": "depth",
     "control_strength": 0.75,
-    "note": "FLUX.2 dev fp8 + Fun-Controlnet-Union（depth/Canny/Pose 等多条件单文件）；--control-image 传深度图锁视角/方向；强度 0.6~0.8"
+    "note": "FLUX.2 Dev fp8 + Fun-Controlnet-Union；保留为明确指定的非默认研发/对照入口，默认锁结构入口为 flux2-klein-4b-depth"
   },
   "flux2-dev-mesh": {
     "type": "mesh",
@@ -206,6 +225,6 @@
     "remote_port": 7777,
     "n_blocks": 4,
     "negative": "",
-    "note": "FLUX.2 dev fp8 跨机 Mesh：Icarus@5080 + Daedalus@3080Ti(192.168.3.153:7777)；Turbo LoRA 两端本地加载；8 步；需本机 Daedalus 已启动"
+    "note": "FLUX.2 Dev fp8 跨机 Mesh；保留为明确指定的非默认研发入口，需本机 Daedalus 已启动"
   }
 }

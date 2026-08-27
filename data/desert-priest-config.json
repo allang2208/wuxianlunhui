@@ -1,8 +1,8 @@
 {
   "id": "desert_priest",
-  "name": "沙漠祭司",
+  "name": "沙漠僧侣",
   "title": "流沙祈祷者",
-  "desc": "沙漠官邸培养的远程法术单位，轮流施放闪电、冰锥与火球。",
+  "desc": "沙漠官邸培养的远程法术僧侣，轮流施放闪电、冰锥与火球。",
   "role": "desert_priest",
   "growthRule": "priest",
   "avatar": "🐹☀️",

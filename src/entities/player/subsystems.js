@@ -34,7 +34,7 @@ import { QuickBar } from '../../ui/quick-bar.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
 import { findWeaponConfig } from '../../ui/equip-data-manager.js';
-import { getPushStrikeValues } from '../../config/skill-formulas.js';
+import { getDroneValues, getPushStrikeValues } from '../../config/skill-formulas.js';
 
 // 默认技能经验公式与辅助函数（应用全局技能经验倍率）
 const DEFAULT_SKILL_EXP_FORMULA = '100 + (level - 1) * 100';
@@ -185,7 +185,12 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false) {
                         scene.playPlayerHitAttachedFx(this, source, damageType);
                     }
                 }
-                EffectManager.createDamageText(this.x, this.y - this.size, finalDamage, isCrit);
+                EffectManager.createDamageText(this.x, this.y - this.size, finalDamage, isCrit, {
+                    target: this,
+                    source,
+                    damageType,
+                    isMelee,
+                });
                 if (isCrit) EffectManager.triggerCritEffects();
                 const isKill = d.hp <= 0;
                 if (isKill) { d.hp = 0; this.onDeath(); }
@@ -249,16 +254,24 @@ _reviveInPlace() {
                 this._poisonStacks = 0;
                 this._poisonTimer = 0;
                 this._poisonTickTimer = 0;
+                this.clearCorrosion?.();
                 this.isStunned = false;
                 this.stunTimer = 0;
                 this._overheatActive = false;
                 this._overheatValue = 0;
                 this._overheatOverheated = false;
+                this._overheatStates = {};
                 this._isPushStrike = false;
                 this._specialAttackActive = false;
                 this._specialAttackTimer = 0;
                 this._isDashing = false;
+                this._dashSkillId = null;
+                this._dashWeaponItem = null;
+                this._dashSkillOverrides = null;
                 this._isWhirlwind = false;
+                this._whirlwindRecovering = false;
+                this._whirlwindRecoverTimer = 0;
+                this._whirlwindRecoverDuration = 0;
                 // 还原闪避标记（死亡打断闪避时 hittable/noCollision 可能仍挂着）
                 this._endDodge();
                 this.vx = 0;
@@ -276,10 +289,15 @@ respawn() {
                 d.hp = d.maxHp;
                 d.mp = d.maxMp;
                 d.stamina = d.maxStamina;
+                this._isDashing = false;
+                this._dashSkillId = null;
+                this._dashWeaponItem = null;
+                this._dashSkillOverrides = null;
                 // 清除所有状态效果
                 this._poisonStacks = 0;
                 this._poisonTimer = 0;
                 this._poisonTickTimer = 0;
+                this.clearCorrosion?.();
                 if (this._poisonEffectId && StatusBar) {
                     StatusBar.removeEffect(this._poisonEffectId);
                     this._poisonEffectId = null;
@@ -295,6 +313,7 @@ respawn() {
                 this._overheatOverheated = false;
                 this._overheatRecoverTimer = 0;
                 this._overheatWeaponType = null;
+                this._overheatStates = {};
                 // 清除推击状态
                 this._isPushStrike = false;
                 this._pushStrikeTimer = 0;
@@ -312,7 +331,7 @@ respawn() {
                 this._specialAttackCooldowns = {};
                 // 清除无人机状态
                 if (this.droneSystem) {
-                    this.droneSystem._deactivate();
+                    this.droneSystem._deactivate({ immediateMarks: true, silent: true });
                 }
                 // 清除无人机易伤状态
                 this._droneVulnerabilityStacks = 0;
@@ -534,7 +553,7 @@ applyPoison(stacks) {
                     // 兜底：确保持盾防御技能始终存在
                     if (!skills.shieldDefense) {
                         skills.shieldDefense = {
-                            id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
+                            id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/持盾防御.png',
                             description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
@@ -625,10 +644,10 @@ applyPoison(stacks) {
                     if (!skills.droneSkill) {
                         skills.droneSkill = {
                             id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/无人机.png',
-                            description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
+                            description: '部署高空侦察无人机开拓迷雾，并在近圈为全队标记敌方弱点',
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
-                            getEffect(level) { return { damageBonusPercent: 10 + level * 2, critBonusPercent: 10 + level * 1, cooldown: 20, mpCost: 50, duration: 5 + level * 0.5, moveSpeed: 500, radius: 300 }; },
+                            getEffect(level) { return getDroneValues(level); },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -747,10 +766,10 @@ applyPoison(stacks) {
                     },
                     droneSkill: {
                         id: 'droneSkill', name: '无人机', icon: '🚁', iconImage: 'assets/skills/无人机.png',
-                        description: '释放无人机追踪目标，使目标获得易伤标记，受到的所有伤害增加',
+                        description: '部署高空侦察无人机开拓迷雾，并在近圈为全队标记敌方弱点',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '主动', type: 'active' }, { name: '魔法', type: 'magic' }],
-                        getEffect(level) { return { damageBonusPercent: 10 + level * 2, critBonusPercent: 10 + level * 1, cooldown: 20, mpCost: 50, duration: 5 + level * 0.5, moveSpeed: 500, radius: 300 }; },
+                        getEffect(level) { return getDroneValues(level); },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     iceSpike: {
@@ -762,7 +781,7 @@ applyPoison(stacks) {
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     shieldDefense: {
-                        id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/Meshy_AI_Shield Block Sword Warrior.png',
+                        id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: 'assets/skills/持盾防御.png',
                         description: '精通盾牌防御之术，在持盾状态下获得更强的防御能力和弹反效果',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                         tags: [{ name: '盾牌', type: 'weapon' }, { name: '被动', type: 'passive' }],
@@ -797,15 +816,6 @@ _applyEnchantAttackInterval(item) {
                     }
                     return;
                 }
-                const ee = item._enchantEffects;
-                const intervalMul = ee && ee.attackIntervalMul ? ee.attackIntervalMul : 1.0;
-
-                // 应用改造效果：攻击间隔变化
-                let attackIntervalDelta = 0;
-                if (item._craftEffects && item._craftEffects.attackIntervalDelta) {
-                    attackIntervalDelta = item._craftEffects.attackIntervalDelta;
-                }
-
                 // 根据武器类型更新对应的攻击冷却
                 const wType = item.weaponType;
                 const attackKey = item.attackKey || 'melee';
@@ -849,33 +859,48 @@ _getEffectiveGunAttackInterval(item, attackKey) {
                 return Math.round(baseInterval + (peakInterval - baseInterval) * progress);
             },
 
-_applySkillOverrides(item) {
+_applySkillOverrides(_item) {
+                // 技能覆盖只认当前启用主手。调用方即使传入非当前槽物品，也不能污染运行时技能。
+                const activeItem = this.equipments?.[this.weaponMode] || null;
                 // 附魔效果：攻击间隔调整（装备/卸下/附魔写回统一在此刷新，不再只有切枪才生效）
-                this._applyEnchantAttackInterval(item);
-
-                if (!item || !item.skillOverrides) {
-                    this._clearSkillOverrides();
-                    return;
-                }
-                this._skillOverrides = JSON.parse(JSON.stringify(item.skillOverrides));
+                this._applyEnchantAttackInterval(activeItem);
+                this._skillOverrides = activeItem?.skillOverrides
+                    ? JSON.parse(JSON.stringify(activeItem.skillOverrides))
+                    : {};
             },
 
 _clearSkillOverrides() {
-                this._skillOverrides = {};
+                // 卸下当前武器可能会自动切到另一主手；清理后必须立即同步新当前武器，不能无条件置空。
+                const activeItem = this.equipments?.[this.weaponMode] || null;
+                this._skillOverrides = activeItem?.skillOverrides
+                    ? JSON.parse(JSON.stringify(activeItem.skillOverrides))
+                    : {};
+            },
+
+_getCurrentSkillOverrides() {
+                const activeItem = this.equipments?.[this.weaponMode] || null;
+                return activeItem?.skillOverrides || {};
+            },
+
+_getDashSkillLevel(skillId = null) {
+                const activeSkillId = skillId || this._getActiveDashSkillId();
+                const shared = this.skills?.dashAttack;
+                return Number(shared?.level) || Number(this.skills?.[activeSkillId]?.level) || 1;
             },
 
 triggerWhirlwind() {
                 // 攻击动画锁定：任何一段攻击未播完前不触发
-                if (this.whirlwindSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
+                if (!this._isPushStrike && !this._whirlwindRecovering && this.whirlwindSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
                     this.whirlwindSystem.trigger();
                 }
             },
 
 triggerPushStrike() {
                 // 攻击动画锁定：任何一段攻击未播完前不触发
-                if (this.pushStrikeSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
-                    this.pushStrikeSystem.trigger();
+                if (!this._whirlwindRecovering && this.pushStrikeSystem && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
+                    return this.pushStrikeSystem.trigger();
                 }
+                return false;
             },
 
 _triggerRuneSwordCooldownReduction() {
@@ -885,7 +910,10 @@ _triggerRuneSwordCooldownReduction() {
             },
 
 _getSkillParam(skillId, paramPath, defaultValue) {
-                const override = this._skillOverrides[skillId];
+                const overrideSource = this._isDashing && this._dashSkillId === skillId && this._dashSkillOverrides
+                    ? this._dashSkillOverrides
+                    : this._getCurrentSkillOverrides();
+                const override = overrideSource[skillId];
                 if (!override) return defaultValue;
                 const keys = paramPath.split('.');
                 let val = override;
@@ -897,15 +925,9 @@ _getSkillParam(skillId, paramPath, defaultValue) {
             },
 
 _getActiveDashSkillId() {
-                // 优先使用 _skillOverrides（由 _applySkillOverrides 设置）
-                if (this._skillOverrides.dashAttackThrust) return 'dashAttackThrust';
-                if (this._skillOverrides.dashAttackFire) return 'dashAttackFire';
-                // 回退到检查装备物品上的 skillOverrides
-                const currentItem = this.equipments[this.weaponMode];
-                if (currentItem && currentItem.skillOverrides) {
-                    if (currentItem.skillOverrides.dashAttackThrust) return 'dashAttackThrust';
-                    if (currentItem.skillOverrides.dashAttackFire) return 'dashAttackFire';
-                }
+                const overrides = this._getCurrentSkillOverrides();
+                if (overrides.dashAttackThrust) return 'dashAttackThrust';
+                if (overrides.dashAttackFire) return 'dashAttackFire';
                 return 'dashAttack';
             },
 
@@ -918,6 +940,19 @@ _isFacingMouse() {
                 const len = Math.sqrt(mx * mx + my * my);
                 if (len === 0) return true;
                 return (moveDir.x * mx + moveDir.y * my) / len > 0;
+            },
+
+_isSprintDirectionAllowed() {
+                const moveDir = Input.getMovement();
+                if (!moveDir || (moveDir.x === 0 && moveDir.y === 0)) return false;
+                const item = this.equipments?.[this.weaponMode];
+                const isMelee = item && (item.category === 'weapon_melee' || item.weaponType === 'sword');
+                return isMelee ? true : this._isFacingMouse();
+            },
+
+_hasHorizontalDashInput() {
+                const moveDir = Input.getMovement();
+                return !!moveDir && Math.abs(Number(moveDir.x) || 0) >= 0.001;
             },
 
 _getFacingDirection() {
@@ -959,6 +994,8 @@ addAttribute(attr) {
                 if (this._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止闪避
                 if (this.shieldSystem && this.shieldSystem.defending) return; // 防御状态禁止闪避
                 if (this.hasStatusEffect && this.hasStatusEffect('bind')) return; // 束缚状态禁止闪避
+                // 风车收势唯一允许的动作取消入口：先清收势临时状态，再进入正常翻滚。
+                if (this._whirlwindRecovering) this.whirlwindSystem?.cancelRecover?.();
                 // 闪避取消当前攻击动画/Tween
                 if (this.weaponAnim && this.weaponAnim.isAttacking) {
                     this.clearAttackTweens();
@@ -1042,6 +1079,11 @@ triggerOffhandWeaponAnim() {
 switchWeaponMode() {
                 // 攻击期间（rotate/windup/swing/recover/idle_return）不能切换武器
                 if (this.weaponAnim && this.weaponAnim.state !== 'idle') {
+                    return;
+                }
+                // 冲刺动作从发动到专属 recover 结束必须使用同一把武器与同一技能快照。
+                if (this._isDashing || this._dashRecoverAt || this._dashResetAnim || this._whirlwindRecovering
+                    || this._isPushStrike || this._specialResetAnim) {
                     return;
                 }
                 // 夜与火之剑特殊攻击期间不能切换武器
@@ -1448,8 +1490,8 @@ _updateReload(dt) {
                             if (state.current >= state.max) {
                                 state.reloading = false;
                                 state.singleReloadMode = false;
-                                this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
-                                this._gunSpreadTimerOff = 0; // 同时重置副手散布
+                                this._gunSpreadShots = 0; // 主手换弹后重置主手散布
+                                this._gunSpreadShotsOff = 0; // 同时重置副手散布
                                 // 单发装填满弹时播放收尾音效（左轮：最后一发+转轮回摆合上；
                                 // 未配置 reloadFinishSound 时回退枪栓音）
                                 if (SoundManager && SoundManager.playFile) {
@@ -1469,14 +1511,15 @@ _updateReload(dt) {
                             
                             state.reloading = false;
                             state.current = state.max;
-                            this._gunSpreadTimer = 0; // 主手换弹后重置主手散布
-                            this._gunSpreadTimerOff = 0; // 同时重置副手散布
+                            this._gunSpreadShots = 0; // 主手换弹后重置主手散布
+                            this._gunSpreadShotsOff = 0; // 同时重置副手散布
                         }
                     }
                 }
             },
 
 reloadCurrentWeapon() {
+                if (this._isPushStrike) return false;
                 const currentSlot = this.weaponMode;
                 const currentItem = this.equipments[currentSlot];
                 if (!currentItem || !isGunWeapon(currentItem)) return;
@@ -1584,6 +1627,88 @@ _getEffectivePiercing(basePiercing, item) {
                     }
                 }
                 return result;
+            },
+
+_prepareCalibrationShot(item) {
+                const params = item && item.calibrationShotParams;
+                if (!params) return null;
+                if (!this._calibrationShotStates) this._calibrationShotStates = new WeakMap();
+                let state = this._calibrationShotStates.get(item);
+                if (!state) {
+                    state = { hits: 0, charged: false };
+                    this._calibrationShotStates.set(item, state);
+                }
+                const effects = item._craftEffects || {};
+                const hitsRequired = Math.max(2, Math.round((Number(params.hitsRequired) || 8) + (Number(effects.calibrationHitsRequiredDelta) || 0)));
+                const damageMultiplier = Math.max(1, (Number(params.damageMultiplier) || 1.8) + (Number(effects.calibrationDamageMultiplierDelta) || 0));
+                const piercingBonus = Math.max(0, Math.round((Number(params.piercingBonus) || 2) + (Number(effects.calibrationPiercingBonusDelta) || 0)));
+                if (state.charged) {
+                    state.charged = false;
+                    state.hits = 0;
+                    return { charged: true, damageMultiplier, piercingBonus, onFirstHit: null };
+                }
+                return {
+                    charged: false,
+                    damageMultiplier: 1,
+                    piercingBonus: 0,
+                    onFirstHit: () => {
+                        if (state.charged) return;
+                        state.hits += 1;
+                        if (state.hits >= hitsRequired) {
+                            state.hits = 0;
+                            state.charged = true;
+                        }
+                    }
+                };
+            },
+
+_prepareRhythmBurstShot(item) {
+                const params = item && item.rhythmBurstParams;
+                if (!params) return null;
+                if (!this._rhythmBurstStates) this._rhythmBurstStates = new WeakMap();
+                let state = this._rhythmBurstStates.get(item);
+                if (!state) {
+                    state = { shot: 0, lastShotAt: 0 };
+                    this._rhythmBurstStates.set(item, state);
+                }
+                const effects = item._craftEffects || {};
+                const resetMs = Math.max(100, (Number(params.resetMs) || 450) + (Number(effects.rhythmResetMsDelta) || 0));
+                const now = Date.now();
+                if (now - state.lastShotAt > resetMs) state.shot = 0;
+                state.lastShotAt = now;
+                state.shot += 1;
+                const startShot = Math.max(1, Math.round((Number(params.startShot) || 5) + (Number(effects.rhythmStartShotDelta) || 0)));
+                const endShot = Math.max(startShot, Math.round((Number(params.endShot) || 12) + (Number(effects.rhythmEndShotDelta) || 0)));
+                const damageMultiplier = Math.max(1, (Number(params.damageMultiplier) || 1.28) + (Number(effects.rhythmDamageMultiplierDelta) || 0));
+                const sweet = state.shot >= startShot && state.shot <= endShot;
+                return { sweet, damageMultiplier: sweet ? damageMultiplier : 1, spreadMultiplier: sweet ? 0.45 : 1 };
+            },
+
+_prepareConvergenceShot(item) {
+                const params = item && item.convergenceParams;
+                if (!params) return null;
+                if (!this._convergenceShotStates) this._convergenceShotStates = new WeakMap();
+                let state = this._convergenceShotStates.get(item);
+                if (!state) {
+                    state = { shot: 0, lastShotAt: 0 };
+                    this._convergenceShotStates.set(item, state);
+                }
+                const effects = item._craftEffects || {};
+                const resetMs = Math.max(100, (Number(params.resetMs) || 320) + (Number(effects.convergenceResetMsDelta) || 0));
+                const now = Date.now();
+                if (now - state.lastShotAt > resetMs) state.shot = 0;
+                state.lastShotAt = now;
+                state.shot += 1;
+                const startShot = Math.max(2, Math.round((Number(params.startShot) || 6) + (Number(effects.convergenceStartShotDelta) || 0)));
+                const maxStacks = Math.max(1, Math.round((Number(params.maxStacks) || 10) + (Number(effects.convergenceMaxStacksDelta) || 0)));
+                const stack = Math.min(maxStacks, Math.max(0, state.shot - startShot + 1));
+                const damagePerStack = Math.max(0, (Number(params.damagePerStack) || 0.02) + (Number(effects.convergenceDamagePerStackDelta) || 0));
+                const spreadPerStack = Math.max(0, (Number(params.spreadPerStack) || 0.035) + (Number(effects.convergenceSpreadPerStackDelta) || 0));
+                return {
+                    stack,
+                    damageMultiplier: 1 + stack * damagePerStack,
+                    spreadMultiplier: Math.max(0.35, 1 - stack * spreadPerStack),
+                };
             },
 
 _playFireSound(item, defaultSound = 'gun_fire', branchSound = null) {
@@ -1720,6 +1845,118 @@ _spawnShellCasing(hand, gunLX, gunLY, shellOffset, angle) {
                 EffectFactory.createShellCasing(x, y, angle);
             },
 
+_getGunSpreadTuning(item) {
+                const craftEffects = item?._craftEffects || null;
+                const canonical = findWeaponConfig(item?.weaponId, item?.name);
+                const spread = (craftEffects && craftEffects.spreadParamsOverride)
+                    || canonical?.spreadParams || item?.spreadParams || {};
+                const attackKey = item?.attackKey || (item?.weaponType === 'pistol' ? 'pistol' : item?.weaponType);
+                const intervalMs = this._getEffectiveGunAttackInterval(item, attackKey);
+                const msToShots = (ms) => Number(ms) / intervalMs;
+
+                let startShots = Number.isFinite(Number(spread.startShots))
+                    ? Number(spread.startShots)
+                    : Math.max(0, msToShots(spread.startDelay ?? 500));
+                let maxShots = Number.isFinite(Number(spread.maxShots))
+                    ? Number(spread.maxShots)
+                    : startShots + Math.max(1, msToShots(spread.maxTime ?? 1800));
+                let recoveryMs = Math.max(100, Number(spread.recoveryMs) || Math.max(280, intervalMs * 2.5));
+                let maxAngle = Math.max(0, Number(spread.maxAngle) || WEAPON_FX_CONFIG.defaultMaxSpreadAngle);
+
+                if (craftEffects) {
+                    const startDeltaShots = msToShots(craftEffects.spreadStartDelta || 0);
+                    startShots += startDeltaShots;
+                    maxShots += startDeltaShots + msToShots(craftEffects.spreadTimeDelta || 0);
+                    maxAngle += craftEffects.maxSpreadAngleDelta || 0;
+                    recoveryMs += craftEffects.recoilRecoveryDelta || 0;
+                    if (craftEffects.fireModeOverride === 'fullAuto') {
+                        const autoStartShots = msToShots(craftEffects.autoSpreadStartDelta || 0);
+                        startShots += autoStartShots;
+                        maxShots += autoStartShots + msToShots(craftEffects.autoSpreadTimeDelta || 0);
+                        maxAngle += craftEffects.autoMaxSpreadAngleDelta || 0;
+                    }
+                    const stateSpread = this.isMoving
+                        ? (craftEffects.moveSpreadPercent || 0)
+                        : (craftEffects.stationarySpreadPercent || 0);
+                    maxAngle *= Math.max(0.1, 1 + stateSpread);
+                }
+
+                // 瞄准不取消后坐力，只把稳定连射窗口向后推，保留瞄具/点射改造的收益。
+                if (this._aimModeActive) {
+                    const aimBonusShots = Math.max(2, Math.round(600 / intervalMs));
+                    startShots += aimBonusShots;
+                    maxShots += aimBonusShots;
+                }
+
+                startShots = Math.max(0, startShots);
+                maxShots = Math.max(startShots + 1, maxShots);
+                recoveryMs = Math.max(100, recoveryMs);
+                // “每次射击散布±N°”必须进入实际弹道：按散布成长区间折算到最大角，
+                // 准星与投射物继续共用该 tuning，避免只有文案/kick 生效。
+                const growthShots = Math.max(1, maxShots - startShots);
+                maxAngle += (Number(craftEffects?.shotSpreadDelta) || 0) * growthShots;
+                maxAngle = Math.max(0, Math.min(45, maxAngle));
+                const fixedSpread = item?.weaponType === 'shotgun' && !(craftEffects && craftEffects.slugMode);
+                return { startShots, maxShots, recoveryMs, maxAngle, fixedSpread };
+            },
+
+_spreadFactorFromShots(shots, tuning) {
+                if (tuning.fixedSpread) return 1;
+                return Math.min(1, Math.max(0,
+                    ((Number(shots) || 0) - tuning.startShots) /
+                    Math.max(1, tuning.maxShots - tuning.startShots)));
+            },
+
+_getSlugSpreadTuning(item) {
+                const ce = item?._craftEffects || null;
+                const perShotAngle = Math.max(0, 5 + (Number(ce?.shotSpreadDelta) || 0));
+                const baseCap = item?.weaponId === 'weapon12' ? 15 : 20;
+                const maxAngle = Math.max(0, Math.min(45,
+                    baseCap + (Number(ce?.maxSpreadAngleDelta) || 0)));
+                const recoveryMs = Math.max(100, 500 + (Number(ce?.slugRecoilRecovery) || 0));
+                return { perShotAngle, maxAngle, recoveryMs };
+            },
+
+_registerGunSpreadShot(hand, item) {
+                const tuning = this._getGunSpreadTuning(item);
+                const isOffhand = hand === 'offhand';
+                const heatKey = isOffhand ? '_gunSpreadShotsOff' : '_gunSpreadShots';
+                const factorKey = isOffhand ? '_currentSpreadFactorOff' : '_currentSpreadFactor';
+                const angleKey = isOffhand ? '_currentSpreadMaxAngleOff' : '_currentSpreadMaxAngle';
+                this[heatKey] = Math.min(tuning.maxShots, (Number(this[heatKey]) || 0) + 1);
+                this[factorKey] = this._spreadFactorFromShots(this[heatKey], tuning);
+                this[angleKey] = tuning.maxAngle;
+
+                // 单发 kick 只用于准星的瞬时反馈；实际弹道散布由上面的发数热量决定。
+                const shotSpreadDelta = Number(item?._craftEffects?.shotSpreadDelta) || 0;
+                this._crosshairShotKick = Math.max(
+                    Number(this._crosshairShotKick) || 0,
+                    Math.max(0.35, 1.2 + shotSpreadDelta)
+                );
+            },
+
+_getGunBallistics(item, fallbackRange) {
+                const craftEffects = item?._craftEffects || null;
+                const canonical = findWeaponConfig(item?.weaponId, item?.name);
+                const attack = canonical?.attack || item?.attack || null;
+                const rangeDelta = Number(craftEffects?.rangeDelta) || 0;
+                const baseRange = Math.max(100, Number(attack?.range) || Number(fallbackRange) || 100);
+                const maxRange = Math.max(100, baseRange + rangeDelta);
+                const falloff = attack?.damageFalloff;
+                if (!falloff) return { maxRange, damageFalloff: null };
+
+                // 正射程改造把完整伤害距离推进60%，其余部分成为更远的衰减尾段；负射程全额收缩。
+                const startShift = rangeDelta >= 0 ? rangeDelta * 0.6 : rangeDelta;
+                const start = Math.min(maxRange, Math.max(0, (Number(falloff.start) || baseRange) + startShift));
+                return {
+                    maxRange,
+                    damageFalloff: {
+                        start,
+                        minMultiplier: Math.max(0.05, Math.min(1, Number(falloff.minMultiplier) || 0.4))
+                    }
+                };
+            },
+
 _fireRanged(hand = 'main') {
                 const d = this.rangedFireData;
                 if (!d) return;
@@ -1733,11 +1970,6 @@ _fireRanged(hand = 'main') {
                     d.targetY = this.y + Math.sin(frozenScene._effectiveAim) * FAR;
                 }
 
-                // 每次实际开火给准星一个瞬时 kick（shotSpreadDelta 改造：按当前武器最大散布角折算增减）
-                const craftEffects = this.equipments[this.weaponMode] && this.equipments[this.weaponMode]._craftEffects;
-                const _fireMaxAngle = this._currentSpreadMaxAngle || 25;
-                this._crosshairShotKick = Math.max(0, 1.0 + ((craftEffects && craftEffects.shotSpreadDelta) || 0) / _fireMaxAngle);
-
                 // 开火手感反馈（trauma 微震 + zoom punch；重武器另有 Camera.triggerShake 大力震屏）
                 if (GunFeel) GunFeel.onShot(this.equipments[this.weaponMode]);
 
@@ -1749,6 +1981,7 @@ _fireRanged(hand = 'main') {
                         const offhandHasAmmo = this._hasAmmo(offhandSlot);
                         if (offhandHasAmmo) {
                             this._consumeAmmo(offhandSlot);
+                            this._registerGunSpreadShot('offhand', offhandItem);
                             const offhandAttackKey = offhandItem.offhandAttackKey || 'pistolOffhand';
                             const offPC = this.attacks[offhandAttackKey].config;
                             const fxCfg = WEAPON_FX_CONFIG.pistolOffhand;
@@ -1767,13 +2000,16 @@ _fireRanged(hand = 'main') {
                             }
                             const offhandDamageObj = { min: offhandDamage, max: offhandDamage };
                             const offIsDarkGold = offhandItem.isDarkGold || false;
+                            const offBallistics = this._getGunBallistics(offhandItem, offPC.projectileRange);
                             ProjectileFactory.create({
                                 x: muzzlePos.x, y: muzzlePos.y, angle: leftFinalAngle,
                                 ...this._projectileAim3D(muzzlePos, d.targetX, d.targetY, 24, leftFinalAngle, d.entities),
-                                speed: offPC.projectileSpeed, maxRange: offPC.projectileRange, size: offPC.projectileSize,
+                                speed: offPC.projectileSpeed, maxRange: offBallistics.maxRange, size: offPC.projectileSize,
                                 damage: offhandDamageObj, piercing: this._getEffectivePiercing(offPC.piercing, offhandItem),
-                                source: this, entities: d.entities, image: null,
-                                isTracer: !offIsDarkGold, isDarkGold: offIsDarkGold
+                                source: this, effectWeapon: offhandItem, entities: d.entities, image: null,
+                                isTracer: !offIsDarkGold, isDarkGold: offIsDarkGold,
+                                damageFalloff: offBallistics.damageFalloff,
+                                playerGunWallSparks: true
                             });
                             this._playFireSound(offhandItem, fxCfg.defaultSound);
                             this._spawnMuzzleFlashAt(muzzlePos.x, muzzlePos.y, leftFinalAngle, fxCfg.muzzleScale);
@@ -1814,6 +2050,7 @@ _fireRanged(hand = 'main') {
                         const mainHasAmmo = this._hasAmmo(mainSlot);
                         if (mainHasAmmo) {
                             this._consumeAmmo(mainSlot);
+                            this._registerGunSpreadShot('main', currentItem);
                             let muzzlePos = this._getMuzzleWorldPosition('main');
                             if (!muzzlePos) muzzlePos = this._getMuzzlePosition(gunLX, gunLY, fxCfg.muzzleForward);
                             const angle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
@@ -1830,13 +2067,16 @@ _fireRanged(hand = 'main') {
                             const mainDamageObj = { min: mainDamage, max: mainDamage };
                             // 创建主手弹丸
                             const mainIsDarkGold = currentItem.isDarkGold || false;
+                            const mainBallistics = this._getGunBallistics(currentItem, mainPC.projectileRange);
                             ProjectileFactory.create({
                                 x: muzzlePos.x, y: muzzlePos.y, angle: finalAngle,
                                 ...this._projectileAim3D(muzzlePos, d.targetX, d.targetY, 24, finalAngle, d.entities),
-                                speed: mainPC.projectileSpeed, maxRange: mainPC.projectileRange, size: mainPC.projectileSize,
+                                speed: mainPC.projectileSpeed, maxRange: mainBallistics.maxRange, size: mainPC.projectileSize,
                                 damage: mainDamageObj, piercing: this._getEffectivePiercing(mainPC.piercing, currentItem),
-                                source: this, entities: d.entities, image: null,
-                                isTracer: !mainIsDarkGold, isDarkGold: mainIsDarkGold
+                                source: this, effectWeapon: currentItem, entities: d.entities, image: null,
+                                isTracer: !mainIsDarkGold, isDarkGold: mainIsDarkGold,
+                                damageFalloff: mainBallistics.damageFalloff,
+                                playerGunWallSparks: true
                             });
                             // 主手开火音效
                             this._playFireSound(currentItem, fxCfg.defaultSound);
@@ -1854,7 +2094,7 @@ _fireRanged(hand = 'main') {
                     if (d.fireMainHand) {
                         const craftEffects = currentItem && currentItem._craftEffects;
                         const mainSlot = d.mainSlot || this.weaponMode;
-                        const attackKey = currentItem.weaponType; // 'pkm' | 'akm' | 'qbz191' | 'qjb201' | 'energy_lmg'
+                        const attackKey = currentItem.weaponType;
                         const isEnergyLMG = attackKey === 'energy_lmg';
 
                         // 能量轻机枪：不消耗弹药，其他机枪消耗弹药
@@ -1986,12 +2226,12 @@ _fireRanged(hand = 'main') {
                     const attackKey = currentItem.attackKey || 'super90';
                     const sgCfg = WEAPON_FX_CONFIG.shotgun;
                     const pelletCount = currentItem.pelletCount || sgCfg.defaultPelletCount;
-                    const baseSpreadAngle = sgCfg.baseSpreadAngle;
                     // 散弹枪：一次击发多发弹丸（普通模式）或单发弹丸（独头弹模式）
                     if (d.fireMainHand) {
                         const mainSlot = d.mainSlot || this.weaponMode;
                         if (this._hasAmmo(mainSlot)) {
                             this._consumeAmmo(mainSlot);
+                            this._registerGunSpreadShot('main', currentItem);
                             const pc = this.attacks[attackKey].config;
                             const gunLX = this.size + sgCfg.gunLX, gunLY = holdY;
                             let spawnPos = this._getMuzzleWorldPosition('main');
@@ -2007,13 +2247,12 @@ _fireRanged(hand = 'main') {
                             }
                             const damage = { min: weaponDamage, max: weaponDamage };
                             // 应用改造效果（射程、击退）
-                            let effectiveRange = pc.projectileRange;
+                            const ballistics = this._getGunBallistics(currentItem, pc.projectileRange);
+                            const effectiveRange = ballistics.maxRange;
                             let effectiveKnockback = pc.knockback || 20;
                             let effectiveSpeed = pc.projectileSpeed;
                             if (craftEffects) {
-                                effectiveRange += craftEffects.rangeDelta || 0;
                                 effectiveKnockback += craftEffects.knockbackDelta || 0;
-                                if (effectiveRange < 100) effectiveRange = 100;
                             }
                             // 散弹枪精通击退加成
                             if (this.skills && this.skills.shotgunMastery) {
@@ -2033,16 +2272,10 @@ _fireRanged(hand = 'main') {
                             if (isSlug) {
                                 // 独头弹模式：单发弹丸，后坐力层数控制散布（应用改造效果）
                                 this._slugRecoilLayers++;
-                                let slugSpreadAngle = 0;
-                                if (this._slugRecoilLayers > 1) {
-                                    // 第一层（_slugRecoilLayers=1）基础散布为零，之后每层+5°
-                                    slugSpreadAngle = (this._slugRecoilLayers - 1) * sgCfg.slugRecoilAnglePerLayer;
-                                }
-                                // 应用改造散布效果（收束器 -5° 等）
-                                if (craftEffects && craftEffects.maxSpreadAngleDelta) {
-                                    slugSpreadAngle += craftEffects.maxSpreadAngleDelta;
-                                }
-                                if (slugSpreadAngle < 0) slugSpreadAngle = 0;
+                                const slugTuning = this._getSlugSpreadTuning(currentItem);
+                                // 首发零散布；后续按发数增长并受武器上限约束，不再无限扩张。
+                                const slugSpreadAngle = Math.min(slugTuning.maxAngle,
+                                    Math.max(0, this._slugRecoilLayers - 1) * slugTuning.perShotAngle);
                                 const slugSpreadRad = (Math.random() - 0.5) * 2 * (slugSpreadAngle * Math.PI / 180);
                                 const angle = baseAngle + slugSpreadRad;
                                 ProjectileFactory.create({
@@ -2050,17 +2283,16 @@ _fireRanged(hand = 'main') {
                                     ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                                     speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
                                     damage: damage, piercing: piercing,
-                                    source: this, entities: d.entities, image: null,
+                                    source: this, effectWeapon: currentItem, entities: d.entities, image: null,
                                     isGold: true,
-                                    knockback: effectiveKnockback
+                                    knockback: effectiveKnockback,
+                                    damageFalloff: ballistics.damageFalloff,
+                                    playerGunWallSparks: true
                                 });
                             } else {
                                 // 普通模式：多发弹丸，每发随机散布（应用改造效果）
-                                let spreadAngle = baseSpreadAngle;
-                                if (craftEffects && craftEffects.maxSpreadAngleDelta) {
-                                    spreadAngle += craftEffects.maxSpreadAngleDelta;
-                                }
-                                if (spreadAngle < 0) spreadAngle = 0;
+                                // fixedSpread 与准星共用同一 tuning；shotSpreadDelta 不再只改UI kick。
+                                const spreadAngle = this._getGunSpreadTuning(currentItem).maxAngle;
                                 for (let pellet = 0; pellet < pelletCount; pellet++) {
                                     const spreadRad = (Math.random() - 0.5) * 2 * (spreadAngle * Math.PI / 180);
                                     const angle = baseAngle + spreadRad;
@@ -2069,9 +2301,11 @@ _fireRanged(hand = 'main') {
                                         ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                                         speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
                                         damage: damage, piercing: piercing,
-                                        source: this, entities: d.entities, image: null,
+                                        source: this, effectWeapon: currentItem, entities: d.entities, image: null,
                                         isGold: true,
-                                        knockback: effectiveKnockback
+                                        knockback: effectiveKnockback,
+                                        damageFalloff: ballistics.damageFalloff,
+                                        playerGunWallSparks: true
                                     });
                                 }
                             }
@@ -2108,7 +2342,7 @@ _fireRanged(hand = 'main') {
                         ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                         speed: projSpeed, maxRange: projRange, size: projSize,
                         damage: damage, piercing: projPiercing,
-                        source: this, entities: d.entities, image: this.arrowImage
+                        source: this, effectWeapon: currentItem, entities: d.entities, image: this.arrowImage
                     });
                 }
                 if (d && !d.fireMainHand && !d.fireOffhand) {
@@ -2469,7 +2703,13 @@ _cancelAllActionsForStun() {
                 this._isDashing = false;
                 this._dashState = 'idle';
                 this._dashTimer = 0;
+                this._dashSkillId = null;
+                this._dashWeaponItem = null;
+                this._dashSkillOverrides = null;
                 this._isWhirlwind = false;
+                this._whirlwindRecovering = false;
+                this._whirlwindRecoverTimer = 0;
+                this._whirlwindRecoverDuration = 0;
                 if (this._whirlwindRangeEffect) {
                     this._whirlwindRangeEffect.active = false;
                     this._whirlwindRangeEffect = null;
@@ -2514,49 +2754,14 @@ _cancelAllActionsForStun() {
             },
 
 _updateSubsystems(dt, entities) {
-                // ===== 武器符文发光粒子更新（仅 weapon4） =====
-                const _currentWep = this.equipments[this.weaponMode];
-                if (_currentWep && _currentWep.weaponEffect === 'runeSword') {
-                    const isAttacking = this.weaponAnim.state !== 'idle';
-                    const isUsingSkill = this._isWhirlwind || this._isDashing || this._specialAttackActive || this._runeSwordSpecialActive;
-                    const animState = isPlayerRunVisual(this) ? 'running' : this.isMoving ? 'walk' : 'idle';
-                    const swordCfg = getWeaponStateConfig('sword', animState);
-                    const wa = WEAPON_ANIM.sword;
-                    const holdX = swordCfg.holdOffsetX ?? wa.holdX;
-                    const holdY = swordCfg.holdOffsetY ?? wa.holdY;
-                    const mainBaseX = -7;
-                    const ms = WEAPON_ANIM.size;
-                    const localX = mainBaseX + holdX;
-                    const localY = holdY;
-                    const cos = Math.cos(this.rotation), sin = Math.sin(this.rotation);
-                    const x1 = cos * localX - sin * localY;
-                    const y1 = sin * localX + cos * localY;
-                    const hiltX = this.x + x1 + ms * 0.85;
-                    const hiltY = this.y + y1;
-                    this.weaponEffect.update({
-                        dt,
-                        size: WEAPON_ANIM.size,
-                        rotation: this.rotation,
-                        isMoving: this.isMoving,
-                        isInCombat: isAttacking || isUsingSkill,
-                        weaponAnimState: this.weaponAnim.state,
-                        x: this.x,
-                        y: this.y,
-                        hiltX,
-                        hiltY,
-                        mouseX: Input.mouse.x,
-                        mouseY: Input.mouse.y,
-                        screenToWorld: Renderer.screenToWorld.bind(Renderer)
-                    });
-                } else {
-                    this.weaponEffect.reset();
-                }
+                // 符文长剑常驻粒子属于 Phaser 武器附着层：必须等 GameScene 完成真实
+                // weaponSprite 姿态和动态深度后再同步，不能在逻辑层用玩家坐标猜剑柄。
                 // ===== 冲刺攻击更新 =====
                 if (this._isDashing) {
                     this.dashSystem.update(dt, entities);
                 }
                 // ===== 风车技能更新 =====
-                if (this._isWhirlwind) {
+                if (this._isWhirlwind || this._whirlwindRecovering) {
                     this.whirlwindSystem.update(dt, entities);
                 }
                 // ===== 推击技能更新 =====
@@ -2647,6 +2852,7 @@ _updateSubsystems(dt, entities) {
                     const elapsed = nowMs() - this._dashResetAnim.startTime;
                     if (elapsed >= this._dashResetAnim.duration) {
                         this._dashResetAnim = null;
+                        this._dashVisualStyle = null;
                     }
                 }
                 // 特殊攻击复位动画更新
@@ -2654,6 +2860,14 @@ _updateSubsystems(dt, entities) {
                     const elapsed = nowMs() - this._specialResetAnim.startTime;
                     if (elapsed >= this._specialResetAnim.duration) {
                         this._specialResetAnim = null;
+                        this._specialAttackWeaponItem = null;
+                        this._specialAttackAnimDuration = 0;
+                        this._specialAttackPhase = null;
+                        this._specialAttackBeamTimer = 0;
+                        this._specialAttackReleaseFrame = 0;
+                        this._specialAttackReleaseProgress = 0;
+                        this._specialAttackOriginX = null;
+                        this._specialAttackOriginY = null;
                     }
                 }
                 // 符文长剑复位动画更新

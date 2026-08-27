@@ -48,6 +48,7 @@ export class BasePanel {
      *  panelGroup?:string,
      *  closeOnEscape?:boolean,
      *  closeOnOutsidePointer?:boolean,
+     *  shouldCloseOnOutsidePointer?:(event:MouseEvent)=>boolean,
      *  mountElement?:(el:HTMLDivElement)=>void
      * }} opts
      */
@@ -58,6 +59,7 @@ export class BasePanel {
         panelGroup = null,
         closeOnEscape = false,
         closeOnOutsidePointer = false,
+        shouldCloseOnOutsidePointer = null,
         mountElement = null,
     }) {
         if (!id || !className) throw new Error('[BasePanel] id 与 className 必填');
@@ -67,6 +69,9 @@ export class BasePanel {
         this.panelGroup = panelGroup;
         this.closeOnEscape = closeOnEscape;
         this.closeOnOutsidePointer = closeOnOutsidePointer;
+        this.shouldCloseOnOutsidePointer = typeof shouldCloseOnOutsidePointer === 'function'
+            ? shouldCloseOnOutsidePointer
+            : null;
         this.mountElement = typeof mountElement === 'function' ? mountElement : null;
         this._built = false;
         /** @type {HTMLDivElement|null} */
@@ -125,6 +130,7 @@ export class BasePanel {
                 if (!this.isOpen || (event.button !== 0 && event.button !== 2)) return;
                 if (Date.now() - (this._openedAt || 0) < 300) return;
                 if (targetInsideOpenBasePanel(event.target, this.panelGroup)) return;
+                if (this.shouldCloseOnOutsidePointer && !this.shouldCloseOnOutsidePointer(event)) return;
                 const closed = closeBasePanels(this.panelGroup);
                 if (closed > 0) {
                     event.preventDefault();

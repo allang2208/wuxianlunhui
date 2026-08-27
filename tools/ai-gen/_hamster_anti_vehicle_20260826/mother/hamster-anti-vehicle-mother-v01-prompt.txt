@@ -1,0 +1,11 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+Primary request: Create exactly one hamster anti-vehicle assault trooper as a production-ready character identity.
+Subject: an anthropomorphic golden-brown hamster commando with believable hamster face, rounded ears, short compact body and visible whiskers; wearing a practical sand-color digital camouflage uniform, tan tactical vest, knee pads, combat boots and a simple sand helmet; holding one compact submachine gun correctly in both paws across the chest; one single-soldier anti-tank rocket launcher is securely strapped diagonally across the back and clearly readable behind the shoulder.
+Style/medium: high-detail realistic PBR 3D game character render matching a polished dark-fantasy/modern military game asset, restrained colors, believable fabric and worn metal, not a photograph and not a cartoon.
+Pose: calm animation-friendly neutral standing pose, low three-quarter view facing right, feet planted on one baseline, weapon safely lowered slightly, full silhouette readable.
+Composition/framing: exactly one full-body subject centered, orthographic-style locked camera, subject occupies about 55% of canvas height, generous clear margins around ears, boots, gun and launcher.
+Scene/backdrop: flat pure white #FFFFFF background, no horizon, no floor, no cast shadow.
+Lighting/mood: soft flat diffuse studio light, neutral and production-focused.
+Constraints: preserve exactly two arms and two legs; submachine gun must be in the hands; rocket launcher must remain strapped on the back; both weapons must be distinct and anatomically plausible; no text, no logo, no watermark.
+Avoid: extra weapons, duplicated launcher, duplicate gun, extra limbs or paws, fused hands, weapon passing through the body, cropped ears/feet/weapons, front view, cinematic environment, smoke, muzzle flash, explosion, floor, shadow, toy plastic, anime, chibi, flat illustration.

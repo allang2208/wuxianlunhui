@@ -131,15 +131,12 @@ export function resolveAnimChannel(player, _ctx) {
     // （weaponAnim.isAttacking/state 复位 idle），闪避不会被 #3 遮蔽。
     if (player.isDodging) return AnimChannel.DODGE;
 
-    // #5 SKILL：风车/冲刺/夜与火特殊攻击期间冻结身体层。
-    // 这三个技能都不注册专门的玩家身体动画（player-anim-config.json 无对应键）：
-    // 身体层表现 = 冻结当前姿态 + 武器贴图程序偏移（GameScene syncWeapon 的 extraOffset/extraAngle）
-    // + 特效（AttackRangeEffect / NightFlameBeamEffect）；dash 攻击的身体动画（dash_attack）
-    // 由 dash-system.trigger 通过 scene.setPlayerAnimation 播放，此处防被 walk/idle 覆盖。
-    // _isPushStrike 保持现状不进表：推击要求持有远程武器（quick-bar.js 校验），
-    // 持枪时 #3 的枪械放行分支本就不冻结身体层（GUN_POSE 腿层/持枪姿态照常驱动，现状即正确表现）；
-    // 持弓开火时 weaponAnim.state==='attacking' 由 #3 拦住。两种情形重构前后行为一致。
-    if (player._isWhirlwind || player._isDashing || player._specialAttackActive) return AnimChannel.SKILL;
+    // #5 SKILL：风车/推击/冲刺/冲刺复位/夜与火特殊攻击期间冻结身体层仲裁。
+    // 冲刺人物动画由 dash-system.trigger 选择：通用 dash_attack；骑士长剑突刺使用
+    // dash_attack_thrust + dash_recover_thrust。其余技能仍以武器程序偏移和特效为主。
+    // 本通道只负责防止这些一次性动画/姿态被 walk/idle 覆盖。
+    // 推击使用九帧手层动作；GameScene 以当前离散身体帧为真值同步真实枪械挂点和前后景深度。
+    if (player._isWhirlwind || player._whirlwindRecovering || player._isPushStrike || player._isDashing || player._dashResetAnim || player._specialAttackActive || player._specialResetAnim) return AnimChannel.SKILL;
 
     // #6 DASH_RECOVER：冲刺攻击末帧定格/到点恢复（时间推进在 GameScene case 内）
     if (player._dashRecoverAt) return AnimChannel.DASH_RECOVER;
@@ -179,8 +176,8 @@ export function enterAttackHold(player, { animKey, untilMs }) {
 }
 
 // 进入收势（recover/dash_recover 播放）。不变量：必须同时清 hold。
-// cfgKey：武器滑回轨迹块（'dash' = 冲刺轨迹末帧滑回；null = 近战按段回退 attack/attack2）；
-// startMs：收势起点，武器线性滑回 idle 位的时间基准（performance.now() 口径）。
+// cfgKey：武器收势轨迹块（'dash' = 冲刺轨迹末帧线性滑回；null = 普通近战按段读取 recover 贝塞尔配置）；
+// startMs：收势起点时间基准（performance.now() 口径）。
 export function enterRecover(player, { cfgKey, startMs }) {
     player._attackHoldUntil = 0;
     player._attackRecovering = true;

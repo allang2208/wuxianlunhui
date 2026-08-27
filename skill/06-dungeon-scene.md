@@ -111,8 +111,37 @@
   接缝差<2、desat 0.35/lighten 0.92 对齐旧砖亮度 ~53），`tools/ai-gen/build-dungeon-slab-tiles.py`
   逆等距映射切菱形砖：`--width 512 --slope 0.5 --slabs 2 --variants 2`；砖缝严格平行菱形边，
   变体按整砖周期（0.25 纹理单位）错相，混铺砖缝全场连通。
-- 角度口径：世界位面建筑地基/道路/底边是 2:1（0.5），地牢房间/墙体是 30°（0.5774）——
-  世界地板跟 0.5，地牢地板跟 0.5774，别混。
+- 角度口径：世界位面建筑地基/道路/底边是 2:1（0.5）；历史连续墙地牢房间/墙体仍是 30°（0.5774）。
+  **僵尸 `worldBlock1x1` 单格墙体系属于建筑口径**，墙块、门闸和地板统一跟 0.5；其他旧地牢继续跟各自
+  0.5774 合同，禁止把两种投影在同一套场景结构内混用。
+
+#### 僵尸地牢建筑2:1数学无缝黑色方砖地貌（2026-08-26，2026-08-27角度/画风修订）
+- 初级/中级/高级统一通过`floor.terrainProfile:'zombieDungeonStone'`路由到
+  `data/dungeon-terrain.json`；底层固定为`floor_dungeon_black_bricks_seamless`，砖格按屏幕空间
+  `(+64,+32)/(-64,+32)`双轴投影构建，斜率0.5、屏幕角26.565°，单砖周期128×64、整图周期1024×512。
+  该贴图已按建筑2:1口径预投影，运行时必须`continuous:true/textureScaleY:1.0`，禁止再次纵向压缩，也禁止退回
+  旧菱形图随机拼贴或无砖缝暗石面。石面材质固定复用原始`assets/terrain/blackbrick.png`，但画质尺度必须
+  对齐当前`building_road_tiles`：先去除母砖外圈，再以48px低频代理降采样/回升和轻柔化，只保留宽幅磨损起伏；
+  砂浆缝、倒角和逐砖明暗由数学网格控制，禁止把原图逐像素颗粒、孔隙和裂纹完整压进每块128×64砖面形成满屏噪点，
+  也禁止退化成完全无石面变化的平滑程序灰面。
+  白色碎屑`cellDetails`层已删除，上层顺序固定为`deco → 墙脚淡出`；`deco`在
+  `bakeDungeonFloor/applyDiamondFloor/applyArenaFloor`三条入口都必须透传。
+- 地牢小件复用道路资产标准：正交30°相机、44.8°模型根与固定prop相机；
+  18种小件统一使用低亮度石材、旧骨、蜡和纸张，只烘焙进地板画布，禁止登记`ISO_WALL_GEO`或创建碰撞。每次入场刷新`deco.seed`，
+  同一次房间重烘焙必须稳定；竞技场小件只落在各房间菱形，通道不散布，边缘安全距不小于贴图半径。
+- `ObstacleSpawnSystem.spawnForRoom/spawnForPassages`固定返回0，房间烛台、中央石柱、预制障碍组合
+  与通道火把全部停止生成；配置`combatRoom.obstacles:false`作为第二道门禁。不要删除这些全局资产，
+  `obstacle_candle/obstacle_torch`仍被世界-125、建筑和编辑器复用。
+
+#### 沼泽地牢连续湿泥地貌（2026-08-26）
+- 沼泽初级/中级/高级统一通过`floor.terrainProfile:'swampDungeonWetland'`路由到
+  `data/swamp-dungeon-terrain.json`；连续湿泥底材、4帧透明泥水细节和18种低矮小件复用僵尸地牢
+  已打通的`cellDetails → deco → 墙脚淡出`烘焙链，边缘淡出必须保持最后绘制。
+- 小件沿用道路正交30°相机与44.8°模型根合同，按每次入场seed确定性散布；泥块、湿石、苔石、
+  芦苇、香蒲、睡莲、浮萍、菌菇、腐木板、根须、细枝、蜗牛壳、蛙骨、破碗、锈钩、草绳、沼泽花与卵簇
+  全部只进入地板画布，不创建实体、碰撞、占格或寻路阻挡。根须/细枝使用低权重，避免枝条主导画面。
+- 旧`swamp_deco_3..6`和`swampbrick_new1`停止预载与运行时使用，但素材文件不在本次范围内删除。
+  `wallStyle:'swamp'`、藤门、宝箱房和战斗房布局合同保持不变；僵尸地牢的烛台/通道火把也不得受此配置影响。
 
 ### ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
 
@@ -270,7 +299,9 @@ collision-grid / regressions）、vite build ✓。
 - `DungeonMapSystem.shutdown()` 只清理地牢专用特效图标，不清除或延长全局献祭；蟠桃使用次数统一由 `_worldPeachReviveUsed` 持有，只有重新献祭蟠桃才刷新。
 
 #### 1. 展示元数据（data/dungeon-config.json `dungeonList`）
-新增条目：`{ name, nodeCount, battleRatio, level, reward, grade }`——`grade`（F~A）驱动：事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）、出征钥匙门槛。出征界面选择器/说明栏全部自动读取，无需改 UI。
+新增条目：`{ name, nodeCount, battleRatio, level, reward, grade, series, seriesName, seriesIcon, seriesOrder, tier, tierOrder, unlockAfter? }`——`grade`（F~A）驱动事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）和出征钥匙门槛；`series*` 驱动祭坛下拉父标题，`tierOrder` 固定系列内初级→中级→高级顺序，`unlockAfter` 指向同系列前一级 type。出征界面选择器/说明栏自动读取配置；新增多级系列必须同时声明层级元数据，禁止在 UI 硬编码系列名单。
+
+- **同系列逐级解锁合同（2026-08-24）**：初级不写 `unlockAfter`，中级指向初级、高级指向中级；解锁状态只读取 `WorldProgressionSystem.hasCompletedDungeon()` 的成功通关记录。下拉选项禁用只是展示层，`ExpeditionSystem.depart()` 必须在钥匙检查与消耗之前再次校验，避免通过脚本或陈旧 DOM 绕过门槛并误扣钥匙。
 
 #### 2. 地牢配置块（同文件，如 `zombieDungeonMid`）
 - `nodeCount.min/max`：房间数
@@ -325,7 +356,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 3. **门闸实体**（wall-gate.js）：状态机 open/closed/opening/closing（**动画用 Phaser tween 计数器驱动，禁止手动逐帧 tick**——手动驱动链路易断，动画卡死）；碰撞 = **门两侧墙体线段常开 + 门洞线段按状态启停**；**原位替换**（继承被替换件 span 与 depth，不做任何接缝特权/过门退层——这些方案全部试过并废弃）；悬停金色轮廓（全 16 帧拱门区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）；**斜接遮盖位继承（2026-07-25）：转角两臂同 depth，默认构建里后建的臂盖住先建臂的端边——门闸替换先建臂（下夹角 bL/上夹角 tL，平局按数组顺序必中先建臂）时必须 depth-0.1 退到兄弟臂下面，否则门闸贴图的裁切边暴露在斜接缝上。依据：用户手工预设（门墙 depth 最低、右臂最高）严丝合缝，几何与代码生成完全一致，差的就是这层顺序**；`_setupGate` 仍需先 `_syncWallsToPhaser()` 后 `placeAt`（防门闸被整批重建的墙件压住）
 4. **门外独立地块**：入场即生成（战斗完成不等）；位置 = 门洞中心沿外法线出界 + 边距（**不做晶格吸附**，防拽回主场景）；烘焙 = 当前地牢地砖 → **裁掉菱形内部分**（destination-out 菱形路径，不重叠）→ 远角径向圆滑淡出 → 25% 延伸；轮廓环绕光晕只留外侧（朝门一侧渐隐擦除）；图层归地形层（-999）
 5. **回城触发**：玩家在白区内**且已走出菱形边界**（点-in-菱形 false）→ `_leaveCombatViaPortal()`；出口传送门已删
-6. **雪原单格墙、格心通道与冰锥门（2026-08-23）**：`combatRoom.wallConstruction:"worldBlock1x1"`
+6. **世界单格墙、格心通道与长门（2026-08-23，2026-08-27 扩展）**：`combatRoom.wallConstruction:"worldBlock1x1"`
    使用 `2 × gridEdgeRadius` 个网格中心覆盖每条边，四个顶点各只生成一块墙；偶数边长让中央6格门洞
    的两个端点也落在格心。门端墙块只保留朝实体墙一侧的半段碰撞，多房通道首末格与这两个门端墙块
    共享，中间按整数个128×64格心铺墙，禁止半格错位、缩短墙块或另加封口瓦。通道地板四角直接取
@@ -335,10 +366,33 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    必须与 `tools/ai-gen/frozen-icicle-gate-geometry.json` 一致，正式贴图由
    `tools/ai-gen/build-frozen-icicle-gate.py` 确定性重建。该长门运行时必须把同一帧按门线等分裁成
    浅/中/深三段，各自以段底边 `maxY+3.9` 排序（同线冰墙为 `maxY+4`），遮挡面线缓存也按三段注册；
-   禁止恢复整门单一中心 depth，否则浅端冰锥会覆盖相邻墙块。该样式只替换冰封竞技场门体与音效，其他地牢
-   继续使用各自 `ISO_WALL_STYLES`，不得横向拉伸普通拱门填满6格门洞。
+   禁止恢复整门单一中心 depth，否则浅端长门会覆盖相邻墙块。各地牢继续使用自己的
+   `ISO_WALL_STYLES.block/gate`；门体用 `depthSlices` 配置浅/中/深切片，禁止横向拉伸普通拱门填满6格门洞。
    布局必须走 `computeGridMazeLayout`，`passageCells` 是门边到门边的整数格心距离；末房宝箱事件传
    `openArena:true`，只生成宝箱、倒计时和排除区，禁止再套用含 `frozen_straight` 的历史宝箱房预制。
+7. **僵尸地牢单格黑砖标准（2026-08-27）**：初/中/高级僵尸配置统一
+   `wallConstruction:"worldBlock1x1" + gateCells:6 + passageCells:8 + wallStyle:"zombie"`；
+   `ISO_WALL_STYLES.zombie.block="zombie_block"`，普通房、精英房、整数格通道和高级集合体 Boss 房必须全部走
+   `_appendWorldBlockRoomWalls`，不得回退 `buildIsoDiamondWalls` 连续墙。高级 Boss 的玩家从 RB 门内侧生成，Boss
+   在 LT 对侧生成；`BossRewardSystem.cleanup()` 必须归还 `_roomConstruction/_gridGateSpan/_gridEdgeCells/_gridGateCells`，
+   防止下一场继承单格门洞上下文。
+   末房宝箱使用 `appendWorldBlockTreasureRoom()` 在房间中心追加 **12格边长黑砖实体房 + RB 六格独立闸门**；
+   宝箱门归 `ChestRoomSystem` 自己管理，不能复用全局 `WallGate`（全局实例已被末房出口占用）。门资源失败时回填
+   `opening.fillPieces` 保证闭环；刷怪排除区覆盖整个宝箱房；奖励、60秒倒计时和超时不开门状态机保持原合同。
+   冰封世界仍传 `openArena:true`，不要套用僵尸实体宝箱房。
+8. **僵尸墙 V4 素材真源与清理边界（2026-08-27）**：运行时成品是
+   `assets/terrain/zombie_wall_block.png` 与 `zombie_gate.png`；生成口径固定
+   `world122-building-v4 + flux2-klein-4b-depth + 结构3张(12步) + 精修2张(48步)`。
+   `_zombie_dungeon_walls_v4_20260827/` 保存候选证据与最终清单；
+   `_zombie_dungeon_walls_20260826/` 虽为早期目录名，但其中 Blender 模型、`geometry.json`、墙体基模、门框/栏杆
+   mask 和 depth 控制图仍是 `finalize-zombie-dungeon-wall-v4.py` 的正式输入，**不得整目录当废案删除**。
+   可清理项仅限 `.blend1`、临时缓存等确定性备份；结构/精修候选、选中元数据、控制图与预览属于可复现证据。
+9. **僵尸六格门口墙柱/栅栏/图层合同（2026-08-27）**：和冰封门一样，门洞端点保留普通
+   `zombie_wall_block` 作为两侧匹配墙柱；`zombie_gate` 只含移动铁栅，禁止再把独立石门柱、石横梁或墙延伸烘焙进门贴图。
+   铁栅固定13根竖栏、3道横梁、13枚四棱闸刺；每枚尖刺必须宽肩向上咬合竖栏、由独立锻造套箍锁接、尖端精确触及门底线，禁止恢复成宽端朝地、悬空越过底线的倒锥吊坠。三道横梁交点和端部保留铆钉/箍件，不能退化为无连接细节的基础方条。底线/门洞统一 `base=face=gateX: [32,300]→[608,588]`，精确映射六格跨度；
+   闭合有效高 `225.7447px`，不得恢复比墙顶明显更高的旧门框比例。`depthSlices:3` 必须由竞技场门、全局 `WallGate`、
+   `ChestRoomSystem` 独立门同时消费，门体/金色轮廓/X光遮挡面线/结构遮挡缓存都逐段以 `maxY+3.9` 排序；墙柱为
+   `maxY+4`。离线总览也必须按同一分段规则合成，禁止用整门单一中心 depth 伪验收。
 
 #### 五、透视遮挡（X 光圆圈）
 1. 判定（几何法，不用包围盒）：墙件 depth > 实体 depth 且**脚底在墙面底边线之后 + 身体进入墙面覆盖带（覆盖量 > 身体 15%）**；遮挡物 = iso 墙件 + 门闸统一列表
@@ -357,7 +411,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 入侵战场地尺寸独立（`AgentInvasionSystem.getArenaSize()`），不受此规则影响
 
 #### 八、宝箱房系统（2026-07-25，精英战斗专属，`src/world/chest-room-system.js`）
-1. **生成**：精英节点入场（`_enterZombieCombat`/非僵尸 `_enterCombat` 的 `node.isElite` 分支）→ 按墙壁预制「宝箱房」（门墙×1+直墙×3，data/wall-prefabs.json）在场地中央拼小菱形房——**几何中心=全部件 face 线段端点外接框中心**（与编辑器 cx/cy 无关）；直墙推 isoVisuals（深度上臂 min/下臂 max 重算，预制存的是编辑器世界值不可直接沿用）；房内区域注册刷怪排除区（`spawnMonsters` 菱形拒绝采样 + 排除区判定）
+1. **生成分流**：连续墙地牢仍按墙壁预制「宝箱房」（门墙×1+直墙×3，data/wall-prefabs.json）在场地中央拼小菱形房——**几何中心=全部件 face 线段端点外接框中心**；冰封单格墙竞技场传 `openArena:true`，只建开放宝箱点；僵尸单格墙竞技场传 `worldBlockRoom`，在末房中央生成12格边长实体黑砖房。三条路径都必须注册刷怪排除区并复用同一奖励/倒计时状态机。
 2. **门墙独立控制**：不进 isoVisuals——复刻 wall-gate placeAt 映射放 wall_gate 帧0（关门），碰撞=两侧常开+门洞启停；`onCombatComplete` 且未超时 → tween 播 0→15 帧开门 + 门洞碰撞移除
 3. **等级宝箱**：宝箱等级=地牢 grade（F/E/D/C/B/A），视觉统一使用 `chest_closed` / `chest_opened` 双状态贴图，grade 只驱动奖励表=`combat-formulas.json universalEventRewards.treasureChest[grade]`。竞技场宝箱房每箱必得该档强化石+改造券，另掷 50% 金币 / 25% 粉尘 / 25% 宝箱怪位（**宝箱怪位当前按金币兜底**）；随机事件宝箱仍按自身互斥结果处理
 4. **60s 倒计时**：Phaser text（**改色用 setBackgroundColor/setColor，禁用 setStyle——会整体覆盖丢失字号字体**）；白底黑字黑框（矩形垫底），≤10s 红底黑字；超时→宝箱 1s 淡出、房门不再开
@@ -371,6 +425,12 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 - 主动地牢金币的唯一数值源是 `data/combat-formulas.json#dungeonRewards`；怪物倍率、战斗节点清剿奖、
   Boss奖与通关基础奖必须按同一等级读取，宝箱成长继续由 `universalEventRewards.treasureChest` 管理。
+- Boss奖与通关卡牌金币不得直接忽略 `GoldManager.addGold()` 的失败结果：统一按“玩家背包 → 主神空间仓库”
+  路由并显示真实入库位置。Boss战两处存储都满时，余量保留为场内金币掉落；通关卡牌在写入前必须核验
+  背包+仓库总容量，容量不足不改变卡牌选择、不发部分奖励，也不推进胜利结算。
+- 奖励节点清理必须同时停止关闭轮询、恢复临时卡牌并关闭 `RewardSystem`；死亡、异常切场或
+  `DungeonMapSystem.shutdown()` 之后不得残留 `_isOpen` 或全屏 `#rewardPanel`。奖励面板打开失败时回路线图，
+  保留奖励节点供重新进入，禁止把 `_isShowingReward` 永久卡住。
 - 审计不能只看Boss或通关卡牌，必须按真实路线汇总普通战、精英战、怪物掉落、Boss、宝箱与通关奖，
   再与同时间窗的银行等被动收益比较；目标是主动探索显著高于纯挂机，而不是只让单项数字看起来更大。
 - B/A级内容未完成前不得预设后期金币消耗项目、毕业总价或回收次数。待其路线、房间、怪物、Boss、
@@ -550,18 +610,20 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **地板**：`applyDiamondFloor(worldW, worldH, cx, cy, rx, ry)`（dungeon-floor-texture.js）——黑砖等距平铺按菱形裁剪，区外全黑，边缘黑渐变
 - **墙壁**：`WallSystem.buildIsoDiamondWalls(cx, cy, rx, ry)`——基底直墙斜铺：四顶点转角点对点（上=后墙 min、下=前墙 max、左/右=上臂 min 下臂 max；**转角臂统一 +5 深度偏置**——顶点侧盖住续接件，预制转角同款规则；纹理随机的墙若让续接件盖住转角臂，贴图切边会暴露在接缝上（2026-07-25 沼泽柴墙左夹角接缝教训））+ 四边续接（**瓦片定长定高、不足靠叠合，绝不压扁**——否则小房间边墙比夹角矮一截），`rebuildIsoCollision()` 出阶梯碰撞
 - **生成点**：玩家从随机顶点的内法线方向入场（off=offsetFromEdge+60）；怪物在对角顶点附近拒绝采样（菱形内缩不等式 `|dx|/(rx-i)+|dy|/(ry-i)<=1`）；出口传送门仍居中
-- **Boss 场地**：boss-reward-system `_setupArena` 同款菱形；玩家下顶点方向、集合体上顶点方向
+- **Boss 场地**：高级僵尸 `boss-reward-system._setupArena` 已迁移到 `worldBlock1x1` 单格黑砖墙环，RB 六格出口门、玩家在 RB 内侧、集合体在 LT 内侧；只有非单格墙旧地牢才保留连续菱形墙与上下顶点生成规则
 - **备份/恢复**：combat-room 与 boss-reward 均备份恢复 `WallSystem.isoVisuals`（否则战斗房墙残留主神空间）
 
 ---
 
-### 等距投影素材规范（所有场景素材必须遵守）
+### 等距投影素材规范（按场景构建体系选择，禁止跨体系混用）
 
-**视觉对齐基准 = 地板线 30°（tan30°≈0.5774）**。实测：地牢 blackbrick 29.7°（1.755:1）、主神空间 hub_brick 30.7°（1.687:1），全部地板都在 30° 附近——场景素材的视觉角度一律对齐 30°。
-**注意区分**：引擎碰撞投影 `PERSPECTIVE_SCALE_Y = 0.5`（26.57°）只用于 footprint 椭圆/阴影/分离判定，**不可见，不参与视觉对齐**——2026-07-24 曾错误地按 26.57° 出墙体贴图，导致墙与地板线不齐，已纠正为 30° + 编辑器角度补偿（`slopeFixOf`）。
+**World-122建筑/道路与僵尸`worldBlock1x1`单格墙体系的视觉对齐基准 = 2:1（dy/dx=0.5，26.565°）**；
+建筑真实 Alpha 接地折线、道路、僵尸黑砖地板、墙块顶面与六格门底线必须遵守同一口径。历史连续墙地牢仍保留
+30°（0.5774）视觉合同与`slopeFixOf`补偿，不能因为僵尸地牢修订而全局改写。`PERSPECTIVE_SCALE_Y=0.5`
+既是通用碰撞/阴影投影，也是建筑/僵尸单格体系的可见地面口径；在旧30°地牢中它仍只用于不可见计算。
 **引擎不是近大远小的透视投影**：角色/怪物/地板全图恒定大小，远近只靠 Y 压缩 + Y 排序遮挡表达——场景素材禁止按远近缩放。
 
-**一句话规则：地上的线走 30°，立着的东西垂直站、顶面走 30°，贴地影子画 2:1 椭圆（椭圆跟随碰撞投影 0.5）。**
+**一句话规则：先看场景构建体系；建筑/僵尸单格墙的地面与顶面走26.565°，旧连续墙地牢走30°，立面始终垂直，影子和碰撞始终按0.5。**
 
 | 物件类型 | 规则 | 例子 |
 |---|---|---|
@@ -632,7 +694,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   （或 `footprint:'contact'`）与 `baseZ/topZ`；默认是单体平行扫掠，只有显式
   `shadowCaster.autoParts:true` 才启用自动分层造型。`getLayeredShadowPolygon` 负责把自动或
   显式部件分层挤出后合成单一边界。
-- **共享结构阴影层**（2026-08-22 根部贴合修复）：单个 Graphics、深度读取
+- **共享结构阴影层**（2026-08-24 性能结构修复）：单个 Graphics、深度读取
   `WORLD_RENDER_LAYERS.STRUCTURE_SHADOW`（当前 −994.4，位于道路和地基之上），每帧汇入全部
   结构阴影多边形。重叠/相贴的 job 先聚簇并集再画，聚簇判定覆盖顶点互含、普通相交和共线相贴；
   并集扫描必须额外保留全部输入顶点所在行，不能用固定 2px 步长吞掉接地角。并集完成后统一调用
@@ -640,9 +702,11 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   source-over 反解，保证内部仍精确达到原 `shadow.opacity`、边缘平滑淡出且不越过接地边。
   互不相交的簇可保留自己的透明度；禁止质心外扩和居中描边。树木/接触型散布障碍
   也并入此层，但几何必须是**水平 2:1 footprint 沿归一化太阳方向的凸扫掠**，不得旋转基础
-  椭圆；注册 Sprite 仅作为生命周期键。战争迷雾必须过滤逐实体 job 并触发 revision 重画，
-  不能隐藏整层。移动单位仍用独立接触影 Sprite。**运行时纯几何、无烘焙无角度分桶——连续不跳**；只允许下文
-  epsilon 脏检查复用完全相同的结果，任何角度分桶/形变烘焙优化都已证明引入错位/跳动/分割，禁止回潮
+  椭圆；每个 caster 只注册不进入 display list 的身份句柄。战争迷雾必须过滤逐实体 job 并触发 revision 重画，
+  不能隐藏整层。移动单位仍用独立接触影 Sprite。**运行时纯几何、无烘焙无角度分桶——连续不跳**；共享层
+  只在变脏时对最终轮廓执行一次 Earcut，并把结果写成 `fillTriangle` 命令，干净帧禁止继续用
+  `fillPoints` 让 Phaser 4 每次 render 重跑 Earcut。只允许下文 epsilon 脏检查复用完全相同的结果，
+  任何角度分桶/形变烘焙优化都已证明引入错位/跳动/分割，禁止回潮
   （形变烘焙、旋转矩形、固定画布、contactQuad、垂直剪切五条弯路留档）。
 - **顶点真源分流**：普通建筑使用独立 shadow caster；掩体/门/楼梯保留专用
   iso footprint；散布障碍物使用视觉底座矩形四角（foot × visualWidthMul/DepthMul，纵深 ×0.5 压扁）。
@@ -693,8 +757,19 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **墙壁/门/楼梯**： obstacle_block、wall_stair_*、cover_gate_A~D 已入光照清单
   （spritesheet 走 FRAME_CROPS 帧 0 裁剪）；结构阴影过滤器不再排除掩体，
   能源矿（发光体）仍排除。
-- **性能口径（2026-08-19 审计整改）**：多边形按 epsilon 脏检查缓存复用
-  （0.11°/0.5px/顶点签名），共享层干净帧跳过重画；场景重启复位层脏检查状态。
+- **性能口径（2026-08-24 结构修复）**：多边形按 epsilon 脏检查缓存复用
+  （0.11°/0.5px/顶点签名），共享层干净帧复用预三角化命令。`getUnionOfPolygons()` 扫描阶段仍以
+  2px 补样并纳入全部输入顶点行，输出左右 v 单调包络再做 RDP 压缩；high/medium 的世界像素误差
+  上限分别为 0.35/0.7px，首尾和宽度接近收拢的尖端强制保留，禁止在扫描前粗采样接地角。
+  绘制 job 按实际投影 bbox 对 `camera.worldView + shadowPaddingPx` 裁切；阴影专用默认缓冲为 64px，
+  不再复用实体视觉的 320px。精确轮廓生成前还要用 footprint/parts/源 Sprite 包围范围向所有方向扩张
+  `max(currentLength,maxOffset)+8px` 做保守粗裁；这是为了跳过离屏 caster 的并集和 Earcut，不能只在
+  精确轮廓生成后裁。接触胶囊按屏幕直径使用 8/12/16 段。质量档位 high 保持 8px/5 步，
+  medium 封顶 6px/2 步，low 关闭结构长投影并把接触影羽化降到 4px/1 步；均不得改变模拟。
+  性能报告必须暴露 visibleJobs、viewportCulled、preGeometryCulled、postGeometryCulled、
+  viewportPaddingPx、rawContourVertices、
+  contourVertices、contourReductionPercent、clusters、featherPaths、triangles、commandBufferLength、
+  rebuilds 与 lastRebuildMs；场景重启复位层脏检查状态。
 - **死链纪律**：派生 projection/silhouette PNG 运行时不加载（剪影数据走 manifest
   shadowSilhouette 列）；manifest 只留 alphaBBox/shadowSilhouette/路径字段
   （anchorMode 为贴图回归测试契约占位保留，别删）。
@@ -762,7 +837,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   分支另写常量。成功结果同时是世界位面解锁条件，失败与放弃只推进入侵、不解锁世界。
 
 #### 出图提示词要点
-- 写"**底边与水平线呈 30 度夹角**"（对齐地板线）；不要再写 26.5 度/2:1
+- `worldBlock1x1`/建筑系素材写“**底边与水平线呈26.565度夹角、严格2:1**”；旧连续墙地牢素材才写30度。
+  提示词角度必须服从实际地板/墙体构建体系，禁止再用单一全局角度覆盖全部地牢。
 - 垫图：把 wall-直墙.png 和一块地板砖存为固定参考图，每批素材垫图生成
 - 同一套素材（如直墙+四转角+墙柱）必须**一批出齐**，分开生成必出规格差（砖块大小不一）
 - 干净输出：透明底、无白色描边/辅助线、无"由 AI 生成"水印

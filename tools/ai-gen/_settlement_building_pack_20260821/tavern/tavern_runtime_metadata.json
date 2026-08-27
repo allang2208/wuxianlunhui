@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\tavern\\refine_48step_v02_seed122281\\tavern\\tavern_refine_v02_body.png",
+  "output": "assets\\terrain\\tavern.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    174,
+    107,
+    857,
+    866
+  ],
+  "fileSize": [
+    683,
+    759
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    679,
+    755
+  ],
+  "displayW": 300,
+  "displayH": 333,
+  "footOffsetY": 165,
+  "scaleX": 0.43923865300146414,
+  "scaleY": 0.43873517786561267
+}

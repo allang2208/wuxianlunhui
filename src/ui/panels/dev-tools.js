@@ -115,6 +115,7 @@ export function createDevToolPanel() {
         ['attack3', '三段攻击'],
         ['dash', '冲刺攻击'],
         ['recover', '收势'],
+        ['whirlwind_recover', '风车收势'],
         ['dash_recover', '冲刺收势'],
         ['dodge_roll', '翻滚'],
         ['dodge_jump', '跳跃闪避'],
@@ -559,6 +560,70 @@ export function createDevToolPanel() {
     resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
     resourceRow.append(btnResource, resourceHint);
     skillRow.appendChild(resourceRow);
+
+    // ===== 测试开关：建筑升级 / 造兵等待 / 军事人口 =====
+    const createGameplayToggleRow = ({ id, flag, icon, label, hint, onEnabled }) => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;';
+        const button = document.createElement('button');
+        button.id = id;
+        button.className = 'dev-tool-menu-btn';
+        const sync = () => {
+            const on = !!(window.Game && window.Game[flag]);
+            button.textContent = `${icon} ${label}：${on ? '开' : '关'}`;
+            button.style.background = on ? '#3a6b3a' : '';
+        };
+        button.addEventListener('click', () => {
+            if (!window.Game?.isRunning) {
+                DevTool?._showToast?.('❌ 请先进入游戏');
+                return;
+            }
+            const next = !window.Game[flag];
+            window.Game[flag] = next;
+            if (next) onEnabled?.(window.Game);
+            sync();
+            DevTool?._showToast?.(next ? `✅ ${label} 已开启` : `${label} 已关闭`);
+        });
+        sync();
+        const hintText = document.createElement('span');
+        hintText.textContent = hint;
+        hintText.style.cssText = 'color:#9aa5b1;font-size:11px;';
+        row.append(button, hintText);
+        skillRow.appendChild(row);
+    };
+
+    createGameplayToggleRow({
+        id: 'devToolInstantBuildingUpgrade',
+        flag: '_devInstantBuildingUpgrades',
+        icon: '🏗',
+        label: '建筑升级瞬间完成',
+        hint: '测试用：当前与后续建筑升级项目在下一帧完成，仍正常扣费并检查科技',
+    });
+    createGameplayToggleRow({
+        id: 'devToolInstantTroopProduction',
+        flag: '_devInstantTroopProduction',
+        icon: '⚔',
+        label: '造兵瞬间完成',
+        hint: '测试用：跳过招募读条，仍消耗粮食并检查科技、出口与特色编制',
+    });
+    createGameplayToggleRow({
+        id: 'devToolIgnoreMilitaryPopulation',
+        flag: '_devIgnoreMilitaryPopulation',
+        icon: '♟',
+        label: '造兵无视人口',
+        hint: '测试用：允许军事人口超过房屋容量；关闭后超额部队保留，但新招募恢复受限',
+        onEnabled: (game) => {
+            for (const entity of game.entities?.values?.() || []) {
+                if (!entity?._isTroopProducer) continue;
+                if (entity._spawnPopulationBlocked) entity._spawnRetryTimer = 0;
+                entity._spawnPopulationBlocked = false;
+                for (const queue of Object.values(entity._parallelQueues || {})) {
+                    if (queue?.populationBlocked) queue.retryTimer = 0;
+                    if (queue) queue.populationBlocked = false;
+                }
+            }
+        },
+    });
 
     // ===== 测试按钮：一次性增加正式经济资源 =====
     const grantResourceRow = document.createElement('div');

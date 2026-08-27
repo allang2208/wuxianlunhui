@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "status": "candidate_only_not_installed",
+  "reference": "tools/ai-gen/_world122_street_decor_20260825/world122_street_decor.blend",
+  "camera": {
+    "projection": "orthographic",
+    "elevation": 30.0,
+    "modelRootRotationZ": 44.8,
+    "output": [
+      1024,
+      512
+    ],
+    "runtimeProjection": "one 128x64 cell; no post-warp"
+  },
+  "style": {
+    "materialParent": "latest modeled road palette and bevel scale",
+    "lightingParent": "World122_Street_Neutral_World",
+    "liveEnergy": "restrained cyan seams; no bloom",
+    "depleted": "same geometry; cool gray non-emissive material"
+  },
+  "variants": [
+    {
+      "id": "energy_vein_roadstyle_1",
+      "label": "diagonal_fissure",
+      "model": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_1/energy_vein_roadstyle_1_model.blend",
+      "live": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_1/energy_vein_roadstyle_1_live.png",
+      "depleted": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_1/energy_vein_roadstyle_1_depleted.png"
+    },
+    {
+      "id": "energy_vein_roadstyle_2",
+      "label": "central_pocket",
+      "model": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_2/energy_vein_roadstyle_2_model.blend",
+      "live": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_2/energy_vein_roadstyle_2_live.png",
+      "depleted": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_2/energy_vein_roadstyle_2_depleted.png"
+    },
+    {
+      "id": "energy_vein_roadstyle_3",
+      "label": "branching_y",
+      "model": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_3/energy_vein_roadstyle_3_model.blend",
+      "live": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_3/energy_vein_roadstyle_3_live.png",
+      "depleted": "tools/ai-gen/_energy_vein_roadstyle_20260826/energy_vein_roadstyle_3/energy_vein_roadstyle_3_depleted.png"
+    }
+  ]
+}

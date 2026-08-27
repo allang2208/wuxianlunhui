@@ -1,0 +1,24 @@
+Use case: stylized-concept
+Asset type: World-122 one-cell bare exposed surface mineral deposit, horizontal fissure form, previewed above the runtime 1x1 isometric footprint
+Pipeline/style version: world122-building-v2
+Primary request: exactly one preserve the exact supplied Blender 238x196 one-cell foundation, 30-degree orthographic camera and 44.8-degree world rotation; the outer bed must remain one complete 128x64 projected building-footprint diamond with all four corners readable; keep the diagonal ore arrangement entirely inside that footprint and every energy plate wider than tall and partially buried; no detached trail, enlarged terrain patch, platform or raised mound
+Generation stage: structural surface-deposit draft only
+Structure contract: preserve one complete very shallow diamond-shaped rubble bed and the authored flat embedded ore plates; all four footprint corners remain visible; every element stays below knee height and there is no opening, entrance, arch, support, rail, wall or roof
+Detail budget: use broad readable fractured stones, low rubble clusters and wide partially buried ore faces so the footprint and vein layout can be judged; omit architecture, excavation infrastructure and tall crystal silhouettes
+Palette lock: low-saturation charcoal and cool-gray fractured stone with restrained cyan-blue energy visible only in squat embedded ore blocks and narrow cracks. No neon flood, bright turquoise mass or glossy glass.
+Canonical World-122 ground-deposit rendering subset:
+Style/medium: sober semi-realistic handcrafted strategy-game ground resource with physically plausible game-ready PBR materials and slightly stylized readable proportions.
+Material grammar: low fractured charcoal and cool-gray stone, dusty rubble and broad flat mineral faces partially buried in the ground. Energy is visible only through restrained cyan-blue ore surfaces and narrow seams; it is never a liquid waterfall, portal or upright crystal.
+Color treatment: deliberately low saturation and controlled neutral contrast; cyan-blue is a limited resource accent rather than a full glowing terrain mass.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize medium and large ground details that remain legible at 48 pixels: the complete diamond boundary, rubble clusters, flat ore faces and fissure layout. Avoid hairline cracks and photographic gravel noise.
+Shape treatment: a very shallow footprint-following bed with irregular natural edges and low embedded pieces; no vertical focal mass, raised slab, architectural base or detached scenery.
+Absolute class lock: this object is a bare exposed surface mineral deposit, not a mine entrance, cave, building, ruin, platform or piece of infrastructure. Use no arches, portals, holes, walls, roofs, towers, timber framing, rails, carts or machinery.
+Asset-specific style scope: apply the shared game PBR material language to natural rubble and embedded ore only. This is a bare ground mineral vein, never architecture, a pedestal or a crystal cluster.
+
+Composition/framing: strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; preserve one complete shallow projected 128x64 diamond with all four corners readable; every rubble and ore element remains low, grounded and inside that diamond; no perspective convergence
+Lighting/mood: evenly lit neutral studio lighting; no bloom; no cast shadow
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one bare surface mineral deposit only; no cave, no hole, no tunnel, no entrance, no portal, no arch, no doorway, no mountain, no cliff, no hill, no tall mound, no building, no house, no tower, no wall, no roof, no timber frame, no fence, no scaffolding, no bridge, no rail, no track, no cart, no machinery, no upright crystal, no pointed crystal, no spire, no pillar, no raised platform, no road, no stairs, no cast shadow, no grass, no trees, no people, no animals, no text and no watermark
+Asset-specific absolute exclusions: no upright crystal, no pointed crystal, no spire, no pillar, no obelisk, no tall shard, no mound, no raised paved slab, no architectural foundation, no machinery, no cart, no vegetation, no characters, no text and no background scenery
+

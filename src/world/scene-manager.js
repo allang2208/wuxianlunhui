@@ -38,6 +38,8 @@ import { EnergyManager } from '../systems/energy-manager.js';
 import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
+import desertTerrainConfig from '../../data/desert-terrain.json';
+import { TechnologySystem } from './technology-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import loadingScreenConfig from '../../data/loading-screen-config.json';
 import { FogOfWarSystem } from './fog-of-war-system.js';
@@ -92,6 +94,7 @@ export const SceneManager = {
             EnergyNodeSystem,
             EnergyManager,
             ResearchSystem,
+            TechnologySystem,
             GoldManager,
             PopulationEconomySystem,
             getWorldEpoch: (sceneId) => WorldProgressionSystem.getWorldEpoch(sceneId),
@@ -188,6 +191,7 @@ export const SceneManager = {
         if (!state || !dungeon?.active) return false;
         Game.entities = new Map(state.entities || []);
         EffectManager.effects = Array.isArray(state.effects) ? state.effects.slice() : [];
+        EffectManager.syncCosmeticBudgetCounts?.();
         Renderer.terrainTexture = state.terrainTexture;
         Renderer.terrainChunks = state.terrainChunks;
         CONFIG.WORLD_WIDTH = state.worldWidth;
@@ -330,6 +334,9 @@ export const SceneManager = {
         const departingQuestInstance = this._activeQuestInstance?.sceneId === departingSceneId;
         const suspendingDungeonView = departingSceneId === 'scene7' && !!opts.observer
             && this._captureDungeonObservationState();
+        const suspendedDungeonEffects = suspendingDungeonView
+            ? new Set(this._dungeonObservationState?.effects || [])
+            : null;
         const resumingDungeonView = sceneId === 'scene7' && !!this._dungeonObservationState
             && this.isDungeonRunActive();
         const physicalPortalTravel = opts.portalTravel && !departingQuestInstance && !Game._observerMode
@@ -362,6 +369,7 @@ export const SceneManager = {
                 g._observerHomeScene = null;
             }
         }
+        let teardownStarted = false;
         try {
             this.showLoadingScreen({ sceneId, dungeonType: scene.dungeonType || null });
             this._enterMode = mode || 'explore'; // 'quest' | 'explore'
@@ -384,6 +392,7 @@ export const SceneManager = {
             }
 
             // 清理当前场景
+            teardownStarted = true;
             // 先清理 Phaser 视觉对象，再清空实体数组，避免残留 Sprite/文字
             const phaserScene = window.__phaserScene;
             if (phaserScene) {
@@ -432,16 +441,18 @@ export const SceneManager = {
                 EffectManager.clearFloatingTexts();
             }
             Game.entities.clear();
+            Game.clearCollisionBuffers?.();
             // 场景切换前销毁在飞投射物的 Phaser 贴图与附加粒子（彗尾/环绕 emitter），
             // 直接丢弃 effects 列表不会走正常失效路径，粒子发射器会永久泄漏
             if (EffectManager && Array.isArray(EffectManager.effects)) {
                 for (const fx of EffectManager.effects) {
-                    if (fx && typeof fx._destroyPhaserSprite === 'function') {
-                        try { fx._destroyPhaserSprite(); } catch (_e) { /* 忽略清理异常 */ }
-                    }
+                    if (suspendedDungeonEffects?.has(fx) && fx?.active) continue;
+                    try { EffectManager.destroyEffectVisuals?.(fx); } catch (_e) { /* 忽略清理异常 */ }
                 }
             }
             EffectManager.effects = [];
+            EffectManager.syncCosmeticBudgetCounts?.();
+            EffectManager.clearPools?.();
             // 循环音轨全停（实体被直接 clear 不会走 _destroyCustomEffects，音轨会泄漏）
             if (SoundManager && SoundManager.stopAllLoops) {
                 SoundManager.stopAllLoops();
@@ -458,15 +469,10 @@ export const SceneManager = {
             // 分块惰性地板只属于世界-122：离场统一清空，避免残留块覆盖其他场景
             Renderer.terrainChunks = null;
 
-            // 销毁无人机并触发CD
+            // 场景切换立即清理无人机视野与标记；冷却只由成功部署写入，切场景不重复刷新。
             if (player && player.droneSystem && player.droneSystem.active) {
                 if (typeof player.droneSystem._deactivate === 'function') {
-                    player.droneSystem._deactivate();
-                }
-                if (QuickBar && player.skills && player.skills.droneSkill) {
-                    const getEffect = player.skills.droneSkill.getEffect;
-                    const effect = typeof getEffect === 'function' ? getEffect(player.skills.droneSkill.level) : null;
-                    QuickBar.cooldowns['droneSkill'] = (effect && effect.cooldown || 15) * 1000;
+                    player.droneSystem._deactivate({ immediateMarks: true, silent: true });
                 }
             }
 
@@ -524,7 +530,7 @@ export const SceneManager = {
             console.error('[switchScene] ERROR:', err);
             if (opts.worldDestructionTx) this._handleWorldDestructionSwitchFailure(opts.worldDestructionTx);
             else {
-                this._rollback(player);
+                await this._rollback(player, sceneId, teardownStarted);
                 if (portalTravel) TroopLineSystem.rollbackPortalTravel(portalTravel);
                 if (!departingQuestInstance && !questInstanceEntry) {
                     TroopLineSystem.onSceneEntered(departingSceneId);
@@ -540,8 +546,9 @@ export const SceneManager = {
 
     _clearRollbackState() {
         this._rollbackEntities = null;
-        this._rollbackEffects = null;
-        this._rollbackTrees = null;
+        this._rollbackFriendlyUnits = null;
+        this._rollbackRiftState = null;
+        this._rollbackWorldState = null;
         this._rollbackCamera = null;
         this._rollbackCurrentScene = null;
         this._rollbackPlayerPos = null;
@@ -549,6 +556,7 @@ export const SceneManager = {
         this._rollbackObserverHomeScene = null;
         this._rollbackWorldPlayerPos = null;
         this._rollbackActiveQuestInstance = null;
+        this._rollbackEnterMode = null;
     },
 
     _handleWorldDestructionSwitchFailure(tx) {
@@ -568,11 +576,14 @@ export const SceneManager = {
         WallSystem?.init?.(0, 0);
         EffectManager?.clearFloatingTexts?.();
         Game.entities?.clear?.();
+        Game.clearCollisionBuffers?.();
         if (EffectManager && Array.isArray(EffectManager.effects)) {
             for (const fx of EffectManager.effects) {
-                try { fx?._destroyPhaserSprite?.(); } catch (_e) { /* 强制清场继续 */ }
+                try { EffectManager.destroyEffectVisuals?.(fx); } catch (_e) { /* 强制清场继续 */ }
             }
             EffectManager.effects = [];
+            EffectManager.syncCosmeticBudgetCounts?.();
+            EffectManager.clearPools?.();
         }
         SoundManager?.stopAllLoops?.();
         this.currentScene = null;
@@ -584,9 +595,33 @@ export const SceneManager = {
 
     _saveRollbackState(player) {
         this._rollbackEntities = Game.entities ? new Map(Game.entities) : null;
-        this._rollbackEffects = EffectManager.effects ? EffectManager.effects.slice() : null;
-        this._rollbackTrees = WallSystem.trees ? WallSystem.trees.slice() : null;
-        this._rollbackCamera = { x: Camera.x, y: Camera.y };
+        this._rollbackFriendlyUnits = Array.isArray(Game.friendlyUnits)
+            ? Game.friendlyUnits.slice()
+            : null;
+        this._rollbackRiftState = RiftSystem?.captureState?.() || null;
+        this._rollbackWorldState = {
+            width: CONFIG.WORLD_WIDTH,
+            height: CONFIG.WORLD_HEIGHT,
+            terrainTexture: Renderer.terrainTexture,
+            terrainChunks: Renderer.terrainChunks,
+            walls: [...(WallSystem.walls || [])],
+            isoSegments: [...(WallSystem.isoSegments || [])],
+            isoVisuals: [...(WallSystem.isoVisuals || [])],
+            trees: [...(WallSystem.trees || [])],
+            wallStyleKey: WallSystem._wallStyleKey,
+        };
+        this._rollbackCamera = {
+            x: Camera.x,
+            y: Camera.y,
+            shakeX: Camera.shakeX,
+            shakeY: Camera.shakeY,
+            shakeIntensity: Camera.shakeIntensity,
+            lockY: Camera.lockY,
+            yLockedValue: Camera.yLockedValue,
+            aimOffsetX: Camera.aimOffsetX,
+            aimOffsetY: Camera.aimOffsetY,
+            follow: Camera.follow,
+        };
         this._rollbackCurrentScene = this.currentScene;
         this._rollbackPlayerPos = player ? { x: player.x, y: player.y } : null;
         this._rollbackObserverMode = !!Game._observerMode;
@@ -595,40 +630,118 @@ export const SceneManager = {
         this._rollbackActiveQuestInstance = this._activeQuestInstance
             ? { ...this._activeQuestInstance }
             : null;
+        this._rollbackEnterMode = this._enterMode;
     },
 
-    _rollback(player) {
-        this.isLoading = false;
-        this.hideLoadingScreen();
-        const rollbackObserverMode = !!this._rollbackObserverMode;
+    _clearFailedSceneRuntime(failedSceneId) {
+        const phaserScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        phaserScene?.clearCombatView?.();
+        phaserScene?.clearAllEntitySprites?.();
+        BuildingSystem?.close?.();
+        DefenseSystem?.teardown?.();
+        EnergyNodeSystem?.teardown?.();
+        HamsterMinerSystem?.teardown?.();
+        HamsterHutSystem?.teardown?.();
+        ProducerBuildingSystem?.teardown?.();
+        BuildingRoadSystem?.reset?.();
+        if (this._isPersistentWorld(failedSceneId)) FogOfWarSystem.deactivateScene(failedSceneId);
+        clearDecoClearZones();
+        RiftSystem?.clear?.();
+        Game.entities?.clear?.();
+        Game.clearCollisionBuffers?.();
+        if (EffectManager && Array.isArray(EffectManager.effects)) {
+            for (const fx of EffectManager.effects) {
+                try { EffectManager.destroyEffectVisuals?.(fx); } catch (_e) { /* 回滚清场继续 */ }
+            }
+            EffectManager.effects = [];
+            EffectManager.syncCosmeticBudgetCounts?.();
+            EffectManager.clearPools?.();
+        }
+        Renderer.terrainChunks = null;
+    },
+
+    _restoreRollbackReferences(player) {
         if (this._rollbackEntities) {
-            Game.entities = this._rollbackEntities;
-            if (!rollbackObserverMode && player && !Game.entities.has('player')) {
+            Game.entities = new Map(this._rollbackEntities);
+            if (!this._rollbackObserverMode && player && !Game.entities.has('player')) {
                 Game.entities.set('player', player);
             }
         }
-        if (EffectManager.effects && this._rollbackEffects) {
-            EffectManager.effects = this._rollbackEffects;
+        if (this._rollbackFriendlyUnits) Game.friendlyUnits = this._rollbackFriendlyUnits.slice();
+        const world = this._rollbackWorldState;
+        if (world) {
+            CONFIG.WORLD_WIDTH = world.width;
+            CONFIG.WORLD_HEIGHT = world.height;
+            Renderer.terrainTexture = world.terrainTexture;
+            Renderer.terrainChunks = world.terrainChunks;
+            WallSystem.init(world.width, world.height);
+            WallSystem.walls = world.walls.slice();
+            WallSystem.isoSegments = world.isoSegments.slice();
+            WallSystem.isoVisuals = world.isoVisuals.slice();
+            WallSystem.trees = world.trees.slice();
+            WallSystem._wallStyleKey = world.wallStyleKey;
+            WallSystem.rebuildIsoCollision?.();
+            WallSystem._syncWallsToPhaser?.();
+            WallSystem._syncTreesToPhaser?.();
+            window.__phaserScene?.syncTerrain?.();
         }
-        if (WallSystem.trees && this._rollbackTrees) {
-            WallSystem.trees = this._rollbackTrees;
+        RiftSystem?.restoreState?.(this._rollbackRiftState);
+    },
+
+    async _reloadRollbackPersistentWorld(player, sceneId) {
+        if (sceneId === 'scene8') this._loadScene8(player);
+        else if (sceneId === 'scene9') this._loadScene9(player, 'explore');
+        else if (sceneId === 'scene10') this._loadScene10(player);
+        else if (sceneId === 'scene11') await this._loadScene11(player);
+    },
+
+    async _rollback(player, failedSceneId = null, teardownStarted = true) {
+        this.isLoading = false;
+        this.hideLoadingScreen();
+        const rollbackSceneId = this._rollbackCurrentScene;
+        const rollbackObserverMode = !!this._rollbackObserverMode;
+        Game._observerMode = rollbackObserverMode;
+        Game._observerHomeScene = this._rollbackObserverHomeScene || null;
+        Game._worldPlayerPos = { ...(this._rollbackWorldPlayerPos || {}) };
+        this.currentScene = rollbackSceneId;
+        this._activeQuestInstance = this._rollbackActiveQuestInstance
+            ? { ...this._rollbackActiveQuestInstance }
+            : null;
+        this._enterMode = this._rollbackEnterMode;
+        this._inMainHub = (rollbackSceneId === 'main');
+
+        if (teardownStarted) {
+            try {
+                this._clearFailedSceneRuntime(failedSceneId);
+                if (this._isPersistentWorld(rollbackSceneId) && !this._activeQuestInstance) {
+                    await this._reloadRollbackPersistentWorld(player, rollbackSceneId);
+                } else {
+                    this._restoreRollbackReferences(player);
+                }
+            } catch (recoveryError) {
+                console.error('[switchScene] rollback recovery failed:', recoveryError);
+                this._restoreRollbackReferences(player);
+            }
         }
+
         if (this._rollbackCamera) {
             Camera.x = this._rollbackCamera.x;
             Camera.y = this._rollbackCamera.y;
+            Camera.shakeX = this._rollbackCamera.shakeX;
+            Camera.shakeY = this._rollbackCamera.shakeY;
+            Camera.shakeIntensity = this._rollbackCamera.shakeIntensity;
+            Camera.lockY = this._rollbackCamera.lockY;
+            Camera.yLockedValue = this._rollbackCamera.yLockedValue;
+            Camera.aimOffsetX = this._rollbackCamera.aimOffsetX;
+            Camera.aimOffsetY = this._rollbackCamera.aimOffsetY;
+            Camera.follow = this._rollbackCamera.follow;
         }
         if (player && this._rollbackPlayerPos) {
             player.x = this._rollbackPlayerPos.x;
             player.y = this._rollbackPlayerPos.y;
         }
-        Game._observerMode = rollbackObserverMode;
-        Game._observerHomeScene = this._rollbackObserverHomeScene || null;
-        Game._worldPlayerPos = { ...(this._rollbackWorldPlayerPos || {}) };
-        this.currentScene = this._rollbackCurrentScene;
-        this._activeQuestInstance = this._rollbackActiveQuestInstance
-            ? { ...this._rollbackActiveQuestInstance }
-            : null;
-        this._inMainHub = (this._rollbackCurrentScene === 'main');
+        window.__phaserScene?.refreshMinimapForSceneTransition?.();
+        SoundManager?.playBgmForScene?.(rollbackSceneId);
         this._clearRollbackState();
     },
 
@@ -889,34 +1002,20 @@ export const SceneManager = {
         // 边斜率 0.5（26.57°），与掩体墙/基地房/建筑视角平行（见 _scene8Diamond）
         const diamond = this._scene8Diamond(scene);
         const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene8', 'floor_deco');
-        // 平材质地面（泥/沙）不用"独立菱形石板"拼接（草苔盖缝失效后会露黑边/硬接缝）：
-        // 改走连续无缝纹理——floor_mud_seamless 按世界坐标对齐相位全图铺贴（任意方向无接缝），
-        // 沙地以软边补丁混入（sandPatches 径向渐隐），荒漠植物由 deco 层固定朝向点缀。
-        // 基地固定沙地（2026-08-16）：scene.baseSand（缺省=基地中心）铺一块 ~1700px
-        // 软边大沙地，保证基地菱形房及其围墙整体落在"沙漠贴图"上（随机沙地不可控）。
-        const baseSand = scene.baseSand || {
-            x: DEFENSE_CONFIG.base.x,
-            y: DEFENSE_CONFIG.base.y,
-            size: 1700,
-        };
+        // 沙漠地貌v3：全域连续沙材质负责无缝底色；道路同源的128×64格网只叠加透明碎石，
+        // 旧风纹/裂缝/冲蚀线已从图集删除，世界坐标小件层只散布18种模型化地表杂物。
+        // 三层都由稳定格坐标和位面世代seed派生，不创建碰撞、占格、寻路或快照实体。
+        const desertBase = desertTerrainConfig.base || {};
         setDungeonFloorProfile({
-            tiles: ['floor_mud_seamless'],
+            tiles: [desertBase.key || 'floor_sand_seamless'],
             continuous: true,
             glow: false,
-            backgroundColor: '#0d1b0a',
-            sandPatches: {
-                texture: 'floor_sand_seamless',
-                perChunk: 6,
-                size: 760,
-                minDist: 1000,
-                fixed: [baseSand],
-            },
+            backgroundColor: desertBase.backgroundColor || '#160f0a',
+            textureScaleY: desertBase.textureScaleY ?? 0.5774,
+            cellDetails: { ...(desertTerrainConfig.detailLayer || {}) },
             deco: {
-                textures: ['deco_desert_1', 'deco_desert_2', 'deco_desert_3', 'deco_desert_4'],
+                ...(desertTerrainConfig.deco || {}),
                 seed: floorSeed,
-                perChunk: 28,
-                size: 110,
-                minDist: 120,
             },
         });
         // 分块惰性地板（2048² 按相机视口烘焙/卸载）：大地图不一次性占满显存；
@@ -983,12 +1082,18 @@ export const SceneManager = {
             if (r.wavesCleared.length > 0) lines.push([`离线战报：击退第 ${r.wavesCleared.join('、')} 波`, '#8ad0ff']);
             if (r.victory) lines.push(['防守胜利！奖励已发放', '#ffd700']);
             if (r.energyMined > 0) lines.push([`矿工离线采集 +${Math.round(r.energyMined)} 能源`, '#7fd4ff']);
+            if (r.deepDrillEnergyMined > 0) {
+                lines.push([`深钻井离线采掘 +${Math.round(r.deepDrillEnergyMined)} 能源`, '#72d8d0']);
+            }
             if (r.resonatorEnergyProduced > 0) {
                 lines.push([`位面谐振塔发电 +${r.resonatorEnergyProduced} 能源`, '#a892ff']);
             }
+            if (r.steamEnergyProduced > 0) {
+                lines.push([`蒸汽电站发电 +${r.steamEnergyProduced} 能源`, '#e6a45f']);
+            }
             if (r.passiveEnergy > 0) lines.push([`能源回收矩阵 +${r.passiveEnergy} 能源`, '#7fd4ff']);
             if (r.titheEnergy > 0) lines.push([`牧师什一税 +${r.titheEnergy} 能源`, '#c9a0ff']);
-            if (r.goldProduced > 0) lines.push([`银行服务结算 +${r.goldProduced} 金币`, '#ffd700']);
+            if (r.goldProduced > 0) lines.push([`经济建筑金币结算 +${r.goldProduced} 金币`, '#ffd700']);
             if (r.foodProduced > 0) lines.push([`风车农夫收获 +${r.foodProduced} 粮食`, '#d9b84f']);
             if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
             if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);

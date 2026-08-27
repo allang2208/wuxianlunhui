@@ -1,0 +1,46 @@
+{
+  "source": "tools\\ai-gen\\_energy_vein_model_pipeline_20260825\\refine_48step_v04\\energy_vein_3\\energy_vein_3_refine_v03_body.png",
+  "output": "assets\\terrain\\energy_node_v3_3.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    66,
+    196,
+    14
+  ],
+  "matteEdgeWidth": 4.0,
+  "matteTolerance": 120.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 2,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    87,
+    462,
+    967,
+    920
+  ],
+  "fileSize": [
+    880,
+    458
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    876,
+    454
+  ],
+  "displayW": 130,
+  "displayH": 68,
+  "footOffsetY": 33,
+  "scaleX": 0.14772727272727273,
+  "scaleY": 0.14847161572052403
+}

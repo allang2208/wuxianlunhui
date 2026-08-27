@@ -21,8 +21,8 @@ no text, no watermark
 - 默认正面：`frontal view, straight-on, slight three-quarter perspective, facing the camera`
 - 若需等距：`2:1 diamond isometric view, elevated camera, top surfaces visible and foreshortened`
 
-> **2026-08-04 增强**：视角块之外，推荐用 FLUX.2 dev Depth ControlNet
-> （`--model flux2-dev-depth --control-image <深度图>`）把视角/构图物理锁死——
+> **2026-08-26 规则**：视角块之外，默认用 FLUX.2 Klein 4B + Depth ControlNet
+> （`--model flux2-klein-4b-depth --control-image <深度图>`）把视角/构图物理锁死——
 > 同视角的已定稿道具深度图或手绘剪影深度即可；文字视角块保留作第二道保险。
 
 ## 负面词（固定共用）
@@ -81,8 +81,9 @@ upper right, <视角块>, <风格基准>
 ```
 
 > 产物：`scratch\test_tree_round_01.png` / `test_tree_dead_01.png`；strength 0.75。
-> （2026-08-16：世界-122 树木已全部移除，阔叶树五变体条目删除；沙漠障碍物改走
-> 仙人掌管线——process-desert-plant.py 直出 + 实测 footprint，见 SKILL.md 世界-122 章节）
+> （2026-08-24：世界-122 树木仍已全部移除；四种沙漠仙人掌不再使用本页旧式直出规则，
+> 唯一正式入口改为 `cactus-obstacle-v2.md`：Blender 分形态建模 → ImageGen 材质精修 →
+> BiRefNet 真透明 → 环境光照派生图。旧 `process-desert-plant.py` 仅保留给其他植物素材。）
 
 ## 验收标准
 

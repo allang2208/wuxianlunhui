@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "frameWidth": 128,
+  "frameHeight": 64,
+  "frameCount": 16,
+  "bitOrder": {
+    "iPositive": 1,
+    "iNegative": 2,
+    "jPositive": 4,
+    "jNegative": 8
+  },
+  "liveSheet": "assets/terrain/energy_node_directional_tiles.png",
+  "depletedSheet": "assets/terrain/energy_node_directional_depleted_tiles.png",
+  "preview": "tools/ai-gen/_energy_vein_directional_20260826/energy_vein_directional_preview.png"
+}

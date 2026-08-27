@@ -161,6 +161,24 @@ check('拖墙支持失焦/画布外取消',
 check('拖墙逐块扣费并按余额停止',
     /_placeBlockRow\(cells\)[\s\S]{0,500}_deductBuildCost\(item\.currency, item\.cost\)/.test(buildingSrc)
     && /资源不足已停止/.test(buildingSrc));
+check('按住左Ctrl完成建造时保留当前建筑选择以连续放置',
+    /_isContinuousPlacementHeld\(\)[\s\S]{0,240}ControlLeft/.test(buildingSrc)
+    && /_finishSuccessfulPlacement\(\)/.test(buildingSrc)
+    && (buildingSrc.match(/this\._finishSuccessfulPlacement\(\)/g) || []).length >= 3);
+check('建筑完整占地只允许落在战争迷雾当前可见区域',
+    /import \{ FogOfWarSystem \} from '.\/fog-of-war-system\.js'/.test(buildingSrc)
+    && /_isFogProbeVisible\(probe/.test(buildingSrc)
+    && /_isPlacementFogVisible\(item, x, y/.test(buildingSrc)
+    && /FogOfWarSystem\.isPolygonFullyVisible/.test(buildingSrc)
+    && /reservationCells[\s\S]{0,160}_roadCellProbe/.test(buildingSrc)
+    && /视野盲区无法建造/.test(buildingSrc));
+check('建筑迷雾门禁按网格身份、revision与精确footprint复用有界缓存',
+    /FOG_PLACEMENT_VISIBILITY_CACHE_LIMIT = 2048/.test(buildingSrc)
+    && /cache\.grid !== grid \|\| cache\.revision !== revision/.test(buildingSrc)
+    && /_fogPolygonVisibilityKey\(vertices\)/.test(buildingSrc)
+    && /values\.has\(key\)/.test(buildingSrc)
+    && /values\.size >= FOG_PLACEMENT_VISIBILITY_CACHE_LIMIT/.test(buildingSrc)
+    && /return this\._isFogPolygonVisible\(polygon, grid\)/.test(buildingSrc));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

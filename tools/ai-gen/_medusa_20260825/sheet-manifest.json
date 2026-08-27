@@ -1,0 +1,348 @@
+{
+  "normalization": "one fixed per-action scale from first neutral frame effective height",
+  "targetNeutralHeight": 420.0,
+  "sourceNeutralHeights": {
+    "idle": 637.0,
+    "walking": 669.0,
+    "petrifying_gaze": 660.0,
+    "tail_sweep": 634.0,
+    "dying": 404.0
+  },
+  "actionScales": {
+    "idle": 0.6593406593406593,
+    "walking": 0.6278026905829597,
+    "petrifying_gaze": 0.6363636363636364,
+    "tail_sweep": 0.6624605678233438,
+    "dying": 1.0396039603960396
+  },
+  "rootAnchor": "upper-body alpha median x; horizontal tail extent excluded",
+  "footY": 470,
+  "stateScaleContract": "no per-frame scaling; pose height changes remain natural",
+  "actions": {
+    "idle": {
+      "file": "generated\\final\\idle.png",
+      "preview": "previews\\final\\idle.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 2,
+      "frameCount": 12,
+      "footY": 470,
+      "sourceFrames": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110
+      ],
+      "mode": "stabilized",
+      "scale": 0.6593406593406593,
+      "alphaPixels": [
+        51676,
+        52928
+      ],
+      "feetRange": [
+        469,
+        470
+      ],
+      "centerRange": [
+        255.0,
+        257.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 4,
+      "repeat": -1,
+      "effectiveHeightRange": [
+        419.0,
+        427.0
+      ]
+    },
+    "walking": {
+      "file": "generated\\final\\walking.png",
+      "preview": "previews\\final\\walking.gif",
+      "frameWidth": 1280,
+      "frameHeight": 512,
+      "columns": 5,
+      "rows": 4,
+      "frameCount": 20,
+      "footY": 470,
+      "sourceFrames": [
+        0,
+        6,
+        12,
+        18,
+        24,
+        30,
+        36,
+        42,
+        48,
+        54,
+        60,
+        66,
+        72,
+        78,
+        84,
+        90,
+        96,
+        102,
+        108,
+        114
+      ],
+      "mode": "stabilized",
+      "scale": 0.6278026905829597,
+      "alphaPixels": [
+        63720,
+        71477
+      ],
+      "feetRange": [
+        469,
+        470
+      ],
+      "centerRange": [
+        639.0,
+        641.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 10,
+      "repeat": -1,
+      "effectiveHeightRange": [
+        419.0,
+        425.0
+      ]
+    },
+    "petrifying_gaze": {
+      "file": "generated\\final\\petrifying_gaze.png",
+      "preview": "previews\\final\\petrifying_gaze.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 4,
+      "frameCount": 21,
+      "footY": 470,
+      "sourceFrames": [
+        0,
+        6,
+        12,
+        18,
+        24,
+        30,
+        36,
+        42,
+        48,
+        54,
+        60,
+        66,
+        72,
+        78,
+        84,
+        90,
+        96,
+        102,
+        108,
+        114,
+        120
+      ],
+      "mode": "source_motion_grounded",
+      "scale": 0.6363636363636364,
+      "alphaPixels": [
+        48085,
+        53684
+      ],
+      "feetRange": [
+        468,
+        470
+      ],
+      "centerRange": [
+        238.0,
+        329.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1500,
+      "repeat": 0,
+      "effectiveHeightRange": [
+        387.0,
+        428.0
+      ],
+      "releaseSourceFrame": 66,
+      "releaseFrame": 11
+    },
+    "tail_sweep": {
+      "file": "generated\\final\\tail_sweep.png",
+      "preview": "previews\\final\\tail_sweep.gif",
+      "frameWidth": 768,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 4,
+      "frameCount": 23,
+      "footY": 470,
+      "sourceFrames": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        36,
+        40,
+        44,
+        48,
+        52,
+        56,
+        60,
+        64,
+        68,
+        72,
+        76,
+        80,
+        87,
+        94,
+        101,
+        108,
+        114,
+        120
+      ],
+      "mode": "source_motion_grounded",
+      "scale": 0.6624605678233438,
+      "alphaPixels": [
+        48592,
+        61522
+      ],
+      "feetRange": [
+        469,
+        470
+      ],
+      "centerRange": [
+        368.0,
+        389.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1550,
+      "repeat": 0,
+      "effectiveHeightRange": [
+        390.0,
+        436.0
+      ],
+      "frameDurations": [
+        100,
+        100,
+        100,
+        100,
+        100,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        45,
+        85,
+        85,
+        85,
+        85,
+        85,
+        85
+      ],
+      "phases": {
+        "anticipation": {
+          "frames": [
+            0,
+            4
+          ],
+          "frameMs": 100
+        },
+        "sweep": {
+          "frames": [
+            5,
+            16
+          ],
+          "frameMs": 45
+        },
+        "recovery": {
+          "frames": [
+            17,
+            22
+          ],
+          "frameMs": 85
+        }
+      },
+      "contactSourceFrame": 64,
+      "contactFrame": 12
+    },
+    "dying": {
+      "file": "generated\\final\\dying.png",
+      "preview": "previews\\final\\dying.gif",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 17,
+      "footY": 470,
+      "sourceFrames": [
+        0,
+        6,
+        12,
+        18,
+        24,
+        30,
+        34,
+        38,
+        42,
+        46,
+        50,
+        56,
+        67,
+        78,
+        89,
+        101,
+        123
+      ],
+      "mode": "source_motion_grounded",
+      "scale": 1.0396039603960396,
+      "alphaPixels": [
+        34330,
+        46412
+      ],
+      "feetRange": [
+        469,
+        471
+      ],
+      "centerRange": [
+        303.0,
+        415.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1800,
+      "repeat": 0,
+      "effectiveHeightRange": [
+        129.0,
+        420.0
+      ]
+    }
+  }
+}

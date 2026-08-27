@@ -16,8 +16,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 ASSET_DIR = os.path.join(ROOT, "assets", "terrain")
 OUT_DIR = os.path.join(HERE, "_block_wall_stair_rebuild")
-STAIR_TEX = os.path.join(HERE, "_depth_templates", "stair_tread_whitegray.png")
-WALL_TEX = os.path.join(ASSET_DIR, "obstacle_block.png")
+STAIR_TIER = os.environ.get("WORLD122_STAIR_TIER", "").strip()
+STAIR_SUFFIX = f"_{STAIR_TIER}" if STAIR_TIER else ""
+RENDER_DIR = os.environ.get("WORLD122_STAIR_OUTPUT_DIR", ASSET_DIR)
+STAIR_TEX = os.environ.get(
+    "WORLD122_STAIR_TEXTURE",
+    os.path.join(HERE, "_depth_templates", "stair_tread_whitegray.png"),
+)
+STAIR_VALUE_BOOST = float(os.environ.get("WORLD122_STAIR_VALUE_BOOST", "1.10"))
+WALL_TEX = os.environ.get(
+    "WORLD122_STAIR_WALL_TEXTURE",
+    os.path.join(ASSET_DIR, "obstacle_block.png"),
+)
 
 SIZE = 1024
 ORTHO_SCALE = 220.0
@@ -297,7 +307,7 @@ def project(scene, camera, point):
 def render_variant(key, part, objects, anchors):
     scene, camera = setup_camera(objects)
     setup_light()
-    output = os.path.join(ASSET_DIR, f"wall_stair_{part}_{key}.png")
+    output = os.path.join(RENDER_DIR, f"wall_stair_{part}_{key}{STAIR_SUFFIX}.png")
     scene.render.filepath = output
     bpy.ops.render.render(write_still=True)
     data = {name: project(scene, camera, point) for name, point in anchors.items()}
@@ -384,11 +394,14 @@ def build_reference(stair_material, wall_material):
     )
     scene, camera = setup_camera(objects)
     setup_light()
-    scene.render.filepath = os.path.join(OUT_DIR, "block_wall_stair_reference.png")
-    bpy.ops.render.render(write_still=True)
-    bpy.ops.wm.save_as_mainfile(
-        filepath=os.path.join(OUT_DIR, "block_wall_stair_reference.blend")
+    scene.render.filepath = os.path.join(
+        RENDER_DIR, f"block_wall_stair_reference{STAIR_SUFFIX}.png"
     )
+    bpy.ops.render.render(write_still=True)
+    if not STAIR_TIER:
+        bpy.ops.wm.save_as_mainfile(
+            filepath=os.path.join(OUT_DIR, "block_wall_stair_reference.blend")
+        )
     return scene, camera
 
 
@@ -447,11 +460,12 @@ def validate_variant(key, anchors):
 def main():
     os.makedirs(ASSET_DIR, exist_ok=True)
     os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(RENDER_DIR, exist_ok=True)
     stair_material = material_from_image(
-        "stair_whitegray_brick",
+        f"stair_{STAIR_TIER or 'whitegray'}_brick",
         STAIR_TEX,
         tile_scale=0.025,
-        value_boost=1.10,
+        value_boost=STAIR_VALUE_BOOST,
     )
     wall_material = material_from_image("wall_reference", WALL_TEX, tile_scale=0.01)
     reference_scene, reference_camera = build_reference(stair_material, wall_material)
@@ -480,7 +494,7 @@ def main():
         }
         validate_variant(key, upper)
     with open(
-        os.path.join(OUT_DIR, "anchors.json"), "w", encoding="utf-8"
+        os.path.join(RENDER_DIR, f"anchors{STAIR_SUFFIX}.json"), "w", encoding="utf-8"
     ) as handle:
         json.dump(report, handle, ensure_ascii=False, indent=2)
     print(json.dumps(report, ensure_ascii=False, indent=2))

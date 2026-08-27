@@ -1,0 +1,104 @@
+{
+  "id": "hamster_sniper",
+  "name": "仓鼠狙击手",
+  "title": "特战基地狙击手",
+  "desc": "身穿吉利服、佩戴下放式双筒夜视仪并使用消音狙击步枪的仓鼠特种部队。以低射速、高单发伤害、超长射程和高视野执行远程标记狙杀；当前数值为兵种系列开发阶段的粗设。",
+  "role": "sniper",
+  "growthRule": "ranger",
+  "avatar": "🐹🎯",
+  "weaponType": "suppressed_sniper_rifle",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 145,
+  "baseData": {
+    "str": 12,
+    "dex": 30,
+    "int": 3,
+    "con": 10,
+    "wis": 5,
+    "luck": 18
+  },
+  "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
+  "fogVisionProfile": "scout",
+  "fogSightRadius": 1900,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/companions/hamster_musketeer/fire.mp3"
+  },
+  "ai": {
+    "role": "ranged_sniper",
+    "walkSpeed": 145,
+    "runSpeed": 145,
+    "attackInterval": 3600,
+    "attackDamage": 210,
+    "attackRange": 1200,
+    "engageRange": 1600,
+    "projectileSpeed": 2400,
+    "attackAnimFps": 24,
+    "attackLaunchFrame": 17,
+    "appliesMarkArrow": true,
+    "followOffset": 220,
+    "followArriveDist": 45,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 313.664397,
+  "spriteOffsetY": -58.199449,
+  "render": {
+    "footOffsetY": 58.199449,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_sniper/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 48,
+      "frames": [0, 47],
+      "frameRate": 16,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_sniper/running.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 44,
+      "frames": [0, 43],
+      "frameRate": 48,
+      "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_sniper/attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 39,
+      "frames": [0, 38],
+      "frameRate": 24,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_sniper/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 17,
+      "frames": [0, 16],
+      "frameRate": 24,
+      "repeat": 0
+    }
+  }
+}

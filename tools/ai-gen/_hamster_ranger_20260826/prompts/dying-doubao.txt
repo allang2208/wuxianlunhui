@@ -1,0 +1,15 @@
+The original game character in the first frame performs one irreversible non-graphic death fall and settles into a complete motionless corpse pose. This is an original anthropomorphic hamster game character and does not involve a real-person portrait. Preserve exactly the same hamster face, golden-brown and cream fur, body proportions, forest-green mantle, brown leather armor, chainmail, boots, compact one-handed crossbow in the anatomical right hand, and single dagger in the anatomical left hand. The character never attacks and never recovers.
+
+Action phases: one invisible impact causes a brief loss of strength; the knees buckle and the body collapses naturally down and slightly backward-left. The anatomical right hand and compact crossbow fall with the body; the anatomical left hand and dagger fall with the body. Both weapons remain intact, visually separate and fully inside the frame. Cloth, chainmail and leather gear follow the fall with believable weight. The hamster reaches the ground, makes one small natural settling motion, then remains fully still for the rest of the shot.
+
+Motion physics: one-way loss of balance, continuous connected anatomy, believable joint limits and gravity, no rubber motion, floating, explosion, body shrink or exaggerated bounce. The body and weapons remain on one consistent ground plane. No blood, gore, dismemberment or weapon penetration.
+
+Identity and handedness locks: preserve the exact face, ears, fur, clothing, colors and proportions; exactly one compact crossbow remains associated with the anatomical right hand and exactly one dagger remains associated with the anatomical left hand. No hand swap, duplication or disappearance.
+
+Camera and framing: preserve the first frame's low three-quarter view. Static locked orthographic camera with no pan, zoom, tilt, crop, reframing or tracking. Keep the complete fallen body, both ears, boots, full crossbow and full dagger inside the frame with generous white margins.
+
+Background: pure uniform #FFFFFF white, no floor line, cast shadow, reflection, scenery, particles, blood, text, logo or watermark. Soft flat diffuse light only.
+
+One-shot ending: do not loop, reverse, stand back up, return to the first pose or fade away. Hold the final corpse pose naturally.
+
+Avoid: swapped hands, extra weapons, duplicated or bent crossbow, duplicated dagger, detached head, disappearing body, long mouse tail, extra or broken limbs, weapon penetration, recovery, repeated falling, camera movement, cropping, gore, cuts or multiple characters.

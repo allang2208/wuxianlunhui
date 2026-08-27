@@ -81,7 +81,7 @@ export class ShieldSystem {
         }
 
         this.player.data.stamina -= staminaCost;
-        // 防御经验：近战+1，远程+3
+        // 防御经验读取技能 expRewards（当前配置：近战+2，远程+5）。
         this._addShieldExp(isMelee, false);
         return { damage: reducedDamage, parried: false };
     }

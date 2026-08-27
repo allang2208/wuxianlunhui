@@ -1,0 +1,12 @@
+Use case: finished World-122 RTS building body.
+Asset: one compact medieval weather forecast observatory on a broad connected square 2x2 building footprint.
+
+Preserve the supplied initial image and depth silhouette exactly: one low sturdy observation hall, exactly one integrated central octagonal observation tower, one wide octagonal tower roof, one continuous roof-mounted dark-iron mast, one large readable wind-vane arrow, one three-cup anemometer, one attached shallow meteorological radar dish on its roof pedestal, and two attached rain gauges. The mast, wind vane, cups and weather radar are required functional silhouette parts and must remain complete, connected and visible. Do not remove, crop, shorten or replace them. No second tower, detached shed, floating instrument, communication antenna or satellite station.
+
+Match the established in-game settlement rendering family represented by house_lv1, economic_workshop, market, bank and mine. Use warm aged ivory plaster, chunky irregular medium-gray fieldstone and ashlar, deep brown structural timber with visible grain, charcoal wrought iron, restrained tarnished brass, and sparse warm amber practical light. Roofs must match the bank and miner-camp roof family: deep desaturated weathered blue-gray slate, large individually readable tile courses, mild irregular value variation, no cyan cast.
+
+Sober semi-realistic handcrafted strategy-game architecture with realistic PBR response and slightly stylized readable proportions. Strong but restrained contact occlusion within the architecture, soft neutral upper-left studio illumination, modest bevels, convincing material thickness, crisp silhouettes and medium-to-large details that remain legible at 48 pixels. Functional, grounded and weathered, not ornate.
+
+Keep the exact orthographic 2.5D isometric camera, center, roofline, tower placement and ground-contact edge of the supplied initial image. One connected building only. No perspective convergence, no cast shadow outside the building, no terrain, no grass, no trees, no people, no animals, no signs, no text, no watermark, no separate foundation, no platform, no pavement, no stairs, no glossy futuristic metal, no sterile pure-white stone, no purple magic, no neon, no red roof, no toy plastic, no painterly brushwork, no cel shading, no miniature tilt-shift look.
+
+Backdrop: a simple flat high-contrast background suitable for manual cutout. Do not let the backdrop color contaminate the building edges.

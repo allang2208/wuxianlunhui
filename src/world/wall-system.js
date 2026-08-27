@@ -31,7 +31,12 @@ const ISO_WALL_GEO = {
     frozen_block: { tex: 'frozen_wall_block', w: 1024, h: 1024, groundCenter: [512, 753.1737], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, editor: '冰封单格墙' },
     // 冰封竞技场功能门：整段门洞由13枚冰锥构成，帧0完全升起、帧15沉入地面。
     // base 与 gateX 同跨度，开门后整段6格门洞放行；不附带会被横向拉伸的门框/砖墙。
-    frozen_gate: { tex: 'frozen_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 288, slope: 0.5, halfThick: 13, editor: '冰封冰锥门', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
+    frozen_gate: { tex: 'frozen_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 288, slope: 0.5, halfThick: 13, depthSlices: 3, editor: '冰封冰锥门', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
+    // 僵尸地牢战斗房：Blender 黑方砖单格墙 + 仅含移动门叶的锈铁升降栅栏。
+    // 门洞两端继续用 zombie_block 作同材质墙柱，不在 gate 内重复门柱/横梁；
+    // 与冰封门共享精确六格底线、13px 碰撞半厚和浅/中/深分层合同。
+    zombie_block: { tex: 'zombie_wall_block', w: 1024, h: 1024, groundCenter: [512, 761.9959], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, editor: '僵尸黑砖单格墙' },
+    zombie_gate: { tex: 'zombie_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 225.7447, slope: 0.5, halfThick: 13, depthSlices: 3, editor: '僵尸六格锈铁升降栅栏', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
     // 恶魔洞窟铁闸门（路线 B：岩壁单块 + 铁栅独立渲染 → 程序化 16 帧升起；compose-demon-gate-B.py 标定：
     // 门洞平行四边形，底边与墙同斜率 0.6347，wallH 291；gateX = 门洞 [159,481]）
     demon_gate: { tex: 'demon_gate', w: 640, h: 576, frames: 16, base: [[0, 228], [639, 634]], face: [[77, 277], [563, 586]], gateX: [159, 481], wallH: 291, slope: 0.6347, editor: '恶魔铁闸', states: { open: { hole: [159, 481] }, closed: { hole: null } } },
@@ -74,20 +79,21 @@ const ISO_WALL_GEO = {
     cover_A_v: { tex: 'obstacle_cover_A_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·A级·垂直' },
     // 防御塔（基座去臂版；机械臂是独立视觉层 obstacle_defense_tower_arm，无碰撞不注册）
     defense_tower: { tex: 'obstacle_defense_tower', w: 539, h: 832, category: 'obstacle', foot: { w: 468, d: 164 }, obstacleH: 262, editor: '防御塔' },
-    // 仙人掌障碍物（2026-08-16，世界-122 荒漠化：树木全部移除后由 cactusScatter 散布。
-    // 4 姿态同风格低对比：process-desert-plant.py 白底生图→BiRefNet 抠图→降饱和降对比。
-    // foot=底部 15% 带实测占地，obstacleH=期望世界显示高度（贴图等比裁剪 h=256））
-    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 72, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·双臂' },
-    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 68, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·单臂' },
-    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, shadow: { kind: 'projection', heightMul: 0.35, maxOffset: 22, visualWidthMul: 1.60, visualDepthMul: 1.45 }, editor: '仙人掌·桶状' },
-    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, shadow: { kind: 'projection', heightMul: 0.65, maxOffset: 42, visualWidthMul: 1.30, visualDepthMul: 1.35 }, editor: '仙人掌·多节' },
-    // 世界-123 雪原高瘦松树（Depth ControlNet 白模锁姿态 + BiRefNet 原图抠图，2026-08-18）。
-    // foot 是底部树干实测带，obstacleH 统一为 390，显示与碰撞均按裁剪后的真实像素尺寸等比缩放。
-    snow_pine_01: { tex: 'obstacle_snow_pine_01', w: 233, h: 909, category: 'obstacle', foot: { w: 95, d: 50 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·直立' },
-    snow_pine_02: { tex: 'obstacle_snow_pine_02', w: 297, h: 937, category: 'obstacle', foot: { w: 112, d: 54 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·左倾' },
-    snow_pine_03: { tex: 'obstacle_snow_pine_03', w: 385, h: 941, category: 'obstacle', foot: { w: 140, d: 58 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·右倾' },
-    snow_pine_04: { tex: 'obstacle_snow_pine_04', w: 446, h: 954, category: 'obstacle', foot: { w: 155, d: 64 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·偏风' },
-    snow_pine_05: { tex: 'obstacle_snow_pine_05', w: 400, h: 885, category: 'obstacle', foot: { w: 135, d: 56 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·疏枝' },
+    // 仙人掌障碍物（2026-08-24 V2：Blender 形态建模→ImageGen 材质精修→BiRefNet 真透明）。
+    // w/h 使用紧身裁切后的真实像素；foot 随分辨率等比换算，保持原有世界碰撞占地不变。
+    // obstacleH、稳定纹理键与 cactusScatter 随机镜像/散布合同不变，旧存档无需迁移。
+    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 568, h: 1147, category: 'obstacle', foot: { w: 139, d: 49 }, obstacleH: 240, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 72, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·双臂' },
+    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 395, h: 1046, category: 'obstacle', foot: { w: 147, d: 53 }, obstacleH: 230, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 68, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·单臂' },
+    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 872, h: 888, category: 'obstacle', foot: { w: 382, d: 132 }, obstacleH: 105, shadow: { kind: 'projection', heightMul: 0.35, maxOffset: 22, visualWidthMul: 1.60, visualDepthMul: 1.45 }, editor: '仙人掌·桶状' },
+    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 708, h: 1133, category: 'obstacle', foot: { w: 146, d: 53 }, obstacleH: 150, shadow: { kind: 'projection', heightMul: 0.65, maxOffset: 42, visualWidthMul: 1.30, visualDepthMul: 1.35 }, editor: '仙人掌·多节' },
+    // 世界-123 雪原松树 V2（2026-08-24：Blender 五形态建模→ImageGen 材质精修→BiRefNet 真透明）。
+    // w/h 使用紧身裁切后的真实像素；foot 随分辨率等比换算，保持原有世界碰撞占地不变。
+    // obstacleH=390、稳定纹理键、五形态等概率散布及随机镜像合同不变。
+    snow_pine_01: { tex: 'obstacle_snow_pine_01', w: 696, h: 1438, category: 'obstacle', foot: { w: 150, d: 79 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·直立密冠' },
+    snow_pine_02: { tex: 'obstacle_snow_pine_02', w: 707, h: 1525, category: 'obstacle', foot: { w: 182, d: 88 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·左倾承雪' },
+    snow_pine_03: { tex: 'obstacle_snow_pine_03', w: 707, h: 1479, category: 'obstacle', foot: { w: 220, d: 91 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·右倾断层' },
+    snow_pine_04: { tex: 'obstacle_snow_pine_04', w: 671, h: 1165, category: 'obstacle', foot: { w: 189, d: 78 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·强风偏冠' },
+    snow_pine_05: { tex: 'obstacle_snow_pine_05', w: 530, h: 1177, category: 'obstacle', foot: { w: 180, d: 74 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·老龄疏枝' },
     // 世界-124 林地针叶树：白模深度锁姿态 → FLUX.2 Dev → BiRefNet 原图抠图。
     forest_pine_01: { tex: 'obstacle_forest_pine_01', w: 330, h: 845, category: 'obstacle', foot: { w: 115, d: 60 }, obstacleH: 400, editor: '林地松·直立' },
     forest_pine_02: { tex: 'obstacle_forest_pine_02', w: 376, h: 974, category: 'obstacle', foot: { w: 130, d: 64 }, obstacleH: 400, editor: '林地松·左倾' },
@@ -100,6 +106,10 @@ const ISO_WALL_GEO = {
 // corners（可选）：四顶点夹角预制名（摆墙编辑器手工拼装）——登记后菱形房间四角用预制构建，缺省回退程序化转角臂
 const ISO_WALL_STYLES = {
     default: { straight: 'straight', gate: 'gate', chestPrefab: '宝箱房', gateSound: 'assets/sounds/environment/gate.mp3' },
+    zombie: {
+        straight: 'straight', block: 'zombie_block', gate: 'zombie_gate', chestPrefab: '宝箱房',
+        gateSound: 'assets/sounds/environment/gate.mp3',
+    },
     swamp: {
         straight: 'swamp_straight', gate: 'swamp_gate', chestPrefab: '沼泽宝箱房', gateSound: 'assets/sounds/environment/swamp_gate.mp3',
         corners: { top: '沼泽墙上夹角', bottom: '沼泽下夹角', left: '沼泽墙左夹角', right: '沼泽墙右夹角' },
@@ -111,7 +121,7 @@ const ISO_WALL_STYLES = {
     },
     // 冰封世界初级：单格冰墙环 + 全门洞冰锥升降门。
     frozen: {
-        straight: 'frozen_straight', gate: 'frozen_gate', chestPrefab: '宝箱房',
+        straight: 'frozen_straight', block: 'frozen_block', gate: 'frozen_gate', chestPrefab: '宝箱房',
         gateSound: 'assets/sounds/skills/icewall.mp3',
     },
     // 主神空间：大理石直墙 + 大理石门（不登记 corners → 程序化转角臂）
@@ -1176,12 +1186,24 @@ const WallSystem = {
             }
         }
         const WG = (typeof window !== 'undefined') ? window.WallGate : null;
-        if (WG && WG._seg && WG.sprite) {
-            out.push({ segs: [WG._seg], depth: WG.sprite.depth });
+        if (WG && WG._seg && WG.sprite && WG.state !== 'open') {
+            if (Array.isArray(WG.depthSegments) && WG.depthSegments.length) {
+                for (const segment of WG.depthSegments) {
+                    out.push({ segs: [[segment.A, segment.B]], depth: segment.depth });
+                }
+            } else {
+                out.push({ segs: [WG._seg], depth: WG.sprite.depth });
+            }
         }
         const CH = (typeof window !== 'undefined') ? window.ChestRoomSystem : null;
-        if (CH && CH._gate && CH._gate.sprite && CH._gate.segs) {
-            out.push({ segs: CH._gate.segs.map(s => [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }]), depth: CH._gate.sprite.depth });
+        if (CH && CH._gate && CH._gate.sprite && CH._gate.segs && !CH._gate.open) {
+            if (Array.isArray(CH._gate.depthSegments) && CH._gate.depthSegments.length) {
+                for (const segment of CH._gate.depthSegments) {
+                    out.push({ segs: [[segment.A, segment.B]], depth: segment.depth });
+                }
+            } else {
+                out.push({ segs: CH._gate.segs.map(s => [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }]), depth: CH._gate.sprite.depth });
+            }
         }
         this._faceSegCache = out;
         const columns = new Map();

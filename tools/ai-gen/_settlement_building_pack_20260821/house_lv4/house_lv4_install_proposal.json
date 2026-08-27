@@ -1,0 +1,32 @@
+{
+  "assetId": "house_lv4",
+  "status": "installed_after_user_acceptance",
+  "selectedStructureCandidate": "tools/ai-gen/_settlement_building_pack_20260821/house_lv4/structure_12step_seed123280/house_lv4/house_lv4_structure_v04_raw.png",
+  "selectedRefineCandidate": "tools/ai-gen/_settlement_building_pack_20260821/house_lv4/refine_48step_seed123290/house_lv4/house_lv4_refine_v02_raw.png",
+  "repairedBody": "tools/ai-gen/_settlement_building_pack_20260821/house_lv4/refine_48step_seed123290/house_lv4/house_lv4_refine_v02_body_green_repaired.png",
+  "runtimeCandidate": "tools/ai-gen/_settlement_building_pack_20260821/house_lv4/house_lv4_refine_v02_runtime_candidate.png",
+  "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/house_lv4/house_lv4_runtime_candidate_metadata.json",
+  "thumbnailCandidate": "tools/ai-gen/_settlement_building_pack_20260821/house_lv4/house_lv4_thumbnail_candidate.png",
+  "proposedRuntimeTarget": "assets/terrain/house_lv4.png",
+  "proposedThumbnailTarget": "assets/ui/building-thumbnails/house_lv4.png",
+  "displayW": 311,
+  "displayH": 375,
+  "footOffsetY": 186,
+  "visualFootprint": {
+    "centerXRatio": 0.5,
+    "centerYRatio": 0.8253333333333334,
+    "widthRatio": 0.8231511254019293,
+    "depthRatio": 0.3413333333333333,
+    "scaleMode": "strict"
+  },
+  "mappedFootprint": [256, 128],
+  "mappedFootprintExact": true,
+  "repair": {
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/house_lv4/refine_48step_seed123290/house_lv4/house_lv4_refine_v02_body.png",
+    "rect": [204, 568, 224, 614],
+    "repairedPixels": 65,
+    "alphaPreserved": true
+  },
+  "runtimeFilesWritten": true,
+  "runtimeConfigWritten": true
+}

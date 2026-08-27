@@ -22,7 +22,7 @@ export class HamsterMilitiaAI {
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 20;
         this._attackRange = this.cfg.attackRange ?? 55;
-        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
+        this._engageRange = this.cfg.engageRange ?? RTS_DEFAULT_ACQUIRE_RANGE;
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
         // 攻击动画第 N 帧伤害判定（用户口径）：整段 15 帧 @12fps = 1.25s，

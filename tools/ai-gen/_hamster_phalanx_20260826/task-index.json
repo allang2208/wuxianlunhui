@@ -8,13 +8,13 @@
   "referenceMode": "first-frame image",
   "identityMother": "mother/hamster-phalanx-mother-v02-double-axe.png",
   "acceptedWalkingReference": "references/walking-v02/hamster-phalanx-double-axe-white-1024x576.png",
-  "assetStatus": "complete_runtime_registered_pending_recruitment_commit",
+  "assetStatus": "complete_runtime_integrated",
   "runtimeIntegrationActive": true,
-  "producerBuildingIntegration": false,
+  "producerBuildingIntegration": true,
   "runtimeAssets": "assets/companions/hamster_phalanx",
   "runtimeIcon": "assets/ui/unit-icons/hamster-phalanx.png",
   "runtimeConfig": "data/hamster-phalanx-config.json",
-  "recruitmentGate": "normal recruitment config is retained in the shared working tree and must be committed with the separately owned whole-tier recruitment framework; this commit does not expose phalanx through legacy unitTypes",
+  "recruitmentGate": "phalanx line is fully registered; hamster_barracks_level_2 activation remains governed by the existing whole-tier contract and the separately owned champion line",
   "rejectedAttempts": [
     {
       "name": "mother-v01",

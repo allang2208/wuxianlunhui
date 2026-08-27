@@ -1,0 +1,41 @@
+{
+  "name": "hamster_anti_vehicle_attacking",
+  "sourceSheet": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\source-sheets-pre-interpolation\\attacking.png",
+  "outputSheet": "assets\\companions\\hamster_anti_vehicle\\attacking.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "pipelineVersion": "rife-v4.6-rgba-v2-temporal-dark-repair",
+  "mode": "one-shot",
+  "loopStartSourceIndex": null,
+  "sourceFrameCount": 4,
+  "outputFrameCount": 7,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 1,
+  "sourceFrameRate": 8.0,
+  "outputFrameRate": 16.0,
+  "durationPreserved": true,
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 454,
+    "alphaBottomMax": 456,
+    "middleFrameFootShifts": [
+      0,
+      -1,
+      0
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      0,
+      0,
+      0
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 34.541598637898765,
+    "adjacentDeltaMeanAfter": 23.178988933563232
+  }
+}

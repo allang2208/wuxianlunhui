@@ -15,7 +15,11 @@ import { TroopLineSystem } from '../world/troop-line-system.js';
 import { RtsTacticalOrderSystem } from '../systems/rts-tactical-order-system.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { TechnologySystem } from '../world/technology-system.js';
-import { isoFootprintVertices, isoLocalToWorldDelta } from '../physics/iso-footprint.js';
+import {
+    isoFootprintVertices,
+    isoLocalToWorldDelta,
+    worldDeltaToIsoLocal,
+} from '../physics/iso-footprint.js';
 import { TechnologyGate } from './technology-gate.js';
 import { FogOfWarSystem } from '../world/fog-of-war-system.js';
 import { canExploreScene } from '../config/explorer-rewards.js';
@@ -64,6 +68,7 @@ export const RTSCommand = {
     _consumeNormalCommandPointer: false,
     _rallyPicking: false,
     _troopLineRevision: -1,
+    _hoverBuilding: null,  // 指挥态鼠标悬停的可交互建筑（GameScene 读取并绘制金色轮廓）
 
     init() {
         this._createButton();
@@ -110,8 +115,12 @@ export const RTSCommand = {
             Input.mouse.rightPressed = false;
             this._consumeNormalCommandPointer = false;
         }
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            this._setHoverBuilding(null);
+            return;
+        }
         this._pruneSelection();
+        this._syncBuildingHover(Input?.mouse?.x, Input?.mouse?.y);
         this._edgePan(dt, Input);
         const input = Input || this._input();
         const pendingRightClick = this._pendingRightClick;
@@ -332,7 +341,7 @@ export const RTSCommand = {
 
     _syncCommandBarVisibility() {
         if (!this._commandBar) return;
-        const show = this._commandBarAllies().length > 0;
+        const show = !_game()?.BuildingSystem?.active && this._commandBarAllies().length > 0;
         this._commandBar.style.display = show ? '' : 'none';
         if (show) {
             this._refreshCommandBar();
@@ -349,6 +358,7 @@ export const RTSCommand = {
         const allies = this._commandBarAllies();
         if (!allies.length) return;
         const explorers = allies.filter((unit) => unit?._isHamsterExplorer);
+        const ninjas = allies.filter((unit) => unit?._isHamsterNinja);
         const active = explorers.filter((unit) => unit._exploreActive || unit._command?.mode === 'explore');
         const idleCount = explorers.length - active.length;
         const commandableCount = allies.filter((unit) => !this._isExplorationLocked(unit)).length;
@@ -358,10 +368,19 @@ export const RTSCommand = {
                 Number(unit._exploreRemainingMs) || 0)) / 1000))
             : 0;
         const stopping = active.length > 0;
-        const signature = `${allies.length}|${explorers.length}|${active.length}|${idleCount}|${eligible}|${remainingSec}|${stopping}|${commandableCount}|${this._commandPicking || ''}`;
+        const stealthing = ninjas.filter((unit) => unit._isStealthed || unit._stealthCastActive);
+        const stealthReady = ninjas.filter((unit) => !unit._isStealthed && !unit._stealthCastActive
+            && (Number(unit._stealthCooldownLeft) || 0) <= 0);
+        const stealthCooldownSec = ninjas.length
+            ? Math.max(0, Math.ceil(Math.min(...ninjas.map((unit) =>
+                Number(unit._stealthCooldownLeft) || 0)) / 1000))
+            : 0;
+        const shouldExitStealth = stealthing.length > 0 && stealthReady.length === 0;
+        const signature = `${allies.length}|${explorers.length}|${active.length}|${idleCount}|${eligible}|${remainingSec}|${stopping}|${commandableCount}|${ninjas.length}|${stealthing.length}|${stealthReady.length}|${stealthCooldownSec}|${shouldExitStealth}|${this._commandPicking || ''}`;
         if (signature === this._commandBarSig) return;
         this._commandBarSig = signature;
         this._commandBar.classList.toggle('has-explorer', explorers.length > 0);
+        this._commandBar.classList.toggle('has-ninja', ninjas.length > 0);
 
         const minutes = Math.floor(remainingSec / 60);
         const seconds = String(remainingSec % 60).padStart(2, '0');
@@ -383,6 +402,16 @@ export const RTSCommand = {
                     ? (stopping ? `剩余 ${minutes}:${seconds} · 探险中 ${active.length}` : '耗时 12:00 · 完成后结算一次')
                     : '当前位面没有对应祭品池'}</div>
             ` : ''}
+            ${ninjas.length ? `
+                <button type="button" class="rts-command-bar__stealth${shouldExitStealth ? ' is-active' : ''}" ${stealthReady.length <= 0 && stealthing.length <= 0 ? 'disabled' : ''}>
+                    ${shouldExitStealth ? '◉ 解除隐身' : '● 烟遁隐身'}
+                </button>
+                <div class="rts-command-bar__stealth-status">${shouldExitStealth
+                    ? `隐身中 ${stealthing.length} · 攻击会解除`
+                    : (stealthReady.length > 0
+                        ? `可隐身 ${stealthReady.length} · 移速+30% · 无单位碰撞`
+                        : `烟遁冷却 ${stealthCooldownSec}s`)}</div>
+            ` : ''}
         `;
         for (const button of this._commandBar.querySelectorAll('[data-order]')) {
             button.addEventListener('click', (event) => {
@@ -395,6 +424,17 @@ export const RTSCommand = {
             this._commandPicking = null;
             if (stopping) this.stopSelectedExplorers();
             else this.issueWheelCommand('explore');
+            this._commandBarSig = '';
+            this._refreshCommandBar();
+        });
+        this._commandBar.querySelector('.rts-command-bar__stealth')?.addEventListener('click', (event) => {
+            event.currentTarget.blur();
+            this._commandPicking = null;
+            if (shouldExitStealth) {
+                for (const ninja of stealthing) ninja.setStealth?.(false);
+            } else {
+                for (const ninja of stealthReady) ninja.setStealth?.(true);
+            }
             this._commandBarSig = '';
             this._refreshCommandBar();
         });
@@ -490,21 +530,36 @@ export const RTSCommand = {
         this._hidePanel();
     },
 
-    /** 关闭全部建筑选择与详情界面。 */
-    _closeBuildingUI() {
+    /** 关闭建筑详情；切换建筑时可保留刚接管内容的目标面板。 */
+    _buildingDetailPanels() {
+        const g = _game();
+        if (!g) return [];
+        return [...new Set([
+            ...(g.BuildingSystem?._buildingDetailPanels?.() || []),
+            g.DefenseSystem?._panel,
+            g.HamsterHutSystem?._panel,
+            g.ProducerBuildingSystem?._panel,
+        ].filter(Boolean))];
+    },
+
+    _closeBuildingUIExcept(keepPanel = null, { keepStructureDetail = false } = {}) {
         const g = _game();
         if (!g) return;
         if (g.BuildingSystem?.active && typeof g.BuildingSystem.close === 'function') {
             g.BuildingSystem.close();
-        } else if (g.BuildingSystem?._detail && typeof g.BuildingSystem._closeDetail === 'function') {
+        } else if (!keepStructureDetail && g.BuildingSystem?._detail
+            && typeof g.BuildingSystem._closeDetail === 'function') {
             g.BuildingSystem._closeDetail();
         }
-        const closeIfOpen = (sys) => {
-            if (sys && sys._panel && sys._panel.isOpen && typeof sys._panel.close === 'function') sys._panel.close();
-        };
-        closeIfOpen(g.DefenseSystem);
-        closeIfOpen(g.HamsterHutSystem);
-        closeIfOpen(g.ProducerBuildingSystem);
+        for (const panel of this._buildingDetailPanels()) {
+            if (panel === keepPanel || !panel.isOpen || typeof panel.close !== 'function') continue;
+            panel.close();
+        }
+    },
+
+    /** 关闭全部建筑选择与详情界面。 */
+    _closeBuildingUI() {
+        this._closeBuildingUIExcept();
     },
 
     // ==================== 选择 ====================
@@ -529,11 +584,11 @@ export const RTSCommand = {
         }
     },
 
-    _setSelection(list) {
+    _setSelection(list, { preserveBuildingUI = false } = {}) {
         this._selection = (list || []).filter((s) => s && s.ref && s.ref.active
             && (s.kind !== 'ally' || s.ref._rtsSelectable !== false));
         // 打开单位详情或复数选择面板时，关闭建筑选择界面。
-        this._closeBuildingUI();
+        if (!preserveBuildingUI) this._closeBuildingUI();
         this._syncPartySelection();
         this._renderSelectionFx();
         this._domSig = null;
@@ -697,6 +752,61 @@ export const RTSCommand = {
         return picked ? { kind: 'producer', ref: picked } : null;
     },
 
+    _buildingVisuals(entity) {
+        const scene = _scene();
+        if (!scene || !entity) return [];
+        const neutral = scene._neutralSprites?.get?.(entity);
+        const tower = scene._defenseSprites?.get?.(entity);
+        return [...new Set([
+            ...(Array.isArray(neutral?.segmentSprites) ? neutral.segmentSprites : []),
+            neutral?.sprite,
+            neutral?.overlaySprite,
+            tower?.base,
+            tower?.arm,
+            tower?.weapon,
+            entity._phaserSprite,
+        ].filter((visual) => visual?.active && visual.visible !== false && Number(visual.alpha ?? 1) > 0))];
+    },
+
+    /** 按实际 Phaser 建筑贴图命中，轮廓与玩家看到的主体保持一致。 */
+    _hitBuildingAt(sx, sy) {
+        const g = _game();
+        const point = Renderer.screenToWorld(sx, sy);
+        if (!g?.entities || !point) return null;
+        const hits = [];
+        for (const entity of g.entities.values()) {
+            if (!entity?.active || !entity._isDefenseStructure || Number(entity.hp) <= 0) continue;
+            if (FogOfWarSystem.shouldHideEntity(this._scene, entity)) continue;
+            for (const visual of this._buildingVisuals(entity)) {
+                if (typeof visual.getBounds !== 'function') continue;
+                const bounds = visual.getBounds();
+                if (!bounds?.contains?.(point.x, point.y)) continue;
+                const cx = Number(bounds.centerX) || (bounds.x + bounds.width * 0.5);
+                const cy = Number(bounds.centerY) || (bounds.y + bounds.height * 0.5);
+                hits.push({
+                    entity,
+                    depth: Number(visual.depth) || 0,
+                    distance: Math.hypot(point.x - cx, point.y - cy),
+                });
+            }
+        }
+        hits.sort((left, right) => right.depth - left.depth || left.distance - right.distance);
+        return hits[0]?.entity || null;
+    },
+
+    _syncBuildingHover(sx, sy) {
+        const invalidPointer = this._pointerOverUi || !Number.isFinite(sx) || !Number.isFinite(sy);
+        this._setHoverBuilding(invalidPointer ? null : this._hitBuildingAt(sx, sy));
+    },
+
+    _setHoverBuilding(building) {
+        if (this._hoverBuilding === building) return;
+        this._hoverBuilding = building || null;
+        if (typeof document === 'undefined') return;
+        const canvas = document.querySelector('canvas');
+        if (canvas) canvas.style.cursor = this._hoverBuilding ? 'pointer' : '';
+    },
+
     _surfaceLayerKey(entity) {
         if (!entity) return 'ground';
         const kind = entity._surfaceKind || ((Number(entity.z) || 0) > 1 ? 'elevated' : 'ground');
@@ -768,14 +878,27 @@ export const RTSCommand = {
         const g = _game();
         const p = g ? g.player : null;
         if (!g) return false;
-        // 每次只保留一个建筑详情；建筑系统面板本身仍负责刷新/按钮逻辑。
-        this._closeBuildingUI();
+        const openBefore = new Set(this._buildingDetailPanels().filter((panel) => panel.isOpen));
+        const finishPanelSwitch = (preferredPanel = null) => {
+            const newlyOpened = this._buildingDetailPanels().find((panel) => panel.isOpen && !openBefore.has(panel));
+            const keepPanel = newlyOpened || (preferredPanel?.isOpen ? preferredPanel : null);
+            this._closeBuildingUIExcept(keepPanel);
+        };
         const prevBuild = g._buildMode;
         g._buildMode = true;
         try {
-            if (g.DefenseSystem && g.DefenseSystem.active && g.DefenseSystem.tryInteract && g.DefenseSystem.tryInteract(sx, sy, p)) return true;
-            if (g.HamsterHutSystem && g.HamsterHutSystem.active && g.HamsterHutSystem.tryInteract && g.HamsterHutSystem.tryInteract(sx, sy, p)) return true;
-            if (g.ProducerBuildingSystem && g.ProducerBuildingSystem.active && g.ProducerBuildingSystem.tryInteract && g.ProducerBuildingSystem.tryInteract(sx, sy, p)) return true;
+            if (g.DefenseSystem?.active && g.DefenseSystem.tryInteract?.(sx, sy, p)) {
+                finishPanelSwitch(g.DefenseSystem._panel);
+                return true;
+            }
+            if (g.HamsterHutSystem?.active && g.HamsterHutSystem.tryInteract?.(sx, sy, p)) {
+                finishPanelSwitch(g.HamsterHutSystem._panel);
+                return true;
+            }
+            if (g.ProducerBuildingSystem?.active && g.ProducerBuildingSystem.tryInteract?.(sx, sy, p)) {
+                finishPanelSwitch(g.ProducerBuildingSystem._panel);
+                return true;
+            }
         } finally {
             g._buildMode = prevBuild;
         }
@@ -787,6 +910,7 @@ export const RTSCommand = {
             if (hit) {
                 if (typeof bs.showRemoteDetail === 'function') bs.showRemoteDetail(hit);
                 else bs._showDetail(hit);
+                this._closeBuildingUIExcept(null, { keepStructureDetail: true });
                 return true;
             }
         }
@@ -924,7 +1048,7 @@ export const RTSCommand = {
                 const producer = this._hitTroopProducerAt(e.clientX, e.clientY);
                 if (producer) {
                     this._lastClick = null;
-                    this._setSelection([producer]);
+                    this._setSelection([producer], { preserveBuildingUI: true });
                     this._tryBuildingClick(e.clientX, e.clientY);
                 } else if (this._tryBuildingClick(e.clientX, e.clientY)) {
                     // 打开非产兵建筑界面时关闭单位/复数面板，保留选择。
@@ -957,7 +1081,7 @@ export const RTSCommand = {
         }
         const commanded = this.issueWheelCommand(mode, point);
         if (commanded > 0) {
-            _scene()?.showMoveMarker?.(point.x, point.y - (Number(point.z) || 0));
+            _scene()?.showMoveMarker?.(point.x, point.y, point.z, point.renderDepth);
             const label = mode === 'patrol' ? '巡逻' : '移动攻击';
             EffectManager.add(new FloatingTextEffect(
                 point.x,
@@ -1120,15 +1244,24 @@ export const RTSCommand = {
         if (RtsTacticalOrderSystem.isOrderMode(tacticalMode)) {
             const tacticalDirect = direct.filter((unit) => !this._isPlayerUnit(unit));
             const moveSlots = this._formationMovePoints([...members, ...tacticalDirect], point);
+            const moveReservations = moveSlots.size > 0 ? [] : null;
             for (const member of members) {
-                const commandPoint = this._movePointForUnit(member, moveSlots.get(member) || point);
+                const commandPoint = this._movePointForUnit(
+                    member,
+                    moveSlots.get(member) || point,
+                    moveReservations
+                );
                 if (!commandPoint?.unreachable) {
                     n += PartySystem.setCommand(member.id, tacticalMode, commandPoint);
                 }
             }
             for (const unit of tacticalDirect) {
                 if (this._isExplorationLocked(unit)) continue;
-                const commandPoint = this._movePointForUnit(unit, moveSlots.get(unit) || point);
+                const commandPoint = this._movePointForUnit(
+                    unit,
+                    moveSlots.get(unit) || point,
+                    moveReservations
+                );
                 if (commandPoint?.unreachable) continue;
                 unit._ai?.cancelForCommand?.();
                 if (RtsTacticalOrderSystem.issue(unit, tacticalMode, commandPoint)) {
@@ -1274,7 +1407,12 @@ export const RTSCommand = {
                         this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref)
                     );
                     if (phaser && typeof phaser.showMoveMarker === 'function') {
-                        phaser.showMoveMarker(hit.ref.x, hit.ref.y - (Number(hit.ref.z) || 0));
+                        phaser.showMoveMarker(
+                            hit.ref.x,
+                            hit.ref.y,
+                            hit.ref.z,
+                            hit.ref._surfaceRenderDepth
+                        );
                     }
                 } else {
                     EffectManager.add(new FloatingTextEffect(
@@ -1310,7 +1448,7 @@ export const RTSCommand = {
                     this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref)
                 );
                 if (phaser && typeof phaser.showMoveMarker === 'function') {
-                    phaser.showMoveMarker(point.x, point.y - (point.z || 0));
+                    phaser.showMoveMarker(point.x, point.y, point.z, point.renderDepth);
                 }
             } else if (commanded === 0 && this._lastCommandRejectReason) {
                 EffectManager.add(new FloatingTextEffect(
@@ -1340,10 +1478,11 @@ export const RTSCommand = {
             ...directUnits,
         ];
         const moveSlots = mode === 'move' ? this._formationMovePoints(allUnits, point) : new Map();
+        const moveReservations = moveSlots.size > 0 ? [] : null;
         for (const memberId of memberIds) {
             const member = PartySystem.getMember(memberId);
             const commandPoint = mode === 'move'
-                ? this._movePointForUnit(member, moveSlots.get(member) || point)
+                ? this._movePointForUnit(member, moveSlots.get(member) || point, moveReservations)
                 : point;
             if (commandPoint?.unreachable) {
                 this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
@@ -1354,7 +1493,7 @@ export const RTSCommand = {
         for (const u of directUnits) {
             if (this._isPlayerUnit(u)) {
                 const commandPoint = mode === 'move'
-                    ? this._movePointForUnit(u, moveSlots.get(u) || point)
+                    ? this._movePointForUnit(u, moveSlots.get(u) || point, moveReservations)
                     : point;
                 if (commandPoint?.unreachable) {
                     this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
@@ -1382,7 +1521,7 @@ export const RTSCommand = {
                 u._ai.cancelForCommand();
             }
             const commandPoint = mode === 'move'
-                ? this._movePointForUnit(u, moveSlots.get(u) || point)
+                ? this._movePointForUnit(u, moveSlots.get(u) || point, moveReservations)
                 : point;
             if (commandPoint?.unreachable) {
                 this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
@@ -1404,9 +1543,10 @@ export const RTSCommand = {
         return commanded;
     },
 
-    _movePointForUnit(unit, point) {
+    _movePointForUnit(unit, point, groundReservations = null) {
         if (!point) return point;
         let resolvedPoint = point;
+        let pendingReservation = null;
         const route = Array.isArray(point.route) ? point.route : [];
         const isGroundPoint = route.length === 0
             && (!point.surfaceKind || point.surfaceKind === 'ground')
@@ -1414,68 +1554,137 @@ export const RTSCommand = {
         if (isGroundPoint && pathFinder?.findNearestWalkablePoint) {
             pathFinder.syncEntityFootprintObstacles?.(_game()?.entities);
             const radius = Number(unit?.groundRadius) || Number(unit?.collisionRadius) || 20;
-            const projected = pathFinder.findNearestWalkablePoint(point.x, point.y, radius, 360);
+            const projected = this._formationGroundPoint(point, radius, groundReservations);
             if (!projected) {
-                return { ...point, unreachable: true, reason: '目标附近没有可站立位置' };
+                const reason = groundReservations
+                    ? '目标附近没有足够的编队空间'
+                    : '目标附近没有可站立位置';
+                return { ...point, unreachable: true, reason };
             }
             resolvedPoint = { ...point, x: projected.x, y: projected.y, route: [] };
+            if (groundReservations) pendingReservation = { x: projected.x, y: projected.y, radius };
         }
         const defenseSystem = _game()?.DefenseSystem;
-        if (!defenseSystem?.routeSurfaceMoveForUnit) return resolvedPoint;
-        return defenseSystem.routeSurfaceMoveForUnit(unit, resolvedPoint);
+        const routedPoint = defenseSystem?.routeSurfaceMoveForUnit
+            ? defenseSystem.routeSurfaceMoveForUnit(unit, resolvedPoint)
+            : resolvedPoint;
+        if (pendingReservation && !routedPoint?.unreachable) groundReservations.push(pendingReservation);
+        return routedPoint;
+    },
+
+    _formationGroundPoint(point, radius, reservations) {
+        const projected = pathFinder.findNearestWalkablePoint(point.x, point.y, radius, 360);
+        if (!projected || !reservations) return projected;
+        const conflicts = (candidate) => reservations.some((reserved) => {
+            const safeDistance = radius + reserved.radius + 16;
+            return Math.hypot(candidate.x - reserved.x, candidate.y - reserved.y) < safeDistance;
+        });
+        if (!conflicts(projected)) return projected;
+
+        // 只在下令瞬间围绕原槽位寻找替代点；不建立逐帧队形约束或共享路径。
+        const step = Math.max(40, radius * 2 + 16);
+        const phase = reservations.length * Math.PI * (3 - Math.sqrt(5));
+        for (let distance = step; distance <= 360; distance += step) {
+            const samples = Math.max(12, Math.ceil(Math.PI * 2 * distance / step));
+            for (let sample = 0; sample < samples; sample++) {
+                const angle = phase + sample / samples * Math.PI * 2;
+                const candidate = {
+                    x: point.x + Math.cos(angle) * distance,
+                    y: point.y + Math.sin(angle) * distance,
+                };
+                if (pathFinder.isPointBlocked?.(candidate.x, candidate.y, radius)) continue;
+                if (!conflicts(candidate)) return candidate;
+            }
+        }
+        return null;
     },
 
     /**
-     * 多选移动使用等距地面槽位，避免所有单位争抢同一目标像素。
-     * 高架目标仍由统一高架导航逐单位规划，不在这里改写楼梯/墙顶路线。
+     * 多选地面移动在下令时一次性分配朝向目的地的方阵槽位。
+     * 不维持逐帧刚性队形：各单位仍独立寻路、避障，受阻后在终点重新成阵。
+     * 高架目标继续由统一高架导航逐单位规划，不改写楼梯/墙顶路线。
      */
     _formationMovePoints(units, point) {
         const result = new Map();
-        const validUnits = units.filter((unit) => unit?.active !== false);
+        const validUnits = [...new Set(units)].filter((unit) => unit?.active !== false);
         if (!point || validUnits.length <= 1) return result;
         const route = Array.isArray(point.route) ? point.route : [];
         if (route.length > 0 || (point.surfaceKind && point.surfaceKind !== 'ground') || Number(point.z) > 0) {
             return result;
         }
 
-        pathFinder?.syncEntityFootprintObstacles?.(_game()?.entities);
         const maxRadius = validUnits.reduce((max, unit) => Math.max(
             max,
             Number(unit.groundRadius) || Number(unit.collisionRadius) || 20
         ), 20);
         const spacing = Math.max(56, maxRadius * 2 + 16);
-        const candidates = [];
-        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-        const limit = Math.max(24, validUnits.length * 12);
-        for (let i = 0; i < limit && candidates.length < validUnits.length; i++) {
-            const ring = i === 0 ? 0 : spacing * Math.sqrt(i);
-            const delta = isoLocalToWorldDelta(Math.cos(i * goldenAngle) * ring, Math.sin(i * goldenAngle) * ring);
-            const raw = { x: point.x + delta.x, y: point.y + delta.y };
-            const projected = pathFinder?.findNearestWalkablePoint
-                ? pathFinder.findNearestWalkablePoint(raw.x, raw.y, maxRadius, spacing)
-                : raw;
-            if (!projected) continue;
-            if (candidates.some((slot) => Math.hypot(slot.x - projected.x, slot.y - projected.y) < spacing * 0.7)) {
-                continue;
+        const center = validUnits.reduce((sum, unit) => ({
+            x: sum.x + (Number(unit.x) || 0),
+            y: sum.y + (Number(unit.y) || 0),
+        }), { x: 0, y: 0 });
+        center.x /= validUnits.length;
+        center.y /= validUnits.length;
+
+        // 在真实地面 u/v 坐标中确定前进轴，避免屏幕 Y 压缩把方阵视觉拉斜。
+        const travel = worldDeltaToIsoLocal(point.x - center.x, point.y - center.y);
+        const travelLength = Math.hypot(travel.u, travel.v);
+        const forward = travelLength > 1
+            ? { u: travel.u / travelLength, v: travel.v / travelLength }
+            : { u: Math.SQRT1_2, v: Math.SQRT1_2 };
+        const lateral = { u: -forward.v, v: forward.u };
+        const columns = Math.ceil(Math.sqrt(validUnits.length));
+        const rows = Math.ceil(validUnits.length / columns);
+        const slots = [];
+
+        for (let row = 0, remaining = validUnits.length; row < rows; row++) {
+            const rowCount = Math.min(columns, remaining);
+            const forwardOffset = ((rows - 1) * 0.5 - row) * spacing;
+            for (let column = 0; column < rowCount; column++) {
+                const lateralOffset = (column - (rowCount - 1) * 0.5) * spacing;
+                slots.push({ forwardOffset, lateralOffset });
             }
-            candidates.push({ ...point, x: projected.x, y: projected.y, route: [] });
-        }
-        // 极端拥挤区槽位不足时保留原目标作为兜底；后续逐单位投影仍会做最终合法性检查。
-        while (candidates.length < validUnits.length) {
-            candidates.push({ ...point, route: [] });
+            remaining -= rowCount;
         }
 
-        const remaining = candidates.slice();
-        // 贪心选择离单位当前位置最近的空槽，减少大编队互相交叉。
-        for (const unit of validUnits) {
-            let bestIdx = 0;
-            let bestDist = Infinity;
-            for (let i = 0; i < remaining.length; i++) {
-                const d = Math.hypot(remaining[i].x - unit.x, remaining[i].y - unit.y);
-                if (d < bestDist) { bestDist = d; bestIdx = i; }
+        // 末排不满时仍让整个方阵的几何中心精确落在玩家点击点。
+        const meanForward = slots.reduce((sum, slot) => sum + slot.forwardOffset, 0) / slots.length;
+        const meanLateral = slots.reduce((sum, slot) => sum + slot.lateralOffset, 0) / slots.length;
+        for (const slot of slots) {
+            slot.forwardOffset -= meanForward;
+            slot.lateralOffset -= meanLateral;
+            const delta = isoLocalToWorldDelta(
+                forward.u * slot.forwardOffset + lateral.u * slot.lateralOffset,
+                forward.v * slot.forwardOffset + lateral.v * slot.lateralOffset
+            );
+            slot.point = { ...point, x: point.x + delta.x, y: point.y + delta.y, route: [] };
+        }
+
+        // 中心槽优先，逐槽选择最近单位。O(n^2) 仅在下令瞬间执行，减少换位交叉且无每帧成本。
+        slots.sort((left, right) => {
+            const leftCenter = left.forwardOffset ** 2 + left.lateralOffset ** 2;
+            const rightCenter = right.forwardOffset ** 2 + right.lateralOffset ** 2;
+            return leftCenter - rightCenter
+                || right.forwardOffset - left.forwardOffset
+                || left.lateralOffset - right.lateralOffset;
+        });
+        const remainingUnits = validUnits.slice().sort((left, right) =>
+            String(this._commandUnitId(left) || '').localeCompare(String(this._commandUnitId(right) || ''))
+        );
+        for (const slot of slots) {
+            let bestIndex = 0;
+            let bestDistanceSq = Infinity;
+            for (let i = 0; i < remainingUnits.length; i++) {
+                const unit = remainingUnits[i];
+                const dx = slot.point.x - unit.x;
+                const dy = slot.point.y - unit.y;
+                const distanceSq = dx * dx + dy * dy;
+                if (distanceSq < bestDistanceSq) {
+                    bestDistanceSq = distanceSq;
+                    bestIndex = i;
+                }
             }
-            const slot = remaining.splice(bestIdx, 1)[0];
-            if (slot) result.set(unit, slot);
+            const unit = remainingUnits.splice(bestIndex, 1)[0];
+            if (unit) result.set(unit, slot.point);
         }
         return result;
     },

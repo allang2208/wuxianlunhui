@@ -1,0 +1,66 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\solar_power_plant\\refine_48step_from_v04_seed123410\\solar_power_plant\\solar_power_plant_refine_v02_keyed.png",
+  "output": "assets\\terrain\\solar_power_plant.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    79,
+    223,
+    65
+  ],
+  "matteEdgeWidth": 0.0,
+  "matteTolerance": 105.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 1,
+  "minComponentPixels": 6,
+  "removedComponents": 19,
+  "removedComponentPixels": 25,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [
+    "90,525,350,930",
+    "745,525,945,930",
+    "90,650,945,930",
+    "738,510,775,610"
+  ],
+  "clearGreenRects": [
+    "90,525,350,930",
+    "745,525,945,930",
+    "90,650,945,930",
+    "738,510,775,610"
+  ],
+  "greenHueRange": [
+    35.0,
+    90.0
+  ],
+  "greenSaturationMin": 80,
+  "greenValueMin": 20,
+  "cropBox": [
+    149,
+    268,
+    910,
+    877
+  ],
+  "fileSize": [
+    761,
+    609
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    757,
+    605
+  ],
+  "displayW": 512,
+  "displayH": 410,
+  "footOffsetY": 202,
+  "scaleX": 0.6727989487516426,
+  "scaleY": 0.6732348111658456
+}

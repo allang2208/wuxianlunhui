@@ -17,7 +17,10 @@ const DEFAULT_GATE_SOUND = 'assets/sounds/environment/gate.mp3';
 export const WallGate = {
     state: 'open',
     sprite: null,
+    sprites: [],
     glowSprite: null,
+    glowSprites: [],
+    depthSegments: [],
     _frame: FRAMES - 1,
     _frameTimer: 0,
     _onDone: null,
@@ -92,11 +95,12 @@ export const WallGate = {
         // 归属深度（门洞中心规则，见下方 _gateCenter 计算后修正）
         this._homeDepth = depth ?? Math.max(A.y, B.y);
 
-        if (this.sprite) this.sprite.destroy();
-        this.sprite = scene.add.sprite(this._cx, this._cy, g.tex, this._frame);
-        this.sprite.setOrigin(0.5, 0.5);
-        this.sprite.setScale(this._scale.sx, this._scale.sy);
-        this.sprite.setFlipX(this._flip);
+        for (const oldSprite of new Set([...(this.sprites || []), this.sprite].filter(Boolean))) {
+            oldSprite.destroy();
+        }
+        this.sprite = null;
+        this.sprites = [];
+        this.depthSegments = [];
 
         // 门洞碰撞线段（states.open.hole/gateX 映射到世界）；门两侧墙体线段常开，门洞线段按状态启停
         const hole = isoGateHole(g);
@@ -116,7 +120,42 @@ export const WallGate = {
         // 门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）：
         // 单位过门洞时门后遮挡、过半场显现；调用方显式 depth 更低时（转角斜接 -0.1 退位）保留较低值
         this._homeDepth = (depth != null && depth < this._gateCenter.y) ? depth : this._gateCenter.y;
-        this.sprite.setDepth(this._homeDepth);
+        const makeSprite = (crop, spriteDepth) => {
+            const gateSprite = scene.add.sprite(this._cx, this._cy, g.tex, this._frame);
+            gateSprite.setOrigin(0.5, 0.5);
+            gateSprite.setScale(this._scale.sx, this._scale.sy);
+            gateSprite.setFlipX(this._flip);
+            gateSprite.setDepth(spriteDepth);
+            if (crop && typeof gateSprite.setCrop === 'function') {
+                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
+                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
+                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
+                    const result = originalSetFrame(frame, updateSize, updateOrigin);
+                    applyCrop();
+                    return result;
+                };
+                applyCrop();
+            }
+            this.sprites.push(gateSprite);
+            return gateSprite;
+        };
+        const depthSliceCount = Math.max(1, Math.round(g.depthSlices || 1));
+        if (depthSliceCount > 1) {
+            const span = hole[1] - hole[0];
+            for (let index = 0; index < depthSliceCount; index++) {
+                const tx0 = hole[0] + span * index / depthSliceCount;
+                const tx1 = hole[0] + span * (index + 1) / depthSliceCount;
+                const sA = baseAt(tx0);
+                const sB = baseAt(tx1);
+                const spriteDepth = Math.max(sA.y, sB.y) + 3.9;
+                const crop = { x: Math.floor(tx0), w: Math.ceil(tx1) - Math.floor(tx0) };
+                makeSprite(crop, spriteDepth);
+                this.depthSegments.push({ A: sA, B: sB, depth: spriteDepth, crop });
+            }
+        } else {
+            makeSprite(null, this._homeDepth);
+        }
+        this.sprite = this.sprites[0] || null;
         if (WallSystem.isoSegments) {
             for (const s of this._wallSegs) WallSystem.isoSegments.push(s);
         }
@@ -178,8 +217,8 @@ export const WallGate = {
     /** 帧动画（Phaser tween 计数器驱动，不依赖手动 update tick） */
     _playAnim(from, to) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        if (this.sprite) this.sprite.setFrame(from);
-        if (this.glowSprite) this.glowSprite.setFrame(from);
+        for (const sprite of this.sprites || []) if (sprite && sprite.active) sprite.setFrame(from);
+        for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(from);
         if (!scene) { this._frame = to; this.state = to === 0 ? 'closed' : 'open'; return; }
         if (this._animCounter) this._animCounter.stop();
         this._animCounter = scene.tweens.addCounter({
@@ -189,8 +228,8 @@ export const WallGate = {
             ease: 'Linear',
             onUpdate: (tw) => {
                 const f = Math.round(tw.getValue());
-                if (this.sprite) this.sprite.setFrame(f);
-                if (this.glowSprite) this.glowSprite.setFrame(f);
+                for (const sprite of this.sprites || []) if (sprite && sprite.active) sprite.setFrame(f);
+                for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(f);
             },
             onComplete: () => {
                 this._frame = to;
@@ -205,8 +244,9 @@ export const WallGate = {
     /** 帧推进（CombatRoomSystem.update 驱动） */
     /** 帧推进已改 tween 驱动（_playAnim）；update 仅同步发光帧 */
     update(_dt) {
-        if (this.glowSprite && this.sprite) {
-            this.glowSprite.setFrame(this.sprite.frame.name);
+        const frame = this.sprite?.frame?.name;
+        if (frame != null) {
+            for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(frame);
         }
     },
 
@@ -256,17 +296,38 @@ export const WallGate = {
             }
             scene.textures.addSpriteSheet(glowKey, c, { frameWidth: g.w, frameHeight: g.h });
         }
-        if (this.glowSprite) this.glowSprite.destroy();
-        this.glowSprite = scene.add.sprite(this._cx, this._cy, glowKey, this._frame);
-        this.glowSprite.setOrigin(0.5, 0.5);
-        this.glowSprite.setScale(this._scale.sx, this._scale.sy);
-        this.glowSprite.setFlipX(this._flip);
-        this.glowSprite.setDepth(this.sprite.depth + 0.5);
-        this.glowSprite.setVisible(false);
+        for (const oldGlow of new Set([...(this.glowSprites || []), this.glowSprite].filter(Boolean))) {
+            oldGlow.destroy();
+        }
+        this.glowSprites = [];
+        const visualSegments = this.depthSegments?.length
+            ? this.depthSegments
+            : [{ depth: this._homeDepth, crop: null }];
+        for (const descriptor of visualSegments) {
+            const glow = scene.add.sprite(this._cx, this._cy, glowKey, this._frame);
+            glow.setOrigin(0.5, 0.5);
+            glow.setScale(this._scale.sx, this._scale.sy);
+            glow.setFlipX(this._flip);
+            glow.setDepth(descriptor.depth + 0.5);
+            if (descriptor.crop && typeof glow.setCrop === 'function') {
+                const crop = descriptor.crop;
+                const applyCrop = () => glow.setCrop(crop.x, 0, crop.w, g.h);
+                const originalSetFrame = glow.setFrame.bind(glow);
+                glow.setFrame = (frame, updateSize, updateOrigin) => {
+                    const result = originalSetFrame(frame, updateSize, updateOrigin);
+                    applyCrop();
+                    return result;
+                };
+                applyCrop();
+            }
+            glow.setVisible(false);
+            this.glowSprites.push(glow);
+        }
+        this.glowSprite = this.glowSprites[0] || null;
     },
 
     setHighlight(on) {
-        if (this.glowSprite) this.glowSprite.setVisible(!!on);
+        for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setVisible(!!on);
     },
 
     destroy() {
@@ -279,8 +340,13 @@ export const WallGate = {
             }
         }
         this._wallSegs = null;
-        if (this.sprite) { this.sprite.destroy(); this.sprite = null; }
-        if (this.glowSprite) { this.glowSprite.destroy(); this.glowSprite = null; }
+        for (const sprite of new Set([...(this.sprites || []), this.sprite].filter(Boolean))) sprite.destroy();
+        for (const sprite of new Set([...(this.glowSprites || []), this.glowSprite].filter(Boolean))) sprite.destroy();
+        this.sprite = null;
+        this.sprites = [];
+        this.glowSprite = null;
+        this.glowSprites = [];
+        this.depthSegments = [];
         this._gateSeg = null;
         this.state = 'open';
         this._frame = FRAMES - 1;

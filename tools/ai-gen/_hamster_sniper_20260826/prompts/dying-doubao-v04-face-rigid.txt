@@ -1,0 +1,9 @@
+视频工具参数：总时长必须设置为4秒（duration=4），画幅16:9。不得使用默认10秒。
+
+Animate the exact first-frame hamster only. One non-looping death. His face is a rigid unchanged texture: mouth stays fully closed, cream muzzle keeps the exact same size and shape, cheeks and head never enlarge, and there is no facial expression.
+
+From 0.0 to 0.8 seconds only his knees buckle and torso tilts; his head, hood and lowered black dual-tube night-vision goggles remain mechanically locked together. From 0.8 to 1.5 seconds he tucks his chin and falls onto his left side, turning the face slightly down so the hood and goggles naturally conceal most facial detail. By 1.6 seconds he is fully down. Hold the exact corpse pose without movement through 4.0 seconds.
+
+Identity lock: same adult golden-brown hamster and cream muzzle; both ears always hidden by the closed ghillie hood; goggles never rise, vanish or change; same olive ghillie suit and gear; exactly two hands; exactly one identical long suppressed bolt-action sniper rifle. Rifle stays rigid, complete and against the torso; bipod stays folded.
+
+Static camera, fixed scale/exposure, white background. Keep body and rifle inside the left 70 percent. No open mouth, surprised face, young face, morph, visible ears, hood opening, weapon change, deployed bipod, missing suppressor, bent barrel, extra limbs, black block, flicker, blood, gore, firing, smoke, text or watermark.

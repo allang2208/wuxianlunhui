@@ -1,0 +1,51 @@
+{
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_01\\formal_cutouts_20260827\\house_lv7\\house_lv7_mask_p3.png",
+  "output": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_01\\formal_cutouts_20260827\\house_lv7\\house_lv7_meta_probe.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    204,
+    58,
+    787,
+    918
+  ],
+  "fileSize": [
+    583,
+    860
+  ],
+  "alphaBBox": [
+    0,
+    0,
+    583,
+    860
+  ],
+  "displayW": 300,
+  "displayH": 443,
+  "footOffsetY": 221,
+  "scaleX": 0.5145797598627787,
+  "scaleY": 0.5151162790697674
+}

@@ -1,3 +1,10 @@
+import {
+    UNLIMITED_ITEM_STACK,
+    consolidateGoldStacks,
+    isGoldItem,
+    syncGoldStackPresentation,
+} from '../items/item-stack-rules.js';
+
 /**
  * GoldManager — 集中管理所有金币逻辑
  * 不直接依赖 EquipManager，通过引用和回调操作
@@ -18,6 +25,7 @@ class GoldManagerImpl {
      */
     setBackpackRef(backpackItems) {
         this._backpack = backpackItems;
+        this.normalizeBackpackGold();
     }
 
     /**
@@ -47,22 +55,21 @@ class GoldManagerImpl {
     /** @private 查找背包中的金币物品 */
     _findGoldItem() {
         const bp = this._getBackpack();
-        return bp.find(i => i.category === 'gold' || i.name === '金币');
+        return bp.find(isGoldItem);
     }
 
     _findGoldItems() {
-        return this._getBackpack().filter(
-            (item) => item && (item.category === 'gold' || item.name === '金币')
-        );
+        return this._getBackpack().filter(isGoldItem);
+    }
+
+    /** 合并旧存档或旧逻辑留下的多格金币，始终只保留一格。 */
+    normalizeBackpackGold() {
+        return consolidateGoldStacks(this._getBackpack());
     }
 
     /** @private 同步金币 stats 显示 */
     _syncGoldStats(goldItem) {
-        if (goldItem.stats && goldItem.stats[0]) {
-            goldItem.stats[0].value = String(goldItem.stack);
-        } else if (goldItem.stats) {
-            goldItem.stats = [{ name: '数量', value: String(goldItem.stack) }];
-        }
+        syncGoldStackPresentation(goldItem);
     }
 
     /** @private 通知 UI 更新 */
@@ -95,23 +102,19 @@ class GoldManagerImpl {
      * @returns {number}
      */
     getGold() {
-        return this._findGoldItems().reduce(
-            (sum, item) => sum + Math.max(0, Number(item.stack) || 0),
-            0
-        );
+        return Math.max(0, Number(this.normalizeBackpackGold()?.stack) || 0);
     }
 
     /** 市场等事务在扣除另一种资源前，用此值保证金币可以原子入库。 */
     getRemainingCapacity() {
-        const maxStack = 99999;
         const bp = this._getBackpack();
-        const partialSpace = this._findGoldItems().reduce(
-            (sum, item) => sum + Math.max(0, maxStack - (Number(item.stack) || 0)),
-            0
-        );
+        const goldItem = this.normalizeBackpackGold();
+        if (goldItem) {
+            return Math.max(0, UNLIMITED_ITEM_STACK - (Number(goldItem.stack) || 0));
+        }
         const usedSlots = new Set(bp.map((item) => item?.slot).filter((slot) => slot !== undefined));
         const freeSlots = Math.max(0, this._maxSlots - usedSlots.size);
-        return partialSpace + freeSlots * maxStack;
+        return freeSlots > 0 ? UNLIMITED_ITEM_STACK : 0;
     }
 
     /**
@@ -121,48 +124,45 @@ class GoldManagerImpl {
     depositGold(amount, { notifyFull = false } = {}) {
         let remaining = Math.max(0, Math.floor(Number(amount) || 0));
         if (remaining <= 0) return 0;
-        const requested = remaining;
-        const MAX_GOLD_STACK = 99999;
+        const requested = Math.min(UNLIMITED_ITEM_STACK, remaining);
+        remaining = requested;
         const bp = this._getBackpack();
-
-        for (const item of bp) {
-            if (remaining <= 0) break;
-            if (!item || (item.category !== 'gold' && item.name !== '金币')) continue;
-            const current = Math.max(0, Math.floor(Number(item.stack) || 0));
-            const add = Math.min(remaining, Math.max(0, MAX_GOLD_STACK - current));
-            if (add <= 0) continue;
-            item.stack = current + add;
-            remaining -= add;
-            this._syncGoldStats(item);
-        }
-
-        while (remaining > 0) {
+        let goldItem = this.normalizeBackpackGold();
+        if (!goldItem) {
             const slot = this._getNextFreeSlot();
-            if (slot < 0) break;
-            const stack = Math.min(remaining, MAX_GOLD_STACK);
-            bp.push({
+            if (slot < 0) {
+                if (notifyFull) this._notifyFull();
+                return 0;
+            }
+            goldItem = {
                 slot,
                 name: '金币',
                 type: '货币',
                 icon: '💰',
                 category: 'gold',
                 rarity: 'mythic',
-                stats: [{ name: '数量', value: String(stack) }],
+                stats: [{ name: '数量', value: '0' }],
                 desc: '金光闪闪的硬币',
-                stack,
+                stack: 0,
                 price: 1,
-            });
-            remaining -= stack;
+            };
+            bp.push(goldItem);
         }
 
-        const added = requested - remaining;
-        if (added > 0) this._notifyUpdate();
+        const current = Math.max(0, Math.floor(Number(goldItem.stack) || 0));
+        const added = Math.min(remaining, Math.max(0, UNLIMITED_ITEM_STACK - current));
+        goldItem.stack = current + added;
+        remaining -= added;
+        this._syncGoldStats(goldItem);
+
+        const deposited = requested - remaining;
+        if (deposited > 0) this._notifyUpdate();
         if (remaining > 0 && notifyFull) this._notifyFull();
-        return added;
+        return deposited;
     }
 
     /**
-     * 增加金币（自动合并到已有堆叠，最大99999）
+     * 增加金币（自动合并到背包内唯一金币堆叠）
      * @param {number} amount — 增加数量
      * @returns {boolean} — 是否成功
      */
@@ -181,11 +181,12 @@ class GoldManagerImpl {
         if (amount <= 0) return true;
 
         const bp = this._getBackpack();
+        this.normalizeBackpackGold();
         if (this.getGold() < amount) return false;
         let remain = amount;
         for (let index = bp.length - 1; index >= 0 && remain > 0; index--) {
             const item = bp[index];
-            if (!item || (item.category !== 'gold' && item.name !== '金币')) continue;
+            if (!isGoldItem(item)) continue;
             const take = Math.min(Math.max(0, Number(item.stack) || 0), remain);
             item.stack -= take;
             remain -= take;
@@ -198,51 +199,14 @@ class GoldManagerImpl {
     }
 
     /**
-     * 将传入的金币物品合并到背包中（最大99999）
+     * 将传入的金币物品合并到背包内唯一金币堆叠
      * @param {Object} item — 金币物品（需包含 category === 'gold'）
      * @returns {boolean} — 是否成功
      */
     mergeGold(item) {
-        if (!item || item.category !== 'gold') return false;
-        const MAX_GOLD_STACK = 99999;
-
-        const bp = this._getBackpack();
-        let amount = item.stack || 1;
-
-        // 先填满所有已有金币堆叠
-        for (const existing of bp) {
-            if (existing && (existing.category === 'gold' || existing.name === '金币') && existing.stack < MAX_GOLD_STACK) {
-                const space = MAX_GOLD_STACK - existing.stack;
-                if (amount <= space) {
-                    existing.stack += amount;
-                    this._syncGoldStats(existing);
-                    this._notifyUpdate();
-                    return true;
-                }
-                existing.stack = MAX_GOLD_STACK;
-                amount -= space;
-                this._syncGoldStats(existing);
-            }
-        }
-
-        // 剩余金币放入新格子
-        while (amount > 0) {
-            const slot = this._getNextFreeSlot();
-            if (slot < 0) {
-                this._notifyFull();
-                return false;
-            }
-            const stack = Math.min(amount, MAX_GOLD_STACK);
-            const clone = JSON.parse(JSON.stringify(item));
-            clone.slot = slot;
-            clone.stack = stack;
-            clone.stats = [{ name: '数量', value: String(stack) }];
-            bp.push(clone);
-            amount -= stack;
-        }
-
-        this._notifyUpdate();
-        return true;
+        if (!isGoldItem(item)) return false;
+        const amount = Math.max(0, Math.floor(Number(item.stack) || 1));
+        return this.depositGold(amount, { notifyFull: true }) === amount;
     }
 }
 

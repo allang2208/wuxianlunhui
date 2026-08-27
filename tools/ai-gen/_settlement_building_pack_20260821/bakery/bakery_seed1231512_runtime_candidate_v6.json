@@ -1,0 +1,49 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\bakery\\bakery_s48_1231512_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\bakery\\bakery_seed1231512_runtime_candidate_v6.png",
+  "sourceMode": "RGB",
+  "background": [
+    250,
+    238,
+    2
+  ],
+  "matteColor": [
+    250,
+    238,
+    2
+  ],
+  "matteEdgeWidth": 20.0,
+  "matteTolerance": 150.0,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\bakery\\bakery_depth.png",
+  "maskDilate": 4,
+  "fillAlphaHoles": true,
+  "fillHoleMatteDistance": 24.0,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [
+    "640,565,865,705"
+  ],
+  "removeMatteRects": [],
+  "cropBox": [
+    73,
+    170,
+    953,
+    921
+  ],
+  "fileSize": [
+    880,
+    751
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    876,
+    747
+  ],
+  "displayW": 288,
+  "displayH": 246,
+  "footOffsetY": 122,
+  "scaleX": 0.32727272727272727,
+  "scaleY": 0.32756324900133155
+}

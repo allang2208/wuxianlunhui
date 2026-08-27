@@ -5,8 +5,9 @@
  * - 每次攻击按「实际造成伤害 × 50%」产出能源（地面掉落物，装入背包后可用于修建/修理）；
  * - 资源点储量 = hp；耗尽先切暗灰裂纹态，再复用建筑沉陷特效并永久清除；
  * - 资源点只对玩家/队员开放（怪物攻击无效），不做墙体碰撞（避免挡自家塔弹道）；
- * - 贴图 v3：4 种 AI 岩基晶簇随机池 + 随机镜像，AI 成品优先、程序化兜底；
- * - 每点固定占一个 128×64 等距格，矿簇按四邻格连续密集生成，但仍允许单位穿行。
+ * - 贴图 v4：按四邻格生成 16 帧道路式拼接矿脉；旧 3 形态 AI/程序化贴图保留兜底；
+ * - 每点固定占一个 128×64 等距格，矿簇按四邻格连续密集生成，但仍允许单位穿行；
+ * - 视觉宽度完整覆盖单格，并允许边缘少量跨格侵入，使相邻碎石/矿块自然拼接。
  */
 import { Game } from '../game.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
@@ -17,17 +18,52 @@ import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { blockCellCenter, blockCellOf } from './gate4-grid.js';
 import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
+import { isoFootprintsOverlap } from '../physics/iso-footprint.js';
+import { isoFootprintOverlapsActiveGate } from './gate-occupancy.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { BuildingSinkEffect } from '../effects/building-sink.js';
 import {
     ENERGY_NODE_V3_COUNT,
+    ENERGY_NODE_CONNECTION_BITS,
+    energyNodeDirectionalPair,
     energyNodeVariantPair,
     energyNodeFormMeta,
     ensureEnergyNodeTextures,
 } from './energy-node-textures.js';
 
 export { ENERGY_CONFIG };
+
+function energyNodeFootprintAt(x, y) {
+    return {
+        x, y,
+        collisionShape: 'iso_rect',
+        collisionWidth: ONE_CELL_BUILDING_FOOT.w,
+        collisionHeight: ONE_CELL_BUILDING_FOOT.d,
+        collisionIsoHalfU: ONE_CELL_BUILDING_FOOT.halfU,
+        collisionIsoHalfV: ONE_CELL_BUILDING_FOOT.halfV,
+        colliderOffsetX: 0,
+        colliderOffsetY: 0,
+    };
+}
+
+function overlapsActiveGateAt(x, y) {
+    return isoFootprintOverlapsActiveGate(
+        energyNodeFootprintAt(x, y),
+        Game?.entities?.values?.()
+    );
+}
+
+/** 深钻井等显式设施可以覆盖矿脉；自愈/恢复流程不得把其工作矿脉当成非法建筑重叠删除。 */
+function allowsEnergyNodeOverlapAt(x, y) {
+    if (!Game?.entities) return false;
+    const nodeFootprint = energyNodeFootprintAt(x, y);
+    for (const entity of Game.entities.values()) {
+        if (!entity?.active || !entity._allowsEnergyNodeOverlap) continue;
+        if (isoFootprintsOverlap(nodeFootprint, entity)) return true;
+    }
+    return false;
+}
 
 // ==================== 资源点实体 ====================
 
@@ -66,24 +102,38 @@ class EnergyNode extends DamageableEntity {
         this._noShadow = true;      // 岩基矿石透明贴图不额外叠加脚底阴影
         this._dormantBand = true;   // 静态资源点进休眠带；枯竭转场计时可消费聚合 dt
         this.noNameLabel = true;    // 名字/HP 走 _syncNeutralEntities 统一标签
-        // 贴图：4 种岩基晶簇 × 随机镜像。优先使用 AI 成品，缺失时走程序化兜底。
+        // 贴图：优先使用道路式四邻拼接图集，缺失时回退旧 3 形态矿脉。
         this._variant = Math.max(1, Math.min(ENERGY_NODE_V3_COUNT, cfg.variant || 1));
         const scene = window.__phaserScene;
         ensureEnergyNodeTextures(scene);
-        const pair = energyNodeVariantPair(scene, this._variant);
+        const directionalPair = energyNodeDirectionalPair(scene);
+        const pair = directionalPair || energyNodeVariantPair(scene, this._variant);
         const texKey = pair.key;
         this._depletedKey = pair.depletedKey;
         this._texSource = pair.source;
-        this._facingLeft = Math.random() < 0.5; // 同形态再镜像一次，进一步去重复
-        this._displayScale = 0.9 + Math.random() * 0.18; // 保留 90%~108% 视觉抖动
+        this._usesDirectionalVein = !!directionalPair;
+        this._connectionMask = 0;
+        this._facingLeft = directionalPair ? false : Math.random() < 0.5;
+        // 只放大 Sprite 做侵入式拼接；逻辑格、碰撞、采集与生成坐标仍严格保持 1×1。
+        const stitchScale = ENERGY_CONFIG.visualStitchScale || {};
+        const stitchMin = Math.max(1, Number(stitchScale.min) || 1);
+        const stitchMax = Math.max(stitchMin, Number(stitchScale.max) || stitchMin);
+        this._displayScale = directionalPair
+            ? 1
+            : stitchMin + Math.random() * (stitchMax - stitchMin);
         let aspect = 1.05;
         if (scene && scene.textures && scene.textures.exists(texKey)) {
-            const frame = scene.textures.getFrame(texKey);
+            const frame = scene.textures.getFrame(texKey, directionalPair ? 0 : undefined);
             if (frame && frame.realWidth > 0 && frame.realHeight > 0) {
                 aspect = frame.realWidth / frame.realHeight;
             }
         }
-        const displayW = Math.round(ENERGY_CONFIG.nodeSize * this._displayScale);
+        // 方向图集必须保持原生 128×64；若沿用旧单体矿的 130px 侵入式放大，
+        // 相邻端点会随中心缩放产生约 1px 漂移。旧兜底贴图仍消费配置宽度。
+        const displayBaseWidth = directionalPair
+            ? 128
+            : (ENERGY_CONFIG.visualDisplayWidth ?? ENERGY_CONFIG.nodeSize);
+        const displayW = Math.round(displayBaseWidth * this._displayScale);
         const displayH = Math.round(displayW / aspect);
         this._texKey = texKey;
         this.spriteCfg = {
@@ -91,6 +141,7 @@ class EnergyNode extends DamageableEntity {
             size: displayW,
             sizeH: displayH,
             footOffsetY: displayH / 2,
+            frame: directionalPair ? 0 : undefined,
         };
         this.footOffsetY = displayH / 2;
         // 统一遮挡锚线（能源矿也参与遮挡仲裁：单位在其后被盖、在前/同线盖过矿点）
@@ -156,31 +207,63 @@ class EnergyNode extends DamageableEntity {
         this.hittable = false;
         this._depleted = true;
         this._collapseTimer = ENERGY_CONFIG.depletedHoldMs ?? 650;
-        this._swapTexture(this._depletedKey || 'energy_node_depleted');
+        this._swapTexture(
+            this._depletedKey || 'energy_node_depleted',
+            this._usesDirectionalVein ? this._connectionMask : null
+        );
     }
 
     /** 直接换活精灵贴图（_syncNeutralEntities 只创建一次 sprite，换肤必须手动）。
-     *  AI 正常/枯竭两张图可能因抠图裁切产生轻微宽高比差异，换肤时同步重算显示尺寸。 */
-    _swapTexture(key) {
+     *  正常/枯竭正式图共用 Alpha；这里仍按真实帧宽高重算，兼容程序化兜底。 */
+    _swapTexture(key, frameIndex = null) {
         const scene = window.__phaserScene;
         if (!scene || !scene.textures || !scene.textures.exists(key)) return;
-        const frame = scene.textures.getFrame(key);
+        const hasFrame = Number.isInteger(frameIndex);
+        const frame = scene.textures.getFrame(key, hasFrame ? frameIndex : undefined);
         let aspect = 1.05;
         if (frame && frame.realWidth > 0 && frame.realHeight > 0) {
             aspect = frame.realWidth / frame.realHeight;
         }
-        const displayW = Math.round(ENERGY_CONFIG.nodeSize * (this._displayScale || 1));
+        const displayBaseWidth = this._usesDirectionalVein
+            ? 128
+            : (ENERGY_CONFIG.visualDisplayWidth ?? ENERGY_CONFIG.nodeSize);
+        const displayW = Math.round(displayBaseWidth * (this._displayScale || 1));
         const displayH = Math.round(displayW / aspect);
         this.spriteCfg.idleKey = key;
+        if (hasFrame) this.spriteCfg.frame = frameIndex;
+        else delete this.spriteCfg.frame;
         this.spriteCfg.size = displayW;
         this.spriteCfg.sizeH = displayH;
         this.spriteCfg.footOffsetY = displayH / 2;
         this.footOffsetY = this.spriteCfg.footOffsetY;
         const data = scene._neutralSprites && scene._neutralSprites.get(this);
         if (data && data.sprite && data.sprite.active) {
-            data.sprite.setTexture(key);
+            if (hasFrame) data.sprite.setTexture(key, frameIndex);
+            else data.sprite.setTexture(key);
             data.sprite.setDisplaySize(displayW, displayH);
         }
+    }
+
+    /** 应用四邻掩码；贴图缺失时保留构造阶段选中的旧版兜底。 */
+    _applyConnectionMask(mask) {
+        const normalizedMask = Number(mask) & 0x0f;
+        const pair = energyNodeDirectionalPair(window.__phaserScene);
+        if (!pair) return false;
+        if (this._usesDirectionalVein
+            && this._connectionMask === normalizedMask
+            && this._texKey === pair.key
+            && this._depletedKey === pair.depletedKey) {
+            return true;
+        }
+        this._usesDirectionalVein = true;
+        this._connectionMask = normalizedMask;
+        this._texKey = pair.key;
+        this._depletedKey = pair.depletedKey;
+        this._texSource = pair.source;
+        this._facingLeft = false;
+        this._displayScale = 1;
+        this._swapTexture(this._depleted ? pair.depletedKey : pair.key, normalizedMask);
+        return true;
     }
 
     update(dt) {
@@ -262,6 +345,7 @@ export const EnergyNodeSystem = {
                 this.nodes.push(node);
             }
         }
+        this._refreshConnections();
           // 能源矿取消物理碰撞：不向 A*登记圆形障碍，单位可直接穿过矿体。
           if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
               pathFinder.setEntityCircleObstacles([]);
@@ -295,8 +379,9 @@ export const EnergyNodeSystem = {
             }
             for (let index = limit; index < generated.length; index++) {
                 generated[index].active = false;
-                this._removeNodeReference(generated[index]);
+                this._removeNodeReference(generated[index], false);
             }
+            this._refreshConnections();
             return;
         }
         // 清掉 setup 随机铺的节点（实体 + 列表），再按快照重建
@@ -322,8 +407,10 @@ export const EnergyNodeSystem = {
             );
             if (!nearCluster) continue;
             if (!this._insideGenerationDiamond(px, py)) continue;
+            if (overlapsActiveGateAt(px, py)) continue;
             if (WallSystem && typeof WallSystem.canMoveTo === 'function'
-                && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius)) {
+                && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius)
+                && !allowsEnergyNodeOverlapAt(px, py)) {
                 continue;
             }
             const maxHp = Math.max(1, Math.floor(s.maxHp || s.hp || 1));
@@ -341,6 +428,7 @@ export const EnergyNodeSystem = {
             this.nodes.push(node);
             occupiedCells.add(key);
         }
+        this._refreshConnections();
         if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
             pathFinder.setEntityCircleObstacles([]);
         }
@@ -362,9 +450,12 @@ export const EnergyNodeSystem = {
             const [px, py] = blockCellCenter(ci, cj);
             // ① 残留节点：不在任何当前簇半径内（spread + 50 余量）
             const nearCluster = clusters.some((c) => Math.hypot(px - c.x, py - c.y) <= (c.spread || 320) + 50);
+            const blockedByGate = overlapsActiveGateAt(px, py);
             const blockedByStructure = WallSystem && typeof WallSystem.canMoveTo === 'function'
-                && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius);
-            if (!nearCluster || !this._insideGenerationDiamond(px, py) || blockedByStructure) {
+                && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius)
+                && !allowsEnergyNodeOverlapAt(px, py);
+            if (!nearCluster || !this._insideGenerationDiamond(px, py)
+                || blockedByGate || blockedByStructure) {
                 e.active = false;
                 Game.entities.delete(k);
                 removed++;
@@ -388,6 +479,7 @@ export const EnergyNodeSystem = {
             }
         }
         this.nodes = kept;
+        this._refreshConnections();
         if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
             pathFinder.setEntityCircleObstacles([]);
         }
@@ -530,8 +622,10 @@ export const EnergyNodeSystem = {
         if (!this._insideGenerationDiamond(x, y, 64)) return false;
         if (cluster.minPortalDistance > 0
             && Math.hypot(x - cluster.portal.x, y - cluster.portal.y) < cluster.minPortalDistance) return false;
+        if (overlapsActiveGateAt(x, y)) return false;
         return !(WallSystem && typeof WallSystem.canMoveTo === 'function'
-            && !WallSystem.canMoveTo(x, y, ENERGY_CONFIG.nodeRadius));
+            && !WallSystem.canMoveTo(x, y, ENERGY_CONFIG.nodeRadius)
+            && !allowsEnergyNodeOverlapAt(x, y));
     },
 
     /** 从最近合法种子格向四邻格生长，只有成功放置的格才继续产生前沿。 */
@@ -596,12 +690,35 @@ export const EnergyNodeSystem = {
         if (node._depleted) {
             node.hp = 0;
             node.hittable = false;
-            node._swapTexture(node._depletedKey || 'energy_node_depleted');
+            node._swapTexture(
+                node._depletedKey || 'energy_node_depleted',
+                node._usesDirectionalVein ? node._connectionMask : null
+            );
+        }
+    },
+
+    /** 由当前存活节点位置派生 4-bit 邻接，不写入快照，恢复旧存档后也会得到一致拼接。 */
+    _refreshConnections() {
+        const byCell = new Map();
+        for (const node of this.nodes) {
+            if (!node || node.active === false || node._sinking) continue;
+            byCell.set(this._cellKey(node._gridCellI, node._gridCellJ), node);
+        }
+        for (const node of byCell.values()) {
+            const i = node._gridCellI;
+            const j = node._gridCellJ;
+            let mask = 0;
+            if (byCell.has(this._cellKey(i + 1, j))) mask |= ENERGY_NODE_CONNECTION_BITS.I_POSITIVE;
+            if (byCell.has(this._cellKey(i - 1, j))) mask |= ENERGY_NODE_CONNECTION_BITS.I_NEGATIVE;
+            if (byCell.has(this._cellKey(i, j + 1))) mask |= ENERGY_NODE_CONNECTION_BITS.J_POSITIVE;
+            if (byCell.has(this._cellKey(i, j - 1))) mask |= ENERGY_NODE_CONNECTION_BITS.J_NEGATIVE;
+            node._applyConnectionMask(mask);
+            node._formMeta = { key: 'directional_mask', label: `方向拼接 ${mask}`, mask };
         }
     },
 
     /** 矿点开始沉陷时立即退出系统数组与实体表；精灵已由 BuildingSinkEffect 接管。 */
-    _removeNodeReference(node) {
+    _removeNodeReference(node, refreshConnections = true) {
         const index = this.nodes.indexOf(node);
         if (index >= 0) this.nodes.splice(index, 1);
         if (Game && Game.entities) {
@@ -609,9 +726,10 @@ export const EnergyNodeSystem = {
                 if (entity === node) Game.entities.delete(key);
             }
         }
+        if (refreshConnections) this._refreshConnections();
     },
 
-    /** 4 形态洗牌袋：一袋内尽量不重复，抽空再洗 */
+    /** 3 形态洗牌袋：一袋内尽量不重复，抽空再洗 */
     _refillVariantBag() {
         this._variantBag = Array.from({ length: ENERGY_NODE_V3_COUNT }, (_, i) => i + 1);
         for (let i = this._variantBag.length - 1; i > 0; i--) {
@@ -644,8 +762,8 @@ export const EnergyNodeSystem = {
     /** 资源点实体自带 update（主循环调用），系统层无需逐帧推进 */
 
     /** 资源点贴图：
-     *  1) 优先 BootScene 已加载的 4 种 AI 岩基晶簇 energy_node_v3_<n> / energy_node_depleted_v3_<n>；
-     *  2) 未出图/部分缺图时，用 energy-node-textures.js 生成 4 形态程序化版兜底；
+     *  1) 优先 BootScene 已加载的 16 帧道路式四邻拼接图集；
+     *  2) 图集缺失时，回退 3 种 AI 裸露矿脉或程序化同语义兜底；
      *  3) energy_node / energy_node_depleted 仍保留 64×64 占位，仅用于极端加载失败路径。 */
     _ensureTextures() {
         const scene = window.__phaserScene;

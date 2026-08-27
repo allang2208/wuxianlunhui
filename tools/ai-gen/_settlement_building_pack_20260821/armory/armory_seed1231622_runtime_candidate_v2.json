@@ -1,0 +1,45 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\armory\\refine_48step_seed123162\\armory_refine48_from123162_seed1231622_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\armory\\armory_seed1231622_runtime_candidate_v2.png",
+  "sourceMode": "RGB",
+  "background": [
+    253,
+    235,
+    0
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 4.0,
+  "matteTolerance": 165.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\armory\\armory_depth.png",
+  "maskDilate": 4,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.06,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    71,
+    168,
+    955,
+    921
+  ],
+  "fileSize": [
+    884,
+    753
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    880,
+    749
+  ],
+  "displayW": 288,
+  "displayH": 245,
+  "footOffsetY": 121,
+  "scaleX": 0.3257918552036199,
+  "scaleY": 0.3253652058432935
+}

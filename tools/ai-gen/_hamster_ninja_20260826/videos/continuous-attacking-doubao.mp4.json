@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_ninja_20260826\\references\\hamster-ninja-continuous-attack-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_ninja_20260826\\prompts\\continuous-attacking-doubao.txt",
+  "promptChars": 2892,
+  "promptSha256": "a0dc76b4ec607edc474b48bdd7bda345347fa527b1b498a02eae9b15c21b1709",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T03:49:42.294Z",
+  "sourceUrlScheme": "https"
+}

@@ -1083,6 +1083,201 @@
             ]
         }
     },
+    "weapon36": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "singularity_bifurcation_prism",
+                    "name": "双生分岔器",
+                    "icon": "assets/icons/craft-cold-steel/focus_lens.png",
+                    "desc": "【轨迹二选一】首段弹射同时分岔至两名协议选定目标；每路伤害45%，最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "ricochetExtraTargets": 1, "ricochetDamageMultiplierDelta": -0.2, "maxSpreadAngleDelta": 3 }
+                },
+                {
+                    "id": "singularity_closed_loop_relay",
+                    "name": "闭环回授器",
+                    "icon": "assets/icons/craft-cold-steel/overload_cell.png",
+                    "desc": "【轨迹二选一】首段弹射命中后折返原目标，再造成35%伤害；攻击间隔+15ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "ricochetReturnDamageMultiplier": 0.35, "attackIntervalDelta": 15 }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "singularity_cull_arbitrator",
+                    "name": "猎弱裁决芯",
+                    "icon": "assets/icons/craft-cold-steel/terminal_convergence_core.png",
+                    "desc": "【协议二选一】首段弹射优先锁定范围内生命比例最低的目标；搜索范围-120px",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "ricochetTargetMode": "lowestHp", "ricochetRangeDelta": -120 }
+                },
+                {
+                    "id": "singularity_harvest_repeater",
+                    "name": "断链收割器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "【协议二选一】每条首段弹射击杀后，该分支获得1次45%伤害续跳；弹匣-10发",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": { "ricochetKillChainCount": 1, "ricochetChainDamageMultiplier": 0.45, "magazineDelta": -10 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "singularity_collapse_aftershock",
+                    "name": "星坍余震匣",
+                    "icon": "assets/icons/craft-cold-steel/terminal_singularity_mag.png",
+                    "desc": "【增幅二选一】每个首段弹射落点向90px内最多3名其他敌人释放25%余震；换弹时间+700ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "ricochetSplashRadius": 90, "ricochetSplashDamageMultiplier": 0.25, "ricochetSplashMaxTargets": 3, "reloadTimeDelta": 700 }
+                },
+                {
+                    "id": "singularity_temporal_anchor",
+                    "name": "时滞锚定器",
+                    "icon": "assets/icons/craft-cold-steel/terminal_feedback_grip.png",
+                    "desc": "【增幅二选一】同一目标每累计5次首段弹射命中，束缚0.4秒；移动速度-5%",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "ricochetAnchorHitsRequired": 5, "ricochetAnchorDurationMs": 400, "moveSpeedPercent": -0.05 }
+                }
+            ]
+        }
+    },
+    "weapon37": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "celestial_snapshot_astrolabe",
+                    "name": "快照星盘",
+                    "icon": "assets/icons/craft-cold-steel/celestial_snapshot_astrolabe.png",
+                    "desc": "【观测二选一】第3次命中建立锚点、第6次结算；星图结算威力-22%，最大散布+2°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "constellationAnchorHitDelta": -1, "constellationResolveHitDelta": -2, "constellationPowerMultiplierDelta": -0.22, "maxSpreadAngleDelta": 2 }
+                },
+                {
+                    "id": "celestial_deep_exposure_dial",
+                    "name": "深空长曝仪",
+                    "icon": "assets/icons/craft-cold-steel/celestial_deep_exposure_dial.png",
+                    "desc": "【观测二选一】第5次命中建立锚点、第10次结算；星图结算威力+35%，攻击间隔+12ms",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "constellationAnchorHitDelta": 1, "constellationResolveHitDelta": 2, "constellationPowerMultiplierDelta": 0.35, "attackIntervalDelta": 12 }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "celestial_wide_meridian_prism",
+                    "name": "广角经纬棱镜",
+                    "icon": "assets/icons/craft-cold-steel/celestial_wide_meridian_prism.png",
+                    "desc": "【几何二选一】经纬线宽度+34px、目标上限+3，天顶余波半径+40px/目标+2；经纬线伤害倍率-0.16",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "constellationLineWidthDelta": 34, "constellationLineMaxTargetsDelta": 3, "constellationLineDamageMultiplierDelta": -0.16, "constellationFocusRadiusDelta": 40, "constellationFocusMaxTargetsDelta": 2 }
+                },
+                {
+                    "id": "celestial_zenith_pinhole",
+                    "name": "针孔天顶仪",
+                    "icon": "assets/icons/craft-cold-steel/celestial_zenith_pinhole.png",
+                    "desc": "【几何二选一】经纬线宽度-26px、目标上限-3，天顶余波半径-30px/目标-2；经纬线伤害倍率+0.42",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "constellationLineWidthDelta": -26, "constellationLineMaxTargetsDelta": -3, "constellationLineDamageMultiplierDelta": 0.42, "constellationFocusRadiusDelta": -30, "constellationFocusMaxTargetsDelta": -2 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "celestial_cold_afterglow_brake",
+                    "name": "冷辉滞留器",
+                    "icon": "assets/icons/craft-cold-steel/celestial_cold_afterglow_brake.png",
+                    "desc": "【余辉二选一】经纬线与天顶坠击命中的目标减速0.9秒；换弹时间+450ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "constellationSlowDurationMs": 900, "reloadTimeDelta": 450 }
+                },
+                {
+                    "id": "celestial_parallax_carry_relay",
+                    "name": "视差续算器",
+                    "icon": "assets/icons/craft-cold-steel/celestial_parallax_carry_relay.png",
+                    "desc": "【余辉二选一】每次星图结算后保留2次连续命中进度；弹匣-12发",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "constellationCarryHits": 2, "magazineDelta": -12 }
+                }
+            ]
+        }
+    },
+    "weapon38": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "litany_double_inscription_needle",
+                    "name": "速诵双刻针",
+                    "icon": "assets/icons/craft-cold-steel/litany_double_inscription_needle.png",
+                    "desc": "【刻印二选一】每次有效命中连续刻下2种轮转符文；黑弥撒伤害倍率-0.28，最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "runeMarksPerHit": 2, "runeVerdictDamageMultiplierDelta": -0.28, "maxSpreadAngleDelta": 3 }
+                },
+                {
+                    "id": "litany_gravestone_burin",
+                    "name": "墓碑深铭针",
+                    "icon": "assets/icons/craft-cold-steel/litany_gravestone_burin.png",
+                    "desc": "【刻印二选一】符文记忆+3.5秒，黑弥撒伤害倍率+0.38；攻击间隔+18ms",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "runeMemoryDurationDelta": 3500, "runeVerdictDamageMultiplierDelta": 0.38, "attackIntervalDelta": 18 }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "litany_congregation_dome",
+                    "name": "会众穹顶",
+                    "icon": "assets/icons/craft-cold-steel/litany_congregation_dome.png",
+                    "desc": "【裁决二选一】黑弥撒半径+70px、目标上限+4；伤害倍率-0.18",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": { "runeVerdictRadiusDelta": 70, "runeVerdictMaxTargetsDelta": 4, "runeVerdictDamageMultiplierDelta": -0.18 }
+                },
+                {
+                    "id": "litany_execution_clapper",
+                    "name": "处刑钟舌",
+                    "icon": "assets/icons/craft-cold-steel/litany_execution_clapper.png",
+                    "desc": "【裁决二选一】黑弥撒半径-75px、目标上限-3；伤害倍率+0.55",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "runeVerdictRadiusDelta": -75, "runeVerdictMaxTargetsDelta": -3, "runeVerdictDamageMultiplierDelta": 0.55 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "litany_soul_migration_tract",
+                    "name": "亡魂迁经",
+                    "icon": "assets/icons/craft-cold-steel/litany_soul_migration_tract.png",
+                    "desc": "【传承二选一】直击击杀时，未完成的血骨烬符文迁移至400px内最多3名敌人；弹匣-10发。迁移裁决不会再次迁移",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "runeInheritanceTargets": 3, "runeInheritanceRangeDelta": 40, "magazineDelta": -10 }
+                },
+                {
+                    "id": "litany_ember_gospel",
+                    "name": "余烬福音",
+                    "icon": "assets/icons/craft-cold-steel/litany_ember_gospel.png",
+                    "desc": "【传承二选一】黑弥撒的幸存目标继承触发裁决时的最后一印；继承不会立即再次裁决，换弹时间+600ms",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": { "runeVerdictSeedMarks": true, "reloadTimeDelta": 600 }
+                }
+            ]
+        }
+    },
     "weapon7": {
         "slots": [
             {
@@ -1340,19 +1535,42 @@
                     "id": "red_dot",
                     "name": "全景红点瞄具",
                     "icon": "assets/icons/craft-cold-steel/red_dot.png",
-                    "desc": "散布开始 +1秒，单倍瞄准模式",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
                         "redDotScope": true
                     }
                 },
                 {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
                     "id": "russian_3x_scope",
-                    "name": "俄制三倍镜",
+                    "name": "三倍战术瞄具",
                     "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
-                    "desc": "散布开始 +1秒，高倍镜瞄准模式",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
                         "highPowerScope": true
                     }
                 }
@@ -1493,10 +1711,12 @@
                     "id": "piston_tuning",
                     "name": "活塞调校",
                     "icon": "assets/icons/craft-cold-steel/piston_tuning.png",
-                    "desc": "攻击间隔-20ms，后坐力恢复时间-100ms",
+                    "desc": "攻击间隔-10ms，后坐恢复时间-100ms，最大散布角度+2°",
+                    "ticketCost": 2,
                     "effects": {
-                        "attackIntervalDelta": -20,
-                        "recoilRecoveryDelta": -100
+                        "attackIntervalDelta": -10,
+                        "recoilRecoveryDelta": -100,
+                        "maxSpreadAngleDelta": 2
                     }
                 }
             ],
@@ -1782,9 +2002,9 @@
                     "id": "light_trigger",
                     "name": "轻量化击发组件",
                     "icon": "assets/icons/craft-cold-steel/light_trigger.png",
-                    "desc": "射击间隔-300ms",
+                    "desc": "射击间隔-15ms（最低40ms）",
                     "effects": {
-                        "attackIntervalDelta": -300
+                        "attackIntervalDelta": -15
                     }
                 },
                 {
@@ -2514,9 +2734,9 @@
                     "id": "extended_grip",
                     "name": "加长弹匣",
                     "icon": "assets/icons/craft-cold-steel/extended_grip.png",
-                    "desc": "备弹+9，换弹时间+300ms",
+                    "desc": "备弹+6，换弹时间+300ms",
                     "effects": {
-                        "magazineDelta": 9,
+                        "magazineDelta": 6,
                         "reloadTimeDelta": 300
                     }
                 }
@@ -2558,13 +2778,16 @@
                     "id": "auto_trigger",
                     "name": "全自动板机",
                     "icon": "assets/icons/craft-cold-steel/auto_trigger.png",
-                    "desc": "切换为全自动射击模式，射击间隔-75ms；散布开始1s、3s达最大、最大散布±15°",
+                    "desc": "切换为全自动射击模式，射击间隔-75ms；第5发后扩散，第14发达到最大±15°",
+                    "specialModification": true,
+                    "ticketCost": 4,
                     "effects": {
                         "fireModeOverride": "fullAuto",
                         "attackIntervalDelta": -75,
                         "spreadParamsOverride": {
-                            "startDelay": 1000,
-                            "maxTime": 3000,
+                            "startShots": 5,
+                            "maxShots": 14,
+                            "recoveryMs": 420,
                             "maxAngle": 15
                         }
                     }
@@ -2985,6 +3208,17 @@
                         "spreadStartDelta": 500,
                         "moveSpeedPercent": 0.05
                     }
+                },
+                {
+                    "id": "qbz191_freefloat_handguard",
+                    "name": "自由浮置护木",
+                    "icon": "assets/icons/craft-cold-steel/qbz191_freefloat_handguard.png",
+                    "desc": "后坐恢复时间-100ms，最大散布角度-3°",
+                    "ticketCost": 2,
+                    "effects": {
+                        "recoilRecoveryDelta": -100,
+                        "maxSpreadAngleDelta": -3
+                    }
                 }
             ],
             "magazine": [
@@ -3023,12 +3257,24 @@
                 },
                 {
                     "id": "sniper_ammo",
-                    "name": "高���度狙击弹",
+                    "name": "高精度狙击弹",
                     "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
                     "desc": "射程+200px，散布达到最大时间+0.5秒",
                     "effects": {
                         "rangeDelta": 200,
                         "spreadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "dbp191_high_velocity",
+                    "name": "DBP191高速弹",
+                    "icon": "assets/icons/craft-cold-steel/dbp191_high_velocity.png",
+                    "desc": "弹速+12%，无视目标12%防御力，伤害-3%",
+                    "ticketCost": 2,
+                    "effects": {
+                        "projectileSpeedPercent": 0.12,
+                        "armorPenetrationPercent": 0.12,
+                        "damagePercent": -0.03
                     }
                 }
             ],
@@ -3084,6 +3330,18 @@
                     "effects": {
                         "moveSpreadPercent": -0.15
                     }
+                },
+                {
+                    "id": "qbz191_high_speed_trigger",
+                    "name": "双面快控组件",
+                    "icon": "assets/icons/craft-cold-steel/qbz191_high_speed_trigger.png",
+                    "desc": "攻击间隔-8ms，最大散布角度+2°",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "attackIntervalDelta": -8,
+                        "maxSpreadAngleDelta": 2
+                    }
                 }
             ],
             "sight": [
@@ -3091,31 +3349,43 @@
                     "id": "red_dot",
                     "name": "全景红点瞄具",
                     "icon": "assets/icons/craft-cold-steel/red_dot.png",
-                    "desc": "散布开始 +1秒，单倍瞄准模式",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
                         "redDotScope": true
                     }
                 },
                 {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
                     "id": "russian_3x_scope",
-                    "name": "俄制三倍镜",
+                    "name": "三倍战术瞄具",
                     "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
-                    "desc": "散布开始 +1秒，高倍镜瞄准模式",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
                         "highPowerScope": true
                     }
                 },
                 {
-                    "id": "qbz_scope",
-                    "name": "无托战术瞄具",
-                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
-                    "desc": "散布开始+0.75秒，单倍瞄准模式，射程+50px",
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
                     "effects": {
-                        "spreadStartDelta": 750,
-                        "redDotScope": true,
-                        "rangeDelta": 50
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
                     }
                 }
             ],
@@ -4118,13 +4388,16 @@
                     "id": "auto_trigger",
                     "name": "全自动板机",
                     "icon": "assets/icons/craft-cold-steel/auto_trigger.png",
-                    "desc": "切换为全自动射击模式，射击间隔-100ms；散布开始0.75s、2s达最大、最大散布±15°",
+                    "desc": "切换为全自动射击模式，射击间隔-100ms；第4发后扩散，第12发达到最大±15°",
+                    "specialModification": true,
+                    "ticketCost": 4,
                     "effects": {
                         "fireModeOverride": "fullAuto",
                         "attackIntervalDelta": -100,
                         "spreadParamsOverride": {
-                            "startDelay": 750,
-                            "maxTime": 2000,
+                            "startShots": 4,
+                            "maxShots": 12,
+                            "recoveryMs": 400,
                             "maxAngle": 15
                         }
                     }
@@ -4133,13 +4406,13 @@
                     "id": "lightweight_trigger",
                     "name": "轻量化快速板机",
                     "icon": "assets/icons/craft-cold-steel/lightweight_trigger.png",
-                    "desc": "攻击间隔-100ms，换弹时间-500ms；每次射击击中目标获得2s加速buff（移动速度+10%）",
+                    "desc": "攻击间隔-100ms；每发子弹首次命中获得2s加速（移动速度+10%，再次命中刷新）",
                     "effects": {
                         "attackIntervalDelta": -100,
-                        "reloadTimeDelta": -500,
                         "onHitSpeedBuff": {
                             "durationMs": 2000,
-                            "speedPercent": 0.1
+                            "speedPercent": 0.1,
+                            "triggerPerProjectile": true
                         }
                     }
                 }
@@ -4433,6 +4706,2577 @@
             ]
         }
     },
+    "weapon23": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.232
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.278
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "stamped_receiver_tuning",
+                    "name": "冲压机匣校正",
+                    "icon": "assets/icons/craft-cold-steel/stamped_receiver_tuning.png",
+                    "desc": "散布开始延后约2发，后坐恢复时间-80ms",
+                    "ticketCost": 2,
+                    "effects": {
+                        "spreadStartDelta": 240,
+                        "recoilRecoveryDelta": -80
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "kurz_792_heavy",
+                    "name": "7.92 Kurz重弹",
+                    "icon": "assets/icons/craft-cold-steel/kurz_792_heavy.png",
+                    "desc": "伤害+10%，攻击间隔+15ms，击退+3px",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "damagePercent": 0.1,
+                        "attackIntervalDelta": 15,
+                        "knockbackDelta": 3
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "walnut_fixed_stock",
+                    "name": "胡桃木固定枪托",
+                    "icon": "assets/icons/craft-cold-steel/walnut_fixed_stock.png",
+                    "desc": "后坐恢复时间-180ms，移动速度-3%",
+                    "ticketCost": 2,
+                    "effects": {
+                        "recoilRecoveryDelta": -180,
+                        "moveSpeedPercent": -0.03
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ]
+        }
+    },
+    "weapon24": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.5027471264367817,
+                    "y": 0.28569127516778575
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.5027471264367817,
+                    "y": 0.32665771812080613
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.501574712643679,
+                    "y": 0.42424161073825417
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.5015747126436789,
+                    "y": 0.42256375838926086
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托/尾垫",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "qbz95_gas_tuning",
+                    "name": "导气系统调校",
+                    "icon": "assets/icons/craft-cold-steel/qbz95_gas_tuning.png",
+                    "desc": "攻击间隔-10ms，后坐恢复时间-80ms，最大散布角度+3°",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "attackIntervalDelta": -10,
+                        "recoilRecoveryDelta": -80,
+                        "maxSpreadAngleDelta": 3
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "dbp87_balanced_round",
+                    "name": "DBP87均衡弹",
+                    "icon": "assets/icons/craft-cold-steel/dbp87_balanced_round.png",
+                    "desc": "伤害+6%，弹速+8%，击退+1px",
+                    "ticketCost": 2,
+                    "effects": {
+                        "damagePercent": 0.06,
+                        "projectileSpeedPercent": 0.08,
+                        "knockbackDelta": 1
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "qbz95_rubber_buttpad",
+                    "name": "缓冲橡胶尾垫",
+                    "icon": "assets/icons/craft-cold-steel/qbz95_rubber_buttpad.png",
+                    "desc": "后坐恢复时间-100ms，移动速度-2%",
+                    "ticketCost": 2,
+                    "effects": {
+                        "recoilRecoveryDelta": -100,
+                        "moveSpeedPercent": -0.02
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                },
+                {
+                    "id": "bullpup_balance",
+                    "name": "无托平衡改造",
+                    "icon": "assets/icons/craft-cold-steel/bullpup_balance.png",
+                    "desc": "移动散布-15%",
+                    "effects": {
+                        "moveSpreadPercent": -0.15
+                    }
+                },
+                {
+                    "id": "qbz95_grip_insert",
+                    "name": "无托握把嵌片",
+                    "icon": "assets/icons/craft-cold-steel/qbz95_grip_insert.png",
+                    "desc": "后坐恢复时间-120ms，最大散布角度-3°",
+                    "ticketCost": 2,
+                    "effects": {
+                        "recoilRecoveryDelta": -120,
+                        "maxSpreadAngleDelta": -3
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ],
+            "trigger": [
+                {
+                    "id": "rapid_trigger",
+                    "name": "高速扳机",
+                    "icon": "assets/icons/craft-cold-steel/rapid_trigger.png",
+                    "desc": "攻击间隔-15ms，每次射击散布+1°",
+                    "effects": {
+                        "attackIntervalDelta": -15,
+                        "shotSpreadDelta": 1
+                    }
+                }
+            ]
+        }
+    },
+    "weapon25": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.232
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.278
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "frontier_overdrive_bolt",
+                    "name": "边境超驱枪机",
+                    "icon": "assets/icons/craft-cold-steel/frontier_overdrive_bolt.png",
+                    "desc": "攻击间隔-10ms，最大散布角度+3°",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "attackIntervalDelta": -10,
+                        "maxSpreadAngleDelta": 3
+                    }
+                },
+                {
+                    "id": "frontier_ceramic_handguard",
+                    "name": "陶瓷散热护木",
+                    "icon": "assets/icons/craft-cold-steel/frontier_ceramic_handguard.png",
+                    "desc": "散布开始延后约3发，最大散布角度-2°",
+                    "ticketCost": 2,
+                    "effects": {
+                        "spreadStartDelta": 240,
+                        "maxSpreadAngleDelta": -2
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "frontier_light_core_round",
+                    "name": "边境轻芯弹",
+                    "icon": "assets/icons/craft-cold-steel/frontier_light_core_round.png",
+                    "desc": "弹速+12%，射程+120px，伤害-4%",
+                    "ticketCost": 2,
+                    "effects": {
+                        "projectileSpeedPercent": 0.12,
+                        "rangeDelta": 120,
+                        "damagePercent": -0.04
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "frontier_countermass_stock",
+                    "name": "配重缓冲枪托",
+                    "icon": "assets/icons/craft-cold-steel/frontier_countermass_stock.png",
+                    "desc": "后坐恢复时间-120ms，移动速度-2%",
+                    "ticketCost": 2,
+                    "effects": {
+                        "recoilRecoveryDelta": -120,
+                        "moveSpeedPercent": -0.02
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ]
+        }
+    },
+    "weapon27": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.232
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管/线圈",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.278
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "astral_superconducting_coil",
+                    "name": "超导潮汐线圈",
+                    "icon": "assets/icons/craft-cold-steel/frontier_overdrive_bolt.png",
+                    "desc": "峰值攻击间隔-6ms，但升速时间+0.8秒、最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "rampMinCooldownDelta": -6,
+                        "rampUpTimeDelta": 800,
+                        "maxSpreadAngleDelta": 3
+                    }
+                },
+                {
+                    "id": "astral_phase_regulator",
+                    "name": "相位稳压器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "升速时间-0.8秒，但峰值攻击间隔+8ms、最大散布-2°",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "rampUpTimeDelta": -800,
+                        "rampMinCooldownDelta": 8,
+                        "maxSpreadAngleDelta": -2
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "astral_capacitor_mag",
+                    "name": "折返电容弹匣",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹+8发，换弹时间+0.25秒；延长峰值射速压制窗口",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "magazineDelta": 8,
+                        "reloadTimeDelta": 250
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ]
+        }
+    },
+    "weapon28": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.232
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管/棱镜",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.278
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "zero_prism_array",
+                    "name": "六面校准棱镜",
+                    "icon": "assets/icons/craft-cold-steel/frontier_overdrive_bolt.png",
+                    "desc": "校准命中需求-2发，但仲裁弹伤害倍率-0.15、最大散布+2°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "calibrationHitsRequiredDelta": -2,
+                        "calibrationDamageMultiplierDelta": -0.15,
+                        "maxSpreadAngleDelta": 2
+                    }
+                },
+                {
+                    "id": "zero_overcharge_chamber",
+                    "name": "过载仲裁膛",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "仲裁弹伤害倍率+0.70，但校准命中需求+3发、攻击间隔+4ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "calibrationDamageMultiplierDelta": 0.7,
+                        "calibrationHitsRequiredDelta": 3,
+                        "attackIntervalDelta": 4
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "zero_guidance_core",
+                    "name": "折相导引弹芯",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "仲裁弹额外穿透+2个目标，但弹速-10%、弹夹-4发",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "calibrationPiercingBonusDelta": 2,
+                        "projectileSpeedPercent": -0.1,
+                        "magazineDelta": -4
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                },
+                {
+                    "id": "zero_phase_anchor_grip",
+                    "name": "相位锚定握把",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "最大散布角度-7°，但校准命中需求+1发、移动速度-3%",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "maxSpreadAngleDelta": -7,
+                        "calibrationHitsRequiredDelta": 1,
+                        "moveSpeedPercent": -0.03
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ]
+        }
+    },
+    "weapon29": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.232
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管/日冕环",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.278
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "corona_rapid_lattice",
+                    "name": "速启日冕栅格",
+                    "icon": "assets/icons/craft-cold-steel/frontier_overdrive_bolt.png",
+                    "desc": "稳定窗提前至第3—10发，但倍率降至1.20、最大散布+2°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "rhythmStartShotDelta": -2,
+                        "rhythmEndShotDelta": -2,
+                        "rhythmDamageMultiplierDelta": -0.08,
+                        "maxSpreadAngleDelta": 2
+                    }
+                },
+                {
+                    "id": "corona_extended_regulator",
+                    "name": "延展稳流环",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "稳定窗延长至第5—18发，但倍率降至1.16、攻击间隔+3ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "rhythmEndShotDelta": 6,
+                        "rhythmDamageMultiplierDelta": -0.12,
+                        "attackIntervalDelta": 3
+                    }
+                },
+                {
+                    "id": "corona_singularity_bolt",
+                    "name": "奇点裁律栓",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "稳定窗收束至第7—10发，倍率升至1.55，但最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "rhythmStartShotDelta": 2,
+                        "rhythmEndShotDelta": -2,
+                        "rhythmDamageMultiplierDelta": 0.27,
+                        "maxSpreadAngleDelta": 3
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "corona_reset_stock",
+                    "name": "断拍复位枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "节律重置时间-200ms，但弹夹-4发、移动速度-3%",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "rhythmResetMsDelta": -200,
+                        "magazineDelta": -4,
+                        "moveSpeedPercent": -0.03
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ]
+        }
+    },
+    "weapon30": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.232
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管/收束线圈",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.278
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "terminal_convergence_core",
+                    "name": "速启收束线圈",
+                    "icon": "assets/icons/craft-cold-steel/terminal_convergence_core.png",
+                    "desc": "收束提前2发启动，但每层伤害降至1.6%、最大散布+2°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "convergenceStartShotDelta": -2,
+                        "convergenceDamagePerStackDelta": -0.004,
+                        "maxSpreadAngleDelta": 2
+                    }
+                },
+                {
+                    "id": "terminal_overdrive_core",
+                    "name": "过载谐振核心",
+                    "icon": "assets/icons/craft-cold-steel/terminal_overdrive_core.png",
+                    "desc": "每层伤害升至2.8%，但攻击间隔+10ms、最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "convergenceDamagePerStackDelta": 0.008,
+                        "attackIntervalDelta": 10,
+                        "maxSpreadAngleDelta": 3
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "terminal_singularity_mag",
+                    "name": "奇点压缩弹匣",
+                    "icon": "assets/icons/craft-cold-steel/terminal_singularity_mag.png",
+                    "desc": "收束上限降至6层、每层伤害升至4%，但弹夹-6发、最大散布+2°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "convergenceMaxStacksDelta": -4,
+                        "convergenceDamagePerStackDelta": 0.02,
+                        "magazineDelta": -6,
+                        "maxSpreadAngleDelta": 2
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                },
+                {
+                    "id": "terminal_feedback_grip",
+                    "name": "闭环反馈握把",
+                    "icon": "assets/icons/craft-cold-steel/terminal_feedback_grip.png",
+                    "desc": "收束保留时间+180ms、每层额外降低1.5%散布，但移动速度-6%",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "convergenceResetMsDelta": 180,
+                        "convergenceSpreadPerStackDelta": 0.015,
+                        "moveSpeedPercent": -0.06
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ]
+        }
+    },
+    "weapon26": {
+        "slots": [
+            {
+                "id": "muzzle",
+                "name": "枪口",
+                "x": 0.08,
+                "y": 0.15,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.232
+                }
+            },
+            {
+                "id": "barrel",
+                "name": "枪管",
+                "x": 0.08,
+                "y": 0.4,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.278
+                }
+            },
+            {
+                "id": "sight",
+                "name": "瞄具",
+                "x": 0.08,
+                "y": 0.65,
+                "lineTarget": {
+                    "x": 0.499,
+                    "y": 0.49
+                }
+            },
+            {
+                "id": "magazine",
+                "name": "弹夹",
+                "x": 0.92,
+                "y": 0.08,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "bullet",
+                "name": "子弹",
+                "x": 0.92,
+                "y": 0.32,
+                "lineTarget": {
+                    "x": 0.401,
+                    "y": 0.488
+                }
+            },
+            {
+                "id": "grip",
+                "name": "握把",
+                "x": 0.92,
+                "y": 0.45,
+                "lineTarget": {
+                    "x": 0.503,
+                    "y": 0.555
+                }
+            },
+            {
+                "id": "stock",
+                "name": "后托",
+                "x": 0.92,
+                "y": 0.7,
+                "lineTarget": {
+                    "x": 0.497,
+                    "y": 0.664
+                }
+            }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "suppressor",
+                    "name": "消音器",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
+                    "desc": "射程 -300px，击退 +5px",
+                    "effects": {
+                        "rangeDelta": -300,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "flash_hider",
+                    "name": "鸟笼消焰器",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
+                    "desc": "射程 +150px，最大散布角度 -10°",
+                    "effects": {
+                        "rangeDelta": 150,
+                        "maxSpreadAngleDelta": -10
+                    }
+                },
+                {
+                    "id": "muzzle_brake",
+                    "name": "DTK制退器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 500
+                    }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "long_barrel",
+                    "name": "长枪管",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
+                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "projectileSpeedPercent": 0.2,
+                        "spreadStartDelta": 1000,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "short_barrel",
+                    "name": "短枪管",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
+                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
+                    "effects": {
+                        "rangeDelta": -200,
+                        "spreadStartDelta": 500,
+                        "moveSpeedPercent": 0.05
+                    }
+                },
+                {
+                    "id": "vengeance_burst_regulator",
+                    "name": "三连发谐振调节器",
+                    "icon": "assets/icons/craft-cold-steel/vengeance_burst_regulator.png",
+                    "desc": "三连发周期-40ms，最大散布角度+2°",
+                    "ticketCost": 2,
+                    "effects": {
+                        "attackIntervalDelta": -40,
+                        "maxSpreadAngleDelta": 2
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "light_mag",
+                    "name": "轻型弹夹",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
+                    "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
+                    "effects": {
+                        "reloadTimeDelta": -1500,
+                        "moveSpeedPercent": 0.1,
+                        "magazinePercent": -0.4
+                    }
+                },
+                {
+                    "id": "extended_mag",
+                    "name": "扩容弹箱",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
+                    "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
+                    "effects": {
+                        "magazineDelta": 25,
+                        "moveSpeedPercent": -0.1,
+                        "reloadTimeDelta": 500
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "ap_ammo",
+                    "name": "钢芯穿甲弹",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
+                    "desc": "攻击时无视目标35%防御力",
+                    "effects": {
+                        "armorPenetrationPercent": 0.35
+                    }
+                },
+                {
+                    "id": "sniper_ammo",
+                    "name": "高精度狙击弹",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
+                    "desc": "射程+200px，散布达到最大时间+0.5秒",
+                    "effects": {
+                        "rangeDelta": 200,
+                        "spreadTimeDelta": 500
+                    }
+                },
+                {
+                    "id": "heavy_762",
+                    "name": "7.62重弹",
+                    "icon": "assets/icons/craft-cold-steel/heavy_762.png",
+                    "desc": "伤害+12%，攻击间隔+20ms，击退+5px",
+                    "effects": {
+                        "damagePercent": 0.12,
+                        "attackIntervalDelta": 20,
+                        "knockbackDelta": 5
+                    }
+                },
+                {
+                    "id": "vengeance_heavy_core_round",
+                    "name": "复仇重芯弹",
+                    "icon": "assets/icons/craft-cold-steel/vengeance_heavy_core_round.png",
+                    "desc": "伤害+10%，弹速-8%，击退+2px",
+                    "ticketCost": 2,
+                    "effects": {
+                        "damagePercent": 0.1,
+                        "projectileSpeedPercent": -0.08,
+                        "knockbackDelta": 2
+                    }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "skeleton_stock",
+                    "name": "骨架枪托",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
+                    "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.05,
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": -1000
+                    }
+                },
+                {
+                    "id": "solid_core_stock",
+                    "name": "稳固核心枪托",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "散布开始 +0.5秒，最大散布 +1秒",
+                    "effects": {
+                        "spreadStartDelta": 500,
+                        "spreadTimeDelta": 1000
+                    }
+                },
+                {
+                    "id": "wood_furniture",
+                    "name": "AKM木托",
+                    "icon": "assets/icons/craft-cold-steel/wood_furniture.png",
+                    "desc": "后坐力恢复时间-150ms，移动速度-5%",
+                    "effects": {
+                        "recoilRecoveryDelta": -150,
+                        "moveSpeedPercent": -0.05
+                    }
+                },
+                {
+                    "id": "side_folding_stock",
+                    "name": "侧折叠枪托",
+                    "icon": "assets/icons/craft-cold-steel/side_folding_stock.png",
+                    "desc": "移动速度+8%，散布开始-0.25秒",
+                    "effects": {
+                        "moveSpeedPercent": 0.08,
+                        "spreadStartDelta": -250
+                    }
+                },
+                {
+                    "id": "vengeance_resonance_stock",
+                    "name": "谐振配重枪托",
+                    "icon": "assets/icons/craft-cold-steel/vengeance_resonance_stock.png",
+                    "desc": "后坐恢复时间-140ms，静止散布-12%",
+                    "ticketCost": 2,
+                    "effects": {
+                        "recoilRecoveryDelta": -140,
+                        "stationarySpreadPercent": -0.12
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "light_grip",
+                    "name": "轻型后握",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
+                    "desc": "移动速度 +10%，最大散布角度 +10°",
+                    "effects": {
+                        "moveSpeedPercent": 0.1,
+                        "maxSpreadAngleDelta": 10
+                    }
+                },
+                {
+                    "id": "heavy_grip",
+                    "name": "重型后握",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
+                    "desc": "散布开始 +0.25秒，最大散布角度 -5°",
+                    "effects": {
+                        "spreadStartDelta": 250,
+                        "maxSpreadAngleDelta": -5
+                    }
+                },
+                {
+                    "id": "vengeance_full_auto_core",
+                    "name": "复仇协议机芯",
+                    "icon": "assets/icons/craft-cold-steel/vengeance_full_auto_core.png",
+                    "desc": "改为全自动，攻击间隔-190ms，伤害-20%，全自动最大散布+8°",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "fireModeOverride": "fullAuto",
+                        "attackIntervalDelta": -190,
+                        "damagePercent": -0.2,
+                        "autoSpreadStartDelta": -240,
+                        "autoMaxSpreadAngleDelta": 8,
+                        "recoilRecoveryDelta": 80
+                    }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "red_dot",
+                    "name": "全景红点瞄具",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "散布开始+1秒，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "qbz_scope",
+                    "name": "一倍棱镜瞄具",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
+                    "desc": "散布开始+0.75秒，射程+50px，单倍瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 750,
+                        "rangeDelta": 50,
+                        "redDotScope": true
+                    }
+                },
+                {
+                    "id": "russian_3x_scope",
+                    "name": "三倍战术瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1秒，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1000,
+                        "highPowerScope": true
+                    }
+                },
+                {
+                    "id": "zf4_scope",
+                    "name": "四倍光学瞄具",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
+                    "desc": "散布开始+1.2秒，最大散布角度-4°，移动速度-3%，高倍镜瞄准模式",
+                    "effects": {
+                        "spreadStartDelta": 1200,
+                        "maxSpreadAngleDelta": -4,
+                        "moveSpeedPercent": -0.03,
+                        "highPowerScope": true
+                    }
+                }
+            ]
+        }
+    },
     "weapon31": {
         "templateWeaponId": "weapon6",
         "options": {
@@ -4592,275 +7436,6 @@
                         "overheatShotsRequiredDelta": 8,
                         "overheatDamageMultiplierDelta": 0.25,
                         "reloadTimeDelta": 500
-                    }
-                }
-            ]
-        }
-    },
-    "weapon36": {
-        "templateWeaponId": "weapon6",
-        "options": {
-            "barrel": [
-                {
-                    "id": "singularity_bifurcation_prism",
-                    "name": "双生分岔器",
-                    "icon": "assets/icons/craft-cold-steel/focus_lens.png",
-                    "desc": "【轨迹二选一】首段弹射同时分岔至两名协议选定目标；每路伤害45%，最大散布+3°",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "ricochetExtraTargets": 1,
-                        "ricochetDamageMultiplierDelta": -0.2,
-                        "maxSpreadAngleDelta": 3
-                    }
-                },
-                {
-                    "id": "singularity_closed_loop_relay",
-                    "name": "闭环回授器",
-                    "icon": "assets/icons/craft-cold-steel/overload_cell.png",
-                    "desc": "【轨迹二选一】首段弹射命中后折返原目标，再造成35%伤害；攻击间隔+15ms",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "ricochetReturnDamageMultiplier": 0.35,
-                        "attackIntervalDelta": 15
-                    }
-                }
-            ],
-            "bullet": [
-                {
-                    "id": "singularity_cull_arbitrator",
-                    "name": "猎弱裁决芯",
-                    "icon": "assets/icons/craft-cold-steel/terminal_convergence_core.png",
-                    "desc": "【协议二选一】首段弹射优先锁定范围内生命比例最低的目标；搜索范围-120px",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "ricochetTargetMode": "lowestHp",
-                        "ricochetRangeDelta": -120
-                    }
-                },
-                {
-                    "id": "singularity_harvest_repeater",
-                    "name": "断链收割器",
-                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
-                    "desc": "【协议二选一】每条首段弹射击杀后，该分支获得1次45%伤害续跳；弹匣-10发",
-                    "specialModification": true,
-                    "ticketCost": 4,
-                    "effects": {
-                        "ricochetKillChainCount": 1,
-                        "ricochetChainDamageMultiplier": 0.45,
-                        "magazineDelta": -10
-                    }
-                }
-            ],
-            "grip": [
-                {
-                    "id": "singularity_collapse_aftershock",
-                    "name": "星坍余震匣",
-                    "icon": "assets/icons/craft-cold-steel/terminal_singularity_mag.png",
-                    "desc": "【增幅二选一】每个首段弹射落点向90px内最多3名其他敌人释放25%余震；换弹时间+700ms",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "ricochetSplashRadius": 90,
-                        "ricochetSplashDamageMultiplier": 0.25,
-                        "ricochetSplashMaxTargets": 3,
-                        "reloadTimeDelta": 700
-                    }
-                },
-                {
-                    "id": "singularity_temporal_anchor",
-                    "name": "时滞锚定器",
-                    "icon": "assets/icons/craft-cold-steel/terminal_feedback_grip.png",
-                    "desc": "【增幅二选一】同一目标每累计5次首段弹射命中，束缚0.4秒；移动速度-5%",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "ricochetAnchorHitsRequired": 5,
-                        "ricochetAnchorDurationMs": 400,
-                        "moveSpeedPercent": -0.05
-                    }
-                }
-            ]
-        }
-    },
-    "weapon37": {
-        "templateWeaponId": "weapon6",
-        "options": {
-            "barrel": [
-                {
-                    "id": "celestial_snapshot_astrolabe",
-                    "name": "快照星盘",
-                    "icon": "assets/icons/craft-cold-steel/celestial_snapshot_astrolabe.png",
-                    "desc": "【观测二选一】第3次命中建立锚点、第6次结算；星图结算威力-22%，最大散布+2°",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "constellationAnchorHitDelta": -1,
-                        "constellationResolveHitDelta": -2,
-                        "constellationPowerMultiplierDelta": -0.22,
-                        "maxSpreadAngleDelta": 2
-                    }
-                },
-                {
-                    "id": "celestial_deep_exposure_dial",
-                    "name": "深空长曝仪",
-                    "icon": "assets/icons/craft-cold-steel/celestial_deep_exposure_dial.png",
-                    "desc": "【观测二选一】第5次命中建立锚点、第10次结算；星图结算威力+35%，攻击间隔+12ms",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "constellationAnchorHitDelta": 1,
-                        "constellationResolveHitDelta": 2,
-                        "constellationPowerMultiplierDelta": 0.35,
-                        "attackIntervalDelta": 12
-                    }
-                }
-            ],
-            "bullet": [
-                {
-                    "id": "celestial_wide_meridian_prism",
-                    "name": "广角经纬棱镜",
-                    "icon": "assets/icons/craft-cold-steel/celestial_wide_meridian_prism.png",
-                    "desc": "【几何二选一】经纬线宽度+34px、目标上限+3，天顶余波半径+40px/目标+2；经纬线伤害倍率-0.16",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "constellationLineWidthDelta": 34,
-                        "constellationLineMaxTargetsDelta": 3,
-                        "constellationLineDamageMultiplierDelta": -0.16,
-                        "constellationFocusRadiusDelta": 40,
-                        "constellationFocusMaxTargetsDelta": 2
-                    }
-                },
-                {
-                    "id": "celestial_zenith_pinhole",
-                    "name": "针孔天顶仪",
-                    "icon": "assets/icons/craft-cold-steel/celestial_zenith_pinhole.png",
-                    "desc": "【几何二选一】经纬线宽度-26px、目标上限-3，天顶余波半径-30px/目标-2；经纬线伤害倍率+0.42",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "constellationLineWidthDelta": -26,
-                        "constellationLineMaxTargetsDelta": -3,
-                        "constellationLineDamageMultiplierDelta": 0.42,
-                        "constellationFocusRadiusDelta": -30,
-                        "constellationFocusMaxTargetsDelta": -2
-                    }
-                }
-            ],
-            "grip": [
-                {
-                    "id": "celestial_cold_afterglow_brake",
-                    "name": "冷辉滞留器",
-                    "icon": "assets/icons/craft-cold-steel/celestial_cold_afterglow_brake.png",
-                    "desc": "【余辉二选一】经纬线与天顶坠击命中的目标减速0.9秒；换弹时间+450ms",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "constellationSlowDurationMs": 900,
-                        "reloadTimeDelta": 450
-                    }
-                },
-                {
-                    "id": "celestial_parallax_carry_relay",
-                    "name": "视差续算器",
-                    "icon": "assets/icons/craft-cold-steel/celestial_parallax_carry_relay.png",
-                    "desc": "【余辉二选一】每次星图结算后保留2次连续命中进度；弹匣-12发",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "constellationCarryHits": 2,
-                        "magazineDelta": -12
-                    }
-                }
-            ]
-        }
-    },
-    "weapon38": {
-        "templateWeaponId": "weapon6",
-        "options": {
-            "barrel": [
-                {
-                    "id": "litany_double_inscription_needle",
-                    "name": "速诵双刻针",
-                    "icon": "assets/icons/craft-cold-steel/litany_double_inscription_needle.png",
-                    "desc": "【刻印二选一】每次有效命中连续刻下2种轮转符文；黑弥撒伤害倍率-0.28，最大散布+3°",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "runeMarksPerHit": 2,
-                        "runeVerdictDamageMultiplierDelta": -0.28,
-                        "maxSpreadAngleDelta": 3
-                    }
-                },
-                {
-                    "id": "litany_gravestone_burin",
-                    "name": "墓碑深铭针",
-                    "icon": "assets/icons/craft-cold-steel/litany_gravestone_burin.png",
-                    "desc": "【刻印二选一】符文记忆+3.5秒，黑弥撒伤害倍率+0.38；攻击间隔+18ms",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "runeMemoryDurationDelta": 3500,
-                        "runeVerdictDamageMultiplierDelta": 0.38,
-                        "attackIntervalDelta": 18
-                    }
-                }
-            ],
-            "bullet": [
-                {
-                    "id": "litany_congregation_dome",
-                    "name": "会众穹顶",
-                    "icon": "assets/icons/craft-cold-steel/litany_congregation_dome.png",
-                    "desc": "【裁决二选一】黑弥撒半径+70px、目标上限+4；伤害倍率-0.18",
-                    "specialModification": true,
-                    "ticketCost": 5,
-                    "effects": {
-                        "runeVerdictRadiusDelta": 70,
-                        "runeVerdictMaxTargetsDelta": 4,
-                        "runeVerdictDamageMultiplierDelta": -0.18
-                    }
-                },
-                {
-                    "id": "litany_execution_clapper",
-                    "name": "处刑钟舌",
-                    "icon": "assets/icons/craft-cold-steel/litany_execution_clapper.png",
-                    "desc": "【裁决二选一】黑弥撒半径-75px、目标上限-3；伤害倍率+0.55",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "runeVerdictRadiusDelta": -75,
-                        "runeVerdictMaxTargetsDelta": -3,
-                        "runeVerdictDamageMultiplierDelta": 0.55
-                    }
-                }
-            ],
-            "grip": [
-                {
-                    "id": "litany_soul_migration_tract",
-                    "name": "亡魂迁经",
-                    "icon": "assets/icons/craft-cold-steel/litany_soul_migration_tract.png",
-                    "desc": "【传承二选一】直击击杀时，未完成的血骨烬符文迁移至400px内最多3名敌人；弹匣-10发。迁移裁决不会再次迁移",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "runeInheritanceTargets": 3,
-                        "runeInheritanceRangeDelta": 40,
-                        "magazineDelta": -10
-                    }
-                },
-                {
-                    "id": "litany_ember_gospel",
-                    "name": "余烬福音",
-                    "icon": "assets/icons/craft-cold-steel/litany_ember_gospel.png",
-                    "desc": "【传承二选一】黑弥撒的幸存目标继承触发裁决时的最后一印；继承不会立即再次裁决，换弹时间+600ms",
-                    "specialModification": true,
-                    "ticketCost": 6,
-                    "effects": {
-                        "runeVerdictSeedMarks": true,
-                        "reloadTimeDelta": 600
                     }
                 }
             ]

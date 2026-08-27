@@ -8,6 +8,7 @@ import {
     resolveCivilianVisualPosition,
     sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
+import { CivilianVisualSettings } from './civilian-visual-runtime.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -378,6 +379,10 @@ export const ArmoryMaintainerVisualSystem = {
 
     updateBuilding(building, dt) {
         if (building?._economyType !== 'armory' || !building.active) return;
+        if (!CivilianVisualSettings.isEnabled()) {
+            this.clearBuilding(building);
+            return;
+        }
         const record = this._ensureRecord(building);
         record.scanRemainMs -= Math.max(0, Number(dt) || 0);
         if (record.scanRemainMs <= 0) {

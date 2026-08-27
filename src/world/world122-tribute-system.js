@@ -113,6 +113,8 @@ export const World122TributeSystem = {
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
             closeOnOutsidePointer: true,
+            shouldCloseOnOutsidePointer: (event) =>
+                !window.Game?.BuildingSystem?._eventHitsBuilding?.(event),
             mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
         });
         panel.buildContent = (el) => {

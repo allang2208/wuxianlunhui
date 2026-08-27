@@ -1,0 +1,391 @@
+{
+  "cell": 256,
+  "feetY": 236,
+  "residents": {
+    "resident_01": {
+      "fixedScale": 0.40671641791044777,
+      "actions": {
+        "idle": {
+          "source": "videos/resident-01-idle.mp4",
+          "window": [
+            57,
+            100
+          ],
+          "sourceIndices": [
+            57,
+            62,
+            67,
+            73,
+            81,
+            87,
+            93,
+            99
+          ],
+          "frameCount": 8,
+          "endFrame": 7,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 2,
+          "frameRate": 8,
+          "validation": {
+            "alphaPixelsMin": 14946,
+            "alphaPixelsMax": 15368,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 13.469612530299596,
+            "loopSeamDelta": 14.871414184570312
+          }
+        },
+        "walking": {
+          "source": "videos/resident-01-walking.mp4",
+          "window": [
+            50,
+            79
+          ],
+          "sourceIndices": [
+            50,
+            53,
+            55,
+            58,
+            60,
+            62,
+            65,
+            68,
+            70,
+            73,
+            76,
+            78
+          ],
+          "frameCount": 12,
+          "endFrame": 11,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 3,
+          "frameRate": 12,
+          "validation": {
+            "alphaPixelsMin": 16334,
+            "alphaPixelsMax": 17209,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 26.03717075694691,
+            "loopSeamDelta": 18.57979393005371
+          }
+        }
+      }
+    },
+    "resident_02": {
+      "fixedScale": 0.42578125,
+      "actions": {
+        "idle": {
+          "source": "videos/resident-02-idle.mp4",
+          "window": [
+            93,
+            120
+          ],
+          "sourceIndices": [
+            93,
+            94,
+            98,
+            102,
+            106,
+            110,
+            115,
+            119
+          ],
+          "frameCount": 8,
+          "endFrame": 7,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 2,
+          "frameRate": 8,
+          "validation": {
+            "alphaPixelsMin": 14783,
+            "alphaPixelsMax": 15123,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 8.314009053366524,
+            "loopSeamDelta": 13.540939331054688
+          }
+        },
+        "walking": {
+          "source": "videos/resident-02-walking.mp4",
+          "window": [
+            66,
+            115
+          ],
+          "sourceIndices": [
+            66,
+            70,
+            74,
+            78,
+            84,
+            89,
+            94,
+            97,
+            101,
+            106,
+            110,
+            114
+          ],
+          "frameCount": 12,
+          "endFrame": 11,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 3,
+          "frameRate": 12,
+          "validation": {
+            "alphaPixelsMin": 17160,
+            "alphaPixelsMax": 18108,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 23.757575381885875,
+            "loopSeamDelta": 15.024248123168945
+          }
+        }
+      }
+    },
+    "resident_03": {
+      "fixedScale": 0.4249512670565302,
+      "actions": {
+        "idle": {
+          "source": "videos/resident-03-idle.mp4",
+          "window": [
+            82,
+            115
+          ],
+          "sourceIndices": [
+            82,
+            87,
+            91,
+            95,
+            101,
+            106,
+            110,
+            114
+          ],
+          "frameCount": 8,
+          "endFrame": 7,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 2,
+          "frameRate": 8,
+          "validation": {
+            "alphaPixelsMin": 15215,
+            "alphaPixelsMax": 15482,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 14.235074179513115,
+            "loopSeamDelta": 18.155805587768555
+          }
+        },
+        "walking": {
+          "source": "videos/resident-03-walking.mp4",
+          "window": [
+            46,
+            76
+          ],
+          "sourceIndices": [
+            46,
+            49,
+            52,
+            55,
+            57,
+            60,
+            62,
+            65,
+            68,
+            70,
+            73,
+            75
+          ],
+          "frameCount": 12,
+          "endFrame": 11,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 3,
+          "frameRate": 12,
+          "validation": {
+            "alphaPixelsMin": 16520,
+            "alphaPixelsMax": 17401,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 28.31163891878995,
+            "loopSeamDelta": 10.330092430114746
+          }
+        }
+      }
+    },
+    "resident_04": {
+      "fixedScale": 0.41132075471698115,
+      "actions": {
+        "idle": {
+          "source": "videos/resident-04-idle.mp4",
+          "window": [
+            92,
+            112
+          ],
+          "sourceIndices": [
+            92,
+            95,
+            99,
+            102,
+            105,
+            107,
+            109,
+            111
+          ],
+          "frameCount": 8,
+          "endFrame": 7,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 2,
+          "frameRate": 8,
+          "validation": {
+            "alphaPixelsMin": 13926,
+            "alphaPixelsMax": 14216,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 8.587916374206543,
+            "loopSeamDelta": 16.12375259399414
+          }
+        },
+        "walking": {
+          "source": "videos/resident-04-walking.mp4",
+          "window": [
+            71,
+            96
+          ],
+          "sourceIndices": [
+            71,
+            73,
+            76,
+            78,
+            81,
+            82,
+            85,
+            87,
+            89,
+            91,
+            93,
+            95
+          ],
+          "frameCount": 12,
+          "endFrame": 11,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 3,
+          "frameRate": 12,
+          "validation": {
+            "alphaPixelsMin": 15272,
+            "alphaPixelsMax": 16184,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 23.361187327991832,
+            "loopSeamDelta": 15.535395622253418
+          }
+        }
+      }
+    },
+    "resident_05": {
+      "fixedScale": 0.41523809523809524,
+      "actions": {
+        "idle": {
+          "source": "videos/resident-05-idle.mp4",
+          "window": [
+            97,
+            120
+          ],
+          "sourceIndices": [
+            97,
+            100,
+            103,
+            106,
+            109,
+            111,
+            115,
+            119
+          ],
+          "frameCount": 8,
+          "endFrame": 7,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 2,
+          "frameRate": 8,
+          "validation": {
+            "alphaPixelsMin": 13960,
+            "alphaPixelsMax": 14238,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 7.248130525861468,
+            "loopSeamDelta": 21.747201919555664
+          }
+        },
+        "walking": {
+          "source": "videos/resident-05-walking.mp4",
+          "window": [
+            85,
+            117
+          ],
+          "sourceIndices": [
+            85,
+            88,
+            92,
+            95,
+            98,
+            100,
+            103,
+            106,
+            109,
+            111,
+            113,
+            116
+          ],
+          "frameCount": 12,
+          "endFrame": 11,
+          "frameWidth": 256,
+          "frameHeight": 256,
+          "cols": 4,
+          "rows": 3,
+          "frameRate": 12,
+          "validation": {
+            "alphaPixelsMin": 14587,
+            "alphaPixelsMax": 15521,
+            "emptyFrames": [],
+            "touchingFrames": [],
+            "feetMin": 235,
+            "feetMax": 235,
+            "adjacentDeltaMean": 30.576459191062234,
+            "loopSeamDelta": 21.9733943939209
+          }
+        }
+      }
+    }
+  }
+}

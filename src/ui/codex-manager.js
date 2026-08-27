@@ -798,7 +798,8 @@ const CodexManager = {
             spawn: '召唤', throw: '投掷', summon: '召唤增援', combo: '连击', charge: '冲锋', block: '格挡',
             hammer: '重锤', grandSlam: '强力砸击', forms: '姿态', shoot: '射击', flashbang: '闪光弹',
             axe: '战斧', bash: '盾击', defend: '防御', spit: '喷吐', magic: '远程魔法', venom: '毒液瓶',
-            bottle: '毒液泼洒'
+            bottle: '毒液泼洒', poisonOnHit: '毒牙', venomSpray: '紫雾毒液喷射',
+            corrosionOnHit: '腐蚀撕咬'
         };
         return labels[skillKey] || skillKey;
     },
@@ -810,9 +811,13 @@ const CodexManager = {
             damageMultiplier: '伤害倍率', damageMul: '伤害倍率', speedMul: '移速倍率', attackSpeedMul: '攻速倍率',
             atkMul: '物攻倍率', buffDuration: '增益持续', frames: '动画帧数',
             hpThreshold: '生命阈值', hitFrame: '命中帧', launchFrame: '发射帧', knockback: '击退', count: '数量',
+            stacks: '叠加层数', poisonStacks: '中毒层数', triggerRange: '触发范围', arcDegrees: '扇形角度',
+            releaseFrame: '释放帧', releaseSourceFrame: '视频源帧', frameCount: '动画帧数',
+            initialCooldownMs: '初始冷却', effectDurationMs: '毒雾持续', particleCount: '粒子数量',
             damage: '伤害', width: '宽度', height: '高度', deathAnimMs: '死亡动画时长',
             corpseDuration: '尸体毒域持续', corpseWidth: '尸体毒域宽度', corpseHeight: '尸体毒域高度',
-            corpseOffsetY: '尸体毒域纵向偏移'
+            corpseOffsetY: '尸体毒域纵向偏移', durationMs: '持续时间',
+            defenseReductionPerStack: '每层物理减防'
         };
         const label = labels[key] || key;
         return path.includes('.') ? `${path.slice(0, path.lastIndexOf('.'))} · ${label}` : label;
@@ -823,8 +828,10 @@ const CodexManager = {
         if (typeof value !== 'number') return value;
         const key = path.split('.').pop();
         if (/(Ms|cooldown|duration|interval|delay|timeout|windup|recover|hold)$/i.test(key)) return `${value}ms`;
+        if (key === 'defenseReductionPerStack' && value >= 0 && value <= 1) return `${value * 100}%`;
         if (/(Multiplier|Mul)$/i.test(key)) return `×${value}`;
         if (/(Chance|Threshold)$/i.test(key) && value >= 0 && value <= 1) return `${Math.round(value * 10000) / 100}%`;
+        if (/Degrees$/i.test(key)) return `${value}°`;
         if (/(Range|Radius|Distance|Width|Height|Knockback)$/i.test(key)) return `${value}px`;
         if (/Frame$/i.test(key)) return `第 ${value} 帧`;
         return value;

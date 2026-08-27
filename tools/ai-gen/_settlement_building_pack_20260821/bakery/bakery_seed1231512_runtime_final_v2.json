@@ -1,0 +1,43 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\bakery\\bakery_seed1231512_manual_rgba.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\bakery\\bakery_seed1231512_runtime_final_v2.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    0,
+    0,
+    255
+  ],
+  "matteEdgeWidth": 20.0,
+  "matteTolerance": 180.0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    75,
+    172,
+    951,
+    918
+  ],
+  "fileSize": [
+    876,
+    746
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    872,
+    742
+  ],
+  "displayW": 288,
+  "displayH": 245,
+  "footOffsetY": 121,
+  "scaleX": 0.3287671232876712,
+  "scaleY": 0.3284182305630027
+}

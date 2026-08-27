@@ -1,0 +1,39 @@
+{
+  "asset": "hamster_ninja",
+  "stage": "identity_mother_candidate",
+  "version": 4,
+  "generatedAt": "2026-08-26",
+  "generator": "built-in ImageGen precise edit stage",
+  "animationProviderPlanned": "doubao-desktop",
+  "animationModelPlanned": "Seedance 2.0 Mini",
+  "editTarget": "hamster-ninja-mother-v03.png",
+  "editScope": "restore golden hamster fur only around the eyes",
+  "prompt": "hamster-ninja-mother-v04-golden-eye-fur-edit-prompt.txt",
+  "promptSha256": "e54cf75247eeed39c9a8ddd04156173b956d6bc44d411d4a8083b7798f565bd5",
+  "output": "hamster-ninja-mother-v04.png",
+  "outputSha256": "2edb651408c878faa4eeee78655e1a167eb3b35b8a28b773ce28cd40f3249d2b",
+  "canvas": {
+    "width": 1672,
+    "height": 941,
+    "format": "PNG"
+  },
+  "status": "approved_identity_source_for_doubao",
+  "runtimeIntegrationActive": false,
+  "requestedAnimations": [
+    "idle",
+    "running",
+    "attacking",
+    "dying",
+    "smoke_bomb_at_feet"
+  ],
+  "plannedSpecialEffectSplit": {
+    "characterAnimation": "draw and throw one smoke bomb at the feet",
+    "runtimeVisual": "separate ground smoke anchored to collider.x/y",
+    "combatChange": false
+  },
+  "approval": {
+    "approvedAt": "2026-08-26",
+    "scope": "Use this exact mother image as the identity source for five Doubao Seedance action videos."
+  },
+  "notes": "The visible golden eye-mask fur restores hamster identity while ears, muzzle, nose and whiskers remain concealed."
+}

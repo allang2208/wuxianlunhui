@@ -55,7 +55,7 @@ def main():
     ap.add_argument("--out", required=True, help="输出 PNG（assets/terrain/...）")
     ap.add_argument("--seed", type=int, default=9001)
     ap.add_argument("--host", default="192.168.3.142")
-    ap.add_argument("--model", default="flux2-dev-fp8")
+    ap.add_argument("--model", default="flux2-klein-4b-nolora")
     ap.add_argument("--size", default="1024x1024")
     ap.add_argument("--desat", type=float, default=None,
                     help="降饱和比例（默认 mud 0.55 / sand 0.5；--no-desat 跳过）")

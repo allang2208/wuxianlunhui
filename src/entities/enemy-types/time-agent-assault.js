@@ -5,7 +5,7 @@ import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { WallSystem } from '../../world/wall-system.js';
-import { pathFinder } from '../../ai/pathfinder.js';
+import { PATH_DEFERRED, pathFinder } from '../../ai/pathfinder.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
@@ -17,6 +17,8 @@ import {
     canStartBasicMelee,
     createBasicMeleeSnapshot,
 } from '../../combat/melee-attack-resolver.js';
+
+let nextTimeAgentPathRequestId = 1;
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -95,7 +97,7 @@ export class TimeAgentAssault extends Enemy {
 
         // 装备 QBZ-191（共享装配：实例化装备/绑定攻击/伤害与击退覆盖/AI 散布/弹匣）
         setupGun(this, {
-            equipKey: 'qbz191',
+            weaponId: 'weapon8',
             attackKey: 'qbz191',
             damage: { min: this.data.atk, max: this.data.atk }, // 伤害取怪物面板物攻
             knockback: skills.shoot.knockback ?? 25,             // 命中击退 25px
@@ -210,7 +212,7 @@ export class TimeAgentAssault extends Enemy {
         // 远程 1600 若带入近战会导致 800px 外就被制动（近战 260 无法体现的根因）
         const skills = this._getSkillConfigs();
         const inMelee = this._formState === 'melee' || this._formState === 'axeAttack';
-        this.maxSpeed = inMelee ? (skills.forms.meleeMoveSpeed ?? 260) : (this.config.speed ?? 160);
+        this.maxSpeed = inMelee ? (skills.forms.meleeMoveSpeed ?? 200) : (this.config.speed ?? 160);
         this.attackRange = inMelee ? (skills.axe.judgeRange ?? 120) : (skills.forms.engageRange ?? 1600);
         // 动画用速度快照：entity.update 先于 MovementSystem 运行，锁定态下 vx 会被清零，
         // _getPhaserOptions 的 animReverse/回拉朝向需要本帧真实位移方向
@@ -554,11 +556,26 @@ export class TimeAgentAssault extends Enemy {
         if (this._repathTimer <= 0 || !this._path) {
             this._repathTimer = F.repathMs ?? 500;
             const raw = (pathFinder && typeof pathFinder.findPath === 'function')
-                ? pathFinder.findPath(this.x, this.y, t.x, t.y, this.groundRadius)
+                ? pathFinder.findPath(
+                    this.x, this.y, t.x, t.y, this.groundRadius,
+                    {
+                        incremental: true,
+                        requestId: this._repositionPathRequestId
+                            || (this._repositionPathRequestId
+                                = `time-agent-reposition:${nextTimeAgentPathRequestId++}`),
+                    }
+                )
                 : null;
-            // 过滤异常路点（防护：非法坐标会导致 NaN 位移卡死）
-            this._path = Array.isArray(raw) ? raw.filter(p => p && Number.isFinite(p.x) && Number.isFinite(p.y)) : null;
-            this._pathIdx = 0;
+            if (raw === PATH_DEFERRED) {
+                // 保留旧路径并在下一帧续算；绝不能把预算延后误判成无路径后直冲墙体。
+                this._repathTimer = 0;
+            } else {
+                // 过滤异常路点（防护：非法坐标会导致 NaN 位移卡死）
+                this._path = Array.isArray(raw)
+                    ? raw.filter(p => p && Number.isFinite(p.x) && Number.isFinite(p.y))
+                    : null;
+                this._pathIdx = 0;
+            }
         }
         if (this._path && this._pathIdx < this._path.length) {
             const wp = this._path[this._pathIdx];

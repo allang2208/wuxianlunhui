@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_purple_blight_ancient_20260826\\references\\purple-blight-ancient-reference-idle-magenta.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_purple_blight_ancient_20260826\\prompts\\purple-blight-ancient-idle-doubao.txt",
+  "promptChars": 530,
+  "promptSha256": "73c33c71d345dfb2753e339f4ef461efb63bb15d20402e398a0be2018e05b26d",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T07:35:05.133Z",
+  "sourceUrlScheme": "https"
+}

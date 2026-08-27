@@ -1,0 +1,26 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+
+Primary request: Create exactly one elite hamster special-forces sniper wearing a practical full ghillie suit and holding one long sniper rifle correctly with both hands.
+
+Input image: style, species proportions, realistic fur quality, production-game-render finish, camera/framing reference only. Do not copy the medieval clothing, crossbow, dagger, armor, or fantasy equipment.
+
+Subject identity: one adult golden-brown hamster with a cream muzzle and chest, round black eyes, small pink nose, realistic whiskers and fur; disciplined calm special-forces expression. Modern military sniper identity, ordinary non-magical.
+
+Clothing and equipment: layered olive-drab and dry-grass-brown ghillie hood, shoulder cape and matching camouflage over-suit made from netting, restrained fabric strips and sparse natural jute fibers; enough foliage texture to read clearly, but keep the face, both hands, legs, boots, rifle action, trigger guard, magazine and scope unobstructed. Dark olive tactical webbing, compact pouches and reinforced boots. No helmet, no backpack, no sidearm, no extra weapon.
+
+Weapon: exactly one realistic long bolt-action precision sniper rifle, matte dark gunmetal receiver and barrel, dark olive stock, long telescopic scope, bipod folded under the fore-end, suppressor. The rifle points diagonally toward screen-right. Right hand wraps the pistol grip with trigger finger safely outside the trigger guard; left hand supports the fore-end from below. Stock seated firmly against the right shoulder. The complete rifle, suppressor and buttstock must remain visible and anatomically connected; no duplicated barrel, scope, stock, magazine or hands.
+
+Anatomy and material: physically plausible upright biped hamster anatomy, correct shoulder, elbow, wrist and finger placement for a stable two-handed low-ready shooting hold; believable weight distribution. High-detail fur, woven camouflage fabric, coarse jute fibers, matte polymer, rough gunmetal and glass scope lenses; restrained colors and realistic roughness, no plastic-toy surface.
+
+Style and medium: high-detail realistic PBR 3D game render matching the reference asset family, grounded military production-asset polish, readable silhouette, controlled saturation; not a photograph, not cartoon, not anime.
+
+Pose: calm animation-friendly standing idle, feet shoulder-width apart on one baseline, knees slightly relaxed, torso and head in low three-quarter view facing screen-right; rifle held across the torso at a shallow upward angle toward screen-right, not aiming through the scope yet. Full face readable, both ears visible enough for identity, both hands visible and doing distinct correct jobs.
+
+Composition and camera: orthographic-style locked low three-quarter camera matching the reference; complete subject centered with generous margins; subject and full rifle occupy at most 70% canvas width and 75% canvas height; extra safe margin in front of the suppressor and below both boots; no cropping.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon or floor; soft flat diffuse studio lighting only, no directional cast shadow, no reflection.
+
+Identity locks: exactly one hamster, exactly one sniper rifle, exact two-handed grip, golden-brown hamster face, olive-and-dry-grass ghillie suit, modern special-forces sniper silhouette, complete clean silhouette ready for animation.
+
+Avoid: crossbow, bow, musket, assault rifle, machine gun, fantasy armor, medieval clothing, knife, pistol, binoculars, camouflage face paint, cigar, badges, flags, text, logo, watermark, extra or missing limbs, fused hands, hand through weapon, incorrect trigger hand, duplicated weapon parts, gun growing from body, broken scope, bent barrel, excessive vegetation hiding anatomy, full hood hiding face, prone or kneeling pose, aiming down scope, firing, muzzle flash, smoke, scenery, ground shadow, dramatic lighting, rim halo, front view, top view, strong perspective, crop, chibi, cartoon, anime, flat illustration, low-poly toy, glossy plastic.

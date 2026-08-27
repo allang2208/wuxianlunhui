@@ -1,0 +1,505 @@
+{
+  "status": "pass",
+  "failures": [],
+  "thresholds": {
+    "wholeFrameLumaRatio": [
+      0.85,
+      1.15
+    ],
+    "darkPixelAndComponentRatioMax": 1.25,
+    "darkPixelDefinition": "alpha > 96 and max(RGB) < 64",
+    "loopSeamLimit": 37.80433731079101
+  },
+  "oddFrameDiagnostics": [
+    {
+      "index": 1,
+      "lumaRatio": 1.0045844679734826,
+      "darkPixelRatio": 0.9696391670640597,
+      "largestDarkComponentRatio": 1.2072999532054283
+    },
+    {
+      "index": 3,
+      "lumaRatio": 0.9998823318376473,
+      "darkPixelRatio": 0.9675134719014626,
+      "largestDarkComponentRatio": 0.7361740707162284
+    },
+    {
+      "index": 5,
+      "lumaRatio": 0.9952030022987912,
+      "darkPixelRatio": 0.977047238264475,
+      "largestDarkComponentRatio": 0.9945265462506842
+    },
+    {
+      "index": 7,
+      "lumaRatio": 1.0024715833708635,
+      "darkPixelRatio": 0.9747656813266041,
+      "largestDarkComponentRatio": 1.013127413127413
+    },
+    {
+      "index": 9,
+      "lumaRatio": 0.9988071451189384,
+      "darkPixelRatio": 0.9919252018699533,
+      "largestDarkComponentRatio": 1.0155517156257714
+    },
+    {
+      "index": 11,
+      "lumaRatio": 1.0046697039511794,
+      "darkPixelRatio": 0.9922737306843267,
+      "largestDarkComponentRatio": 1.0233644859813085
+    },
+    {
+      "index": 13,
+      "lumaRatio": 1.0000665640971949,
+      "darkPixelRatio": 0.9846319762739283,
+      "largestDarkComponentRatio": 1.0244016893477241
+    },
+    {
+      "index": 15,
+      "lumaRatio": 1.001759514773304,
+      "darkPixelRatio": 0.9879614767255217,
+      "largestDarkComponentRatio": 1.0529680365296803
+    },
+    {
+      "index": 17,
+      "lumaRatio": 1.005247030568208,
+      "darkPixelRatio": 0.9797789161499056,
+      "largestDarkComponentRatio": 0.9622222222222222
+    },
+    {
+      "index": 19,
+      "lumaRatio": 1.001245506432063,
+      "darkPixelRatio": 0.9800600928708003,
+      "largestDarkComponentRatio": 1.0158586316266425
+    },
+    {
+      "index": 21,
+      "lumaRatio": 1.0008539438448298,
+      "darkPixelRatio": 0.9747362576346474,
+      "largestDarkComponentRatio": 1.1405865657521286
+    },
+    {
+      "index": 23,
+      "lumaRatio": 1.006497425250711,
+      "darkPixelRatio": 0.9698349459305634,
+      "largestDarkComponentRatio": 0.8110870847257716
+    },
+    {
+      "index": 25,
+      "lumaRatio": 1.0070518191574485,
+      "darkPixelRatio": 0.9848942598187311,
+      "largestDarkComponentRatio": 0.9938920107500611
+    },
+    {
+      "index": 27,
+      "lumaRatio": 0.9991836073815656,
+      "darkPixelRatio": 1.0001433691756272,
+      "largestDarkComponentRatio": 1.174028088744148
+    },
+    {
+      "index": 29,
+      "lumaRatio": 0.9989036086524674,
+      "darkPixelRatio": 0.9739229024943311,
+      "largestDarkComponentRatio": 0.8499103049631254
+    },
+    {
+      "index": 31,
+      "lumaRatio": 1.0046438172508303,
+      "darkPixelRatio": 0.983326207781103,
+      "largestDarkComponentRatio": 1.009286412512219
+    },
+    {
+      "index": 33,
+      "lumaRatio": 1.013321379941544,
+      "darkPixelRatio": 0.9685778108711839,
+      "largestDarkComponentRatio": 0.9344620425996724
+    },
+    {
+      "index": 35,
+      "lumaRatio": 1.0145067564847416,
+      "darkPixelRatio": 0.9649452269170579,
+      "largestDarkComponentRatio": 0.9400434917676297
+    },
+    {
+      "index": 37,
+      "lumaRatio": 0.993605946372504,
+      "darkPixelRatio": 1.002052091554854,
+      "largestDarkComponentRatio": 0.9681179293794995
+    },
+    {
+      "index": 39,
+      "lumaRatio": 1.0047143726017054,
+      "darkPixelRatio": 0.9842767295597484,
+      "largestDarkComponentRatio": 1.2267842380821163
+    },
+    {
+      "index": 41,
+      "lumaRatio": 1.0042333312077731,
+      "darkPixelRatio": 0.9837594468564078,
+      "largestDarkComponentRatio": 0.7395626242544732
+    },
+    {
+      "index": 43,
+      "lumaRatio": 0.9904311974151068,
+      "darkPixelRatio": 0.9969220800259193,
+      "largestDarkComponentRatio": 0.8998290598290598
+    }
+  ],
+  "sourcePairDiagnostics": [
+    {
+      "from": 0,
+      "to": 1,
+      "visibleDelta": 19.272127151489258,
+      "bottom35AlphaIou": 0.7917675544794189
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "visibleDelta": 26.245729446411133,
+      "bottom35AlphaIou": 0.6966824644549763
+    },
+    {
+      "from": 2,
+      "to": 3,
+      "visibleDelta": 22.87567901611328,
+      "bottom35AlphaIou": 0.6357308584686775
+    },
+    {
+      "from": 3,
+      "to": 4,
+      "visibleDelta": 17.248119354248047,
+      "bottom35AlphaIou": 0.5858369098712446
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "visibleDelta": 18.201852798461914,
+      "bottom35AlphaIou": 0.6233269598470363
+    },
+    {
+      "from": 5,
+      "to": 6,
+      "visibleDelta": 19.88531494140625,
+      "bottom35AlphaIou": 0.6123128119800333
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "visibleDelta": 17.26011848449707,
+      "bottom35AlphaIou": 0.6230769230769231
+    },
+    {
+      "from": 7,
+      "to": 8,
+      "visibleDelta": 23.104772567749023,
+      "bottom35AlphaIou": 0.6621004566210046
+    },
+    {
+      "from": 8,
+      "to": 9,
+      "visibleDelta": 17.36669921875,
+      "bottom35AlphaIou": 0.7295081967213115
+    },
+    {
+      "from": 9,
+      "to": 10,
+      "visibleDelta": 31.114641189575195,
+      "bottom35AlphaIou": 0.5006954102920723
+    },
+    {
+      "from": 10,
+      "to": 11,
+      "visibleDelta": 19.202587127685547,
+      "bottom35AlphaIou": 0.7334437086092715
+    },
+    {
+      "from": 11,
+      "to": 12,
+      "visibleDelta": 21.608314514160156,
+      "bottom35AlphaIou": 0.7024482109227872
+    },
+    {
+      "from": 12,
+      "to": 13,
+      "visibleDelta": 23.21596908569336,
+      "bottom35AlphaIou": 0.6476014760147601
+    },
+    {
+      "from": 13,
+      "to": 14,
+      "visibleDelta": 19.075178146362305,
+      "bottom35AlphaIou": 0.6129032258064516
+    },
+    {
+      "from": 14,
+      "to": 15,
+      "visibleDelta": 17.205764770507812,
+      "bottom35AlphaIou": 0.5754583921015515
+    },
+    {
+      "from": 15,
+      "to": 16,
+      "visibleDelta": 30.173133850097656,
+      "bottom35AlphaIou": 0.547486033519553
+    },
+    {
+      "from": 16,
+      "to": 17,
+      "visibleDelta": 23.1864070892334,
+      "bottom35AlphaIou": 0.6328671328671329
+    },
+    {
+      "from": 17,
+      "to": 18,
+      "visibleDelta": 32.87333679199219,
+      "bottom35AlphaIou": 0.6578366445916115
+    },
+    {
+      "from": 18,
+      "to": 19,
+      "visibleDelta": 15.493528366088867,
+      "bottom35AlphaIou": 0.6565420560747663
+    },
+    {
+      "from": 19,
+      "to": 20,
+      "visibleDelta": 33.09589385986328,
+      "bottom35AlphaIou": 0.7167019027484144
+    },
+    {
+      "from": 20,
+      "to": 21,
+      "visibleDelta": 17.8405818939209,
+      "bottom35AlphaIou": 0.7078189300411523
+    },
+    {
+      "from": 21,
+      "to": 0,
+      "visibleDelta": 18.894765853881836,
+      "bottom35AlphaIou": 0.6717724288840262
+    }
+  ],
+  "loopSeamDelta": 18.894765853881836,
+  "nonSeamDeltaP95": 32.87333679199219,
+  "gifEncodingComparison": [
+    {
+      "index": 0,
+      "meanAbsoluteRgbDelta": 0.05228226273148148,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 1,
+      "meanAbsoluteRgbDelta": 0.05024549696180555,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 2,
+      "meanAbsoluteRgbDelta": 0.05181884765625,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 3,
+      "meanAbsoluteRgbDelta": 0.04903383608217592,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 4,
+      "meanAbsoluteRgbDelta": 0.05182336877893518,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 5,
+      "meanAbsoluteRgbDelta": 0.051359953703703706,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 6,
+      "meanAbsoluteRgbDelta": 0.052449544270833336,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 7,
+      "meanAbsoluteRgbDelta": 0.052836100260416664,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 8,
+      "meanAbsoluteRgbDelta": 0.05456995081018518,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 9,
+      "meanAbsoluteRgbDelta": 0.05339671947337963,
+      "pixelsWithChannelDeltaOver30": 6
+    },
+    {
+      "index": 10,
+      "meanAbsoluteRgbDelta": 0.055060492621527776,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 11,
+      "meanAbsoluteRgbDelta": 0.055352105034722224,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 12,
+      "meanAbsoluteRgbDelta": 0.057585539641203706,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 13,
+      "meanAbsoluteRgbDelta": 0.056181731047453706,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 14,
+      "meanAbsoluteRgbDelta": 0.058159722222222224,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 15,
+      "meanAbsoluteRgbDelta": 0.057675962094907406,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 16,
+      "meanAbsoluteRgbDelta": 0.05800600405092592,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 17,
+      "meanAbsoluteRgbDelta": 0.056891547309027776,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 18,
+      "meanAbsoluteRgbDelta": 0.056864420572916664,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 19,
+      "meanAbsoluteRgbDelta": 0.05592628761574074,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 20,
+      "meanAbsoluteRgbDelta": 0.058256926359953706,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 21,
+      "meanAbsoluteRgbDelta": 0.05611391420717592,
+      "pixelsWithChannelDeltaOver30": 7
+    },
+    {
+      "index": 22,
+      "meanAbsoluteRgbDelta": 0.055408619068287035,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 23,
+      "meanAbsoluteRgbDelta": 0.053656684027777776,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 24,
+      "meanAbsoluteRgbDelta": 0.05442527488425926,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 25,
+      "meanAbsoluteRgbDelta": 0.05477566189236111,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 26,
+      "meanAbsoluteRgbDelta": 0.054567690248842594,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 27,
+      "meanAbsoluteRgbDelta": 0.05499719690393518,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 28,
+      "meanAbsoluteRgbDelta": 0.055230034722222224,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 29,
+      "meanAbsoluteRgbDelta": 0.05296043113425926,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 30,
+      "meanAbsoluteRgbDelta": 0.05514187282986111,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 31,
+      "meanAbsoluteRgbDelta": 0.05210819950810185,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 32,
+      "meanAbsoluteRgbDelta": 0.055060492621527776,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 33,
+      "meanAbsoluteRgbDelta": 0.053435149016203706,
+      "pixelsWithChannelDeltaOver30": 1
+    },
+    {
+      "index": 34,
+      "meanAbsoluteRgbDelta": 0.054798267505787035,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 35,
+      "meanAbsoluteRgbDelta": 0.054108796296296294,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 36,
+      "meanAbsoluteRgbDelta": 0.05567310474537037,
+      "pixelsWithChannelDeltaOver30": 5
+    },
+    {
+      "index": 37,
+      "meanAbsoluteRgbDelta": 0.05390760633680555,
+      "pixelsWithChannelDeltaOver30": 0
+    },
+    {
+      "index": 38,
+      "meanAbsoluteRgbDelta": 0.055609809027777776,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 39,
+      "meanAbsoluteRgbDelta": 0.053708676938657406,
+      "pixelsWithChannelDeltaOver30": 3
+    },
+    {
+      "index": 40,
+      "meanAbsoluteRgbDelta": 0.054597077546296294,
+      "pixelsWithChannelDeltaOver30": 2
+    },
+    {
+      "index": 41,
+      "meanAbsoluteRgbDelta": 0.05306667751736111,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 42,
+      "meanAbsoluteRgbDelta": 0.05353235315393518,
+      "pixelsWithChannelDeltaOver30": 4
+    },
+    {
+      "index": 43,
+      "meanAbsoluteRgbDelta": 0.05007595486111111,
+      "pixelsWithChannelDeltaOver30": 1
+    }
+  ]
+}

@@ -52,6 +52,7 @@ assert.ok(Number(sourceConfig.vision?.stairsMultiplier) > 0,
 const contractChecks = [
     ['src/world/fog-of-war-system.js', 'VisionSourceRegistry.getSources'],
     ['src/world/fog-of-war-system.js', 'revealWithOcclusion'],
+    ['src/world/fog-of-war-system.js', 'isPolygonFullyVisible'],
     ['src/world/fog-occlusion-grid.js', 'WallSystem?.isoSegments'],
     ['src/world/fog-occlusion-grid.js', 'sourceOcclusionContext'],
     ['src/world/fog-occlusion-grid.js', 'rayBlockedFromOrigin'],
@@ -60,6 +61,9 @@ const contractChecks = [
     ['src/phaser/scenes/GameScene.js', 'new FogDebugOverlay'],
     ['src/phaser/scenes/GameScene.js', 'new FogVisibilityController'],
     ['src/effects/fog-visual-adapter.js', 'syncAll(sceneId, fogSystem)'],
+    ['src/world/building-system.js', '_isPlacementFogVisible'],
+    ['src/world/building-system.js', '_isFogPolygonVisible'],
+    ['src/world/building-system.js', 'grid.revision'],
     ['src/ui/panels/dev-tools.js', "tabFog.textContent = '迷雾'"],
 ];
 

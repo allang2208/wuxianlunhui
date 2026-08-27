@@ -1,0 +1,202 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-ninja-mother-v04.png",
+  "identityRule": "Preserve the warm golden-yellow hamster fur visible only around the eyes and nose bridge; keep the rest of the head fully wrapped.",
+  "assetStatus": "user_approved_rife_sprite_sheets_integrated",
+  "runtimeIntegrationActive": true,
+  "producerBuildingIntegration": true,
+  "runtimeSpriteSheets": {
+    "idle": "assets/companions/hamster_ninja/idle.png",
+    "running": "assets/companions/hamster_ninja/running.png",
+    "attackOpening": "assets/companions/hamster_ninja/attack_opening.png",
+    "attackContinuous": "assets/companions/hamster_ninja/attack_continuous.png",
+    "dying": "assets/companions/hamster_ninja/dying.png",
+    "stealth": "assets/companions/hamster_ninja/stealth.png"
+  },
+  "plannedAttackStateFlow": {
+    "sheathed": "idle or movement with the ninjato sheathed",
+    "drawOpening": "play the opening portion of attacking-doubao.mp4 once and finish in drawn guard",
+    "drawnChain": "play continuous-attacking-doubao.mp4 once per subsequent attack without resheathing",
+    "sheathExit": "when combat ends, play the tail portion of attacking-doubao.mp4 once and return to sheathed state",
+    "renderContract": "one-shot phases start only on state transitions and never auto-replay after finishing"
+  },
+  "specialEffectSplit": {
+    "characterAnimation": "Draw and throw exactly one smoke bomb at the feet without generating smoke.",
+    "runtimeVisual": "Separate smoke VFX anchored to collider.x/y.",
+    "combatChange": false
+  },
+  "tasks": [
+    {
+      "motion": "idle",
+      "reference": "references/hamster-ninja-idle-run-white.png",
+      "prompt": "prompts/idle-doubao.txt",
+      "promptSha256": "7c877be9646e0369727aedd625cff410d7055e0b5b65509d3374fcf46d96f6a1",
+      "loopRequested": true,
+      "status": "completed_candidate",
+      "video": "videos/idle-doubao.mp4",
+      "provenance": "videos/idle-doubao.mp4.json",
+      "contact": "previews/videos/idle-contact.jpg",
+      "previewGif": "previews/videos/idle-preview.gif",
+      "review": "Identity and props stable; usable idle candidate."
+    },
+    {
+      "motion": "running",
+      "reference": "references/hamster-ninja-idle-run-white.png",
+      "prompt": "prompts/running-doubao.txt",
+      "promptSha256": "9c6ee894179a54639301fe6f7fb7a4239864e6d864d7e9aa845294dc414dcddb",
+      "loopRequested": true,
+      "status": "completed_candidate",
+      "video": "videos/running-doubao.mp4",
+      "provenance": "videos/running-doubao.mp4.json",
+      "contact": "previews/videos/running-contact.jpg",
+      "previewGif": "previews/videos/running-preview.gif",
+      "review": "Clear alternating run gait; generated floor and contact shadow will be removed during cutout."
+    },
+    {
+      "motion": "attacking_draw_opening_and_sheath_source",
+      "reference": "references/hamster-ninja-attack-white.png",
+      "prompt": "prompts/attacking-doubao.txt",
+      "promptSha256": "35c0f088a5223cf7509524932c6b527d11d6ea41e75afda305ea0383a2a975ae",
+      "loopRequested": false,
+      "status": "rejected_source_clipped_top_and_right",
+      "video": "videos/attacking-doubao.mp4",
+      "provenance": "videos/attacking-doubao.mp4.json",
+      "contact": "previews/videos/attacking-contact.jpg",
+      "previewGif": "previews/videos/attacking-preview.gif",
+      "review": "Rejected after source-margin audit: raised-sword frames touch the top edge and the forward slash reaches only 14px from the right edge, below the required 26px minimum. Source pixels are clipped or unsafe."
+    },
+    {
+      "motion": "dying",
+      "reference": "references/hamster-ninja-dying-white.png",
+      "prompt": "prompts/dying-doubao.txt",
+      "promptSha256": "125beedfbc646f17ab518ae463d7472da52da41ba34b0bfac76398daa20384a0",
+      "loopRequested": false,
+      "status": "completed_candidate",
+      "video": "videos/dying-doubao.mp4",
+      "provenance": "videos/dying-doubao.mp4.json",
+      "contact": "previews/videos/dying-contact.jpg",
+      "previewGif": "previews/videos/dying-preview.gif",
+      "review": "Irreversible backward fall settles into a held corpse pose."
+    },
+    {
+      "motion": "smoke_bomb_at_feet",
+      "reference": "references/hamster-ninja-smoke-bomb-white.png",
+      "prompt": "prompts/smoke-bomb-doubao.txt",
+      "promptSha256": "2f164490ad0948ffd1d9180d6c67febe7ed9a6cedbe96f4e31867353344b63dd",
+      "loopRequested": false,
+      "status": "rejected_candidate_background_and_angle_deviation",
+      "video": "videos/smoke-bomb-doubao.mp4",
+      "provenance": "videos/smoke-bomb-doubao.mp4.json",
+      "contact": "previews/videos/smoke-bomb-contact.jpg",
+      "previewGif": "previews/videos/smoke-bomb-preview.gif",
+      "review": "Rejected after user review: single bomb action is readable, but Doubao generated a courtyard and changed to a more frontal view."
+    },
+    {
+      "motion": "attacking_continuous_drawn",
+      "reference": "references/hamster-ninja-continuous-attack-white.png",
+      "prompt": "prompts/continuous-attacking-doubao.txt",
+      "promptSha256": "a0dc76b4ec607edc474b48bdd7bda345347fa527b1b498a02eae9b15c21b1709",
+      "loopRequested": false,
+      "chainable": true,
+      "status": "rejected_source_clipped_multiple_edges",
+      "video": "videos/continuous-attacking-doubao.mp4",
+      "provenance": "videos/continuous-attacking-doubao.mp4.json",
+      "contact": "previews/videos/continuous-attacking-contact.jpg",
+      "previewGif": "previews/videos/continuous-attacking-preview.gif",
+      "review": "Rejected after source-margin audit: right margin is zero for frames 54-85, left margin is zero at frame 90, and top margin is zero for frames 96-103. Source pixels are irreversibly clipped."
+    },
+    {
+      "motion": "smoke_bomb_at_feet_v02",
+      "reference": "references/hamster-ninja-smoke-bomb-white-v02.png",
+      "prompt": "prompts/smoke-bomb-doubao-v02.txt",
+      "promptSha256": "2b30ef8991e78b69febf2ffd5be7ef4eb512969c739bad541322defc01279121",
+      "loopRequested": false,
+      "status": "completed_candidate",
+      "video": "videos/smoke-bomb-doubao-v02.mp4",
+      "provenance": "videos/smoke-bomb-doubao-v02.mp4.json",
+      "contact": "previews/videos/smoke-bomb-v02-contact.jpg",
+      "previewGif": "previews/videos/smoke-bomb-v02-preview.gif",
+      "review": "Corrected candidate: preserves low right-facing three-quarter view, places one bomb at the feet without smoke, and keeps the sword sheathed. Faint floor line and contact shadow are removable during cutout."
+    },
+    {
+      "motion": "attacking_draw_opening_v03_wide",
+      "reference": "references/hamster-ninja-attack-wide-v03-white.png",
+      "prompt": "prompts/attacking-doubao-v03-wide.txt",
+      "promptSha256": "b6cab486ee2e68de7a9428bd893b5fd2acb7348387cc0d770b8f0c89ecdee945",
+      "loopRequested": false,
+      "supersedes": "attacking_draw_opening_and_sheath_source",
+      "status": "rejected_source_clipped_left_and_top",
+      "video": "videos/attacking-doubao-v03-wide.mp4",
+      "provenance": "videos/attacking-doubao-v03-wide.mp4.json",
+      "contact": "previews/videos/attacking-v03-wide-edge-audit.jpg",
+      "review": "Rejected after source-margin audit: left margin is zero for frames 57-64 and top margin is zero for frames 72-73 and 82-83. Doubao also added an unrequested overhead second strike."
+    },
+    {
+      "motion": "attacking_continuous_drawn_v03_wide",
+      "reference": "references/hamster-ninja-continuous-attack-wide-v03-white.png",
+      "prompt": "prompts/continuous-attacking-doubao-v03-wide.txt",
+      "promptSha256": "aca48cb184dc66734c0f6e87ad29713451a64dd028127c16835f460ab9debff2",
+      "loopRequested": false,
+      "chainable": true,
+      "supersedes": "attacking_continuous_drawn",
+      "status": "superseded_before_submit_by_centered_v04",
+      "video": "videos/continuous-attacking-doubao-v03-wide.mp4"
+    },
+    {
+      "motion": "attacking_draw_opening_v04_ultrawide",
+      "reference": "references/hamster-ninja-attack-ultrawide-v04-white.png",
+      "prompt": "prompts/attacking-doubao-v04-ultrawide.txt",
+      "promptSha256": "a73693f7c492c27c6e5955abbe0ee5f0fe95f5d9ff1e6cc9eafae4d3648874f8",
+      "loopRequested": false,
+      "supersedes": "attacking_draw_opening_v03_wide",
+      "status": "rejected_identity_drift_exposed_ears",
+      "video": "videos/attacking-doubao-v04-ultrawide.mp4",
+      "provenance": "videos/attacking-doubao-v04-ultrawide.mp4.json",
+      "contact": "previews/videos/attacking-v04-ultrawide-contact.jpg",
+      "review": "Source-margin audit passed with large margins, but the hood deformed and exposed white/pink ears from roughly frame 40 onward. Rejected for identity drift."
+    },
+    {
+      "motion": "attacking_draw_opening_v05_centered",
+      "reference": "references/hamster-ninja-attack-wide-v05-centered.png",
+      "prompt": "prompts/attacking-doubao-v05-centered.txt",
+      "promptSha256": "610ad25faf556d231e7207d287753924b6212d2f46f74a675302408afaa4bf4c",
+      "loopRequested": false,
+      "supersedes": "attacking_draw_opening_v04_ultrawide",
+      "status": "completed_candidate_source_margin_passed",
+      "video": "videos/attacking-doubao-v05-centered.mp4",
+      "provenance": "videos/attacking-doubao-v05-centered.mp4.json",
+      "contact": "previews/videos/attacking-v05-centered-contact.jpg",
+      "previewGif": "previews/videos/attacking-v05-centered-preview.gif",
+      "sourceMarginAudit": {
+        "passed": true,
+        "frameSize": [1280, 720],
+        "minimumMargins": { "left": 232, "right": 371, "top": 64, "bottom": 90 }
+      },
+      "review": "Accepted candidate for user review: one draw-and-slash opening, finishes in drawn guard, sealed hood identity preserved, and all source margins pass."
+    },
+    {
+      "motion": "attacking_continuous_drawn_v04_centered",
+      "reference": "references/hamster-ninja-continuous-attack-wide-v04-centered.png",
+      "prompt": "prompts/continuous-attacking-doubao-v04-centered.txt",
+      "promptSha256": "405c4cbcad8e8c842beddd102f64299c8743a23cb5206bc9dfb475786b2cc7a0",
+      "loopRequested": false,
+      "chainable": true,
+      "supersedes": "attacking_continuous_drawn_v03_wide",
+      "status": "completed_candidate_source_margin_passed",
+      "video": "videos/continuous-attacking-doubao-v04-centered.mp4",
+      "provenance": "videos/continuous-attacking-doubao-v04-centered.mp4.json",
+      "contact": "previews/videos/continuous-attacking-v04-centered-contact.jpg",
+      "previewGif": "previews/videos/continuous-attacking-v04-centered-preview.gif",
+      "sourceMarginAudit": {
+        "passed": true,
+        "frameSize": [1280, 720],
+        "minimumMargins": { "left": 528, "right": 351, "top": 269, "bottom": 94 }
+      },
+      "review": "Accepted candidate for user review: starts and ends in drawn guard, one compact strike, no resheath, sealed hood identity preserved, and all source margins pass."
+    }
+  ]
+}

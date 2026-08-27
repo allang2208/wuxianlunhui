@@ -22,6 +22,13 @@ class AttackRangeEffect {
 
     getFogVisuals() { return this._graphics; }
 
+    setOrigin(x, y) {
+        this.x = x;
+        this.y = y;
+        this._graphics?.setPosition(x, y);
+        this._graphics?.setDepth(y - 998);
+    }
+
     update(dt = 16.67) {
         this.life -= dt;
         if (this.life <= 0) {

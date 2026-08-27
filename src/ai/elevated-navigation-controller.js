@@ -361,7 +361,12 @@ class ElevatedNavigationControllerImpl {
             command._surfaceExplicitLastDistance = distance;
             return command;
         }
-        if (now - (Number(command._surfaceExplicitProgressAt) || now) < this._config.progressTimeoutMs) {
+        const explicitProgressAt = Number(command._surfaceExplicitProgressAt);
+        if (!Number.isFinite(explicitProgressAt)) {
+            command._surfaceExplicitProgressAt = now;
+            return command;
+        }
+        if (now - explicitProgressAt < this._config.progressTimeoutMs) {
             return command;
         }
 
@@ -434,7 +439,9 @@ class ElevatedNavigationControllerImpl {
                 if (command?._surfaceAutonomous) {
                     command._surfaceProgressMs = this._config.progressTimeoutMs;
                 } else if (command) {
-                    command._surfaceExplicitProgressAt = 0;
+                    // 下一帧必须进入显式路线恢复；不能写 0 再由 `value || now`
+                    // 吞掉这个强制超时信号，否则单位退出队列后会永久停在旧入口。
+                    command._surfaceExplicitProgressAt = now - this._config.progressTimeoutMs;
                 }
                 return { ...reservation, blocked: true };
             }
@@ -457,7 +464,7 @@ class ElevatedNavigationControllerImpl {
             if (command?._surfaceAutonomous) {
                 command._surfaceProgressMs = this._config.progressTimeoutMs;
             } else if (command) {
-                command._surfaceExplicitProgressAt = 0;
+                command._surfaceExplicitProgressAt = now - this._config.progressTimeoutMs;
             }
             return { ...reservation, blocked: true };
         }

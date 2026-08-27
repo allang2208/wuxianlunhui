@@ -1,4 +1,4 @@
-import equipmentJson from '../../../../data/equipment.json';
+import { findWeaponConfig } from '../../../ui/equip-data-manager.js';
 import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../../../config/weapon-attack-config.js';
 import { EffectFactory } from '../../../utils/effect-factory.js';
 import { WallSystem } from '../../../world/wall-system.js';
@@ -16,10 +16,15 @@ import { isFacingLeftFrom } from './enemy-utils.js';
 /**
  * 给怪物装备枪械
  * @param {Enemy} host 怪物实例（需有 equipments/attacks/_isHumanoid/_currentSpreadFactor 字段）
- * @param {object} opts { equipKey, attackKey, damage, knockback, spreadFactor, spreadMaxAngle, fireSound, ammoConfig }
+ * @param {object} opts { weaponId, attackKey, damage, knockback, spreadFactor, spreadMaxAngle, fireSound, ammoConfig }
  */
 export function setupGun(host, opts) {
-    const item = JSON.parse(JSON.stringify(equipmentJson.equipment[opts.equipKey]));
+    const canonical = findWeaponConfig(opts.weaponId, opts.weaponName);
+    if (!canonical) {
+        console.warn(`[EnemyGun] 未找到权威武器定义: ${opts.weaponId || opts.weaponName || 'unknown'}`);
+        return null;
+    }
+    const item = JSON.parse(JSON.stringify(canonical));
     // attackKey 指到武器攻击配置（装备的 weaponType 与攻击配置键不一致时必填）
     if (opts.attackKey) item.attackKey = opts.attackKey;
     if (opts.fireSound) item.fireSound = opts.fireSound;

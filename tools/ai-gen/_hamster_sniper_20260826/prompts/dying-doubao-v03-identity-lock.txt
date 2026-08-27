@@ -1,0 +1,9 @@
+Animate only the pose of the exact character in the first frame. Do not redesign, reinterpret or regenerate the character, face, clothing, headgear or weapon.
+
+One non-looping death action lasting four seconds: during the first two seconds the hamster recoils once, his knees buckle, and he falls naturally onto his left side in the center-left safe area. By 2.3 seconds he is fully down. Hold the exact same motionless corpse pose without any further movement for the rest of the video.
+
+Hard identity lock in every frame: the same golden-brown hamster face and cream muzzle; both ears remain completely hidden by the same closed ghillie hood; the same lowered black dual-tube night-vision goggles remain over both eyes and never move or disappear; the same olive and dry-grass ghillie suit, pouches, camouflage trousers and boots; exactly two hands; exactly one identical long suppressed bolt-action sniper rifle.
+
+Only the joints and body pose may move. All textures, proportions, colors and equipment shapes remain unchanged from the first frame. The rifle stays rigid and complete, close to the torso, with its folded bipod remaining folded. No weapon transformation, no deployed bipod, no missing suppressor, no bent barrel, no duplicated parts. The entire body and rifle remain inside the left 70 percent of the frame; keep the bottom-right corner empty.
+
+Static camera, fixed scale, fixed exposure, pure white background, soft uniform light. No cuts, zoom, reframing, morphing, face change, younger face, enlarged head, visible ears, raised or missing goggles, hood opening, extra limbs, disappearing hands, black frame, dark block, flicker, floor shadow, blood, gore, firing, smoke, text, logo or new watermark.

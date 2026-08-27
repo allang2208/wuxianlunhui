@@ -26,6 +26,9 @@
   "skills": [
     "holyLight"
   ],
+  "sounds": {
+    "inspire": "assets/sounds/skills/holy-light-1.mp3"
+  },
   "ai": {
     "role": "holy_priest",
     "walkSpeed": 120,

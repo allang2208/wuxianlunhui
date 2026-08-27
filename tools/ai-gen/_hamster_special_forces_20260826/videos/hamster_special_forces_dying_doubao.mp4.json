@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_special_forces_20260826\\references\\hamster-special-forces-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_special_forces_20260826\\prompts\\dying.txt",
+  "promptChars": 2284,
+  "promptSha256": "b27cb275497bb07493bf730c71caedc663b1503911e3e78d11d72e66c94a4fe4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-26T12:38:53.539Z",
+  "sourceUrlScheme": "https"
+}

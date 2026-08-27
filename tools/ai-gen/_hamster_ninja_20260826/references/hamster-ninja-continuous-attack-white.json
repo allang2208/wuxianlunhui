@@ -1,0 +1,13 @@
+{
+  "asset": "hamster_ninja_continuous_attack_reference",
+  "generatedAt": "2026-08-26",
+  "sourceVideo": "../videos/attacking-doubao.mp4",
+  "sourceFrame": 90,
+  "cutout": "hamster-ninja-drawn-guard-alpha.png",
+  "output": "hamster-ninja-continuous-attack-white.png",
+  "outputSha256": "9579d102acf6bda1243ad59c8667183da156aa12e322d7ea9e5668bfa153fdd0",
+  "canvas": [1024, 576],
+  "anchorX": 0.36,
+  "footY": 0.84,
+  "purpose": "Drawn-guard first frame for a chainable attack that never resheathes."
+}

@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "base": {
+    "key": "floor_swamp_wet_seamless",
+    "src": "assets/terrain/floor_swamp_wet_seamless.png",
+    "backgroundColor": "#0d120b",
+    "textureScaleY": 0.5774
+  },
+  "detailLayer": {
+    "enabled": true,
+    "key": "swamp_dungeon_detail_tiles",
+    "src": "assets/terrain/swamp_dungeon_detail_tiles.png",
+    "frameWidth": 128,
+    "frameHeight": 64,
+    "frameCount": 4,
+    "displayWidth": 130,
+    "displayHeight": 65,
+    "density": 0.2,
+    "alpha": 0.86,
+    "seedSalt": 52769,
+    "frameWeights": [1.0, 0.92, 0.84, 0.76],
+    "grid": {
+      "originX": 0,
+      "originY": 0,
+      "stepX": 128,
+      "stepY": 32,
+      "rowOffsetX": 64
+    },
+    "edgeInset": 78
+  },
+  "deco": {
+    "placementMode": "world-grid",
+    "cellSize": 220,
+    "density": 0.58,
+    "jitterMin": 0.18,
+    "jitterMax": 0.82,
+    "scaleJitter": 0.12,
+    "edgeInset": 104,
+    "seedSalt": 63103,
+    "assets": [
+      { "key": "swamp_prop_mud_clods", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_mud_clods.png", "weight": 1.15, "size": 78, "originY": 0.875 },
+      { "key": "swamp_prop_wet_pebbles", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_wet_pebbles.png", "weight": 1.2, "size": 76, "originY": 0.875 },
+      { "key": "swamp_prop_moss_stones", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_moss_stones.png", "weight": 0.95, "size": 80, "originY": 0.875 },
+      { "key": "swamp_prop_reed_tuft", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_reed_tuft.png", "weight": 1.05, "size": 82, "originY": 0.875 },
+      { "key": "swamp_prop_cattails", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_cattails.png", "weight": 0.62, "size": 84, "originY": 0.875 },
+      { "key": "swamp_prop_lily_pads", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_lily_pads.png", "weight": 0.82, "size": 82, "originY": 0.875 },
+      { "key": "swamp_prop_duckweed", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_duckweed.png", "weight": 1.05, "size": 76, "originY": 0.875 },
+      { "key": "swamp_prop_mushrooms", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_mushrooms.png", "weight": 0.72, "size": 78, "originY": 0.875 },
+      { "key": "swamp_prop_rotten_planks", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_rotten_planks.png", "weight": 0.42, "size": 84, "originY": 0.875 },
+      { "key": "swamp_prop_root_tangle", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_root_tangle.png", "weight": 0.3, "size": 82, "originY": 0.875 },
+      { "key": "swamp_prop_twig_bundle", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_twig_bundle.png", "weight": 0.24, "size": 80, "originY": 0.875 },
+      { "key": "swamp_prop_snail_shells", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_snail_shells.png", "weight": 0.48, "size": 76, "originY": 0.875 },
+      { "key": "swamp_prop_frog_bones", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_frog_bones.png", "weight": 0.28, "size": 80, "originY": 0.875 },
+      { "key": "swamp_prop_broken_bowl", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_broken_bowl.png", "weight": 0.38, "size": 80, "originY": 0.875 },
+      { "key": "swamp_prop_rusty_hook", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_rusty_hook.png", "weight": 0.26, "size": 78, "originY": 0.875 },
+      { "key": "swamp_prop_reed_coil", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_reed_coil.png", "weight": 0.5, "size": 80, "originY": 0.875 },
+      { "key": "swamp_prop_swamp_flowers", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_swamp_flowers.png", "weight": 0.44, "size": 78, "originY": 0.875 },
+      { "key": "swamp_prop_egg_cluster", "src": "assets/terrain/swamp-dungeon-props/swamp_prop_egg_cluster.png", "weight": 0.32, "size": 74, "originY": 0.875 }
+    ]
+  }
+}

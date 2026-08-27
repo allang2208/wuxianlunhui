@@ -1,0 +1,14 @@
+Use case: precise-object-edit
+Asset type: revised production identity mother frame for a Phaser game friendly-unit animation pipeline
+
+Input image: the edit target. Preserve it as faithfully as possible.
+
+Primary request: change only the head covering and add night-vision equipment.
+
+Required edit:
+1. Extend and tighten the existing olive-drab and dry-grass-brown ghillie hood so both hamster ears are completely covered and no ear skin or ear silhouette is visible. The hood must look like a practical continuous camouflage hood, not cropped ears and not missing anatomy.
+2. Add one compact modern dual-tube night-vision goggle unit on a low-profile matte-black head harness integrated beneath the ghillie hood. The two night-vision eyepieces are lowered naturally in front of both eyes, aligned symmetrically and proportionally to the hamster face. Keep the pink nose, cream muzzle, mouth and whiskers visible below the goggles. Use dark matte military materials with very subtle muted green lens glass; no glowing beams and no bright neon light.
+
+Strict invariants: keep the exact same hamster identity, golden-brown fur, muzzle, body proportions, calm standing pose, head direction, white background, orthographic camera, framing, lighting, ghillie suit below the neck, tactical pouches, camouflage trousers, boots, complete sniper rifle, suppressor, scope, bipod, magazine, both hands, exact two-handed grip, arm positions, trigger discipline and all weapon geometry unchanged. Do not move, crop, resize, redesign or duplicate the rifle or body. Keep exactly one hamster and exactly one rifle.
+
+Avoid: visible ears, exposed ear tips, helmet, goggles pushed up, monocular night vision, four-tube panoramic goggles, gas mask, sunglasses, face mask, glowing eyes, green light beams, laser, extra straps covering the muzzle, extra weapons, changed hands, changed gun, duplicated scope or barrel, fantasy equipment, text, logo, watermark, scenery, shadow, crop, camera change, pose change.

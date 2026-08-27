@@ -1,0 +1,14 @@
+{
+  "provider": "Codex built-in ImageGen",
+  "generatedAt": "2026-08-26",
+  "output": "mother/hamster-champion-mother-v01.png",
+  "prompt": "mother/hamster-champion-mother-v01-prompt.txt",
+  "references": [
+    "../_hamster_phalanx_20260826/mother/hamster-phalanx-mother-v02-double-axe.png",
+    "../_hamster_halberd_20260825/mother/hamster-halberdier-mother-v04-ear-armor-plume.png"
+  ],
+  "referenceRoles": [
+    "Roman heavy armor and material language only",
+    "hamster proportions, helmet, crest, and legion clothing language only"
+  ]
+}

@@ -2,6 +2,7 @@ import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import producerBuildings from '../../data/producer-buildings.json';
 import buildingUpgrades from '../../data/building-upgrades.json';
+import populationEconomy from '../../data/population-economy.json';
 import { isInfiniteResourcesEnabled } from '../config/dev-cheats.js';
 
 const PROTOCOL_ID = 'warehouse_cross_plane';
@@ -48,11 +49,13 @@ function warehouseModuleValue(warehouse, moduleId, fallback = 0) {
 }
 
 function warehouseCapacity(warehouse) {
-    return Math.max(0, Math.floor(warehouseModuleValue(
-        warehouse,
-        'warehouse_capacity',
-        Number(producerBuildings[warehouse?.cfgKey]?.storageCapacity) || 0
-    )));
+    const levels = populationEconomy.warehouse?.levels || [];
+    const level = Math.max(1, Math.floor(Number(warehouse?.economyLevel) || 1));
+    const levelCfg = levels.find((entry) => Number(entry.level) === level) || levels[levels.length - 1];
+    const baseCapacity = Number(levelCfg?.storageCapacity)
+        || Number(producerBuildings[warehouse?.cfgKey]?.storageCapacity) || 0;
+    const moduleBonus = Math.max(0, warehouseModuleValue(warehouse, 'warehouse_capacity', 0));
+    return Math.max(0, Math.floor(baseCapacity + moduleBonus));
 }
 
 function warehouseFactor(warehouse, moduleId) {

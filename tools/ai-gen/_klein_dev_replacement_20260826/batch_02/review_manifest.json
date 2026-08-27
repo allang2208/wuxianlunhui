@@ -1,0 +1,48 @@
+{
+  "batch": 2,
+  "status": "approved_and_installed",
+  "generationMode": "single-pass model-plus-original",
+  "model": "flux2-klein-4b-world122-building-depth",
+  "steps": 36,
+  "depthStrength": 0.9,
+  "denoise": 0.2,
+  "variantsPerAsset": 1,
+  "styleVersion": "world122-building-v4",
+  "promptShadowContract": "absolutely no cast shadow of any kind; no ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow",
+  "controlSource": "the complete Blender Depth for each building at the authored World-122 isometric camera",
+  "initSource": "the corresponding accepted legacy full-canvas source image",
+  "formalAssetsOverwritten": true,
+  "approvedAt": "2026-08-26",
+  "installedAt": "2026-08-27",
+  "cutoutMethod": "key-world122-building-body.py -> mask-world122-building-body.py -> finalize-building-runtime.py; per-asset RGB keying, bounded matte cleanup and exact accepted alpha preservation",
+  "windComposite": {
+    "panel": "assets/terrain/wind_power_plant.png",
+    "body": "assets/terrain/wind_power_plant_body.png",
+    "rotor": "assets/terrain/wind_power_plant_rotor.png",
+    "frames": 24,
+    "frameRate": 12,
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/wind_power_plant/wind_power_plant_klein_rotation_preview.gif"
+  },
+  "candidates": [
+    "model_plus_original_36/warehouse_lv5/warehouse_lv5_refine_v01_raw.png",
+    "model_plus_original_36/barracks/barracks_refine_v01_raw.png",
+    "model_plus_original_36/hamster_barracks_lv2/hamster_barracks_lv2_refine_v01_raw.png",
+    "model_plus_original_36/thatch_hut/thatch_hut_refine_v01_raw.png",
+    "model_plus_original_36/thatch_hut_lv2/thatch_hut_lv2_refine_v01_raw.png",
+    "model_plus_original_36/armory/armory_refine_v01_raw.png",
+    "model_plus_original_36/bakery/bakery_refine_v01_raw.png",
+    "model_plus_original_36/royal_mint/royal_mint_refine_v01_raw.png",
+    "model_plus_original_36/steam_power_plant/steam_power_plant_refine_v01_raw.png",
+    "model_plus_original_36/wind_power_plant/wind_power_plant_refine_v01_raw.png"
+  ],
+  "reviewSheets": [
+    "review_sheets_raw/page_01.png",
+    "review_sheets_raw/page_02.png"
+  ],
+  "staticReview": {
+    "angle": "all ten candidates preserve the legacy visible sides, roof-axis direction and orthographic isometric camera; no mirrored building or root rotation flip found",
+    "structure": "no obvious floor-count, main-roof, tower-count or major functional-component drift found at contact-sheet scale",
+    "background": "several low-denoise candidates retain legacy yellow/green backdrop gradients; these are not accepted alpha and must be removed with the dedicated building chroma-key plus complete Depth after user approval",
+    "animatedAsset": "wind_power_plant remains a composite root; approval will rebuild the static body, independent rotor layer and panel image rather than flattening the runtime animation"
+  }
+}

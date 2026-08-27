@@ -32,6 +32,7 @@ export function isHamsterTarget(entity) {
         || entity._isHamsterPriest
         || entity._isHamsterKnight
         || entity._isHamsterLightCavalry
+        || entity._isHamsterNinja
         // 赏金猎人/探险家当前靠父类 flag（musketeer/scout）继承覆盖；
         // 显式列出防止未来断开继承时静默失效（skill/09 手动名单铁律）
         || entity._isHamsterBountyHunter

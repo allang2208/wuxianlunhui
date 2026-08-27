@@ -1,0 +1,11 @@
+The original game character in the first frame performs a complete energetic running cycle in place toward the right. This is an original anthropomorphic hamster game character and does not involve a real-person portrait. Preserve exactly the same hamster face, golden-brown and cream fur, body proportions, forest-green mantle, brown leather armor, chainmail, boots, compact one-handed crossbow in the anatomical right hand, and single dagger in the anatomical left hand.
+
+Motion: compact agile ranger strides with a clear alternating left-right foot cycle on one fixed ground baseline. Knees lift and compress, hips and shoulders counter-rotate subtly, and the mantle and leather gear react with restrained inertia. The root remains fixed for a sprite animation: no travel across the canvas, skating, floating or treadmill sliding. The anatomical right hand alone holds the compact crossbow close to the right side of the chest at a stable forward low-ready angle; the anatomical left hand alone holds the dagger low and backward beside the left thigh. The weapons never swap hands, cross the face, hit the legs or merge with the body.
+
+Camera and framing: preserve the first frame's right-facing low three-quarter view. Static locked orthographic camera with no pan, zoom, tilt, crop, reframing or tracking. Keep the complete hamster, both ears, both feet, entire crossbow and entire dagger visible with generous safety margins.
+
+Background: pure uniform #FFFFFF white, no floor line, shadow, reflection, scenery, particles, speed lines, text, logo or watermark. Soft flat diffuse light only.
+
+Loop: complete at least two natural gait cycles and return to the exact starting pose, position, scale, orientation and motion phase without freezing or snapping.
+
+Avoid: swapped weapons or hands, two-handed crossbow grip, aiming or firing, extra weapons, longbow, rifle, extra bolt, dagger or crossbow duplication, identity drift, long mouse tail, extra limbs, fused hands, foot sliding, root drift, hopping with both feet together, weapon morphing, camera motion, cropping, silhouette-erasing blur, cuts or multiple characters.

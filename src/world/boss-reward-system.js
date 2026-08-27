@@ -1,4 +1,3 @@
-import { GoldManager } from '../systems/gold-manager.js';
 import { EnchantConfig } from '../config/enchant-config.js';
 import { EnchantScrollItems } from '../config/enchant-config.js';
 import { MagicDustItem } from '../config/enchant-config.js';
@@ -16,6 +15,7 @@ import { getDungeonCompletionGold, getDungeonRewardRule, rollDungeonBossGold } f
 import { pathFinder } from '../ai/pathfinder.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { WallGate } from './wall-gate.js';
+import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
 /**
  * BossRewardSystem — Boss战与奖励系统（地牢模式重构 Stage 4）
  * ============================================================
@@ -37,11 +37,43 @@ import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
 import { EnhancementItems } from '../ui/reward-system.js';
 import { EquipManager } from '../ui/equip-manager.js';
+import { createGoldItem, routeProducedGold } from './economy-gold-routing.js';
 
 // ==================== 配置对象 ====================
 
 // 当前 Boss 战的地牢类型（enterBossBattle 传入，用于地牢级 bossSize 覆盖，如僵尸地牢高级=1024）
 let _arenaDungeonType = null;
+
+function _safeBossFloatingText(x, y, text, color) {
+    try {
+        EffectManager?.add?.(new FloatingTextEffect(x, y, text, color));
+    } catch (err) {
+        console.warn('[BossReward] 浮动文字显示失败:', err);
+    }
+}
+
+/** Boss 金币优先入背包、再入主神仓库；两者都满时保留为场内可拾取金币。 */
+function _grantBossGold(amount, player) {
+    const requested = Math.max(0, Math.floor(Number(amount) || 0));
+    let routed;
+    try {
+        routed = routeProducedGold(requested);
+    } catch (err) {
+        // 金币UI刷新等外围异常不得截断 Boss 出口开启；此处不重复落地，避免已部分入库时复制金币。
+        console.error('[BossReward] 金币路由异常，已保留出口流程:', err);
+        return { requested, backpack: 0, warehouse: 0, remaining: requested, dropped: 0, unresolved: requested };
+    }
+    let dropped = 0;
+    if (routed.remaining > 0 && player && typeof Game.dropItem === 'function') {
+        try {
+            Game.dropItem(player.x, player.y, createGoldItem(routed.remaining));
+            dropped = routed.remaining;
+        } catch (err) {
+            console.error('[BossReward] 金币溢出落地失败:', err);
+        }
+    }
+    return { ...routed, dropped, unresolved: Math.max(0, routed.remaining - dropped) };
+}
 
 export const BOSS_REWARD_CONFIG = {
     // Boss 场地配置
@@ -214,11 +246,24 @@ export class BossBattleManager {
     _setupArena() {
         const cfg = BOSS_REWARD_CONFIG.arena;
         const size = cfg.size;
+        const roomProfile = DungeonConfig.getCombatRoomConfig(_arenaDungeonType);
+        const dungeonProfile = DungeonConfig.getZombieDungeonConfig(_arenaDungeonType) || {};
+        const worldBlockRoom = roomProfile.wallConstruction === 'worldBlock1x1'
+            && dungeonProfile.wallStyle === 'zombie';
 
-        // 菱形场地：rx=1.2×bossSize、ry=rx×0.5774，黑砖地板菱形裁剪（区外全黑）
+        // 高级僵尸 Boss 房与普通/精英房统一：128×64 单格黑砖墙环 + 中央六格闸门。
+        // 其他旧地牢仍保留连续墙算法，避免跨地牢改变现有视觉合同。
         // 边距 ≥ 墙体贴图高度（≈217）+ 缓冲，防止上夹角被世界顶裁掉
-        const rx = Math.round(size * 1.2);
-        const ry = Math.round(rx * 0.5774);
+        const gridEdgeRadius = worldBlockRoom
+            ? Math.max(6, Math.round((size * 1.2) / ONE_CELL_BUILDING_FOOT.w))
+            : 0;
+        const edgeCells = gridEdgeRadius * 2;
+        const rx = worldBlockRoom
+            ? edgeCells * ONE_CELL_BUILDING_FOOT.w / 2
+            : Math.round(size * 1.2);
+        const ry = worldBlockRoom
+            ? edgeCells * ONE_CELL_BUILDING_FOOT.d / 2
+            : Math.round(rx * 0.5774);
         const M = Math.max(cfg.margin ?? 60, 260);
         this._diamond = {
             rx, ry,
@@ -230,11 +275,22 @@ export class BossBattleManager {
         const d = this._diamond;
         applyDiamondFloor(d.worldW, d.worldH, d.cx, d.cy, d.rx, d.ry);
 
-        // 菱形斜墙 + 四角转角（贴图墙 + 阶梯碰撞）
+        // 菱形墙体（单格墙标准或历史连续墙）
         WallSystem.init(d.worldW, d.worldH);
         WallSystem.walls = [];
         WallSystem.isoVisuals = [];
-        WallSystem.buildIsoDiamondWalls(d.cx, d.cy, d.rx, d.ry);
+        this._worldBlockRoom = worldBlockRoom;
+        CombatRoomSystem._roomConstruction = worldBlockRoom ? 'worldBlock1x1' : 'continuous';
+        CombatRoomSystem._gridGateSpan = null;
+        if (worldBlockRoom) {
+            CombatRoomSystem._gridGateCells = Math.max(2, Math.round(roomProfile.gateCells || 6));
+            CombatRoomSystem._gridEdgeCells = edgeCells;
+            const openings = CombatRoomSystem._appendWorldBlockRoomWalls(
+                { ...d, edgeCells }, ['RB']);
+            CombatRoomSystem._gridGateSpan = openings.RB || null;
+        } else {
+            WallSystem.buildIsoDiamondWalls(d.cx, d.cy, d.rx, d.ry);
+        }
         WallSystem.rebuildIsoCollision();
 
         if (WallSystem._syncWallsToPhaser) {
@@ -250,11 +306,19 @@ export class BossBattleManager {
     _placePlayer(player) {
         if (!player) return;
         const cfg = BOSS_REWARD_CONFIG.arena;
-        // 菱形场地：玩家生成在下顶点方向（中心向上下移 playerFromBottom px）
+        // 单格墙房从 RB 边六格门洞入场；连续墙旧房仍使用下顶点。
         if (this._diamond) {
             const d = this._diamond;
-            player.x = d.cx;
-            player.y = d.cy + d.ry - (cfg.playerFromBottom ?? 300);
+            if (this._worldBlockRoom) {
+                const anchor = { x: d.cx + d.rx / 2, y: d.cy + d.ry / 2 };
+                const dx = d.cx - anchor.x, dy = d.cy - anchor.y;
+                const len = Math.hypot(dx, dy) || 1;
+                player.x = anchor.x + dx / len * (cfg.playerFromBottom ?? 300);
+                player.y = anchor.y + dy / len * (cfg.playerFromBottom ?? 300);
+            } else {
+                player.x = d.cx;
+                player.y = d.cy + d.ry - (cfg.playerFromBottom ?? 300);
+            }
         } else {
             player.x = cfg.size / 2;
             player.y = cfg.size - (cfg.playerFromBottom ?? 300);
@@ -270,11 +334,20 @@ export class BossBattleManager {
         if (!player) return;
         const cfg = BOSS_REWARD_CONFIG.arena;
 
-        // 集合体生成：菱形场地上顶点方向（中心向上 bossFromTop px），与玩家镜像对齐
+        // 集合体与玩家镜像：单格墙房使用 LT 边内侧；旧房使用上顶点。
         let bx, by;
         if (this._diamond) {
-            bx = this._diamond.cx;
-            by = this._diamond.cy - this._diamond.ry + (cfg.bossFromTop ?? 300);
+            if (this._worldBlockRoom) {
+                const d = this._diamond;
+                const anchor = { x: d.cx - d.rx / 2, y: d.cy - d.ry / 2 };
+                const dx = d.cx - anchor.x, dy = d.cy - anchor.y;
+                const len = Math.hypot(dx, dy) || 1;
+                bx = anchor.x + dx / len * (cfg.bossFromTop ?? 300);
+                by = anchor.y + dy / len * (cfg.bossFromTop ?? 300);
+            } else {
+                bx = this._diamond.cx;
+                by = this._diamond.cy - this._diamond.ry + (cfg.bossFromTop ?? 300);
+            }
         } else {
             bx = cfg.size / 2;
             by = cfg.bossFromTop ?? 300;
@@ -320,13 +393,15 @@ export class BossBattleManager {
 
         // 发放基础奖励
         const gold = rollDungeonBossGold(_arenaDungeonType);
-        if (GoldManager) {
-            GoldManager.addGold(gold);
-        }
-
         const player = Game.player;
+        const routedGold = _grantBossGold(gold, player);
+        if (routedGold.unresolved > 0) {
+            console.error(`[BossReward] ${routedGold.unresolved} 金币未能完成结算`);
+        }
         if (player) {
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `🎉 击败 Boss！获得 ${gold} 金币`, '#ffd700'));
+            const stored = routedGold.backpack + routedGold.warehouse;
+            const suffix = routedGold.dropped > 0 ? `，${routedGold.dropped} 金币落在场内` : '';
+            _safeBossFloatingText(player.x, player.y - 40, `🎉 击败 Boss！入库 ${stored} 金币${suffix}`, '#ffd700');
         }
 
         // 门闸化：开大门等玩家走出白区（与普通战斗房同机制）；
@@ -334,7 +409,7 @@ export class BossBattleManager {
         if (WallGate.sprite) {
             CombatRoomSystem.openGate();
             if (player) {
-                EffectManager.add(new FloatingTextEffect(player.x, player.y - 70, '出口大门已开启，从大门离开', '#7a9aff'));
+                _safeBossFloatingText(player.x, player.y - 70, '出口大门已开启，从大门离开', '#7a9aff');
             }
         } else {
             this.spawnExitPortal();
@@ -358,7 +433,7 @@ export class BossBattleManager {
             Game.entities.set(this._exitPortalKey, portal);
         }
         if (EffectManager && FloatingTextEffect) {
-            EffectManager.add(new FloatingTextEffect(x, y - 40, '出口传送门已开启', '#7a9aff'));
+            _safeBossFloatingText(x, y - 40, '出口传送门已开启', '#7a9aff');
         }
         return portal;
     }
@@ -422,6 +497,11 @@ export class BossBattleManager {
         if (WallSystem.rebuildIsoCollision) WallSystem.rebuildIsoCollision();
         // 归还借用的门闸上下文
         CombatRoomSystem._diamond = null;
+        CombatRoomSystem._roomConstruction = 'continuous';
+        CombatRoomSystem._gridGateSpan = null;
+        CombatRoomSystem._gridEdgeCells = 0;
+        CombatRoomSystem._gridGateCells = 6;
+        this._worldBlockRoom = false;
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
         }
@@ -474,20 +554,25 @@ export class RewardNodeManager {
      * @param {string|null} dungeonType - 当前地牢类型
      */
     enterRewardNode(player, onComplete, dungeonType = null) {
-        if (this._isShowingReward) return;
+        if (this._isShowingReward) return false;
 
         this._isShowingReward = true;
 
         // 使用现有的 RewardSystem，但替换为 Boss 奖励卡牌
         this._setupBossRewardCards();
 
-        // 打开奖励面板
-        if (RewardSystem) {
-            RewardSystem.open({ baseGold: getDungeonCompletionGold(dungeonType) });
+        try {
+            if (!RewardSystem?.open) throw new Error('RewardSystem 不可用');
+            const opened = RewardSystem.open({ baseGold: getDungeonCompletionGold(dungeonType) });
+            if (opened === false) throw new Error('奖励面板 DOM 未就绪');
+            // 仅在面板成功打开后监听关闭，避免 open 异常把 _isShowingReward 永久卡住。
+            this._waitForRewardClose(onComplete);
+            return true;
+        } catch (err) {
+            console.error('[BossReward] 奖励面板打开失败:', err);
+            this.cleanup();
+            return false;
         }
-
-        // 监听面板关闭
-        this._waitForRewardClose(onComplete);
 
         
     }
@@ -523,9 +608,16 @@ export class RewardNodeManager {
      * 否则 _isShowingReward 卡 true 导致下局奖励节点 enterRewardNode 直接 return（软锁），
      * 泄漏的 interval 还可能在主神空间误触发 onComplete → _showVictory */
     cleanup() {
+        const wasShowingReward = this._isShowingReward || !!this._checkInterval;
         if (this._checkInterval) {
             TimerManager.clearInterval(this._checkInterval);
             this._checkInterval = null;
+        }
+        if (this._originalCards && RewardSystem.CARDS) {
+            RewardSystem.CARDS = this._originalCards;
+        }
+        if (wasShowingReward && RewardSystem?._isOpen) {
+            RewardSystem.close();
         }
         this._isShowingReward = false;
         this._originalCards = null;
@@ -542,9 +634,7 @@ export class RewardNodeManager {
         for (const reward of rewards) {
             switch (reward.type) {
                 case 'gold':
-                    if (GoldManager) {
-                        GoldManager.addGold(reward.count);
-                    }
+                    _grantBossGold(reward.count, player || Game.player);
                     break;
                 case 'stone':
                     // 强化石
@@ -587,13 +677,13 @@ export class RewardNodeManager {
     }
 
     _addToBackpackOrDrop(item) {
-        if (!item) return;
-        if (EquipManager && EquipManager.backpackItems &&
-            EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
-            EquipManager.addToBackpack(item);
-        } else if (Game.player && Game.dropItem) {
+        if (!item) return false;
+        if (EquipManager?.addToBackpack?.(item)) return true;
+        if (Game.player && typeof Game.dropItem === 'function') {
             Game.dropItem(Game.player.x, Game.player.y, item);
+            return true;
         }
+        return false;
     }
 
     _giveRandomWeapon(rarity) {
@@ -628,7 +718,7 @@ export const BossRewardSystem = {
      * 由 DungeonMapSystem._enterNode() reward 类型调用
      */
     enterRewardNode(player, onComplete, dungeonType = null) {
-        this.rewardNode.enterRewardNode(player, onComplete, dungeonType);
+        return this.rewardNode.enterRewardNode(player, onComplete, dungeonType);
     },
 
     /**

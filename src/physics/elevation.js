@@ -52,6 +52,10 @@ function isFriendlyMobileUnit(entity) {
 function hasEnteredElevatedTraffic(entity) {
     return entity?._surfaceKind === 'stairs'
         || entity?._surfaceKind === 'wall_walk'
+        // 入口 FIFO 已经决定谁能穿过 Portal；等待者若仍参与地面友军分离，
+        // 会把获权单位推出入口，自己也被推离等待点，形成反复回靠/超时重规划。
+        // 这里只关闭友军 unit-vs-unit 分离，墙、楼梯侧边与 Portal 许可仍保持生效。
+        || !!entity?._surfaceNavWaiting
         || !!entity?._elevatedNavigationBridge;
 }
 
@@ -60,9 +64,9 @@ export function isFriendlyElevatedTrafficUnit(entity) {
 }
 
 /**
- * 友方单位取得楼梯/城墙表面身份后，不再以各自 footprint 互相分离。
+ * 友方单位进入楼梯队列或取得楼梯/城墙表面身份后，不再以各自 footprint 互相分离。
  * 只豁免 unit-vs-unit：墙体、建筑、防坠线、Portal 入口排队和表面身份提交不受影响。
- * 任一方已进入高架交通即可豁免，避免楼梯单位被入口外或墙顶单位反向推离窄通道。
+ * 任一方已进入高架交通即可豁免，避免等待者堵住获权单位，或楼梯单位被入口外/墙顶单位推离。
  */
 export function shouldIgnoreFriendlyElevatedSeparation(left, right) {
     return isFriendlyMobileUnit(left)

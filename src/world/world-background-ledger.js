@@ -24,7 +24,11 @@ const UPGRADE_FIELDS = Object.freeze([
     'armoryUpgrade',
     'hospitalUpgrade',
     'bankUpgrade',
+    'grandMallUpgrade',
     'bakeryUpgrade',
+    'chainRestaurantUpgrade',
+    'cheeseFarmUpgrade',
+    'windPowerUpgrade',
     'resonatorUpgrade',
     'weatherUpgrade',
     'warehouseUpgrade',
@@ -93,6 +97,18 @@ export function getWorldBackgroundNextDelay(snapshot) {
 
         if (structure.bakeryJob && Number(structure.assignedWorkers) > 0) {
             const processRemainMs = Number(structure.bakeryJob.processRemainMs);
+            nextDelay = minPositive(nextDelay,
+                Number.isFinite(processRemainMs) && processRemainMs > 0
+                    ? processRemainMs : BAKERY_RETRY_MS);
+        }
+        if (structure.chainRestaurantJob && Number(structure.assignedWorkers) > 0) {
+            const processRemainMs = Number(structure.chainRestaurantJob.processRemainMs);
+            nextDelay = minPositive(nextDelay,
+                Number.isFinite(processRemainMs) && processRemainMs > 0
+                    ? processRemainMs : BAKERY_RETRY_MS);
+        }
+        if (structure.cheeseFarmJob && Number(structure.assignedWorkers) > 0) {
+            const processRemainMs = Number(structure.cheeseFarmJob.processRemainMs);
             nextDelay = minPositive(nextDelay,
                 Number.isFinite(processRemainMs) && processRemainMs > 0
                     ? processRemainMs : BAKERY_RETRY_MS);

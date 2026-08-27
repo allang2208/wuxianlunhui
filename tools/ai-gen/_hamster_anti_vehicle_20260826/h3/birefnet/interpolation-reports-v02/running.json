@@ -1,0 +1,49 @@
+{
+  "name": "hamster_anti_vehicle_running_h3_birefnet_v02",
+  "sourceSheet": "tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\birefnet\\source-sheets-pre-interpolation-v02\\running.png",
+  "outputSheet": "assets\\companions\\hamster_anti_vehicle\\running.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "pipelineVersion": "rife-v4.6-rgba-v2-temporal-dark-repair",
+  "mode": "loop",
+  "loopStartSourceIndex": 0,
+  "sourceFrameCount": 7,
+  "outputFrameCount": 14,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 2,
+  "sourceFrameRate": 6.0,
+  "outputFrameRate": 12.0,
+  "durationPreserved": true,
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 457,
+    "alphaBottomMax": 458,
+    "middleFrameFootShifts": [
+      15,
+      2,
+      1,
+      6,
+      1,
+      0,
+      31
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      308,
+      87,
+      901,
+      199,
+      56,
+      573,
+      1558
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 50.004991803850444,
+    "adjacentDeltaMeanAfter": 40.659761156354634
+  }
+}

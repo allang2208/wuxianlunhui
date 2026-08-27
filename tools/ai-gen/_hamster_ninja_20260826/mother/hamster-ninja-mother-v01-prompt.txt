@@ -1,0 +1,21 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+Input image: style, camera angle, subject scale, lighting, and anthropomorphic hamster proportion reference only; do not copy its armor, halberd, exposed face, helmet, plume, colors, or exact pose.
+
+Primary request: Create exactly one adult anthropomorphic golden hamster Japanese shinobi ninja as a production-ready friendly-unit identity mother image.
+
+Subject identity: compact believable hamster body and proportions beneath a traditional practical black shinobi shozoku. The entire head is tightly and cleanly wrapped in layered matte black hood cloth and a black face covering: both round hamster ears are completely enclosed beneath the hood, the muzzle, cheeks, nose, whiskers, neck, and all head fur are fully concealed. Only a narrow horizontal eye opening is visible, showing exactly two alert glossy dark-brown hamster eyes; no other skin or fur is visible anywhere. Black fitted gloves, wrapped forearms, layered tunic, cloth belt, tapered trousers, shin wraps, and black split-toe tabi boots. Subtle charcoal-gray panel variation, visible woven fabric texture, restrained dark stitching and dull iron fasteners keep the silhouette readable without turning gray. Exactly one short straight ninjato in a plain matte-black scabbard secured at the left waist, plus one small closed utility pouch for smoke bombs; no weapon is drawn and no bomb is visible.
+
+Anatomy and materials: physically plausible anthropomorphic biped anatomy, correct hands and feet, compact hamster weight distribution; layered woven cloth, soft leather and lightly worn dull iron with realistic roughness, controlled low-saturation values, no glossy plastic.
+
+Style and medium: high-detail realistic PBR 3D game render matching the reference's grounded dark-fantasy production-asset polish, readable silhouette and restrained colors; not a photograph, not anime, not chibi, not a flat illustration.
+
+Pose: calm animation-friendly neutral ready stance facing right in low three-quarter view; both feet planted on one baseline, knees slightly bent, torso upright but ready, both empty gloved hands relaxed near the torso, sword remains fully sheathed; alert eyes looking right.
+
+Composition and camera: orthographic-style locked low three-quarter camera matching the reference; complete single subject; full hood, hands, sword scabbard, pouch and both feet inside frame; body about 52% of canvas height, centered with generous safe margins on every side for future running, attack, death and smoke-bomb motion; no cropping.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon or floor; soft flat diffuse studio light only, no directional or cast shadow.
+
+Identity locks: exactly one hamster ninja; ears completely hidden; head and face fully wrapped; only the two eyes visible; exactly one sheathed short ninjato; no exposed fur, muzzle, nose, whiskers, ears, skin, fingers or toes; clean full silhouette.
+
+Avoid: exposed ears, visible muzzle or nose, exposed fur, open hood, loose scarf obscuring silhouette, samurai armor, metal helmet, bright colors, colored sash, drawn sword, extra weapons, visible smoke bomb, shuriken in hand, cape, extra or missing limbs, broken hands, duplicate sword, front or top view, strong perspective, cropping, dramatic lighting, rim halo, cast shadow, reflection, scenery, smoke, particles, text, logo, watermark, cartoon, anime, chibi, low-poly toy, glossy plastic.

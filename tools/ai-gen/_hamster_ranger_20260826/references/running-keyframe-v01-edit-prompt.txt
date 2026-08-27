@@ -1,0 +1,15 @@
+Use case: identity-preserve
+Asset type: corrected motion keyframe for a Phaser friendly-unit animation pipeline
+Input image: edit target and exact identity reference.
+
+Primary request: Change only the pose of the exact hamster ranger into a strong readable mid-stride run toward the right. Preserve the exact face, golden-brown and cream fur, body proportions, ears, forest-green mantle, brown leather armor, chainmail, belt, trousers, boots, material rendering, camera, scale and pure white background.
+
+Pose: right-facing low three-quarter running keyframe with the torso leaning slightly forward, anatomical right leg driving forward and anatomical left leg extending backward, both feet clearly separated. The anatomical right hand alone holds the exact same compact pistol-sized one-handed crossbow close to the right side of the chest at a stable forward low-ready angle. The anatomical left hand alone holds the exact same short dagger in a low reverse grip beside the left hip, with the complete dagger blade visible and separated from the leg.
+
+Critical anatomy lock: no visible tail of any length; the rear silhouette ends naturally at the mantle, trousers and legs. Exactly two arms, two hands and two legs. Exactly one compact crossbow and exactly one dagger, never swapped between hands.
+
+Composition: keep the complete hamster, ears, hands, both separated feet, full crossbow bow limb and complete dagger tip inside the 16:9 frame with generous white margins. Same subject size and orthographic-style low three-quarter camera as the source.
+
+Change only: pose and the physically necessary cloth/limb occlusion for the running keyframe.
+
+Avoid: visible tail, long mouse tail, swapped weapons, missing dagger, two-handed crossbow grip, full-size crossbow, rifle, longbow, weapon duplication, extra bolt, extra limbs, changed face, changed clothing, changed colors, cropped feet or weapons, cast shadow, floor, scenery, text, logo or watermark.

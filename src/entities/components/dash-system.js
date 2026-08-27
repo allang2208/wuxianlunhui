@@ -1,18 +1,16 @@
-import { WEAPON_ANIM } from '../../config/math-utils.js';
 import { Game } from '../../game.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
 import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
-import { SmokeEffect } from '../../effects/smoke-effect.js';
 import { isRifle } from '../../config/gun-ammo.js';
-import { DashFireTrailEffect, GoldenConvergeEffect } from '../../effects/dash-effects.js';
+import { DashFireTrailEffect } from '../../effects/dash-effects.js';
 import { Easing } from '../../config/math-utils.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { VerticalSector, VerticalRect } from '../../physics/skill-shapes.js';
 import { entitySurfaceZ, surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { EffectManager } from '../../effects/effect-manager.js';
-import { BloodHitEffect as HitEffect, BloodHitEffect as CritEffect } from '../../effects/blood-hit-effect.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
 import { SkillManager } from '../../ui/skill-manager.js';
 import { enterDashFreeze, nowMs } from '../player/anim-state.js';
 import { SoundManager } from '../../ui/sound-manager.js';
@@ -20,6 +18,18 @@ class DashSystem {
     constructor(player) {
         this.player = player;
         this._meleeHitSoundCd = 0; // 命中音效节流（防多目标/多段刷音）
+    }
+
+    _getDashSkillLevel(skillId) {
+        return this.player._getDashSkillLevel
+            ? this.player._getDashSkillLevel(skillId)
+            : (this.player.skills?.[skillId]?.level || 1);
+    }
+
+    _clearDashSnapshot() {
+        this.player._dashSkillId = null;
+        this.player._dashWeaponItem = null;
+        this.player._dashSkillOverrides = null;
     }
 
     /** 玩家冲刺攻击命中音效（与 DamagePipeline 同口径、同节流时长） */
@@ -34,12 +44,16 @@ class DashSystem {
     }
 
     trigger(_entities) {
-        if (this.player._specialAttackActive) return; // 夜与火之剑特殊攻击期间禁止冲刺攻击
+        if (this.player._specialAttackActive || this.player._whirlwindRecovering) return false; // 风车收势/夜与火特殊攻击期间禁止冲刺攻击
         // 攻击动画锁定：任何动画未播完前不触发（近战攻击中/收势中/冲刺恢复定格中/风车/推击均拒绝插队）
-        if (this.player.weaponAnim && this.player.weaponAnim.isAttacking) return;
-        if (this.player._attackRecovering || this.player._dashRecoverAt || this.player._isWhirlwind || this.player._isPushStrike) return;
-        // 使用鼠标方向（当前朝向）作为冲刺方向
-        let dirX = Math.cos(this.player.rotation), dirY = Math.sin(this.player.rotation);
+        if (this.player.weaponAnim && this.player.weaponAnim.isAttacking) return false;
+        if (this.player._attackRecovering || this.player._dashRecoverAt || this.player._isWhirlwind || this.player._isPushStrike) return false;
+        // 冲刺方向只读取发动瞬间的移动输入水平分量。斜向吸附为水平；纯纵向/无输入
+        // 不发动且必须在任何状态写入、动画切换和体力扣除之前返回。
+        const move = Input.getMovement();
+        if (!move || Math.abs(Number(move.x) || 0) < 0.001) return false;
+        const dirX = move.x > 0 ? 1 : -1;
+        const dirY = 0;
         this.player._isDashing = true;
         this.player._dashState = 'charge';
         this.player._dashTimer = 0;
@@ -48,6 +62,8 @@ class DashSystem {
             this.player.clearAttackTweens();
         }
         this.player._dashDirection = { x: dirX, y: dirY };
+        this.player._facingRightVisual = dirX > 0;
+        this.player._facingDir = dirX > 0 ? 'right' : 'left';
         this.player._dashStartPos = { x: this.player.x, y: this.player.y };
         this.player._dashHitSet = new Set();
         this.player._dashKillCount = 0;
@@ -57,25 +73,38 @@ class DashSystem {
         this.player._dashSoundPlayed = false; // 挥砍音效第 9 帧一次性播放标记
         this.player._dashSlashPos = null;
         this.player._dashSlashEffect = null; // 重置扇形特效引用
-        this.player._goldenConvergeEffect = null; // 重置金色汇聚特效引用
         this.player._sprintDuration = 0;
         // 应用改造效果：技能体力消耗
         const activeSkillId = this.player._getActiveDashSkillId();
+        const currentWeapon = this.player.equipments[this.player.weaponMode];
+        this.player._dashSkillId = activeSkillId;
+        this.player._dashWeaponItem = currentWeapon || null;
+        this.player._dashSkillOverrides = currentWeapon?.skillOverrides
+            ? JSON.parse(JSON.stringify(currentWeapon.skillOverrides))
+            : {};
+        this.player._dashVisualStyle = activeSkillId === 'dashAttackThrust' ? 'thrust' : 'slash';
         const dashSkill = this.player.skills[activeSkillId];
-        // 冲刺攻击人物动画（dash_attack sheet 17 帧，时长按技能 totalMs 拉伸同步）
+        const dashSkillLevel = this._getDashSkillLevel(activeSkillId);
+        // 骑士长剑突刺使用独立人物动画；其余武器保持原 dash_attack 上劈下砍。
         {
             const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
             if (scene && typeof scene.setPlayerAnimation === 'function') {
-                const dashEffect = (dashSkill && typeof dashSkill.getEffect === 'function') ? dashSkill.getEffect(dashSkill.level) : null;
-                const dashTotalMs = (dashEffect && dashEffect.totalMs) || 800;
+                const dashEffect = (dashSkill && typeof dashSkill.getEffect === 'function') ? dashSkill.getEffect(dashSkillLevel) : null;
+                const dashTotalMs = this.player._getSkillParam(
+                    activeSkillId,
+                    'animation.totalMs',
+                    (dashEffect && dashEffect.totalMs) || 800
+                );
                 this.player._dashTotalMs = dashTotalMs; // 供 GameScene 冲刺轨迹按帧进度插值
-                scene.setPlayerAnimation('dash_attack', dashTotalMs);
+                const dashAnimKey = this.player._dashVisualStyle === 'thrust'
+                    ? 'dash_attack_thrust'
+                    : 'dash_attack';
+                scene.setPlayerAnimation(dashAnimKey, dashTotalMs);
             }
         }
-        const currentWeapon = this.player.equipments[this.player.weaponMode];
         let staminaCost = 20;
         if (dashSkill && typeof dashSkill.getEffect === 'function') {
-            const effect = dashSkill.getEffect(dashSkill.level);
+            const effect = dashSkill.getEffect(dashSkillLevel);
             if (effect && typeof effect.staminaCost === 'number' && isFinite(effect.staminaCost)) {
                 staminaCost = effect.staminaCost;
             }
@@ -95,14 +124,15 @@ class DashSystem {
         this.player._dashSlashStartTime = null;
         // 冲刺攻击-火：重置火焰轨迹计时器
         this.player._dashFireTrailTimer = 0;
+        return true;
     }
 
     _getDashWeaponStateAt(timer, skillId) {
-        // 未传入 skillId 时，根据当前装备自动判断
-        const activeSkillId = skillId || this.player._getActiveDashSkillId();
+        // 未传入 skillId 时优先使用本次动作快照，避免冲刺中换装备造成轨迹分支漂移。
+        const activeSkillId = skillId || this.player._dashSkillId || this.player._getActiveDashSkillId();
         const skill = this.player.skills[activeSkillId];
-        const effect = skill ? skill.getEffect(skill.level) : {};
-        const totalMs = effect.totalMs || 800;
+        const effect = skill ? skill.getEffect(this._getDashSkillLevel(activeSkillId)) : {};
+        const totalMs = this.player._getSkillParam(activeSkillId, 'animation.totalMs', effect.totalMs || 800);
         const dashProgress = Math.min(1, timer / totalMs);
         const hitArc = effect.hitArc || (2 * Math.PI / 3);
         let dashOffset, dashAngle;
@@ -136,28 +166,36 @@ class DashSystem {
 
     update(dt, entities) {
         if (!this.player._isDashing) return;
-        const activeSkillId = this.player._getActiveDashSkillId();
+        const activeSkillId = this.player._dashSkillId || this.player._getActiveDashSkillId();
         const isThrust = activeSkillId === 'dashAttackThrust';
         const isFire = activeSkillId === 'dashAttackFire';
-        const currentWeapon = this.player.equipments[this.player.weaponMode];
+        const currentWeapon = this.player._dashWeaponItem || this.player.equipments[this.player.weaponMode];
         const isMeleeWeapon = currentWeapon && (currentWeapon.category === 'weapon_melee' || currentWeapon.weaponType === 'sword');
         const hasDashSkill = this.player.skills && this.player.skills[activeSkillId];
         if (!isMeleeWeapon || !hasDashSkill) {
+            const thrustTraining = this.player._dashThrustPhase;
             this.player._isDashing = false;
             this.player._dashState = 'idle';
             this.player._dashTimer = 0;
             this.player._dashBounceApplied = false;
             this.player._dashSlashPos = null;
             this.player._dashSlashEffect = null;
-            this.player._dashThrustPhase = null;
             this.player._dashSlashStartTime = null;
-            if (isThrust) SkillManager.addDashThrustExp(this.player, this.player._dashHitSet.size, 0);
+            this.player._dashVisualStyle = null;
+            if (isThrust) {
+                const trainingHits = thrustTraining?.totalHitCount || 0;
+                const trainingKills = thrustTraining?.totalKillCount || 0;
+                SkillManager.addDashThrustExp(this.player, trainingHits, trainingKills);
+                SkillManager.addMeleeExp(this.player, trainingHits, trainingKills, currentWeapon);
+            }
             else SkillManager.addDashExp(this.player, this.player._dashHitSet.size, 0);
+            this.player._dashThrustPhase = null;
+            this._clearDashSnapshot();
             return;
         }
         this.player._dashTimer += dt;
         const skill = this.player.skills[activeSkillId];
-        const effect = skill.getEffect(skill.level);
+        const effect = skill.getEffect(this._getDashSkillLevel(activeSkillId));
         if (isThrust) {
             // === 冲刺攻击-突刺（骑士长剑专属）===
             const totalMs = this.player._getSkillParam('dashAttackThrust', 'animation.totalMs', effect.totalMs);
@@ -169,19 +207,6 @@ class DashSystem {
             } else if (progress < 1.0) {
                 if (this.player._dashState !== 'slash') {
                     this.player._dashSlashPos = { x: this.player.x, y: this.player.y };
-                    // 动态计算剑尖位置：基于当前武器状态实时检测武器贴图位置
-                    const state = this._getDashWeaponStateAt(this.player._dashTimer, activeSkillId);
-                    const s = WEAPON_ANIM.size;
-                    const ms = s * 0.75;
-                    // 剑尖位置 = 武器基础偏移 + 武器中心偏移 + 剑尖到武器中心距离
-                    // 基于 renderWeapon 中的变换逻辑推导
-                    const convergeX = (WEAPON_ANIM.holdX + 8) + ms * 0.85 - state.dashOffset + ms / 2;
-                    const convergeY = (WEAPON_ANIM.holdY + 6);
-                    const effectX = this.player.x;
-                    const effectY = this.player.y;
-                    const speedDuration = effect.goldenConvergeDuration; // 播放速度提高50%
-                    this.player._goldenConvergeEffect = new GoldenConvergeEffect(effectX, effectY, this.player._dashDirection.x, this.player._dashDirection.y, this.player, speedDuration, convergeX, convergeY);
-                    EffectManager.add(this.player._goldenConvergeEffect);
                     if (Game.showAttackRange) {
                         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
                         let rectLength = this.player._getSkillParam('dashAttackThrust', 'hitCheck.length', effect.hitLength) + this.player._getSkillParam('dashAttackThrust', 'hitCheck.lengthBonus', effect.hitLengthBonus);
@@ -197,14 +222,13 @@ class DashSystem {
                 this.player._dashState = 'slash';
             } else {
                 const endState = this._getDashWeaponStateAt(this.player._dashTimer, activeSkillId);
+                const thrustTraining = this.player._dashThrustPhase;
                 this.player._isDashing = false;
                 this.player._dashState = 'idle';
                 this.player._dashTimer = 0;
                 this.player._dashBounceApplied = false;
                 this.player._dashParticles = [];
                 this.player._dashSlashEffect = null;
-                this.player._dashThrustPhase = null;
-                this.player._goldenConvergeEffect = null;
                 this.player._dashSlashStartTime = null;
                 this.player._dashResetAnim = {
                     startOffset: endState.dashOffset,
@@ -212,28 +236,36 @@ class DashSystem {
                     startRotation: this.player.rotation,
                     targetRotation: (() => { const sp = Renderer.worldToScreen(this.player.x, this.player.y); return Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x); })(),
                     startTime: nowMs(), // Phase 3：墙钟→单调时钟（读者 subsystems.js/GameScene.js 同链）
-                    duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500
+                    duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500,
+                    visualStyle: 'thrust'
                 };
+                const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+                if (scene && typeof scene.setPlayerAnimation === 'function') {
+                    scene.setPlayerAnimation('dash_recover_thrust', this.player._dashResetAnim.duration);
+                }
                 // [FIX] 冲刺攻击结束确保武器动画状态恢复，防止体力回复被卡住
                 if (this.player.weaponAnim) {
                     this.player.weaponAnim.state = 'idle';
                     this.player.weaponAnim.isAttacking = false;
                     this.player.weaponAnim.timer = 0;
                 }
-                SkillManager.addDashThrustExp(this.player, this.player._dashHitSet.size, 0);
-                // 剑精通经验（突刺攻击命中）
-                if (this.player._dashThrustPhase) {
-                    SkillManager.addMeleeExp(this.player, this.player._dashThrustPhase.totalHitCount, this.player._dashThrustPhase.totalKillCount);
-                }
+                // 三段突刺按实际伤害次数/击杀数修炼；同一目标三次命中不能退化为一个唯一目标。
+                const trainingHits = thrustTraining?.totalHitCount || 0;
+                const trainingKills = thrustTraining?.totalKillCount || 0;
+                SkillManager.addDashThrustExp(this.player, trainingHits, trainingKills);
+                SkillManager.addMeleeExp(this.player, trainingHits, trainingKills, currentWeapon);
+                this.player._dashThrustPhase = null;
+                this._clearDashSnapshot();
                 return;
             }
-            // 移动：动画帧驱动——dash_attack 共 17 帧，前 12 帧（1~12）完成位移，后 5 帧（13~17）不位移
+            // 位移保持既有 12/17 时间比例，不跟随视觉 sheet 改帧而改变战斗距离/停步时点。
+            // 骑士长剑人物动画现为 H3 f66~f80 连续15帧，在600ms内按近原速播放。
             const dashDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist);
             const speedMul = effect.speedMul;
             const bounceRatio = effect.bounceRatio;
-            const totalFrames = 17;
-            const moveFrames = (typeof effect.moveFrames === 'number') ? effect.moveFrames : 12; // 位移帧数（技能配置可覆盖）
-            const movePhaseRatio = moveFrames / totalFrames;
+            const gameplayTimelineFrames = 17;
+            const moveFrames = (typeof effect.moveFrames === 'number') ? effect.moveFrames : 12;
+            const movePhaseRatio = moveFrames / gameplayTimelineFrames;
             if (progress < movePhaseRatio) {
                 const moveProgress = progress / movePhaseRatio;
                 const easedProgress = Easing.easeOutQuad(moveProgress);
@@ -270,7 +302,7 @@ class DashSystem {
                         wallIgnore
                     );
                     this.player.x = br.x; this.player.y = br.y;
-                    EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                    EffectFactory.createSmokeEffect(resolved.x, resolved.y);
                 } else {
                     this.player.x = resolved.x; this.player.y = resolved.y;
                 }
@@ -286,7 +318,7 @@ class DashSystem {
             }
         } else {
             // === 原始冲刺攻击（dashAttack）===
-            const totalMs = effect.totalMs;
+            const totalMs = this.player._getSkillParam(activeSkillId, 'animation.totalMs', effect.totalMs);
             const progress = this.player._dashTimer / totalMs;
             const chargeRatio = effect.chargeMs / totalMs;
             if (progress < chargeRatio) {
@@ -295,11 +327,11 @@ class DashSystem {
                 if (this.player._dashState !== 'slash') {
                     this.player._dashSlashPos = { x: this.player.x, y: this.player.y };
                     if (Game.showAttackRange) {
-                        const currentItem = this.player.equipments[this.player.weaponMode];
+                        const currentItem = currentWeapon;
                         const baseRange = (currentItem && currentItem.attack && currentItem.attack.range)
                             || (this.player.attacks.melee && this.player.attacks.melee.config && this.player.attacks.melee.config.range)
                             || 206;
-                        const skillLevel = skill.level;
+                        const skillLevel = this._getDashSkillLevel(activeSkillId);
                         const range = baseRange + effect.rangeBonusBase + skillLevel * effect.rangeLevelBonus + effect.rangeBonusFlat;
                         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
                         const hitArc = effect.hitArc;
@@ -321,7 +353,6 @@ class DashSystem {
                 this.player._dashParticles = [];
                 this.player._dashSlashEffect = null;
                 this.player._dashThrustPhase = null;
-                this.player._goldenConvergeEffect = null;
                 this.player._dashSlashStartTime = null;
                 // 恢复动画延迟 0.5s 播放（末帧定格），由 GameScene._updatePlayerAnimation 到点触发；
                 // 定格期武器停在 dash 轨迹末帧（perFrame progress=1），恢复走近战同款滑回（dash-system 不再建旧公式复位动画）
@@ -334,7 +365,8 @@ class DashSystem {
                 }
                 SkillManager.addDashExp(this.player, this.player._dashHitSet.size, this.player._dashKillCount);
                 // 剑精通经验（冲刺攻击命中，只在攻击结束时发放一次）
-                SkillManager.addMeleeExp(this.player, this.player._dashHitSet.size, this.player._dashKillCount);
+                SkillManager.addMeleeExp(this.player, this.player._dashHitSet.size, this.player._dashKillCount, currentWeapon);
+                this._clearDashSnapshot();
                 return;
             }
             // 移动：动画帧驱动——dash_attack 共 17 帧，位移窗口内完成位移，窗口外不位移
@@ -382,7 +414,7 @@ class DashSystem {
                         wallIgnore
                     );
                     this.player.x = br.x; this.player.y = br.y;
-                    EffectManager.add(new SmokeEffect(resolved.x, resolved.y));
+                    EffectFactory.createSmokeEffect(resolved.x, resolved.y);
                 } else {
                     this.player.x = resolved.x; this.player.y = resolved.y;
                 }
@@ -399,6 +431,7 @@ class DashSystem {
                         this.player._dashSlashStartTime = null;
                         enterDashFreeze(this.player, nowMs() + 500);
                         SkillManager.addDashExp(this.player, this.player._dashHitSet.size, 0);
+                        this._clearDashSnapshot();
                         return;
                     }
                 }
@@ -411,15 +444,6 @@ class DashSystem {
             }
             // 挥砍阶段：扇形判定——第 14 帧才开始判定伤害（此前进 slash 即判，挥砍未到位）
             if (this.player._dashState === 'slash' && progress >= (14 - 1) / (totalFrames - 1)) {
-                // 动态更新金色汇聚特效的汇聚点位置，实时跟随剑尖
-                if (this.player._goldenConvergeEffect && this.player._goldenConvergeEffect.active) {
-                    const state = this._getDashWeaponStateAt(this.player._dashTimer, activeSkillId);
-                    const s = WEAPON_ANIM.size;
-                    const ms = s * 0.75;
-                    const convergeX = (WEAPON_ANIM.holdX + 8) + ms * 0.85 - state.dashOffset + ms / 2;
-                    const convergeY = (WEAPON_ANIM.holdY + 6);
-                    this.player._goldenConvergeEffect.setConverge(convergeX, convergeY);
-                }
                 const slashElapsed = this.player._dashSlashStartTime ? nowMs() - this.player._dashSlashStartTime : 0;
                 if (slashElapsed <= effect.slashWindowMs) {
                     this._checkHit(entities, activeSkillId);
@@ -429,15 +453,15 @@ class DashSystem {
     }
 
     _checkHit(entities, skillId) {
-        const activeSkillId = skillId || this.player._getActiveDashSkillId();
+        const activeSkillId = skillId || this.player._dashSkillId || this.player._getActiveDashSkillId();
         const isThrust = activeSkillId === 'dashAttackThrust';
         const attackAngle = Math.atan2(this.player._dashDirection.y, this.player._dashDirection.x);
-        const currentItem = this.player.equipments[this.player.weaponMode];
+        const currentItem = this.player._dashWeaponItem || this.player.equipments[this.player.weaponMode];
         const baseKnockback = (currentItem && currentItem.attack && currentItem.attack.knockback)
             || (this.player.attacks.melee && this.player.attacks.melee.config && this.player.attacks.melee.config.knockback)
             || 8;
         const skill = this.player.skills[activeSkillId];
-        const skillLevel = skill.level;
+        const skillLevel = this._getDashSkillLevel(activeSkillId);
         const effect = skill.getEffect(skillLevel);
         const knockback = baseKnockback + effect.knockbackBonus + skillLevel * effect.knockbackLevelBonus;
         const baseRange = (currentItem && currentItem.attack && currentItem.attack.range)
@@ -462,12 +486,12 @@ class DashSystem {
             const hitIndex = Math.floor(elapsed / hitTickInterval);
             if (hitIndex >= thrustMaxHits || hitIndex <= phase.lastHitIndex) return;
             phase.lastHitIndex = hitIndex;
-            const baseAtk = this.player.getCurrentWeaponAtk();
+            const baseAtk = this.player.getCurrentWeaponAtk(currentItem);
             // 从 skills.json 获取 damageMul: 0.80 + level * 0.03
             const damageMul = skill.getEffect(skillLevel).damageMul;
             const levelBonus = (hitIndex === 0 || hitIndex === 1)
-                ? skillLevel * effect.thrustLevelBonusEarly
-                : skillLevel * effect.thrustLevelBonusLate;
+                ? effect.thrustLevelBonusEarly
+                : effect.thrustLevelBonusLate;
             const damage = Math.floor(baseAtk * damageMul + levelBonus);
             // 改造效果：大马士革钢 - 冲刺突刺双倍伤害
             const dashDoubleHit = currentItem && currentItem._craftEffects && currentItem._craftEffects.dashDoubleHit;
@@ -485,7 +509,7 @@ class DashSystem {
                     const targetCritRes = (entity.data && entity.data.critRes) || 0;
                     let playerCrit = this.player.data.crit || 0;
                     if (this.player.skills && this.player.skills.rifleMastery) {
-                        const currentWpn = this.player.equipments[this.player.weaponMode];
+                        const currentWpn = currentItem;
                         if (currentWpn && isRifle(currentWpn.weaponType)) {
                             playerCrit += this.player.skills.rifleMastery.getEffect(this.player.skills.rifleMastery.level).critRateBonus;
                         }
@@ -511,8 +535,7 @@ class DashSystem {
                     // 击退距离 = 主角突刺移动距离
                     const thrustMoveDist = this.player._getSkillParam('dashAttackThrust', 'animation.dashDist', effect.dashDist) * effect.speedMul;
                     entity.applyKnockback(attackAngle, thrustMoveDist);
-                    EffectManager.add(new HitEffect(entity.x, entity.y));
-                    EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
+                    EffectFactory.createHitEffect(entity.x, entity.y);
                     this.player._triggerRuneSwordCooldownReduction();
                 });
             } else {
@@ -524,7 +547,7 @@ class DashSystem {
                     const targetCritRes2 = (entity.data && entity.data.critRes) || 0;
                     let playerCrit2 = this.player.data.crit || 0;
                     if (this.player.skills && this.player.skills.rifleMastery) {
-                        const currentWpn2 = this.player.equipments[this.player.weaponMode];
+                        const currentWpn2 = currentItem;
                         if (currentWpn2 && isRifle(currentWpn2.weaponType)) {
                             playerCrit2 += this.player.skills.rifleMastery.getEffect(this.player.skills.rifleMastery.level).critRateBonus;
                         }
@@ -545,8 +568,7 @@ class DashSystem {
                     phase.totalHitCount++;
                     entity._dashStunned = true;
                     entity._dashStunTimer = effect.stunDuration;
-                    EffectManager.add(new HitEffect(entity.x, entity.y));
-                    EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
+                    EffectFactory.createHitEffect(entity.x, entity.y);
                     this.player._triggerRuneSwordCooldownReduction();
                 });
             }
@@ -565,18 +587,18 @@ class DashSystem {
                 let damage;
                 if (isFire) {
                     // 冲刺攻击-火：攻击力 = (物理伤害+魔法伤害) * damageMul
-                    const physAtk = this.player.getCurrentWeaponAtk();
+                    const physAtk = this.player.getCurrentWeaponAtk(currentItem);
                     const magicAtk = this.player.data.matk || 0;
                     const fireMul = dashEffect.damageMul;
                     damage = Math.floor((physAtk + magicAtk) * fireMul);
                 } else {
-                    const baseDamage = this.player.getCurrentWeaponAtk();
+                    const baseDamage = this.player.getCurrentWeaponAtk(currentItem);
                     damage = Math.floor(baseDamage * dashEffect.damageMul);
                 }
                 const targetCritRes3 = (entity.data && entity.data.critRes) || 0;
                 let playerCrit3 = this.player.data.crit || 0;
                 if (this.player.skills && this.player.skills.rifleMastery) {
-                    const currentWpn3 = this.player.equipments[this.player.weaponMode];
+                    const currentWpn3 = currentItem;
                     if (currentWpn3 && isRifle(currentWpn3.weaponType)) {
                         playerCrit3 += this.player.skills.rifleMastery.getEffect(this.player.skills.rifleMastery.level).critRateBonus;
                     }
@@ -596,9 +618,8 @@ class DashSystem {
                 if (wasAlive && entity.hp <= 0) this.player._dashKillCount++;
                 const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);
                 entity.applyKnockback(kbAngle, knockback);
-                EffectManager.add(new HitEffect(entity.x, entity.y));
-                EffectManager.createDamageText(entity.x, entity.y - entity.size, finalDamage, isCrit);
-                if (isCrit) EffectManager.add(new CritEffect(entity.x, entity.y - entity.size * 1.5));
+                EffectFactory.createHitEffect(entity.x, entity.y);
+                if (isCrit) EffectFactory.createHitEffect(entity.x, entity.y - entity.size * 1.5);
                 if (isFire) {
                     // 火焰特效：命中时额外生成火焰爆炸
                     EffectManager.add(new DashFireTrailEffect(entity.x, entity.y, 0, 0, null));
@@ -612,7 +633,7 @@ class DashSystem {
     _spawnFireTrail() {
         if (!this.player._dashFireTrailTimer) this.player._dashFireTrailTimer = 0;
         const skill = this.player.skills.dashAttackFire;
-        const effect = skill ? skill.getEffect(skill.level) : {};
+        const effect = skill ? skill.getEffect(this._getDashSkillLevel('dashAttackFire')) : {};
         this.player._dashFireTrailTimer += 16.67; // 约60fps
         if (this.player._dashFireTrailTimer < (effect.fireTrailSpawnInterval || 50)) return; // 按配置间隔生成
         this.player._dashFireTrailTimer = 0;

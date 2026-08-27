@@ -11,7 +11,11 @@ import { Game } from '../game.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { routeProducedGold, createGoldItem } from './economy-gold-routing.js';
+import {
+    createGoldItem,
+    getPlayerTotalGold,
+    routeProducedGold,
+} from './economy-gold-routing.js';
 import { WarehouseSystem } from '../ui/warehouse-system.js';
 import {
     getWorldSnapshots, isWorldLive, isWorldSnapshotCurrent,
@@ -88,8 +92,12 @@ export const WorldSimDriver = {
                 rate: total.rate + Math.max(0, Number(summary.rate) || 0),
             };
         }, { count: 0, rate: 0 });
-        const totalResearchRate = liveResearch.rate + backgroundResearch.rate;
-        const secondsToResearchBoundary = TechnologySystem.getEstimatedSeconds?.(null, totalResearchRate);
+        const rawResearchRate = liveResearch.rate + backgroundResearch.rate;
+        const effectiveResearchRate = TechnologySystem.getEffectiveResearchRate(rawResearchRate);
+        const secondsToResearchBoundary = TechnologySystem.getEstimatedSeconds?.(
+            null,
+            effectiveResearchRate
+        );
         const researchMode = TechnologySystem.getResearchMode?.() || 'idle';
         // 全局科技若将在本次 1Hz 窗口完成，先把所有后台账本结算到旧科技状态的末端，
         // 避免长时间休眠后把新能力错误回溯到整段离线时间。
@@ -106,10 +114,15 @@ export const WorldSimDriver = {
                 };
             }, { count: 0, rate: 0 });
         }
+        const finalRawResearchRate = liveResearch.rate + backgroundResearch.rate;
+        const finalEffectiveResearchRate = TechnologySystem.getEffectiveResearchRate(
+            finalRawResearchRate
+        );
         const completedTechnology = TechnologySystem.update(
             TICK_MS,
             liveResearch.count + backgroundResearch.count,
-            liveResearch.rate + backgroundResearch.rate
+            finalEffectiveResearchRate,
+            finalRawResearchRate
         );
         if (completedTechnology) this.invalidateAll('technology-completed');
 
@@ -164,6 +177,9 @@ export const WorldSimDriver = {
                 skipWaves: true,
                 includePassiveEnergy: sceneId === passiveTarget,
                 gameTimeMs: nowGame,
+                isRecruitmentTierUnlocked: (id) =>
+                    TechnologySystem.isUnlocked('recruitmentTier', id),
+                getPlayerTotalGold: () => getPlayerTotalGold(),
                 grant: (reward) => this._grantReward(reward),
             });
         } catch (err) {
@@ -258,10 +274,16 @@ export const WorldSimDriver = {
         } else {
             if (report.unitsProduced > 0) lines.push([`${sceneId} 新兵 +${report.unitsProduced}`, '#8ad0ff']);
             if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
+            if (report.deepDrillEnergyMined > 0) {
+                lines.push([`${sceneId} 深钻采掘 +${Math.round(report.deepDrillEnergyMined)} 能源`, '#72d8d0']);
+            }
             if (report.resonatorEnergyProduced > 0) {
                 lines.push([`${sceneId} 位面谐振 +${report.resonatorEnergyProduced} 能源`, '#a892ff']);
             }
-            if (report.goldProduced > 0) lines.push([`${sceneId} 银行服务 +${report.goldProduced} 金币`, '#ffd700']);
+            if (report.steamEnergyProduced > 0) {
+                lines.push([`${sceneId} 蒸汽发电 +${report.steamEnergyProduced} 能源`, '#e6a45f']);
+            }
+            if (report.goldProduced > 0) lines.push([`${sceneId} 经济建筑金币 +${report.goldProduced} 金币`, '#ffd700']);
             if (report.foodProduced > 0) lines.push([`${sceneId} 风车 +${report.foodProduced} 粮食`, '#d9b84f']);
             if (report.enhancementStonesProduced > 0) {
                 lines.push([`${sceneId} 军械整理 +${report.enhancementStonesProduced} 强化石`, '#d8ad62']);

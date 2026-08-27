@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_medusa_20260825\\references\\medusa-coiled-video-safe.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_medusa_20260825\\prompts\\medusa-petrifying-gaze.txt",
+  "promptChars": 989,
+  "promptSha256": "940161545371a2d92dc716262f891556c4986ad5f31a20fb310c7a4878cfa211",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-25T09:49:23.993Z",
+  "sourceUrlScheme": "https"
+}

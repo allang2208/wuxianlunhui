@@ -48,7 +48,9 @@ class CombatSystemImpl {
         this._updateDashStun(enemy, dt);
 
         // 2. 眩晕状态：不执行战斗行为
-        if (enemy.hasStatusEffect && (enemy.hasStatusEffect('stun') || enemy.hasStatusEffect('frozen'))) return;
+        if (enemy.hasStatusEffect && (enemy.hasStatusEffect('stun')
+            || enemy.hasStatusEffect('frozen')
+            || enemy.hasStatusEffect('petrified'))) return;
 
         // 死寂雾潮在此加速通用攻击决策/冷却；自管技能由 Enemy.getAttackIntervalDelta 接入同一时钟。
         // 动作动画、技能位移与攻击距离仍使用原始口径。

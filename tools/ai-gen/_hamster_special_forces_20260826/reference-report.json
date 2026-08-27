@@ -1,0 +1,18 @@
+{
+  "source": "mother/hamster-special-forces-mother-v01-rgba.png",
+  "output": "references/hamster-special-forces-white-1024x576.png",
+  "sourceBbox": [119, 130, 959, 1454],
+  "sourceCanvas": [1024, 1536],
+  "canvas": [1024, 576],
+  "outputBbox": [329, 92, 592, 507],
+  "subjectWidthRatio": 0.2568359375,
+  "margins": {
+    "left": 329,
+    "right": 432,
+    "top": 92,
+    "bottom": 69
+  },
+  "background": "pure white",
+  "cutout": "BiRefNet-general",
+  "status": "ready_for_h3_first_frame"
+}

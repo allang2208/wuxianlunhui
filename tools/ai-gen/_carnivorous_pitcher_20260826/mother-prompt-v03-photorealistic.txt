@@ -1,0 +1,18 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser monster, rebuilt to match an established realistic asset library
+
+Input images: Images 1-4 are the ONLY visual-style references. Match their photographic realism, soft white-studio presentation, anatomically believable volume, continuous midtones, restrained color, low local microcontrast, clean silhouette, and subtle natural sharpness. They are style references only; do not copy human, snake, bear, wolf, clothing, fur, armor, or animal anatomy.
+
+Primary request: Create exactly one giant carnivorous pitcher-plant monster named "食人花" as if a real oversized Nepenthes organism were photographed in the same studio and processed through the same realistic creature-asset pipeline as the reference monsters.
+
+Body topology: exactly one thick curved plant stalk, exactly one oversized pitcher bloom facing right, one broad natural rolled rim, one veined lid above the opening, exactly two large side leaves, and one compact rhizome dividing into exactly four thick mobile root-feet. No eyes, no animal face, no humanoid anatomy. The mouth is a real pitcher cavity, only partly open in neutral idle.
+
+Realistic botanical materials: large smooth continuous areas of waxy pitcher tissue, believable leaf cuticle, broad veins, subtle Nepenthes speckling, bruised leaf edges, fibrous stem transitions and slightly damp inner cavity. The rim may carry a small number of short irregular plant spines grown from the same tissue, but no teeth. Use muted olive green, gray-green, dusty tan, restrained maroon and deep burgundy. No slime and no neon color.
+
+Photographic style contract: realistic botanical specimen photography / high-end VFX creature photographed at life scale, soft large-source studio light, gentle shadowless modeling, broad smooth tonal gradients, low sharpening, low texture-frequency contrast, natural lens softness, no aggressive clarity and no crunchy detail. Surfaces should feel fleshy, waxy and continuous rather than carved, engraved or covered with procedural noise.
+
+Pose and framing: calm neutral idle, right-facing three-quarter side view matching the reference angle, slight elevated camera. Four root contacts share one baseline; the leaves sit behind the pitcher without hiding the root topology. Full subject visible with generous margins, about 58% of canvas width and 58% of canvas height.
+
+Background: flat pure white #FFFFFF, no horizon, no visible floor, no cast shadow, no scenery.
+
+Avoid: carved wooden roots, engraved grooves, procedural texture noise, sandpaper grain, pebbled surface, repeated tiny wrinkles, excessive sharp veins, oversharpening, high local contrast, cartoon mouth, animal teeth, lips, tongue, eyes, skull, multiple pitchers, multiple mouths, extra leaves, tentacles, slime, neon color, fantasy statue, collectible figurine, scenery, mud, grass, particles, cast shadow, reflection, text, logo, watermark, anime, chibi, low-poly toy, glossy plastic.

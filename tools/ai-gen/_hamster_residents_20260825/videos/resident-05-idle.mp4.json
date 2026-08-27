@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "1:1",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_residents_20260825\\references\\resident-05-doubao-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_residents_20260825\\prompts\\idle.txt",
+  "promptChars": 619,
+  "promptSha256": "b2fbbb4ac738b0a7ae84eb0ace4dd10e36da528ab228082387b3e26cba29bb9e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-25T03:29:23.165Z",
+  "sourceUrlScheme": "https"
+}

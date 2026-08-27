@@ -41,6 +41,7 @@ import { computeWeaponAttack, getAttackFormula } from '../config/attack-formula.
 import { findWeaponConfig } from '../ui/equip-data-manager.js';
 import { applyResearchHp } from './research-system.js';
 import { World122TributeSystem } from './world122-tribute-system.js';
+import { TechnologySystem } from './technology-system.js';
 import {
     applyIsoFootprintFromSegment,
     isoFootprintVertices,
@@ -49,6 +50,7 @@ import {
     pointInIsoFootprint,
     worldDeltaToIsoLocal,
 } from '../physics/iso-footprint.js';
+import { circleOverlapsActiveGate } from './gate-occupancy.js';
 import { Collider } from '../physics/collider.js';
 import {
     ONE_CELL_BUILDING_FOOT,
@@ -57,7 +59,6 @@ import {
     applyBuildingFootprint,
     applyWallStairFootprint,
 } from './building-footprint.js';
-import equipmentJson from '../../data/equipment.json';
 import defenseStructuresJson from '../../data/defense-structures.json';
 import {
     chooseElevatedSurfaceCandidate,
@@ -602,6 +603,33 @@ const MONSTER_FACTORY = {
     flyHand: FlyHand,
     witch: Witch,
 };
+
+function canUseMonsterSpawnPoint(x, y, radius) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    if (WallSystem?.canMoveTo && !WallSystem.canMoveTo(x, y, radius)) return false;
+    // 开门会临时移除 WallSystem 门段；出生校验仍按城门固定 footprint 排除门洞。
+    return !circleOverlapsActiveGate(x, y, radius, Game?.entities?.values?.());
+}
+
+function findMonsterSpawnNear(x, y, radius) {
+    if (canUseMonsterSpawnPoint(x, y, radius)) return { x, y };
+    if (WallSystem?.findSafeSpawn) {
+        const safe = WallSystem.findSafeSpawn(x, y, radius);
+        if (safe && canUseMonsterSpawnPoint(safe.x, safe.y, radius)) return safe;
+    }
+    // findSafeSpawn 不把常开门视为障碍，可能原样返回门洞；再绕固定占地作小范围确定性搜索。
+    const step = Math.max(64, radius * 2 + 16);
+    for (let ring = 1; ring <= 5; ring++) {
+        const samples = ring * 8;
+        for (let index = 0; index < samples; index++) {
+            const angle = index * Math.PI * 2 / samples;
+            const px = x + Math.cos(angle) * step * ring;
+            const py = y + Math.sin(angle) * step * ring;
+            if (canUseMonsterSpawnPoint(px, py, radius)) return { x: px, y: py };
+        }
+    }
+    return null;
+}
 
 /** 掩体贴图内容框宽高比（2026-08-05 圆角 bevel 后复测），显示宽度统一 260，高度按比例 */
 // 显示宽高比（路线 B：Blender 完整 box 棱柱 + 8 角 bevel，sizeH=259 使世界底边斜率 = 0.4976）
@@ -2022,7 +2050,7 @@ class DefenseCover extends Combatant {
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）
         const variant = isBlock ? 1 : 1 + Math.floor(Math.random() * 5);
         const tex = isBlock
-            ? 'obstacle_block'
+            ? TechnologySystem.getWallTextureKey()
             : variant === 1
             ? `obstacle_cover_${grade}_${orient}`
             : `obstacle_cover_${grade}_v${variant}_${orient}`;
@@ -2122,6 +2150,11 @@ class DefenseTower extends Combatant {
         setupStructureDepth(this);
         this.weaponItem = null;
         this._attackKey = null;
+        this._rampProgress = 0;
+        this._rampDecayDelay = 0;
+        this._calibrationShotState = null;
+        this._rhythmBurstState = null;
+        this._convergenceState = null;
         this.range = 800;
         // 六维芯片（2026-08-16 重构：取代原塔等级，与改造模块并存）：
         // 属性初始 base，升级本身不加攻击，只强化「与该属性挂钩的已装载武器」
@@ -2215,6 +2248,9 @@ class DefenseTower extends Combatant {
         this.weaponMode = 'weapon';
         const attackKey = this._resolveAttackKey(item);
         this._attackKey = attackKey;
+        this._rampProgress = 0;
+        this._rampDecayDelay = 0;
+        this._calibrationShotState = null;
         // 写回攻击键：Combatant.fireProjectile 内部按 item.attackKey || item.weaponType 查表，
         // 霰弹枪（weaponType=shotgun）/弓（bow）无同名键，必须让物品携带解析后的攻击键
         item.attackKey = attackKey;
@@ -2248,6 +2284,11 @@ class DefenseTower extends Combatant {
         this.weaponItem = null;
         this.equipments.weapon = null;
         this._attackKey = null;
+        this._rampProgress = 0;
+        this._rampDecayDelay = 0;
+        this._calibrationShotState = null;
+        this._rhythmBurstState = null;
+        this._convergenceState = null;
         this.range = 800;
         return item;
     }
@@ -2827,13 +2868,17 @@ class DefenseTower extends Combatant {
         const target = this._acquireTarget(entities);
         this.target = target || null;
         this._updateAim(dt, target);
-        // 过热驱动（与玩家"持续开火"口径一致）：有目标 + 有弹 + 非换弹 + 未过热才算开火中；
+        // 过热驱动（与玩家"持续开火"口径一致）：普通机枪过热后停火；
+        // 红热增压机枪允许过热后继续压制，并在持续出弹时保持红热状态。
         // 冷却（attack.canUse）不参与——机枪连续压制时枪管持续升温
+        const mayFireOverheated = this.weaponItem?.overdriveHeatParams?.continueFiring === true;
         const isFiring = !!(target && target.active
             && this._hasAmmo('weapon')
             && !this._isReloading('weapon')
-            && !(this._overheatOverheated && this.weaponItem && this.weaponItem.weaponType === this._overheatWeaponType));
+            && !(this._overheatOverheated && this.weaponItem
+                && this.weaponItem.weaponType === this._overheatWeaponType && !mayFireOverheated));
         if (typeof this._updateOverheat === 'function') this._updateOverheat(dt, isFiring);
+        this._updateRampFire(dt, isFiring);
         if (target) {
             const aim = this._targetAimPoint(target);
             this._aimTargetPos = {
@@ -2856,6 +2901,8 @@ class DefenseTowerPanel extends BasePanel {
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
             closeOnOutsidePointer: true,
+            shouldCloseOnOutsidePointer: (event) =>
+                !window.Game?.BuildingSystem?._eventHitsBuilding?.(event),
             mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
         });
         this.tower = null;
@@ -2955,7 +3002,8 @@ class DefenseTowerPanel extends BasePanel {
         const heatProgress = Math.max(0, Math.min(1, (Number(t._overheatValue) || 0) / heatMax));
         const overheated = !!t._overheatOverheated;
         const showHeat = overheated || !!t._overheatActive || t._overheatWeaponType === item.weaponType;
-        const stateText = reloading ? '换弹中' : (overheated ? '过热冷却' : '自动索敌');
+        const overdrive = item.overdriveHeatParams?.continueFiring === true;
+        const stateText = reloading ? '换弹中' : (overheated ? (overdrive ? '红热增压' : '过热冷却') : '自动索敌');
         const stateColor = reloading ? '#8ad0ff' : (overheated ? '#ff8a66' : '#7fe0c8');
         const ammoColor = lowAmmo ? '#ff8a66' : '#e8ddc0';
 
@@ -3372,7 +3420,7 @@ export const DefenseSystem = {
         });
 
         // 原型演示：1 号塔预装 PKM（其余塔由玩家从背包装载；卸下会归还背包）
-        this._presetTowerWeapon(this.towers[0], 'pkm');
+        this._presetTowerWeapon(this.towers[0], 'weapon6');
         // 掩体防线（可被攻击，def/mdef=0）
           (DEFENSE_CONFIG.covers.layout || []).forEach((c, i) => {
               const cover = new DefenseCover(c.x, c.y, {
@@ -3601,7 +3649,7 @@ export const DefenseSystem = {
     },
 
     _presetTowerWeapon(tower, weaponId) {
-        const item = equipmentJson.equipment && equipmentJson.equipment[weaponId];
+        const item = findWeaponConfig(weaponId);
         if (!item || !tower) return;
         tower.equipWeapon(JSON.parse(JSON.stringify(item)));
     },
@@ -4294,7 +4342,7 @@ export const DefenseSystem = {
         }
         if (stairTarget) {
             const { _renderDepth, _cameraDepth, ...target } = stairTarget;
-            return target;
+            return { ...target, renderDepth: _renderDepth };
         }
         const Game = (typeof window !== 'undefined') ? window.Game : null;
         const blockIndex = Game?.entities ? _blockWallIndex(Game.entities) : null;
@@ -4413,6 +4461,16 @@ export const DefenseSystem = {
             const staircase = (this.staircases || []).find((candidate) =>
                 staircaseServesWall(candidate, wallSurface.wall, Game?.entities));
             const topZ = Number(wallSurface.wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+            const renderDepth = wallSurface.junction
+                ? Math.max(...wallSurface.junction.walls.map((candidate) =>
+                    Number(candidate?._faceDepth) || 0))
+                : (wallSurface.connector
+                    ? Math.max(
+                        Number(wallSurface.connector.wallA?._faceDepth) || 0,
+                        Number(wallSurface.connector.wallB?._faceDepth) || 0
+                    )
+                    : (Number(wallSurface.wall?._faceDepth)
+                        || structureDepthAtY(wallSurface.wall?.y || wallSurface.y)));
             if (!staircase) {
                 return {
                     x: wallSurface.x,
@@ -4421,6 +4479,7 @@ export const DefenseSystem = {
                     surfaceKind: 'wall_walk',
                     wallId: wallSurface.wall.id,
                     staircaseId: null,
+                    renderDepth,
                     route: [],
                     unreachable: true,
                     reason: '需要城墙楼梯',
@@ -4450,6 +4509,7 @@ export const DefenseSystem = {
                 surfaceKind: 'wall_walk',
                 wallId: wallSurface.wall.id,
                 staircaseId: staircase?.id || null,
+                renderDepth,
                 route,
             };
         }
@@ -5493,8 +5553,7 @@ export const DefenseSystem = {
             const types = this._managedConfig.waves?.[this._wave - 1] || [];
             for (const type of types) {
                 if (alive >= (this._managedConfig.maxAlive || DEFENSE_CONFIG.spawn.maxAlive)) break;
-                this._spawnMonster(this._wave, null, 1, type);
-                alive++;
+                if (this._spawnMonster(this._wave, null, 1, type)) alive++;
             }
             this._announce(`第 ${this._wave}/${this._managedConfig.waveCount} 波入侵！`, '#ff7755');
             return;
@@ -5506,19 +5565,16 @@ export const DefenseSystem = {
         if (composed) {
             for (const type of composed) {
                 if (alive >= cfg.maxAlive) break;
-                this._spawnMonster(this._wave, null, 1, type);
-                alive++;
+                if (this._spawnMonster(this._wave, null, 1, type)) alive++;
             }
             // 脚本化精英/领主（eliteMul/lordMul 可覆盖默认血量倍率，如 W5 迷你领主）
             for (let i = 0; i < (plan.elites || 0); i++) {
                 if (alive >= cfg.maxAlive) break;
-                this._spawnElite(plan.eliteMul);
-                alive++;
+                if (this._spawnElite(plan.eliteMul)) alive++;
             }
             for (let i = 0; i < (plan.lords || 0); i++) {
                 if (alive >= cfg.maxAlive) break;
-                this._spawnLord(plan.lordMul);
-                alive++;
+                if (this._spawnLord(plan.lordMul)) alive++;
             }
             this._announce(`第 ${this._wave} 波 · ${plan.theme || '来袭'}！`, '#ffd700');
             return;
@@ -5529,8 +5585,7 @@ export const DefenseSystem = {
         );
         for (let i = 0; i < count; i++) {
             if (alive >= cfg.maxAlive) break;
-            this._spawnMonster(this._wave, NORMAL_POOL);
-            alive++;
+            if (this._spawnMonster(this._wave, NORMAL_POOL)) alive++;
         }
         this._announce(`第 ${this._wave} 波来袭！`, '#ffd700');
     },
@@ -5837,29 +5892,21 @@ export const DefenseSystem = {
             : (this._managedConfig?.spawnPoints?.length
                 ? this._managedConfig.spawnPoints
                 : DEFENSE_CONFIG.spawnPoints);
+        if (!spawnPoints?.length) return;
         const pt = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
         const monster = new Factory(pt.x, pt.y);
-        // [FIX] 刷怪点可能被散布树 footprint 压住：先校验，必要时沿螺旋外推到合法位置，
-        // 避免怪物出生即嵌入障碍（起点在矩形内 resolve/blocked 恒失败 → 永久冻结）
-        if (WallSystem && WallSystem.canMoveTo && !WallSystem.canMoveTo(monster.x, monster.y, monster.groundRadius)) {
-            const safe = WallSystem.findSafeSpawn(monster.x, monster.y, monster.groundRadius);
-            monster.x = safe.x;
-            monster.y = safe.y;
-            // [FIX-2026-08-16] findSafeSpawn 螺旋 8 点全被堵时会原样返回起点（仍嵌障碍）：
-            // 换其他刷怪点再兜底一次，杜绝"出生即卡死/出生位置异常"（刷怪点全在右端，
-            // 互相距离远，几乎不可能同时全堵）
-            if (!WallSystem.canMoveTo(monster.x, monster.y, monster.groundRadius)) {
-                for (const op of spawnPoints) {
-                    if (Math.hypot(op.x - pt.x, op.y - pt.y) < 1) continue;
-                    const s2 = WallSystem.findSafeSpawn(op.x, op.y, monster.groundRadius);
-                    if (WallSystem.canMoveTo(s2.x, s2.y, monster.groundRadius)) {
-                        monster.x = s2.x;
-                        monster.y = s2.y;
-                        break;
-                    }
-                }
-            }
+        const radius = monster.groundRadius || monster.collisionRadius || 20;
+        const orderedSpawnPoints = [pt, ...spawnPoints.filter((point) => point !== pt)];
+        let safeSpawn = null;
+        for (const point of orderedSpawnPoints) {
+            safeSpawn = findMonsterSpawnNear(point.x, point.y, radius);
+            if (safeSpawn) break;
         }
+        // 所有正式刷怪点及其邻域均不可用时宁可跳过本只，也不能塞进开启中的城门。
+        if (!safeSpawn) return;
+        monster.x = safeSpawn.x;
+        monster.y = safeSpawn.y;
+        monster.collider?.syncPosition?.();
         monster._defenseMonster = true;
         if (options.destructionChallenge) {
             monster._destructionChallengeMonster = true;
@@ -5962,13 +6009,25 @@ export const DefenseSystem = {
     },
 
     _spawnElite(hpMul) {
-        this._spawnMonster(this._wave || 1, ELITE_POOL, hpMul ?? DEFENSE_CONFIG.spawn.eliteHpMul);
+        const monster = this._spawnMonster(
+            this._wave || 1,
+            ELITE_POOL,
+            hpMul ?? DEFENSE_CONFIG.spawn.eliteHpMul
+        );
+        if (!monster) return null;
         this._announce('精英来袭！', '#ff8800', 'assets/sounds/enemies/armored_knight/attacking.mp3');
+        return monster;
     },
 
     _spawnLord(hpMul) {
-        this._spawnMonster(this._wave || 1, LORD_POOL, hpMul ?? DEFENSE_CONFIG.spawn.lordHpMul);
+        const monster = this._spawnMonster(
+            this._wave || 1,
+            LORD_POOL,
+            hpMul ?? DEFENSE_CONFIG.spawn.lordHpMul
+        );
+        if (!monster) return null;
         this._announce('领主降临！', '#ff4444', 'assets/sounds/enemies/foreman_zombie/howling.mp3');
+        return monster;
     },
 
     _announce(text, color, soundPath) {
@@ -6121,7 +6180,7 @@ export const DefenseSystem = {
         this._hoverTower = t;
         if (typeof document === 'undefined') return;
         const cv = document.querySelector('canvas');
-        if (cv) cv.style.cursor = t ? 'pointer' : '';
+        if (cv) cv.style.cursor = (t || Game?.RTSCommand?._hoverBuilding) ? 'pointer' : '';
     },
 
     /**
@@ -6161,6 +6220,7 @@ export const DefenseSystem = {
             } else {
                 panel.openFor(t, player);
             }
+            Game?.BuildingSystem?._keepOnlyBuildingDetailPanel?.(panel.isOpen ? panel : null);
             return true;
         }
         return false;
@@ -6423,6 +6483,7 @@ const _CoverGate = {
             x1: A.x, y1: A.y, x2: B.x, y2: B.y,
             halfThick: cfg0.halfThick,
             _gate: true, _gateHole: true,
+            _opensForFriendly: true, _gateOwner: this,
         };
         // [GATE-DETECT-FIX 2026-08-16] 感应中心 = 门洞物理中心（面线中点），
         // 不能用精灵中心 _cx/_cy——贴图等距偏移让检测球偏入门内 ~74px，
@@ -6724,8 +6785,9 @@ class WallStaircase extends Combatant {
         );
 
         const variant = getWallStairVariant(this.dir, this.ascendingSign);
+        const lowerBaseTexture = variant?.lower?.texture || 'wall_stair_lower_e2_pos';
         this.spriteCfg = {
-            idleKey: variant?.lower?.texture || 'wall_stair_lower_e2_pos',
+            idleKey: TechnologySystem.getWallStairTextureKey(lowerBaseTexture),
             size: Number(variant?.displayWidth) || WALL_STAIR_VISUAL.w,
             sizeH: Number(variant?.displayHeight) || WALL_STAIR_VISUAL.h,
             offsetX: 0,
@@ -6828,7 +6890,8 @@ class WallStaircase extends Combatant {
             };
             segment.walkSurface = walkSurface;
             visuals[index] = {
-                texture: part?.texture,
+                baseTexture: part?.texture,
+                texture: TechnologySystem.getWallStairTextureKey(part?.texture),
                 x: center.x,
                 y: center.y,
                 displayWidth,
@@ -7715,6 +7778,7 @@ class BuildableGate extends Combatant {
             x2: this._faceLine[1].x, y2: this._faceLine[1].y,
             halfThick: cfg.halfThick,
             _gate: true, _gateHole: true,
+            _opensForFriendly: true, _gateOwner: this,
         };
         // [GATE-DETECT-FIX 2026-08-16] 与基地门同口径：感应中心 = 门洞物理中心，
         // 非精灵中心 _spriteCx/_spriteCy（等距偏移使门外单位够不到检测半径）
@@ -7816,9 +7880,18 @@ class BuildableGate extends Combatant {
      * locked = 常锁（无论谁经过都不打开）；open = 常开（保持门口敞开）；auto = 原自动逻辑
      */
     setMode(mode) {
+        const previousMode = this.gateMode;
         this.gateMode = mode;
         if (mode === 'locked') this.close();
         else if (mode === 'open') this.open();
+        // 模式变化会改变玩家/侍从的自动门成本；除清缓存外，还要让已持有的旧路径重算。
+        if (previousMode !== mode && this._gateSeg
+            && pathFinder && typeof pathFinder.notifyFriendlyGateAccessChanged === 'function') {
+            const s = this._gateSeg;
+            pathFinder.notifyFriendlyGateAccessChanged(
+                Math.min(s.x1, s.x2), Math.min(s.y1, s.y2),
+                Math.max(s.x1, s.x2), Math.max(s.y1, s.y2));
+        }
     }
 
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（与基地门同口径）。 */

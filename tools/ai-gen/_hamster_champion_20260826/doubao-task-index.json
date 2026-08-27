@@ -1,0 +1,81 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-champion-mother-v01.png",
+  "reference": "references/hamster-champion-white-1024x576.png",
+  "userAcceptance": {
+    "date": "2026-08-26",
+    "idle": "confirmed",
+    "running": "confirmed_after_natural_cycle_f44_f83",
+    "attacking": "confirmed_v03_continuous_recovery",
+    "dying": "confirmed"
+  },
+  "tasks": [
+    {
+      "motion": "idle",
+      "prompt": "prompts/idle-doubao.txt",
+      "loopRequested": true,
+      "status": "accepted",
+      "video": "videos/idle-doubao.mp4",
+      "provenance": "videos/idle-doubao.mp4.json",
+      "contact": "previews/videos/idle-contact.png",
+      "previewGif": "previews/videos/idle-preview.gif"
+    },
+    {
+      "motion": "running",
+      "prompt": "prompts/running-doubao-v02-armored-feet.txt",
+      "loopRequested": true,
+      "status": "accepted_v02_natural_cycle_f44_f83",
+      "video": "videos/running-doubao-v02.mp4",
+      "provenance": "videos/running-doubao-v02.mp4.json",
+      "contact": "previews/videos/running-v02-contact.png",
+      "previewGif": "previews/videos/running-v02-preview.gif",
+      "selectedNaturalCycleFrames": [44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82],
+      "runtimeResult": "原视频f0至约f16为起步段；匀速段f44与f84同脚同相，排除重复端点f84后取20张12fps关键帧，经含尾首回接的RIFE插帧输出40帧24fps完整循环",
+      "loopEvidence": {
+        "analysis": "previews/running-loop-analysis/same-leg-candidates.json",
+        "originalLoopGif": "previews/running-loop-analysis/original-f44-f83-loop.gif",
+        "endpointComparison": "previews/running-loop-analysis/rejected-vs-natural-endpoints.jpg"
+      },
+      "rejectedAttempt": {
+        "video": "videos/running-doubao.mp4",
+        "reason": "中段护胫和军靴消失，出现裸足身份漂移"
+      }
+    },
+    {
+      "motion": "attacking",
+      "prompt": "prompts/attacking-doubao-v03-continuous-recovery.txt",
+      "loopRequested": false,
+      "status": "accepted_v03_continuous_recovery",
+      "video": "videos/attacking-doubao-v03.mp4",
+      "provenance": "videos/attacking-doubao-v03.mp4.json",
+      "contact": "previews/videos/attacking-v03-contact.png",
+      "previewGif": "previews/videos/attacking-v03-preview.gif",
+      "selectedSourceFrames": [0, 8, 16, 24, 30, 36, 42, 46, 48, 50, 52, 56, 60, 64, 68, 72, 76, 78, 80, 82, 84, 88, 92, 96],
+      "selectionNote": "采用更小安全参考图重新生成连续腰位横扫；复原段保留76至84帧的密集连续轨迹，不再跨越缺失动作插帧",
+      "rejectedAttempts": [
+        {
+          "video": "videos/attacking-doubao.mp4",
+          "reason": "头顶挥剑与横扫时剑尖触碰源视频边界"
+        },
+        {
+          "video": "videos/attacking-doubao-v02.mp4",
+          "reason": "为避开越界剑尖跳选安全帧，92至104帧复原区间缺段，RIFE跨段补间产生微小错位"
+        }
+      ]
+    },
+    {
+      "motion": "dying",
+      "prompt": "prompts/dying-doubao.txt",
+      "loopRequested": false,
+      "status": "accepted",
+      "video": "videos/dying-doubao.mp4",
+      "provenance": "videos/dying-doubao.mp4.json",
+      "contact": "previews/videos/dying-contact.png",
+      "previewGif": "previews/videos/dying-preview.gif"
+    }
+  ]
+}

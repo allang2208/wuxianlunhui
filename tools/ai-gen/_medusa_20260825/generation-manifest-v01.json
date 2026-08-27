@@ -1,0 +1,109 @@
+{
+  "asset": "medusa",
+  "stage": "formal-sprite-sheets-imported",
+  "date": "2026-08-25",
+  "provider": "built-in-imagegen",
+  "styleContract": "realistic PBR grounded dark-fantasy game render",
+  "candidates": [
+    {
+      "file": "candidates/medusa-mother-v02-white.png",
+      "prompt": "mother-prompt-v01.txt + mother-correction-v02.txt",
+      "status": "accepted"
+    }
+  ],
+  "cleanup": {
+    "rejectedMotherRemoved": "dark-background v01",
+    "supersededWalkingIterationsRemoved": ["v01", "v02"],
+    "retainedWalkingIteration": "v03"
+  },
+  "acceptedMother": "candidates/medusa-mother-v02-white.png",
+  "acceptedDate": "2026-08-25",
+  "derivedReferences": {
+    "walkingSource": "references/medusa-walking-source-white.png",
+    "idleAttackDeathSafe": "references/medusa-coiled-video-safe.png",
+    "walkingSafe": "references/medusa-walking-video-safe-v03.png"
+  },
+  "videoPlan": {
+    "providerPriority": "doubao-free-quota-first",
+    "model": "Seedance 2.0 Mini",
+    "size": "1024x576",
+    "durationSeconds": 5,
+    "states": ["idle", "walking", "petrifying_gaze", "tail_sweep", "dying"],
+    "dying": {
+      "provider": "h3",
+      "model": "MiniMax H3",
+      "reason": "explicit user override after the public model could not generate the death action"
+    }
+  },
+  "generatedVideos": {
+    "petrifying_gaze": {
+      "file": "video/medusa-petrifying-gaze-doubao.mp4",
+      "provenance": "video/medusa-petrifying-gaze-doubao.mp4.json",
+      "prompt": "prompts/medusa-petrifying-gaze.txt",
+      "reference": "references/medusa-coiled-video-safe.png",
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "frames": 121,
+      "sha256": "79a7b3c49a4962abd55f9d353828d2055a2887e01162f4aeb25cabeb6c1c6d65",
+      "preview": "previews/medusa-petrifying-gaze-contact.png",
+      "releaseWindowSourceFrames": [55, 76],
+      "releaseFrameFinal": 11
+    },
+    "tail_sweep": {
+      "file": "video/medusa-tail-sweep-doubao.mp4",
+      "provenance": "video/medusa-tail-sweep-doubao.mp4.json",
+      "prompt": "prompts/medusa-tail-sweep.txt",
+      "reference": "references/medusa-coiled-video-safe.png",
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "frames": 121,
+      "sha256": "8bf0a384526383085572bb09bb04e9ed06fb64851613d4c6a69c23bf4cf3ffb4",
+      "preview": "previews/medusa-tail-sweep-contact.png",
+      "contactWindowSourceFrames": [65, 76],
+      "contactFrameFinal": 12,
+      "note": "accepted source; upper body briefly rotates toward a more frontal three-quarter angle during anticipation"
+    },
+    "dying": {
+      "file": "video/medusa-dying-h3.mp4",
+      "prompt": "prompts/medusa-dying.txt",
+      "reference": "references/medusa-coiled-video-safe.png",
+      "provider": "h3",
+      "model": "MiniMax H3",
+      "seed": 1668156296,
+      "size": "1024x576",
+      "durationSeconds": 5,
+      "frames": 124,
+      "steps": 20,
+      "sampler": "res_multistep/simple",
+      "sha256": "9385a4b0e515d68d2ad589e14f6a17735b434f9ddd0f10e7ef2f9a9eea6d2116",
+      "preview": "previews/medusa-dying-h3-contact.png",
+      "note": "accepted source-video candidate; one-way forward-right collapse, tail inertia settles by the second half, corpse pose holds through the final frame without recovery or cropping"
+    }
+  },
+  "spriteSheetManifest": "sheet-manifest.json",
+  "formalAssets": {
+    "idle": "assets/enemies/medusa/idle.png",
+    "walking": "assets/enemies/medusa/walking.png",
+    "petrifyingGaze": "assets/enemies/medusa/petrifying_gaze.png",
+    "tailSweep": "assets/enemies/medusa/tail_sweep.png",
+    "dying": "assets/enemies/medusa/dying.png"
+  },
+  "normalizationContract": {
+    "targetNeutralHeight": 420,
+    "footY": 470,
+    "scaleMode": "one fixed scale per source video from its first neutral frame; no per-frame scaling",
+    "rootAnchor": "upper-body alpha median; horizontal tail extent excluded"
+  },
+  "tailSweepPlayback": {
+    "frameCount": 23,
+    "durationMs": 1550,
+    "frameDurations": [100, 100, 100, 100, 100, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 85, 85, 85, 85, 85, 85],
+    "contactFrame": 12,
+    "contactSourceFrame": 64,
+    "contract": "normal anticipation, accelerated sweep, normal recovery"
+  },
+  "runtimeInstalled": true,
+  "videosGenerated": true,
+  "spriteSheetsBuilt": true,
+  "formalAssetsImported": true
+}

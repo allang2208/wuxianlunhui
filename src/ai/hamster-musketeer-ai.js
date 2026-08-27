@@ -184,6 +184,7 @@ export class HamsterMusketeerAI {
     }
 
     _nearestEnemy(entities) {
+        const m = this.m;
         let best = null, bestD = Infinity;
         let bestShootable = null, bestShootableD = Infinity;
         const attackRange = this._effectiveAttackRange();

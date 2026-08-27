@@ -77,7 +77,14 @@ class Player extends Combatant {
             this._dashSlashEffect = null; // 扇形特效实例引用
             this._dashParticles = []; // 冲刺攻击粒子数组
             this._dashResetAnim = null; // 冲刺攻击后复位动画
+            this._dashVisualStyle = null; // slash=通用挥砍；thrust=骑士长剑专属突刺动画/武器轨迹
+            this._dashSkillId = null; // 本次冲刺发动时锁定的技能，禁止换武器后逐帧漂移
+            this._dashWeaponItem = null; // 本次冲刺发动时锁定的武器实例（伤害/改造/判定真源）
+            this._dashSkillOverrides = null; // 本次冲刺的动画/判定覆盖快照
             this._isWhirlwind = false; // 是否正在执行风车
+            this._whirlwindRecovering = false; // 风车伤害结束后的专属收势锁
+            this._whirlwindRecoverTimer = 0;
+            this._whirlwindRecoverDuration = 0;
             this._whirlwindTimer = 0; // 风车计时器
             this._whirlwindHitSet = new Set(); // 风车已命中目标
             this._whirlwindDuration = defs.whirlwind.duration; // 风车总时长
@@ -94,14 +101,24 @@ class Player extends Combatant {
             this._specialAttackCooldowns = {};
             // ===== 夜与火之剑特殊攻击状态 =====
             this._specialAttackActive = false; // 是否正在释放特殊攻击
+            this._specialAttackPhase = null; // windup=前刺，beam=末帧定格发射
             this._specialAttackTimer = 0; // 特殊攻击计时器
+            this._specialAttackBeamTimer = 0; // 光柱开始后的独立持续时间
             this._specialAttackHitSet = new Set(); // 特殊攻击已命中目标
             this._specialAttackLastTick = 0; // 上次伤害判定时间
             this._specialAttackAngle = 0; // 光柱方向
             this._specialAttackBeam = null; // 光柱特效实例
+            this._specialAttackRangeEffect = null; // 调试范围特效实例
             this._specialAttackLockedAngle = 0; // 特殊攻击锁定朝向
             this._specialAttackClampedLength = defs.specialAttack.clampedLength; // 特殊攻击被障碍物截断后的长度（已放大25%）
             this._specialResetAnim = null; // 特殊攻击后复位动画
+            this._specialAttackWeaponItem = null; // 特殊攻击期间锁定的武器快照
+            this._specialAttackAnimKey = null; // 当前复用的玩家突刺动画
+            this._specialAttackAnimDuration = 0;
+            this._specialAttackReleaseFrame = 0; // attack3 的 0 基前刺释放源帧
+            this._specialAttackReleaseProgress = 0; // 武器逐帧轨迹对应的冻结进度
+            this._specialAttackOriginX = null; // GameScene 回写的真实剑尖世界坐标
+            this._specialAttackOriginY = null;
             // ===== 符文长剑特殊攻击状态 =====
             this._runeSwordSpecialActive = false; // 符文长剑特殊攻击是否激活
             this._runeSwordSpecialTimer = 0; // 累计计时（30秒超时）
@@ -234,6 +251,16 @@ class Player extends Combatant {
             // ===== 独头弹后坐力系统（Super90）=====
             this._slugRecoilLayers = 0; // 后坐力层数
             this._slugRecoilTimer = 0; // 后坐力恢复计时器
+            // ===== 枪械散布/准星（按实际发射子弹数累计，主副手独立） =====
+            this._gunSpreadShots = 0;
+            this._gunSpreadShotsOff = 0;
+            this._gunSpreadWeapon = null;
+            this._gunSpreadWeaponOff = null;
+            this._currentSpreadFactor = 0;
+            this._currentSpreadFactorOff = 0;
+            this._currentSpreadMaxAngle = 0;
+            this._currentSpreadMaxAngleOff = 0;
+            this._crosshairShotKick = 0;
             // ===== 高倍镜瞄准模式 =====
             this._aimModeActive = false; // 是否处于瞄准模式
             // ===== 魔法晶尘（附魔系统）=====

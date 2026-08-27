@@ -1,0 +1,18 @@
+The exact hamster special-forces sniper shown in the first frame performs one complete energetic tactical running cycle in place toward screen right, then naturally returns to the exact first-frame pose and position for a seamless loop.
+
+ABSOLUTE CHARACTER IDENTITY LOCK — every frame must preserve all of these first-frame features without redesign or disappearance:
+- the same golden-brown hamster face and cream muzzle;
+- both ears remain completely hidden inside the dense ghillie hood, with no ear tips visible;
+- the same lowered matte-black dual-tube night-vision goggles stay mounted over the eyes and remain clearly visible for the entire video; the goggles never lift, fold away, shrink, merge into the hood, or disappear;
+- the same continuous olive-brown dry-grass ghillie hood, shoulder cape, torso covering, waist fringe and long leg covering remain dense and continuous;
+- both legs stay fully clothed from waist to boots in the same camouflage trousers beneath dense ghillie fringe. No orange, brown, cream or bare hamster fur may appear on the thighs, knees, calves or shins. The pants, ghillie leg strands, knee fabric and boots never disappear, shorten, transform into fur or become bare;
+- the same tactical vest and pouches, the same brown combat boots, and the same body proportions and scale;
+- exactly one unchanged long suppressed bolt-action sniper rifle with the same scope, receiver, magazine, barrel, suppressor, stock and folded bipod. Both hands keep a secure two-handed grip throughout.
+
+Motion: a compact forward-leaning tactical run in place with clean natural left-right leg alternation. Each leg completes a full stride before the other leg switches. Knees lift and compress while the boots stay on one fixed ground baseline. Ghillie fibers move with restrained cloth inertia but the clothing remains attached and complete. The rifle stays rigid across the front of the body, stock close to the right shoulder, right hand on the pistol grip and left hand beneath the fore-end. No firing, bolt cycling or muzzle flash.
+
+Sprite-loop root lock: the body remains centered at the same scale and does not travel across the canvas. No root drift, skating, floating, hopping, treadmill sliding, camera tracking or pose teleportation. At the end, return naturally to the identical starting pose, position, scale, orientation and gait phase, with no freeze, snap or slow-motion ending.
+
+Camera and background: static locked orthographic low three-quarter view facing screen right, identical to the first frame. No camera movement, pan, zoom, tilt, rotation, reframing or crop. The entire hood, night-vision goggles, rifle, suppressor, ghillie-covered legs and boots remain fully inside the frame with generous margins. Flat solid pure white background identical to the first frame, completely uniform white, no floor line, no ground shadow, no reflection, no scenery, no particles, no text, no logo and no watermark.
+
+Avoid: missing or lifted night-vision goggles, visible ears, exposed leg fur, bare thighs, bare calves, missing trousers, missing ghillie pants or fringe, shortened ghillie suit, wardrobe change, face drift, body-scale drift, visible tail, mouse tail, rat tail, extra limbs, fused legs, disappearing feet, missing boots, one-handed carry, missing rifle, duplicated rifle, bent barrel, broken scope, missing suppressor, missing bipod, weapon morphing, silhouette-erasing motion blur, flicker, cuts or black blocks.

@@ -112,18 +112,21 @@ function groundFitTargets() {
     const targets = [];
     for (const cfg of Object.values(producerBuildings)) {
         if (!cfg || typeof cfg !== 'object' || !cfg.tex || !(cfg.displayW > 0) || !(cfg.displayH > 0)) continue;
+        const footprintCells = Number(cfg.footprintCells) === 4 ? 4 : 2;
+        const nominalWidth = footprintCells * 128;
+        const nominalHeight = footprintCells * 64;
         targets.push({
             id: cfg.id,
             textureKey: cfg.tex,
             sourcePath: cfg.assetPath || terrainPath(cfg.tex),
             displayWidth: cfg.displayW,
             displayHeight: cfg.displayH,
-            nominalWidth: NOMINAL_WIDTH,
-            nominalHeight: NOMINAL_HEIGHT,
+            nominalWidth,
+            nominalHeight,
             constrainToPrism: cfg.autoFootprint !== true,
             centerAdjustX: Number(cfg.anchorAdjustX) || 0,
             centerAdjustY: Number(cfg.anchorAdjustY) || 0,
-            visualFootprint: resolveConfiguredVisualFootprint(cfg, NOMINAL_WIDTH, NOMINAL_HEIGHT),
+            visualFootprint: resolveConfiguredVisualFootprint(cfg, nominalWidth, nominalHeight),
         });
     }
     targets.push(
@@ -199,11 +202,41 @@ function groundFitTargets() {
 function thumbnailTargets() {
     const targets = [
         { id: 'tower', sourcePath: terrainPath('obstacle_defense_tower') },
-        { id: 'cover_block', sourcePath: terrainPath('obstacle_block') },
+        { id: 'cover_block', sourcePath: terrainPath('obstacle_block_sand') },
+        {
+            id: 'cover_block_sand',
+            sourcePath: terrainPath('obstacle_block_sand'),
+        },
+        {
+            id: 'cover_block_brick',
+            sourcePath: terrainPath('obstacle_block_brick'),
+        },
+        {
+            id: 'cover_block_black_brick',
+            sourcePath: terrainPath('obstacle_block'),
+        },
+        {
+            id: 'cover_block_concrete',
+            sourcePath: terrainPath('obstacle_block_concrete'),
+        },
+        {
+            id: 'cover_block_rune',
+            sourcePath: terrainPath('obstacle_block_rune'),
+        },
         { id: 'road', sourcePath: terrainPath('building_road') },
         { id: 'gate_4cell', sourcePath: terrainPath('gate_4cell') },
+        { id: 'gate_4cell_sand', sourcePath: terrainPath('gate_4cell_sand') },
+        { id: 'gate_4cell_brick', sourcePath: terrainPath('gate_4cell_brick') },
+        { id: 'gate_4cell_black_brick', sourcePath: terrainPath('gate_4cell_black_brick') },
+        { id: 'gate_4cell_concrete', sourcePath: terrainPath('gate_4cell_concrete') },
+        { id: 'gate_4cell_rune', sourcePath: terrainPath('gate_4cell_rune') },
         { id: minerCamp.id, sourcePath: terrainPath(minerCamp.tex) },
-        { id: 'wall_staircase', sourcePath: terrainPath('wall_stair_lower_e1_pos') },
+        { id: 'wall_staircase', sourcePath: terrainPath('wall_stair_lower_e1_pos_sand') },
+        { id: 'wall_staircase_sand', sourcePath: terrainPath('wall_stair_lower_e1_pos_sand') },
+        { id: 'wall_staircase_brick', sourcePath: terrainPath('wall_stair_lower_e1_pos_brick') },
+        { id: 'wall_staircase_black_brick', sourcePath: terrainPath('wall_stair_lower_e1_pos_black_brick') },
+        { id: 'wall_staircase_concrete', sourcePath: terrainPath('wall_stair_lower_e1_pos_concrete') },
+        { id: 'wall_staircase_rune', sourcePath: terrainPath('wall_stair_lower_e1_pos_rune') },
     ];
     for (const cfg of Object.values(producerBuildings)) {
         if (!cfg || typeof cfg !== 'object' || !cfg.id || cfg.playerBuildable === false) continue;

@@ -1,0 +1,51 @@
+{
+  "styleVersion": "world122-building-v4",
+  "model": "flux2-klein-4b-depth",
+  "structure": {
+    "steps": 12,
+    "variants": 3,
+    "selected": {
+      "wall": "v01",
+      "gate": "authored-green-init"
+    },
+    "gateRejected": [
+      "v01: added gatehouse",
+      "v02: added gatehouse",
+      "v03: added gatehouse"
+    ]
+  },
+  "refine": {
+    "steps": 48,
+    "variants": 2,
+    "denoise": 0.3,
+    "selected": {
+      "wall": "v02",
+      "gate": "v01"
+    }
+  },
+  "gateCandidateRoot": "tools\\ai-gen\\_zombie_dungeon_gate_spikes_20260827",
+  "geometryPolicy": "generated material only; Blender controls silhouette, alpha, wall-block jamb separation, three-slice depth order, and animation",
+  "runtimeAssets": {
+    "zombie_wall_block.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "7a6cb20de60b2239a26c179b0e24b46f032c66450c91c383927711de2680ebf8"
+    },
+    "zombie_gate.png": {
+      "size": [
+        2560,
+        2560
+      ],
+      "frameSize": [
+        640,
+        640
+      ],
+      "frames": 16,
+      "sha256": "0db75c094bf9959cf643a079f701109a0297902b37953d6f23eb2900cf25b7f0"
+    }
+  },
+  "preview": "zombie_dungeon_wall_v4_preview.png",
+  "diamondPreview": "zombie_dungeon_wall_v4_diamond_preview.png"
+}

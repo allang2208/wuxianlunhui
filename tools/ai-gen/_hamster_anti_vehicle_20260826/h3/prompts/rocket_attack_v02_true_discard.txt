@@ -1,0 +1,11 @@
+The same golden hamster anti-vehicle commando performs one disposable anti-tank rocket attack in a single continuous locked-camera shot. Preserve the exact face, sand digital camouflage, helmet, tactical vest, black submachine gun, launcher design, body proportions, position and scale.
+
+Strict chronological action:
+Frames 0-15: hold the black submachine gun in the exact ready pose, with one launcher strapped diagonally on the back.
+Frames 16-36: secure the submachine gun against the chest, reach behind, remove the one launcher from the back and shoulder it toward screen right.
+Frames 37-55: aim and fire exactly one rocket toward screen right with compact recoil and a very brief exhaust puff.
+Frames 56-85: clearly move the now-empty launcher away from the shoulder with one paw, swing it outward toward screen left, fully open the paw, and visibly release it. The empty tube must become a separate airborne object with a clear gap between the paw and the tube.
+Frames 86-105: the released empty tube continues falling diagonally down and left under gravity until it exits the lower-left side of the frame. The hamster never catches it, never lowers it gently, never returns it to the back, and never keeps holding it.
+Frames 106-123: with the back visibly empty, take the black submachine gun into both paws and hold a stable ready pose. Do not create a replacement launcher during this clip.
+
+The empty tube must be visibly detached and airborne for multiple frames. One hamster and one launcher only. No extra weapon, no duplicate launcher, no morphing, no teleporting, no launcher reattachment, no camera movement, no zoom, no crop. Full body and the released tube remain visible until the tube exits. Flat uniform pure white background, no floor, no shadow, no lingering smoke cloud, no text, no watermark.

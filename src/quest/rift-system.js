@@ -20,6 +20,43 @@ export const RiftSystem = {
     _sceneWidth: 0,
     _sceneHeight: 0,
 
+    /** 场景事务回滚快照：保留任务裂隙运行态及场景注入的放置规则。 */
+    captureState() {
+        return {
+            rifts: this.rifts.map((rift) => ({ ...rift })),
+            activeRiftIndex: this._activeRiftIndex,
+            investigateTime: this._investigateTime,
+            expectedRiftCount: this._expectedRiftCount,
+            placementValidator: this._placementValidator,
+            clearPlacements: this._clearPlacements,
+            sceneWidth: this._sceneWidth,
+            sceneHeight: this._sceneHeight,
+        };
+    },
+
+    restoreState(state) {
+        this.clear();
+        if (!state) return;
+        this.rifts = Array.isArray(state.rifts)
+            ? state.rifts.map((rift) => ({ ...rift }))
+            : [];
+        this._activeRiftIndex = Number.isInteger(state.activeRiftIndex)
+            ? state.activeRiftIndex
+            : -1;
+        this._investigateTime = Math.max(1000, Number(state.investigateTime) || 10000);
+        this._expectedRiftCount = Math.max(1, Number(state.expectedRiftCount) || 3);
+        this._placementValidator = typeof state.placementValidator === 'function'
+            ? state.placementValidator
+            : null;
+        this._clearPlacements = typeof state.clearPlacements === 'function'
+            ? state.clearPlacements
+            : null;
+        this._sceneWidth = Math.max(0, Number(state.sceneWidth) || 0);
+        this._sceneHeight = Math.max(0, Number(state.sceneHeight) || 0);
+        const activeRift = this.rifts[this._activeRiftIndex];
+        if (activeRift && !activeRift.completed) this._showProgressBar(activeRift.progress);
+    },
+
     // 在任务场景中生成时空裂隙；位置规则由场景注入，避免任务系统绑定具体地形。
     spawnRifts(sceneWidth, sceneHeight, options = {}) {
         this.rifts = [];
@@ -253,6 +290,7 @@ export const RiftSystem = {
     // 清除所有裂隙
     clear() {
         this.rifts = [];
+        this._activeRiftIndex = -1;
         this._expectedRiftCount = 3;
         this._placementValidator = null;
         this._clearPlacements = null;

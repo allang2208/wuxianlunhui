@@ -3,6 +3,7 @@ import { getFireSound } from '../config/gun-ammo.js';
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AttackRangeEffect } from '../effects/attack-range-effect.js';
+import { GunFeel } from '../effects/gunfeel.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
@@ -49,6 +50,57 @@ function applyEnchantOnHit(weapon, target, source) {
             handler(weapon, target, source, effects);
         }
     }
+}
+
+// 普通近战每段只在首次有效命中时触发一次反馈，避免扇形多目标叠加顿帧/震屏。
+function applyMeleeImpactFeedback(source, pending, hitCheckCfg) {
+    if (!pending || pending.impactFeedbackApplied) return;
+    if (!source || source._faction !== 'player' || source._isDefenseStructure || source._isDefenseTower) return;
+    const hitstopMs = Math.max(0, Number(hitCheckCfg?.hitstopMs) || 0);
+    const trauma = Math.max(0, Number(hitCheckCfg?.trauma) || 0);
+    if (hitstopMs <= 0 && trauma <= 0) return;
+    pending.impactFeedbackApplied = true;
+    if (hitstopMs > 0) GunFeel.hitstop(hitstopMs);
+    if (trauma > 0) GunFeel.addTrauma(trauma);
+}
+
+function getLordBasicAttackStunResistance(target) {
+    const cfg = COMBAT_CONFIG.basicAttackStun?.lordResistance || {};
+    const constitution = Math.max(0, Number(target?.data?.con ?? target?.config?.con) || 0);
+    const baseline = Number(cfg.constitutionBaseline) || 30;
+    const baseChance = Number(cfg.baseChance) || 0;
+    const chancePerConstitution = Number(cfg.chancePerConstitution) || 0;
+    const minChance = Math.max(0, Number(cfg.minChance) || 0);
+    const maxChance = Math.max(minChance, Number(cfg.maxChance) || 1);
+    return Math.min(maxChance, Math.max(
+        minChance,
+        baseChance + (constitution - baseline) * chancePerConstitution
+    ));
+}
+
+function triggerStunResistanceFlash(target) {
+    const duration = Math.max(0, Number(
+        COMBAT_CONFIG.basicAttackStun?.lordResistance?.flashDurationMs
+    ) || 0);
+    if (!target || duration <= 0) return;
+    const now = Date.now();
+    target._stunResistFlashStartedAt = now;
+    target._stunResistFlashUntil = Math.max(target._stunResistFlashUntil || 0, now + duration);
+}
+
+function applyPlayerBasicAttackStun(source, target, duration) {
+    const stunMs = Math.max(0, Number(duration) || 0);
+    if (source?._faction !== 'player' || typeof target?.applyStun !== 'function' || stunMs <= 0) return;
+    if (target._isDead || Number(target.hp) <= 0) return;
+    const rank = target.rank || 'normal';
+    // 首领继续保留原有普通攻击眩晕边界；技能和其他控制来源不走本入口。
+    if (rank === 'boss') return;
+    if (rank === 'lord' && Math.random() < getLordBasicAttackStunResistance(target)) {
+        triggerStunResistanceFlash(target);
+        return;
+    }
+    // 普通、精英以及未显式登记阶级的敌人均使用 hitCheck 原始眩晕时长。
+    target.applyStun(stunMs);
 }
 
         class Attack {
@@ -228,6 +280,11 @@ function applyEnchantOnHit(weapon, target, source) {
                 if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
+                // 普通剑类攻击不得短于当前四把手持贴图与握把轨迹共同要求的基础范围。
+                // 该下限同时兜住旧存档/兼容装备仍携带 77~155px 历史 range 的情况。
+                if (isSword) {
+                    effectiveRange = Math.max(effectiveRange, Number(hitBox.minimumBaseRange) || 0);
+                }
                 if (basicMeleeSnapshot) effectiveRange = basicMeleeSnapshot.length;
                 const effectiveWidth = basicMeleeSnapshot?.width
                     ?? (isSword ? hitBox.width * 2 : this.config.width); // hitBox.width 是半宽，显示用全宽
@@ -238,10 +295,33 @@ function applyEnchantOnHit(weapon, target, source) {
                 const originY = basicMeleeSnapshot?.originY
                     ?? (source.y + Math.sin(attackAngle) * weaponOffset);
                 // 白色攻击范围可视化：使用统一 hitBox 配置
-                // perFrame 剑类（一段矩形/二段扇形）的可视化推迟到 checkStageHit 按实际形状绘制
+                // perFrame 剑类的可视化推迟到 checkStageHit，按各段实际配置的形状绘制
                 const swordPerFrame = isSword && WeaponAnimConfig.sword.attack && WeaponAnimConfig.sword.attack.type === 'perFrame';
                 if (Game.showAttackRange && !swordPerFrame) {
-                    EffectManager.add(new AttackRangeEffect(originX, originY, attackAngle, effectiveRange, effectiveWidth, 'triangle', 1000));
+                    const area = basicMeleeSnapshot && source.config?.basicMelee?.area;
+                    if (area?.shape === 'sector') {
+                        const areaRange = Math.max(1, Number(area.range) || effectiveRange);
+                        const areaArc = Math.max(1, Number(area.arcDegrees) || 120) * Math.PI / 180;
+                        EffectManager.add(new AttackRangeEffect(
+                            originX,
+                            originY,
+                            attackAngle,
+                            areaRange,
+                            areaArc,
+                            'sector',
+                            1000
+                        ));
+                    } else {
+                        EffectManager.add(new AttackRangeEffect(
+                            originX,
+                            originY,
+                            attackAngle,
+                            effectiveRange,
+                            effectiveWidth,
+                            'triangle',
+                            1000
+                        ));
+                    }
                 }
                 // 存储攻击数据，供swing阶段进行正方形攻击判定
                 source._pendingThrust = {
@@ -261,6 +341,8 @@ function applyEnchantOnHit(weapon, target, source) {
                     startTime: nowMs(),         // 判定开始时间（Phase 3：墙钟→单调时钟，写者/读者同口径）
                     totalHitCount: 0,              // 整个攻击累计命中数
                     totalKillCount: 0,           // 整个攻击累计击杀数
+                    impactFeedbackApplied: false, // 每段首次有效命中才触发一次顿帧/震屏
+                    swingSoundPlayed: false,       // 本次攻击的挥砍音只允许播放一次（跨Tween共用）
                     // 通用敌人普通攻击使用锁定方向的单目标矩形；玩家与尚未迁移的
                     // 自定义攻击继续保留原 dynamicRange 行为。
                     dynamicRange: basicMeleeSnapshot ? 0 : (this.config.dynamicRange || 0),
@@ -408,8 +490,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 return Math.abs(diff) <= halfArc + Math.asin(Math.min(1, c.radius / dist));
             }
             // perFrame 近战一次性判定（weapon-anim 按 hitCheck 帧阈值触发）：
-            // shape 'rect' = 一段正前方矩形（GroundDirectedRect footprint 判定）；
-            // shape 'sector' = 二段扇形（arcDeg 张角、damageMul 伤害倍率、knockback 径向击退）
+            // shape 'rect' = 正前方矩形（GroundDirectedRect footprint 判定）；
+            // shape 'sector' = 扇形挥砍（arcDeg 张角、damageMul 伤害倍率、knockback 径向击退）
             checkStageHit(source, hitCheckCfg = {}) {
                 const pt = source._pendingThrust;
                 if (!pt || !pt.active) return;
@@ -427,7 +509,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     const halfArc = arcRad / 2;
                     const damageMul = typeof hitCheckCfg.damageMul === 'number' ? hitCheckCfg.damageMul : 1;
                     const knockback = typeof hitCheckCfg.knockback === 'number' ? hitCheckCfg.knockback : pt.knockback;
-                    // 范围可视化：二段扇形
+                    // 范围可视化：扇形段
                     if (Game.showAttackRange) {
                         EffectManager.add(new AttackRangeEffect(ax, ay, angle, range, arcRad, 'sector', 300));
                     }
@@ -451,27 +533,27 @@ function applyEnchantOnHit(weapon, target, source) {
                             currentWeapon
                         });
                         if (!hit) return;
+                        applyMeleeImpactFeedback(source, pt, hitCheckCfg);
                         pt.hitSet.add(entity);
                         if (skillExpEligible) {
                             if (killed && !entity._summoned) killCount++;
                             hitCount++;
                         }
-                        // 二段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs
-                        if (typeof entity.applyStun === 'function' && (hitCheckCfg.stunMs || 0) > 0
-                            && (entity.rank || 'normal') === 'normal') {
-                            entity.applyStun(hitCheckCfg.stunMs);
-                        }
+                        applyPlayerBasicAttackStun(source, entity, hitCheckCfg.stunMs);
                     });
                 } else {
-                    // rect（一段）：沿用 GroundDirectedRect 地面 footprint 判定
+                    // rect：沿用 GroundDirectedRect 地面 footprint 判定
                     const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
                     const hitBox = WeaponAnimConfig.sword.hitBox;
-                    const backExt = isSword ? (hitBox.backExtension || 0) : 0;
-                    // 范围可视化：一段矩形（'triangle' 类型即带后摆的有向矩形）
+                    const backExt = isSword
+                        ? (typeof hitCheckCfg.backExtension === 'number' ? hitCheckCfg.backExtension : (hitBox.backExtension || 0))
+                        : 0;
+                    const hitWidth = typeof hitCheckCfg.width === 'number' ? hitCheckCfg.width : pt.width;
+                    // 范围可视化：有向矩形（'triangle' 类型支持配置后摆）
                     if (Game.showAttackRange) {
-                        EffectManager.add(new AttackRangeEffect(ax, ay, angle, range, pt.width, 'triangle', 300, 0.7, true, backExt));
+                        EffectManager.add(new AttackRangeEffect(ax, ay, angle, range, hitWidth, 'triangle', 300, 0.7, true, backExt));
                     }
-                    const rectShape = new GroundDirectedRect(ax, ay, angle, range, pt.width, backExt, surfaceContext);
+                    const rectShape = new GroundDirectedRect(ax, ay, angle, range, hitWidth, backExt, surfaceContext);
                     candidates.forEach(entity => {
                         if (entity === source || !entity.active || !entity.hittable) return;
                         if (pt.hitSet.has(entity)) return; // 已命中过
@@ -491,16 +573,13 @@ function applyEnchantOnHit(weapon, target, source) {
                             currentWeapon
                         });
                         if (!hit) return;
+                        applyMeleeImpactFeedback(source, pt, hitCheckCfg);
                         pt.hitSet.add(entity);
                         if (skillExpEligible) {
                             if (killed && !entity._summoned) killCount++;
                             hitCount++;
                         }
-                        // 一段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs
-                        if (typeof entity.applyStun === 'function' && (hitCheckCfg.stunMs || 0) > 0
-                            && (entity.rank || 'normal') === 'normal') {
-                            entity.applyStun(hitCheckCfg.stunMs);
-                        }
+                        applyPlayerBasicAttackStun(source, entity, hitCheckCfg.stunMs);
                     });
                 }
                 // 累计命中/击杀数（经验在 Tween onComplete 统一发放）

@@ -28,6 +28,7 @@ import {
 } from './building-upgrade-projects.js';
 import { FogOfWarSystem } from './fog-of-war-system.js';
 import { setCrossPlaneSnapshotProvider } from './cross-plane-resource-system.js';
+import { takeLegacyLocalResearchLevels } from './ability-store.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -44,6 +45,7 @@ let getProducerConfig = null;
 let EnergyNodeSystem = null;
 let EnergyManager = null;
 let ResearchSystem = null;
+let TechnologySystem = null;
 let GoldManager = null;
 let PopulationEconomySystem = null;
 let getWorldEpoch = null;
@@ -67,6 +69,7 @@ export function configureWorld122SnapshotRuntime(deps = {}) {
         EnergyNodeSystem,
         EnergyManager,
         ResearchSystem,
+        TechnologySystem,
         GoldManager,
         PopulationEconomySystem,
         getWorldEpoch,
@@ -82,6 +85,34 @@ const _storedByWorld = {};
 setCrossPlaneSnapshotProvider(() => _storedByWorld);
 
 const _clone = (o) => JSON.parse(JSON.stringify(o));
+const LOCAL_RESEARCH_MODULE_IDS = new Set(['research_staff', 'research_base_points']);
+
+function _migrateResearchBuildingUpgrades(snapshot, legacyLevels = {}) {
+    if (!snapshot || !Array.isArray(snapshot.structures)) return snapshot;
+    // 账本派生缓存不跨读档复用；按当前配置、科技等级与快照内容在首个后台 tick 重建。
+    snapshot.backgroundLedger = null;
+    for (const structure of snapshot.structures) {
+        if (structure?.kind !== 'producer' || structure.cfgKey !== 'research_institute') continue;
+        structure.researchModules = { ...(structure.researchModules || {}) };
+        for (const moduleId of LOCAL_RESEARCH_MODULE_IDS) {
+            if (Object.prototype.hasOwnProperty.call(structure.researchModules, moduleId)) continue;
+            const legacyLevel = Math.max(0, Math.floor(Number(legacyLevels[moduleId]) || 0));
+            if (legacyLevel > 0) structure.researchModules[moduleId] = legacyLevel;
+        }
+        if (LOCAL_RESEARCH_MODULE_IDS.has(structure.upgrade?.abilityId)) {
+            structure.researchUpgrade = {
+                moduleId: structure.upgrade.abilityId,
+                totalMs: structure.upgrade.totalMs,
+                remainMs: structure.upgrade.remainMs,
+            };
+            structure.upgrade = null;
+        }
+        if (LOCAL_RESEARCH_MODULE_IDS.has(structure.continuous?.abilityId)) {
+            structure.continuous = null;
+        }
+    }
+    return snapshot;
+}
 
 function _snapshotUpgrade(upgrade) {
     if (!upgrade) return null;
@@ -172,7 +203,10 @@ function _ensureInitialFeatureBuilding(snapshot, sceneId, includeInitialFeatureB
     if (!snapshot.structures.some((structure) => structure?.cfgKey === feature.cfgKey)) {
         const spawn = worldSystemConfig.worlds?.[sceneId]?.portalSpawn || { x: 0, y: 0 };
         const structure = _initialFeatureStructure(spawn, feature);
-        if (structure) snapshot.structures.push(structure);
+        if (structure) {
+            snapshot.structures.push(structure);
+            snapshot.backgroundLedger = null;
+        }
     }
     snapshot.featureBuildingMigrations[migrationId] = true;
     return snapshot;
@@ -331,6 +365,7 @@ export function captureWorld(sceneId = 'scene8') {
             structures.push({
                 kind: 'gate4', x: e.x, y: e.y, hp: Math.ceil(e.hp), maxHp: Math.ceil(e.maxHp),
                 mirror: !!e.mirror, dir: e.mirror ? 'e1' : 'e2',
+                gateMode: ['auto', 'locked', 'open'].includes(e.gateMode) ? e.gateMode : 'auto',
                 pillars,
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
@@ -384,6 +419,7 @@ export function captureWorld(sceneId = 'scene8') {
             carriedEnergy: (h.miners || []).reduce((sum, miner) =>
                 sum + Math.max(0, Number(miner?._energyCarried) || 0), 0)
                 + Math.max(0, Number(h._pendingMinerEnergy) || 0),
+            minerTavernRemainder: Math.max(0, Number(h._minerTavernRemainder) || 0),
             assignedWorkers: Math.max(0, Math.floor(Number(h._assignedWorkers) || 0)),
             miners: h.aliveMinerCount(),
             respawnTimer: h._respawnTimer || 0,
@@ -457,17 +493,67 @@ export function captureWorld(sceneId = 'scene8') {
                 totalMs: p._economyUpgrade.totalMs,
                 remainMs: p._economyUpgrade.remainMs,
             } : null,
+            researchModules: p._economyType === 'research'
+                ? { ...(p.modules || {}) } : undefined,
+            researchUpgrade: p._researchUpgrade ? {
+                moduleId: p._researchUpgrade.moduleId,
+                totalMs: p._researchUpgrade.totalMs,
+                remainMs: p._researchUpgrade.remainMs,
+            } : null,
             bankGoldRemainder: p._bankGoldRemainder || 0,
             pendingGoldDrop: p._pendingGoldDrop || 0,
             workProductionRemainder: p._workProductionRemainder || 0,
             assignedWorkers: p._assignedWorkers || 0,
             marketPressure: p._marketPressure || 0,
+            windmillModules: p._economyType === 'windmill'
+                ? { ...(p.modules || {}) } : undefined,
+            windmillUpgrade: p._windmillUpgrade ? {
+                moduleId: p._windmillUpgrade.moduleId,
+                totalMs: p._windmillUpgrade.totalMs,
+                remainMs: p._windmillUpgrade.remainMs,
+            } : null,
+            mintModules: p._economyType === 'royal_mint'
+                ? { ...(p.modules || {}) } : undefined,
+            mintUpgrade: p._mintUpgrade ? {
+                moduleId: p._mintUpgrade.moduleId,
+                totalMs: p._mintUpgrade.totalMs,
+                remainMs: p._mintUpgrade.remainMs,
+            } : null,
+            mintGoldRemainder: p._economyType === 'royal_mint'
+                ? Math.max(0, Number(p._mintGoldRemainder) || 0) : undefined,
             bankModules: p._economyType === 'bank' ? { ...(p.modules || {}) } : undefined,
             bankUpgrade: p._bankUpgrade ? {
                 moduleId: p._bankUpgrade.moduleId,
                 totalMs: p._bankUpgrade.totalMs,
                 remainMs: p._bankUpgrade.remainMs,
             } : null,
+            grandMallModules: p._economyType === 'grand_mall'
+                ? { ...(p.modules || {}) } : undefined,
+            grandMallUpgrade: p._grandMallUpgrade ? {
+                moduleId: p._grandMallUpgrade.moduleId,
+                totalMs: p._grandMallUpgrade.totalMs,
+                remainMs: p._grandMallUpgrade.remainMs,
+            } : null,
+            grandMallGoldRemainder: p._economyType === 'grand_mall'
+                ? Math.max(0, Number(p._grandMallGoldRemainder) || 0) : undefined,
+            grandMallEnergyRemainder: p._economyType === 'grand_mall'
+                ? Math.max(0, Number(p._grandMallEnergyRemainder) || 0) : undefined,
+            stockExchangeGoldRemainder: p._economyType === 'stock_exchange'
+                ? Math.max(0, Number(p._stockExchangeGoldRemainder) || 0) : undefined,
+            stockExchangeEnergyRemainder: p._economyType === 'stock_exchange'
+                ? Math.max(0, Number(p._stockExchangeEnergyRemainder) || 0) : undefined,
+            computingCenterGoldRemainder: p._economyType === 'computing_center'
+                ? Math.max(0, Number(p._computingCenterGoldRemainder) || 0) : undefined,
+            computingCenterEnergyRemainder: p._economyType === 'computing_center'
+                ? Math.max(0, Number(p._computingCenterEnergyRemainder) || 0) : undefined,
+            computingCenterModules: p._economyType === 'computing_center'
+                ? { ...(p.modules || {}) } : undefined,
+            computingCenterUpgrade: p._economyType === 'computing_center'
+                && p._computingCenterUpgrade ? {
+                    moduleId: p._computingCenterUpgrade.moduleId,
+                    totalMs: p._computingCenterUpgrade.totalMs,
+                    remainMs: p._computingCenterUpgrade.remainMs,
+                } : null,
             workshopModules: p._economyType === 'workshop' ? { ...(p.modules || {}) } : undefined,
             workshopUpgrade: p._workshopUpgrade ? {
                 moduleId: p._workshopUpgrade.moduleId,
@@ -484,8 +570,17 @@ export function captureWorld(sceneId = 'scene8') {
                 ? Math.max(0, Number(p._armorySortElapsedMs) || 0) : undefined,
             armoryPendingStones: p._economyType === 'armory'
                 ? Math.max(0, Math.floor(Number(p._armoryPendingStones) || 0)) : undefined,
+            hospitalModules: p._economyType === 'field_hospital'
+                ? { ...(p.modules || {}) } : undefined,
+            hospitalUpgrade: p._hospitalUpgrade ? {
+                moduleId: p._hospitalUpgrade.moduleId,
+                totalMs: p._hospitalUpgrade.totalMs,
+                remainMs: p._hospitalUpgrade.remainMs,
+            } : null,
+            hospitalTreatmentElapsedMs: p._economyType === 'field_hospital'
+                ? Math.max(0, Number(p._hospitalTreatmentElapsedMs) || 0) : undefined,
             bakeryModules: p._economyType === 'bakery' ? { ...(p.modules || {}) } : undefined,
-            bakeryUpgrade: p._bakeryUpgrade ? {
+            bakeryUpgrade: p._economyType === 'bakery' && p._bakeryUpgrade ? {
                 moduleId: p._bakeryUpgrade.moduleId,
                 totalMs: p._bakeryUpgrade.totalMs,
                 remainMs: p._bakeryUpgrade.remainMs,
@@ -506,12 +601,130 @@ export function captureWorld(sceneId = 'scene8') {
             } : undefined,
             bakeryPendingTributeIds: p._economyType === 'bakery'
                 ? [...(p._bakeryPendingTributeIds || [])] : undefined,
+            bakeryOutputRemainder: p._economyType === 'bakery'
+                ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
+            chainRestaurantModules: p._economyType === 'chain_restaurant'
+                ? { ...(p.modules || {}) } : undefined,
+            chainRestaurantUpgrade: p._economyType === 'chain_restaurant' && p._bakeryUpgrade ? {
+                moduleId: p._bakeryUpgrade.moduleId,
+                totalMs: p._bakeryUpgrade.totalMs,
+                remainMs: p._bakeryUpgrade.remainMs,
+            } : null,
+            chainRestaurantJob: p._economyType === 'chain_restaurant' ? {
+                phase: p._bakeryJob?.phase,
+                x: p._bakeryJob?.x,
+                y: p._bakeryJob?.y,
+                targetWarehouseId: p._bakeryJob?.targetWarehouseId ?? null,
+                cargoFood: p._bakeryJob?.cargoFood || 0,
+                pendingFood: p._bakeryJob?.pendingFood || 0,
+                processRemainMs: p._bakeryJob?.processRemainMs || 0,
+                processTotalMs: p._bakeryJob?.processTotalMs || 0,
+                phaseRemainMs: p._bakeryJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
+                completedBatches: p._bakeryJob?.completedBatches || 0,
+                offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+            } : undefined,
+            chainRestaurantOutputRemainder: p._economyType === 'chain_restaurant'
+                ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
+            cheeseFarmModules: p._economyType === 'cheese_farm'
+                ? { ...(p.modules || {}) } : undefined,
+            cheeseFarmUpgrade: p._cheeseFarmUpgrade ? {
+                moduleId: p._cheeseFarmUpgrade.moduleId,
+                totalMs: p._cheeseFarmUpgrade.totalMs,
+                remainMs: p._cheeseFarmUpgrade.remainMs,
+            } : null,
+            cheeseFarmJob: p._economyType === 'cheese_farm' ? {
+                phase: p._cheeseFarmJob?.phase,
+                x: p._cheeseFarmJob?.x,
+                y: p._cheeseFarmJob?.y,
+                targetWarehouseId: p._cheeseFarmJob?.targetWarehouseId ?? null,
+                pendingFood: p._cheeseFarmJob?.pendingFood || 0,
+                processRemainMs: p._cheeseFarmJob?.processRemainMs || 0,
+                processTotalMs: p._cheeseFarmJob?.processTotalMs || 0,
+                phaseRemainMs: p._cheeseFarmJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._cheeseFarmJob?.phaseTotalMs || 0,
+                completedBatches: p._cheeseFarmJob?.completedBatches || 0,
+                offlineProgressMs: p._cheeseFarmJob?.offlineProgressMs || 0,
+            } : undefined,
+            cheeseFarmOutputRemainder: p._economyType === 'cheese_farm'
+                ? Math.max(0, Number(p._cheeseFarmOutputRemainder) || 0) : undefined,
+            steamModules: p._economyType === 'steam_power_plant'
+                ? { ...(p.modules || {}) } : undefined,
+            steamUpgrade: p._steamUpgrade ? {
+                moduleId: p._steamUpgrade.moduleId,
+                totalMs: p._steamUpgrade.totalMs,
+                remainMs: p._steamUpgrade.remainMs,
+            } : null,
+            steamJobs: p._economyType === 'steam_power_plant'
+                ? (p._steamJobs || []).map((job) => ({
+                    slot: job.slot,
+                    phase: job.phase,
+                    x: job.x,
+                    y: job.y,
+                    targetWarehouseId: job.targetWarehouseId ?? null,
+                    cargoFood: job.cargoFood || 0,
+                    pendingEnergy: job.pendingEnergy || 0,
+                    processRemainMs: job.processRemainMs || 0,
+                    processTotalMs: job.processTotalMs || 0,
+                    phaseRemainMs: job.phaseRemainMs || 0,
+                    phaseTotalMs: job.phaseTotalMs || 0,
+                    completedBatches: job.completedBatches || 0,
+                    offlineProgressMs: job.offlineProgressMs || 0,
+                })) : undefined,
+            steamOutputRemainder: p._economyType === 'steam_power_plant'
+                ? Math.max(0, Number(p._steamOutputRemainder) || 0) : undefined,
+            windPowerModules: p._economyType === 'wind_power_plant'
+                ? { ...(p.modules || {}) } : undefined,
+            windPowerUpgrade: p._windPowerUpgrade ? {
+                moduleId: p._windPowerUpgrade.moduleId,
+                totalMs: p._windPowerUpgrade.totalMs,
+                remainMs: p._windPowerUpgrade.remainMs,
+            } : null,
+            solarPowerModules: p._economyType === 'solar_power_plant'
+                ? { ...(p.modules || {}) } : undefined,
+            solarPowerUpgrade: p._solarPowerUpgrade ? {
+                moduleId: p._solarPowerUpgrade.moduleId,
+                totalMs: p._solarPowerUpgrade.totalMs,
+                remainMs: p._solarPowerUpgrade.remainMs,
+            } : null,
+            tavernModules: p._economyType === 'tavern'
+                ? { ...(p.modules || {}) } : undefined,
+            tavernUpgrade: p._tavernUpgrade ? {
+                moduleId: p._tavernUpgrade.moduleId,
+                totalMs: p._tavernUpgrade.totalMs,
+                remainMs: p._tavernUpgrade.remainMs,
+            } : null,
+            tavernJob: p._economyType === 'tavern' ? {
+                phase: p._tavernJob?.phase,
+                x: p._tavernJob?.x,
+                y: p._tavernJob?.y,
+                targetWarehouseId: p._tavernJob?.targetWarehouseId ?? null,
+                cargoFood: p._tavernJob?.cargoFood || 0,
+                serviceRemainMs: p._tavernJob?.serviceRemainMs || 0,
+                serviceTotalMs: p._tavernJob?.serviceTotalMs || 0,
+                phaseRemainMs: p._tavernJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._tavernJob?.phaseTotalMs || 0,
+                completedBatches: p._tavernJob?.completedBatches || 0,
+            } : undefined,
             resonatorModules: p._economyType === 'planar_resonator'
                 ? { ...(p.modules || {}) } : undefined,
             resonatorUpgrade: p._resonatorUpgrade ? {
                 moduleId: p._resonatorUpgrade.moduleId,
                 totalMs: p._resonatorUpgrade.totalMs,
                 remainMs: p._resonatorUpgrade.remainMs,
+            } : null,
+            deepDrillTickMs: p._economyType === 'deep_drill'
+                ? Math.max(0, Number(p._deepDrillTickMs) || 0) : undefined,
+            deepDrillRemainder: p._economyType === 'deep_drill'
+                ? Math.max(0, Number(p._deepDrillRemainder) || 0) : undefined,
+            deepDrillMinedTotal: p._economyType === 'deep_drill'
+                ? Math.max(0, Number(p._deepDrillMinedTotal) || 0) : undefined,
+            weatherModules: p.cfgKey === 'weather_forecast_tower'
+                ? { ...(p.modules || {}) } : undefined,
+            weatherUpgrade: p._weatherUpgrade ? {
+                moduleId: p._weatherUpgrade.moduleId,
+                totalMs: p._weatherUpgrade.totalMs,
+                remainMs: p._weatherUpgrade.remainMs,
             } : null,
             candleModules: p._isWorld125Candle ? { ...(p.candleModules || {}) } : undefined,
             candleUpgrade: p._candleUpgrade ? {
@@ -565,6 +778,7 @@ export function captureWorld(sceneId = 'scene8') {
         ..._snapshotLifecycle(sceneId, worldEpoch),
         capturedAt: Date.now(),
         capturedGameTimeMs: EnvironmentLightingSystem.serializeTime().elapsedMs || 0,
+        starterWarehouseGrantClaimed: !!Game?._starterWarehouseGrantClaimedByScene?.[sceneId],
         featureBuildingMigrations: _clone(_storedByWorld[sceneId]?.featureBuildingMigrations || {}),
         populationEconomy: PopulationEconomySystem?.serializeState?.() || { storageVersion: 2, foodStored: 0 },
         // 波次/结算参数随快照封存（后台结算与配置同生命周期，防版本间口径漂移）
@@ -616,6 +830,9 @@ export function resetWorldSnapshot(sceneId) {
     if (!sceneId) return false;
     const hadSnapshot = !!_storedByWorld[sceneId];
     delete _storedByWorld[sceneId];
+    if (Game?._starterWarehouseGrantClaimedByScene) {
+        delete Game._starterWarehouseGrantClaimedByScene[sceneId];
+    }
     FogOfWarSystem.resetScene(sceneId);
     return hadSnapshot;
 }
@@ -623,6 +840,7 @@ export function resetWorldSnapshot(sceneId) {
 /** 清空快照（新游戏重置） */
 export function resetWorld122Snapshot() {
     for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
+    if (Game) Game._starterWarehouseGrantClaimedByScene = {};
     for (const sceneId of FogOfWarSystem.config.enabledScenes || []) FogOfWarSystem.resetScene(sceneId);
 }
 
@@ -658,21 +876,31 @@ export function serializeWorldScenes() {
 /** 主存档恢复：写入驻留（进入 122 时才真正物化） */
 export function restoreWorld122Scene(data) {
     FogOfWarSystem.resetScene('scene8');
-    if (data && data.version === SNAPSHOT_VERSION) _storedByWorld.scene8 = data;
+    if (Game?._starterWarehouseGrantClaimedByScene) {
+        delete Game._starterWarehouseGrantClaimedByScene.scene8;
+    }
+    const legacyLevels = takeLegacyLocalResearchLevels();
+    if (data && data.version === SNAPSHOT_VERSION) {
+        _storedByWorld.scene8 = _migrateResearchBuildingUpgrades(_clone(data), legacyLevels);
+    }
     else delete _storedByWorld.scene8;
 }
 
 export function restoreWorldScenes(data) {
+    const legacyLevels = takeLegacyLocalResearchLevels();
     for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
+    if (Game) Game._starterWarehouseGrantClaimedByScene = {};
     for (const sceneId of FogOfWarSystem.config.enabledScenes || []) FogOfWarSystem.resetScene(sceneId);
     if (!data || typeof data !== 'object') return;
     // 兼容旧档直接保存单个 scene8 快照。
     if (data.version === SNAPSHOT_VERSION && Array.isArray(data.structures)) {
-        _storedByWorld.scene8 = data;
+        _storedByWorld.scene8 = _migrateResearchBuildingUpgrades(_clone(data), legacyLevels);
         return;
     }
     for (const [sceneId, snap] of Object.entries(data)) {
-        if (snap && snap.version === SNAPSHOT_VERSION) _storedByWorld[sceneId] = snap;
+        if (snap && snap.version === SNAPSHOT_VERSION) {
+            _storedByWorld[sceneId] = _migrateResearchBuildingUpgrades(_clone(snap), legacyLevels);
+        }
     }
 }
 
@@ -721,7 +949,12 @@ export function previewWorld122Report() {
         Number.isFinite(capturedGameTimeMs) ? capturedGameTimeMs : nowGame
     ));
     if (elapsed < 1000) return null;
-    return settleWorld122(stored, elapsed, { commit: false, skipWaves: true });
+    return settleWorld122(stored, elapsed, {
+        commit: false,
+        skipWaves: true,
+        isRecruitmentTierUnlocked: (id) =>
+            TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
+    });
 }
 
 // ==================== 恢复（_loadScene8 尾部调用） ====================
@@ -785,6 +1018,7 @@ function _restoreGate4(s) {
     });
     gate.grade = 'C';                     // 详情/数值显示 C 级
     _markRestored(gate, s);
+    gate.setMode?.(['auto', 'locked', 'open'].includes(s.gateMode) ? s.gateMode : 'auto');
     Game.entities.set(gate.id, gate);
     if (DefenseSystem.gates) DefenseSystem.gates.push(gate);
     group.push(gate);
@@ -850,6 +1084,7 @@ function _restoreHut(s) {
         upgrade: s.upgrade,
         storedEnergy: s.storedEnergy,
         pendingMinerEnergy: s.carriedEnergy,
+        minerTavernRemainder: s.minerTavernRemainder,
         assignedWorkers,
     });
     _markRestored(hut, s);
@@ -888,25 +1123,68 @@ function _restoreProducer(s, sceneId) {
         economyLevel: s.economyLevel,
         economyTickMs: s.economyTickMs,
         economyUpgrade: s.economyUpgrade,
+        researchModules: s.researchModules,
+        researchUpgrade: s.researchUpgrade,
         bankGoldRemainder: s.bankGoldRemainder,
         workProductionRemainder: s.workProductionRemainder,
         assignedWorkers: s.assignedWorkers,
         marketPressure: s.marketPressure,
         pendingGoldDrop: s.pendingGoldDrop,
+        windmillModules: s.windmillModules,
+        windmillUpgrade: s.windmillUpgrade,
+        mintModules: s.mintModules,
+        mintUpgrade: s.mintUpgrade,
+        mintGoldRemainder: s.mintGoldRemainder,
         bankModules: s.bankModules,
         bankUpgrade: s.bankUpgrade,
+        grandMallModules: s.grandMallModules,
+        grandMallUpgrade: s.grandMallUpgrade,
+        grandMallGoldRemainder: s.grandMallGoldRemainder,
+        grandMallEnergyRemainder: s.grandMallEnergyRemainder,
+        stockExchangeGoldRemainder: s.stockExchangeGoldRemainder,
+        stockExchangeEnergyRemainder: s.stockExchangeEnergyRemainder,
+        computingCenterGoldRemainder: s.computingCenterGoldRemainder,
+        computingCenterEnergyRemainder: s.computingCenterEnergyRemainder,
+        computingCenterModules: s.computingCenterModules,
+        computingCenterUpgrade: s.computingCenterUpgrade,
         workshopModules: s.workshopModules,
         workshopUpgrade: s.workshopUpgrade,
         armoryModules: s.armoryModules,
         armoryUpgrade: s.armoryUpgrade,
         armorySortElapsedMs: s.armorySortElapsedMs,
         armoryPendingStones: s.armoryPendingStones,
+        hospitalModules: s.hospitalModules,
+        hospitalUpgrade: s.hospitalUpgrade,
+        hospitalTreatmentElapsedMs: s.hospitalTreatmentElapsedMs,
         bakeryModules: s.bakeryModules,
         bakeryUpgrade: s.bakeryUpgrade,
         bakeryJob: s.bakeryJob,
         bakeryPendingTributeIds: s.bakeryPendingTributeIds,
+        bakeryOutputRemainder: s.bakeryOutputRemainder,
+        chainRestaurantModules: s.chainRestaurantModules,
+        chainRestaurantUpgrade: s.chainRestaurantUpgrade,
+        chainRestaurantJob: s.chainRestaurantJob,
+        chainRestaurantOutputRemainder: s.chainRestaurantOutputRemainder,
+        cheeseFarmModules: s.cheeseFarmModules,
+        cheeseFarmUpgrade: s.cheeseFarmUpgrade,
+        cheeseFarmJob: s.cheeseFarmJob,
+        cheeseFarmOutputRemainder: s.cheeseFarmOutputRemainder,
+        steamModules: s.steamModules,
+        steamUpgrade: s.steamUpgrade,
+        steamJobs: s.steamJobs,
+        steamOutputRemainder: s.steamOutputRemainder,
+        windPowerModules: s.windPowerModules,
+        windPowerUpgrade: s.windPowerUpgrade,
+        tavernModules: s.tavernModules,
+        tavernUpgrade: s.tavernUpgrade,
+        tavernJob: s.tavernJob,
         resonatorModules: s.resonatorModules,
         resonatorUpgrade: s.resonatorUpgrade,
+        deepDrillTickMs: s.deepDrillTickMs,
+        deepDrillRemainder: s.deepDrillRemainder,
+        deepDrillMinedTotal: s.deepDrillMinedTotal,
+        weatherModules: s.weatherModules,
+        weatherUpgrade: s.weatherUpgrade,
         warehouseModules: s.warehouseModules,
         warehouseUpgrade: s.warehouseUpgrade,
         candleModules: s.candleModules,
@@ -918,6 +1196,8 @@ function _restoreProducer(s, sceneId) {
     producer._recruitMode = normalizeRecruitMode(s.recruitMode);
     producer._spawnPopulationBlocked = !!s.populationBlocked;
     producer._spawnFoodBlocked = !!s.foodBlocked;
+    // 科技在离场期间完成时，按当前槽位换代，并以新兵种完整周期重新计时。
+    producer.refreshRecruitmentTier?.();
     if (producer._parallelProduction) {
         for (const [kind, queue] of Object.entries(producer._parallelQueues || {})) {
             const savedQueue = s.parallelQueues?.[kind];
@@ -1060,6 +1340,19 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
         delete _storedByWorld[sceneId];
         return false;
     }
+    if (Game) {
+        if (!Game._starterWarehouseGrantClaimedByScene) {
+            Game._starterWarehouseGrantClaimedByScene = {};
+        }
+        const legacyWarehouseExists = (snap.structures || []).some((structure) => (
+            structure?.kind === 'producer'
+            && producerBuildingsConfig[structure.cfgKey]?.workshopType === 'warehouse'
+        ));
+        Game._starterWarehouseGrantClaimedByScene[sceneId] =
+            typeof snap.starterWarehouseGrantClaimed === 'boolean'
+                ? snap.starterWarehouseGrantClaimed
+                : legacyWarehouseExists;
+    }
 
     // ---- M1 后台结算（离场 >1s 才结算，避免同场秒切空跑）----
     const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
@@ -1073,6 +1366,8 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             commit: true,
             skipWaves: DefenseSystem._managedExternally === true,
             gameTimeMs: nowGame,
+            isRecruitmentTierUnlocked: (id) =>
+                TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
             grant: (reward) => {
                 // 银行金币依次进入背包、主人空间仓库；溢出量由结算记在对应银行，回场后落地。
                 if (reward.gold && PopulationEconomySystem?.routeProducedGold) {

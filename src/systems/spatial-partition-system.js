@@ -131,8 +131,23 @@ class SpatialPartitionSystemImpl {
      * @returns {Array} — 范围内实体列表
      */
     queryRadius(x, y, radius, exclude) {
-        this._queryResults.length = 0;
-        if (radius <= 0) return this._queryResults.slice(0);
+        return this.queryRadiusInto(x, y, radius, exclude, []);
+    }
+
+    /**
+     * 圆形范围查询 — 写入调用方提供的数组，供逐帧热路径复用缓冲区、避免短命数组。
+     * 返回值与 out 为同一对象；调用方不得在遍历期间再次用同一 out 发起嵌套查询。
+     * @param {number} x — 中心X
+     * @param {number} y — 中心Y
+     * @param {number} radius — 查询半径（像素）
+     * @param {Object} [exclude] — 排除的实体
+     * @param {Array} out — 调用方复用的结果数组
+     * @returns {Array} — out
+     */
+    queryRadiusInto(x, y, radius, exclude, out) {
+        const results = Array.isArray(out) ? out : [];
+        results.length = 0;
+        if (radius <= 0) return results;
 
         const rSq = radius * radius;
         const minCX = Math.floor((x - radius) * this.invCellSize);
@@ -150,15 +165,15 @@ class SpatialPartitionSystemImpl {
                     const dx = entity.x - x;
                     const dy = entity.y - y;
                     if (dx * dx + dy * dy <= rSq) {
-                        this._queryResults.push(entity);
-                        if (this._queryResults.length >= GRID_CONFIG.maxQueryResults) {
-                            return this._queryResults.slice(0);
+                        results.push(entity);
+                        if (results.length >= GRID_CONFIG.maxQueryResults) {
+                            return results;
                         }
                     }
                 }
             }
         }
-        return this._queryResults.slice(0);
+        return results;
     }
 
     /**

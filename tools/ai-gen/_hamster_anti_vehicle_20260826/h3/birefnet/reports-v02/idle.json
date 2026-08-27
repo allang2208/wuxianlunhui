@@ -1,0 +1,33 @@
+{
+  "action": "idle",
+  "video": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_anti_vehicle_20260826\\h3\\videos\\hamster_anti_vehicle_idle_h3.mp4",
+  "sourceFrames": [
+    0,
+    16,
+    33,
+    49,
+    66,
+    82,
+    98,
+    115
+  ],
+  "appendedIdleRegeneration": false,
+  "sourceFrameCount": 8,
+  "scale": 0.9879518072289156,
+  "alphaPixelsPerFrame": [
+    62863,
+    62550,
+    62416,
+    62573,
+    62843,
+    62903,
+    62890,
+    62889
+  ],
+  "emptyFrames": [],
+  "touchingFrames": [],
+  "alphaBottomMin": 458,
+  "alphaBottomMax": 458,
+  "transparentRgbMax": 0,
+  "pipeline": "BiRefNet-general alpha plus white-background foreground decontamination"
+}

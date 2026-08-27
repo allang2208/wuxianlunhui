@@ -11,8 +11,15 @@ import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
 import { SceneManager } from '../world/scene-manager.js';
 import { ItemDatabase } from '../items/item-database.js';
+import { completeWeaponFields } from './equip-data-manager.js';
 import { EventBus } from '../core/event-bus.js';
 import { BasePanel } from './panels/base-panel.js';
+import {
+    consolidateGoldStacks,
+    getItemMaxStack,
+    isGoldItem,
+    syncGoldStackPresentation,
+} from '../items/item-stack-rules.js';
 
 export const WarehouseSystem = {
     items: [],            // 扁平数组，元素 { slot, ...item }（slot 跨页连续编号）
@@ -71,12 +78,9 @@ export const WarehouseSystem = {
         return this.items.find(i => i.slot === slot) || null;
     },
 
-    /** 有效最大堆叠数：金币物品本身不带 maxStack 字段（GoldManager 内部常量 99999），此处对齐回退 */
+    /** 有效最大堆叠数：金币使用共享的单格无限堆叠规则。 */
     _maxStackOf(item) {
-        if (!item) return 1;
-        if (item.maxStack) return item.maxStack;
-        if (item.category === 'gold' || item.name === '金币') return 99999;
-        return 1;
+        return getItemMaxStack(item, 1);
     },
 
     /** 是否可堆叠 */
@@ -98,8 +102,17 @@ export const WarehouseSystem = {
         return space + freeSlots * maxStack;
     },
 
+    /** 查询指定物品当前还能完整接收多少数量，供奖励等事务在写入前做容量预检。 */
+    getItemRemainingCapacity(item) {
+        if (!item) return 0;
+        const freeSlots = Math.max(0, this.capacity - this.items.length);
+        return Math.max(0, Math.floor(this._stackSpaceIn(this.items, item, freeSlots)));
+    },
+
     /** 把物品堆叠/落格进仓库（先填同名堆，超出最大堆叠再占新格），返回是否全部放入 */
     _applyIntoWarehouse(item) {
+        completeWeaponFields(item);
+        if (isGoldItem(item)) consolidateGoldStacks(this.items);
         let remaining = item.stack || 1;
         // 先填同名堆
         if (this._isStackable(item)) {
@@ -109,9 +122,7 @@ export const WarehouseSystem = {
                 if (t && t.name === item.name && (t.stack || 1) < maxStack) {
                     const add = Math.min(maxStack - (t.stack || 1), remaining);
                     t.stack = (t.stack || 1) + add;
-                    if (t.category === 'gold' || t.name === '金币') {
-                        t.stats = [{ name: '数量', value: String(t.stack) }];
-                    }
+                    if (isGoldItem(t)) syncGoldStackPresentation(t);
                     remaining -= add;
                 }
             }
@@ -127,6 +138,7 @@ export const WarehouseSystem = {
             if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
             clone.stack = add;
             clone.slot = slot;
+            if (isGoldItem(clone)) syncGoldStackPresentation(clone);
             this.items.push(clone);
             remaining -= add;
         }
@@ -147,7 +159,7 @@ export const WarehouseSystem = {
         const accepted = Math.min(requested, this._stackSpaceIn(this.items, item, freeSlots));
         if (accepted <= 0) return 0;
         const acceptedItem = { ...item, stack: accepted };
-        if (item.category === 'gold' || item.name === '金币') {
+        if (isGoldItem(item)) {
             acceptedItem.stats = [{ name: '数量', value: String(accepted) }];
         }
         this._applyIntoWarehouse(acceptedItem);
@@ -156,6 +168,7 @@ export const WarehouseSystem = {
     },
 
     serialize() {
+        consolidateGoldStacks(this.items);
         return {
             version: 1,
             pageCount: this.pageCount,
@@ -169,7 +182,7 @@ export const WarehouseSystem = {
         this.pageCount = pageCount;
         const used = new Set();
         this.items = snapshot.items
-            .map((item) => JSON.parse(JSON.stringify(item)))
+            .map((item) => completeWeaponFields(JSON.parse(JSON.stringify(item))))
             .filter((item) => {
                 const slot = Math.floor(Number(item?.slot));
                 if (!item || !Number.isFinite(slot) || slot < 0 || slot >= this.capacity || used.has(slot)) return false;
@@ -178,6 +191,7 @@ export const WarehouseSystem = {
                 used.add(slot);
                 return true;
             });
+        consolidateGoldStacks(this.items);
         this.currentPage = 0;
         this._refreshAll();
         return true;
@@ -203,6 +217,19 @@ export const WarehouseSystem = {
     storeAllFromBackpack() {
         const bp = EquipManager.backpackItems || [];
         if (bp.length === 0) return;
+        // 仓库即使没有空格，只要已经有金币格，也应先把背包金币合并进去。
+        for (let index = bp.length - 1; index >= 0; index--) {
+            const item = bp[index];
+            if (!isGoldItem(item)) continue;
+            const freeSlots = this.capacity - this.items.length;
+            if (this._stackSpaceIn(this.items, item, freeSlots) < (item.stack || 1)) continue;
+            bp.splice(index, 1);
+            this._applyIntoWarehouse(item);
+        }
+        if (bp.length === 0) {
+            this._refreshAll();
+            return;
+        }
         if (this.items.length >= this.capacity) {
             this._notifyFull('仓库已满');
             return;
@@ -242,6 +269,7 @@ export const WarehouseSystem = {
     /** 把物品堆叠/落格进背包（先填同名堆，超出占新格） */
     _applyIntoBackpack(item) {
         const bp = EquipManager.backpackItems;
+        if (isGoldItem(item)) consolidateGoldStacks(bp);
         let remaining = item.stack || 1;
         if (this._isStackable(item)) {
             const maxStack = this._maxStackOf(item);
@@ -263,9 +291,11 @@ export const WarehouseSystem = {
             if (item.weaponAsset) clone.weaponAsset = item.weaponAsset;
             clone.stack = add;
             clone.slot = slot;
+            if (isGoldItem(clone)) syncGoldStackPresentation(clone);
             bp.push(clone);
             remaining -= add;
         }
+        if (isGoldItem(item)) consolidateGoldStacks(bp);
         return remaining <= 0;
     },
 
@@ -446,6 +476,8 @@ export const WarehouseSystem = {
 
     /** 全量刷新：格子 + 背包 + tooltip + 页码 */
     _refreshAll() {
+        consolidateGoldStacks(this.items);
+        consolidateGoldStacks(EquipManager.backpackItems);
         this._renderGrid();
         if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
         this._renderPageInfo();

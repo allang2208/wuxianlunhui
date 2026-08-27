@@ -40,6 +40,13 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
   只在第 9 帧投射物成功创建后播放自身 `sounds.attack`。
 - 纯视觉岗位单位同样遵守配置与位置音效口径：仓鼠农民在 `population-economy.json#windmill.workerVisual.sounds` 声明 `harvesting`，`HamsterFarmerVisualSystem.setState` 只在进入收割状态时调用一次 `SoundManager.playWorld`；禁止在逐帧动画更新中播放或把素材路径硬编码进视觉系统。
 
+#### 正式动作视频音轨→友军音效（2026-08-26 仓鼠反载/忍者）
+- 只能从运行时精灵表实际采用的正式视频提取；先核对生成 manifest/source-sheet report 中的获选文件，不得从废案版本、同名备选或其他兵种视频补齐。每段保留 `source + trim window + output`清单和可复现脚本。
+- 视频“有音轨”不等于可入库：先查声道/采样率/时长和100ms响度包络。动作前后接近静音、只有短促攻击峰值的片段可裁切；整段长时高响度、持续配乐/环境底噪或无法分离动作主体的音轨必须拒绝，不能为了“有声”就强行导入。
+- 友军短音效默认裁出干净动作窗口，去DC，边缘12ms淡入/淡出，归一到44.1kHz双声道MP3；响度收口必须同时有 RMS 目标和峰值上限，峰值先到上限时不得继续拉高造成削波。当 PyAV/FFmpeg 在 Windows 不能直接封装到中文绝对路径时，先编码到 ASCII 临时目录，再用 Unicode-safe 文件 API 复制到正式路径；交付前删除临时探针和自动编码目录。
+- 接线时点跟随游戏真实事件：枪声在投射物成功出膛时走 `playGunshotAt`，并把正式路径加入 `audio-config.json#gunshotPreloadPaths`；近战声在命中/接触帧单次播放；烟遁类状态音在隐身真正生效的会话守卫内播放，不在逐帧更新里重复触发。玩家本体技能可用 `playFile`；同一技能由仓鼠/Companion 施放时必须切换为 `playWorld(path, source.x, source.y)`。
+- 可复用实现为 `tools/ai-gen/extract-hamster-soldier-audio.py` 与 `tools/ai-gen/hamster-soldier-video-audio-20260826.json`。正式 MP3、提取脚本和来源清单属于交付件；全程背景噪声、失败编码输出、临时波形/探针才是废案，不得误删其他会话保留的原视频和精灵表真源。
+
 #### 步骤1: 素材复制建档（规则 4）
 按类别在项目下建子文件夹，把用户提供的音频复制进去：
 ```

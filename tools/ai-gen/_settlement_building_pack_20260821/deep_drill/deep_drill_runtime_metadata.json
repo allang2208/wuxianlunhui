@@ -1,0 +1,45 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\deep_drill\\structure_12step_seed122451\\deep_drill\\deep_drill_refine_v03.png",
+  "output": "assets\\terrain\\deep_drill.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 2,
+  "minComponentPixels": 8,
+  "removedComponents": 1,
+  "removedComponentPixels": 1,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    151,
+    104,
+    886,
+    921
+  ],
+  "fileSize": [
+    735,
+    817
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    731,
+    813
+  ],
+  "displayW": 300,
+  "displayH": 333,
+  "footOffsetY": 165,
+  "scaleX": 0.40816326530612246,
+  "scaleY": 0.40758873929008566
+}

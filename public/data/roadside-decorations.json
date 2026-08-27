@@ -1,0 +1,283 @@
+{
+  "version": 4,
+  "enabled": true,
+  "seed": 1220825,
+  "urbanRadius": 420,
+  "dynamic": {
+    "nightDaylightThreshold": 0.12,
+    "activityRefreshMs": 1000,
+    "activityDensityMultipliers": {
+      "working": 1.18,
+      "idle": 0.72,
+      "neutral": 1.0
+    },
+    "rainDensityMultipliers": {
+      "light": 0.72,
+      "moderate": 1.0,
+      "heavy": 1.24,
+      "storm": 1.42
+    },
+    "nightTextureSwaps": {
+      "street_fixture_lantern": {
+        "key": "street_fixture_lantern_lit",
+        "src": "assets/terrain/street-props/street_fixture_lantern_lit.png"
+      }
+    }
+  },
+  "profileByBuildingType": {
+    "housing": "housing",
+    "house": "housing",
+    "hamster_hut": "housing",
+    "windmill": "agriculture",
+    "wheat_windmill": "agriculture",
+    "bakery": "agriculture",
+    "cheese_farm": "agriculture",
+    "miner_camp": "agriculture",
+    "bank": "gold",
+    "market": "gold",
+    "tavern": "gold",
+    "grand_mall": "gold",
+    "royal_mint": "gold",
+    "stock_exchange": "gold",
+    "steam_power_plant": "energy",
+    "deep_drill": "energy",
+    "planar_resonator": "energy",
+    "research": "energy",
+    "research_institute": "energy",
+    "weather_forecast": "energy"
+  },
+  "layers": {
+    "prop": {
+      "activitySensitive": true,
+      "displaySize": 128,
+      "originY": 0.875,
+      "alpha": 0.96,
+      "depthMode": "foot",
+      "depthOffset": 6,
+      "frontageDensity": 0.27,
+      "manualUrbanDensity": 0.16,
+      "deadEndDensityMultiplier": 0.6,
+      "maxDecoratedRoadDegree": 2,
+      "densitySalt": 0,
+      "slotSalt": 13473,
+      "assetSalt": 32586,
+      "slots": [
+        { "x": -34, "y": -5 },
+        { "x": 34, "y": 5 },
+        { "x": -20, "y": 14 },
+        { "x": 20, "y": -14 }
+      ],
+      "profiles": {
+        "housing": [
+          { "key": "street_housing_jars", "src": "assets/terrain/street-props/street_housing_jars.png", "weight": 1.2 },
+          { "key": "street_housing_firewood", "src": "assets/terrain/street-props/street_housing_firewood.png", "weight": 1.1 },
+          { "key": "street_housing_basket_stool", "src": "assets/terrain/street-props/street_housing_basket_stool.png", "weight": 0.9 },
+          { "key": "street_housing_wash", "src": "assets/terrain/street-props/street_housing_wash.png", "weight": 0.8 }
+        ],
+        "agriculture": [
+          { "key": "street_agri_grain_sacks", "src": "assets/terrain/street-props/street_agri_grain_sacks.png", "weight": 1.2 },
+          { "key": "street_agri_produce_baskets", "src": "assets/terrain/street-props/street_agri_produce_baskets.png", "weight": 1.0 },
+          { "key": "street_agri_hay_bundle", "src": "assets/terrain/street-props/street_agri_hay_bundle.png", "weight": 1.0 },
+          { "key": "street_agri_handcart", "src": "assets/terrain/street-props/street_agri_handcart.png", "weight": 0.55 }
+        ],
+        "gold": [
+          { "key": "street_gold_sealed_crates", "src": "assets/terrain/street-props/street_gold_sealed_crates.png", "weight": 1.15 },
+          { "key": "street_gold_parcels", "src": "assets/terrain/street-props/street_gold_parcels.png", "weight": 1.15 },
+          { "key": "street_gold_notice_board", "src": "assets/terrain/street-props/street_gold_notice_board.png", "weight": 0.4 },
+          { "key": "street_gold_scale_crate", "src": "assets/terrain/street-props/street_gold_scale_crate.png", "weight": 0.55 }
+        ],
+        "energy": [
+          { "key": "street_energy_coal_sacks", "src": "assets/terrain/street-props/street_energy_coal_sacks.png", "weight": 1.15 },
+          { "key": "street_energy_pipe_stack", "src": "assets/terrain/street-props/street_energy_pipe_stack.png", "weight": 1.05 },
+          { "key": "street_energy_gear_crate", "src": "assets/terrain/street-props/street_energy_gear_crate.png", "weight": 0.8 },
+          { "key": "street_energy_tool_trolley", "src": "assets/terrain/street-props/street_energy_tool_trolley.png", "weight": 0.55 }
+        ],
+        "general": [
+          { "key": "street_housing_firewood", "src": "assets/terrain/street-props/street_housing_firewood.png", "weight": 1.0 },
+          { "key": "street_gold_sealed_crates", "src": "assets/terrain/street-props/street_gold_sealed_crates.png", "weight": 1.0 },
+          { "key": "street_gold_parcels", "src": "assets/terrain/street-props/street_gold_parcels.png", "weight": 0.9 },
+          { "key": "street_energy_tool_trolley", "src": "assets/terrain/street-props/street_energy_tool_trolley.png", "weight": 0.35 }
+        ]
+      }
+    },
+    "surface": {
+      "activitySensitive": true,
+      "displaySize": 128,
+      "originY": 0.875,
+      "alpha": 0.7,
+      "depthMode": "ground",
+      "depthOffset": 0,
+      "frontageDensity": 0.44,
+      "manualUrbanDensity": 0.28,
+      "deadEndDensityMultiplier": 0.85,
+      "maxDecoratedRoadDegree": 2,
+      "densitySalt": 20951,
+      "slotSalt": 11921,
+      "assetSalt": 26867,
+      "slots": [
+        { "x": 0, "y": 0 },
+        { "x": -12, "y": -6 },
+        { "x": 12, "y": 6 },
+        { "x": -8, "y": 8 },
+        { "x": 8, "y": -8 }
+      ],
+      "profiles": {
+        "housing": [
+          { "key": "street_trace_water_spill", "src": "assets/terrain/street-props/street_trace_water_spill.png", "weight": 1.1 },
+          { "key": "street_trace_footprints", "src": "assets/terrain/street-props/street_trace_footprints.png", "weight": 1.0 },
+          { "key": "street_trace_wood_chips", "src": "assets/terrain/street-props/street_trace_wood_chips.png", "weight": 0.8 },
+          { "key": "street_trace_rope_scraps", "src": "assets/terrain/street-props/street_trace_rope_scraps.png", "weight": 0.4 }
+        ],
+        "agriculture": [
+          { "key": "street_trace_straw_scatter", "src": "assets/terrain/street-props/street_trace_straw_scatter.png", "weight": 1.3 },
+          { "key": "street_trace_cart_ruts", "src": "assets/terrain/street-props/street_trace_cart_ruts.png", "weight": 1.0 },
+          { "key": "street_trace_footprints", "src": "assets/terrain/street-props/street_trace_footprints.png", "weight": 0.8 },
+          { "key": "street_trace_water_spill", "src": "assets/terrain/street-props/street_trace_water_spill.png", "weight": 0.5 }
+        ],
+        "gold": [
+          { "key": "street_trace_rope_scraps", "src": "assets/terrain/street-props/street_trace_rope_scraps.png", "weight": 1.1 },
+          { "key": "street_trace_cart_ruts", "src": "assets/terrain/street-props/street_trace_cart_ruts.png", "weight": 0.8 },
+          { "key": "street_trace_wood_chips", "src": "assets/terrain/street-props/street_trace_wood_chips.png", "weight": 0.8 },
+          { "key": "street_trace_footprints", "src": "assets/terrain/street-props/street_trace_footprints.png", "weight": 0.5 }
+        ],
+        "energy": [
+          { "key": "street_trace_coal_smear", "src": "assets/terrain/street-props/street_trace_coal_smear.png", "weight": 1.4 },
+          { "key": "street_trace_oil_drips", "src": "assets/terrain/street-props/street_trace_oil_drips.png", "weight": 1.1 },
+          { "key": "street_trace_cart_ruts", "src": "assets/terrain/street-props/street_trace_cart_ruts.png", "weight": 0.5 },
+          { "key": "street_trace_footprints", "src": "assets/terrain/street-props/street_trace_footprints.png", "weight": 0.3 }
+        ],
+        "general": [
+          { "key": "street_trace_footprints", "src": "assets/terrain/street-props/street_trace_footprints.png", "weight": 1.0 },
+          { "key": "street_trace_cart_ruts", "src": "assets/terrain/street-props/street_trace_cart_ruts.png", "weight": 0.9 },
+          { "key": "street_trace_water_spill", "src": "assets/terrain/street-props/street_trace_water_spill.png", "weight": 0.7 },
+          { "key": "street_trace_straw_scatter", "src": "assets/terrain/street-props/street_trace_straw_scatter.png", "weight": 0.4 }
+        ]
+      }
+    },
+    "rain": {
+      "enabledWhen": "rain",
+      "displaySize": 128,
+      "originY": 0.875,
+      "alpha": 0.68,
+      "depthMode": "ground",
+      "groundLayer": "ROAD_DECAL",
+      "depthOffset": 0.01,
+      "frontageDensity": 0.36,
+      "manualUrbanDensity": 0.22,
+      "deadEndDensityMultiplier": 0.9,
+      "maxDecoratedRoadDegree": 3,
+      "densitySalt": 14891,
+      "slotSalt": 28703,
+      "assetSalt": 16417,
+      "slots": [
+        { "x": 0, "y": 0 },
+        { "x": -13, "y": -6 },
+        { "x": 13, "y": 6 },
+        { "x": -9, "y": 8 },
+        { "x": 9, "y": -8 }
+      ],
+      "profiles": {
+        "general": [
+          { "key": "street_weather_puddle_0", "src": "assets/terrain/street-props/street_weather_puddle_0.png", "weight": 1.0 },
+          { "key": "street_weather_puddle_1", "src": "assets/terrain/street-props/street_weather_puddle_1.png", "weight": 1.0 },
+          { "key": "street_weather_puddle_2", "src": "assets/terrain/street-props/street_weather_puddle_2.png", "weight": 0.85 },
+          { "key": "street_weather_puddle_3", "src": "assets/terrain/street-props/street_weather_puddle_3.png", "weight": 0.75 }
+        ]
+      }
+    },
+    "fixture": {
+      "displaySize": 128,
+      "originY": 0.875,
+      "alpha": 0.96,
+      "depthMode": "foot",
+      "depthOffset": 6,
+      "exclusiveWith": ["prop"],
+      "frontageDensity": 0.075,
+      "manualUrbanDensity": 0.045,
+      "deadEndDensityMultiplier": 0.45,
+      "maxDecoratedRoadDegree": 2,
+      "densitySalt": 6991,
+      "slotSalt": 29637,
+      "assetSalt": 19161,
+      "slots": [
+        { "x": -36, "y": -6 },
+        { "x": 36, "y": 6 }
+      ],
+      "profiles": {
+        "housing": [
+          { "key": "street_fixture_bench", "src": "assets/terrain/street-props/street_fixture_bench.png", "weight": 1.2 },
+          { "key": "street_fixture_water_pump", "src": "assets/terrain/street-props/street_fixture_water_pump.png", "weight": 1.1 },
+          { "key": "street_fixture_lantern", "src": "assets/terrain/street-props/street_fixture_lantern.png", "weight": 0.8 },
+          { "key": "street_fixture_fire_bucket_rack", "src": "assets/terrain/street-props/street_fixture_fire_bucket_rack.png", "weight": 0.5 }
+        ],
+        "agriculture": [
+          { "key": "street_fixture_water_pump", "src": "assets/terrain/street-props/street_fixture_water_pump.png", "weight": 1.4 },
+          { "key": "street_fixture_bench", "src": "assets/terrain/street-props/street_fixture_bench.png", "weight": 0.7 },
+          { "key": "street_fixture_lantern", "src": "assets/terrain/street-props/street_fixture_lantern.png", "weight": 0.5 },
+          { "key": "street_fixture_fire_bucket_rack", "src": "assets/terrain/street-props/street_fixture_fire_bucket_rack.png", "weight": 0.4 }
+        ],
+        "gold": [
+          { "key": "street_fixture_lantern", "src": "assets/terrain/street-props/street_fixture_lantern.png", "weight": 1.4 },
+          { "key": "street_fixture_bench", "src": "assets/terrain/street-props/street_fixture_bench.png", "weight": 1.0 },
+          { "key": "street_fixture_fire_bucket_rack", "src": "assets/terrain/street-props/street_fixture_fire_bucket_rack.png", "weight": 0.7 },
+          { "key": "street_fixture_water_pump", "src": "assets/terrain/street-props/street_fixture_water_pump.png", "weight": 0.4 }
+        ],
+        "energy": [
+          { "key": "street_fixture_fire_bucket_rack", "src": "assets/terrain/street-props/street_fixture_fire_bucket_rack.png", "weight": 1.3 },
+          { "key": "street_fixture_lantern", "src": "assets/terrain/street-props/street_fixture_lantern.png", "weight": 1.0 },
+          { "key": "street_fixture_water_pump", "src": "assets/terrain/street-props/street_fixture_water_pump.png", "weight": 0.6 },
+          { "key": "street_fixture_bench", "src": "assets/terrain/street-props/street_fixture_bench.png", "weight": 0.35 }
+        ],
+        "general": [
+          { "key": "street_fixture_lantern", "src": "assets/terrain/street-props/street_fixture_lantern.png", "weight": 1.0 },
+          { "key": "street_fixture_water_pump", "src": "assets/terrain/street-props/street_fixture_water_pump.png", "weight": 0.9 },
+          { "key": "street_fixture_bench", "src": "assets/terrain/street-props/street_fixture_bench.png", "weight": 0.8 },
+          { "key": "street_fixture_fire_bucket_rack", "src": "assets/terrain/street-props/street_fixture_fire_bucket_rack.png", "weight": 0.6 }
+        ]
+      }
+    }
+  },
+  "edgeLayer": {
+    "enabled": true,
+    "displayWidth": 130,
+    "displayHeight": 65,
+    "originX": 0.5,
+    "originY": 0.5,
+    "alpha": 0.84,
+    "depthMode": "ground",
+    "groundLayer": "ROAD_EDGE",
+    "depthOffset": 0,
+    "frontageDensity": 0.52,
+    "manualUrbanDensity": 0.32,
+    "deadEndDensityMultiplier": 0.7,
+    "minRoadDegree": 1,
+    "maxRoadDegree": 3,
+    "densitySalt": 24371,
+    "directionSalt": 31517,
+    "assetSalt": 17629,
+    "directions": [
+      { "id": "i_pos", "di": 1, "dj": 0 },
+      { "id": "i_neg", "di": -1, "dj": 0 },
+      { "id": "j_pos", "di": 0, "dj": 1 },
+      { "id": "j_neg", "di": 0, "dj": -1 }
+    ],
+    "variants": {
+      "i_pos": [
+        { "key": "street_edge_yn_0", "src": "assets/terrain/street-edges/street_edge_yn_0.png", "weight": 1.0 },
+        { "key": "street_edge_yn_1", "src": "assets/terrain/street-edges/street_edge_yn_1.png", "weight": 0.75 }
+      ],
+      "i_neg": [
+        { "key": "street_edge_yp_0", "src": "assets/terrain/street-edges/street_edge_yp_0.png", "weight": 1.0 },
+        { "key": "street_edge_yp_1", "src": "assets/terrain/street-edges/street_edge_yp_1.png", "weight": 0.75 }
+      ],
+      "j_pos": [
+        { "key": "street_edge_xn_0", "src": "assets/terrain/street-edges/street_edge_xn_0.png", "weight": 1.0 },
+        { "key": "street_edge_xn_1", "src": "assets/terrain/street-edges/street_edge_xn_1.png", "weight": 0.75 }
+      ],
+      "j_neg": [
+        { "key": "street_edge_xp_0", "src": "assets/terrain/street-edges/street_edge_xp_0.png", "weight": 1.0 },
+        { "key": "street_edge_xp_1", "src": "assets/terrain/street-edges/street_edge_xp_1.png", "weight": 0.75 }
+      ]
+    }
+  }
+}

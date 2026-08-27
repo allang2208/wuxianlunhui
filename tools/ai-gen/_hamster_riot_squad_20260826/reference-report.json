@@ -1,0 +1,17 @@
+{
+  "source": "mother/hamster-riot-squad-mother-v01-rgba.png",
+  "output": "references/hamster-riot-squad-white-1024x576.png",
+  "sourceBbox": [68, 137, 948, 1441],
+  "sourceCanvas": [1024, 1536],
+  "canvas": [1024, 576],
+  "outputBbox": [372, 92, 652, 507],
+  "subjectWidthRatio": 0.2734375,
+  "margins": {
+    "left": 372,
+    "right": 372,
+    "top": 92,
+    "bottom": 69
+  },
+  "background": "pure white",
+  "status": "ready_for_doubao_first_frame"
+}

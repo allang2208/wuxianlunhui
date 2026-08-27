@@ -1,5 +1,8 @@
 import { blockCellCenter, blockCellOf } from './gate4-grid.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
+import { WallSystem } from './wall-system.js';
+import { createRoadNetwork, shortestRoadRoute } from './road-connectivity.js';
+import { RoadsideDecorationSystem } from './roadside-decoration-system.js';
 
 export const BUILDING_ROAD_TEXTURE = 'building_road_tiles';
 export const BUILDING_ROAD_ICON = 'building_road';
@@ -14,9 +17,8 @@ export const BUILDING_FIELD_DISPLAY_WIDTH = 130;
 export const BUILDING_FIELD_DISPLAY_HEIGHT = 65;
 export const BUILDING_FIELD_DEPTH = WORLD_RENDER_LAYERS.FIELD;
 
-const BUILDING_CELLS = 2;
+const DEFAULT_BUILDING_CELLS = 2;
 const ROAD_PADDING = 1;
-const BUILDING_FRONT_OFFSET_Y = 96;
 
 function cellKey(i, j) {
     return `${i},${j}`;
@@ -24,24 +26,31 @@ function cellKey(i, j) {
 
 export function buildingRoadFrame(i, j) {
     const hash = Math.imul(i, 73856093) ^ Math.imul(j, 19349663);
-    return (hash >>> 0) % 4;
+    const unsigned = hash >>> 0;
+    const roll = unsigned % 100;
+    const variant = ((unsigned >>> 8) ^ unsigned) >>> 0;
+    if (roll < 45) return variant % 4;
+    if (roll < 80) return 4 + variant % 4;
+    if (roll < 95) return 8 + variant % 2;
+    return 10 + variant % 2;
 }
 
 /**
- * A 2x2 building uses cells [baseI..baseI+1] x [baseJ..baseJ+1].
- * The road reservation adds one cell on every side, producing a 4x4 area:
- * 12 perimeter cells plus the central 4 building cells. The central cells may
+ * A building uses a cells×cells interior. The road reservation adds one cell
+ * on every side. The central cells may
  * receive visual-only surface fillers so the building art joins the perimeter
  * without turning its occupied footprint into walkable road.
  */
-export function buildingRoadLayout(x, y) {
-    const [baseI, baseJ] = blockCellOf(x, y - BUILDING_FRONT_OFFSET_Y);
+export function buildingRoadLayout(x, y, cells = DEFAULT_BUILDING_CELLS) {
+    const buildingCellsWide = cells === 4 ? 4 : DEFAULT_BUILDING_CELLS;
+    const frontOffsetY = (buildingCellsWide * 2 - 1) * 32;
+    const [baseI, baseJ] = blockCellOf(x, y - frontOffsetY);
     const reservationCells = [];
     const buildingCells = [];
     const roadCells = [];
 
-    for (let di = -ROAD_PADDING; di < BUILDING_CELLS + ROAD_PADDING; di++) {
-        for (let dj = -ROAD_PADDING; dj < BUILDING_CELLS + ROAD_PADDING; dj++) {
+    for (let di = -ROAD_PADDING; di < buildingCellsWide + ROAD_PADDING; di++) {
+        for (let dj = -ROAD_PADDING; dj < buildingCellsWide + ROAD_PADDING; dj++) {
             const i = baseI + di;
             const j = baseJ + dj;
             const [cx, cy] = blockCellCenter(i, j);
@@ -52,7 +61,7 @@ export function buildingRoadLayout(x, y) {
                 x: Math.round(cx),
                 y: Math.round(cy),
                 frame: buildingRoadFrame(i, j),
-                road: di < 0 || di >= BUILDING_CELLS || dj < 0 || dj >= BUILDING_CELLS,
+                road: di < 0 || di >= buildingCellsWide || dj < 0 || dj >= buildingCellsWide,
             };
             reservationCells.push(cell);
             if (cell.road) roadCells.push(cell);
@@ -65,6 +74,7 @@ export function buildingRoadLayout(x, y) {
         y,
         baseI,
         baseJ,
+        footprintCells: buildingCellsWide,
         reservationCells,
         buildingCells,
         roadCells,
@@ -77,6 +87,20 @@ export const BuildingRoadSystem = {
     _cellOwners: new Map(),
     _roadTiles: new Map(),
     _manualRoadCells: new Map(),
+    _topologyRevision: 0,
+    _networkCache: null,
+
+    _markTopologyChanged() {
+        this._topologyRevision = (Number(this._topologyRevision) || 0) + 1;
+        this._networkCache = null;
+        // 拖铺道路会在同一输入事务中连续修改多格；街景只取最终拓扑，微任务合并重建，
+        // 避免每落一格都遍历全部道路和附近建筑。
+        RoadsideDecorationSystem.requestSync({
+            scene: this._scene,
+            roadTiles: this._roadTiles,
+            buildings: Array.from(this._owners.keys()),
+        });
+    },
 
     reset(scene = null) {
         for (const record of this._roadTiles.values()) {
@@ -92,6 +116,7 @@ export const BuildingRoadSystem = {
         this._cellOwners = new Map();
         this._roadTiles = new Map();
         this._manualRoadCells = new Map();
+        this._markTopologyChanged();
     },
 
     _ensureScene(scene) {
@@ -129,6 +154,106 @@ export const BuildingRoadSystem = {
         return this.hasRoadAt(x, y) ? BUILDING_ROAD_SPEED_MULTIPLIER : 1;
     },
 
+    getTopologyRevision() {
+        return Number(this._topologyRevision) || 0;
+    },
+
+    getRoadNetwork() {
+        const wallRevision = Number(WallSystem?._collisionRevision) || 0;
+        if (this._networkCache?.roadRevision === this._topologyRevision
+            && this._networkCache?.wallRevision === wallRevision) {
+            return this._networkCache.network;
+        }
+        const cells = [];
+        for (const [key, tile] of this._roadTiles.entries()) {
+            if (tile?.kind !== 'road') continue;
+            const i = Number(tile.i);
+            const j = Number(tile.j);
+            if (!Number.isInteger(i) || !Number.isInteger(j)) continue;
+            const [cx, cy] = blockCellCenter(i, j);
+            cells.push({ key, i, j, x: Number(tile.x) || cx, y: Number(tile.y) || cy });
+        }
+        const network = createRoadNetwork(cells, {
+            edgeBlocked: (from, to) => WallSystem.blocked(from.x, from.y, to.x, to.y),
+        });
+        this._networkCache = {
+            roadRevision: this._topologyRevision,
+            wallRevision,
+            network,
+        };
+        return network;
+    },
+
+    getBuildingRoadAccessKeys(building) {
+        if (!building) return [];
+        const network = this.getRoadNetwork();
+        const layout = building._buildingRoadLayout || buildingRoadLayout(
+            building.x,
+            building.y,
+            building._buildingFootprintCells || 2
+        );
+        return layout.roadCells.map((cell) => cell.key).filter((key) => network.byKey.has(key));
+    },
+
+    getBuildingRoadInfo(building) {
+        const network = this.getRoadNetwork();
+        const wallRevision = Number(WallSystem?._collisionRevision) || 0;
+        const signature = [
+            this.getTopologyRevision(),
+            wallRevision,
+            Math.round(Number(building?.x) || 0),
+            Math.round(Number(building?.y) || 0),
+        ].join(':');
+        if (building?._buildingRoadInfoCache?.signature === signature) {
+            return building._buildingRoadInfoCache;
+        }
+        const accessKeys = this.getBuildingRoadAccessKeys(building);
+        const componentIds = [...new Set(accessKeys
+            .map((key) => network.componentByKey.get(key))
+            .filter((id) => id !== undefined))];
+        const cellKeys = [];
+        for (const id of componentIds) cellKeys.push(...(network.components.get(id) || []));
+        const info = {
+            signature,
+            connected: accessKeys.length > 0,
+            accessKeys,
+            componentIds,
+            cellKeys: [...new Set(cellKeys)],
+            topologyRevision: this.getTopologyRevision(),
+            wallRevision,
+            network,
+        };
+        if (building) building._buildingRoadInfoCache = info;
+        return info;
+    },
+
+    findRouteBetweenBuildings(fromBuilding, toBuilding) {
+        const network = this.getRoadNetwork();
+        return shortestRoadRoute(
+            network,
+            this.getBuildingRoadAccessKeys(fromBuilding),
+            this.getBuildingRoadAccessKeys(toBuilding)
+        );
+    },
+
+    getReachableBuildings(fromBuilding, candidates) {
+        const network = this.getRoadNetwork();
+        const startKeys = this.getBuildingRoadAccessKeys(fromBuilding);
+        const result = [];
+        for (const building of candidates || []) {
+            if (!building || building.active === false) continue;
+            const route = shortestRoadRoute(
+                network,
+                startKeys,
+                this.getBuildingRoadAccessKeys(building)
+            );
+            if (!route) continue;
+            result.push({ building, route, distance: Math.max(0, route.length - 1) });
+        }
+        result.sort((a, b) => a.distance - b.distance);
+        return result;
+    },
+
     canPlaceManualRoadCell(i, j) {
         return !this.hasPerimeterCell(i, j) && !this.isReservedCell(i, j);
     },
@@ -136,9 +261,16 @@ export const BuildingRoadSystem = {
     _ensureRoadTile(cell, targetScene, kind = 'road') {
         let tile = this._roadTiles.get(cell.key);
         if (!tile) {
-            tile = { sprite: null, owners: new Set(), manual: false, kind };
+            tile = {
+                sprite: null, owners: new Set(), manual: false, kind,
+                i: cell.i, j: cell.j, x: cell.x, y: cell.y,
+            };
             this._roadTiles.set(cell.key, tile);
         }
+        tile.i = cell.i;
+        tile.j = cell.j;
+        tile.x = cell.x;
+        tile.y = cell.y;
         if (!tile.sprite && targetScene?.add?.sprite) {
             const usesFieldTexture = kind === 'field' || kind === 'field_fill';
             tile.sprite = usesFieldTexture
@@ -188,6 +320,7 @@ export const BuildingRoadSystem = {
         this._manualRoadCells.set(key, cell);
         const tile = this._ensureRoadTile(cell, targetScene);
         tile.manual = true;
+        this._markTopologyChanged();
         return true;
     },
 
@@ -202,6 +335,7 @@ export const BuildingRoadSystem = {
                 this._roadTiles.delete(key);
             }
         }
+        this._markTopologyChanged();
         return true;
     },
 
@@ -246,7 +380,11 @@ export const BuildingRoadSystem = {
 
     canAttach(entity) {
         if (!entity) return false;
-        const layout = buildingRoadLayout(entity.x, entity.y);
+        const layout = buildingRoadLayout(
+            entity.x,
+            entity.y,
+            entity._buildingFootprintCells || 2
+        );
         return layout.reservationCells.every((cell) =>
             !this.isReservedCell(cell.i, cell.j, entity)
         );
@@ -263,7 +401,11 @@ export const BuildingRoadSystem = {
         const configuredKind = kind ?? entity._cfg?.perimeterTile ?? 'road';
         if (configuredKind === 'none') return true;
 
-        const layout = buildingRoadLayout(entity.x, entity.y);
+        const layout = buildingRoadLayout(
+            entity.x,
+            entity.y,
+            entity._buildingFootprintCells || 2
+        );
         if (!allowOverlap && layout.reservationCells.some((cell) =>
             this.isReservedCell(cell.i, cell.j)
         )) return false;
@@ -298,6 +440,7 @@ export const BuildingRoadSystem = {
             ...options,
             preserveRoads: perimeterKind === 'road' && options.preserveRoads === true,
         });
+        this._markTopologyChanged();
         return true;
     },
 
@@ -354,6 +497,7 @@ export const BuildingRoadSystem = {
         if (entity?._removeBuildingRoads) delete entity._removeBuildingRoads;
         if (entity?._buildingRoadLayout) delete entity._buildingRoadLayout;
         if (entity?._buildingPerimeterKind) delete entity._buildingPerimeterKind;
+        this._markTopologyChanged();
         return true;
     },
 };

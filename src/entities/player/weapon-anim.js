@@ -8,10 +8,12 @@ import { Input } from '../../ui/input.js';
 // ============================================================
 
 import { isTwoHanded } from '../../config/gun-ammo.js';
+import { AUTO_GUN_FAMILY } from '../../config/weapon-families.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
-import { playerTextureKey, getPlayerAnimDurationMs } from '../../config/player-anim.js';
+import { playerTextureKey, getPlayerAnimDurationMs, getSpriteFrameBounds } from '../../config/player-anim.js';
+import { WallSystem } from '../../world/wall-system.js';
 import { enterAttackHold, clearPose, nowMs,
     MELEE_COMBO_STAGES, MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageHoldMs } from './anim-state.js';
 
@@ -119,7 +121,7 @@ const weaponAnimMixin = {
                 // 远程武器在 swing 阶段发射子弹（放在 timer 检查之前，避免高射速武器 dt 过大跳过射击）
                 {
                     const currentItem = this.equipments[this.weaponMode];
-                    const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'm416' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'shotgun' || currentItem.weaponType === 'energy_lmg' || currentItem.rangedType === 'pistol');
+                    const isRangedWeapon = currentItem && (currentItem.weaponType === 'pistol' || AUTO_GUN_FAMILY.includes(currentItem.weaponType) || currentItem.weaponType === 'shotgun' || currentItem.rangedType === 'pistol');
                     const hasPendingMainShot = this.rangedFireData && this.rangedFireData.fireMainHand;
                     if ((!this.rangedFired || hasPendingMainShot) && isRangedWeapon && this.rangedFireData) {
                         this._fireRanged('main');
@@ -238,6 +240,11 @@ const weaponAnimMixin = {
     // 触发攻击动画（兼容旧代码调用）
     triggerWeaponAnim(hand = 'main') {
         const currentItem = this.equipments[this.weaponMode];
+        const isMelee = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
+        // 同一次近战攻击只允许一个 Tween/音效会话。必须在下方改写 state 之前判断；
+        // 否则 attacking 会先被覆写为 swing，_playSwordAttackTween 的防重守卫会被绕过。
+        if (isMelee && this.weaponAnim
+            && (this.weaponAnim.isAttacking || this.weaponAnim.state === 'attacking')) return;
         if (currentItem && currentItem.weaponType === 'bow') {
             this.weaponAnim.state = 'rotate';
             this.weaponAnim.timer = 0;
@@ -250,7 +257,6 @@ const weaponAnimMixin = {
         this.rangedFired = false;
         
         // 近战武器使用 Phaser Tween
-        const isMelee = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
         if (isMelee) {
             const scene = window.__phaserScene;
             if (scene) {
@@ -296,10 +302,10 @@ const weaponAnimMixin = {
         const wacCfg = WeaponAnimConfig[weaponType];
         const perFrameCfg = wacCfg?.attack;
         if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
-            // 三段连段（2026-08-13）：一段过顶下劈 → 二段肩高快劈 → 三段弓步突刺（终结段）→ 回一段。
+            // 三段连段（2026-08-13）：一段过顶下劈 → 二段肩高快劈 → 三段弓步突刺（终结段）→ 收势。
             // 段素材未加载（纹理缺失）时逐级回退（stage3→2→1）；窗口/定格/收势梯度见 anim-state.js 登记
             const now = nowMs();
-            // 连段窗口按上一段判定：一段后 0.5s、二段后 0.2s、三段（终结）后 0.3s 重开窗口
+            // 连段窗口按上一段判定：一段后 0.5s、二段后 0.2s；第三段当前配置为 0，直接收势。
             const prevChainWindow = meleeStageHoldMs(this._meleeComboStage || 1);
             const chained = hand === 'main' && this._lastMeleeAttackEnd && (now - this._lastMeleeAttackEnd) <= prevChainWindow;
             let stage = chained ? ((this._meleeComboStage || 1) % MELEE_COMBO_STAGES) + 1 : 1;
@@ -311,13 +317,25 @@ const weaponAnimMixin = {
             }
             if (hand === 'main') this._meleeComboStage = stage;
             // 命中判定配置：按段选 attack/attack2/attack3 块（缺失逐级回退 attack）。
-            // 帧号换算 progress 阈值 = (frame-1)/(frames.length-1)，不写死帧数；
-            // 无 hitCheck 配置时回退旧的 500ms 连续判定窗口
+            // 帧号必须按人物动画的真实逐帧边界换算；frameDurations/frameWeights 非等时时，
+            // 均匀除帧会让音效/命中落后画面。无 hitCheck 配置时回退旧的 500ms 连续判定窗口。
             const stageCfg = wacCfg[meleeStageCfgKey(wacCfg, stage)] || perFrameCfg;
+            const stageFrameCount = stageCfg.frames?.length || 0;
+            const spriteFrameBounds = getSpriteFrameBounds(animKey);
+            // 人物动画与武器轨迹帧数完全一致时才消费真实边界；素材/配置降级导致帧数不匹配时
+            // 保留旧的均匀轨迹阈值，不能把另一套帧表直接套到当前阶段。
+            const frameBounds = spriteFrameBounds?.length === stageFrameCount ? spriteFrameBounds : null;
+            const frameCount = stageFrameCount || spriteFrameBounds?.length || 0;
+            const clampFrame = value => Math.max(1, Math.min(frameCount || 1, Math.floor(Number(value) || 1)));
+            const frameStartProgress = value => {
+                const frame = clampFrame(value);
+                if (frame <= 1 || frameCount <= 1) return 0;
+                return frameBounds?.[frame - 2] ?? ((frame - 1) / (frameCount - 1));
+            };
             const hitCheckCfg = stageCfg.hitCheck || null;
             let hitCheckThreshold = null;
-            if (hitCheckCfg && typeof hitCheckCfg.frame === 'number' && stageCfg.frames && stageCfg.frames.length > 1) {
-                hitCheckThreshold = (hitCheckCfg.frame - 1) / (stageCfg.frames.length - 1);
+            if (hitCheckCfg && typeof hitCheckCfg.frame === 'number' && frameCount > 1) {
+                hitCheckThreshold = frameStartProgress(hitCheckCfg.frame);
             }
             let hitChecked = false;
             // 时长必须按逐帧时长求和优先（getPlayerAnimDurationMs 认识 frameDurations/frameWeights）——
@@ -326,6 +344,36 @@ const weaponAnimMixin = {
             const animDef = scene.anims.get(playerTextureKey(animKey));
             const totalDuration = getPlayerAnimDurationMs(animKey) || (animDef && animDef.duration) || 900;
             tweenDuration = totalDuration;
+
+            // 动画根位移（当前仅 attack3 配置前迈）：按人物逐帧真实时长确定起止点，
+            // 方向锁定为本次攻击方向；普通攻击判定继续遵守 _pendingThrust 的起手固定原点合同。
+            let rootMotion = null;
+            const rootCfg = hand === 'main' ? stageCfg.rootMotion : null;
+            const rootDistance = Math.max(0, Number(rootCfg?.distance) || 0);
+            if (rootDistance > 0 && frameCount > 1) {
+                const startFrame = clampFrame(rootCfg.startFrame);
+                const endFrame = Math.min(frameCount, Math.max(startFrame + 1, clampFrame(rootCfg.endFrame)));
+                const startProgress = frameStartProgress(startFrame);
+                const endProgress = frameStartProgress(endFrame);
+                const attackAngle = Number.isFinite(this._pendingThrust?.angle)
+                    ? this._pendingThrust.angle
+                    : (this._facingRightVisual === false ? Math.PI : 0);
+                if (endProgress > startProgress) {
+                    this.vx = 0;
+                    this.vy = 0;
+                    this.isMoving = false;
+                    rootMotion = {
+                        startX: this.x,
+                        startY: this.y,
+                        dirX: Math.cos(attackAngle),
+                        dirY: Math.sin(attackAngle),
+                        distance: rootDistance,
+                        startProgress,
+                        endProgress,
+                        complete: false,
+                    };
+                }
+            }
 
             if (hand === 'main') {
                 // 预写连段定格窗口：Phaser 4 每帧顺序 PRE_UPDATE(动画) → UPDATE(Tween)，
@@ -336,7 +384,7 @@ const weaponAnimMixin = {
                 this._lastMeleeAttackEnd = now + totalDuration; // onComplete 会按实际结束时间复写
                 enterAttackHold(this, {
                     animKey,
-                    // 定格时长按当前段：一段 0.5s / 二段 0.2s / 三段 0.3s（meleeCombo.stageNHoldMs）
+                    // 定格时长按当前段：一段 0.5s / 二段 0.2s / 三段 0（meleeCombo.stageNHoldMs）
                     untilMs: now + totalDuration + meleeStageHoldMs(stage),
                 });
             }
@@ -346,16 +394,22 @@ const weaponAnimMixin = {
                 scene.setPlayerAnimation(animKey, tweenDuration);
             }
 
-            // 挥砍音效：按块配置 sound 字段，帧号 soundFrame 控制播放时机（缺省 1=起手立即播放；
-            // >1 时到帧再播，progress 阈值与 hitCheck 同口径换算：(frame-1)/(frames.length-1)）
+            // 挥砍音效：按块配置 sound 字段，soundFrame 控制播放时机（缺省 1=起手立即播放）；
+            // 与 hitCheck 共用人物动画真实帧边界，非等时停留帧不会让音效错拍。
             const soundFrame = (stageCfg.sound && typeof stageCfg.soundFrame === 'number') ? stageCfg.soundFrame : 1;
-            const soundThreshold = (stageCfg.frames && stageCfg.frames.length > 1)
-                ? (soundFrame - 1) / (stageCfg.frames.length - 1) : 0;
-            let soundPlayed = false;
-            if (stageCfg.sound && soundThreshold <= 0 && typeof SoundManager !== 'undefined' && SoundManager.playFile) {
-                soundPlayed = true;
-                SoundManager.playFile(stageCfg.sound);
-            }
+            const soundThreshold = frameCount > 1 ? frameStartProgress(soundFrame) : 0;
+            // 音效门禁必须归属于本次攻击会话，而不是单个 Tween 回调。第三段包含根位移与
+            // 终结段收势切换；若同一会话残留了第二条 Tween，局部 boolean 会各自放行一次。
+            // 共用 _pendingThrust 标记后，同一次攻击无论有多少回调都只允许一次挥砍音。
+            const attackSession = this._pendingThrust;
+            const playSwingSoundOnce = () => {
+                if (!stageCfg.sound || !attackSession || attackSession.swingSoundPlayed) return;
+                attackSession.swingSoundPlayed = true;
+                if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
+                    SoundManager.playFile(stageCfg.sound);
+                }
+            };
+            if (soundThreshold <= 0) playSwingSoundOnce();
 
             const attackTween = scene.tweens.add({
                 targets: { progress: 0 },
@@ -366,17 +420,36 @@ const weaponAnimMixin = {
                     if (self._pendingThrust) self._pendingThrust.active = true;
                 },
                 onUpdate: function(tween) {
-                    if (!soundPlayed && tween.targets[0].progress >= soundThreshold) {
+                    const progress = tween.targets[0].progress;
+                    if (rootMotion && !rootMotion.complete && progress >= rootMotion.startProgress) {
+                        const moveProgress = Math.min(1, (progress - rootMotion.startProgress)
+                            / (rootMotion.endProgress - rootMotion.startProgress));
+                        const easedProgress = Easing.easeOutQuad(moveProgress);
+                        const targetX = rootMotion.startX + rootMotion.dirX * rootMotion.distance * easedProgress;
+                        const targetY = rootMotion.startY + rootMotion.dirY * rootMotion.distance * easedProgress;
+                        const wallIgnore = WallSystem.ignoreForEntity?.(self) || null;
+                        self._surfaceInputIntent = { x: rootMotion.dirX, y: rootMotion.dirY };
+                        const resolved = WallSystem.resolve(
+                            rootMotion.startX,
+                            rootMotion.startY,
+                            targetX,
+                            targetY,
+                            self.groundRadius,
+                            wallIgnore
+                        );
+                        self.x = resolved.x;
+                        self.y = resolved.y;
+                        if (self.collider && typeof self.collider.syncPosition === 'function') self.collider.syncPosition();
+                        rootMotion.complete = moveProgress >= 1;
+                    }
+                    if (progress >= soundThreshold) {
                         // 到帧播放挥砍音效（soundFrame>1 的二段攻击等）
-                        soundPlayed = true;
-                        if (typeof SoundManager !== 'undefined' && SoundManager.playFile) {
-                            SoundManager.playFile(stageCfg.sound);
-                        }
+                        playSwingSoundOnce();
                     }
                     if (!self._pendingThrust || !self._pendingThrust.active) return;
                     if (hitCheckThreshold !== null) {
-                        // 一次性判定：progress 首次达到 hitCheck 帧阈值时按形状判定（一段矩形/二段扇形）
-                        if (!hitChecked && tween.targets[0].progress >= hitCheckThreshold) {
+                        // 一次性判定：progress 首次达到 hitCheck 帧阈值时按该段配置形状判定
+                        if (!hitChecked && progress >= hitCheckThreshold) {
                             hitChecked = true;
                             self.attacks.melee.checkStageHit(self, hitCheckCfg);
                         }
@@ -500,7 +573,7 @@ const weaponAnimMixin = {
         let cfgKey = 'sword';
         if (currentItem) {
             if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') cfgKey = currentItem.animConfigKey || 'pistol';
-            else if (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'm416' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg') cfgKey = currentItem.weaponType;
+            else if (AUTO_GUN_FAMILY.includes(currentItem.weaponType)) cfgKey = currentItem.weaponType;
             else if (currentItem.weaponType === 'bow') cfgKey = 'bow';
             else if (currentItem.weaponType === 'shotgun') cfgKey = 'shotgun';
         }

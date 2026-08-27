@@ -1,39 +1,55 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks\\hamster_barracks_s48_seed1228632_raw.png",
-  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks\\hamster_barracks_s48_seed1228632_platform_cutout.png",
-  "sourceMode": "RGB",
-  "background": [
-    249,
-    244,
-    2
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\dedicated_cutout\\barracks\\barracks_body.png",
+  "output": "assets\\terrain\\barracks.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    254,
+    231,
+    6
   ],
-  "matteColor": null,
-  "matteEdgeWidth": 3.0,
-  "matteTolerance": 130.0,
-  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks\\hamster_barracks_depth.png",
-  "maskDilate": 6,
-  "fillAlphaHoles": true,
-  "fillHoleMatteDistance": 24.0,
+  "matteEdgeWidth": 4.0,
+  "matteTolerance": 110.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
   "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
   "cropBox": [
-    68,
-    132,
-    955,
+    88,
+    133,
+    967,
     921
   ],
   "fileSize": [
-    887,
-    789
+    879,
+    788
   ],
   "alphaBBox": [
-    6,
-    6,
-    881,
-    783
+    4,
+    4,
+    875,
+    784
   ],
   "displayW": 275,
-  "displayH": 245,
-  "footOffsetY": 120,
-  "scaleX": 0.3100338218714769,
-  "scaleY": 0.3105196451204056
+  "displayH": 247,
+  "footOffsetY": 122,
+  "scaleX": 0.31285551763367464,
+  "scaleY": 0.3134517766497462
 }

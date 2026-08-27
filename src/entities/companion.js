@@ -196,10 +196,14 @@ export class Companion {
     }
 
     addStatusEffect(type, duration, options = {}) {
+        if (type !== 'statusImmune' && this.hasStatusEffect('statusImmune')) return null;
         const existing = this.statusEffects.find((effect) => effect.type === type);
         if (existing) {
             existing.remaining = Math.max(existing.remaining, duration);
             existing.duration = Math.max(existing.duration, duration);
+            if (options.value !== undefined) {
+                existing.value = Math.max(existing.value ?? 0, options.value);
+            }
             return existing;
         }
         const effect = {
@@ -209,9 +213,26 @@ export class Companion {
             icon: options.icon || '✨',
             name: options.name || type,
             color: options.color || '#9a9a5a',
+            ...(options.value !== undefined ? { value: options.value } : {}),
         };
         this.statusEffects.push(effect);
         return effect;
+    }
+
+    /** 侍从与玩家/敌人共用石化语义：只入库并停止位移，不重置当前动作帧。 */
+    applyPetrify(duration = 5000, magicDamageTakenMultiplier = 1.5) {
+        if (this.data.hp <= 0 || this.hasStatusEffect('statusImmune')) return false;
+        const effect = this.addStatusEffect('petrified', duration, {
+            name: '石化',
+            icon: '🗿',
+            color: '#929292',
+            value: Math.max(1, Number(magicDamageTakenMultiplier) || 1.5),
+        });
+        if (!effect) return false;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        return true;
     }
 
     updateStatusEffects(dt) {
@@ -421,7 +442,15 @@ export class Companion {
         const reduction = defense / (defense + 60);
         const minimum = Math.floor(raw * 0.1);
         const mitigated = Math.max(minimum, Math.floor(raw * (1 - reduction)));
-        const outgoingAdjusted = applyOutgoingDamageModifiers(mitigated, attacker);
+        let outgoingAdjusted = applyOutgoingDamageModifiers(mitigated, attacker);
+        if ((damageType === 'magic' || damageType === 'electric') && this.hasStatusEffect('petrified')) {
+            const petrified = this.statusEffects.find(
+                effect => effect.type === 'petrified' && effect.remaining > 0
+            );
+            outgoingAdjusted = Math.floor(
+                outgoingAdjusted * Math.max(1, Number(petrified?.value) || 1.5)
+            );
+        }
         if (this._defending) {
             const shieldData = this._getShieldData();
             const defense = (shieldData && shieldData.defense) || {};

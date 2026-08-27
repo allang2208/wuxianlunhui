@@ -162,9 +162,15 @@ function timelineEventHoverCopy(event) {
         const timing = event.startsAtLabel && event.endsAtLabel
             ? `${event.startsAtLabel} 至 ${event.endsAtLabel}`
             : event.timeLabel;
+        const detailParts = [
+            event.worldName || event.sceneId || '未知位面',
+            event.intensityName || event.intensityId || '降雨',
+            event.durationLabel ? `持续 ${event.durationLabel}` : '',
+            event.warningLabel || '',
+        ].filter(Boolean);
         return {
             title: event.label,
-            meta: `${event.worldName || event.sceneId || '未知位面'} · ${event.intensityName || event.intensityId || '降雨'}`,
+            meta: detailParts.join(' · '),
             timing,
             hint: `${activeLabel} · 点击查看完整预报`,
         };
@@ -211,6 +217,10 @@ function openWeatherTimelineDetail(event) {
     appendTimelineDetailRow(rows, '强度', event.intensityName || event.intensityId || '降雨');
     appendTimelineDetailRow(rows, '开始', event.startsAtLabel);
     appendTimelineDetailRow(rows, '结束', event.endsAtLabel);
+    appendTimelineDetailRow(rows, '持续', event.durationLabel);
+    appendTimelineDetailRow(rows,
+        event.weatherKind === 'special' ? '灾害预警' : '强度提示',
+        event.warningLabel);
     appendTimelineDetailRow(rows, '状态', event.status === 'active' ? '正在发生' : '预测中');
     content.appendChild(rows);
 }
@@ -441,11 +451,20 @@ export const GameUIManager = {
                     let displayRange = pa ? pa.config.range : 100;
                     if (currentWpn && (currentWpn.weaponType === 'sword' || currentWpn.category === 'weapon_melee')) {
                         const hitBox = WeaponAnimConfig.sword.hitBox;
-                        const rangeBonus = (currentWpn.attack && currentWpn.attack.rangeBonus) ?? 50;
-                        displayRange = (hitBox ? hitBox.forwardRange : 155) + rangeBonus;
+                        const configuredRange = currentWpn.attack && currentWpn.attack.range;
+                        const explicitBonus = currentWpn.attack && currentWpn.attack.rangeBonus;
+                        let baseRange = typeof configuredRange === 'number'
+                            ? configuredRange + (typeof explicitBonus === 'number' ? explicitBonus : 0)
+                            : (hitBox ? hitBox.forwardRange : 155) + (typeof explicitBonus === 'number' ? explicitBonus : 50);
                         if (currentWpn._craftEffects && currentWpn._craftEffects.rangeDelta) {
-                            displayRange += currentWpn._craftEffects.rangeDelta;
+                            baseRange += currentWpn._craftEffects.rangeDelta;
                         }
+                        baseRange = Math.max(baseRange, Number(hitBox?.minimumBaseRange) || 0);
+                        const stageKeys = ['attack', 'attack2', 'attack3'];
+                        displayRange = stageKeys.map(key => {
+                            const mul = WeaponAnimConfig.sword[key]?.hitCheck?.rangeMul;
+                            return Math.round(baseRange * (typeof mul === 'number' ? mul : 1));
+                        }).join('/');
                     }
                     el.textContent = displayRange + item.unit;
                     break;
@@ -474,6 +493,7 @@ export const GameUIManager = {
         }
         EnvironmentLightingSystem.restoreTime(data.gameTime);
         window.World122SandstormSystem?.restore?.(data.worlds?.sandstorm ?? data.world122?.sandstorm);
+        window.World125FogTideSystem?.restore?.(data.worlds?.fogTide);
         window.WorldWeatherSystem?.restore?.(data.worlds?.weather);
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
@@ -497,11 +517,12 @@ export const GameUIManager = {
             if (!EquipManager.backpackItems) EquipManager.backpackItems = [];
             EquipManager.backpackItems.length = 0;
             EquipManager.backpackItems.push(...data.backpack);
+            GoldManager.setBackpackRef(EquipManager.backpackItems); // 旧档多格金币合并为单格无限堆叠
             EnergyManager.setBackpackRef(EquipManager.backpackItems); // 迁移旧存档背包能源到待入库
             if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
         }
-        // 旧存档实例统一经 completeWeaponFields 补全缺失字段（与 main.js 启动合并同口径）
+        // 旧存档武器统一回归 EquipDataManager 静态定义；强化/改造/附魔等实例状态保留。
         if (this.player.equipments) {
             for (const item of Object.values(this.player.equipments)) completeWeaponFields(item);
         }
@@ -577,6 +598,7 @@ export const GameUIManager = {
                 troopLines: TroopLineSystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,
                 sandstorm: window.World122SandstormSystem?.serialize?.() || null,
+                fogTide: window.World125FogTideSystem?.serialize?.() || null,
                 weather: window.WorldWeatherSystem?.serialize?.() || null,
                 destructionChallenges: window.WorldDestructionChallengeSystem?.serialize?.() || null,
                 scenes: serializeWorldScenes(),
@@ -849,6 +871,9 @@ export const GameUIManager = {
                 event.intensityName,
                 event.startsAtLabel,
                 event.endsAtLabel,
+                event.durationLabel,
+                event.warningLevel,
+                event.warningLabel,
                 lanes[index],
                 event.clusterEvents?.map((child) => [child.id, child.type, child.typeLabel, child.status, child.timeLabel]),
             ]));
@@ -867,7 +892,7 @@ export const GameUIManager = {
                     const interactive = isCluster || isWeather;
                     const marker = document.createElement(interactive ? 'button' : 'span');
                     if (interactive) marker.type = 'button';
-                    marker.className = `world-timeline-event is-${event.type || 'generic'} pulse-${pulseType}${event.status === 'active' ? ' active' : ''}${interactive ? ' is-clickable' : ''}`;
+                    marker.className = `world-timeline-event is-${event.type || 'generic'} pulse-${pulseType}${event.status === 'active' ? ' active' : ''}${interactive ? ' is-clickable' : ''}${event.warningLevel ? ` weather-warning-${event.warningLevel}` : ''}`;
                     if (position <= 0.08) marker.classList.add('at-start-edge');
                     if (position >= 0.92) marker.classList.add('at-end-edge');
                     marker.style.left = `${Math.round(position * 10000) / 100}%`;
@@ -906,7 +931,7 @@ export const GameUIManager = {
                     marker.append(icon, time);
                     appendTimelineHoverTooltip(marker, hoverCopy);
                     const progressLine = document.createElement('span');
-                    progressLine.className = `world-timeline-event-line pulse-${pulseType}${event.status === 'active' ? ' active' : ''}`;
+                    progressLine.className = `world-timeline-event-line pulse-${pulseType}${event.status === 'active' ? ' active' : ''}${event.warningLevel ? ` weather-warning-${event.warningLevel}` : ''}`;
                     progressLine.style.left = `${Math.round(position * 10000) / 100}%`;
                     progressLine.setAttribute('aria-hidden', 'true');
                     if (isCluster) {

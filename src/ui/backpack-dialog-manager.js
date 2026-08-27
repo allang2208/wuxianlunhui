@@ -1,5 +1,6 @@
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { isGoldItem } from '../items/item-stack-rules.js';
 
 // Backpack Dialog Manager - Extracted from EquipManager
 // Handles split dialog and backpack full notifications
@@ -32,6 +33,8 @@ export const BackpackDialogManager = {
     },
     
     _showSplitDialog(item, _slotIdx) {
+        // 金币是容器内唯一无限堆叠，不允许手动拆成多格。
+        if (isGoldItem(item)) return;
         const self = this;
         // Remove existing dialog if any
         const existing = getElement('splitDialog');

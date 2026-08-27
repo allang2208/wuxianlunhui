@@ -1,0 +1,7 @@
+Use case: identity-preserve
+Asset type: corrected right-facing attack keyframe for a Phaser friendly-unit animation pipeline
+Primary request: Change only the character's facing and aiming direction so the hamster is in the same low three-quarter orientation facing the SCREEN RIGHT. The compact crossbow's loaded bolt tip and muzzle must point clearly toward the RIGHT edge of the canvas, never left. Turn the head, nose, eyes, chest, pelvis, knees and boot toes consistently toward screen right.
+Preserve handedness exactly: the compact pistol-sized crossbow remains held one-handed by the hamster's anatomical RIGHT hand. The dagger remains held by the hamster's anatomical LEFT hand in a low reverse grip. Do not swap the weapons between hands. Preserve exactly one crossbow and exactly one dagger.
+Preserve exactly: the same hamster identity, face, fur, ears, body proportions, forest-green mantle, leather armor, chainmail, belt, trousers, boots, crossbow design, dagger design, planted braced stance, subject scale, pure white background, soft diffuse lighting and complete full-body framing.
+Change only: facing direction and the physically necessary arm/torso/leg orientation to aim toward screen right.
+Avoid: crossbow pointing left, front-facing pose, swapped hands, two-handed crossbow grip, rifle, musket, long gun, longbow, extra weapon, missing dagger, weapon duplication, visible tail, changed identity, changed clothing, crop, shadow, floor, scenery, text, logo or watermark.

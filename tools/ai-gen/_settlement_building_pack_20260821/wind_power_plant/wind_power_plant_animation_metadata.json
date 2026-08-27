@@ -1,4 +1,5 @@
 {
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_02\\model_plus_original_36\\wind_power_plant\\wind_power_plant_refine_v01_raw.png",
   "textureKey": "wind_power_plant_rotor",
   "assetPath": "assets/terrain/wind_power_plant_rotor.png",
   "frameWidth": 512,
@@ -6,10 +7,10 @@
   "frameCount": 24,
   "columns": 6,
   "rows": 4,
-  "displayW": 276,
-  "displayH": 276,
-  "offsetX": 2.9610935856992637,
-  "offsetY": -157.20715036803364,
+  "displayW": 277,
+  "displayH": 277,
+  "offsetX": 8.101265822784809,
+  "offsetY": -146.0928270042194,
   "frameRate": 12,
   "repeat": -1,
   "sourceHub": {
@@ -22,13 +23,13 @@
     "textureKey": "wind_power_plant_body",
     "assetPath": "assets/terrain/wind_power_plant_body.png",
     "displayW": 512,
-    "displayH": 462,
-    "footOffsetY": 229
+    "displayH": 440,
+    "footOffsetY": 218
   },
   "panel": {
     "textureKey": "wind_power_plant",
     "assetPath": "assets/terrain/wind_power_plant.png",
     "displayW": 512,
-    "displayH": 490
+    "displayH": 499
   }
 }

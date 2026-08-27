@@ -1,3 +1,5 @@
+import { isMilitaryPopulationIgnored } from '../config/dev-cheats.js';
+
 /**
  * 当前位面的军事人口真源。
  *
@@ -52,6 +54,7 @@ export const MilitaryPopulationSystem = {
     },
 
     canRecruit(amount = 1) {
+        if (isMilitaryPopulationIgnored()) return true;
         const cost = Math.max(0, Math.floor(Number(amount) || 0));
         return cost <= this.getSnapshot().free;
     },

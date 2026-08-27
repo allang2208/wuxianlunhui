@@ -1,0 +1,36 @@
+{
+  "naturalCycles": [
+    {
+      "name": "idle",
+      "source": "videos\\idle-doubao-v02.mp4",
+      "output": "videos\\idle-doubao-v02-loop.mp4",
+      "sourceFrameRange": [
+        34,
+        93
+      ],
+      "nextNaturalClosureFrame": 94,
+      "frames": 60,
+      "fps": 24.0,
+      "durationSeconds": 2.5,
+      "closureThumbnailGrayMae": 0.35694444,
+      "interpolation": false,
+      "trajectoryEdited": false
+    },
+    {
+      "name": "moving",
+      "source": "videos\\moving-doubao-v01-restricted-fix.mp4",
+      "output": "videos\\moving-doubao-v01-loop.mp4",
+      "sourceFrameRange": [
+        35,
+        87
+      ],
+      "nextNaturalClosureFrame": 88,
+      "frames": 53,
+      "fps": 24.0,
+      "durationSeconds": 2.2083333333333335,
+      "closureThumbnailGrayMae": 2.3684723,
+      "interpolation": false,
+      "trajectoryEdited": false
+    }
+  ]
+}

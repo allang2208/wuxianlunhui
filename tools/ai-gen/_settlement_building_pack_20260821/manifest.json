@@ -70,8 +70,163 @@
         "lowerStoneHeight": 76
       }
     },
+    "house_lv4": {
+      "paletteOverrides": {
+        "foundation": [0.32, 0.29, 0.23, 1.0],
+        "stone": [0.45, 0.41, 0.33, 1.0],
+        "plaster": [0.72, 0.63, 0.48, 1.0],
+        "timber": [0.095, 0.045, 0.018, 1.0],
+        "roof": [0.39, 0.10, 0.032, 1.0],
+        "brass": [0.67, 0.38, 0.085, 1.0],
+        "glass": [0.56, 0.20, 0.035, 1.0]
+      },
+      "dimensions": {
+        "body": [284, 246, 276],
+        "roof": [334, 298, 104],
+        "storeyHeights": [92, 92, 92],
+        "lowerStoneHeight": 76
+      }
+    },
+    "house_lv5": {
+      "paletteOverrides": {
+        "foundation": [0.22, 0.21, 0.19, 1.0],
+        "stone": [0.34, 0.14, 0.085, 1.0],
+        "plaster": [0.62, 0.54, 0.41, 1.0],
+        "timber": [0.075, 0.045, 0.032, 1.0],
+        "roof": [0.105, 0.14, 0.15, 1.0],
+        "iron": [0.055, 0.062, 0.062, 1.0],
+        "brass": [0.46, 0.28, 0.075, 1.0],
+        "glass": [0.31, 0.16, 0.075, 1.0],
+        "glow": [0.83, 0.27, 0.055, 1.0]
+      },
+      "dimensions": {
+        "foundation": [306, 266, 10],
+        "body": [292, 252, 352],
+        "roof": [326, 288, 72],
+        "storeyHeights": [88, 88, 88, 88]
+      }
+    },
+    "house_lv6": {
+      "paletteOverrides": {
+        "foundation": [0.22, 0.235, 0.235, 1.0],
+        "stone": [0.38, 0.40, 0.39, 1.0],
+        "plaster": [0.67, 0.68, 0.65, 1.0],
+        "timber": [0.07, 0.085, 0.09, 1.0],
+        "roof": [0.11, 0.13, 0.14, 1.0],
+        "iron": [0.055, 0.075, 0.085, 1.0],
+        "brass": [0.38, 0.29, 0.16, 1.0],
+        "glass": [0.075, 0.24, 0.31, 1.0],
+        "glow": [0.08, 0.50, 0.62, 1.0]
+      },
+      "dimensions": {
+        "foundation": [316, 274, 12],
+        "body": [300, 258, 410],
+        "roof": [306, 264, 14],
+        "storeyHeights": [82, 82, 82, 82, 82]
+      }
+    },
+    "house_lv7": {
+      "cameraOverrides": {
+        "widthMargin": 0.84,
+        "topMargin": 32
+      },
+      "paletteOverrides": {
+        "foundation": [0.15, 0.17, 0.18, 1.0],
+        "stone": [0.59, 0.61, 0.58, 1.0],
+        "plaster": [0.75, 0.76, 0.71, 1.0],
+        "timber": [0.055, 0.075, 0.085, 1.0],
+        "roof": [0.075, 0.105, 0.12, 1.0],
+        "iron": [0.045, 0.075, 0.09, 1.0],
+        "brass": [0.48, 0.40, 0.24, 1.0],
+        "glass": [0.035, 0.28, 0.36, 1.0],
+        "glow": [0.025, 0.72, 0.82, 1.0]
+      },
+      "dimensions": {
+        "foundation": [322, 278, 12],
+        "body": [310, 242, 468],
+        "roof": [136, 116, 12],
+        "storeyHeights": [78, 78, 78, 78, 78, 78],
+        "storeySizes": [
+          [310, 242, 78], [300, 236, 78],
+          [290, 228, 78], [280, 220, 78],
+          [269, 212, 78], [258, 204, 78]
+        ],
+        "storeyOffsets": [
+          [-8, 0], [8, 2], [-10, 4],
+          [10, 6], [-8, 8], [8, 10]
+        ],
+        "storeyRotations": [-6, 4, -5, 6, -4, 5]
+      }
+    },
     "wheat_windmill": { "dimensions": { "foundation": [334, 294, 16], "body": [214, 184, 370], "roof": [266, 234, 96] } },
     "warehouse": { "dimensions": { "foundation": [500, 414, 16], "body": [354, 264, 424], "roof": [406, 316, 116] } },
+    "warehouse_lv2": {
+      "bodyDepthExclude": ["Foundation"],
+      "dimensions": {
+        "foundation": [500, 414, 16],
+        "body": [382, 286, 424],
+        "roof": [434, 338, 116]
+      }
+    },
+    "warehouse_lv3": {
+      "paletteOverrides": {
+        "foundation": [0.26, 0.255, 0.23, 1.0],
+        "stone": [0.35, 0.34, 0.30, 1.0],
+        "plaster": [0.55, 0.50, 0.40, 1.0],
+        "timber": [0.12, 0.075, 0.045, 1.0],
+        "roof": [0.22, 0.15, 0.18, 1.0],
+        "iron": [0.045, 0.050, 0.048, 1.0],
+        "brass": [0.42, 0.27, 0.075, 1.0],
+        "glass": [0.25, 0.16, 0.055, 1.0],
+        "glow": [0.78, 0.24, 0.025, 1.0]
+      },
+      "bodyDepthExclude": ["Foundation"],
+      "dimensions": {
+        "foundation": [500, 414, 16],
+        "body": [382, 286, 424],
+        "roof": [434, 338, 116]
+      }
+    },
+    "warehouse_lv4": {
+      "paletteOverrides": {
+        "foundation": [0.24, 0.24, 0.22, 1.0],
+        "stone": [0.34, 0.33, 0.29, 1.0],
+        "plaster": [0.53, 0.48, 0.39, 1.0],
+        "timber": [0.11, 0.07, 0.04, 1.0],
+        "roof": [0.21, 0.14, 0.18, 1.0],
+        "iron": [0.04, 0.045, 0.045, 1.0],
+        "brass": [0.39, 0.25, 0.07, 1.0],
+        "glass": [0.20, 0.14, 0.06, 1.0],
+        "glow": [0.72, 0.22, 0.02, 1.0]
+      },
+      "bodyDepthExclude": ["Foundation"],
+      "dimensions": {
+        "foundation": [500, 414, 16],
+        "body": [382, 286, 424],
+        "roof": [434, 338, 116]
+      }
+    },
+    "warehouse_lv5": {
+      "paletteOverrides": {
+        "foundation": [0.22, 0.23, 0.23, 1.0],
+        "stone": [0.33, 0.33, 0.30, 1.0],
+        "plaster": [0.52, 0.48, 0.40, 1.0],
+        "timber": [0.10, 0.065, 0.04, 1.0],
+        "roof": [0.20, 0.14, 0.19, 1.0],
+        "iron": [0.035, 0.045, 0.052, 1.0],
+        "brass": [0.34, 0.27, 0.10, 1.0],
+        "glass": [0.18, 0.14, 0.07, 1.0],
+        "glow": [0.68, 0.20, 0.02, 1.0],
+        "crystal": [0.025, 0.16, 0.38, 1.0],
+        "crystalHighlight": [0.08, 0.50, 0.82, 1.0]
+      },
+      "bodyDepthExclude": ["Foundation"],
+      "dimensions": {
+        "foundation": [500, 414, 16],
+        "body": [382, 286, 424],
+        "roof": [434, 338, 116]
+      }
+    },
     "main_space_warehouse": {
       "paletteOverrides": {
         "foundation": [0.36, 0.38, 0.42, 1.0],
@@ -339,11 +494,12 @@
         "glass": [0.40, 0.15, 0.025, 1.0]
       },
       "dimensions": {
-        "foundation": [500, 430, 16],
-        "body": [300, 220, 160],
-        "roof": [350, 276, 104],
-        "tower": [104, 108, 246],
-        "towerRoof": [76, 74]
+        "foundation": [820, 680, 18],
+        "body": [450, 320, 224],
+        "roof": [520, 386, 142],
+        "tower": [154, 158, 370],
+        "towerRoof": [118, 112],
+        "archiveWing": [220, 250, 158]
       }
     },
     "miner_camp": {
@@ -364,6 +520,41 @@
         "hoist": [132, 158, 178]
       }
     },
+    "mine_cave": {
+      "cameraOverrides": {
+        "widthMargin": 0.82,
+        "bottomY": 918,
+        "topMargin": 52
+      },
+      "bodyDepthExclude": [
+        "MineCave_RockBed",
+        "MineCave_DarkInterior",
+        "MineCave_InnerGreenShard_A",
+        "MineCave_InnerGreenShard_B"
+      ],
+      "cutoutDepthExclude": [
+        "MineCave_RockBed"
+      ],
+      "paletteOverrides": {
+        "foundation": [0.115, 0.12, 0.115, 1.0],
+        "stone": [0.22, 0.235, 0.225, 1.0],
+        "plaster": [0.15, 0.145, 0.13, 1.0],
+        "timber": [0.105, 0.055, 0.025, 1.0],
+        "roof": [0.10, 0.11, 0.105, 1.0],
+        "iron": [0.018, 0.024, 0.021, 1.0],
+        "brass": [0.26, 0.16, 0.055, 1.0],
+        "glass": [0.025, 0.12, 0.04, 1.0],
+        "glow": [0.035, 0.48, 0.075, 1.0]
+      },
+      "dimensions": {
+        "foundation": [238, 196, 10],
+        "openingRadius": 56,
+        "openingSpringZ": 76,
+        "archOuterRadius": 76,
+        "timberWidth": 132,
+        "timberHeight": 136
+      }
+    },
     "market": {
       "paletteOverrides": {
         "foundation": [0.27, 0.255, 0.225, 1.0],
@@ -380,6 +571,33 @@
         "body": [330, 232, 178],
         "roof": [390, 294, 96],
         "awning": [356, 126, 140]
+      }
+    },
+    "royal_mint": {
+      "cameraOverrides": {
+        "widthMargin": 0.82,
+        "bottomY": 924,
+        "topMargin": 34
+      },
+      "paletteOverrides": {
+        "foundation": [0.26, 0.27, 0.27, 1.0],
+        "stone": [0.38, 0.39, 0.38, 1.0],
+        "plaster": [0.58, 0.55, 0.47, 1.0],
+        "timber": [0.11, 0.075, 0.045, 1.0],
+        "roof": [0.105, 0.18, 0.22, 1.0],
+        "iron": [0.055, 0.06, 0.06, 1.0],
+        "brass": [0.48, 0.31, 0.085, 1.0],
+        "glass": [0.32, 0.20, 0.075, 1.0],
+        "glow": [0.86, 0.29, 0.035, 1.0]
+      },
+      "bodyDepthExclude": ["RoyalMint_Foundation"],
+      "dimensions": {
+        "foundation": [500, 414, 18],
+        "lowerVault": [372, 288, 98],
+        "upperHall": [344, 260, 116],
+        "roof": [410, 326, 102],
+        "fiscalTower": [116, 122, 158],
+        "towerRoof": [142, 136, 78]
       }
     },
     "portal": {
@@ -466,19 +684,20 @@
         "glow": [0.82, 0.34, 0.045, 1.0]
       },
       "dimensions": {
-        "foundation": [500, 430, 16],
-        "lowerTerrace": [430, 350, 28],
-        "middleTerrace": [360, 286, 30],
-        "upperTerrace": [290, 224, 28],
-        "sanctuary": [226, 168, 148],
+        "foundation": [820, 680, 18],
+        "lowerTerrace": [750, 580, 34],
+        "middleTerrace": [650, 480, 36],
+        "upperTerrace": [540, 390, 34],
+        "sanctuary": [390, 280, 220],
         "upperLevels": [
-          [200, 146, 90],
-          [164, 118, 76],
-          [130, 92, 64]
+          [350, 250, 118],
+          [292, 208, 102],
+          [236, 168, 88],
+          [178, 126, 72]
         ],
-        "towerPlatforms": [56, 70, 176],
-        "crown": [150, 108, 18],
-        "stairs": [126, 13, 3]
+        "towerPlatforms": [86, 104, 245],
+        "crown": [226, 154, 26],
+        "stairs": [184, 16, 4]
       }
     },
     "snow_castle": {
@@ -495,21 +714,22 @@
         "snow": [0.88, 0.94, 0.98, 1.0]
       },
       "dimensions": {
-        "foundation": [560, 470, 18],
+        "foundation": [860, 720, 20],
         "terraces": [
-          [510, 410, 28, 0],
-          [440, 340, 30, 16],
-          [366, 270, 28, 30]
+          [810, 650, 34, 0],
+          [700, 540, 38, 20],
+          [590, 430, 36, 38]
         ],
         "keepLevels": [
-          [252, 188, 106, 306, 242, 50],
-          [208, 154, 86, 258, 204, 46],
-          [166, 122, 72, 214, 168, 42],
-          [122, 90, 58, 170, 134, 38]
+          [350, 260, 140, 420, 330, 66],
+          [292, 218, 116, 358, 278, 60],
+          [238, 176, 96, 302, 232, 54],
+          [188, 140, 80, 250, 192, 48],
+          [142, 104, 66, 202, 156, 42]
         ],
-        "sideTower": [98, 114, 78, 72, 84, 54],
-        "gatehouse": [146, 72, 66],
-        "stairs": [132, 14, 4]
+        "sideTower": [150, 166, 112, 118, 132, 82],
+        "gatehouse": [220, 112, 96],
+        "stairs": [188, 18, 5]
       }
     },
     "desert_mansion": {
@@ -525,15 +745,16 @@
         "glow": [0.95, 0.30, 0.035, 1.0]
       },
       "dimensions": {
-        "foundation": [500, 430, 18],
-        "lowerTier": [340, 258, 112],
-        "middleTier": [270, 204, 78],
-        "upperTier": [202, 154, 62],
-        "wing": [154, 210, 136],
-        "mainDome": [90, 108],
-        "wingDome": [48, 62],
-        "tower": [38, 252],
-        "bodyOffset": [0, 44]
+        "foundation": [820, 680, 20],
+        "lowerTier": [520, 390, 150],
+        "middleTier": [430, 320, 118],
+        "upperTier": [340, 252, 98],
+        "crownTier": [250, 184, 78],
+        "wing": [250, 310, 190],
+        "mainDome": [136, 160],
+        "wingDome": [72, 96],
+        "tower": [54, 365],
+        "bodyOffset": [0, 56]
       }
     },
     "energy_node_1": {
@@ -611,6 +832,96 @@
         ]
       }
     },
+    "energy_vein_1": {
+      "paletteOverrides": {
+        "stone": [0.13, 0.15, 0.16, 1.0],
+        "crystal": [0.015, 0.22, 0.39, 1.0],
+        "crystalHighlight": [0.08, 0.67, 0.88, 1.0]
+      },
+      "dimensions": {
+        "footprint": [238, 196, 4],
+        "bedPatches": [
+          [-78, -58, 80, 58, 8, 2, -4, -9], [0, -63, 86, 58, 9, -3, 4, 7],
+          [78, -57, 78, 58, 8, 3, -4, -11], [-91, 0, 68, 62, 9, -3, 5, 8],
+          [-31, 1, 78, 64, 8, 3, -4, -6], [32, -1, 78, 64, 9, -3, 4, 10],
+          [92, 3, 68, 62, 8, 3, -5, -7], [-73, 58, 78, 56, 9, -3, 4, 9],
+          [0, 63, 88, 58, 8, 3, -4, -8], [73, 57, 80, 56, 9, -3, 5, 7]
+        ],
+        "rocks": [
+          [-100, -69, 45, 38, 15, 7, -5, -12], [-45, -79, 48, 39, 17, -6, 8, 15],
+          [42, -78, 46, 38, 14, 7, -6, -16], [99, -67, 44, 37, 16, -7, 6, 12],
+          [-108, -14, 43, 38, 14, 6, -5, 11], [107, -9, 45, 39, 17, -6, 7, -13],
+          [-103, 47, 46, 38, 15, 7, -6, -14], [-52, 78, 48, 39, 18, -7, 6, 17],
+          [48, 79, 47, 39, 15, 6, -5, -11], [101, 52, 45, 38, 17, -6, 7, 14]
+        ],
+        "energyBlocks": [
+          [-82, 57, 52, 29, 10, 2, -4, -20], [-55, 38, 50, 28, 9, -3, 3, -17],
+          [-27, 19, 54, 30, 11, 3, -4, -15], [3, 0, 58, 31, 10, -3, 4, -13],
+          [34, -18, 54, 29, 9, 2, -3, -16], [62, -37, 50, 28, 10, -2, 4, -18],
+          [87, -55, 48, 27, 11, 3, -4, -21]
+        ]
+      }
+    },
+    "energy_vein_2": {
+      "paletteOverrides": {
+        "stone": [0.125, 0.145, 0.155, 1.0],
+        "crystal": [0.018, 0.24, 0.42, 1.0],
+        "crystalHighlight": [0.09, 0.71, 0.92, 1.0]
+      },
+      "dimensions": {
+        "footprint": [238, 196, 4],
+        "bedPatches": [
+          [-78, -58, 80, 58, 9, 3, -5, 8], [0, -63, 86, 58, 8, -3, 4, -7],
+          [78, -57, 78, 58, 9, 3, -4, 10], [-91, 0, 68, 62, 8, -3, 5, -9],
+          [-31, 1, 78, 64, 9, 3, -4, 7], [32, -1, 78, 64, 8, -3, 4, -10],
+          [92, 3, 68, 62, 9, 3, -5, 8], [-73, 58, 78, 56, 8, -3, 4, -7],
+          [0, 63, 88, 58, 9, 3, -4, 9], [73, 57, 80, 56, 8, -3, 5, -8]
+        ],
+        "rocks": [
+          [-101, -68, 46, 38, 16, 6, -5, 13], [-44, -80, 47, 39, 14, -7, 6, -16],
+          [44, -79, 48, 39, 17, 6, -6, 12], [101, -67, 45, 38, 15, -6, 7, -14],
+          [-108, -11, 44, 38, 17, 6, -5, 15], [108, -8, 44, 38, 14, -6, 7, -17],
+          [-102, 50, 46, 38, 16, 7, -6, 13], [-49, 79, 47, 39, 15, -7, 6, -15],
+          [49, 79, 48, 39, 18, 6, -5, 16], [102, 50, 45, 38, 15, -6, 7, -12]
+        ],
+        "energyBlocks": [
+          [-48, 27, 50, 30, 10, 2, -4, 15], [0, 42, 54, 31, 9, -3, 3, 1],
+          [47, 27, 50, 30, 11, 3, -4, -14], [-47, -20, 52, 30, 9, -3, 4, -15],
+          [0, -38, 56, 32, 10, 2, -3, 0], [48, -19, 52, 30, 9, -2, 4, 14],
+          [0, 1, 64, 36, 11, 3, -4, 7]
+        ]
+      }
+    },
+    "energy_vein_3": {
+      "paletteOverrides": {
+        "stone": [0.13, 0.145, 0.15, 1.0],
+        "crystal": [0.014, 0.21, 0.38, 1.0],
+        "crystalHighlight": [0.07, 0.65, 0.90, 1.0]
+      },
+      "dimensions": {
+        "footprint": [238, 196, 4],
+        "bedPatches": [
+          [-78, -58, 80, 58, 8, 3, -5, -8], [0, -63, 86, 58, 9, -3, 4, 8],
+          [78, -57, 78, 58, 8, 3, -4, -10], [-91, 0, 68, 62, 9, -3, 5, 9],
+          [-31, 1, 78, 64, 8, 3, -4, -7], [32, -1, 78, 64, 9, -3, 4, 11],
+          [92, 3, 68, 62, 8, 3, -5, -8], [-73, 58, 78, 56, 9, -3, 4, 8],
+          [0, 63, 88, 58, 8, 3, -4, -9], [73, 57, 80, 56, 9, -3, 5, 7]
+        ],
+        "rocks": [
+          [-100, -69, 45, 38, 15, 7, -5, -13], [-43, -80, 48, 39, 17, -6, 8, 16],
+          [43, -79, 46, 38, 14, 7, -6, -15], [100, -68, 44, 37, 16, -7, 6, 13],
+          [-108, -13, 43, 38, 14, 6, -5, 12], [108, -9, 45, 39, 17, -6, 7, -14],
+          [-102, 48, 46, 38, 15, 7, -6, -13], [-51, 79, 48, 39, 18, -7, 6, 16],
+          [50, 79, 47, 39, 15, 6, -5, -12], [102, 51, 45, 38, 17, -6, 7, 15]
+        ],
+        "energyBlocks": [
+          [0, 58, 52, 29, 9, 2, -4, 0], [0, 28, 54, 30, 10, -3, 4, 1],
+          [0, -2, 58, 32, 11, 3, -4, -1], [-25, -27, 52, 29, 9, -3, 4, -18],
+          [-56, -52, 50, 28, 10, 2, -3, -22], [25, -27, 52, 29, 9, -2, 4, 18],
+          [56, -52, 50, 28, 10, 3, -4, 22]
+        ]
+      }
+    },
     "blacksmith": { "dimensions": { "foundation": [430, 350, 16], "body": [316, 228, 150], "roof": [360, 274, 90] } },
     "armory": {
       "paletteOverrides": {
@@ -647,6 +958,316 @@
         "roof": [368, 282, 96]
       }
     },
+    "steam_power_plant": {
+      "cameraOverrides": {
+        "widthMargin": 0.84,
+        "bottomY": 920,
+        "topMargin": 38
+      },
+      "paletteOverrides": {
+        "foundation": [0.24, 0.245, 0.235, 1.0],
+        "stone": [0.34, 0.35, 0.33, 1.0],
+        "plaster": [0.46, 0.43, 0.36, 1.0],
+        "timber": [0.10, 0.06, 0.035, 1.0],
+        "roof": [0.105, 0.17, 0.18, 1.0],
+        "iron": [0.045, 0.052, 0.055, 1.0],
+        "brass": [0.43, 0.265, 0.075, 1.0],
+        "glass": [0.12, 0.30, 0.36, 1.0],
+        "glow": [0.92, 0.24, 0.025, 1.0],
+        "straw": [0.48, 0.34, 0.12, 1.0]
+      },
+      "bodyDepthExclude": ["Foundation"],
+      "dimensions": {
+        "foundation": [470, 382, 18],
+        "body": [332, 238, 178],
+        "roof": [390, 292, 102],
+        "boilerRadius": 47,
+        "boilerLength": 164,
+        "workerStations": 2
+      }
+    },
+    "wind_power_plant": {
+      "cameraOverrides": {
+        "widthMargin": 0.94,
+        "bottomY": 938,
+        "topMargin": 22
+      },
+      "paletteOverrides": {
+        "foundation": [0.22, 0.235, 0.235, 1.0],
+        "stone": [0.32, 0.34, 0.33, 1.0],
+        "plaster": [0.50, 0.48, 0.41, 1.0],
+        "timber": [0.075, 0.055, 0.038, 1.0],
+        "roof": [0.075, 0.16, 0.19, 1.0],
+        "iron": [0.035, 0.048, 0.055, 1.0],
+        "brass": [0.43, 0.29, 0.085, 1.0],
+        "glass": [0.045, 0.25, 0.36, 1.0],
+        "glow": [0.025, 0.56, 0.76, 1.0],
+        "straw": [0.43, 0.31, 0.12, 1.0]
+      },
+      "bodyDepthExclude": [
+        "WindPowerPlant_Foundation",
+        "WindPowerPlant_InsetPlinth"
+      ],
+      "dimensions": {
+        "foundation": [820, 680, 18],
+        "generatorHall": [520, 360, 190],
+        "generatorRoof": [590, 430, 105],
+        "towerBase": [190, 180, 260],
+        "towerSpan": [150, 105],
+        "hubZ": 590,
+        "rotorRadius": 280,
+        "hallY": 90,
+        "bufferOffsetX": 286
+      }
+    },
+    "solar_power_plant": {
+      "cameraOverrides": {
+        "widthMargin": 0.94,
+        "bottomY": 938,
+        "topMargin": 24
+      },
+      "paletteOverrides": {
+        "foundation": [0.225, 0.235, 0.235, 1.0],
+        "stone": [0.38, 0.40, 0.39, 1.0],
+        "plaster": [0.55, 0.57, 0.55, 1.0],
+        "timber": [0.065, 0.055, 0.045, 1.0],
+        "roof": [0.045, 0.095, 0.13, 1.0],
+        "iron": [0.028, 0.04, 0.05, 1.0],
+        "brass": [0.44, 0.30, 0.085, 1.0],
+        "glass": [0.025, 0.18, 0.27, 1.0],
+        "glow": [0.025, 0.56, 0.76, 1.0],
+        "straw": [0.40, 0.31, 0.16, 1.0]
+      },
+      "bodyDepthExclude": [
+        "SolarPowerPlant_Foundation_Base",
+        "SolarPowerPlant_InsetServicePad"
+      ],
+      "dimensions": {
+        "foundation": [900, 720, 20],
+        "officeGroundFloor": [340, 280, 118],
+        "officeSecondFloor": [340, 280, 108],
+        "officeRoof": [382, 322, 18],
+        "officeOffset": [220, 150],
+        "groundPanel": [100, 70, 7],
+        "roofPanel": [112, 70, 6]
+      }
+    },
+    "computing_center": {
+      "cameraOverrides": {
+        "widthMargin": 0.94,
+        "bottomY": 938,
+        "topMargin": 22
+      },
+      "paletteOverrides": {
+        "foundation": [0.22, 0.235, 0.245, 1.0],
+        "stone": [0.39, 0.415, 0.42, 1.0],
+        "plaster": [0.50, 0.525, 0.53, 1.0],
+        "timber": [0.05, 0.06, 0.07, 1.0],
+        "roof": [0.045, 0.065, 0.08, 1.0],
+        "iron": [0.03, 0.043, 0.055, 1.0],
+        "brass": [0.40, 0.285, 0.09, 1.0],
+        "glass": [0.03, 0.18, 0.25, 1.0],
+        "glow": [0.025, 0.43, 0.58, 1.0],
+        "straw": [0.36, 0.29, 0.18, 1.0]
+      },
+      "bodyDepthExclude": [
+        "ComputingCenter_Foundation_Base",
+        "ComputingCenter_InsetServicePad"
+      ],
+      "dimensions": {
+        "foundation": [900, 720, 20],
+        "coreGroundFloor": [330, 470, 128],
+        "coreSecondFloor": [330, 470, 112],
+        "coreThirdFloor": [330, 470, 108],
+        "coreFourthFloor": [330, 470, 104],
+        "coreRoof": [370, 510, 20],
+        "serverHallGroundFloor": [250, 500, 148],
+        "serverHallSecondFloor": [250, 500, 124],
+        "serverHallRoof": [278, 528, 18],
+        "serverWingOffsetX": 245,
+        "serverWingOffsetY": 24,
+        "coolingBank": [202, 112, 92]
+      }
+    },
+    "university": {
+      "cameraOverrides": {
+        "widthMargin": 0.96,
+        "bottomY": 946,
+        "topMargin": 22
+      },
+      "paletteOverrides": {
+        "foundation": [0.245, 0.235, 0.205, 1.0],
+        "stone": [0.39, 0.365, 0.30, 1.0],
+        "plaster": [0.53, 0.46, 0.35, 1.0],
+        "timber": [0.070, 0.038, 0.022, 1.0],
+        "roof": [0.070, 0.115, 0.145, 1.0],
+        "iron": [0.035, 0.038, 0.036, 1.0],
+        "brass": [0.36, 0.235, 0.065, 1.0],
+        "glass": [0.025, 0.16, 0.19, 1.0],
+        "glow": [0.03, 0.34, 0.40, 1.0],
+        "straw": [0.39, 0.28, 0.13, 1.0]
+      },
+      "bodyDepthExclude": [
+        "University_Foundation_Base",
+        "University_InsetCampusPad",
+        "University_Courtyard_Paving"
+      ],
+      "dimensions": {
+        "foundation": [900, 720, 20],
+        "mainGroundFloor": [410, 166, 92],
+        "mainSecondFloor": [410, 166, 84],
+        "mainThirdFloor": [410, 166, 78],
+        "mainRoof": [456, 212, 92],
+        "mainOffset": [0, 210],
+        "sideGroundFloor": [176, 280, 92],
+        "sideSecondFloor": [176, 280, 84],
+        "sideRoof": [320, 216, 76],
+        "sideOffsetX": 310,
+        "sideOffsetY": -12,
+        "statueCenter": [0, -62]
+      }
+    },
+    "deep_drill": {
+      "cameraOverrides": {
+        "widthMargin": 0.82,
+        "bottomY": 922,
+        "topMargin": 34
+      },
+      "paletteOverrides": {
+        "foundation": [0.225, 0.235, 0.235, 1.0],
+        "stone": [0.31, 0.325, 0.32, 1.0],
+        "plaster": [0.40, 0.395, 0.35, 1.0],
+        "timber": [0.085, 0.055, 0.032, 1.0],
+        "roof": [0.09, 0.16, 0.17, 1.0],
+        "iron": [0.038, 0.047, 0.050, 1.0],
+        "brass": [0.42, 0.27, 0.075, 1.0],
+        "glass": [0.055, 0.30, 0.40, 1.0],
+        "glow": [0.025, 0.58, 0.78, 1.0],
+        "straw": [0.44, 0.32, 0.13, 1.0]
+      },
+      "bodyDepthExclude": ["DeepDrill_Foundation"],
+      "dimensions": {
+        "foundation": [470, 382, 18],
+        "machineDeck": [354, 274, 38],
+        "derrickSpan": [188, 158],
+        "derrickHeight": 286,
+        "drillCollarRadius": 54,
+        "winchRadius": 46
+      }
+    },
+    "tavern": {
+      "cameraOverrides": {
+        "widthMargin": 0.82,
+        "bottomY": 922,
+        "topMargin": 30
+      },
+      "paletteOverrides": {
+        "foundation": [0.29, 0.28, 0.25, 1.0],
+        "stone": [0.36, 0.35, 0.32, 1.0],
+        "plaster": [0.56, 0.48, 0.38, 1.0],
+        "timber": [0.105, 0.05, 0.028, 1.0],
+        "roof": [0.26, 0.055, 0.045, 1.0],
+        "iron": [0.065, 0.07, 0.068, 1.0],
+        "brass": [0.38, 0.235, 0.065, 1.0],
+        "glass": [0.42, 0.18, 0.045, 1.0],
+        "glow": [0.88, 0.25, 0.025, 1.0],
+        "straw": [0.49, 0.34, 0.12, 1.0]
+      },
+      "bodyDepthExclude": ["Tavern_Foundation_Base"],
+      "dimensions": {
+        "foundation": [470, 382, 18],
+        "groundFloor": [362, 260, 112],
+        "secondFloor": [362, 260, 104],
+        "thirdFloor": [362, 260, 96],
+        "roof": [412, 312, 120]
+      }
+    },
+    "chain_restaurant": {
+      "cameraOverrides": {
+        "widthMargin": 0.82,
+        "bottomY": 922,
+        "topMargin": 28
+      },
+      "paletteOverrides": {
+        "foundation": [0.285, 0.28, 0.255, 1.0],
+        "stone": [0.42, 0.40, 0.35, 1.0],
+        "plaster": [0.64, 0.53, 0.39, 1.0],
+        "timber": [0.095, 0.052, 0.028, 1.0],
+        "roof": [0.21, 0.075, 0.052, 1.0],
+        "iron": [0.055, 0.06, 0.058, 1.0],
+        "brass": [0.46, 0.285, 0.075, 1.0],
+        "glass": [0.43, 0.18, 0.045, 1.0],
+        "glow": [0.90, 0.27, 0.025, 1.0],
+        "straw": [0.48, 0.34, 0.12, 1.0]
+      },
+      "bodyDepthExclude": ["ChainRestaurant_Foundation_Base"],
+      "dimensions": {
+        "foundation": [470, 382, 18],
+        "groundFloor": [366, 266, 118],
+        "secondFloor": [366, 266, 108],
+        "thirdFloor": [366, 266, 100],
+        "roof": [418, 318, 90]
+      }
+    },
+    "grand_mall": {
+      "cameraOverrides": {
+        "widthMargin": 0.8,
+        "bottomY": 926,
+        "topMargin": 24
+      },
+      "paletteOverrides": {
+        "foundation": [0.25, 0.255, 0.25, 1.0],
+        "stone": [0.48, 0.47, 0.43, 1.0],
+        "plaster": [0.67, 0.61, 0.51, 1.0],
+        "timber": [0.075, 0.055, 0.042, 1.0],
+        "roof": [0.10, 0.15, 0.19, 1.0],
+        "iron": [0.05, 0.055, 0.058, 1.0],
+        "brass": [0.50, 0.315, 0.075, 1.0],
+        "glass": [0.055, 0.28, 0.31, 1.0],
+        "glow": [0.88, 0.30, 0.035, 1.0],
+        "straw": [0.46, 0.34, 0.13, 1.0]
+      },
+      "bodyDepthExclude": ["GrandMall_Foundation_Base"],
+      "dimensions": {
+        "foundation": [500, 414, 18],
+        "groundFloor": [380, 280, 124],
+        "secondFloor": [380, 280, 108],
+        "thirdFloor": [380, 280, 104],
+        "fourthFloor": [380, 280, 100],
+        "roof": [430, 334, 88]
+      }
+    },
+    "stock_exchange": {
+      "cameraOverrides": {
+        "widthMargin": 0.94,
+        "bottomY": 938,
+        "topMargin": 20
+      },
+      "paletteOverrides": {
+        "foundation": [0.22, 0.235, 0.245, 1.0],
+        "stone": [0.42, 0.44, 0.45, 1.0],
+        "plaster": [0.51, 0.54, 0.55, 1.0],
+        "timber": [0.055, 0.065, 0.075, 1.0],
+        "roof": [0.055, 0.075, 0.09, 1.0],
+        "iron": [0.035, 0.045, 0.055, 1.0],
+        "brass": [0.43, 0.29, 0.085, 1.0],
+        "glass": [0.035, 0.19, 0.27, 1.0],
+        "glow": [0.10, 0.62, 0.48, 1.0],
+        "straw": [0.38, 0.30, 0.18, 1.0]
+      },
+      "bodyDepthExclude": ["StockExchange_Foundation_Base"],
+      "dimensions": {
+        "foundation": [900, 720, 20],
+        "groundFloor": [700, 520, 132],
+        "secondFloor": [700, 520, 110],
+        "thirdFloor": [700, 520, 108],
+        "fourthFloor": [700, 520, 106],
+        "fifthFloor": [700, 520, 104],
+        "sixthFloor": [700, 520, 102],
+        "roof": [738, 558, 22],
+        "antennaTower": [164, 108, 228]
+      }
+    },
     "field_hospital": {
       "paletteOverrides": {
         "foundation": [0.27, 0.28, 0.26, 1.0],
@@ -669,6 +1290,52 @@
     "shooting_range": { "dimensions": { "foundation": [526, 474, 16], "body": [270, 176, 142], "roof": [310, 220, 82] } },
     "cavalry_school": { "dimensions": { "foundation": [480, 374, 16], "body": [360, 248, 154], "roof": [406, 300, 104], "tower": [76, 76, 220] } },
     "thatch_hut": { "dimensions": { "foundation": [420, 340, 16], "body": [318, 236, 136], "roof": [372, 292, 116] } },
+    "thatch_hut_lv2": {
+      "cameraOverrides": { "widthMargin": 0.90, "bottomY": 925, "topMargin": 42 },
+      "paletteOverrides": {
+        "foundation": [0.25, 0.23, 0.18, 1.0],
+        "stone": [0.36, 0.33, 0.27, 1.0],
+        "plaster": [0.49, 0.42, 0.31, 1.0],
+        "timber": [0.12, 0.068, 0.032, 1.0],
+        "roof": [0.24, 0.085, 0.036, 1.0],
+        "thatch": [0.39, 0.28, 0.105, 1.0],
+        "iron": [0.065, 0.068, 0.06, 1.0],
+        "brass": [0.35, 0.21, 0.06, 1.0],
+        "glass": [0.28, 0.12, 0.028, 1.0],
+        "glow": [0.78, 0.26, 0.025, 1.0],
+        "straw": [0.49, 0.36, 0.14, 1.0]
+      },
+      "bodyDepthExclude": [
+        "ThatchHutLV2_DrillYardFoundation",
+        "ThatchHutLV2_DrillCourtInset"
+      ],
+      "dimensions": {
+        "foundation": [420, 340, 16],
+        "drillHall": [250, 124, 122],
+        "drillRoof": [292, 174, 74]
+      }
+    },
+    "thatch_hut_lv3": {
+      "cameraOverrides": { "widthMargin": 0.90, "bottomY": 925, "topMargin": 42 },
+      "paletteOverrides": {
+        "foundation": [0.23, 0.235, 0.21, 1.0],
+        "stone": [0.31, 0.32, 0.29, 1.0],
+        "plaster": [0.37, 0.40, 0.32, 1.0],
+        "timber": [0.095, 0.07, 0.045, 1.0],
+        "roof": [0.16, 0.18, 0.15, 1.0],
+        "thatch": [0.22, 0.24, 0.15, 1.0],
+        "iron": [0.055, 0.062, 0.058, 1.0],
+        "brass": [0.24, 0.23, 0.12, 1.0],
+        "glass": [0.12, 0.20, 0.16, 1.0],
+        "glow": [0.46, 0.58, 0.25, 1.0],
+        "straw": [0.28, 0.27, 0.14, 1.0]
+      },
+      "bodyDepthExclude": ["ThatchHutLV3_TrainingGroundFoundation"],
+      "dimensions": {
+        "foundation": [420, 340, 16],
+        "commandHut": [228, 108, 94]
+      }
+    },
     "cheese_farm": {
       "cameraOverrides": {
         "widthMargin": 0.9,

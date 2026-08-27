@@ -1,4 +1,5 @@
 import { SoundManager } from '../ui/sound-manager.js';
+import { isMachineGun } from '../config/gun-ammo.js';
 
 /**
  * GunFeel — 枪械手感反馈中枢（移植自 Godot 3-dfps / Sakanako FPS 审计结论）
@@ -66,7 +67,7 @@ export const GunFeel = {
         let trauma = 0.06;
         let zoom = 0.010;
         if (wt === 'shotgun') { trauma = 0.14; zoom = 0.020; }
-        else if (wt === 'pkm' || wt === 'qjb201' || wt === 'energy_lmg') { trauma = 0.08; zoom = 0.012; }
+        else if (isMachineGun(wt)) { trauma = 0.08; zoom = 0.012; }
         else if (wt === 'pistol') { trauma = 0.05; zoom = 0.008; }
         else if (wt === 'bow') { trauma = 0.03; zoom = 0.006; }
         this.addTrauma(trauma);

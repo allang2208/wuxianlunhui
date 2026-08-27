@@ -1,6 +1,8 @@
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 
+const nowMs = () => globalThis.performance?.now?.() ?? Date.now();
+
 /* ================================================================
  * DynamicObstacleMap — 动态障碍图
  *
@@ -27,6 +29,15 @@ class DynamicObstacleMap {
         this.baseCost = 3.5;
         // 每秒衰减量，让旧障碍自然淡出
         this.decayPerSecond = 1.5;
+        this._frameUpdateMs = 0;
+        this._lastUpdateMs = 0;
+        this._peakUpdateMs = 0;
+        this._frameRebuilds = 0;
+    }
+
+    beginFrame() {
+        this._frameUpdateMs = 0;
+        this._frameRebuilds = 0;
     }
 
     /**
@@ -47,9 +58,25 @@ class DynamicObstacleMap {
      * @param {number} now - 当前时间戳 ms
      */
     update(now) {
-        if (now - this.lastUpdate < this.updateInterval) return;
+        if (now - this.lastUpdate < this.updateInterval) return false;
+        const startedAt = nowMs();
         this.lastUpdate = now;
         this._rebuild(now);
+        this._lastUpdateMs = Math.max(0, nowMs() - startedAt);
+        this._peakUpdateMs = Math.max(this._peakUpdateMs, this._lastUpdateMs);
+        this._frameUpdateMs += this._lastUpdateMs;
+        this._frameRebuilds++;
+        return true;
+    }
+
+    getPerformanceStats() {
+        return {
+            frameUpdateMs: this._frameUpdateMs,
+            lastUpdateMs: this._lastUpdateMs,
+            peakUpdateMs: this._peakUpdateMs,
+            frameRebuilds: this._frameRebuilds,
+            activeCells: this.cells.size,
+        };
     }
 
     /**

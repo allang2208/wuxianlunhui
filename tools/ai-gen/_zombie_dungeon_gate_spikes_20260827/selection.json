@@ -1,0 +1,22 @@
+{
+  "asset": "zombie_portcullis_v4",
+  "model": "flux2-klein-4b-depth",
+  "structure": {
+    "steps": 12,
+    "variants": 3,
+    "selected": "authored-green-init",
+    "rejected": {
+      "v01": "added masonry gatehouse, towers and floor",
+      "v02": "added masonry gatehouse, towers and floor",
+      "v03": "added masonry gatehouse, towers and floor"
+    }
+  },
+  "refine": {
+    "steps": 48,
+    "denoise": 0.3,
+    "variants": 2,
+    "selected": "v01",
+    "selectionReason": "preserves the authored thirteen-bar and thirteen-spike silhouette, keeps collars and rail rivets readable, and uses more restrained rust than v02"
+  },
+  "runtimeIntegration": "material transfer only; Blender remains the silhouette, alpha, alignment and animation source"
+}

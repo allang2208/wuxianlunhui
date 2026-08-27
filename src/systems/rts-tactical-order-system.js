@@ -43,7 +43,8 @@ function isMilitaryGuard(unit) {
             || unit._isHamsterMusketeer
             || unit._isHamsterPriest
             || unit._isHamsterKnight
-            || unit._isHamsterLightCavalry));
+            || unit._isHamsterLightCavalry
+            || unit._isHamsterNinja));
 }
 
 export const RtsTacticalOrderSystem = {

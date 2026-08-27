@@ -438,6 +438,12 @@
               "zombieMoveSpeedMultiplier": 1.2,
               "zombieAttackIntervalMultiplier": 0.85
             },
+            "schedule": {
+              "enabled": true,
+              "intervalDays": { "min": 4, "max": 7 },
+              "warningLeadDays": 0.35,
+              "durationDays": { "min": 0.75, "max": 1.5 }
+            },
             "visual": {
               "lockDirection": true,
               "viewportMarginPx": 420,
@@ -838,8 +844,7 @@
   "pickup": {
     "nearbyRange": 112,
     "goldAutoRange": 80,
-    "goldThrowOutRange": 80,
-    "goldMaxStack": 999
+    "goldThrowOutRange": 80
   },
   "gameLoop": {
     "maxDtMs": 100,
@@ -898,29 +903,34 @@
     }
   },
   "crosshair": {
-    "lerpSpeed": 0.3,
+    "canvasSize": 96,
+    "lerpSpeed": 0.24,
     "geometry": {
-      "baseGap": 4,
-      "maxGapExtra": 16,
-      "lineLen": 6,
-      "lineWidth": 2.5,
-      "outlineWidth": 2.5
+      "baseGap": 5,
+      "maxGapExtra": 24,
+      "projectionScale": 48,
+      "lineLen": 7,
+      "capLen": 3,
+      "lineWidth": 1.75,
+      "outlineWidth": 2.25
     },
     "colors": {
-      "outline": "#000",
-      "main": "#00ff00",
-      "centerOuter": "#000",
-      "centerInner": "#00ff00"
+      "outline": "#071419",
+      "main": "#69e7e3",
+      "highlight": "#c8ffff",
+      "centerOuter": "#071419",
+      "centerInner": "#b9ffff"
     },
     "centerDot": {
-      "outerRadius": 1.5,
-      "innerRadius": 0.8
+      "outerRadius": 2.1,
+      "innerRadius": 1.05
     }
   },
   "weatherEffects": {
     "rain": {
       "enabled": true,
       "targetSceneIds": ["scene8", "scene9", "scene10", "scene11"],
+      "targetSceneTypes": ["instance"],
       "excludedSceneTypes": ["dungeon"],
       "quality": "medium",
       "defaultIntensity": "light",

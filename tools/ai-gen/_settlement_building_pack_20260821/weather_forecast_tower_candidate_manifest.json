@@ -1,0 +1,41 @@
+{
+  "outputRoot": "tools/ai-gen/_settlement_building_pack_20260821",
+  "host": "192.168.3.142",
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v2",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "steps": 48,
+  "strength": 0.84,
+  "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 5,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 3,
+  "refineDenoise": 0.30,
+  "refineDepthStrength": 0.75,
+  "refineEdgeStrength": 0.38,
+  "structureSeedBase": 824200,
+  "refineSeedBase": 824300,
+  "structuralOverlapZ": 8,
+  "maskEdgePad": 16,
+  "assets": [
+    {
+      "id": "weather_forecast_tower",
+      "label": "天气预报塔",
+      "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/weather_forecast_tower/weather_forecast_tower_body_depth.png",
+      "removeAllGreen": true,
+      "paletteConstraint": "low-saturation weathered blue-gray slate roofs, pale cool limestone and plaster, medium cool-gray fieldstone, charcoal iron, restrained aged brass, and cool cyan closed glass only. No bright saturated colors, red roofs, purple magic, neon effects or glossy futuristic metal.",
+      "primaryRequest": "a compact connected medieval meteorological observatory built on one broad square 2x2 footprint, with one low sturdy observation hall, exactly one integrated central octagonal observation tower, muted blue-gray roofs, one large roof-mounted wind vane with a three-cup anemometer, one attached shallow dish-shaped weather radar and two attached rain gauges",
+      "structureRequest": "preserve the exact authored Blender silhouette: one broad connected observation hall, exactly one integrated central octagonal tower penetrating the main roof, one wide octagonal tower roof, one clearly attached central weather-instrument mast, one attached shallow meteorological radar dish on a roof pedestal, and one attached gauge platform; the mast and weather radar are required functional silhouette masses rather than optional ornament; no second tower, no detached shed, no floating instrument and no communications satellite station",
+      "detailRequest": "refine the selected weather observatory while preserving its exact one-hall one-octagonal-tower silhouette, roofline, instrument placement and ground contact; add crisp blue-gray slate courses, pale weathered limestone blocks, dark iron brackets, restrained aged-brass instrument rims, cool cyan closed observation windows, a readable three-cup anemometer, wind-vane arrow, shallow meteorological radar reflector and two rain-gauge rims"
+    }
+  ]
+}
