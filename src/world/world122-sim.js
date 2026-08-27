@@ -33,6 +33,7 @@ import championCfg from '../../data/hamster-champion-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
+import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
@@ -81,7 +82,7 @@ export const WORLD122_SIM = {
 
 const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
-    guard: guardCfg, phalanx: phalanxCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
+    guard: guardCfg, phalanx: phalanxCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg, ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,

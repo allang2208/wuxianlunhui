@@ -207,7 +207,10 @@
     },
     {
       "id": "hamster_barracks_level_3", "name": "仓鼠军营·III级", "icon": "⛺", "iconPath": "assets/ui/technology-icons/hamster_barracks_level_3.png", "branch": "军事指挥", "subBranch": "军营", "column": 5, "lane": 2, "researchCost": 2200, "placeholder": true, "recruitmentTierId": "hamster_barracks_level_3",
-      "prerequisites": ["hamster_barracks_level_2"], "description": "规划科研：三级编制完成后，输出与防御生产槽自动替换为仓鼠动力甲与仓鼠防爆特战。", "unlocks": [{ "type": "recruitmentTier", "id": "hamster_barracks_level_3", "label": "仓鼠军营三级编制" }]
+      "prerequisites": ["hamster_barracks_level_2"], "description": "规划科研：三级编制完成后，输出与防御生产槽自动替换为仓鼠动力甲与仓鼠防暴队。防暴队已完成，整层仍等待动力甲。", "unlocks": [
+        { "type": "recruitmentTier", "id": "hamster_barracks_level_3", "label": "仓鼠军营三级编制" },
+        { "type": "unit", "id": "riot_special", "label": "仓鼠防暴队" }
+      ]
     },
     {
       "id": "emplacement_shooting", "name": "阵地射击", "icon": "🏹", "iconPath": "assets/ui/technology-icons/emplacement_shooting.png", "branch": "军事指挥", "subBranch": "靶场", "column": 1, "lane": 3, "researchCost": 120,

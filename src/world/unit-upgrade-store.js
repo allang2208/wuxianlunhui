@@ -11,6 +11,7 @@ import championCfg from '../../data/hamster-champion-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
+import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
@@ -72,6 +73,7 @@ export const UNIT_KIND_CFG = {
     shooter: shooterCfg,
     guard: guardCfg,
     phalanx: phalanxCfg,
+    riot_special: riotSquadCfg,
     halberd: halberdierCfg,
     scout: scoutCfg,
     ranger: rangerCfg,
@@ -121,6 +123,8 @@ export function getUnitKind(unit) {
     if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
     if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';
+    // 防暴队继承火枪实体，必须先于 _isHamsterMusketeer 判断。
+    if (unit._isHamsterRiotSquad) return 'riot_special';
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
     if (unit._isHamsterKnight) return 'knight';

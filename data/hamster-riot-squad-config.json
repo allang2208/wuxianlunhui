@@ -1,0 +1,106 @@
+{
+  "id": "hamster_riot_squad",
+  "name": "仓鼠防暴队",
+  "title": "仓鼠军营三级盾卫·防暴队",
+  "desc": "持防暴盾与霰弹枪稳步推进的三级重装仓鼠单位，以正前方 45°、最远 300px 的低伤害散弹扇区压制多个目标；不生成弹道或爆炸，并继承盾卫路线的自动防御。",
+  "role": "riot_special",
+  "growthRule": "warrior",
+  "avatar": "🐹🛡️🔫",
+  "weaponType": "shotgun",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 600,
+  "baseData": {
+    "str": 20,
+    "dex": 12,
+    "int": 3,
+    "con": 42,
+    "wis": 4,
+    "luck": 6
+  },
+  "statFormula": "enemy",
+  "groundRadius": 22,
+  "collisionRadius": 22,
+  "bodyHeight": 105,
+  "size": 64,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/companions/hamster_musketeer/fire.mp3"
+  },
+  "ai": {
+    "role": "riot_cone_suppressor",
+    "walkSpeed": 72,
+    "runSpeed": 72,
+    "attackInterval": 2600,
+    "attackDamage": 36,
+    "attackRange": 300,
+    "attackArcDegrees": 45,
+    "engageRange": 900,
+    "muzzleOffsetX": 18,
+    "muzzleOffsetY": -2,
+    "muzzleHeight": 55,
+    "attackSparkCount": 30,
+    "attackEffectDurationMs": 240,
+    "attackAnimFps": 24,
+    "attackLaunchFrame": 17,
+    "followOffset": 155,
+    "followArriveDist": 42,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 313.664397,
+  "spriteOffsetY": -58.199449,
+  "render": {
+    "footOffsetY": 58.199449,
+    "hudOffsetY": 119,
+    "collisionWidth": 44,
+    "collisionHeight": 105
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_riot_squad/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 24,
+      "frames": [0, 23],
+      "frameRate": 16,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_riot_squad/walking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 8,
+      "frameCount": 62,
+      "frames": [0, 61],
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_riot_squad/attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 41,
+      "frames": [0, 40],
+      "frameRate": 24,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_riot_squad/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 31,
+      "frames": [0, 30],
+      "frameRate": 20,
+      "repeat": 0
+    }
+  }
+}

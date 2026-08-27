@@ -17,6 +17,7 @@ import hamsterChampionConfig from '../../../data/hamster-champion-config.json';
 import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
 import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterPhalanxConfig from '../../../data/hamster-phalanx-config.json';
+import hamsterRiotSquadConfig from '../../../data/hamster-riot-squad-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
 import hamsterHalberdierConfig from '../../../data/hamster-halberdier-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
@@ -125,7 +126,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -1080,7 +1081,7 @@ export class BootScene extends Scene {
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候/游侠/狙击手 attack 单次播放，投射物出膛帧由各自 AI 配置驱动；
         // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

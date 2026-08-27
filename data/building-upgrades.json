@@ -53,7 +53,7 @@
     }
   },
   "barracks_defense": {
-    "unitKinds": ["warrior", "champion", "guard", "phalanx"],
+    "unitKinds": ["warrior", "champion", "guard", "phalanx", "riot_special"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -105,7 +105,7 @@
     },
     "abilities": {
       "poison_arrow": { "id": "poison_arrow", "name": "毒箭", "icon": "☠️", "iconImage": "assets/ui/building-upgrades/poison-arrow.png", "target": "shooter", "unitKinds": ["shooter"], "base": 0.2, "per": 0.05, "maxLevel": 10, "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）" },
-      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "仓鼠盾卫、仓鼠方阵", "unitKinds": ["guard", "phalanx"], "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "仓鼠盾卫与仓鼠方阵受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
+      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "仓鼠盾卫、仓鼠方阵、仓鼠防暴队", "unitKinds": ["guard", "phalanx", "riot_special"], "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "盾卫路线单位受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
       "sweep_aoe": { "id": "sweep_aoe", "name": "横扫", "icon": "💥", "iconImage": "assets/ui/building-upgrades/sweep-aoe.png", "target": "warrior", "unitKinds": ["warrior"], "base": 0.2, "per": 0.05, "maxLevel": 10, "rangeBonus": 30, "arcDegrees": 120, "desc": "仓鼠战士普攻附带前方扇形 AOE，造成 {dmg}% 额外伤害（每级 +5%）" },
       "mark_arrow": { "id": "mark_arrow", "name": "标记", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/mark-arrow.png", "target": "仓鼠斥候、仓鼠赏金猎人", "unitKinds": ["scout", "bounty_hunter"], "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候与赏金猎人命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
       "armor_piercing_round": { "id": "armor_piercing_round", "name": "穿甲弹", "icon": "🔩", "iconImage": "assets/ui/building-upgrades/armor-piercing-round.png", "target": "仓鼠火枪、仓鼠赏金猎人", "unitKinds": ["musketeer", "bounty_hunter"], "firstLevel": 0.25, "per": 0.025, "maxLevel": 10, "desc": "仓鼠火枪与赏金猎人获得 {pct} 护甲穿透（Lv.1 为 25%，之后每级 +2.5%）" },

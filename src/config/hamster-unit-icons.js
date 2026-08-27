@@ -12,6 +12,7 @@ export const HAMSTER_UNIT_ICONS = Object.freeze({
     shooter: `${UNIT_ICON_ROOT}/hamster-shooter.png`,
     guard: `${UNIT_ICON_ROOT}/hamster-guard.png`,
     phalanx: `${UNIT_ICON_ROOT}/hamster-phalanx.png`,
+    riot_special: `${UNIT_ICON_ROOT}/hamster-riot-squad.png`,
     scout: `${UNIT_ICON_ROOT}/hamster-scout.png`,
     ranger: `${UNIT_ICON_ROOT}/hamster-ranger.png`,
     crossbow: `${UNIT_ICON_ROOT}/hamster-crossbow.png`,

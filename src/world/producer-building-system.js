@@ -13,6 +13,7 @@ import { HamsterChampion } from '../entities/hamster-champion.js';
 import { HamsterShooter } from '../entities/hamster-shooter.js';
 import { HamsterGuard } from '../entities/hamster-guard.js';
 import { HamsterPhalanx } from '../entities/hamster-phalanx.js';
+import { HamsterRiotSquad } from '../entities/hamster-riot-squad.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterHalberdier } from '../entities/hamster-halberdier.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
@@ -65,6 +66,7 @@ import championCfg from '../../data/hamster-champion-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
+import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
@@ -163,6 +165,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     shooter: '仓鼠射手',
     guard: '仓鼠盾卫',
     phalanx: '仓鼠方阵',
+    riot_special: '仓鼠防暴队',
     militia: '仓鼠民兵',
     halberd: '仓鼠长戟',
     scout: '仓鼠斥候',
@@ -265,6 +268,7 @@ const PRODUCER_UNIT_CFG = {
     shooter: shooterCfg,
     guard: guardCfg,
     phalanx: phalanxCfg,
+    riot_special: riotSquadCfg,
     militia: militiaCfg,
     halberd: halberdierCfg,
     scout: scoutCfg,
@@ -293,6 +297,7 @@ const PRODUCER_UNIT_CLASS = {
     shooter: HamsterShooter,
     guard: HamsterGuard,
     phalanx: HamsterPhalanx,
+    riot_special: HamsterRiotSquad,
     militia: HamsterMilitia,
     halberd: HamsterHalberdier,
     scout: HamsterScout,
@@ -320,6 +325,7 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     shooter: 'data/hamster-shooter-config.json',
     guard: 'data/hamster-guard-config.json',
     phalanx: 'data/hamster-phalanx-config.json',
+    riot_special: 'data/hamster-riot-squad-config.json',
     militia: 'data/hamster-militia-config.json',
     halberd: 'data/hamster-halberdier-config.json',
     scout: 'data/hamster-scout-config.json',
