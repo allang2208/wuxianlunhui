@@ -96,6 +96,14 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **固定视角/方向/结构**：`--model flux2-klein-4b-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
 - **World-122 建筑**：采用“12 步结构粗筛 → 人工选纯绿底结构图 → 48 步低重绘精修”的两阶段管线；两阶段使用 Blender 深度图锁定结构，并派生边缘图辅助检查。远端插件确认支持 Hook 链后才加 `--edge-control` 启用第二路控制。结构提示词只管封闭体块和塔楼数量，细节提示词只管材质与时代组件；命令与参数见 WORKFLOW §1.5.1。
 
+##### World-122 建筑非默认模型的实验边界（HiDream / Z-Image）
+
+- **生产路由不因通用榜单成绩自动切换**：建筑任务以同一白模 Depth、同一参考 raw、同尺寸的任务内 A/B 为准，重点比较结构偏差、主体外投影/暗光晕、表面高频细节和最终透明裁切。HiDream 或 Z-Image 的通用偏好榜、写实或文字能力不能替代这组验收；未同时胜过当前 Klein 4B 结果前，只能留在研发目录，不能进入正式候选集。
+- **Z-Image Turbo + Union 只作显式研发对照**：Turbo 是 8 步蒸馏生成模型，不按标准 CFG 负面提示词合同工作；Union 的 Depth 负责几何约束，不负责复制参考图的材质、明暗和细节。把整张旧 raw 同时作为 inpaint 参考仍不等于精确材质迁移，可能与 Depth 争夺控制权，并产生暗光晕、外部投影和细节简化。
+- **固定兼容性禁区**：`z_image_int8_convrot` 单独生图可用，但与 `Z-Image-Turbo-Fun-Controlnet-Union-2.1-2602-8steps` 组合会输出噪声，禁止自动路由。只有用户明确要求实验时才可换 NVFP4/BF16，保持官方 8 步链（CFG 1、`res_multistep`、`simple`、AuraFlow shift 3，Union strength/control context 0.65~1.0）；这些参数不写回 Klein 标准工作流。
+- **止损条件**：出现“结构约 80% 可还原，但主体偏暗、阴影增多、纹理明显少于 Klein/旧 raw”时，不再用盲增步数、strength、精度或 seed 数解决。实测 strength 1.0 和 BF16 都没有恢复丢失细节；完整 Blender Depth 可以在后处理阶段确定性清除 Depth 外投影，却不能修复主体内部烘焙暗光和缺失材质，后两项仍存在就判该候选不合格。
+- **HiDream-O1-Image-Dev 也不自动兜底**：其多参考能力可用于显式对照，但军营建筑实验仍出现灰色摄影棚背景、错误投影和主体偏糊；参考注入不能替代完整 Blender Depth，也不能改变默认 Klein 4B 的 12/48 两阶段入口。以后若重启该方向，先做独立的结构、材质两阶段研发并通过上述 A/B 门槛，不直接改生产配置。
+
 ##### World-122 建筑最高优先级管线：组件化白模 → 12 步 → 48 步
 
 这是新建、重做或大幅调整 World-122 建筑的**第一选择**。只要目标是可放置建筑，就先检查组件库并搭 Blender 白模，不先用纯提示词盲抽，也不把手绘轮廓当正式结构真源。纯提示词/ImageGen 只用于概念探索；未经 Blender Depth 锁定的图不能直接提升为正式建筑资产。
@@ -514,7 +522,10 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 - 视频：MiniMax H3 开源权重（`minimax_h3_fl2va/ref2va_pruned_int8_convrot` 各 19.5GB + qwen3vl-32b
   nvfp4 awq 14.6GB + 音视频 VAE）。
 - 2D：FLUX.2 Klein 4B fp8（3.8GB，生产主力）+ FLUX.2 Dev fp8（33GB）+ FLUX.2-dev-Fun-Controlnet-Union
-  （7.7GB）+ Mistral3 Small 文本编码器（11.4GB）+ Qwen3-4B（7.5GB）+ flux2-vae。
+  （7.7GB）+ Mistral3 Small 文本编码器（11.4GB）+ Qwen3-4B（7.5GB）+ flux2-vae。另有研发对照用
+  Z-Image Turbo INT8 ConvRot（约6.2GB）/NVFP4（约4.5GB）/BF16（约12.3GB）与
+  `Z-Image-Turbo-Fun-Controlnet-Union-2.1-2602-8steps`（约6.7GB）；INT8 ConvRot + Union 会输出噪声，
+  只允许 INT8 单独生图或显式改用 NVFP4/BF16 做 Union 对照，均不得参与默认路由。
 - LoRA：Flux2TurboComfyv2 + klein 六件套（epic/equipment/skillicon v1~v3/walltex）；SDXL 底模；BiRefNet。
 - 训练环境 `D:\开发文件\lora-train`：AI-Toolkit + 6 套数据集 + Klein 4B Base 7.2GB + venv cu128。
 
