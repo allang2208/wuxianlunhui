@@ -224,9 +224,9 @@
         "baseResearchPointsPerSecond": 1,
         "tex": "research_institute",
         "displayW": 256,
-        "displayH": 273,
-        "footOffsetY": 135,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.760073, "widthRatio": 1, "depthRatio": 0.468864, "scaleMode": "strict" }
+        "displayH": 265,
+        "footOffsetY": 131,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75283, "widthRatio": 1, "depthRatio": 0.483019, "scaleMode": "strict" }
       },
       {
         "level": 2,
@@ -234,9 +234,9 @@
         "baseResearchPointsPerSecond": 1.25,
         "tex": "research_institute_lv2",
         "displayW": 256,
-        "displayH": 304,
-        "footOffsetY": 150,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.782895, "widthRatio": 1, "depthRatio": 0.421053, "scaleMode": "strict" },
+        "displayH": 299,
+        "footOffsetY": 148,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.780936, "widthRatio": 1, "depthRatio": 0.428094, "scaleMode": "strict" },
         "upgradeCost": { "gold": 2000, "energy": 4000, "timeMs": 90000 }
       },
       {
@@ -245,9 +245,9 @@
         "baseResearchPointsPerSecond": 1.5,
         "tex": "research_institute_lv3",
         "displayW": 256,
-        "displayH": 346,
-        "footOffsetY": 171,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.809249, "widthRatio": 1, "depthRatio": 0.369942, "scaleMode": "strict" },
+        "displayH": 337,
+        "footOffsetY": 167,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.805638, "widthRatio": 1, "depthRatio": 0.379822, "scaleMode": "strict" },
         "upgradeCost": { "gold": 5000, "energy": 10000, "timeMs": 180000 }
       }
     ]

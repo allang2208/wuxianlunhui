@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_research_institute_flux_dev_regen_20260827\\research_institute_lv2\\research_institute_lv2_refine_v02_body.png",
+  "output": "assets\\terrain\\research_institute_lv2.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    207,
+    145,
+    818,
+    858
+  ],
+  "fileSize": [
+    611,
+    713
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    607,
+    709
+  ],
+  "displayW": 256,
+  "displayH": 299,
+  "footOffsetY": 148,
+  "scaleX": 0.41898527004909986,
+  "scaleY": 0.41935483870967744
+}

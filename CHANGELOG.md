@@ -14826,3 +14826,8 @@
 ### 美术：LV2 罗马军营 v01 正式入库（2026-08-26）
 - 用户确认48步v01后，将其完整RGBA body作为唯一Alpha真源；正式收口保持Alpha字节不变，只以最近不透明主体色修复半透明边缘RGB并紧裁，生成661×695运行时贴图。等比显示参数为290×305、`footOffsetY=151`，旗杆、双旗、平屋顶、双城垛塔、中央门楼和盾徽均完整保留。
 - `hamster_barracks`二级编制新增独立等级视觉`hamster_barracks_lv2`，BootScene沿用通用`recruitmentTiers[].visual`自动预载；科研解锁二级编制后只替换建筑名称、贴图和视觉尺寸，继续继承既有标准2×2逻辑占格、碰撞、道路、寻路、生产与升级合同。同步生成silhouette/projection/height/normal四张环境光照派生图并登记清单；候选manifest、模型合同和运行时元数据已同步，独立科技徽章未用未经确认的新稿覆盖。未运行测试、构建、lint、浏览器探针或游戏运行时验证，按约定由用户重点检查二级科研解锁后的即时换图、脚点、遮挡、昼夜光照和三级沿用二级外观。
+
+### 美术：研究所 LV1/LV2/LV3 FLUX.2 Dev Depth 重制入库（2026-08-27）
+- 三级分别从用户确认的12步结构稿晋级两张48步低重绘候选，统一使用`world122-building-v4`、`flux2-dev-depth`、Depth 0.75、denoise 0.30、CFG 3.5；最终三级均接受精修v02，并以`--preserve-alpha-exact`独立紧裁入库。
+- 正式贴图尺寸依次为611×632、611×713、608×800，等比显示参数依次为256×265/脚点131、256×299/脚点148、256×337/脚点167；同步基础建造缩略图、LV1资产哈希、三级`visualFootprint`及各自silhouette/projection/height/normal照明资产，逻辑占格、碰撞、寻路和道路合同不变。
+- 候选目录按最小可编辑链收口，只保留接受的结构raw、精修raw/body/preview、两阶段Depth/提示词/生成元数据、运行元数据和总manifest；未选seed、keyed/cleaned/anchored、联系表与未使用edge已删除。未运行测试、构建或游戏运行时验证，按约定由用户重点检查三级升级换图、接地层对齐与昼夜阴影。
