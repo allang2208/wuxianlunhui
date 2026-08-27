@@ -1669,7 +1669,9 @@ class ProducerBuildingPanel extends BasePanel {
             }
             return;
         }
-        if (b._economyType) {
+        // 仓库同时声明 economyType 与 workshopType；必须让它落到下方仓库专用分支，
+        // 否则等级/本栋升级瞬间结算后，通用经济分支会提前 return，按钮只能重开面板才刷新。
+        if (b._economyType && !b._isEnergyWarehouse) {
             const population = PopulationEconomySystem.getPopulationSnapshot();
             const workforce = PopulationEconomySystem.getWorkerSnapshot(b);
             const populationEl = el.querySelector('#pbEconomyPopulation');
@@ -2596,7 +2598,9 @@ class ProducerBuildingPanel extends BasePanel {
         const isPassive = cfg.panelMode === 'detail';
         const isWeatherTower = b.cfgKey === WEATHER_FORECAST_TOWER_ID;
         const isCandle = cfg.panelMode === 'candle';
-        const isEconomy = !!cfg.economyType;
+        // 仓库拥有 economyType，但使用独立的仓储/等级扩建面板；不能先落入
+        // 通用经济分支的风车兜底，否则科技解锁后的仓库扩建卡永远不可见。
+        const isEconomy = !!cfg.economyType && !isWarehouse;
         const isAbilityShop = cfg.spawnEnabled === false
             && !isWarehouse && !isPassive && !isCandle && !isEconomy;
         el.classList.toggle('is-troop-producer', !!b._isTroopProducer);
@@ -4261,7 +4265,8 @@ class ProducerBuildingPanel extends BasePanel {
                 : '<span class="troop-panel-caption">已满级</span>';
             const levelCard = renderBuildingUpgradeCard({
                 rowAttribute: 'data-warehouse-level-row', projectId: 'warehouse_level',
-                icon: '📦', name: nextLevel ? `扩建至 ${nextLevel.name}` : (levelCfg?.name || '仓库'),
+                icon: '📦', iconImage: 'assets/ui/building-upgrades/warehouse-level-expansion.png',
+                name: nextLevel ? `扩建至 ${nextLevel.name}` : (levelCfg?.name || '仓库'),
                 level: b._economyLevel || 1, maxLevel: maxWarehouseLevel,
                 cost: nextLevel?.upgradeCost || null, maxed: !nextLevel,
                 inProgress: !!levelUpgrade, progressPct: levelProgress,

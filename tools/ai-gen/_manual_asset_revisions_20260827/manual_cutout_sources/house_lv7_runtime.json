@@ -1,0 +1,60 @@
+{
+  "source": "tools\\ai-gen\\_manual_asset_revisions_20260827\\manual_cutout_sources\\house_lv7_regenerated_v2_raw_green.png",
+  "output": "assets\\terrain\\house_lv7.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 1,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    80,
+    75,
+    1166,
+    1209
+  ],
+  "fileSize": [
+    1086,
+    1134
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    1082,
+    1130
+  ],
+  "displayW": 258,
+  "displayH": 265,
+  "footOffsetY": 132,
+  "scaleX": 0.23747669347144026,
+  "scaleY": 0.2335767147956962,
+  "visualFootprint": {
+    "centerXRatio": 0.5,
+    "centerYRatio": 0.75485,
+    "widthRatio": 0.992634,
+    "depthRatio": 0.483245,
+    "scaleMode": "strict"
+  }
+}

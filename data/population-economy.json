@@ -113,9 +113,9 @@
         "populationCapacity": 34,
         "tex": "house_lv5",
         "displayW": 330,
-        "displayH": 401,
-        "footOffsetY": 200,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8533333333333334, "widthRatio": 0.7757575757575758, "depthRatio": 0.28444444444444444, "scaleMode": "strict" },
+        "displayH": 395,
+        "footOffsetY": 196,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8341772151898734, "widthRatio": 0.7757575757575758, "depthRatio": 0.3240506329113924, "scaleMode": "strict" },
         "upgradeCost": { "gold": 2400, "energy": 4800, "timeMs": 90000 }
       },
       {
@@ -123,10 +123,10 @@
         "technologyUnlockId": "house_level_6",
         "populationCapacity": 46,
         "tex": "house_lv6",
-        "displayW": 340,
-        "displayH": 483,
-        "footOffsetY": 239,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8623188405797102, "widthRatio": 0.7529411764705882, "depthRatio": 0.2650103519668737, "scaleMode": "strict" },
+        "displayW": 320,
+        "displayH": 454,
+        "footOffsetY": 225,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.854625550660793, "widthRatio": 0.8, "depthRatio": 0.28193832599118945, "scaleMode": "strict" },
         "upgradeCost": { "gold": 4800, "energy": 9600, "timeMs": 180000 }
       },
       {
@@ -135,9 +135,9 @@
         "populationCapacity": 60,
         "tex": "house_lv7",
         "displayW": 360,
-        "displayH": 482,
-        "footOffsetY": 241,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8698630136986302, "widthRatio": 0.7111111111111111, "depthRatio": 0.25048923679060664, "scaleMode": "strict" },
+        "displayH": 464,
+        "footOffsetY": 230,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8577586206896551, "widthRatio": 0.7111111111111111, "depthRatio": 0.27586206896551724, "scaleMode": "strict" },
         "upgradeCost": { "gold": 9600, "energy": 19200, "timeMs": 300000 }
       }
     ]
