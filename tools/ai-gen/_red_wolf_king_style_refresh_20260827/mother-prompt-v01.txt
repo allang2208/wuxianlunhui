@@ -1,0 +1,22 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for the RedWolfKing quadruped monster in a Phaser game animation pipeline
+
+Input images:
+- Image 1 is identity reference only: preserve the same quadruped red wolf identity, dark crimson fur, near-black dorsal markings, grey-black scarred muzzle, amber eyes, large elite-wolf build, and long bushy tail. Do not copy the spritesheet layout or multiple frames.
+- Image 2 is style and production-finish reference only: match its realistic animal anatomy, restrained high-detail fur, clean PBR game-render finish, flat white studio presentation, and neutral animation-friendly pose. Do not copy bear anatomy, proportions, color, or species.
+
+Primary request: Create exactly one production-ready mother image of the quadruped Red Wolf King, restyled to match the project's recently added realistic monsters.
+
+Subject identity: one enormous fantasy alpha wolf, still unmistakably a physically believable wolf; deep dark-crimson coat with natural maroon variation rather than neon red; charcoal-black dorsal saddle and subtle irregular black striping along shoulders and flanks; dense layered fur; powerful but anatomically plausible chest, shoulders, hips and legs; weathered grey-black muzzle with restrained old scars; alert triangular ears; intense amber-gold eyes; black nose and claws; long full bushy tail. No armor, collar, jewelry, horns, spikes, flames, glow, runes, blood, wounds, exposed flesh, or extra supernatural decorations.
+
+Pose: calm animation-friendly neutral idle, standing naturally on all four paws with believable weight distribution; head alert but not snarling; mouth closed or only slightly parted; spine and tail relaxed; all four legs clearly separated and readable; every paw contacts one shared baseline.
+
+Composition and camera: full-body strict side to very low three-quarter view facing right, orthographic-style locked camera, minimal elevation; subject occupies about 60 percent of canvas width and no more than 58 percent of canvas height; centered with generous safe margins around nose, ears, paws and tail; landscape canvas; no cropping.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production asset, anatomically credible and materially realistic, controlled saturation, detailed individual fur clumps, subtle roughness variation, strong readable silhouette; visually consistent with the recent realistic bear, snake and Medusa monster mothers; not a photograph, not cartoon, not anime, not painterly concept art, not a toy.
+
+Scene and lighting: perfectly flat pure white #FFFFFF background with no horizon and no floor; soft even diffuse studio illumination only; no directional cast shadow, no contact shadow, no reflection, no rim halo, no vignette.
+
+Identity locks: exactly one red wolf; quadruped canine anatomy; four legs only; one head and one tail; dark crimson plus charcoal coat; grey-black scarred muzzle; amber eyes; full silhouette; clean fur edges; neutral mother-frame pose.
+
+Avoid: extra or missing limbs, fused legs, duplicated paws, split tail, bear body, dog breed appearance, werewolf or humanoid anatomy, oversized bodybuilder muscles, tiger anatomy, open roaring mouth, attack/run/crouch pose, perspective distortion, camera tilt, hard light, black background, colored background, scenery, particles, text, logo, watermark, cyan or magenta fringes, black outline, plastic fur, oversaturation, cropping.

@@ -1,0 +1,157 @@
+{
+  "task": "red_wolf_king_wolf_to_v03_werewolf_animation_refresh",
+  "date": "2026-08-27",
+  "provider": "minimax-h3",
+  "sourceWolfMother": "../_red_wolf_king_style_refresh_20260827/red-wolf-king-mother-v01.png",
+  "sourceWerewolfMother": "../_red_wolf_king_style_refresh_20260827/red-werewolf-mother-v03-druid-medusa-realistic.png",
+  "sourceApproval": "user approved v03 realistic werewolf mother in current task",
+  "rawDurationSeconds": 5,
+  "sourceFrameRate": 24,
+  "size": "1024x576",
+  "runtimeIntegrationActive": true,
+  "status": "v03_transform_idle_run_attack_pounce_v06_howl_v01_dying_v01_integrated_scale_v03",
+  "runtimeScaleContract": {
+    "targetContentHeight": 290,
+    "werewolfVisualScale": 1.8,
+    "werewolfCollisionScale": 1.25,
+    "runtimeStandingHeight": "transform final 154.5px -> v03 idle 152.9px -> v03 howl neutral 153.9px -> v03 dying standing 155.0px",
+    "transition": "source alpha heights remain 291px -> 288px -> 290px -> 292px; shared 1.8 runtime visual scale follows the user-tested boss-volume target while preserving action consistency"
+  },
+  "discardedMotions": [
+    {
+      "name": "werewolf_walk",
+      "reason": "user clarified that locomotion only needs running; the stiff 14-frame walking candidate must not be integrated"
+    },
+    {
+      "name": "werewolf_run_10_frame",
+      "reason": "five sparse source poses interpolated to ten frames lost gait detail and did not read as a natural loop"
+    },
+    {
+      "name": "werewolf_pounce_v01",
+      "reason": "the body scale grew during the leap and exceeded the established 640x640 werewolf action standard"
+    },
+    {
+      "name": "werewolf_pounce_v02",
+      "reason": "strong prompt-side scale locking did not prevent body enlargement during the leap"
+    },
+    {
+      "name": "werewolf_pounce_v03",
+      "reason": "the approved wolf-form pounce reference caused the biped werewolf to drift into a quadrupedal hybrid"
+    },
+    {
+      "name": "werewolf_pounce_v04",
+      "reason": "the normalized biped motion reference still collapsed into an oversized quadrupedal wolf"
+    },
+    {
+      "name": "werewolf_pounce_v05",
+      "reason": "scale stayed stable, but root locking produced an upright in-place jump instead of a readable forward pounce"
+    }
+  ],
+  "cleanup": {
+    "date": "2026-08-27",
+    "policy": "retain accepted mother, prompts, source videos, editable keyframe sheets, formal RIFE sheets, previews, reports and runtime assets; delete superseded candidates",
+    "deletedFamilies": [
+      "werewolf walk",
+      "werewolf run v01",
+      "werewolf transform v01 and Doubao trial",
+      "werewolf pounce v02-v05",
+      "unused wolf idle trials",
+      "rejected werewolf mother v01-v02"
+    ],
+    "retainedException": "werewolf-pounce-h3-v01.mp4 remains because the accepted v06 pounce was derived from its normalized authored trajectory"
+  },
+  "motions": [
+    {
+      "name": "transform",
+      "seed": 827611,
+      "prompt": "prompts/transform-h3-v02.txt",
+      "video": "videos/transform-h3-v02.mp4",
+      "spriteSheet": "sheets/interpolated-v02/transform.png",
+      "previewGif": "previews/sprites-v02/red-werewolf-v02-transform-interpolated.gif",
+      "frameCount": 21,
+      "layout": { "cols": 5, "rows": 5, "frameWidth": 640, "frameHeight": 640, "footY": 590 }
+    },
+    {
+      "name": "werewolf_run",
+      "seed": 827612,
+      "prompt": "prompts/werewolf-run-h3-v02.txt",
+      "video": "videos/werewolf-run-h3-v02.mp4",
+      "spriteSheet": "sheets/interpolated-v02/werewolf_running.png",
+      "previewGif": "previews/sprites-v02/red-werewolf-v02-run-interpolated.gif",
+      "frameCount": 20,
+      "layout": { "cols": 10, "rows": 2, "frameWidth": 640, "frameHeight": 640, "footY": 590 }
+    },
+    {
+      "name": "werewolf_attack",
+      "seed": 827615,
+      "prompt": "prompts/werewolf-attack-h3-v02.txt",
+      "video": "videos/werewolf-attack-h3-v02.mp4",
+      "spriteSheet": "sheets/interpolated-v02/werewolf_attacking.png",
+      "previewGif": "previews/sprites-v02/red-werewolf-v02-attack-interpolated.gif",
+      "frameCount": 21,
+      "layout": { "cols": 5, "rows": 5, "frameWidth": 640, "frameHeight": 640, "footY": 590 }
+    },
+    {
+      "name": "werewolf_pounce",
+      "seed": 827616,
+      "prompt": "prompts/werewolf-pounce-h3-v01.txt",
+      "video": "videos/werewolf-pounce-v06-scale-fixed.mp4",
+      "derivedFrom": "videos/werewolf-pounce-h3-v01.mp4",
+      "normalization": "per-frame distance-transform p95 scale correction with bbox-anchored horizontal and vertical pounce trajectory retained",
+      "nativeSourceFrameReplacements": { "9": 34, "11": 37 },
+      "spriteSheet": "sheets/interpolated-v02/werewolf_pouncing_v06.png",
+      "previewGif": "previews/sprites-v02/red-werewolf-v02-pounce-interpolated.gif",
+      "frameCount": 27,
+      "frameRate": 15.0,
+      "durationMs": 1800,
+      "integrationStatus": "integrated",
+      "runtimeAsset": "assets/enemies/red_wolf_king/werewolf_pouncing.png",
+      "runtimeTextureKey": "enemy_red_wolf_king_werewolf_pounce",
+      "rootMotion": "authored_pounce_trajectory_preserved",
+      "layout": { "cols": 5, "rows": 6, "frameWidth": 640, "frameHeight": 640, "footY": 590 }
+    },
+    {
+      "name": "werewolf_idle",
+      "derivedFrom": "videos/werewolf-howl-h3-v01.mp4 recovery hold frames 108-123",
+      "spriteSheet": "sheets/interpolated-v02/werewolf_idle.png",
+      "previewGif": "previews/sprites-v02/red-werewolf-v02-idle-interpolated.gif",
+      "frameCount": 20,
+      "frameRate": 12.0,
+      "integrationStatus": "integrated",
+      "runtimeAsset": "assets/enemies/red_wolf_king/werewolf_idle.png",
+      "runtimeTextureKey": "enemy_red_wolf_king_werewolf_idle",
+      "rootMotion": "looped_recovery_hold_with_fixed_footline",
+      "layout": { "cols": 10, "rows": 2, "frameWidth": 640, "frameHeight": 640, "footY": 590 }
+    },
+    {
+      "name": "werewolf_howl",
+      "seed": 827617,
+      "prompt": "prompts/werewolf-howl-h3-v01-root-lock.txt",
+      "video": "videos/werewolf-howl-h3-v01.mp4",
+      "spriteSheet": "sheets/interpolated-v02/werewolf_howling.png",
+      "previewGif": "previews/sprites-v02/red-werewolf-v02-howl-interpolated.gif",
+      "frameCount": 21,
+      "frameRate": 14.0,
+      "integrationStatus": "integrated",
+      "runtimeAsset": "assets/enemies/red_wolf_king/werewolf_howling.png",
+      "runtimeTextureKey": "enemy_red_wolf_king_werewolf_howl",
+      "rootMotion": "feet_and_horizontal_pelvis_locked",
+      "layout": { "cols": 5, "rows": 5, "frameWidth": 640, "frameHeight": 640, "footY": 590 }
+    },
+    {
+      "name": "werewolf_dying",
+      "seed": 827618,
+      "prompt": "prompts/werewolf-dying-h3-v01.txt",
+      "video": "videos/werewolf-dying-h3-v01.mp4",
+      "spriteSheet": "sheets/interpolated-v02/werewolf_dying.png",
+      "previewGif": "previews/sprites-v02/red-werewolf-v02-dying-interpolated.gif",
+      "frameCount": 21,
+      "frameRate": 11.0,
+      "integrationStatus": "integrated",
+      "runtimeAsset": "assets/enemies/red_wolf_king/werewolf_dying.png",
+      "runtimeTextureKey": "enemy_red_wolf_king_werewolf_dying",
+      "rootMotion": "authored_fall_preserved_with_fixed_scale_and_ground_line",
+      "layout": { "cols": 5, "rows": 5, "frameWidth": 640, "frameHeight": 640, "footY": 590 }
+    }
+  ]
+}
