@@ -38,6 +38,7 @@
     "type": "普通",
     "category": "monster",
     "family": "动物",
+    "families": ["动物", "自然"],
     "description": "",
     "skills": [],
     "attackType": "撕咬",
@@ -120,6 +121,7 @@
     "type": "普通",
     "category": "monster",
     "family": "动物",
+    "families": ["动物", "自然"],
     "description": "常见于温暖林地与湿地的棕色毒蛇。体魄和速度略逊于黑狼，但撕咬攻击力接近黑狼，并会在每次有效命中后叠加中毒。",
     "skills": [
       {
@@ -218,6 +220,7 @@
     "type": "精英",
     "category": "monster",
     "family": "动物",
+    "families": ["动物", "自然"],
     "attackRange": 190,
     "attackDistance": 190,
     "basicMelee": {
@@ -404,6 +407,7 @@
     "type": "普通",
     "category": "monster",
     "family": "动物",
+    "families": ["动物", "自然"],
     "description": "栖息在林地与湿地边缘的成年棕熊，体魄、力量与机动性全面强于黑狼，厚实皮毛还能削弱远程物理攻击。",
     "skills": [
       {
@@ -1121,7 +1125,7 @@
     "type": "领主",
     "category": "monster",
     "family": "动物",
-    "families": ["动物", "大型"],
+    "families": ["动物", "自然", "大型"],
     "attackSkills": {
       "spellcasting": {
         "comment": "德鲁伊初始形态依次用攻击动画施放冰锥、闪电、火球。",
@@ -1389,6 +1393,7 @@
     "type": "精英",
     "category": "monster",
     "family": "动物",
+    "families": ["动物", "自然"],
     "attackRange": 210,
     "aiInterval": 1000,
     "dashDistance": 300,
