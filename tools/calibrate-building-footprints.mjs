@@ -35,17 +35,29 @@ function auditTargets() {
     const targets = [];
     for (const [id, cfg] of Object.entries(configs)) {
         if (!cfg || typeof cfg !== 'object' || !cfg.tex || !(cfg.displayW > 0) || !(cfg.displayH > 0)) continue;
-        targets.push({
-            id,
-            textureKey: cfg.tex,
-            sourcePath: cfg.assetPath || `assets/terrain/${cfg.tex}.png`,
-            nominalWidth: TARGET_W,
-            nominalHeight: TARGET_H,
-            constrainToPrism: cfg.autoFootprint !== true,
-            centerAdjustX: Number(cfg.anchorAdjustX) || 0,
-            centerAdjustY: Number(cfg.anchorAdjustY) || 0,
-            visualFootprint: resolveConfiguredVisualFootprint(cfg, TARGET_W, TARGET_H),
-        });
+        const footprintCells = Number(cfg.footprintCells) === 4 ? 4 : 2;
+        const nominalWidth = footprintCells * 128;
+        const nominalHeight = footprintCells * 64;
+        const pushVisual = (targetId, visual) => {
+            if (!visual?.tex || !(visual.displayW > 0) || !(visual.displayH > 0)) return;
+            targets.push({
+                id: targetId,
+                textureKey: visual.tex,
+                sourcePath: visual.assetPath || `assets/terrain/${visual.tex}.png`,
+                nominalWidth,
+                nominalHeight,
+                constrainToPrism: visual.autoFootprint !== true,
+                centerAdjustX: Number(visual.anchorAdjustX) || 0,
+                centerAdjustY: Number(visual.anchorAdjustY) || 0,
+                visualFootprint: resolveConfiguredVisualFootprint(
+                    visual, nominalWidth, nominalHeight
+                ),
+            });
+        };
+        pushVisual(id, cfg);
+        for (const tier of [...(cfg.buildingTiers || []), ...(cfg.recruitmentTiers || [])]) {
+            pushVisual(tier.id || `${id}_level_${tier.level}`, tier.visual);
+        }
     }
     for (const cfg of [minerCamp]) {
         targets.push({

@@ -115,19 +115,28 @@ function groundFitTargets() {
         const footprintCells = Number(cfg.footprintCells) === 4 ? 4 : 2;
         const nominalWidth = footprintCells * 128;
         const nominalHeight = footprintCells * 64;
-        targets.push({
-            id: cfg.id,
-            textureKey: cfg.tex,
-            sourcePath: cfg.assetPath || terrainPath(cfg.tex),
-            displayWidth: cfg.displayW,
-            displayHeight: cfg.displayH,
-            nominalWidth,
-            nominalHeight,
-            constrainToPrism: cfg.autoFootprint !== true,
-            centerAdjustX: Number(cfg.anchorAdjustX) || 0,
-            centerAdjustY: Number(cfg.anchorAdjustY) || 0,
-            visualFootprint: resolveConfiguredVisualFootprint(cfg, nominalWidth, nominalHeight),
-        });
+        const pushVisual = (id, visual) => {
+            if (!visual?.tex || !(visual.displayW > 0) || !(visual.displayH > 0)) return;
+            targets.push({
+                id,
+                textureKey: visual.tex,
+                sourcePath: visual.assetPath || terrainPath(visual.tex),
+                displayWidth: visual.displayW,
+                displayHeight: visual.displayH,
+                nominalWidth,
+                nominalHeight,
+                constrainToPrism: visual.autoFootprint !== true,
+                centerAdjustX: Number(visual.anchorAdjustX) || 0,
+                centerAdjustY: Number(visual.anchorAdjustY) || 0,
+                visualFootprint: resolveConfiguredVisualFootprint(
+                    visual, nominalWidth, nominalHeight
+                ),
+            });
+        };
+        pushVisual(cfg.id, cfg);
+        for (const tier of [...(cfg.buildingTiers || []), ...(cfg.recruitmentTiers || [])]) {
+            pushVisual(tier.id || `${cfg.id}_level_${tier.level}`, tier.visual);
+        }
     }
     targets.push(
         {

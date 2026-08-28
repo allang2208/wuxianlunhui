@@ -1619,8 +1619,8 @@
   运动 overlay、按需工作特效与结构阴影必须共用这一结果；非等比缩放时 overlay 的位置与尺寸分别消费 X/Y 比例。
   独立道路补片仍由 `BuildingRoadSystem` 维护，视觉标定不得反写碰撞、占格或寻路。
   只有显式标定和显示配置派生都不可用时，才允许临时回退 alpha 自动识别；回退结果只作初始建议，不能作为正式验收。
-  `node tools/calibrate-building-footprints.mjs --check` 必须覆盖生产建筑、矿工营地、仓鼠兵营、全部房屋等级
-  和4×4基地，并验证标定中心及映射宽深；素材或标定变化后运行
+  `node tools/calibrate-building-footprints.mjs --check` 必须覆盖生产建筑及其 `buildingTiers[]/recruitmentTiers[]`
+  升级贴图、矿工营地、全部房屋等级和4×4建筑，并验证标定中心及映射宽深；素材或标定变化后运行
   `node tools/generate-building-preview-assets.mjs` 更新清单。算法版本8以前的派生清单不得注册。
 - **底部锁定铁律**：实体与建造幽灵必须共用 `resolveStructureGroundFit()` 的 `footOffsetY + visualOffsetX`。禁止实体走 `resolveStructureFootOffset()`、幽灵另走一套最低像素计算，否则预览贴地但落地后跳动。像素四边形物理仍只允许显式 `autoFootprint:true` 的异形建筑使用。
 - **建筑/单位统一图层拓扑**：建筑主体及运动叠加层当前帧真实 alpha 必须合并为完整世界 AABB（含 flip/rotation），Sprite 尚未创建时才由 `visualFootprint` 确定性回退；二维空间索引只让画面 X/Y 都相交的建筑参与仲裁，禁止退回仅按 X 列收集。视觉 AABB 只负责宽相位，前后关系必须由建筑逻辑 footprint 与单位脚点共用的 u/v 比较器决定；普通格网建筑不得再进入墙/门的面线仲裁，也不得恢复 `structureFrontYAtX` 或单栋 depth 补丁。静态结构 gap 必须大于动态单位前后各0.5所需的完整插槽。`_faceDepth` 永远保留几何前缘，拓扑最终值只写 `_structureRenderDepth`。
@@ -1948,6 +1948,10 @@
       并先完成 `_syncStructureRenderOrder()` 再更新动态单位深度；禁止等周期性全量重建后才修正遮挡。多等级建筑即使
       已由显式 `visualFootprint` 严格映射到统一逻辑占格，也必须同步维护各等级 `displayW/displayH/footOffsetY`
       与 ground-fit manifest，避免回退路径、附着层或后续换图审计读取陈旧几何。
+      对完整绘制院落/围栏底面的4×4素材，必须由本级 `displayH/footOffsetY` 独立反推
+      `centerYRatio = 0.5 + (footOffsetY - 128) / displayH`、`depthRatio = 256 / displayH`，并以
+      `strict` 映射确认 `mappedFootprintWidth=512`、`mappedFootprintDepth=256`；禁止用道路补片或
+      `uniform` 缩放掩盖错误的纵深标定，否则贴图院落会越出碰撞棱柱并被误判成外围道路。
     - **纯视觉平民占用契约**：不进入 `Game.entities` 的岗位平民仍必须通过
       `civilian-visual-utils` 的目标点投影与分段移动扫掠，使用配置化 `groundRadius` 对普通建筑
       `iso_rect` footprint 做推出/沿边滑行；禁止在业务系统中直接累加坐标穿过建筑后，再用提高

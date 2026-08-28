@@ -563,7 +563,8 @@
     "name": "骑兵学院",
     "cost": 2200,
     "hp": 2000,
-    "radius": 128,
+    "footprintCells": 4,
+    "radius": 256,
     "def": 60,
     "mdef": 60,
     "tex": "cavalry_school",
@@ -571,7 +572,7 @@
     "displayW": 512,
     "displayH": 289,
     "footOffsetY": 140,
-    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.71, "widthRatio": 1, "depthRatio": 0.53, "scaleMode": "strict" },
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.541522, "widthRatio": 1, "depthRatio": 0.885813, "scaleMode": "strict" },
     "assetCutoutHash": "468CCD9961D590205B39B39DFB820B5BDB12F07783C1ACB0EF202DDF182DD348",
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
@@ -590,11 +591,11 @@
         { "slot": "light_cavalry", "role": "轻骑兵", "unitKey": "light_cavalry", "unitName": "仓鼠轻骑", "profile": "高机动、对远程增伤，并具有一定远程减伤" },
         { "slot": "heavy_cavalry", "role": "重骑兵", "unitKey": "knight", "unitName": "仓鼠骑士", "profile": "中高机动、高耐久、高抗性、高伤害、高造价" }
       ] },
-      { "id": "cavalry_school_level_2", "level": 2, "name": "骑兵学院二级编制", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "cavalry_school_lv2", "assetPath": "assets/terrain/cavalry_school_lv2.png", "displayW": 512, "displayH": 322, "footOffsetY": 157, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.7, "widthRatio": 1, "depthRatio": 0.55, "scaleMode": "strict" } }, "lines": [
+      { "id": "cavalry_school_level_2", "level": 2, "name": "骑兵学院二级编制", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "cavalry_school_lv2", "assetPath": "assets/terrain/cavalry_school_lv2.png", "displayW": 512, "displayH": 322, "footOffsetY": 157, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.590062, "widthRatio": 1, "depthRatio": 0.795031, "scaleMode": "strict" } }, "lines": [
         { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠轻骑", "unitKey": "cavalry", "unitName": "仓鼠骑兵", "profile": "245 移速的圆盾长枪骑兵；更高生命与近战伤害" },
         { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠骑士", "unitKey": "winged_hussar", "unitName": "仓鼠翼骑兵", "profile": "银甲翼架重骑；强化长枪普攻与冲锋" }
       ] },
-      { "id": "cavalry_school_level_3", "level": 3, "name": "骑兵学院三级编制", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "cavalry_school_lv3", "assetPath": "assets/terrain/cavalry_school_lv3.png", "displayW": 512, "displayH": 294, "footOffsetY": 142, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.68, "widthRatio": 1, "depthRatio": 0.6, "scaleMode": "strict" } }, "lines": [
+      { "id": "cavalry_school_level_3", "level": 3, "name": "骑兵学院三级编制", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "cavalry_school_lv3", "assetPath": "assets/terrain/cavalry_school_lv3.png", "displayW": 512, "displayH": 294, "footOffsetY": 142, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.547619, "widthRatio": 1, "depthRatio": 0.870748, "scaleMode": "strict" } }, "lines": [
         { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠骑兵", "unitKey": "scout_rifle_skirmisher", "unitName": "仓鼠侦察游骑兵", "profile": "260 移速的骑猫侦察步枪手；中距离单发射击，移动命令不打断瞄准与攻击" },
         { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠翼骑兵", "unitKey": "powered_eod_explosive_lancer", "unitName": "仓鼠动力爆矛重骑兵", "profile": "双火箭助推的重装爆矛骑兵；普通长矛突刺，冲锋直击眩晕并在命中点造成非眩晕AOE伤害" }
       ] }
