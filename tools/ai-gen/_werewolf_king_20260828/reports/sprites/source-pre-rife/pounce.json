@@ -1,0 +1,234 @@
+{
+  "action": "pounce",
+  "video": "videos\\pounce-doubao-v02-side-plane-lock.mp4",
+  "sourceFrames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96
+  ],
+  "referenceFrame": 0,
+  "excludedDuplicateEndpoint": null,
+  "mode": "one-shot",
+  "alignment": "fixed-source-trajectory",
+  "cellWidth": 1344,
+  "cellHeight": 640,
+  "cols": 6,
+  "frameCount": 25,
+  "frameRate": 6.0,
+  "targetReferenceHeight": 330.0,
+  "targetCenterX": 288.0,
+  "targetFeetY": 570.0,
+  "referenceSourceHeight": 283,
+  "fixedScale": 1.1660777385159011,
+  "fixedTranslateX": -76.83417261798172,
+  "fixedTranslateY": -103.99293286219086,
+  "alphaPixelsPerFrame": [
+    78065,
+    80937,
+    81562,
+    81366,
+    82560,
+    82821,
+    83500,
+    83702,
+    83510,
+    83586,
+    87423,
+    117945,
+    124676,
+    128379,
+    129896,
+    130907,
+    132709,
+    135138,
+    135665,
+    123579,
+    118750,
+    120549,
+    120402,
+    121745,
+    123386
+  ],
+  "alphaBottomMin": 440,
+  "alphaBottomMax": 603,
+  "outputBoxes": [
+    [
+      59,
+      241,
+      515,
+      570
+    ],
+    [
+      56,
+      241,
+      519,
+      570
+    ],
+    [
+      59,
+      247,
+      528,
+      570
+    ],
+    [
+      75,
+      251,
+      528,
+      570
+    ],
+    [
+      87,
+      254,
+      526,
+      570
+    ],
+    [
+      80,
+      254,
+      525,
+      570
+    ],
+    [
+      72,
+      254,
+      521,
+      570
+    ],
+    [
+      65,
+      251,
+      519,
+      570
+    ],
+    [
+      59,
+      248,
+      517,
+      570
+    ],
+    [
+      53,
+      246,
+      510,
+      570
+    ],
+    [
+      83,
+      252,
+      653,
+      571
+    ],
+    [
+      273,
+      88,
+      1080,
+      516
+    ],
+    [
+      296,
+      81,
+      1111,
+      488
+    ],
+    [
+      322,
+      76,
+      1134,
+      473
+    ],
+    [
+      341,
+      70,
+      1153,
+      460
+    ],
+    [
+      349,
+      66,
+      1169,
+      449
+    ],
+    [
+      352,
+      63,
+      1182,
+      440
+    ],
+    [
+      360,
+      69,
+      1204,
+      449
+    ],
+    [
+      439,
+      120,
+      1251,
+      554
+    ],
+    [
+      620,
+      115,
+      1281,
+      603
+    ],
+    [
+      729,
+      136,
+      1283,
+      600
+    ],
+    [
+      681,
+      228,
+      1277,
+      600
+    ],
+    [
+      652,
+      250,
+      1277,
+      600
+    ],
+    [
+      634,
+      236,
+      1286,
+      600
+    ],
+    [
+      649,
+      231,
+      1291,
+      601
+    ]
+  ],
+  "emptyFrames": [],
+  "touchingFrames": [],
+  "transparentRgbNonZeroMax": 0,
+  "sheet": "spritesheets\\source-pre-rife\\pounce.png",
+  "previewGif": "previews\\sprites\\source-pre-rife\\pounce-source-keys.gif",
+  "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\references\\werewolf-king-armored-pounce-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\prompts\\pounce-doubao-v01.txt",
+  "promptChars": 3371,
+  "promptSha256": "cc6d5ffde97348eee76383d4563954b36f8d27ffea593ccba2906eed0a4802d6",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T01:44:07.252Z",
+  "sourceUrlScheme": "https"
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\references\\werewolf-king-armored-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\prompts\\idle-doubao-v01.txt",
+  "promptChars": 1738,
+  "promptSha256": "15ef057fe6b0c976fa120b234a04c5f488c66e852951222f192d48de5e4801b0",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T01:10:00.105Z",
+  "sourceUrlScheme": "https"
+}

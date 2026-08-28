@@ -21,6 +21,7 @@ import { PartySystem } from '../systems/party-system.js';
 import { GroundEllipse, GroundSector } from '../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { surfaceEffectFromEntity } from '../physics/elevation.js';
+import { EffectFactory } from '../utils/effect-factory.js';
 import { playSoundFrom } from './enemy-types/_shared/enemy-utils.js';
 import {
     createGroundWarning,
@@ -2462,6 +2463,82 @@ function createBrownSnake(x, y, overrides = {}) {
 }
 
 /**
+ * 沼泽吸血大蚊：低生命、高速的自然系飞行近战怪。常驻 noCollision 只跳过
+ * 单位间分离，墙体解析仍由既有 WallSystem 承担；每次确认命中后按目标实际
+ * 扣除生命的配置比例恢复自身生命。
+ */
+class SwampVampireMosquitoEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.swampVampireMosquito,
+            ...config,
+        });
+        this.noCollision = this.config?.noCollision ?? true;
+        this._bloodDrainPreHitHp = new WeakMap();
+    }
+
+    _getSwampVampireMosquitoVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getSwampVampireMosquitoVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_swamp_vampire_mosquito_${this._getSwampVampireMosquitoVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getSwampVampireMosquitoVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_swamp_vampire_mosquito_${visualState}_v1`;
+        return options;
+    }
+
+    _onHitEntity(target) {
+        super._onHitEntity(target);
+        if (target && (typeof target === 'object' || typeof target === 'function')) {
+            const hp = Number(target.hp);
+            if (Number.isFinite(hp)) this._bloodDrainPreHitHp.set(target, Math.max(0, hp));
+        }
+    }
+
+    _onConfirmedHitEntity(target) {
+        if (!target || !this._bloodDrainPreHitHp.has(target)) return;
+        const hpBefore = this._bloodDrainPreHitHp.get(target);
+        this._bloodDrainPreHitHp.delete(target);
+        const hpAfter = Math.max(0, Number(target.hp) || 0);
+        const damageDealt = Math.max(0, hpBefore - hpAfter);
+        const healPercent = Math.max(0, Number(
+            this.config?.attackSkills?.bloodDrain?.healPercent
+        ) || 0);
+        if (damageDealt <= 0 || healPercent <= 0 || !(this.hp > 0)) return;
+        this.hp = Math.min(this.maxHp, this.hp + damageDealt * healPercent);
+    }
+}
+
+function createSwampVampireMosquito(x, y, overrides = {}) {
+    const base = enemyConfigData.swampVampireMosquito || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new SwampVampireMosquitoEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
  * 黑色眼镜蛇王：沿用蛇类四动作与定向普通近战，在独立冷却上追加一次
  * 锁方向的扇形毒液喷射。普通咬击与喷射都通过确认命中钩子叠毒。
  */
@@ -3019,6 +3096,612 @@ function createMedusa(x, y, overrides = {}) {
 }
 
 /**
+ * 狼人王领主：前方扇形爪击 + 突变体-3同口径的锁定目标飞扑。
+ * 嚎叫结束后只通过 alpha 渐隐进入潜行，实体、碰撞和受击体始终保留；
+ * 潜行中的第一次攻击会破隐并携带 2 倍伤害与 3 秒致残。
+ */
+class WerewolfKingEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.werewolfKing,
+            ...config,
+        });
+        this._pounceCfg = this.config?.attackSkills?.pounce || {};
+        this._stealthCfg = this.config?.attackSkills?.stealth || {};
+        this._pounceCooldown = Math.max(0, Number(this._pounceCfg.initialCooldownMs) || 0);
+        this._pounceState = 'idle'; // idle | prepare | charge
+        this._pounceTimer = 0;
+        this._pounceTarget = null;
+        this._pounceTargetPos = null;
+        this._pounceDir = { x: 0, y: 0 };
+        this._pounceSpeed = 0;
+        this._pounceDamaged = false;
+        this._pounceGhostTimer = 0;
+
+        this._stealthCooldown = Math.max(0, Number(this._stealthCfg.initialCooldownMs) || 0);
+        this._stealthPhase = 'idle'; // idle | howling | fadingOut | hidden | fadingIn
+        this._stealthTimer = 0;
+        this._stealthHiddenTimer = 0;
+        this._stealthVisualAlpha = 1;
+        this._stealthDustTimer = 0;
+        this._pendingStealthStrike = null;
+
+        // 通用逐帧普通攻击继续负责起手与接触帧，命中改为狼人王专属扇形。
+        const meleeAttack = this.attacks?.melee;
+        if (meleeAttack?.checkTriangleHit) {
+            const fallbackCheck = meleeAttack.checkTriangleHit.bind(meleeAttack);
+            meleeAttack.checkTriangleHit = (source) => {
+                if (source === this) {
+                    this._resolveClawSweepAoe();
+                    return;
+                }
+                fallbackCheck(source);
+            };
+        }
+    }
+
+    _getWerewolfVisualState(state = this._animState) {
+        if (state === 'walk' || state === 'run') return 'running';
+        if (state === 'death') return 'dying';
+        return state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getWerewolfVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_werewolf_king_${this._getWerewolfVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getWerewolfVisualState();
+        options.alpha = this._stealthVisualAlpha;
+        options.animState = this._animState === 'death' ? 'death' : visualState;
+        options.animKey = `enemy_werewolf_king_${visualState}_v1`;
+        return options;
+    }
+
+    update(dt, entities) {
+        super.update(dt, entities);
+        if (!this.active) return;
+
+        const delta = Math.max(0, Number(dt) || 0);
+        const attackDt = this.getAttackIntervalDelta(delta);
+        this._pounceCooldown = Math.max(0, this._pounceCooldown - attackDt);
+        this._stealthCooldown = Math.max(0, this._stealthCooldown - attackDt);
+
+        const controlled = this.hasStatusEffect
+            && (this.hasStatusEffect('stun')
+                || this.hasStatusEffect('frozen')
+                || this.hasStatusEffect('petrified')
+                || this.hasStatusEffect('fear'));
+        if (controlled) {
+            if (this._pounceState !== 'idle') this._endPounce();
+            if (this._stealthPhase === 'howling' || this._stealthPhase === 'fadingOut') {
+                this._cancelStealthCast();
+            }
+            this._applyStealthAlpha();
+            return;
+        }
+
+        if (this._pounceState !== 'idle') {
+            this._updatePounce(delta);
+            this._updateStealthVisual(delta);
+            this._applyStealthAlpha();
+            return;
+        }
+
+        if (this._stealthPhase !== 'idle') {
+            this._updateStealth(delta);
+            if (this._stealthPhase === 'howling' || this._stealthPhase === 'fadingOut') {
+                this._applyStealthAlpha();
+                return;
+            }
+        }
+
+        if (this._stealthPhase === 'hidden'
+            && this._pounceCooldown <= 0
+            && this._canStartPounce(this.target)) {
+            // 潜行组合技：飞扑可用时跳过普通攻击判定并优先发动。
+            this._startPounce(this.target);
+            this._applyStealthAlpha();
+            return;
+        }
+
+        if (this._stealthPhase === 'idle'
+            && this._stealthCooldown <= 0
+            && this._canStartStealth(this.target)) {
+            this._startStealthHowl();
+            this._applyStealthAlpha();
+            return;
+        }
+
+        if (this._stealthPhase === 'idle'
+            && this._pounceCooldown <= 0
+            && this._canStartPounce(this.target)) {
+            this._tryAttackTelegraph(() => this._startPounce(this.target));
+        }
+        this._applyStealthAlpha();
+    }
+
+    triggerWeaponAnim() {
+        if (this._stealthPhase === 'hidden' || this._stealthPhase === 'fadingOut') {
+            this._armStealthStrike('basic');
+        }
+        super.triggerWeaponAnim();
+    }
+
+    _resolveClawSweepAoe() {
+        const pending = this._pendingThrust;
+        if (!pending?.active || pending.werewolfSweepResolved) return;
+        pending.werewolfSweepResolved = true;
+        // 与正式攻击表的接触帧绑定；无论命中与否，每次横扫只播放一次爪击声。
+        playSoundFrom(this, 'claw');
+
+        const cfg = this.config?.basicMelee?.area || {};
+        const range = Math.max(1, Number(cfg.range) || 245);
+        const arcDegrees = Math.max(1, Number(cfg.arcDegrees) || 135);
+        const originX = Number.isFinite(Number(pending.x))
+            ? Number(pending.x) : (this.collider?.x ?? this.x);
+        const originY = Number.isFinite(Number(pending.y))
+            ? Number(pending.y) : (this.collider?.y ?? this.y);
+        const angle = Number.isFinite(Number(pending.angle))
+            ? Number(pending.angle) : (this.rotation || 0);
+        const shape = new GroundSector(
+            originX,
+            originY,
+            angle,
+            range,
+            arcDegrees * Math.PI / 180,
+            surfaceEffectFromEntity(this)
+        );
+        const candidates = new Set(pending.entities || []);
+        for (const member of PartySystem.members || []) candidates.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            candidates.add(friendly);
+        }
+
+        const baseDamage = Math.max(1, Math.floor(
+            ((Number(pending.damage?.min) || 0) + (Number(pending.damage?.max) || 0)) / 2
+            + (Number(pending.damageBonus) || 0)
+        ));
+        const stealthStrike = this._pendingStealthStrike?.attackType === 'basic'
+            ? this._pendingStealthStrike : null;
+        const damage = Math.max(1, Math.floor(
+            baseDamage
+            * Math.max(0, Number(cfg.damageMultiplier) || 1)
+            * (stealthStrike?.damageMultiplier || 1)
+        ));
+        const knockback = Number.isFinite(Number(cfg.knockback))
+            ? Number(cfg.knockback) : pending.knockback;
+
+        for (const target of candidates) {
+            if (!target || target === this || !target.active || target._isDead
+                || target.hittable === false || !(target.hp > 0) || pending.hitSet.has(target)) continue;
+            if (isFriendlyFire(this, target)
+                || (this._faction === 'enemy' && target._faction === 'enemy')) continue;
+            if (!shape.intersectsEntity(target)) continue;
+
+            const targetX = target.collider?.x ?? target.x;
+            const targetY = target.collider?.y ?? target.y;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (WallSystem?.blocked?.(originX, originY, targetX, targetY, ignore)) {
+                const structureInReach = target._isDefenseStructure
+                    && distanceToEntityShape(target, originX, originY) <= range;
+                if (!structureInReach) continue;
+            }
+
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: pending.damageType || 'physical',
+                knockback,
+                angle: Math.atan2(targetY - originY, targetX - originX),
+                isMelee: true,
+                confirmedHitContext: { skillId: 'werewolfKingClawSweep' },
+            });
+            if (!result.hit) continue;
+            pending.hitSet.add(target);
+            if (stealthStrike && target.active && !target._isDead && target.hp > 0
+                && !(target.shieldSystem && target.shieldSystem._lastParried)) {
+                target.applyCripple?.(stealthStrike.crippleMs);
+            }
+            if (result.skillExpEligible) {
+                pending.totalHitCount += 1;
+                if (result.killed && !target._summoned) pending.totalKillCount += 1;
+            }
+        }
+        if (stealthStrike) this._pendingStealthStrike = null;
+    }
+
+    _isReadyForSkill() {
+        return !this._deathStarted
+            && this._pounceState === 'idle'
+            && this._attackTimer <= 0
+            && this._attackAnimTimer <= 0
+            && !this._pendingThrust?.active
+            && this._attackTelegraphTimer <= 0
+            && !this._frozenForCast;
+    }
+
+    _canStartStealth(target) {
+        if (!this._isReadyForSkill() || !target?.active || target._isDead
+            || target.hittable === false || !(target.hp > 0)) return false;
+        const triggerRange = Math.max(0, Number(this._stealthCfg.triggerRange) || 900);
+        return distanceToEntityShape(target, this.x, this.y) <= triggerRange;
+    }
+
+    _startStealthHowl() {
+        const duration = Math.max(100, Number(this._stealthCfg.howlDurationMs) || 5000);
+        this._stealthPhase = 'howling';
+        this._stealthTimer = duration;
+        this._stealthVisualAlpha = 1;
+        this._stealthCooldown = Math.max(0, Number(this._stealthCfg.cooldown) || 18000);
+        this._frozenForCast = true;
+        this._animState = 'howl';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+        playSoundFrom(this, 'howl');
+    }
+
+    _updateStealth(dt) {
+        if (this._stealthPhase === 'howling') {
+            this._stealthTimer = Math.max(0, this._stealthTimer - dt);
+            this._frozenForCast = true;
+            this._animState = 'howl';
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+            if (this._stealthTimer <= 0) {
+                this._stealthPhase = 'fadingOut';
+                this._stealthTimer = Math.max(1, Number(this._stealthCfg.fadeOutMs) || 650);
+                this._attackTimer = this._stealthTimer;
+                this._attackAnimTimer = this._stealthTimer;
+            }
+            return;
+        }
+        if (this._stealthPhase === 'fadingOut') {
+            const duration = Math.max(1, Number(this._stealthCfg.fadeOutMs) || 650);
+            this._stealthTimer = Math.max(0, this._stealthTimer - dt);
+            this._stealthVisualAlpha = Math.max(0, Math.min(1, this._stealthTimer / duration));
+            this._frozenForCast = true;
+            this._animState = 'howl';
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+            if (this._stealthTimer <= 0) {
+                this._stealthPhase = 'hidden';
+                this._stealthVisualAlpha = Math.max(0, Math.min(1,
+                    Number(this._stealthCfg.hiddenAlpha) || 0));
+                this._stealthHiddenTimer = Math.max(0, Number(this._stealthCfg.durationMs) || 10000);
+                this._stealthDustTimer = 0;
+                this._frozenForCast = false;
+                this._attackTimer = 0;
+                this._attackAnimTimer = 0;
+                this._animState = 'idle';
+                this._animStateTimer = 0;
+                this.aiTimer = 0;
+            }
+            return;
+        }
+        if (this._stealthPhase === 'hidden') {
+            this._stealthHiddenTimer = Math.max(0, this._stealthHiddenTimer - dt);
+            this._spawnStealthDust(dt);
+            if (this._stealthHiddenTimer <= 0) {
+                this._pendingStealthStrike = null;
+                this._beginReveal();
+            }
+            return;
+        }
+        this._updateStealthVisual(dt);
+    }
+
+    _updateStealthVisual(dt) {
+        if (this._stealthPhase !== 'fadingIn') return;
+        const duration = Math.max(1, Number(this._stealthCfg.fadeInMs) || 250);
+        this._stealthTimer = Math.max(0, this._stealthTimer - dt);
+        this._stealthVisualAlpha = Math.max(0, Math.min(1, 1 - this._stealthTimer / duration));
+        if (this._stealthTimer <= 0) {
+            this._stealthPhase = 'idle';
+            this._stealthVisualAlpha = 1;
+        }
+    }
+
+    _armStealthStrike(attackType) {
+        this._pendingStealthStrike = {
+            attackType,
+            damageMultiplier: Math.max(1, Number(this._stealthCfg.damageMultiplier) || 2),
+            crippleMs: Math.max(0, Number(this._stealthCfg.crippleMs) || 3000),
+        };
+        this._beginReveal();
+    }
+
+    _beginReveal() {
+        if (this._stealthPhase === 'idle' || this._stealthPhase === 'fadingIn') return;
+        this._stealthPhase = 'fadingIn';
+        this._stealthTimer = Math.max(1, Number(this._stealthCfg.fadeInMs) || 250);
+        this._stealthDustTimer = 0;
+        this._frozenForCast = false;
+    }
+
+    _cancelStealthCast() {
+        this._stealthPhase = 'idle';
+        this._stealthTimer = 0;
+        this._stealthVisualAlpha = 1;
+        this._stealthDustTimer = 0;
+        this._pendingStealthStrike = null;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+    }
+
+    _applyStealthAlpha() {
+        if (this._phaserSprite?.active) this._phaserSprite.setAlpha(this._stealthVisualAlpha);
+    }
+
+    _spawnStealthDust(dt) {
+        const speed = Math.hypot(this.vx || 0, this.vy || 0);
+        if (speed <= 1 || !this.isMoving) {
+            this._stealthDustTimer = 0;
+            return;
+        }
+        this._stealthDustTimer += dt;
+        const interval = Math.max(40, Number(this._stealthCfg.dustIntervalMs) || 70);
+        while (this._stealthDustTimer >= interval) {
+            this._stealthDustTimer -= interval;
+            const offsetX = -this.vx * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 8;
+            const offsetY = -this.vy * (dt / 1000) * 1.5 + (Math.random() - 0.5) * 4;
+            EffectFactory.createDustEffect(
+                (this.collider?.x ?? this.x) + offsetX,
+                (this.collider?.y ?? this.y) + offsetY - 5,
+                1.5
+            );
+        }
+    }
+
+    _canStartPounce(target) {
+        if (!this._isReadyForSkill() || !target?.active || target._isDead
+            || target.hittable === false || !(target.hp > 0)) return false;
+        const range = Math.max(1, Number(this._pounceCfg.triggerRange) || 500);
+        return distanceToEntityShape(target, this.x, this.y) <= range;
+    }
+
+    _startPounce(target) {
+        if (!this._canStartPounce(target)) return false;
+        if (this._stealthPhase === 'hidden' || this._stealthPhase === 'fadingOut') {
+            this._armStealthStrike('pounce');
+        }
+        const prepareMs = Math.max(0, Number(this._pounceCfg.prepareMs) || 1000);
+        const chargeMs = Math.max(1, Number(this._pounceCfg.chargeMs) || 1000);
+        this._pounceState = 'prepare';
+        this._pounceTimer = prepareMs;
+        this._pounceTarget = target;
+        this._pounceTargetPos = null;
+        this._pounceDamaged = false;
+        this._pounceGhostTimer = 0;
+        this._pounceCooldown = Math.max(0, Number(this._pounceCfg.cooldown) || 12000);
+        this._frozenForCast = true;
+        this._animState = 'pounce';
+        this._animStateTimer = 0;
+        this._attackTimer = prepareMs + chargeMs;
+        this._attackAnimTimer = prepareMs + chargeMs;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
+        this._lastHorizontalFacing = Math.cos(this.rotation) < 0 ? 'left' : 'right';
+        this.aiTimer = 0;
+        playSoundFrom(this, 'pouncePrepare');
+        return true;
+    }
+
+    _updatePounce(dt) {
+        this._frozenForCast = true;
+        this._animState = 'pounce';
+        if (this._pounceState === 'prepare') {
+            this._pounceTimer = Math.max(0, this._pounceTimer - dt);
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+            if (this._pounceTarget?.active) {
+                this.rotation = Math.atan2(
+                    this._pounceTarget.y - this.y,
+                    this._pounceTarget.x - this.x
+                );
+                this._lastHorizontalFacing = Math.cos(this.rotation) < 0 ? 'left' : 'right';
+            }
+            if (this._pounceTimer <= 0) this._startPounceCharge();
+            return;
+        }
+
+        const target = this._pounceTarget;
+        const fromX = this.x;
+        const fromY = this.y;
+        const distToEnd = this._pounceTargetPos
+            ? Math.hypot(this._pounceTargetPos.x - this.x, this._pounceTargetPos.y - this.y)
+            : 0;
+        let intendedX = fromX;
+        let intendedY = fromY;
+        if (distToEnd > 10 && this._pounceSpeed > 0) {
+            const step = Math.min(this._pounceSpeed * dt / 1000, distToEnd);
+            intendedX += this._pounceDir.x * step;
+            intendedY += this._pounceDir.y * step;
+            const resolved = WallSystem.resolve(
+                fromX, fromY, intendedX, intendedY, this.groundRadius
+            );
+            this.x = resolved.x;
+            this.y = resolved.y;
+        }
+        const motionBlocked = straightMotionWasBlocked(
+            fromX, fromY, intendedX, intendedY, this.x, this.y
+        );
+
+        if (!this._pounceDamaged && target?.active && target.hittable !== false
+            && sweptMotionMeleeHits(
+                this,
+                target,
+                fromX,
+                fromY,
+                this.x,
+                this.y,
+                Math.max(1, Number(this._pounceCfg.hitDistance) || 130),
+                { blocked: motionBlocked, skill: '狼人王飞扑' }
+            )) {
+            const stealthStrike = this._pendingStealthStrike?.attackType === 'pounce'
+                ? this._pendingStealthStrike : null;
+            const baseDamage = Math.max(1, Number(this.data?.atk || this.data?.str) || 20);
+            const damage = Math.max(1, Math.floor(
+                baseDamage
+                * Math.max(0, Number(this._pounceCfg.damageMultiplier) || 2)
+                * (stealthStrike?.damageMultiplier || 1)
+            ));
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: this._pounceCfg.damageType || 'physical',
+                isMelee: true,
+                confirmedHitContext: { skillId: 'werewolfKingPounce' },
+            });
+            this._pounceDamaged = result.hit;
+            if (result.hit) playSoundFrom(this, 'pounceHit');
+            const parried = target.shieldSystem && target.shieldSystem._lastParried;
+            if (result.hit && !parried && target.active && !target._isDead && target.hp > 0) {
+                target.applyStun?.(Math.max(0, Number(this._pounceCfg.stunMs) || 2000));
+                if (stealthStrike) target.applyCripple?.(stealthStrike.crippleMs);
+            }
+            if (stealthStrike) this._pendingStealthStrike = null;
+            if (result.hit) {
+                this._endPounce();
+                return;
+            }
+        }
+
+        this._pounceGhostTimer -= dt;
+        if (this._pounceGhostTimer <= 0) {
+            this._spawnPounceGhost();
+            this._pounceGhostTimer = Math.max(30, Number(this._pounceCfg.ghostIntervalMs) || 60);
+        }
+        this._pounceTimer = Math.max(0, this._pounceTimer - dt);
+        if (motionBlocked || !target?.active || target._isDead
+            || this._pounceTimer <= 0 || distToEnd <= 10) {
+            this._endPounce();
+        }
+    }
+
+    _startPounceCharge() {
+        const target = this._pounceTarget;
+        if (!target?.active || target._isDead || !(target.hp > 0)) {
+            this._endPounce();
+            return;
+        }
+        const dx = target.x - this.x;
+        const dy = target.y - this.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance <= 0) {
+            this._endPounce();
+            return;
+        }
+        const maxDistance = Math.max(1, Number(this._pounceCfg.maxDistance) || 1200);
+        const overshoot = Math.max(0, Number(this._pounceCfg.overshoot) || 300);
+        const chargeDistance = Math.min(distance + overshoot, maxDistance);
+        const chargeMs = Math.max(1, Number(this._pounceCfg.chargeMs) || 1000);
+        this._pounceState = 'charge';
+        this._pounceTimer = chargeMs;
+        this._pounceDir = { x: dx / distance, y: dy / distance };
+        this._pounceTargetPos = {
+            x: this.x + this._pounceDir.x * chargeDistance,
+            y: this.y + this._pounceDir.y * chargeDistance,
+        };
+        this._pounceSpeed = chargeDistance / (chargeMs / 1000);
+        this.rotation = Math.atan2(this._pounceDir.y, this._pounceDir.x);
+        this._lastHorizontalFacing = Math.cos(this.rotation) < 0 ? 'left' : 'right';
+        this._pounceGhostTimer = 0;
+        playSoundFrom(this, 'pounce');
+    }
+
+    _spawnPounceGhost() {
+        const sprite = this._phaserSprite;
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!sprite?.active || !scene?.textures?.exists?.(this._getTextureKey())) return;
+        const ghost = scene.add.sprite(
+            this.x,
+            this.y,
+            this._getTextureKey(),
+            sprite.frame?.name ?? 0
+        )
+            .setAlpha(0.35)
+            .setDisplaySize(sprite.displayWidth, sprite.displayHeight)
+            .setFlipX(sprite.flipX)
+            .setDepth((sprite.depth || 0) - 1);
+        scene.tweens.add({
+            targets: ghost,
+            alpha: 0,
+            duration: 250,
+            onComplete: () => ghost?.active && ghost.destroy(),
+        });
+    }
+
+    _endPounce() {
+        this._pounceState = 'idle';
+        this._pounceTimer = 0;
+        this._pounceTarget = null;
+        this._pounceTargetPos = null;
+        this._pounceSpeed = 0;
+        this._pounceDamaged = false;
+        this._pounceGhostTimer = 0;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        // 防止外部 CombatSystem 在飞扑结束的同一帧立刻再补一次普通攻击。
+        this._attackAnimTimer = Math.max(0, Number(this._pounceCfg.recoveryMs) || 450);
+        this._animState = 'idle';
+        this.aiTimer = 0;
+        if (this._pendingStealthStrike?.attackType === 'pounce') {
+            this._pendingStealthStrike = null;
+        }
+    }
+
+    onDeath(source) {
+        this._endPounce();
+        this._stealthPhase = 'idle';
+        this._stealthTimer = 0;
+        this._stealthVisualAlpha = 1;
+        this._stealthDustTimer = 0;
+        this._pendingStealthStrike = null;
+        this._applyStealthAlpha();
+        super.onDeath(source);
+    }
+}
+
+function createWerewolfKing(x, y, overrides = {}) {
+    const base = enemyConfigData.werewolfKing || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new WerewolfKingEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
  * 黑熊领主：初始为黑袍德鲁伊，轮流施放冰锥、闪电与火球；半血后
  * 播放人变熊动画并进入强化四足近战阶段。两种形态共用同一生命链，
  * 只在变熊完成时应用一次既有属性倍率。
@@ -3470,4 +4153,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

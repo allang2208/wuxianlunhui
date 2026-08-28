@@ -1,0 +1,234 @@
+{
+  "action": "attacking",
+  "video": "videos\\attacking-doubao-v01.mp4",
+  "sourceFrames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96
+  ],
+  "referenceFrame": 0,
+  "excludedDuplicateEndpoint": null,
+  "mode": "one-shot",
+  "alignment": "fixed-source-trajectory",
+  "cellWidth": 800,
+  "cellHeight": 640,
+  "cols": 8,
+  "frameCount": 25,
+  "frameRate": 6.0,
+  "targetStandingHeight": 410,
+  "targetCenterX": 400,
+  "targetFeetY": 570,
+  "referenceSourceHeight": 619,
+  "fixedScale": 0.6623586429725363,
+  "fixedTranslateX": -16.88583061740991,
+  "fixedTranslateY": 114.29725363489501,
+  "alphaPixelsPerFrame": [
+    64801,
+    65167,
+    66017,
+    65963,
+    64112,
+    62751,
+    62001,
+    61562,
+    61897,
+    62103,
+    62081,
+    62377,
+    63311,
+    64974,
+    65418,
+    70666,
+    74819,
+    77208,
+    77684,
+    76631,
+    70940,
+    65150,
+    60876,
+    65259,
+    65995
+  ],
+  "alphaBottomMin": 570,
+  "alphaBottomMax": 576,
+  "outputBoxes": [
+    [
+      240,
+      161,
+      524,
+      570
+    ],
+    [
+      240,
+      163,
+      526,
+      570
+    ],
+    [
+      240,
+      168,
+      534,
+      570
+    ],
+    [
+      243,
+      179,
+      547,
+      574
+    ],
+    [
+      229,
+      191,
+      553,
+      576
+    ],
+    [
+      205,
+      198,
+      552,
+      576
+    ],
+    [
+      193,
+      201,
+      551,
+      576
+    ],
+    [
+      185,
+      200,
+      550,
+      576
+    ],
+    [
+      179,
+      200,
+      550,
+      576
+    ],
+    [
+      173,
+      200,
+      549,
+      576
+    ],
+    [
+      172,
+      200,
+      549,
+      576
+    ],
+    [
+      167,
+      198,
+      551,
+      576
+    ],
+    [
+      160,
+      195,
+      560,
+      576
+    ],
+    [
+      153,
+      198,
+      598,
+      576
+    ],
+    [
+      216,
+      216,
+      603,
+      575
+    ],
+    [
+      270,
+      211,
+      754,
+      574
+    ],
+    [
+      225,
+      204,
+      761,
+      574
+    ],
+    [
+      180,
+      202,
+      759,
+      574
+    ],
+    [
+      166,
+      203,
+      758,
+      574
+    ],
+    [
+      173,
+      204,
+      749,
+      574
+    ],
+    [
+      192,
+      203,
+      713,
+      574
+    ],
+    [
+      222,
+      194,
+      639,
+      572
+    ],
+    [
+      249,
+      183,
+      562,
+      570
+    ],
+    [
+      252,
+      179,
+      559,
+      570
+    ],
+    [
+      246,
+      177,
+      554,
+      570
+    ]
+  ],
+  "emptyFrames": [],
+  "touchingFrames": [],
+  "transparentRgbNonZeroMax": 0,
+  "sheet": "spritesheets\\source-pre-rife\\attacking.png",
+  "previewGif": "previews\\sprites\\source-pre-rife\\attacking-source-keys.gif",
+  "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+}

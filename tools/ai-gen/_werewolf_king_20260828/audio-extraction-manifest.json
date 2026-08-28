@@ -1,0 +1,58 @@
+{
+  "date": "2026-08-28",
+  "pipeline": "accepted formal action-video audio -> 100ms envelope review -> action-only trim -> DC removal -> 12ms edge fades -> RMS target with -1dBFS peak ceiling -> 44.1kHz stereo 160kbps MP3",
+  "runtimePlayback": "enemy config sounds + SoundManager.playWorld at the Werewolf King world position",
+  "clips": {
+    "attackWindup": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/attacking-doubao-v01.mp4",
+      "windowSeconds": [0.52, 1.68],
+      "output": "assets/sounds/enemies/werewolf_king/attacking-windup.mp3",
+      "trigger": "normal attack start"
+    },
+    "clawImpact": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/attacking-doubao-v01.mp4",
+      "windowSeconds": [2.2, 3.02],
+      "output": "assets/sounds/enemies/werewolf_king/claw-impact.mp3",
+      "trigger": "normal attack contact frame, once per attack"
+    },
+    "pouncePrepare": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/pounce-doubao-v02-side-plane-lock.mp4",
+      "windowSeconds": [0.16, 1.38],
+      "output": "assets/sounds/enemies/werewolf_king/pounce-prepare.mp3",
+      "trigger": "pounce prepare start"
+    },
+    "pounceLaunch": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/pounce-doubao-v02-side-plane-lock.mp4",
+      "windowSeconds": [1.58, 2.86],
+      "output": "assets/sounds/enemies/werewolf_king/pounce-launch.mp3",
+      "trigger": "pounce charge start"
+    },
+    "pounceImpact": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/pounce-doubao-v02-side-plane-lock.mp4",
+      "windowSeconds": [3.02, 3.58],
+      "output": "assets/sounds/enemies/werewolf_king/pounce-impact.mp3",
+      "trigger": "confirmed pounce hit"
+    },
+    "howl": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/howl-doubao-v01.mp4",
+      "windowSeconds": [0.0, 4.58],
+      "output": "assets/sounds/enemies/werewolf_king/howling.mp3",
+      "trigger": "stealth howl animation start; source-leading anticipation is retained for sync"
+    },
+    "death": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/dying-doubao-v02-fixed-scale.mp4",
+      "windowSeconds": [0.0, 2.62],
+      "output": "assets/sounds/enemies/werewolf_king/dying.mp3",
+      "trigger": "death state start; source-leading collapse timing is retained for sync"
+    },
+    "running": {
+      "source": "tools/ai-gen/_werewolf_king_20260828/videos/running-doubao-v01.mp4",
+      "windowSeconds": [0.52, 1.86],
+      "output": "assets/sounds/enemies/werewolf_king/running.mp3",
+      "trigger": "walk/run state loop at 1333ms, matching the 32-frame 24fps runtime cycle"
+    }
+  },
+  "excluded": {
+    "idle": "The accepted idle video has a nearly uniform low-level track across the full clip and no isolated identity-specific idle cue; importing it would repeat background noise."
+  }
+}

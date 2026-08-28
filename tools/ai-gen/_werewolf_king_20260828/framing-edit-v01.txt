@@ -1,0 +1,5 @@
+Edit the most recently generated Werewolf King mother frame.
+
+Change only the composition/framing: zoom the camera out and scale the complete existing character down so the full subject occupies about 60–65% of the 3:2 landscape canvas height, centered with generous white negative space on every side. Keep at least 14% canvas margin above the ears, below both feet, left of the tail, and right of the claws. Both feet must remain fully visible on the exact same horizontal baseline.
+
+Preserve everything else exactly: the same character identity, charcoal-black and blue-black fur, amber eyes, wolf head, heavy shoulder ruff, anatomy, proportions, neutral pose, expression, tail, hand shapes, foot shapes, camera angle, realistic PBR 3D game-render style, flat pure white #FFFFFF background, and soft diffuse no-shadow lighting. Do not redesign, recolor, crop, add props, add floor, add shadow, add text, or change anatomy.

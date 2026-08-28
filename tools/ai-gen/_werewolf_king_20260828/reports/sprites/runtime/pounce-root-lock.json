@@ -1,0 +1,966 @@
+{
+  "name": "werewolf-king-pounce-runtime-root-lock",
+  "sourceSheet": "tools\\ai-gen\\_werewolf_king_20260828\\spritesheets\\final\\pounce.png",
+  "runtimeSheet": "tools\\ai-gen\\_werewolf_king_20260828\\spritesheets\\runtime\\pounce-root-locked.png",
+  "gameAsset": "assets\\enemies\\werewolf_king\\pounce.png",
+  "method": "per-frame whole-pixel X translation using torso/pelvis alpha weighted-median anchor",
+  "preserved": [
+    "approved RIFE pixels",
+    "frame order and count",
+    "vertical leap trajectory",
+    "pose-relative limb and armor motion"
+  ],
+  "removed": "source-video whole-canvas horizontal root motion",
+  "frameWidth": 1344,
+  "frameHeight": 640,
+  "cols": 6,
+  "frameCount": 49,
+  "frameRate": 12,
+  "targetRootX": 672,
+  "validation": {
+    "emptyFrames": [],
+    "croppedFrames": [],
+    "verticalBoundsChangedFrames": [],
+    "rootAnchorMismatchFrames": [],
+    "nonzeroRgbInTransparentPixels": 0,
+    "integerTranslationOnly": true
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "sourceCoreAnchorX": 300,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 372,
+      "sourceBbox": [
+        61,
+        242,
+        515,
+        569
+      ],
+      "runtimeBbox": [
+        433,
+        242,
+        887,
+        569
+      ],
+      "alphaPixels": 78952
+    },
+    {
+      "frame": 1,
+      "sourceCoreAnchorX": 303,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 369,
+      "sourceBbox": [
+        60,
+        242,
+        517,
+        570
+      ],
+      "runtimeBbox": [
+        429,
+        242,
+        886,
+        570
+      ],
+      "alphaPixels": 80771
+    },
+    {
+      "frame": 2,
+      "sourceCoreAnchorX": 306,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 366,
+      "sourceBbox": [
+        58,
+        241,
+        519,
+        570
+      ],
+      "runtimeBbox": [
+        424,
+        241,
+        885,
+        570
+      ],
+      "alphaPixels": 81840
+    },
+    {
+      "frame": 3,
+      "sourceCoreAnchorX": 313,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 359,
+      "sourceBbox": [
+        59,
+        245,
+        523,
+        570
+      ],
+      "runtimeBbox": [
+        418,
+        245,
+        882,
+        570
+      ],
+      "alphaPixels": 82161
+    },
+    {
+      "frame": 4,
+      "sourceCoreAnchorX": 318,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 354,
+      "sourceBbox": [
+        60,
+        248,
+        527,
+        570
+      ],
+      "runtimeBbox": [
+        414,
+        248,
+        881,
+        570
+      ],
+      "alphaPixels": 82420
+    },
+    {
+      "frame": 5,
+      "sourceCoreAnchorX": 318,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 354,
+      "sourceBbox": [
+        74,
+        251,
+        527,
+        570
+      ],
+      "runtimeBbox": [
+        428,
+        251,
+        881,
+        570
+      ],
+      "alphaPixels": 82301
+    },
+    {
+      "frame": 6,
+      "sourceCoreAnchorX": 316,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 356,
+      "sourceBbox": [
+        76,
+        252,
+        527,
+        570
+      ],
+      "runtimeBbox": [
+        432,
+        252,
+        883,
+        570
+      ],
+      "alphaPixels": 82150
+    },
+    {
+      "frame": 7,
+      "sourceCoreAnchorX": 314,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 358,
+      "sourceBbox": [
+        85,
+        254,
+        527,
+        570
+      ],
+      "runtimeBbox": [
+        443,
+        254,
+        885,
+        570
+      ],
+      "alphaPixels": 83076
+    },
+    {
+      "frame": 8,
+      "sourceCoreAnchorX": 314,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 358,
+      "sourceBbox": [
+        91,
+        255,
+        526,
+        570
+      ],
+      "runtimeBbox": [
+        449,
+        255,
+        884,
+        570
+      ],
+      "alphaPixels": 83437
+    },
+    {
+      "frame": 9,
+      "sourceCoreAnchorX": 314,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 358,
+      "sourceBbox": [
+        85,
+        255,
+        525,
+        570
+      ],
+      "runtimeBbox": [
+        443,
+        255,
+        883,
+        570
+      ],
+      "alphaPixels": 84081
+    },
+    {
+      "frame": 10,
+      "sourceCoreAnchorX": 316,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 356,
+      "sourceBbox": [
+        81,
+        255,
+        524,
+        570
+      ],
+      "runtimeBbox": [
+        437,
+        255,
+        880,
+        570
+      ],
+      "alphaPixels": 83759
+    },
+    {
+      "frame": 11,
+      "sourceCoreAnchorX": 319,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 353,
+      "sourceBbox": [
+        77,
+        255,
+        522,
+        570
+      ],
+      "runtimeBbox": [
+        430,
+        255,
+        875,
+        570
+      ],
+      "alphaPixels": 84121
+    },
+    {
+      "frame": 12,
+      "sourceCoreAnchorX": 320,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 352,
+      "sourceBbox": [
+        74,
+        255,
+        521,
+        570
+      ],
+      "runtimeBbox": [
+        426,
+        255,
+        873,
+        570
+      ],
+      "alphaPixels": 84400
+    },
+    {
+      "frame": 13,
+      "sourceCoreAnchorX": 322,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 350,
+      "sourceBbox": [
+        70,
+        254,
+        520,
+        570
+      ],
+      "runtimeBbox": [
+        420,
+        254,
+        870,
+        570
+      ],
+      "alphaPixels": 84878
+    },
+    {
+      "frame": 14,
+      "sourceCoreAnchorX": 324,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 348,
+      "sourceBbox": [
+        68,
+        253,
+        519,
+        570
+      ],
+      "runtimeBbox": [
+        416,
+        253,
+        867,
+        570
+      ],
+      "alphaPixels": 84658
+    },
+    {
+      "frame": 15,
+      "sourceCoreAnchorX": 326,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 346,
+      "sourceBbox": [
+        64,
+        251,
+        517,
+        570
+      ],
+      "runtimeBbox": [
+        410,
+        251,
+        863,
+        570
+      ],
+      "alphaPixels": 84547
+    },
+    {
+      "frame": 16,
+      "sourceCoreAnchorX": 326,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 346,
+      "sourceBbox": [
+        61,
+        251,
+        516,
+        570
+      ],
+      "runtimeBbox": [
+        407,
+        251,
+        862,
+        570
+      ],
+      "alphaPixels": 84481
+    },
+    {
+      "frame": 17,
+      "sourceCoreAnchorX": 328,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 344,
+      "sourceBbox": [
+        58,
+        249,
+        512,
+        570
+      ],
+      "runtimeBbox": [
+        402,
+        249,
+        856,
+        570
+      ],
+      "alphaPixels": 84656
+    },
+    {
+      "frame": 18,
+      "sourceCoreAnchorX": 329,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 343,
+      "sourceBbox": [
+        56,
+        248,
+        510,
+        570
+      ],
+      "runtimeBbox": [
+        399,
+        248,
+        853,
+        570
+      ],
+      "alphaPixels": 84491
+    },
+    {
+      "frame": 19,
+      "sourceCoreAnchorX": 329,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 343,
+      "sourceBbox": [
+        56,
+        248,
+        510,
+        570
+      ],
+      "runtimeBbox": [
+        399,
+        248,
+        853,
+        570
+      ],
+      "alphaPixels": 84491
+    },
+    {
+      "frame": 20,
+      "sourceCoreAnchorX": 402,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 270,
+      "sourceBbox": [
+        85,
+        253,
+        652,
+        570
+      ],
+      "runtimeBbox": [
+        355,
+        253,
+        922,
+        570
+      ],
+      "alphaPixels": 88163
+    },
+    {
+      "frame": 21,
+      "sourceCoreAnchorX": 576,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 96,
+      "sourceBbox": [
+        223,
+        123,
+        944,
+        543
+      ],
+      "runtimeBbox": [
+        319,
+        123,
+        1040,
+        543
+      ],
+      "alphaPixels": 112196
+    },
+    {
+      "frame": 22,
+      "sourceCoreAnchorX": 642,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 30,
+      "sourceBbox": [
+        275,
+        88,
+        1079,
+        516
+      ],
+      "runtimeBbox": [
+        305,
+        88,
+        1109,
+        516
+      ],
+      "alphaPixels": 119028
+    },
+    {
+      "frame": 23,
+      "sourceCoreAnchorX": 660,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 12,
+      "sourceBbox": [
+        292,
+        95,
+        1102,
+        502
+      ],
+      "runtimeBbox": [
+        304,
+        95,
+        1114,
+        502
+      ],
+      "alphaPixels": 123940
+    },
+    {
+      "frame": 24,
+      "sourceCoreAnchorX": 670,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": 2,
+      "sourceBbox": [
+        298,
+        81,
+        1110,
+        488
+      ],
+      "runtimeBbox": [
+        300,
+        81,
+        1112,
+        488
+      ],
+      "alphaPixels": 125891
+    },
+    {
+      "frame": 25,
+      "sourceCoreAnchorX": 682,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -10,
+      "sourceBbox": [
+        320,
+        84,
+        1128,
+        480
+      ],
+      "runtimeBbox": [
+        310,
+        84,
+        1118,
+        480
+      ],
+      "alphaPixels": 129278
+    },
+    {
+      "frame": 26,
+      "sourceCoreAnchorX": 687,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -15,
+      "sourceBbox": [
+        326,
+        77,
+        1134,
+        472
+      ],
+      "runtimeBbox": [
+        311,
+        77,
+        1119,
+        472
+      ],
+      "alphaPixels": 129845
+    },
+    {
+      "frame": 27,
+      "sourceCoreAnchorX": 705,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -33,
+      "sourceBbox": [
+        340,
+        76,
+        1148,
+        466
+      ],
+      "runtimeBbox": [
+        307,
+        76,
+        1115,
+        466
+      ],
+      "alphaPixels": 130996
+    },
+    {
+      "frame": 28,
+      "sourceCoreAnchorX": 709,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -37,
+      "sourceBbox": [
+        343,
+        71,
+        1152,
+        460
+      ],
+      "runtimeBbox": [
+        306,
+        71,
+        1115,
+        460
+      ],
+      "alphaPixels": 131324
+    },
+    {
+      "frame": 29,
+      "sourceCoreAnchorX": 730,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -58,
+      "sourceBbox": [
+        349,
+        71,
+        1165,
+        454
+      ],
+      "runtimeBbox": [
+        291,
+        71,
+        1107,
+        454
+      ],
+      "alphaPixels": 131986
+    },
+    {
+      "frame": 30,
+      "sourceCoreAnchorX": 737,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -65,
+      "sourceBbox": [
+        350,
+        67,
+        1167,
+        448
+      ],
+      "runtimeBbox": [
+        285,
+        67,
+        1102,
+        448
+      ],
+      "alphaPixels": 132193
+    },
+    {
+      "frame": 31,
+      "sourceCoreAnchorX": 752,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -80,
+      "sourceBbox": [
+        354,
+        68,
+        1179,
+        444
+      ],
+      "runtimeBbox": [
+        274,
+        68,
+        1099,
+        444
+      ],
+      "alphaPixels": 134017
+    },
+    {
+      "frame": 32,
+      "sourceCoreAnchorX": 755,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -83,
+      "sourceBbox": [
+        355,
+        65,
+        1181,
+        439
+      ],
+      "runtimeBbox": [
+        272,
+        65,
+        1098,
+        439
+      ],
+      "alphaPixels": 134240
+    },
+    {
+      "frame": 33,
+      "sourceCoreAnchorX": 761,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -89,
+      "sourceBbox": [
+        360,
+        66,
+        1201,
+        444
+      ],
+      "runtimeBbox": [
+        271,
+        66,
+        1112,
+        444
+      ],
+      "alphaPixels": 136291
+    },
+    {
+      "frame": 34,
+      "sourceCoreAnchorX": 761,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -89,
+      "sourceBbox": [
+        361,
+        70,
+        1202,
+        448
+      ],
+      "runtimeBbox": [
+        272,
+        70,
+        1113,
+        448
+      ],
+      "alphaPixels": 136662
+    },
+    {
+      "frame": 35,
+      "sourceCoreAnchorX": 761,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -89,
+      "sourceBbox": [
+        361,
+        70,
+        1202,
+        448
+      ],
+      "runtimeBbox": [
+        272,
+        70,
+        1113,
+        448
+      ],
+      "alphaPixels": 136662
+    },
+    {
+      "frame": 36,
+      "sourceCoreAnchorX": 882,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -210,
+      "sourceBbox": [
+        441,
+        122,
+        1250,
+        553
+      ],
+      "runtimeBbox": [
+        231,
+        122,
+        1040,
+        553
+      ],
+      "alphaPixels": 137250
+    },
+    {
+      "frame": 37,
+      "sourceCoreAnchorX": 882,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -210,
+      "sourceBbox": [
+        441,
+        122,
+        1250,
+        553
+      ],
+      "runtimeBbox": [
+        231,
+        122,
+        1040,
+        553
+      ],
+      "alphaPixels": 137250
+    },
+    {
+      "frame": 38,
+      "sourceCoreAnchorX": 1004,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -332,
+      "sourceBbox": [
+        623,
+        115,
+        1281,
+        602
+      ],
+      "runtimeBbox": [
+        291,
+        115,
+        949,
+        602
+      ],
+      "alphaPixels": 124919
+    },
+    {
+      "frame": 39,
+      "sourceCoreAnchorX": 1004,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -332,
+      "sourceBbox": [
+        729,
+        135,
+        1282,
+        600
+      ],
+      "runtimeBbox": [
+        397,
+        135,
+        950,
+        600
+      ],
+      "alphaPixels": 120728
+    },
+    {
+      "frame": 40,
+      "sourceCoreAnchorX": 1006,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -334,
+      "sourceBbox": [
+        731,
+        138,
+        1282,
+        599
+      ],
+      "runtimeBbox": [
+        397,
+        138,
+        948,
+        599
+      ],
+      "alphaPixels": 119961
+    },
+    {
+      "frame": 41,
+      "sourceCoreAnchorX": 1009,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -337,
+      "sourceBbox": [
+        688,
+        225,
+        1277,
+        599
+      ],
+      "runtimeBbox": [
+        351,
+        225,
+        940,
+        599
+      ],
+      "alphaPixels": 121221
+    },
+    {
+      "frame": 42,
+      "sourceCoreAnchorX": 1005,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -333,
+      "sourceBbox": [
+        683,
+        229,
+        1276,
+        599
+      ],
+      "runtimeBbox": [
+        350,
+        229,
+        943,
+        599
+      ],
+      "alphaPixels": 122013
+    },
+    {
+      "frame": 43,
+      "sourceCoreAnchorX": 988,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -316,
+      "sourceBbox": [
+        655,
+        255,
+        1277,
+        600
+      ],
+      "runtimeBbox": [
+        339,
+        255,
+        961,
+        600
+      ],
+      "alphaPixels": 121345
+    },
+    {
+      "frame": 44,
+      "sourceCoreAnchorX": 988,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -316,
+      "sourceBbox": [
+        653,
+        253,
+        1277,
+        600
+      ],
+      "runtimeBbox": [
+        337,
+        253,
+        961,
+        600
+      ],
+      "alphaPixels": 121790
+    },
+    {
+      "frame": 45,
+      "sourceCoreAnchorX": 1001,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -329,
+      "sourceBbox": [
+        637,
+        241,
+        1284,
+        600
+      ],
+      "runtimeBbox": [
+        308,
+        241,
+        955,
+        600
+      ],
+      "alphaPixels": 122577
+    },
+    {
+      "frame": 46,
+      "sourceCoreAnchorX": 1001,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -329,
+      "sourceBbox": [
+        636,
+        240,
+        1285,
+        600
+      ],
+      "runtimeBbox": [
+        307,
+        240,
+        956,
+        600
+      ],
+      "alphaPixels": 123134
+    },
+    {
+      "frame": 47,
+      "sourceCoreAnchorX": 1002,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -330,
+      "sourceBbox": [
+        653,
+        234,
+        1290,
+        600
+      ],
+      "runtimeBbox": [
+        323,
+        234,
+        960,
+        600
+      ],
+      "alphaPixels": 124491
+    },
+    {
+      "frame": 48,
+      "sourceCoreAnchorX": 1001,
+      "runtimeCoreAnchorX": 672,
+      "integerShiftX": -329,
+      "sourceBbox": [
+        652,
+        234,
+        1291,
+        600
+      ],
+      "runtimeBbox": [
+        323,
+        234,
+        962,
+        600
+      ],
+      "alphaPixels": 124818
+    }
+  ],
+  "sourceSha256": "F5E3CFF4429F33A8A3465E19724705E5B787457D0EB734AB7AF6D6ACCA281071",
+  "runtimeSha256": "BDE43DA94A146854963D5BB8424A01B8E4443B12373BC4142084C3423D6348EA",
+  "gameAssetSha256": "BDE43DA94A146854963D5BB8424A01B8E4443B12373BC4142084C3423D6348EA",
+  "previewGif": "previews\\sprites\\runtime\\werewolf-king-pounce-root-locked.gif",
+  "contact": "previews\\sprites\\runtime\\werewolf-king-pounce-root-locked-contact.png"
+}

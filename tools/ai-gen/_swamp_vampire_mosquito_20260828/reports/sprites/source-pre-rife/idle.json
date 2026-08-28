@@ -1,0 +1,53 @@
+{
+  "video": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\video\\swamp-mosquito-idle-hanging-v03.mp4",
+  "decodedFrameCount": 121,
+  "sourceFrames": [
+    6,
+    8,
+    10,
+    12
+  ],
+  "background": "#0000FF",
+  "clearRect": [
+    0.7,
+    0.0,
+    1.0,
+    1.0
+  ],
+  "cell": 640,
+  "cols": 4,
+  "rows": 1,
+  "frameRate": 12.0,
+  "scale": 0.6685,
+  "fitScale": 0.6692851733675603,
+  "targetCore": [
+    400.0,
+    256.0
+  ],
+  "anchorMode": "per-frame",
+  "coreCenters": [
+    [
+      592.401,
+      353.83
+    ],
+    [
+      592.188,
+      353.948
+    ],
+    [
+      592.665,
+      351.404
+    ],
+    [
+      592.186,
+      351.891
+    ]
+  ],
+  "semiTransparentPixels": [
+    266498,
+    267789,
+    266759,
+    267919
+  ],
+  "output": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\spritesheets\\source-pre-rife\\idle.png"
+}

@@ -1,0 +1,34 @@
+{
+  "asset": "werewolf-king-mother-v02-armored-candidate.png",
+  "status": "candidate_waiting_for_user_approval",
+  "createdAt": "2026-08-28",
+  "generator": {
+    "mode": "Codex built-in image_gen precise-object-edit",
+    "editPrompt": "armor-edit-v01.txt",
+    "sourceOutput": "C:/Users/allan/.codex/generated_images/01a045db-9741-7e23-bacc-7bd252808164/exec-244f98f3-0dab-4e1d-b25c-00c832fba885.png"
+  },
+  "editTarget": "werewolf-king-mother-v01-candidate.png",
+  "design": {
+    "name": "animation-friendly royal war harness",
+    "components": [
+      "segmented blackened-steel cuirass",
+      "compact layered pauldrons",
+      "forearm bracers",
+      "fitted shin greaves",
+      "worn leather belt and rigid hip plates",
+      "sparse oxidized-bronze trim"
+    ],
+    "excluded": [
+      "helmet",
+      "crown",
+      "cape",
+      "dangling cloth or chains",
+      "weapon",
+      "shield",
+      "magic glow"
+    ]
+  },
+  "sha256": "3492CBA8E0237EEDE083909206F508E17D96E100BB0774B85B4C1F2467EA18F0",
+  "runtimeIntegrated": false,
+  "notes": "Armored design candidate only. The unarmored mother frame remains unchanged."
+}

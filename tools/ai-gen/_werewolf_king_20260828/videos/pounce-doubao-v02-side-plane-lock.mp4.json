@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\references\\werewolf-king-pounce-v02-directional-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\prompts\\pounce-doubao-v02-side-plane-lock.txt",
+  "promptChars": 3462,
+  "promptSha256": "a4f702e3ed5de225251c35400fbfacf4862f40d1a842c68038a087da565fe0e7",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T01:48:56.923Z",
+  "sourceUrlScheme": "https"
+}

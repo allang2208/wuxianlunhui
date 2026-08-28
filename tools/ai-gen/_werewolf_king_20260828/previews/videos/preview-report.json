@@ -1,0 +1,50 @@
+{
+  "idle": {
+    "source": "videos/idle-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "durationSeconds": 5.041666666666667,
+    "previewGif": "previews/videos/idle-preview.gif",
+    "contact": "previews/videos/idle-contact.png"
+  },
+  "running": {
+    "source": "videos/running-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "durationSeconds": 5.041666666666667,
+    "previewGif": "previews/videos/running-preview.gif",
+    "contact": "previews/videos/running-contact.png"
+  },
+  "attacking": {
+    "source": "videos/attacking-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "durationSeconds": 5.041666666666667,
+    "previewGif": "previews/videos/attacking-preview.gif",
+    "contact": "previews/videos/attacking-contact.png"
+  },
+  "dying": {
+    "source": "videos/dying-doubao-v02-fixed-scale.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "durationSeconds": 5.041666666666667,
+    "previewGif": "previews/videos/dying-v02-fixed-scale-preview.gif",
+    "contact": "previews/videos/dying-v02-fixed-scale-contact.png"
+  },
+  "pounce": {
+    "source": "videos/pounce-doubao-v02-side-plane-lock.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "durationSeconds": 5.041666666666667,
+    "previewGif": "previews/videos/pounce-v02-side-plane-lock-preview.gif",
+    "contact": "previews/videos/pounce-v02-side-plane-lock-contact.png"
+  },
+  "howl": {
+    "source": "videos/howl-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "durationSeconds": 5.041666666666667,
+    "previewGif": "previews/videos/howl-preview.gif",
+    "contact": "previews/videos/howl-contact.png"
+  }
+}

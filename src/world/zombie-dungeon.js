@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -98,6 +98,12 @@ function createBrownSnake(x, y) {
     });
 }
 
+function createSwampVampireMosquito(x, y) {
+    return createSwampVampireMosquitoBase(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
+    });
+}
+
 function createBlackKingCobra(x, y) {
     return createBlackKingCobraBase(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
@@ -106,6 +112,12 @@ function createBlackKingCobra(x, y) {
 
 function createMedusa(x, y) {
     return createMedusaBase(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
+    });
+}
+
+function createWerewolfKing(x, y) {
+    return createWerewolfKingBase(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
     });
 }
@@ -460,8 +472,10 @@ export const ZOMBIE_FACTORY_MAP = {
     purpleBlightAncient: createPurpleBlightAncient,
     carnivorousPitcher: createCarnivorousPitcher,
     brownSnake: createBrownSnake,
+    swampVampireMosquito: createSwampVampireMosquito,
     blackKingCobra: createBlackKingCobra,
     medusa: createMedusa,
+    werewolfKing: createWerewolfKing,
     blackBear: createBlackBear,
     zombie: createBasicZombie,
     zombieDog: createZombieDog,

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\references\\werewolf-king-armored-death-v02-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_werewolf_king_20260828\\prompts\\dying-doubao-v02-fixed-scale.txt",
+  "promptChars": 2595,
+  "promptSha256": "47f6b618518ae4a7e11f3f7abff61b76517a99eafd3499c0f951c404f0750a4b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T01:24:54.251Z",
+  "sourceUrlScheme": "https"
+}

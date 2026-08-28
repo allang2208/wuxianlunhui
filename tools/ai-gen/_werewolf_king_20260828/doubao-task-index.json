@@ -1,0 +1,127 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "identityMother": "werewolf-king-mother-v02-armored-candidate.png",
+  "reference": "references/werewolf-king-armored-safe-white-1024x576.png",
+  "status": "runtime_integrated_approved_assets",
+  "spriteSheetIndex": "spritesheet-index.json",
+  "tasks": [
+    {
+      "motion": "idle",
+      "kind": "idle",
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "approved_runtime_source",
+      "video": "videos/idle-doubao-v01.mp4",
+      "provenance": "videos/idle-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/idle-preview.gif",
+      "contact": "previews/videos/idle-contact.png",
+      "sourceFrames": 121,
+      "sourceFps": 24,
+      "sha256": "BA5C4E52E7E343485544F3A0827ABBCD6CF6CEE234B949FC7EB8921AA1199BC8"
+    },
+    {
+      "motion": "running",
+      "kind": "run",
+      "prompt": "prompts/running-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "approved_runtime_source",
+      "video": "videos/running-doubao-v01.mp4",
+      "provenance": "videos/running-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/running-preview.gif",
+      "contact": "previews/videos/running-contact.png",
+      "sourceFrames": 121,
+      "sourceFps": 24,
+      "sha256": "F0A09419CDE820636D5D7CF4F8F4EE8D2CBFE0D9AE19C51F124118D533C61B99"
+    },
+    {
+      "motion": "attacking",
+      "kind": "attack",
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_source",
+      "video": "videos/attacking-doubao-v01.mp4",
+      "provenance": "videos/attacking-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/attacking-preview.gif",
+      "contact": "previews/videos/attacking-contact.png",
+      "sourceFrames": 121,
+      "sourceFps": 24,
+      "sha256": "1F5F5E2116978A5CE089D05F61D21E740CCD70D4CF4955632FD1AD6308875615"
+    },
+    {
+      "motion": "dying",
+      "kind": "die",
+      "prompt": "prompts/dying-doubao-v02-fixed-scale.txt",
+      "reference": "references/werewolf-king-armored-death-v02-safe-white-1024x576.png",
+      "loopRequested": false,
+      "status": "approved_runtime_source",
+      "video": "videos/dying-doubao-v02-fixed-scale.mp4",
+      "provenance": "videos/dying-doubao-v02-fixed-scale.mp4.json",
+      "previewGif": "previews/videos/dying-v02-fixed-scale-preview.gif",
+      "contact": "previews/videos/dying-v02-fixed-scale-contact.png",
+      "sourceFrames": 121,
+      "sourceFps": 24,
+      "sha256": "F211D5D04307016615EF954506B17D8ED796E8B0466937013F5D10B9C28A82BF"
+    },
+    {
+      "motion": "pounce",
+      "kind": "pounce_attack",
+      "prompt": "prompts/pounce-doubao-v02-side-plane-lock.txt",
+      "reference": "references/werewolf-king-pounce-v02-directional-safe-1024x576.png",
+      "loopRequested": false,
+      "status": "approved_runtime_source",
+      "video": "videos/pounce-doubao-v02-side-plane-lock.mp4",
+      "provenance": "videos/pounce-doubao-v02-side-plane-lock.mp4.json",
+      "previewGif": "previews/videos/pounce-v02-side-plane-lock-preview.gif",
+      "contact": "previews/videos/pounce-v02-side-plane-lock-contact.png",
+      "spriteSheet": "spritesheets/final/pounce.png",
+      "spritePreviewGif": "previews/sprites/final/werewolf-king-pounce-interpolated.gif",
+      "spriteContact": "previews/sprites/final/werewolf-king-pounce-interpolated-contact.png",
+      "spriteReport": "reports/sprites/final/pounce-rife.json",
+      "sourceFrames": 121,
+      "sourceFps": 24,
+      "sha256": "B595FA71E9963B70CDE5BCD998531BF34DE523723EA0D885D0E87259CFC53E10",
+      "spriteSheetSha256": "F5E3CFF4429F33A8A3465E19724705E5B787457D0EB734AB7AF6D6ACCA281071"
+    },
+    {
+      "motion": "howl",
+      "kind": "howl",
+      "prompt": "prompts/howl-doubao-v01.txt",
+      "reference": "references/werewolf-king-armored-safe-white-1024x576.png",
+      "loopRequested": false,
+      "status": "approved_runtime_source",
+      "video": "videos/howl-doubao-v01.mp4",
+      "provenance": "videos/howl-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/howl-preview.gif",
+      "contact": "previews/videos/howl-contact.png",
+      "spriteSheet": "spritesheets/final/howl.png",
+      "spritePreviewGif": "previews/sprites/final/werewolf-king-howl-interpolated.gif",
+      "spriteContact": "previews/sprites/final/werewolf-king-howl-interpolated-contact.png",
+      "spriteReport": "reports/sprites/final/howl-rife.json",
+      "sourceFrames": 121,
+      "sourceFps": 24,
+      "sha256": "68BB7B8AF7431C9375B52413C4418B14E3FD692C4E68DB9BC7B3A6051721F348",
+      "spriteSheetSha256": "484B504289AF13084F631FE05BAC531BCCD004CC6B7004620AC0C3C6C9040F84",
+      "submissionNotes": "The first account had no remaining quota. After the user switched accounts, the first new-account submission returned an immediate retry error without creating a task; the next explicit retry completed successfully."
+    }
+  ],
+  "discardedAttempts": [
+    {
+      "motion": "dying",
+      "version": "v01",
+      "reason": "user rejected incorrect source-scale enlargement"
+    },
+    {
+      "motion": "pounce",
+      "version": "v01",
+      "reason": "rejected as the final action because of toward-camera scale enlargement; retained only as the source for the approved v02 directional reference"
+    }
+  ],
+  "cleanup": {
+    "date": "2026-08-28",
+    "policy": "retain the editable mother chain, approved videos, prompts, source sheets, final sheets, runtime derivative, reports and GIF previews; remove rejected death binaries and rebuildable rejected previews; retain pounce v01 only because approved v02 reference generation depends on its source frame"
+  }
+}

@@ -1,0 +1,25 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a new Phaser game monster animation pipeline
+
+Primary request: Create exactly one humanoid Werewolf King in a calm, animation-friendly neutral idle pose. This is a NEW monster identity, not the existing Red Wolf King.
+
+Input images:
+- Image 1: palette and head-character reference only. Use its charcoal-black / blue-black fur, restrained cool highlights, golden-amber eyes, dark muzzle, tall ears, and natural wolf identity. Do not copy its quadruped anatomy.
+- Image 2: material and production-style reference only. Match the realistic PBR fur quality, restrained saturation, clean white-background asset lighting, and grounded dark-fantasy game-render finish. Do not copy its red coloration or quadruped anatomy.
+- Image 3: biped anatomy, neutral pose, camera, and safe-framing reference only. Use the believable digitigrade humanoid-wolf body plan, long arms, clawed hands, wolf feet, bushy tail, and full-body three-quarter presentation. Do not copy the red coloration and do not reproduce an exaggerated bodybuilder physique.
+
+Subject identity: a dominant adult male Werewolf King with dense charcoal-black and blue-black fur, subtle natural brown-black variation at muzzle, hands, feet, and tail tip, golden-amber eyes, a broad wolf head, tall ears, heavy shoulder-and-neck ruff, long connected arms, five readable clawed fingers per hand, powerful but anatomically believable torso and digitigrade legs, two grounded feet, and one long bushy tail. Express “king” through mature presence, slightly larger shoulder ruff, confident posture, and clear silhouette only—no crown, jewelry, armor, clothing, weapon, emblem, magic, or glowing markings.
+
+Anatomy and material: physically plausible bipedal lupine anatomy, correct joints, continuous body topology, believable weight distribution, high-detail layered fur with realistic roughness and restrained color variation, non-plastic claws and nose, grounded muscular mass rather than superhero exaggeration.
+
+Style/medium: high-detail realistic PBR 3D game character render, grounded dark-fantasy production-asset polish, readable silhouette, controlled saturation, physically believable materials; not a photograph, not a cartoon, not an illustration.
+
+Pose: calm neutral idle, low three-quarter view facing right; spine upright with a slight natural forward lupine lean, shoulders relaxed, both arms hanging clear of the torso, hands open and separated, knees naturally flexed, both feet fully planted on one baseline, tail hanging behind and clearly separated from both legs; neutral alert expression, mouth closed.
+
+Composition/framing: 3:2 landscape canvas, orthographic-style locked camera at slight elevation consistent with the references, complete subject centered, subject about 55–65% of canvas height, generous margin on every side, full ears, claws, tail, and feet visible, no cropping, clean animation-safe negative space around all extremities.
+
+Scene/lighting: flat pure white #FFFFFF background, no horizon, no floor, no cast shadow, no contact shadow, no reflection; soft flat diffuse ambient studio light only.
+
+Identity locks: exactly one subject; charcoal-black / blue-black fur; amber eyes; broad wolf head; heavy shoulder ruff; long arms; digitigrade legs; exactly two legs, two arms, one head, one tail; correct continuous anatomy; full silhouette; clean edges.
+
+Avoid: red primary fur, extra or missing limbs, extra fingers, fused fingers, duplicate tail, split tail, broken anatomy, human face, ape face, bear face, bodybuilder abs, oversized chest, tiny waist, armor, crown, clothing, weapon, jewelry, magic, particles, scenery, dramatic rim light, cast shadow, floor line, perspective distortion, front view, side-profile-only view, top view, crop, blur, text, logo, watermark, cartoon, anime, chibi, flat illustration, low-poly toy, glossy plastic.

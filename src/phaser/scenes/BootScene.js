@@ -535,6 +535,20 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_red_wolf_king_werewolf_howl', 'assets/enemies/red_wolf_king/werewolf_howling.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
         this.load.spritesheet('enemy_red_wolf_king_werewolf_dying', 'assets/enemies/red_wolf_king/werewolf_dying.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
 
+        // 狼人王六动作：全部从正式配置读取帧格，飞扑保留独立 1344×640 宽格。
+        const werewolfKingTextures = enemyConfigData.werewolfKing?.textures || {};
+        const werewolfKingLayouts = werewolfKingTextures.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'pounce', 'howl', 'dying']) {
+            const layout = werewolfKingLayouts[state] || {};
+            const path = werewolfKingTextures[state];
+            if (!path) continue;
+            this.load.spritesheet(`enemy_werewolf_king_${state}`, path, {
+                frameWidth: layout.frameWidth || 800,
+                frameHeight: layout.frameHeight || 640,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        }
+
         // 僵尸犬 H3 五动作母版：路径、帧格和有效帧数统一读取 enemy-config。
         const zombieDogTextures = enemyConfigData.zombieDog?.textures || {};
         const zombieDogLayouts = zombieDogTextures.frameLayouts || {};
@@ -639,6 +653,22 @@ export class BootScene extends Scene {
         loadBrownSnakeSheet('walk', 'enemy_brown_snake_walk', 'assets/enemies/brown_snake/walking.png');
         loadBrownSnakeSheet('attack', 'enemy_brown_snake_attack', 'assets/enemies/brown_snake/attacking.png');
         loadBrownSnakeSheet('death', 'enemy_brown_snake_death', 'assets/enemies/brown_snake/dying.png');
+
+        // 沼泽吸血大蚊：待机/移动/死亡使用640方格，横向前刺攻击使用配置中的1280宽格。
+        const swampVampireMosquitoTextures = enemyConfigData.swampVampireMosquito?.textures || {};
+        const swampVampireMosquitoLayouts = swampVampireMosquitoTextures.frameLayouts || {};
+        const loadSwampVampireMosquitoSheet = (state, textureKey, fallbackPath) => {
+            const layout = swampVampireMosquitoLayouts[state] || {};
+            this.load.spritesheet(textureKey, swampVampireMosquitoTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 640,
+                frameHeight: layout.frameHeight || 640,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadSwampVampireMosquitoSheet('idle', 'enemy_swamp_vampire_mosquito_idle', 'assets/enemies/swamp_vampire_mosquito/idle.png');
+        loadSwampVampireMosquitoSheet('walk', 'enemy_swamp_vampire_mosquito_walk', 'assets/enemies/swamp_vampire_mosquito/walking.png');
+        loadSwampVampireMosquitoSheet('attack', 'enemy_swamp_vampire_mosquito_attack', 'assets/enemies/swamp_vampire_mosquito/attacking.png');
+        loadSwampVampireMosquitoSheet('death', 'enemy_swamp_vampire_mosquito_death', 'assets/enemies/swamp_vampire_mosquito/dying.png');
 
         // 黑色眼镜蛇王：walking 使用宽帧保留完整蛇身；攻击帧保留源视频前探位移。
         const blackKingCobraTextures = enemyConfigData.blackKingCobra?.textures || {};
@@ -1241,6 +1271,24 @@ export class BootScene extends Scene {
         createBrownBearAnim('attack', 'enemy_brown_bear_attack');
         createBrownBearAnim('death', 'enemy_brown_bear_death');
 
+        // 狼人王动画：待机/奔跑循环，攻击、飞扑、嚎叫与死亡均播放一次。
+        const werewolfKingLayouts = enemyConfigData.werewolfKing?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'pounce', 'howl', 'dying']) {
+            const layout = werewolfKingLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_werewolf_king_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_werewolf_king_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'running' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 12;
+            this.anims.create(animation);
+        }
+
         // 邪恶树精动画：idle/walk 循环，attack/death 各播放一次并停在末帧。
         const evilTreantLayouts = enemyConfigData.evilTreant?.textures?.frameLayouts || {};
         const createEvilTreantAnim = (state, textureKey) => {
@@ -1324,6 +1372,25 @@ export class BootScene extends Scene {
         createBrownSnakeAnim('walk', 'enemy_brown_snake_walk');
         createBrownSnakeAnim('attack', 'enemy_brown_snake_attack');
         createBrownSnakeAnim('death', 'enemy_brown_snake_death');
+
+        // 沼泽吸血大蚊：待机/移动循环，攻击与失去升力死亡各播放一次。
+        const swampVampireMosquitoLayouts = enemyConfigData.swampVampireMosquito?.textures?.frameLayouts || {};
+        const createSwampVampireMosquitoAnim = (state, textureKey) => {
+            const layout = swampVampireMosquitoLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_swamp_vampire_mosquito_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createSwampVampireMosquitoAnim('idle', 'enemy_swamp_vampire_mosquito_idle');
+        createSwampVampireMosquitoAnim('walk', 'enemy_swamp_vampire_mosquito_walk');
+        createSwampVampireMosquitoAnim('attack', 'enemy_swamp_vampire_mosquito_attack');
+        createSwampVampireMosquitoAnim('death', 'enemy_swamp_vampire_mosquito_death');
 
         // 黑色眼镜蛇王：idle/walk 循环，attack/death 单次播放并停在末帧。
         const blackKingCobraLayouts = enemyConfigData.blackKingCobra?.textures?.frameLayouts || {};

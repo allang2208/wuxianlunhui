@@ -1,0 +1,138 @@
+{
+  "task": "swamp-vampire-giant-mosquito",
+  "date": "2026-08-28",
+  "status": "runtime-integrated-awaiting-user-test",
+  "generationMode": "openai-built-in-imagegen",
+  "mother": "mother/swamp-vampire-mosquito-mother-v02-hanging-hover-candidate.png",
+  "prompt": "prompts/mother-v02-hanging-hover-imagegen.txt",
+  "animationSource": "mother/swamp-vampire-mosquito-animation-source-v02-hanging-blue.png",
+  "videoProvider": "doubao-seedance-2.0-mini",
+  "video": "video/swamp-mosquito-idle-hanging-v03.mp4",
+  "videoPrompt": "prompts/idle-hanging-hover-doubao-v03-safe.txt",
+  "videoPreviewGif": "previews/video/swamp-mosquito-idle-hanging-v03-preview.gif",
+  "videoContact": "previews/video/swamp-mosquito-idle-hanging-v03-contact.png",
+  "approvedIdleVideo": true,
+  "videos": {
+    "idle": {
+      "video": "video/swamp-mosquito-idle-hanging-v03.mp4",
+      "prompt": "prompts/idle-hanging-hover-doubao-v03-safe.txt",
+      "previewGif": "previews/video/swamp-mosquito-idle-hanging-v03-preview.gif",
+      "contact": "previews/video/swamp-mosquito-idle-hanging-v03-contact.png"
+    },
+    "moving": {
+      "video": "video/swamp-mosquito-moving-hanging-v01.mp4",
+      "prompt": "prompts/moving-hanging-flight-doubao-v01-safe.txt",
+      "previewGif": "previews/video/swamp-mosquito-moving-hanging-v01-preview.gif",
+      "contact": "previews/video/swamp-mosquito-moving-hanging-v01-contact.png"
+    },
+    "attack": {
+      "video": "video/swamp-mosquito-attack-hanging-v01.mp4",
+      "prompt": "prompts/attack-hanging-flight-doubao-v01-safe.txt",
+      "previewGif": "previews/video/swamp-mosquito-attack-hanging-v01-preview.gif",
+      "contact": "previews/video/swamp-mosquito-attack-hanging-v01-contact.png"
+    },
+    "dying": {
+      "video": "video/swamp-mosquito-dying-hanging-v01.mp4",
+      "prompt": "prompts/dying-loss-of-lift-doubao-v01-safe.txt",
+      "previewGif": "previews/video/swamp-mosquito-dying-hanging-v01-preview.gif",
+      "contact": "previews/video/swamp-mosquito-dying-hanging-v01-contact.png"
+    }
+  },
+  "sourceSheet": "spritesheets/source-pre-rife/idle.png",
+  "sourceFrames": [6, 8, 10, 12],
+  "finalSheet": "spritesheets/final/idle.png",
+  "finalFrameCount": 8,
+  "finalFrameRate": 24,
+  "finalGrid": "4x2",
+  "finalCell": "640x640",
+  "previewGif": "previews/sprites/final/idle/swamp-vampire-mosquito-idle-interpolated.gif",
+  "rifeReport": "reports/sprites/final/idle-rife.json",
+  "formalSprites": {
+    "idle": {
+      "sheet": "spritesheets/final/idle.png",
+      "frameCount": 8,
+      "frameRate": 24,
+      "grid": "4x2",
+      "cell": "640x640",
+      "report": "reports/sprites/final/idle-rife.json",
+      "previewGif": "previews/sprites/final/idle/swamp-vampire-mosquito-idle-interpolated.gif"
+    },
+    "walking": {
+      "sheet": "spritesheets/final/walking.png",
+      "frameCount": 8,
+      "frameRate": 24,
+      "grid": "4x2",
+      "cell": "640x640",
+      "report": "reports/sprites/final/walking-rife.json",
+      "previewGif": "previews/sprites/final/walking/swamp-vampire-mosquito-walking-interpolated.gif"
+    },
+    "attacking": {
+      "sheet": "spritesheets/final/attacking.png",
+      "frameCount": 29,
+      "frameRate": 20,
+      "grid": "5x6",
+      "cell": "1280x640",
+      "revision": "v03-wide-safety-frame-despill",
+      "preserveVerticalMotion": true,
+      "blueSpillPixelsRemaining": 0,
+      "report": "reports/sprites/final/attacking-rife.json",
+      "previewGif": "previews/sprites/final/attacking/swamp-vampire-mosquito-attacking-interpolated.gif"
+    },
+    "dying": {
+      "sheet": "spritesheets/final/dying.png",
+      "frameCount": 31,
+      "frameRate": 12,
+      "grid": "4x8",
+      "cell": "640x640",
+      "report": "reports/sprites/final/dying-rife.json",
+      "previewGif": "previews/sprites/final/dying/swamp-vampire-mosquito-dying-interpolated.gif"
+    }
+  },
+  "runtimeAssets": {
+    "idle": "assets/enemies/swamp_vampire_mosquito/idle.png",
+    "walking": "assets/enemies/swamp_vampire_mosquito/walking.png",
+    "attacking": "assets/enemies/swamp_vampire_mosquito/attacking.png",
+    "dying": "assets/enemies/swamp_vampire_mosquito/dying.png"
+  },
+  "spritesNeedRebuildFromCurrentIdleVideo": false,
+  "currentVideoSetComplete": true,
+  "currentVideoSetNeedsSpriteRebuild": false,
+  "runtimeIntegrated": true,
+  "animationsGenerated": true,
+  "attackRepair": {
+    "issue": "v01 cleared the rightmost 30 percent of every frame and clipped the forward lunge",
+    "sourceVideoIntact": true,
+    "sourceFrames": [38, 44, 50, 56, 62, 68, 74, 80, 86, 92, 98, 104, 110, 116, 120],
+    "cell": "1280x640",
+    "supportAlphaThreshold": 60,
+    "supportDilate": 24,
+    "preserveVerticalMotion": true,
+    "outputFrameCount": 29,
+    "durationMs": 1450,
+    "discardedRevision": "v01-clipped; fixed clearRect removed the rightmost 30 percent of the lunge"
+  },
+  "attackBlueSpillRepair": {
+    "issue": "v02 retained blue/cyan H.264 chroma haze inside the translucent alpha support",
+    "revision": "v03-wide-safety-frame-despill",
+    "blueSpillRadius": 10,
+    "blueSpillThreshold": 18,
+    "sourceBlueSpillPixelsRemaining": 0,
+    "finalBlueSpillPixelsRemaining": 0,
+    "rifeMiddleFramesDespill": true,
+    "alphaPreservedForNearSubjectWingEdges": true,
+    "discardedRevision": "v02-blue-spill; H.264 cyan haze remained inside translucent wing alpha"
+  },
+  "cleanup": {
+    "date": "2026-08-28",
+    "policy": "retain the approved mother, four formal videos, prompts, key frames, source sheets, final sheets, reports and GIF previews only",
+    "editableSource": "mother v01 and its prompt are retained because approved hanging mother v02 is a precise edit of v01",
+    "discarded": [
+      "horizontal-hover video/sheet derivatives",
+      "Doubao-blocked prompt text",
+      "v01 clipped attack derivatives",
+      "v02 blue-spill attack derivatives",
+      "rebuild candidate cache",
+      "source-sheet-only preview derivatives"
+    ]
+  }
+}

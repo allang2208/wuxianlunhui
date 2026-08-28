@@ -1,0 +1,9 @@
+Keep the exact armored Werewolf King identity from the reference image: the same charcoal-black and blue-black fur, amber eyes, broad wolf head, heavy shoulder ruff, long arms, clawed hands, digitigrade legs, bushy tail, fitted blackened-steel segmented cuirass, compact layered shoulder guards, forearm bracers, shin greaves, leather belt, rigid hip plates, and sparse oxidized-bronze trim.
+
+Animate a powerful but anatomically believable in-place combat run facing right. The torso leans slightly forward while the pelvis root stays centered. Left and right digitigrade legs alternate naturally through one complete regular two-step running cycle with clear support, push-off, swing, and landing phases. Arms counter-swing with restrained predatory motion, hands open and claws readable. The tail provides natural counterbalance without whipping across the legs. Both feet repeatedly contact the same baseline; the character does not travel across the canvas.
+
+Armor plates, rivets, straps, shoulder guards, cuirass, belt, hip plates, bracers, greaves, face, fur pattern, claws, and tail remain rigidly coherent without changing shape, flickering, disappearing, or swapping sides. Shoulder, elbow, hip, knee, and ankle joints remain unobstructed.
+
+Begin and finish on the exact same running phase, position, scale, orientation, foot phase, arm phase, tail phase, and armor state for a seamless loop. Full character remains inside frame with generous margins. Static locked camera, fixed scale, pure white background, soft even diffuse light, no floor and no cast shadow.
+
+No forward travel, skating, floating, front-facing turn, spinning, extra step, pose reset, armor morphing, missing greaves, missing bracers, extra limbs, fused fingers, camera tracking, pan, zoom, crop, reframing, motion blur that erases the silhouette, shadow, scenery, particles, text, logo, or watermark.

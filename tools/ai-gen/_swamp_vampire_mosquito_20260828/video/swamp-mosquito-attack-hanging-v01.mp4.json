@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\mother\\swamp-vampire-mosquito-animation-source-v02-hanging-blue.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\video\\attack-hanging-flight-doubao-v01-safe_doubao_bg.txt",
+  "promptChars": 1992,
+  "promptSha256": "f4faceb56c555aebe4e004348b90ca0d8355f938741c8b83bac8e5402253cf5d",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T03:56:46.234Z",
+  "sourceUrlScheme": "https"
+}

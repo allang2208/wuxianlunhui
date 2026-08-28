@@ -6,8 +6,8 @@ preserve alpha. Transparent RGB is filled from the nearest visible pixel before
 RIFE to prevent dark edge halos. Original key-frame pixels remain unchanged at
 even output indices after transparent-RGB normalization. Looping actions include
 the last-to-first seam (N -> 2N); one-shot
-actions never wrap (N -> 2N-1). Every generated middle frame is shifted by whole
-pixels so its alpha bottom matches the mean of its two source neighbours.
+actions never wrap (N -> 2N-1). Grounded characters align generated middle-frame
+alpha bottoms by default; flying/falling actions can preserve native vertical motion.
 """
 
 from __future__ import annotations
@@ -87,6 +87,30 @@ def bleed_rgb(frame: np.ndarray) -> np.ndarray:
         return frame[..., :3].copy()
     _, indices = ndimage.distance_transform_edt(~opaque, return_indices=True)
     return frame[..., :3][indices[0], indices[1]].astype(np.uint8)
+
+
+def repair_blue_spill(frame: np.ndarray, threshold: int = 18) -> tuple[np.ndarray, int]:
+    """Remove blue/cyan chroma excess introduced only by an interpolated frame."""
+    result = frame.copy()
+    visible = result[..., 3] > 0
+    work = result[..., :3].astype(np.int16)
+    red, green, blue = work[..., 0], work[..., 1], work[..., 2]
+    cyan = visible & (green > red + threshold) & (blue > red + threshold)
+    if cyan.any():
+        cap = np.clip(red[cyan] + threshold, 0, 255).astype(np.uint8)
+        result[..., 1][cyan] = np.minimum(result[..., 1][cyan], cap)
+        result[..., 2][cyan] = np.minimum(result[..., 2][cyan], cap)
+    red = result[..., 0].astype(np.int16)
+    green = result[..., 1].astype(np.int16)
+    blue = result[..., 2].astype(np.int16)
+    peak = np.maximum(red, green)
+    blue_excess = visible & (blue > peak + 6)
+    if blue_excess.any():
+        result[..., 2][blue_excess] = np.clip(
+            peak[blue_excess] + 6, 0, 255
+        ).astype(np.uint8)
+    result[result[..., 3] == 0, :3] = 0
+    return result, int((cyan | blue_excess).sum())
 
 
 def run_rife(rife: Path, first: Path, second: Path, output: Path) -> None:
@@ -273,7 +297,7 @@ def repair_temporal_red_outliers(
 
 def assemble_middle(
     first: np.ndarray, second: np.ndarray, middle_rgb: Path, middle_alpha: Path,
-    repair_red_outliers: bool, hold_large_repair: bool,
+    repair_red_outliers: bool, hold_large_repair: bool, align_alpha_bottom: bool,
 ) -> tuple[np.ndarray, int, int, int, bool]:
     rgb = np.asarray(Image.open(middle_rgb).convert("RGB")).copy()
     alpha = np.asarray(Image.open(middle_alpha).convert("L")).copy()
@@ -285,7 +309,7 @@ def assemble_middle(
     first_bottom = alpha_bottom(first)
     second_bottom = alpha_bottom(second)
     dy = 0
-    if current is not None and first_bottom is not None and second_bottom is not None:
+    if align_alpha_bottom and current is not None and first_bottom is not None and second_bottom is not None:
         target = round((first_bottom + second_bottom) / 2)
         dy = target - current
         middle = shift_vertical(middle, dy)
@@ -309,7 +333,7 @@ def assemble_middle(
 
 def interpolate_pair(
     first: np.ndarray, second: np.ndarray, pair_dir: Path, rife: Path,
-    repair_red_outliers: bool, hold_large_repair: bool,
+    repair_red_outliers: bool, hold_large_repair: bool, align_alpha_bottom: bool,
 ) -> tuple[np.ndarray, int, int, int, bool]:
     pair_dir.mkdir(parents=True, exist_ok=True)
     first_rgb = pair_dir / "first-rgb.png"
@@ -326,14 +350,14 @@ def interpolate_pair(
     run_rife(rife, first_alpha, second_alpha, middle_alpha)
     return assemble_middle(
         first, second, middle_rgb, middle_alpha,
-        repair_red_outliers, hold_large_repair,
+        repair_red_outliers, hold_large_repair, align_alpha_bottom,
     )
 
 
 def interpolate(
     originals: list[np.ndarray], mode: str, work_dir: Path, rife: Path,
     loop_start_index: int = 0, repair_red_outliers: bool = False,
-    hold_large_repair: bool = False,
+    hold_large_repair: bool = False, align_alpha_bottom: bool = True,
 ) -> tuple[list[np.ndarray], list[int], list[int], list[int], list[bool]]:
     pair_count = len(originals) if mode == "loop" else len(originals) - 1
     frames: list[np.ndarray] = []
@@ -373,6 +397,7 @@ def interpolate(
                 alpha_output / f"{output_number:08d}.png",
                 repair_red_outliers,
                 hold_large_repair,
+                align_alpha_bottom,
             )
         else:
             middle, dy, repaired_dark_pixels, repaired_red_pixels, held_source_key = interpolate_pair(
@@ -380,6 +405,7 @@ def interpolate(
                 work_dir / f"pair-{index:03d}", rife,
                 repair_red_outliers,
                 hold_large_repair,
+                align_alpha_bottom,
             )
         frames.extend([originals[index], middle])
         shifts.append(dy)
@@ -579,6 +605,11 @@ def main() -> None:
     parser.add_argument("--rife", type=Path, default=DEFAULT_RIFE)
     parser.add_argument("--repair-red-outliers", action="store_true")
     parser.add_argument("--hold-large-repair", action="store_true")
+    parser.add_argument("--preserve-vertical-motion", action="store_true",
+                        help="disable grounded alpha-bottom correction for flying/falling actions")
+    parser.add_argument("--despill-blue-middle", action="store_true",
+                        help="remove blue/cyan chroma excess from generated odd frames only")
+    parser.add_argument("--blue-spill-threshold", type=int, default=18)
     args = parser.parse_args()
 
     if not args.rife.exists():
@@ -599,7 +630,14 @@ def main() -> None:
         frames, shifts, dark_repairs, red_repairs, held_source_keys = interpolate(
             originals, args.mode, Path(temp), args.rife, args.loop_start_index,
             args.repair_red_outliers, args.hold_large_repair,
+            not args.preserve_vertical_motion,
         )
+    blue_spill_repairs = [0] * len(frames)
+    if args.despill_blue_middle:
+        for index in range(1, len(frames), 2):
+            frames[index], blue_spill_repairs[index] = repair_blue_spill(
+                frames[index], args.blue_spill_threshold,
+            )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(compose(frames, args.out_cols), "RGBA").save(
@@ -623,6 +661,10 @@ def main() -> None:
         "sourceFrameRate": args.frame_rate,
         "outputFrameRate": args.frame_rate * 2,
         "durationPreserved": True,
+        "middleFrameBottomAlignment": not args.preserve_vertical_motion,
+        "middleFrameBlueSpillRepair": args.despill_blue_middle,
+        "blueSpillThreshold": args.blue_spill_threshold if args.despill_blue_middle else None,
+        "blueSpillPixelsRepaired": blue_spill_repairs,
         "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
         "validation": validate(
             originals, frames, args.mode, shifts, dark_repairs,

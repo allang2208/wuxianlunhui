@@ -1,0 +1,186 @@
+{
+  "action": "dying",
+  "video": "videos\\dying-doubao-v02-fixed-scale.mp4",
+  "sourceFrames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72
+  ],
+  "referenceFrame": 0,
+  "excludedDuplicateEndpoint": null,
+  "mode": "one-shot",
+  "alignment": "fixed-source-x-grounded-y",
+  "cellWidth": 800,
+  "cellHeight": 640,
+  "cols": 8,
+  "frameCount": 19,
+  "frameRate": 6.0,
+  "targetStandingHeight": 410,
+  "targetCenterX": 400,
+  "targetFeetY": 570,
+  "referenceSourceHeight": 318,
+  "fixedScale": 1.2893081761006289,
+  "fixedTranslateX": -440.19511352503287,
+  "fixedTranslateY": -181.66666666666663,
+  "alphaPixelsPerFrame": [
+    62299,
+    63078,
+    63593,
+    63624,
+    62755,
+    63414,
+    66896,
+    69452,
+    66401,
+    63271,
+    66153,
+    71728,
+    78942,
+    88792,
+    91176,
+    90317,
+    88611,
+    86848,
+    86219
+  ],
+  "alphaBottomMin": 570,
+  "alphaBottomMax": 571,
+  "outputBoxes": [
+    [
+      250,
+      160,
+      518,
+      570
+    ],
+    [
+      251,
+      167,
+      518,
+      571
+    ],
+    [
+      257,
+      170,
+      518,
+      571
+    ],
+    [
+      265,
+      174,
+      525,
+      571
+    ],
+    [
+      276,
+      178,
+      541,
+      571
+    ],
+    [
+      283,
+      185,
+      558,
+      570
+    ],
+    [
+      289,
+      206,
+      587,
+      570
+    ],
+    [
+      303,
+      228,
+      625,
+      570
+    ],
+    [
+      341,
+      239,
+      639,
+      570
+    ],
+    [
+      365,
+      247,
+      638,
+      571
+    ],
+    [
+      331,
+      252,
+      639,
+      571
+    ],
+    [
+      269,
+      274,
+      640,
+      571
+    ],
+    [
+      129,
+      272,
+      646,
+      570
+    ],
+    [
+      78,
+      217,
+      692,
+      570
+    ],
+    [
+      26,
+      240,
+      693,
+      570
+    ],
+    [
+      8,
+      345,
+      719,
+      570
+    ],
+    [
+      8,
+      347,
+      744,
+      571
+    ],
+    [
+      8,
+      346,
+      726,
+      571
+    ],
+    [
+      9,
+      346,
+      718,
+      571
+    ]
+  ],
+  "emptyFrames": [],
+  "touchingFrames": [],
+  "transparentRgbNonZeroMax": 0,
+  "sheet": "spritesheets\\source-pre-rife\\dying.png",
+  "previewGif": "previews\\sprites\\source-pre-rife\\dying-source-keys.gif",
+  "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+}

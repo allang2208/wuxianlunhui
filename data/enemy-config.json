@@ -199,6 +199,144 @@
       }
     }
   },
+  "swampVampireMosquito": {
+    "id": "swampVampireMosquito",
+    "name": "沼泽吸血大蚊",
+    "hp": 110,
+    "maxHp": 110,
+    "size": 12,
+    "collisionRadius": 26,
+    "noCollision": true,
+    "speed": 380,
+    "level": 5,
+    "color": "#536f3c",
+    "highlightColor": "rgba(142, 45, 58, 0.3)",
+    "str": 32,
+    "dex": 38,
+    "con": 8,
+    "int": 5,
+    "wis": 7,
+    "luck": 10,
+    "rank": "normal",
+    "attackRange": 145,
+    "attackDistance": 145,
+    "basicMelee": {
+      "approachReach": 145,
+      "impactReach": 135,
+      "width": 28,
+      "timeline": {
+        "durationMs": 1450,
+        "frameCount": 29,
+        "contactFrame": 10,
+        "activeFrames": [8, 12],
+        "rebaseOnImpact": true
+      }
+    },
+    "aiInterval": 1400,
+    "ai": {
+      "aggroRange": 2700,
+      "pacingRange": 220,
+      "loseTimeout": 1800
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1500,
+      "dynamicRange": 155,
+      "width": 28,
+      "knockback": 6
+    },
+    "attackSkills": {
+      "bloodDrain": {
+        "healPercent": 0.25
+      }
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "自然",
+    "families": ["自然", "昆虫", "飞行"],
+    "description": "盘踞沼泽上空的巨型吸血蚊。生命脆弱，却能高速穿过单位阵形，用口器突刺造成中高物理伤害，并以实际伤害恢复生命。",
+    "skills": [
+      {
+        "name": "汲血口器",
+        "desc": "普通攻击确认命中且未被弹反后，按目标实际损失生命值的 25% 恢复自身生命。"
+      },
+      {
+        "name": "飞行穿行",
+        "desc": "不参与单位间碰撞分离，可以穿过其他单位；墙体仍会阻挡移动。"
+      }
+    ],
+    "attackType": "吸血口器突刺",
+    "render": {
+      "spriteSize": 178,
+      "collisionWidth": 86,
+      "collisionHeight": 110,
+      "footOffsetY": 50.06,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 86,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "height": 110,
+    "deathAnim": {
+      "duration": 2583,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/swamp_vampire_mosquito/idle.png",
+      "walk": "assets/enemies/swamp_vampire_mosquito/walking.png",
+      "attack": "assets/enemies/swamp_vampire_mosquito/attacking.png",
+      "death": "assets/enemies/swamp_vampire_mosquito/dying.png",
+      "referenceCell": 640,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 2,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 8,
+          "footY": 500,
+          "frameRate": 24,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 4,
+          "rows": 2,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 8,
+          "footY": 500,
+          "frameRate": 24,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 6,
+          "frameWidth": 1280,
+          "frameHeight": 640,
+          "frameCount": 29,
+          "footY": 500,
+          "duration": 1450,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 4,
+          "rows": 8,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 31,
+          "footY": 500,
+          "duration": 2583,
+          "repeat": 0
+        }
+      }
+    }
+  },
+
   "blackKingCobra": {
     "id": "blackKingCobra",
     "name": "黑色眼镜蛇王",
@@ -1473,6 +1611,215 @@
       "damageReduction": 0.9,
       "criticalChance": 0.5,
       "criticalDamageMultiplier": 2.5
+    }
+  },
+  "werewolfKing": {
+    "id": "werewolfKing",
+    "name": "狼人王",
+    "hp": 1700,
+    "maxHp": 1700,
+    "size": 24,
+    "collisionRadius": 50,
+    "speed": 300,
+    "level": 12,
+    "color": "#20252a",
+    "highlightColor": "rgba(118, 132, 142, 0.34)",
+    "str": 70,
+    "dex": 52,
+    "con": 64,
+    "int": 12,
+    "wis": 30,
+    "luck": 16,
+    "rank": "lord",
+    "type": "领主",
+    "category": "monster",
+    "family": "动物",
+    "families": ["动物", "自然", "类人形"],
+    "basicMeleeResolver": true,
+    "attackRange": 245,
+    "attackDistance": 245,
+    "basicMelee": {
+      "approachReach": 245,
+      "impactReach": 245,
+      "forwardOffset": 0,
+      "width": 68,
+      "area": {
+        "shape": "sector",
+        "range": 245,
+        "arcDegrees": 135,
+        "damageMultiplier": 1,
+        "knockback": 32
+      },
+      "timeline": {
+        "durationMs": 2400,
+        "frameCount": 49,
+        "contactFrame": 34,
+        "activeFrames": [32, 36]
+      }
+    },
+    "aiInterval": 2200,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 260,
+      "loseTimeout": 2600,
+      "chargeStraight": true
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2200,
+      "dynamicRange": 245,
+      "width": 68,
+      "knockback": 32
+    },
+    "attackSkills": {
+      "pounce": {
+        "cooldown": 12000,
+        "initialCooldownMs": 3500,
+        "triggerRange": 500,
+        "prepareMs": 1000,
+        "chargeMs": 1000,
+        "maxDistance": 1200,
+        "overshoot": 300,
+        "hitDistance": 130,
+        "damageMultiplier": 2,
+        "damageType": "physical",
+        "stunMs": 2000,
+        "recoveryMs": 450,
+        "ghostIntervalMs": 60
+      },
+      "stealth": {
+        "cooldown": 18000,
+        "initialCooldownMs": 6000,
+        "triggerRange": 900,
+        "howlDurationMs": 5000,
+        "fadeOutMs": 650,
+        "fadeInMs": 250,
+        "hiddenAlpha": 0,
+        "durationMs": 10000,
+        "damageMultiplier": 2,
+        "crippleMs": 3000,
+        "dustIntervalMs": 70
+      }
+    },
+    "description": "披覆暗铁领主甲的自然系狼人王。它用巨爪横扫前方群体，以锁定目标的飞扑制造眩晕，并在嚎叫后渐隐潜行；破隐一击会造成双倍伤害并致残。",
+    "skills": [
+      {
+        "name": "王爪横扫",
+        "desc": "朝锁定方向攻击前方135度、245像素扇形区域，对范围内全部地面目标造成一次物理伤害并击退。"
+      },
+      {
+        "name": "猎王飞扑",
+        "desc": "蓄力1秒后沿锁定方向直线飞扑，最多突进1200像素，仅命中锁定的单体目标，造成物理攻击×2伤害并眩晕2秒，冷却12秒。"
+      },
+      {
+        "name": "月影潜行",
+        "desc": "仰天嚎叫5秒后，贴图在650毫秒内以透明度渐变至完全隐形；实体、碰撞和受击体保持不变。潜行移动时脚下持续产生玩家冲刺同款沙尘，最多持续10秒，冷却18秒。"
+      },
+      {
+        "name": "破影猎杀",
+        "desc": "潜行后的第一次攻击造成×2伤害并致残3秒，任何攻击都会立即开始显形。潜行中飞扑可用时优先飞扑，飞扑×2与破隐×2乘算后造成物理攻击×4伤害。"
+      }
+    ],
+    "attackType": "扇形爪击AOE、单体眩晕飞扑与潜行破影组合技",
+    "render": {
+      "spriteSize": 400,
+      "collisionWidth": 125,
+      "collisionHeight": 210,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 125,
+        "height": 210,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "height": 210,
+    "sounds": {
+      "walk": "assets/sounds/enemies/werewolf_king/running.mp3",
+      "walkInterval": 1333,
+      "attack": "assets/sounds/enemies/werewolf_king/attacking-windup.mp3",
+      "claw": "assets/sounds/enemies/werewolf_king/claw-impact.mp3",
+      "pouncePrepare": "assets/sounds/enemies/werewolf_king/pounce-prepare.mp3",
+      "pounce": "assets/sounds/enemies/werewolf_king/pounce-launch.mp3",
+      "pounceHit": "assets/sounds/enemies/werewolf_king/pounce-impact.mp3",
+      "howl": "assets/sounds/enemies/werewolf_king/howling.mp3",
+      "death": "assets/sounds/enemies/werewolf_king/dying.mp3"
+    },
+    "deathAnim": {
+      "duration": 3100,
+      "holdMs": 1400
+    },
+    "textures": {
+      "idle": "assets/enemies/werewolf_king/idle.png",
+      "running": "assets/enemies/werewolf_king/running.png",
+      "attack": "assets/enemies/werewolf_king/attack.png",
+      "pounce": "assets/enemies/werewolf_king/pounce.png",
+      "howl": "assets/enemies/werewolf_king/howl.png",
+      "dying": "assets/enemies/werewolf_king/dying.png",
+      "referenceCell": 800,
+      "frameLayouts": {
+        "idle": {
+          "columns": 8,
+          "rows": 6,
+          "frameWidth": 800,
+          "frameHeight": 640,
+          "frameCount": 48,
+          "footY": 570,
+          "frameRate": 9.6,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 800,
+          "frameHeight": 640,
+          "frameCount": 32,
+          "footY": 570,
+          "frameRate": 24,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 8,
+          "rows": 7,
+          "frameWidth": 800,
+          "frameHeight": 640,
+          "frameCount": 49,
+          "footY": 570,
+          "duration": 2400,
+          "contactFrame": 34,
+          "repeat": 0
+        },
+        "pounce": {
+          "columns": 6,
+          "rows": 9,
+          "frameWidth": 1344,
+          "frameHeight": 640,
+          "frameCount": 49,
+          "footY": 570,
+          "duration": 2000,
+          "repeat": 0
+        },
+        "howl": {
+          "columns": 8,
+          "rows": 8,
+          "frameWidth": 800,
+          "frameHeight": 640,
+          "frameCount": 61,
+          "footY": 570,
+          "duration": 5000,
+          "repeat": 0
+        },
+        "dying": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 800,
+          "frameHeight": 640,
+          "frameCount": 37,
+          "footY": 570,
+          "duration": 3100,
+          "repeat": 0
+        }
+      }
     }
   },
   "fatZombie": {

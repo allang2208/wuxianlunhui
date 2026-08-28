@@ -1,0 +1,226 @@
+{
+  "action": "idle",
+  "video": "videos\\idle-doubao-v01.mp4",
+  "sourceFrames": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50,
+    55,
+    60,
+    65,
+    70,
+    75,
+    80,
+    85,
+    90,
+    95,
+    100,
+    105,
+    110,
+    115
+  ],
+  "referenceFrame": 0,
+  "excludedDuplicateEndpoint": null,
+  "mode": "loop",
+  "alignment": "stable-torso-and-feet",
+  "cellWidth": 800,
+  "cellHeight": 640,
+  "cols": 8,
+  "frameCount": 24,
+  "frameRate": 4.8,
+  "targetStandingHeight": 410,
+  "targetCenterX": 400,
+  "targetFeetY": 570,
+  "referenceSourceHeight": 440,
+  "fixedScale": 0.9318181818181818,
+  "fixedTranslateX": -211.5125217893816,
+  "fixedTranslateY": -6.795454545454504,
+  "alphaPixelsPerFrame": [
+    61405,
+    61935,
+    61343,
+    60605,
+    59716,
+    59121,
+    58470,
+    58645,
+    59208,
+    60256,
+    61137,
+    61412,
+    61155,
+    60875,
+    60104,
+    59660,
+    59205,
+    59145,
+    59435,
+    60281,
+    61146,
+    61512,
+    61009,
+    60284
+  ],
+  "alphaBottomMin": 570,
+  "alphaBottomMax": 570,
+  "outputBoxes": [
+    [
+      251,
+      161,
+      518,
+      570
+    ],
+    [
+      242,
+      158,
+      518,
+      570
+    ],
+    [
+      242,
+      156,
+      518,
+      570
+    ],
+    [
+      255,
+      154,
+      518,
+      570
+    ],
+    [
+      275,
+      153,
+      518,
+      570
+    ],
+    [
+      289,
+      152,
+      518,
+      570
+    ],
+    [
+      289,
+      149,
+      517,
+      570
+    ],
+    [
+      291,
+      147,
+      516,
+      570
+    ],
+    [
+      291,
+      147,
+      515,
+      570
+    ],
+    [
+      291,
+      148,
+      516,
+      570
+    ],
+    [
+      278,
+      148,
+      518,
+      570
+    ],
+    [
+      269,
+      148,
+      520,
+      570
+    ],
+    [
+      261,
+      150,
+      521,
+      570
+    ],
+    [
+      260,
+      150,
+      521,
+      570
+    ],
+    [
+      276,
+      151,
+      520,
+      570
+    ],
+    [
+      289,
+      153,
+      518,
+      570
+    ],
+    [
+      290,
+      154,
+      517,
+      570
+    ],
+    [
+      291,
+      155,
+      516,
+      570
+    ],
+    [
+      292,
+      156,
+      516,
+      570
+    ],
+    [
+      292,
+      155,
+      516,
+      570
+    ],
+    [
+      282,
+      154,
+      517,
+      570
+    ],
+    [
+      269,
+      153,
+      518,
+      570
+    ],
+    [
+      259,
+      151,
+      518,
+      570
+    ],
+    [
+      262,
+      151,
+      518,
+      570
+    ]
+  ],
+  "emptyFrames": [],
+  "touchingFrames": [],
+  "transparentRgbNonZeroMax": 0,
+  "sheet": "spritesheets\\source-pre-rife\\idle.png",
+  "previewGif": "previews\\sprites\\source-pre-rife\\idle-source-keys.gif",
+  "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+}

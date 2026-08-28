@@ -1,0 +1,810 @@
+{
+  "idle": {
+    "action": "idle",
+    "video": "videos\\idle-doubao-v01.mp4",
+    "sourceFrames": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      55,
+      60,
+      65,
+      70,
+      75,
+      80,
+      85,
+      90,
+      95,
+      100,
+      105,
+      110,
+      115
+    ],
+    "referenceFrame": 0,
+    "excludedDuplicateEndpoint": null,
+    "mode": "loop",
+    "alignment": "stable-torso-and-feet",
+    "cellWidth": 800,
+    "cellHeight": 640,
+    "cols": 8,
+    "frameCount": 24,
+    "frameRate": 4.8,
+    "targetStandingHeight": 410,
+    "targetCenterX": 400,
+    "targetFeetY": 570,
+    "referenceSourceHeight": 440,
+    "fixedScale": 0.9318181818181818,
+    "fixedTranslateX": -211.5125217893816,
+    "fixedTranslateY": -6.795454545454504,
+    "alphaPixelsPerFrame": [
+      61405,
+      61935,
+      61343,
+      60605,
+      59716,
+      59121,
+      58470,
+      58645,
+      59208,
+      60256,
+      61137,
+      61412,
+      61155,
+      60875,
+      60104,
+      59660,
+      59205,
+      59145,
+      59435,
+      60281,
+      61146,
+      61512,
+      61009,
+      60284
+    ],
+    "alphaBottomMin": 570,
+    "alphaBottomMax": 570,
+    "outputBoxes": [
+      [
+        251,
+        161,
+        518,
+        570
+      ],
+      [
+        242,
+        158,
+        518,
+        570
+      ],
+      [
+        242,
+        156,
+        518,
+        570
+      ],
+      [
+        255,
+        154,
+        518,
+        570
+      ],
+      [
+        275,
+        153,
+        518,
+        570
+      ],
+      [
+        289,
+        152,
+        518,
+        570
+      ],
+      [
+        289,
+        149,
+        517,
+        570
+      ],
+      [
+        291,
+        147,
+        516,
+        570
+      ],
+      [
+        291,
+        147,
+        515,
+        570
+      ],
+      [
+        291,
+        148,
+        516,
+        570
+      ],
+      [
+        278,
+        148,
+        518,
+        570
+      ],
+      [
+        269,
+        148,
+        520,
+        570
+      ],
+      [
+        261,
+        150,
+        521,
+        570
+      ],
+      [
+        260,
+        150,
+        521,
+        570
+      ],
+      [
+        276,
+        151,
+        520,
+        570
+      ],
+      [
+        289,
+        153,
+        518,
+        570
+      ],
+      [
+        290,
+        154,
+        517,
+        570
+      ],
+      [
+        291,
+        155,
+        516,
+        570
+      ],
+      [
+        292,
+        156,
+        516,
+        570
+      ],
+      [
+        292,
+        155,
+        516,
+        570
+      ],
+      [
+        282,
+        154,
+        517,
+        570
+      ],
+      [
+        269,
+        153,
+        518,
+        570
+      ],
+      [
+        259,
+        151,
+        518,
+        570
+      ],
+      [
+        262,
+        151,
+        518,
+        570
+      ]
+    ],
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "transparentRgbNonZeroMax": 0,
+    "sheet": "spritesheets\\source-pre-rife\\idle.png",
+    "previewGif": "previews\\sprites\\source-pre-rife\\idle-source-keys.gif",
+    "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+  },
+  "running": {
+    "action": "running",
+    "video": "videos\\running-doubao-v01.mp4",
+    "sourceFrames": [
+      16,
+      18,
+      20,
+      22,
+      24,
+      26,
+      28,
+      30,
+      32,
+      34,
+      36,
+      38,
+      40,
+      42,
+      44,
+      46
+    ],
+    "referenceFrame": 0,
+    "excludedDuplicateEndpoint": 48,
+    "mode": "loop",
+    "alignment": "stable-torso-and-feet",
+    "cellWidth": 800,
+    "cellHeight": 640,
+    "cols": 8,
+    "frameCount": 16,
+    "frameRate": 12.0,
+    "targetStandingHeight": 410,
+    "targetCenterX": 400,
+    "targetFeetY": 570,
+    "referenceSourceHeight": 440,
+    "fixedScale": 0.9318181818181818,
+    "fixedTranslateX": -211.507490830047,
+    "fixedTranslateY": -6.795454545454504,
+    "alphaPixelsPerFrame": [
+      60450,
+      60846,
+      59757,
+      56970,
+      56980,
+      58404,
+      61826,
+      65294,
+      62908,
+      65488,
+      65255,
+      61022,
+      59464,
+      56533,
+      57583,
+      60131
+    ],
+    "alphaBottomMin": 570,
+    "alphaBottomMax": 571,
+    "outputBoxes": [
+      [
+        238,
+        184,
+        560,
+        570
+      ],
+      [
+        270,
+        188,
+        539,
+        570
+      ],
+      [
+        262,
+        189,
+        528,
+        571
+      ],
+      [
+        250,
+        184,
+        519,
+        570
+      ],
+      [
+        240,
+        182,
+        525,
+        571
+      ],
+      [
+        227,
+        184,
+        532,
+        570
+      ],
+      [
+        211,
+        182,
+        534,
+        570
+      ],
+      [
+        188,
+        190,
+        559,
+        570
+      ],
+      [
+        181,
+        188,
+        572,
+        570
+      ],
+      [
+        188,
+        181,
+        559,
+        570
+      ],
+      [
+        201,
+        174,
+        563,
+        570
+      ],
+      [
+        231,
+        174,
+        558,
+        570
+      ],
+      [
+        246,
+        178,
+        533,
+        570
+      ],
+      [
+        247,
+        177,
+        523,
+        570
+      ],
+      [
+        235,
+        177,
+        528,
+        570
+      ],
+      [
+        225,
+        172,
+        539,
+        570
+      ]
+    ],
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "transparentRgbNonZeroMax": 0,
+    "sheet": "spritesheets\\source-pre-rife\\running.png",
+    "previewGif": "previews\\sprites\\source-pre-rife\\running-source-keys.gif",
+    "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+  },
+  "attacking": {
+    "action": "attacking",
+    "video": "videos\\attacking-doubao-v01.mp4",
+    "sourceFrames": [
+      0,
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28,
+      32,
+      36,
+      40,
+      44,
+      48,
+      52,
+      56,
+      60,
+      64,
+      68,
+      72,
+      76,
+      80,
+      84,
+      88,
+      92,
+      96
+    ],
+    "referenceFrame": 0,
+    "excludedDuplicateEndpoint": null,
+    "mode": "one-shot",
+    "alignment": "fixed-source-trajectory",
+    "cellWidth": 800,
+    "cellHeight": 640,
+    "cols": 8,
+    "frameCount": 25,
+    "frameRate": 6.0,
+    "targetStandingHeight": 410,
+    "targetCenterX": 400,
+    "targetFeetY": 570,
+    "referenceSourceHeight": 619,
+    "fixedScale": 0.6623586429725363,
+    "fixedTranslateX": -16.88583061740991,
+    "fixedTranslateY": 114.29725363489501,
+    "alphaPixelsPerFrame": [
+      64801,
+      65167,
+      66017,
+      65963,
+      64112,
+      62751,
+      62001,
+      61562,
+      61897,
+      62103,
+      62081,
+      62377,
+      63311,
+      64974,
+      65418,
+      70666,
+      74819,
+      77208,
+      77684,
+      76631,
+      70940,
+      65150,
+      60876,
+      65259,
+      65995
+    ],
+    "alphaBottomMin": 570,
+    "alphaBottomMax": 576,
+    "outputBoxes": [
+      [
+        240,
+        161,
+        524,
+        570
+      ],
+      [
+        240,
+        163,
+        526,
+        570
+      ],
+      [
+        240,
+        168,
+        534,
+        570
+      ],
+      [
+        243,
+        179,
+        547,
+        574
+      ],
+      [
+        229,
+        191,
+        553,
+        576
+      ],
+      [
+        205,
+        198,
+        552,
+        576
+      ],
+      [
+        193,
+        201,
+        551,
+        576
+      ],
+      [
+        185,
+        200,
+        550,
+        576
+      ],
+      [
+        179,
+        200,
+        550,
+        576
+      ],
+      [
+        173,
+        200,
+        549,
+        576
+      ],
+      [
+        172,
+        200,
+        549,
+        576
+      ],
+      [
+        167,
+        198,
+        551,
+        576
+      ],
+      [
+        160,
+        195,
+        560,
+        576
+      ],
+      [
+        153,
+        198,
+        598,
+        576
+      ],
+      [
+        216,
+        216,
+        603,
+        575
+      ],
+      [
+        270,
+        211,
+        754,
+        574
+      ],
+      [
+        225,
+        204,
+        761,
+        574
+      ],
+      [
+        180,
+        202,
+        759,
+        574
+      ],
+      [
+        166,
+        203,
+        758,
+        574
+      ],
+      [
+        173,
+        204,
+        749,
+        574
+      ],
+      [
+        192,
+        203,
+        713,
+        574
+      ],
+      [
+        222,
+        194,
+        639,
+        572
+      ],
+      [
+        249,
+        183,
+        562,
+        570
+      ],
+      [
+        252,
+        179,
+        559,
+        570
+      ],
+      [
+        246,
+        177,
+        554,
+        570
+      ]
+    ],
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "transparentRgbNonZeroMax": 0,
+    "sheet": "spritesheets\\source-pre-rife\\attacking.png",
+    "previewGif": "previews\\sprites\\source-pre-rife\\attacking-source-keys.gif",
+    "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+  },
+  "dying": {
+    "action": "dying",
+    "video": "videos\\dying-doubao-v02-fixed-scale.mp4",
+    "sourceFrames": [
+      0,
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28,
+      32,
+      36,
+      40,
+      44,
+      48,
+      52,
+      56,
+      60,
+      64,
+      68,
+      72
+    ],
+    "referenceFrame": 0,
+    "excludedDuplicateEndpoint": null,
+    "mode": "one-shot",
+    "alignment": "fixed-source-x-grounded-y",
+    "cellWidth": 800,
+    "cellHeight": 640,
+    "cols": 8,
+    "frameCount": 19,
+    "frameRate": 6.0,
+    "targetStandingHeight": 410,
+    "targetCenterX": 400,
+    "targetFeetY": 570,
+    "referenceSourceHeight": 318,
+    "fixedScale": 1.2893081761006289,
+    "fixedTranslateX": -440.19511352503287,
+    "fixedTranslateY": -181.66666666666663,
+    "alphaPixelsPerFrame": [
+      62299,
+      63078,
+      63593,
+      63624,
+      62755,
+      63414,
+      66896,
+      69452,
+      66401,
+      63271,
+      66153,
+      71728,
+      78942,
+      88792,
+      91176,
+      90317,
+      88611,
+      86848,
+      86219
+    ],
+    "alphaBottomMin": 570,
+    "alphaBottomMax": 571,
+    "outputBoxes": [
+      [
+        250,
+        160,
+        518,
+        570
+      ],
+      [
+        251,
+        167,
+        518,
+        571
+      ],
+      [
+        257,
+        170,
+        518,
+        571
+      ],
+      [
+        265,
+        174,
+        525,
+        571
+      ],
+      [
+        276,
+        178,
+        541,
+        571
+      ],
+      [
+        283,
+        185,
+        558,
+        570
+      ],
+      [
+        289,
+        206,
+        587,
+        570
+      ],
+      [
+        303,
+        228,
+        625,
+        570
+      ],
+      [
+        341,
+        239,
+        639,
+        570
+      ],
+      [
+        365,
+        247,
+        638,
+        571
+      ],
+      [
+        331,
+        252,
+        639,
+        571
+      ],
+      [
+        269,
+        274,
+        640,
+        571
+      ],
+      [
+        129,
+        272,
+        646,
+        570
+      ],
+      [
+        78,
+        217,
+        692,
+        570
+      ],
+      [
+        26,
+        240,
+        693,
+        570
+      ],
+      [
+        8,
+        345,
+        719,
+        570
+      ],
+      [
+        8,
+        347,
+        744,
+        571
+      ],
+      [
+        8,
+        346,
+        726,
+        571
+      ],
+      [
+        9,
+        346,
+        718,
+        571
+      ]
+    ],
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "transparentRgbNonZeroMax": 0,
+    "sheet": "spritesheets\\source-pre-rife\\dying.png",
+    "previewGif": "previews\\sprites\\source-pre-rife\\dying-source-keys.gif",
+    "pipeline": "BiRefNet main actor + white decontamination + unified fixed body scale"
+  }
+}

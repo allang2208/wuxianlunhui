@@ -1,0 +1,23 @@
+Use case: precise-object-edit
+Asset type: armored production identity mother frame for a Phaser game monster animation pipeline
+
+Image 1 role: edit target. Preserve the existing Werewolf King and add only the designed armor set described below.
+
+Primary request: Equip the existing Werewolf King with a restrained, animation-friendly dark-fantasy royal war harness. The armor should make him read as a veteran monster king without hiding the wolf identity or turning him into a human knight.
+
+Armor design:
+- A fitted blackened-steel segmented cuirass over the upper chest and ribs, shaped around the lupine torso instead of flattening it; central sternum plate with two to three overlapping side plates per rib area.
+- Low-profile layered shoulder guards on both shoulders, compact and close to the body, leaving the heavy neck-and-shoulder fur ruff fully visible.
+- Matching blackened-steel forearm bracers from wrist to below elbow, hands and claws completely free.
+- Matching fitted shin greaves protecting the front and outer lower legs, wolf feet and claws completely free.
+- A broad dark-brown worn-leather waist belt with small rigid hip plates; no skirt, no loincloth, no dangling straps.
+- Sparse antique-bronze trim, rivets, and edge wear for royal rank; one subtle raised wolf-fang chevron on the sternum plate, no text and no heraldic logo.
+- Materials are realistic aged gunmetal steel, hammered texture, scratches, rubbed edges, dark leather, oxidized bronze. No polished mirror metal.
+
+Armor construction constraints: every piece must be physically attached with believable straps or articulated joints; paired pieces are symmetrical; joints at neck, shoulders, elbows, wrists, hips, knees, ankles, and tail remain unobstructed; armor follows the silhouette closely and is suitable for running, claw attacks, pouncing, howling, and dying animations.
+
+Identity invariants: keep the exact same Werewolf King identity, face, amber eyes, charcoal-black and blue-black fur, head shape, ears, shoulder ruff, body proportions, anatomy, muscular mass, pose, expression, hands, feet, claws, tail, scale, camera angle, centering, full-body framing, and white-background lighting. Preserve the existing safe margins and both feet on the same baseline.
+
+Scene/background: retain the flat pure white #FFFFFF background with no horizon, floor, shadow, reflection, particles, text, logo, or watermark.
+
+Avoid: helmet, crown, mask, cape, cloak, robe, long cloth, chains, necklaces, dangling ornaments, oversized pauldrons, spikes longer than the fur, fantasy glow, magic runes, red primary armor, gold plate armor, weapon, shield, covered hands, covered feet, hidden tail, cropped silhouette, redesigned face or anatomy, extra limbs or fingers.

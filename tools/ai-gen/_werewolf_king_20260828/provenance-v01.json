@@ -1,0 +1,28 @@
+{
+  "asset": "werewolf-king-mother-v01-candidate.png",
+  "status": "candidate_waiting_for_user_approval",
+  "createdAt": "2026-08-28",
+  "generator": {
+    "mode": "Codex built-in image_gen",
+    "generationPrompt": "mother-prompt-v01.txt",
+    "framingEditPrompt": "framing-edit-v01.txt",
+    "sourceOutput": "C:/Users/allan/.codex/generated_images/01a045db-9741-7e23-bacc-7bd252808164/exec-fb1f0aa5-4401-486e-9de5-e9913eaabd18.png"
+  },
+  "references": [
+    {
+      "path": "assets/enemies/black_wolf_idle.png",
+      "role": "palette, amber eyes, wolf head character"
+    },
+    {
+      "path": "tools/ai-gen/_red_wolf_king_style_refresh_20260827/red-wolf-king-mother-v01.png",
+      "role": "realistic PBR fur and production asset lighting"
+    },
+    {
+      "path": "tools/ai-gen/_red_wolf_king_style_refresh_20260827/red-werewolf-mother-v03-druid-medusa-realistic.png",
+      "role": "biped anatomy, neutral pose, camera and safe framing"
+    }
+  ],
+  "sha256": "04DC58AF0B3189B0F60CCB677E61FF4EE26FD3458CAFBE640F036F4F26013599",
+  "runtimeIntegrated": false,
+  "notes": "New Werewolf King identity. No runtime assets, configuration, animation, or combat logic changed."
+}

@@ -1,0 +1,31 @@
+MODE: OpenAI built-in image generation edit
+USE CASE: precise-object-edit
+ASSET TYPE: production game-creature animation mother frame
+EDIT TARGET: mother/swamp-vampire-mosquito-mother-v01-candidate.png
+DATE: 2026-08-28
+
+Change only the mosquito's pose from a nearly horizontal standing-like profile into a physically believable hovering flight posture in which the upper thorax and wing roots carry the body weight.
+
+Required posture:
+- Keep the mosquito facing strictly right in side profile.
+- Raise the thorax and wing-root area so it is the highest, stable center of mass controlled by the wings.
+- Let the elongated abdomen hang naturally backward and downward toward the lower-left at roughly a 30 to 35 degree angle from horizontal, visibly suspended beneath the wing roots rather than held straight.
+- The head remains slightly forward of the thorax; the long mouthpart stays straight and points right.
+- Exactly six slender jointed legs hang freely beneath the thorax and abdomen with relaxed bent joints. All feet are below the body, none touch a surface, and the legs do not form a standing pose.
+- Keep exactly one physical pair of wings, two wings total, extended above and behind the thorax in a readable neutral flight phase. Preserve transparent membranes and dark branching veins.
+- The resulting silhouette must clearly read as an airborne mosquito suspended from its wings: upper body supported, lower abdomen and legs dangling.
+
+Identity invariants:
+Preserve the exact same swamp mosquito identity, species anatomy, charcoal-black and peat-brown chitin, subtle muted olive iridescence, dark burgundy segmented abdomen, deep wine-red compound eye, antennae, sparse bristles, surface wear, proportions, realism and PBR material finish from the input.
+Keep exactly one head, one thorax, one abdomen, two antennae, one long mouthpart, six legs and two wings.
+Do not add, remove, duplicate, merge or mutate any body part.
+Do not add armor, clothing, weapons, ornaments, magic effects, scenery, ground or shadow.
+
+Composition:
+Square canvas, strict right-facing side view, orthographic-style locked camera.
+Entire creature fully visible with generous white margins; no cropping or touching the canvas edge.
+Pure solid white #FFFFFF background, no floor, horizon, cast shadow or contact shadow.
+Soft neutral diffuse studio lighting matching the input.
+
+Avoid:
+standing posture, horizontal stiff abdomen, legs planted on an imaginary floor, forward travel, dramatic perspective, front view, top view, extra wings, extra legs, missing legs, tangled limbs, opaque wings, motion blur, text, logo, watermark, cartoon or toy appearance.
