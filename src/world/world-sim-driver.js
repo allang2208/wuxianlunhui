@@ -175,6 +175,7 @@ export const WorldSimDriver = {
             report = settleWorld122(snap, elapsed, {
                 commit: true,
                 skipWaves: true,
+                sceneId,
                 includePassiveEnergy: sceneId === passiveTarget,
                 gameTimeMs: nowGame,
                 isRecruitmentTierUnlocked: (id) =>

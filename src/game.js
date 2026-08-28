@@ -192,6 +192,7 @@ export const Game = {
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
             window.World122SandstormSystem?.reset?.();
+            window.World122DroughtSystem?.reset?.();
             window.World125FogTideSystem?.reset?.();
             window.WorldWeatherSystem?.reset?.();
             window.WorldDestructionChallengeSystem?.reset?.();

@@ -111,6 +111,8 @@ import { EnvironmentLightingSystem } from '../../world/environment-lighting-syst
 import { RainWeatherSystem } from '../../world/rain-weather-system.js';
 import { WindblownSandSystem } from '../../world/windblown-sand-system.js';
 import { World122SandstormSystem } from '../../world/world122-sandstorm-system.js';
+import { World122DroughtSystem } from '../../world/world122-drought-system.js';
+import { DroughtHeatSystem } from '../../world/drought-heat-system.js';
 import { WorldWeatherSystem } from '../../world/world-weather-system.js';
 import { RoadsideDecorationSystem } from '../../world/roadside-decoration-system.js';
 import { WorldDestructionChallengeSystem } from '../../world/world-destruction-challenge-system.js';
@@ -356,6 +358,7 @@ export class GameScene extends Scene {
         );
         this._windblownSand = new WindblownSandSystem(this);
         this._rainWeather = new RainWeatherSystem(this);
+        this._droughtHeat = new DroughtHeatSystem(this);
         this._world125Atmosphere = new World125AtmosphereSystem(this);
         // 局部亮光：短时（枪火/爆发）与常驻（火把/蓄力火球）分开管理。
         this._transientEnvironmentGlows = [];
@@ -506,11 +509,15 @@ export class GameScene extends Scene {
         const worldTimeAfter = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const invasionDelta = Math.max(0, worldTimeAfter - worldTimeBefore);
         World122SandstormSystem.update(worldTimeAfter);
+        World122DroughtSystem.update(worldTimeAfter);
         World125FogTideSystem.syncScene(SceneManager.currentScene);
         World125FogTideSystem.update(worldTimeAfter);
         WorldWeatherSystem.update(worldTimeAfter);
         const rainState = WorldWeatherSystem.getVisualState(SceneManager.currentScene, worldTimeAfter);
+        const droughtActive = !rainState.active
+            && World122DroughtSystem.isActive(SceneManager.currentScene, worldTimeAfter);
         this._weatherVisualState = rainState;
+        this._droughtVisualActive = droughtActive;
         RoadsideDecorationSystem.updateDynamic({
             daylight: EnvironmentLightingSystem.getAmbient().daylight,
             rainState,
@@ -866,6 +873,14 @@ export class GameScene extends Scene {
             deltaMs: worldDelta,
             running: worldClockRunning,
             loading: SceneManager.isLoading,
+        });
+        this._droughtHeat?.update({
+            active: droughtActive,
+            config: World122DroughtSystem.getVisualConfig(),
+            deltaMs: worldDelta,
+            running: worldClockRunning,
+            loading: SceneManager.isLoading,
+            mapMode: isMapMode,
         });
         this._windblownSand?.update({
             sceneId: SceneManager.currentScene,
@@ -9014,6 +9029,7 @@ export class GameScene extends Scene {
     clearAllEntitySprites() {
         this._windblownSand?.reset();
         this._rainWeather?.reset();
+        this._droughtHeat?.reset();
         this._world125Atmosphere?.reset();
         // 销毁 enemies 组中的所有 Sprite
         if (this.enemies) {

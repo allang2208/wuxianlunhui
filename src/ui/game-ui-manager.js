@@ -493,6 +493,7 @@ export const GameUIManager = {
         }
         EnvironmentLightingSystem.restoreTime(data.gameTime);
         window.World122SandstormSystem?.restore?.(data.worlds?.sandstorm ?? data.world122?.sandstorm);
+        window.World122DroughtSystem?.restore?.(data.worlds?.drought);
         window.World125FogTideSystem?.restore?.(data.worlds?.fogTide);
         window.WorldWeatherSystem?.restore?.(data.worlds?.weather);
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
@@ -598,6 +599,7 @@ export const GameUIManager = {
                 troopLines: TroopLineSystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,
                 sandstorm: window.World122SandstormSystem?.serialize?.() || null,
+                drought: window.World122DroughtSystem?.serialize?.() || null,
                 fogTide: window.World125FogTideSystem?.serialize?.() || null,
                 weather: window.WorldWeatherSystem?.serialize?.() || null,
                 destructionChallenges: window.WorldDestructionChallengeSystem?.serialize?.() || null,

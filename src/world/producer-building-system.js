@@ -2012,6 +2012,7 @@ class ProducerBuildingPanel extends BasePanel {
                     pbBakeryStatus: snapshot.status,
                     pbBakeryProcess: `${(snapshot.processTimeMs / 1000).toFixed(1)} 秒`,
                     pbBakeryMultiplier: `${snapshot.outputMultiplier.toFixed(1)} 倍`,
+                    pbBakeryWeather: `${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}`,
                     pbBakeryOutput: `${snapshot.outputFood} 粮食`,
                     pbBakeryTributeChance: `${(snapshot.plantTributeChance * 100).toFixed(1)}%`,
                     pbBakeryMoveSpeed: `${snapshot.moveSpeed.toFixed(0)}px/s`,
@@ -2046,6 +2047,7 @@ class ProducerBuildingPanel extends BasePanel {
                     pbRestaurantInput: `${snapshot.inputFood} 食物`,
                     pbRestaurantProcess: `${(snapshot.processTimeMs / 1000).toFixed(1)} 秒`,
                     pbRestaurantMultiplier: `${snapshot.outputMultiplier.toFixed(1)} 倍`,
+                    pbRestaurantWeather: `${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}`,
                     pbRestaurantOutput: `${snapshot.outputFood} 食物`,
                     pbRestaurantMoveSpeed: `${snapshot.moveSpeed.toFixed(0)}px/s`,
                     pbRestaurantBatches: `${snapshot.completedBatches}`,
@@ -2077,6 +2079,7 @@ class ProducerBuildingPanel extends BasePanel {
                 const values = {
                     pbCheeseStatus: snapshot.status,
                     pbCheeseProcess: `${(snapshot.processTimeMs / 1000).toFixed(1)} 秒`,
+                    pbCheeseWeather: `${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}`,
                     pbCheeseOutput: `${snapshot.outputFood} 食物`,
                     pbCheeseCows: `${snapshot.cowCount} 头`,
                     pbCheeseMoveSpeed: `${snapshot.moveSpeed.toFixed(0)}px/s`,
@@ -2390,10 +2393,12 @@ class ProducerBuildingPanel extends BasePanel {
                 const configured = el.querySelector('#pbWindmillConfiguredOutput');
                 const perWorker = el.querySelector('#pbWindmillPerWorker');
                 const multipliers = el.querySelector('#pbWindmillMultipliers');
+                const weather = el.querySelector('#pbFoodWeather');
                 if (output) output.textContent = `${snapshot.actualFoodPerSecond.toFixed(2)} 粮食/秒`;
                 if (configured) configured.textContent = `${snapshot.configuredFoodPerSecond.toFixed(2)} 粮食/秒`;
                 if (perWorker) perWorker.textContent = `${snapshot.foodPerWorker.toFixed(2)}/秒`;
                 if (multipliers) multipliers.textContent = `×${snapshot.driveMultiplier.toFixed(2)} / ×${snapshot.fieldMultiplier.toFixed(2)}`;
+                if (weather) weather.textContent = `${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}`;
                 if (food) food.textContent = `${Math.floor(PopulationEconomySystem.getFoodStored())}`;
                 const upgrade = b._windmillUpgrade;
                 if (upgrade) {
@@ -3672,6 +3677,7 @@ class ProducerBuildingPanel extends BasePanel {
                         <div><span>每批投入</span><b>${snapshot.inputFood} 粮食</b></div>
                         <div><span>处理时间</span><b id="pbBakeryProcess">${(snapshot.processTimeMs / 1000).toFixed(1)} 秒</b></div>
                         <div><span>产出倍率</span><b id="pbBakeryMultiplier">${snapshot.outputMultiplier.toFixed(1)} 倍</b></div>
+                        <div><span>天气影响</span><b id="pbBakeryWeather">${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}</b></div>
                         <div><span>每批产出</span><b id="pbBakeryOutput" class="economy-unit-food">${snapshot.outputFood} 粮食</b></div>
                         <div><span>植物祭品概率</span><b id="pbBakeryTributeChance">${(snapshot.plantTributeChance * 100).toFixed(1)}%</b></div>
                         <div><span>面包师移速</span><b id="pbBakeryMoveSpeed">${snapshot.moveSpeed.toFixed(0)}px/s</b></div>
@@ -3731,6 +3737,7 @@ class ProducerBuildingPanel extends BasePanel {
                         <div><span>每批投入</span><b id="pbRestaurantInput" class="economy-unit-food">${snapshot.inputFood} 食物</b></div>
                         <div><span>加工时间</span><b id="pbRestaurantProcess">${(snapshot.processTimeMs / 1000).toFixed(1)} 秒</b></div>
                         <div><span>产出倍率</span><b id="pbRestaurantMultiplier">${snapshot.outputMultiplier.toFixed(1)} 倍</b></div>
+                        <div><span>天气影响</span><b id="pbRestaurantWeather">${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}</b></div>
                         <div><span>每批产出</span><b id="pbRestaurantOutput" class="economy-unit-food">${snapshot.outputFood} 食物</b></div>
                         <div><span>外卖员移速</span><b id="pbRestaurantMoveSpeed">${snapshot.moveSpeed.toFixed(0)}px/s</b></div>
                         <div><span>已完成批次</span><b id="pbRestaurantBatches">${snapshot.completedBatches}</b></div>
@@ -3793,6 +3800,7 @@ class ProducerBuildingPanel extends BasePanel {
                         <div><span>牛倌</span><b>${b._assignedWorkers || 0}/1</b></div>
                         <div><span>黑白奶牛</span><b id="pbCheeseCows">${snapshot.cowCount} 头</b></div>
                         <div><span>熟成时间</span><b id="pbCheeseProcess">${(snapshot.processTimeMs / 1000).toFixed(1)} 秒</b></div>
+                        <div><span>天气影响</span><b id="pbCheeseWeather">${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}</b></div>
                         <div><span>每批产出</span><b id="pbCheeseOutput" class="economy-unit-food">${snapshot.outputFood} 食物</b></div>
                         <div><span>牛倌移速</span><b id="pbCheeseMoveSpeed">${snapshot.moveSpeed.toFixed(0)}px/s</b></div>
                         <div><span>已完成批次</span><b id="pbCheeseBatches">${snapshot.completedBatches}</b></div>
@@ -4280,11 +4288,12 @@ class ProducerBuildingPanel extends BasePanel {
                     <div><span>满员配置产量</span><b id="pbWindmillConfiguredOutput" class="economy-unit-food">${snapshot.configuredFoodPerSecond.toFixed(2)} 粮食/秒</b></div>
                     <div><span>单人基础产量</span><b id="pbWindmillPerWorker" class="economy-unit-food">${snapshot.foodPerWorker.toFixed(2)}/秒</b></div>
                     <div><span>传动 / 轮作</span><b id="pbWindmillMultipliers">×${snapshot.driveMultiplier.toFixed(2)} / ×${snapshot.fieldMultiplier.toFixed(2)}</b></div>
+                    <div><span>天气影响</span><b id="pbFoodWeather">${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}</b></div>
                     <div><span>位面库存</span><b id="pbEconomyFood" class="economy-unit-food">${Math.floor(PopulationEconomySystem.getFoodStored())}</b></div>
                     <div><span>位面人口</span><b id="pbEconomyPopulation">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>
                     <div><span>占地</span><b>2×2（外围 12 格为田地占位符）</b></div>
                 </div>
-                <p class="economy-panel-note">满员配置产量不含人口超额减益、经济工坊增效和祭品倍率；实际产量已计人口与工坊影响，祭品倍率在最终入库结算时额外生效。</p>`;
+                <p class="economy-panel-note">满员配置产量不含人口超额减益、经济工坊增效、天气和祭品倍率；实际产量已计人口、工坊与天气影响，祭品倍率在最终入库结算时额外生效。</p>`;
                 const upgrade = b._windmillUpgrade;
                 const rows = Object.entries(cfg.modules || {}).map(([moduleId, module]) => {
                     const level = PopulationEconomySystem.getWindmillModuleLevel(b, moduleId);

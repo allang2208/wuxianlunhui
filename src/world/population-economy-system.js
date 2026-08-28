@@ -26,6 +26,7 @@ import {
     getBuildingModuleUpgradeCost,
     getBuildingUpgradeAbility,
 } from './building-upgrade-projects.js';
+import { getFoodProductionWeatherEffect } from './food-production-weather.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -919,6 +920,7 @@ export const PopulationEconomySystem = {
                 foodPerWorker: 0, driveMultiplier: 0, fieldMultiplier: 0,
                 staffCapacity: 0, staffedCount: 0, configuredFoodPerSecond: 0,
                 actualFoodPerSecond: 0, laborEfficiency: 0, workshopMultiplier: 0,
+                weatherMultiplier: 1, weatherLabel: '正常天气',
             };
         }
         const cfg = populationEconomyConfig.windmill || {};
@@ -937,11 +939,12 @@ export const PopulationEconomySystem = {
         const laborEfficiency = this.getLaborEfficiency();
         const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('windmill');
+        const weatherEffect = getFoodProductionWeatherEffect();
         const configuredFoodPerSecond = staffCapacity * foodPerWorker
             * driveMultiplier * fieldMultiplier;
         const actualFoodPerSecond = staffedCount * foodPerWorker
             * driveMultiplier * fieldMultiplier * laborEfficiency * workshopMultiplier
-            * tavernMultiplier;
+            * tavernMultiplier * weatherEffect.multiplier;
         return {
             foodPerWorker,
             driveMultiplier,
@@ -953,6 +956,8 @@ export const PopulationEconomySystem = {
             laborEfficiency,
             workshopMultiplier,
             tavernMultiplier,
+            weatherMultiplier: weatherEffect.multiplier,
+            weatherLabel: weatherEffect.label,
         };
     },
 

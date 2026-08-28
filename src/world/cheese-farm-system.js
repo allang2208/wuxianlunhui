@@ -11,6 +11,7 @@ import { BuildingRoadSystem } from './building-road-system.js';
 import { blockCellOf } from './gate4-grid.js';
 import { shortestRoadRoute } from './road-connectivity.js';
 import { resolveCivilianVisualPosition, sweepCivilianVisualMove } from './civilian-visual-utils.js';
+import { getFoodProductionWeatherEffect } from './food-production-weather.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -277,6 +278,7 @@ export const CheeseFarmSystem = {
         const cowCount = this.getCowCount(building);
         const baseCowCount = Math.max(1, Number(farmConfig().baseCowCount) || 2);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('cheese_farm');
+        const weatherEffect = getFoodProductionWeatherEffect();
         return {
             status: roadState.roadConnected ? phaseText : '需要道路连接',
             phase: job.phase,
@@ -284,7 +286,9 @@ export const CheeseFarmSystem = {
             processTimeMs: this.getProcessTimeMs(building),
             foodPerBatch: this.getFoodPerBatch(building),
             outputFood: Math.floor(this.getFoodPerBatch(building) * cowCount / baseCowCount
-                * tavernMultiplier),
+                * tavernMultiplier * weatherEffect.multiplier),
+            weatherMultiplier: weatherEffect.multiplier,
+            weatherLabel: weatherEffect.label,
             cowCount,
             moveSpeed: this.getMoveSpeed(building),
             pendingFood: job.pendingFood,
@@ -539,9 +543,11 @@ export const CheeseFarmSystem = {
             job.processRemainMs -= Math.max(0, Number(dt) || 0) * efficiency;
             if (job.processRemainMs > 0) return;
             const baseCowCount = Math.max(1, Number(farmConfig().baseCowCount) || 2);
+            const weatherMultiplier = getFoodProductionWeatherEffect().multiplier;
             const exactOutput = building._cheeseFarmOutputRemainder
                 + this.getFoodPerBatch(building) * this.getCowCount(building) / baseCowCount
                     * TavernEconomySystem.getPlaneOutputMultiplier('cheese_farm')
+                    * weatherMultiplier
                     * getProductionResourceMul();
             job.pendingFood = Math.max(1, Math.floor(exactOutput));
             building._cheeseFarmOutputRemainder = exactOutput - job.pendingFood;

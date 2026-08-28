@@ -11,6 +11,7 @@ import { BuildingRoadSystem } from './building-road-system.js';
 import { blockCellOf } from './gate4-grid.js';
 import { shortestRoadRoute } from './road-connectivity.js';
 import { routeBakeryPlantTributes } from './bakery-tribute-routing.js';
+import { getFoodProductionWeatherEffect } from './food-production-weather.js';
 import {
     resolveCivilianVisualPosition,
     sweepCivilianVisualMove,
@@ -285,6 +286,7 @@ export const BakeryEconomySystem = {
                 ? clamp(1 - job.phaseRemainMs / job.phaseTotalMs, 0, 1)
                 : 0);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier(building?._economyType);
+        const weatherEffect = getFoodProductionWeatherEffect();
         const inputFood = this.getInputFood(building);
         return {
             status: roadState.roadConnected ? phaseText : '需要道路连接',
@@ -294,8 +296,11 @@ export const BakeryEconomySystem = {
             processTimeMs: this.getProcessTimeMs(building),
             outputMultiplier: this.getOutputMultiplier(building),
             tavernMultiplier,
+            weatherMultiplier: weatherEffect.multiplier,
+            weatherLabel: weatherEffect.label,
             outputFood: Math.floor(inputFood
-                * this.getOutputMultiplier(building) * tavernMultiplier),
+                * this.getOutputMultiplier(building) * tavernMultiplier
+                * weatherEffect.multiplier),
             plantTributeChance: this.getPlantTributeChance(building),
             moveSpeed: this.getMoveSpeed(building),
             cargoFood: job.cargoFood,
@@ -627,10 +632,12 @@ export const BakeryEconomySystem = {
             if (job.processRemainMs > 0) return;
             const consumedFood = Math.max(1,
                 Math.floor(Number(job.cargoFood) || this.getInputFood(building)));
+            const weatherMultiplier = getFoodProductionWeatherEffect().multiplier;
             const exactOutput = building._bakeryOutputRemainder
                 + consumedFood
                     * this.getOutputMultiplier(building)
                     * TavernEconomySystem.getPlaneOutputMultiplier(building._economyType)
+                    * weatherMultiplier
                     * getProductionResourceMul();
             job.pendingFood = Math.max(1, Math.floor(exactOutput));
             building._bakeryOutputRemainder = exactOutput - job.pendingFood;

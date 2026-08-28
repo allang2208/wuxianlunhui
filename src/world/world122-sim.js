@@ -76,6 +76,7 @@ import {
     isMilitaryPopulationIgnored,
     skipBuildingUpgradeWait,
 } from '../config/dev-cheats.js';
+import { getFoodProductionWeatherEffect } from './food-production-weather.js';
 
 /** 抽象结算估算常量（调整平衡只改这里） */
 export const WORLD122_SIM = {
@@ -1465,6 +1466,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         tavernWeightedMultiplier = Math.max(tavernWeightedMultiplier, 1 + weightedBonus);
     }
     target.tavernLastWeightedMultiplier = tavernWeightedMultiplier;
+    const foodWeatherMultiplier = getFoodProductionWeatherEffect(
+        opts.sceneId || 'scene8', opts.gameTimeMs
+    ).multiplier;
     for (const structure of economyStructures) {
         const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
         const assigned = Math.max(0, Number(structure.assignedWorkers) || 0);
@@ -1759,7 +1763,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
                 + staffedCount * foodRate * driveMultiplier * fieldMultiplier * laborEfficiency
                     * _workshopEfficiencyMultiplier(structure, economyStructures)
-                    * tavernWeightedMultiplier * t
+                    * tavernWeightedMultiplier * foodWeatherMultiplier * t
                     * getProductionResourceMul();
             const produced = Math.floor(total);
             structure.workProductionRemainder = total - produced;
@@ -1942,6 +1946,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                         Math.floor(Number(job.cargoFood) || inputFood));
                     const exactOutput = Math.max(0, Number(structure[remainderField]) || 0)
                         + consumedFood * outputMultiplier * tavernWeightedMultiplier
+                            * foodWeatherMultiplier
                             * getProductionResourceMul();
                     const produced = Math.max(1, Math.floor(exactOutput));
                     structure[remainderField] = exactOutput - produced;
@@ -1977,6 +1982,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 availableMs -= cycleMs;
                 const exactOutput = Math.max(0, Number(structure[remainderField]) || 0)
                     + inputFood * outputMultiplier * tavernWeightedMultiplier
+                        * foodWeatherMultiplier
                         * getProductionResourceMul();
                 const produced = Math.max(1, Math.floor(exactOutput));
                 structure[remainderField] = exactOutput - produced;
@@ -2053,7 +2059,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 availableMs -= cycleMs;
                 const exactOutput = Math.max(0, Number(structure.cheeseFarmOutputRemainder) || 0)
                     + foodPerBatch * cowCount / baseCowCount
-                        * tavernWeightedMultiplier * getProductionResourceMul();
+                        * tavernWeightedMultiplier * foodWeatherMultiplier
+                        * getProductionResourceMul();
                 const produced = Math.max(1, Math.floor(exactOutput));
                 structure.cheeseFarmOutputRemainder = exactOutput - produced;
                 const stored = _depositFoodToWarehouses(cheeseWarehouses, produced);

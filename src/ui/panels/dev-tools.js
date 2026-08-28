@@ -836,6 +836,24 @@ export function createDevToolPanel() {
                         style="border-color:#b66a2c;color:#ffd09a;">触发沙尘暴</button>
                 </div>`;
             }
+            const drought = world.sceneId === 'scene8'
+                ? window.World122DroughtSystem?.getDebugModel?.()
+                : null;
+            let droughtHtml = '';
+            if (drought) {
+                const remainingDays = drought.remainingMs === null
+                    ? null : drought.remainingMs / Math.max(1, drought.dayDurationMs);
+                const statusText = drought.phase === 'active'
+                    ? `进行中 · 剩余 ${remainingDays?.toFixed(2) ?? '--'} 天 · 粮食 ×${drought.foodProductionMultiplier}`
+                    : (drought.phase === 'warning'
+                        ? `高温预警 · ${remainingDays?.toFixed(2) ?? '--'} 天后开始`
+                        : (remainingDays === null ? '正常 · 尚未排期' : `正常 · ${remainingDays.toFixed(2)} 天后预警`));
+                droughtHtml = `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #60442f;">
+                    <span style="font-size:11px;color:#ffc078;flex:1;">☀ 干旱：${statusText}</span>
+                    <button type="button" class="dev-tool-menu-btn" data-dev-world-action="drought" data-scene-id="scene8"
+                        style="border-color:#c77a35;color:#ffe0a3;">触发干旱</button>
+                </div>`;
+            }
             const fogTide = world.sceneId === 'scene11'
                 ? window.__phaserScene?.getWorld125AtmosphereDebugModel?.()
                 : null;
@@ -896,6 +914,7 @@ export function createDevToolPanel() {
                 <div style="font-size:11px;color:#b9d7a8;margin-top:2px;">地牢前置：${requirementText} · 首次构造：${world.constructionEnabled ? '开放' : '配置关闭'}</div>
                 <div style="font-size:11px;color:#8fc2d2;margin-top:2px;">快照：${snapshot}</div>
                 ${sandstormHtml}
+                ${droughtHtml}
                 ${fogTideHtml}
                 ${rainHtml}
                 ${destructionHtml}
@@ -914,6 +933,17 @@ export function createDevToolPanel() {
                 DevTool._showToast(result?.ok
                     ? '🌪 世界122沙尘暴已触发'
                     : `✕ ${result?.reason || '沙尘暴系统尚未初始化'}`);
+            }
+        } else if (action === 'drought' && button.dataset.sceneId === 'scene8') {
+            const rainState = window.WorldWeatherSystem?.getVisualState?.('scene8');
+            if (rainState?.active) {
+                window.__phaserScene?.toggleRainWeather?.('scene8', rainState.intensityId);
+            }
+            const result = window.World122DroughtSystem?.debugTriggerNow?.();
+            if (DevTool && typeof DevTool._showToast === 'function') {
+                DevTool._showToast(result?.ok
+                    ? '☀ 世界122干旱已触发'
+                    : `✕ ${result?.reason || '干旱系统尚未初始化'}`);
             }
         } else if (action === 'fog-tide' && button.dataset.sceneId === 'scene11') {
             const result = window.__phaserScene?.toggleWorld125FogTide?.();
@@ -947,11 +977,13 @@ export function createDevToolPanel() {
     root.querySelector('#devWorldAdvance1').addEventListener('click', () => {
         window.WorldInvasionSystem?.debugAdvanceDays?.(1);
         window.World122SandstormSystem?.syncToCurrentTime?.({ notifyPlayer: false });
+        window.World122DroughtSystem?.syncToCurrentTime?.({ notifyPlayer: false });
         renderWorldDebug();
     });
     root.querySelector('#devWorldAdvance5').addEventListener('click', () => {
         window.WorldInvasionSystem?.debugAdvanceDays?.(5);
         window.World122SandstormSystem?.syncToCurrentTime?.({ notifyPlayer: false });
+        window.World122DroughtSystem?.syncToCurrentTime?.({ notifyPlayer: false });
         renderWorldDebug();
     });
     root.querySelector('#devWorldUnlock').addEventListener('click', () => {

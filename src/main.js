@@ -44,6 +44,7 @@ import { EnvironmentLightingSystem } from './world/environment-lighting-system.j
 import { WorldProgressionSystem } from './world/world-progression-system.js';
 import { WorldInvasionSystem } from './world/world-invasion-system.js';
 import { World122SandstormSystem } from './world/world122-sandstorm-system.js';
+import { World122DroughtSystem } from './world/world122-drought-system.js';
 import { World125FogTideSystem } from './world/world125-fog-tide-system.js';
 import { WorldWeatherSystem } from './world/world-weather-system.js';
 import { WorldEventTimelineSystem } from './world/world-event-timeline-system.js';
@@ -59,6 +60,7 @@ WorldEventTimelineSystem.setFrameProvider(() => WorldInvasionSystem.getTimelineF
 WorldEventTimelineSystem.registerProvider('invasion', () => WorldInvasionSystem.getTimelineEvents());
 WorldEventTimelineSystem.registerProvider('weather', () => WorldWeatherSystem.getForecastEvents());
 WorldSpecialWeatherRegistry.registerProvider('sandstorm', World122SandstormSystem);
+WorldSpecialWeatherRegistry.registerProvider('drought', World122DroughtSystem);
 WorldSpecialWeatherRegistry.registerProvider('fog_tide', World125FogTideSystem);
 
 // DamageableEntity 是 Combatant/Enemy 的底层基类；高层服务统一由入口注入，
@@ -165,6 +167,7 @@ async function initModules() {
     window.WorldProgressionSystem = WorldProgressionSystem;
     window.WorldInvasionSystem = WorldInvasionSystem;
     window.World122SandstormSystem = World122SandstormSystem;
+    window.World122DroughtSystem = World122DroughtSystem;
     window.World125FogTideSystem = World125FogTideSystem;
     window.WorldWeatherSystem = WorldWeatherSystem;
     window.WorldEventTimelineSystem = WorldEventTimelineSystem;
