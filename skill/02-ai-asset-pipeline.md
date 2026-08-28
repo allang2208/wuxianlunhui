@@ -75,6 +75,16 @@ node "...\describe-image.js" --latest
 
 ---
 
+### 全屏 Loading 背景低颗粒出图与入库合同（2026-08-28）
+
+- **画布与安全区**：正式 loading 背景统一使用约16:9横图，当前稳定输出为`1672×941`。运行时使用`background-size: cover`和居中裁切，因此关键建筑、桥梁、树冠与地平线不能贴四边；标题和读条位于画面中央，必须留出一条横贯中央的低干扰明暗带，图片本身禁止生成文字、UI、边框、Logo或水印。
+- **低颗粒正向合同**：先描述大块连续材质面、清晰剪影、稀疏中尺度风化、柔和空气透视、平滑明暗渐变和适度清晰度。森林、遗迹等题材用水面、道路、广场或大厅地坪承担中央安全区，枝叶、砖缝、碎石和装饰只在两侧形成框景，不得铺满中心。
+- **高频噪点禁止项**：提示词显式排除`film grain / digital noise / speckles / stippling / gritty microtexture / crunchy detail / oversharpening / dense particles / chromatic aberration / lens dirt / heavy bloom`。不得用“极致细节、满屏纹理、电影颗粒”补充质感；画面层次依靠体块、雾层、反射和克制的冷暖光，而不是像素级随机噪声。
+- **批次差异化**：同一场景需要多张轮换图时，每张使用独立场景命题（如庭院、积水墓穴、巨门、断桥），共享画风合同但不共享构图；参考图只锁色调、氛围和颗粒尺度，不复制具体布局。生成后逐张看主体完整性、中央可读性、噪点和边缘裁切，只有正式入选图进入`assets/scenes/loading/`。
+- **配置与归档**：`data/loading-screen-config.json`与`public/data/loading-screen-config.json`必须同步；同一背景池可由多个`sceneIds/dungeonTypes`复用，不复制图片。正式提交只保留运行时PNG和一份提示词/provenance说明；未选候选、默认生成目录副本、联系图、缓存和可重建中间物在确认入库后删除。
+
+---
+
 ### 本地 AI 出图工作流（双机 ComfyUI 优先 + 智谱 API 兜底 + GLM-4.6V 验收，2026-08-04 二轮调整）
 
 > **标准执行入口（2026-08-04 定稿）**：`game-dev/tools/ai-gen/WORKFLOW.md`（六步全流程 + 入口矩阵 +

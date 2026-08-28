@@ -1,4 +1,25 @@
 {
+  "fallback": {
+    "minimumDurationMs": 1000,
+    "title": "场景加载中...",
+    "titleTemplate": "{sceneName}加载中...",
+    "backgrounds": []
+  },
+  "mainHub": {
+    "sceneIds": [
+      "main"
+    ],
+    "minimumDurationMs": 1200,
+    "title": "正在进入主神空间...",
+    "backgrounds": [
+      "assets/scenes/loading/main-hub/marble-palace-1.png",
+      "assets/scenes/loading/main-hub/marble-palace-2.png",
+      "assets/scenes/loading/main-hub/gaia-fertile-lands-1.png",
+      "assets/scenes/loading/main-hub/gaia-fertile-lands-2.png",
+      "assets/scenes/loading/main-hub/nordic-alpine-meadow-1.png",
+      "assets/scenes/loading/main-hub/nordic-alpine-meadow-2.png"
+    ]
+  },
   "zombieDungeon": {
     "sceneIds": [
       "scene7"
@@ -31,6 +52,37 @@
       "assets/scenes/loading/snowfield-1.png",
       "assets/scenes/loading/snowfield-2.png"
     ]
+  },
+  "swampDungeon": {
+    "sceneIds": [
+      "scene7"
+    ],
+    "dungeonTypes": [
+      "swampBeginner",
+      "swampMid",
+      "swamp"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "沼泽地牢加载中...",
+    "backgrounds": [
+      "assets/scenes/loading/swamp-forest-1.png",
+      "assets/scenes/loading/swamp-forest-2.png",
+      "assets/scenes/loading/swamp-forest-3.png",
+      "assets/scenes/loading/swamp-forest-4.png",
+      "assets/scenes/loading/swamp-forest-5.png",
+      "assets/scenes/loading/swamp-forest-6.png"
+    ]
+  },
+  "demonCavern": {
+    "sceneIds": [
+      "scene7"
+    ],
+    "dungeonTypes": [
+      "demonCavern"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "恶魔洞窟加载中...",
+    "backgrounds": []
   },
   "desertWorld": {
     "sceneIds": [
@@ -67,7 +119,25 @@
     "backgrounds": [
       "assets/scenes/loading/swamp-forest-1.png",
       "assets/scenes/loading/swamp-forest-2.png",
-      "assets/scenes/loading/swamp-forest-3.png"
+      "assets/scenes/loading/swamp-forest-3.png",
+      "assets/scenes/loading/swamp-forest-4.png",
+      "assets/scenes/loading/swamp-forest-5.png",
+      "assets/scenes/loading/swamp-forest-6.png"
+    ]
+  },
+  "world125Ruins": {
+    "sceneIds": [
+      "scene11"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "世界-125·地牢遗迹加载中...",
+    "backgrounds": [
+      "assets/scenes/loading/world125-ruins-1.png",
+      "assets/scenes/loading/world125-ruins-2.png",
+      "assets/scenes/loading/world125-ruins-3.png",
+      "assets/scenes/loading/world125-ruins-4.png",
+      "assets/scenes/loading/world125-ruins-5.png",
+      "assets/scenes/loading/world125-ruins-6.png"
     ]
   }
 }

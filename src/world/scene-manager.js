@@ -260,14 +260,24 @@ export const SceneManager = {
     },
 
     _resolveLoadingScreen(sceneId, dungeonType) {
-        for (const screen of Object.values(loadingScreenConfig || {})) {
+        for (const [screenId, screen] of Object.entries(loadingScreenConfig || {})) {
+            if (screenId === 'fallback') continue;
             const sceneMatches = Array.isArray(screen?.sceneIds) && screen.sceneIds.includes(sceneId);
             if (!sceneMatches) continue;
             const dungeonTypes = Array.isArray(screen.dungeonTypes) ? screen.dungeonTypes : [];
             if (dungeonType && dungeonTypes.length > 0 && !dungeonTypes.includes(dungeonType)) continue;
             return screen;
         }
-        return null;
+        const fallback = loadingScreenConfig?.fallback || {};
+        const sceneName = this.scenes?.[sceneId]?.name || '';
+        const titleTemplate = String(fallback.titleTemplate || '{sceneName}加载中...');
+        return {
+            ...fallback,
+            title: sceneName
+                ? titleTemplate.replace('{sceneName}', sceneName)
+                : (fallback.title || '场景加载中...'),
+            backgrounds: [],
+        };
     },
 
     showLoadingScreen({ sceneId = null, dungeonType = null } = {}) {
@@ -400,7 +410,13 @@ export const SceneManager = {
         let teardownStarted = false;
         let visualLoadGenerationBefore = RuntimeAssetManager.getLoadGeneration();
         try {
-            this.showLoadingScreen({ sceneId, dungeonType: scene.dungeonType || null });
+            const loadingDungeonType = sceneId === 'scene7'
+                ? (opts.dungeonType
+                    || (resumingDungeonView ? window.DungeonMapSystem?.dungeonType : null)
+                    || scene.dungeonType
+                    || null)
+                : null;
+            this.showLoadingScreen({ sceneId, dungeonType: loadingDungeonType });
             visualLoadGenerationBefore = RuntimeAssetManager.getLoadGeneration();
             this._enterMode = mode || 'explore'; // 'quest' | 'explore'
 
