@@ -1,0 +1,43 @@
+{
+  "date": "2026-08-28",
+  "reason": "The original default RGB key distance of 128 removed low-saturation roof, masonry and courtyard pixels from LV2 and LV3.",
+  "assets": {
+    "cavalry_school_lv2": {
+      "selectedRaw": "tools/ai-gen/_cavalry_school_tiers_20260828/candidates_s48_european/cavalry_school_lv2/cavalry_school_lv2_refine_v02_raw.png",
+      "depth": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv2/cavalry_school_lv2_depth.png",
+      "keyMode": "edge-connected-rgb",
+      "keyThreshold": 64,
+      "removeEnclosedKey": false,
+      "anchorEdgePad": 28,
+      "maskEdgePad": 8,
+      "matteColor": "#33AB31",
+      "matteEdgeWidth": 8,
+      "matteTolerance": 90,
+      "acceptedBody": "tools/ai-gen/_cavalry_school_tiers_20260828/accepted_48step_20260828/cavalry_school_lv2_repaired_body.png",
+      "runtimeAsset": "assets/terrain/cavalry_school_lv2.png",
+      "sha256": "FE4D037734DC3BD9BA18F9312E207F3139BC19C63FC8EAB3088B9B45DEE8FA06"
+    },
+    "cavalry_school_lv3": {
+      "selectedRaw": "tools/ai-gen/_cavalry_school_tiers_20260828/candidates_s48_european/cavalry_school_lv3/cavalry_school_lv3_refine_v01_raw.png",
+      "depth": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv3/cavalry_school_lv3_depth.png",
+      "keyMode": "edge-connected-plus-enclosed-rgb",
+      "keyThreshold": 40,
+      "removeEnclosedKey": true,
+      "anchorEdgePad": 28,
+      "maskEdgePad": 8,
+      "matteColor": "#48B441",
+      "matteEdgeWidth": 8,
+      "matteTolerance": 90,
+      "microHoleRepair": {
+        "maxComponentPixels": 2,
+        "filledComponents": 7,
+        "filledPixels": 9,
+        "rgbMethod": "median of adjacent accepted opaque pixels",
+        "intentionalOpeningsPreserved": "all larger enclosed transparent components, including every fence-rail opening"
+      },
+      "acceptedBody": "tools/ai-gen/_cavalry_school_tiers_20260828/accepted_48step_20260828/cavalry_school_lv3_repaired_body.png",
+      "runtimeAsset": "assets/terrain/cavalry_school_lv3.png",
+      "sha256": "12B17E5AEB1936E39C13A2B23022A539A42CC1BC12A3BA34B72401DB91B3DBD1"
+    }
+  }
+}

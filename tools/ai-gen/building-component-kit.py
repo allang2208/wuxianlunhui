@@ -743,6 +743,63 @@ def anvil(collection, parent, name, location, iron):
         rotation=(0, -8, 0), bevel_width=3)
 
 
+def cat_mount_nest(collection, parent, name, location, size, wall_mat,
+                   roof_mat, interior_mat, accent_mat, *, roof_style="gable"):
+    """Open-front resting bay sized for a rideable cat, with cat-ear identity."""
+    x, y, z = (float(value) for value in location)
+    width, depth, height = (float(value) for value in size)
+    wall = max(8.0, min(width, depth) * 0.10)
+    rear_y = y + depth / 2 - wall / 2
+
+    box(collection, parent, name + "_RearWall", (width, wall, height),
+        (x, rear_y, z + height / 2), wall_mat, bevel_width=3)
+    for side, label in ((-1, "Left"), (1, "Right")):
+        side_x = x + side * (width / 2 - wall / 2)
+        box(collection, parent, f"{name}_{label}Wall",
+            (wall, depth, height), (side_x, y, z + height / 2),
+            wall_mat, bevel_width=3)
+
+    roof_base = z + height - 2
+    if roof_style == "flat":
+        box(collection, parent, name + "_FlatCanopy",
+            (width + 14, depth + 14, 12),
+            (x, y, roof_base + 6), roof_mat, bevel_width=4)
+        fascia_z = roof_base + 4
+    elif roof_style == "gable":
+        gabled_prism(collection, parent, name + "_GabledCanopy",
+                     width + 16, depth + 18, max(28.0, height * 0.34),
+                     (x, y, roof_base), wall_mat, roof_mat)
+        fascia_z = roof_base + max(24.0, height * 0.24)
+    elif roof_style == "shared":
+        # The bay sits under its parent building's one continuous roof.  Keep
+        # only an open-front header so the nest does not create a second roof.
+        box(collection, parent, name + "_SharedRoofHeader",
+            (width, 12, 15),
+            (x, y - depth / 2 + 6, roof_base - 6),
+            wall_mat, bevel_width=2)
+        fascia_z = roof_base - 3
+    else:
+        raise ValueError(f"unsupported cat-mount nest roof style: {roof_style}")
+
+    box(collection, parent, name + "_RestingPad",
+        (width - wall * 2.4, depth * 0.58, 10),
+        (x, y + depth * 0.12, z + 5), interior_mat, bevel_width=5)
+
+    # Two triangular prisms read as cat ears from the fixed front isometric view.
+    for side, label in ((-1, "Left"), (1, "Right")):
+        cylinder(collection, parent, f"{name}_CatEar_{label}",
+                 max(9.0, width * 0.10), 8,
+                 (x + side * width * 0.22, y - depth / 2 - 10, fascia_z),
+                 accent_mat, rotation=(90, 0, 0), vertices=3,
+                 bevel_width=1)
+    return {
+        "frontY": y - depth / 2,
+        "roofZ": roof_base,
+        "width": width,
+        "depth": depth,
+    }
+
+
 def post_and_rail_enclosure(collection, parent, name, width, front_y, back_y,
                             base_z, timber, *, gate_width=0,
                             rail_offsets=(30, 66), post_height=82,

@@ -64,6 +64,7 @@
 | `lantern(location, iron, glow, orientation)` | 支架、灯笼笼体、发光芯、上下盖 | 仓库、铁匠铺、骑兵学院、茅草屋 |
 | `workbench(location, timber, iron)` | 台面、四腿和台钳 | 铁匠铺 |
 | `anvil(location, iron)` | 底脚、腰、砧面和砧角 | 铁匠铺 |
+| `cat_mount_nest(location, size, wall_mat, roof_mat, interior_mat, accent_mat, roof_style)` | 可骑乘猫使用的开放式休息窝棚；独立后墙、侧墙、软垫、平顶/双坡顶/并入父建筑共享屋顶三种装配方式与无文字猫耳檐标识，禁止在组件内烘入猫或人物 | 骑兵学院 LV1/LV2/LV3 |
 | `post_and_rail_enclosure(width, front_y, back_y, base_z, gate_width, rail_offsets, post_height, post_spacing, include_back, gate_leaves, gate_open_angle)` | 参数化木桩横栏围界；支持居中门洞、可选双扇开启门、后围栏开关及栏杆/立柱密度 | 靶场、奶酪农场 |
 | `wind_rotor(name, hub_location, axis, blade_count, inner_radius, outer_radius, root_width, tip_width, thickness, style, lattice_slats)` | 参数化水平轴风轮；`axis=X/Y`控制轴向，`style=lattice`生成格栅风帆，`style=turbine`生成带独立加强脊的渐缩叶片；轮毂、叶片与脊保持独立可编辑，并统一挂到轮毂中心的 `*_Pivot` 空对象，旋转 Pivot 的局部轴即可驱动整套叶轮 | 麦田风车、风力电站 |
 | `_build_treasure_chest(asset_id, spec, open_lid, dungeon_style)` | 共用四脚、箱体、拱盖、铰链与开盖父级；通过 manifest 尺寸/材质及主题装饰生成主神仓库与地牢闭合/开启两态，子件保持独立可编辑 | 主神空间仓库宝箱、地牢宝箱房宝箱 |
@@ -96,8 +97,11 @@
 | 靶场 | `Range_Yard_*` | 一格院落的侧/前栏杆、门洞和立柱；已改由公共 `post_and_rail_enclosure()` 装配 | `build_shooting_range()` / `building-component-kit.py` |
 | 靶场 | `Range_Target_*` | 靠近前围栏的靶柱、底脚、草靶与铁心 | `build_shooting_range()` |
 | 靶场 | `Range_Armory_Rack_*` / `Visible_Bow_*` / `Visible_Gun*` / `Powder*` | 檐下实体枪架、弓枪、火药架和袋；屋顶必须为空 | `build_shooting_range()` |
-| 骑兵学院 | `Cavalry_Training_Tower*` / `Cavalry_Tower_Timber` | 单座训练塔、木构立面和方锥顶 | `build_cavalry_school()` |
-| 骑兵学院 | `Stable_Door_*` / `Stable_Loft_Window` / `Cavalry_Crest` | 马厩门组、阁楼窗和马蹄徽记 | `build_cavalry_school()` |
+| 骑兵学院 LV1 | `CavalrySchoolLV1_AncientHall_*` / `Portico*` / `SandTrainingRing` / `Hurdle_*` | 完整4×4开放古代骑乘庭院、低矮石灰泥训练厅、柱廊、沙地训练环和两组原始木障碍；无塔楼、马厩门或马蹄符号 | `build_cavalry_school()` / `build_cavalry_school_level()` |
+| 骑兵学院 LV2 | `CavalrySchoolLV2_MedievalHall_*` / `SingleSlopeRoof` / `CatNest_*SharedRoofHeader` / `AgilityJump_*` | 同一4×4开放场地上的中世纪半木石训练厅与三座内嵌猫窝共用唯一一块连续单坡屋面，整个屋顶只有一个倾斜平面和一个网格；禁止双坡、屋脊、独立猫窝顶、雨棚或第二屋顶，前场保留三组有序木制猫骑敏捷障碍 | `build_cavalry_school_lv2()` / `build_cavalry_school_level()` / `cat_mount_nest(roof_style='shared')` |
+| 骑兵学院 LV2 | `WeaponRack_*` / `LongSpear_*` / `CatFeedSack_*` / `SupplyCrate_*` | 两座边缘兵器架固定收纳六柄长矛，五袋猫粮与两只小型补给箱成组贴边布置；全部杂物不得进入中央训练区、堵塞猫窝或扩增为散落武器堆 | `build_cavalry_school_level(level=2)` |
+| 骑兵学院 LV3 | `CavalrySchoolLV3_ModernHall_*` / `AgilityLane_*` / `SlalomPost_*` / `ExercisePlatform_*` | 同一4×4开放场地上的现代低矮混凝土指挥厅、平顶、宽控制窗、三条敏捷训练道、五根回转柱与两座低平台；无车辆库、雷达、塔楼或封闭靶场 | `build_cavalry_school_lv3()` / `build_cavalry_school_level()` |
+| 骑兵学院三级共用 | `CatNest_*` / `CatPawCrest_*` / `CatHarnessRack_*` / `CatSaddlePad_*` / `CatCareStation_*` | 每级固定三座可骑乘猫开放窝棚、无文字猫爪徽记、低位猫用挽具/鞍垫架和两座固定护理饮水点；猫和骑手保持独立运行时资产，不烘入建筑 | `build_cavalry_school_level()` / `cat_mount_nest()` / `cavalry_paw_badge()` |
 | 仓鼠军营 | `Barracks_MainHall_*` / `Barracks_MainGate_*` | 中央石砌操练厅、连续双坡屋顶、强化门框、双开军营门和暖光入口 | `build_hamster_barracks()` |
 | 仓鼠军营 | `Barracks_LeftWatchtower_*` / `Barracks_RightWatchtower_*` | 两座完整对称石砌瞭望塔、强化石带、箭窗、方锥顶与独立顶饰 | `build_hamster_barracks()` |
 | 仓鼠军营 | `Barracks_WeaponRack_*` / `Barracks_ShieldCrest` / `Barracks_GateLantern_*` | 附墙长矛架、盾徽与门灯；维持克制的军事识别，不生成独立院落 | `build_hamster_barracks()` |
@@ -192,7 +196,9 @@
 | 主神空间仓库 | 单层白石库房 + 半圆拱顶 | 蓝晶双门、金色拱肋、宝石封印与侧窗；运行时为1×1建筑 |
 | 铁匠铺 | 低矮标准壳 | 左开门、内部工具/炉火、工作台、铁砧、烟囱 |
 | 靶场 | 后部小屋 + 一格围栏院落 | 前围栏靶子、檐下枪架、弓枪和火药袋 |
-| 骑兵学院 | 马厩标准壳 + 单训练塔 | 双马厩门、阁楼窗、徽记、双灯笼 |
+| 骑兵学院 LV1 | 完整4×4开放古代骑乘庭院 + 低矮石灰泥柱廊训练厅 | 三座大型猫窝、猫爪徽记、沙地训练环、两组木障碍、猫用挽具/鞍垫架与固定护理点；无马、马槽、马蹄或塔楼 |
+| 骑兵学院 LV2 | 完整4×4开放中世纪训练场 + 半木石训练厅与三座内嵌猫窝共用唯一连续单坡屋面 | 整个建筑只保留一块倾斜屋面，无双坡或屋脊；三组猫骑敏捷障碍、两座兵器架、六柄长矛、五袋猫粮、两只补给箱、猫爪徽记、猫用挽具/鞍垫架与固定护理点沿边缘布置 |
+| 骑兵学院 LV3 | 完整4×4开放现代训练场 + 低矮混凝土指挥厅 + 平顶 | 三座现代猫窝、三条训练道、回转柱、低平台、猫爪徽记、猫用挽具/鞍垫架与护理点；无车辆库、雷达、塔楼或动物烘图 |
 | 仓鼠军营 | 中央石砌操练厅 + 对称双瞭望塔 | 强化双开门、箭窗、附墙长矛架、盾徽与门灯 |
 | 研究院 LV1 | 四面相连低矮裙楼 + 唯一中央哥特方塔 | 四根菱形截面围柱、双层飞扶壁、蓝色尖券窗、蓝顶与白灰石墙 |
 | 研究院 LV2 | 沿用 LV1 四面裙楼与固定占地 + 明显增高唯一中央塔 | 双层塔身窗、三道石带、相连回廊檐口、加强角扶壁、蓝顶肋与更高顶饰 |

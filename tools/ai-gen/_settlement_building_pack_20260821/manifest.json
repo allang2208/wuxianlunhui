@@ -1288,7 +1288,75 @@
       }
     },
     "shooting_range": { "dimensions": { "foundation": [526, 474, 16], "body": [270, 176, 142], "roof": [310, 220, 82] } },
-    "cavalry_school": { "dimensions": { "foundation": [480, 374, 16], "body": [360, 248, 154], "roof": [406, 300, 104], "tower": [76, 76, 220] } },
+    "cavalry_school": {
+      "cameraOverrides": { "widthMargin": 0.90, "bottomY": 930, "topMargin": 42 },
+      "paletteOverrides": {
+        "foundation": [0.40, 0.34, 0.23, 1.0],
+        "stone": [0.52, 0.45, 0.34, 1.0],
+        "plaster": [0.66, 0.57, 0.42, 1.0],
+        "timber": [0.18, 0.10, 0.045, 1.0],
+        "roof": [0.42, 0.15, 0.055, 1.0],
+        "thatch": [0.48, 0.34, 0.12, 1.0],
+        "iron": [0.08, 0.075, 0.065, 1.0],
+        "brass": [0.48, 0.31, 0.09, 1.0],
+        "glass": [0.13, 0.24, 0.22, 1.0],
+        "glow": [0.78, 0.27, 0.035, 1.0],
+        "straw": [0.56, 0.41, 0.16, 1.0]
+      },
+      "bodyDepthExclude": ["CavalrySchoolLV1_OpenTrainingGround"],
+      "dimensions": {
+        "foundation": [820, 680, 14],
+        "hall": [380, 182, 138],
+        "hallRoof": [432, 232, 76],
+        "catNest": [112, 108, 78]
+      }
+    },
+    "cavalry_school_lv2": {
+      "cameraOverrides": { "widthMargin": 0.90, "bottomY": 930, "topMargin": 42 },
+      "paletteOverrides": {
+        "foundation": [0.31, 0.29, 0.24, 1.0],
+        "stone": [0.43, 0.40, 0.34, 1.0],
+        "plaster": [0.57, 0.48, 0.36, 1.0],
+        "timber": [0.12, 0.065, 0.03, 1.0],
+        "roof": [0.30, 0.085, 0.04, 1.0],
+        "thatch": [0.41, 0.29, 0.11, 1.0],
+        "iron": [0.06, 0.064, 0.058, 1.0],
+        "brass": [0.40, 0.25, 0.07, 1.0],
+        "glass": [0.14, 0.27, 0.24, 1.0],
+        "glow": [0.82, 0.27, 0.03, 1.0],
+        "straw": [0.51, 0.37, 0.14, 1.0]
+      },
+      "bodyDepthExclude": ["CavalrySchoolLV2_OpenTrainingGround"],
+      "dimensions": {
+        "foundation": [820, 680, 14],
+        "hall": [394, 190, 162],
+        "hallRoof": [452, 330, 18],
+        "catNest": [116, 112, 86]
+      }
+    },
+    "cavalry_school_lv3": {
+      "cameraOverrides": { "widthMargin": 0.90, "bottomY": 930, "topMargin": 42 },
+      "paletteOverrides": {
+        "foundation": [0.25, 0.26, 0.24, 1.0],
+        "stone": [0.34, 0.36, 0.34, 1.0],
+        "plaster": [0.45, 0.47, 0.43, 1.0],
+        "timber": [0.10, 0.075, 0.045, 1.0],
+        "roof": [0.12, 0.15, 0.13, 1.0],
+        "thatch": [0.29, 0.28, 0.16, 1.0],
+        "iron": [0.045, 0.052, 0.05, 1.0],
+        "brass": [0.31, 0.27, 0.10, 1.0],
+        "glass": [0.09, 0.23, 0.21, 1.0],
+        "glow": [0.42, 0.57, 0.25, 1.0],
+        "straw": [0.33, 0.31, 0.17, 1.0]
+      },
+      "bodyDepthExclude": ["CavalrySchoolLV3_OpenTrainingGround"],
+      "dimensions": {
+        "foundation": [820, 680, 14],
+        "hall": [430, 176, 126],
+        "hallRoof": [462, 208, 18],
+        "catNest": [120, 116, 82]
+      }
+    },
     "thatch_hut": { "dimensions": { "foundation": [420, 340, 16], "body": [318, 236, 136], "roof": [372, 292, 116] } },
     "thatch_hut_lv2": {
       "cameraOverrides": { "widthMargin": 0.90, "bottomY": 925, "topMargin": 42 },

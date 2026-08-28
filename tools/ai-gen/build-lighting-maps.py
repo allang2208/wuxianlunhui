@@ -70,6 +70,8 @@ ASSETS = [
     "snow_castle",
     "desert_mansion",
     "cavalry_school",
+    "cavalry_school_lv2",
+    "cavalry_school_lv3",
     "wheat_windmill",
     "market",
     "royal_mint",

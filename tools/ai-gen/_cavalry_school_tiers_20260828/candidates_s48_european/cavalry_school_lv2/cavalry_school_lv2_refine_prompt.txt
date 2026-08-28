@@ -1,0 +1,37 @@
+Use case: stylized-concept
+Asset type: World-122 broad 4x4 Western-European medieval cat-mount cavalry academy, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: refine only chipped fieldstone, aged cream plaster, dark oak framing, the single continuous sloped tile plane, woven resting pads, worn timber jumps and weapon racks, long spear shafts and blackened heads, tied dry-cloth cat-feed sacks, compact supply crates, tarnished brass cat-ear and paw details, cat saddle pads and restrained water surfaces
+Generation stage: detail refinement of the supplied Western-European medieval open cavalry academy
+Structure contract: preserve the initial image's exact complete 4x4 court, centered open gate, one connected low hall, exactly three integrated cat bays, the one uninterrupted single-slope roof plane with no ridge or opposite slope, three agility jumps, two weapon racks, six spears, five cat-feed sacks, two supply crates, two harness racks, two care stations, camera, center and ground-contact corners; do not add, remove, duplicate, move, merge or reinterpret any major component or prop group
+Detail budget: improve only broad fieldstone, cream plaster, dark oak, the single subdued roof plane, woven pads, worn equipment timber, blackened iron, tied sack cloth, dull brass and restrained water surfaces; retain sparse medium-scale wear and generate no dense grain
+Palette lock: low-saturation weathered fieldstone, aged cream plaster, dark worn oak, subdued red-brown roof tile, dry straw, blackened iron, tarnished brass and restrained blue-green water. No bright banners, polished armor, saturated grass, white marble, neon or modern paint.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: none
+Foundation exception: this asset class is not a medium functional building; preserve its authored ground contact and do not invent a building plinth, slab or pedestal.
+Canonical World-122 Western-European medieval open cavalry-academy rendering subset:
+Architecture lock: use one low practical fieldstone-and-half-timber courtyard hall with exactly one uninterrupted single-slope shed roof plane covering the hall and all three integrated cat bays; preserve ordinary Western-European guild-yard construction rather than a castle, manor or church.
+Material lock: keep fieldstone, cream plaster, dark oak, subdued red-brown roofing, woven pads, equipment timber, blackened iron, dry sack cloth and dull brass in broad calm fields; masonry joints, roof courses and wear remain sparse and medium-scale.
+Asset-specific style scope: retain the cheese farm's broad open 4x4 compound rhythm while translating the rear architecture into one practical Western-European medieval guild-yard hall. The hall and all three integrated cat bays sit beneath one literal uninterrupted single-slope shed roof made from one continuous roof plane; the open training court remains dominant.
+
+Composition/framing: strictly follow the supplied full-compound depth-control silhouette and orthographic 2.5D isometric view; centered; preserve the complete broad 4x4 boundary and centered open double gate; keep exactly one low rear hall and its three integrated cat-resting bays grounded along the rear or side edge while the open training court remains the largest visual area; preserve the authored European roof topology exactly; no perspective convergence
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one complete open European cat-mount cavalry academy compound only; no East-Asian, Chinese, Japanese or pagoda roof vocabulary, no upturned eaves, tiered temple roof or ornamental roof stack; no tower, castle, battlement, keep, gatehouse, second building, detached annex, extra floor, extra roof mass, grand palace, church, cathedral, fortress, vehicle depot or shooting range; no road, terrain patch, grass field, trees, people, riders, animals, horses, national flags, readable text or watermark; do not fill the broad training court with loose clutter or scenery
+Asset-specific absolute exclusions: no East-Asian roof, pagoda roof, upturned eave, gabled roof, roof ridge, paired roof slopes, second roof, separate nest roof, extra lean-to, canopy roof, horse, pony, donkey, camel, animal, rider, hamster, person, horse stall, horse trough, horseshoe, tower, castle, battlement, manor, church, second hall, extra nest, loose scattered weapon, extra spear, extra sack, wagon, cart, vehicle, readable text, modern firearm, neon, sci-fi machinery, cast shadow or watermark

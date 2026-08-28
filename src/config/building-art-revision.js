@@ -1,6 +1,6 @@
 // 稳定 texture key 对应的正式换图版本。只给浏览器请求追加 revision，
 // 不污染 data/*.json 中供本地文件工具读取的真实路径。
-const BUILDING_ART_REVISION = '20260827-house-lv5-lv7-manual';
+const BUILDING_ART_REVISION = '20260828-cavalry-school-alpha-repair';
 
 const BUILDING_ART_REVISION_KEYS = new Set([
     'house_lv1',
@@ -19,6 +19,9 @@ const BUILDING_ART_REVISION_KEYS = new Set([
     'church',
     'church_lv2',
     'church_lv3',
+    'cavalry_school',
+    'cavalry_school_lv2',
+    'cavalry_school_lv3',
     'thatch_hut',
     'thatch_hut_lv2',
     'armory',

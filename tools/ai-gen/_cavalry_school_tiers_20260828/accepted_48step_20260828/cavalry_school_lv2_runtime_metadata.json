@@ -1,0 +1,57 @@
+{
+  "source": "tools\\ai-gen\\_cavalry_school_tiers_20260828\\accepted_48step_20260828\\cavalry_school_lv2_repaired_body.png",
+  "output": "tools\\ai-gen\\_cavalry_school_tiers_20260828\\accepted_48step_20260828\\cavalry_school_lv2.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    51,
+    171,
+    49
+  ],
+  "matteEdgeWidth": 8.0,
+  "matteTolerance": 90.0,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    59,
+    358,
+    975,
+    934
+  ],
+  "fileSize": [
+    916,
+    576
+  ],
+  "alphaBBox": [
+    8,
+    8,
+    908,
+    568
+  ],
+  "displayW": 512,
+  "displayH": 322,
+  "footOffsetY": 157,
+  "scaleX": 0.5589519650655022,
+  "scaleY": 0.5590277777777778
+}

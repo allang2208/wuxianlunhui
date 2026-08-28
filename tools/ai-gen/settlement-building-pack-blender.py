@@ -1805,21 +1805,294 @@ def build_shooting_range(spec):
     return root
 
 
-def build_cavalry_school(spec):
-    collection, root, mats = common_context("cavalry_school", spec)
-    g = standard_shell(collection, root, mats, spec["dimensions"], bays=4)
-    for index, x in enumerate((-76, 76)):
-        kit.double_doors(collection, root, f"Stable_Door_{index}", (x, g["frontY"] - 6, g["fh"]), 86, 112, mats["timber"], mats["iron"], open_angle=10)
-    kit.shutter_window(collection, root, "Stable_Loft_Window", (0, g["frontY"] - 3, g["fh"] + 123), mats["glass"], mats["timber"], mats["iron"], scale=0.72)
-    tw, td, th = spec["dimensions"]["tower"]
-    tx, ty = -176, -48
-    kit.box(collection, root, "Cavalry_Training_Tower", (tw, td, th), (tx, ty, g["fh"] + th / 2), mats["stone"], bevel_width=4)
-    kit.half_timber_facade(collection, root, "Cavalry_Tower_Timber", tw, th, ty - td / 2 - 3, g["fh"], mats["timber"], bays=2)
-    cone(collection, root, "Cavalry_Tower_Roof", 52, 84, (tx, ty, g["fh"] + th + 42), mats["roof"], vertices=4)
-    kit.box(collection, root, "Cavalry_Crest", (42, 7, 48), (0, g["frontY"] - 13, g["fh"] + 132), mats["brass"], bevel_width=4)
-    kit.lantern(collection, root, "Stable_Lantern_Left", (-126, g["frontY"] - 15, g["fh"] + 84), mats["iron"], mats["glow"])
-    kit.lantern(collection, root, "Stable_Lantern_Right", (126, g["frontY"] - 15, g["fh"] + 84), mats["iron"], mats["glow"])
+def cavalry_paw_badge(collection, root, name, location, mat, scale=1.0):
+    """No-text paw crest that identifies the academy's mounts as cats."""
+    x, y, z = location
+    kit.cylinder(collection, root, name + "_Pad", 18 * scale, 8,
+                 (x, y, z), mat, rotation=(90, 0, 0), vertices=24,
+                 bevel_width=1)
+    toe_offsets = ((-18, 17), (-6, 24), (7, 24), (19, 16))
+    for index, (dx, dz) in enumerate(toe_offsets):
+        kit.cylinder(collection, root, f"{name}_Toe_{index}", 7 * scale, 8,
+                     (x + dx * scale, y, z + dz * scale), mat,
+                     rotation=(90, 0, 0), vertices=20, bevel_width=1)
+
+
+def build_cavalry_school_level(building_id, spec, level):
+    """Broad open cat-mount academy progressing from ancient to modern."""
+    collection, root, mats = common_context(building_id, spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    hall_w, hall_d, hall_h = dims["hall"]
+    roof_w, roof_d, roof_h = dims["hallRoof"]
+    nest_w, nest_d, nest_h = dims["catNest"]
+
+    yard_mat = mats["foundation"]
+    kit.box(collection, root, f"CavalrySchoolLV{level}_OpenTrainingGround",
+            (fw, fd, fh), (0, 0, fh / 2), yard_mat, bevel_width=7)
+
+    # The full compound follows the cheese farm's broad, open layout.  Its low
+    # perimeter and centered gate preserve a readable training court.
+    fence_mat = mats["iron"] if level == 3 else mats["timber"]
+    kit.post_and_rail_enclosure(
+        collection, root, f"CavalrySchoolLV{level}_Perimeter",
+        fw - 42, -fd / 2 + 24, fd / 2 - 24, fh, fence_mat,
+        gate_width=168, rail_offsets=(28, 62), post_height=78,
+        post_spacing=116, include_back=True, gate_leaves=True,
+        gate_open_angle=64)
+
+    hall_y = 184
+    hall_front = hall_y - hall_d / 2 - 4
+    hall_base = fh
+
+    if level == 1:
+        # Ancient era: low lime-plaster riding court with a shaded colonnade
+        # and restrained terracotta gable.  No tower or medieval fortification.
+        kit.box(collection, root, "CavalrySchoolLV1_AncientHall_StoneBase",
+                (hall_w, hall_d, 54), (0, hall_y, hall_base + 27),
+                mats["stone"], bevel_width=4)
+        kit.box(collection, root, "CavalrySchoolLV1_AncientHall_LimeShell",
+                (hall_w - 10, hall_d - 8, hall_h - 42),
+                (0, hall_y + 4, hall_base + 54 + (hall_h - 42) / 2),
+                mats["plaster"], bevel_width=4)
+        kit.gabled_prism(collection, root,
+                         "CavalrySchoolLV1_AncientHall_TerracottaRoof",
+                         roof_w, roof_d, roof_h,
+                         (0, hall_y, hall_base + hall_h - 3),
+                         mats["plaster"], mats["roof"])
+        for index, x in enumerate((-144, -72, 0, 72, 144)):
+            kit.cylinder(collection, root,
+                         f"CavalrySchoolLV1_PorticoColumn_{index}",
+                         11, 116, (x, hall_front - 10, hall_base + 58),
+                         mats["stone"], vertices=12, bevel_width=2)
+        kit.box(collection, root, "CavalrySchoolLV1_PorticoBeam",
+                (hall_w - 20, 24, 22),
+                (0, hall_front - 10, hall_base + 122),
+                mats["stone"], bevel_width=3)
+        nest_roof_style = "gable"
+        nest_wall, nest_roof = mats["stone"], mats["thatch"]
+    elif level == 2:
+        # Medieval era: connected half-timber training hall with one continuous
+        # tiled roof; the open yard remains the dominant visual mass.
+        kit.box(collection, root, "CavalrySchoolLV2_MedievalHall_StoneSkirt",
+                (hall_w + 10, hall_d + 10, 58),
+                (0, hall_y, hall_base + 29), mats["stone"], bevel_width=4)
+        kit.box(collection, root, "CavalrySchoolLV2_MedievalHall_PlasterShell",
+                (hall_w, hall_d, hall_h),
+                (0, hall_y, hall_base + hall_h / 2),
+                mats["plaster"], bevel_width=5)
+        kit.half_timber_facade(
+            collection, root, "CavalrySchoolLV2_MedievalHall_Timber",
+            hall_w, hall_h, hall_front, hall_base, mats["timber"], bays=5)
+        # One literal roof mesh: a single uninterrupted shed plane.  A gabled
+        # prism is intentionally forbidden here because its two slopes read as
+        # two roofs from the fixed isometric camera.
+        kit.box(collection, root,
+                "CavalrySchoolLV2_MedievalHall_SingleSlopeRoof",
+                (roof_w, roof_d, roof_h),
+                (0, hall_y - 10, hall_base + hall_h + 30),
+                mats["roof"], rotation=(8, 0, 0), bevel_width=4)
+        nest_roof_style = "shared"
+        nest_wall, nest_roof = mats["timber"], mats["roof"]
+    else:
+        # Modern era: a low concrete operations building with uninterrupted
+        # flat canopy and wide control glazing, never a bunker or vehicle bay.
+        kit.box(collection, root, "CavalrySchoolLV3_ModernHall_ConcreteShell",
+                (hall_w, hall_d, hall_h),
+                (0, hall_y, hall_base + hall_h / 2),
+                mats["stone"], bevel_width=6)
+        kit.box(collection, root, "CavalrySchoolLV3_ModernHall_FlatRoof",
+                (roof_w, roof_d, roof_h),
+                (0, hall_y, hall_base + hall_h + roof_h / 2 - 2),
+                mats["roof"], bevel_width=5)
+        for index, x in enumerate((-126, -42, 42, 126)):
+            kit.box(collection, root,
+                    f"CavalrySchoolLV3_ModernHall_ControlGlass_{index}",
+                    (66, 8, 62),
+                    (x, hall_front - 5, hall_base + 74),
+                    mats["glass"], bevel_width=4)
+        kit.box(collection, root, "CavalrySchoolLV3_ModernHall_EntryCanopy",
+                (110, 62, 13),
+                (0, hall_front - 38, hall_base + 112),
+                mats["iron"], bevel_width=4)
+        nest_roof_style = "flat"
+        nest_wall, nest_roof = mats["stone"], mats["iron"]
+
+    # LV2 integrates its three bays beneath the hall's one continuous roof.
+    # The other eras keep the nests as a readable side row.
+    nest_positions = (
+        ((-120, hall_front - 10), (0, hall_front - 10),
+         (120, hall_front - 10))
+        if level == 2
+        else ((-286, -174), (-286, -42), (-286, 90))
+    )
+    for index, (nest_x, nest_y) in enumerate(nest_positions):
+        kit.cat_mount_nest(
+            collection, root, f"CavalrySchoolLV{level}_CatNest_{index + 1}",
+            (nest_x, nest_y, fh), (nest_w, nest_d, nest_h), nest_wall,
+            nest_roof, mats["straw"], mats["brass"],
+            roof_style=nest_roof_style)
+
+    # The no-text paw badge replaces the old horseshoe/stable identity.
+    badge_y = hall_front - 16
+    badge_z = hall_base + (hall_h + 34 if level < 3 else 105)
+    cavalry_paw_badge(
+        collection, root, f"CavalrySchoolLV{level}_CatPawCrest",
+        (0, badge_y, badge_z), mats["brass"], 1.05 if level == 3 else 0.9)
+
+    # Low harness racks prove that these are rideable cats without baking an
+    # animal into the building.  The wide center court remains uncluttered.
+    for rack_index, y in enumerate((-210, -124)):
+        rack_x = -126
+        kit.box(collection, root,
+                f"CavalrySchoolLV{level}_CatHarnessRack_{rack_index}_Rail",
+                (96, 12, 12), (rack_x, y, fh + 58),
+                mats["timber"] if level < 3 else mats["iron"],
+                bevel_width=2)
+        for side in (-1, 1):
+            kit.box(collection, root,
+                    f"CavalrySchoolLV{level}_CatHarnessRack_{rack_index}_Post_{side:+d}",
+                    (10, 10, 68), (rack_x + side * 38, y, fh + 34),
+                    mats["timber"] if level < 3 else mats["iron"],
+                    bevel_width=2)
+        kit.box(collection, root,
+                f"CavalrySchoolLV{level}_CatSaddlePad_{rack_index}",
+                (50, 24, 20), (rack_x, y - 9, fh + 46),
+                mats["roof"], bevel_width=7)
+
+    if level == 1:
+        # Open sand ring and two primitive low hurdles.
+        kit.cylinder(collection, root, "CavalrySchoolLV1_SandTrainingRing",
+                     142, 7, (116, -62, fh + 3.5), mats["straw"],
+                     vertices=48, bevel_width=2)
+        for obstacle_index, y in enumerate((-122, 8)):
+            for side in (-1, 1):
+                kit.box(collection, root,
+                        f"CavalrySchoolLV1_Hurdle_{obstacle_index}_Post_{side:+d}",
+                        (12, 12, 54), (116 + side * 54, y, fh + 27),
+                        mats["timber"], bevel_width=2)
+            kit.box(collection, root,
+                    f"CavalrySchoolLV1_Hurdle_{obstacle_index}_Bar",
+                    (118, 10, 10), (116, y, fh + 42),
+                    mats["timber"], bevel_width=2)
+    elif level == 2:
+        # Medieval cat-agility lane with three ordered timber jumps.
+        for obstacle_index, y in enumerate((-184, -74, 36)):
+            for side in (-1, 1):
+                kit.box(collection, root,
+                        f"CavalrySchoolLV2_AgilityJump_{obstacle_index}_Post_{side:+d}",
+                        (12, 12, 68), (126 + side * 66, y, fh + 34),
+                        mats["timber"], bevel_width=2)
+            kit.box(collection, root,
+                    f"CavalrySchoolLV2_AgilityJump_{obstacle_index}_Rail",
+                    (142, 11, 11), (126, y, fh + 48 + obstacle_index * 5),
+                    mats["timber"], bevel_width=2)
+
+        # Ordered edge clutter gives the academy a working military identity
+        # without blocking the central riding court: two racks, six long
+        # spears, five cat-feed sacks and two compact supply crates.
+        for rack_index, (rack_x, rack_y) in enumerate(((-292, -142),
+                                                        (-292, -36))):
+            kit.box(collection, root,
+                    f"CavalrySchoolLV2_WeaponRack_{rack_index}_Base",
+                    (146, 34, 13), (rack_x, rack_y, fh + 7),
+                    mats["timber"], bevel_width=3)
+            for side in (-1, 1):
+                kit.box(collection, root,
+                        f"CavalrySchoolLV2_WeaponRack_{rack_index}_Post_{side:+d}",
+                        (12, 12, 92),
+                        (rack_x + side * 59, rack_y, fh + 46),
+                        mats["timber"], bevel_width=2)
+            kit.box(collection, root,
+                    f"CavalrySchoolLV2_WeaponRack_{rack_index}_TopRail",
+                    (138, 14, 14), (rack_x, rack_y, fh + 86),
+                    mats["timber"], bevel_width=2)
+            for spear_index, local_x in enumerate((-38, 0, 38)):
+                lean = (-5, 3, 7)[spear_index]
+                spear_x = rack_x + local_x
+                kit.box(collection, root,
+                        f"CavalrySchoolLV2_LongSpear_{rack_index}_{spear_index}_Shaft",
+                        (6, 7, 126),
+                        (spear_x, rack_y - 8, fh + 72), mats["timber"],
+                        rotation=(0, lean, 0), bevel_width=1)
+                cone(collection, root,
+                     f"CavalrySchoolLV2_LongSpear_{rack_index}_{spear_index}_Head",
+                     8, 24,
+                     (spear_x + lean * 0.9, rack_y - 8, fh + 145),
+                     mats["iron"], vertices=4)
+
+        sack_positions = ((-334, 62, 0), (-292, 66, 0),
+                          (-250, 62, 0), (-313, 100, 0),
+                          (-271, 101, 0))
+        for sack_index, (x, y, stack_z) in enumerate(sack_positions):
+            kit.box(collection, root,
+                    f"CavalrySchoolLV2_CatFeedSack_{sack_index}",
+                    (36, 28, 44), (x, y, fh + stack_z + 22),
+                    mats["straw"], rotation=(0, 0, -5 + sack_index * 2),
+                    bevel_width=9)
+            kit.box(collection, root,
+                    f"CavalrySchoolLV2_CatFeedSack_{sack_index}_Tie",
+                    (12, 10, 8), (x, y, fh + stack_z + 47),
+                    mats["timber"], bevel_width=2)
+
+        for crate_index, (x, y, z) in enumerate(((-325, -244, fh + 18),
+                                                  (-270, -238, fh + 15))):
+            size = (54, 44, 36) if crate_index == 0 else (48, 40, 30)
+            kit.box(collection, root,
+                    f"CavalrySchoolLV2_SupplyCrate_{crate_index}",
+                    size, (x, y, z), mats["timber"], bevel_width=3)
+            kit.box(collection, root,
+                    f"CavalrySchoolLV2_SupplyCrate_{crate_index}_IronBand",
+                    (10, size[1] + 3, size[2] + 3),
+                    (x, y, z), mats["iron"], bevel_width=1)
+    else:
+        # Modern divided lanes, slalom posts and two low exercise platforms.
+        for lane_index, x in enumerate((50, 154, 258)):
+            kit.box(collection, root,
+                    f"CavalrySchoolLV3_AgilityLane_{lane_index}",
+                    (76, 292, 7), (x, -58, fh + 3.5),
+                    mats["plaster"], bevel_width=3)
+        for post_index, (x, y) in enumerate(((60, -174), (142, -122),
+                                              (224, -70), (142, -18),
+                                              (60, 34))):
+            kit.cylinder(collection, root,
+                         f"CavalrySchoolLV3_SlalomPost_{post_index}",
+                         8, 76, (x, y, fh + 38), mats["iron"],
+                         vertices=16, bevel_width=1)
+            kit.cylinder(collection, root,
+                         f"CavalrySchoolLV3_SlalomMarker_{post_index}",
+                         11, 10, (x, y, fh + 78), mats["glow"],
+                         vertices=16, bevel_width=1)
+        for platform_index, y in enumerate((-176, 16)):
+            kit.box(collection, root,
+                    f"CavalrySchoolLV3_ExercisePlatform_{platform_index}",
+                    (92, 58, 18 + platform_index * 10),
+                    (250, y, fh + (18 + platform_index * 10) / 2),
+                    mats["iron"], bevel_width=5)
+
+    # Two fixed low care stations are structural; no loose bowls or feed sacks.
+    for index, y in enumerate((-196, -96)):
+        kit.box(collection, root,
+                f"CavalrySchoolLV{level}_CatCareStation_{index}",
+                (76, 38, 26), (-194, y, fh + 13), mats["stone"],
+                bevel_width=6)
+        kit.box(collection, root,
+                f"CavalrySchoolLV{level}_CatCareWater_{index}",
+                (62, 25, 5), (-194, y, fh + 28), mats["glass"],
+                bevel_width=5)
     return root
+
+
+def build_cavalry_school(spec):
+    return build_cavalry_school_level("cavalry_school", spec, 1)
+
+
+def build_cavalry_school_lv2(spec):
+    return build_cavalry_school_level("cavalry_school_lv2", spec, 2)
+
+
+def build_cavalry_school_lv3(spec):
+    return build_cavalry_school_level("cavalry_school_lv3", spec, 3)
 
 
 def build_hamster_barracks_level(building_id, spec, level=1):
@@ -8943,6 +9216,8 @@ BUILDERS = {
     "armory": build_armory,
     "shooting_range": build_shooting_range,
     "cavalry_school": build_cavalry_school,
+    "cavalry_school_lv2": build_cavalry_school_lv2,
+    "cavalry_school_lv3": build_cavalry_school_lv3,
     "hamster_barracks": build_hamster_barracks,
     "hamster_barracks_lv2": build_hamster_barracks_lv2,
     "hamster_barracks_lv3": build_hamster_barracks_lv3,
