@@ -1,0 +1,2863 @@
+{
+  "bow": {
+    "holdOffsetX": 17,
+    "holdOffsetY": 3,
+    "attackInterval": 1500,
+    "rotateMs": 500,
+    "returnMs": 200,
+    "animType": "frameSequence",
+    "idleRotation": 100,
+    "idleScale": 1.6
+  },
+  "pistol": {
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
+    "timingMul": 0.5,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 20,
+      "gunLY": 13,
+      "offhandGunLY": -13,
+      "muzzleOffset": 22,
+      "flashOffset": 28,
+      "shellCasingOffset": -8,
+      "recoilWindup": 0.02,
+      "recoilSwing": 0.05,
+      "recoilRecover": 0.02,
+      "shakeIntensity": 1
+    },
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "walk": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "dualOffsetX": 5,
+    "rotOffset": -6,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.35,
+      "forward": 11,
+      "up": 1,
+      "offhandOffsetY": 2
+    },
+    "bobWeaponScale": 2
+  },
+  "p4040": {
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
+    "timingMul": 0.5,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 20,
+      "gunLY": 13,
+      "offhandGunLY": -13,
+      "muzzleOffset": 22,
+      "flashOffset": 28,
+      "shellCasingOffset": -8,
+      "recoilWindup": 0.02,
+      "recoilSwing": 0.05,
+      "recoilRecover": 0.02,
+      "shakeIntensity": 1
+    },
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "walk": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "dualOffsetX": 5,
+    "bobWeaponScale": 2,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.43,
+      "forward": 11,
+      "up": 1,
+      "offhandOffsetY": 2
+    },
+    "rotOffset": -6
+  },
+  "deagle": {
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
+    "timingMul": 0.5,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 20,
+      "gunLY": 13,
+      "offhandGunLY": -13,
+      "muzzleOffset": 22,
+      "flashOffset": 28,
+      "shellCasingOffset": -8,
+      "recoilWindup": 0.02,
+      "recoilSwing": 0.05,
+      "recoilRecover": 0.02,
+      "shakeIntensity": 1
+    },
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "walk": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "dualOffsetX": 5,
+    "rotOffset": -6,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.35,
+      "forward": 11,
+      "up": 1,
+      "offhandOffsetY": 2
+    },
+    "bobWeaponScale": 2
+  },
+  "revolver": {
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
+    "timingMul": 0.5,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 20,
+      "gunLY": 13,
+      "offhandGunLY": -13,
+      "muzzleOffset": 22,
+      "flashOffset": 28,
+      "shellCasingOffset": -8,
+      "recoilWindup": 0.02,
+      "recoilSwing": 0.05,
+      "recoilRecover": 0.02,
+      "shakeIntensity": 1
+    },
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "walk": {
+      "holdOffsetX": 6,
+      "idleScale": 0.6,
+      "holdOffsetY": -52
+    },
+    "dualOffsetX": 5,
+    "rotOffset": -6,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.35,
+      "forward": 11,
+      "up": 1,
+      "offhandOffsetY": 2
+    },
+    "bobWeaponScale": 2
+  },
+  "akm": {
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.12,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimSpriteOffsetX": -5,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
+  "m416": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.12,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
+  "pkm": {
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.12,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1.25,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1.25
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1.25
+    },
+    "muzzle": {
+      "x": 0.95,
+      "y": 0.5
+    }
+  },
+  "singularity_loom_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.12,
+    "animType": "recoil",
+    "recoilAmount": 0.075,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.32,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.957,
+      "y": 0.51
+    }
+  },
+  "celestial_cartographer_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.105,
+    "animType": "recoil",
+    "recoilAmount": 0.07,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.07,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": { "x": 0.31, "y": 0.56 },
+    "idle": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
+    "walk": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
+    "muzzle": { "x": 0.958, "y": 0.5 }
+  },
+  "grave_covenant_cantor_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.135,
+    "animType": "recoil",
+    "recoilAmount": 0.09,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.04,
+      "recoilSwing": 0.09,
+      "recoilRecover": 0.04,
+      "shakeIntensity": 5
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": { "x": 0.3, "y": 0.57 },
+    "idle": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
+    "walk": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
+    "muzzle": { "x": 0.956, "y": 0.51 }
+  },
+  "qbz191": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.07,
+    "animType": "recoil",
+    "recoilAmount": 0.1,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.38
+    },
+    "spriteOffsetY": 5,
+    "aimAdjustY": 5
+  },
+  "qjb201": {
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.06,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 0.9375,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 0.9375
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 0.9375
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    },
+    "aimAdjustX": -5
+  },
+  "rpd": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.12,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.24,
+      "y": 0.57
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.49
+    }
+  },
+  "m249": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.075,
+    "animType": "recoil",
+    "recoilAmount": 0.1,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.31,
+      "y": 0.57
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.49
+    }
+  },
+  "ultimax100": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.06,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.025,
+      "recoilSwing": 0.06,
+      "recoilRecover": 0.025,
+      "shakeIntensity": 3
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.27,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.49
+    }
+  },
+  "mg42": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.05,
+    "animType": "recoil",
+    "recoilAmount": 0.16,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.02,
+      "recoilSwing": 0.05,
+      "recoilRecover": 0.02,
+      "shakeIntensity": 5
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.53
+    }
+  },
+  "fusion_core_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.24,
+    "animType": "recoil",
+    "recoilAmount": 0.11,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.04,
+      "recoilSwing": 0.09,
+      "recoilRecover": 0.05,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.32,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.957,
+      "y": 0.504
+    }
+  },
+  "energy_lmg": {
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.25,
+    "animType": "recoil",
+    "recoilAmount": 0.1,
+    "idleRotation": 0,
+    "idleScale": 1,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.5
+    }
+  },
+  "shotgun": {
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.5,
+    "animType": "recoil",
+    "recoilAmount": 0.15,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.04,
+      "recoilSwing": 0.12,
+      "recoilRecover": 0.04,
+      "shakeIntensity": 5
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
+  "sword": {
+    "holdOffsetX": -35,
+    "holdOffsetY": 4,
+    "timingMul": 1,
+    "animType": "thrust",
+    "idleRotation": -10,
+    "idleScale": 1.5,
+    "gripOffset": 40,
+    "textureGrips": {
+      "weapon_rusty_sword": {
+        "x": 0.5,
+        "y": 0.823
+      },
+      "weapon_knights_sword": {
+        "x": 0.5,
+        "y": 0.786
+      },
+      "weapon_rune_sword": {
+        "x": 0.5,
+        "y": 0.793
+      },
+      "weapon_night_flame": {
+        "x": 0.5,
+        "y": 0.798
+      }
+    },
+    "whirlwindRecover": {
+      "type": "toIdle",
+      "source": "whirlwind",
+      "easing": "easeInOutCubic"
+    },
+    "aura": {
+      "enabled": false,
+      "intervalMs": 12,
+      "lifeMs": 220,
+      "maxCount": 24,
+      "alpha": 0.6,
+      "tint": "0xffffff",
+      "colorSource": "fixed",
+      "glowEnabled": true,
+      "glowAlpha": 0.18,
+      "glowScale": 1,
+      "glowTint": "0xffffff",
+      "glowBlendMode": "add",
+      "blendMode": "normal",
+      "widthMul": 0.28,
+      "heightMul": 0.7,
+      "trailBackOffset": 2,
+      "minMoveDistance": 2,
+      "rotateWithWeapon": false,
+      "perpendicularToWeapon": true,
+      "perpendicularStripeCount": 8,
+      "perpendicularCoverageLength": 1,
+      "perpendicularCoverageWidth": 0.9,
+      "scaleStart": 0.95,
+      "scaleEnd": 1,
+      "fadeInRatio": 0.12,
+      "fadeOutRatio": 0.88
+    },
+    "arc": {
+      "enabled": false,
+      "intervalMs": 12,
+      "lifeMs": 220,
+      "maxCount": 28,
+      "tailLength": 46,
+      "trailBackOffset": 6,
+      "minMoveDistance": 1.5,
+      "color": "0xffffff",
+      "coreHalfWidth": 0.2,
+      "midHalfWidth": 0.4,
+      "outerHalfWidth": 0.62,
+      "outlineEnabled": true,
+      "outlineColor": "0x000000",
+      "outlineAlpha": 0.3,
+      "outlineHalfWidth": 0.68,
+      "alphaOuter": 0.22,
+      "alphaMid": 0.4,
+      "alphaCore": 0.8,
+      "smoothSteps": 2,
+      "headWidthMul": 0.25,
+      "fadeInRatio": 0.1,
+      "fadeOutRatio": 0.72,
+      "particleEnabled": true,
+      "particleCount": 2,
+      "particleAlpha": 0.18
+    },
+    "dashThrustConvergence": {
+      "enabled": true,
+      "lineCount": 5,
+      "backLength": 210,
+      "spread": 52,
+      "startProgress": 0.04,
+      "convergeProgress": 0.56,
+      "fadeOutProgress": 0.76,
+      "trailSpan": 0.34,
+      "glowWideWidth": 16,
+      "glowNarrowWidth": 7,
+      "glowWideAlpha": 0.035,
+      "glowNarrowAlpha": 0.08,
+      "shadowWidth": 5,
+      "shadowAlpha": 0.14,
+      "shadowColor": "0x09111d",
+      "coreOuterWidth": 2.4,
+      "coreInnerWidth": 0.75,
+      "coreOuterAlpha": 0.24,
+      "coreInnerAlpha": 0.72,
+      "color": "0xffffff",
+      "mistColor": "0xcfefff",
+      "segmentSteps": 14,
+      "tailFadeRatio": 0.3,
+      "headFadeRatio": 0.18,
+      "headAlphaScale": 0.58,
+      "tipWidthScale": 0.16,
+      "bellyWidthScale": 1
+    },
+    "hitBox": {
+      "forwardRange": 155,
+      "minimumBaseRange": 165,
+      "backExtension": 55,
+      "width": 35
+    },
+    "idle": {
+      "holdOffsetX": -52,
+      "holdOffsetY": 18,
+      "idleRotation": 15,
+      "idleScale": 1.5
+    },
+    "walk": {
+      "holdOffsetX": -39,
+      "holdOffsetY": 18,
+      "idleRotation": 20,
+      "idleScale": 1.5
+    },
+    "running": {
+      "holdOffsetX": -76,
+      "holdOffsetY": -11,
+      "idleRotation": 110,
+      "idleScale": 1.5,
+      "carryLayer": "back"
+    },
+    "attack": {
+      "type": "perFrame",
+      "hitCheck": {
+        "frame": 9,
+        "shape": "sector",
+        "arcDeg": 105,
+        "rangeMul": 1.15,
+        "knockback": 50,
+        "stunMs": 1000,
+        "hitstopMs": 35,
+        "trauma": 0.08
+      },
+      "recover": {
+        "outX": -6,
+        "outY": -18,
+        "inX": 10,
+        "inY": 2,
+        "outRotationDeg": -16,
+        "inRotationDeg": 8
+      },
+      "frames": [
+        {
+          "offsetX": -9.2,
+          "offsetY": -4.9,
+          "rotation": 140,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -27.7,
+          "offsetY": -31.4,
+          "rotation": 317,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -26.5,
+          "offsetY": -43.4,
+          "rotation": 308,
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 4,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -27.7,
+          "offsetY": -51.2,
+          "rotation": 395,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 4,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -25.6,
+          "offsetY": -53.9,
+          "rotation": 409,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -21,
+          "offsetY": -54.8,
+          "rotation": 410,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -10.5,
+          "offsetY": -58.5,
+          "rotation": 406,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 2.5,
+          "offsetY": -62.6,
+          "rotation": 366,
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 3,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 32,
+          "offsetY": -61.9,
+          "rotation": 375,
+          "scale": 1.5,
+          "blurX": 8,
+          "blurY": 4,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 53,
+          "offsetY": -53.3,
+          "rotation": 403,
+          "scale": 1.5,
+          "blurX": 9,
+          "blurY": 5,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 38.5,
+          "offsetY": 9.2,
+          "rotation": 526,
+          "scale": 1.5,
+          "blurX": 7,
+          "blurY": 4,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 24.7,
+          "offsetY": 3.1,
+          "rotation": 510,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 1,
+          "stretchX": 1,
+          "stretchY": 1
+        }
+      ],
+      "sound": "assets/sounds/weapons/sword_swing_1.mp3",
+      "anchor": "grip"
+    },
+    "attack2": {
+      "type": "perFrame",
+      "hitCheck": {
+        "frame": 9,
+        "shape": "sector",
+        "arcDeg": 125,
+        "knockback": 75,
+        "damageMul": 1.5,
+        "stunMs": 1200,
+        "rangeMul": 1.24,
+        "hitstopMs": 45,
+        "trauma": 0.12
+      },
+      "recover": {
+        "outX": -22,
+        "outY": -18,
+        "inX": 18,
+        "inY": -10,
+        "outRotationDeg": -6,
+        "inRotationDeg": -8
+      },
+      "frames": [
+        {
+          "offsetX": 23.1,
+          "offsetY": 1.2,
+          "rotation": 224,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 40.7,
+          "offsetY": -25.9,
+          "rotation": 108,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 2,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -8,
+          "offsetY": -63.5,
+          "rotation": -7,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -23.7,
+          "offsetY": -64.1,
+          "rotation": -18,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 4,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -25.3,
+          "offsetY": -58.2,
+          "rotation": -20,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -25.9,
+          "offsetY": -59.8,
+          "rotation": -20,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1.2,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -18.8,
+          "offsetY": -61,
+          "rotation": 35,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -15.7,
+          "offsetY": -63.5,
+          "rotation": 13,
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 3,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.5,
+          "offsetY": 3.7,
+          "rotation": 87,
+          "scale": 1.5,
+          "blurX": 10,
+          "blurY": 6,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.5,
+          "offsetY": 3.7,
+          "rotation": 86,
+          "scale": 1.5,
+          "blurX": 6,
+          "blurY": 4,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.5,
+          "offsetY": 3.7,
+          "rotation": 86,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 2,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.5,
+          "offsetY": 3.7,
+          "rotation": 85,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 1,
+          "stretchX": 1,
+          "stretchY": 1
+        }
+      ],
+      "sound": "assets/sounds/weapons/sword_swing_1.mp3",
+      "anchor": "grip"
+    },
+    "attack3": {
+      "type": "perFrame",
+      "hitCheck": {
+        "frame": 10,
+        "shape": "sector",
+        "arcDeg": 125,
+        "rangeMul": 1.38,
+        "damageMul": 2,
+        "knockback": 100,
+        "stunMs": 1400,
+        "hitstopMs": 70,
+        "trauma": 0.18
+      },
+      "recover": {
+        "outX": -18,
+        "outY": 14,
+        "inX": 10,
+        "inY": 12,
+        "outRotationDeg": 24,
+        "inRotationDeg": 16
+      },
+      "frames": [
+        {
+          "offsetX": 57.3,
+          "offsetY": 5.2,
+          "rotation": 88,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0,
+          "stretchX": 1.03,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 57.9,
+          "offsetY": 4.9,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 1,
+          "stretchX": 1.02,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 35.1,
+          "offsetY": 3.7,
+          "rotation": 239,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 1.5,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 13.6,
+          "offsetY": 1.8,
+          "rotation": 240,
+          "scale": 1.5,
+          "blurX": 1.5,
+          "blurY": 2,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 21.3,
+          "offsetY": -11.7,
+          "rotation": 65,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 21,
+          "offsetY": -28.3,
+          "rotation": 24,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 3,
+          "stretchX": 1.02,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 39.7,
+          "offsetY": -27.1,
+          "rotation": 64,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 4,
+          "stretchX": 1.05,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 53,
+          "offsetY": -25.9,
+          "rotation": 75,
+          "scale": 1.5,
+          "blurX": 5,
+          "blurY": 4,
+          "stretchX": 1.08,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 51.2,
+          "offsetY": -14.8,
+          "rotation": 95,
+          "scale": 1.5,
+          "blurX": 7,
+          "blurY": 4,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 72.4,
+          "offsetY": -22.8,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 10,
+          "blurY": 6,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 72.4,
+          "offsetY": -22.8,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 8,
+          "blurY": 5,
+          "stretchX": 1.1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 72.4,
+          "offsetY": -23.4,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 5,
+          "blurY": 3,
+          "stretchX": 1.08,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 48.1,
+          "offsetY": -17.3,
+          "rotation": 99,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 2,
+          "stretchX": 1.04,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 27.4,
+          "offsetY": -4.9,
+          "rotation": 108,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 2,
+          "stretchX": 1.02,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 23.1,
+          "offsetY": -3.7,
+          "rotation": 129,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 1,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 15.1,
+          "offsetY": 4.9,
+          "rotation": 164,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 1,
+          "stretchX": 1.048,
+          "stretchY": 1
+        }
+      ],
+      "sound": "assets/sounds/weapons/sword_swing_1.mp3",
+      "rootMotion": {
+        "distance": 36,
+        "startFrame": 7,
+        "endFrame": 10
+      },
+      "anchor": "grip"
+    },
+    "whirlwind": {
+      "type": "orbitGripDepth",
+      "durationMs": 800,
+      "frameCount": 23,
+      "lowerFrames": 5,
+      "riseFrames": 4,
+      "spinPhaseDeg": 25,
+      "orbitX": 19.21,
+      "centerOffsetY": -104.66,
+      "bobY": 1.51,
+      "dropY": 20,
+      "scale": 1.5,
+      "perspectiveMin": 0.3,
+      "depthSplit": 0.2,
+      "footprintFx": {
+        "enabled": true,
+        "radiusPadding": 18,
+        "minRadius": 34,
+        "rotationSpeed": 0.013,
+        "fadeInRatio": 0.08,
+        "fadeOutRatio": 0.22,
+        "shadowColor": "0x27465e",
+        "groundWaveStartProgress": 0.18,
+        "groundWaveCount": 4,
+        "groundWaveStagger": 0.1,
+        "groundWaveLifetime": 0.52,
+        "groundWaveStartScale": 0.42,
+        "groundWaveEndScale": 4.05,
+        "groundWaveExpansionPower": 1.18,
+        "groundWaveRotationMultiplier": 0.32,
+        "groundWaveSpinAcceleration": 0.85,
+        "groundWaveSpiralTailScale": 0.84,
+        "groundWaveSpiralHeadScale": 1.08,
+        "groundWaveFadeInRatio": 0.14,
+        "groundWaveFadeOutRatio": 0.18,
+        "groundWaveArcCount": 4,
+        "groundWaveArcCoverage": 0.68,
+        "groundWaveArcSteps": 12,
+        "groundWaveArcVariance": 0.14,
+        "groundWaveArcOffsetVariance": 0.08,
+        "groundWaveRadiusVariance": 0.05,
+        "groundWaveTailFadeRatio": 0.28,
+        "groundWaveHeadFadeRatio": 0.11,
+        "groundWaveWidthGrowth": 0.28,
+        "groundWaveWakeOffsetScale": 0.22,
+        "groundWaveWakeWidth": 3.8,
+        "groundWaveWakeAlpha": 0.075,
+        "groundWaveShadowWidth": 18,
+        "groundWaveShadowAlpha": 0.1,
+        "groundWaveMistWidth": 18,
+        "groundWaveMistAlpha": 0.1,
+        "groundWaveGlowWidth": 7,
+        "groundWaveGlowAlpha": 0.16,
+        "groundWaveCoreWidth": 1.6,
+        "groundWaveCoreAlpha": 0.44,
+        "bodyRingEnabled": true,
+        "bodyRingCenterOffsetY": -88,
+        "bodyRingStartProgress": 0.18,
+        "bodyRingEndProgress": 0.9,
+        "bodyRingCount": 2,
+        "bodyRingStagger": 0.3,
+        "bodyRingLifetime": 0.68,
+        "bodyRingStartRadius": 18,
+        "bodyRingEndRadius": 82,
+        "bodyRingPerspectiveY": 0.32,
+        "bodyRingSegments": 52,
+        "bodyRingMistWidth": 13,
+        "bodyRingMistAlpha": 0.09,
+        "bodyRingGlowWidth": 5.5,
+        "bodyRingGlowAlpha": 0.14,
+        "bodyRingCoreWidth": 1.15,
+        "bodyRingCoreAlpha": 0.38,
+        "color": "0x8edcff"
+      },
+      "frames": [
+        {
+          "offsetX": -20.12,
+          "offsetY": -134.02,
+          "rotation": 107.3
+        },
+        {
+          "offsetX": -20.12,
+          "offsetY": -134.93,
+          "rotation": 108.2
+        },
+        {
+          "offsetX": -18.29,
+          "offsetY": -134.63,
+          "rotation": 108.2
+        },
+        {
+          "offsetX": -16.46,
+          "offsetY": -128.88,
+          "rotation": 107.9
+        },
+        {
+          "offsetX": -17.68,
+          "offsetY": -116.78,
+          "rotation": 100.5
+        },
+        {
+          "offsetX": -31.41,
+          "offsetY": -93.48,
+          "rotation": 102.9
+        },
+        {
+          "offsetX": -31.41,
+          "offsetY": -94.69,
+          "rotation": 104.3
+        },
+        {
+          "offsetX": -31.41,
+          "offsetY": -94.69,
+          "rotation": 104.2
+        },
+        {
+          "offsetX": 8.54,
+          "offsetY": -95.3,
+          "rotation": 121.8
+        },
+        {
+          "offsetX": 13.42,
+          "offsetY": -94.09,
+          "rotation": 118.7
+        },
+        {
+          "offsetX": 30.49,
+          "offsetY": -93.48,
+          "rotation": -132.3
+        },
+        {
+          "offsetX": 29.88,
+          "offsetY": -93.48,
+          "rotation": -104.5
+        },
+        {
+          "offsetX": 29.27,
+          "offsetY": -92.27,
+          "rotation": -103.5
+        },
+        {
+          "offsetX": 27.44,
+          "offsetY": -93.18,
+          "rotation": -103.8
+        },
+        {
+          "offsetX": -37.2,
+          "offsetY": -75.63,
+          "rotation": 0
+        },
+        {
+          "offsetX": -23.78,
+          "offsetY": -78.96,
+          "rotation": -40.8
+        },
+        {
+          "offsetX": -28.05,
+          "offsetY": -96.2,
+          "rotation": 110.8
+        },
+        {
+          "offsetX": -17.68,
+          "offsetY": -96.2,
+          "rotation": 109.2
+        },
+        {
+          "offsetX": -22.56,
+          "offsetY": -95.9,
+          "rotation": 106.9
+        },
+        {
+          "offsetX": -26.83,
+          "offsetY": -118.59,
+          "rotation": 101.2
+        },
+        {
+          "offsetX": -20.12,
+          "offsetY": -134.32,
+          "rotation": 108
+        },
+        {
+          "offsetX": -20.12,
+          "offsetY": -134.32,
+          "rotation": 108.4
+        },
+        {
+          "offsetX": -20.12,
+          "offsetY": -134.32,
+          "rotation": 108.4
+        }
+      ]
+    },
+    "dash": {
+      "type": "perFrame",
+      "frames": [
+        {
+          "offsetX": -89,
+          "offsetY": -40,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 3,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -90,
+          "offsetY": -40,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 1.6,
+          "blurY": 3.6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -82,
+          "offsetY": -47,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 8.4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -81,
+          "offsetY": -47,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -75,
+          "offsetY": -51,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 3.6,
+          "blurY": 3,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -74,
+          "offsetY": -52,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 1.6,
+          "blurY": 8.4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -70,
+          "offsetY": -51,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 3.6,
+          "blurY": 1.6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -67,
+          "offsetY": -51,
+          "rotation": -100,
+          "scale": 1.5,
+          "blurX": 3.6,
+          "blurY": 1,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -67,
+          "offsetY": -57,
+          "rotation": -90,
+          "scale": 1.5,
+          "blurX": 7.6,
+          "blurY": 4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -67,
+          "offsetY": -57,
+          "rotation": -90,
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 0,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -66,
+          "offsetY": -58,
+          "rotation": -90,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 2.4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -63,
+          "offsetY": -80,
+          "rotation": -60,
+          "scale": 1.5,
+          "blurX": 11,
+          "blurY": 6.4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -55,
+          "offsetY": -88,
+          "rotation": -45,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 2,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -45,
+          "offsetY": -103,
+          "rotation": -20,
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 3,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -41,
+          "offsetY": -99,
+          "rotation": -15,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -43,
+          "offsetY": -102,
+          "rotation": -15,
+          "scale": 1.5,
+          "blurX": 9.6,
+          "blurY": 5.6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -41,
+          "offsetY": -103,
+          "rotation": -10,
+          "scale": 1.5,
+          "blurX": 8.4,
+          "blurY": 2.4,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -36,
+          "offsetY": -99,
+          "rotation": 0,
+          "scale": 1.5,
+          "blurX": 12,
+          "blurY": 11.6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -36,
+          "offsetY": -98,
+          "rotation": 0,
+          "scale": 1.5,
+          "blurX": 1.6,
+          "blurY": 1.6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 8,
+          "offsetY": -100,
+          "rotation": 20,
+          "scale": 1.5,
+          "blurX": 2.4,
+          "blurY": 5,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 65,
+          "offsetY": -67,
+          "rotation": 65,
+          "scale": 1.5,
+          "blurX": 4.4,
+          "blurY": 12,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 64,
+          "offsetY": -68,
+          "rotation": 65,
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 3.6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 81,
+          "offsetY": -15,
+          "rotation": 40,
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 90,
+          "offsetY": 0,
+          "rotation": 65,
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 1,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 79,
+          "offsetY": 38,
+          "rotation": 65,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 1.6,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 79,
+          "offsetY": 51,
+          "rotation": 85,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 1,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 79,
+          "offsetY": 63,
+          "rotation": 100,
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 0,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 79,
+          "offsetY": 68,
+          "rotation": 110,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 78,
+          "offsetY": 72,
+          "rotation": 115,
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 1,
+          "stretchX": 1.048,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 76,
+          "offsetY": 71,
+          "rotation": 115,
+          "scale": 1.5,
+          "blurX": 0.4,
+          "blurY": 1,
+          "stretchX": 1.048,
+          "stretchY": 1
+        }
+      ]
+    },
+    "dashThrust": {
+      "type": "perFrame",
+      "anchor": "grip",
+      "recover": {
+        "outX": -45,
+        "outY": -2,
+        "inX": 25,
+        "inY": -25,
+        "outRotationDeg": -2,
+        "inRotationDeg": 15
+      },
+      "frames": [
+        {
+          "offsetX": 53.4,
+          "offsetY": -32.1,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.3,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 60.5,
+          "offsetY": -20.4,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.3,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 60.8,
+          "offsetY": -20.1,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 1.5,
+          "blurY": 0.5,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 60.2,
+          "offsetY": -22,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 0.7,
+          "stretchX": 1,
+          "stretchY": 1.01
+        },
+        {
+          "offsetX": 59.9,
+          "offsetY": -23.4,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 1,
+          "stretchX": 1,
+          "stretchY": 1.02
+        },
+        {
+          "offsetX": 60.2,
+          "offsetY": -23.7,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 4,
+          "blurY": 1.4,
+          "stretchX": 1,
+          "stretchY": 1.035
+        },
+        {
+          "offsetX": 59.6,
+          "offsetY": -23.4,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 5.5,
+          "blurY": 1.9,
+          "stretchX": 1,
+          "stretchY": 1.05
+        },
+        {
+          "offsetX": 59.9,
+          "offsetY": -22.3,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 7,
+          "blurY": 2.4,
+          "stretchX": 1,
+          "stretchY": 1.06
+        },
+        {
+          "offsetX": 60.5,
+          "offsetY": -21.8,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 8,
+          "blurY": 2.8,
+          "stretchX": 1,
+          "stretchY": 1.06
+        },
+        {
+          "offsetX": 60.5,
+          "offsetY": -21.5,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 7,
+          "blurY": 2.4,
+          "stretchX": 1,
+          "stretchY": 1.05
+        },
+        {
+          "offsetX": 60.8,
+          "offsetY": -21.5,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 5,
+          "blurY": 1.8,
+          "stretchX": 1,
+          "stretchY": 1.04
+        },
+        {
+          "offsetX": 60.8,
+          "offsetY": -21.2,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 1,
+          "stretchX": 1,
+          "stretchY": 1.025
+        },
+        {
+          "offsetX": 60.8,
+          "offsetY": -21.5,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 0.7,
+          "stretchX": 1,
+          "stretchY": 1.01
+        },
+        {
+          "offsetX": 60.8,
+          "offsetY": -21.5,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.3,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 60.8,
+          "offsetY": -21.2,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.3,
+          "stretchX": 1,
+          "stretchY": 1
+        }
+      ]
+    },
+    "dashHand": {
+      "type": "gripArc",
+      "fromRotation": -90,
+      "toRotation": 90,
+      "gripX": 0.5,
+      "comment": "剑柄锚手：以 dash 中心轨迹反推握把点，origin=剑柄；角度 -90→90 为后→前 180° 扇形扫击。"
+    },
+    "dashThrustHand": {
+      "type": "perFrameGrip",
+      "trackKey": "dashThrust",
+      "gripX": 0.5,
+      "comment": "骑士长剑 dashAttackThrust 专属：H3源视频f66~f80连续15帧双手握把点与水平突刺刃向；600ms自然比例播放，其他武器不读取。"
+    },
+    "dashLerp": {
+      "type": "lerp",
+      "grip": {
+        "x": 0.5,
+        "y": 0.782
+      },
+      "from": {
+        "x": -49.6,
+        "y": -46.9,
+        "rotation": -90
+      },
+      "to": {
+        "x": 39.7,
+        "y": 54.1,
+        "rotation": 90
+      },
+      "scale": 1.5,
+      "stretchX": 1.048,
+      "stretchY": 1,
+      "blurPeak": 12
+    },
+    "walkFrames": {
+      "type": "perFrame",
+      "anchor": "grip",
+      "frames": [
+        {
+          "offsetX": -28.1,
+          "offsetY": 3.6,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -26.1,
+          "offsetY": 3.8,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -22.4,
+          "offsetY": 3.4,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -20.4,
+          "offsetY": 3.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -18.2,
+          "offsetY": 2.7,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -14.2,
+          "offsetY": 2.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -13.9,
+          "offsetY": 2.5,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -12,
+          "offsetY": 2,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -12.8,
+          "offsetY": 3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -14.7,
+          "offsetY": 2.4,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -20.7,
+          "offsetY": 2.5,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -21.7,
+          "offsetY": 2.8,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -21.3,
+          "offsetY": 2.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -24.3,
+          "offsetY": 2.6,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -26.8,
+          "offsetY": 3.4,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -28,
+          "offsetY": 3.2,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -31.3,
+          "offsetY": 3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -32.8,
+          "offsetY": 3.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -34.3,
+          "offsetY": 2.6,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -33.5,
+          "offsetY": 3.1,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -29.8,
+          "offsetY": 3.5,
+          "rotation": 110,
+          "scale": 1.5
+        }
+      ]
+    },
+    "staffWalkFrames": {
+      "type": "perFrame",
+      "frames": [
+        {
+          "offsetX": -28.1,
+          "offsetY": 3.6,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -26.1,
+          "offsetY": 3.8,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -22.4,
+          "offsetY": 3.4,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -20.4,
+          "offsetY": 3.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -18.2,
+          "offsetY": 2.7,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -14.2,
+          "offsetY": 2.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -13.9,
+          "offsetY": 2.5,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -12,
+          "offsetY": 2,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -12.8,
+          "offsetY": 3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -14.7,
+          "offsetY": 2.4,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -20.7,
+          "offsetY": 2.5,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -21.7,
+          "offsetY": 2.8,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -21.3,
+          "offsetY": 2.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -24.3,
+          "offsetY": 2.6,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -26.8,
+          "offsetY": 3.4,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -28,
+          "offsetY": 3.2,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -31.3,
+          "offsetY": 3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -32.8,
+          "offsetY": 3.3,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -34.3,
+          "offsetY": 2.6,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -33.5,
+          "offsetY": 3.1,
+          "rotation": 110,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -29.8,
+          "offsetY": 3.5,
+          "rotation": 110,
+          "scale": 1.5
+        }
+      ]
+    },
+    "staffIdle": {
+      "holdOffsetX": -84.7,
+      "holdOffsetY": 0.6,
+      "idleRotation": 15,
+      "idleScale": 1.5
+    },
+    "staffCastFrames": {
+      "type": "perFrame",
+      "frames": [
+        {
+          "offsetX": -11.4,
+          "offsetY": 0.6,
+          "rotation": 105,
+          "scale": 1.5
+        },
+        {
+          "offsetX": -4.3,
+          "offsetY": -5,
+          "rotation": 94.4,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 2.9,
+          "offsetY": -10.5,
+          "rotation": 83.8,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 10,
+          "offsetY": -16.1,
+          "rotation": 73.1,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 17.1,
+          "offsetY": -21.7,
+          "rotation": 62.5,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 24.2,
+          "offsetY": -27.2,
+          "rotation": 51.9,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 31.4,
+          "offsetY": -32.8,
+          "rotation": 41.3,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 38.5,
+          "offsetY": -38.3,
+          "rotation": 30.6,
+          "scale": 1.5
+        },
+        {
+          "offsetX": 45.6,
+          "offsetY": -43.9,
+          "rotation": 20,
+          "scale": 1.5
+        }
+      ]
+    }
+  },
+  "keyframes": {},
+  "saiga12k": {
+    "holdOffsetX": -56,
+    "holdOffsetY": -9,
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.54
+    },
+    "idle": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -56,
+      "holdOffsetY": -9,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.32
+    }
+  },
+  "pushStrike": {
+    "type": "continuousProjectedButtSwing",
+    "durationMs": 800,
+    "frameCount": 11,
+    "sourceFrameCount": 9,
+    "turnOutEnd": 0.36,
+    "turnBackStart": 0.64,
+    "perspectiveMin": 0.04,
+    "perspectiveHeightMin": 0.82,
+    "depthBlendThreshold": 0.08,
+    "frontRatio": 0.58,
+    "splitFromTip": "back",
+    "buttContactX": 0.04,
+    "weaponIdProfiles": {
+      "weapon12": {
+        "scale": 1.05
+      },
+      "weapon13": {
+        "scale": 0.78
+      }
+    },
+    "anchorFrames": [
+      {
+        "offsetX": -10.977,
+        "offsetY": -12.404,
+        "rotation": -8.7,
+        "scale": 1
+      },
+      {
+        "offsetX": -14.94,
+        "offsetY": -22.085,
+        "rotation": 2.4,
+        "scale": 0.99
+      },
+      {
+        "offsetX": 47.26,
+        "offsetY": -20.27,
+        "rotation": -5.6,
+        "scale": 0.98
+      },
+      {
+        "offsetX": 48.175,
+        "offsetY": -18.152,
+        "rotation": -4.2,
+        "scale": 1.03
+      },
+      {
+        "offsetX": 56.712,
+        "offsetY": -19.968,
+        "rotation": -3.4,
+        "scale": 1.1
+      }
+    ]
+  },
+  "beretta93r": {
+    "holdOffsetX": 6,
+    "holdOffsetY": -52,
+    "timingMul": 0.06,
+    "animType": "recoil",
+    "recoilAmount": 0.15,
+    "renderParams": {
+      "gunLXOffset": 20,
+      "gunLY": 13,
+      "offhandGunLY": -13,
+      "muzzleOffset": 22,
+      "flashOffset": 28,
+      "shellCasingOffset": -8,
+      "recoilWindup": 0.04,
+      "recoilSwing": 0.1,
+      "recoilRecover": 0.04,
+      "shakeIntensity": 3
+    },
+    "idleRotation": 0,
+    "idleScale": 0.6,
+    "idle": {
+      "holdOffsetX": 6,
+      "holdOffsetY": -52,
+      "idleRotation": 0,
+      "idleScale": 0.6
+    },
+    "walk": {
+      "holdOffsetX": 6,
+      "holdOffsetY": -52,
+      "idleRotation": 0,
+      "idleScale": 0.6
+    },
+    "rotOffset": -6,
+    "dualOffsetX": 5,
+    "muzzle": {
+      "x": 0.92,
+      "y": 0.28,
+      "forward": 11,
+      "up": 1,
+      "offhandOffsetY": 2
+    },
+    "bobWeaponScale": 2
+  },
+  "stg44": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.12,
+    "animType": "recoil",
+    "recoilAmount": 0.14,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.29,
+      "y": 0.55
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.5
+    }
+  },
+  "qbz95": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.09,
+    "animType": "recoil",
+    "recoilAmount": 0.1,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.42,
+      "y": 0.58
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.5
+    },
+    "spriteOffsetY": 0,
+    "aimAdjustY": 5
+  },
+  "frontier_rifle": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.08,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.39,
+      "y": 0.62
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
+  "vengeance_rifle": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.3,
+    "animType": "recoil",
+    "recoilAmount": 0.16,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.37,
+      "y": 0.63
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.5
+    }
+  },
+  "astral_tide_rifle": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.09,
+    "animType": "recoil",
+    "recoilAmount": 0.1,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.37,
+      "y": 0.64
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
+  "zero_point_rifle": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.08,
+    "animType": "recoil",
+    "recoilAmount": 0.07,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.025,
+      "recoilSwing": 0.06,
+      "recoilRecover": 0.025,
+      "shakeIntensity": 3
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.37,
+      "y": 0.64
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
+  "corona_cadence_rifle": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.075,
+    "animType": "recoil",
+    "recoilAmount": 0.08,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.025,
+      "recoilSwing": 0.06,
+      "recoilRecover": 0.025,
+      "shakeIntensity": 3.5
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.37,
+      "y": 0.64
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  },
+  "terminal_echo_rifle": {
+    "aimSpriteOffsetX": -5,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.08,
+    "animType": "recoil",
+    "recoilAmount": 0.075,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.025,
+      "recoilSwing": 0.06,
+      "recoilRecover": 0.025,
+      "shakeIntensity": 3.2
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "grip": {
+      "x": 0.37,
+      "y": 0.64
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "aimAdjustY": 5,
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.52
+    }
+  }
+}

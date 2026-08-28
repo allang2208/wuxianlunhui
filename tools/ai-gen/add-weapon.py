@@ -7,7 +7,7 @@ game-dev/tools/ai-gen/WORKFLOW.md「生图标准工作流」。
 子命令：
   scaffold        --spec <weapon-spec.json>
                   自动完成：equipment.json(双份)/craft-config.json(双份)/
-                  weapon-anim-config.json 数据写入 + 深度剪影模板 +
+                  weapon-anim-config.json 双份数据写入 + 深度剪影模板 +
                   出图/视频提示词 + 开火/换弹/装备音效合成 + 完整性校验。
                   注：JS 源码（EDM/商店/弹药/动画/改造槽位/纹理注册等）由本脚本
                   输出精确锚点补丁清单，配合 apply_patch 落盘。
@@ -15,7 +15,7 @@ game-dev/tools/ai-gen/WORKFLOW.md「生图标准工作流」。
                   用 comfyui-gen.py 批量出候选图（默认落 tools/ai-gen/_weapon_candidates/）。
   process-image   --spec <spec> --raw <png>
                   白底抠图 + 按 spec.layout 步枪布局归一（2048²/内容宽0.915/
-                  中心(0.5,0.543)）→ 写入 assets/weapons/<key>-equip.png 并复制图标。
+                  中心(0.5,0.543)）→ 写入原始 2048 资产、图标和 512px Phaser 运行时副本。
   gen-video       --spec <spec> [--host 192.168.3.142] [--duration 2]
                   用 minimax-h3-gen.py（MiniMax H3，远程 5080）生成展示视频。
   verify          --spec <spec>
@@ -47,7 +47,8 @@ JSON_WRITES = [
     ("public/data/equipment.json", "data/equipment.json"),
     ("data/craft-config.json", "data/craft-config.json"),
     ("public/data/craft-config.json", "data/craft-config.json"),
-    ("public/data/weapon-anim-config.json", None),
+    ("data/weapon-anim-config.json", "data/weapon-anim-config.json"),
+    ("public/data/weapon-anim-config.json", "data/weapon-anim-config.json"),
 ]
 
 
@@ -199,19 +200,19 @@ def scaffold_data(spec):
         cfg = insert_after(cfg, tpl, spec["weaponId"], cfg[tpl])
         write_json(rel, cfg)
 
-    # weapon-anim-config.json（仅 public 单份；克隆同族基准武器）
-    rel = "public/data/weapon-anim-config.json"
-    anim = read_json(rel)
+    # weapon-anim-config.json（data 为打包真源，public 同步镜像；克隆同族基准武器）
+    anim = read_json("data/weapon-anim-config.json")
     tpl_type = spec["animTemplateWeaponType"]
     if tpl_type not in anim:
-        log(f"WARN: anim template '{tpl_type}' missing in {rel}; skip anim entry")
+        log(f"WARN: anim template '{tpl_type}' missing in data/weapon-anim-config.json; skip anim entry")
     else:
         anim_key = spec.get("animConfigKey") or spec["weaponType"]
         if anim_key == tpl_type:
             log(f"anim key '{anim_key}' == template; no clone needed")
         else:
             anim = insert_after(anim, tpl_type, anim_key, anim[tpl_type])
-        write_json(rel, anim)
+        for rel, _ in JSON_WRITES[4:6]:
+            write_json(rel, anim)
 
 
 # ---------------------------------------------------------------------------
@@ -788,8 +789,14 @@ def process_image(spec, raw, force, cutout_tool="auto", orient=True, auto_level=
         if os.path.exists(p) and not force:
             shutil.copy2(p, p + ".bak")
         out.save(p)
+    runtime = repo_path("assets", "weapons", "runtime", "weapons", f"{key}-equip.png")
+    os.makedirs(os.path.dirname(runtime), exist_ok=True)
+    runtime_copy = out.copy()
+    runtime_copy.thumbnail((512, 512), Image.Resampling.LANCZOS)
+    runtime_copy.save(runtime)
     log(f"equip texture -> {equip}")
     log(f"icon texture  -> {icon}")
+    log(f"runtime texture -> {runtime}")
     # 校验
     m = np.asarray(out)[:, :, 3]
     bx = _alpha_bbox(m)
@@ -835,6 +842,7 @@ def verify(spec):
     pairs = [
         ("data/equipment.json", "public/data/equipment.json"),
         ("data/craft-config.json", "public/data/craft-config.json"),
+        ("data/weapon-anim-config.json", "public/data/weapon-anim-config.json"),
     ]
     ok = True
     for a, b in pairs:
@@ -843,13 +851,19 @@ def verify(spec):
         same = raw_a == raw_b
         ok &= same
         log(f"double-copy {a} vs {b}: {'OK' if same else 'DIFF'}")
-    anim = read_json("public/data/weapon-anim-config.json")
-    ok &= spec["weaponType"] in anim
-    log(f"weapon-anim-config has '{spec['weaponType']}': {'OK' if spec['weaponType'] in anim else 'MISSING'}")
+    anim = read_json("data/weapon-anim-config.json")
+    anim_key = spec.get("animConfigKey") or spec["weaponType"]
+    ok &= anim_key in anim
+    log(f"weapon-anim-config has '{anim_key}': {'OK' if anim_key in anim else 'MISSING'}")
     for rel in [spec["assets"]["equipImage"], spec["assets"]["iconImage"]]:
         exists = os.path.exists(repo_path(rel))
         ok &= exists
         log(f"asset {rel}: {'OK' if exists else 'MISSING'}")
+    equip_rel = spec["assets"]["equipImage"].replace("\\", "/")
+    runtime_rel = "assets/weapons/runtime/" + equip_rel.removeprefix("assets/")
+    runtime_exists = os.path.exists(repo_path(runtime_rel))
+    ok &= runtime_exists
+    log(f"runtime asset {runtime_rel}: {'OK' if runtime_exists else 'MISSING'}")
     for rel in spec["sounds"].values():
         exists = os.path.exists(repo_path(rel))
         ok &= exists

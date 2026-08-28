@@ -1,5 +1,6 @@
 // 经济建筑、研究院、铁匠铺与出兵建筑共用的升级项目卡片。
 import { CrossPlaneResourceSystem } from '../../world/cross-plane-resource-system.js';
+import { renderLightweightProjectImage } from '../dom-project-image.js';
 
 export function formatBuildingUpgradeRequirement(cost, maxed = false) {
     if (maxed) return '已达到最高等级';
@@ -12,7 +13,7 @@ export function formatBuildingUpgradeRequirement(cost, maxed = false) {
 export function renderBuildingUpgradeIcon(icon = '', iconImage = '', className = 'building-upgrade-inline-icon') {
     const imagePath = String(iconImage || '').trim();
     if (imagePath) {
-        return `<img class="${className}" src="${imagePath}" alt="" aria-hidden="true" draggable="false">`;
+        return renderLightweightProjectImage(imagePath, { className });
     }
     return `<span class="${className} is-fallback" aria-hidden="true">${icon || ''}</span>`;
 }

@@ -115,6 +115,30 @@ export const Game = {
     _portalCooldown: 0, // 传送门冷却时间戳
     _questReturnPending: false,
     _portalArrivalLock: false, // 传送落地后须先离开门区，防止恢复坐标仍在门内时立即回跳
+    _loopErrorStates: new Map(),
+    _reportLoopError(error) {
+        const stackLine = String(error?.stack || '').split('\n')[1]?.trim() || '';
+        const signature = `${error?.name || 'Error'}:${error?.message || String(error)}:${stackLine}`;
+        const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        const previous = this._loopErrorStates.get(signature);
+        if (!previous || previous.signature !== signature) {
+            this._loopErrorStates.set(signature, { signature, lastLoggedAt: now, suppressed: 0 });
+            if (this._loopErrorStates.size > 32) {
+                const oldest = [...this._loopErrorStates.entries()]
+                    .sort((a, b) => a[1].lastLoggedAt - b[1].lastLoggedAt)[0]?.[0];
+                if (oldest) this._loopErrorStates.delete(oldest);
+            }
+            console.error('Game loop error:', error);
+            return;
+        }
+        previous.suppressed += 1;
+        // 持续异常仍定期留痕，但禁止每帧序列化相同堆栈拖垮主线程与 DevTools。
+        if (now - previous.lastLoggedAt >= 2000) {
+            console.error(`Game loop error（期间抑制 ${previous.suppressed} 次重复）:`, error);
+            previous.lastLoggedAt = now;
+            previous.suppressed = 0;
+        }
+    },
     init() {
         if (!SoundManager || !Input || !Renderer || !SystemUI || !QuickBar || !GameUIManager) {
             console.error('[Game.init] 核心模块未加载，无法初始化');
@@ -1239,7 +1263,7 @@ export const Game = {
             }
             Input.update();
         } catch (e) {
-            console.error('Game loop error:', e);
+            this._reportLoopError(e);
         } finally {
             if (performanceFrameStarted) PerformanceMonitor.endFrame();
         }

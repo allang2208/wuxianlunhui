@@ -9,6 +9,18 @@ app.commandLine.appendSwitch('force-device-scale-factor', '1');
 let mainWindow = null;
 let isFullScreen = true;
 
+function isDevelopmentMode() {
+    if (process.env.NODE_ENV === 'production') return false;
+    return process.env.NODE_ENV === 'development' || !app.isPackaged;
+}
+
+function loadMainPage(targetWindow) {
+    if (isDevelopmentMode()) {
+        return targetWindow.loadURL('http://localhost:5173');
+    }
+    return targetWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+}
+
 function createWindow() {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width, height } = primaryDisplay.workAreaSize;
@@ -43,18 +55,10 @@ function createWindow() {
         show: false
     });
 
-    // 加载应用
-    const isDev = process.env.NODE_ENV === 'development';
-    
-    if (isDev) {
-        // 开发模式：加载 Vite 开发服务器
-        mainWindow.loadURL('http://localhost:5173');
-        // 自动打开 DevTools
-        // mainWindow.webContents.openDevTools();
-    } else {
-        // 生产模式：加载构建后的静态文件
-        mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-    }
+    // 开发模式加载 Vite；打包生产环境加载 dist。两条入口与失败恢复共用同一判定。
+    loadMainPage(mainWindow);
+    // 自动打开 DevTools
+    // mainWindow.webContents.openDevTools();
 
     // 页面加载完成后显示窗口（避免白屏闪烁）
     mainWindow.once('ready-to-show', () => {
@@ -79,12 +83,17 @@ function createWindow() {
             if (mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
         }).catch(err => console.error('[main] crash dialog failed:', err));
     });
-    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDesc) => {
+    let loadRecoveryAttempted = false;
+    mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDesc, _validatedURL, isMainFrame) => {
         console.error('[main] Failed to load page:', errorCode, errorDesc);
-        if (mainWindow && !mainWindow.isDestroyed() && errorCode !== -3) {
-            // -3 = ERR_ABORTED（主动导航中断，忽略）
-            mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
-        }
+        // -3 = ERR_ABORTED（主动导航中断）；子 frame 失败不应重载整页。
+        if (!mainWindow || mainWindow.isDestroyed() || errorCode === -3 || isMainFrame === false) return;
+        // 只按当前开发/生产模式恢复一次，禁止无条件跳 dist 后形成 ERR_FILE_NOT_FOUND 循环。
+        if (loadRecoveryAttempted) return;
+        loadRecoveryAttempted = true;
+        setTimeout(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) loadMainPage(mainWindow);
+        }, 500);
     });
 
     // 记录并转发全屏状态变化（渲染进程设置界面"全屏切换"按钮文案同步）
@@ -98,6 +107,7 @@ function createWindow() {
     });
     // 启动就绪后同步一次当前全屏状态（初始 fullscreen:true 不保证触发 enter-full-screen）
     mainWindow.webContents.on('did-finish-load', () => {
+        loadRecoveryAttempted = false;
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('fullscreen-changed', mainWindow.isFullScreen());
         }
@@ -109,11 +119,12 @@ function createWindow() {
 // IPC 通信：处理前端发来的全屏切换和退出请求
 
 function getWeaponConfigPaths() {
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = isDevelopmentMode();
     if (isDev) {
         return {
             read: path.join(__dirname, '../public/data/weapon-anim-config.json'),
-            write: path.join(__dirname, '../public/data/weapon-anim-config.json')
+            write: path.join(__dirname, '../public/data/weapon-anim-config.json'),
+            mirror: path.join(__dirname, '../data/weapon-anim-config.json')
         };
     }
     const userDataPath = path.join(app.getPath('userData'), 'weapon-anim-config.json');
@@ -137,8 +148,13 @@ ipcMain.handle('load-weapon-config', async () => {
 ipcMain.handle('save-weapon-config', async (_event, config) => {
     const paths = getWeaponConfigPaths();
     try {
+        const serialized = JSON.stringify(config, null, 2);
         await fs.promises.mkdir(path.dirname(paths.write), { recursive: true });
-        await fs.promises.writeFile(paths.write, JSON.stringify(config, null, 2), 'utf8');
+        await fs.promises.writeFile(paths.write, serialized, 'utf8');
+        if (paths.mirror) {
+            await fs.promises.mkdir(path.dirname(paths.mirror), { recursive: true });
+            await fs.promises.writeFile(paths.mirror, serialized, 'utf8');
+        }
         return { success: true, path: paths.write };
     } catch (err) {
         console.error('[main] Failed to save weapon config:', err);
@@ -148,7 +164,7 @@ ipcMain.handle('save-weapon-config', async (_event, config) => {
 
 // 逐帧武器数据导出：开发面板💾保存时覆盖写固定文件（供助手读取合并进正式配置）
 function getWeaponFramesPath() {
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = isDevelopmentMode();
     return isDev
         ? path.join(__dirname, '../weapon-frames/latest.js')
         : path.join(app.getPath('userData'), 'weapon-frames', 'latest.js');
@@ -156,7 +172,7 @@ function getWeaponFramesPath() {
 
 function formatWeaponFramesFile(payload) {
     return '// 逐帧武器数据导出（开发面板💾保存时自动覆盖此文件，仅作记录/回滚参考）\n'
-        + '// 保存时已自动合并进 public/data/weapon-anim-config.json，无需手动合并\n'
+        + '// 保存时已自动合并并同步 data/ 与 public/data/ 的 weapon-anim-config.json\n'
         + 'export default ' + JSON.stringify(payload, null, 2) + '\n';
 }
 
@@ -176,8 +192,13 @@ async function mergeWeaponFramesIntoConfig(payload) {
     cfg[wt][blockKey] = { ...(cfg[wt][blockKey] || {}), type: 'perFrame', frames: payload.frames };
     const backupPath = path.join(path.dirname(getWeaponFramesPath()), 'weapon-anim-config.backup.json');
     await fs.promises.copyFile(readPath, backupPath);
+    const serialized = JSON.stringify(cfg, null, 2);
     await fs.promises.mkdir(path.dirname(cfgPath), { recursive: true });
-    await fs.promises.writeFile(cfgPath, JSON.stringify(cfg, null, 2), 'utf8');
+    await fs.promises.writeFile(cfgPath, serialized, 'utf8');
+    if (paths.mirror) {
+        await fs.promises.mkdir(path.dirname(paths.mirror), { recursive: true });
+        await fs.promises.writeFile(paths.mirror, serialized, 'utf8');
+    }
     return true;
 }
 
@@ -196,7 +217,7 @@ ipcMain.handle('save-weapon-frames', async (_event, payload) => {
 
 // 通用 JSON 读写（限 data/ 目录，供墙壁预制库等编辑器数据持久化）
 function getJsonPaths(rel) {
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = isDevelopmentMode();
     if (isDev) {
         return { read: path.join(__dirname, '../public', rel), write: path.join(__dirname, '../public', rel) };
     }

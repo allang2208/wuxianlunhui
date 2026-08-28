@@ -15,6 +15,11 @@
 - `getWeaponTextureLoadList()` 加 `{ key: 'weapon_<weaponType>', path }`（BootScene 自动加载）。
 - 仅当纹理键不能由 `weapon_<weaponType>` 推导时（如按 weaponId 特供贴图），在 `getWeaponTextureKey` 的 `specialMap` 加 weaponId → 键映射。
 - **WEAPON_MAP 与加载列表同源**；开发面板的姿态预览自动生效。
+- **Phaser 不得直接上传 2048 原图**：加载清单中的 `path` 继续登记正式源路径，`getWeaponTextureLoadList()`
+  会统一映射到 `assets/weapons/runtime/<原 assets 相对路径>`。新增、替换、改名或删除手持贴图后运行
+  `powershell -ExecutionPolicy Bypass -File tools/build-runtime-weapon-textures.ps1 -Prune`，生成最长边512px的
+  等比例运行时副本并清理只存在于派生目录的孤儿；原图、背包图和掉落图不被覆盖。禁止为了省一步把
+  2048源图重新改回Boot路径，也不能只生成副本却漏登记加载清单/`specialMap`。
 
 #### 3. 数据配置（EquipDataManager 唯一全量数据源 + equipment.json 模板）
 - `src/ui/equip-data-manager.js` 加武器条目（参考 G18_PISTOL_ITEM / AKM_ITEM 同族复制）：
@@ -31,12 +36,19 @@
 - **枪口点**：BootScene 自动烘焙贴图最右端内容点，无需手配；个别烘焙偏差用 `muzzle.manual` 覆盖（Super90 教训：别拿右缘估计当枪口）。
 
 #### 5. 动画与贴合调参（左下开发面板）
-- `public/data/weapon-anim-config.json`（仅此单份）：以同族基准武器（手枪=沙鹰 / 双手枪=AKM）为模板加 `weaponType` 条目（top/idle/walk 状态块 holdOffset、grip、idleScale/idleRotation）。
-- 面板拖武器贴合手部 → 💾保存（直写 public/data + 备份）；静态姿态=每状态 holdOffset，攻击=perFrame 逐帧（新近战动作走玩家动画工作流）。
+- `data/weapon-anim-config.json` 是打包/离线基线，`public/data/weapon-anim-config.json` 是开发覆盖镜像；
+  两份必须同步。以同族基准武器（手枪=沙鹰 / 双手枪=AKM）为模板加 `animConfigKey || weaponType`
+  条目（top/idle/walk 状态块 holdOffset、grip、idleScale/idleRotation）。
+- 面板拖武器贴合手部 → 💾保存；开发中间件会合并并双写 `data/` 与 `public/data/`，写前备份。
+  静态姿态=每状态 holdOffset，攻击=perFrame 逐帧（新近战动作走玩家动画工作流）。
 - 双手枪械注意冲刺开火=强制 walking（内置）；`isTwoHanded: true` 别漏。
 
 #### 6. 改造/附魔/图鉴/验证
 - **改造**：`data/craft-config.json` 加 `weaponN` 槽位条目（配件槽 x/y/lineTarget，参考沙鹰）；`ItemDatabase.getByWeaponId` 懒索引反查，**新武器免登记**。不配 craft 条目 = 该武器不可改造（UI 明示，合法设计）。
+- **改造图标**：正式 `icon/iconImage` 继续写原始资产路径，DOM 只读取128px运行时镜像。新增、改名或删除
+  配件后同步双份 `craft-config.json`，再运行
+  `powershell -ExecutionPolicy Bypass -File tools/build-runtime-project-icons.ps1 -Prune`；不得把配件图注册成
+  Phaser纹理，也不得在面板代码绕开 `dom-project-image.js` 直接创建高分辨率 `<img>`。
 - **改造新效果键要过三处**（2026-07-30 Beretta 93R 落地）：①`craft-effect-registry.js` 注册（test-craft-sync 三角校验会拦未注册键）；②消费端代码（散布在 update.js 主副手+tooltip、fireMode 在 update.js 触发器+gun-ammo getFireMode）；③craft-config 写 effects。已有键覆盖绝大多数需求（shotSpreadDelta/recoilRecoveryDelta/rangeDelta/knockbackDelta/magazineDelta/reloadTimeDelta/moveSpeedPercent/damagePercent/piercingBonus/attackIntervalDelta/spreadStartDelta/redDotScope）；**模式切换类新键**：`burstMode`（N 连发，60ms 间隔排队，末发恢复标准冷却，**主副手各自独立队列**）、`fireModeOverride`（覆盖射击模式，全自动板机）、`spreadParamsOverride`（散布模板整体覆盖）。
 - **附魔/强化**：通用链路，零登记（强化只影响攻击公式派生与盾防）。
 - **图鉴**：ItemDatabase 自动收录，公式展示委托 buildFormulaDisplay，无需改代码。
@@ -48,7 +60,7 @@
 
 - **入口**：`python tools/ai-gen/add-weapon.py --spec tools/ai-gen/weapon-specs/<weapon>.json <子命令>`（相对 game-dev/ 执行）
 - 子命令：
-  - `scaffold`：自动写 equipment.json / craft-config.json（data+public 双份同步）+ weapon-anim-config.json（克隆同族基准武器动画块）；
+  - `scaffold`：自动写 equipment.json / craft-config.json / weapon-anim-config.json（三类均 data+public 双份同步；动画克隆同族基准块）；
     生成武器深度剪影模板（`_depth_templates/<key>_sil.png`，徽章灰 130 + 武器白 255 黑底）；生成出图/视频提示词；
     合成开火/换弹/装备三音效；输出 JS 补丁锚点清单 + 自动 verify。
   - `gen-image --host <comfyui> --model <model> --seeds a,b,c [--ref-image <真实参考图>]`：批量出候选
@@ -63,7 +75,8 @@
     白底抠图首选 ComfyUI-RMBG 插件（`BiRefNetRMBG` 节点，模型 `BiRefNet-general` 权重放 `ComfyUI/models/RMBG/BiRefNet/`，
     可从 NAS `Y:\模型库\ComfyUI\models\BiRefNet\` 复制；插件输出 IMAGE+MASK，本地合成 RGBA）→
     按 spec.layout 归一（步枪 2048² / 内容宽 0.915 / 中心 (0.500,0.543)）→
-    写 `assets/weapons/<key>-equip.png` + `assets/icons/<key>-equip.png` → 打印 bbox/aspect/连通域/朝向。
+    写原始 `assets/weapons/<key>-equip.png`、`assets/icons/<key>-equip.png` 与最长边512px的
+    `assets/weapons/runtime/weapons/<key>-equip.png` → 打印 bbox/aspect/连通域/朝向。
   - `gen-video --host 192.168.3.142`：MiniMax H3 展示视频（`assets/videos/<key>_showcase.mp4`；远程 5080 离线会失败，机器上线后重跑）。
   - `verify`：双份 JSON 字节一致 + 资产/音效存在性 + 改动 JS node --check。
 - **M416 实证**：`weapon-specs/m416.json`（weapon21，优质 uncommon，属性/公式略低于 AKM，30 发全自动，步枪精通生效）；
@@ -108,7 +121,7 @@
    attack/ammoConfig（弹容/换弹/三种音效路径）、fireMode、spreadParams、craftTemplateWeaponId、
    animTemplateWeaponType（同族基准）、layout（2048²/0.915/centerY 0.543）、imagePrompts.icon/video。
 2. **scaffold**：`python tools/ai-gen/add-weapon.py --spec ... scaffold` → 自动写
-   equipment.json/craft-config.json（data+public 双份）、weapon-anim-config.json、深度剪影模板、
+   equipment.json/craft-config.json/weapon-anim-config.json（均为data+public双份）、深度剪影模板、
    出图/视频提示词、三音效（开火/换弹/装备），并输出 JS 补丁锚点清单。
 3. **搜真实参考图（国内直连）**：360 图搜 `image.so.com/j?q=<枪名>+侧视&pn=1&ps=40` 或
    必应中国 `cn.bing.com/images/async`，优先"白底+完整侧视+枪口朝右"实拍图；
@@ -118,13 +131,14 @@
    定稿候选归档同目录。
 5. **处理入库**：`process-image --raw <候选> --cutout-tool rmbg --no-orient`（参考图朝右时
    **必须 --no-orient**，避免 orient_right 误判翻转；用像素仲裁方向：右端细=枪管）。BiRefNet 抠图 →
-   校平 → 2048² 归一 → 写 assets/weapons + assets/icons。
+   校平 → 2048² 归一 → 写 assets/weapons + assets/icons + 512px Phaser运行时副本。
 6. **JS 补丁**：按 scaffold 锚点清单用 apply_patch 落盘（EDM/shop/player-defaults/weapon-texture-map/
    weapon-attack-config/gun-ammo/craft-default-slots/weapon-fx-config/attack-formula/weapon-anim/update/
    subsystems/GameScene/weapon-transform/enchant-config/quick-bar/equip-manager/attack/game/dev-tool/
    defense-system）。**音效触发已通用化**（getEquipSound 非空即播），新枪只需在
    `GUN_EQUIP_SOUND` 或 spec.equipSound 配置路径，无需改 shotgun 分支。
-7. **验证**：`verify`（JSON 双份一致 + 资产/音效存在 + JS node --check）+ `npm run lint` +
+7. **派生与验证**：JS加载清单落盘后运行 `tools/build-runtime-weapon-textures.ps1 -Prune`，再执行
+   `verify`（三类JSON双份一致 + 原始/运行时资产与音效存在 + JS node --check）+ `npm run lint` +
    CDP 实机（装备/切枪/开火/改造面板）+ 像素统计（bbox/aspect/连通域/朝右）。
 8. **沉淀**：SKILL.md 武器段追加本条经验（参考图来源/剪影锁形/方向坑/触发链路坑）。
 

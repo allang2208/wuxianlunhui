@@ -57,6 +57,8 @@ import {
 } from '../physics/iso-footprint.js';
 import { structureDepthAtY } from './structure-depth.js';
 import { TechnologySystem } from './technology-system.js';
+import { getUnlockedRecruitmentTier } from './recruitment-tier.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { getWorldSnapshots, isWorldSnapshotCurrent } from './world122-snapshot.js';
 import { getAbilityLevel, getAbilityValue } from './ability-store.js';
@@ -326,7 +328,34 @@ function getBuildItemTexture(item) {
     if (isWallStairBuildItem(item)) {
         return TechnologySystem.getWallStairTextureKey(item.tex);
     }
+    if (item?.kind === 'producer') {
+        const config = PRODUCER_BUILDINGS[item.id];
+        const tier = getUnlockedRecruitmentTier(
+            config,
+            (id) => TechnologySystem.isUnlocked('recruitmentTier', id)
+        );
+        const visual = getLatestRecruitmentBuildingVisual(config, tier);
+        return visual?.tex || config?.tex || item.tex;
+    }
     return item?.tex;
+}
+
+function getLatestRecruitmentBuildingVisual(config, activeTier) {
+    const activeLevel = Math.max(1, Number(activeTier?.level) || 1);
+    return (config?.recruitmentTiers || [])
+        .filter((tier) => Math.max(1, Number(tier?.level) || 1) <= activeLevel && tier?.visual)
+        .sort((left, right) => Number(right.level) - Number(left.level))[0]?.visual || null;
+}
+
+function getBuildItemProducerVisual(item) {
+    const config = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+    if (!config) return null;
+    const tier = getUnlockedRecruitmentTier(
+        config,
+        (id) => TechnologySystem.isUnlocked('recruitmentTier', id)
+    );
+    const visual = getLatestRecruitmentBuildingVisual(config, tier);
+    return visual ? { ...config, ...visual } : config;
 }
 
 function renderBuildItemThumb(item, cost, lockedReason = '') {
@@ -1050,7 +1079,8 @@ export const BuildingSystem = {
             this._guide = null;
         }
         if (scene && !this._ghost) {
-            this._ghost = scene.add.sprite(0, 0, itemTexture);
+            const initialTexture = scene.textures.exists(itemTexture) ? itemTexture : '__MISSING';
+            this._ghost = scene.add.sprite(0, 0, initialTexture);
         }
         this._syncBuildItemCards();
         // 产兵建筑对齐线（2026-08-17）：吸附时画水平/垂直参考线
@@ -1060,7 +1090,7 @@ export const BuildingSystem = {
         if (this._ghost) {
             this._ghost.stop?.();
             this._ghost.setCrop?.();
-            this._ghost.setTexture(itemTexture);
+            this._ghost.setTexture(scene?.textures?.exists?.(itemTexture) ? itemTexture : '__MISSING');
             this._ghost.setOrigin(0.5, 0.5);
             this._ghost.setPosition(0, 0);
             this._ghost.setRotation(0);
@@ -1075,7 +1105,7 @@ export const BuildingSystem = {
             } else if (item.kind === 'hamster_hut') {
                 this._ghost.setDisplaySize(HAMSTER_CONFIG.hut.displayW, HAMSTER_CONFIG.hut.displayH);
             } else if (item.kind === 'producer') {
-                const pc = PRODUCER_BUILDINGS[item.id];
+                const pc = getBuildItemProducerVisual(item);
                 this._ghost.setDisplaySize(pc.displayW, pc.displayH);
             } else if (item.kind === 'road') {
                 this._ghost.setDisplaySize(BUILDING_ROAD_DISPLAY_WIDTH, BUILDING_ROAD_DISPLAY_HEIGHT);
@@ -1125,6 +1155,20 @@ export const BuildingSystem = {
             warning.hidden = !item.buildWarning;
         }
         this._setPlacementPanelHidden(true);
+        if (item.kind === 'producer') {
+            RuntimeAssetManager.setBuildingPreview(item.id, itemTexture).then(() => {
+                if (this._placing?.item !== item || !this._ghost?.active
+                    || !scene?.textures?.exists?.(itemTexture)) return;
+                this._ghost.setTexture(itemTexture);
+                const visual = getBuildItemProducerVisual(item);
+                if (visual) this._ghost.setDisplaySize(visual.displayW, visual.displayH);
+                delete this._placing.groundFit;
+                this._ensureGroundContactGhost(scene);
+                this._ensureForegroundGhost(scene);
+                this._syncGroundContactGhost();
+                this._syncForegroundGhost();
+            });
+        }
     },
 
     _coverAspect(item) {
@@ -1327,6 +1371,7 @@ export const BuildingSystem = {
     _cancelPlacement({ destroyReusableVisuals = false, revealPanel = true } = {}) {
         this._cancelQueuedMouseMove();
         this._resetFogPlacementVisibilityCache();
+        RuntimeAssetManager.clearBuildingPreview();
         this._snapped = null;
         this._wallDrag = null;
         this._wallRow = [];
@@ -4378,6 +4423,7 @@ export const BuildingSystem = {
                 producer._facingLeft = mirror;
                 Game.entities.set(id, producer);
                 ProducerBuildingSystem.buildings.push(producer);
+                RuntimeAssetManager.commitBuildingEntities(Game.entities.values());
                 placedEntity = producer;
             } else if (item.kind === 'gate') {
                 const gate = this._markBuiltEntity(new BuildableGate(x, y, {

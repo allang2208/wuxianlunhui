@@ -1,6 +1,8 @@
 
 import enemyConfigData from '../../data/enemy-config.json';
 import aiConfigData from '../../data/ai-config.json';
+import equipmentConfigData from '../../data/equipment.json';
+import skillConfigData from '../../data/skills.json';
 import { GAME_CONFIG as gameConfigData } from '../config/game-config.js';
 import { COMBAT_FORMULAS as combatFormulasData } from '../config/combat-formulas.js';
 import { COMBAT_CONFIG as combatConfigData } from '../config/combat-config.js';
@@ -31,9 +33,16 @@ const DataLoader = {
             this.loadJSON('/data/equipment.json'),
             this.loadJSON('/data/skills.json')
         ]);
+        if (!equipment) {
+            console.warn('[DataLoader] 运行时装备配置不可用，使用打包内配置');
+        }
+        if (!skills) {
+            console.warn('[DataLoader] 运行时技能配置不可用，使用打包内配置');
+        }
         return {
-            equipment: equipment ? equipment.equipment : null,
-            skills: skills ? skills.skills : null,
+            equipment: this._cloneObject(
+                equipment?.equipment || equipmentConfigData?.equipment || {}),
+            skills: this._cloneObject(skills?.skills || skillConfigData?.skills || {}),
             enemies: this._convertEnemyConfig(enemyConfigData),
             gameConfig: this._cloneObject(gameConfigData),
             combatFormulas: this._cloneObject(combatFormulasData),

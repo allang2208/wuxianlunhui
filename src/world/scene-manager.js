@@ -46,6 +46,7 @@ import { FogOfWarSystem } from './fog-of-war-system.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
 import { QuestRegistry } from '../quest/quest-registry.js';
 import { QuestStore } from '../quest/quest-store.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -123,6 +124,33 @@ export const SceneManager = {
                 return image;
             });
         }
+    },
+
+    async prepareRuntimeVisualAssets({ startProgress = 70, endProgress = 98 } = {}) {
+        const generationBefore = RuntimeAssetManager.getLoadGeneration();
+        const span = Math.max(0, endProgress - startProgress);
+        const enemyEnd = startProgress + span * 0.55;
+        const friendlyEnd = startProgress + span * 0.82;
+        await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
+            onProgress: (ratio) => this.setProgress(startProgress + ratio * (enemyEnd - startProgress)),
+        });
+        const productionIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
+        await RuntimeAssetManager.ensureFriendlyUnitIds([
+            ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits),
+            ...productionIds,
+        ], {
+            onProgress: (ratio) => this.setProgress(enemyEnd + ratio * (friendlyEnd - enemyEnd)),
+        });
+        await RuntimeAssetManager.ensureBuildingEntities(Game.entities?.values?.() || [], {
+            onProgress: (ratio) => this.setProgress(friendlyEnd + ratio * (endProgress - friendlyEnd)),
+        });
+        await RuntimeAssetManager.waitForIdle();
+        RuntimeAssetManager.commitFriendlyEntities(Game.friendlyUnits, productionIds);
+        RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
+        RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
+        const cacheHit = RuntimeAssetManager.getLoadGeneration() === generationBefore;
+        if (cacheHit) this._loadingMinimumDurationMs = Math.min(this._loadingMinimumDurationMs, 350);
+        return { cacheHit };
     },
 
     /** 当前画面是否正处于 scene7；仅用于地牢渲染分支，不再代表全局时间冻结。 */
@@ -370,12 +398,14 @@ export const SceneManager = {
             }
         }
         let teardownStarted = false;
+        let visualLoadGenerationBefore = RuntimeAssetManager.getLoadGeneration();
         try {
             this.showLoadingScreen({ sceneId, dungeonType: scene.dungeonType || null });
+            visualLoadGenerationBefore = RuntimeAssetManager.getLoadGeneration();
             this._enterMode = mode || 'explore'; // 'quest' | 'explore'
 
             this.setProgress(10);
-            await this.delay(100);
+            await this.delay(16);
             this.setProgress(30);
 
             // 保存当前场景状态
@@ -384,7 +414,6 @@ export const SceneManager = {
             }
 
             this.setProgress(50);
-            await this.delay(100);
 
             // 不隶属当地建筑的跨位面增援由兵线系统独立收纳，避免被场景 teardown 丢失。
             if (!departingQuestInstance && !questInstanceEntry) {
@@ -477,7 +506,7 @@ export const SceneManager = {
             }
 
             this.setProgress(70);
-            await this.delay(100);
+            await this.delay(0);
 
             // 加载新场景
             if (sceneId === 'scene7') {
@@ -496,9 +525,20 @@ export const SceneManager = {
                 this._loadMainScene(player);
             }
 
-            await this.waitForMinimumLoadingDuration();
-            this.setProgress(100);
-            await this.delay(200);
+            // 场景逻辑先物化实体，再按真实兵种集合加载精灵表。
+            await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
+                onProgress: (ratio) => this.setProgress(70 + ratio * 10),
+            });
+            const activeProductionAssetIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
+            await RuntimeAssetManager.ensureFriendlyUnitIds([
+                ...RuntimeAssetManager.getIdsFromEntities(Game.friendlyUnits),
+                ...activeProductionAssetIds,
+            ], {
+                onProgress: (ratio) => this.setProgress(80 + ratio * 8),
+            });
+            await RuntimeAssetManager.ensureBuildingEntities(Game.entities?.values?.() || [], {
+                onProgress: (ratio) => this.setProgress(88 + ratio * 2),
+            });
 
             this.currentScene = sceneId;
             this._activeQuestInstance = questInstanceEntry
@@ -510,6 +550,26 @@ export const SceneManager = {
             }
             if (!questInstanceEntry) TroopLineSystem.onSceneEntered(sceneId);
             if (portalTravel) TroopLineSystem.completePortalTravel(portalTravel, sceneId, player);
+            await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
+                onProgress: (ratio) => this.setProgress(90 + ratio * 3),
+            });
+            await RuntimeAssetManager.ensureFriendlyEntities(Game.friendlyUnits, {
+                onProgress: (ratio) => this.setProgress(93 + ratio * 3),
+            });
+            await RuntimeAssetManager.ensureBuildingEntities(Game.entities?.values?.() || [], {
+                onProgress: (ratio) => this.setProgress(96 + ratio * 2),
+            });
+            const committedProductionAssetIds = ProducerBuildingSystem.getActiveVisualUnitIds?.() || [];
+            RuntimeAssetManager.commitFriendlyEntities(Game.friendlyUnits, committedProductionAssetIds);
+            RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
+            RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
+            const visualCacheHit = RuntimeAssetManager.getLoadGeneration() === visualLoadGenerationBefore;
+            if (visualCacheHit) {
+                this._loadingMinimumDurationMs = Math.min(this._loadingMinimumDurationMs, 350);
+            }
+            await this.waitForMinimumLoadingDuration();
+            this.setProgress(100);
+            await this.delay(visualCacheHit ? 60 : 160);
             // 实体传送门落地后，必须先走出目标场景的门区才能再次触发传送。
             // 主神空间会恢复离城坐标，该坐标常与原入口重合，单靠秒数冷却会自动弹回原世界。
             if (physicalPortalTravel) Game._portalArrivalLock = true;

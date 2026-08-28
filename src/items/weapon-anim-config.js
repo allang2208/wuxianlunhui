@@ -1,9 +1,38 @@
 
 import { Easing } from '../config/math-utils.js';
+import bundledWeaponAnimConfig from '../../data/weapon-anim-config.json';
 
-// 武器动画配置：数据从 public/data/weapon-anim-config.json 加载
+// 武器动画配置：打包内 data/ 是离线兜底，开发/运行时 public/data/ 成功后递归覆盖。
 // stab 配置包含函数，保留在 JS 模块中，加载后合并到 WeaponAnimConfig
-let WeaponAnimConfig = {};
+function cloneConfig(value) {
+    return JSON.parse(JSON.stringify(value));
+}
+
+function isPlainObject(value) {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function mergeConfigTree(target, source) {
+    if (!isPlainObject(source)) return target;
+    for (const [key, value] of Object.entries(source)) {
+        const targetValue = target[key];
+        if ((isPlainObject(targetValue) && !isPlainObject(value))
+            || (Array.isArray(targetValue) && !Array.isArray(value))) {
+            console.warn(`[WeaponAnimConfig] 忽略类型不匹配的运行时字段: ${key}`);
+            continue;
+        }
+        if (isPlainObject(value) && isPlainObject(target[key])) {
+            mergeConfigTree(target[key], value);
+        } else if (value !== null && value !== undefined) {
+            target[key] = isPlainObject(value) || Array.isArray(value)
+                ? cloneConfig(value)
+                : value;
+        }
+    }
+    return target;
+}
+
+let WeaponAnimConfig = cloneConfig(bundledWeaponAnimConfig);
 
 const STAB_CONFIG = {
     // 刺击动画通用配置（可被所有剑类武器复用）
@@ -31,10 +60,11 @@ async function loadWeaponAnimConfig() {
             data = await response.json();
         }
         if (data && typeof data === 'object') {
-            Object.assign(WeaponAnimConfig, data);
+            // 深层合并保留打包内必需字段；运行时文件缺一个 hitBox 子键时不能把整棵 sword 覆盖空。
+            mergeConfigTree(WeaponAnimConfig, data);
         }
     } catch (err) {
-        console.error('[WeaponAnimConfig] Failed to load config:', err);
+        console.warn('[WeaponAnimConfig] 运行时配置加载失败，使用打包内配置:', err);
     }
     // stab 配置无法 JSON 化（含函数），始终由 JS 提供
     WeaponAnimConfig.stab = STAB_CONFIG;

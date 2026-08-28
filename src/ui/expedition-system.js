@@ -429,7 +429,8 @@ export const ExpeditionSystem = {
             // 地牢 active=true 后重算全局30分钟献祭效果，并登记地牢特效图标。
             if (player?.calculateCombatStats) player.calculateCombatStats();
             if (player) syncTributeBuffs(player);
-            SceneManager.setProgress(90);
+            await SceneManager.prepareRuntimeVisualAssets?.({ startProgress: 55, endProgress: 92 });
+            SceneManager.setProgress(92);
             // BGM 场景切换：depart 绕开 switchScene（switchScene 尾部的 playBgmForScene
             // 不会执行）——手动补发；data/audio-config.json bgm.scene7 = 僵尸地牢共用音轨
             if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {

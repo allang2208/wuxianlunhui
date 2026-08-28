@@ -48,6 +48,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
+import { releaseLightweightProjectImages } from '../ui/dom-project-image.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { TechnologyGate } from '../ui/technology-gate.js';
 import {
@@ -61,6 +62,7 @@ import {
     showBuildingUpgradeTooltip,
 } from '../ui/panels/building-upgrade-tooltip.js';
 import { SceneManager } from './scene-manager.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { WallSystem } from './wall-system.js';
@@ -349,6 +351,21 @@ const PRODUCER_UNIT_CLASS = {
     jungle_priest: JunglePriest,
     desert_priest: DesertPriest,
 };
+
+let assetResidencyRefreshQueued = false;
+
+function scheduleFriendlyAssetResidencyRefresh() {
+    if (assetResidencyRefreshQueued) return;
+    assetResidencyRefreshQueued = true;
+    queueMicrotask(() => {
+        assetResidencyRefreshQueued = false;
+        RuntimeAssetManager.setProductionFriendlyIds(
+            ProducerBuildingSystem.getActiveVisualUnitIds()
+        );
+        RuntimeAssetManager.commitFriendlyEntities(Game.friendlyUnits);
+        RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
+    });
+}
 
 const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     warrior: 'data/hamster-warrior-config.json',
@@ -759,9 +776,20 @@ export class ProducerBuilding extends DamageableEntity {
         );
         const changed = nextLevel !== this.level || nextUnitType !== this.unitType;
         this.level = nextLevel;
+        const previousTexture = this.spriteCfg?.idleKey;
         const visualChanged = this._applyRecruitmentTierVisual(visualTier);
+        if (visualChanged) {
+            RuntimeAssetManager.transitionBuildingVisual(
+                previousTexture,
+                this.spriteCfg?.idleKey,
+                this.cfgKey
+            );
+        }
         if (nextUnitType && nextUnitType !== this.unitType) {
             this.unitType = nextUnitType;
+            if (normalizeRecruitMode(this._recruitMode) !== RECRUIT_MODE.PAUSED) {
+                RuntimeAssetManager.requestFriendlyUnit(PRODUCER_UNIT_CFG[nextUnitType]?.id);
+            }
             if (resetTimer) {
                 this._spawnTimer = this.recruitIntervalMs();
                 this._spawnRetryTimer = 0;
@@ -770,6 +798,7 @@ export class ProducerBuilding extends DamageableEntity {
                 this._spawnFoodBlocked = false;
             }
         }
+        if (changed) scheduleFriendlyAssetResidencyRefresh();
         return changed || visualChanged;
     }
 
@@ -814,10 +843,14 @@ export class ProducerBuilding extends DamageableEntity {
         if (!TechnologySystem.isUnlocked('unit', type)) return false;
         if (type === this.unitType) return false;
         this.unitType = type;
+        if (normalizeRecruitMode(this._recruitMode) !== RECRUIT_MODE.PAUSED) {
+            RuntimeAssetManager.requestFriendlyUnit(PRODUCER_UNIT_CFG[type]?.id);
+        }
         this._spawnTimer = this.recruitIntervalMs();
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
         this._spawnPopulationBlocked = false;
+        scheduleFriendlyAssetResidencyRefresh();
         return true;
     }
 
@@ -837,6 +870,9 @@ export class ProducerBuilding extends DamageableEntity {
             }
         }
         this._recruitMode = next;
+        if (next !== RECRUIT_MODE.PAUSED) {
+            RuntimeAssetManager.requestFriendlyUnit(PRODUCER_UNIT_CFG[this.unitType]?.id);
+        }
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
         this._spawnFoodBlocked = false;
@@ -846,6 +882,7 @@ export class ProducerBuilding extends DamageableEntity {
         } else if (next === RECRUIT_MODE.CONTINUOUS) {
             this._spawnTimer = Math.min(this._spawnTimer, this.recruitIntervalMs());
         }
+        scheduleFriendlyAssetResidencyRefresh();
         return { ok: true, mode: next };
     }
 
@@ -876,12 +913,40 @@ export class ProducerBuilding extends DamageableEntity {
             }
         }
         queue.recruitMode = next;
+        if (next !== RECRUIT_MODE.PAUSED) {
+            RuntimeAssetManager.requestFriendlyUnit(PRODUCER_UNIT_CFG[kind]?.id);
+        }
         queue.retryTimer = 0;
         queue.blocked = false;
         queue.foodBlocked = false;
         queue.populationBlocked = false;
         if (next === RECRUIT_MODE.SINGLE || !(queue.timer > 0)) queue.timer = this.recruitIntervalMs(kind);
+        scheduleFriendlyAssetResidencyRefresh();
         return { ok: true, mode: next, kind };
+    }
+
+    /** 只返回当前真正会继续生产的已研发兵种；暂停、未研发和已被编制替换的旧槽不预取。 */
+    getActiveVisualUnitIds() {
+        if (!this._isTroopProducer || !this.active) return [];
+        const restoreIds = new Set((this._restoreRosterQueue || [])
+            .map((kind) => PRODUCER_UNIT_CFG[kind]?.id)
+            .filter(Boolean));
+        if (this._parallelProduction) {
+            for (const id of Object.entries(this._parallelQueues || {})
+                .filter(([kind, queue]) => TechnologySystem.isUnlocked('unit', kind)
+                    && normalizeRecruitMode(queue?.recruitMode) !== RECRUIT_MODE.PAUSED)
+                .map(([kind]) => PRODUCER_UNIT_CFG[kind]?.id)
+                .filter(Boolean)) restoreIds.add(id);
+            return [...restoreIds];
+        }
+        const restoringTopUp = this._restoreTopUp > 0;
+        if ((normalizeRecruitMode(this._recruitMode) === RECRUIT_MODE.PAUSED && !restoringTopUp)
+            || (!TechnologySystem.isUnlocked('unit', this.unitType) && !restoringTopUp)) {
+            return [...restoreIds];
+        }
+        const config = PRODUCER_UNIT_CFG[this.unitType];
+        if (config?.id) restoreIds.add(config.id);
+        return [...restoreIds];
     }
 
     /** 固定出口槽位：墙体、建筑 footprint、动态单位与出口预约全部通过才返回。 */
@@ -1325,6 +1390,7 @@ export class ProducerBuilding extends DamageableEntity {
                     this._spawnPopulationBlocked = false;
                     if (!restoring && this._recruitMode === RECRUIT_MODE.SINGLE) {
                         this._recruitMode = RECRUIT_MODE.PAUSED;
+                        scheduleFriendlyAssetResidencyRefresh();
                     }
                 } else if (this._spawnPopulationBlocked) {
                     this._spawnTimer = 0;
@@ -1398,6 +1464,7 @@ export class ProducerBuilding extends DamageableEntity {
                     if (index >= 0) this._restoreRosterQueue.splice(index, 1);
                 } else if (normalizeRecruitMode(queue.recruitMode) === RECRUIT_MODE.SINGLE) {
                     queue.recruitMode = RECRUIT_MODE.PAUSED;
+                    scheduleFriendlyAssetResidencyRefresh();
                 }
                 EffectManager?.add?.(new FloatingTextEffect(this.x, this.y - 56, `${this.unitName(kind)} 报到！`, '#8ad0ff'));
             } else {
@@ -1627,6 +1694,7 @@ class ProducerBuildingPanel extends BasePanel {
     onClose() {
         this._stopTicking();
         this._hideAbilityTip();
+        releaseLightweightProjectImages(this.el);
         this.el?.classList.remove('is-troop-producer');
         this.el?.classList.remove('is-economy-building');
         BankEconomySystem.hideRange();
@@ -5927,6 +5995,7 @@ export const ProducerBuildingSystem = {
         WarehouseEconomySystem.reset();
         CandleSanctuarySystem.reset();
         PopulationEconomySystem.reset();
+        scheduleFriendlyAssetResidencyRefresh();
         if (this._panel) {
             if (this._panel.isOpen) this._panel.close();
             this._panel.building = null;
@@ -5940,6 +6009,14 @@ export const ProducerBuildingSystem = {
         for (const b of this.buildings) {
             if (b && b.active) b.update(dt);
         }
+    },
+
+    getActiveVisualUnitIds() {
+        const ids = new Set();
+        for (const building of this.buildings || []) {
+            for (const id of building?.getActiveVisualUnitIds?.() || []) ids.add(id);
+        }
+        return [...ids];
     },
 
     /** 点击产兵建筑 → 打开面板（再次点击关闭） */

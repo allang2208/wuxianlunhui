@@ -16,6 +16,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
+import { releaseLightweightProjectImages } from '../ui/dom-project-image.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { TechnologyGate } from '../ui/technology-gate.js';
 import {
@@ -605,6 +606,7 @@ class HamsterHutPanel extends BasePanel {
             this._progressTimer = null;
         }
         hideBuildingUpgradeTooltip();
+        releaseLightweightProjectImages(this.el);
         this.hut = null;
         this.player = null;
     }

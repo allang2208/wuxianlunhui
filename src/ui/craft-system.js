@@ -13,11 +13,15 @@ import { aggregateCraftEffects, applyModEffectsToPlayer } from './craft/craft-ef
 import { resolveWeaponImageSrc } from './craft/weapon-image.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { RARITY_LABELS } from '../config/rarity.js';
+import {
+    releaseLightweightProjectImages,
+    renderLightweightProjectImage,
+} from './dom-project-image.js';
 
 /** 改造选项图标：emoji 直接显示；图片路径渲染为 <img>（武器改造预案图片替换 2026-08-05） */
 export function renderCraftIcon(icon, fallback = '🔧') {
     if (typeof icon === 'string' && /^(assets\/|data:|https?:)/.test(icon)) {
-        return `<img src="${icon}" alt="" draggable="false">`;
+        return renderLightweightProjectImage(icon);
     }
     return icon || fallback;
 }
@@ -140,7 +144,16 @@ const CraftSystem = {
             console.error('[CraftSystem.close] error:', e);
         }
         const panel = getElement('craftPanel');
-        if (panel) panel.classList.remove('active');
+        if (panel) {
+            panel.classList.remove('active');
+            releaseLightweightProjectImages(panel);
+        }
+        const modGrid = getElement('craftModGrid');
+        if (modGrid) modGrid.replaceChildren();
+        const popupBody = getElement('craftModPopupBody');
+        if (popupBody) popupBody.replaceChildren();
+        const weaponDisplay = getElement('craftWeaponDisplay');
+        if (weaponDisplay) weaponDisplay.replaceChildren();
         TimerManager.setTimeout(() => {
             if (!UIState.isOpen('craft') && !UIState.isOpen('shop') && !UIState.isOpen('enhance') && !UIState.isOpen('enchant')) {
                 SystemUI.close();
@@ -857,6 +870,11 @@ const CraftSystem = {
     _closeModPopup() {
         const popup = getElement('craftModPopup');
         if (popup) popup.style.display = 'none';
+        const body = getElement('craftModPopupBody');
+        if (body) {
+            releaseLightweightProjectImages(body);
+            body.replaceChildren();
+        }
         if (this._popupCloseHandler) {
             document.removeEventListener('mousedown', this._popupCloseHandler);
             this._popupCloseHandler = null;

@@ -8,7 +8,7 @@ import { EnergyNodeSystem } from '../../world/energy-node-system.js';
 // ============================================================
 // GameScene - 主游戏场景：替代原有的 renderer.js + game.js 渲染部分
 // ============================================================
-import { Scene, BlendModes } from 'phaser';
+import { Scene, BlendModes, TintModes } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
 import { FlatViewSystem } from '../../world/flat-view-system.js';
 import { WallGate } from '../../world/wall-gate.js';
@@ -58,6 +58,7 @@ import SpatialPartitionSystem from '../../systems/spatial-partition-system.js';
 import { FogOfWarSystem } from '../../world/fog-of-war-system.js';
 import performanceConfig from '../../../data/performance-config.json';
 import { PerformanceMonitor } from '../../systems/performance-monitor.js';
+import { RuntimeAssetManager } from '../assets/runtime-asset-manager.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -179,6 +180,62 @@ export class GameScene extends Scene {
 
     // ---- 生命周期 ----
 
+    _installWebGLContextRecovery() {
+        const canvas = this.game?.canvas;
+        const renderer = this.game?.renderer;
+        this._webglContextLost = !!renderer?.contextLost;
+        // Phaser 4 的逐对象 Filter 会为每个对象建立离屏渲染通道。Boot 又常驻大量
+        // 4K/8K 精灵表，位面入侵时建筑沉陷/石化叠加会把显存峰值推到 context lost。
+        // 从首帧禁用这些纯装饰 Filter，建筑下沉走 crop，石化/悬停走普通 tint。
+        this._webglFiltersDisabled = true;
+        if (renderer) renderer._optionalFiltersDisabledAfterContextLoss = true;
+        if (this._webglFiltersDisabled) this._weaponBlurDisabled = true;
+        if (!canvas?.addEventListener) return;
+
+        this._onWebGLContextLost = () => {
+            this._webglContextLost = true;
+            RuntimeAssetManager.markContextLost();
+            this._webglFiltersDisabled = true;
+            if (renderer) renderer._optionalFiltersDisabledAfterContextLoss = true;
+            this._weaponBlurDisabled = true;
+            this._weaponBlurFilter = null;
+            // 丢失期间不能销毁旧 GL 资源；只停止 Filter 渲染，待 Phaser 完成恢复后统一清理。
+            for (const child of this.children?.list || []) {
+                if (child?.filterCamera) child.renderFilters = false;
+            }
+            for (const fx of this._petrifyFx?.values?.() || []) {
+                for (const record of fx?.sprites?.values?.() || []) record.filter = null;
+            }
+        };
+        this._onWebGLContextRestored = () => {
+            this._webglContextLost = false;
+            this._clearOptionalWebGLFiltersAfterRestore();
+            RuntimeAssetManager.recoverAfterContextRestore();
+        };
+        canvas.addEventListener('webglcontextlost', this._onWebGLContextLost, false);
+        canvas.addEventListener('webglcontextrestored', this._onWebGLContextRestored, false);
+        this.events.once('shutdown', () => {
+            canvas.removeEventListener('webglcontextlost', this._onWebGLContextLost, false);
+            canvas.removeEventListener('webglcontextrestored', this._onWebGLContextRestored, false);
+            this._onWebGLContextLost = null;
+            this._onWebGLContextRestored = null;
+        });
+    }
+
+    _clearOptionalWebGLFiltersAfterRestore() {
+        for (const child of this.children?.list || []) {
+            if (!child?.filterCamera) continue;
+            // 不在新 context 中销毁旧 context 创建的 framebuffer/texture；这正是
+            // INVALID_OPERATION "object does not belong to this context" 的来源。
+            // 仅切断渲染引用，交给页面/场景完整重建统一回收。
+            child.renderFilters = false;
+            child.__hoverGlowFx = null;
+        }
+        for (const fx of this._petrifyFx?.values?.() || []) {
+            for (const record of fx?.sprites?.values?.() || []) record.filter = null;
+        }
+    }
+
     create() {
         // 场景重建时清运行时 alpha 缓存；同路径替换建筑原图后还必须重新生成 ground-fit manifest。
         clearStructureFootOffsetCache();
@@ -186,6 +243,10 @@ export class GameScene extends Scene {
         // 标记场景就绪，通知外部系统（必须提前，因为后续代码依赖 window.__phaserScene）
         window.__phaserSceneReady = true;
         window.__phaserScene = this;
+        RuntimeAssetManager.attachScene(this);
+        RuntimeAssetManager.ensureBuildingEntities(Game.entities?.values?.() || [], { required: false })
+            .then(() => RuntimeAssetManager.commitBuildingEntities(
+                Game.entities?.values?.() || []));
         this._civilianVisualSettingsUnsubscribe?.();
         this._civilianVisualSettingsUnsubscribe = CivilianVisualSettings.subscribe((disabled) => {
             applyCivilianVisualSetting(this, disabled);
@@ -202,6 +263,7 @@ export class GameScene extends Scene {
         this._playerAttackDuration = 667;
         this._weaponBlurFilter = null; // 武器真实模糊（Phaser 4 Blur 滤镜控制器，逐帧更新 strength）
         this._weaponBlurDisabled = false; // 运动模糊禁用标记（超大贴图 / WebGL context lost 后置位，防 Framebuffer 崩溃）
+        this._installWebGLContextRecovery();
         this._companionSprites = {}; // 侍从跟随渲染：memberId → Phaser Sprite
         this._selectionRings = {};   // 组队栏选中光圈：memberId → Phaser Ellipse（金色脚下光圈）
         this._companionGhosts = {};  // 动作切换残影（淡出 110ms）：memberId → Phaser Sprite
@@ -209,13 +271,6 @@ export class GameScene extends Scene {
         this._desertPriestStaffGlowKeys = new Set(); // 沙漠祭司逐帧法杖顶端金光
         this._desertPriestStaffSparks = new Set(); // 短命星芒；地图模式切换时立即清理
         this._moveMarkerGfx = null;  // 右键移动目标标记（绿色下指箭头）
-        // WebGL context lost 后禁用模糊：Phaser 会自动恢复渲染器，但失效帧缓冲可能反复触发 Framebuffer Unsupported
-        if (this.game && this.game.canvas && typeof window !== 'undefined') {
-            this.game.canvas.addEventListener('webglcontextlost', () => {
-                this._weaponBlurDisabled = true;
-                this._weaponBlurFilter = null;
-            });
-        }
         // 冰墙 fx 池与共享发射器：场景 stop/start 后旧对象已销毁，必须重置防悬挂引用
         this._iceWallFx = [];
         this._iceWallVariantPool = null;
@@ -986,6 +1041,11 @@ export class GameScene extends Scene {
         const fogGrid = FogOfWarSystem.getGrid(sceneId);
         const fogEffectStats = FogVisualAdapter.getDebugModel();
         const countAlive = (emitter) => Number(emitter?.getAliveParticleCount?.()) || 0;
+        // 低频采样点顺便收敛已死亡/已淘汰兵种的资源引用；只看逻辑实体与生产 pin，
+        // 不改变单位模拟，也不在逐帧热路径额外创建扫描任务。
+        RuntimeAssetManager.commitFriendlyEntities(Game.friendlyUnits);
+        RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
+        RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
 
         PerformanceMonitor.setCounter('scene.id', sceneId || 'unknown');
         PerformanceMonitor.setCounter('scene.name', sceneConfig?.name || sceneId || 'unknown');
@@ -1000,6 +1060,22 @@ export class GameScene extends Scene {
         PerformanceMonitor.setCounter('runtime.deviceMemoryGb', runtime.deviceMemoryGb || 'unavailable');
         PerformanceMonitor.setCounter('runtime.devicePixelRatio', globalThis.devicePixelRatio || 1);
         PerformanceMonitor.setCounter('runtime.userAgent', runtime.userAgent);
+        const assetStats = RuntimeAssetManager.getStats();
+        PerformanceMonitor.setCounter('assets.residentFriendlyUnits', assetStats.residentFriendlyUnits);
+        PerformanceMonitor.setCounter('assets.currentFriendlyUnits', assetStats.currentFriendlyUnits);
+        PerformanceMonitor.setCounter('assets.residentEnemyTextures', assetStats.residentEnemyTextures);
+        PerformanceMonitor.setCounter('assets.deferredEnemyTextures', assetStats.deferredEnemyTextures);
+        PerformanceMonitor.setCounter('assets.currentEnemyFamilies', assetStats.currentEnemyFamilies);
+        PerformanceMonitor.setCounter('assets.residentBuildingTextures', assetStats.residentBuildingTextures);
+        PerformanceMonitor.setCounter('assets.currentBuildingTextures', assetStats.currentBuildingTextures);
+        PerformanceMonitor.setCounter('assets.previewBuildingTextures', assetStats.previewBuildingTextures);
+        PerformanceMonitor.setCounter('assets.deferredBuildingTextures', assetStats.deferredBuildingTextures);
+        PerformanceMonitor.setCounter('assets.estimatedGpuMiB', assetStats.estimatedGpuMiB);
+        PerformanceMonitor.setCounter('assets.safeMode', assetStats.safeMode ? 1 : 0);
+        PerformanceMonitor.setCounter('assets.contextLost', assetStats.contextLost ? 1 : 0);
+        PerformanceMonitor.setCounter('assets.maxParallelDownloads', assetStats.maxParallelDownloads);
+        PerformanceMonitor.setCounter('assets.networkBlocked', assetStats.networkBlocked ? 1 : 0);
+        PerformanceMonitor.setCounter('assets.networkBackoffMs', assetStats.networkBackoffMs);
         PerformanceMonitor.setCounter('render.canvasWidth', Number(canvas?.width) || 0);
         PerformanceMonitor.setCounter('render.canvasHeight', Number(canvas?.height) || 0);
         PerformanceMonitor.setCounter('render.scaleWidth', Number(this.scale?.width) || 0);
@@ -1660,6 +1736,35 @@ export class GameScene extends Scene {
         }
     }
 
+    _reconcileNeutralVisualLayer(data, property, cfg, entity, body) {
+        let sprite = data[property];
+        const key = cfg?.textureKey;
+        if (!key) {
+            if (sprite?.active) sprite.destroy();
+            data[property] = null;
+            return null;
+        }
+        if (!this.textures.exists(key)) return sprite?.active ? sprite : null;
+        if (sprite?.active && sprite.texture?.key !== key) {
+            sprite.destroy();
+            sprite = null;
+        }
+        if (!sprite?.active) {
+            sprite = this.add.sprite(entity.x, entity.y, key);
+            sprite.setOrigin(0.5, 0.5);
+            data[property] = sprite;
+        }
+        sprite.setDisplaySize(
+            Number(cfg.displayW) || body.displayWidth,
+            Number(cfg.displayH) || body.displayHeight
+        );
+        if (property === 'overlaySprite' && this.anims.exists(key)
+            && (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== key)) {
+            sprite.play(key);
+        }
+        return sprite;
+    }
+
     /**
      * 将现有逻辑层的位置同步到 Phaser 物理体
      * 保持逻辑层权威，物理体仅用于检测
@@ -1864,7 +1969,13 @@ export class GameScene extends Scene {
             const animId = member.animId || member.id;
             const walkKey = `companion_${animId}_walk`;
             const runKey = `companion_${animId}_run`;
-            if (!anims.walk || !this.textures.exists(walkKey)) continue; // 无动作素材不渲染
+            if (!anims.walk) continue;
+            if (!this.textures.exists(walkKey)) {
+                // 运行时兜底：生产/兵线在加载层之外物化新兵种时，只请求该兵种资源。
+                // requestFriendlyUnit 内部会合并重复请求并对失败做短 TTL 负缓存。
+                RuntimeAssetManager.requestFriendlyUnit(animId);
+                continue;
+            }
             activeIds.add(member.id);
             let sprite = this._companionSprites[member.id];
             if (!this._isEntityInRenderViewport(member)) {
@@ -7909,7 +8020,7 @@ export class GameScene extends Scene {
 
     /**
      * 石化表现合同：不切换待机或专用石像图，而是停在受击当刻的动画帧。
-     * ColorMatrix 只在实际石化的稀少单位上开启，状态结束立即拆除。
+     * WebGL Filter 全局禁用时使用普通填充 tint，避免为每个单位创建离屏缓冲。
      */
     _syncPetrifyEffects(_game) {
         if (!_game) return;
@@ -7936,14 +8047,19 @@ export class GameScene extends Scene {
                     const wasPlaying = !!sprite.anims?.isPlaying;
                     const wasPaused = !!sprite.anims?.isPaused;
                     let filter = null;
-                    try {
-                        sprite.enableFilters?.();
-                        filter = sprite.filters?.internal?.addColorMatrix?.() || null;
-                        filter?.colorMatrix?.grayscale?.();
-                    } catch (_error) {
-                        filter = null; // Canvas/不支持滤镜时仍保留停帧与控制效果。
-                    }
-                    record = { sprite, filter, wasPlaying, wasPaused };
+                    const tintState = {
+                        isTinted: !!sprite.isTinted,
+                        tintMode: sprite.tintMode,
+                        topLeft: sprite.tintTopLeft,
+                        topRight: sprite.tintTopRight,
+                        bottomLeft: sprite.tintBottomLeft,
+                        bottomRight: sprite.tintBottomRight,
+                    };
+                    const tintApplied = !filter
+                        && typeof sprite.setTint === 'function'
+                        && typeof sprite.setTintMode === 'function';
+                    if (tintApplied) sprite.setTint(0x8f969c).setTintMode(TintModes.FILL);
+                    record = { sprite, filter, tintApplied, tintState, wasPlaying, wasPaused };
                     fx.sprites.set(sprite, record);
                 }
                 sprite.anims?.pause?.();
@@ -7981,6 +8097,20 @@ export class GameScene extends Scene {
             if (record.filter) sprite.filters?.internal?.remove?.(record.filter);
         } catch (_error) {
             // Sprite 销毁时 Phaser 会自行回收其滤镜链。
+        }
+        if (record.tintApplied) {
+            const state = record.tintState;
+            if (state?.isTinted) {
+                sprite.setTint?.(
+                    state.topLeft,
+                    state.topRight,
+                    state.bottomLeft,
+                    state.bottomRight
+                );
+                if (Number.isFinite(state.tintMode)) sprite.setTintMode?.(state.tintMode);
+            } else {
+                sprite.clearTint?.();
+            }
         }
         if (record.wasPlaying && !record.wasPaused && sprite.anims?.currentAnim) {
             sprite.anims.resume?.();
@@ -11497,6 +11627,29 @@ export class GameScene extends Scene {
             if (this._companionSprites && this._companionSprites[e.id]) continue;
             active.add(e);
 
+            const desiredSprCfg = e.spriteCfg?.idleKey ? e.spriteCfg : null;
+            const desiredLayerKeys = [
+                desiredSprCfg?.overlayAnimation?.textureKey,
+                desiredSprCfg?.groundContact?.textureKey,
+                desiredSprCfg?.foregroundOverlay?.textureKey,
+            ].filter(Boolean);
+            const missingDesiredVisual = desiredSprCfg && (
+                !this.textures.exists(desiredSprCfg.idleKey)
+                || desiredLayerKeys.some((key) => !this.textures.exists(key))
+            );
+            const managedBuildingVisual = RuntimeAssetManager.isBuildingVisualKey(
+                desiredSprCfg?.idleKey
+            ) || desiredLayerKeys.some((key) => RuntimeAssetManager.isBuildingVisualKey(key));
+            if (missingDesiredVisual && managedBuildingVisual) {
+                const now = Number(this.time?.now) || 0;
+                if (e._buildingAssetRequestKey !== desiredSprCfg.idleKey
+                    || now >= (Number(e._buildingAssetRetryAt) || 0)) {
+                    e._buildingAssetRequestKey = desiredSprCfg.idleKey;
+                    e._buildingAssetRetryAt = now + 5000;
+                    RuntimeAssetManager.ensureBuildingEntities([e], { required: false });
+                }
+            }
+
             let data = this._neutralSprites.get(e);
             if (!this._isEntityInRenderViewport(e)) {
                 if (data) this._setViewportEntityHidden(e, true);
@@ -11606,7 +11759,29 @@ export class GameScene extends Scene {
                 };
                 this._neutralSprites.set(e, data);
             }
-            const { sprite, label, sprCfg, groundContactSprite, overlaySprite, foregroundSprite } = data;
+            if (desiredSprCfg && this.textures.exists(desiredSprCfg.idleKey)) {
+                data.sprCfg = desiredSprCfg;
+                if (data.sprite.texture?.key === 'neutral_circle'
+                    || data.sprite.texture?.key === '__MISSING') {
+                    const staticFrame = Number.isInteger(desiredSprCfg.frame)
+                        ? desiredSprCfg.frame : undefined;
+                    data.sprite.setTexture(desiredSprCfg.idleKey, staticFrame);
+                    data.sprite.clearTint();
+                    delete e._structureVisualFitKey;
+                    delete e._structureVisualFit;
+                }
+            }
+            if (data.sprCfg) {
+                this._reconcileNeutralVisualLayer(
+                    data, 'overlaySprite', data.sprCfg.overlayAnimation, e, data.sprite);
+                this._reconcileNeutralVisualLayer(
+                    data, 'groundContactSprite', data.sprCfg.groundContact, e, data.sprite);
+                this._reconcileNeutralVisualLayer(
+                    data, 'foregroundSprite', data.sprCfg.foregroundOverlay, e, data.sprite);
+            }
+            const {
+                sprite, label, sprCfg, groundContactSprite, overlaySprite, foregroundSprite,
+            } = data;
             if (this._syncWallStaircaseEntity(e, data)) continue;
               const labelFontSize = (SceneManager && SceneManager.currentScene === 'scene8') ? '14px' : '11px';
               if (label.style && label.style.fontSize !== labelFontSize) {
@@ -11948,8 +12123,8 @@ export class GameScene extends Scene {
                 sp.weapon.setVisible(false);
             }
             this._syncStructureOcclusionVisualBounds(e, [sp.base, sp.arm, sp.weapon]);
-            // 悬停金色轮廓（2026-08-15）：DefenseSystem.updateHover 每帧更新 _hoverTower，
-            // 基座/机械臂/武器三层贴图同加同去金色外发光（敌人攻击预警同款 filters.internal.addGlow）
+            // 悬停金色高亮：DefenseSystem.updateHover 每帧更新 _hoverTower，
+            // 基座/机械臂/武器三层贴图统一使用普通 tint，不创建离屏 Filter。
             this._setTowerHoverGlow(
                 sp,
                 DefenseSystem._hoverTower === e || _game?.RTSCommand?._hoverBuilding === e
@@ -11965,8 +12140,7 @@ export class GameScene extends Scene {
         }
     }
 
-    /** 防御塔悬停金色轮廓：三层贴图（基座/臂/武器）同加同去金色外发光（2026-08-15）。
-     *  滤镜链路与敌人攻击预警同口径（filters.internal.addGlow）；Canvas 渲染降级无滤镜静默跳过。 */
+    /** 防御塔悬停金色高亮：三层贴图（基座/臂/武器）同加同去普通 tint。 */
     _setTowerHoverGlow(sp, on) {
         this._setBuildingHoverGlow(['base', 'arm', 'weapon'].map((key) => sp[key]), on);
     }
@@ -11976,20 +12150,30 @@ export class GameScene extends Scene {
         for (const sprite of new Set((visuals || []).filter(Boolean))) {
             if (!sprite || !sprite.active) continue;
             if (on) {
-                if (sprite.__hoverGlowFx) continue;
-                let filters = sprite.filters;
-                if (!filters && typeof sprite.enableFilters === 'function') {
-                    try { sprite.enableFilters(); } catch (_e) { /* 滤镜不可用降级 */ }
-                    filters = sprite.filters;
+                if (sprite.__hoverTintState) continue;
+                sprite.__hoverTintState = {
+                    isTinted: !!sprite.isTinted,
+                    tintMode: sprite.tintMode,
+                    topLeft: sprite.tintTopLeft,
+                    topRight: sprite.tintTopRight,
+                    bottomLeft: sprite.tintBottomLeft,
+                    bottomRight: sprite.tintBottomRight,
+                };
+                sprite.setTint?.(0xffe08a);
+            } else if (sprite.__hoverTintState) {
+                const state = sprite.__hoverTintState;
+                if (state.isTinted) {
+                    sprite.setTint?.(
+                        state.topLeft,
+                        state.topRight,
+                        state.bottomLeft,
+                        state.bottomRight
+                    );
+                    if (Number.isFinite(state.tintMode)) sprite.setTintMode?.(state.tintMode);
+                } else {
+                    sprite.clearTint?.();
                 }
-                if (!filters || !filters.internal) continue;
-                try {
-                    sprite.__hoverGlowFx = filters.internal.addGlow(0xffd700, 2, 0, 1, false, 0.15, 10);
-                } catch (_e) { sprite.__hoverGlowFx = null; }
-            } else if (sprite.__hoverGlowFx) {
-                try {
-                    if (sprite.filters && sprite.filters.internal) sprite.filters.internal.remove(sprite.__hoverGlowFx);
-                } catch (_e) { /* 精灵已销毁 */ }
+                sprite.__hoverTintState = null;
                 sprite.__hoverGlowFx = null;
             }
         }
@@ -12261,6 +12445,7 @@ export class GameScene extends Scene {
      * 为敌人创建或获取 Phaser Sprite
      */
     getOrCreateEnemySprite(enemy, texture = 'enemy_circle') {
+        if (!this.textures.exists(texture)) RuntimeAssetManager.requestEnemyVisual(texture);
         const safeTexture = this.textures.exists(texture) ? texture : 'enemy_circle';
         if (!enemy._phaserSprite || !enemy._phaserSprite.active) {
             const sprite = this.add.sprite(enemy.x, enemy.y, safeTexture);
@@ -12307,6 +12492,7 @@ export class GameScene extends Scene {
         const options = (typeof enemy._getPhaserOptions === 'function') ? enemy._getPhaserOptions() : {};
         // 同步纹理键（动画状态变化时需要切到对应 spritesheet/image）
         const wanted = (typeof enemy._getTextureKey === 'function') ? enemy._getTextureKey() : 'enemy_circle';
+        if (!this.textures.exists(wanted)) RuntimeAssetManager.requestEnemyVisual(wanted);
         let safeTexture = this.textures.exists(wanted) ? wanted : 'enemy_circle';
         if (safeTexture === 'enemy_circle' && this.anims.exists(wanted)) {
             // 防御（2026-08-15 铠甲骑士教训）：_getTextureKey 返回了纯动画键（无同名贴图）时，
@@ -12371,6 +12557,7 @@ export class GameScene extends Scene {
             animKey = 'enemy_zombie_wizard_summon_reverse';
         }
         if (!this.anims.exists(animKey)) {
+            RuntimeAssetManager.requestEnemyVisual(animKey);
             // 没有对应动画时保持当前静态帧，不要强制 stop，避免冻结在动画最后一帧
             return;
         }

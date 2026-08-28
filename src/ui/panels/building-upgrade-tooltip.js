@@ -1,4 +1,5 @@
 import { getRightSidebarPanelLayer } from '../right-sidebar-panel-layer.js';
+import { releaseLightweightProjectImages } from '../dom-project-image.js';
 
 const TOOLTIP_ID = 'pbAbilityTip';
 
@@ -44,5 +45,8 @@ export function showBuildingUpgradeTooltip(html, ev) {
 
 export function hideBuildingUpgradeTooltip() {
     const tip = typeof document !== 'undefined' ? document.getElementById(TOOLTIP_ID) : null;
-    if (tip) tip.style.display = 'none';
+    if (!tip) return;
+    tip.style.display = 'none';
+    releaseLightweightProjectImages(tip);
+    tip.replaceChildren();
 }

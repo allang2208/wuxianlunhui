@@ -70,5 +70,9 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_saiga12k', path: 'assets/icons/S12k-icon.png' },
         { key: 'weapon_staff', path: 'assets/weapons/学徒法杖.png' },
         { key: 'weapon_shield', path: 'assets/weapons/woodshied-equip.png' },
-    ];
+    ].map(({ key, path }) => ({
+        key,
+        // 原始高分辨率美术继续供资产编辑与 DOM 使用；Phaser 只上传 512px 运行时副本。
+        path: `assets/weapons/runtime/${path.slice('assets/'.length)}`,
+    }));
 }

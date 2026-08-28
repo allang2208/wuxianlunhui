@@ -26,6 +26,7 @@ import {
     getBuildingModuleUpgradeCost,
     getBuildingUpgradeAbility,
 } from './building-upgrade-projects.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -436,6 +437,7 @@ export const PopulationEconomySystem = {
         if (!building || levels.length === 0) return null;
         const level = clamp(Math.floor(Number(requestedLevel) || 1), 1, levels.length);
         const cfg = houseLevel(level);
+        const previousTexture = building.spriteCfg?.idleKey;
         building._economyLevel = level;
         building.spriteCfg.idleKey = cfg.tex;
         building.spriteCfg.size = cfg.displayW;
@@ -445,6 +447,7 @@ export const PopulationEconomySystem = {
             ? { ...cfg.visualFootprint } : null;
         building.footOffsetY = cfg.footOffsetY;
         building.size = cfg.displayW;
+        RuntimeAssetManager.transitionBuildingVisual(previousTexture, cfg.tex, 'house');
         return cfg;
     },
 
@@ -475,6 +478,8 @@ export const PopulationEconomySystem = {
         if (!payment.ok) return payment;
         const timeMs = Math.max(1, Number(cost.timeMs) || 1);
         building._economyUpgrade = { targetLevel: next.level, totalMs: timeMs, remainMs: timeMs };
+        RuntimeAssetManager.requestBuildingVisualKey(next.tex);
+        RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
         return { ok: true, cost, targetLevel: next.level };
     },
 
@@ -485,6 +490,7 @@ export const PopulationEconomySystem = {
             Math.floor(Number(entry.level) || 1))));
         const level = clamp(Math.floor(Number(requestedLevel) || 1), 1, maxLevel);
         const cfg = warehouseLevel(level);
+        const previousTexture = building.spriteCfg?.idleKey;
         building._economyLevel = level;
         building.spriteCfg.idleKey = cfg.tex;
         building.spriteCfg.size = cfg.displayW;
@@ -495,6 +501,7 @@ export const PopulationEconomySystem = {
         building.footOffsetY = cfg.footOffsetY;
         building.size = cfg.displayW;
         WarehouseEconomySystem.applyStorageStats(building);
+        RuntimeAssetManager.transitionBuildingVisual(previousTexture, cfg.tex, 'warehouse');
         return cfg;
     },
 
@@ -530,6 +537,8 @@ export const PopulationEconomySystem = {
         if (!payment.ok) return payment;
         const timeMs = Math.max(1, Number(cost.timeMs) || 1);
         building._economyUpgrade = { targetLevel: next.level, totalMs: timeMs, remainMs: timeMs };
+        RuntimeAssetManager.requestBuildingVisualKey(next.tex);
+        RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
         return { ok: true, cost, targetLevel: next.level };
     },
 
@@ -540,6 +549,7 @@ export const PopulationEconomySystem = {
             Math.floor(Number(entry.level) || 1))));
         const level = clamp(Math.floor(Number(requestedLevel) || 1), 1, maxLevel);
         const cfg = researchLevel(level);
+        const previousTexture = building.spriteCfg?.idleKey;
         building._economyLevel = level;
         building.spriteCfg.idleKey = cfg.tex;
         building.spriteCfg.size = cfg.displayW;
@@ -549,6 +559,8 @@ export const PopulationEconomySystem = {
             ? { ...cfg.visualFootprint } : null;
         building.footOffsetY = cfg.footOffsetY;
         building.size = cfg.displayW;
+        RuntimeAssetManager.transitionBuildingVisual(
+            previousTexture, cfg.tex, 'research_institute');
         return cfg;
     },
 
@@ -579,6 +591,8 @@ export const PopulationEconomySystem = {
         if (!payment.ok) return payment;
         const timeMs = Math.max(1, Number(cost.timeMs) || 1);
         building._economyUpgrade = { targetLevel: next.level, totalMs: timeMs, remainMs: timeMs };
+        RuntimeAssetManager.requestBuildingVisualKey(next.tex);
+        RuntimeAssetManager.commitBuildingEntities(Game.entities?.values?.() || []);
         return { ok: true, cost, targetLevel: next.level };
     },
 

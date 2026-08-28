@@ -23,6 +23,7 @@ import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../config/weapon-a
 import { GoldManager } from '../systems/gold-manager.js';
 import { EquipManager } from '../ui/equip-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
 import { createWeaponRicochetHandler } from '../combat/weapon-ricochet.js';
 import { createLegendaryLmgHitHandler } from '../combat/weapon-legendary-lmg.js';
@@ -3700,6 +3701,12 @@ export const DefenseSystem = {
                         this._phase = 'break';
                         this._phaseTimer = this._managedConfig?.waveBreakMs
                             || DEFENSE_CONFIG.spawn.waveBreakMs || 10000;
+                        if (this._managedConfig) {
+                            RuntimeAssetManager.prefetchEnemyTypes(
+                                this._managedConfig.waves?.[this._wave] || []
+                            );
+                        }
+                        RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
                         this._announce(`第 ${this._wave} 波已清除！${Math.round(this._phaseTimer / 1000)} 秒后下一波`, '#9dff9d');
                     }
                 }
@@ -3832,6 +3839,7 @@ export const DefenseSystem = {
         this.base = targetEntity;
         this.defeated = false;
         this.victory = false;
+        RuntimeAssetManager.commitEnemyEntities(Game.entities?.values?.() || []);
         this._managedConfig = {
             ...config,
             waves: (config?.waves || []).map((wave) => wave.slice()),
@@ -5551,6 +5559,7 @@ export const DefenseSystem = {
         if (this._managedExternally && this._managedConfig) {
             let alive = this._aliveCount();
             const types = this._managedConfig.waves?.[this._wave - 1] || [];
+            RuntimeAssetManager.prefetchEnemyTypes(types);
             for (const type of types) {
                 if (alive >= (this._managedConfig.maxAlive || DEFENSE_CONFIG.spawn.maxAlive)) break;
                 if (this._spawnMonster(this._wave, null, 1, type)) alive++;
@@ -5563,6 +5572,7 @@ export const DefenseSystem = {
         let alive = this._aliveCount();
         const composed = plan ? this._composeWave(this._wave, plan) : null;
         if (composed) {
+            RuntimeAssetManager.prefetchEnemyTypes(composed);
             for (const type of composed) {
                 if (alive >= cfg.maxAlive) break;
                 if (this._spawnMonster(this._wave, null, 1, type)) alive++;

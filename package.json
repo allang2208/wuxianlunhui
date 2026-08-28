@@ -7,9 +7,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"cross-env NODE_ENV=development npx vite\" \"wait-on http://localhost:5173 && npx electron electron/main.js\"",
+    "dev": "cross-env NODE_ENV=development concurrently \"npx vite\" \"wait-on http://localhost:5173 && npx electron electron/main.js\"",
     "dev:web": "cross-env NODE_ENV=development npx vite",
-    "electron": "wait-on http://localhost:5173 && electron electron/main.js",
+    "electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron electron/main.js",
     "build": "node scripts/bump-version.js && node scripts/backup.js && vite build && node scripts/copy-assets.js && electron-builder",
     "build:win": "node scripts/bump-version.js && node scripts/backup.js && vite build && node scripts/copy-assets.js && electron-builder --win",
     "build:portable": "node scripts/bump-version.js && node scripts/backup.js && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" CSC_IDENTITY_AUTO_DISCOVERY=false vite build && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" node scripts/copy-assets.js && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" electron-builder --win portable",

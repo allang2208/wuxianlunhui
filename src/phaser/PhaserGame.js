@@ -36,6 +36,10 @@ export const PhaserGame = {
                 // AUTO 仍保留 Canvas 回退；WebGL 可用时明确请求高性能 GPU，
                 // 避免 Electron/双显卡设备把大批量精灵与雾遮罩调度到低功耗适配器。
                 powerPreference: 'high-performance',
+                // 保留贴图线性采样，但关闭整张全屏透明画布的 WebGL MSAA。
+                // 本项目会常驻大量 4K/8K 精灵表；MSAA 还会额外放大颜色/深度缓冲显存，
+                // 在位面入侵的大量单位与建筑销毁阶段容易触发 CONTEXT_LOST_WEBGL。
+                antialiasGL: false,
             },
             scale: {
                 mode: Scale.RESIZE,

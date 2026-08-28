@@ -11,6 +11,13 @@
     "reuseVisibilityWithinFrame": true,
     "skipStableVisibleWrites": true
   },
+  "resourceResidency": {
+    "maxParallelDownloads": 3,
+    "hotCacheTtlMs": 30000,
+    "negativeCacheTtlMs": 5000,
+    "softGpuBudgetMiB": 640,
+    "deferredEnemyTextureMinMiB": 4
+  },
   "floatingText": {
     "maxActive": 48,
     "viewPaddingPx": 160,

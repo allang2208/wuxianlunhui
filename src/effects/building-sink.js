@@ -223,38 +223,12 @@ class BuildingSinkEffect {
         if (game && game.entities && e.id) game.entities.delete(e.id);
     }
 
-    /** WebGL 多边形反向遮罩：footprint 前缘以下区域是真正的不可见地下区域。 */
-    _installFootprintClipMasks(scene) {
-        if (!scene || !this._footprintProjection || !this._sprites.length) return;
-        const maxDisplayH = Math.max(...this._sprites.map((sprite) => Number(sprite.displayHeight) || 0), 256);
-        const bottomY = this._footprintProjection.bounds.maxY + maxDisplayH * 4 + 512;
-        const polygon = buildingSinkOcclusionPolygon(
-            this._footprintProjection,
-            bottomY,
-            this._visualBounds
-        );
-        if (polygon.length < 4) return;
-        this._clipPolygon = polygon.map((point) => ({ ...point }));
-        const graphics = scene.add.graphics();
-        graphics.fillStyle(0xffffff, 1);
-        graphics.fillPoints(polygon, true);
-        // Mask Filter 会自行捕获该 GameObject；无需把白色遮罩显示在主场景中。
-        scene.children.remove(graphics);
-        this._clipMaskGraphics = graphics;
-        for (const sprite of this._sprites) {
-            if (!sprite?.active || typeof sprite.enableFilters !== 'function') continue;
-            try {
-                sprite.enableFilters();
-                const list = sprite.filters?.external;
-                if (!list || typeof list.addMask !== 'function') continue;
-                const mask = list.addMask(graphics, true, scene.cameras.main, 'world');
-                this._clipMasks.push({ sprite, list, mask });
-            } catch (_error) {
-                // WebGL Filter 不可用时保留矩形 crop 兜底，不中断游戏循环。
-                this._maskInstallError = _error?.message || String(_error);
-            }
-        }
-        this._polygonMaskActive = this._clipMasks.length > 0;
+    /**
+     * 稳定模式不再创建 Phaser 4 Mask Filter。保留入口是为了不改动建筑销毁调用链，
+     * 实际地下裁剪统一由 update 中的矩形 crop 完成。
+     */
+    _installFootprintClipMasks() {
+        this._polygonMaskActive = false;
     }
 
     /** 测量贴图透明像素上下边界，缓存在首次 update。 */
@@ -351,10 +325,8 @@ class BuildingSinkEffect {
                 sprite.setPosition(sprite._sinkBaseX, sprite._sinkBaseY + this.sinkPx);
                 sprite.setDepth(sprite._sinkBaseDepth);
                 const c = this._measureContent(sprite);
-                if (this._polygonMaskActive) {
-                    if (sprite.isCropped) sprite.setCrop();
-                } else if (c && c.frameH > 0 && c.displayH > 0) {
-                    // 无 WebGL Mask Filter 时才使用旧矩形裁剪兜底。
+                if (c && c.frameH > 0 && c.displayH > 0) {
+                    // 不创建逐对象离屏 Mask；稳定模式统一使用矩形 crop。
                     const cropH = buildingSinkCropHeight({
                         groundY: this.baseY,
                         spriteBaseY: sprite._sinkBaseY,
@@ -446,17 +418,23 @@ class BuildingSinkEffect {
     }
 
     _clearFootprintClipMasks() {
-        for (const entry of this._clipMasks) {
-            try {
-                if (entry.list && entry.mask) entry.list.remove(entry.mask);
-            } catch (_error) {
-                // 精灵或滤镜链已随场景销毁。
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        const abandonLegacyGlObjects = !!scene?._webglFiltersDisabled || !!scene?._webglContextLost;
+        if (!abandonLegacyGlObjects) {
+            for (const entry of this._clipMasks) {
+                try {
+                    if (entry.list && entry.mask) entry.list.remove(entry.mask);
+                } catch (_error) {
+                    // 精灵或滤镜链已随场景销毁。
+                }
             }
         }
         this._clipMasks = [];
         this._clipPolygon = [];
         this._polygonMaskActive = false;
-        if (this._clipMaskGraphics?.destroy) this._clipMaskGraphics.destroy();
+        if (!abandonLegacyGlObjects && this._clipMaskGraphics?.destroy) {
+            this._clipMaskGraphics.destroy();
+        }
         this._clipMaskGraphics = null;
     }
 

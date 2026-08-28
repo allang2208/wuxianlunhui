@@ -229,6 +229,14 @@ this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', {
 
 **必须带 `endFrame`**，Phaserv4 即使图片高度差1像素也能正确加载。
 
+资源驻留附加门禁：纹理键保持 `enemy_` 前缀，正式文件优先放入
+`assets/enemies/<稳定资源族>/`。`BootScene` 仍负责声明纹理与动画，但
+`RuntimeAssetManager.beginBootEnemyDeferral()` 会在排队时截留大型精灵表，并按目录/稳定键推导资源族；
+防御波次在休整期通过怪物 `type` 预取该族。新增怪物必须确认 `type`、纹理键和目录族能被
+`getEnemyVisualKeysForTypes()` 唯一对应，禁止使用与怪物身份无关的临时目录或不带 `enemy_` 的大型键，
+否则会退化为Boot常驻或波次出现时才临时补载。小于阈值的表可继续Boot常驻；是否延迟由统一性能配置决定，
+怪物业务代码不得自行删纹理。
+
 #### 步骤4: 怪物代码无需手动调 spriteSize
 
 标准化后所有精灵图内容大小一致，代码中统一 spriteSize，无需条件判断：
@@ -565,6 +573,18 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `phalanx`再判`guard`，否则升级、兵线、快照和后台编制都会静默记成低阶兵种。可复用父类AI、RTS、承伤和解绑，
   但动画时长不同的死亡流程应在子类调用`super._startDying()`后覆盖计时，避免父类常量提前删尸体。
 
+#### 2026-08-28 友军资源驻留登记（新增兵种强制）
+
+- 世界-122量产友军不再由`BootScene`逐兵种全量预载。新增`data/<id>-config.json`后，必须在
+  `src/phaser/assets/friendly-unit-assets.js`导入配置并加入`FRIENDLY_UNIT_CONFIGS`；配置`id`、实体
+  `animId`、生产系统`unitKind`映射必须一致。漏登记时运行时驻留器会把该兵种视为未知，即使生产/AI代码
+  已存在也无法按需加载动画。
+- 驻留集合由“当前存活/死亡动画中的实体 + 当前建筑真正会继续生产的已研发兵种 + 存档恢复队列”计算。
+  新兵种不得再向BootScene补一套常驻`load.spritesheet`；换代兵种也不得在科技完成时直接删除纹理，必须等
+  最后一个旧兵实体和死亡动画离场、且没有建筑继续生产后，由热缓存统一回收。
+- 新增生产接线仍要完成`PRODUCER_UNIT_CFG/CLASS/CONFIG_PATH`、`UNIT_KIND_CFG/getUnitKind`、建筑
+  `unitTypes`、升级传播、前台实体、后台DPS与快照恢复；资源登记只解决视觉生命周期，不替代玩法登记。
+
 #### 0. 六维属性公式源（2026-08-16：仓鼠单位一律怪物公式）
 - 仓鼠友军单位 `statFormula: 'enemy'` → `Companion._enemyCombatStats` 分支：派生数值
   （atk/def/matk/mdef/crit/critRes）逐项走怪物同款公式（combat-formulas
@@ -581,7 +601,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - 精灵图入 `assets/companions/<id>/`（idle/walking/mining/dying 各一张），
   512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
 - 动画帧配置放**独立** `data/<id>-config.json`，**不要**塞进 companion-config.json——
-  那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置 + BootScene 显式注册。
+  那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置，并登记进
+  `friendly-unit-assets.js`的按需资源清单。
 - **视觉体量对齐（2026-08-23 统一）**：不能只比较 512×512 画布；先量 running 全部有效帧
   的 Alpha 内容，并用 `Alpha中位高度 × displaySize / frameHeight` 生成首轮候选。没有特殊说明且
   姿态直立、无突出长装备的步兵/施法友军，使用上文仓鼠牧师 **75.684px** 可见高度基准；长武器、

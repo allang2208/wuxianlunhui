@@ -1869,7 +1869,8 @@
 - **显示尺寸统一口径（2026-08-23）**：`displayW/displayH/footOffsetY` 是首批标定迁移来源；运行时正式
   结果由 `visualFootprint` 映射计算。普通2×2严格落到256×128，4×4基地严格落到512×256。
 - 新增产兵建筑：`data/producer-buildings.json` 加条目（唯一真源，含 tex/displayW/H/footOffsetY/
-  spawn/unitTypes/modules），BootScene 加载贴图即可，代码零改动。
+  spawn/unitTypes/modules）；`building-assets.js`会从配置自动建立运行时manifest，普通建筑不得再新增
+  一份手工常驻名单。
 
 **建筑开发标准工作流（世界-122，2026-08-18 定稿；新建筑/替换建筑一律按此开展）**
 1. **素材先入库**：从 `E:\无尽轮回\游戏\素材库\场景\建筑\` 复制到
@@ -1887,8 +1888,19 @@
    - 工坊：`spawnEnabled=false` + `workshopType/abilities`；
    - **仅数值/详情、暂无玩法**：`spawnEnabled=false, panelMode:"detail", modules:{}`，
      不要伪装成空能力工坊。
-4. **资源注册**：BootScene `load.image(<key>, assets/terrain/<key>.png)`；配置 `tex`、
-   `BUILD_ITEMS` 缩略图和实体 `spriteCfg.idleKey` 必须同 key。
+4. **资源注册与驻留**：普通建筑在`producer-buildings.json`登记`tex/assetPath`后，由
+   `src/phaser/assets/building-assets.js`自动收录主体；`animation`、`groundContact`、
+   `foregroundOverlay`、`recruitmentTiers[].visual`也必须放在同一配置内，房屋/仓库/研究所各等级放在
+   `population-economy.json`的`levels`。BootScene中的历史`load.image`声明会被驻留器拦截，不能把它
+   当成唯一登记点；新增普通建筑不得绕过manifest做无条件Boot常驻。配置`tex`、`BUILD_ITEMS`缩略图和
+   实体`spriteCfg.idleKey`必须同key。
+   - 传送门、位面祭坛和确实被地牢障碍共用的小型贴图才可进入`CORE_TEXTURE_KEYS`；不得因为加载失败
+     就把普通建筑改为核心。建造卡选中时`setBuildingPreview()`临时pin，取消预览后必须clear；场上实例、
+     升级`targetLevel`与多等级并存由`ensureBuildingEntities()`计算，业务代码不得直接删除纹理。
+   - 建筑升级/扩建项目的`iconImage`属于DOM图标，不进入Phaser manifest。新增、改名或删除项目后运行
+     `powershell -ExecutionPolicy Bypass -File tools/build-runtime-project-icons.ps1 -Prune`；生成器会扫描
+     双份配置真源中的`data/`配置，以及`src/`内直接引用的`assets/ui/building-upgrades/`图片，不再维护
+     三张手工路径名单。关闭面板/悬浮窗后必须移除`<img>`节点。
    - **建筑面板缩略图统一规格（2026-08-20）**：以道路缩略图 `building_road.png`
      的 128×64、2:1 画幅作为统一预览边界；`.build-panel .we-thumb img` 使用相同大小的预览框，
      所有图片必须通过 `object-fit:contain` 等比缩放并完整显示，禁止拉伸、压扁或裁切。

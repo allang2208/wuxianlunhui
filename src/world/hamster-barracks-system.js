@@ -22,6 +22,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
+import { releaseLightweightProjectImages } from '../ui/dom-project-image.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { TechnologyGate } from '../ui/technology-gate.js';
 import {
@@ -642,6 +643,7 @@ class HamsterBarracksPanel extends BasePanel {
     onClose() {
         this._stopTicking();
         hideBuildingUpgradeTooltip();
+        releaseLightweightProjectImages(this.el);
         this.barracks = null;
         this.player = null;
     }

@@ -1,6 +1,6 @@
 
 // ============================================================
-// BootScene - 预加载场景：加载所有游戏资源
+// BootScene - 预加载场景：只加载全局核心资源；大型单位资源由运行时驻留管理器按需加载
 // ============================================================
 import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
@@ -11,38 +11,6 @@ import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 import companionConfigData from '../../../data/companion-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
-import hamsterMinerConfig from '../../../data/hamster-miner-config.json';
-import hamsterWarriorConfig from '../../../data/hamster-warrior-config.json';
-import hamsterChampionConfig from '../../../data/hamster-champion-config.json';
-import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
-import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
-import hamsterPhalanxConfig from '../../../data/hamster-phalanx-config.json';
-import hamsterRiotSquadConfig from '../../../data/hamster-riot-squad-config.json';
-import hamsterSpecialForcesConfig from '../../../data/hamster-special-forces-config.json';
-import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
-import hamsterHalberdierConfig from '../../../data/hamster-halberdier-config.json';
-import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
-import hamsterRangerConfig from '../../../data/hamster-ranger-config.json';
-import hamsterCrossbowConfig from '../../../data/hamster-crossbow-config.json';
-import hamsterLongbowConfig from '../../../data/hamster-longbow-config.json';
-import hamsterAssaultConfig from '../../../data/hamster-assault-config.json';
-import hamsterHeavyMachineGunnerConfig from '../../../data/hamster-heavy-machine-gunner-config.json';
-import hamsterSniperConfig from '../../../data/hamster-sniper-config.json';
-import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json';
-import hamsterAntiVehicleConfig from '../../../data/hamster-anti-vehicle-config.json';
-import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
-import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
-import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
-import hamsterCavalryConfig from '../../../data/hamster-cavalry-config.json';
-import hamsterWingedHussarConfig from '../../../data/hamster-winged-hussar-config.json';
-import hamsterNinjaConfig from '../../../data/hamster-ninja-config.json';
-import hamsterSamuraiConfig from '../../../data/hamster-samurai-config.json';
-import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
-import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
-import jaguarWarriorConfig from '../../../data/jaguar-warrior-config.json';
-import junglePriestConfig from '../../../data/jungle-priest-config.json';
-import desertPriestConfig from '../../../data/desert-priest-config.json';
-import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-config.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
 import desertTerrainConfig from '../../../data/desert-terrain.json';
 import dungeonTerrainConfig from '../../../data/dungeon-terrain.json';
@@ -53,7 +21,9 @@ import {
     queueCivilianVisualAssets,
     registerCivilianVisualAnimations,
 } from '../../world/civilian-visual-runtime.js';
-
+import { RuntimeAssetManager } from '../assets/runtime-asset-manager.js';
+        // 大型敌人表在排队阶段即登记为延迟资源，避免先上传到显存后再释放。
+        RuntimeAssetManager.beginBootEnemyDeferral(this);
 export class BootScene extends Scene {
     constructor() {
         super({ key: 'BootScene' });
@@ -131,17 +101,8 @@ export class BootScene extends Scene {
             }
         }
 
-        // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterSpecialForcesConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterLongbowConfig, hamsterAssaultConfig, hamsterHeavyMachineGunnerConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterCavalryConfig, hamsterWingedHussarConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
-            for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
-                if (!def || !def.src) continue;
-                this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
-                    frameWidth: def.frameWidth || 512,
-                    frameHeight: def.frameHeight || 512,
-                    endFrame: (def.frameCount || 1) - 1,
-                });
-            }
-        }
+        // 世界友军改由 RuntimeAssetManager 按当前物化兵种加载；未研发或已淘汰且无存活实体的
+        // 兵种不会进入 Boot 显存峰值。队伍侍从仍属于核心常驻资源。
 
         // 所有非战斗仓鼠平民统一从人口经济配置注册；设置关闭时启动阶段完全不加载。
         queueCivilianVisualAssets(this);
@@ -937,7 +898,8 @@ export class BootScene extends Scene {
     }
 
     create() {
-        
+        // 对尚未加载的敌人表只记录动画配置；对应家族回载完成后再正式注册动画。
+        RuntimeAssetManager.beginBootEnemyAnimationCapture(this);
         // 预载墙壁预制组合库（主神空间默认房间/墙壁编辑器共用，fire-and-forget）
         loadWallPrefabs();
         loadObstacleLayout();
@@ -1077,45 +1039,6 @@ export class BootScene extends Scene {
                             repeat: def.repeat !== undefined ? def.repeat : -1,
                         });
                     }
-                }
-            }
-        }
-
-        // 世界-122 友方单位动画注册：两段式（startFrames 起步播一次 → loopFrames 循环）
-        // 仓鼠矿工 mining = 完整 19 帧起步 + 5~19 帧单次；仓鼠战士 attack = 完整 1~24 帧
-        // 起步 + 第 6~24 帧循环；仓鼠射手 attack = 13 帧单次 + projectile 单帧贴图；
-        // 仓鼠盾卫 attack = 12 帧单次（第 10 帧判定伤害由 AI 计时）；
-        // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
-        // 仓鼠斥候/游侠/狙击手 attack 单次播放，投射物出膛帧由各自 AI 配置驱动；
-        // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterChampionConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterPhalanxConfig, hamsterRiotSquadConfig, hamsterSpecialForcesConfig, hamsterMilitiaConfig, hamsterHalberdierConfig, hamsterScoutConfig, hamsterRangerConfig, hamsterCrossbowConfig, hamsterLongbowConfig, hamsterAssaultConfig, hamsterHeavyMachineGunnerConfig, hamsterSniperConfig, hamsterMusketeerConfig, hamsterAntiVehicleConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterCavalryConfig, hamsterWingedHussarConfig, hamsterNinjaConfig, hamsterSamuraiConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
-            for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
-                if (!def || !def.src) continue;
-                const texKey = `companion_${unitConfig.id}_${animKey}`;
-                if (this.anims.exists(texKey)) continue;
-                if (def.startFrames && def.loopFrames) {
-                    const [ss, se] = def.startFrames;
-                    const [ls, le] = def.loopFrames;
-                    this.anims.create({
-                        key: `${texKey}_start`,
-                        frames: this.anims.generateFrameNumbers(texKey, { start: ss, end: se }),
-                        frameRate: def.startFrameRate || def.frameRate || 12,
-                        repeat: def.startRepeat !== undefined ? def.startRepeat : 0,
-                    });
-                    this.anims.create({
-                        key: texKey,
-                        frames: this.anims.generateFrameNumbers(texKey, { start: ls, end: le }),
-                        frameRate: def.frameRate || 12,
-                        repeat: def.repeat !== undefined ? def.repeat : -1,
-                    });
-                } else {
-                    const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-                    this.anims.create({
-                        key: texKey,
-                        frames: this.anims.generateFrameNumbers(texKey, { start, end }),
-                        frameRate: def.frameRate || 12,
-                        repeat: def.repeat !== undefined ? def.repeat : -1,
-                    });
                 }
             }
         }
@@ -2115,6 +2038,10 @@ export class BootScene extends Scene {
             frameRate: 12,
             repeat: -1,
         });
+
+        // 大型敌人精灵表先完成动画元数据登记，再从启动常驻集中释放。运行时按实际出现的
+        // 敌人家族整组回载，因此主神空间首帧不再背负所有地牢/Boss 的显存峰值。
+        RuntimeAssetManager.captureAndEvictBootEnemyAssets(this);
 
         // ---- 动态生成几何敌人纹理 ----
         const generateEnemyTexture = (key, drawFn, width = 64, height = 64) => {
