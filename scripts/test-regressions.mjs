@@ -213,7 +213,7 @@ console.log('\n[6] 地牢 nodeCount 结构可达性');
     const gradeBranches = { F: 2, E: 4, D: 6, C: 8, B: 10, A: 12 };
     const blocks = {
         zombie: 'zombieDungeon', zombieBeginner: 'zombieDungeonBeginner', zombieMid: 'zombieDungeonMid',
-        frozenBeginner: 'frozenDungeonBeginner',
+        frozenBeginner: 'frozenDungeonBeginner', frozenMid: 'frozenDungeonMid', frozen: 'frozenDungeon',
         swampBeginner: 'swampDungeonBeginner', swampMid: 'swampDungeonMid', swamp: 'swampDungeon'
     };
     for (const [type, key] of Object.entries(blocks)) {

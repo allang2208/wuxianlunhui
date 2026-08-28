@@ -171,7 +171,7 @@ for (const [key, info] of Object.entries(dungeonCfg.dungeonList || {})) {
     if (info.grade && !GRADES.has(info.grade)) err(`dungeonList.${key}: 非法等级 '${info.grade}'`);
 }
 for (const key of [
-    'zombieDungeon', 'zombieDungeonBeginner', 'frozenDungeonBeginner', 'zombieDungeonMid',
+    'zombieDungeon', 'zombieDungeonBeginner', 'frozenDungeonBeginner', 'frozenDungeonMid', 'frozenDungeon', 'zombieDungeonMid',
     'swampDungeonBeginner', 'swampDungeonMid', 'swampDungeon'
 ]) {
     const d = dungeonCfg[key];

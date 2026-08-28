@@ -21,7 +21,9 @@
       "scene7"
     ],
     "dungeonTypes": [
-      "frozenBeginner"
+      "frozenBeginner",
+      "frozenMid",
+      "frozen"
     ],
     "minimumDurationMs": 1000,
     "title": "冰封世界加载中...",

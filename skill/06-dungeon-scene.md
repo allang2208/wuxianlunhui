@@ -304,6 +304,17 @@ collision-grid / regressions）、vite build ✓。
 
 ---
 
+### 地牢随机事件表现与接入工作流（2026-08-27）
+
+- 限定事件真源为 `src/world/dungeon-event-definitions.js`：同一事件键必须同时登记 `NEW_EVENT_WEIGHTS`、`RESTRICTED_EVENT_META`、`EVENT_BG_IMAGES` 与 `NEW_EVENT_CONFIGS`。`scope` 负责题材隔离，`grade` 继续走地牢等级 ±1；不要为单个地牢另写抽取分支。通用事件固定保留30%，限定池占70%。
+- 结果只使用 `handleNewDungeonEvent()` 已支持的协议：金币、HP/MP药水、普通/特殊材料、百分比恢复/伤害、揭示节点、3场战斗Buff/Debuff，以及 `combat + forceMonsters + encounter`。新增结果类型前必须先扩展应用、结算、存档/恢复和结果面板全链，不能只写配置字段。
+- 限定事件中的 `outcome.gold` 是事件作者的基础值，最终正负金币统一乘 `combat-formulas.json#dungeonRewards[当前地牢grade].eventGoldMultiplier` 后取整；必须按实际地牢等级缩放，不能按事件自身等级或在单个事件里复制阶段倍率。通用补给堆探查金币与宝箱金币分别读取 `universalEventRewards.supplyPile[grade].inspectGold` 和 `treasureChest[grade].gold`。
+- 事件战斗的 `forceMonsters` 必须是 `ZOMBIE_FACTORY_MAP` 已登记的 enemy-config 键；`encounter.monstersPerWave` 必须不少于强制怪数量。限定事件不得绕过当前地牢题材/阶级池去引用未登记工厂。
+- 每个事件背景使用3:2横图，路径固定为 `assets/scenes/dungeon-events/<slug>.png`，画面主体置于中景，底部约25%保持低细节供243px事件面板覆盖；禁止图中文字、UI、水印、分栏和边框。背景由 DOM `background-size:cover` 直接读取，无需 BootScene preload。
+- 所有事件属性检定必须统一走 `AttributeCheckSystem.getSuccessRate()/check()`：原始值为 `baseRate + 属性值 × attrMultiplier`，20%—80%保持线性，区间外以指数软边界渐近5%/95%，最终再做数值安全钳制。选项面板只用 `getSuccessRate()` 预览，禁止调用 `check()` 消耗随机数；新增事件只配置 `attribute/baseRate`，不得复制或另写概率公式。
+- 僵尸与沼泽限定事件固定使用三选项结构：两个结合现场行为、奖励和失败代价有明确差异的属性检定，加一个无属性检定的叙事选项。第三项可以是真正的安全离开，也可以在题材与现场铺垫合理时出现伏击、追杀或强制战斗；按钮文案与结果必须让反转在叙事上成立，不得机械地把所有第三项都写成安全出口或相同陷阱。雪原 C/B/A 事件继续使用三个属性检定加一个无检定叙事选择的四选项结构；每档5个事件中固定4个末项付出生命/魔力/减益代价或进入战斗，1个末项安全离开或因善意获得小型确定奖励。雪原事件权重相同时，这一4:1结构必须在C、B、A各档分别成立，确保±1混合池仍保持80%非安全末项；不得只按15个事件总数凑比例，也不得为统一数量删减雪原分支。
+- 交付前做静态映射核对：四张事件表键集合一致、图片文件存在、每个 choice id 唯一、属性键限 `str/dex/con/int/wis/luck`、奖励字段均被处理器消费、限定池在目标地牢 grade 下非空；运行时验证仍按本项目默认约定由用户执行。
+
 ### 地牢添加标准工作流（新增地牢一律按此开展）
 
 #### 地牢祭品生命周期（2026-08-22）
@@ -328,9 +339,12 @@ collision-grid / regressions）、vite build ✓。
 - `bossEncounter`（可选）：独立 Boss 遭遇。存在则 `_enterBoss` 自动走普通战斗流程副本（不再按地牢名硬编码分支）；`monsterComposition` 支持 `{ lord: N }`（lord 池=rank 领主，跨 family）；缺省走 BossRewardSystem 专属 Boss（集合体）
 - `eliteChestReward`（可选）：精英宝箱奖励
 - `floor`（可选）：`{ tiles: [贴图键...], glow: false, overlapX, overlapY }`——地砖**每格随机选图 + 随机 X/Y 镜像（4 种朝向）**，平铺层统一行为，无需声明（2026-07-25 确认：以后地砖默认都带随机翻转）；**自然材质（草地等）必配 overlapX/overlapY（如 6/3）**：平铺步进内缩让相邻砖叠合几 px（只叠不缺），盖住锯齿边缘缝隙与半透明暗边——亮色材质缝隙明显，黑砖类可不加
+- 分阶段只交付地图生成时，尚未制作的怪物/Boss不得写不存在的工厂键；可以临时让 `encounters` 与 `bossEncounter` 的 `poolKeys` 复用一个已登记怪物作为占位，并在同批文档/CHANGELOG明确“非正式生态”。占位Boss必须仍声明 `bossEncounter`，避免缺省后误入通用集合体Boss；正式怪物完成后再整体替换池与阶级匹配规则。
 
 #### 3. 登记映射（src/config/dungeon-config.js `_keyFor`）
 地牢 type → 配置块键。**这是唯一的代码硬编码点**（工作流保留）。
+
+- 雪原三级固定登记为 `frozenBeginner → frozenDungeonBeginner`（C）、`frozenMid → frozenDungeonMid`（B）、`frozen → frozenDungeon`（A）；经验系统的 `DUNGEON_BLOCK_KEY` 与加载图类型数组必须同步，避免生成配置生效但经验预算或加载表现回退到其他地牢。
 
 #### 4. 怪物池（src/world/zombie-dungeon.js `monsterPool`）
 normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；新怪物需先注册 `ZOMBIE_FACTORY_MAP` + create 工厂。事件/奖励对应关系由 grade 驱动（见 dungeon-event-definitions.js RESTRICTED_EVENT_META 的 scope/grade）。

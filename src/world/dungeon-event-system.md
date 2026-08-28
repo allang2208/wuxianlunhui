@@ -7,12 +7,14 @@
 
 ## 概述
 
-DungeonEventSystem 实现了地牢模式中的5种随机事件系统，包括：
+DungeonEventSystem 目前实现 5 个通用事件、10 个僵尸限定事件与 15 个沼泽限定事件。通用事件包括：
 1. **女神像** — 恢复/祝福(+15%攻击,3场)/奖励
 2. **陷阱** — 解除(敏捷)/跨越(体质)，失败扣25%血
 3. **补给堆** — 搜寻(精神)/探查(敏捷)
 4. **宝箱** — 50%金币/25%材料/25%战斗
 5. **恶魔雕像** — 扣50%血魔，+33%攻击或材料
+
+限定事件配置位于 `dungeon-event-definitions.js`，通过 `scope + grade` 进入对应地牢的等级 ±1 池；抽取比例固定为通用30%、限定70%。沼泽限定事件的映射、等级和背景提示词见 `docs/swamp-dungeon-events-2026-08-27.md`。
 
 ---
 
@@ -28,8 +30,10 @@ DungeonEventSystem 实现了地牢模式中的5种随机事件系统，包括：
     attributeCheck: {
         baseSuccessRate: 20,      // 基础成功率20%
         attrMultiplier: 1,        // 每点属性+1%
-        maxSuccessRate: 95,       // 上限95%
-        minSuccessRate: 5,        // 下限5%
+        maxSuccessRate: 95,       // 最终安全上限95%
+        minSuccessRate: 5,        // 最终安全下限5%
+        softMaxStart: 80,         // 从80%开始进入上限软压缩区
+        softMinStart: 20,         // 低于20%进入下限软抬升区
     },
 
     // 事件类型权重（等概率）
@@ -197,6 +201,10 @@ Buff管理系统，负责女神祝福和恶魔祈祷的添加/移除/消耗。
 
 属性检定系统，用于陷阱、补给堆等需要属性检定的场景。
 
+#### `getSuccessRate(player, attribute, baseRate)`
+
+只计算并返回成功率，不掷骰、不消耗随机数。事件选项面板必须使用此入口预览概率，保证预览与实际检定采用同一公式且不改变后续随机序列。
+
 #### `check(player, attribute, baseRate)`
 
 执行属性检定。
@@ -211,6 +219,7 @@ Buff管理系统，负责女神祝福和恶魔祈祷的添加/移除/消耗。
 {
     success: boolean,      // 是否成功
     rate: number,          // 实际成功率
+    rawRate: number,       // 进入软边界前的线性成功率
     roll: number,          // 随机掷骰值
     attribute: string,     // 属性名
     attrValue: number,     // 属性值
@@ -219,9 +228,16 @@ Buff管理系统，负责女神祝福和恶魔祈祷的添加/移除/消耗。
 
 **检定公式：**
 ```
-成功率 = baseRate + 属性值 × 1%
-成功率 = clamp(成功率, 5%, 95%)
+rawRate = baseRate + 属性值 × attrMultiplier
+
+20 <= rawRate <= 80：rate = rawRate
+rawRate < 20：rate = 5 + 15 × exp((rawRate - 20) / 15)
+rawRate > 80：rate = 95 - 15 × exp(-(rawRate - 80) / 15)
+
+rate = clamp(rate, 5, 95) // 最终数值安全兜底
 ```
+
+线性区保留当前事件的中期成长手感；进入两端后使用连续的指数软边界，使成功率逐渐逼近5%或95%，而不是在某个属性点突然硬截断。配置修改了上下限或软区起点时，公式会按新的区间跨度自动计算。
 
 #### `getResultText(result)`
 
@@ -369,9 +385,11 @@ DungeonBuffSystem.applyDemonPrayer(player);       // 永久恶魔祈祷
 修改 `DUNGEON_EVENT_CONFIG.attributeCheck` 中的参数即可：
 ```javascript
 attributeCheck: {
-    baseSuccessRate: 30,  // 提高基础成功率
-    attrMultiplier: 2,    // 每点属性+2%
-    maxSuccessRate: 99,   // 提高上限
-    minSuccessRate: 1,    // 降低下限
+    baseSuccessRate: 20,  // 选项未填写baseRate时的默认值
+    attrMultiplier: 1,    // 每点属性+1%
+    maxSuccessRate: 95,   // 最终安全上限
+    minSuccessRate: 5,    // 最终安全下限
+    softMaxStart: 80,     // 上限软压缩起点
+    softMinStart: 20,     // 下限软抬升起点
 }
 ```

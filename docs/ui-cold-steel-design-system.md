@@ -47,7 +47,22 @@
 | 选中强调 | `--bp-ui-accent-bright`、`--bp-ui-line-accent` |
 | 面板外壳 | `--bp-ui-shell` |
 
-### 3.2 游戏语义色
+### 3.2 全局滚动条
+
+滚动条由 `ui/panel-theme-backpack.css` 统一定义，不在业务面板单独建新变量：
+
+- CSS 变量：
+  - `--bp-scrollbar-size: 8px`
+  - `--bp-scrollbar-radius: 4px`
+- 全局应用规则：
+  - Firefox：`scrollbar-width: thin`，`scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft)`
+  - WebKit：统一宽高 `var(--bp-scrollbar-size)`；轨道 `var(--bp-ui-black-soft)`；滑块 `--bp-ui-gray` + `1px solid var(--bp-ui-black-soft)` + `var(--bp-scrollbar-radius)`
+  - hover 使用 `--bp-ui-accent`，active 使用 `--bp-ui-accent-bright`
+  - `::-webkit-scrollbar-corner` 使用 `--bp-ui-black-soft`
+- 因兼容旧样式高特异性覆盖，规则保留 `!important`。
+- 禁止业务层面重置滚动方向/行为（overflow 由面板本身契约决定），禁止局部覆盖滚动条为项目外观。
+
+### 3.3 游戏语义色
 
 - 金币、能源、生命、危险、成功、稀有度可以保留各自颜色。
 - 语义色只出现在数值、图标、状态条和关键反馈上。

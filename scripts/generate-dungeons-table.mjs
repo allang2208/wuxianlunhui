@@ -19,6 +19,8 @@ const KEY_MAP = {
     zombie: 'zombieDungeon',
     zombieBeginner: 'zombieDungeonBeginner',
     frozenBeginner: 'frozenDungeonBeginner',
+    frozenMid: 'frozenDungeonMid',
+    frozen: 'frozenDungeon',
     zombieMid: 'zombieDungeonMid',
     swampBeginner: 'swampDungeonBeginner',
     swampMid: 'swampDungeonMid',
@@ -204,6 +206,7 @@ for (const g of GRADE_ORDER) {
     const eventPools = [
         `僵尸：${restrictedPoolDesc(g, 'zombie')}`,
         `沼泽：${restrictedPoolDesc(g, 'swamp')}`,
+        `雪原：${restrictedPoolDesc(g, 'frozen')}`,
     ].join('；');
     lines.push(`| ${g} | ${reqRarity}及以上 | ${cap} | ${chance} | ${eventPools} |`);
 }

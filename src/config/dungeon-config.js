@@ -68,6 +68,8 @@ export const DungeonConfig = {
     _keyFor(dungeonType) {
         if (dungeonType === 'zombieBeginner') return 'zombieDungeonBeginner';
         if (dungeonType === 'frozenBeginner') return 'frozenDungeonBeginner';
+        if (dungeonType === 'frozenMid') return 'frozenDungeonMid';
+        if (dungeonType === 'frozen') return 'frozenDungeon';
         if (dungeonType === 'zombieMid') return 'zombieDungeonMid';
         if (dungeonType === 'swampBeginner') return 'swampDungeonBeginner';
         if (dungeonType === 'swampMid') return 'swampDungeonMid';

@@ -39,12 +39,44 @@
    "seriesOrder": 20,
    "tier": "初级",
    "tierOrder": 1,
-   "nodeCount": "22",
-   "battleRatio": "40%",
+   "nodeCount": "55~60",
+   "battleRatio": "50%",
    "level": "1级",
-   "reward": "800金币",
-   "grade": "F",
-   "recLevel": "1~10级"
+   "reward": "8000金币",
+   "grade": "C",
+   "recLevel": "40~55级"
+  },
+  "frozenMid": {
+   "name": "❄ 冰封世界-中级",
+   "series": "frozen",
+   "seriesName": "冰封世界",
+   "seriesIcon": "❄",
+   "seriesOrder": 20,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "frozenBeginner",
+   "nodeCount": "60~65",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "13000金币",
+   "grade": "B",
+   "recLevel": "55~70级"
+  },
+  "frozen": {
+   "name": "❄ 冰封世界-高级",
+   "series": "frozen",
+   "seriesName": "冰封世界",
+   "seriesIcon": "❄",
+   "seriesOrder": 20,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "frozenMid",
+   "nodeCount": "65~70",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "20000金币",
+   "grade": "A",
+   "recLevel": "70~85级"
   },
   "zombieMid": {
    "name": "☠ 僵尸地牢-中级",
@@ -350,16 +382,16 @@
    "enabled": true
   },
   "nodeCount": {
-   "min": 22,
-   "max": 27
+   "min": 55,
+   "max": 60
   },
-  "shortestCombatPath": 4,
-  "mainRowMinCombat": 3,
+  "shortestCombatPath": 5,
+  "mainRowMinCombat": 4,
   "typeRatios": {
-   "combat": 0.4,
-   "event": 0.6
+   "combat": 0.5,
+   "event": 0.5
   },
-  "eliteCombatChance": 0,
+  "eliteCombatChance": 0.35,
   "encounters": {
    "normal": {
     "combatWaves": 3,
@@ -391,7 +423,7 @@
    }
   },
   "grid": {
-   "rows": 3,
+   "rows": 4,
    "colSpacing": 160,
    "rowSpacing": 140,
    "mainRow": 1
@@ -399,7 +431,8 @@
   "startRows": [
    0,
    1,
-   2
+   2,
+   3
   ],
   "bossReward": {
    "bossBeforeLastCol": true,
@@ -432,7 +465,213 @@
    "unrevealedIcon": "?",
    "completedCombatType": "empty"
   },
-  "minRoomsToBoss": 6,
+  "minRoomsToBoss": 7,
+  "floor": {
+   "tiles": [
+    "floor_snow_fresh_seamless"
+   ],
+   "glow": false,
+   "continuous": true,
+   "textureScaleY": 0.5774
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "frozen",
+  "wallStyle": "frozen"
+ },
+ "frozenDungeonMid": {
+  "combatRoom": {
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 12
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 5,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "arenaLastWaveNormals": 5,
+  "nodeCount": {
+   "min": 60,
+   "max": 65
+  },
+  "shortestCombatPath": 6,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false
+   }
+  },
+  "grid": {
+   "rows": 5,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 2
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 4
+   }
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 8,
+  "floor": {
+   "tiles": [
+    "floor_snow_fresh_seamless"
+   ],
+   "glow": false,
+   "continuous": true,
+   "textureScaleY": 0.5774
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "frozen",
+  "wallStyle": "frozen"
+ },
+ "frozenDungeon": {
+  "combatRoom": {
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 12
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 5,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "arenaLastWaveNormals": 5,
+  "nodeCount": {
+   "min": 65,
+   "max": 70
+  },
+  "shortestCombatPath": 7,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.4,
+  "encounters": {
+   "normal": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false
+   }
+  },
+  "grid": {
+   "rows": 5,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 2
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 4
+   }
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 9,
   "floor": {
    "tiles": [
     "floor_snow_fresh_seamless"
@@ -569,7 +808,11 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
-     "blackBear"
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -599,7 +842,11 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
-     "blackBear"
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
@@ -634,6 +881,9 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
      "blackBear",
      "purpleBlightAncient"
    ],
@@ -707,7 +957,11 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
-     "blackBear"
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -737,7 +991,11 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
-     "blackBear"
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
@@ -787,6 +1045,9 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
      "blackBear",
      "purpleBlightAncient"
    ],
@@ -844,7 +1105,11 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
-     "blackBear"
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -874,7 +1139,11 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
-     "blackBear"
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
@@ -925,6 +1194,9 @@
      "brownBear",
      "evilTreant",
      "carnivorousPitcher",
+     "brownSnake",
+     "blackKingCobra",
+     "medusa",
      "blackBear",
      "purpleBlightAncient"
    ],
@@ -1027,7 +1299,9 @@
    "baseSuccessRate": 20,
    "attrMultiplier": 1,
    "maxSuccessRate": 95,
-   "minSuccessRate": 5
+   "minSuccessRate": 5,
+   "softMaxStart": 80,
+   "softMinStart": 20
   },
   "goddessStatue": {
    "title": "古老女神像",

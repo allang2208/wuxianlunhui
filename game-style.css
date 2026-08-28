@@ -1376,14 +1376,17 @@
         .top-right-hud {
             --top-right-instrument-height: 74px;
             --top-right-instrument-width: 250px;
+            --game-time-instrument-width: 286px;
+            --game-time-hud-overhang: calc(var(--game-time-instrument-width) - var(--top-right-instrument-width));
+            --top-right-hud-right-offset: calc(max(64px, 100px - var(--game-time-hud-overhang)));
             position: fixed;
             top: 12px;
-            right: 100px;
+            right: var(--top-right-hud-right-offset);
             z-index: 9998;
             display: flex;
             align-items: flex-start;
             gap: 8px;
-            max-width: calc(100vw - 120px);
+            max-width: calc(100vw - 12px - var(--top-right-hud-right-offset));
             pointer-events: none;
         }
         .basic-resource-bar {
@@ -1517,9 +1520,9 @@
             display: flex;
             align-items: center;
             flex: 0 0 auto;
-            width: var(--top-right-instrument-width);
-            min-width: var(--top-right-instrument-width);
-            max-width: var(--top-right-instrument-width);
+            width: var(--game-time-instrument-width);
+            min-width: var(--game-time-instrument-width);
+            max-width: var(--game-time-instrument-width);
             height: var(--top-right-instrument-height);
             box-sizing: border-box;
             gap: 8px;
@@ -1587,12 +1590,14 @@
         }
         .game-time .time-text {
             min-width: 0;
-            font-size: 14px;
+            flex: 1 1 auto;
+            font-size: clamp(12px, 2.3vw, 14px);
             font-weight: 700;
             color: #d4c5a9;
             letter-spacing: 1px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
             white-space: nowrap;
+            line-height: 1.1;
         }
 
         .world-invasion-hud {
