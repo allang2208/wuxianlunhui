@@ -1,0 +1,9 @@
+One large fantasy swamp mosquito performs a continuous forward-flight movement cycle while remaining centered in a strict right-facing side view. The camera is fully locked with no zoom, pan, rotation or reframing. The game will move the sprite at runtime, so the insect must not travel across the video frame.
+
+Maintain the approved suspended flight posture throughout the loop. The upper thorax and two wing roots remain the highest stable support point. The thorax leans only slightly forward, while the long segmented abdomen trails backward and downward toward the lower-left at approximately 25 to 35 degrees and never becomes a stiff horizontal line. Exactly six slender jointed legs stay beneath the body and stream gently backward in the airflow without becoming horizontal or forming a standing pose.
+
+Its single natural pair of transparent wings moves continuously at very high speed from the first frame to the last. The same two wings oscillate through a compact propulsion arc and form soft translucent motion-blur fans. Preserve the fine branching wing veins and thin glass-like membranes. The wing motion must clearly look more purposeful than the calm idle hover while still remaining a smooth repeating cycle.
+
+Preserve the reference image's charcoal-black body, dark burgundy segmented abdomen, red compound eye, two antennae, long mouthpart, exactly six legs and exactly two wings. Keep all anatomy, proportions, surface materials and side-view identity consistent in every frame. Use only a subtle repeated body pitch and gentle leg streaming to convey movement. Return naturally to the same flight phase and body posture for a seamless loop.
+
+Use a perfectly flat, uniform pure blue #0000FF background in every frame. No gradient, ground, horizon, shadow, reflection, scenery, fog, particles, plants, text, logo or watermark.

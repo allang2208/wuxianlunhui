@@ -1,0 +1,130 @@
+{
+  "video": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\video\\swamp-mosquito-attack-hanging-v01.mp4",
+  "decodedFrameCount": 121,
+  "sourceFrames": [
+    38,
+    44,
+    50,
+    56,
+    62,
+    68,
+    74,
+    80,
+    86,
+    92,
+    98,
+    104,
+    110,
+    116,
+    120
+  ],
+  "background": "#0000FF",
+  "clearRect": null,
+  "supportAlphaThreshold": 60,
+  "supportDilate": 24,
+  "blueSpillRadius": 10,
+  "blueSpillThreshold": 18,
+  "blueSpillPixels": {
+    "detected": 1942535,
+    "recolored": 856015,
+    "cleared": 1086520,
+    "blueCapped": 43954,
+    "disconnectedCleared": 13889
+  },
+  "clearOutputRect": null,
+  "clearOutputRectStart": 0,
+  "clearOutputRectsAt": {},
+  "cell": 512,
+  "cellWidth": 1280,
+  "cellHeight": 640,
+  "cols": 5,
+  "rows": 3,
+  "frameRate": 10.0,
+  "scale": 0.6685,
+  "fitScale": 0.8654970760233918,
+  "targetCore": [
+    720.0,
+    256.0
+  ],
+  "anchorMode": "first-frame",
+  "coreCenters": [
+    [
+      564.927,
+      357.113
+    ],
+    [
+      534.629,
+      343.401
+    ],
+    [
+      502.372,
+      325.976
+    ],
+    [
+      491.634,
+      317.864
+    ],
+    [
+      698.332,
+      316.821
+    ],
+    [
+      717.291,
+      321.882
+    ],
+    [
+      732.845,
+      322.756
+    ],
+    [
+      738.094,
+      327.773
+    ],
+    [
+      735.451,
+      332.43
+    ],
+    [
+      698.74,
+      353.65
+    ],
+    [
+      641.461,
+      350.151
+    ],
+    [
+      610.528,
+      348.293
+    ],
+    [
+      591.2,
+      350.134
+    ],
+    [
+      584.503,
+      349.129
+    ],
+    [
+      584.887,
+      352.332
+    ]
+  ],
+  "semiTransparentPixels": [
+    48339,
+    42503,
+    44276,
+    37755,
+    53951,
+    45996,
+    56148,
+    49021,
+    49159,
+    49891,
+    55208,
+    54961,
+    70797,
+    56599,
+    62356
+  ],
+  "output": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\rebuild-candidates\\attack-1280-despill10-v2\\attacking.png"
+}

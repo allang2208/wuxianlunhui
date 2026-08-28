@@ -1,0 +1,10 @@
+One large fantasy swamp mosquito hovers calmly in place in a strict right-facing side view. Keep the camera fully locked with no zoom, pan, rotation or reframing. Keep the entire insect centered and completely visible with wide empty margins throughout the clip.
+
+The flight posture must remain physically suspended from the wings for the entire shot. The upper thorax and the two wing roots are the highest stable support point and stay almost fixed in screen space. The long segmented abdomen hangs backward and downward toward the lower-left at approximately a 30 to 35 degree angle. It remains visibly lower than the thorax and never rises into a horizontal body line. All six slender jointed legs hang freely beneath the thorax and abdomen with relaxed bent joints; every foot stays below the body and none form a standing pose.
+
+Its single natural pair of transparent wings moves continuously at very high speed from the beginning to the end. The two wings oscillate through a small natural arc above the thorax and form soft translucent motion-blur fans. The motion blur belongs to the same two wings. Keep the fine branching wing veins visible and preserve the thin glass-like wing membranes instead of making them solid or opaque.
+
+Preserve the reference image's charcoal-black body, dark burgundy segmented abdomen, red compound eye, two fine antennae, long mouthpart and exactly six slender legs. Maintain the same proportions, surface details and side-view silhouette in every frame. Only a very subtle vertical hover bob is allowed around the fixed thorax support point. The mosquito does not travel across the frame, does not rotate, and naturally returns to a matching wing phase and hanging pose for a smooth loop.
+
+Use a perfectly flat, uniform pure blue #0000FF background in every frame. No gradient, ground, horizon, shadow, reflection, scenery, fog, particles, plants, text, logo or watermark.
+, isolated on a perfectly uniform solid pure blue background (#0000FF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects

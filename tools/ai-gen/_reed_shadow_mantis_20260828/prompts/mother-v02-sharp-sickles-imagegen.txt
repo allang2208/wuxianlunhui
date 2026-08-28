@@ -1,0 +1,26 @@
+MODE: OpenAI built-in image generation edit
+USE CASE: precise-object-edit
+ASSET TYPE: production game-creature animation mother frame correction
+EDIT TARGET: previews/reed-shadow-sickle-mantis-mother-v01-preview.png
+DATE: 2026-08-28
+
+Primary request:
+Change only the mantis's two raptorial front legs. Replace their current long walking-leg-like construction with two unmistakable, large, razor-sharp biological praying-mantis sickles.
+
+Required front-leg construction:
+- Keep exactly two raptorial forelegs, one near-side and one far-side, both attached naturally beneath the front of the thorax.
+- Each foreleg must have a thick elongated blade-shaped femur and a long tapered tibia folding tightly against it like a closing pocketknife, creating a powerful compact crescent/V-shaped sickle silhouette.
+- The opposing inner edges must carry one clean, orderly row of large triangular grasping spines that visibly interlock when the limb closes.
+- Give each tibia a sharply tapered hooked terminal point. Keep the tiny terminal tarsus short and subordinate so the limb reads as a cutting biological sickle, not another walking leg.
+- Hold both sickles raised in front of the chest and head, partially closed in an alert neutral guard. Neither sickle touches the ground, crosses the other, hides the face, or looks detached.
+- Make the near-side sickle fully readable and the far-side sickle slightly offset behind it. Preserve correct left/right pairing and continuous joints.
+
+Material and identity:
+The sickles remain natural mantis chitin, not metal weapons: reed-green and peat-brown on the outer surfaces, darker burgundy-brown along the serrated inner edges, with the same realistic roughness and PBR finish as the rest of the creature.
+
+Invariants:
+Change only the two raptorial forelegs. Preserve the exact head, eyes, antennae, mouthparts, neck/prothorax, thorax, abdomen, folded wings, four walking legs, all four walking-foot positions, body proportions, right-facing view, scale, framing, white background, lighting, color palette and rendering style from the input image.
+Keep exactly one mantis, exactly six total legs and exactly two antennae.
+
+Avoid:
+ordinary thin front walking legs, dangling foreclaws, blunt paddles, straight sticks, human arms or hands, detached claws, metal swords, manufactured scythes, extra forelegs, extra joints, duplicated limbs, fused sickles, crossed limbs, open attack swing, ground contact, blood, magic, glow, scenery, shadow, text, logo, watermark, crop, camera change or restyling.

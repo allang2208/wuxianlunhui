@@ -812,7 +812,9 @@
      "blackKingCobra",
      "medusa",
      "blackBear",
-     "purpleBlightAncient"
+     "purpleBlightAncient",
+     "swampVampireMosquito",
+     "reedShadowSickleMantis"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -846,7 +848,10 @@
      "blackKingCobra",
      "medusa",
      "blackBear",
-     "purpleBlightAncient"
+     "purpleBlightAncient",
+     "swampVampireMosquito",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
@@ -878,14 +883,16 @@
    "poolKeys": [
     "blackWolf",
     "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "blackKingCobra",
+    "medusa",
+    "blackBear",
+    "purpleBlightAncient",
+    "swampVampireMosquito",
+    "reedShadowSickleMantis"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -961,7 +968,9 @@
      "blackKingCobra",
      "medusa",
      "blackBear",
-     "purpleBlightAncient"
+     "purpleBlightAncient",
+     "swampVampireMosquito",
+     "reedShadowSickleMantis"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -995,7 +1004,10 @@
      "blackKingCobra",
      "medusa",
      "blackBear",
-     "purpleBlightAncient"
+     "purpleBlightAncient",
+     "swampVampireMosquito",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
@@ -1042,14 +1054,16 @@
    "poolKeys": [
     "blackWolf",
     "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "blackKingCobra",
+    "medusa",
+    "blackBear",
+    "purpleBlightAncient",
+    "swampVampireMosquito",
+    "reedShadowSickleMantis"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -1109,7 +1123,9 @@
      "blackKingCobra",
      "medusa",
      "blackBear",
-     "purpleBlightAncient"
+     "purpleBlightAncient",
+     "swampVampireMosquito",
+     "reedShadowSickleMantis"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -1143,7 +1159,10 @@
      "blackKingCobra",
      "medusa",
      "blackBear",
-     "purpleBlightAncient"
+     "purpleBlightAncient",
+     "swampVampireMosquito",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
@@ -1191,14 +1210,16 @@
    "poolKeys": [
     "blackWolf",
     "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "blackKingCobra",
+    "medusa",
+    "blackBear",
+    "purpleBlightAncient",
+    "swampVampireMosquito",
+    "reedShadowSickleMantis"
    ],
    "matchPoolRanks": true,
    "waveComposition": [

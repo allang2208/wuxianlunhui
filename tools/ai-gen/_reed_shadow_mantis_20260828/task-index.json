@@ -1,0 +1,218 @@
+{
+  "task": "reed-shadow-sickle-mantis",
+  "displayName": "芦影镰螳",
+  "date": "2026-08-28",
+  "status": "runtime-integrated-awaiting-user-test",
+  "generationMode": "imagegen-mother-plus-h3-local-video-plus-birefnet-rife",
+  "mother": "mother/reed-shadow-sickle-mantis-mother-v02-sharp-sickles-candidate.png",
+  "motherPreview": "previews/reed-shadow-sickle-mantis-mother-v02-sharp-sickles-preview.jpg",
+  "motherPrompt": "prompts/mother-v02-sharp-sickles-imagegen.txt",
+  "motherApproved": true,
+  "previousMother": "mother/reed-shadow-sickle-mantis-mother-v01-candidate.png",
+  "revision": "v02 replaces the walking-leg-like front-claw composition with two large, compact, razor-edged biological mantis sickles",
+  "styleReferences": [
+    "../_swamp_vampire_mosquito_20260828/mother/swamp-vampire-mosquito-mother-v02-hanging-hover-candidate.png",
+    "../_black_king_cobra_20260825/references/black-king-cobra-mother-accepted.png",
+    "../_carnivorous_pitcher_20260826/mother/carnivorous-pitcher-mother-v03-photorealistic-white.png"
+  ],
+  "identityLocks": [
+    "reed-green and peat-brown natural chitin",
+    "deep burgundy compound eyes",
+    "long reed-like prothorax",
+    "two broad serrated biological raptorial forelegs",
+    "folded leaf-veined forewings",
+    "exactly six connected legs and two antennae"
+  ],
+  "doubaoAttempt": {
+    "provider": "doubao-desktop",
+    "modelRequested": "Seedance 2.0 Mini",
+    "motion": "idle",
+    "status": "quota-exhausted-no-video-generated",
+    "quotaRestoreNotice": "2026-09-02 18:59 Asia/Shanghai",
+    "paidUpgradeOrCreditPurchaseAuthorized": false,
+    "submittedPromptCopy": "videos/idle-doubao-v01_doubao_bg.txt"
+  },
+  "videoFallback": {
+    "provider": "minimax-h3-local",
+    "reason": "Doubao seven-day video quota exhausted",
+    "size": "1024x576",
+    "durationSeconds": 5.17,
+    "sourceFrameCount": 124,
+    "sourceFrameRate": 24,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "visualProfile": "character-asset",
+    "audioMode": "visual-only",
+    "background": "#FFFFFF"
+  },
+  "references": {
+    "general": "references/reed-shadow-sickle-mantis-general-safe-white-1024x576.png",
+    "attackDirectional": "references/reed-shadow-sickle-mantis-attack-directional-safe-white-1024x576.png",
+    "bilateralSweep": "references/reed-shadow-sickle-mantis-bilateral-sweep-safe-white-1024x576.png",
+    "death": "references/reed-shadow-sickle-mantis-death-safe-white-1024x576.png"
+  },
+  "futureGameplayIntents": [
+    {
+      "attackId": "fanSweep",
+      "implementationStatus": "runtime-integrated",
+      "shape": "sector",
+      "direction": "forward",
+      "visualMotion": "both sickles extend forward, then immediately slash hard toward their respective anatomical left-rear and right-rear sides; the backward cuts traverse the frontal sector",
+      "hitPolicy": "each target at most once per action",
+      "onHit": {
+        "status": "bleeding",
+        "stackCount": 3
+      },
+      "range": 280,
+      "arcDegrees": 120,
+      "damageMultiplier": 1.15,
+      "cooldownMs": 8500,
+      "triggerRange": 300,
+      "durationMs": 1542,
+      "contactFrame": 20,
+      "futureContract": "implemented as a dedicated GroundSector timeline driven by the approved contact frame; per-target LOS, footprint intersection, melee pipeline, one-hit set and post-parry three-stack bleeding"
+    }
+  ],
+  "rejectedVideoCandidates": [
+    {
+      "motion": "attackingFanSweep",
+      "version": "v01",
+      "status": "rejected-internal-review",
+      "reason": "one sickle swept screen-left across the rear body, contradicting the forward-sector AOE",
+      "prompt": "prompts/attacking-fan-sweep-h3-v01.txt",
+      "artifactsRemoved": true
+    },
+    {
+      "motion": "attackingFanSweep",
+      "version": "v02",
+      "status": "rejected-by-user",
+      "reason": "both sickles only extended and opened, then held; there was no rapid slash or convincing force",
+      "prompt": "prompts/attacking-fan-sweep-h3-v02-front-sector.txt",
+      "artifactsRemoved": true
+    },
+    {
+      "motion": "attackingFanSweep",
+      "version": "v03",
+      "status": "rejected-internal-review",
+      "reason": "the backward slash had force, but the source video repeated the forward-extension and backslash cycle twice",
+      "prompt": "prompts/attacking-fan-sweep-h3-v03-power-backslash.txt",
+      "artifactsRemoved": true
+    }
+  ],
+  "tasks": [
+    {
+      "motion": "idle",
+      "status": "approved-and-integrated",
+      "actionMode": "loop",
+      "seed": 1401180652,
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "reference": "references/reed-shadow-sickle-mantis-general-safe-white-1024x576.png",
+      "video": "videos/idle-h3-v01.mp4",
+      "provenance": "videos/idle-h3-v01.mp4.json",
+      "contactSheet": "videos/idle-h3-v01_contact.png",
+      "previewGif": "previews/idle-h3-v01.gif",
+      "review": "restrained planted idle; sharp sickles preserved; first and last frames locked to the same reference"
+    },
+    {
+      "motion": "moving",
+      "status": "approved-and-integrated",
+      "actionMode": "loop",
+      "seed": 1129183215,
+      "prompt": "prompts/moving-doubao-v01.txt",
+      "reference": "references/reed-shadow-sickle-mantis-general-safe-white-1024x576.png",
+      "video": "videos/moving-h3-v01.mp4",
+      "provenance": "videos/moving-h3-v01.mp4.json",
+      "contactSheet": "videos/moving-h3-v01_contact.png",
+      "previewGif": "previews/moving-h3-v01.gif",
+      "review": "four ordinary walking legs alternate in place; both sickles remain raised and do not become walking legs"
+    },
+    {
+      "motion": "attacking",
+      "status": "approved-and-integrated",
+      "actionMode": "recover",
+      "seed": 1269210396,
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "reference": "references/reed-shadow-sickle-mantis-attack-directional-safe-white-1024x576.png",
+      "video": "videos/attacking-h3-v01.mp4",
+      "provenance": "videos/attacking-h3-v01.mp4.json",
+      "contactSheet": "videos/attacking-h3-v01_contact.png",
+      "denseContactSheet": "previews/attacking-h3-v01-dense-contact.png",
+      "impactContactSheet": "previews/attacking-h3-v01-impact-frames.png",
+      "previewGif": "previews/attacking-h3-v01.gif",
+      "review": "single near-side then far-side crossed scissor attack, complete recovery, no source-video edge contact"
+    },
+    {
+      "motion": "attackingFanSweep",
+      "status": "approved-and-integrated",
+      "actionMode": "recover",
+      "seed": 1413926894,
+      "prompt": "prompts/attacking-fan-sweep-h3-v04-single-power-backslash-2s.txt",
+      "reference": "references/reed-shadow-sickle-mantis-bilateral-sweep-safe-white-1024x576.png",
+      "lastFrameReference": "references/reed-shadow-sickle-mantis-bilateral-sweep-safe-white-1024x576.png",
+      "video": "videos/attacking-fan-sweep-h3-v04.mp4",
+      "provenance": "videos/attacking-fan-sweep-h3-v04.mp4.json",
+      "contactSheet": "videos/attacking-fan-sweep-h3-v04_contact.png",
+      "allFramesContactSheet": "previews/attacking-fan-sweep-h3-v04-all-frames.png",
+      "previewGif": "previews/attacking-fan-sweep-h3-v04.gif",
+      "durationSeconds": 2.0,
+      "sourceFrameCount": 56,
+      "sourceFrameRate": 24,
+      "steps": 20,
+      "review": "one fast forward extension followed immediately by one powerful mirrored slash toward the two anatomical rear sides, with visible overtravel, recoil and a single stable recovery; no repeated attack cycle"
+    },
+    {
+      "motion": "dying",
+      "status": "approved-and-integrated",
+      "actionMode": "one-way",
+      "seed": 17965981,
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "reference": "references/reed-shadow-sickle-mantis-death-safe-white-1024x576.png",
+      "video": "videos/dying-h3-v01.mp4",
+      "provenance": "videos/dying-h3-v01.mp4.json",
+      "contactSheet": "videos/dying-h3-v01_contact.png",
+      "previewGif": "previews/dying-h3-v01.gif",
+      "review": "one-way grounded side collapse with a stable corpse hold and inward-curled intact sickles"
+    }
+  ],
+  "spriteSheetManifest": "sprite-sheet-manifest.json",
+  "formalSprites": {
+    "idle": { "frameCount": 30, "frameRate": 12, "frameWidth": 640, "frameHeight": 640, "loop": true },
+    "walking": { "frameCount": 40, "frameRate": 16, "frameWidth": 640, "frameHeight": 640, "loop": true },
+    "attacking": { "frameCount": 35, "frameRate": 24, "frameWidth": 768, "frameHeight": 640, "loop": false, "contactFrame": 10 },
+    "fan_sweep": { "frameCount": 37, "frameRate": 24, "frameWidth": 896, "frameHeight": 640, "loop": false, "contactFrame": 20 },
+    "dying": { "frameCount": 27, "frameRate": 16, "frameWidth": 640, "frameHeight": 640, "loop": false }
+  },
+  "runtimeAssets": {
+    "directory": "../../../assets/enemies/reed_shadow_sickle_mantis",
+    "configId": "reedShadowSickleMantis",
+    "entityClass": "ReedShadowSickleMantisEnemy",
+    "states": ["idle", "walking", "attacking", "fan_sweep", "dying"]
+  },
+  "fanSweepArtifactFix": {
+    "status": "fixed",
+    "issue": "bright low-saturation H3 motion-smear and compressed white-background patches were baked into the alpha mask as opaque white blocks",
+    "resolution": "fan-sweep-only pale-motion alpha suppression before decontamination, followed by one-shot RIFE rebuild and runtime replacement",
+    "sourceFrameCount": 19,
+    "outputFrameCount": 37,
+    "frameWidth": 896,
+    "contactFrame": 20
+  },
+  "fanSweepPhaserEffect": {
+    "status": "runtime-integrated",
+    "class": "ReedMantisSweepEffect",
+    "source": "../../../src/effects/reed-mantis-sweep-effect.js",
+    "visualOnly": true,
+    "bladeCount": 2,
+    "range": 280,
+    "arcDegrees": 120,
+    "durationMs": 360,
+    "releaseFrame": 20,
+    "rendering": "NORMAL dark support plus ADD reed-green glow and sharp core"
+  },
+  "animationsGenerated": true,
+  "formalSpritesGenerated": true,
+  "rifeInterpolationGenerated": true,
+  "runtimeIntegrationActive": true,
+  "nextGate": "user runtime validation of scale, footline, contact timing, fan-sector hit behavior, bleeding, parry, LOS and swamp elite spawns"
+}

@@ -1,0 +1,88 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\spritesheets\\key\\charge-mosquito-clean-v4.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\spritesheets\\runtime\\charge-key.png",
+  "frameCount": 16,
+  "frameWidth": 768,
+  "frameHeight": 640,
+  "cols": 5,
+  "rows": 4,
+  "rootLock": "integer X translation on approved source keys before RIFE; Y unchanged",
+  "sourceFrames": [
+    0,
+    8,
+    16,
+    24,
+    32,
+    48,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    88,
+    104,
+    120
+  ],
+  "phaseTiming": {
+    "totalMs": 2400,
+    "prepare": {
+      "keyRange": [
+        0,
+        6
+      ],
+      "durationMs": 960
+    },
+    "charge": {
+      "keyRange": [
+        6,
+        12
+      ],
+      "durationMs": 960
+    },
+    "recovery": {
+      "keyRange": [
+        12,
+        15
+      ],
+      "durationMs": 480
+    },
+    "note": "source 56..80 is preserved across the complete runtime charge phase instead of compressed into half a second"
+  },
+  "sourceCoreX": [
+    193.273,
+    187.375,
+    183.266,
+    182.952,
+    182.817,
+    182.834,
+    200.758,
+    398.733,
+    487.382,
+    517.7,
+    526.568,
+    534.6,
+    532.391,
+    435.713,
+    194.252,
+    189.63
+  ],
+  "blueSpillCleanup": {
+    "radius": 6,
+    "threshold": 6,
+    "pipeline": "BiRefNet source rebuild + swamp mosquito nearest-clean recolor/remote haze clear + opaque edge RGB decontamination",
+    "pixels": {
+      "detected": 0,
+      "recolored": 0,
+      "cleared": 0,
+      "blueCapped": 0,
+      "disconnectedCleared": 2
+    }
+  },
+  "opaqueEdgeCleanup": {
+    "alphaFloor": 12,
+    "faintAlphaCleared": 4583,
+    "edgeRgbRecolored": 190754
+  }
+}

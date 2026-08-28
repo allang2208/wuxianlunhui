@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-28T09:26:30.410189+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\dying-h3-v01.mp4",
+    "bytes": 289409,
+    "sha256": "780f333ae132ec10f822c497df7e0160977cd54042f942a3406130aa20311aab"
+  },
+  "promptId": "5492a0a1-4e03-48e5-b727-588e5655c99d",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 17965981,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting through the collapse.\n\nAnimate one irreversible grounded death. Begin in the original guarded pose. Strength leaves the four walking legs unevenly; the abdomen sinks, the long prothorax tilts, and the mantis loses balance onto its visible side. The walking legs buckle and fold naturally without detaching. Both sickle forelegs loosen and curl inward toward the body through their real joints, remaining recognizable sharp mantis blades. The head and antennae settle last. End as one complete stable motionless corpse with the closed wing covers still attached, then hold the final corpse pose with no breathing or recovery.\n\nStatic locked wide camera, fixed scale, strict right-facing side view at the start, pure white background, soft even studio light. Preserve the wide framing and allow the natural horizontal spread of the fallen body. Never zoom, crop, reframe, pan or track the fall. Keep the complete antennae, abdomen, all folded walking legs and both full sickle blades safely inside frame at every moment.\n\nThis is a one-way action and must not loop, reverse, bounce, twitch repeatedly, stand back up or return to the first frame. No blood, gore, dismemberment, broken body, detached limbs, wing opening, flight, attack, target, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing.",
+  "effectivePrompt": "Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting through the collapse.\n\nAnimate one irreversible grounded death. Begin in the original guarded pose. Strength leaves the four walking legs unevenly; the abdomen sinks, the long prothorax tilts, and the mantis loses balance onto its visible side. The walking legs buckle and fold naturally without detaching. Both sickle forelegs loosen and curl inward toward the body through their real joints, remaining recognizable sharp mantis blades. The head and antennae settle last. End as one complete stable motionless corpse with the closed wing covers still attached, then hold the final corpse pose with no breathing or recovery.\n\nStatic locked wide camera, fixed scale, strict right-facing side view at the start, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even studio light. Preserve the wide framing and allow the natural horizontal spread of the fallen body. Never zoom, crop, reframe, pan or track the fall. Keep the complete antennae, abdomen, all folded walking legs and both full sickle blades safely inside frame at every moment.\n\nThis is a one-way action and must not loop, reverse, bounce, twitch repeatedly, stand back up or return to the first frame. No blood, gore, dismemberment, broken body, detached limbs, wing opening, flight, attack, target, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting through the collapse.\n\nAnimate one irreversible grounded death. Begin in the original guarded pose. Strength leaves the four walking legs unevenly; the abdomen sinks, the long prothorax tilts, and the mantis loses balance onto its visible side. The walking legs buckle and fold naturally without detaching. Both sickle forelegs loosen and curl inward toward the body through their real joints, remaining recognizable sharp mantis blades. The head and antennae settle last. End as one complete stable motionless corpse with the closed wing covers still attached, then hold the final corpse pose with no breathing or recovery.\n\nStatic locked wide camera, fixed scale, strict right-facing side view at the start, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even studio light. Preserve the wide framing and allow the natural horizontal spread of the fallen body. Never zoom, crop, reframe, pan or track the fall. Keep the complete antennae, abdomen, all folded walking legs and both full sickle blades safely inside frame at every moment.\n\nThis is a one-way action and must not loop, reverse, bounce, twitch repeatedly, stand back up or return to the first frame. No blood, gore, dismemberment, broken body, detached limbs, wing opening, flight, attack, target, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "bc5086c898ee1c8d4846629c6261209371a0801b358024379b5cca532c7479ed",
+  "effectivePromptSha256": "bb6ca4d8eac3f4b401aa941e3f4ee99b10e0e7def4b3766902f4d268f93c6102",
+  "finalPromptSha256": "19ed32863161ee00f56319d5351e57bc60e13cf2608116183f6e0771668b0794",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\prompts\\dying-doubao-v01.txt",
+      "bytes": 2026,
+      "sha256": "cc1474bca341ce0822e564cc2d8c6a788e36450c9ed36861acdd2dfcecbf2a75"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\references\\reed-shadow-sickle-mantis-death-safe-white-1024x576.png",
+      "bytes": 201986,
+      "sha256": "c2989a7f98138bc58c6b26fa826c96d0a9edbf0ef6a51956cf20ac6fc24b417b"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\dying-h3-v01_contact.png",
+    "bytes": 194845,
+    "sha256": "a987edf7bd72210339ec2c3bf84b663ea846a3d5f8a448a3d93c9a5a8cf2dc8a"
+  },
+  "elapsedSeconds": 430.474
+}

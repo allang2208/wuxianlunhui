@@ -1,0 +1,41 @@
+{
+  "video": "videos\\dying-h3-v01.mp4",
+  "decodedFrameCount": 124,
+  "sourceFrames": [
+    0,
+    6,
+    12,
+    18,
+    24,
+    30,
+    36,
+    42,
+    48,
+    54,
+    60,
+    72,
+    96,
+    123
+  ],
+  "normalization": "fixed per-action rear-body core width; thin sickles, legs and antennae excluded",
+  "sourceRearBodyWidth": 491,
+  "targetRearBodyWidth": 260.0,
+  "scale": 0.5295315682281059,
+  "anchor": "source-motion-grounded",
+  "frameWidth": 640,
+  "frameHeight": 640,
+  "columns": 8,
+  "rows": 2,
+  "frameCount": 14,
+  "sourceFrameRate": 8.0,
+  "footY": 560,
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 559,
+    "alphaBottomMax": 559,
+    "semiTransparentPixels": 182784,
+    "nonzeroRgbInTransparentPixels": 0
+  },
+  "output": "spritesheets\\source-pre-rife\\dying.png"
+}

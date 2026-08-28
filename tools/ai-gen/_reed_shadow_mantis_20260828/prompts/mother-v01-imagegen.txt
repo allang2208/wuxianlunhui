@@ -1,0 +1,38 @@
+MODE: OpenAI built-in image generation
+USE CASE: stylized-concept
+ASSET TYPE: production identity mother frame for a Phaser game monster animation pipeline
+DATE: 2026-08-28
+
+Primary request:
+Create exactly one adult Reed-Shadow Sickle Mantis (Chinese identity: 芦影镰螳), a large natural swamp-insect elite monster, holding a calm animation-friendly neutral ground stance.
+
+Style references:
+Use the provided swamp vampire mosquito, black king snake and carnivorous pitcher plant images only as references for the established visual finish: anatomically credible creature design, restrained realistic PBR game materials, clean production render, soft neutral studio light and pure white background. Do not copy their anatomy, pose or exact markings.
+
+Subject identity:
+- A physically plausible adult praying mantis, natural rather than magical, with exactly one head, one long narrow prothorax, one continuous segmented abdomen and exactly six jointed legs.
+- Two powerful raptorial forelegs are folded in a readable guarded neutral pose; each foreleg has one continuous femur and tibia with a single orderly row of believable grasping spines, forming the monster's dark sickle silhouette without becoming metal blades or weapons.
+- Four walking legs support believable weight on one common baseline. All six feet and all joints remain readable, separated and anatomically connected.
+- One natural pair of leathery forewings lies folded flat along the abdomen, with the hidden hindwings fully closed beneath them. Wings are biological insect anatomy for a later threat display only; no hovering or flight posture.
+- Elongated triangular head, two large deep burgundy compound eyes, short mouthparts, and exactly two thin antennae.
+
+Color and material identity anchors:
+- Reed-green and peat-brown mottled chitin with muted olive midtones and sparse dark marsh staining.
+- Deep burgundy compound eyes and subtle dark wine-red accents at the abdominal segment joints.
+- Long reed-like prothorax, broad serrated sickle forelegs, folded leaf-veined forewings and low angular abdomen are the permanent identity anchors.
+- High-detail biological chitin with realistic roughness, fine restrained surface wear and subtle color variation; no glossy plastic or toy surface.
+
+Pose:
+Strict right-facing side profile with only a very slight low three-quarter separation so all six legs can be counted. Body held low and stable over the four walking legs; abdomen nearly horizontal with a gentle natural downward taper. Raptorial forelegs raised and folded close to the chest, not attacking. Head alert but calm. Center of gravity and all four walking-leg contacts are physically believable on one baseline.
+
+Composition and camera:
+Square canvas, orthographic-style locked camera, complete single creature fully visible. Subject occupies about 68 percent of canvas width and no more than 72 percent of canvas height, centered with generous safety margins for later video generation. No crop and no body part touching the canvas edge.
+
+Scene and lighting:
+Pure solid white #FFFFFF background, no floor, no horizon, no cast shadow, no contact shadow and no reflection. Soft flat diffuse neutral studio illumination with restrained contrast, matching a clean production-ready 3D game creature render.
+
+Constraints:
+Exactly one mantis; exactly six legs; exactly two antennae; correct continuous insect anatomy; all limbs connected; one readable silhouette. No armor, clothing, carried weapon, jewelry, runes, glow, magic, particles, scenery, reeds, mud, plants, text, logo or watermark.
+
+Avoid:
+extra or missing legs, duplicated forelegs, human hands, metal scythes, blade prosthetics, tangled limbs, fused feet, broken joints, split abdomen, extra head, extra eyes, open wings, hovering, flight pose, attack pose, front view, top view, perspective distortion, cinematic rim light, hard shadow, motion blur, crop, cartoon, anime, chibi, flat illustration, low-poly toy, glossy plastic, photo backdrop.

@@ -1,0 +1,13 @@
+The exact Reed-Shadow Sickle Mantis from the first frame performs exactly one planted double-sickle horizontal fan sweep across the space in front of its head, then fully recovers.
+
+Preserve the same strict right-facing side view, wedge head, burgundy eyes, two antennae, long reed-like prothorax, olive and peat-brown chitin, closed leaf-veined forewings, four walking legs, and exactly two large serrated hooked mantis sickles.
+
+Screen-space rule: every part of both sickles stays screen-right of the head. Neither blade travels across the neck, wings, abdomen or rear body. “Left and right” mean anatomical sides within the forward fan, not screen-left and screen-right.
+
+Action phases: four feet brace and the body lowers. Both sickles cross just in front of the face. They sweep horizontally outward in mirrored arcs while staying entirely in front: the far sickle opens through the upper/deeper half, the near sickle through the lower/nearer half. The blades separate like opening shears and cover both lateral halves of one frontal sector. At maximum spread, the far hook points upper-right and the near hook lower-right, both well right of the face. Hold one contact beat, retract through natural joints, and return to the exact original guard and position. One sweep only, no thrust.
+
+The body remains planted without translation. Walking legs only brace. Both sickles stay broad, sharp, connected biological blades with readable serrations and never become walking legs, thin arms or duplicate parts.
+
+Locked ultra-wide camera, fixed scale and left-side placement, pure white background, diffuse light. Keep the full subject and spread sickles inside frame with large margins.
+
+No rearward blade, screen-left sweep, repeat, thrust, vertical chop, spin, jump, flight, target, blood, hit effect, shadow, floor, scenery, text or watermark. Exactly six connected legs and two antennae; no identity drift, zoom, crop or camera motion.

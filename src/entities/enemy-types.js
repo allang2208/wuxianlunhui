@@ -13,6 +13,7 @@ import {
 import { burstParticles } from '../effects/combat-fx.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { VenomSprayEffect } from '../effects/venom-spray-effect.js';
+import { ReedMantisSweepEffect } from '../effects/reed-mantis-sweep-effect.js';
 import { MedusaPetrifyingGazeFx } from '../effects/medusa-petrifying-gaze-fx.js';
 import { VineEntangleEffect } from '../effects/vine-entangle-effect.js';
 import { DamagePipeline } from '../combat/damage-pipeline.js';
@@ -2465,6 +2466,329 @@ function createBrownSnake(x, y, overrides = {}) {
  * 黑色眼镜蛇王：沿用蛇类四动作与定向普通近战，在独立冷却上追加一次
  * 锁方向的扇形毒液喷射。普通咬击与喷射都通过确认命中钩子叠毒。
  */
+class SwampVampireMosquitoEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.swampVampireMosquito,
+            ...config,
+        });
+        this.noCollision = this.config?.noCollision ?? true;
+        this._bloodDrainPreHitHp = new WeakMap();
+    }
+
+    _getSwampVampireMosquitoVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getSwampVampireMosquitoVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_swamp_vampire_mosquito_${this._getSwampVampireMosquitoVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getSwampVampireMosquitoVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_swamp_vampire_mosquito_${visualState}_v1`;
+        return options;
+    }
+
+    _onHitEntity(target) {
+        super._onHitEntity(target);
+        if (target && (typeof target === 'object' || typeof target === 'function')) {
+            const hp = Number(target.hp);
+            if (Number.isFinite(hp)) this._bloodDrainPreHitHp.set(target, Math.max(0, hp));
+        }
+    }
+
+    _onConfirmedHitEntity(target) {
+        if (!target || !this._bloodDrainPreHitHp.has(target)) return;
+        const hpBefore = this._bloodDrainPreHitHp.get(target);
+        this._bloodDrainPreHitHp.delete(target);
+        const hpAfter = Math.max(0, Number(target.hp) || 0);
+        const damageDealt = Math.max(0, hpBefore - hpAfter);
+        const healPercent = Math.max(0, Number(
+            this.config?.attackSkills?.bloodDrain?.healPercent
+        ) || 0);
+        if (damageDealt <= 0 || healPercent <= 0 || !(this.hp > 0)) return;
+        this.hp = Math.min(this.maxHp, this.hp + damageDealt * healPercent);
+    }
+}
+
+function createSwampVampireMosquito(x, y, overrides = {}) {
+    const base = enemyConfigData.swampVampireMosquito || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new SwampVampireMosquitoEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 芦影镰螳：敏捷大型昆虫精英。普通攻击保持锁向单体交错镰斩；独立冷却
+ * 的双镰裂扇播放专属宽格动画，在真实回扫接触帧结算一次前方扇形 AOE。
+ */
+class ReedShadowSickleMantisEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.reedShadowSickleMantis,
+            ...config,
+        });
+        this._fanSweepCfg = this.config?.attackSkills?.fanSweep || {};
+        this._fanSweepCooldown = Math.max(
+            0,
+            Number(this._fanSweepCfg.initialCooldownMs) || 0
+        );
+        this._fanSweepActive = false;
+        this._fanSweepTimer = 0;
+        this._fanSweepReleased = false;
+        this._fanSweepAngle = 0;
+        this._fanSweepHitSet = new Set();
+    }
+
+    _getReedMantisVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getReedMantisVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_reed_shadow_sickle_mantis_${this._getReedMantisVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getReedMantisVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_reed_shadow_sickle_mantis_${visualState}_v1`;
+        return options;
+    }
+
+    update(dt, entities) {
+        super.update(dt, entities);
+        if (!this.active) return;
+
+        const attackDt = this.getAttackIntervalDelta(dt);
+        this._fanSweepCooldown = Math.max(0, this._fanSweepCooldown - attackDt);
+        const controlled = this.hasStatusEffect
+            && (this.hasStatusEffect('stun')
+                || this.hasStatusEffect('frozen')
+                || this.hasStatusEffect('fear')
+                || this.hasStatusEffect('petrified'));
+
+        if (this._fanSweepActive) {
+            if (controlled) this._cancelFanSweep();
+            else this._updateFanSweep(dt, entities);
+        } else if (!controlled && this._fanSweepCooldown <= 0
+                && this._canStartFanSweep(this.target)) {
+            this._startFanSweep(this.target);
+        }
+
+        // ZombieDog 的通用速度状态机不认识专属横扫态；基类更新后锁回专属表。
+        if (this._fanSweepActive) this._animState = 'fan_sweep';
+    }
+
+    _canStartFanSweep(target) {
+        if (!target?.active || target._isDead || target.hittable === false
+            || target._faction === 'enemy' || !(target.hp > 0)) return false;
+        if (this._attackTimer > 0 || this._attackAnimTimer > 0
+            || this._pendingThrust?.active || this._attackTelegraphTimer > 0) return false;
+        const range = Math.max(0, Number(this._fanSweepCfg.triggerRange) || 300);
+        if (distanceToEntityShape(target, this.x, this.y) > range) return false;
+        const tx = target.collider?.x ?? target.x;
+        const ty = target.collider?.y ?? target.y;
+        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+        return !WallSystem?.blocked?.(this.collider?.x ?? this.x, this.collider?.y ?? this.y, tx, ty, ignore);
+    }
+
+    _startFanSweep(target) {
+        const duration = Math.max(100, Number(this._fanSweepCfg.durationMs) || 1542);
+        this._fanSweepActive = true;
+        this._fanSweepTimer = duration;
+        this._fanSweepReleased = false;
+        this._fanSweepHitSet.clear();
+        this._fanSweepAngle = Math.atan2(target.y - this.y, target.x - this.x);
+        this._fanSweepCooldown = Math.max(0, Number(this._fanSweepCfg.cooldown) || 8500);
+        this._frozenForCast = true;
+        this._animState = 'fan_sweep';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.rotation = this._fanSweepAngle;
+        this._lastHorizontalFacing = Math.cos(this._fanSweepAngle) < 0 ? 'left' : 'right';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+    }
+
+    _updateFanSweep(dt, entities) {
+        const duration = Math.max(100, Number(this._fanSweepCfg.durationMs) || 1542);
+        this._fanSweepTimer = Math.max(0, this._fanSweepTimer - Math.max(0, Number(dt) || 0));
+        const frameCount = Math.max(1, Math.floor(Number(this._fanSweepCfg.frameCount) || 37));
+        const contactFrame = Math.max(0, Math.min(
+            frameCount - 1,
+            Math.floor(Number(this._fanSweepCfg.contactFrame) || 0)
+        ));
+        const releaseAtMs = duration * contactFrame / frameCount;
+        const elapsed = duration - this._fanSweepTimer;
+        if (!this._fanSweepReleased && elapsed >= releaseAtMs) {
+            this._fanSweepReleased = true;
+            this._releaseFanSweep(entities);
+        }
+        this._frozenForCast = true;
+        this._animState = 'fan_sweep';
+        this.rotation = this._fanSweepAngle;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._fanSweepTimer <= 0) this._cancelFanSweep();
+    }
+
+    _releaseFanSweep(entities) {
+        const cfg = this._fanSweepCfg;
+        const range = Math.max(1, Number(cfg.range) || 280);
+        const arcDegrees = Math.max(1, Number(cfg.arcDegrees) || 120);
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        const shape = new GroundSector(
+            originX,
+            originY,
+            this._fanSweepAngle,
+            range,
+            arcDegrees * Math.PI / 180,
+            surfaceEffectFromEntity(this)
+        );
+        EffectManager.add(new ReedMantisSweepEffect({
+            x: originX,
+            y: originY,
+            angle: this._fanSweepAngle,
+            range,
+            arcDegrees,
+            durationMs: cfg.effectDurationMs,
+            innerRadius: cfg.effectInnerRadius,
+            bladeWidth: cfg.effectBladeWidth,
+            depth: Number.isFinite(this._phaserSprite?.depth)
+                ? this._phaserSprite.depth + 0.12
+                : null,
+        }));
+        const damage = Math.max(1, Math.round(
+            (this.data?.atk || this.data?.str || 20) * (Number(cfg.damageMultiplier) || 1.15)
+        ));
+        const candidates = new Set(entities?.values ? entities.values() : (entities || []));
+        for (const member of PartySystem.members || []) candidates.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            candidates.add(friendly);
+        }
+
+        for (const target of candidates) {
+            if (!target || target === this || !target.active || target._isDead
+                || target.hittable === false || !(target.hp > 0)
+                || target._faction === 'enemy' || this._fanSweepHitSet.has(target)) continue;
+            if (isFriendlyFire(this, target) || !shape.intersectsEntity(target)) continue;
+
+            const targetX = target.collider?.x ?? target.x;
+            const targetY = target.collider?.y ?? target.y;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (WallSystem?.blocked?.(originX, originY, targetX, targetY, ignore)) {
+                const structureInReach = target._isDefenseStructure
+                    && distanceToEntityShape(target, originX, originY) <= range;
+                if (!structureInReach) continue;
+            }
+
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: cfg.damageType || 'physical',
+                knockback: Number(cfg.knockback) || 24,
+                angle: Math.atan2(targetY - originY, targetX - originX),
+                isMelee: true,
+                confirmedHitContext: {
+                    skillId: 'reedMantisFanSweep',
+                    bleedingStacksOverride: Math.max(
+                        0,
+                        Math.floor(Number(cfg.bleedingStacks) || 0)
+                    ),
+                },
+            });
+            if (result.hit) this._fanSweepHitSet.add(target);
+        }
+    }
+
+    _onConfirmedHitEntity(target, context = {}) {
+        if (context.skillId !== 'reedMantisFanSweep'
+            || !target?.active || target._isDead || !(target.hp > 0)
+            || typeof target.applyBleeding !== 'function') return;
+        const stacks = Math.max(
+            0,
+            Math.floor(Number(context.bleedingStacksOverride) || 0)
+        );
+        if (stacks > 0) target.applyBleeding(stacks);
+    }
+
+    _cancelFanSweep() {
+        this._fanSweepActive = false;
+        this._fanSweepTimer = 0;
+        this._fanSweepReleased = false;
+        this._fanSweepHitSet.clear();
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this._animStateTimer = 0;
+        this._animFrame = 0;
+        this.aiTimer = 0;
+    }
+
+    onDeath(source) {
+        this._fanSweepActive = false;
+        this._fanSweepTimer = 0;
+        this._fanSweepReleased = false;
+        this._fanSweepHitSet.clear();
+        this._frozenForCast = false;
+        super.onDeath(source);
+    }
+}
+
+function createReedShadowSickleMantis(x, y, overrides = {}) {
+    const base = enemyConfigData.reedShadowSickleMantis || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new ReedShadowSickleMantisEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 黑色眼镜蛇王：沿用蛇类四动作与定向普通近战，在独立冷却上追加一次
+ * 锁方向的扇形毒液喷射。普通咬击与喷射都通过确认命中钩子叠毒。
+ */
 class BlackKingCobraEnemy extends BrownSnakeEnemy {
     constructor(x, y, config = {}) {
         super(x, y, {
@@ -3023,6 +3347,567 @@ function createMedusa(x, y, overrides = {}) {
  * 播放人变熊动画并进入强化四足近战阶段。两种形态共用同一生命链，
  * 只在变熊完成时应用一次既有属性倍率。
  */
+class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.rotbogRhinocerosBeetleKing,
+            ...config,
+        });
+        this._chargeCfg = this.config?.attackSkills?.mudCharge || {};
+        this._summonCfg = this.config?.attackSkills?.broodCommand || {};
+        this._phaseCfg = this.config?.phase || {};
+        this._chargeCooldown = Math.max(0, Number(this._chargeCfg.initialCooldownMs) || 0);
+        this._chargeState = 'idle'; // idle | prepare | charge | recovery
+        this._chargeTimer = 0;
+        this._chargeDir = { x: 1, y: 0 };
+        this._chargeTargetPos = null;
+        this._chargeSpeed = 0;
+        this._chargeHit = false;
+
+        this._summonCooldown = Math.max(0, Number(this._summonCfg.initialCooldownMs) || 0);
+        this._summonActive = false;
+        this._summonTimer = 0;
+        this._summonReleased = false;
+        this._summons = new Set();
+        this._lastEntities = null;
+
+        this._phaseOpenTriggered = false;
+        this._phaseOpening = false;
+        this._phaseOpened = false;
+        this._phaseTimer = 0;
+        this._baseRotbogSpeed = Math.max(0, Number(this.speed) || 0);
+
+        const meleeAttack = this.attacks?.melee;
+        if (meleeAttack?.checkTriangleHit) {
+            const fallbackCheck = meleeAttack.checkTriangleHit.bind(meleeAttack);
+            meleeAttack.checkTriangleHit = (source) => {
+                if (source === this) {
+                    this._resolveHornSweepAoe();
+                    return;
+                }
+                fallbackCheck(source);
+            };
+        }
+    }
+
+    _getRotbogVisualState(state = this._animState) {
+        if (state === 'death') return 'dying';
+        if (state === 'run' || state === 'walk') {
+            return this._phaseOpened ? 'enraged_idle' : 'walk';
+        }
+        if (state === 'idle' && this._phaseOpened) return 'enraged_idle';
+        return state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getRotbogVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_rotbog_rhinoceros_beetle_king_${this._getRotbogVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getRotbogVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_rotbog_rhinoceros_beetle_king_${visualState}_v1`;
+        return options;
+    }
+
+    update(dt, entities) {
+        super.update(dt, entities);
+        if (!this.active) return;
+
+        this._lastEntities = entities;
+        this._pruneSummons();
+        const delta = Math.max(0, Number(dt) || 0);
+        const attackDt = this.getAttackIntervalDelta(delta);
+        this._chargeCooldown = Math.max(0, this._chargeCooldown - attackDt);
+        this._summonCooldown = Math.max(0, this._summonCooldown - attackDt);
+
+        const controlled = this.hasStatusEffect
+            && (this.hasStatusEffect('stun')
+                || this.hasStatusEffect('frozen')
+                || this.hasStatusEffect('petrified')
+                || this.hasStatusEffect('fear'));
+
+        if (this._phaseOpening) {
+            if (controlled) this._cancelPhaseOpen();
+            else this._updatePhaseOpen(delta);
+            return;
+        }
+        if (this._chargeState !== 'idle') {
+            if (controlled && this._chargeState !== 'recovery') this._finishCharge();
+            else this._updateCharge(delta);
+            return;
+        }
+        if (this._summonActive) {
+            if (controlled) this._cancelSummon();
+            else this._updateSummon(delta);
+            return;
+        }
+
+        if (!controlled && !this._phaseOpenTriggered
+            && this._shouldOpenPhase() && this._isReadyForRotbogSkill()) {
+            this._startPhaseOpen();
+            return;
+        }
+        if (!controlled && this._chargeCooldown <= 0 && this._canStartCharge(this.target)) {
+            this._tryAttackTelegraph(() => this._startCharge(this.target));
+            return;
+        }
+        if (!controlled && this._summonCooldown <= 0 && this._canStartSummon(this.target)) {
+            this._startSummon();
+        }
+    }
+
+    _isReadyForRotbogSkill() {
+        return !this._deathStarted
+            && this._chargeState === 'idle'
+            && !this._summonActive
+            && !this._phaseOpening
+            && !(this._attackTimer > 0)
+            && !(this._attackAnimTimer > 0)
+            && !this._pendingThrust?.active
+            && !(this._attackTelegraphTimer > 0)
+            && !this._frozenForCast;
+    }
+
+    _resolveHornSweepAoe() {
+        const pending = this._pendingThrust;
+        if (!pending?.active || pending.rotbogSweepResolved) return;
+        pending.rotbogSweepResolved = true;
+        const cfg = this.config?.basicMelee?.area || {};
+        const range = Math.max(1, Number(cfg.range) || 260);
+        const arcDegrees = Math.max(1, Number(cfg.arcDegrees) || 140);
+        const originX = Number.isFinite(Number(pending.x))
+            ? Number(pending.x) : (this.collider?.x ?? this.x);
+        const originY = Number.isFinite(Number(pending.y))
+            ? Number(pending.y) : (this.collider?.y ?? this.y);
+        const angle = Number.isFinite(Number(pending.angle))
+            ? Number(pending.angle) : (this.rotation || 0);
+        const shape = new GroundSector(
+            originX,
+            originY,
+            angle,
+            range,
+            arcDegrees * Math.PI / 180,
+            surfaceEffectFromEntity(this)
+        );
+        const supplied = pending.entities?.values
+            ? pending.entities.values() : (pending.entities || []);
+        const candidates = new Set(supplied);
+        for (const member of PartySystem.members || []) candidates.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            candidates.add(friendly);
+        }
+        const baseDamage = Math.max(1, Math.floor(
+            ((Number(pending.damage?.min) || 0) + (Number(pending.damage?.max) || 0)) / 2
+            + (Number(pending.damageBonus) || 0)
+        ));
+        const damage = Math.max(1, Math.floor(
+            baseDamage * Math.max(0, Number(cfg.damageMultiplier) || 1)
+        ));
+        const knockback = Number.isFinite(Number(cfg.knockback))
+            ? Number(cfg.knockback) : pending.knockback;
+
+        for (const target of candidates) {
+            if (!this._isRotbogTarget(target) || pending.hitSet.has(target)) continue;
+            if (!shape.intersectsEntity(target)) continue;
+            const targetX = target.collider?.x ?? target.x;
+            const targetY = target.collider?.y ?? target.y;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (WallSystem?.blocked?.(originX, originY, targetX, targetY, ignore)) {
+                const structureInReach = target._isDefenseStructure
+                    && distanceToEntityShape(target, originX, originY) <= range;
+                if (!structureInReach) continue;
+            }
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: pending.damageType || 'physical',
+                knockback,
+                angle: Math.atan2(targetY - originY, targetX - originX),
+                isMelee: true,
+                confirmedHitContext: { skillId: 'rotbogHornSweep' },
+            });
+            if (!result.hit) continue;
+            pending.hitSet.add(target);
+            if (result.skillExpEligible) {
+                pending.totalHitCount += 1;
+                if (result.killed && !target._summoned) pending.totalKillCount += 1;
+            }
+        }
+    }
+
+    _isRotbogTarget(target) {
+        return !!target && target !== this && target.active && !target._isDead
+            && target.hittable !== false && target.hp > 0
+            && target._faction !== 'enemy' && !isFriendlyFire(this, target);
+    }
+
+    _collectRotbogTargets() {
+        const supplied = this._lastEntities?.values
+            ? this._lastEntities.values() : (this._lastEntities || []);
+        const candidates = new Set(supplied);
+        for (const member of PartySystem.members || []) candidates.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            candidates.add(friendly);
+        }
+        return [...candidates].filter(target => this._isRotbogTarget(target));
+    }
+
+    _canStartCharge(target) {
+        if (!this._isReadyForRotbogSkill() || !this._isRotbogTarget(target)) return false;
+        const distance = distanceToEntityShape(target, this.x, this.y);
+        const minRange = Math.max(0, Number(this._chargeCfg.minTriggerRange) || 260);
+        const maxRange = Math.max(minRange, Number(this._chargeCfg.triggerRange) || 900);
+        return distance >= minRange && distance <= maxRange;
+    }
+
+    _startCharge(target) {
+        if (!this._canStartCharge(target)) return false;
+        const dx = (target.collider?.x ?? target.x) - (this.collider?.x ?? this.x);
+        const dy = (target.collider?.y ?? target.y) - (this.collider?.y ?? this.y);
+        const distance = Math.hypot(dx, dy);
+        if (distance <= 0) return false;
+        const prepareMs = Math.max(0, Number(this._chargeCfg.prepareMs) || 900);
+        const chargeMs = Math.max(1, Number(this._chargeCfg.chargeMs) || 1000);
+        const recoveryMs = Math.max(0, Number(this._chargeCfg.recoveryMs) || 500);
+        const maxDistance = Math.max(1, Number(this._chargeCfg.maxDistance) || 900);
+        this._chargeDir = { x: dx / distance, y: dy / distance };
+        this._chargeTargetPos = {
+            x: this.x + this._chargeDir.x * maxDistance,
+            y: this.y + this._chargeDir.y * maxDistance,
+        };
+        this._chargeSpeed = maxDistance / (chargeMs / 1000);
+        this._chargeState = 'prepare';
+        this._chargeTimer = prepareMs;
+        this._chargeHit = false;
+        const cooldownMultiplier = this._phaseOpened
+            ? Math.max(0, Number(this._phaseCfg.chargeCooldownMultiplier) || 0.7) : 1;
+        this._chargeCooldown = Math.max(0, Number(this._chargeCfg.cooldown) || 12000)
+            * cooldownMultiplier;
+        this._frozenForCast = true;
+        this._animState = 'charge';
+        this._animStateTimer = 0;
+        this._attackTimer = prepareMs + chargeMs + recoveryMs;
+        this._attackAnimTimer = this._attackTimer;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.rotation = Math.atan2(this._chargeDir.y, this._chargeDir.x);
+        this._lastHorizontalFacing = Math.cos(this.rotation) < 0 ? 'left' : 'right';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+        return true;
+    }
+
+    _updateCharge(dt) {
+        this._frozenForCast = true;
+        this._animState = 'charge';
+        this.rotation = Math.atan2(this._chargeDir.y, this._chargeDir.x);
+        if (this._chargeState === 'prepare') {
+            this._chargeTimer = Math.max(0, this._chargeTimer - dt);
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+            if (this._chargeTimer <= 0) {
+                this._chargeState = 'charge';
+                this._chargeTimer = Math.max(1, Number(this._chargeCfg.chargeMs) || 1000);
+            }
+            return;
+        }
+        if (this._chargeState === 'recovery') {
+            this._chargeTimer = Math.max(0, this._chargeTimer - dt);
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+            if (this._chargeTimer <= 0) this._finishCharge();
+            return;
+        }
+
+        const fromX = this.x;
+        const fromY = this.y;
+        const distToEnd = this._chargeTargetPos
+            ? Math.hypot(this._chargeTargetPos.x - this.x, this._chargeTargetPos.y - this.y)
+            : 0;
+        let intendedX = fromX;
+        let intendedY = fromY;
+        if (distToEnd > 6 && this._chargeSpeed > 0) {
+            const step = Math.min(this._chargeSpeed * dt / 1000, distToEnd);
+            intendedX += this._chargeDir.x * step;
+            intendedY += this._chargeDir.y * step;
+            const resolved = WallSystem.resolve(
+                fromX, fromY, intendedX, intendedY, this.groundRadius
+            );
+            this.x = resolved.x;
+            this.y = resolved.y;
+        }
+        const motionBlocked = straightMotionWasBlocked(
+            fromX, fromY, intendedX, intendedY, this.x, this.y
+        );
+        if (!this._chargeHit) {
+            const hitDistance = Math.max(1, Number(this._chargeCfg.hitDistance) || 145);
+            const hits = this._collectRotbogTargets()
+                .filter(target => sweptMotionMeleeHits(
+                    this,
+                    target,
+                    fromX,
+                    fromY,
+                    this.x,
+                    this.y,
+                    hitDistance,
+                    { blocked: motionBlocked, skill: '泥沼冲城' }
+                ))
+                .sort((a, b) => distanceToEntityShape(a, fromX, fromY)
+                    - distanceToEntityShape(b, fromX, fromY));
+            if (hits.length > 0) this._hitChargeTarget(hits[0]);
+        }
+        if (this._chargeState !== 'charge') return;
+        this._chargeTimer = Math.max(0, this._chargeTimer - dt);
+        if (motionBlocked) {
+            this.applyStun?.(Math.max(0, Number(this._chargeCfg.wallSelfStunMs) || 600));
+            this._beginChargeRecovery();
+        } else if (this._chargeTimer <= 0 || distToEnd <= 6) {
+            this._beginChargeRecovery();
+        }
+    }
+
+    _hitChargeTarget(target) {
+        const damage = Math.max(1, Math.round(
+            (this.data?.atk || this.data?.str || 20)
+            * Math.max(0, Number(this._chargeCfg.damageMultiplier) || 1.8)
+        ));
+        const targetX = target.collider?.x ?? target.x;
+        const targetY = target.collider?.y ?? target.y;
+        const result = DamagePipeline.applyHit(this, target, {
+            damage,
+            damageType: this._chargeCfg.damageType || 'physical',
+            knockback: Math.max(0, Number(this._chargeCfg.knockback) || 120),
+            angle: Math.atan2(targetY - this.y, targetX - this.x),
+            isMelee: true,
+            confirmedHitContext: { skillId: 'rotbogMudCharge' },
+        });
+        this._chargeHit = result.hit;
+        const parried = target.shieldSystem && target.shieldSystem._lastParried;
+        if (result.hit && !parried && target.active && !target._isDead && target.hp > 0) {
+            target.applyStun?.(Math.max(0, Number(this._chargeCfg.stunMs) || 1250));
+        }
+        if (result.hit) this._beginChargeRecovery();
+    }
+
+    _beginChargeRecovery() {
+        if (this._chargeState === 'recovery') return;
+        this._chargeState = 'recovery';
+        this._chargeTimer = Math.max(0, Number(this._chargeCfg.recoveryMs) || 500);
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._chargeTimer <= 0) this._finishCharge();
+    }
+
+    _finishCharge() {
+        this._chargeState = 'idle';
+        this._chargeTimer = 0;
+        this._chargeTargetPos = null;
+        this._chargeSpeed = 0;
+        this._chargeHit = false;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this.aiTimer = 0;
+    }
+
+    _canStartSummon(target) {
+        if (!this._isReadyForRotbogSkill() || !this._isRotbogTarget(target)) return false;
+        if (this._summons.size >= Math.max(0, Number(this._summonCfg.aliveCap) || 4)) return false;
+        const range = Math.max(0, Number(this._summonCfg.triggerRange) || 900);
+        return distanceToEntityShape(target, this.x, this.y) <= range;
+    }
+
+    _startSummon() {
+        const duration = Math.max(100, Number(this._summonCfg.durationMs) || 2200);
+        this._summonActive = true;
+        this._summonTimer = duration;
+        this._summonReleased = false;
+        this._summonCooldown = Math.max(0, Number(this._summonCfg.cooldown) || 18000);
+        this._frozenForCast = true;
+        this._animState = 'summon';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+    }
+
+    _updateSummon(dt) {
+        const duration = Math.max(100, Number(this._summonCfg.durationMs) || 2200);
+        const frameCount = Math.max(1, Math.floor(Number(this._summonCfg.frameCount) || 39));
+        const releaseFrame = Math.max(0, Math.min(
+            frameCount - 1,
+            Math.floor(Number(this._summonCfg.releaseFrame) || 20)
+        ));
+        this._summonTimer = Math.max(0, this._summonTimer - dt);
+        const elapsed = duration - this._summonTimer;
+        if (!this._summonReleased && elapsed >= duration * releaseFrame / frameCount) {
+            this._summonReleased = true;
+            this._releaseSummons();
+        }
+        this._frozenForCast = true;
+        this._animState = 'summon';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._summonTimer <= 0) this._cancelSummon();
+    }
+
+    _releaseSummons() {
+        this._pruneSummons();
+        const registry = this._lastEntities?.set
+            ? this._lastEntities
+            : (typeof window !== 'undefined' ? window.Game?.entities : null);
+        if (!registry?.set) return;
+        const cap = Math.max(0, Number(this._summonCfg.aliveCap) || 4);
+        const count = Math.min(
+            Math.max(0, Math.floor(Number(this._summonCfg.count) || 2)),
+            Math.max(0, cap - this._summons.size)
+        );
+        const radius = Math.max(4, Number(enemyConfigData.swampVampireMosquito?.collisionRadius) || 20);
+        for (let index = 0; index < count; index++) {
+            const angle = this.rotation + (index === 0 ? 2.15 : -2.15);
+            const distance = 130 + index * 35;
+            const desiredX = (this.collider?.x ?? this.x) + Math.cos(angle) * distance;
+            const desiredY = (this.collider?.y ?? this.y) + Math.sin(angle) * distance;
+            const safe = WallSystem.findSafeSpawn(desiredX, desiredY, radius, 16);
+            if (!WallSystem.canMoveTo(safe.x, safe.y, radius)) continue;
+            const summon = createSwampVampireMosquito(safe.x, safe.y);
+            summon._summoned = true;
+            summon._rotbogSummoner = this;
+            summon.target = this.target;
+            this._summons.add(summon);
+            registry.set(
+                `rotbog_brood_${Date.now()}_${index}_${Math.random().toString(36).slice(2, 8)}`,
+                summon
+            );
+        }
+    }
+
+    _pruneSummons() {
+        for (const summon of this._summons) {
+            if (!summon?.active || summon._isDead || !(summon.hp > 0)) this._summons.delete(summon);
+        }
+    }
+
+    _cancelSummon() {
+        this._summonActive = false;
+        this._summonTimer = 0;
+        this._summonReleased = false;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this.aiTimer = 0;
+    }
+
+    _shouldOpenPhase() {
+        const threshold = Math.max(0, Math.min(1, Number(this._phaseCfg.hpThreshold) || 0.5));
+        return this.maxHp > 0 && this.hp / this.maxHp <= threshold;
+    }
+
+    _startPhaseOpen() {
+        const duration = Math.max(100, Number(this._phaseCfg.durationMs) || 2200);
+        this._phaseOpenTriggered = true;
+        this._phaseOpening = true;
+        this._phaseTimer = duration;
+        this._frozenForCast = true;
+        this._animState = 'phase_open';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+    }
+
+    _updatePhaseOpen(dt) {
+        this._phaseTimer = Math.max(0, this._phaseTimer - dt);
+        this._frozenForCast = true;
+        this._animState = 'phase_open';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._phaseTimer > 0) return;
+        this._phaseOpening = false;
+        this._phaseOpened = true;
+        const speedMultiplier = Math.max(0, Number(this._phaseCfg.speedMultiplier) || 1.25);
+        this.speed = this._baseRotbogSpeed * speedMultiplier;
+        this.maxSpeed = this.speed;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this.aiTimer = 0;
+    }
+
+    _cancelPhaseOpen() {
+        this._phaseOpening = false;
+        if (!this._phaseOpened) this._phaseOpenTriggered = false;
+        this._phaseTimer = 0;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this.aiTimer = 0;
+    }
+
+    onDeath(source) {
+        this._chargeState = 'idle';
+        this._chargeTimer = 0;
+        this._chargeTargetPos = null;
+        this._summonActive = false;
+        this._summonTimer = 0;
+        this._phaseOpening = false;
+        this._phaseTimer = 0;
+        this._frozenForCast = false;
+        // 召唤物拥有独立生命周期；领主死亡时不清除、不强制击杀。
+        super.onDeath(source);
+    }
+}
+
+function createRotbogRhinocerosBeetleKing(x, y, overrides = {}) {
+    const base = enemyConfigData.rotbogRhinocerosBeetleKing || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new RotbogRhinocerosBeetleKingEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 黑熊领主：初始为黑袍德鲁伊，轮流施放冰锥、闪电与火球；半血后
+ * 播放人变熊动画并进入强化四足近战阶段。两种形态共用同一生命链，
+ * 只在变熊完成时应用一次既有属性倍率。
+ */
 class BlackBearEnemy extends ZombieDogEnemy {
     constructor(x, y, config = {}) {
         super(x, y, {
@@ -3470,4 +4355,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, ReedShadowSickleMantisEnemy, createReedShadowSickleMantis, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, RotbogRhinocerosBeetleKingEnemy, createRotbogRhinocerosBeetleKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

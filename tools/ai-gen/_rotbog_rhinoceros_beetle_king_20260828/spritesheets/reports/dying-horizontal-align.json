@@ -1,0 +1,41 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\spritesheets\\key\\dying.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\spritesheets\\key\\dying-horizontal-aligned.png",
+  "frameCount": 14,
+  "frameWidth": 896,
+  "frameHeight": 640,
+  "cols": 5,
+  "horizontalAlignment": "integer body-core X to 448 on source keys; Y unchanged",
+  "sourceCoreX": [
+    450.699,
+    450.823,
+    450.96,
+    447.929,
+    446.453,
+    443.206,
+    445.916,
+    445.339,
+    445.257,
+    445.511,
+    445.389,
+    445.268,
+    445.205,
+    445.263
+  ],
+  "integerShiftX": [
+    -3,
+    -3,
+    -3,
+    0,
+    2,
+    5,
+    2,
+    3,
+    3,
+    2,
+    3,
+    3,
+    3,
+    3
+  ]
+}

@@ -1,0 +1,38 @@
+MODE: OpenAI built-in image generation
+TAXONOMY: stylized-concept / production game-creature mother image
+DATE: 2026-08-28
+
+Create a production-ready identity mother image for a dark-fantasy swamp enemy called “Swamp Vampire Giant Mosquito”.
+
+STYLE AND PURPOSE
+A grounded realistic PBR 3D game-creature render matching a polished dark-fantasy action roguelike bestiary. This is an animation-source mother frame: clean silhouette, neutral pose, credible anatomy and materials, restrained colors, highly readable at game-sprite scale. Not a photograph, not a cartoon, not a miniature.
+
+SUBJECT
+Exactly one enormous adult vampiric swamp mosquito, designed as a believable monster-scale mosquito rather than a fly or humanoid creature.
+Anatomically plausible insect construction: one head, one thorax, one elongated segmented abdomen; exactly six long jointed legs in three pairs; exactly one pair of transparent wings, two wings total, with small halteres only if naturally visible; long straight needle-like proboscis; fine segmented antennae; large compound eyes.
+Keep every limb count and joint structure correct and clearly readable.
+
+IDENTITY AND MATERIALS
+Charcoal-black and peat-brown chitin with subtle muted marsh-olive iridescence, sparse damp bristles, lightly chipped and scarred natural exoskeleton, hooked tarsi.
+The elongated abdomen is partially engorged with blood: dark burgundy-red visible beneath semi-translucent segmented membranes, ominous but not gory and with no dripping blood.
+Compound eyes are deep wine-red, glossy but not glowing.
+The vampiric identity comes from the long predatory proboscis and engorged abdomen, not mammal fangs, armor, weapons, jewelry, runes, or magic effects.
+
+POSE AND CAMERA
+Strict right-facing side profile on a square canvas, orthographic-style locked camera.
+Body nearly horizontal in a calm neutral hovering idle pose, suitable as the source mother frame for later animation.
+Proboscis points cleanly forward to the right.
+Two wings held open and fully visible, sharply defined and not motion-blurred.
+All six legs relaxed and splayed naturally with clear negative space; avoid crossings, tangles, and hidden feet.
+Show the complete creature from antenna tips and proboscis to abdomen tip, wing tips, and every foot.
+Subject fills roughly 58 percent of canvas width and about 50 percent of canvas height, centered with generous margins.
+
+LIGHTING AND BACKGROUND
+Pure solid white #FFFFFF background, no environment, no swamp scenery, no ground plane, no horizon, no cast shadow, no contact shadow.
+Soft neutral diffuse studio lighting with restrained highlights, fine material detail, crisp silhouette, consistent exposure.
+
+NEGATIVE CONSTRAINTS
+No second creature, no swarm, no larvae, no scenery, no plants, no fog, no text, no logo, no watermark.
+No extra or missing legs, no four wings, no feathered wings, no mammal teeth, no humanoid face, no horns, no shell armor, no saddle, no weapon, no clothing.
+No front view, no top view, no dramatic perspective, no fisheye, no crop, no motion blur, no depth-of-field blur.
+No cartoon, anime, toy, plastic miniature, painterly brushwork, excessive neon glow, excessive gore, or oversaturated colors.

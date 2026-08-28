@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\references\\rotbog-beetle-charge-safe-blue-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\charge-doubao-v03_doubao_bg.txt",
+  "promptChars": 1263,
+  "promptSha256": "ab740aa5faf820f3be36eb4a956a2b3b4bcaf59102d1b8914777d319b8baef8e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T12:06:07.446Z",
+  "sourceUrlScheme": "https"
+}

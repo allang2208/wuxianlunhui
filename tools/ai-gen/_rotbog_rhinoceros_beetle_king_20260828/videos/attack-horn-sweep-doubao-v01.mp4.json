@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\references\\rotbog-beetle-attack-safe-blue-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\attack-horn-sweep-doubao-v01_doubao_bg.txt",
+  "promptChars": 1652,
+  "promptSha256": "b0a485ed570b38d7882766558d9bc7426cfe91a552c33ad1660b6fa01f5a4e3c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T11:56:21.675Z",
+  "sourceUrlScheme": "https"
+}

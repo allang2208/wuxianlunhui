@@ -1,0 +1,22 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline.
+
+Create exactly one colossal fantasy male rhinoceros beetle boss called the Rotbog Rhinoceros Beetle King. This is a clean anatomy turnaround-like game asset, not an action scene.
+
+STRICT LEG LAYOUT — most important:
+Show EXACTLY SIX and ONLY SIX complete legs. The camera is a slightly elevated right-facing three-quarter side view so both body sides are visible.
+Near-side row: leg 1 front points forward-right; leg 2 middle points straight down; leg 3 rear points backward-left.
+Far-side row: leg 4 front appears behind the head and points forward; leg 5 middle appears in the white gap between the near front and near middle legs; leg 6 rear appears in the white gap between the near middle and near rear legs.
+Every leg is separated by visible white space. All six attachment joints are visible under the thorax. Each leg has a complete upper segment, angular knee, spined shin, segmented foot and claw. Exactly six feet touch the same baseline. No leg originates from the abdomen. No hidden, fused, cropped, duplicated or vestigial legs.
+
+IDENTITY:
+Low, broad, enormous and tank-heavy rhinoceros beetle anatomy. Exactly one single central cephalic horn rooted in the head, thick shovel-like base, gently curving upward-forward to a sharp tip. It is a single rhinoceros-beetle horn, not antlers, not paired mandibles, not a mammal horn. Two short segmented antennae and compact mandibles. Closed paired elytra form an armored back shell; no exposed wings.
+Weathered peat-black and deep bog-brown chitin, restrained moss-olive patina in seams, subtle dried mud and scratches. Fine pits, layered plate seams, realistic roughness, substantial weight. High-detail realistic PBR 3D dark-fantasy game monster render matching a grounded swamp bestiary; controlled saturation, not glossy plastic, not a photograph, not cartoon.
+
+POSE AND FRAMING:
+Calm neutral idle, body horizontal and close to the ground, facing right. Locked orthographic-style camera with approximately 20-degree elevation, no perspective distortion. Full horn, full body, all six feet visible. Subject occupies 62% canvas width and 48% canvas height, centered slightly left, with at least 14% empty margin ahead of horn and at least 12% margin elsewhere.
+
+BACKGROUND:
+Flat pure white #FFFFFF background, no floor, horizon, contact shadow, cast shadow, reflection, scenery or particles. Soft flat diffuse studio light.
+
+NO armor, crown, weapon, runes, crystals, glow, vegetation, extra spikes, open wings, extra horn, extra limbs, missing limbs, fused anatomy, cropping, front view, top view, dramatic light, rim halo, text, logo, watermark, anime, chibi, low-poly or toy surface.
