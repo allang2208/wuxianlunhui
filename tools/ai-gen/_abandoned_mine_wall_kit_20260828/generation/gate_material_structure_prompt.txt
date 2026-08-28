@@ -1,0 +1,9 @@
+Intended use: production material candidate for the moving six-cell lift gate of a modular 2.5D isometric abandoned-mine dungeon wall kit.
+
+Subject: one long independent portcullis-style mine lift-gate leaf, exactly matching the supplied Blender depth silhouette, proportions, camera, grounding, post spacing, horizontal iron rail positions and six-cell span. Preserve the complete closed moving leaf; endpoint wall pillars are separate runtime pieces and must not be added.
+
+Materials: the same low-saturation aged dark oak as the approved wall candidate, with restrained warm-brown grain; matte blackened iron horizontal rails, sparse oxidized iron straps, bolts and foot caps. Large continuous material planes first, sparse medium-scale wear, chipped lower edges and readable bevels, no dense micro-noise.
+
+Rendering: polished game-ready PBR, soft upper-left top-side light, restrained crevice darkening, crisp readable silhouette at gameplay scale, no dramatic cast shadow.
+
+Hard constraints: change materials only. Do not change geometry, viewpoint, six-cell span, post count, spacing, height, silhouette or rail positions. No stone jambs, side walls, arch, doorway frame, roof, floor slab, chains, pulley housing, scenery, crystals, lamps, characters, creatures, text, symbols, fog, particles or background shadow. One isolated moving gate leaf only.

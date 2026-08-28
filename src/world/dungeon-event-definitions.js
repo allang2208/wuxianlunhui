@@ -3,7 +3,7 @@
  * DungeonEventDefinitions — 新增地牢随机事件定义
  * ============================================================
  *
- * 15 个僵尸事件、15 个沼泽事件与 15 个雪原事件：
+ * 15 个僵尸事件、15 个沼泽事件、15 个雪原事件与 15 个废弃矿洞事件：
  * - 僵尸/沼泽事件统一为 2 个属性检定 + 1 个无检定叙事选项；雪原事件为 3 个属性检定 + 1 个无检定叙事选项，其中每档 80% 会付出代价或进入战斗
  * - 结果类型：金币、药水、材料、特殊道具、揭示节点、战斗、伤害、恢复、临时 Buff/Debuff
  * - 失败战斗区分「普通战斗」与「精英战斗」
@@ -36,6 +36,21 @@ export const POTION_MP = 25;
 // ============================================================
 
 export const NEW_EVENT_WEIGHTS = {
+    collapsedMineShaft: 1,
+    abandonedOreCart: 1,
+    canaryCage: 1,
+    dampFuseBox: 1,
+    minersRationCache: 1,
+    floodedLowerTunnel: 1,
+    exposedCrystalVein: 1,
+    brokenMineLift: 1,
+    toxicGasPocket: 1,
+    lanternCode: 1,
+    foremanLedger: 1,
+    dynamiteMagazine: 1,
+    oreSpiderNest: 1,
+    hauntedRockDrill: 1,
+    sealedMainShaft: 1,
     collapsedArchway: 1,
     undeadScholarNotes: 1,
     bloodAltar: 1,
@@ -88,6 +103,21 @@ export const NEW_EVENT_WEIGHTS = {
 // 规则：地牢只出现同 scope 且「地牢等级 ±1」范围内的限定事件。
 // ============================================================
 export const RESTRICTED_EVENT_META = {
+    collapsedMineShaft: { grade: 'F', scope: 'abandonedMine' },
+    abandonedOreCart: { grade: 'F', scope: 'abandonedMine' },
+    canaryCage: { grade: 'F', scope: 'abandonedMine' },
+    dampFuseBox: { grade: 'F', scope: 'abandonedMine' },
+    minersRationCache: { grade: 'F', scope: 'abandonedMine' },
+    floodedLowerTunnel: { grade: 'E', scope: 'abandonedMine' },
+    exposedCrystalVein: { grade: 'E', scope: 'abandonedMine' },
+    brokenMineLift: { grade: 'E', scope: 'abandonedMine' },
+    toxicGasPocket: { grade: 'E', scope: 'abandonedMine' },
+    lanternCode: { grade: 'E', scope: 'abandonedMine' },
+    foremanLedger: { grade: 'D', scope: 'abandonedMine' },
+    dynamiteMagazine: { grade: 'D', scope: 'abandonedMine' },
+    oreSpiderNest: { grade: 'D', scope: 'abandonedMine' },
+    hauntedRockDrill: { grade: 'D', scope: 'abandonedMine' },
+    sealedMainShaft: { grade: 'D', scope: 'abandonedMine' },
     collapsedArchway: { grade: 'F', scope: 'zombie' },
     undeadScholarNotes: { grade: 'E', scope: 'zombie' },
     bloodAltar: { grade: 'D', scope: 'zombie' },
@@ -146,10 +176,25 @@ export const UNIVERSAL_EVENT_CHANCE = 0.30;
 
 // ============================================================
 // 事件背景图（assets/scenes/dungeon-events/，与事件键一一对应）
-// 15 个僵尸事件 + 15 个沼泽事件 + 15 个雪原事件 + 5 个通用事件均有背景图。
+// 15 个僵尸事件 + 15 个沼泽事件 + 15 个雪原事件 + 15 个废弃矿洞事件 + 5 个通用事件均有背景图映射。
 // ============================================================
 
 export const EVENT_BG_IMAGES = {
+    collapsedMineShaft: 'assets/scenes/dungeon-events/collapsed-mine-shaft.png',
+    abandonedOreCart: 'assets/scenes/dungeon-events/abandoned-ore-cart.png',
+    canaryCage: 'assets/scenes/dungeon-events/canary-cage.png',
+    dampFuseBox: 'assets/scenes/dungeon-events/damp-fuse-box.png',
+    minersRationCache: 'assets/scenes/dungeon-events/miners-ration-cache.png',
+    floodedLowerTunnel: 'assets/scenes/dungeon-events/flooded-lower-tunnel.png',
+    exposedCrystalVein: 'assets/scenes/dungeon-events/exposed-crystal-vein.png',
+    brokenMineLift: 'assets/scenes/dungeon-events/broken-mine-lift.png',
+    toxicGasPocket: 'assets/scenes/dungeon-events/toxic-gas-pocket.png',
+    lanternCode: 'assets/scenes/dungeon-events/lantern-code.png',
+    foremanLedger: 'assets/scenes/dungeon-events/foreman-ledger.png',
+    dynamiteMagazine: 'assets/scenes/dungeon-events/dynamite-magazine.png',
+    oreSpiderNest: 'assets/scenes/dungeon-events/ore-spider-nest.png',
+    hauntedRockDrill: 'assets/scenes/dungeon-events/haunted-rock-drill.png',
+    sealedMainShaft: 'assets/scenes/dungeon-events/sealed-main-shaft.png',
     collapsedArchway: 'assets/scenes/dungeon-events/collapsed-archway.png',
     undeadScholarNotes: 'assets/scenes/dungeon-events/undead-scholar-notes.png',
     bloodAltar: 'assets/scenes/dungeon-events/blood-altar.png',
@@ -208,6 +253,141 @@ export const EVENT_BG_IMAGES = {
 // ============================================================
 
 export const NEW_EVENT_CONFIGS = {
+    collapsedMineShaft: {
+        title: '坍塌的支护巷道',
+        description: '腐朽木梁压在碎石上方，缝隙里吹出带煤尘的冷风。旧矿工留下的白粉箭头仍指向另一侧，说明这条路曾通往主矿脉。',
+        choices: [
+            { id: 'braceAndLift', label: '力量撑梁', description: '顶住支护梁并推开碎石', attribute: 'str', baseRate: 40, success: { text: '你重新卡紧木梁，推开碎石后找到一只遗落的钱袋。', gold: { min: 25, max: 45 }, material: { type: '铁矿石', count: 2 } }, fail: { text: '松动的石块砸中肩背，你只能狼狈退开。', damagePercent: 10 } },
+            { id: 'crawlGap', label: '敏捷钻隙', description: '从支架下的狭缝穿过', attribute: 'dex', baseRate: 45, success: { text: '你贴着地面穿过狭缝，并看清了附近两条支路。', revealNodes: true, revealDepth: 1 }, fail: { text: '碎石割破护具，潜伏的矿工僵尸也被响声惊醒。', combat: 'normal', forceMonsters: ['minerZombie'], encounter: { combatWaves: 1, monstersPerWave: 4, tierWeights: { normal: 1, elite: 0 } } } },
+            { id: 'markDetour', label: '标记绕行', description: '留下路标后寻找别的通道', outcome: { text: '你用白粉画下危险标记，沿较稳固的巷道继续前进。' } },
+        ],
+    },
+    abandonedOreCart: {
+        title: '脱轨的矿车',
+        description: '一辆满载矿石的旧矿车斜卡在轨道岔口，车轮下压着工具箱，车斗深处偶尔传来抓挠声。',
+        choices: [
+            { id: 'leverCart', label: '力量撬车', description: '用钢钎抬起车轮取出工具箱', attribute: 'str', baseRate: 40, success: { text: '矿车被你撬回轨道，工具箱里仍有可用矿材。', material: { type: '铁矿石', count: 3 }, gold: { min: 20, max: 35 } }, fail: { text: '钢钎突然打滑，矿车撞上了你的腿。', damagePercent: 10 } },
+            { id: 'inspectCart', label: '感知查车', description: '先辨认车斗里的动静', attribute: 'wis', baseRate: 45, success: { text: '你发现抓挠声来自松动矿石，安全取出了压在下方的药瓶。', hpPotion: POTION_HEAL }, fail: { text: '一只僵尸从车斗中扑出，附近同伴也循声靠近。', combat: 'normal', forceMonsters: ['zombie'], encounter: { combatWaves: 1, monstersPerWave: 4, tierWeights: { normal: 1, elite: 0 } } } },
+            { id: 'leaveCart', label: '绕过矿车', description: '不碰这辆来历不明的矿车', outcome: { text: '你跨过弯曲铁轨，矿车在身后轻轻晃了一下。' } },
+        ],
+    },
+    canaryCage: {
+        title: '沉默的金丝雀笼',
+        description: '一只黄铜鸟笼挂在通风管下，笼中的干枯金丝雀却仍会随着气流转头。笼底压着一张沾煤灰的通风图。',
+        choices: [
+            { id: 'readAirflow', label: '智力测风', description: '根据羽毛和烛烟判断安全风向', attribute: 'int', baseRate: 45, success: { text: '你避开了污浊气流，并从通风图上找到了近路。', revealNodes: true, revealDepth: 2 }, fail: { text: '你误入积聚毒气的死角，肺部一阵灼痛。', damagePercent: 10 } },
+            { id: 'openCage', label: '幸运开笼', description: '打开鸟笼寻找矿工藏物', attribute: 'luck', baseRate: 35, success: { text: '鸟笼夹层里藏着几枚工资币和一小袋魔尘。', gold: { min: 25, max: 45 }, specialItems: [{ type: 'magic_dust', count: 20 }] }, fail: { text: '铜铃机关突然作响，引来了游荡的毒液僵尸。', combat: 'normal', forceMonsters: ['spitterZombie'], encounter: { combatWaves: 1, monstersPerWave: 4, tierWeights: { normal: 1, elite: 0 } } } },
+            { id: 'coverCage', label: '盖布离开', description: '用旧布遮住鸟笼', outcome: { text: '鸟笼停止转动，通风管里只剩低沉风声。' } },
+        ],
+    },
+    dampFuseBox: {
+        title: '受潮的爆破箱',
+        description: '木箱中盘着几束受潮导火索，旁边的手摇起爆器仍连着通向塌方区的铜线。箱盖写着“二号支洞清障”。',
+        choices: [
+            { id: 'repairIgniter', label: '智力修线', description: '重接铜线并控制爆破', attribute: 'int', baseRate: 40, success: { text: '定向爆破掀开一处暗格，里面堆着备用矿材。', material: { type: '铁矿石', count: 3 }, revealNodes: true, revealDepth: 1 }, fail: { text: '受潮线路短路，爆震把碎石扫向你。', damagePercent: 15 } },
+            { id: 'pullFuse', label: '敏捷拆索', description: '在火花蔓延前拆除危险导火索', attribute: 'dex', baseRate: 45, success: { text: '你拆下了尚能使用的火药包，并在箱底找到工资币。', gold: { min: 30, max: 50 } }, fail: { text: '火花落进煤尘，爆响惊醒了附近僵尸。', combat: 'normal', forceMonsters: ['zombie'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } } },
+            { id: 'soakFuses', label: '浇水封箱', description: '彻底浸湿导火索后离开', outcome: { text: '你把爆破箱压在碎石下，避免它继续威胁后来者。' } },
+        ],
+    },
+    minersRationCache: {
+        title: '矿工口粮窖',
+        description: '墙后的小窖里堆着铁皮饭盒、盐肉罐和几只药瓶。木门上有新鲜抓痕，地面却没有活人的脚印。',
+        choices: [
+            { id: 'inspectRations', label: '体质试食', description: '辨认可安全食用的口粮', attribute: 'con', baseRate: 45, success: { text: '盐封口粮仍可食用，你恢复了体力并带走一瓶药剂。', healPercent: 15, hpPotion: POTION_HEAL }, fail: { text: '霉菌让你一阵眩晕，胃部也开始抽痛。', damagePercent: 10 } },
+            { id: 'searchFalseWall', label: '幸运搜墙', description: '寻找矿工私藏的夹层', attribute: 'luck', baseRate: 35, success: { text: '你在松砖后找到一袋未发完的工钱。', gold: { min: 35, max: 60 } }, fail: { text: '夹层里的铁罐滚落，响声引来了矿工僵尸。', combat: 'normal', forceMonsters: ['minerZombie'], encounter: { combatWaves: 1, monstersPerWave: 4, tierWeights: { normal: 1, elite: 0 } } } },
+            { id: 'barDoor', label: '封住窖门', description: '不取食物，防止里面的东西出来', outcome: { text: '你用铁轨顶住窖门，抓挠声渐渐停了。' } },
+        ],
+    },
+    floodedLowerTunnel: {
+        title: '被淹的下层巷道',
+        description: '黑水淹到腰部，水下轨道通往一扇半开的铁门。断续气泡沿墙脚冒出，远处漂着一盏仍亮着的矿灯。',
+        choices: [
+            { id: 'crossFlood', label: '体质涉水', description: '顶着冰冷积水穿过巷道', attribute: 'con', baseRate: 35, success: { text: '你稳稳穿过急流，并从漂浮工具袋中取到药剂。', hpPotion: POTION_HEAL, mpPotion: POTION_MP }, fail: { text: '水下有东西缠住脚踝，你挣脱时已受了伤。', damagePercent: 15 } },
+            { id: 'traceBubbles', label: '感知寻路', description: '借气泡判断水下坑洞', attribute: 'wis', baseRate: 40, success: { text: '你沿安全轨枕前进，顺便看清了相邻巷道结构。', revealNodes: true, revealDepth: 2 }, fail: { text: '提灯僵尸从水雾中现身，截断了退路。', combat: 'elite', forceMonsters: ['lanternMinerZombie'], encounter: { combatWaves: 1, monstersPerWave: 5, monsterComposition: { elite: 1, normal: 4 } } } },
+            { id: 'drainLater', label: '退回高处', description: '放弃下层路线', outcome: { text: '你在墙上刻下水位，转向较高的巷道。' } },
+        ],
+    },
+    exposedCrystalVein: {
+        title: '裸露的晶矿脉',
+        description: '蓝白晶体从岩壁裂隙中生长出来，细小电弧在晶簇间跳跃。矿脉深处夹着数块未经开采的高纯矿石。',
+        choices: [
+            { id: 'cutCrystal', label: '力量凿矿', description: '控制力道凿下完整晶体', attribute: 'str', baseRate: 35, success: { text: '晶体沿天然纹理整齐断开，可直接用于强化。', material: { type: '精金碎片', count: 2 }, specialItems: [{ type: 'enhancement_stone', count: 1 }] }, fail: { text: '晶簇炸裂，碎片和电弧同时击中你。', damagePercent: 15 } },
+            { id: 'groundArc', label: '智力导流', description: '用废铁轨引走晶体电荷', attribute: 'int', baseRate: 35, success: { text: '电荷被安全导走，凝结的魔力化成一袋魔尘。', specialItems: [{ type: 'magic_dust', count: 40 }], mpRestorePercent: 15 }, fail: { text: '导流惊动了藏在晶簇后的矿石蜘蛛。', combat: 'elite', forceMonsters: ['oreSpider'], encounter: { combatWaves: 1, monstersPerWave: 5, monsterComposition: { elite: 1, normal: 4 } } } },
+            { id: 'leaveVein', label: '不扰矿脉', description: '避开不稳定晶簇', outcome: { text: '你熄灭火把，从晶矿脉另一侧安静离开。' } },
+        ],
+    },
+    brokenMineLift: {
+        title: '断索升降机',
+        description: '木制升降平台悬在深井上方，只剩一根主缆和生锈制动器维持平衡。对岸控制台旁放着一只上锁的领料箱。',
+        choices: [
+            { id: 'holdBrake', label: '力量稳闸', description: '压住制动器让平台靠岸', attribute: 'str', baseRate: 35, success: { text: '平台平稳滑到对岸，领料箱里装着工资和矿材。', gold: { min: 45, max: 75 }, material: { type: '铁矿石', count: 3 } }, fail: { text: '制动器突然回弹，你被钢柄重重击中。', damagePercent: 15 } },
+            { id: 'repairCable', label: '敏捷接索', description: '踩着横梁重新挂接副缆', attribute: 'dex', baseRate: 30, success: { text: '副缆重新受力，升降井旁的支线也显露出来。', revealNodes: true, revealDepth: 2 }, fail: { text: '挂钩坠落的巨响引来了提灯巡工。', combat: 'elite', forceMonsters: ['lanternMinerZombie'], encounter: { combatWaves: 1, monstersPerWave: 5, monsterComposition: { elite: 1, normal: 4 } } } },
+            { id: 'avoidLift', label: '沿检修梯走', description: '不冒险使用升降机', outcome: { text: '你沿井壁检修梯缓慢下行，最终抵达另一层。' } },
+        ],
+    },
+    toxicGasPocket: {
+        title: '有毒瓦斯囊',
+        description: '前方空气像热浪般扭曲，墙上的安全灯焰芯已经变成幽蓝色。地面散落着被仓促丢弃的湿布面罩。',
+        choices: [
+            { id: 'ventGas', label: '智力通风', description: '重启风门排出瓦斯', attribute: 'int', baseRate: 35, success: { text: '风门轰鸣着开启，安全路线和一处隐藏储藏格同时显露。', revealNodes: true, revealDepth: 2, gold: { min: 35, max: 60 } }, fail: { text: '齿轮卡死，泄出的瓦斯让你头晕目眩。', damagePercent: 15, mpRestorePercent: -10 } },
+            { id: 'dashPocket', label: '体质憋气', description: '戴湿布快速冲过毒气区', attribute: 'con', baseRate: 40, success: { text: '你在呼吸耗尽前穿过毒气区，还带出一瓶密封药剂。', hpPotion: POTION_HEAL }, fail: { text: '你在出口处咳出声，毒液僵尸循声包围过来。', combat: 'normal', forceMonsters: ['spitterZombie'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } } },
+            { id: 'sealPocket', label: '封闭巷道', description: '放下警示牌并关闭风门', outcome: { text: '你封住这段巷道，沿回风侧的旧路绕行。' } },
+        ],
+    },
+    lanternCode: {
+        title: '矿灯暗号',
+        description: '对面巷道每隔数秒亮起一盏矿灯，三短一长的闪烁重复不止。岩壁上残留着旧矿队的暗号表。',
+        choices: [
+            { id: 'decodeSignal', label: '智力译码', description: '按暗号表解读矿灯信息', attribute: 'int', baseRate: 35, success: { text: '暗号标出了塌方、补给点和一条安全近路。', revealNodes: true, revealDepth: 2, mpPotion: POTION_MP }, fail: { text: '你回应了错误暗号，提灯僵尸立刻向这里逼近。', combat: 'elite', forceMonsters: ['lanternMinerZombie'], encounter: { combatWaves: 1, monstersPerWave: 5, monsterComposition: { elite: 1, normal: 4 } } } },
+            { id: 'followLight', label: '幸运追灯', description: '不解码，直接追随最后亮起的矿灯', attribute: 'luck', baseRate: 30, success: { text: '矿灯照着一只密封工资箱，锁扣早已锈坏。', gold: { min: 55, max: 90 }, specialItems: [{ type: 'reforge_ticket', count: 1 }] }, fail: { text: '灯光把你带进矿石蜘蛛的巢区。', combat: 'elite', forceMonsters: ['oreSpider'], encounter: { combatWaves: 1, monstersPerWave: 5, monsterComposition: { elite: 1, normal: 4 } } } },
+            { id: 'extinguishSignal', label: '熄灯绕行', description: '不回应未知矿队', outcome: { text: '你遮住自己的光源，矿灯暗号在远处自行熄灭。' } },
+        ],
+    },
+    foremanLedger: {
+        title: '工头的黑账本',
+        description: '皮封账本被钉在值班室桌面，记录着克扣的工资、秘密矿脉和“事故处理费”。最后几页的墨迹仍像刚写下。',
+        choices: [
+            { id: 'auditLedger', label: '智力查账', description: '从账目中找出秘密仓库', attribute: 'int', baseRate: 30, success: { text: '你还原了仓库编号，取回被私吞的工资和改造物资。', gold: { min: 70, max: 110 }, specialItems: [{ type: 'reforge_ticket', count: 1 }] }, fail: { text: '账本上的诅咒烙进视野，思绪变得迟钝。', buff: { id: 'foremanDebtMark', name: '工头债印', icon: '📒', color: '#7a5a3a', matkPercent: -15, durationBattles: 3 } } },
+            { id: 'tearPages', label: '精神毁账', description: '撕毁写有矿工姓名的契约页', attribute: 'wis', baseRate: 30, success: { text: '束缚亡魂的契约被解除，残留意志为你指出深层路线。', revealNodes: true, revealDepth: 3, buff: { id: 'minersGratitude', name: '矿工谢意', icon: '⛏', color: '#c6a56b', defPercent: 10, durationBattles: 3 } }, fail: { text: '工头的吼声从巷道深处传来，沉重脚步迅速逼近。', combat: 'elite', forceMonsters: ['foremanZombie'], encounter: { combatWaves: 1, monstersPerWave: 5, monsterComposition: { lord: 1, normal: 4 } } } },
+            { id: 'closeLedger', label: '合上账本', description: '不触碰死者留下的账目', outcome: { text: '你用铁链重新缠住账本，值班室里的低语逐渐消失。' } },
+        ],
+    },
+    dynamiteMagazine: {
+        title: '炸药储藏库',
+        description: '厚木门后整齐堆着老式炸药箱，部分药卷已渗出油迹。墙上矿脉图标出了尚未打通的富矿区。',
+        choices: [
+            { id: 'stabilizeDynamite', label: '敏捷排险', description: '逐根分离渗油炸药', attribute: 'dex', baseRate: 30, success: { text: '危险药卷被安全隔离，你在箱底找到强化石和工资币。', gold: { min: 65, max: 100 }, specialItems: [{ type: 'enhancement_stone', count: 1 }] }, fail: { text: '药卷摩擦起火，冲击波将你掀出门外。', damagePercent: 20 } },
+            { id: 'blastRichVein', label: '智力定爆', description: '按矿脉图实施一次定向爆破', attribute: 'int', baseRate: 25, success: { text: '爆破准确揭开富矿层，大块精金碎片散落出来。', material: { type: '精金碎片', count: 3 }, specialItems: [{ type: 'magic_dust', count: 50 }] }, fail: { text: '爆破震开了附近封堵的矿洞，里面的怪物涌了出来。', combat: 'normal', forceMonsters: ['mineCave'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } } },
+            { id: 'floodMagazine', label: '放水封库', description: '引来积水彻底浸毁炸药', outcome: { text: '炸药失去作用，这间危险仓库再也不会突然爆炸。' } },
+        ],
+    },
+    oreSpiderNest: {
+        title: '矿石蜘蛛巢',
+        description: '晶亮蛛丝覆盖整面岩壁，矿石碎片像卵一样包在丝囊中。巢心悬着一只装满工资币的皮包。',
+        choices: [
+            { id: 'burnWebs', label: '智力控火', description: '用小火烧断外层蛛丝', attribute: 'int', baseRate: 30, success: { text: '火势没有触及矿尘，你取下皮包和数块完整矿石。', gold: { min: 70, max: 110 }, material: { type: '精金碎片', count: 2 } }, fail: { text: '热浪让卵囊同时破裂，矿石蜘蛛从巢心跃下。', combat: 'elite', forceMonsters: ['oreSpider'], encounter: { combatWaves: 1, monstersPerWave: 6, monsterComposition: { elite: 1, normal: 5 } } } },
+            { id: 'threadNeedle', label: '敏捷穿巢', description: '沿蛛丝空隙取下皮包', attribute: 'dex', baseRate: 25, success: { text: '你没有触动警戒丝，还从巢后发现一条隐蔽矿道。', revealNodes: true, revealDepth: 2, specialItems: [{ type: 'reforge_ticket', count: 1 }] }, fail: { text: '警戒丝剧烈震动，蛛群封住了所有出口。', combat: 'elite', forceMonsters: ['oreSpider'], encounter: { combatWaves: 1, monstersPerWave: 6, monsterComposition: { elite: 1, normal: 5 } } } },
+            { id: 'collapseNest', label: '推石封巢', description: '放弃皮包，把巢穴封在岩缝中', outcome: { text: '巨石压住巢口，蛛丝在缝隙里颤动片刻便安静下来。' } },
+        ],
+    },
+    hauntedRockDrill: {
+        title: '自鸣的凿岩机',
+        description: '一台蒸汽凿岩机在无人操纵下周期性敲击岩壁，每次落锤都伴随矿工号子的回声。压力表已逼近红区。',
+        choices: [
+            { id: 'tuneDrill', label: '智力调机', description: '释放压力并校正钻头', attribute: 'int', baseRate: 25, success: { text: '凿岩机恢复稳定，钻出的晶矿可直接用于强化。', material: { type: '精金碎片', count: 3 }, specialItems: [{ type: 'enhancement_stone', count: 1 }] }, fail: { text: '蒸汽管爆裂，高温碎屑划伤了你。', damagePercent: 20 } },
+            { id: 'matchChant', label: '精神和声', description: '按矿工号子的节拍操作手柄', attribute: 'wis', baseRate: 30, success: { text: '亡魂完成最后一次掘进，留下祝福与通往主脉的路线。', revealNodes: true, revealDepth: 3, buff: { id: 'minersCadence', name: '掘进节拍', icon: '⚙️', color: '#b48a5a', atkPercent: 10, moveSpeedPercent: 10, durationBattles: 3 } }, fail: { text: '错误节拍激怒了亡魂，工头带着巡工从黑暗中出现。', combat: 'elite', forceMonsters: ['foremanZombie', 'lanternMinerZombie'], encounter: { combatWaves: 1, monstersPerWave: 6, monsterComposition: { lord: 1, elite: 1, normal: 4 } } } },
+            { id: 'releaseBoiler', label: '泄压停机', description: '关闭燃料阀让机器沉默', outcome: { text: '最后一缕蒸汽散去，矿工号子也随之停止。' } },
+        ],
+    },
+    sealedMainShaft: {
+        title: '封死的主矿井',
+        description: '刻着事故日期的钢门封住主井，门后不断传来矿镐敲击声。观察窗里只有一排摇曳矿灯和深不见底的下行轨道。',
+        choices: [
+            { id: 'readSeal', label: '精神辨封印', description: '判断敲击声是否来自受困亡魂', attribute: 'wis', baseRate: 25, success: { text: '你读懂亡魂敲出的警告，避开主井并获知深层安全路线。', revealNodes: true, revealDepth: 3, mpRestorePercent: 20 }, fail: { text: '敲击声侵入意识，你的防备被持续削弱。', buff: { id: 'deepShaftEcho', name: '深井回声', icon: '🕳️', color: '#52515f', defPercent: -15, durationBattles: 3 } } },
+            { id: 'openBulkhead', label: '力量开门', description: '转动锈死的主井门轮', attribute: 'str', baseRate: 25, success: { text: '钢门只开启一道安全缝隙，你从值班柜中取到主井奖励。', gold: { min: 90, max: 140 }, specialItems: [{ type: 'enhancement_stone', count: 1 }, { type: 'reforge_ticket', count: 1 }] }, fail: { text: '门轮崩断，工头和巡工从主井黑暗中冲出。', combat: 'elite', forceMonsters: ['foremanZombie', 'lanternMinerZombie'], encounter: { combatWaves: 1, monstersPerWave: 6, monsterComposition: { lord: 1, elite: 1, normal: 4 } } } },
+            { id: 'reinforceSeal', label: '加固封门', description: '把备用铁轨焊在钢门外', outcome: { text: '你加固了主井封门，但门后的敲击随即变成急促的追赶声。', combat: 'normal', forceMonsters: ['minerZombie', 'spitterZombie'], encounter: { combatWaves: 1, monstersPerWave: 6, tierWeights: { normal: 1, elite: 0 } } } },
+        ],
+    },
     sunkenHerbalistBasket: {
         title: '沉没的药师竹篓',
         description: '一只编着青藤纹样的竹篓半沉在黑水里，周围漂着被咬碎的药叶。篓盖下仍透出温暖的琥珀光，说明里面的药剂尚未完全被沼水污染；但水面细小的涟漪也暴露了潜伏在泥下的东西。',

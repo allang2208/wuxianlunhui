@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "pipeline": "ImageGen floor source -> deterministic two-axis seamless runtime floor",
+  "sourceTool": "built-in image_gen",
+  "sources": [
+    "tools/ai-gen/_abandoned_mine_20260828/floor-source-imagegen.png"
+  ],
+  "runtime": {
+    "floor_abandoned_mine_seamless": {
+      "path": "assets/terrain/floor_abandoned_mine_seamless.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "runtimeTextureScaleY": 0.5774,
+      "seam": {
+        "horizontalMaxRgbDelta": 0,
+        "verticalMaxRgbDelta": 0
+      },
+      "sha256": "bb53aac75484562378e636396334e0d413667eb92cbc967a74a0a544992049a7"
+    }
+  },
+  "modeledWallKit": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/manifest.json"
+}

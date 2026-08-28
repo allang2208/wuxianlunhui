@@ -41,6 +41,7 @@ import {
 } from './combat-arena-layout.js';
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
 import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
+import { finishGateSprites, prepareGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -2079,6 +2080,11 @@ export const CombatRoomSystem = {
         }
         const sprite = sprites[0];
 
+        // 矿洞升降门初始为开启态：末帧仅作为关门时的下落起点，不长驻顶部。
+        if (g.hideWhenOpen) {
+            setGateSpritesVisible(sprites, false);
+        }
+
         const wallSegs = [
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _arenaGate: true },
             { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _arenaGate: true },
@@ -2093,7 +2099,7 @@ export const CombatRoomSystem = {
         return {
             sprite, sprites, depthSegments,
             wallSegs, gateSeg, center, baseA: gA, baseB: gB,
-            open: true, frames, _animCounter: null,
+            open: true, frames, hideWhenOpen: !!g.hideWhenOpen, _animCounter: null,
         };
     },
 
@@ -2486,10 +2492,10 @@ export const CombatRoomSystem = {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         const from = open ? 0 : inst.frames - 1, to = open ? inst.frames - 1 : 0;
         const sprites = inst.sprites || [inst.sprite];
+        // 关门时先在顶部完全升起帧重生；开门动画期间始终可见。
+        prepareGateSprites(sprites, from);
         if (!scene) {
-            for (const gateSprite of sprites) {
-                if (gateSprite && gateSprite.active) gateSprite.setFrame(to);
-            }
+            finishGateSprites(sprites, to, open, inst.hideWhenOpen);
             return;
         }
         if (inst._animCounter) inst._animCounter.stop();
@@ -2500,6 +2506,9 @@ export const CombatRoomSystem = {
                 for (const gateSprite of sprites) {
                     if (gateSprite && gateSprite.active) gateSprite.setFrame(frame);
                 }
+            },
+            onComplete: () => {
+                finishGateSprites(sprites, to, open, inst.hideWhenOpen);
             },
         });
     },
@@ -2657,7 +2666,20 @@ export const CombatRoomSystem = {
     /** 当前地牢样式的单格墙视觉件：贴图锚、碰撞面线与 depth 只在这里计算。 */
     _makeWorldBlockPiece(center, baseSegments, extra = {}) {
         const style = WallSystem.getWallStyle ? WallSystem.getWallStyle() : null;
-        const geo = ISO_WALL_GEO[style?.block || 'frozen_block'];
+        const blockKeys = Array.isArray(style?.blocks) && style.blocks.length
+            ? style.blocks
+            : [style?.block || 'frozen_block'];
+        // 只按格心做稳定散列：同一格在重进房间后仍使用同一款墙。
+        // 变化只允许切换模型与水平镜像，禁止位移/缩放/旋转扰动破坏 1×1 拼缝。
+        const gridX = Math.round(Number(center.x) || 0);
+        const gridY = Math.round(Number(center.y) || 0);
+        const variantHash = (
+            Math.imul(gridX, 73856093)
+            ^ Math.imul(gridY, 19349663)
+            ^ 0x07a6b1d5
+        ) >>> 0;
+        const geoKey = blockKeys[variantHash % blockKeys.length];
+        const geo = ISO_WALL_GEO[geoKey];
         if (!geo) return null;
         const scaleX = (geo.displayW || geo.displaySize || 260) / geo.w;
         const scaleY = (geo.displayH || geo.displaySize || 260) / geo.h;
@@ -2669,10 +2691,13 @@ export const CombatRoomSystem = {
             y: center.y - (ground[1] - geo.h / 2) * scaleY,
             scaleX,
             scaleY,
-            flipX: false,
+            flipX: style?.allowBlockFlipX !== false
+                && blockKeys.length > 1
+                && ((variantHash >>> 5) & 1) === 1,
             flipY: false,
             depth: baseDepth + 4,
             _gridBlockWall: true,
+            _gridBlockVariant: geoKey,
             _baseSegments: baseSegments,
             ...extra,
         };

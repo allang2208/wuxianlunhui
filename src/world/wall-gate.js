@@ -9,6 +9,7 @@
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from './wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
+import { finishGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
 
 const FRAMES = 16;
 const ANIM_MS = 900; // 16 帧总时长
@@ -41,6 +42,16 @@ export const WallGate = {
     _geo() {
         const key = this._geoKey || 'gate';
         return ISO_WALL_GEO[key] || ISO_WALL_GEO.gate;
+    },
+
+    /** 矿洞升降门完全升起后不保留顶部残影；下落前再整体显现。 */
+    _setVisualVisible(visible) {
+        setGateSpritesVisible(this.sprites, visible);
+        if (!visible) {
+            for (const glow of this.glowSprites || []) {
+                if (glow && glow.active) glow.setVisible(false);
+            }
+        }
     },
 
     /** 贴图内坐标 → 世界（origin 中心 + scale + flipX） */
@@ -161,6 +172,7 @@ export const WallGate = {
         }
         this.setPassable(this.state === 'open' || this.state === 'opening');
         this._buildGlow();
+        this._setVisualVisible(!(g.hideWhenOpen && this.state === 'open'));
         return true;
     },
 
@@ -191,6 +203,8 @@ export const WallGate = {
         this.state = 'closing';
         this._onDone = onDone || null;
         this.setPassable(false);
+        // 先在完全升起帧重新出现，再从上方落下。
+        this._setVisualVisible(true);
         if (SoundManager && typeof SoundManager.playWorld === 'function') {
             // 世界音效（2026-08-11 距离衰减）：关门声按门闸位置衰减
             SoundManager.playWorld(this._gateSound(), this._cx, this._cy);
@@ -205,6 +219,7 @@ export const WallGate = {
         this.state = 'opening';
         this._onDone = onDone || null;
         this.setPassable(true);
+        this._setVisualVisible(true);
         if (SoundManager && typeof SoundManager.playWorld === 'function') {
             // 世界音效（2026-08-11 距离衰减）：开门声按门闸位置衰减
             SoundManager.playWorld(this._gateSound(), this._cx, this._cy);
@@ -219,7 +234,16 @@ export const WallGate = {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         for (const sprite of this.sprites || []) if (sprite && sprite.active) sprite.setFrame(from);
         for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(from);
-        if (!scene) { this._frame = to; this.state = to === 0 ? 'closed' : 'open'; return; }
+        if (!scene) {
+            this._frame = to;
+            this.state = to === 0 ? 'closed' : 'open';
+            finishGateSprites(this.sprites, to, to !== 0, !!this._geo().hideWhenOpen);
+            if (to !== 0 && this._geo().hideWhenOpen) this._setVisualVisible(false);
+            const cb = this._onDone;
+            this._onDone = null;
+            if (cb) cb();
+            return;
+        }
         if (this._animCounter) this._animCounter.stop();
         this._animCounter = scene.tweens.addCounter({
             from,
@@ -234,6 +258,8 @@ export const WallGate = {
             onComplete: () => {
                 this._frame = to;
                 this.state = to === 0 ? 'closed' : 'open';
+                finishGateSprites(this.sprites, to, to !== 0, !!this._geo().hideWhenOpen);
+                if (to !== 0 && this._geo().hideWhenOpen) this._setVisualVisible(false);
                 const cb = this._onDone;
                 this._onDone = null;
                 if (cb) cb();
@@ -327,7 +353,10 @@ export const WallGate = {
     },
 
     setHighlight(on) {
-        for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setVisible(!!on);
+        const openAndHidden = this._geo().hideWhenOpen && this.state === 'open';
+        for (const sprite of this.glowSprites || []) {
+            if (sprite && sprite.active) sprite.setVisible(!!on && !openAndHidden);
+        }
     },
 
     destroy() {

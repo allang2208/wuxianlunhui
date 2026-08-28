@@ -21,6 +21,7 @@ import { EnhancementItems } from '../ui/reward-system.js';
 import { MagicDustItem } from '../config/enchant-config.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { finishGateSprites, prepareGateSprites } from './gate-visual-state.js';
 
 const COUNTDOWN_SEC = 60;
 const OPEN_RANGE = 120; // 与放大一倍的宝箱贴图匹配（原 60）
@@ -449,7 +450,7 @@ export const ChestRoomSystem = {
             for (const s of segs) WallSystem.isoSegments.push(s);
             WallSystem.isoSegments.push(gateSeg); // 初始关门
         }
-        this._gate = { sprite, sprites, depthSegments, segs, gateSeg, open: false };
+        this._gate = { sprite, sprites, depthSegments, segs, gateSeg, open: false, hideWhenOpen: !!g.hideWhenOpen };
     },
 
     /** 打开宝箱房门墙：播 16 帧开门动画，门洞碰撞移除 */
@@ -462,18 +463,26 @@ export const ChestRoomSystem = {
             if (i >= 0) WallSystem.isoSegments.splice(i, 1);
         }
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        const gateGeo = ISO_WALL_GEO[this._gateGeoKey || 'gate'] || ISO_WALL_GEO.gate;
+        const sprites = gate.sprites || [gate.sprite];
+        prepareGateSprites(sprites, 0);
         if (scene && gate.sprite) {
-            const gateGeo = ISO_WALL_GEO[this._gateGeoKey || 'gate'] || ISO_WALL_GEO.gate;
             gate.animCounter = scene.tweens.addCounter({
                 from: 0, to: (gateGeo.frames || 16) - 1,
                 duration: GATE_ANIM_MS, ease: 'Linear',
                 onUpdate: (tw) => {
                     const frame = Math.floor(tw.getValue());
-                    for (const sprite of gate.sprites || [gate.sprite]) {
+                    for (const sprite of sprites) {
                         if (sprite && sprite.active) sprite.setFrame(frame);
                     }
                 },
+                onComplete: () => {
+                    finishGateSprites(sprites, (gateGeo.frames || 16) - 1, true, gate.hideWhenOpen);
+                },
             });
+        } else {
+            const openFrame = (gateGeo.frames || 16) - 1;
+            finishGateSprites(sprites, openFrame, true, gate.hideWhenOpen);
         }
     },
 

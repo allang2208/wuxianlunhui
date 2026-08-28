@@ -107,7 +107,7 @@ export const SceneManager = {
         const cfg = GAME_CONFIG.scenes || {};
         this.scenes = {
             main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 12288, height: 8192, background: '#2a3520', diamondFloor: { enabled: true }, origin: { x: 6144, y: 4096 } },
-            scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
+            scene7: cfg.scene7 || { name: '恐怖地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
             scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } },
             scene9: cfg.scene9 || { name: '世界-123·雪原', type: 'instance', label: '场景九', width: 12288, height: 8192, background: '#101a2b', origin: { x: 6144, y: 4096 } },
             scene10: cfg.scene10 || { name: '世界-124·林地', type: 'instance', label: '场景十', width: 12288, height: 8192, background: '#102015', origin: { x: 6144, y: 4096 } },

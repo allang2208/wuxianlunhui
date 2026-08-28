@@ -1,0 +1,148 @@
+{
+  "assetSet": "abandoned-mine-event-backgrounds",
+  "generator": "OpenAI built-in image generation",
+  "targetDimensions": [
+    1536,
+    1024
+  ],
+  "composition": "3:2 landscape; bottom 25 percent dark and quiet for the decision panel",
+  "lowNoiseContract": "Very low noise; no film grain, sensor noise, stippling, gritty overlay, speckled texture wash, crunchy microcontrast, excessive sharpening, or particle-filled fog. Use smooth shadow gradients, clean volumetric haze, broad readable material shapes, and restrained fine detail.",
+  "count": 15,
+  "assets": [
+    {
+      "eventId": "collapsedMineShaft",
+      "filename": "collapsed-mine-shaft.png",
+      "runtimePath": "assets/scenes/dungeon-events/collapsed-mine-shaft.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "abandonedOreCart",
+      "filename": "abandoned-ore-cart.png",
+      "runtimePath": "assets/scenes/dungeon-events/abandoned-ore-cart.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "canaryCage",
+      "filename": "canary-cage.png",
+      "runtimePath": "assets/scenes/dungeon-events/canary-cage.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "dampFuseBox",
+      "filename": "damp-fuse-box.png",
+      "runtimePath": "assets/scenes/dungeon-events/damp-fuse-box.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "minersRationCache",
+      "filename": "miners-ration-cache.png",
+      "runtimePath": "assets/scenes/dungeon-events/miners-ration-cache.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "floodedLowerTunnel",
+      "filename": "flooded-lower-tunnel.png",
+      "runtimePath": "assets/scenes/dungeon-events/flooded-lower-tunnel.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "exposedCrystalVein",
+      "filename": "exposed-crystal-vein.png",
+      "runtimePath": "assets/scenes/dungeon-events/exposed-crystal-vein.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "brokenMineLift",
+      "filename": "broken-mine-lift.png",
+      "runtimePath": "assets/scenes/dungeon-events/broken-mine-lift.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "toxicGasPocket",
+      "filename": "toxic-gas-pocket.png",
+      "runtimePath": "assets/scenes/dungeon-events/toxic-gas-pocket.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "lanternCode",
+      "filename": "lantern-code.png",
+      "runtimePath": "assets/scenes/dungeon-events/lantern-code.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "foremanLedger",
+      "filename": "foreman-ledger.png",
+      "runtimePath": "assets/scenes/dungeon-events/foreman-ledger.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "dynamiteMagazine",
+      "filename": "dynamite-magazine.png",
+      "runtimePath": "assets/scenes/dungeon-events/dynamite-magazine.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "oreSpiderNest",
+      "filename": "ore-spider-nest.png",
+      "runtimePath": "assets/scenes/dungeon-events/ore-spider-nest.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "hauntedRockDrill",
+      "filename": "haunted-rock-drill.png",
+      "runtimePath": "assets/scenes/dungeon-events/haunted-rock-drill.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "eventId": "sealedMainShaft",
+      "filename": "sealed-main-shaft.png",
+      "runtimePath": "assets/scenes/dungeon-events/sealed-main-shaft.png",
+      "dimensions": [
+        1536,
+        1024
+      ]
+    }
+  ]
+}

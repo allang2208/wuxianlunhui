@@ -54,6 +54,7 @@ import { TimerManager } from '../utils/timer-manager.js';
 import { setCurrentDungeonType, getRoomClearBonus, getStreakMultiplier, getRoomExpEstimate, getDungeonExpBase } from '../config/exp-system.js';
 import { DungeonRunStats } from './dungeon-run-stats.js';
 import { isWallPrefabsLoaded, loadWallPrefabs, whenWallPrefabsLoaded } from './wall-prefabs.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 
 import { GoldManager } from '../systems/gold-manager.js';
 import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
@@ -276,6 +277,7 @@ export const DungeonMapSystem = {
     shutdown() {
         if (this.active && !this._runResultRecorded) this._recordRunResult('failed');
         this.active = false;
+        RuntimeAssetManager.setDungeonEnemyTypes([]);
         this.setWorldObservationSuspended(false);
         this.state = "idle";
         this._routePointerRegion = null;
@@ -1967,7 +1969,17 @@ export const DungeonMapSystem = {
                 if (result && result.combat) {
                     if (result.elite) node.isElite = true;
                     if (result.forceMonsters) node.forceMonsters = result.forceMonsters;
-                    if (result.encounter) node.encounterOverride = result.encounter;
+                    if (result.encounter) {
+                        // 事件只覆盖波次与编组；未显式声明怪物池时继承当前地牢同阶遭遇池，
+                        // 防止共用僵尸战斗管线的题材地牢混入其他系列怪物。
+                        const baseEncounter = DungeonConfig.getZombieEncounterConfig(!!result.elite, this.dungeonType) || {};
+                        node.encounterOverride = { ...result.encounter };
+                        for (const key of ['poolKeys', 'matchPoolRanks', 'poolFamily']) {
+                            if (node.encounterOverride[key] === undefined && baseEncounter[key] !== undefined) {
+                                node.encounterOverride[key] = baseEncounter[key];
+                            }
+                        }
+                    }
                     this._enterCombat(node);
                 } else {
                     const isTrap = result && result.eventType === 'trap';

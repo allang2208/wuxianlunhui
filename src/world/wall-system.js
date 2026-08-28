@@ -40,6 +40,12 @@ const ISO_WALL_GEO = {
     // 恶魔洞窟铁闸门（路线 B：岩壁单块 + 铁栅独立渲染 → 程序化 16 帧升起；compose-demon-gate-B.py 标定：
     // 门洞平行四边形，底边与墙同斜率 0.6347，wallH 291；gateX = 门洞 [159,481]）
     demon_gate: { tex: 'demon_gate', w: 640, h: 576, frames: 16, base: [[0, 228], [639, 634]], face: [[77, 277], [563, 586]], gateX: [159, 481], wallH: 291, slope: 0.6347, editor: '恶魔铁闸', states: { open: { hole: [159, 481] }, closed: { hole: null } } },
+    // 三种墙柱共享同一模型核心、锚点和 128×64 世界占地；差异只存在于崎岖表层、木撑、矿脉与补强件。
+    abandoned_mine_block_a: { tex: 'abandoned_mine_wall_block_a', w: 1024, h: 1024, groundCenter: [512, 761.9959], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, footprint: [128, 64], editor: '废弃矿洞单格墙·木撑' },
+    abandoned_mine_block_b: { tex: 'abandoned_mine_wall_block_b', w: 1024, h: 1024, groundCenter: [512, 761.9959], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, footprint: [128, 64], editor: '废弃矿洞单格墙·矿脉' },
+    abandoned_mine_block_c: { tex: 'abandoned_mine_wall_block_c', w: 1024, h: 1024, groundCenter: [512, 761.9959], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, footprint: [128, 64], editor: '废弃矿洞单格墙·补强' },
+    // 六格门只含可升降门叶；叶片完整收在 gateX 内并按每格一片做六段深度排序。
+    abandoned_mine_gate: { tex: 'abandoned_mine_gate', w: 640, h: 640, frames: 16, base: [[32.0003, 299.9994], [608.0002, 588.0004]], face: [[32.0003, 299.9994], [608.0002, 588.0004]], gateX: [32, 608], wallH: 225.7447, slope: 0.500002, halfThick: 13, depthSlices: 6, hideWhenOpen: true, editor: '废弃矿洞六格木铁升降门', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
     // 沼泽地门闸（gate.mp4 16 帧已反转：首帧=关闭(藤蔓封门)、末帧=打开；tools/swamp-gate-geo.json）
     swamp_gate: { tex: 'swamp_gate', w: 640, h: 612, frames: 16, base: [[5, 275.0], [634, 632.8]], face: [[5, 275.0], [634, 632.8]], gateX: [248, 384], wallH: 301.1, slope: 0.5689, editor: '沼泽藤门', states: { open: { hole: [248, 384] }, closed: { hole: null } } },
     // 主神空间大理石墙（2026-07-29 v2 透明底素材，tools/prep-hub-wall-gate.py：最大连通域+几何实测）
@@ -117,6 +123,13 @@ const ISO_WALL_STYLES = {
     // 恶魔洞窟（C 级，2026-08-11）：矿洞岩壁 + 铁闸门。corners 待 demon 转角预制就绪后登记
     demonCavern: {
         straight: 'demon_straight', gate: 'demon_gate', chestPrefab: '宝箱房',
+        gateSound: 'assets/sounds/environment/gate.mp3',
+    },
+    abandonedMine: {
+        block: 'abandoned_mine_block_a',
+        blocks: ['abandoned_mine_block_a', 'abandoned_mine_block_b', 'abandoned_mine_block_c'],
+        allowBlockFlipX: false,
+        gate: 'abandoned_mine_gate', chestPrefab: '宝箱房',
         gateSound: 'assets/sounds/environment/gate.mp3',
     },
     // 冰封世界初级：单格冰墙环 + 全门洞冰锥升降门。

@@ -1,6 +1,7 @@
 import dungeonConfigData from '../../data/dungeon-config.json';
 import dungeonTerrainConfig from '../../data/dungeon-terrain.json';
 import swampDungeonTerrainConfig from '../../data/swamp-dungeon-terrain.json';
+import abandonedMineTerrainConfig from '../../data/abandoned-mine-terrain.json';
 import { getTributeCombatChanceDelta, getTributeEliteChanceDelta } from './tribute-effects.js';
 
 // 难度等级顺序（与 dungeon-event-definitions.js GRADE_ORDER 保持一致）
@@ -66,6 +67,9 @@ export const DungeonConfig = {
 
     // 地牢类型 → 配置键映射（新增地牢在此登记）
     _keyFor(dungeonType) {
+        if (dungeonType === 'abandonedMineBeginner') return 'abandonedMineDungeonBeginner';
+        if (dungeonType === 'abandonedMineMid') return 'abandonedMineDungeonMid';
+        if (dungeonType === 'abandonedMine') return 'abandonedMineDungeon';
         if (dungeonType === 'zombieBeginner') return 'zombieDungeonBeginner';
         if (dungeonType === 'frozenBeginner') return 'frozenDungeonBeginner';
         if (dungeonType === 'frozenMid') return 'frozenDungeonMid';
@@ -111,6 +115,28 @@ export const DungeonConfig = {
     },
 
     /**
+     * 进入地牢时需要预载的全部怪物类型。
+     * 默认汇总普通/精英/Boss 遭遇的 poolKeys；不在池内、但会由事件或召唤生成的
+     * 特殊怪物可通过地牢配置 enemyPreloadTypes 显式补充。
+     */
+    getDungeonEnemyPreloadTypes(dungeonType) {
+        const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
+        const types = new Set(Array.isArray(cfg.enemyPreloadTypes) ? cfg.enemyPreloadTypes : []);
+        const collect = (encounter) => {
+            if (!encounter || typeof encounter !== 'object') return;
+            for (const type of encounter.poolKeys || []) {
+                if (type) types.add(type);
+            }
+            for (const type of encounter.forceMonsters || []) {
+                if (type) types.add(type);
+            }
+        };
+        for (const encounter of Object.values(cfg.encounters || {})) collect(encounter);
+        collect(cfg.bossEncounter);
+        return [...types];
+    },
+
+    /**
      * 地板贴图配置（data/dungeon-config.json 各地牢 floor 字段：
      * { tiles: [贴图键...], glow: 是否启用发光层 }；未配置返回 null 走模块默认）
      */
@@ -153,6 +179,25 @@ export const DungeonConfig = {
                     ? {
                         ...swampDungeonTerrainConfig.deco,
                         assets: (swampDungeonTerrainConfig.deco.assets || []).map(asset => ({ ...asset })),
+                    }
+                    : null,
+            };
+        }
+        if (floor?.terrainProfile === 'abandonedMine') {
+            const base = abandonedMineTerrainConfig.base || {};
+            return {
+                tiles: base.key ? [base.key] : [],
+                glow: false,
+                continuous: base.continuous === true,
+                backgroundColor: base.backgroundColor || '#0b0a09',
+                textureScaleY: base.textureScaleY ?? 0.5774,
+                cellDetails: abandonedMineTerrainConfig.detailLayer
+                    ? { ...abandonedMineTerrainConfig.detailLayer, grid: { ...abandonedMineTerrainConfig.detailLayer.grid } }
+                    : null,
+                deco: abandonedMineTerrainConfig.deco
+                    ? {
+                        ...abandonedMineTerrainConfig.deco,
+                        assets: (abandonedMineTerrainConfig.deco.assets || []).map(asset => ({ ...asset })),
                     }
                     : null,
             };

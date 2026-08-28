@@ -1,0 +1,9 @@
+Intended use: production material candidate for a modular 2.5D isometric abandoned-mine dungeon wall kit.
+
+Subject: one solid 1x1 mine wall pillar, exactly matching the supplied Blender depth silhouette, proportions, camera, grounding, irregular outer contour, stone placement, timber support positions and diagonal brace. Preserve the complete closed wall mass; this is not an entrance.
+
+Materials: low-saturation charcoal slate, cool gray fractured mine rock and compacted earth; old dark-oak support beams with restrained warm-brown grain; sparse matte oxidized iron straps and fasteners. Large continuous material planes first, sparse medium-scale chips and cracks, readable bevels, no dense micro-noise.
+
+Rendering: polished game-ready PBR, soft upper-left top-side light, restrained contact darkening inside crevices, crisp readable silhouette at gameplay scale, no dramatic cast shadow.
+
+Hard constraints: change materials only. Do not change geometry, viewpoint, footprint, height, silhouette, block count, timber placement or brace direction. No doorway, arch, cave opening, window, roof, battlement, floor slab, loose scenery, crystals, lamps, characters, creatures, text, symbols, fog, particles or background shadow. One isolated wall module only.

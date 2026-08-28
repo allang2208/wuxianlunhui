@@ -352,6 +352,7 @@ normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；�
 - `encounter.poolKeys` 是遭遇级白名单，缺省保持旧版“白名单内跨阶级随机”语义；需要让同一白名单按波次槽位匹配阶级时，显式声明 `matchPoolRanks: true`。
 - 阶级匹配口径以双份 `enemy-config.json#<key>.rank` 为真源：normal 槽排除 `elite/lord/boss`，elite、lord、boss 槽只接受同名 rank。普通、精英、领主工厂仍必须全部登记到 `ZOMBIE_FACTORY_MAP`，不能只写配置键。
 - 某槽位在白名单内找不到对应阶级时会继续走 `poolFamily` / 默认池兜底；因此启用 `matchPoolRanks` 的遭遇必须覆盖 `waveComposition`、`monsterComposition` 实际使用的每一种阶级，否则会漏入白名单外怪物。修改后同步 `data/`、`public/data/`，并让 `scripts/generate-dungeons-table.mjs` 输出真实分池，避免总表仍显示扁平白名单。
+- **地牢怪物预载合同（2026-08-28）**：所有地牢入场统一调用 `resolveDungeonEnemyPreloadTypes()`，以普通/精英/Boss `poolKeys` 和显式 `enemyPreloadTypes` 为基础，再展开家族回退池、阶级缺口、当前 scope/等级事件强制怪、D 级以上时空特工、通用集合体 Boss，以及墓碑/矿洞/巫婆等伴生与召唤链。`ExpeditionSystem.depart()` 必须在扣钥匙和清主场景之前用 `RuntimeAssetManager.setDungeonEnemyTypes()` 驻留本次资源族，并以 `required: true` 等待 `prefetchEnemyTypes()`；任一类型未登记或加载失败均取消入场且不消耗钥匙，禁止用 `enemy_circle` 胶囊继续。`DungeonMapSystem.shutdown()` 负责解除驻留。只有无法由解析器推导的自定义生成源才写入配置 `enemyPreloadTypes`。
 
 #### 5. 验证
 JSON 校验；lint / vite build / test-collider / test-craft-sync；`node scripts/generate-dungeons-table.mjs` 刷新 dungeons-table.md；CHANGELOG 记录。
@@ -468,7 +469,22 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 ---
 
-### 墙体添加标准工作流（独立流程，新墙类素材/墙件一律按此开展）
+### 墙体添加标准工作流（独立流程，新墙类素材/墙件一律按此开展；2026-08-28 补齐墙/门独立建模门禁）
+
+#### 零、墙体与功能门独立建模门禁
+
+1. 新地牢先确定连续墙 `buildIsoDiamondWalls` 或单格墙 `wallConstruction:"worldBlock1x1"`，再锁定 `footprint/groundCenter/display/halfThick`、2:1 等距相机与四角共享规则；禁止先生成完整房间图再裁墙、门和地板。
+2. 墙与功能门必须是两套独立结构资产。门再拆为静态门柱/门框与可动门叶；单格墙默认由门洞两端同款墙块兼任门柱，门帧不得烘焙侧墙、地板或完整房间。
+3. “建模”必须有可编辑 `.blend`（墙/门分 collection 或 object）或可完整重建轮廓和运动的确定性几何脚本。ImageGen 位图、抠图、裁切、仿射和逐帧平移只算二维贴图加工；复用既有结构时必须明确写“结构复用 + 新材质”。
+4. AI 只负责受 Depth/Alpha 控制的材质与局部细化；相机、墙脚、墙高、门底线、门洞跨度、杆件数量和运动轨迹由结构真源决定，最终化必须恢复原轮廓与落位。
+5. 升降门 16 帧必须来自真实门叶组件运动或确定性参数重建，帧 0 完全关闭、帧 15 完全打开；`base/face/gateX/frames/halfThick/depthSlices` 与 geometry JSON 同源，并精确映射 `gateCells`。
+6. 正式交付至少保留模型/重建脚本、geometry/manifest、Depth、Alpha、门帧、运行时 PNG/spritesheet，以及按运行时锚点、缩放和分层数学生成的重复墙、墙-门-墙、双臂转角拼接证据。
+7. `BootScene`、`ISO_WALL_GEO`、`ISO_WALL_STYLES.block(s)/gate`、`wallConstruction/gateCells/passageCells` 必须同源；地板始终走独立连续层，不得烘进墙门。
+8. 多款 1×1 墙可按格坐标稳定选款，但必须共享结构核心、锚点、占地与显示尺寸；只允许局部崎岖/木撑/矿脉变化，禁止随机位移、缩放、旋转。只有无方向环境光材质才允许水平镜像。
+9. 墙高比较使用 `(groundCenter.y - alphaBBox.top) × displayH/sourceH` 的运行时可见高度，不能拿 1024 源图像素或错误的投影高度直接写 `wallH`。
+10. 同组墙必须用同一低频光照真源统一曝光与阴影：主体中位亮度差 ≤0.01、平均亮度差 ≤0.015，并输出数值报告和连续拼接预览。含明确烘焙光向时样式必须禁用水平镜像。
+
+**反推基准**：恐怖地牢是完整 Blender 墙/门叶分离模型；雪原墙是既有 `obstacle_block.png` 结构/Alpha 真源加冰材质，冰锥门由确定性脚本独立构建；废弃矿洞三种 Blender 墙柱共用 1×1 核心和锚点，独立 `AnimatedGateLeaf` 只渲染六格门叶并按门洞格分六层排序。三者都不从“墙+门+地板”整图反向裁运行时部件。
 
 #### 一、素材管线（贴图进项目前必过）
 1. **抠图**：纯色/棋盘底用**边界洪水填充**（不误伤主体砖缝亮灰）；水印/描边用 alpha 阈值清零或定点抹除

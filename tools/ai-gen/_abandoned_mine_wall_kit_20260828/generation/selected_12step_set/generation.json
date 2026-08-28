@@ -1,0 +1,42 @@
+{
+  "date": "2026-08-28",
+  "stage": "selected_12step_set",
+  "status": "finalized_and_installed",
+  "model": "flux2-dev-depth",
+  "endpoint": "192.168.3.142:8188",
+  "size": "1024x1024",
+  "steps": 12,
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "seed": 122082810,
+  "controlStrength": 0.78,
+  "refine48Step": false,
+  "outputs": [
+    {
+      "asset": "abandoned_mine_wall_block_b",
+      "path": "wall_b_structure_v01_raw.png",
+      "sha256": "e44dca29687d759400078b47a756ca4b484c76be2ccb2570b2de0b299d6b7928",
+      "controlImage": "../../abandoned_mine_wall_block_b_depth.png",
+      "controlImageSha256": "b139cfc141c0356eda3972556ddf9d038aba805323a4c73cb811d0cb6d91d11a"
+    },
+    {
+      "asset": "abandoned_mine_wall_block_c",
+      "path": "wall_c_structure_v01_raw.png",
+      "sha256": "69bc679d53f56f5887a10326b34513d6cec9f8a00b6abd4a1484a1fcd762ea2d",
+      "controlImage": "../../abandoned_mine_wall_block_c_depth.png",
+      "controlImageSha256": "0ab777d433bece9c0cac0e135304877503e56382efbaf3c846bf74be02c24427"
+    },
+    {
+      "asset": "abandoned_mine_gate_closed",
+      "path": "gate_closed_structure_v01_raw.png",
+      "sha256": "50c2df73dee5d99be813bbad94ef75aafb673a6b173513987b6c8ea8df33fd70",
+      "controlImage": "../../abandoned_mine_gate_depth.png",
+      "controlImageSha256": "9671107ed8b8542463f8eedf7e5173006710dc352c4ea63781765bdc97fb6788"
+    }
+  ],
+  "wallPrompt": "../wall_material_structure_prompt.txt",
+  "gatePrompt": "../gate_material_structure_prompt.txt",
+  "gatePromptSha256": "3d112c5d62dc47358408e8bded1809821d606c270f019fdaa0e571a6ec869904",
+  "finalManifest": "../final_12step/manifest.json"
+}

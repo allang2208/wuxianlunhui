@@ -15,6 +15,7 @@ import producerBuildingsConfig from '../../../data/producer-buildings.json';
 import desertTerrainConfig from '../../../data/desert-terrain.json';
 import dungeonTerrainConfig from '../../../data/dungeon-terrain.json';
 import swampDungeonTerrainConfig from '../../../data/swamp-dungeon-terrain.json';
+import abandonedMineTerrainConfig from '../../../data/abandoned-mine-terrain.json';
 import roadsideDecorationConfig from '../../../data/roadside-decorations.json';
 import enemyConfigData from '../../../data/enemy-config.json';
 import {
@@ -183,6 +184,16 @@ export class BootScene extends Scene {
             loadedSwampDungeonDeco.add(asset.key);
             this.load.image(asset.key, asset.src);
         }
+        const abandonedMineBase = abandonedMineTerrainConfig.base || {};
+        if (abandonedMineBase.key && abandonedMineBase.src) {
+            this.load.image(abandonedMineBase.key, abandonedMineBase.src);
+        }
+        const loadedAbandonedMineDeco = new Set();
+        for (const asset of abandonedMineTerrainConfig.deco?.assets || []) {
+            if (!asset?.key || !asset?.src || loadedAbandonedMineDeco.has(asset.key)) continue;
+            loadedAbandonedMineDeco.add(asset.key);
+            this.load.image(asset.key, asset.src);
+        }
         const desertDetailLayer = desertTerrainConfig.detailLayer || {};
         if (desertDetailLayer.key && desertDetailLayer.src) {
             this.load.spritesheet(desertDetailLayer.key, desertDetailLayer.src, {
@@ -286,6 +297,11 @@ export class BootScene extends Scene {
         this.load.image('demonbrick1', 'assets/terrain/demonbrick1.png');
         this.load.image('demon_wall_straight', 'assets/terrain/demon_wall_straight.png');
         this.load.spritesheet('demon_gate', 'assets/terrain/demon_gate.png', { frameWidth: 640, frameHeight: 576, endFrame: 15 });
+        // 废弃矿洞：连续地板 + 三种独立 1×1 岩壁墙柱 + 六格木铁升降门。
+        this.load.image('abandoned_mine_wall_block_a', 'assets/terrain/abandoned_mine_wall_block_a.png');
+        this.load.image('abandoned_mine_wall_block_b', 'assets/terrain/abandoned_mine_wall_block_b.png');
+        this.load.image('abandoned_mine_wall_block_c', 'assets/terrain/abandoned_mine_wall_block_c.png');
+        this.load.spritesheet('abandoned_mine_gate', 'assets/terrain/abandoned_mine_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
         // 冰封世界初级地牢：长墙沿用既有冰墙；竞技场单格墙严格复用世界方块墙几何并替换冰材质。
         this.load.image('frozen_wall_straight', 'assets/terrain/frozen_wall_straight.png');
         this.load.image('frozen_wall_block', 'assets/terrain/frozen_wall_block.png');

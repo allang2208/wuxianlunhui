@@ -1,0 +1,30 @@
+{
+  "date": "2026-08-28",
+  "stage": "selected_structure_material",
+  "status": "selected_and_finalized",
+  "asset": "abandoned_mine_wall_block_a",
+  "model": "flux2-dev-depth",
+  "endpoint": "192.168.3.142:8188",
+  "size": "1024x1024",
+  "steps": 12,
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "controlStrength": 0.78,
+  "controlImage": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/abandoned_mine_wall_block_a_depth.png",
+  "controlImageSha256": "0bfc382ba7c02e1ec3d3a9ce140c18a5ebadc61881c5f559b40fe606330c5966",
+  "promptFile": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/wall_material_structure_prompt.txt",
+  "promptFileSha256": "26a5ec1a4becf6c8c45b2a68b7104a6a5ce276886f7fdc873448d2fbc04559e0",
+  "candidates": [
+    {
+      "id": 1,
+      "seed": 122082810,
+      "path": "wall_a_structure_v01_raw.png",
+      "sha256": "81158f3d5a9a0972a094162d2b601553cc9881da3471584eb4b15e2571b9381c"
+    }
+  ],
+  "selectedCandidate": 1,
+  "finalManifest": "../final_12step/manifest.json",
+  "runtimeInstalled": true,
+  "notes": "Only the selected V01 source is retained. Blender alpha, ground anchor, 1x1 footprint and exact seam geometry remain authoritative for finalization."
+}

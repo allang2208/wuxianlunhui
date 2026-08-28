@@ -1,0 +1,130 @@
+{
+  "version": 2,
+  "projection": "worldBlock1x1-2to1",
+  "footprint": [
+    128,
+    64
+  ],
+  "walls": [
+    {
+      "key": "abandoned_mine_block_a",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "wallH": 132,
+      "halfThick": 13,
+      "footprint": [
+        128,
+        64
+      ],
+      "modelCore": [
+        2.12,
+        2.12,
+        3.04
+      ],
+      "variantSeed": 122082800
+    },
+    {
+      "key": "abandoned_mine_block_b",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "wallH": 132,
+      "halfThick": 13,
+      "footprint": [
+        128,
+        64
+      ],
+      "modelCore": [
+        2.12,
+        2.12,
+        3.04
+      ],
+      "variantSeed": 122082801
+    },
+    {
+      "key": "abandoned_mine_block_c",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "wallH": 132,
+      "halfThick": 13,
+      "footprint": [
+        128,
+        64
+      ],
+      "modelCore": [
+        2.12,
+        2.12,
+        3.04
+      ],
+      "variantSeed": 122082802
+    }
+  ],
+  "gate": {
+    "key": "abandoned_mine_gate",
+    "canvas": [
+      640,
+      640
+    ],
+    "frames": 16,
+    "base": [
+      [
+        32.0003,
+        299.9994
+      ],
+      [
+        608.0002,
+        588.0004
+      ]
+    ],
+    "face": [
+      [
+        32.0003,
+        299.9994
+      ],
+      [
+        608.0002,
+        588.0004
+      ]
+    ],
+    "gateX": [
+      32,
+      608
+    ],
+    "wallH": 225.7447,
+    "slope": 0.500002,
+    "halfThick": 13,
+    "depthSlices": 6,
+    "movingCollection": "AnimatedGateLeaf",
+    "containsStaticJambs": false,
+    "stateContract": "frame 0 closed; frame 15 open"
+  }
+}

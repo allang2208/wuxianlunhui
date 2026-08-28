@@ -33,6 +33,7 @@ class RuntimeAssetManagerImpl {
         this.enemyAnimationManifest = new Map();
         this.residentEnemyTextures = new Map();
         this.currentEnemyFamilies = new Set();
+        this.dungeonEnemyFamilies = new Set();
         this.enemyRequestPromises = new Map();
         this.enemyFailedUntil = new Map();
         this.residentBuildingTextures = new Map();
@@ -347,8 +348,9 @@ class RuntimeAssetManagerImpl {
         return request;
     }
 
-    getEnemyVisualKeysForTypes(types) {
+    resolveEnemyVisualKeysForTypes(types) {
         const keys = [];
+        const unresolvedTypes = [];
         const seenFamilies = new Set();
         const entries = [...this.enemyTextureManifest.values()];
         const normalizedEntries = entries.map((candidate) => ({
@@ -366,17 +368,51 @@ class RuntimeAssetManagerImpl {
                     || normalizedType.includes(normalizedFamily)
                     || normalizedFamily.includes(normalizedType);
             })?.candidate;
-            if (!entry || seenFamilies.has(entry.family)) continue;
+            if (!entry) {
+                unresolvedTypes.push(type);
+                continue;
+            }
+            if (seenFamilies.has(entry.family)) continue;
             seenFamilies.add(entry.family);
             keys.push(entry.key);
         }
-        return keys;
+        return { keys, unresolvedTypes };
     }
 
-    prefetchEnemyTypes(types) {
-        const keys = this.getEnemyVisualKeysForTypes(types);
-        if (!keys.length) return Promise.resolve([]);
-        return this.ensureEnemyVisualKeys(keys, { required: false });
+    getEnemyVisualKeysForTypes(types) {
+        return this.resolveEnemyVisualKeysForTypes(types).keys;
+    }
+
+    prefetchEnemyTypes(types, options = {}) {
+        const { keys, unresolvedTypes } = this.resolveEnemyVisualKeysForTypes(types);
+        if (options.required && unresolvedTypes.length) {
+            return Promise.reject(new Error(`敌人资源未登记: ${unresolvedTypes.join(', ')}`));
+        }
+        if (!keys.length) {
+            options.onProgress?.(1);
+            return Promise.resolve([]);
+        }
+        return this.ensureEnemyVisualKeys(keys, { required: false, ...options });
+    }
+
+    setDungeonEnemyTypes(types) {
+        const families = new Set();
+        for (const key of this.getEnemyVisualKeysForTypes(types)) {
+            const texture = this.enemyTextureManifest.get(key);
+            if (texture) families.add(texture.family);
+            const animation = this.enemyAnimationManifest.get(key);
+            for (const textureKey of animation?.textureKeys || []) {
+                const entry = this.enemyTextureManifest.get(textureKey);
+                if (entry) families.add(entry.family);
+            }
+        }
+        this.dungeonEnemyFamilies = families;
+        const now = Date.now();
+        for (const record of this.residentEnemyTextures.values()) {
+            if (families.has(record.family)) record.lastUsedAt = now;
+        }
+        this._evictUnusedEnemyTextures(now);
+        this._scheduleReap();
     }
 
     ensureEnemyVisualKeys(keys, { onProgress = null, required = true } = {}) {
@@ -930,7 +966,8 @@ class RuntimeAssetManagerImpl {
         if (!this.safeMode && this._isNetworkLoadBlocked(now)) return;
         let total = this._totalEstimatedResidentBytes();
         const candidates = [...this.residentEnemyTextures.entries()]
-            .filter(([, record]) => !this.currentEnemyFamilies.has(record.family))
+            .filter(([, record]) => !this.currentEnemyFamilies.has(record.family)
+                && !this.dungeonEnemyFamilies.has(record.family))
             .sort((a, b) => a[1].lastUsedAt - b[1].lastUsedAt);
         const removedFamilies = new Set();
         for (const [key, record] of candidates) {
@@ -996,7 +1033,8 @@ class RuntimeAssetManagerImpl {
             if (!this.currentFriendlyIds.has(id)) expiryTimes.push(record.lastUsedAt + this.hotCacheTtlMs);
         }
         for (const record of this.residentEnemyTextures.values()) {
-            if (!this.currentEnemyFamilies.has(record.family)) {
+            if (!this.currentEnemyFamilies.has(record.family)
+                && !this.dungeonEnemyFamilies.has(record.family)) {
                 expiryTimes.push(record.lastUsedAt + this.hotCacheTtlMs);
             }
         }

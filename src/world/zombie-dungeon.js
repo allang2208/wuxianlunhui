@@ -501,7 +501,7 @@ export const ZOMBIE_FACTORY_MAP = {
 };
 
 const ZOMBIE_DUNGEON_CONFIG = {
-    name: '僵尸地牢高级',
+    name: '恐怖地牢高级',
     description: '被亡灵瘟疫侵蚀的地下墓穴，四条通道通向深处',
 
     // 怪物池（按 tier 分类）—— 根据 enemy-config.json 的 rank 字段动态构建，确保只有一套精英判定
@@ -1122,7 +1122,7 @@ export class ZombieDungeonShop {
             npcType: 'shop',
             getRandomGreeting() {
                 const greetings = [
-                    '欢迎来到僵尸地牢的分店！虽然环境差了点，但货还是一样的全。',
+                    '欢迎来到恐怖地牢的分店！虽然环境差了点，但货还是一样的全。',
                     '能在这种地方遇到我，说明你的运气不错。买点什么？',
                     '小鼠大王的生意遍布各个世界，包括这个鬼地方。',
                     '外面的僵尸可不会跟你讨价还价，但我会。'

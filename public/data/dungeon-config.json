@@ -1,9 +1,9 @@
 {
  "dungeonList": {
   "zombie": {
-   "name": "☠ 僵尸地牢-高级",
+   "name": "☠ 恐怖地牢-高级",
    "series": "zombie",
-   "seriesName": "僵尸地牢",
+   "seriesName": "恐怖地牢",
    "seriesIcon": "☠",
    "seriesOrder": 10,
    "tier": "高级",
@@ -17,9 +17,9 @@
    "recLevel": "25~40级"
   },
   "zombieBeginner": {
-   "name": "☠ 僵尸地牢-初级",
+   "name": "☠ 恐怖地牢-初级",
    "series": "zombie",
-   "seriesName": "僵尸地牢",
+   "seriesName": "恐怖地牢",
    "seriesIcon": "☠",
    "seriesOrder": 10,
    "tier": "初级",
@@ -79,9 +79,9 @@
    "recLevel": "70~85级"
   },
   "zombieMid": {
-   "name": "☠ 僵尸地牢-中级",
+   "name": "☠ 恐怖地牢-中级",
    "series": "zombie",
-   "seriesName": "僵尸地牢",
+   "seriesName": "恐怖地牢",
    "seriesIcon": "☠",
    "seriesOrder": 10,
    "tier": "中级",
@@ -155,6 +155,53 @@
    "reward": "2000金币",
    "grade": "C",
    "recLevel": "40~55级"
+  },
+  "abandonedMine": {
+   "name": "⛏ 废弃矿洞-高级",
+   "series": "abandonedMine",
+   "seriesName": "废弃矿洞",
+   "seriesIcon": "⛏",
+   "seriesOrder": 5,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "abandonedMineMid",
+   "nodeCount": "45~50",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "1500金币",
+   "grade": "D",
+   "recLevel": "25~40级"
+  },
+  "abandonedMineBeginner": {
+   "name": "⛏ 废弃矿洞-初级",
+   "series": "abandonedMine",
+   "seriesName": "废弃矿洞",
+   "seriesIcon": "⛏",
+   "seriesOrder": 5,
+   "tier": "初级",
+   "tierOrder": 1,
+   "nodeCount": "22~27",
+   "battleRatio": "40%",
+   "level": "1级",
+   "reward": "800金币",
+   "grade": "F",
+   "recLevel": "1~10级"
+  },
+  "abandonedMineMid": {
+   "name": "⛏ 废弃矿洞-中级",
+   "series": "abandonedMine",
+   "seriesName": "废弃矿洞",
+   "seriesIcon": "⛏",
+   "seriesOrder": 5,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "abandonedMineBeginner",
+   "nodeCount": "30~35",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "1200金币",
+   "grade": "E",
+   "recLevel": "10~25级"
   }
  },
  "zombieDungeon": {
@@ -195,6 +242,18 @@
      "elite": 0
     },
     "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
     "waveComposition": [
      {
       "normal": 5
@@ -220,6 +279,18 @@
      "elite": 1
     },
     "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
     "waveComposition": [
      {
       "normal": 5
@@ -310,7 +381,19 @@
      "normal": 1,
      "elite": 0
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true
    },
    "elite": {
     "combatWaves": 1,
@@ -323,7 +406,19 @@
      "normal": 0,
      "elite": 1
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true
    }
   },
   "grid": {
@@ -348,6 +443,18 @@
     "elite": 1,
     "normal": 5
    },
+   "poolKeys": [
+    "zombieDog",
+    "fatZombie",
+    "flySwarm",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand"
+   ],
+   "matchPoolRanks": true,
    "waveComposition": [
     {
      "normal": 5
@@ -722,7 +829,19 @@
      "normal": 1,
      "elite": 0
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true
    },
    "elite": {
     "combatWaves": 1,
@@ -735,7 +854,19 @@
      "normal": 0,
      "elite": 1
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true
    }
   },
   "grid": {
@@ -759,7 +890,18 @@
    "monsterComposition": {
     "lord": 1
    },
-   "poolFamily": "僵尸",
+   "poolKeys": [
+    "zombieDog",
+    "fatZombie",
+    "flySwarm",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand"
+   ],
+   "matchPoolRanks": true,
    "waveComposition": [
     {
      "normal": 5
@@ -880,15 +1022,15 @@
    "poolKeys": [
     "blackWolf",
     "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "swampVampireMosquito",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "swampVampireMosquito",
+    "blackKingCobra",
+    "medusa",
+    "blackBear",
+    "purpleBlightAncient"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -1047,15 +1189,15 @@
    "poolKeys": [
     "blackWolf",
     "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "swampVampireMosquito",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "swampVampireMosquito",
+    "blackKingCobra",
+    "medusa",
+    "blackBear",
+    "purpleBlightAncient"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -1199,15 +1341,15 @@
    "poolKeys": [
     "blackWolf",
     "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "swampVampireMosquito",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "swampVampireMosquito",
+    "blackKingCobra",
+    "medusa",
+    "blackBear",
+    "purpleBlightAncient"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -1605,5 +1747,422 @@
   },
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie"
+ },
+ "abandonedMineDungeonBeginner": {
+  "combatRoom": {
+   "normalSize": 896,
+   "eliteSize": 1280,
+   "bossSize": 1536,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 1,
+   "eliteRoomCount": 1,
+   "maze": {
+    "enabled": false,
+    "roomCount": 1,
+    "rows": 1
+   }
+  },
+  "nodeCount": {
+   "min": 22,
+   "max": 27
+  },
+  "shortestCombatPath": 4,
+  "mainRowMinCombat": 3,
+  "typeRatios": {
+   "combat": 0.4,
+   "event": 0.6
+  },
+  "eliteCombatChance": 0,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "lanternMinerZombie",
+     "foremanZombie",
+     "oreSpider",
+     "mineCave"
+    ],
+    "matchPoolRanks": true
+   },
+   "elite": {
+    "combatWaves": 1,
+    "monstersPerWave": 6,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "lanternMinerZombie",
+     "foremanZombie",
+     "oreSpider",
+     "mineCave"
+    ],
+    "matchPoolRanks": true
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 5
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "elite": 1
+    }
+   ],
+   "poolKeys": [
+    "zombie",
+    "spitterZombie",
+    "minerZombie",
+    "lanternMinerZombie",
+    "foremanZombie",
+    "oreSpider",
+    "mineCave"
+   ],
+   "matchPoolRanks": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "terrainProfile": "abandonedMine"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "abandonedMine",
+  "wallStyle": "abandonedMine"
+ },
+ "abandonedMineDungeonMid": {
+  "combatRoom": {
+   "normalSize": 1024,
+   "eliteSize": 1536,
+   "bossSize": 1792,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 1,
+   "eliteRoomCount": 3,
+   "maze": {
+    "enabled": false,
+    "roomCount": 3,
+    "rows": 1
+   }
+  },
+  "nodeCount": {
+   "min": 30,
+   "max": 35
+  },
+  "shortestCombatPath": 4,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.4,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "lanternMinerZombie",
+     "foremanZombie",
+     "oreSpider",
+     "mineCave"
+    ],
+    "matchPoolRanks": true
+   },
+   "elite": {
+    "combatWaves": 1,
+    "monstersPerWave": 6,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "lanternMinerZombie",
+     "foremanZombie",
+     "oreSpider",
+     "mineCave"
+    ],
+    "matchPoolRanks": true
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "lord": 1
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "lord": 1
+    }
+   ],
+   "poolKeys": [
+    "zombie",
+    "spitterZombie",
+    "minerZombie",
+    "lanternMinerZombie",
+    "foremanZombie",
+    "oreSpider",
+    "mineCave"
+   ],
+   "matchPoolRanks": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "terrainProfile": "abandonedMine"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "abandonedMine",
+  "wallStyle": "abandonedMine"
+ },
+ "abandonedMineDungeon": {
+  "combatRoom": {
+   "normalSize": 1152,
+   "eliteSize": 1664,
+   "bossSize": 2048,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "nodeCount": {
+   "min": 45,
+   "max": 50
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ],
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "lanternMinerZombie",
+     "foremanZombie",
+     "oreSpider",
+     "mineCave"
+    ],
+    "matchPoolRanks": true
+   },
+   "elite": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "lord": 1
+     }
+    ],
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "lanternMinerZombie",
+     "foremanZombie",
+     "oreSpider",
+     "mineCave"
+    ],
+    "matchPoolRanks": true
+   }
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "lord": 1
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "lord": 1
+    }
+   ],
+   "poolKeys": [
+    "zombie",
+    "spitterZombie",
+    "minerZombie",
+    "lanternMinerZombie",
+    "foremanZombie",
+    "oreSpider",
+    "mineCave"
+   ],
+   "matchPoolRanks": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "terrainProfile": "abandonedMine"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "abandonedMine",
+  "wallStyle": "abandonedMine"
  }
 }

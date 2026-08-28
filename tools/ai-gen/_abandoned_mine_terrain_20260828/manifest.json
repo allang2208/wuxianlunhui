@@ -1,0 +1,314 @@
+{
+  "version": 1,
+  "camera": {
+    "projection": "orthographic",
+    "elevation": 30.0,
+    "modelRootRotationZ": 44.8,
+    "propOrthoScale": 6.4,
+    "propBottomRatio": 0.875
+  },
+  "floorPipeline": "floor-asset.py abandoned-mine -> make-seamless -> desaturate",
+  "collisionContract": "all 18 props are floor-baked visual-only decorations",
+  "props": [
+    "abandoned_mine_prop_slate_rubble",
+    "abandoned_mine_prop_coal_chunks",
+    "abandoned_mine_prop_ore_fragments",
+    "abandoned_mine_prop_broken_sleepers",
+    "abandoned_mine_prop_rail_spikes",
+    "abandoned_mine_prop_broken_rail",
+    "abandoned_mine_prop_rotten_planks",
+    "abandoned_mine_prop_timber_offcuts",
+    "abandoned_mine_prop_rope_coil",
+    "abandoned_mine_prop_broken_chain",
+    "abandoned_mine_prop_pickaxe",
+    "abandoned_mine_prop_shovel",
+    "abandoned_mine_prop_floor_lantern",
+    "abandoned_mine_prop_helmet",
+    "abandoned_mine_prop_dynamite",
+    "abandoned_mine_prop_fuse_spool",
+    "abandoned_mine_prop_minecart_wheel",
+    "abandoned_mine_prop_ore_sack"
+  ],
+  "model": "tools/ai-gen/_abandoned_mine_terrain_20260828/abandoned_mine_terrain.blend",
+  "runtimeProps": [
+    {
+      "key": "abandoned_mine_prop_slate_rubble",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_slate_rubble.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        201,
+        168,
+        240
+      ],
+      "opaquePixels": 1499
+    },
+    {
+      "key": "abandoned_mine_prop_coal_chunks",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_coal_chunks.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        207,
+        165,
+        240
+      ],
+      "opaquePixels": 1498
+    },
+    {
+      "key": "abandoned_mine_prop_ore_fragments",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_ore_fragments.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        202,
+        160,
+        240
+      ],
+      "opaquePixels": 1503
+    },
+    {
+      "key": "abandoned_mine_prop_broken_sleepers",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_broken_sleepers.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        205,
+        160,
+        240
+      ],
+      "opaquePixels": 1416
+    },
+    {
+      "key": "abandoned_mine_prop_rail_spikes",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_rail_spikes.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        206,
+        160,
+        240
+      ],
+      "opaquePixels": 1369
+    },
+    {
+      "key": "abandoned_mine_prop_broken_rail",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_broken_rail.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        92,
+        198,
+        164,
+        242
+      ],
+      "opaquePixels": 1728
+    },
+    {
+      "key": "abandoned_mine_prop_rotten_planks",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_rotten_planks.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        206,
+        160,
+        241
+      ],
+      "opaquePixels": 1382
+    },
+    {
+      "key": "abandoned_mine_prop_timber_offcuts",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_timber_offcuts.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        203,
+        160,
+        240
+      ],
+      "opaquePixels": 1393
+    },
+    {
+      "key": "abandoned_mine_prop_rope_coil",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_rope_coil.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        207,
+        160,
+        240
+      ],
+      "opaquePixels": 1470
+    },
+    {
+      "key": "abandoned_mine_prop_broken_chain",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_broken_chain.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        199,
+        160,
+        241
+      ],
+      "opaquePixels": 1454
+    },
+    {
+      "key": "abandoned_mine_prop_pickaxe",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_pickaxe.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        94,
+        202,
+        162,
+        242
+      ],
+      "opaquePixels": 1514
+    },
+    {
+      "key": "abandoned_mine_prop_shovel",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_shovel.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        94,
+        206,
+        167,
+        242
+      ],
+      "opaquePixels": 1527
+    },
+    {
+      "key": "abandoned_mine_prop_floor_lantern",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_floor_lantern.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        185,
+        160,
+        240
+      ],
+      "opaquePixels": 1718
+    },
+    {
+      "key": "abandoned_mine_prop_helmet",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_helmet.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        201,
+        160,
+        240
+      ],
+      "opaquePixels": 1621
+    },
+    {
+      "key": "abandoned_mine_prop_dynamite",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_dynamite.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        201,
+        160,
+        240
+      ],
+      "opaquePixels": 1402
+    },
+    {
+      "key": "abandoned_mine_prop_fuse_spool",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_fuse_spool.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        195,
+        160,
+        241
+      ],
+      "opaquePixels": 1820
+    },
+    {
+      "key": "abandoned_mine_prop_minecart_wheel",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_minecart_wheel.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        190,
+        160,
+        240
+      ],
+      "opaquePixels": 1731
+    },
+    {
+      "key": "abandoned_mine_prop_ore_sack",
+      "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_ore_sack.png",
+      "size": [
+        256,
+        256
+      ],
+      "alphaBBox": [
+        96,
+        185,
+        160,
+        240
+      ],
+      "opaquePixels": 2001
+    }
+  ],
+  "preview": "tools/ai-gen/_abandoned_mine_terrain_20260828/abandoned-mine-terrain-preview.png",
+  "alphaReport": "tools/ai-gen/_abandoned_mine_terrain_20260828/alpha-report.json",
+  "roomPreview": "tools/ai-gen/_abandoned_mine_terrain_20260828/abandoned-mine-terrain-room-preview.png",
+  "floorSelection": {
+    "runtime": "assets/terrain/floor_abandoned_mine_seamless.png",
+    "runtimeSeam": "strict H/V edge equality from the accepted authored source",
+    "candidateSeed": 122828,
+    "candidateDecision": "rejected and removed; large periodic rock clusters repeat more visibly than the runtime floor"
+  }
+}

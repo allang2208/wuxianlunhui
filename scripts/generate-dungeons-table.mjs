@@ -16,6 +16,9 @@ const OUT = path.join(ROOT, 'dungeons-table.md');
 
 /** 地牢类型 → 配置块键（与 dungeon-config.js _keyFor 同步维护） */
 const KEY_MAP = {
+    abandonedMine: 'abandonedMineDungeon',
+    abandonedMineBeginner: 'abandonedMineDungeonBeginner',
+    abandonedMineMid: 'abandonedMineDungeonMid',
     zombie: 'zombieDungeon',
     zombieBeginner: 'zombieDungeonBeginner',
     frozenBeginner: 'frozenDungeonBeginner',
@@ -204,6 +207,7 @@ for (const g of GRADE_ORDER) {
     const cap = table ? (RARITY_LABELS[table.maxRarity] || table.maxRarity) : '—';
     const chance = table?.normal?.chance !== undefined ? `${Math.round(table.normal.chance * 1000) / 10}%` : '—';
     const eventPools = [
+        `矿洞：${restrictedPoolDesc(g, 'abandonedMine')}`,
         `僵尸：${restrictedPoolDesc(g, 'zombie')}`,
         `沼泽：${restrictedPoolDesc(g, 'swamp')}`,
         `雪原：${restrictedPoolDesc(g, 'frozen')}`,

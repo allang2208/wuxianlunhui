@@ -20,6 +20,9 @@ const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A'];
 // 地牢 type → 配置块键（与 src/config/dungeon-config.js _keyFor 保持一致的登记点；
 // 本模块不引 dungeon-config.js 以保持 config 层纯净/可单测，漂移由 test-regressions 断言拦截）
 const DUNGEON_BLOCK_KEY = {
+    abandonedMine: 'abandonedMineDungeon',
+    abandonedMineBeginner: 'abandonedMineDungeonBeginner',
+    abandonedMineMid: 'abandonedMineDungeonMid',
     zombie: 'zombieDungeon',
     zombieBeginner: 'zombieDungeonBeginner',
     frozenBeginner: 'frozenDungeonBeginner',

@@ -30,7 +30,7 @@
       "zombieMid"
     ],
     "minimumDurationMs": 1000,
-    "title": "僵尸地牢加载中...",
+    "title": "恐怖地牢加载中...",
     "backgrounds": [
       "assets/scenes/loading/zombie-dungeon-1.png",
       "assets/scenes/loading/zombie-dungeon-2.png",
@@ -139,5 +139,18 @@
       "assets/scenes/loading/world125-ruins-5.png",
       "assets/scenes/loading/world125-ruins-6.png"
     ]
+  },
+  "abandonedMineDungeon": {
+    "sceneIds": [
+      "scene7"
+    ],
+    "dungeonTypes": [
+      "abandonedMineBeginner",
+      "abandonedMineMid",
+      "abandonedMine"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "废弃矿洞加载中...",
+    "backgrounds": []
   }
 }

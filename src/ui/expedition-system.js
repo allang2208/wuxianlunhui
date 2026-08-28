@@ -24,6 +24,8 @@ import { GRADE_ORDER, RESTRICTED_EVENT_META } from '../world/dungeon-event-defin
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { CONFIG } from '../config/config.js';
+import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
+import { resolveDungeonEnemyPreloadTypes } from '../world/dungeon-enemy-preload.js';
 import {
     countDungeonKeys,
     getDungeonKeyRequirement,
@@ -363,15 +365,34 @@ export const ExpeditionSystem = {
             this._updateRulePanelCurrent();
             return;
         }
+        const dungeonEnemyTypes = resolveDungeonEnemyPreloadTypes(dungeonType);
+        SceneManager?.showLoadingScreen?.({ sceneId: 'scene7', dungeonType });
+        SceneManager?.setProgress?.(10);
+        // 先让浏览器绘制 loading，再执行地牢资源预载。
+        if (SceneManager?.delay) await SceneManager.delay(50);
+
+        // 在扣除钥匙、清理主场景前完成全量怪物资源校验。
+        // 任一可能生成的怪物无资源映射或加载失败时，本次出征直接中止，不消耗钥匙。
+        RuntimeAssetManager.setDungeonEnemyTypes(dungeonEnemyTypes);
+        try {
+            await RuntimeAssetManager.prefetchEnemyTypes(dungeonEnemyTypes, {
+                required: true,
+                onProgress: (ratio) => SceneManager.setProgress(10 + ratio * 35),
+            });
+        } catch (error) {
+            RuntimeAssetManager.setDungeonEnemyTypes([]);
+            SceneManager?.hideLoadingScreen?.();
+            console.error('[ExpeditionSystem] 地牢怪物资源预载失败:', dungeonType, error);
+            this._showMessage('地牢怪物资源加载失败，未消耗钥匙', 'error');
+            return;
+        }
         if (!this._consumeDungeonKey(grade)) {
+            RuntimeAssetManager.setDungeonEnemyTypes([]);
+            SceneManager?.hideLoadingScreen?.();
             this._showMessage(`${key.name} 消耗失败，请重试`, 'error');
             this._updateRulePanelCurrent();
             return;
         }
-        SceneManager?.showLoadingScreen?.({ sceneId: 'scene7', dungeonType });
-        SceneManager?.setProgress?.(10);
-        // 先让浏览器绘制 loading，再执行地牢初始化；最短展示时间由 SceneManager 统一保证。
-        if (SceneManager?.delay) await SceneManager.delay(50);
 
         this._showMessage(`${key.name} 已消耗，准备出征...`, 'success');
 
@@ -429,7 +450,7 @@ export const ExpeditionSystem = {
             // 地牢 active=true 后重算全局30分钟献祭效果，并登记地牢特效图标。
             if (player?.calculateCombatStats) player.calculateCombatStats();
             if (player) syncTributeBuffs(player);
-            await SceneManager.prepareRuntimeVisualAssets?.({ startProgress: 55, endProgress: 92 });
+            await SceneManager.prepareRuntimeVisualAssets?.({ startProgress: 80, endProgress: 92 });
             SceneManager.setProgress(92);
             // BGM 场景切换：depart 绕开 switchScene（switchScene 尾部的 playBgmForScene
             // 不会执行）——手动补发；data/audio-config.json bgm.scene7 = 僵尸地牢共用音轨

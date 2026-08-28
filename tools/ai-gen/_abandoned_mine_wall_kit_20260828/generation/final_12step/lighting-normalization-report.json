@@ -1,0 +1,35 @@
+{
+  "method": "shared exposure plus Blender-authored low-frequency light envelope",
+  "commonMedian": 0.12895293533802032,
+  "blurRadius": 42,
+  "gainClamp": [
+    0.72,
+    1.42
+  ],
+  "variants": [
+    {
+      "key": "abandoned_mine_wall_block_a",
+      "beforeMedian": 0.11911215633153915,
+      "beforeMean": 0.1573469489812851,
+      "afterMedian": 0.12941177189350128,
+      "afterMean": 0.13308821618556976,
+      "exposureTrim": 0.964984233214833
+    },
+    {
+      "key": "abandoned_mine_wall_block_b",
+      "beforeMedian": 0.12895293533802032,
+      "beforeMean": 0.15669769048690796,
+      "afterMedian": 0.12862510979175568,
+      "afterMean": 0.12953314185142517,
+      "exposureTrim": 0.9333858455235605
+    },
+    {
+      "key": "abandoned_mine_wall_block_c",
+      "beforeMedian": 0.1413246989250183,
+      "beforeMean": 0.1699778139591217,
+      "afterMedian": 0.12860941886901855,
+      "afterMean": 0.13369528949260712,
+      "exposureTrim": 0.9229071171332294
+    }
+  ]
+}

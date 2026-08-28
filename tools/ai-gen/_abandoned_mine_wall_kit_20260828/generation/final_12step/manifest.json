@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "pipeline": "selected FLUX.2 Dev 12-step RGB -> exact Blender alpha and gate lift",
+  "selectedWallCandidate": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/wall_a_structure_candidates/wall_a_structure_v01_raw.png",
+  "wallCandidates": [
+    "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/wall_a_structure_candidates/wall_a_structure_v01_raw.png",
+    "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/selected_12step_set/wall_b_structure_v01_raw.png",
+    "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/selected_12step_set/wall_c_structure_v01_raw.png"
+  ],
+  "gateCandidate": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/selected_12step_set/gate_closed_structure_v01_raw.png",
+  "model": "flux2-dev-depth",
+  "steps": 12,
+  "seed": 122082810,
+  "depthStrength": 0.78,
+  "no48StepRefine": true,
+  "geometryAuthority": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/abandoned_mine_wall_kit.blend",
+  "lightingNormalization": {
+    "method": "shared exposure plus Blender-authored low-frequency light envelope",
+    "report": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/final_12step/lighting-normalization-report.json",
+    "flipX": false
+  },
+  "runtimeInstalled": true,
+  "installed": {
+    "abandoned_mine_wall_block_a": {
+      "path": "assets/terrain/abandoned_mine_wall_block_a.png",
+      "sha256": "edc13ab8e50aea2ad7e7dddc720e0a03b1c894519223e65421b9f40b1ea09b37"
+    },
+    "abandoned_mine_wall_block_b": {
+      "path": "assets/terrain/abandoned_mine_wall_block_b.png",
+      "sha256": "ede8539fc515ef74b0b64ebf7182f7787a2d98199d47fb9381800d6dc3d934bf"
+    },
+    "abandoned_mine_wall_block_c": {
+      "path": "assets/terrain/abandoned_mine_wall_block_c.png",
+      "sha256": "acbc3086c4035b6336f1a2c71ab0d0ac6105f4fa452bc59ef529cae913cefaaa"
+    },
+    "abandoned_mine_gate": {
+      "path": "assets/terrain/abandoned_mine_gate.png",
+      "sha256": "6466da1333dbb56d031507da0839000c1701241c975803e4aa2878bbe879cb97"
+    }
+  },
+  "preview": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/final_12step/abandoned-mine-ai12-kit-preview.png",
+  "seamProof": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/final_12step/abandoned-mine-ai12-seam-proof.png"
+}
