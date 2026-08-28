@@ -6,6 +6,7 @@ const FALLBACK_RULE = Object.freeze({
     combatClearGold: Object.freeze({ min: 50, max: 149 }),
     bossGold: Object.freeze({ min: 2000, max: 2499 }),
     completionGold: 500,
+    eventGoldMultiplier: 1,
 });
 
 const integer = (value, fallback = 0) => {
@@ -25,11 +26,15 @@ export function getDungeonRewardRule(dungeonType) {
     if (!dungeon) return FALLBACK_RULE;
     const configured = (COMBAT_FORMULAS.dungeonRewards || {})[dungeon.grade] || {};
     const multiplier = Number(configured.monsterGoldMultiplier);
+    const eventGoldMultiplier = Number(configured.eventGoldMultiplier);
     return {
         monsterGoldMultiplier: Number.isFinite(multiplier) && multiplier >= 0 ? multiplier : 1,
         combatClearGold: range(configured.combatClearGold, FALLBACK_RULE.combatClearGold),
         bossGold: range(configured.bossGold, FALLBACK_RULE.bossGold),
         completionGold: Math.max(0, integer(configured.completionGold, FALLBACK_RULE.completionGold)),
+        eventGoldMultiplier: Number.isFinite(eventGoldMultiplier) && eventGoldMultiplier >= 0
+            ? eventGoldMultiplier
+            : FALLBACK_RULE.eventGoldMultiplier,
     };
 }
 

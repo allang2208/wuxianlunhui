@@ -3,6 +3,7 @@ import { EquipManager } from '../ui/equip-manager.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
 import { rollTributeDrop } from '../config/tribute-effects.js';
 import { TypewriterText } from '../ui/typewriter-text.js';
 import { TimerManager } from '../utils/timer-manager.js';
@@ -56,6 +57,14 @@ function normalizeChoices(choices) {
     return Object.entries(choices).map(([id, cfg]) => ({ id, ...cfg }));
 }
 
+function getChancePresentation(rate) {
+    const percent = Math.max(0, Math.min(100, Number(rate) || 0));
+    if (percent >= 75) return { tier: 'high', label: '很高', percent };
+    if (percent >= 50) return { tier: 'favorable', label: '较高', percent };
+    if (percent >= 30) return { tier: 'uncertain', label: '一般', percent };
+    return { tier: 'low', label: '较低', percent };
+}
+
 function createEventConfig() {
     const defaults = {
         attributeCheck: {
@@ -63,6 +72,8 @@ function createEventConfig() {
             attrMultiplier: 1,
             maxSuccessRate: 95,
             minSuccessRate: 5,
+            softMaxStart: 80,
+            softMinStart: 20,
         },
         eventWeights: {
             goddessStatue: 1,
@@ -216,6 +227,13 @@ function getUniversalEventConfig(type) {
         cfg._tributeChance = g.tributeChance || 0;
     } else if (type === 'supplyPile') {
         cfg.searchReward = { ...(cfg.searchReward || {}), count: g.potions, _hpAmount: g.hp, _mpAmount: g.mp };
+        if (g.inspectGold && Array.isArray(cfg.successRewards?.inspect)) {
+            cfg.successRewards.inspect = cfg.successRewards.inspect.map((reward) => (
+                reward?.type === 'gold'
+                    ? { ...reward, min: g.inspectGold.min, max: g.inspectGold.max }
+                    : reward
+            ));
+        }
     }
     return cfg;
 }
@@ -936,6 +954,7 @@ export const DungeonEventSystem = {
     _currentEventType: null,
     _eventOverlay: null,
     _eventTypewriter: null,
+    _eventPreviousFocus: null,
     _onComplete: null,
     _dungeonMapSystem: null, // 地牢地图系统引用（用于探查巡逻）
 
@@ -994,6 +1013,11 @@ export const DungeonEventSystem = {
      * @returns {Object} 事件对象
      */
     trigger(player, onComplete, forcedType = null, dungeonMapSystem = null) {
+        const activeElement = document.activeElement;
+        if (!this._eventPreviousFocus && activeElement && typeof activeElement.focus === 'function') {
+            this._eventPreviousFocus = activeElement;
+        }
+
         // 解析当前地牢难度等级（影响通用事件奖励与检定成功率）
         const dungeonType = (dungeonMapSystem && dungeonMapSystem.dungeonType) || null;
         const list = (DungeonConfig.raw && DungeonConfig.raw.dungeonList) || {};
@@ -1047,7 +1071,13 @@ export const DungeonEventSystem = {
                 result = handleDemonStatue(player, choiceId);
                 break;
             default:
-                result = handleNewDungeonEvent(player, choiceId, this._currentEventType, this._dungeonMapSystem);
+                result = handleNewDungeonEvent(
+                    player,
+                    choiceId,
+                    this._currentEventType,
+                    this._dungeonMapSystem,
+                    getDungeonRewardRule(this._dungeonMapSystem?.dungeonType).eventGoldMultiplier
+                );
         }
 
         // 记录事件类型与选择，供地图系统判断节点状态
@@ -1136,11 +1166,9 @@ export const DungeonEventSystem = {
         const bgImage = EVENT_BG_IMAGES[eventType];
         if (!bgImage) return null;
         const bg = document.createElement('div');
-        bg.style.cssText = `
-            position: fixed; left: 0; bottom: 0; width: 100vw; height: 100vh;
-            background-image: url('${bgImage}'); background-size: cover;
-            background-position: center center; background-repeat: no-repeat;
-        `;
+        bg.className = 'dungeon-event-background';
+        bg.style.backgroundImage = `url('${bgImage}')`;
+        bg.setAttribute('aria-hidden', 'true');
         return bg;
     },
 
@@ -1149,44 +1177,63 @@ export const DungeonEventSystem = {
 
         const overlay = document.createElement('div');
         overlay.id = 'dungeonEventSystemOverlay';
-        overlay.style.cssText = `
-            position: fixed; inset: 0; z-index: 8000;
-            background: rgba(0,0,0,1);
-            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-        `;
+        overlay.className = 'dungeon-event-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
 
         // 新事件：全屏背景图（位于事件面板之下）
         const bgLayer = this._createEventBgLayer(eventType);
-        if (bgLayer) overlay.appendChild(bgLayer);
+        if (bgLayer) {
+            overlay.classList.add('dungeon-event-overlay--illustrated');
+            overlay.appendChild(bgLayer);
+        }
 
-        // 事件面板：left/right/bottom/height 固定像素，宽度随视口全宽拉伸
+        // 事件面板：冷钢居中决策模态，底部保留叙事背景主体视野。
         const panel = document.createElement('div');
-        panel.style.cssText = `
-            position: fixed; left: 151px; right: 151px; bottom: 88px; height: 243px;
-            background: ${bgLayer ? 'rgba(42, 37, 32, 0.85)' : 'rgba(42, 37, 32, 0.98)'}; border: 2px solid #5a4a3a; border-radius: 12px;
-            padding: 22px 32px; color: #d4c5a9;
-            box-shadow: 0 -8px 32px rgba(0,0,0,0.7);
-            display: flex; flex-direction: row; gap: 32px; overflow: hidden;
-            box-sizing: border-box;
-        `;
+        panel.className = 'dungeon-event-panel';
 
         // 左侧：标题 + 剧情描述
         const leftCol = document.createElement('div');
-        leftCol.style.cssText = 'flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0;';
+        leftCol.className = 'dungeon-event-copy';
+
+        const eyebrow = document.createElement('span');
+        eyebrow.className = 'dungeon-event-eyebrow';
+        eyebrow.textContent = '随机事件';
 
         const title = document.createElement('h3');
+        title.id = 'dungeonEventTitle';
+        title.className = 'dungeon-event-title';
         title.textContent = config.title;
-        title.style.cssText = 'margin: 0; color: #e8c878; font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
 
         const text = document.createElement('p');
-        text.style.cssText = 'margin: 0; line-height: 1.65; font-size: 16px; color: #d4c5a9; flex: 1; overflow-y: auto; padding-right: 8px;';
+        text.id = 'dungeonEventDescription';
+        text.className = 'dungeon-event-description';
 
+        overlay.setAttribute('aria-labelledby', title.id);
+        overlay.setAttribute('aria-describedby', text.id);
+
+        leftCol.appendChild(eyebrow);
         leftCol.appendChild(title);
         leftCol.appendChild(text);
 
         // 右侧：选择按钮
         const rightCol = document.createElement('div');
-        rightCol.style.cssText = 'width: 420px; display: flex; flex-direction: column; gap: 10px; justify-content: center;';
+        rightCol.className = 'dungeon-event-options';
+        rightCol.setAttribute('role', 'group');
+        rightCol.setAttribute('aria-labelledby', 'dungeonEventOptionsTitle');
+
+        const optionsHeader = document.createElement('div');
+        optionsHeader.className = 'dungeon-event-options-header';
+        const optionsTitle = document.createElement('span');
+        optionsTitle.id = 'dungeonEventOptionsTitle';
+        optionsTitle.className = 'dungeon-event-options-title';
+        optionsTitle.textContent = '行动方案';
+        const optionsHint = document.createElement('span');
+        optionsHint.className = 'dungeon-event-options-hint';
+        optionsHint.textContent = '选择后立即结算';
+        optionsHeader.appendChild(optionsTitle);
+        optionsHeader.appendChild(optionsHint);
+        rightCol.appendChild(optionsHeader);
 
         if (config.choices) {
             for (const choice of config.choices) {
@@ -1198,15 +1245,16 @@ export const DungeonEventSystem = {
         // 宝箱特殊处理（直接开启）
         if (eventType === 'treasureChest') {
             const btn = document.createElement('button');
-            btn.style.cssText = `
-                padding: 14px 20px; background: #3a4530; border: 1px solid #5a6a4a;
-                color: #d4c5a9; border-radius: 6px; cursor: pointer; font-size: 15px;
-                transition: background 0.15s; text-align: left;
-                display: flex; flex-direction: column; gap: 4px;
-            `;
-            btn.innerHTML = `<span style="font-size: 16px; font-weight: bold;">打开宝箱</span><span style="font-size: 13px; color: #a09080;">50% 金币 / 25% 材料 / 25% 遭遇宝箱怪</span>`;
-            btn.onmouseenter = () => btn.style.background = '#4a5540';
-            btn.onmouseleave = () => btn.style.background = '#3a4530';
+            btn.type = 'button';
+            btn.className = 'dungeon-event-choice dungeon-event-choice--neutral';
+            const label = document.createElement('span');
+            label.className = 'dungeon-event-choice-label';
+            label.textContent = '打开宝箱';
+            const detail = document.createElement('span');
+            detail.className = 'dungeon-event-choice-detail';
+            detail.textContent = '50% 金币 / 25% 材料 / 25% 遭遇宝箱怪';
+            btn.appendChild(label);
+            btn.appendChild(detail);
             btn.onclick = () => this.handleChoice('open', player);
             rightCol.appendChild(btn);
         }
@@ -1216,6 +1264,7 @@ export const DungeonEventSystem = {
         overlay.appendChild(panel);
         document.body.appendChild(overlay);
         this._eventOverlay = overlay;
+        rightCol.querySelector('button')?.focus({ preventScroll: true });
 
         // 使用通用打字机组件显示剧情描述
         this._eventTypewriter = new TypewriterText(text, { clickTarget: overlay });
@@ -1227,36 +1276,50 @@ export const DungeonEventSystem = {
      */
     _createChoiceButton(choice, player, _overlay) {
         const btn = document.createElement('button');
-        btn.style.cssText = `
-            padding: 12px 18px; background: #3a4530; border: 1px solid #5a6a4a;
-            color: #d4c5a9; border-radius: 6px; cursor: pointer; font-size: 15px;
-            transition: background 0.15s; text-align: left;
-            display: flex; flex-direction: column; gap: 4px;
-        `;
-        btn.onmouseenter = () => btn.style.background = '#4a5540';
-        btn.onmouseleave = () => btn.style.background = '#3a4530';
+        btn.type = 'button';
+        btn.className = 'dungeon-event-choice';
         btn.onclick = () => this.handleChoice(choice.id, player);
 
         // 主标签
         const labelSpan = document.createElement('span');
+        labelSpan.className = 'dungeon-event-choice-label';
         labelSpan.textContent = choice.label;
-        labelSpan.style.cssText = 'font-size: 16px; font-weight: bold;';
         btn.appendChild(labelSpan);
 
-        // 副标签：描述 或 检定提示
-        const subSpan = document.createElement('span');
-        subSpan.style.cssText = 'font-size: 13px; color: #a09080;';
+        const detailSpan = document.createElement('span');
+        detailSpan.className = 'dungeon-event-choice-detail';
+        detailSpan.textContent = choice.description || '';
+        if (detailSpan.textContent) btn.appendChild(detailSpan);
 
         if (choice.attribute) {
             const attrNames = { str: '力量', dex: '敏捷', con: '体质', int: '智力', wis: '精神', luck: '幸运' };
             const attrName = attrNames[choice.attribute] || choice.attribute;
-            const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate || 20);
-            // 副标题简化：检定<属性>-成功率<xx%>（省略属性点数与长说明）
-            subSpan.textContent = `检定${attrName}-成功率${checkResult.rate.toFixed(0)}%`;
+            const successRate = AttributeCheckSystem.getSuccessRate(player, choice.attribute, choice.baseRate);
+            const chance = getChancePresentation(successRate.rate);
+            btn.classList.add(`dungeon-event-choice--chance-${chance.tier}`);
+            const descriptionLabel = choice.description ? `，${choice.description}` : '';
+            btn.setAttribute('aria-label', `${choice.label}${descriptionLabel}，${attrName}检定，成功率${chance.percent.toFixed(0)}%，${chance.label}`);
+
+            const checkRow = document.createElement('span');
+            checkRow.className = 'dungeon-event-check-row';
+            const attributeLabel = document.createElement('span');
+            attributeLabel.className = 'dungeon-event-check-attribute';
+            attributeLabel.textContent = `${attrName}检定`;
+            const chanceBadge = document.createElement('span');
+            chanceBadge.className = 'dungeon-event-chance-badge';
+            const chanceLabel = document.createElement('span');
+            chanceLabel.className = 'dungeon-event-chance-label';
+            chanceLabel.textContent = chance.label;
+            const chanceValue = document.createElement('strong');
+            chanceValue.textContent = `${chance.percent.toFixed(0)}%`;
+            chanceBadge.appendChild(chanceLabel);
+            chanceBadge.appendChild(chanceValue);
+            checkRow.appendChild(attributeLabel);
+            checkRow.appendChild(chanceBadge);
+            btn.appendChild(checkRow);
         } else {
-            subSpan.textContent = choice.description || '';
+            btn.classList.add('dungeon-event-choice--neutral');
         }
-        btn.appendChild(subSpan);
 
         return btn;
     },
@@ -1270,25 +1333,19 @@ export const DungeonEventSystem = {
 
         const overlay = document.createElement('div');
         overlay.id = 'dungeonEventResultOverlay';
-        overlay.style.cssText = `
-            position: fixed; inset: 0; z-index: 8000;
-            background: rgba(0,0,0,1);
-            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-        `;
+        overlay.className = 'dungeon-event-overlay dungeon-event-result-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
 
         // 新事件：结果页同样显示全屏背景图（位于面板之下）
         const bgLayer = this._createEventBgLayer(this._currentEventType);
-        if (bgLayer) overlay.appendChild(bgLayer);
+        if (bgLayer) {
+            overlay.classList.add('dungeon-event-overlay--illustrated');
+            overlay.appendChild(bgLayer);
+        }
 
         const panel = document.createElement('div');
-        panel.style.cssText = `
-            position: fixed; left: 151px; right: 151px; bottom: 88px; height: 243px;
-            background: ${bgLayer ? 'rgba(42, 37, 32, 0.85)' : 'rgba(42, 37, 32, 0.98)'}; border: 2px solid #5a4a3a; border-radius: 12px;
-            padding: 22px 32px; color: #d4c5a9;
-            box-shadow: 0 -8px 32px rgba(0,0,0,0.7);
-            display: flex; flex-direction: row; gap: 32px; overflow: hidden;
-            box-sizing: border-box;
-        `;
+        panel.className = 'dungeon-event-panel dungeon-event-result-panel';
 
         // 结果图标
         const iconMap = {
@@ -1299,45 +1356,46 @@ export const DungeonEventSystem = {
 
         // 左侧：标题 + 结果文本
         const leftCol = document.createElement('div');
-        leftCol.style.cssText = 'flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0;';
+        leftCol.className = 'dungeon-event-copy';
+
+        const eyebrow = document.createElement('span');
+        eyebrow.className = 'dungeon-event-eyebrow';
+        eyebrow.textContent = '事件结算';
 
         const title = document.createElement('h3');
+        title.id = 'dungeonEventResultTitle';
+        title.className = `dungeon-event-title dungeon-event-title--${result.type || 'none'}`;
         title.textContent = `${icon} 事件结果`;
-        title.style.cssText = 'margin: 0; color: #e8c878; font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
 
         const text = document.createElement('p');
-        text.style.cssText = 'margin: 0; line-height: 1.65; font-size: 16px; color: #d4c5a9; flex: 1; overflow-y: auto; padding-right: 8px; white-space: pre-line;';
+        text.id = 'dungeonEventResultDescription';
+        text.className = 'dungeon-event-description dungeon-event-result-text';
 
+        overlay.setAttribute('aria-labelledby', title.id);
+        overlay.setAttribute('aria-describedby', text.id);
+
+        leftCol.appendChild(eyebrow);
         leftCol.appendChild(title);
         leftCol.appendChild(text);
 
         // 右侧：继续按钮
         const rightCol = document.createElement('div');
-        rightCol.style.cssText = 'width: 420px; display: flex; flex-direction: column; justify-content: center; gap: 12px;';
+        rightCol.className = 'dungeon-event-options dungeon-event-result-actions';
 
         const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `dungeon-event-continue${result.combat ? ' dungeon-event-continue--combat' : ''}`;
         btn.textContent = result.combat ? '进入战斗！' : '继续探索';
-        btn.style.cssText = `
-            padding: 16px 32px; background: ${result.combat ? '#7a3a3a' : '#3a4530'};
-            border: 1px solid ${result.combat ? '#9a5a5a' : '#5a6a4a'};
-            color: #d4c5a9; border-radius: 6px; cursor: pointer; font-size: 17px;
-            transition: background 0.15s; font-weight: bold;
-        `;
         // 延迟 300ms 激活：防止选择按钮上的双击穿透到结果按钮/地图节点
         btn.disabled = true;
-        btn.style.opacity = '0.5';
-        btn.style.cursor = 'default';
         TimerManager.setTimeout(() => {
             if (!btn.isConnected) return;
             btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
+            btn.focus({ preventScroll: true });
         }, 300);
-        btn.onmouseenter = () => btn.style.background = result.combat ? '#9a5a5a' : '#4a5540';
-        btn.onmouseleave = () => btn.style.background = result.combat ? '#7a3a3a' : '#3a4530';
         btn.onclick = () => {
             if (btn.disabled) return;
-            this._cleanupUI();
+            this._cleanupUI(true);
             // 事件状态复位：防止 isActive() 恒 true、旧回调悬挂
             if (this._onComplete) {
                 const cb = this._onComplete;
@@ -1363,7 +1421,7 @@ export const DungeonEventSystem = {
     /**
      * 清理UI
      */
-    _cleanupUI() {
+    _cleanupUI(restoreFocus = false) {
         if (this._eventTypewriter) {
             this._eventTypewriter.destroy();
             this._eventTypewriter = null;
@@ -1375,13 +1433,20 @@ export const DungeonEventSystem = {
         // 安全清理：也移除旧版地牢事件覆盖层，避免重复
         const legacy = document.getElementById('dungeonEventOverlay');
         if (legacy) legacy.remove();
+        if (restoreFocus) {
+            const previousFocus = this._eventPreviousFocus;
+            this._eventPreviousFocus = null;
+            if (previousFocus && previousFocus.isConnected && typeof previousFocus.focus === 'function') {
+                previousFocus.focus({ preventScroll: true });
+            }
+        }
     },
 
     /**
      * 强制清理所有事件UI
      */
     cleanup() {
-        this._cleanupUI();
+        this._cleanupUI(true);
         this._currentEvent = null;
         this._currentEventType = null;
         this._onComplete = null;

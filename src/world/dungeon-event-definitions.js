@@ -3,8 +3,8 @@
  * DungeonEventDefinitions — 新增地牢随机事件定义
  * ============================================================
  *
- * 10 个僵尸事件按《随机事件表格.xlsx》最终设定实现，另含沼泽事件占位：
- * - 每个事件 2~3 个分支，使用不同属性检定
+ * 15 个僵尸事件、15 个沼泽事件与 15 个雪原事件：
+ * - 僵尸/沼泽事件统一为 2 个属性检定 + 1 个无检定叙事选项；雪原事件为 3 个属性检定 + 1 个无检定叙事选项，其中每档 80% 会付出代价或进入战斗
  * - 结果类型：金币、药水、材料、特殊道具、揭示节点、战斗、伤害、恢复、临时 Buff/Debuff
  * - 失败战斗区分「普通战斗」与「精英战斗」
  */
@@ -46,12 +46,46 @@ export const NEW_EVENT_WEIGHTS = {
     blessedFountain: 1,
     lockedArmory: 1,
     phantomMirror: 1,
-    swampEventPlaceholder: 1,
+    quarantineBell: 1,
+    corpseWaxWorkshop: 1,
+    sealedSurvivorCell: 1,
+    ossuaryOrgan: 1,
+    plagueSpecimenVault: 1,
+    frozenWaystone: 1,
+    snowboundSupplySled: 1,
+    singingIceBridge: 1,
+    lostExpeditionCamp: 1,
+    frostberryHollow: 1,
+    trappedWhiteStag: 1,
+    auroraIceLanterns: 1,
+    avalancheWatchtower: 1,
+    frostboundCaravan: 1,
+    whisperingGlacierCrevasse: 1,
+    frozenChapel: 1,
+    iceFisherHole: 1,
+    blizzardSignalBrazier: 1,
+    crystalPrison: 1,
+    ancientIceObservatory: 1,
+    sunkenHerbalistBasket: 1,
+    weepingReedBed: 1,
+    leechBloomPool: 1,
+    willOWispTrail: 1,
+    rottenRopeBridge: 1,
+    bogHunterRemains: 1,
+    sunkenDruidShrine: 1,
+    marshGasVents: 1,
+    rootPrison: 1,
+    blackwaterFerry: 1,
+    fireflyGraveIslet: 1,
+    frogBoneOracle: 1,
+    mudboundCaravan: 1,
+    sunkenWitchCauldron: 1,
+    ancientCrocodileTotem: 1,
 };
 
 // ============================================================
 // 限定事件元数据：等级(F~A) + 归属大类（scope）
-// 规则：地牢只出现同 scope 且「地牢等级 ±1」范围内的限定事件；沼泽当前仅保留占位事件。
+// 规则：地牢只出现同 scope 且「地牢等级 ±1」范围内的限定事件。
 // ============================================================
 export const RESTRICTED_EVENT_META = {
     collapsedArchway: { grade: 'F', scope: 'zombie' },
@@ -64,7 +98,41 @@ export const RESTRICTED_EVENT_META = {
     blessedFountain: { grade: 'D', scope: 'zombie' },
     lockedArmory: { grade: 'C', scope: 'zombie' },
     phantomMirror: { grade: 'B', scope: 'zombie' },
-    swampEventPlaceholder: { grade: 'D', scope: 'swamp' },
+    quarantineBell: { grade: 'F', scope: 'zombie' },
+    corpseWaxWorkshop: { grade: 'E', scope: 'zombie' },
+    sealedSurvivorCell: { grade: 'D', scope: 'zombie' },
+    ossuaryOrgan: { grade: 'D', scope: 'zombie' },
+    plagueSpecimenVault: { grade: 'C', scope: 'zombie' },
+    frozenWaystone: { grade: 'C', scope: 'frozen' },
+    snowboundSupplySled: { grade: 'C', scope: 'frozen' },
+    singingIceBridge: { grade: 'C', scope: 'frozen' },
+    lostExpeditionCamp: { grade: 'C', scope: 'frozen' },
+    frostberryHollow: { grade: 'C', scope: 'frozen' },
+    trappedWhiteStag: { grade: 'B', scope: 'frozen' },
+    auroraIceLanterns: { grade: 'B', scope: 'frozen' },
+    avalancheWatchtower: { grade: 'B', scope: 'frozen' },
+    frostboundCaravan: { grade: 'B', scope: 'frozen' },
+    whisperingGlacierCrevasse: { grade: 'B', scope: 'frozen' },
+    frozenChapel: { grade: 'A', scope: 'frozen' },
+    iceFisherHole: { grade: 'A', scope: 'frozen' },
+    blizzardSignalBrazier: { grade: 'A', scope: 'frozen' },
+    crystalPrison: { grade: 'A', scope: 'frozen' },
+    ancientIceObservatory: { grade: 'A', scope: 'frozen' },
+    sunkenHerbalistBasket: { grade: 'E', scope: 'swamp' },
+    weepingReedBed: { grade: 'E', scope: 'swamp' },
+    leechBloomPool: { grade: 'E', scope: 'swamp' },
+    willOWispTrail: { grade: 'D', scope: 'swamp' },
+    rottenRopeBridge: { grade: 'D', scope: 'swamp' },
+    bogHunterRemains: { grade: 'D', scope: 'swamp' },
+    sunkenDruidShrine: { grade: 'D', scope: 'swamp' },
+    marshGasVents: { grade: 'C', scope: 'swamp' },
+    rootPrison: { grade: 'C', scope: 'swamp' },
+    blackwaterFerry: { grade: 'C', scope: 'swamp' },
+    fireflyGraveIslet: { grade: 'E', scope: 'swamp' },
+    frogBoneOracle: { grade: 'D', scope: 'swamp' },
+    mudboundCaravan: { grade: 'D', scope: 'swamp' },
+    sunkenWitchCauldron: { grade: 'C', scope: 'swamp' },
+    ancientCrocodileTotem: { grade: 'C', scope: 'swamp' },
 };
 
 // 难度等级顺序（事件/地牢共用）
@@ -78,7 +146,7 @@ export const UNIVERSAL_EVENT_CHANCE = 0.30;
 
 // ============================================================
 // 事件背景图（assets/scenes/dungeon-events/，与事件键一一对应）
-// 10 个僵尸事件 + 5 个通用事件有背景图；沼泽占位事件暂时使用纯黑背景。
+// 15 个僵尸事件 + 15 个沼泽事件 + 15 个雪原事件 + 5 个通用事件均有背景图。
 // ============================================================
 
 export const EVENT_BG_IMAGES = {
@@ -92,6 +160,41 @@ export const EVENT_BG_IMAGES = {
     blessedFountain: 'assets/scenes/dungeon-events/blessed-fountain.png',
     lockedArmory: 'assets/scenes/dungeon-events/locked-armory.png',
     phantomMirror: 'assets/scenes/dungeon-events/phantom-mirror.png',
+    quarantineBell: 'assets/scenes/dungeon-events/quarantine-bell.png',
+    corpseWaxWorkshop: 'assets/scenes/dungeon-events/corpse-wax-workshop.png',
+    sealedSurvivorCell: 'assets/scenes/dungeon-events/sealed-survivor-cell.png',
+    ossuaryOrgan: 'assets/scenes/dungeon-events/ossuary-organ.png',
+    plagueSpecimenVault: 'assets/scenes/dungeon-events/plague-specimen-vault.png',
+    frozenWaystone: 'assets/scenes/dungeon-events/frozen-waystone.png',
+    snowboundSupplySled: 'assets/scenes/dungeon-events/snowbound-supply-sled.png',
+    singingIceBridge: 'assets/scenes/dungeon-events/singing-ice-bridge.png',
+    lostExpeditionCamp: 'assets/scenes/dungeon-events/lost-expedition-camp.png',
+    frostberryHollow: 'assets/scenes/dungeon-events/frostberry-hollow.png',
+    trappedWhiteStag: 'assets/scenes/dungeon-events/trapped-white-stag.png',
+    auroraIceLanterns: 'assets/scenes/dungeon-events/aurora-ice-lanterns.png',
+    avalancheWatchtower: 'assets/scenes/dungeon-events/avalanche-watchtower.png',
+    frostboundCaravan: 'assets/scenes/dungeon-events/frostbound-caravan.png',
+    whisperingGlacierCrevasse: 'assets/scenes/dungeon-events/whispering-glacier-crevasse.png',
+    frozenChapel: 'assets/scenes/dungeon-events/frozen-chapel.png',
+    iceFisherHole: 'assets/scenes/dungeon-events/ice-fisher-hole.png',
+    blizzardSignalBrazier: 'assets/scenes/dungeon-events/blizzard-signal-brazier.png',
+    crystalPrison: 'assets/scenes/dungeon-events/crystal-prison.png',
+    ancientIceObservatory: 'assets/scenes/dungeon-events/ancient-ice-observatory.png',
+    sunkenHerbalistBasket: 'assets/scenes/dungeon-events/sunken-herbalist-basket.png',
+    weepingReedBed: 'assets/scenes/dungeon-events/weeping-reed-bed.png',
+    leechBloomPool: 'assets/scenes/dungeon-events/leech-bloom-pool.png',
+    willOWispTrail: 'assets/scenes/dungeon-events/will-o-wisp-trail.png',
+    rottenRopeBridge: 'assets/scenes/dungeon-events/rotten-rope-bridge.png',
+    bogHunterRemains: 'assets/scenes/dungeon-events/bog-hunter-remains.png',
+    sunkenDruidShrine: 'assets/scenes/dungeon-events/sunken-druid-shrine.png',
+    marshGasVents: 'assets/scenes/dungeon-events/marsh-gas-vents.png',
+    rootPrison: 'assets/scenes/dungeon-events/root-prison.png',
+    blackwaterFerry: 'assets/scenes/dungeon-events/blackwater-ferry.png',
+    fireflyGraveIslet: 'assets/scenes/dungeon-events/firefly-grave-islet.png',
+    frogBoneOracle: 'assets/scenes/dungeon-events/frog-bone-oracle.png',
+    mudboundCaravan: 'assets/scenes/dungeon-events/mudbound-caravan.png',
+    sunkenWitchCauldron: 'assets/scenes/dungeon-events/sunken-witch-cauldron.png',
+    ancientCrocodileTotem: 'assets/scenes/dungeon-events/ancient-crocodile-totem.png',
     // 旧 5 事件
     goddessStatue: 'assets/scenes/dungeon-events/goddess-statue.png',
     trap: 'assets/scenes/dungeon-events/trap.png',
@@ -105,16 +208,261 @@ export const EVENT_BG_IMAGES = {
 // ============================================================
 
 export const NEW_EVENT_CONFIGS = {
-    swampEventPlaceholder: {
-        title: '沼泽随机事件（占位）',
-        description: '雾气在腐朽树根与积水之间翻涌，一处尚未完成的沼泽事件正在等待补充。当前版本仅保留事件节点与流程占位。',
+    sunkenHerbalistBasket: {
+        title: '沉没的药师竹篓',
+        description: '一只编着青藤纹样的竹篓半沉在黑水里，周围漂着被咬碎的药叶。篓盖下仍透出温暖的琥珀光，说明里面的药剂尚未完全被沼水污染；但水面细小的涟漪也暴露了潜伏在泥下的东西。',
         choices: [
             {
-                id: 'continue',
-                label: '继续前进',
-                description: '暂不触发额外效果，完成该事件节点',
-                outcome: { text: '你谨慎绕过这片异常区域，继续向沼泽深处前进。' },
+                id: 'identifyMedicine', label: '智力辨药', description: '分辨污染程度并取出可用药剂',
+                attribute: 'int', baseRate: 40,
+                success: { text: '你用叶脉颜色和瓶塞气味排除了受污染的药剂，剩下两瓶仍能安全使用。', hpPotion: POTION_HEAL, mpPotion: POTION_MP },
+                fail: { text: '一只药瓶在你手中炸裂，腐败药液灼伤了皮肤。', damagePercent: 10 },
             },
+            {
+                id: 'snatchBasket', label: '幸运捞取', description: '趁水下生物尚未靠近，直接捞走竹篓',
+                attribute: 'luck', baseRate: 30,
+                success: { text: '竹篓被你完整捞起，夹层里还藏着药师收取的诊金和一包草药。', gold: { min: 30, max: 50 }, material: { type: '古老木材', count: 2 } },
+                fail: { text: '竹篓下系着一串骨铃，铃声引来了藏在芦苇后的黑狼。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 4, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            { id: 'leave', label: '不碰竹篓', description: '绕开这片可疑的积水', outcome: { text: '你记住竹篓的位置，沿较干燥的泥脊继续前进。' } },
+        ],
+    },
+    weepingReedBed: {
+        title: '哭泣的芦苇荡',
+        description: '一片比人还高的灰白芦苇无风自摆，叶片摩擦出的声音像许多人压低嗓音哭泣。水面上漂着指向不同岔路的草结，偶尔有一束芦花逆着雾流转动，仿佛在试图为你指出方向。',
+        choices: [
+            {
+                id: 'listenReeds', label: '精神聆听', description: '从哭声中辨认真正的指引', attribute: 'wis', baseRate: 40,
+                success: { text: '你听出哭声其实是旧日巡林人留下的节拍暗号，安全路线在脑海中逐渐清晰。', revealNodes: true, revealDepth: 2, mpRestorePercent: 10 },
+                fail: { text: '重叠的哭声钻进脑海，让你的脚步在泥水里变得迟缓。', buff: { id: 'reedLament', name: '芦苇哀鸣', icon: '🌾', color: '#8b9670', moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            {
+                id: 'followSeed', label: '敏捷追絮', description: '追上逆风飘动的芦花', attribute: 'dex', baseRate: 35,
+                success: { text: '你踩着露出水面的树根追上芦花，在它落下的位置挖出一只密封钱袋。', gold: { min: 25, max: 45 } },
+                fail: { text: '一根藏在水下的断木绊住脚踝，锋利芦叶在你身上划出数道伤口。', damagePercent: 15 },
+            },
+            { id: 'leave', label: '堵耳离开', description: '拒绝理会芦苇的声音', outcome: { text: '你撕下一块布堵住耳朵，贴着芦苇荡边缘离开。' } },
+        ],
+    },
+    leechBloomPool: {
+        title: '血蛭花池',
+        description: '暗红色水花在一口浅池中缓慢开合，每朵花心都蜷着一条透明水蛭。池底散落着药师用来炼制止血剂的血囊，石墩间则留有一条勉强可以跳过水面的旧路。',
+        choices: [
+            {
+                id: 'harvestSacs', label: '智力采囊', description: '按血蛭收缩节奏采集血囊', attribute: 'int', baseRate: 35,
+                success: { text: '你在花瓣闭合前取出完整血囊，炼药成分没有受到污染。', hpPotion: POTION_HEAL, specialItems: [{ type: 'magic_dust', count: 25 }] },
+                fail: { text: '血蛭群骤然扑上手臂，直到你冲出水池才一一甩脱。', damagePercent: 15 },
+            },
+            {
+                id: 'crossStones', label: '敏捷踏石', description: '沿残破石墩跳过花池', attribute: 'dex', baseRate: 40,
+                success: { text: '你稳稳落在对岸，还从最后一块石墩下摸出一枚旧钱匣。', revealNodes: true, revealDepth: 1, gold: { min: 20, max: 35 } },
+                fail: { text: '湿滑的苔藓让你跌入池中，血蛭很快吸附在护甲缝隙里。', damagePercent: 20 },
+            },
+            { id: 'leave', label: '绕行花池', description: '从更远的浅滩绕路', outcome: { text: '你放弃池底的材料，花了些时间从上游绕了过去。' } },
+        ],
+    },
+    willOWispTrail: {
+        title: '鬼火引路',
+        description: '数团青绿色鬼火从腐木后依次亮起，在雾中排成一条通往深处的曲线。它们有时照亮刻着路标的老树，有时又故意停在看不见底的黑水上方，像是在试探你是否值得被带往目的地。',
+        choices: [
+            {
+                id: 'readWisps', label: '精神辨火', description: '分辨守路灵与诱魂火', attribute: 'wis', baseRate: 35,
+                success: { text: '你认出颜色最稳定的守路灵，跟随它们穿过了一段隐藏捷径。', revealNodes: true, revealDepth: 2, gold: { min: 35, max: 55 } },
+                fail: { text: '诱魂火把你带进狼群的伏击圈，随后在树梢上发出尖细笑声。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            {
+                id: 'trustBrightest', label: '幸运追光', description: '追随最明亮的那团鬼火', attribute: 'luck', baseRate: 25,
+                success: { text: '鬼火停在一具沉箱上方，箱内金币和强化石仍被油布包得严严实实。', gold: { min: 60, max: 90 }, specialItems: [{ type: 'enhancement_stone', count: 1 }] },
+                fail: { text: '最亮的鬼火正是诱饵，黑狼从雾中封住了退路。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            { id: 'leave', label: '熄灯绕行', description: '用泥水遮住火光，拒绝跟随', outcome: { text: '鬼火在身后盘旋片刻，最终失去兴趣，逐一熄灭。' } },
+        ],
+    },
+    rottenRopeBridge: {
+        title: '腐木索桥',
+        description: '一座用腐木板和草绳绑成的索桥横跨深褐色泥潭，桥下不断冒出吞咽般的气泡。对岸的树桩上挂着几只补给袋，而桥侧还堆着修桥人留下的木料和金属扣件。',
+        choices: [
+            {
+                id: 'dashBridge', label: '敏捷疾渡', description: '在木板断裂前冲到对岸', attribute: 'dex', baseRate: 35,
+                success: { text: '你借着索桥摆动的节奏快速通过，并取走了对岸遗留的钱袋。', revealNodes: true, revealDepth: 1, gold: { min: 35, max: 55 } },
+                fail: { text: '桥板在脚下断裂，你撞上侧绳后才勉强爬回岸边。', damagePercent: 20 },
+            },
+            {
+                id: 'reinforceBridge', label: '力量加固', description: '重新绷紧草绳并更换承重木板', attribute: 'str', baseRate: 35,
+                success: { text: '你修好了关键承重点，剩余扣件和硬木也被一并收进背包。', material: { type: '古老木材', count: 3 }, specialItems: [{ type: 'enhancement_stone', count: 1 }] },
+                fail: { text: '腐烂桥柱突然倾倒，飞起的绳扣狠狠抽中了你的肩膀。', damagePercent: 15 },
+            },
+            { id: 'leave', label: '沿岸寻找浅滩', description: '放弃桥上的补给，安全绕行', outcome: { text: '你沿着泥潭边缘走了很久，最终找到一段可以涉水通过的浅滩。' } },
+        ],
+    },
+    bogHunterRemains: {
+        title: '沼猎人的遗骸',
+        description: '一具披着鳄皮斗篷的猎人遗骸倚在空心树旁，弩箭仍指向雾中的某个方向。腰包被树根缠住，胸前护符却干净得反常；附近泥地上留着成圈的狼爪印。',
+        choices: [
+            {
+                id: 'inspectHunter', label: '智力验尸', description: '先找出猎人的死因和机关', attribute: 'int', baseRate: 35,
+                success: { text: '你避开腰包下的骨针机关，从猎具中拆下完好的皮革和改造零件。', material: { type: '皮革碎片', count: 3 }, specialItems: [{ type: 'reforge_ticket', count: 1 }] },
+                fail: { text: '骨针机关击响了猎人的警铃，循味而来的黑狼立刻扑出。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            {
+                id: 'takeTalisman', label: '幸运取符', description: '直接摘下没有沾泥的护符', attribute: 'luck', baseRate: 30,
+                success: { text: '护符中残存的猎手祝福与你产生共鸣，雾中的脚印也变得清晰。', gold: { min: 30, max: 50 }, buff: { id: 'bogHunterInstinct', name: '沼猎直觉', icon: '🏹', color: '#a59a62', atkPercent: 10, moveSpeedPercent: 10, durationBattles: 3 } },
+                fail: { text: '护符翻面后露出诅咒刻痕，沉重的猎杀执念压在你的护甲上。', buff: { id: 'hunterBurden', name: '猎手重负', icon: '🦴', color: '#786b55', defPercent: -10, moveSpeedPercent: -10, durationBattles: 3 } },
+            },
+            { id: 'buryHunter', label: '就地掩埋', description: '不取遗物，让猎人安息', outcome: { text: '你用泥土和苔藓盖住遗骸，远处狼嚎随之渐渐平息。' } },
+        ],
+    },
+    sunkenDruidShrine: {
+        title: '沉没的林神祭坛',
+        description: '长着鹿角的石像只剩上半身露出水面，藤蔓在它掌心编成一只盛满清水的碗。祭坛周围的树根一半鲜绿、一半腐黑，古老自然力量与沼泽腐化正在这里彼此拉扯。',
+        choices: [
+            {
+                id: 'prayDruid', label: '精神祈祷', description: '回应尚未消散的林神意志', attribute: 'wis', baseRate: 35,
+                success: { text: '清水化作温暖绿光流遍全身，藤蔓为你指向没有腐化的道路。', healPercent: 20, mpRestorePercent: 20, buff: { id: 'druidShelter', name: '林神庇护', icon: '🌿', color: '#65a86f', defPercent: 10, durationBattles: 3 } },
+                fail: { text: '你触碰到的不是林神，而是盘踞在石像裂缝中的腐化意志。', mpRestorePercent: -15, buff: { id: 'swampWhisper', name: '沼语侵扰', icon: '🌀', color: '#63745b', matkPercent: -10, durationBattles: 3 } },
+            },
+            {
+                id: 'purgeRoots', label: '体质净根', description: '忍受腐液灼烧，拔除黑色根须', attribute: 'con', baseRate: 30,
+                success: { text: '黑根在你手中化为灰烬，祭坛回赠一团纯净魔力和短暂的野性力量。', specialItems: [{ type: 'magic_dust', count: 35 }], buff: { id: 'wildSap', name: '野性树液', icon: '🍂', color: '#91a34f', atkPercent: 10, durationBattles: 3 } },
+                fail: { text: '腐液穿过手套灼入血肉，你只能在根须缠紧前强行挣脱。', damagePercent: 20 },
+            },
+            { id: 'leave', label: '不扰祭坛', description: '保持距离，沿水边离开', outcome: { text: '石像无声注视着你离开，掌心的清水重新恢复平静。' } },
+        ],
+    },
+    marshGasVents: {
+        title: '沼气喷口',
+        description: '一片龟裂泥地正不断吐出黄绿色气泡，锈蚀管道和炼金玻璃埋在泥层下方。每次气泡破裂，地底都会短暂映出金属箱的轮廓；但空气中的火星说明这里随时可能爆燃。',
+        choices: [
+            {
+                id: 'controlledIgnition', label: '智力引燃', description: '计算气流间隙，定向引爆沼气', attribute: 'int', baseRate: 30,
+                success: { text: '爆燃沿预定方向掀开泥层，埋藏的炼金箱和附近地形一览无余。', revealNodes: true, revealDepth: 2, gold: { min: 60, max: 80 } },
+                fail: { text: '气流回卷，爆焰从脚边喷出，将你重重掀翻。', damagePercent: 25 },
+            },
+            {
+                id: 'collectCondensate', label: '敏捷集露', description: '在喷口之间收集炼金凝露', attribute: 'dex', baseRate: 30,
+                success: { text: '你踩着气泡喷发的间隙装满一瓶凝露，其中凝结出高纯魔尘。', specialItems: [{ type: 'magic_dust', count: 50 }, { type: 'enhancement_stone', count: 1 }] },
+                fail: { text: '一股浓雾正面喷来，麻痹性气体让双腿像灌了铅。', buff: { id: 'marshGasNumbness', name: '沼气麻痹', icon: '☁️', color: '#9a9b45', moveSpeedPercent: -20, durationBattles: 3 } },
+            },
+            { id: 'leave', label: '逆风撤离', description: '沿上风口绕开喷气区', outcome: { text: '你用湿布掩住口鼻，沿风向变化谨慎退出这片泥地。' } },
+        ],
+    },
+    rootPrison: {
+        title: '活根囚笼',
+        description: '数十条粗大树根在沼泽中央拱成牢笼，里面封着一只覆满红毛的狼形怪物和几只探险箱。树根会随着呼吸收紧，符文般的菌斑则在外层明灭，显然既是封印也是警报。',
+        choices: [
+            {
+                id: 'breakRoots', label: '力量破根', description: '砸开外层根须，抢先取走箱子', attribute: 'str', baseRate: 25,
+                success: { text: '你在囚笼完全苏醒前撕开一道缺口，带走箱中财物后重新压住根须。', gold: { min: 50, max: 80 }, specialItems: [{ type: 'reforge_ticket', count: 2 }] },
+                fail: { text: '断根触发了封印，牢笼骤然张开，被囚禁的红狼王带着怒火冲出。', combat: 'elite', forceMonsters: ['redWolfKing'], encounter: { combatWaves: 1, monstersPerWave: 1, tierWeights: { normal: 0, elite: 1 } } },
+            },
+            {
+                id: 'readRootRunes', label: '精神安抚', description: '顺着菌斑脉动安抚活根', attribute: 'wis', baseRate: 30,
+                success: { text: '活根放松下来，在泥地上勾出附近路线，并将封印余力分给了你。', revealNodes: true, revealDepth: 2, buff: { id: 'livingRootWard', name: '活根护符', icon: '🌱', color: '#6f9550', defPercent: 15, matkPercent: 10, durationBattles: 3 } },
+                fail: { text: '菌斑把你的意志当成入侵，根须抽打地面，附近黑狼循声围来。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 6, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            { id: 'leave', label: '保持封印', description: '不碰囚笼，悄悄退开', outcome: { text: '你没有惊动囚笼，红色身影始终隔着根须盯着你远去。' } },
+        ],
+    },
+    blackwaterFerry: {
+        title: '黑水渡船',
+        description: '一艘没有船夫的窄木船停在黑水岸边，船头挂着鹿骨灯，船舱里堆着覆满湿苔的旧货箱。每当雾气扫过，水中就浮现一位披斗篷的摆渡人倒影，伸手示意你登船。',
+        choices: [
+            {
+                id: 'appeaseFerryman', label: '精神问渡', description: '按古老礼节向水中倒影询问航路', attribute: 'wis', baseRate: 30,
+                success: { text: '摆渡人的倒影点头致意，船自行穿过迷雾，并在安全岸边留下一袋旧币。', revealNodes: true, revealDepth: 2, healPercent: 10, gold: { min: 40, max: 60 } },
+                fail: { text: '倒影突然抓住船沿，寒意侵入意识，远岸的路径也在眼前扭曲。', mpRestorePercent: -20, buff: { id: 'blackwaterChill', name: '黑水寒意', icon: '🕯️', color: '#55777c', atkPercent: -10, matkPercent: -10, durationBattles: 3 } },
+            },
+            {
+                id: 'searchCargo', label: '幸运翻舱', description: '在船启动前搜查湿苔货箱', attribute: 'luck', baseRate: 20,
+                success: { text: '你挑中了唯一没有被水浸透的箱子，里面装着大笔金币和两块强化石。', gold: { min: 100, max: 140 }, specialItems: [{ type: 'enhancement_stone', count: 2 }] },
+                fail: { text: '货箱里涌出冰冷黑水，船身猛然倾斜，你在沉船前狼狈跳回岸上。', damagePercent: 25, buff: { id: 'waterloggedArmor', name: '浸水护甲', icon: '💧', color: '#4c6f78', defPercent: -15, moveSpeedPercent: -10, durationBattles: 3 } },
+            },
+            { id: 'leave', label: '拒绝登船', description: '沿岸寻找别的通路', outcome: { text: '骨灯在雾中缓缓远去，空船无声滑向黑水深处。' } },
+        ],
+    },
+    fireflyGraveIslet: {
+        title: '萤火墓洲',
+        description: '一座被浅水包围的小土洲上立着数十块无名木牌，成群的金绿萤火虫在牌间缓慢飞行。每当它们聚成一束光，某块墓牌下便会传来轻微敲击声；水边还散落着探险者留下的密封钱筒。',
+        choices: [
+            {
+                id: 'listenFireflies', label: '精神聆光', description: '跟随萤火的明灭节奏聆听亡者提示', attribute: 'wis', baseRate: 40,
+                success: { text: '萤火在你眼前组成一条短暂光路，墓洲周围的安全岔道随之显现。', revealNodes: true, revealDepth: 2, mpRestorePercent: 10 },
+                fail: { text: '过多低语同时涌入意识，残留的哀念扰乱了你的魔力流动。', buff: { id: 'graveMurmur', name: '墓洲低语', icon: '🪦', color: '#7d8862', matkPercent: -10, durationBattles: 3 } },
+            },
+            {
+                id: 'catchBrightSwarm', label: '幸运收萤', description: '捕捉聚成光团的稀有萤火', attribute: 'luck', baseRate: 30,
+                success: { text: '萤火没有逃散，反而钻入空瓶凝成魔尘；墓牌后还露出一只旧钱筒。', gold: { min: 25, max: 45 }, specialItems: [{ type: 'magic_dust', count: 25 }] },
+                fail: { text: '光团突然熄灭，你踩空跌进墓洲边缘的碎石坑。', damagePercent: 10 },
+            },
+            { id: 'leave', label: '不扰亡者', description: '沿土洲外缘安静离开', outcome: { text: '萤火在身后重新聚拢，墓牌间的敲击声也渐渐停止。' } },
+        ],
+    },
+    frogBoneOracle: {
+        title: '蛙骨占卜阵',
+        description: '一圈巨蛙骨骼被细藤串成复杂图案，中央石盘上摆着六枚刻痕不同的趾骨。水滴落在骨面时会发出钟磬般的轻响，旁边的破布袋里装着前来求问者留下的报酬。',
+        choices: [
+            {
+                id: 'decodeBones', label: '智力解骨', description: '按骨纹和水滴节奏解读占卜', attribute: 'int', baseRate: 35,
+                success: { text: '趾骨最终指向一条安全路线，石盘夹层里还藏着一张可用的改造券。', revealNodes: true, revealDepth: 2, specialItems: [{ type: 'reforge_ticket', count: 1 }] },
+                fail: { text: '你颠倒了骨纹顺序，石盘溢出的阴湿诅咒削弱了护甲。', buff: { id: 'frogBoneCurse', name: '蛙骨诅咒', icon: '🦴', color: '#7f8b56', defPercent: -10, durationBattles: 3 } },
+            },
+            {
+                id: 'castToeBone', label: '幸运掷骨', description: '随意掷出一枚趾骨，接受阵眼裁定', attribute: 'luck', baseRate: 25,
+                success: { text: '趾骨立在尖端没有倒下，破布袋自行松开，露出积攒多年的金币。', gold: { min: 60, max: 90 } },
+                fail: { text: '趾骨碎成尖片四散飞出，你护住要害却仍被割伤。', damagePercent: 15 },
+            },
+            { id: 'leave', label: '归还趾骨', description: '将骨片放回原位', outcome: { text: '你退出骨阵，水滴敲击声重新恢复原先的节奏。' } },
+        ],
+    },
+    mudboundCaravan: {
+        title: '泥封商队',
+        description: '三辆破旧货车斜陷在泥潭中，车轮和驮兽骨架早已被树根吞没。几只包铁货箱仍露在泥面上，车厢帆布下却偶尔传出抓挠声，仿佛有什么东西比商队更晚来到这里。',
+        choices: [
+            {
+                id: 'haulCargo', label: '力量拖箱', description: '把最沉的货箱从泥里拽出来', attribute: 'str', baseRate: 35,
+                success: { text: '你借货车横梁撬出货箱，里面的金币与硬木构件仍保存完好。', gold: { min: 45, max: 70 }, material: { type: '古老木材', count: 3 } },
+                fail: { text: '腐朽横梁突然断裂，货箱倒滑回来将你撞进泥水。', damagePercent: 20 },
+            },
+            {
+                id: 'inspectCanvas', label: '智力查货', description: '先确认帆布下的机关与货物', attribute: 'int', baseRate: 35,
+                success: { text: '你发现抓挠声来自自动上弦的防盗装置，解除后取得药剂和强化零件。', hpPotion: POTION_HEAL, mpPotion: POTION_MP, specialItems: [{ type: 'enhancement_stone', count: 1 }] },
+                fail: { text: '防盗铃响彻泥潭，附近巡游的黑狼循声包围了货车。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            { id: 'leave', label: '放弃货车', description: '不在松软泥地久留', outcome: { text: '你远离货车后，帆布下的抓挠声也随雾气一同消失。' } },
+        ],
+    },
+    sunkenWitchCauldron: {
+        title: '沉沼女巫坩埚',
+        description: '一口布满铜绿的巨大坩埚陷在树根之间，锅内紫黑药液仍在无火沸腾。周围吊着干燥药束、兽牙量勺和几只密封瓶，锅沿刻痕显示这剂药尚差最后一道处理。',
+        choices: [
+            {
+                id: 'finishBrew', label: '智力炼成', description: '按刻痕完成最后一道蒸馏', attribute: 'int', baseRate: 30,
+                success: { text: '药液由紫黑转为清亮银绿，高纯魔尘凝在瓶底，余香强化了你的法术。', specialItems: [{ type: 'magic_dust', count: 50 }], buff: { id: 'witchDistillate', name: '女巫馏液', icon: '⚗️', color: '#8d75a6', matkPercent: 15, durationBattles: 3 } },
+                fail: { text: '错误的搅拌方向让坩埚喷出灼热药雾，魔力也被药性抽走。', damagePercent: 20, mpRestorePercent: -15 },
+            },
+            {
+                id: 'tasteBrew', label: '体质试药', description: '直接品尝一勺尚未完成的药液', attribute: 'con', baseRate: 25,
+                success: { text: '刺鼻药液在体内化成暖流，伤势迅速闭合，肌肉也充满短暂力量。', healPercent: 25, buff: { id: 'bogWitchTonic', name: '沼巫强壮剂', icon: '🥄', color: '#778f5a', atkPercent: 10, defPercent: 10, durationBattles: 3 } },
+                fail: { text: '药液变得像湿泥一样沉重，四肢和护甲同时失去灵活。', buff: { id: 'failedWitchBrew', name: '失败药剂', icon: '🧪', color: '#66576f', defPercent: -15, moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            { id: 'leave', label: '盖回锅盖', description: '不试图完成陌生药剂', outcome: { text: '锅盖落下后，沸腾声立刻停止，仿佛坩埚从未醒来。' } },
+        ],
+    },
+    ancientCrocodileTotem: {
+        title: '远古鳄神图腾',
+        description: '一尊由黑色沼木和鳄骨拼成的巨大图腾矗立在石台上，张开的长吻中嵌着一枚深绿色宝石。水下成排鳄齿指向图腾，石台后的雾中则不断传来沉重兽息。',
+        choices: [
+            {
+                id: 'pryTotemGem', label: '力量取宝', description: '掰开骨吻，取下图腾宝石', attribute: 'str', baseRate: 25,
+                success: { text: '骨吻在你的力量下松开，宝石碎成数块可用于强化装备的结晶。', gold: { min: 60, max: 90 }, specialItems: [{ type: 'enhancement_stone', count: 2 }] },
+                fail: { text: '图腾发出低吼，精英猎食者从雾后踏上石台守卫祭物。', combat: 'elite', encounter: { combatWaves: 1, monstersPerWave: 1, tierWeights: { normal: 0, elite: 1 } } },
+            },
+            {
+                id: 'communeTotem', label: '精神通灵', description: '以敬畏姿态读取鳄齿指向', attribute: 'wis', baseRate: 30,
+                success: { text: '水下鳄齿逐一亮起，为你标出安全水道，图腾的厚重气息也覆在护甲上。', revealNodes: true, revealDepth: 2, buff: { id: 'crocodileHideWard', name: '鳄神厚皮', icon: '🐊', color: '#536d4f', defPercent: 15, durationBattles: 3 } },
+                fail: { text: '你误把警告当成祝福，图腾迸出的震波击中胸口。', damagePercent: 20 },
+            },
+            { id: 'leave', label: '献上泥土', description: '留下象征性祭物后退开', outcome: { text: '你把一团湿泥放在石台边缘，雾后的兽息逐渐远去。' } },
         ],
     },
     collapsedArchway: {
@@ -204,6 +552,14 @@ export const NEW_EVENT_CONFIGS = {
                     text: '你的精神触碰到诅咒符文，一阵剧痛让你跪倒在地。更糟糕的是，这阵精神波动唤醒了附近的亡灵守卫。',
                     mpRestorePercent: -15,
                     combat: 'normal',
+                },
+            },
+            {
+                id: 'sealScholarNotes',
+                label: '封存笔记',
+                description: '不阅读符文，用骷髅的长袍把笔记重新包好',
+                outcome: {
+                    text: '你避开仍在蠕动的文字，把笔记放回亡灵学者怀中。封皮下的低语渐渐安静，没有知识，也没有诅咒跟随你离开。',
                 },
             },
         ],
@@ -300,6 +656,14 @@ export const NEW_EVENT_CONFIGS = {
                     damagePercent: 20,
                 },
             },
+            {
+                id: 'markCrossroad',
+                label: '留标退回',
+                description: '在入口刻下方向记号，避开四色迷雾寻找旧路',
+                outcome: {
+                    text: '你在四个入口分别留下清晰刻痕，然后退回尚能辨认的旧通道。迷雾中的声音继续互相引诱，但没有一道追上来。',
+                },
+            },
         ],
     },
 
@@ -355,6 +719,14 @@ export const NEW_EVENT_CONFIGS = {
                     combat: 'normal',
                     forceMonsters: ['armoredKnight'],
                     encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } },
+                },
+            },
+            {
+                id: 'sealArmorStand',
+                label: '封锁石台',
+                description: '不触碰板甲，用碎石堵住石台周围的落脚处',
+                outcome: {
+                    text: '你没有给怨灵寻找新宿主的机会，只用碎石和断木封住石台。盔甲缝隙中的叹息逐渐变远，通道重新安静下来。',
                 },
             },
         ],
@@ -495,6 +867,14 @@ export const NEW_EVENT_CONFIGS = {
                     mpRestorePercent: 10,
                 },
             },
+            {
+                id: 'leaveFountain',
+                label: '不饮泉水',
+                description: '不接触冷热交替的泉水，从池边安静绕过',
+                outcome: {
+                    text: '你没有把未知魔力喝进身体，只沿着没有结冰的池沿绕行。水柱仍在金光与寒霜之间反复变化。',
+                },
+            },
         ],
     },
 
@@ -536,6 +916,14 @@ export const NEW_EVENT_CONFIGS = {
                 fail: {
                     text: '铁门只裂开一条缝，巨大的声响在通道中回荡。门后传来整齐的脚步声——军械库的精英守卫正在逼近。',
                     combat: 'elite',
+                },
+            },
+            {
+                id: 'barArmoryDoor',
+                label: '加固铁门',
+                description: '放弃军械，用断梁卡住门缝和锈死的锁扣',
+                outcome: {
+                    text: '你把一截断梁斜插进门环，又用碎石压住底部缝隙。门后的脚步声短暂靠近，最终在无法开启的铁门后重新远去。',
                 },
             },
         ],
@@ -618,13 +1006,513 @@ export const NEW_EVENT_CONFIGS = {
             },
         ],
     },
+    quarantineBell: {
+        title: '隔离警钟',
+        description: '一口布满黑斑的铁钟悬在坍塌岗楼内，钟绳穿过成排腕骨，末端压着巡夜人的密封钱匣。墙上刻着不同节奏的警戒记号：有些指向安全通道，有些则代表尸群已经逼近。',
+        choices: [
+            {
+                id: 'readBellCode', label: '精神辨钟', description: '从残留回声中辨认安全警报码', attribute: 'wis', baseRate: 40,
+                success: { text: '你听出短促回声对应旧守卫的撤离暗号，附近安全路线与藏匣位置一并清晰起来。', revealNodes: true, revealDepth: 2, gold: { min: 20, max: 35 } },
+                fail: { text: '重叠的钟声在意识里反复震荡，你误读了墙上的一个危险标记。', mpRestorePercent: -10, damagePercent: 10 },
+            },
+            {
+                id: 'climbBellFrame', label: '敏捷登架', description: '沿断梁攀上钟架，取下钱匣和钟舌', attribute: 'dex', baseRate: 35,
+                success: { text: '你避开松动横梁攀到钟顶，取下密封钱匣，并把尚可利用的铁制钟舌拆了下来。', gold: { min: 30, max: 45 }, material: { type: '铁矿石', count: 2 } },
+                fail: { text: '腐朽踏板突然折断，你被钟绳卷住后重重撞在石墙上。', damagePercent: 15 },
+            },
+            { id: 'leave', label: '绕开钟楼', description: '不让沉寂的警钟再次发声', outcome: { text: '你贴着岗楼阴影离开，铁钟始终在身后无声摇晃。' } },
+        ],
+    },
+    corpseWaxWorkshop: {
+        title: '尸蜡工坊',
+        description: '低矮石室里排着一列铜锅，乳白尸蜡在无火的锅中缓慢翻涌。墙边的蜡封药瓶仍散发微光，抽风炉却被凝固脂块堵死，甜腻腐味正一点点挤满房间。',
+        choices: [
+            {
+                id: 'refineCorpseWax', label: '智力精炼', description: '控制铜锅温度，分离药性与腐毒', attribute: 'int', baseRate: 35,
+                success: { text: '你按锅壁刻度滤掉腐毒，凝成一瓶可用药剂和一撮高纯魔尘。', hpPotion: POTION_HEAL, specialItems: [{ type: 'magic_dust', count: 25 }] },
+                fail: { text: '尸蜡突然沸腾，灼热脂液溅出铜锅，刺鼻烟气同时钻入肺部。', damagePercent: 15, mpRestorePercent: -10 },
+            },
+            {
+                id: 'clearVent', label: '体质清炉', description: '忍住毒烟，徒手清理堵塞的抽风炉', attribute: 'con', baseRate: 35,
+                success: { text: '你顶着腐味疏通炉道，冷却后的蜡膜附在护甲表面，形成一层短暂缓冲。', healPercent: 10, buff: { id: 'corpseWaxSeal', name: '尸蜡封层', icon: '🕯️', color: '#c8b997', defPercent: 10, durationBattles: 3 } },
+                fail: { text: '炉道里的陈年毒烟正面喷出，尸蜡冷凝在关节上，让动作变得僵硬。', buff: { id: 'waxStiffness', name: '尸蜡僵结', icon: '🕯️', color: '#81745f', moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            { id: 'leave', label: '封死工坊', description: '放下石门，隔绝尸蜡气味', outcome: { text: '石门落下后，铜锅的翻涌声逐渐被厚墙吞没。' } },
+        ],
+    },
+    sealedSurvivorCell: {
+        title: '封死的幸存者牢房',
+        description: '一道被家具和铁链从外侧封死的牢门后传来微弱敲击，有人用旧守卫口令请求救援。门缝里推出半张染血地图和一只空药瓶，但阴影深处还响着不似活人的抓挠声。',
+        choices: [
+            {
+                id: 'verifySurvivor', label: '精神辨伪', description: '用旧守卫问答确认门后是否仍是活人', attribute: 'wis', baseRate: 35,
+                success: { text: '门后的幸存者完整答出换岗暗语，从送饭口递出备用药剂和标有安全岔路的地图。', hpPotion: POTION_HEAL, mpPotion: POTION_MP, revealNodes: true, revealDepth: 1 },
+                fail: { text: '最后一句回答变成了饥饿嘶吼，门板随即被尸群从里面撞碎。', combat: 'normal', forceMonsters: ['zombie', 'zombieDog'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            {
+                id: 'breakCell', label: '力量破封', description: '直接拆掉障碍，抢在门后东西扑出前开路', attribute: 'str', baseRate: 30,
+                success: { text: '你掀开柜架并扯断铁链，门后的活人早已离去，只留下藏在床板下的钱袋和修补材料。', gold: { min: 55, max: 80 }, material: { type: '铁矿石', count: 3 } },
+                fail: { text: '障碍倒塌的巨响惊醒了牢内尸体，一只臃肿僵尸带着同类堵住出口。', combat: 'normal', forceMonsters: ['fatZombie', 'zombie'], encounter: { combatWaves: 1, monstersPerWave: 4, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            { id: 'leave', label: '重新加固', description: '把推出的地图塞回门缝并压紧障碍', outcome: { text: '敲击声追着你走了很远，最终被地牢深处的风声盖过。' } },
+        ],
+    },
+    ossuaryOrgan: {
+        title: '骸骨管风琴',
+        description: '一架以脊骨作键、肋骨作风箱的管风琴嵌在墓室墙中，银制音栓间夹着一张残缺乐谱。无人触碰时，骨管仍会吐出低沉和弦，周围壁龛里的尸骸也随节拍轻轻抬头。',
+        choices: [
+            {
+                id: 'playFuneralMeasure', label: '敏捷奏曲', description: '按残谱迅速完成送葬小节', attribute: 'dex', baseRate: 30,
+                success: { text: '最后一个和弦准确落下，壁龛尸骸重新安眠，银音栓中释放的节拍强化了你的攻势。', gold: { min: 45, max: 65 }, buff: { id: 'funeralTempo', name: '送葬节拍', icon: '🎼', color: '#9aa7b5', atkPercent: 10, matkPercent: 10, durationBattles: 3 } },
+                fail: { text: '错音像尖叫般穿透墓室，沉睡的僵尸巫师从风琴后方现身，接管了未完的乐章。', combat: 'elite', forceMonsters: ['zombieWizard'], encounter: { combatWaves: 1, monstersPerWave: 1, tierWeights: { normal: 0, elite: 1 } } },
+            },
+            {
+                id: 'retuneBonePipes', label: '智力校音', description: '根据骨管长度还原机关的正确音阶', attribute: 'int', baseRate: 35,
+                success: { text: '你校正了错位音管，风琴奏出的回声标出墓室暗门，并弹出一张藏在键盘下的改造券。', revealNodes: true, revealDepth: 2, specialItems: [{ type: 'reforge_ticket', count: 1 }] },
+                fail: { text: '一根裂开的骨管吸走魔力，刺耳余音让施法节奏久久无法恢复。', mpRestorePercent: -20, buff: { id: 'discordantEcho', name: '失谐回声', icon: '🎵', color: '#746879', matkPercent: -10, durationBattles: 3 } },
+            },
+            { id: 'leave', label: '折起残谱', description: '不为沉睡尸骸演奏', outcome: { text: '你压住松动琴键离开墓室，低沉和弦在身后自行续完。' } },
+        ],
+    },
+    plagueSpecimenVault: {
+        title: '瘟疫标本库',
+        description: '厚重铁门后排列着数座裂纹玻璃罐，浑浊绿液中悬着被缝合的畸变尸体。中央操作台保留着血清离心瓶和封蜡样本箱，压力表指针却正缓慢越过红线。',
+        choices: [
+            {
+                id: 'synthesizeAntiserum', label: '智力配血清', description: '依据实验记录，在压力失控前完成净化血清', attribute: 'int', baseRate: 30,
+                success: { text: '你从多份污染样本中分离出稳定血清，剩余沉淀也结成了可用魔尘。', hpPotion: POTION_HEAL, mpPotion: POTION_MP, specialItems: [{ type: 'magic_dust', count: 50 }], buff: { id: 'plagueAntiserum', name: '净化血清', icon: '🧬', color: '#78a995', defPercent: 15, durationBattles: 3 } },
+                fail: { text: '离心瓶爆裂，警报震碎一座培养罐，畸变标本在毒雾中苏醒。', damagePercent: 20, combat: 'elite', forceMonsters: ['mutant3'], encounter: { combatWaves: 1, monstersPerWave: 1, tierWeights: { normal: 0, elite: 1 } } },
+            },
+            {
+                id: 'carrySealedCase', label: '体质搬运', description: '忍受泄漏孢雾，把最完整的样本箱拖出库房', attribute: 'con', baseRate: 25,
+                success: { text: '你在孢雾侵入肺部前搬出样本箱，箱内保存着强化结晶、改造凭证和一支应急针剂。', healPercent: 20, specialItems: [{ type: 'enhancement_stone', count: 2 }, { type: 'reforge_ticket', count: 1 }] },
+                fail: { text: '样本箱的密封圈在途中脱落，孢雾渗入护甲与呼吸道，让全身力量迅速衰退。', buff: { id: 'plagueExposure', name: '瘟疫暴露', icon: '☣️', color: '#76834f', atkPercent: -10, defPercent: -15, moveSpeedPercent: -10, durationBattles: 3 } },
+            },
+            { id: 'sealVault', label: '紧急封库', description: '拉下隔离闸门，不带走任何样本', outcome: { text: '隔离闸门缓慢落下，玻璃罐后的畸形轮廓被重新锁进绿雾。' } },
+        ],
+    },
+    frozenWaystone: {
+        title: '冰封路标石',
+        description: '三块覆满霜纹的高大路标石陷在风雪岔口，石面没有文字，只有被冰层扭曲的方向凹槽。中央石柱可以转动，底座缝隙里还卡着旧旅人留下的供物袋；远处雪雾中偶尔闪过狼影。',
+        choices: [
+            {
+                id: 'readFrostEcho', label: '精神听霜', description: '触碰霜纹，从风声回响中辨认安全方向', attribute: 'wis', baseRate: 35,
+                success: { text: '风声在三块石柱间形成清晰回音，真正的通路与附近岔道一并显现。', revealNodes: true, revealDepth: 2, mpRestorePercent: 15 },
+                fail: { text: '重叠风声让方向感彻底混乱，寒意也沿手掌钻入意识。', mpRestorePercent: -15, buff: { id: 'frostDisorientation', name: '霜途迷向', icon: '🧭', color: '#8aa8ba', moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            {
+                id: 'turnWaystone', label: '力量转柱', description: '扳动冻死的石柱，让底座机关重新归位', attribute: 'str', baseRate: 30,
+                success: { text: '石柱在冰壳碎裂声中转回原位，底座弹出一只装有金币和硬木楔的维修匣。', gold: { min: 60, max: 90 }, material: { type: '古老木材', count: 3 } },
+                fail: { text: '石柱突然回弹，崩落的冰块砸中了肩背。', damagePercent: 20 },
+            },
+            {
+                id: 'chooseUntouchedTrail', label: '幸运择路', description: '挑一条没有足迹的雪径，并取走供物袋', attribute: 'luck', baseRate: 25,
+                success: { text: '无痕雪径恰好避开狼群，供物袋里还留着旅费和一枚强化结晶。', revealNodes: true, revealDepth: 1, gold: { min: 80, max: 110 }, specialItems: [{ type: 'enhancement_stone', count: 1 }] },
+                fail: { text: '雪径只是狼群掩盖足迹的狩猎道，数只黑狼从风雪后方包围过来。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            { id: 'leave', label: '沿原路前行', description: '不触碰来历不明的路标', outcome: { text: '你记住石柱的位置，沿已知路线顶着风雪继续前进。' } },
+        ],
+    },
+    snowboundSupplySled: {
+        title: '雪埋补给橇',
+        description: '一辆覆着厚雪的木制补给橇斜插在冰坡下，只露出半截铜包边和一根断裂牵引杆。货箱被三层防潮皮裹住，橇底制动销却仍绷得很紧，稍有失误整辆橇就会滑入下方冰沟。',
+        choices: [
+            {
+                id: 'digOutSled', label: '力量掘橇', description: '稳住牵引杆，把沉重货橇从积雪中拖出', attribute: 'str', baseRate: 35,
+                success: { text: '你用断杆作杠杆撬出货橇，找到一只钱箱和几块可用铁件。', gold: { min: 70, max: 100 }, material: { type: '铁矿石', count: 3 } },
+                fail: { text: '雪层突然塌陷，货橇滑动时把你撞向冰坡。', damagePercent: 20 },
+            },
+            {
+                id: 'inspectFrozenRations', label: '智力验货', description: '判断哪些冻裂补给仍可安全使用', attribute: 'int', baseRate: 30,
+                success: { text: '你排除渗漏瓶罐，找出两瓶恢复药剂和一枚被油布包住的强化结晶。', hpPotion: POTION_HEAL, mpPotion: POTION_MP, specialItems: [{ type: 'enhancement_stone', count: 1 }] },
+                fail: { text: '一瓶变质药液在解冻后喷出刺激性蒸气，灼伤手臂并扰乱魔力。', damagePercent: 15, mpRestorePercent: -15 },
+            },
+            {
+                id: 'releaseBrakePin', label: '敏捷卸销', description: '卡住橇身，在制动销弹开前拆下货箱', attribute: 'dex', baseRate: 25,
+                success: { text: '你顺着滑橇倾斜的瞬间卸下货箱，找到一张改造凭证，橇身滑落时还暴露出近路。', revealNodes: true, revealDepth: 2, gold: { min: 60, max: 90 }, specialItems: [{ type: 'reforge_ticket', count: 1 }] },
+                fail: { text: '制动销高速弹出，随后失控货橇擦着你冲入冰沟。', damagePercent: 25 },
+            },
+            {
+                id: 'leave', label: '标记位置', description: '不冒险惊动雪坡',
+                outcome: {
+                    text: '你刚把断木插进雪层，隐藏在下方的旧缆绳便被一同钩起。补给橇挣脱积雪横扫冰坡，你虽及时侧身，仍被飞散的木片和铁扣擦伤。',
+                    damagePercent: 10,
+                },
+            },
+        ],
+    },
+    singingIceBridge: {
+        title: '鸣冰桥',
+        description: '一条天然蓝冰桥横跨幽深裂谷，桥体会随着风压发出高低不同的鸣响。冰面下封着旧绳索和金属扣件，桥侧则有一排探路者敲出的测试孔；每一次低沉震音都让新裂纹向前延伸。',
+        choices: [
+            {
+                id: 'crossOnHighNotes', label: '敏捷踏音', description: '只在冰桥发出高音时快速通过', attribute: 'dex', baseRate: 35,
+                success: { text: '你踩着冰层最稳定的共振间隙越过裂谷，并在对岸找到遗落的钱袋。', revealNodes: true, revealDepth: 2, gold: { min: 60, max: 90 } },
+                fail: { text: '低沉震音提前到来，脚下冰层崩裂，你撞上桥侧才勉强爬回。', damagePercent: 25 },
+            },
+            {
+                id: 'mapIceCracks', label: '智力测冰', description: '根据音高和测试孔推算承重路线', attribute: 'int', baseRate: 30,
+                success: { text: '你绘出安全受力线，还从透明冰层中剥出一团凝结魔力。', revealNodes: true, revealDepth: 3, specialItems: [{ type: 'magic_dust', count: 50 }] },
+                fail: { text: '冰层回声被峡谷放大，你误判了一道贯穿裂缝，寒震抽走部分魔力。', mpRestorePercent: -20 },
+            },
+            {
+                id: 'crawlWindwardEdge', label: '体质伏渡', description: '贴着迎风侧冰脊缓慢爬过桥面', attribute: 'con', baseRate: 25,
+                success: { text: '你忍住刺骨寒风稳稳爬过冰桥，持续低温也让身体对冲击更加警觉。', buff: { id: 'iceBridgePoise', name: '冰桥定势', icon: '🧊', color: '#83b4ca', defPercent: 15, moveSpeedPercent: 15, durationBattles: 3 } },
+                fail: { text: '寒风穿透护甲，冻僵的关节在之后很长一段路上都难以活动。', damagePercent: 20, buff: { id: 'iceBridgeNumbness', name: '寒桥麻木', icon: '🥶', color: '#6d91a8', moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            {
+                id: 'leave', label: '寻找绕路', description: '不把性命交给鸣响的冰层',
+                outcome: {
+                    text: '你离开桥头寻找绕路，却被迫穿过没有遮蔽的迎风坡。冰粒割伤皮肤，长时间失温也让双腿逐渐僵硬。',
+                    damagePercent: 10,
+                    buff: { id: 'iceBridgeDetourChill', name: '绕路失温', icon: '🥶', color: '#6d91a8', moveSpeedPercent: -10, durationBattles: 3 },
+                },
+            },
+        ],
+    },
+    lostExpeditionCamp: {
+        title: '失温远征营地',
+        description: '几顶被积雪压塌的帐篷围着熄灭石炉，冻结绳索上挂着方向牌和半张巡查图。营地没有尸体，只有向不同方向延伸的凌乱拖痕；一只上锁的队长箱仍埋在主帐篷下。',
+        choices: [
+            {
+                id: 'reconstructTracks', label: '精神寻迹', description: '从拖痕和遗留物判断队伍最后去向', attribute: 'wis', baseRate: 35,
+                success: { text: '你排除被风吹出的假痕，找出远征队留下的安全撤离路线。', revealNodes: true, revealDepth: 3, gold: { min: 50, max: 70 } },
+                fail: { text: '拖痕在风雪里彼此重叠，长时间追索只让精神被寒意拖垮。', mpRestorePercent: -20 },
+            },
+            {
+                id: 'repairCampStove', label: '智力修炉', description: '清理烟道并按旧燃料配比重燃石炉', attribute: 'int', baseRate: 30,
+                success: { text: '石炉重新燃起稳定蓝火，你暖透身体，也从炉膛夹层找到两瓶药剂。', healPercent: 20, hpPotion: POTION_HEAL, mpPotion: POTION_MP },
+                fail: { text: '潮湿燃料爆出火星，坍塌烟道把热烟全部压回帐篷。', damagePercent: 20 },
+            },
+            {
+                id: 'searchCaptainChest', label: '幸运搜箱', description: '凭直觉从冰封杂物中挑出队长箱钥匙', attribute: 'luck', baseRate: 25,
+                success: { text: '钥匙藏在一只不起眼的手套里，队长箱中保存着金币、改造凭证和强化结晶。', gold: { min: 90, max: 120 }, specialItems: [{ type: 'reforge_ticket', count: 1 }, { type: 'enhancement_stone', count: 1 }] },
+                fail: { text: '金属碰撞声传出营地，尾随远征队的狼群很快循声赶来。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 5, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            {
+                id: 'leave', label: '压紧帐篷', description: '不扰动失踪者的营地',
+                outcome: {
+                    text: '你用石块压住翻飞帐布，帐绳下却露出一枚仍在工作的警戒铃。短促铃声传入风雪，尾随远征队的猎食者立刻从营地外围逼近。',
+                    combat: 'normal',
+                },
+            },
+        ],
+    },
+    frostberryHollow: {
+        title: '霜莓冰窟',
+        description: '背风冰窟里生长着一片深蓝霜莓，半透明果实在冰晶间发出微光。洞顶垂着密集冰锥，根系旁散落着药师留下的银匙和空瓶；几簇颜色过亮的果实则覆着细小黑斑。',
+        choices: [
+            {
+                id: 'identifyFrostberries', label: '智力辨莓', description: '根据果霜和根色挑出可入药的浆果', attribute: 'int', baseRate: 35,
+                success: { text: '你避开受污染的亮色果实，调出两瓶恢复药剂，并收集到凝结魔尘。', hpPotion: POTION_HEAL, mpPotion: POTION_MP, specialItems: [{ type: 'magic_dust', count: 50 }] },
+                fail: { text: '黑斑在解冻后化成腐蚀汁液，灼伤了手指。', damagePercent: 15 },
+            },
+            {
+                id: 'tasteDarkBerry', label: '体质试果', description: '直接吞下一枚颜色最深的霜莓', attribute: 'con', baseRate: 30,
+                success: { text: '寒甜果汁在体内化成稳定暖流，伤势与疲劳迅速缓解。', healPercent: 25, buff: { id: 'frostberryVigor', name: '霜莓活力', icon: '🫐', color: '#668bb5', defPercent: 15, durationBattles: 3 } },
+                fail: { text: '果实在胃里凝成冰团，寒痛让动作暂时迟缓。', damagePercent: 20, buff: { id: 'frostberryChill', name: '霜莓寒毒', icon: '🫐', color: '#526b92', moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            {
+                id: 'harvestUnderIcicles', label: '敏捷摘果', description: '避开随震动坠落的冰锥，快速装满药瓶', attribute: 'dex', baseRate: 25,
+                success: { text: '你在冰锥落下前装满药瓶，顺手拾起药师遗落的钱袋和改造凭证。', mpPotion: POTION_MP, gold: { min: 60, max: 90 }, specialItems: [{ type: 'reforge_ticket', count: 1 }] },
+                fail: { text: '一根冰锥擦过肩侧，破碎冰片划出数道伤口。', damagePercent: 25 },
+            },
+            {
+                id: 'leave', label: '不碰霜莓', description: '避开颜色异常的冰窟植物',
+                outcome: {
+                    text: '你没有触碰霜莓，却在沿冰窟外缘撤离时踩碎了一层薄霜。潜伏在根系下的雪原猎食者被震动惊醒，抢先堵住了洞口。',
+                    combat: 'normal',
+                },
+            },
+        ],
+    },
+    trappedWhiteStag: {
+        title: '冰索白鹿',
+        description: '一头通体银白的鹿被冻紧的猎索困在冰杉之间，鹿角挂着细碎极光，蹄边则散落着断裂木桩和被雪掩住的捕猎工具。它没有挣扎，只警惕地盯着你，远处狼嚎正在逐渐靠近。',
+        choices: [
+            {
+                id: 'calmWhiteStag', label: '精神安抚', description: '放低武器，用平稳呼吸让白鹿停止戒备', attribute: 'wis', baseRate: 30,
+                success: { text: '白鹿允许你靠近，脱困后用鹿角轻触额头，并领你看见一条避风路线。', revealNodes: true, revealDepth: 2, healPercent: 20 },
+                fail: { text: '你的靠近被误解为攻击，白鹿猛然挣扎，猎索抽中了手臂。', damagePercent: 20 },
+            },
+            {
+                id: 'breakFrozenSnare', label: '力量断索', description: '稳住木桩，强行扯断冻硬猎索', attribute: 'str', baseRate: 25,
+                success: { text: '猎索应声断开，白鹿留下的一小截脱落鹿角化成魔尘，极光余韵也加快了脚步。', specialItems: [{ type: 'magic_dust', count: 75 }], buff: { id: 'whiteStagStride', name: '白鹿轻步', icon: '🦌', color: '#b7d7e4', moveSpeedPercent: 20, durationBattles: 3 } },
+                fail: { text: '木桩从冻土中突然拔出，带着铁扣重重砸向膝侧。', damagePercent: 25 },
+            },
+            {
+                id: 'followStagGaze', label: '幸运寻物', description: '顺着白鹿视线寻找猎人遗落的护符', attribute: 'luck', baseRate: 20,
+                success: { text: '你在雪坑里找到猎人的钱袋和两颗冰封强化结晶，随后割开猎索放走白鹿。', gold: { min: 120, max: 160 }, specialItems: [{ type: 'enhancement_stone', count: 2 }] },
+                fail: { text: '你翻动积雪的声音引来狼群，只能先迎战才能保护被困白鹿。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 6, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            {
+                id: 'leave', label: '割绳离开', description: '简单割松猎索，不索取任何回报',
+                outcome: {
+                    text: '白鹿很快挣脱束缚，离开前用鹿角轻触你的肩甲。极光沿着金属纹路流过，留下能在风雪中稳住脚步的温和祝福。',
+                    buff: { id: 'whiteStagMercy', name: '白鹿善意', icon: '🦌', color: '#b7d7e4', defPercent: 10, moveSpeedPercent: 10, durationBattles: 3 },
+                },
+            },
+        ],
+    },
+    auroraIceLanterns: {
+        title: '极光冰灯阵',
+        description: '七盏由透明冰块雕成的古灯围在雪地中央，内部没有火焰，却折射着头顶极光。每盏灯的镜片角度不同，光束时而组成道路，时而落向埋在雪下的晶体；阵心铜轴已经被薄冰锁住。',
+        choices: [
+            {
+                id: 'alignAuroraRhythm', label: '精神引光', description: '感受极光变化，让七盏冰灯同步明灭', attribute: 'wis', baseRate: 30,
+                success: { text: '灯阵与极光形成稳定呼吸，清冷光芒强化了魔力和步伐。', mpRestorePercent: 25, buff: { id: 'auroraCadence', name: '极光律动', icon: '🌌', color: '#77c6d7', matkPercent: 15, moveSpeedPercent: 15, durationBattles: 3 } },
+                fail: { text: '错乱光束不断闪过视野，精神被快速变化的色彩拖得疲惫不堪。', mpRestorePercent: -25 },
+            },
+            {
+                id: 'adjustLanternMirrors', label: '智力调镜', description: '按折射角校正镜片与冻住的铜轴', attribute: 'int', baseRate: 25,
+                success: { text: '七束光最终汇成清晰箭头，照出远处道路和阵心凝结的魔尘。', revealNodes: true, revealDepth: 3, specialItems: [{ type: 'magic_dust', count: 75 }] },
+                fail: { text: '聚焦光束落在护甲上，瞬间升温又骤然冻结，造成一阵刺痛。', damagePercent: 20 },
+            },
+            {
+                id: 'catchLightCrystal', label: '敏捷接晶', description: '在光点落雪前接住阵中析出的冰晶', attribute: 'dex', baseRate: 20,
+                success: { text: '你连续接住几枚短暂成形的光晶，其中两枚稳定成强化结晶，灯座还弹出一张改造凭证。', mpPotion: POTION_MP, specialItems: [{ type: 'enhancement_stone', count: 2 }, { type: 'reforge_ticket', count: 1 }] },
+                fail: { text: '光晶在指间炸成寒雾，手臂被薄冰包住，动作变得迟缓。', buff: { id: 'auroraFrostbite', name: '极光冻伤', icon: '💠', color: '#7199b8', moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            {
+                id: 'leave', label: '遮住灯阵', description: '用雪盖住最亮的镜片后离开',
+                outcome: {
+                    text: '积雪盖住镜片后，未能释放的极光沿铜轴倒灌进你的影子。骤冷光束灼伤手臂，紊乱寒光也在意识里反复闪烁。',
+                    damagePercent: 10,
+                    mpRestorePercent: -15,
+                    buff: { id: 'shroudedAurora', name: '极光残扰', icon: '🌌', color: '#718da9', matkPercent: -10, durationBattles: 3 },
+                },
+            },
+        ],
+    },
+    avalancheWatchtower: {
+        title: '雪崩瞭望塔',
+        description: '一座半埋山壁的木石瞭望塔俯视整片雪谷，塔内绞盘连接着山脊上的防雪崩木栅。墙上钉着积雪深度尺，顶部风向标仍在急转，警铃配重则悬在即将断裂的绳索上。',
+        choices: [
+            {
+                id: 'releaseSnowShelf', label: '智力泄雪', description: '计算坡面受力，分段释放危险雪檐', attribute: 'int', baseRate: 30,
+                success: { text: '小规模雪流按顺序滑入空谷，暴露出安全山道和岗哨储藏格。', revealNodes: true, revealDepth: 3, gold: { min: 100, max: 140 } },
+                fail: { text: '你误判一层硬雪板，回卷雪浪撞进塔门，将人掀翻在地。', damagePercent: 25 },
+            },
+            {
+                id: 'climbWindVane', label: '敏捷登塔', description: '攀上结冰外墙，修正风向标并取下观察匣', attribute: 'dex', baseRate: 25,
+                success: { text: '风向标恢复转动，观察匣中的路线图和两张改造凭证也完好无损。', revealNodes: true, revealDepth: 2, specialItems: [{ type: 'reforge_ticket', count: 2 }] },
+                fail: { text: '覆霜横梁在脚下断裂，你沿塔壁滑落并撞上石基。', damagePercent: 25 },
+            },
+            {
+                id: 'resetBellCounterweight', label: '力量复锤', description: '拉回沉重配重，让警铃重新待命', attribute: 'str', baseRate: 20,
+                success: { text: '配重重新卡进绞盘，稳定塔架的过程也让你掌握了抵御冲击的节奏。', material: { type: '古老木材', count: 5 }, buff: { id: 'avalancheBrace', name: '抗崩架势', icon: '🏔️', color: '#879ba7', defPercent: 20, durationBattles: 3 } },
+                fail: { text: '绳索突然断裂，警铃巨响传遍山谷，附近狼群循声冲向岗塔。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 6, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            {
+                id: 'leave', label: '封闭塔门', description: '不触碰年久失修的防雪崩机关',
+                outcome: {
+                    text: '你用断板顶住塔门，门轴却牵动了即将断裂的警铃配重。沉重钟声滚过雪谷，巡游在山脊背面的怪物循声封住了低处道路。',
+                    combat: 'normal',
+                },
+            },
+        ],
+    },
+    frostboundCaravan: {
+        title: '冰封商旅',
+        description: '三辆带篷货车连同驮兽遗骨被冻成一整块蓝冰，车轮停在急转弯处。外层货箱挂着商会铅封，车底却露出一截暗格拉环；附近雪面布满绕圈狼爪印，却没有任何离开的脚印。',
+        choices: [
+            {
+                id: 'pryFrozenCrates', label: '力量撬箱', description: '用车轴作杠杆，撬开最沉的冰封货箱', attribute: 'str', baseRate: 30,
+                success: { text: '冰壳和锁扣一同裂开，箱内金币与金属货件仍被油布保护。', gold: { min: 110, max: 160 }, material: { type: '铁矿石', count: 5 } },
+                fail: { text: '冻结车轴突然折断，沉重货箱翻落下来撞伤腿部。', damagePercent: 25 },
+            },
+            {
+                id: 'thawMerchantSeals', label: '智力融封', description: '控制火候，只融化铅封与箱缝薄冰', attribute: 'int', baseRate: 25,
+                success: { text: '铅封完整脱落，药品与两枚强化结晶没有受到热胀破坏。', hpPotion: POTION_HEAL, mpPotion: POTION_MP, specialItems: [{ type: 'enhancement_stone', count: 2 }] },
+                fail: { text: '货箱内外温差让玻璃瓶接连炸裂，滚烫药液和寒气同时扑来。', damagePercent: 20, mpRestorePercent: -15 },
+            },
+            {
+                id: 'searchFalseBottom', label: '幸运探暗格', description: '从几处拉环中挑出真正的车底暗格', attribute: 'luck', baseRate: 20,
+                success: { text: '暗格里藏着商队应急金和两张防水改造凭证。', gold: { min: 140, max: 180 }, specialItems: [{ type: 'reforge_ticket', count: 2 }] },
+                fail: { text: '错误拉环牵动了车铃，围着商旅打转的狼群立即扑出雪雾。', combat: 'normal', forceMonsters: ['blackWolf'], encounter: { combatWaves: 1, monstersPerWave: 6, tierWeights: { normal: 1, elite: 0 } } },
+            },
+            {
+                id: 'leave', label: '覆盖车辙', description: '用积雪重新掩住商旅遗迹',
+                outcome: {
+                    text: '你刚抹平最后一道车辙，围绕商旅打转的足迹便同时转向。它们从来不是旧痕，而是一群精英猎食者耐心布下的包围圈。',
+                    combat: 'elite',
+                },
+            },
+        ],
+    },
+    whisperingGlacierCrevasse: {
+        title: '低语冰隙',
+        description: '狭长冰隙向下延伸到看不见底的蓝黑深处，层层冰壁会把细小声音重复成近似人语的低语。旧攀索垂在崖边，裂隙深处则闪着一只探险箱的金属反光，周期性寒雾正从下方喷涌。',
+        choices: [
+            {
+                id: 'listenCrevasseEcho', label: '精神辨声', description: '从多重回声中分离真正的风口与通道声', attribute: 'wis', baseRate: 30,
+                success: { text: '你识破模仿人声的回音，找出一条连接远处冰洞的隐蔽通道。', revealNodes: true, revealDepth: 3, mpRestorePercent: 20 },
+                fail: { text: '低语逐渐变成自己的声音，错误方向感在脑海里挥之不去。', buff: { id: 'crevasseWhispers', name: '冰隙低语', icon: '🗣️', color: '#7796aa', matkPercent: -15, moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            {
+                id: 'rappelForCache', label: '敏捷垂降', description: '借旧攀索下降到探险箱所在冰台', attribute: 'dex', baseRate: 25,
+                success: { text: '你在绳结断开前荡上冰台，取回金币和两枚强化结晶。', gold: { min: 110, max: 150 }, specialItems: [{ type: 'enhancement_stone', count: 2 }] },
+                fail: { text: '旧攀索突然滑脱，你撞上冰壁后才抓住下一处结节。', damagePercent: 30 },
+            },
+            {
+                id: 'endureColdVent', label: '体质探雾', description: '顶住喷涌寒雾，沿下层冰脊寻找出口', attribute: 'con', baseRate: 20,
+                success: { text: '你适应寒雾节奏穿过冰隙，低温刺激让身体在接下来战斗中更加坚韧。', healPercent: 20, buff: { id: 'glacierLungs', name: '冰川吐息', icon: '🌬️', color: '#6fa0bd', defPercent: 20, durationBattles: 3 } },
+                fail: { text: '寒雾灌入护甲和肺部，四肢迅速失去知觉。', damagePercent: 25, buff: { id: 'crevasseNumbness', name: '冰隙失温', icon: '🥶', color: '#63869c', moveSpeedPercent: -20, durationBattles: 3 } },
+            },
+            {
+                id: 'leave', label: '钉下警戒绳', description: '标记裂隙边缘后绕行',
+                outcome: {
+                    text: '冰钉穿透薄壳后释放出封存多年的寒雾。你及时离开裂隙边缘，却仍吸入刺骨雾气，四肢在接下来的路程中难以回暖。',
+                    damagePercent: 15,
+                    buff: { id: 'crevasseDetourNumbness', name: '冰隙寒侵', icon: '🌬️', color: '#63869c', moveSpeedPercent: -15, durationBattles: 3 },
+                },
+            },
+        ],
+    },
+    frozenChapel: {
+        title: '冻结祈祷堂',
+        description: '一座被整块透明寒冰包裹的石质祈祷堂立在雪谷尽头，冰层下的长椅、银灯和壁画仍保持灾难发生前的模样。祭坛上悬着一枚霜白圣徽，地下圣物匣则被三道冻结锁链牢牢缠住。',
+        choices: [
+            {
+                id: 'prayBeneathIce', label: '精神祷冰', description: '隔着冰层回应祭坛中残留的守护意志', attribute: 'wis', baseRate: 25,
+                success: { text: '圣徽在冰中亮起，纯净寒光修复伤势，并化作能抵御冲击与魔法侵蚀的祝福。', healPercent: 30, mpRestorePercent: 30, buff: { id: 'frozenSanctuary', name: '寒堂圣佑', icon: '❄️', color: '#b7dce8', defPercent: 20, matkPercent: 20, durationBattles: 3 } },
+                fail: { text: '祷词被冰层折成相反含义，刺骨回声抽走魔力并削弱意志。', mpRestorePercent: -30, buff: { id: 'rejectedPrayer', name: '冰堂拒斥', icon: '🕯️', color: '#778ca0', matkPercent: -20, durationBattles: 3 } },
+            },
+            {
+                id: 'decodeFrozenMosaic', label: '智力解画', description: '从冻结壁画顺序还原祭司的撤离路线', attribute: 'int', baseRate: 20,
+                success: { text: '壁画中的星位与门廊一一对应，隐藏路线和祭司留下的魔尘、改造凭证同时显现。', revealNodes: true, revealDepth: 3, specialItems: [{ type: 'magic_dust', count: 100 }, { type: 'reforge_ticket', count: 2 }] },
+                fail: { text: '你激活了错误画格，冰面折射出的强光灼伤双眼。', damagePercent: 25 },
+            },
+            {
+                id: 'breakReliquaryChains', label: '力量断链', description: '击碎三道冰锁，打开祭坛下的圣物匣', attribute: 'str', baseRate: 15,
+                success: { text: '最后一道锁链断裂，圣物匣中保存着大笔供奉金和三枚强化结晶。', gold: { min: 180, max: 240 }, specialItems: [{ type: 'enhancement_stone', count: 3 }] },
+                fail: { text: '锁链将冲击原样反弹，祭坛冰壳同时坍落。', damagePercent: 35, buff: { id: 'reliquaryBurden', name: '圣匣重压', icon: '⛓️', color: '#70889a', moveSpeedPercent: -20, durationBattles: 3 } },
+            },
+            { id: 'leave', label: '合掌退下', description: '不惊扰冻结在礼拜中的旧日意志', outcome: { text: '你向祭坛短暂致意，沿结霜门廊安静离开。' } },
+        ],
+    },
+    iceFisherHole: {
+        title: '无底冰钓孔',
+        description: '圆形冰钓孔被刻满同心凿痕，漆黑水面下垂着一条粗重银链。岸边留下骨制鱼竿、绞盘和装有发光诱饵的铜盒；每当极光掠过，深水中便有巨大阴影绕着链端缓慢转圈。',
+        choices: [
+            {
+                id: 'readUndericeCurrent', label: '智力测流', description: '根据气泡和链条摆幅判断安全下钩时机', attribute: 'int', baseRate: 25,
+                success: { text: '你避开深水阴影的巡游路线，捞出一只药师沉箱和凝在水线上的魔尘。', revealNodes: true, revealDepth: 3, hpPotion: POTION_HEAL, mpPotion: POTION_MP, specialItems: [{ type: 'magic_dust', count: 75 }] },
+                fail: { text: '水下暗流突然倒卷，冰孔边缘崩碎，寒水浸透护甲。', damagePercent: 25, buff: { id: 'drenchedInIcewater', name: '冰水浸身', icon: '💧', color: '#557f9a', moveSpeedPercent: -20, durationBattles: 3 } },
+            },
+            {
+                id: 'haulSilverChain', label: '力量收链', description: '转动冻结绞盘，把链端沉箱拖出深水', attribute: 'str', baseRate: 20,
+                success: { text: '银链一寸寸升起，沉箱中装着金币、精铁构件和两枚强化结晶。', gold: { min: 140, max: 190 }, material: { type: '铁矿石', count: 5 }, specialItems: [{ type: 'enhancement_stone', count: 2 }] },
+                fail: { text: '链端阴影猛然下潜，绞盘把手高速回转，重击胸腹。', damagePercent: 30 },
+            },
+            {
+                id: 'castLuminousBait', label: '幸运投饵', description: '从铜盒中随意挑一枚发光诱饵投入黑水', attribute: 'luck', baseRate: 15,
+                success: { text: '水下阴影没有咬钩，反而推来一只覆满古币和改造凭证的祭祀盘。', gold: { min: 200, max: 260 }, specialItems: [{ type: 'reforge_ticket', count: 3 }] },
+                fail: { text: '诱饵引来猛烈撞击，冰孔喷出的碎冰和黑水将你掀翻。', damagePercent: 35, mpRestorePercent: -20 },
+            },
+            {
+                id: 'leave', label: '封住冰孔', description: '把旧木盖重新压回漆黑水面',
+                outcome: {
+                    text: '旧木盖刚压住水面，银链便从下方猛然绷直。巨大阴影撞碎冰盖跃出黑水，显然它早已把岸边的动静当成了进食信号。',
+                    combat: 'elite',
+                },
+            },
+        ],
+    },
+    blizzardSignalBrazier: {
+        title: '暴雪烽火盆',
+        description: '巨型青铜火盆立在山口石台上，四周堆着受潮燃料、鲸油罐和结冰风板。火盆下方的引风机关连着数座远方信标，只要在暴雪中心重新点燃，整条古代雪道就会被依次照亮。',
+        choices: [
+            {
+                id: 'mixStormFuel', label: '智力配燃料', description: '按风速混合鲸油、树脂和干燥魔尘', attribute: 'int', baseRate: 25,
+                success: { text: '冷焰穿透暴雪点亮远方信标，安全道路与火盆储金格同时显现。', revealNodes: true, revealDepth: 3, gold: { min: 120, max: 170 }, buff: { id: 'signalFlamePace', name: '烽火引路', icon: '🔥', color: '#d7a76b', moveSpeedPercent: 20, durationBattles: 3 } },
+                fail: { text: '错误油料在盆底爆燃，灼热蒸气与冰雪同时扑向身体。', damagePercent: 30 },
+            },
+            {
+                id: 'igniteThroughBlizzard', label: '体质守火', description: '用身体挡住狂风，维持火种直到风板升起', attribute: 'con', baseRate: 20,
+                success: { text: '你在风雪中守住第一缕火苗，升腾暖流恢复伤势并锻出坚韧防护。', healPercent: 30, buff: { id: 'blizzardFireguard', name: '暴雪火卫', icon: '🔥', color: '#cb8e64', defPercent: 20, durationBattles: 3 } },
+                fail: { text: '风向突然反转，火焰贴着护甲卷回，随后又被寒风瞬间冻结。', damagePercent: 35 },
+            },
+            {
+                id: 'repairWindShutters', label: '敏捷修板', description: '在风板高速摆动时重新挂上三枚传动销', attribute: 'dex', baseRate: 15,
+                success: { text: '三块风板依次锁定，机关夹层弹出两张改造凭证和两枚强化结晶。', specialItems: [{ type: 'reforge_ticket', count: 2 }, { type: 'enhancement_stone', count: 2 }] },
+                fail: { text: '风板夹住护手并将你甩向石台边缘，寒风趁隙侵入关节。', damagePercent: 30, buff: { id: 'shutterBruise', name: '风板挫伤', icon: '🌀', color: '#6e8798', atkPercent: -15, moveSpeedPercent: -15, durationBattles: 3 } },
+            },
+            {
+                id: 'leave', label: '封存火种', description: '收起残余燃料，不在暴雪中冒险点火',
+                outcome: {
+                    text: '你盖紧鲸油罐准备离开，泄漏的气味却早已沿山口扩散。守候在远方信标之间的怪物循着油味穿过暴雪，截断了下山道路。',
+                    combat: 'normal',
+                },
+            },
+        ],
+    },
+    crystalPrison: {
+        title: '寒晶囚笼',
+        description: '六根巨型蓝晶柱围成封闭囚笼，中央悬着一团披兽形轮廓的极寒灵光。晶柱之间流动着古老封印，底座凹槽里沉积着大量魔尘与强化结晶；每当灵光撞击晶壁，整片雪地都会震动。',
+        choices: [
+            {
+                id: 'communeWithFrostSpirit', label: '精神通灵', description: '隔着封印了解寒灵被囚禁的原因', attribute: 'wis', baseRate: 25,
+                success: { text: '寒灵停止冲撞，以记忆展示雪原隐路，并留下强化魔法的极寒印记。', revealNodes: true, revealDepth: 3, mpRestorePercent: 30, buff: { id: 'frostSpiritMark', name: '寒灵印记', icon: '👻', color: '#75b9d2', matkPercent: 20, durationBattles: 3 } },
+                fail: { text: '寒灵的怒意穿过封印灌入意识，魔力运转变得迟缓。', mpRestorePercent: -30, buff: { id: 'frostSpiritRage', name: '寒灵震慑', icon: '👻', color: '#637e9b', matkPercent: -20, durationBattles: 3 } },
+            },
+            {
+                id: 'breakOuterCrystals', label: '力量碎晶', description: '只击碎外层结晶，不破坏核心封印', attribute: 'str', baseRate: 20,
+                success: { text: '你准确剥离外层晶壳，取得三枚强化结晶和封印者留下的金币。', gold: { min: 160, max: 210 }, specialItems: [{ type: 'enhancement_stone', count: 3 }] },
+                fail: { text: '冲击沿晶柱反射并同时命中身体，破碎冰棱随之坠下。', damagePercent: 35 },
+            },
+            {
+                id: 'drainPrisonCore', label: '智力导能', description: '重排底座回路，抽取不影响封印的溢出能量', attribute: 'int', baseRate: 15,
+                success: { text: '溢出寒能被导入容器，凝成大量魔尘和三张完整改造凭证。', mpPotion: POTION_MP, specialItems: [{ type: 'magic_dust', count: 100 }, { type: 'reforge_ticket', count: 3 }] },
+                fail: { text: '回路发生逆流，寒能冻结护甲内部并削弱攻防。', damagePercent: 30, buff: { id: 'crystalBackflow', name: '寒晶逆流', icon: '💎', color: '#658da7', atkPercent: -20, defPercent: -20, durationBattles: 3 } },
+            },
+            {
+                id: 'leave', label: '维持封印', description: '不取走晶体，也不回应寒灵',
+                outcome: {
+                    text: '你没有碰触封印，但转身离开的举动激怒了寒灵。它隔着晶柱发出无声咆哮，寒震穿过封印击伤身体、抽走魔力并扰乱施法节奏。',
+                    damagePercent: 15,
+                    mpRestorePercent: -20,
+                    buff: { id: 'frostSpiritRejection', name: '寒灵拒斥', icon: '👻', color: '#637e9b', matkPercent: -15, durationBattles: 3 },
+                },
+            },
+        ],
+    },
+    ancientIceObservatory: {
+        title: '古冰观星台',
+        description: '圆形观星台从冰川顶部伸出，数层青铜星环围着一面朝天冰镜缓慢转动。环上没有文字，只有星形孔洞与极光刻度；平台边缘散落着陨铁碎片，中央锁匣则会在特定星位短暂开启。',
+        choices: [
+            {
+                id: 'alignStarRings', label: '智力校环', description: '根据星孔投影校准多层青铜星环', attribute: 'int', baseRate: 25,
+                success: { text: '所有星孔在冰镜上重合，观星台投出完整雪原路线并开启储金格。', revealNodes: true, revealDepth: 3, gold: { min: 140, max: 180 } },
+                fail: { text: '错位星环突然加速，青铜边缘撞开护手并划伤身体。', damagePercent: 25 },
+            },
+            {
+                id: 'readAuroraOmen', label: '精神观兆', description: '让意识随极光越过冰镜，读取即将发生的征兆', attribute: 'wis', baseRate: 20,
+                success: { text: '极光在意识中化成清晰战兆，魔力与攻击意志同时被星辉强化。', mpRestorePercent: 30, buff: { id: 'auroraOmen', name: '极光战兆', icon: '🌠', color: '#8cc8d8', atkPercent: 20, matkPercent: 20, durationBattles: 3 } },
+                fail: { text: '过量星光灌入意识，虚假征兆令攻势变得犹疑。', mpRestorePercent: -30, buff: { id: 'falseOmen', name: '伪星兆', icon: '🌑', color: '#686f91', atkPercent: -20, matkPercent: -20, durationBattles: 3 } },
+            },
+            {
+                id: 'chooseFallingStar', label: '幸运接星', description: '在无数光点中选择一枚即将坠入锁匣的星辉', attribute: 'luck', baseRate: 15,
+                success: { text: '选中的星辉正中锁匣，里面保存着陨铁金币、三枚强化结晶和两张改造凭证。', gold: { min: 220, max: 260 }, specialItems: [{ type: 'enhancement_stone', count: 3 }, { type: 'reforge_ticket', count: 2 }] },
+                fail: { text: '星辉偏离锁匣击中冰镜，爆开的寒光震伤身体并削弱护甲。', damagePercent: 30, buff: { id: 'starfallFracture', name: '坠星震裂', icon: '☄️', color: '#747fa0', defPercent: -20, durationBattles: 3 } },
+            },
+            {
+                id: 'leave', label: '停住星环', description: '固定机关，避免观星台继续磨损',
+                outcome: {
+                    text: '你锁住外层星环时，内层机关仍按旧轨道继续转动。错位星辉从冰镜中反射回来，震伤身体并在护甲上留下不断扩大的霜裂。',
+                    damagePercent: 20,
+                    buff: { id: 'observatoryFrostFracture', name: '星镜霜裂', icon: '☄️', color: '#747fa0', defPercent: -15, durationBattles: 3 },
+                },
+            },
+        ],
+    },
 };
 
 // ============================================================
 // 通用事件处理器
 // ============================================================
 
-export function handleNewDungeonEvent(player, choiceId, eventType, dungeonMapSystem = null) {
+export function handleNewDungeonEvent(player, choiceId, eventType, dungeonMapSystem = null, goldMultiplier = 1) {
     const config = NEW_EVENT_CONFIGS[eventType];
     if (!config) {
         return { type: 'none', text: '未知事件', rewards: {}, eventType, choiceId };
@@ -637,16 +1525,16 @@ export function handleNewDungeonEvent(player, choiceId, eventType, dungeonMapSys
     // 无属性检定的确定性选择
     if (!choice.attribute) {
         const outcome = choice.outcome || {};
-        return _applyOutcome(player, outcome, dungeonMapSystem, null, true, choice, config);
+        return _applyOutcome(player, outcome, dungeonMapSystem, null, true, choice, config, goldMultiplier);
     }
 
-    const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate || 20);
+    const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate);
     const success = checkResult.success;
     const outcome = success ? (choice.success || {}) : (choice.fail || {});
-    return _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config);
+    return _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config, goldMultiplier);
 }
 
-function _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config) {
+function _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config, goldMultiplier) {
     const rewards = {};
     const textParts = [];
     let resultType = success ? 'success' : 'fail';
@@ -664,7 +1552,7 @@ function _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, 
 
     // 金币（允许负值）
     if (outcome.gold !== undefined) {
-        const amount = _resolveValue(outcome.gold);
+        const amount = _resolveGoldValue(outcome.gold, goldMultiplier);
         rewards.gold = amount;
         if (amount > 0) {
             textParts.push(`获得 ${amount} 金币。`);
@@ -780,6 +1668,22 @@ function _resolveValue(value) {
     if (typeof value === 'number') return value;
     if (value && typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
         return value.min + Math.floor(Math.random() * (value.max - value.min + 1));
+    }
+    return 0;
+}
+
+function _resolveGoldValue(value, multiplier = 1) {
+    const parsedMultiplier = Number(multiplier);
+    const safeMultiplier = Number.isFinite(parsedMultiplier) && parsedMultiplier >= 0
+        ? parsedMultiplier
+        : 1;
+    if (typeof value === 'number') return Math.round(value * safeMultiplier);
+    if (value && typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
+        const scaledMin = Math.round(Number(value.min) * safeMultiplier);
+        const scaledMax = Math.round(Number(value.max) * safeMultiplier);
+        const min = Math.min(scaledMin, scaledMax);
+        const max = Math.max(scaledMin, scaledMax);
+        return min + Math.floor(Math.random() * (max - min + 1));
     }
     return 0;
 }

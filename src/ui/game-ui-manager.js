@@ -607,6 +607,19 @@ export const GameUIManager = {
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
+    _formatEconomyCompactNumber(valueRaw) {
+        const value = Math.max(0, Number(valueRaw) || 0);
+        if (value < 10000) return value.toLocaleString('zh-CN');
+        if (value < 1000000) {
+            const compact = Math.round((value / 1000) * 10) / 10;
+            return `${compact.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}k`;
+        }
+        const compact = Math.round((value / 1000000) * 10) / 10;
+        return `${compact.toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 1 })}M`;
+    },
+    _formatEconomyInteger(valueRaw) {
+        return Math.max(0, Math.floor(Number(valueRaw) || 0)).toLocaleString('zh-CN');
+    },
     _sampleEconomyRates(values, storageSignature) {
         const now = globalThis.performance?.now?.() ?? Date.now();
         if (storageSignature !== this._economyStorageSignature) {
@@ -671,10 +684,21 @@ export const GameUIManager = {
             const el = getElementIfExists(id);
             if (!el) continue;
             const value = Math.max(0, Math.floor(Number(rawValue) || 0));
+            const compact = this._formatEconomyCompactNumber(value);
+            const full = this._formatEconomyInteger(value);
+            const label = {
+                resourceGoldTotal: '金币',
+                resourceEnergyTotal: '能源',
+                resourceFoodTotal: '食物',
+            }[id];
             if (el.dataset.value === String(value)) continue;
             const initialized = el.dataset.value !== undefined;
             el.dataset.value = String(value);
-            el.textContent = value.toLocaleString('zh-CN');
+            el.textContent = compact;
+            if (label) {
+                el.title = `${label}：${full}`;
+                el.setAttribute('aria-label', `${label}：${full}`);
+            }
             if (initialized) {
                 el.classList.remove('is-resource-changing');
                 void el.offsetWidth;
@@ -711,11 +735,18 @@ export const GameUIManager = {
         const military = MilitaryPopulationSystem.getSnapshot();
         const militaryEl = getElementIfExists('resourceMilitaryPopulation');
         if (militaryEl) {
-            const value = `${military.used}/${military.capacity}`;
+            const used = Math.max(0, Math.floor(Number(military.used) || 0));
+            const capacity = Math.max(0, Math.floor(Number(military.capacity) || 0));
+            const usedDisplay = this._formatEconomyCompactNumber(used);
+            const capacityDisplay = this._formatEconomyCompactNumber(capacity);
+            const value = `${used}/${capacity}`;
+            const valueDisplay = `${usedDisplay} / ${capacityDisplay}`;
             if (militaryEl.dataset.value !== value) {
                 const initialized = militaryEl.dataset.value !== undefined;
                 militaryEl.dataset.value = value;
-                militaryEl.textContent = value;
+                militaryEl.textContent = valueDisplay;
+                militaryEl.title = `兵力：${this._formatEconomyInteger(used)} / ${this._formatEconomyInteger(capacity)}`;
+                militaryEl.setAttribute('aria-label', `兵力：${this._formatEconomyInteger(used)} / ${this._formatEconomyInteger(capacity)}`);
                 if (initialized) {
                     militaryEl.classList.remove('is-resource-changing');
                     void militaryEl.offsetWidth;
@@ -726,11 +757,18 @@ export const GameUIManager = {
         const working = EconomyHudSystem.getPopulationSnapshot();
         const workingEl = getElementIfExists('resourceWorkingPopulation');
         if (workingEl) {
-            const value = `${working.used}/${working.capacity}`;
+            const used = Math.max(0, Math.floor(Number(working.used) || 0));
+            const capacity = Math.max(0, Math.floor(Number(working.capacity) || 0));
+            const usedDisplay = this._formatEconomyCompactNumber(used);
+            const capacityDisplay = this._formatEconomyCompactNumber(capacity);
+            const value = `${used}/${capacity}`;
+            const valueDisplay = `${usedDisplay} / ${capacityDisplay}`;
             if (workingEl.dataset.value !== value) {
                 const initialized = workingEl.dataset.value !== undefined;
                 workingEl.dataset.value = value;
-                workingEl.textContent = value;
+                workingEl.textContent = valueDisplay;
+                workingEl.title = `工作：${this._formatEconomyInteger(used)} / ${this._formatEconomyInteger(capacity)}`;
+                workingEl.setAttribute('aria-label', `工作：${this._formatEconomyInteger(used)} / ${this._formatEconomyInteger(capacity)}`);
                 if (initialized) {
                     workingEl.classList.remove('is-resource-changing');
                     void workingEl.offsetWidth;
