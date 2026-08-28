@@ -2,7 +2,7 @@
   "id": "hamster_scout",
   "name": "仓鼠斥候",
   "title": "基地远程斥候",
-  "desc": "手持短弓的仓鼠斥候，在世界-122 自动寻找最近的敌人远程输出，瞄准目标贴图中心并带提前量预判，攻击动画第 11 帧发射投射物，帮助玩家防守基地。",
+  "desc": "手持短弓的近距侦察单位；攻击距离较短，但与游侠、狙击手共享最远侦察视野。",
   "role": "scout",
   "growthRule": "ranger",
   "avatar": "🐹🎯",
@@ -23,6 +23,8 @@
   "collisionRadius": 20,
   "bodyHeight": 100,
   "size": 64,
+  "fogVisionProfile": "scout",
+  "fogSightRadius": 1900,
   "skills": [],
   "sounds": {
     "attack": "assets/sounds/friendly/hamster_shooter_attack.mp3"
@@ -33,7 +35,7 @@
     "runSpeed": 150,
     "attackInterval": 2500,
     "attackDamage": 25,
-    "attackRange": 600,
+    "attackRange": 420,
     "engageRange": 900,
     "projectileSpeed": 600,
     "attackAnimFps": 24.0,

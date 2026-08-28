@@ -2,7 +2,7 @@
   "id": "hamster_ranger",
   "name": "仓鼠游侠",
   "title": "草屋二级斥候·手弩游侠",
-  "desc": "右手使用单手手弩、左手持匕首的仓鼠游侠。当前版本以较高射程和机动性进行远程输出，数值为兵种系列开发阶段的首版粗设。",
+  "desc": "右手使用单手手弩、左手持匕首的近距游侠；攻击距离只比斥候略远，但仍保持全线最远侦察视野。",
   "role": "ranger",
   "growthRule": "ranger",
   "avatar": "🐹🏹",
@@ -23,6 +23,8 @@
   "collisionRadius": 20,
   "bodyHeight": 100,
   "size": 64,
+  "fogVisionProfile": "scout",
+  "fogSightRadius": 1900,
   "skills": [],
   "sounds": {
     "attack": "assets/sounds/friendly/hamster_shooter_attack.mp3"
@@ -33,7 +35,7 @@
     "runSpeed": 165,
     "attackInterval": 2200,
     "attackDamage": 45,
-    "attackRange": 700,
+    "attackRange": 520,
     "engageRange": 1000,
     "projectileSpeed": 900,
     "attackAnimFps": 10,

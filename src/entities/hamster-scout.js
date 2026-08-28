@@ -36,6 +36,21 @@ export class HamsterScout extends Companion {
         this.collisionRadius = Number(archive.collisionRadius) || this.groundRadius;
         this.bodyHeight = Number(archive.bodyHeight) || 100;
         this.size = Number(archive.size) || 64;
+        const hasExplicitFogProfile = Object.prototype.hasOwnProperty.call(
+            overrides, 'fogVisionProfile'
+        );
+        const hasExplicitFogRadius = Object.prototype.hasOwnProperty.call(
+            overrides, 'fogSightRadius'
+        );
+        if ((archive.id === hamsterScoutConfig.id || hasExplicitFogProfile)
+            && archive.fogVisionProfile) {
+            this.fogVisionProfile = archive.fogVisionProfile;
+        }
+        const configuredFogSightRadius = Number(archive.fogSightRadius);
+        if ((archive.id === hamsterScoutConfig.id || hasExplicitFogRadius)
+            && Number.isFinite(configuredFogSightRadius) && configuredFogSightRadius > 0) {
+            this.fogSightRadius = configuredFogSightRadius;
+        }
         this.hittable = true;
         this.hitFlash = 0;
         const renderConfig = archive.render || {};

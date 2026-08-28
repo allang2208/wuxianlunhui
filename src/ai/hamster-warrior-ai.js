@@ -233,17 +233,33 @@ export class HamsterWarriorAI {
                 e.applyCripple(m._crippleOnHitMs);
             }
             this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与盾卫共用）
-            // 铁匠铺能力：横扫（2026-08-17）——普攻附带前方扇形 AOE 额外伤害
-            // （参考玩家普攻扇形判定：pointInSector，中心方向 = 攻击朝向 rotation）
+            // 战士固有扇形 AOE；铁匠铺横扫只放大 AOE，不增加主目标伤害。
+            // 特色兵种若未配置固有 AOE，继续保留原有“研究后解锁横扫”的旧合同。
             const aoeLv = getAbilityLevel('sweep_aoe');
             const sweepAbility = getBuildingUpgradeAbility('sweep_aoe');
-            if (aoeLv > 0 && sweepAbility) {
-                const aoeMul = getAbilityValue(sweepAbility, aoeLv);
+            const configuredBaseAoeMul = Number(this.cfg.baseAoeDamageMultiplier);
+            const hasBaseAoe = Number.isFinite(configuredBaseAoeMul)
+                && configuredBaseAoeMul > 0
+                && !m._isJaguarWarrior;
+            const upgradeAoeBonus = aoeLv > 0 && sweepAbility
+                ? getAbilityValue(sweepAbility, aoeLv)
+                : 0;
+            if (hasBaseAoe || upgradeAoeBonus > 0) {
+                const aoeMul = hasBaseAoe
+                    ? configuredBaseAoeMul * (1 + upgradeAoeBonus)
+                    : upgradeAoeBonus;
                 const aoeDmg = Math.max(1, Math.round(this._attackDamage * aoeMul));
-                const aoeRange = range + sweepAbility.rangeBonus;
-                const arc = Math.PI * sweepAbility.arcDegrees / 180;
+                const aoeRangeBonus = hasBaseAoe
+                    ? Math.max(0, Number(this.cfg.aoeRangeBonus) || 0)
+                    : Math.max(0, Number(sweepAbility?.rangeBonus) || 0);
+                const arcDegrees = hasBaseAoe
+                    ? Math.max(1, Number(this.cfg.attackArcDegrees) || 120)
+                    : Math.max(1, Number(sweepAbility?.arcDegrees) || 120);
+                const aoeRange = range + aoeRangeBonus;
+                const arc = Math.PI * arcDegrees / 180;
                 const game = (typeof window !== 'undefined' && window.Game) || null;
                 for (const ent of ((game && game.entities) ? game.entities.values() : [])) {
+                    // 主目标已经在上方承受一次完整普攻，必须排除，避免主伤害与 AOE 叠加。
                     if (!ent || ent === e || !ent.active || ent.hp <= 0 || ent._faction !== 'enemy') continue;
                     if (ent._isEnergyNode) continue;
                     if (!MathUtils.pointInSector(ent.x, ent.y, m.x, m.y, m.rotation, aoeRange, arc)) continue;

@@ -7,6 +7,8 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { HamsterRiotShotgunEffect } from '../effects/hamster-riot-shotgun-effect.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
+import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 
 /**
  * 防暴队专属近距压制：沿用火枪 AI 的寻敌、RTS、站定与攻击时间轴，
@@ -95,14 +97,27 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
             surfaceEffectFromEntity(m)
         );
 
+        const baseAoeDamageMultiplier = Math.max(0,
+            Number(this.cfg.baseAoeDamageMultiplier) || 0);
+        const sweepAbility = m._isHamsterSpecialForces
+            ? getBuildingUpgradeAbility('sweep_aoe')
+            : null;
+        const sweepLevel = sweepAbility ? getAbilityLevel('sweep_aoe') : 0;
+        const aoeUpgradeBonus = sweepLevel > 0
+            ? getAbilityValue(sweepAbility, sweepLevel)
+            : 0;
         for (const entity of queryNearbyEntities(this._entities, m, range + 96)) {
             if (!entity || entity === m || !entity.active || entity.hp <= 0
                 || entity._faction !== 'enemy' || entity._isEnergyNode) continue;
             if (!sector.intersectsEntity(entity)) continue;
             // 无弹道不等于穿墙；扇区内每个目标仍单独执行现有远程 LOS 门禁。
             if (!hasRangedLineOfSight(m, entity)) continue;
+            // 主目标完整命中一次；其余扇区目标只结算 AOE。未配置固有 AOE 的防暴队维持原合同。
+            const configuredDamage = entity === m.target || baseAoeDamageMultiplier <= 0
+                ? this._attackDamage
+                : this._attackDamage * baseAoeDamageMultiplier * (1 + aoeUpgradeBonus);
             entity.takeDamage?.(
-                m.getPhysicalAttackDamage(this._attackDamage, entity),
+                m.getPhysicalAttackDamage(configuredDamage, entity),
                 m,
                 'physical',
                 false

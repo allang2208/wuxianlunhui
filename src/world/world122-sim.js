@@ -790,7 +790,18 @@ function _unitDps(kind, levelOverrides = null) {
                 * 1000 / Math.max(1000, charge.cooldown ?? 15000);
         }
     }
-    if (kind === 'warrior' || kind === 'jaguar_warrior') {
+    if (kind === 'warrior' || kind === 'special_forces') {
+        const ability = getBuildingUpgradeAbility('sweep_aoe');
+        const level = _levelOf('sweep_aoe', levelOverrides);
+        const baseAoeMul = Math.max(0, Number(cfg.ai.baseAoeDamageMultiplier) || 0);
+        const upgradeAoeBonus = ability && level > 0 ? getAbilityValue(ability, level) : 0;
+        const configuredExpectedExtraTargets = Number(ability?.expectedExtraTargets);
+        const expectedExtraTargets = Number.isFinite(configuredExpectedExtraTargets)
+            ? Math.max(0, configuredExpectedExtraTargets)
+            : WORLD122_SIM.sweepExpectedExtraTargets;
+        dps += dps * baseAoeMul * (1 + upgradeAoeBonus) * expectedExtraTargets;
+    }
+    if (kind === 'jaguar_warrior') {
         const ability = getBuildingUpgradeAbility('sweep_aoe');
         const level = _levelOf('sweep_aoe', levelOverrides);
         if (ability && level > 0) {

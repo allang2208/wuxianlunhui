@@ -120,7 +120,8 @@ import {
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
 import {
     DEFAULT_BUILDING_UPGRADE_TIME_MS, buildingContinuousTargetMatches,
-    getBuildingContinuousCategory, getBuildingModuleUpgradeCost, getUpgradeModulesForUnitKind,
+    getBuildingContinuousCategory, getBuildingModuleUpgradeCost, getBuildingUpgradeAbility,
+    getUpgradeModulesForUnitKind,
     isBuildingContinuousUpgradeOccupied, isBuildingUpgradeProgressOccupied,
     normalizeBuildingContinuousTarget, resolveBuildingUpgradeProject,
 } from './building-upgrade-projects.js';
@@ -473,6 +474,17 @@ export function getMilitaryUnitProfile(kind) {
         const rocketDamage = (Number(base.ai?.rocketDamage) || 0)
             * Math.max(0, Number(patch.attackDamageMult) || 1);
         dps += rocketDamage * 1000 / Math.max(1000, Number(base.ai?.rocketCooldownMs) || 8000);
+    }
+    if (kind === 'warrior' || kind === 'special_forces') {
+        const ability = getBuildingUpgradeAbility('sweep_aoe');
+        const level = getAbilityLevel('sweep_aoe');
+        const baseAoeMul = Math.max(0, Number(base.ai?.baseAoeDamageMultiplier) || 0);
+        const upgradeAoeBonus = ability && level > 0 ? getAbilityValue(ability, level) : 0;
+        const configuredExpectedExtraTargets = Number(ability?.expectedExtraTargets);
+        const expectedExtraTargets = Number.isFinite(configuredExpectedExtraTargets)
+            ? Math.max(0, configuredExpectedExtraTargets)
+            : 0;
+        dps += dps * baseAoeMul * (1 + upgradeAoeBonus) * expectedExtraTargets;
     }
     return {
         maxHp: Math.max(1, Number(patch.baseMaxHp ?? base.baseMaxHp) || 1),

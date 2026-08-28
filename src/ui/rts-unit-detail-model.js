@@ -89,7 +89,7 @@ function abilityEffectText(abilityId, ability, level) {
     switch (abilityId) {
         case 'poison_arrow': return `命中中毒概率 ${signedPercent(value, { absolute: true })}`;
         case 'auto_guard': return `触发 ${signedPercent(value, { absolute: true })} · 减伤 ${compactNumber(finite(ability.damageReduction) * 100)}%`;
-        case 'sweep_aoe': return `横扫额外伤害 ${signedPercent(value, { absolute: true })}`;
+        case 'sweep_aoe': return `扇形 AOE 伤害强化 ${signedPercent(value, { absolute: true })}`;
         case 'mark_arrow': return `标记概率 ${signedPercent(value, { absolute: true })} · 目标承伤 +${compactNumber(finite(ability.damageAmplify) * 100)}%`;
         case 'armor_piercing_round': return `护甲穿透 ${signedPercent(value, { absolute: true })}`;
         case 'giant_slayer': return `对骑兵/大型怪物伤害 +${signedPercent(value, { absolute: true })}`;
