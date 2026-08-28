@@ -1,5 +1,5 @@
 {
-  "version": 40,
+  "version": 41,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -278,12 +278,12 @@
       "prerequisites": ["field_theology"], "description": "现役一级编制：仓鼠牧师作为当前法术与支援单位基线，无需额外科研。", "unlocks": []
     },
     {
-      "id": "church_level_2", "name": "主教议会", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_2.png", "branch": "军事指挥", "subBranch": "教堂", "column": 3, "lane": 4, "researchCost": 520, "placeholder": true, "recruitmentTierId": "church_level_2",
-      "prerequisites": ["field_theology"], "description": "规划科研：折算科研成本1560点。完成后把仓鼠牧师换代为仓鼠主教，承担中距离群体治疗、净化与续航支援；单位尚未开发，本节点保持不可研究。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_2", "label": "主教议会编制" }]
+      "id": "church_level_2", "name": "主教议会", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_2.png", "branch": "军事指挥", "subBranch": "教堂", "column": 3, "lane": 4, "researchCost": 520, "recruitmentTierId": "church_level_2",
+      "prerequisites": ["field_theology"], "description": "完成后将所有教堂升级为主教议会并切换二级建筑外观；仓鼠牧师继续作为唯一可招募法术支援单位，仓鼠主教留待后续开发。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_2", "label": "主教议会建筑等级" }]
     },
     {
-      "id": "church_level_3", "name": "圣迹大教堂", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_3.png", "branch": "军事指挥", "subBranch": "教堂", "column": 5, "lane": 4, "researchCost": 920, "placeholder": true, "recruitmentTierId": "church_level_3",
-      "prerequisites": ["church_level_2", "gunpowder"], "description": "规划科研：主教议会与黑火药时代门槛全部完成后开放，折算科研成本4140点。完成后把仓鼠主教换代为仓鼠大主教，承担大范围祝福、护盾与圣域支援；不预设复活，单位尚未开发。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_3", "label": "圣迹大教堂编制" }]
+      "id": "church_level_3", "name": "圣迹大教堂", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_3.png", "branch": "军事指挥", "subBranch": "教堂", "column": 5, "lane": 4, "researchCost": 920, "recruitmentTierId": "church_level_3",
+      "prerequisites": ["church_level_2", "gunpowder"], "description": "主教议会与黑火药全部完成后，将所有教堂升级为圣迹大教堂并切换三级建筑外观；仓鼠牧师继续作为唯一可招募法术支援单位，仓鼠大主教留待后续开发。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_3", "label": "圣迹大教堂建筑等级" }]
     },
     {
       "id": "field_medicine", "name": "战地医疗", "icon": "⚕️", "iconPath": "assets/ui/technology-icons/field_medicine.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 3, "lane": 7, "researchCost": 150,

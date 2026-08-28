@@ -406,7 +406,7 @@ export class BootScene extends Scene {
         this.load.image('barracks', buildingArtUrl('barracks', 'assets/terrain/barracks.png'));
         this.load.image('mine', 'assets/terrain/mine.png');
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
-        this.load.image('church', 'assets/terrain/church.png');
+        this.load.image('church', buildingArtUrl('church', 'assets/terrain/church.png'));
         // 世界-122 研究院（确认稿按 alpha>16 紧身裁透明边）
         this.load.image('research_institute', 'assets/terrain/research_institute.png');
         this.load.image('research_institute_lv2', 'assets/terrain/research_institute_lv2.png');

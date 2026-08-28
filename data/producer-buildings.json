@@ -117,14 +117,14 @@
       "textureKey": "church_ground_contact",
       "assetPath": "assets/terrain/building-contact/church.png",
       "displayW": 293,
-      "displayH": 283,
-      "footOffsetY": 140
+      "displayH": 230,
+      "footOffsetY": 114
     },
     "displayW": 293,
-    "displayH": 283,
-    "footOffsetY": 140,
-    "visualFootprint": { "centerXRatio": 0.495911, "centerYRatio": 0.76844, "widthRatio": 0.872664, "depthRatio": 0.452237, "scaleMode": "strict" },
-    "assetCutoutHash": "00D69ADA8926DAC40C83221408CBC8812DA6325B100A9CC18D0678F2BD96DA37",
+    "displayH": 230,
+    "footOffsetY": 114,
+    "visualFootprint": { "centerXRatio": 0.505143, "centerYRatio": 0.717391, "widthRatio": 0.87372, "depthRatio": 0.556522, "scaleMode": "strict" },
+    "assetCutoutHash": "E555E4CF0DEA9CEC4CDC7DA5AEADD75694BCB4EDA68032E791508B204B078CC4",
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
     "spawnRadius": 90,
@@ -136,10 +136,10 @@
       { "id": "church_level_1", "level": 1, "name": "教堂一级编制", "baseline": true, "lines": [
         { "slot": "spellcaster", "role": "法术单位", "unitKey": "priest", "unitName": "仓鼠牧师", "profile": "当前法术与支援基线" }
       ] },
-      { "id": "church_level_2", "level": 2, "name": "主教议会", "plannedEffectiveResearchCost": 1560, "note": "规划占位：仓鼠主教完成完整运行时闭环后开放。", "lines": [
+      { "id": "church_level_2", "level": 2, "name": "主教议会", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "church_lv2", "assetPath": "assets/terrain/church_lv2.png", "displayW": 293, "displayH": 240, "footOffsetY": 119, "visualFootprint": { "centerXRatio": 0.505143, "centerYRatio": 0.729167, "widthRatio": 0.87372, "depthRatio": 0.533333, "scaleMode": "strict" } }, "note": "建筑等级已开放；仓鼠主教仍为兵种占位，研究后继续沿用仓鼠牧师。", "lines": [
         { "slot": "spellcaster", "role": "法术支援", "fromUnitName": "仓鼠牧师", "unitKey": "bishop", "unitName": "仓鼠主教", "profile": "中距离群体治疗与净化支援；以较低输出换取更强续航，具体数值待开发审计", "placeholder": true }
       ] },
-      { "id": "church_level_3", "level": 3, "name": "圣迹大教堂", "plannedEffectiveResearchCost": 4140, "note": "规划占位：仓鼠大主教完成完整运行时闭环后开放。", "lines": [
+      { "id": "church_level_3", "level": 3, "name": "圣迹大教堂", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "church_lv3", "assetPath": "assets/terrain/church_lv3.png", "displayW": 293, "displayH": 315, "footOffsetY": 156, "visualFootprint": { "centerXRatio": 0.505143, "centerYRatio": 0.793651, "widthRatio": 0.87372, "depthRatio": 0.406349, "scaleMode": "strict" } }, "note": "建筑等级已开放；仓鼠大主教仍为兵种占位，研究后继续沿用仓鼠牧师。", "lines": [
         { "slot": "spellcaster", "role": "法术支援", "fromUnitName": "仓鼠主教", "unitKey": "archbishop", "unitName": "仓鼠大主教", "profile": "大范围祝福、护盾与圣域支援；不预设复活机制，具体数值待开发审计", "placeholder": true }
       ] }
     ],

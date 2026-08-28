@@ -19,19 +19,17 @@ DEFAULT_MANIFEST = REPO / "tools/ai-gen/world122-building-candidate-manifest.jso
 COMFY_PY = REPO.parent / "ComfyUI/.venv/Scripts/python.exe"
 BLENDER = Path("E:/Program Files/Blender Foundation/Blender 5.1/blender.exe")
 FOOTPRINT_FIT_SCALE = 1.42
-CANONICAL_STYLE_VERSION = "world122-building-v4"
+CANONICAL_STYLE_VERSION = "world122-building-v5"
 CANONICAL_STYLE_TEMPLATE = "tools/ai-gen/prompts/world122-building-style.md"
 CANONICAL_STYLE_MARKERS = (
     "primary visual target",
-    "next-generation physically plausible pbr logic optimized specifically for game readability",
-    "stone retains natural medium-scale weathering",
-    "wooden components show visible grain",
-    "brass decoration and fittings are sparse and functional",
+    "clean semi-realistic strategy-game pbr",
+    "large calm material fields",
+    "deliberately low saturation",
+    "avoid dense speckle",
     "foundation routing",
-    "isometric rubble stone plinth for game assets",
-    "isometric fair-faced concrete plinth for modern game assets",
+    "exactly one selected foundation style",
     "soft neutral upper-left top-side illumination",
-    "balance immediate building recognition with believable realistic surface response",
     "preserve the exact authored blender geometry",
 )
 
@@ -508,7 +506,6 @@ Foundation style id: {foundation_style}
 {class_style_contract}
 {style_scope}
 Composition/framing: {composition_contract}
-Lighting/mood: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion limited to attached structural contacts; balance immediate building recognition with believable realistic PBR surface response; no bloom; generate absolutely no cast shadow of any kind, no ground shadow, no backdrop shadow, no green-screen shadow gradient and no detached ambient shadow outside the authored building or plinth
 Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
 Negative constraints: {negative_contract}
 {negative_request}

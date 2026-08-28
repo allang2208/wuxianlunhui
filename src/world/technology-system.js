@@ -5,7 +5,7 @@ import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 40;
+const VERSION = 41;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
 const PREVIOUS_RESEARCH_COSTS_BY_VERSION = Object.freeze([
@@ -320,7 +320,8 @@ function validateTechnologyTreeConfig(config) {
         }
     }
 
-    // 可研究的募兵等级必须已经完成整级运行时闭环，并显式拥有该级全部兵种。
+    // 完整募兵等级必须显式拥有该级全部兵种；只有建筑美术已完成的未完整等级
+    // 允许先开放研究，用于全局名称/贴图升级，同时继续沿用最近一档完整可玩编制。
     // 一级基线卡与规划占位不参与此门禁，它们分别只承担说明和未来路线展示。
     for (const node of sourceNodes) {
         if (!node?.recruitmentTierId) continue;
@@ -340,7 +341,15 @@ function validateTechnologyTreeConfig(config) {
                 || !line?.unitKey || !buildingUnitIds.has(line.unitKey))
             .map((line) => line?.unitKey || '(empty)');
         if (!lines.length || incompleteUnits.length) {
-            errors.push(`${node.id} 已开放研究但募兵等级尚未完整落盘：${incompleteUnits.join(', ') || '(no lines)'}`);
+            const prematureUnitUnlocks = (node.unlocks || [])
+                .filter((unlock) => unlock?.type === 'unit')
+                .map((unlock) => unlock.id);
+            if (!tier.visual) {
+                errors.push(`${node.id} 已开放研究但募兵等级尚未完整落盘，且没有可升级的建筑外观：${incompleteUnits.join(', ') || '(no lines)'}`);
+            }
+            if (prematureUnitUnlocks.length) {
+                errors.push(`${node.id} 的兵种尚未完整落盘，不得提前登记单位解锁：${prematureUnitUnlocks.join(', ')}`);
+            }
             continue;
         }
         const unlockedUnitIds = new Set((node.unlocks || [])

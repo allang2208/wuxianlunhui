@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_church_lv3_miracle_cathedral_20260827\\candidates_dev_s48_v6_unified_from_v01\\church_lv3\\church_lv3_refine_v02.png",
+  "output": "assets\\terrain\\church_lv3.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 1,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    119,
+    85,
+    919,
+    945
+  ],
+  "fileSize": [
+    800,
+    860
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    796,
+    856
+  ],
+  "displayW": 293,
+  "displayH": 315,
+  "footOffsetY": 156,
+  "scaleX": 0.36625,
+  "scaleY": 0.36627906976744184
+}

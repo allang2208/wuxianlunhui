@@ -1,0 +1,37 @@
+Use case: stylized-concept
+Asset type: World-122 compact 2x2 level-2 symmetric Western European medieval guild council hall, previewed above the runtime 2x2 road-tile fill
+Pipeline/style version: world122-building-v5
+Primary request: preserve the accepted geometry; refine broad warm-gray plaster fields, sparse pale stone framing, continuous muted blue-gray roof planes, dark-oak doors, tiny charcoal fittings and dim smoke-blue windows
+Generation stage: detail refinement of the supplied symmetric Western European medieval guild hall
+Preserve the selected image's exact silhouette, component positions, roof hierarchy and foundation.
+Refine only broad matte plaster, sparse dressed stone, dark oak, smooth muted blue-gray roof planes and subdued smoke-blue surfaces.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: rubble_stone
+Foundation selection: preserve the complete canonical rubble-stone plinth inside the authored 2x2 footprint.
+Canonical World-122 Western-European-medieval-guild-hall rendering subset:
+Wall treatment: broad uninterrupted matte warm-gray mineral plaster is the dominant facade field; pale dressed stone appears only at the foundation, corners, structural piers and door or window frames.
+Roof treatment: smooth continuous muted blue-gray mineral planes with very broad restrained tonal bands; surface detail remains sparse.
+Secondary materials: dark oak is limited to doors, charcoal iron is tiny and functional, and windows stay dim smoke-blue or dark-neutral.
+Accent lock: all trim stays matte and dark-neutral; roof ends use plain stone caps.
+Architecture lock: one symmetric low horizontal Western European guild council hall; use straight pitched roofs, vertical triangular gable ends, plain rectangular wall masses and restrained round-arched door and window frames; the continuous central roof is the sole highest silhouette and every secondary roof remains attached below it.
+
+Composition/framing: follow the supplied orthographic 2.5D Depth; center the complete 2x2 foundation with all four corners visible; keep the entrance on screen-left and the main central roof ridge highest
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one connected building inside the supplied Depth; plain unadorned roof ridges; no vertical appendages, detached structures, scenery, text or cast shadow

@@ -45,6 +45,8 @@ ASSETS = [
     "mine",
     "blacksmith",
     "church",
+    "church_lv2",
+    "church_lv3",
     "research_institute",
     "research_institute_lv2",
     "research_institute_lv3",
