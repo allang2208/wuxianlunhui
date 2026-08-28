@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T15:39:32.298436+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\idle-h3-v02.mp4",
+    "bytes": 434217,
+    "sha256": "6c3dc4f3f102c25439d9937aa51cff14647eeff19519fa206ad1fb1d573abb58"
+  },
+  "promptId": "2cb770d1-34ac-48a1-aaff-97406adbe0e2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 860827004,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, the holstered sidearm, exactly two rear charge-assist booster housings, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\nThe two rear booster housings are switched fully off for this entire idle shot. Their metal nozzles remain cold, dark and inert from first frame to last frame, with no status light, heat, vapor, smoke, flame or exhaust at any time.\n\n0.0-1.0 seconds: hold the original screen-right mounted guard. All four cat paws stay planted on the same ground line. The cat begins one restrained breathing cycle while the rider remains correctly seated and keeps both hands on the same rigid lance and reins.\n\n1.0-3.8 seconds: continue a calm heavy-cavalry idle using only subtle living motion. The cat makes one small ear movement, one blink and a gentle short tail sway. The rider absorbs the breathing with a tiny seated weight shift. The visor, armor plates, lance, cables, saddle and both cold booster housings remain rigid and continuous.\n\n3.8-5.17 seconds: settle smoothly back into the exact opening pose and motion phase for a seamless loop. Keep the subject at fixed scale and fixed position in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both booster housings fully visible.\n\nDo not walk, charge, attack, bend or shorten the lance, alter the armor, add limbs, detach the rider, move the camera, add scenery, floor, shadow, text, logo or watermark.",
+  "effectivePrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, the holstered sidearm, exactly two rear charge-assist booster housings, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\nThe two rear booster housings are switched fully off for this entire idle shot. Their metal nozzles remain cold, dark and inert from first frame to last frame, with no status light, heat, vapor, smoke, flame or exhaust at any time.\n\n0.0-1.0 seconds: hold the original screen-right mounted guard. All four cat paws stay planted on the same ground line. The cat begins one restrained breathing cycle while the rider remains correctly seated and keeps both hands on the same rigid lance and reins.\n\n1.0-3.8 seconds: continue a calm heavy-cavalry idle using only subtle living motion. The cat makes one small ear movement, one blink and a gentle short tail sway. The rider absorbs the breathing with a tiny seated weight shift. The visor, armor plates, lance, cables, saddle and both cold booster housings remain rigid and continuous.\n\n3.8-5.17 seconds: settle smoothly back into the exact opening pose and motion phase for a seamless loop. Keep the subject at fixed scale and fixed position in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both booster housings fully visible.\n\nDo not walk, charge, attack, bend or shorten the lance, alter the armor, add limbs, detach the rider, move the camera, add scenery, floor, shadow, text, logo or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, the holstered sidearm, exactly two rear charge-assist booster housings, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\nThe two rear booster housings are switched fully off for this entire idle shot. Their metal nozzles remain cold, dark and inert from first frame to last frame, with no status light, heat, vapor, smoke, flame or exhaust at any time.\n\n0.0-1.0 seconds: hold the original screen-right mounted guard. All four cat paws stay planted on the same ground line. The cat begins one restrained breathing cycle while the rider remains correctly seated and keeps both hands on the same rigid lance and reins.\n\n1.0-3.8 seconds: continue a calm heavy-cavalry idle using only subtle living motion. The cat makes one small ear movement, one blink and a gentle short tail sway. The rider absorbs the breathing with a tiny seated weight shift. The visor, armor plates, lance, cables, saddle and both cold booster housings remain rigid and continuous.\n\n3.8-5.17 seconds: settle smoothly back into the exact opening pose and motion phase for a seamless loop. Keep the subject at fixed scale and fixed position in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both booster housings fully visible.\n\nDo not walk, charge, attack, bend or shorten the lance, alter the armor, add limbs, detach the rider, move the camera, add scenery, floor, shadow, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "60b8900c9eb4738aabd43492cc867335d03a418dd1708980227fb186b6bc54f7",
+  "effectivePromptSha256": "60b8900c9eb4738aabd43492cc867335d03a418dd1708980227fb186b6bc54f7",
+  "finalPromptSha256": "325264da264105e20c545dbc42e422459fb6ac2be46682c7e83ff41679f96be5",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\idle-h3-v02-cold-boosters.txt",
+      "bytes": 1822,
+      "sha256": "860733c72a4359abac1a8cdf71fb9fdb825c03e1f78b17a4459e3cc5a0b9684e"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "bytes": 176661,
+      "sha256": "8dcde5da456cd0a0751aaa86c908f6be020550ff8ffa3635523ef886e1fb0be4"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "bytes": 176661,
+      "sha256": "8dcde5da456cd0a0751aaa86c908f6be020550ff8ffa3635523ef886e1fb0be4"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\idle-h3-v02_contact.png",
+    "bytes": 349777,
+    "sha256": "b6309bf0fe667ff181e4d1848a752a36ec3ffbb03b1da613acf894742bfb200e"
+  },
+  "elapsedSeconds": 470.728
+}

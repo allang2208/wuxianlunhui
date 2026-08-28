@@ -38,6 +38,8 @@ export const HAMSTER_UNIT_CATEGORIES = Object.freeze({
     light_cavalry: HAMSTER_UNIT_CATEGORY.CAVALRY,
     cavalry: HAMSTER_UNIT_CATEGORY.CAVALRY,
     winged_hussar: HAMSTER_UNIT_CATEGORY.CAVALRY,
+    scout_rifle_skirmisher: HAMSTER_UNIT_CATEGORY.CAVALRY,
+    powered_eod_explosive_lancer: HAMSTER_UNIT_CATEGORY.CAVALRY,
     camel_cavalry: HAMSTER_UNIT_CATEGORY.CAVALRY,
     priest: HAMSTER_UNIT_CATEGORY.MAGIC,
     desert_priest: HAMSTER_UNIT_CATEGORY.MAGIC,

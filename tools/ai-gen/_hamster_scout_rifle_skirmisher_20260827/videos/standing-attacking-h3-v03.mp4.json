@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T14:05:28.536347+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\standing-attacking-h3-v03.mp4",
+    "bytes": 447697,
+    "sha256": "ff80dbec952d1158ae80af091a2452ad29268baf73251a0388f6e14182824c2d"
+  },
+  "promptId": "68482949-eeba-4ab1-be91-7af0cb48ecbb",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 850337409,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep one warm gray-brown hamster rider, one orange tabby cat mount and one complete scout rifle.\n\n0.00-4.00 seconds: show a quiet held firing pose, like a living character reference. The cat stands squarely with all four paws planted at unchanged screen coordinates and the mounted body root fixed. Only subtle breathing, a tiny ear adjustment and gentle tail balance occur. The rider remains seated, holds the rifle shouldered, and calmly aims toward screen right. Nothing is discharged during this long hold.\n\n4.00-4.12 seconds: at this single late instant, the rider performs one trigger pull. Show one compact muzzle flash and one restrained rearward recoil impulse. Both hands stay on the same rifle. The cat remains braced with all four paws planted.\n\n4.12-5.17 seconds: the one recoil settles smoothly and a narrow muzzle smoke wisp fades. The rider returns to the opening aim while the mount keeps the same planted stance. End in stable standing readiness at the original screen position and scale.\n\nLocked wide side-view camera on a pure uniform white background with flat soft asset lighting. Keep the entire cat, all four anatomical legs and paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and complete rifle visible with generous margins. Preserve the rigid rifle stock, magazine, optic, handguard, barrel and muzzle. Preserve one rider and one mount throughout. Keep the feet, body root and camera stationary. The visual event is one late flash followed by recovery, with no earlier discharge, repeated recoil, stepping, sliding, added character, duplicated weapon, detached equipment, floor or scenery.",
+  "effectivePrompt": "Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep one warm gray-brown hamster rider, one orange tabby cat mount and one complete scout rifle.\n\n0.00-4.00 seconds: show a quiet held firing pose, like a living character reference. The cat stands squarely with all four paws planted at unchanged screen coordinates and the mounted body root fixed. Only subtle breathing, a tiny ear adjustment and gentle tail balance occur. The rider remains seated, holds the rifle shouldered, and calmly aims toward screen right. Nothing is discharged during this long hold.\n\n4.00-4.12 seconds: at this single late instant, the rider performs one trigger pull. Show one compact muzzle flash and one restrained rearward recoil impulse. Both hands stay on the same rifle. The cat remains braced with all four paws planted.\n\n4.12-5.17 seconds: the one recoil settles smoothly and a narrow muzzle smoke wisp fades. The rider returns to the opening aim while the mount keeps the same planted stance. End in stable standing readiness at the original screen position and scale.\n\nLocked wide side-view camera on a pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with flat soft asset lighting. Keep the entire cat, all four anatomical legs and paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and complete rifle visible with generous margins. Preserve the rigid rifle stock, magazine, optic, handguard, barrel and muzzle. Preserve one rider and one mount throughout. Keep the feet, body root and camera stationary. The visual event is one late flash followed by recovery, with no earlier discharge, repeated recoil, stepping, sliding, added character, duplicated weapon, detached equipment, floor or scenery.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep one warm gray-brown hamster rider, one orange tabby cat mount and one complete scout rifle.\n\n0.00-4.00 seconds: show a quiet held firing pose, like a living character reference. The cat stands squarely with all four paws planted at unchanged screen coordinates and the mounted body root fixed. Only subtle breathing, a tiny ear adjustment and gentle tail balance occur. The rider remains seated, holds the rifle shouldered, and calmly aims toward screen right. Nothing is discharged during this long hold.\n\n4.00-4.12 seconds: at this single late instant, the rider performs one trigger pull. Show one compact muzzle flash and one restrained rearward recoil impulse. Both hands stay on the same rifle. The cat remains braced with all four paws planted.\n\n4.12-5.17 seconds: the one recoil settles smoothly and a narrow muzzle smoke wisp fades. The rider returns to the opening aim while the mount keeps the same planted stance. End in stable standing readiness at the original screen position and scale.\n\nLocked wide side-view camera on a pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with flat soft asset lighting. Keep the entire cat, all four anatomical legs and paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and complete rifle visible with generous margins. Preserve the rigid rifle stock, magazine, optic, handguard, barrel and muzzle. Preserve one rider and one mount throughout. Keep the feet, body root and camera stationary. The visual event is one late flash followed by recovery, with no earlier discharge, repeated recoil, stepping, sliding, added character, duplicated weapon, detached equipment, floor or scenery. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "5c766238471c568137af6f461a5b5528287483bf45aeea729dfa752111a08929",
+  "effectivePromptSha256": "cbac4b16364fc236af8013718ed470dedf78e6c9efe2340da9bc2d7ddaf9e0a4",
+  "finalPromptSha256": "9c7e2462a610e9e78cc6f431a521980230a966528dca21d71ffe13d3c5f62041",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\prompts\\standing-attacking-h3-v03.txt",
+      "bytes": 1827,
+      "sha256": "859b8d5789ec2e77e0a4d516858822f22ca745ac739cf1871205081665f478a2"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\references\\hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+      "bytes": 273308,
+      "sha256": "13525accde9af36679c00e647b06fdcd8d9abffbd1d9efe70a05d5abba1e6db3"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\standing-attacking-h3-v03_contact.png",
+    "bytes": 392294,
+    "sha256": "880bd754eb229953b8095b4dfecaf4e3a12b82ef8ee0ef3979a59c0c74ba0f27"
+  },
+  "elapsedSeconds": 430.52
+}

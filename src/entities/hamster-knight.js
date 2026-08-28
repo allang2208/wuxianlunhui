@@ -99,7 +99,10 @@ export class HamsterKnight extends Companion {
             this._startDying();
             return;
         }
-        if (this.hasStatusEffect('petrified')) {
+        if (this.hasStatusEffect('stun')
+            || this.hasStatusEffect('frozen')
+            || this.hasStatusEffect('petrified')) {
+            this._ai?.cancelForCrowdControl?.();
             this.vx = 0; this.vy = 0; this.isMoving = false;
             return;
         }

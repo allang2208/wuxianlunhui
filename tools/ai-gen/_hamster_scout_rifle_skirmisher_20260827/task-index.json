@@ -1,0 +1,343 @@
+{
+  "task": "hamster_scout_rifle_skirmisher_animation",
+  "unitKey": "scout_rifle_skirmisher",
+  "unitName": "仓鼠侦察游骑兵",
+  "date": "2026-08-27",
+  "provider": "mixed_jimeng_doubao_user_video_minimax_h3",
+  "stage": "runtime_integration_completed_waiting_user_test",
+  "runtimeIntegrationActive": true,
+  "mother": "mother/hamster-scout-rifle-skirmisher-standing-v03-candidate.png",
+  "motherIssue": "approved v02 source used a walking pose with the screen-right front paw raised; unsuitable for idle first/last frame",
+  "motherCandidate": {
+    "output": "mother/hamster-scout-rifle-skirmisher-standing-v03-candidate.png",
+    "prompt": "prompts/mother-standing-v03-imagegen.txt",
+    "provider": "openai_builtin_imagegen",
+    "sha256": "D300AD48BE4239B5055A4CEB5B9C3EB2BAB69D45D99AB555C6BF87B5FC7475C0",
+    "status": "user_approved_2026_08_27",
+    "review": "orange tabby changed to a stationary four-paw planted stance; original v02 remains untouched"
+  },
+  "reference": "references/hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+  "replacesPlaceholderUnitKey": "scout_vehicle",
+  "actions": [
+    {
+      "motion": "idle",
+      "loopRequested": true,
+      "prompt": "prompts/idle-jimeng-v01.txt",
+      "promptChars": 517,
+      "promptSha256": "d563e0d0d329f571813f8a2d36193398d3fa11e768e5eb6ff13b32b30366db33",
+      "firstFrame": "references/hamster-scout-rifle-skirmisher-safe-white-1024x576.png",
+      "lastFrame": "references/hamster-scout-rifle-skirmisher-safe-white-1024x576.png",
+      "model": "Jimeng Seedance 1.5 Pro",
+      "referenceMode": "first_last_frame",
+      "durationSeconds": 5,
+      "resolution": "720P",
+      "aspectRatio": "16:9",
+      "pointsCharged": 50,
+      "workspaceId": "20393383311116",
+      "submittedAt": "2026-08-27T20:21:07+08:00",
+      "status": "completed_rejected_source_mother_front_paw_raised_not_downloaded",
+      "rejectionReason": "the generated idle inherited the approved v02 mother image's raised front paw; user requested the mother image be corrected to a standing pose before any further animation work"
+    },
+    {
+      "motion": "idle",
+      "loopRequested": true,
+      "provider": "user_supplied_video",
+      "source": "E:/无尽轮回/1.mp4",
+      "video": "videos/idle-user-1.mp4",
+      "provenance": "videos/idle-user-1.mp4.json",
+      "sourceSha256": "4684A171F4CA84DC198E98B73901D4535084336494AB9C162488BFA998B65CAC",
+      "sourceWindow": [
+        0,
+        48
+      ],
+      "status": "user_approved_source_selected_and_integrated",
+      "sheet": "sheets/interpolated/idle.png",
+      "preview": "previews/interpolated/hamster-scout-rifle-skirmisher-idle-interpolated.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 26,
+      "frameRate": 16,
+      "repeat": -1
+    },
+    {
+      "motion": "moving",
+      "loopRequested": true,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "reference": "references/hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+      "prompt": "prompts/moving-doubao-v01.txt",
+      "status": "superseded_by_h3_moving_attack_artifacts_removed",
+      "provenance": "videos/moving-doubao-v01.mp4.json"
+    },
+    {
+      "motion": "attacking",
+      "loopRequested": false,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "reference": "references/hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "status": "superseded_by_h3_standing_attack_artifacts_removed",
+      "provenance": "videos/attacking-doubao-v01.mp4.json",
+      "sourceWindow": [
+        36,
+        72
+      ],
+      "sourceWindowPolicy": "one complete cat gait cycle with matching start/end leg phase; original 24 FPS timing preserved",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "frameCount": 37,
+      "frameRate": 24,
+      "repeat": 0,
+      "attackLaunchFrame": 26
+    },
+    {
+      "motion": "dying",
+      "loopRequested": false,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "reference": "references/hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "status": "superseded_by_h3DeathGeneration"
+    }
+  ],
+  "h3MovingAttackGeneration": {
+    "standard": "2026-08-27 H3 quality-first video pipeline",
+    "attempts": [
+      {
+        "version": "v01",
+        "mode": "reference_recover",
+        "seed": 850337405,
+        "prompt": "prompts/moving-attacking-h3-v01.txt",
+        "provenance": "videos/moving-attacking-h3-v01.mp4.json",
+        "status": "rejected_artifacts_removed",
+        "reason": "generated about three firing events, changed the rider toward a human soldier and invented an extra hamster passenger"
+      },
+      {
+        "version": "v02",
+        "mode": "first_frame_recover",
+        "seed": 850337406,
+        "firstFrame": "references/moving-attacking-doubao-f036-safe-white-1024x576.png",
+        "prompt": "prompts/moving-attacking-h3-v02.txt",
+        "video": "videos/moving-attacking-h3-v02.mp4",
+        "provenance": "videos/moving-attacking-h3-v02.mp4.json",
+        "status": "user_approved_source_selected_and_integrated",
+        "review": "one firing event at source f46-f50; continuous four-leg gallop; rider, cat, rifle and saddle equipment remain continuous"
+      }
+    ],
+    "sprite": {
+      "sourceWindow": [
+        32,
+        62
+      ],
+      "sourceStep": 2,
+      "cycleEndpointLegIoU": 0.8899,
+      "sourceSheet": "source-sheets-pre-interpolation/moving_attacking.png",
+      "sheet": "sheets/interpolated/moving_attacking.png",
+      "preview": "previews/interpolated/hamster-scout-rifle-skirmisher-moving_attacking-runtime.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 31,
+      "frameRate": 24,
+      "repeat": 0,
+      "attackLaunchFrame": 14,
+      "status": "user_approved_source_selected_and_integrated",
+      "previewTiming": {
+        "kind": "equal_frame_runtime_preview",
+        "runtimeFrameRate": 24.0,
+        "gifFrameDurationMs": 40,
+        "firstFrameHoldMs": 0,
+        "lastFrameHoldMs": 0
+      }
+    }
+  },
+  "movingSprite": {
+    "source": "videos/moving-attacking-h3-v02.mp4",
+    "sourceWindow": [
+      92,
+      110
+    ],
+    "sourceEndpointFrame": 112,
+    "sourceStep": 2,
+    "sourceWindowPolicy": "post-shot clean gallop cycle from the user-approved smooth H3 moving-fire video; duplicate same-phase endpoint omitted",
+    "cycleEndpointLegIoU": 0.9701,
+    "cycleSeamRatio": 1.087,
+    "sourceSheet": "source-sheets-pre-interpolation/moving.png",
+    "sheet": "sheets/interpolated/moving.png",
+    "preview": "previews/interpolated/hamster-scout-rifle-skirmisher-moving-runtime.gif",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "frameCount": 20,
+    "frameRate": 24,
+    "repeat": -1,
+    "status": "completed_interpolated_sprite_approved_for_runtime_import",
+    "previewTiming": {
+      "kind": "equal_frame_runtime_preview",
+      "runtimeFrameRate": 24.0,
+      "gifFrameDurationMs": 40,
+      "firstFrameHoldMs": 0,
+      "lastFrameHoldMs": 0,
+      "loop": true
+    }
+  },
+  "h3StandingAttackGeneration": {
+    "standard": "2026-08-27 H3 quality-first video pipeline",
+    "attempts": [
+      {
+        "version": "v01",
+        "mode": "first_frame_recover",
+        "seed": 850337407,
+        "prompt": "prompts/standing-attacking-h3-v01.txt",
+        "provenance": "videos/standing-attacking-h3-v01.mp4.json",
+        "status": "rejected_artifacts_removed",
+        "reason": "two separate firing events at source f34 and f48"
+      },
+      {
+        "version": "v02",
+        "mode": "first_frame_recover",
+        "seed": 850337408,
+        "prompt": "prompts/standing-attacking-h3-v02.txt",
+        "provenance": "videos/standing-attacking-h3-v02.mp4.json",
+        "status": "rejected_artifacts_removed",
+        "reason": "three separate firing events at source f24, f40 and f66"
+      },
+      {
+        "version": "v03",
+        "mode": "first_frame_recover",
+        "seed": 850337409,
+        "firstFrame": "references/hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+        "prompt": "prompts/standing-attacking-h3-v03.txt",
+        "video": "videos/standing-attacking-h3-v03.mp4",
+        "provenance": "videos/standing-attacking-h3-v03.mp4.json",
+        "status": "user_approved_exact_window_selected_and_integrated",
+        "review": "the full H3 source contains an earlier stray projectile and is not directly usable; source f52-f80 contains one complete stationary single-shot cycle with flash at f60, smoke fade and recovery"
+      }
+    ],
+    "sprite": {
+      "sourceWindow": [
+        52,
+        80
+      ],
+      "sourceStep": 2,
+      "sourceSheet": "source-sheets-pre-interpolation/standing_attacking.png",
+      "sheet": "sheets/interpolated/standing_attacking.png",
+      "preview": "previews/interpolated/hamster-scout-rifle-skirmisher-standing_attacking-runtime.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 29,
+      "frameRate": 24,
+      "repeat": 0,
+      "attackLaunchFrame": 8,
+      "sourceKeyFrameCount": 15,
+      "sourceFrameRate": 12,
+      "sheetSha256": "B5A67516D36434A2258782FEDAA67B9DC5ADF5D18551BD02FDFAC29F5B5D58AA",
+      "previewSha256": "A61844B228DFC93D52387A666E1025FD7F248917CFE470D19C667961B4625899",
+      "status": "user_approved_source_selected_and_integrated",
+      "previewTiming": {
+        "kind": "equal_frame_runtime_preview",
+        "runtimeFrameRate": 24.0,
+        "gifFrameDurationMs": 40,
+        "firstFrameHoldMs": 0,
+        "lastFrameHoldMs": 0
+      }
+    }
+  },
+  "h3DeathGeneration": {
+    "standard": "2026-08-27 H3 quality-first video pipeline",
+    "attempts": [
+      {
+        "version": "v01",
+        "mode": "first_frame_one_way",
+        "seed": 850337410,
+        "firstFrame": "references/hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+        "prompt": "prompts/dying-h3-v01.txt",
+        "video": "videos/dying-h3-v01.mp4",
+        "provenance": "videos/dying-h3-v01.mp4.json",
+        "status": "user_approved_source_selected_and_integrated",
+        "review": "single grounded collapse; rider remains with saddle; complete rifle settles in front; stable corpse from source f64 onward; no recovery or crop"
+      }
+    ],
+    "sprite": {
+      "sourceWindow": [
+        24,
+        72
+      ],
+      "sourceStep": 2,
+      "sourceKeyFrameCount": 25,
+      "sourceFrameRate": 12,
+      "sourceSheet": "source-sheets-pre-interpolation/dying.png",
+      "sheet": "sheets/interpolated/dying.png",
+      "preview": "previews/interpolated/hamster-scout-rifle-skirmisher-dying-runtime.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 49,
+      "frameRate": 24,
+      "repeat": 0,
+      "corpseStartsAtFrame": 40,
+      "videoSha256": "7C832D2A6DF3C0A952351C429339A3506175BBDB9A05931E1C15386708E2A91D",
+      "sheetSha256": "AE3918D6B9799DBD0B4893DDB5DB6592E1BEA3018FD268E875DD9BAC6C9877AA",
+      "previewSha256": "D63B406DECFC6F052541A128C4559654A451383810E8E18B5024BFB1B29B4C37",
+      "status": "user_approved_source_selected_and_integrated",
+      "previewTiming": {
+        "kind": "equal_frame_runtime_preview",
+        "runtimeFrameRate": 24.0,
+        "gifFrameDurationMs": 40,
+        "firstFrameHoldMs": 0,
+        "lastFrameHoldMs": 0,
+        "loop": false
+      }
+    }
+  },
+  "combatContract": {
+    "weapon": "semi_automatic_scout_rifle",
+    "rangeClass": "medium",
+    "fireMode": "single_shot",
+    "attackIntervalClass": "moderate",
+    "mobileFire": true,
+    "moveOrderPreservesAimAndAttack": true
+  },
+  "audioContract": {
+    "attack": "assets/companions/hamster_musketeer/fire.mp3",
+    "reason": "reuse the existing single-shot rifle sound used by hamster musketeer, sniper, riot squad and special forces",
+    "syncFrames": {
+      "movingAttack": 14,
+      "attack": 8
+    }
+  },
+  "archiveCleanup": {
+    "date": "2026-08-28",
+    "policy": "retain the five runtime states and reproducible accepted sources; remove superseded or rejected outputs, review-only contacts/previews and reconstructible BiRefNet caches",
+    "excludedSupersededArtifactsFromGit": [
+      "videos/moving-doubao-v01.mp4",
+      "videos/attacking-doubao-v01.mp4",
+      "source-sheets-pre-interpolation/attacking.png",
+      "sheets/interpolated/attacking.png",
+      "previews/interpolated/hamster-scout-rifle-skirmisher-attacking-interpolated.gif"
+    ],
+    "removedRejectedVideos": [
+      "videos/moving-attacking-h3-v01.mp4",
+      "videos/standing-attacking-h3-v01.mp4",
+      "videos/standing-attacking-h3-v02.mp4"
+    ],
+    "retainedRejectedEvidence": "immutable prompts, generation provenance and rejection reasons",
+    "removedReconstructible": ["frames/birefnet-source"],
+    "excludedReviewOnlyFromGit": [
+      "previews/videos",
+      "previews/source-sheets",
+      "previews/interpolated/*-contact.png",
+      "previews/interpolated duplicate non-runtime GIFs",
+      "videos/*_contact*.png"
+    ]
+  },
+  "runtimeIntegration": {
+    "status": "completed_waiting_user_test",
+    "config": "data/hamster-scout-rifle-skirmisher-config.json",
+    "entity": "src/entities/hamster-scout-rifle-skirmisher.js",
+    "ai": "src/ai/hamster-scout-rifle-skirmisher-ai.js",
+    "assetDirectory": "assets/companions/hamster_scout_rifle_skirmisher",
+    "unitIcon": "assets/ui/unit-icons/hamster-scout-rifle-skirmisher.png",
+    "unitKey": "scout_rifle_skirmisher",
+    "technology": "cavalry_school_level_3",
+    "productionBuilding": "cavalry_school",
+    "testing": "not_run_per_project_default"
+  }
+}

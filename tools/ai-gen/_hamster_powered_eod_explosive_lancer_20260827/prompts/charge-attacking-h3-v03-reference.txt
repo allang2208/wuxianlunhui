@@ -1,0 +1,11 @@
+<Picture 1> is the only identity, equipment, camera and framing reference. Preserve its same small brown hamster in an olive clear-visored EOD suit, the same silver-gray armored tabby cat, the same saddle and reins, exactly two rear booster modules, holstered sidearm and one complete long black explosive lance. Keep the exact distant three-quarter view, small apparent scale, left-weighted starting position and pure-white background from <Picture 1>.
+
+<Video 1> is motion timing reference only. Copy its single sequence of booster ignition, mounted charge, lance contact and recovery. Do not copy any camera zoom, subject enlargement, reframing, oversized impact wall or changing apparent scale from <Video 1>.
+
+0.0-1.0 seconds: the cat lowers into a compact charge stance while the rider remains seated and lowers the same rigid lance. Both attached rear boosters spool up together.
+
+1.0-3.8 seconds: perform exactly one screen-right rocket-assisted cavalry charge. Both boosters emit one short narrow orange-blue exhaust pulse. The cat executes one powerful gallop lunge and the rider thrusts the lance to one contact pose. The warhead creates one compact tip blast no wider than the cat's head. The mounted unit translates horizontally but remains the same pixel height and apparent size in every phase.
+
+3.8-5.17 seconds: exhaust stops, the lance withdraws and the unit recovers to guard at the original small size. Keep the complete subject visible with wide margins.
+
+Use a fixed-distance side-tracking orthographic camera with constant focal length and constant subject scale. One charge and one tip blast only; no zoom, dolly-in, crop, perspective growth, second attack, detached explosion, equipment change, extra limb, target, scenery, floor, shadow, blood, text, logo or watermark.

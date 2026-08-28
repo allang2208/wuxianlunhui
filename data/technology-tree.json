@@ -1,5 +1,5 @@
 {
-  "version": 41,
+  "version": 42,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -262,8 +262,8 @@
       "prerequisites": ["heavy_cavalry"], "description": "二级编制完成后，轻骑与重骑生产槽自动替换为仓鼠骑兵与仓鼠翼骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_2", "label": "骑兵学院二级编制" }, { "type": "unit", "id": "cavalry", "label": "仓鼠骑兵" }, { "type": "unit", "id": "winged_hussar", "label": "仓鼠翼骑兵" }]
     },
     {
-      "id": "cavalry_school_level_3", "name": "骑兵学院·III级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 3, "researchCost": 920, "placeholder": true, "recruitmentTierId": "cavalry_school_level_3",
-      "prerequisites": ["cavalry_school_level_2", "gunpowder"], "description": "规划科研：二级骑兵编制与黑火药时代门槛均完成后，轻骑与重骑生产槽自动替换为仓鼠侦察车与仓鼠坦克。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_3", "label": "骑兵学院三级编制" }]
+      "id": "cavalry_school_level_3", "name": "骑兵学院·III级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 3, "researchCost": 920, "recruitmentTierId": "cavalry_school_level_3",
+      "prerequisites": ["cavalry_school_level_2", "gunpowder"], "description": "二级骑兵编制与黑火药时代门槛全部完成后，三级编制同时把轻骑槽换装为可移动单发射击的仓鼠侦察游骑兵，并把重骑槽升级为具有爆炸冲锋能力的仓鼠动力爆矛重骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_3", "label": "骑兵学院三级编制" }, { "type": "unit", "id": "scout_rifle_skirmisher", "label": "仓鼠侦察游骑兵" }, { "type": "unit", "id": "powered_eod_explosive_lancer", "label": "仓鼠动力爆矛重骑兵" }]
     },
     {
       "id": "field_theology", "name": "战地神学", "icon": "⛪", "iconPath": "assets/ui/technology-icons/field_theology.png", "branch": "军事指挥", "subBranch": "教堂", "column": 0, "lane": 4, "researchCost": 140, "militaryTrunk": true,

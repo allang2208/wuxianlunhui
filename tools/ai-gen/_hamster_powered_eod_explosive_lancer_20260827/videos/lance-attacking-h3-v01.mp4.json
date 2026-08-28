@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T16:00:03.185073+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\lance-attacking-h3-v01.mp4",
+    "bytes": 433347,
+    "sha256": "a24e22de03c87e5c7043ce597ffba2c1bf755ac075e6ddc817f09061a9b4fe5a"
+  },
+  "promptId": "1d8b70cd-5bcc-41f2-98d4-d6562ac320a5",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 860827006,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact mounted powered EOD explosive lancer identity and the exact small apparent size from the supplied first frame: the same brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with red-white bands and a sealed conical warhead.\n\nThe camera is a fixed distant orthographic asset camera. The mounted unit remains exactly the same pixel height, apparent scale, screen center and ground line as the first frame throughout the action. Both rear booster modules are fully switched off, cold and dark for the entire shot, with no glow, vapor, smoke, flame or exhaust. The explosive warhead remains inert, with no flash or explosion.\n\n0.0-1.0 seconds: from the original screen-right guard, the cat braces on the same ground line and lowers its center of gravity without charging. The rider remains seated and draws the same rigid lance slightly backward to prepare one controlled thrust.\n\n1.0-3.8 seconds: perform exactly one ordinary mounted lance attack. The cat takes only one compact supporting step while staying nearly in place. The rider drives the lance straight toward screen right using hips, shoulders and both arms, reaches one clear contact pose, then begins withdrawing it. The lance remains one continuous rigid weapon and the rider never leaves the saddle.\n\n3.8-5.17 seconds: the rider fully retracts the lance and the cat settles into the original stable guard at the exact first-frame size and position. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both inactive booster housings fully visible.\n\nOne ordinary thrust only. No rocket boost, charge, tip blast, explosion, camera zoom, tracking, crop or perspective scaling. Do not repeat the attack, enlarge the subject, show a target, fire the sidearm, bend the lance, alter equipment, add limbs, detach the rider, add scenery, floor, shadow, blood, text, logo or watermark.",
+  "effectivePrompt": "Keep the exact mounted powered EOD explosive lancer identity and the exact small apparent size from the supplied first frame: the same brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with red-white bands and a sealed conical warhead.\n\nThe camera is a fixed distant orthographic asset camera. The mounted unit remains exactly the same pixel height, apparent scale, screen center and ground line as the first frame throughout the action. Both rear booster modules are fully switched off, cold and dark for the entire shot, with no glow, vapor, smoke, flame or exhaust. The explosive warhead remains inert, with no flash or explosion.\n\n0.0-1.0 seconds: from the original screen-right guard, the cat braces on the same ground line and lowers its center of gravity without charging. The rider remains seated and draws the same rigid lance slightly backward to prepare one controlled thrust.\n\n1.0-3.8 seconds: perform exactly one ordinary mounted lance attack. The cat takes only one compact supporting step while staying nearly in place. The rider drives the lance straight toward screen right using hips, shoulders and both arms, reaches one clear contact pose, then begins withdrawing it. The lance remains one continuous rigid weapon and the rider never leaves the saddle.\n\n3.8-5.17 seconds: the rider fully retracts the lance and the cat settles into the original stable guard at the exact first-frame size and position. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both inactive booster housings fully visible.\n\nOne ordinary thrust only. No rocket boost, charge, tip blast, explosion, camera zoom, tracking, crop or perspective scaling. Do not repeat the attack, enlarge the subject, show a target, fire the sidearm, bend the lance, alter equipment, add limbs, detach the rider, add scenery, floor, shadow, blood, text, logo or watermark.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact mounted powered EOD explosive lancer identity and the exact small apparent size from the supplied first frame: the same brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with red-white bands and a sealed conical warhead.\n\nThe camera is a fixed distant orthographic asset camera. The mounted unit remains exactly the same pixel height, apparent scale, screen center and ground line as the first frame throughout the action. Both rear booster modules are fully switched off, cold and dark for the entire shot, with no glow, vapor, smoke, flame or exhaust. The explosive warhead remains inert, with no flash or explosion.\n\n0.0-1.0 seconds: from the original screen-right guard, the cat braces on the same ground line and lowers its center of gravity without charging. The rider remains seated and draws the same rigid lance slightly backward to prepare one controlled thrust.\n\n1.0-3.8 seconds: perform exactly one ordinary mounted lance attack. The cat takes only one compact supporting step while staying nearly in place. The rider drives the lance straight toward screen right using hips, shoulders and both arms, reaches one clear contact pose, then begins withdrawing it. The lance remains one continuous rigid weapon and the rider never leaves the saddle.\n\n3.8-5.17 seconds: the rider fully retracts the lance and the cat settles into the original stable guard at the exact first-frame size and position. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both inactive booster housings fully visible.\n\nOne ordinary thrust only. No rocket boost, charge, tip blast, explosion, camera zoom, tracking, crop or perspective scaling. Do not repeat the attack, enlarge the subject, show a target, fire the sidearm, bend the lance, alter equipment, add limbs, detach the rider, add scenery, floor, shadow, blood, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "38c36b396e28c923e7065585f55baff6894e30750715cc3fd24227e584a30a88",
+  "effectivePromptSha256": "38c36b396e28c923e7065585f55baff6894e30750715cc3fd24227e584a30a88",
+  "finalPromptSha256": "2615fad5af61cdfb9ce5121ab6832aae74b08dccf0d9d0331765b0aa136b87b9",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\lance-attacking-h3-v01.txt",
+      "bytes": 2102,
+      "sha256": "190a4e0605983dd092ec55409a23238e4311ef80a9eeaf0e9cda4512cc6b1b68"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "bytes": 127095,
+      "sha256": "abb22eaefecbdce4fbd6f4c75c90ff1fb09118149c8655cbe5893a88746718bc"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\lance-attacking-h3-v01_contact.png",
+    "bytes": 303521,
+    "sha256": "6c0f08dcc5d9450fd6f7623d95404c7fa82f147fb0daa5eaa6cb4f17858fe567"
+  },
+  "elapsedSeconds": 475.67
+}

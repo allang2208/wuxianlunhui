@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\dying-doubao-v01.txt",
+  "promptChars": 2455,
+  "promptSha256": "ec36c8740c20c0b24dae65e50e02b2ca8568df9ae6451c7199c6424cb7cb1a16",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T00:53:18.485Z",
+  "sourceUrlScheme": "https"
+}

@@ -28,6 +28,8 @@ export const HAMSTER_UNIT_ICONS = Object.freeze({
     light_cavalry: `${UNIT_ICON_ROOT}/hamster-light-cavalry.png`,
     cavalry: `${UNIT_ICON_ROOT}/hamster-cavalry.png`,
     winged_hussar: `${UNIT_ICON_ROOT}/hamster-winged-hussar.png`,
+    scout_rifle_skirmisher: `${UNIT_ICON_ROOT}/hamster-scout-rifle-skirmisher.png`,
+    powered_eod_explosive_lancer: `${UNIT_ICON_ROOT}/hamster-powered-eod-explosive-lancer.png`,
     ninja: `${UNIT_ICON_ROOT}/hamster_ninja.png`,
     samurai: `${UNIT_ICON_ROOT}/hamster_samurai.png`,
     explorer: `${UNIT_ICON_ROOT}/hamster-explorer.png`,

@@ -1,0 +1,11 @@
+Keep the exact mounted powered EOD explosive lancer identity and the exact small apparent size from the supplied first frame: the same brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with red-white bands and a sealed conical warhead.
+
+The camera is a fixed distant orthographic asset camera. The mounted unit remains exactly the same pixel height and apparent scale as the first frame for the entire shot. The action may translate a short distance toward screen right, but it never grows larger, approaches the camera, changes perspective, reframes or fills more of the canvas. Keep the fixed ground line and wide safety margins.
+
+0.0-1.0 seconds: the armored cat lowers into a compact charge stance. The rider remains seated, leans forward through the hips and lowers the same rigid lance toward one horizontal contact line. Both rear boosters remain attached and their small red indicators brighten.
+
+1.0-3.8 seconds: perform exactly one rocket-assisted cavalry charge toward screen right. Both rear modules ignite together in one short orange-blue exhaust pulse. The cat drives through one powerful gallop lunge while the rider thrusts the same lance straight forward. At one peak contact pose the warhead reaches the target plane and produces one compact spear-tip blast with a tight pressure ring. No target is visible. Preserve one fixed subject scale through the preparation, acceleration, contact and follow-through.
+
+3.8-5.17 seconds: the exhaust stops, the rider withdraws the lance, the cat regains balance and the mounted unit settles back into the original guard at the same first-frame size. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both boosters fully visible.
+
+One charge and one contact blast only. No camera zoom, tracking, dolly, crop or perspective scaling. Do not repeat the thrust, enlarge the subject, show a target, create a detached explosion, bend the lance, alter equipment, add limbs, detach the rider, add scenery, floor, shadow, blood, text, logo or watermark.

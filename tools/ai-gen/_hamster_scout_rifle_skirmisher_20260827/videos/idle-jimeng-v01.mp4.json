@@ -1,0 +1,19 @@
+{
+  "provider": "jimeng_web",
+  "workspaceId": "20393383311116",
+  "model": "Jimeng Seedance 1.5 Pro",
+  "referenceMode": "first_last_frame",
+  "reference": "../references/hamster-scout-rifle-skirmisher-safe-white-1024x576.png",
+  "firstFrame": "../references/hamster-scout-rifle-skirmisher-safe-white-1024x576.png",
+  "lastFrame": "../references/hamster-scout-rifle-skirmisher-safe-white-1024x576.png",
+  "promptFile": "../prompts/idle-jimeng-v01.txt",
+  "promptChars": 517,
+  "promptSha256": "d563e0d0d329f571813f8a2d36193398d3fa11e768e5eb6ff13b32b30366db33",
+  "durationSeconds": 5,
+  "resolution": "720P",
+  "aspectRatio": "16:9",
+  "pointsCharged": 50,
+  "submittedAt": "2026-08-27T20:21:07+08:00",
+  "status": "completed_rejected_source_mother_front_paw_raised_not_downloaded",
+  "rejectionReason": "the generated idle inherited the approved v02 mother image's raised front paw; user requested the mother image be corrected to a standing pose before any further animation work"
+}

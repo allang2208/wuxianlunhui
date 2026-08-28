@@ -1263,7 +1263,7 @@ export const RTSCommand = {
                     moveReservations
                 );
                 if (commandPoint?.unreachable) continue;
-                unit._ai?.cancelForCommand?.();
+                unit._ai?.cancelForCommand?.(tacticalMode);
                 if (RtsTacticalOrderSystem.issue(unit, tacticalMode, commandPoint)) {
                     delete unit._troopLineTransit;
                     delete unit._troopLineRally;
@@ -1287,7 +1287,7 @@ export const RTSCommand = {
             const mapped = this._mapWheelModeForUnit(u, mode, point);
             if (!mapped) continue;
             RtsTacticalOrderSystem.clear(u);
-            if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
+            if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand(mapped.mode);
             delete u._troopLineTransit;
             delete u._troopLineRally;
             u._command = mapped;
@@ -1511,14 +1511,14 @@ export const RTSCommand = {
             }
             RtsTacticalOrderSystem.clear(u);
             if (mode === 'attack' && u._rtsCanAttack === false) {
-                if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
+                if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand(mode);
                 delete u._troopLineTransit;
                 delete u._troopLineRally;
                 u._command = { mode: 'hold', point: null, target: null };
                 continue;
             }
             if ((mode === 'move' || mode === 'hold') && u._ai && typeof u._ai.cancelForCommand === 'function') {
-                u._ai.cancelForCommand();
+                u._ai.cancelForCommand(mode);
             }
             const commandPoint = mode === 'move'
                 ? this._movePointForUnit(u, moveSlots.get(u) || point, moveReservations)

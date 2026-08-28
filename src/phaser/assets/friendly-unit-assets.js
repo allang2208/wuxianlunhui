@@ -22,6 +22,8 @@ import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
 import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
 import hamsterCavalryConfig from '../../../data/hamster-cavalry-config.json';
 import hamsterWingedHussarConfig from '../../../data/hamster-winged-hussar-config.json';
+import hamsterScoutRifleSkirmisherConfig from '../../../data/hamster-scout-rifle-skirmisher-config.json';
+import hamsterPoweredEodExplosiveLancerConfig from '../../../data/hamster-powered-eod-explosive-lancer-config.json';
 import hamsterNinjaConfig from '../../../data/hamster-ninja-config.json';
 import hamsterSamuraiConfig from '../../../data/hamster-samurai-config.json';
 import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
@@ -56,6 +58,8 @@ export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterLightCavalryConfig,
     hamsterCavalryConfig,
     hamsterWingedHussarConfig,
+    hamsterScoutRifleSkirmisherConfig,
+    hamsterPoweredEodExplosiveLancerConfig,
     hamsterNinjaConfig,
     hamsterSamuraiConfig,
     hamsterExplorerConfig,

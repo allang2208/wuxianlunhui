@@ -1,0 +1,280 @@
+{
+  "task": "hamster_powered_eod_explosive_lancer_animation",
+  "unitKey": "powered_eod_explosive_lancer",
+  "unitName": "仓鼠动力爆矛重骑兵",
+  "date": "2026-08-27",
+  "provider": "mixed_minimax_h3_local_and_doubao_seedance",
+  "stage": "runtime_integrated_waiting_user_test",
+  "approvalDate": "2026-08-27",
+  "sourceApproval": "../_hamster_missing_mothers_20260826/task-index.json#powered_eod_explosive_lancer",
+  "mother": "../_hamster_missing_mothers_20260826/mother/hamster-powered-eod-explosive-lancer-mother-v02-white.png",
+  "reference": "references/hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+  "replacesPlaceholderUnitKey": "tank",
+  "runtimeIntegrationActive": true,
+  "identityContract": "same brown hamster in olive heavy EOD suit, same silver-gray tabby cat in Kevlar ballistic barding, exactly two rear charge-assist boosters, holstered sidearm and one complete rocket-assisted explosive lance",
+  "combatContract": {
+    "attackTypes": ["ordinary_lance_thrust", "single_powered_charge_thrust"],
+    "chargeReferences": ["hamster_cavalry", "hamster_winged_hussar"],
+    "impactReference": "Age of Empires IV fire lancer charge attack",
+    "primaryTarget": {
+      "directDamage": true,
+      "stun": true
+    },
+    "impactAoe": {
+      "damage": true,
+      "stun": false,
+      "implementationNote": "runtime impact effect only; do not bake a large detached AOE explosion into the character sprite source"
+    },
+    "chargeVisualTailFlame": "retain the approved Doubao charge v01 rear-booster exhaust trail as authored"
+  },
+  "generationStandard": {
+    "model": "Seedance 2.0 Mini for approved attacks and death candidate; MiniMax H3 retained for approved idle and running sources",
+    "durationSeconds": 5,
+    "size": "1024x576",
+    "steps": 20,
+    "frameRate": 24,
+    "contactFrames": 24,
+    "visualProfile": "character-asset",
+    "audioMode": "visual-only"
+  },
+  "actions": [
+    {
+      "motion": "idle",
+      "actionMode": "loop",
+      "firstFrame": "references/hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "lastFrame": "references/hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "prompt": "prompts/idle-h3-v02-cold-boosters.txt",
+      "video": "videos/idle-h3-v02.mp4",
+      "provenance": "videos/idle-h3-v02.mp4.json",
+      "seed": 860827004,
+      "status": "user_approved_source_selected_and_integrated",
+      "provisionalCleanWindow": [32, 96],
+      "review": "v01 kept identity but invented gray booster smoke through the middle and was rejected as the selected source; v02 removes the smoke and keeps identity plus loop endpoints stable, though it briefly lights a booster near the clip ends, so only the provisional clean middle window may advance to final natural-loop selection"
+    },
+    {
+      "motion": "running",
+      "actionMode": "loop",
+      "firstFrame": "references/hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "lastFrame": "references/hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "prompt": "prompts/running-h3-v01.txt",
+      "video": "videos/running-h3-v01.mp4",
+      "provenance": "videos/running-h3-v01.mp4.json",
+      "seed": 860827002,
+      "status": "user_approved_source_selected_and_integrated",
+      "review": "continuous natural four-leg gallop with rider seated and lance plus both booster modules coherent; H3 lets the unit travel across the canvas, which cyclic sprite extraction must normalize by effective torso and foot anchors without changing the natural leg trajectory"
+    },
+    {
+      "motion": "attacking",
+      "actionMode": "recover",
+      "firstFrame": "references/hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "prompt": "prompts/attacking-h3-v01.txt",
+      "provenance": "videos/attacking-h3-v01.mp4.json",
+      "seed": 860827003,
+      "status": "rejected_by_user_scale_enlargement_artifacts_removed",
+      "review": "the action concept was correct, but the mounted unit visibly enlarged during the attack; user revoked approval on 2026-08-27 and required a fixed-scale charge regeneration plus a separate ordinary lance attack"
+    },
+    {
+      "motion": "charge_attacking",
+      "actionMode": "recover",
+      "firstFrame": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "prompt": "prompts/charge-attacking-h3-v02-fixed-scale.txt",
+      "seed": 860827005,
+      "provenance": "videos/charge-attacking-h3-v02.mp4.json",
+      "status": "rejected_scale_enlargement_persisted_artifacts_removed",
+      "review": "the smaller first-frame safety composition preserved margins, but H3 still enlarged the mounted unit through the contact phase and produced an oversized impact wall"
+    },
+    {
+      "motion": "lance_attacking",
+      "actionMode": "recover",
+      "firstFrame": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "prompt": "prompts/lance-attacking-h3-v01.txt",
+      "seed": 860827006,
+      "provenance": "videos/lance-attacking-h3-v01.mp4.json",
+      "status": "rejected_unrequested_booster_ignition_and_tip_blast_artifacts_removed",
+      "review": "scale was improved, but H3 ignored the inactive-propulsion contract and added rear flame plus a lance-tip blast, so this is not an ordinary lance attack"
+    },
+    {
+      "motion": "charge_attacking",
+      "actionMode": "recover",
+      "referenceImage": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "referenceVideo": "videos/charge-attacking-h3-v02.mp4",
+      "referencePolicy": "Picture 1 supplies identity and fixed small framing; Video 1 supplies motion timing only and its scale drift must not be copied",
+      "prompt": "prompts/charge-attacking-h3-v03-reference.txt",
+      "seed": 860827007,
+      "status": "superseded_not_submitted_before_first_last_attempt",
+      "review": "the local-reference-video plan was superseded by the safer first/last-frame attempt; no separate output was submitted for this record"
+    },
+    {
+      "motion": "lance_attacking",
+      "actionMode": "recover",
+      "referenceImage": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "referenceVideo": "../_hamster_cavalry_pair_20260827/videos/cavalry/attacking-doubao-v01.mp4",
+      "referencePolicy": "Picture 1 supplies identity and fixed small framing; Video 1 supplies ordinary mounted thrust timing only",
+      "prompt": "prompts/lance-attacking-h3-v02-reference.txt",
+      "seed": 860827008,
+      "status": "not_submitted_external_reference_upload_not_authorized"
+    },
+    {
+      "motion": "charge_attacking",
+      "actionMode": "recover",
+      "firstFrame": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "lastFrame": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "prompt": "prompts/charge-attacking-h3-v03-first-last.txt",
+      "seed": 860827009,
+      "status": "rejected_scale_enlargement_persisted_artifacts_removed",
+      "provenance": "videos/charge-attacking-h3-v03.mp4.json",
+      "review": "first/last-frame control still enlarged the mounted unit dramatically through the charge and contact phase"
+    },
+    {
+      "motion": "lance_attacking",
+      "actionMode": "recover",
+      "firstFrame": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "lastFrame": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "prompt": "prompts/lance-attacking-h3-v03-first-last.txt",
+      "seed": 860827010,
+      "status": "rejected_unrequested_lance_tip_energy_projectile_artifacts_removed",
+      "provenance": "videos/lance-attacking-h3-v03.mp4.json",
+      "review": "first/last-frame control still transformed the inert physical thrust into a large lance-tip energy projectile"
+    },
+    {
+      "motion": "charge_attacking",
+      "actionMode": "recover",
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "referenceImage": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "prompt": "prompts/charge-attacking-doubao-v01.txt",
+      "video": "videos/charge-attacking-doubao-v01.mp4",
+      "provenance": "videos/charge-attacking-doubao-v01.mp4.json",
+      "status": "user_approved_source_selected_and_integrated_tail_flame_retained",
+      "approvalDate": "2026-08-28",
+      "review": "user approved this source on 2026-08-28 and explicitly allowed the authored rear-booster exhaust trail to remain; 24-point contact review shows one synchronized booster pulse, one mounted charge and one compact lance-tip contact flash without H3-style scale enlargement"
+    },
+    {
+      "motion": "lance_attacking",
+      "actionMode": "recover",
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "referenceImage": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "prompt": "prompts/lance-attacking-doubao-v01.txt",
+      "video": "videos/lance-attacking-doubao-v01.mp4",
+      "provenance": "videos/lance-attacking-doubao-v01.mp4.json",
+      "status": "user_approved_source_selected_and_integrated",
+      "approvalDate": "2026-08-28",
+      "review": "user approved this source on 2026-08-28; 24-point contact review shows one physical lance thrust and recovery while both rear modules remain dark and the lance produces no flame, smoke, glow, projectile or explosion"
+    },
+    {
+      "motion": "dying",
+      "actionMode": "one-way",
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "referenceImage": "references/hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "video": "videos/dying-doubao-v01.mp4",
+      "provenance": "videos/dying-doubao-v01.mp4.json",
+      "status": "user_approved_source_selected_and_integrated",
+      "approvalDate": "2026-08-28",
+      "review": "user approved this source on 2026-08-28; 24-point contact review shows one grounded collapse: the cat buckles and settles onto one side, the rider remains with the saddle, the intact lance rests ahead of the body, rear modules stay unlit, and the stable corpse pose holds from approximately source frame 68 through frame 120 without recovery or repeated fall"
+    }
+  ],
+  "archiveCleanup": {
+    "date": "2026-08-28",
+    "policy": "retain accepted sources and reproducible formal chain; remove rejected outputs, review-only contacts/previews and reconstructible BiRefNet frame cache",
+    "removedRejectedVideos": [
+      "videos/idle-h3-v01.mp4",
+      "videos/attacking-h3-v01.mp4",
+      "videos/charge-attacking-h3-v02.mp4",
+      "videos/charge-attacking-h3-v03.mp4",
+      "videos/lance-attacking-h3-v01.mp4",
+      "videos/lance-attacking-h3-v03.mp4"
+    ],
+    "retainedRejectedEvidence": "immutable prompts, generation provenance and rejection reasons",
+    "removedReconstructible": [
+      "frames/birefnet-source",
+      "previews/videos",
+      "previews/window-analysis",
+      "previews/source-sheets",
+      "previews/interpolated/*-contact.png",
+      "videos/*_contact.png"
+    ]
+  },
+  "spritePipeline": {
+    "status": "runtime_integrated_waiting_user_test",
+    "states": ["idle", "running", "charge_attacking", "lance_attacking", "dying"],
+    "targetMountedBodyHeight": 236,
+    "feetY": 375,
+    "frameHeight": 512,
+    "columns": 8,
+    "scalePolicy": "fixed independently per action from the mounted body; the long lance and charge exhaust are excluded from body-height measurement",
+    "trajectoryPolicy": "idle and running are body/foot anchored; attacks and death preserve the approved source-space trajectory",
+    "sourceSheetReport": "source-sheet-report.json",
+    "interpolationReport": "interpolation-report.json",
+    "sourceSheets": "source-sheets-pre-interpolation",
+    "finalSheets": "sheets/interpolated",
+    "finalPreviews": "previews/interpolated",
+    "finalAnimations": {
+      "idle": {
+        "sheet": "sheets/interpolated/idle.png",
+        "preview": "previews/interpolated/hamster-powered-eod-explosive-lancer-idle-interpolated.gif",
+        "frameCount": 20,
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameRate": 12,
+        "repeat": -1,
+        "sourceFrames": "44..80 step 4; same-phase frame 84 omitted as duplicate loop endpoint"
+      },
+      "running": {
+        "sheet": "sheets/interpolated/running.png",
+        "preview": "previews/interpolated/hamster-powered-eod-explosive-lancer-running-interpolated.gif",
+        "frameCount": 22,
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameRate": 24,
+        "repeat": -1,
+        "sourceFrames": "62..82 step 2; repeat-phase frame 83 omitted as duplicate loop endpoint"
+      },
+      "charge_attacking": {
+        "sheet": "sheets/interpolated/charge_attacking.png",
+        "preview": "previews/interpolated/hamster-powered-eod-explosive-lancer-charge-attacking-interpolated.gif",
+        "frameCount": 49,
+        "frameWidth": 1280,
+        "frameHeight": 512,
+        "frameRate": 24,
+        "repeat": 0,
+        "sourceFrames": [0, 13, 18, 23, 32, 47, 62, 70, 73, 74, 76, 78, 80, 81, 84, 86, 88, 90, 92, 94, 97, 101, 105, 110, 120],
+        "effectPolicy": "approved blue-cyan rear-booster exhaust retained; broad gray floor smoke excluded"
+      },
+      "lance_attacking": {
+        "sheet": "sheets/interpolated/lance_attacking.png",
+        "preview": "previews/interpolated/hamster-powered-eod-explosive-lancer-lance-attacking-interpolated.gif",
+        "frameCount": 39,
+        "frameWidth": 1024,
+        "frameHeight": 512,
+        "frameRate": 24,
+        "repeat": 0,
+        "sourceFrames": [0, 12, 18, 28, 44, 49, 51, 53, 54, 58, 66, 73, 76, 78, 80, 81, 84, 88, 99, 120]
+      },
+      "dying": {
+        "sheet": "sheets/interpolated/dying.png",
+        "preview": "previews/interpolated/hamster-powered-eod-explosive-lancer-dying-interpolated.gif",
+        "frameCount": 35,
+        "frameWidth": 640,
+        "frameHeight": 512,
+        "frameRate": 20,
+        "repeat": 0,
+        "sourceFrames": [0, 12, 21, 27, 32, 35, 39, 41, 44, 47, 49, 51, 53, 56, 59, 64, 72, 120],
+        "corpsePolicy": "true stable source corpse frame 120 retained as the final key frame"
+      }
+    },
+    "runtimeAnimations": {
+      "installReport": "runtime-install-report.json",
+      "assetDirectory": "../../../assets/companions/hamster_powered_eod_explosive_lancer",
+      "optimization": "lossless integer recenter/repack; runtime charge camera travel removed because world movement is supplied by AI; no resampling",
+      "idle": { "preview": "previews/runtime/idle-runtime.gif", "frameWidth": 384, "frameHeight": 512, "cols": 5, "rows": 4, "frameCount": 20, "frameRate": 12 },
+      "running": { "preview": "previews/runtime/running-runtime.gif", "frameWidth": 384, "frameHeight": 512, "cols": 6, "rows": 4, "frameCount": 22, "frameRate": 24 },
+      "lance_attacking": { "preview": "previews/runtime/attacking-runtime.gif", "frameWidth": 1024, "frameHeight": 512, "cols": 5, "rows": 8, "frameCount": 39, "frameRate": 24 },
+      "charge_attacking": { "preview": "previews/runtime/charging-runtime.gif", "frameWidth": 768, "frameHeight": 512, "cols": 7, "rows": 7, "frameCount": 49, "frameRate": 24 },
+      "dying": { "preview": "previews/runtime/dying-runtime.gif", "frameWidth": 640, "frameHeight": 512, "cols": 7, "rows": 5, "frameCount": 35, "frameRate": 20 }
+    },
+    "runtimeIntegrationActive": true
+  }
+}

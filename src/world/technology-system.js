@@ -5,9 +5,12 @@ import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 41;
+const VERSION = 42;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
+const V41_CAVALRY_SCOUT_RIFLE_ID = 'cavalry_scout_rifle';
+const V42_CAVALRY_TIER_3_ID = 'cavalry_school_level_3';
+const V41_CAVALRY_SCOUT_RIFLE_COST = 2100;
 const PREVIOUS_RESEARCH_COSTS_BY_VERSION = Object.freeze([
     Object.freeze({
         beforeVersion: 29,
@@ -809,6 +812,10 @@ export const TechnologySystem = {
             return;
         }
 
+        const savedVersion = Number(saved.version) || 0;
+        const completedLegacyCavalryScoutRifle = savedVersion < 42
+            && Array.isArray(saved.completed)
+            && saved.completed.includes(V41_CAVALRY_SCOUT_RIFLE_ID);
         const completed = Array.isArray(saved.completed)
             ? [...new Set(saved.completed.filter((id) => {
                 const node = nodesById.get(id);
@@ -902,6 +909,13 @@ export const TechnologySystem = {
             && !completed.includes('shooting_range_level_2')) {
             completed.push('shooting_range_level_2');
         }
+        // v42 在轻、重两条三级骑兵均完成后，撤销侦察游骑兵的临时独立科技，
+        // 改由骑兵学院III级整级同时解锁。已完成临时科技的旧档直接继承完整三级编制。
+        if (completedLegacyCavalryScoutRifle
+            && nodesById.has(V42_CAVALRY_TIER_3_ID)
+            && !completed.includes(V42_CAVALRY_TIER_3_ID)) {
+            completed.push(V42_CAVALRY_TIER_3_ID);
+        }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {
             const node = this.getNode(id);
@@ -919,30 +933,52 @@ export const TechnologySystem = {
             }
             progressById[id] = normalizeProgress(migratedProgress, node.researchCost);
         }
+        // 未完成临时科技的进度按完成百分比迁到正式三级编制，避免研发投入消失。
+        if (savedVersion < 42 && !completed.includes(V42_CAVALRY_TIER_3_ID)) {
+            const legacyProgress = Math.max(0,
+                Number(saved.progressById?.[V41_CAVALRY_SCOUT_RIFLE_ID]) || 0);
+            const tier3Node = this.getNode(V42_CAVALRY_TIER_3_ID);
+            if (legacyProgress > 0 && tier3Node) {
+                const migratedProgress = legacyProgress / V41_CAVALRY_SCOUT_RIFLE_COST
+                    * tier3Node.researchCost;
+                progressById[V42_CAVALRY_TIER_3_ID] = Math.max(
+                    progressById[V42_CAVALRY_TIER_3_ID] || 0,
+                    normalizeProgress(migratedProgress, tier3Node.researchCost),
+                );
+            }
+        }
         this.state = {
             ...emptyState(),
             completed,
             progressById,
         };
 
-        const savedTargetId = this.getNode(saved.targetTechId) && !this.isCompleted(saved.targetTechId)
-            ? saved.targetTechId
+        const migratedSavedTargetId = savedVersion < 42
+            && saved.targetTechId === V41_CAVALRY_SCOUT_RIFLE_ID
+            ? V42_CAVALRY_TIER_3_ID : saved.targetTechId;
+        const migratedSavedActiveId = savedVersion < 42
+            && saved.activeTechId === V41_CAVALRY_SCOUT_RIFLE_ID
+            ? V42_CAVALRY_TIER_3_ID : saved.activeTechId;
+        const savedTargetId = this.getNode(migratedSavedTargetId)
+            && !this.isCompleted(migratedSavedTargetId)
+            ? migratedSavedTargetId
             : null;
         if (savedTargetId) {
             this.state.targetTechId = savedTargetId;
             this._rebuildTargetQueue();
-            if (this.state.researchQueue.includes(saved.activeTechId) && this.isAvailable(saved.activeTechId)) {
-                this.state.activeTechId = saved.activeTechId;
+            if (this.state.researchQueue.includes(migratedSavedActiveId)
+                && this.isAvailable(migratedSavedActiveId)) {
+                this.state.activeTechId = migratedSavedActiveId;
             }
         } else if (Number(saved.version) < 2
-            && this.getNode(saved.activeTechId)
-            && this.isAvailable(saved.activeTechId)) {
+            && this.getNode(migratedSavedActiveId)
+            && this.isAvailable(migratedSavedActiveId)) {
             // v1 的手选项目迁移为同名研究目标，已有进度不丢失。
-            this.state.targetTechId = saved.activeTechId;
+            this.state.targetTechId = migratedSavedActiveId;
             this._rebuildTargetQueue();
-            this.state.activeTechId = saved.activeTechId;
-        } else if (this.getNode(saved.activeTechId) && this.isAvailable(saved.activeTechId)) {
-            this.state.activeTechId = saved.activeTechId;
+            this.state.activeTechId = migratedSavedActiveId;
+        } else if (this.getNode(migratedSavedActiveId) && this.isAvailable(migratedSavedActiveId)) {
+            this.state.activeTechId = migratedSavedActiveId;
             this.state.activeSource = 'auto';
         }
 

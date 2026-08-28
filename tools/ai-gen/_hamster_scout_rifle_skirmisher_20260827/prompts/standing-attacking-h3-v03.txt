@@ -1,0 +1,9 @@
+Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep one warm gray-brown hamster rider, one orange tabby cat mount and one complete scout rifle.
+
+0.00-4.00 seconds: show a quiet held firing pose, like a living character reference. The cat stands squarely with all four paws planted at unchanged screen coordinates and the mounted body root fixed. Only subtle breathing, a tiny ear adjustment and gentle tail balance occur. The rider remains seated, holds the rifle shouldered, and calmly aims toward screen right. Nothing is discharged during this long hold.
+
+4.00-4.12 seconds: at this single late instant, the rider performs one trigger pull. Show one compact muzzle flash and one restrained rearward recoil impulse. Both hands stay on the same rifle. The cat remains braced with all four paws planted.
+
+4.12-5.17 seconds: the one recoil settles smoothly and a narrow muzzle smoke wisp fades. The rider returns to the opening aim while the mount keeps the same planted stance. End in stable standing readiness at the original screen position and scale.
+
+Locked wide side-view camera on a pure uniform white background with flat soft asset lighting. Keep the entire cat, all four anatomical legs and paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and complete rifle visible with generous margins. Preserve the rigid rifle stock, magazine, optic, handguard, barrel and muzzle. Preserve one rider and one mount throughout. Keep the feet, body root and camera stationary. The visual event is one late flash followed by recovery, with no earlier discharge, repeated recoil, stepping, sliding, added character, duplicated weapon, detached equipment, floor or scenery.

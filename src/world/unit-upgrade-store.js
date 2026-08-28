@@ -28,6 +28,8 @@ import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
 import cavalryCfg from '../../data/hamster-cavalry-config.json';
 import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
+import scoutRifleSkirmisherCfg from '../../data/hamster-scout-rifle-skirmisher-config.json';
+import poweredEodExplosiveLancerCfg from '../../data/hamster-powered-eod-explosive-lancer-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -96,6 +98,8 @@ export const UNIT_KIND_CFG = {
     light_cavalry: lightCavalryCfg,
     cavalry: cavalryCfg,
     winged_hussar: wingedHussarCfg,
+    scout_rifle_skirmisher: scoutRifleSkirmisherCfg,
+    powered_eod_explosive_lancer: poweredEodExplosiveLancerCfg,
     ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
@@ -141,9 +145,11 @@ export function getUnitKind(unit) {
     if (unit._isHamsterRiotSquad) return 'riot_special';
     if (unit._isHamsterAssault) return 'assault';
     if (unit._isHamsterHeavyMachineGunner) return 'heavy_machine_gunner';
+    if (unit._isHamsterScoutRifleSkirmisher) return 'scout_rifle_skirmisher';
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
     // 二级骑兵继承一级实体，必须先于基础骑士/轻骑判断。
+    if (unit._isHamsterPoweredEodExplosiveLancer) return 'powered_eod_explosive_lancer';
     if (unit._isHamsterWingedHussar) return 'winged_hussar';
     if (unit._isHamsterCavalry) return 'cavalry';
     if (unit._isHamsterKnight) return 'knight';

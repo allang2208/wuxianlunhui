@@ -1,0 +1,11 @@
+Keep the exact small mounted powered lancer from the supplied first and last frame: the same hamster, armored tabby cat, EOD clothing, saddle, reins, exactly two rear booster modules, holstered sidearm and one complete rigid explosive lance.
+
+The camera follows only the unit's horizontal translation while staying at exactly the same distance and focal length. The unit remains the same small pixel height and apparent scale in every frame. It never approaches the camera and never grows larger.
+
+0.0-1.0 seconds: the cat lowers into a compact charge stance while the seated rider lowers the lance. Both rear boosters spool up together.
+
+1.0-3.8 seconds: perform one screen-right rocket-assisted cavalry charge. The two boosters emit one short narrow orange-blue exhaust pulse. The cat makes one powerful gallop lunge and the rider drives the same lance to one contact pose. The warhead produces one compact tip flash no wider than the cat's head. Maintain constant subject scale through acceleration and contact.
+
+3.8-5.17 seconds: exhaust stops, the lance withdraws and the unit returns to the exact supplied final pose at the original small size.
+
+Keep the full cat, four paws, tail, rider, lance and both boosters visible on uniform white. One charge and one small tip flash only; no zoom, dolly-in, perspective growth, oversized blast wall, crop, second attack, equipment change, extra limb, target, scenery, floor, shadow, blood, text, logo or watermark.

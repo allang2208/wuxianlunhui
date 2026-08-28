@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T13:16:23.018908+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\moving-attacking-h3-v01.mp4",
+    "bytes": 936303,
+    "sha256": "b6b25bd8d58846116c87a9f1585512ce2fd82e79db72a0c94d856b74d46ec3ff"
+  },
+  "promptId": "df87c1a0-f4e9-429d-902a-6db460119452",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 850337405,
+  "mode": "ref2va",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Create one clean sprite-source shot of <Subject 1>, preserving the exact mounted reconnaissance skirmisher identity from <Picture 1>. Use <Video 1> only for the rhythm and body mechanics of running while raising and firing the rifle; do not copy its subject, rendering, background, or camera.\n\n0.0-1.0 seconds: the orange tabby cat is already in a steady right-facing in-place run with a complete natural four-leg gait. The hamster rider stays balanced in the saddle and carries the intact semi-automatic scout rifle at moving low-ready. The mounted root remains inside a small fixed screen area while the legs produce full readable strides.\n\n1.0-3.8 seconds: the cat maintains exactly the same running cadence without pausing or shortening its stride. During the run, the rider smoothly shoulders the same rifle, aligns the optic toward screen right, fires exactly one controlled shot near the middle of the shot, shows one brief compact muzzle flash and restrained shoulder recoil, then keeps tracking forward. The reins, saddle, harness, teal saddle blanket, tactical equipment, helmet, goggles, headset, cape, rifle stock, magazine, optic, barrel and muzzle remain continuous and rigid.\n\n3.8-5.17 seconds: the rider lowers the rifle naturally back to moving low-ready while the cat continues the same uninterrupted run. End during the continuing gait at the same cadence and screen scale, ready for a clean natural-cycle extraction; there is no stop, freeze, second shot, turn or recovery to standing.\n\nLocked wide side-view camera, pure uniform white background, soft even asset lighting, complete rider, rifle, cat, four legs, four paws and tail visible with generous margins throughout. Preserve anatomically continuous legs and one complete rifle across every frame. Keep the action centered enough for a 640x512 sprite cell and retain the natural vertical gait trajectory.",
+  "effectivePrompt": "Create one clean sprite-source shot of <Subject 1>, preserving the exact mounted reconnaissance skirmisher identity from <Picture 1>. Use <Video 1> only for the rhythm and body mechanics of running while raising and firing the rifle; do not copy its subject, rendering, background, or camera.\n\n0.0-1.0 seconds: the orange tabby cat is already in a steady right-facing in-place run with a complete natural four-leg gait. The hamster rider stays balanced in the saddle and carries the intact semi-automatic scout rifle at moving low-ready. The mounted root remains inside a small fixed screen area while the legs produce full readable strides.\n\n1.0-3.8 seconds: the cat maintains exactly the same running cadence without pausing or shortening its stride. During the run, the rider smoothly shoulders the same rifle, aligns the optic toward screen right, fires exactly one controlled shot near the middle of the shot, shows one brief compact muzzle flash and restrained shoulder recoil, then keeps tracking forward. The reins, saddle, harness, teal saddle blanket, tactical equipment, helmet, goggles, headset, cape, rifle stock, magazine, optic, barrel and muzzle remain continuous and rigid.\n\n3.8-5.17 seconds: the rider lowers the rifle naturally back to moving low-ready while the cat continues the same uninterrupted run. End during the continuing gait at the same cadence and screen scale, ready for a clean natural-cycle extraction; there is no stop, freeze, second shot, turn or recovery to standing.\n\nLocked wide side-view camera, pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even asset lighting, complete rider, rifle, cat, four legs, four paws and tail visible with generous margins throughout. Preserve anatomically continuous legs and one complete rifle across every frame. Keep the action centered enough for a 640x512 sprite cell and retain the natural vertical gait trajectory.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] Create one clean sprite-source shot of <Subject 1>, preserving the exact mounted reconnaissance skirmisher identity from <Picture 1>. Use <Video 1> only for the rhythm and body mechanics of running while raising and firing the rifle; do not copy its subject, rendering, background, or camera.\n\n0.0-1.0 seconds: the orange tabby cat is already in a steady right-facing in-place run with a complete natural four-leg gait. The hamster rider stays balanced in the saddle and carries the intact semi-automatic scout rifle at moving low-ready. The mounted root remains inside a small fixed screen area while the legs produce full readable strides.\n\n1.0-3.8 seconds: the cat maintains exactly the same running cadence without pausing or shortening its stride. During the run, the rider smoothly shoulders the same rifle, aligns the optic toward screen right, fires exactly one controlled shot near the middle of the shot, shows one brief compact muzzle flash and restrained shoulder recoil, then keeps tracking forward. The reins, saddle, harness, teal saddle blanket, tactical equipment, helmet, goggles, headset, cape, rifle stock, magazine, optic, barrel and muzzle remain continuous and rigid.\n\n3.8-5.17 seconds: the rider lowers the rifle naturally back to moving low-ready while the cat continues the same uninterrupted run. End during the continuing gait at the same cadence and screen scale, ready for a clean natural-cycle extraction; there is no stop, freeze, second shot, turn or recovery to standing.\n\nLocked wide side-view camera, pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even asset lighting, complete rider, rifle, cat, four legs, four paws and tail visible with generous margins throughout. Preserve anatomically continuous legs and one complete rifle across every frame. Keep the action centered enough for a 640x512 sprite cell and retain the natural vertical gait trajectory. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "8f2b678d8ceacfa4c684f7a3a037556bde83970c24478ee9a3a94964a5cec6c8",
+  "effectivePromptSha256": "95dd0e54dfa341df464a7f44ca5b50633d67d3d5298a24a64b62eecafdb08d4f",
+  "finalPromptSha256": "a5fbd18796ee9be72a26d16eb5e301da497bac5609bd3e3a546cc5f946d80107",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\prompts\\moving-attacking-h3-v01.txt",
+      "bytes": 1882,
+      "sha256": "b80eb41d3a1cf6b7cf4936965b5c9931166f889615c7961713f35f7103426890"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\references\\hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+        "bytes": 273308,
+        "sha256": "13525accde9af36679c00e647b06fdcd8d9abffbd1d9efe70a05d5abba1e6db3"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\attacking-doubao-v01.mp4",
+        "bytes": 1240678,
+        "sha256": "40eeb78b483045705f8b58003693aaf462f5bfd6926ded19ee45f4847de7db61"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\moving-attacking-h3-v01_contact.png",
+    "bytes": 873702,
+    "sha256": "fdaf1ea9c5b91606d468bab2aa53b0781ff05b343fe84b555a40978a821086fb"
+  },
+  "elapsedSeconds": 430.565
+}

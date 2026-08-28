@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T14:34:24.014310+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\dying-h3-v01.mp4",
+    "bytes": 460764,
+    "sha256": "7c832d2a6df3c0a952351c429339a3506175bbdb9a05931e1c15386708e2a91d"
+  },
+  "promptId": "c31db39a-72b3-43e7-a8ad-c31337d81123",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 850337410,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep exactly one warm gray-brown hamster rider, one orange tabby cat mount and one complete semi-automatic scout rifle.\n\n0.00-0.55 seconds: hold the approved right-facing stationary pose with all four cat paws planted. The rider remains seated with the complete rifle in both hands.\n\n0.55-1.10 seconds: the complete mounted unit receives one non-graphic fatal impact. The cat loses strength and begins to buckle through all four legs. The rider folds lower with the saddle instead of jumping away, and the rifle lowers intact with both hands.\n\n1.10-3.20 seconds: continue one continuous grounded collapse. The cat's chest and hips descend naturally and its body rolls gently onto its near side without spinning or crossing the canvas. The rider stays physically close to the saddle, then slumps forward and sideways against the fallen cat. The cape, radio, pouches, reins, harness, saddle and teal blanket follow the same downward motion. The rifle remains one rigid complete object and comes to rest beside or across the rider.\n\n3.20-5.17 seconds: hold one stable fully motionless corpse pose on the ground. The cat, hamster rider and complete rifle remain visible and do not recover, rise, twitch or return toward the opening stance.\n\nLocked wide side-view camera on a pure uniform white background with flat soft asset lighting. Use one fixed scale for the entire shot and preserve the natural downward and sideways falling trajectory. Keep the complete standing pose and complete fallen silhouette inside frame with generous margins. Preserve four anatomical cat legs, four paws, one natural cat tail, the rider's anatomy, helmet, goggles, headset, cape, radio, armor, pouches, saddle equipment and every rigid rifle component throughout. Preserve one rider, one mount and one rifle. No gore, dismemberment, detached limb, thrown rider, duplicated equipment, weapon morphing, attack, gunshot, recovery, loop, crossfade, teleport, floor, shadow, scenery or camera movement.",
+  "effectivePrompt": "Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep exactly one warm gray-brown hamster rider, one orange tabby cat mount and one complete semi-automatic scout rifle.\n\n0.00-0.55 seconds: hold the approved right-facing stationary pose with all four cat paws planted. The rider remains seated with the complete rifle in both hands.\n\n0.55-1.10 seconds: the complete mounted unit receives one non-graphic fatal impact. The cat loses strength and begins to buckle through all four legs. The rider folds lower with the saddle instead of jumping away, and the rifle lowers intact with both hands.\n\n1.10-3.20 seconds: continue one continuous grounded collapse. The cat's chest and hips descend naturally and its body rolls gently onto its near side without spinning or crossing the canvas. The rider stays physically close to the saddle, then slumps forward and sideways against the fallen cat. The cape, radio, pouches, reins, harness, saddle and teal blanket follow the same downward motion. The rifle remains one rigid complete object and comes to rest beside or across the rider.\n\n3.20-5.17 seconds: hold one stable fully motionless corpse pose on the ground. The cat, hamster rider and complete rifle remain visible and do not recover, rise, twitch or return toward the opening stance.\n\nLocked wide side-view camera on a pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with flat soft asset lighting. Use one fixed scale for the entire shot and preserve the natural downward and sideways falling trajectory. Keep the complete standing pose and complete fallen silhouette inside frame with generous margins. Preserve four anatomical cat legs, four paws, one natural cat tail, the rider's anatomy, helmet, goggles, headset, cape, radio, armor, pouches, saddle equipment and every rigid rifle component throughout. Preserve one rider, one mount and one rifle. No gore, dismemberment, detached limb, thrown rider, duplicated equipment, weapon morphing, attack, gunshot, recovery, loop, crossfade, teleport, floor, shadow, scenery or camera movement.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep exactly one warm gray-brown hamster rider, one orange tabby cat mount and one complete semi-automatic scout rifle.\n\n0.00-0.55 seconds: hold the approved right-facing stationary pose with all four cat paws planted. The rider remains seated with the complete rifle in both hands.\n\n0.55-1.10 seconds: the complete mounted unit receives one non-graphic fatal impact. The cat loses strength and begins to buckle through all four legs. The rider folds lower with the saddle instead of jumping away, and the rifle lowers intact with both hands.\n\n1.10-3.20 seconds: continue one continuous grounded collapse. The cat's chest and hips descend naturally and its body rolls gently onto its near side without spinning or crossing the canvas. The rider stays physically close to the saddle, then slumps forward and sideways against the fallen cat. The cape, radio, pouches, reins, harness, saddle and teal blanket follow the same downward motion. The rifle remains one rigid complete object and comes to rest beside or across the rider.\n\n3.20-5.17 seconds: hold one stable fully motionless corpse pose on the ground. The cat, hamster rider and complete rifle remain visible and do not recover, rise, twitch or return toward the opening stance.\n\nLocked wide side-view camera on a pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with flat soft asset lighting. Use one fixed scale for the entire shot and preserve the natural downward and sideways falling trajectory. Keep the complete standing pose and complete fallen silhouette inside frame with generous margins. Preserve four anatomical cat legs, four paws, one natural cat tail, the rider's anatomy, helmet, goggles, headset, cape, radio, armor, pouches, saddle equipment and every rigid rifle component throughout. Preserve one rider, one mount and one rifle. No gore, dismemberment, detached limb, thrown rider, duplicated equipment, weapon morphing, attack, gunshot, recovery, loop, crossfade, teleport, floor, shadow, scenery or camera movement. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "daf89d0d97014e30eeada9c96e5c3ed11c77c7395140da7e51295ded056ba731",
+  "effectivePromptSha256": "f80c78108d26c547912a86e27c4d25b1df92fd83238dac05bb10496d95334689",
+  "finalPromptSha256": "d0466e476c884c5e529a966dc1a513daca2cdeb2d96f6f258e24627d5b1ea8f3",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\prompts\\dying-h3-v01.txt",
+      "bytes": 2138,
+      "sha256": "f201c6b66ea00c1f64f30396768e6de1f499c8b522d9ea5fb43d98ba87dc6df2"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\references\\hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+      "bytes": 273308,
+      "sha256": "13525accde9af36679c00e647b06fdcd8d9abffbd1d9efe70a05d5abba1e6db3"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\dying-h3-v01_contact.png",
+    "bytes": 294493,
+    "sha256": "be02b9bf719fb4c9c6087524b43d8b72d757f06927dbd0c159b8a3221417cdb2"
+  },
+  "elapsedSeconds": 435.55
+}

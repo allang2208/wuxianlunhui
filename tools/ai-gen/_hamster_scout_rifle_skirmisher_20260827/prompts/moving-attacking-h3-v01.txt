@@ -1,0 +1,9 @@
+Create one clean sprite-source shot of <Subject 1>, preserving the exact mounted reconnaissance skirmisher identity from <Picture 1>. Use <Video 1> only for the rhythm and body mechanics of running while raising and firing the rifle; do not copy its subject, rendering, background, or camera.
+
+0.0-1.0 seconds: the orange tabby cat is already in a steady right-facing in-place run with a complete natural four-leg gait. The hamster rider stays balanced in the saddle and carries the intact semi-automatic scout rifle at moving low-ready. The mounted root remains inside a small fixed screen area while the legs produce full readable strides.
+
+1.0-3.8 seconds: the cat maintains exactly the same running cadence without pausing or shortening its stride. During the run, the rider smoothly shoulders the same rifle, aligns the optic toward screen right, fires exactly one controlled shot near the middle of the shot, shows one brief compact muzzle flash and restrained shoulder recoil, then keeps tracking forward. The reins, saddle, harness, teal saddle blanket, tactical equipment, helmet, goggles, headset, cape, rifle stock, magazine, optic, barrel and muzzle remain continuous and rigid.
+
+3.8-5.17 seconds: the rider lowers the rifle naturally back to moving low-ready while the cat continues the same uninterrupted run. End during the continuing gait at the same cadence and screen scale, ready for a clean natural-cycle extraction; there is no stop, freeze, second shot, turn or recovery to standing.
+
+Locked wide side-view camera, pure uniform white background, soft even asset lighting, complete rider, rifle, cat, four legs, four paws and tail visible with generous margins throughout. Preserve anatomically continuous legs and one complete rifle across every frame. Keep the action centered enough for a 640x512 sprite cell and retain the natural vertical gait trajectory.

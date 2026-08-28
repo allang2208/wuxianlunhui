@@ -50,6 +50,8 @@ import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
 import cavalryCfg from '../../data/hamster-cavalry-config.json';
 import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
+import scoutRifleSkirmisherCfg from '../../data/hamster-scout-rifle-skirmisher-config.json';
+import poweredEodExplosiveLancerCfg from '../../data/hamster-powered-eod-explosive-lancer-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -90,7 +92,9 @@ const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
     guard: guardCfg, phalanx: phalanxCfg, special_forces: specialForcesCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, longbow: longbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
-    cavalry: cavalryCfg, winged_hussar: wingedHussarCfg, ninja: ninjaCfg,
+    cavalry: cavalryCfg, winged_hussar: wingedHussarCfg,
+    powered_eod_explosive_lancer: poweredEodExplosiveLancerCfg,
+    scout_rifle_skirmisher: scoutRifleSkirmisherCfg, ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg, bounty_hunter: bountyHunterCfg,
@@ -772,11 +776,18 @@ function _unitDps(kind, levelOverrides = null) {
     if (kind === 'jungle_priest') {
         dps *= _junglePriestMagicDamageMult(mults.jungleMagicLevel);
     }
-    if ((kind === 'knight' || kind === 'winged_hussar') && cfg.ai.charge) {
+    if ((kind === 'knight' || kind === 'winged_hussar'
+        || kind === 'powered_eod_explosive_lancer') && cfg.ai.charge) {
         const charge = cfg.ai.charge;
         const chargeMult = mults.chargeDamageMult || 1;
         dps += dmg * (charge.damageMul ?? 2) * chargeMult
             * 1000 / Math.max(1000, charge.cooldown ?? 15000);
+        const aoe = charge.impactAoe;
+        if (aoe) {
+            dps += dmg * (aoe.damageMul ?? 0) * chargeMult
+                * Math.max(0, Number(aoe.expectedExtraTargets) || 0)
+                * 1000 / Math.max(1000, charge.cooldown ?? 15000);
+        }
     }
     if (kind === 'warrior' || kind === 'jaguar_warrior') {
         const ability = getBuildingUpgradeAbility('sweep_aoe');

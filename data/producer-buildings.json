@@ -579,7 +579,9 @@
       { "key": "knight", "name": "仓鼠骑士", "roleLabel": "骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 300 },
       { "key": "light_cavalry", "name": "仓鼠轻骑", "roleLabel": "骑兵", "spawnIntervalMs": 60000, "spawnFoodCost": 220 },
       { "key": "cavalry", "name": "仓鼠骑兵", "roleLabel": "二级轻骑 · 高速长枪近战", "spawnIntervalMs": 70000, "spawnFoodCost": 260 },
-      { "key": "winged_hussar", "name": "仓鼠翼骑兵", "roleLabel": "二级重骑 · 长枪冲锋", "spawnIntervalMs": 100000, "spawnFoodCost": 360 }
+      { "key": "winged_hussar", "name": "仓鼠翼骑兵", "roleLabel": "二级重骑 · 长枪冲锋", "spawnIntervalMs": 100000, "spawnFoodCost": 360 },
+      { "key": "scout_rifle_skirmisher", "name": "仓鼠侦察游骑兵", "roleLabel": "三级轻骑 · 移动单发步枪", "spawnIntervalMs": 75000, "spawnFoodCost": 300 },
+      { "key": "powered_eod_explosive_lancer", "name": "仓鼠动力爆矛重骑兵", "roleLabel": "三级重骑 · 助推冲锋爆炸", "spawnIntervalMs": 120000, "spawnFoodCost": 440 }
     ],
     "recruitmentTiers": [
       { "id": "cavalry_school_level_1", "level": 1, "name": "骑兵学院一级编制", "baseline": true, "lines": [
@@ -591,8 +593,8 @@
         { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠骑士", "unitKey": "winged_hussar", "unitName": "仓鼠翼骑兵", "profile": "银甲翼架重骑；强化长枪普攻与冲锋" }
       ] },
       { "id": "cavalry_school_level_3", "level": 3, "name": "骑兵学院三级编制", "plannedEffectiveResearchCost": 4140, "lines": [
-        { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠骑兵", "unitKey": "scout_vehicle", "unitName": "仓鼠侦察车", "placeholder": true },
-        { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠翼骑兵", "unitKey": "tank", "unitName": "仓鼠坦克", "placeholder": true }
+        { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠骑兵", "unitKey": "scout_rifle_skirmisher", "unitName": "仓鼠侦察游骑兵", "profile": "260 移速的骑猫侦察步枪手；中距离单发射击，移动命令不打断瞄准与攻击" },
+        { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠翼骑兵", "unitKey": "powered_eod_explosive_lancer", "unitName": "仓鼠动力爆矛重骑兵", "profile": "双火箭助推的重装爆矛骑兵；普通长矛突刺，冲锋直击眩晕并在命中点造成非眩晕AOE伤害" }
       ] }
     ],
     "upgradeProject": "cavalry_charge"

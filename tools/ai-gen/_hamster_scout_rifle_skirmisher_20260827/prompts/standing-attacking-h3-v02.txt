@@ -1,0 +1,11 @@
+Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep exactly one warm gray-brown hamster rider, one orange tabby cat mount and one complete semi-automatic scout rifle.
+
+0.00-2.45 seconds: maintain the opening right-facing standing aim. The cat holds a quiet square stance with its four paws continuously planted at the same four screen positions. Subtle breathing and tiny ear or tail balance are allowed, while the body root remains fixed. The rider stays seated and keeps the rifle shouldered on the target. The muzzle is dark and inactive.
+
+2.45-2.58 seconds: perform one single trigger pull. A single compact muzzle flash appears and vanishes immediately. The rifle and the rider's shoulder move through one short restrained recoil impulse while both hands remain on the same rifle. The mounted cat absorbs the impulse without lifting or repositioning any paw.
+
+2.58-3.20 seconds: one narrow smoke wisp fades from the muzzle while the rifle returns smoothly to the opening aim. This is the recovery from that same trigger pull, not another firing action.
+
+3.20-5.17 seconds: hold the recovered aimed pose steadily. The muzzle stays dark and inactive. The cat remains planted in the same square stance, and the rider remains ready without any repeated recoil. End at the same screen position, scale and standing readiness as the opening.
+
+Locked wide side-view camera on a pure uniform white background with flat soft asset lighting. Keep the complete cat, four anatomical legs, four paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and rifle fully visible with generous margins. Preserve the rifle stock, magazine, optic, handguard, barrel and muzzle as one rigid object. Preserve one rider and one mount throughout. Keep the feet, mounted body root and camera stationary; exclude stepping, sliding, duplicated firing, additional characters, duplicated weapons, detached equipment, floor and scenery.

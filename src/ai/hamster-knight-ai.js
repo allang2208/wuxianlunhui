@@ -41,6 +41,7 @@ export class HamsterKnightAI {
         this._chargeElapsed = 0;
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
+        this._chargeRecoverLeft = 0;
         this._chargeDustTimer = 0;
         this._prevNoCollision = false;
         this._baseParryImmune = !!knight._parryImmune;
@@ -65,6 +66,11 @@ export class HamsterKnightAI {
         return true;
     }
 
+    /** 眩晕、冻结或死亡中断：复用命令取消的完整临时态回收。 */
+    cancelForCrowdControl() {
+        return this.cancelForCommand();
+    }
+
     update(dt, entities, player) {
         const m = this.m;
         if (m._dying || m.data.hp <= 0) return;
@@ -73,7 +79,7 @@ export class HamsterKnightAI {
         this._chargeCooldown = Math.max(0, this._chargeCooldown - dt);
 
         if (this._chargeActive) {
-            this._updateCharge(dt);
+            this._updateCharge(dt, entities);
             return;
         }
         if (this._swingActive) {
@@ -273,6 +279,7 @@ export class HamsterKnightAI {
         this._chargeElapsed = 0;
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
+        this._chargeRecoverLeft = 0;
         this._chargeDustTimer = 0;
         this._prevNoCollision = !!m.noCollision;
         m.noCollision = true;
@@ -287,14 +294,25 @@ export class HamsterKnightAI {
         this._stopMotionOnly();
     }
 
-    _updateCharge(dt) {
+    _updateCharge(dt, entities) {
         const m = this.m;
         const cfg = this._chargeConfig();
+        if (this._chargeDamaged) {
+            this._stopMotionOnly();
+            this._chargeRecoverLeft -= dt;
+            if (this._chargeRecoverLeft <= 0) this._endCharge();
+            return;
+        }
         const target = this._chargeTarget && this._chargeTarget.active
             ? this._chargeTarget
             : null;
         this._chargeElapsed += dt;
-        const speed = (cfg.maxSpeed ?? 700) * Math.min(1, this._chargeElapsed / (cfg.accelDuration ?? 1500));
+        const accelProgress = Math.min(1, this._chargeElapsed / Math.max(1, cfg.accelDuration ?? 1500));
+        const accelExponent = Math.max(0.1, Number(cfg.accelExponent) || 1);
+        const easedProgress = Math.pow(accelProgress, accelExponent);
+        const startSpeed = Math.max(0, Number(cfg.startSpeed) || 0);
+        const maxSpeed = Math.max(startSpeed, Number(cfg.maxSpeed) || 700);
+        const speed = startSpeed + (maxSpeed - startSpeed) * easedProgress;
         this._chargeDustTimer -= dt;
         if (this._chargeDustTimer <= 0 && speed > 0) {
             this._chargeDustTimer = 70;
@@ -332,7 +350,15 @@ export class HamsterKnightAI {
         const inHitWindow = this._chargeElapsed >= hitStart && this._chargeElapsed <= hitEnd;
         if (!this._chargeDamaged && inHitWindow && this._validEnemy(target) && this._inRange(target, cfg.hitRange ?? 60)) {
             this._chargeDamaged = true;
-            this._dealChargeHit(target);
+            this._dealChargeHit(target, entities);
+            if (cfg.completeAnimationAfterHit) {
+                const animationMs = Math.max(0,
+                    (Number(cfg.frames) || 0) / Math.max(1, Number(cfg.frameRate) || 24) * 1000);
+                this._chargeRecoverLeft = Math.max(0, animationMs - this._chargeElapsed);
+                this._stopMotionOnly();
+                if (this._chargeRecoverLeft <= 0) this._endCharge();
+                return;
+            }
         }
 
         if (this._chargeDamaged
@@ -344,7 +370,7 @@ export class HamsterKnightAI {
         }
     }
 
-    _dealChargeHit(target) {
+    _dealChargeHit(target, entities) {
         const cfg = this._chargeConfig();
         const upgradeMult = Math.max(0, Number(this.cfg.chargeDamageMult) || 1);
         target.takeDamage(
@@ -360,6 +386,16 @@ export class HamsterKnightAI {
         const angle = Math.atan2(target.y - this.m.y, target.x - this.m.x);
         if (typeof target.applyKnockback === 'function') target.applyKnockback(angle, cfg.knockback ?? 200);
         if (!parried && typeof target.applyStun === 'function') target.applyStun(cfg.stunMs ?? 2500);
+        if (typeof this.m.onChargeImpact === 'function') {
+            this.m.onChargeImpact({
+                target,
+                entities,
+                chargeConfig: cfg,
+                attackDamage: this._attackDamage,
+                upgradeMult,
+                parried,
+            });
+        }
     }
 
     _endCharge() {
@@ -368,6 +404,7 @@ export class HamsterKnightAI {
         this._chargeTarget = null;
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
+        this._chargeRecoverLeft = 0;
         m._parryImmune = this._baseParryImmune;
         m.noCollision = this._prevNoCollision;
         m._chargeStart = false;

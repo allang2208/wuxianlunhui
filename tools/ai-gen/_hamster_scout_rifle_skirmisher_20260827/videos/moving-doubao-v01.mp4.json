@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\references\\hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\prompts\\moving-doubao-v01.txt",
+  "promptChars": 2253,
+  "promptSha256": "5fa208c30825af7bf7608499148894891fae56409cb6f5a8f207000b90586835",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T12:37:46.029Z",
+  "sourceUrlScheme": "https"
+}

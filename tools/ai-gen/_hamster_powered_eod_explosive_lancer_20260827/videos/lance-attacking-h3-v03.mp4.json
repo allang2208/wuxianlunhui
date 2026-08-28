@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T16:09:47.579502+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\lance-attacking-h3-v03.mp4",
+    "bytes": 413981,
+    "sha256": "a84492c0a577338e1474789d8b006b33d97c5a1fe3b456dda7ff785af8dda860"
+  },
+  "promptId": "303b8b02-86e1-49e1-9b1a-4aa8272c918a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 860827010,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact small mounted character from the supplied first and last frame: the same hamster, armored tabby cat, EOD clothing, saddle, reins, holstered sidearm, two dark rear equipment boxes and one complete long black lance. The two rear boxes are inert carried equipment. They remain cold, dark and mechanically still for the entire video.\n\n0.0-1.2 seconds: the cat braces almost in place while the seated rider draws the lance slightly backward.\n\n1.2-3.5 seconds: perform one ordinary mounted spear-training thrust toward screen right. The cat makes one compact supporting step. The rider extends the same rigid lance to one clear contact pose and immediately withdraws it. This is only a physical spear thrust.\n\n3.5-5.17 seconds: return smoothly to the exact supplied final pose. Keep the mounted unit at the same small pixel size, same distant three-quarter view and same ground line throughout.\n\nThe equipment boxes never activate. The lance never emits energy. Keep the full cat, all four paws, tail, rider, lance butt and lance point visible on uniform white. One thrust only; no flame, smoke, glow, exhaust, projectile, flash, explosion, charge, zoom, crop, camera approach, extra limb, target, scenery, shadow, text, logo or watermark.",
+  "effectivePrompt": "Keep the exact small mounted character from the supplied first and last frame: the same hamster, armored tabby cat, EOD clothing, saddle, reins, holstered sidearm, two dark rear equipment boxes and one complete long black lance. The two rear boxes are inert carried equipment. They remain cold, dark and mechanically still for the entire video.\n\n0.0-1.2 seconds: the cat braces almost in place while the seated rider draws the lance slightly backward.\n\n1.2-3.5 seconds: perform one ordinary mounted spear-training thrust toward screen right. The cat makes one compact supporting step. The rider extends the same rigid lance to one clear contact pose and immediately withdraws it. This is only a physical spear thrust.\n\n3.5-5.17 seconds: return smoothly to the exact supplied final pose. Keep the mounted unit at the same small pixel size, same distant three-quarter view and same ground line throughout.\n\nThe equipment boxes never activate. The lance never emits energy. Keep the full cat, all four paws, tail, rider, lance butt and lance point visible on uniform white. One thrust only; no flame, smoke, glow, exhaust, projectile, flash, explosion, charge, zoom, crop, camera approach, extra limb, target, scenery, shadow, text, logo or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact small mounted character from the supplied first and last frame: the same hamster, armored tabby cat, EOD clothing, saddle, reins, holstered sidearm, two dark rear equipment boxes and one complete long black lance. The two rear boxes are inert carried equipment. They remain cold, dark and mechanically still for the entire video.\n\n0.0-1.2 seconds: the cat braces almost in place while the seated rider draws the lance slightly backward.\n\n1.2-3.5 seconds: perform one ordinary mounted spear-training thrust toward screen right. The cat makes one compact supporting step. The rider extends the same rigid lance to one clear contact pose and immediately withdraws it. This is only a physical spear thrust.\n\n3.5-5.17 seconds: return smoothly to the exact supplied final pose. Keep the mounted unit at the same small pixel size, same distant three-quarter view and same ground line throughout.\n\nThe equipment boxes never activate. The lance never emits energy. Keep the full cat, all four paws, tail, rider, lance butt and lance point visible on uniform white. One thrust only; no flame, smoke, glow, exhaust, projectile, flash, explosion, charge, zoom, crop, camera approach, extra limb, target, scenery, shadow, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "8272174c6693716d834f994325029855a1273ef7ccee21752614fc7b9d761f42",
+  "effectivePromptSha256": "8272174c6693716d834f994325029855a1273ef7ccee21752614fc7b9d761f42",
+  "finalPromptSha256": "0199fdd879f3022e2ab8677a277109199749282c56215969c2508446632fe4b4",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\lance-attacking-h3-v03-first-last.txt",
+      "bytes": 1249,
+      "sha256": "f539b9f48eb5e7c41203e00ebc1adedc510859da62c7f0744129e287a2c33b97"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "bytes": 127095,
+      "sha256": "abb22eaefecbdce4fbd6f4c75c90ff1fb09118149c8655cbe5893a88746718bc"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "bytes": 127095,
+      "sha256": "abb22eaefecbdce4fbd6f4c75c90ff1fb09118149c8655cbe5893a88746718bc"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\lance-attacking-h3-v03_contact.png",
+    "bytes": 278570,
+    "sha256": "6916059b756e06b2d43a1bd73443fddbc437ef2096b54278e8edf720126d7a9a"
+  },
+  "elapsedSeconds": 460.51
+}

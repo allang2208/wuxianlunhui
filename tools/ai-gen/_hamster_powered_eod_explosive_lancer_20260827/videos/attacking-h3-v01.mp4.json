@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T15:29:18.571456+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\attacking-h3-v01.mp4",
+    "bytes": 696334,
+    "sha256": "df90c5d4f81b34f21fcdb8ae5a21cad9c257dae54c88f13893c21da37f8df307"
+  },
+  "promptId": "714e8bc4-d1c4-4bbd-91c5-f049a548146c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 860827003,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: from the original screen-right guard, the armored cat lowers its center of gravity and braces all four paws. The rider leans forward through the hips and lowers the same rigid lance toward one clear horizontal contact line. Red status lamps on the two rear boosters brighten as they spool up.\n\n1.0-3.8 seconds: perform exactly one rocket-assisted heavy-cavalry charge attack toward screen right without crossing the canvas. Both rear booster modules ignite together in one short controlled pulse with narrow orange-blue exhaust. The cat drives through one powerful gallop lunge while the rider stays seated and thrusts the same lance straight forward. At the single peak contact pose, the sealed warhead reaches the target plane and produces one compact bright tip flash with a tight pressure ring; no target is visible. The armor, visor, lance shaft, warhead, cables, saddle and both boosters remain coherent throughout.\n\n3.8-5.17 seconds: the booster exhaust stops, the rider withdraws the lance, the cat regains balance and the mounted unit returns to the original stable guard. Preserve the natural short lunge trajectory while keeping the full subject inside the locked three-quarter camera on a uniform pure-white background.\n\nOne thrust and one tip flash only. Do not repeat the charge, show a target, create a large detached explosion, fire the sidearm, bend or replace the lance, alter equipment, add limbs, detach the rider, move the camera, add scenery, floor, shadow, blood, text, logo or watermark.",
+  "effectivePrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: from the original screen-right guard, the armored cat lowers its center of gravity and braces all four paws. The rider leans forward through the hips and lowers the same rigid lance toward one clear horizontal contact line. Red status lamps on the two rear boosters brighten as they spool up.\n\n1.0-3.8 seconds: perform exactly one rocket-assisted heavy-cavalry charge attack toward screen right without crossing the canvas. Both rear booster modules ignite together in one short controlled pulse with narrow orange-blue exhaust. The cat drives through one powerful gallop lunge while the rider stays seated and thrusts the same lance straight forward. At the single peak contact pose, the sealed warhead reaches the target plane and produces one compact bright tip flash with a tight pressure ring; no target is visible. The armor, visor, lance shaft, warhead, cables, saddle and both boosters remain coherent throughout.\n\n3.8-5.17 seconds: the booster exhaust stops, the rider withdraws the lance, the cat regains balance and the mounted unit returns to the original stable guard. Preserve the natural short lunge trajectory while keeping the full subject inside the locked three-quarter camera on a uniform pure-white background.\n\nOne thrust and one tip flash only. Do not repeat the charge, show a target, create a large detached explosion, fire the sidearm, bend or replace the lance, alter equipment, add limbs, detach the rider, move the camera, add scenery, floor, shadow, blood, text, logo or watermark.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: from the original screen-right guard, the armored cat lowers its center of gravity and braces all four paws. The rider leans forward through the hips and lowers the same rigid lance toward one clear horizontal contact line. Red status lamps on the two rear boosters brighten as they spool up.\n\n1.0-3.8 seconds: perform exactly one rocket-assisted heavy-cavalry charge attack toward screen right without crossing the canvas. Both rear booster modules ignite together in one short controlled pulse with narrow orange-blue exhaust. The cat drives through one powerful gallop lunge while the rider stays seated and thrusts the same lance straight forward. At the single peak contact pose, the sealed warhead reaches the target plane and produces one compact bright tip flash with a tight pressure ring; no target is visible. The armor, visor, lance shaft, warhead, cables, saddle and both boosters remain coherent throughout.\n\n3.8-5.17 seconds: the booster exhaust stops, the rider withdraws the lance, the cat regains balance and the mounted unit returns to the original stable guard. Preserve the natural short lunge trajectory while keeping the full subject inside the locked three-quarter camera on a uniform pure-white background.\n\nOne thrust and one tip flash only. Do not repeat the charge, show a target, create a large detached explosion, fire the sidearm, bend or replace the lance, alter equipment, add limbs, detach the rider, move the camera, add scenery, floor, shadow, blood, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "afda9ab5653f6c3bf4ba3a8413838092d728a3d5be913fc473a3c2f75278222c",
+  "effectivePromptSha256": "afda9ab5653f6c3bf4ba3a8413838092d728a3d5be913fc473a3c2f75278222c",
+  "finalPromptSha256": "f0c8b5347261ab291fe15220502c07ee143b96088f5912331b15701d42c76dc5",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\attacking-h3-v01.txt",
+      "bytes": 2010,
+      "sha256": "94936afd11939f411a4443abcbbe2caddf10c0632d373f0c9a78b816537012bd"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "bytes": 176661,
+      "sha256": "8dcde5da456cd0a0751aaa86c908f6be020550ff8ffa3635523ef886e1fb0be4"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\attacking-h3-v01_contact.png",
+    "bytes": 485694,
+    "sha256": "cc91fb3fe94c1a6b3225bb2609e01fdbc548806014778ce3fce0a593a2ba55a4"
+  },
+  "elapsedSeconds": 430.569
+}

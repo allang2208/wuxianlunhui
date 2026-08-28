@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T16:18:45.419788+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\charge-attacking-h3-v03.mp4",
+    "bytes": 668341,
+    "sha256": "1022b3a40347d2935997bcd77683c1a4245e370c6edd2da722fb6f3117d65121"
+  },
+  "promptId": "cc31a983-c07e-45c1-9a36-a496689290d2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 860827009,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact small mounted powered lancer from the supplied first and last frame: the same hamster, armored tabby cat, EOD clothing, saddle, reins, exactly two rear booster modules, holstered sidearm and one complete rigid explosive lance.\n\nThe camera follows only the unit's horizontal translation while staying at exactly the same distance and focal length. The unit remains the same small pixel height and apparent scale in every frame. It never approaches the camera and never grows larger.\n\n0.0-1.0 seconds: the cat lowers into a compact charge stance while the seated rider lowers the lance. Both rear boosters spool up together.\n\n1.0-3.8 seconds: perform one screen-right rocket-assisted cavalry charge. The two boosters emit one short narrow orange-blue exhaust pulse. The cat makes one powerful gallop lunge and the rider drives the same lance to one contact pose. The warhead produces one compact tip flash no wider than the cat's head. Maintain constant subject scale through acceleration and contact.\n\n3.8-5.17 seconds: exhaust stops, the lance withdraws and the unit returns to the exact supplied final pose at the original small size.\n\nKeep the full cat, four paws, tail, rider, lance and both boosters visible on uniform white. One charge and one small tip flash only; no zoom, dolly-in, perspective growth, oversized blast wall, crop, second attack, equipment change, extra limb, target, scenery, floor, shadow, blood, text, logo or watermark.",
+  "effectivePrompt": "Keep the exact small mounted powered lancer from the supplied first and last frame: the same hamster, armored tabby cat, EOD clothing, saddle, reins, exactly two rear booster modules, holstered sidearm and one complete rigid explosive lance.\n\nThe camera follows only the unit's horizontal translation while staying at exactly the same distance and focal length. The unit remains the same small pixel height and apparent scale in every frame. It never approaches the camera and never grows larger.\n\n0.0-1.0 seconds: the cat lowers into a compact charge stance while the seated rider lowers the lance. Both rear boosters spool up together.\n\n1.0-3.8 seconds: perform one screen-right rocket-assisted cavalry charge. The two boosters emit one short narrow orange-blue exhaust pulse. The cat makes one powerful gallop lunge and the rider drives the same lance to one contact pose. The warhead produces one compact tip flash no wider than the cat's head. Maintain constant subject scale through acceleration and contact.\n\n3.8-5.17 seconds: exhaust stops, the lance withdraws and the unit returns to the exact supplied final pose at the original small size.\n\nKeep the full cat, four paws, tail, rider, lance and both boosters visible on uniform white. One charge and one small tip flash only; no zoom, dolly-in, perspective growth, oversized blast wall, crop, second attack, equipment change, extra limb, target, scenery, floor, shadow, blood, text, logo or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact small mounted powered lancer from the supplied first and last frame: the same hamster, armored tabby cat, EOD clothing, saddle, reins, exactly two rear booster modules, holstered sidearm and one complete rigid explosive lance.\n\nThe camera follows only the unit's horizontal translation while staying at exactly the same distance and focal length. The unit remains the same small pixel height and apparent scale in every frame. It never approaches the camera and never grows larger.\n\n0.0-1.0 seconds: the cat lowers into a compact charge stance while the seated rider lowers the lance. Both rear boosters spool up together.\n\n1.0-3.8 seconds: perform one screen-right rocket-assisted cavalry charge. The two boosters emit one short narrow orange-blue exhaust pulse. The cat makes one powerful gallop lunge and the rider drives the same lance to one contact pose. The warhead produces one compact tip flash no wider than the cat's head. Maintain constant subject scale through acceleration and contact.\n\n3.8-5.17 seconds: exhaust stops, the lance withdraws and the unit returns to the exact supplied final pose at the original small size.\n\nKeep the full cat, four paws, tail, rider, lance and both boosters visible on uniform white. One charge and one small tip flash only; no zoom, dolly-in, perspective growth, oversized blast wall, crop, second attack, equipment change, extra limb, target, scenery, floor, shadow, blood, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "278c07edd308a3a035f09b385c7c526060c48d01067b30ab4f0fc7c29c22ddb8",
+  "effectivePromptSha256": "278c07edd308a3a035f09b385c7c526060c48d01067b30ab4f0fc7c29c22ddb8",
+  "finalPromptSha256": "0a4125c8b81a865e78fa94047fff9c00e959deafe123399041699c5ad3702c76",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\charge-attacking-h3-v03-first-last.txt",
+      "bytes": 1462,
+      "sha256": "50ca53fc098f6485ea6065f9cb7de53e16eb5e889a4206303898eba3e0fcaa01"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "bytes": 127095,
+      "sha256": "abb22eaefecbdce4fbd6f4c75c90ff1fb09118149c8655cbe5893a88746718bc"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-attack-safe-white-1024x576.png",
+      "bytes": 127095,
+      "sha256": "abb22eaefecbdce4fbd6f4c75c90ff1fb09118149c8655cbe5893a88746718bc"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\charge-attacking-h3-v03_contact.png",
+    "bytes": 384095,
+    "sha256": "325a91033de78ea01fc483171530f2db57e8aee3629179d50226369f5e71a452"
+  },
+  "elapsedSeconds": 500.552
+}

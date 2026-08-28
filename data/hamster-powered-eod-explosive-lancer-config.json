@@ -1,0 +1,88 @@
+{
+  "id": "hamster_powered_eod_explosive_lancer",
+  "name": "仓鼠动力爆矛重骑兵",
+  "title": "骑兵学院三级重骑·动力爆矛",
+  "desc": "银灰战猫搭载双火箭助推器。以爆矛进行普通物理突刺，并周期性发动加速冲锋；冲锋直击眩晕主目标，命中点爆炸只对周围敌人造成范围伤害。",
+  "role": "powered_eod_explosive_lancer",
+  "growthRule": "warrior",
+  "avatar": "🐹🐈🚀",
+  "weaponType": "powered_explosive_lance",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 1050,
+  "baseData": {
+    "str": 42,
+    "dex": 16,
+    "int": 5,
+    "con": 32,
+    "wis": 4,
+    "luck": 7
+  },
+  "statFormula": "enemy",
+  "groundRadius": 24,
+  "collisionRadius": 24,
+  "bodyHeight": 112,
+  "size": 72,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3",
+    "chargeImpact": "assets/sounds/skills/fireball_hit.mp3"
+  },
+  "ai": {
+    "role": "melee_powered_explosive_lancer",
+    "walkSpeed": 205,
+    "runSpeed": 205,
+    "attackInterval": 2300,
+    "attackDamage": 170,
+    "attackRange": 78,
+    "engageRange": 950,
+    "attackAnimFps": 24,
+    "attackDamageFrame": 21,
+    "followOffset": 170,
+    "followArriveDist": 42,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999,
+    "charge": {
+      "cooldown": 16000,
+      "startSpeed": 180,
+      "maxSpeed": 940,
+      "accelDuration": 900,
+      "accelExponent": 1.35,
+      "maxDuration": 2400,
+      "maxDistance": 2200,
+      "minTriggerRange": 340,
+      "triggerRange": 760,
+      "hitRange": 82,
+      "damageMul": 2.75,
+      "knockback": 280,
+      "stunMs": 3500,
+      "frames": 49,
+      "frameRate": 24,
+      "hitStartFrame": 23,
+      "hitEndFrame": 34,
+      "completeAnimationAfterHit": true,
+      "impactAoe": {
+        "radius": 180,
+        "damageMul": 1.15,
+        "minDamageRatio": 0.5,
+        "expectedExtraTargets": 1
+      }
+    }
+  },
+  "displaySize": 390,
+  "spriteOffsetY": -90.644531,
+  "render": {
+    "footOffsetY": 90.644531,
+    "hudOffsetY": 215,
+    "collisionWidth": 48,
+    "collisionHeight": 112
+  },
+  "animations": {
+    "idle": { "src": "assets/companions/hamster_powered_eod_explosive_lancer/idle.png", "frameWidth": 384, "frameHeight": 512, "cols": 5, "rows": 4, "frameCount": 20, "frames": [0, 19], "frameRate": 12, "repeat": -1 },
+    "walk": { "src": "assets/companions/hamster_powered_eod_explosive_lancer/running.png", "frameWidth": 384, "frameHeight": 512, "cols": 6, "rows": 4, "frameCount": 22, "frames": [0, 21], "frameRate": 24, "repeat": -1 },
+    "attack": { "src": "assets/companions/hamster_powered_eod_explosive_lancer/attacking.png", "frameWidth": 1024, "frameHeight": 512, "cols": 5, "rows": 8, "frameCount": 39, "frames": [0, 38], "frameRate": 24, "repeat": 0 },
+    "charge": { "src": "assets/companions/hamster_powered_eod_explosive_lancer/charging.png", "frameWidth": 768, "frameHeight": 512, "cols": 7, "rows": 7, "frameCount": 49, "frames": [0, 48], "frameRate": 24, "repeat": 0 },
+    "dying": { "src": "assets/companions/hamster_powered_eod_explosive_lancer/dying.png", "frameWidth": 640, "frameHeight": 512, "cols": 7, "rows": 5, "frameCount": 35, "frames": [0, 34], "frameRate": 20, "repeat": 0 }
+  }
+}

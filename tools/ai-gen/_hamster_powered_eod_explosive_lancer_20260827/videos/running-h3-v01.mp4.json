@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T15:21:36.752585+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\running-h3-v01.mp4",
+    "bytes": 719250,
+    "sha256": "9fe7d0c3092f5b45c8b6c01b38fa730e51d256579f903b5195f2b57eab92618b"
+  },
+  "promptId": "c66ef54d-e39d-49ff-b613-8705e1f59778",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 860827002,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: the armored cat lowers slightly into the opening phase of a steady screen-right gallop while remaining centered in place. The rider leans forward only enough to balance the heavy armor and keeps the lance in the original forward-upward guard.\n\n1.0-3.8 seconds: perform continuous natural in-place cavalry running at a constant tempo. The cat cycles its four anatomical legs through clear alternating foreleg and hind-leg phases, with stable spine, grounded weight transfer and a short counterbalancing tail. The rider stays seated in the saddle and absorbs the gait through hips and knees. The lance remains one straight rigid weapon; both booster housings remain attached and inactive, with only restrained cable and fabric secondary motion.\n\n3.8-5.17 seconds: complete the final gait cycle and return to the exact opening leg phase for a seamless loop. Keep fixed screen scale, fixed center and fixed ground line in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, every paw, tail, rider, lance butt, warhead and both boosters visible.\n\nDo not travel across the canvas, slide, attack, ignite boosters, rear, jump, change direction, bend the lance, alter equipment, add limbs, detach the rider, move the camera, add scenery, shadow, text, logo or watermark.",
+  "effectivePrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: the armored cat lowers slightly into the opening phase of a steady screen-right gallop while remaining centered in place. The rider leans forward only enough to balance the heavy armor and keeps the lance in the original forward-upward guard.\n\n1.0-3.8 seconds: perform continuous natural in-place cavalry running at a constant tempo. The cat cycles its four anatomical legs through clear alternating foreleg and hind-leg phases, with stable spine, grounded weight transfer and a short counterbalancing tail. The rider stays seated in the saddle and absorbs the gait through hips and knees. The lance remains one straight rigid weapon; both booster housings remain attached and inactive, with only restrained cable and fabric secondary motion.\n\n3.8-5.17 seconds: complete the final gait cycle and return to the exact opening leg phase for a seamless loop. Keep fixed screen scale, fixed center and fixed ground line in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, every paw, tail, rider, lance butt, warhead and both boosters visible.\n\nDo not travel across the canvas, slide, attack, ignite boosters, rear, jump, change direction, bend the lance, alter equipment, add limbs, detach the rider, move the camera, add scenery, shadow, text, logo or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: the armored cat lowers slightly into the opening phase of a steady screen-right gallop while remaining centered in place. The rider leans forward only enough to balance the heavy armor and keeps the lance in the original forward-upward guard.\n\n1.0-3.8 seconds: perform continuous natural in-place cavalry running at a constant tempo. The cat cycles its four anatomical legs through clear alternating foreleg and hind-leg phases, with stable spine, grounded weight transfer and a short counterbalancing tail. The rider stays seated in the saddle and absorbs the gait through hips and knees. The lance remains one straight rigid weapon; both booster housings remain attached and inactive, with only restrained cable and fabric secondary motion.\n\n3.8-5.17 seconds: complete the final gait cycle and return to the exact opening leg phase for a seamless loop. Keep fixed screen scale, fixed center and fixed ground line in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, every paw, tail, rider, lance butt, warhead and both boosters visible.\n\nDo not travel across the canvas, slide, attack, ignite boosters, rear, jump, change direction, bend the lance, alter equipment, add limbs, detach the rider, move the camera, add scenery, shadow, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "c26603ef58987070ea2daef8aff73ac01018272f960b78ce82d112cd9e49a40a",
+  "effectivePromptSha256": "c26603ef58987070ea2daef8aff73ac01018272f960b78ce82d112cd9e49a40a",
+  "finalPromptSha256": "53fd487b01ae9543997bb77a0dcb2d62a21764d47a2d52d118959cbfaaf5b097",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\running-h3-v01.txt",
+      "bytes": 1799,
+      "sha256": "6751fe8459d7ca54bb8f99a9c73e0a4d9d81d12830952fb4cd5068f2a47073b2"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "bytes": 176661,
+      "sha256": "8dcde5da456cd0a0751aaa86c908f6be020550ff8ffa3635523ef886e1fb0be4"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "bytes": 176661,
+      "sha256": "8dcde5da456cd0a0751aaa86c908f6be020550ff8ffa3635523ef886e1fb0be4"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\running-h3-v01_contact.png",
+    "bytes": 399608,
+    "sha256": "2a4b76f7f6ffe7761538850eaa48973134bd0794f77c0848bf467af9822db04e"
+  },
+  "elapsedSeconds": 460.643
+}

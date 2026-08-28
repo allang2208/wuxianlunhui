@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T15:13:31.396727+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\idle-h3-v01.mp4",
+    "bytes": 394296,
+    "sha256": "881381cd3a5d4dbfa54b9ff90b4523b0e4f61319e5c75b501f0cabd1b93d3914"
+  },
+  "promptId": "db49e67e-e1be-4db8-a519-2a12b1238504",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 860827001,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: hold the original screen-right mounted guard. All four cat paws stay planted on the same ground line. The cat begins one restrained breathing cycle while the rider remains correctly seated and keeps both hands on the same rigid lance and reins.\n\n1.0-3.8 seconds: continue a calm heavy-cavalry idle. The cat makes one small ear movement, one blink and a gentle short tail sway. The rider absorbs the breathing with a tiny seated weight shift. The visor, armor plates, lance, cables, saddle and both booster housings remain rigid and continuous; the boosters stay inactive.\n\n3.8-5.17 seconds: settle smoothly back into the exact opening pose and motion phase for a seamless loop. Keep the subject at fixed scale and fixed position in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both boosters fully visible.\n\nDo not walk, charge, attack, ignite boosters, bend or shorten the lance, alter the armor, add limbs, detach the rider, move the camera, add scenery, shadow, text, logo or watermark.",
+  "effectivePrompt": "Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: hold the original screen-right mounted guard. All four cat paws stay planted on the same ground line. The cat begins one restrained breathing cycle while the rider remains correctly seated and keeps both hands on the same rigid lance and reins.\n\n1.0-3.8 seconds: continue a calm heavy-cavalry idle. The cat makes one small ear movement, one blink and a gentle short tail sway. The rider absorbs the breathing with a tiny seated weight shift. The visor, armor plates, lance, cables, saddle and both booster housings remain rigid and continuous; the boosters stay inactive.\n\n3.8-5.17 seconds: settle smoothly back into the exact opening pose and motion phase for a seamless loop. Keep the subject at fixed scale and fixed position in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both boosters fully visible.\n\nDo not walk, charge, attack, ignite boosters, bend or shorten the lance, alter the armor, add limbs, detach the rider, move the camera, add scenery, shadow, text, logo or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact mounted powered EOD explosive lancer identity from the supplied first frame: the same narrow-faced brown hamster inside the clear-visored olive heavy bomb-disposal suit, the same silver-gray tabby cat in olive Kevlar barding with hard ballistic inserts, the same saddle and reins, exactly two rear charge-assist booster modules, the holstered sidearm, and one complete long black rocket-assisted explosive lance with its red-white bands and sealed conical warhead.\n\n0.0-1.0 seconds: hold the original screen-right mounted guard. All four cat paws stay planted on the same ground line. The cat begins one restrained breathing cycle while the rider remains correctly seated and keeps both hands on the same rigid lance and reins.\n\n1.0-3.8 seconds: continue a calm heavy-cavalry idle. The cat makes one small ear movement, one blink and a gentle short tail sway. The rider absorbs the breathing with a tiny seated weight shift. The visor, armor plates, lance, cables, saddle and both booster housings remain rigid and continuous; the boosters stay inactive.\n\n3.8-5.17 seconds: settle smoothly back into the exact opening pose and motion phase for a seamless loop. Keep the subject at fixed scale and fixed position in the locked three-quarter camera on a uniform pure-white background. Keep the complete cat, four paws, tail, rider, lance butt, warhead and both boosters fully visible.\n\nDo not walk, charge, attack, ignite boosters, bend or shorten the lance, alter the armor, add limbs, detach the rider, move the camera, add scenery, shadow, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "bcdd88ffec66bc7e0d2736ab17333195e42f4ec92e4f42b6e362699f070c39ea",
+  "effectivePromptSha256": "bcdd88ffec66bc7e0d2736ab17333195e42f4ec92e4f42b6e362699f070c39ea",
+  "finalPromptSha256": "f464de2bc66843c77ea86bcf39acca8d22cec618505a8deb13e187d3d525e7b9",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\prompts\\idle-h3-v01.txt",
+      "bytes": 1581,
+      "sha256": "5e8b81ed808b5ae89acc2e327bf0cace7d5b4519c6552c382558737d69b0e06e"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "bytes": 176661,
+      "sha256": "8dcde5da456cd0a0751aaa86c908f6be020550ff8ffa3635523ef886e1fb0be4"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\references\\hamster-powered-eod-explosive-lancer-safe-white-1024x576.png",
+      "bytes": 176661,
+      "sha256": "8dcde5da456cd0a0751aaa86c908f6be020550ff8ffa3635523ef886e1fb0be4"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_powered_eod_explosive_lancer_20260827\\videos\\idle-h3-v01_contact.png",
+    "bytes": 351077,
+    "sha256": "051d53d277706859f74a807c451e41ca670adab5c2b1843a32f83106a3944015"
+  },
+  "elapsedSeconds": 460.693
+}

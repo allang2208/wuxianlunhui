@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-27T13:56:53.230192+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\standing-attacking-h3-v02.mp4",
+    "bytes": 613349,
+    "sha256": "1a09bd0cdcedc07c65a5ecd41500cc248e240b8fa0c3cd4e39e7e73b92908962"
+  },
+  "promptId": "c90545c7-c09b-4d6d-9f05-bd893c5ed3b7",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 850337408,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep exactly one warm gray-brown hamster rider, one orange tabby cat mount and one complete semi-automatic scout rifle.\n\n0.00-2.45 seconds: maintain the opening right-facing standing aim. The cat holds a quiet square stance with its four paws continuously planted at the same four screen positions. Subtle breathing and tiny ear or tail balance are allowed, while the body root remains fixed. The rider stays seated and keeps the rifle shouldered on the target. The muzzle is dark and inactive.\n\n2.45-2.58 seconds: perform one single trigger pull. A single compact muzzle flash appears and vanishes immediately. The rifle and the rider's shoulder move through one short restrained recoil impulse while both hands remain on the same rifle. The mounted cat absorbs the impulse without lifting or repositioning any paw.\n\n2.58-3.20 seconds: one narrow smoke wisp fades from the muzzle while the rifle returns smoothly to the opening aim. This is the recovery from that same trigger pull, not another firing action.\n\n3.20-5.17 seconds: hold the recovered aimed pose steadily. The muzzle stays dark and inactive. The cat remains planted in the same square stance, and the rider remains ready without any repeated recoil. End at the same screen position, scale and standing readiness as the opening.\n\nLocked wide side-view camera on a pure uniform white background with flat soft asset lighting. Keep the complete cat, four anatomical legs, four paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and rifle fully visible with generous margins. Preserve the rifle stock, magazine, optic, handguard, barrel and muzzle as one rigid object. Preserve one rider and one mount throughout. Keep the feet, mounted body root and camera stationary; exclude stepping, sliding, duplicated firing, additional characters, duplicated weapons, detached equipment, floor and scenery.",
+  "effectivePrompt": "Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep exactly one warm gray-brown hamster rider, one orange tabby cat mount and one complete semi-automatic scout rifle.\n\n0.00-2.45 seconds: maintain the opening right-facing standing aim. The cat holds a quiet square stance with its four paws continuously planted at the same four screen positions. Subtle breathing and tiny ear or tail balance are allowed, while the body root remains fixed. The rider stays seated and keeps the rifle shouldered on the target. The muzzle is dark and inactive.\n\n2.45-2.58 seconds: perform one single trigger pull. A single compact muzzle flash appears and vanishes immediately. The rifle and the rider's shoulder move through one short restrained recoil impulse while both hands remain on the same rifle. The mounted cat absorbs the impulse without lifting or repositioning any paw.\n\n2.58-3.20 seconds: one narrow smoke wisp fades from the muzzle while the rifle returns smoothly to the opening aim. This is the recovery from that same trigger pull, not another firing action.\n\n3.20-5.17 seconds: hold the recovered aimed pose steadily. The muzzle stays dark and inactive. The cat remains planted in the same square stance, and the rider remains ready without any repeated recoil. End at the same screen position, scale and standing readiness as the opening.\n\nLocked wide side-view camera on a pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with flat soft asset lighting. Keep the complete cat, four anatomical legs, four paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and rifle fully visible with generous margins. Preserve the rifle stock, magazine, optic, handguard, barrel and muzzle as one rigid object. Preserve one rider and one mount throughout. Keep the feet, mounted body root and camera stationary; exclude stepping, sliding, duplicated firing, additional characters, duplicated weapons, detached equipment, floor and scenery.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied first frame as the exact identity, proportions, equipment, rendering style and opening pose of this original mounted reconnaissance skirmisher. Keep exactly one warm gray-brown hamster rider, one orange tabby cat mount and one complete semi-automatic scout rifle.\n\n0.00-2.45 seconds: maintain the opening right-facing standing aim. The cat holds a quiet square stance with its four paws continuously planted at the same four screen positions. Subtle breathing and tiny ear or tail balance are allowed, while the body root remains fixed. The rider stays seated and keeps the rifle shouldered on the target. The muzzle is dark and inactive.\n\n2.45-2.58 seconds: perform one single trigger pull. A single compact muzzle flash appears and vanishes immediately. The rifle and the rider's shoulder move through one short restrained recoil impulse while both hands remain on the same rifle. The mounted cat absorbs the impulse without lifting or repositioning any paw.\n\n2.58-3.20 seconds: one narrow smoke wisp fades from the muzzle while the rifle returns smoothly to the opening aim. This is the recovery from that same trigger pull, not another firing action.\n\n3.20-5.17 seconds: hold the recovered aimed pose steadily. The muzzle stays dark and inactive. The cat remains planted in the same square stance, and the rider remains ready without any repeated recoil. End at the same screen position, scale and standing readiness as the opening.\n\nLocked wide side-view camera on a pure uniformsolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with flat soft asset lighting. Keep the complete cat, four anatomical legs, four paws, tail, rider, helmet, goggles, headset, cape, radio, saddle, harness, teal blanket, pouches and rifle fully visible with generous margins. Preserve the rifle stock, magazine, optic, handguard, barrel and muzzle as one rigid object. Preserve one rider and one mount throughout. Keep the feet, mounted body root and camera stationary; exclude stepping, sliding, duplicated firing, additional characters, duplicated weapons, detached equipment, floor and scenery. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "6f50ba14b7e3e2be56349428ab3a5f8f4a38c09caa285829477dd70c8cf3b2b4",
+  "effectivePromptSha256": "9b8d73cf3d6f1f02ee27a65dd8b5251df88b0c0ba451ba4963c90e271783fe84",
+  "finalPromptSha256": "fdd33eee2cfbc75f02af83f60120922327316334b9af8c6e12da8b2a4381a089",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\prompts\\standing-attacking-h3-v02.txt",
+      "bytes": 2066,
+      "sha256": "ff7f68faa43c3de948c8ab38b764ca850e76997d982db6742893f79f1fe1bc7e"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\references\\hamster-scout-rifle-skirmisher-standing-v03-safe-white-1024x576.png",
+      "bytes": 273308,
+      "sha256": "13525accde9af36679c00e647b06fdcd8d9abffbd1d9efe70a05d5abba1e6db3"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_scout_rifle_skirmisher_20260827\\videos\\standing-attacking-h3-v02_contact.png",
+    "bytes": 430589,
+    "sha256": "924d5114b44adc0a29b4a898a684e79ee4cc8f7b9a2ba7b6c7629cab34e0aea0"
+  },
+  "elapsedSeconds": 430.452
+}

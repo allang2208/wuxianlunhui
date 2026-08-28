@@ -31,6 +31,8 @@ import { HamsterKnight } from '../entities/hamster-knight.js';
 import { HamsterLightCavalry } from '../entities/hamster-light-cavalry.js';
 import { HamsterCavalry } from '../entities/hamster-cavalry.js';
 import { HamsterWingedHussar } from '../entities/hamster-winged-hussar.js';
+import { HamsterScoutRifleSkirmisher } from '../entities/hamster-scout-rifle-skirmisher.js';
+import { HamsterPoweredEodExplosiveLancer } from '../entities/hamster-powered-eod-explosive-lancer.js';
 import { HamsterNinja } from '../entities/hamster-ninja.js';
 import { HamsterSamurai } from '../entities/hamster-samurai.js';
 import { HamsterCamelCavalry } from '../entities/hamster-camel-cavalry.js';
@@ -92,6 +94,8 @@ import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
 import cavalryCfg from '../../data/hamster-cavalry-config.json';
 import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
+import scoutRifleSkirmisherCfg from '../../data/hamster-scout-rifle-skirmisher-config.json';
+import poweredEodExplosiveLancerCfg from '../../data/hamster-powered-eod-explosive-lancer-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -197,6 +201,8 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     light_cavalry: '仓鼠轻骑',
     cavalry: '仓鼠骑兵',
     winged_hussar: '仓鼠翼骑兵',
+    scout_rifle_skirmisher: '仓鼠侦察游骑兵',
+    powered_eod_explosive_lancer: '仓鼠动力爆矛重骑兵',
     ninja: '仓鼠忍者',
     samurai: '仓鼠武士',
     camel_cavalry: '骆驼骑兵',
@@ -307,6 +313,8 @@ const PRODUCER_UNIT_CFG = {
     light_cavalry: lightCavalryCfg,
     cavalry: cavalryCfg,
     winged_hussar: wingedHussarCfg,
+    scout_rifle_skirmisher: scoutRifleSkirmisherCfg,
+    powered_eod_explosive_lancer: poweredEodExplosiveLancerCfg,
     ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
@@ -342,6 +350,8 @@ const PRODUCER_UNIT_CLASS = {
     light_cavalry: HamsterLightCavalry,
     cavalry: HamsterCavalry,
     winged_hussar: HamsterWingedHussar,
+    scout_rifle_skirmisher: HamsterScoutRifleSkirmisher,
+    powered_eod_explosive_lancer: HamsterPoweredEodExplosiveLancer,
     ninja: HamsterNinja,
     samurai: HamsterSamurai,
     camel_cavalry: HamsterCamelCavalry,
@@ -391,6 +401,8 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     light_cavalry: 'data/hamster-light-cavalry-config.json',
     cavalry: 'data/hamster-cavalry-config.json',
     winged_hussar: 'data/hamster-winged-hussar-config.json',
+    scout_rifle_skirmisher: 'data/hamster-scout-rifle-skirmisher-config.json',
+    powered_eod_explosive_lancer: 'data/hamster-powered-eod-explosive-lancer-config.json',
     ninja: 'data/hamster-ninja-config.json',
     samurai: 'data/hamster-samurai-config.json',
     camel_cavalry: 'data/hamster-camel-cavalry-config.json',
