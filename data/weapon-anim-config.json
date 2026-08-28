@@ -2535,6 +2535,76 @@
     },
     "bobWeaponScale": 2
   },
+  "m1911a1": {
+    "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.11,
+    "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.03, "recoilSwing": 0.07, "recoilRecover": 0.03, "shakeIntensity": 2 },
+    "idleRotation": 0, "idleScale": 0.6,
+    "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "rotOffset": -6, "dualOffsetX": 5,
+    "muzzle": { "x": 0.92, "y": 0.35, "forward": 11, "up": 1, "offhandOffsetY": 2 },
+    "bobWeaponScale": 2
+  },
+  "usp45": {
+    "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.08,
+    "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.025, "recoilSwing": 0.06, "recoilRecover": 0.025, "shakeIntensity": 1.5 },
+    "idleRotation": 0, "idleScale": 0.6,
+    "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "rotOffset": -6, "dualOffsetX": 5,
+    "muzzle": { "x": 0.92, "y": 0.35, "forward": 11, "up": 1, "offhandOffsetY": 2 },
+    "bobWeaponScale": 2
+  },
+  "fiveSeven": {
+    "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.06,
+    "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.02, "recoilSwing": 0.05, "recoilRecover": 0.02, "shakeIntensity": 1 },
+    "idleRotation": 0, "idleScale": 0.6,
+    "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "rotOffset": -6, "dualOffsetX": 5,
+    "muzzle": { "x": 0.92, "y": 0.35, "forward": 11, "up": 1, "offhandOffsetY": 2 },
+    "bobWeaponScale": 2
+  },
+  "eternalEdict": {
+    "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.14,
+    "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.035, "recoilSwing": 0.085, "recoilRecover": 0.035, "shakeIntensity": 3 },
+    "idleRotation": 0, "idleScale": 0.6,
+    "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "rotOffset": -6, "dualOffsetX": 5,
+    "muzzle": { "x": 0.92, "y": 0.35, "forward": 11, "up": 1, "offhandOffsetY": 2 },
+    "bobWeaponScale": 2
+  },
+  "falconEdict": {
+    "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.1,
+    "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.025, "recoilSwing": 0.065, "recoilRecover": 0.025, "shakeIntensity": 2 },
+    "idleRotation": 0, "idleScale": 0.6,
+    "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "rotOffset": -6, "dualOffsetX": 5,
+    "muzzle": { "x": 0.92, "y": 0.35, "forward": 11, "up": 1, "offhandOffsetY": 2 },
+    "bobWeaponScale": 2
+  },
+  "crimsonCrownSettlement": {
+    "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.13,
+    "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.03, "recoilSwing": 0.08, "recoilRecover": 0.03, "shakeIntensity": 3 },
+    "idleRotation": 0, "idleScale": 0.6,
+    "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "rotOffset": -6, "dualOffsetX": 5,
+    "muzzle": { "x": 0.92, "y": 0.35, "forward": 11, "up": 1, "offhandOffsetY": 2 },
+    "bobWeaponScale": 2
+  },
+  "myriadCorridor": {
+    "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.08,
+    "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.02, "recoilSwing": 0.05, "recoilRecover": 0.02, "shakeIntensity": 2 },
+    "idleRotation": 0, "idleScale": 0.6,
+    "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
+    "rotOffset": -6, "dualOffsetX": 5,
+    "muzzle": { "x": 0.92, "y": 0.35, "forward": 11, "up": 1, "offhandOffsetY": 2 },
+    "bobWeaponScale": 2
+  },
   "stg44": {
     "aimSpriteOffsetX": -5,
     "holdOffsetX": -64,

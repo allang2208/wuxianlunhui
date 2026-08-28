@@ -895,6 +895,127 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: () => '裁决幸存者继承末印',
         tooltip: '黑弥撒的幸存目标继承触发裁决时的最后一枚符文；不会立即再次裁决',
     },
+    sanctifiedRestMsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `圣膛蓄势${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '调整恒星圣谕停火后完成圣膛蓄势的等待时间',
+    },
+    sanctifiedDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `圣膛伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整恒星圣谕蓄势弹的伤害倍率',
+    },
+    sanctifiedSpreadMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `圣膛散布倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整恒星圣谕蓄势弹相对普通弹道的散布倍率',
+    },
+    sanctifiedPiercingBonus: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `圣膛额外贯穿+${v}`,
+        tooltip: '提高恒星圣谕蓄势弹可额外贯穿的目标数',
+    },
+    sanctifiedKnockbackDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `圣膛击退${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '调整恒星圣谕蓄势弹的额外击退距离',
+    },
+    duelistRequiredShotsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `决斗律终拍序号${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整猎隼裁令每轮触发裁决弹所需的连续射击数',
+    },
+    duelistResetMsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `决斗律重置${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '调整猎隼裁令停火后清空决斗节拍的等待时间',
+    },
+    duelistDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `裁决弹伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整猎隼裁令决斗终拍的伤害倍率',
+    },
+    duelistSpreadMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `裁决弹散布倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整猎隼裁令决斗终拍相对普通弹道的散布倍率',
+    },
+    duelistPiercingBonus: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `裁决弹额外贯穿+${v}`,
+        tooltip: '提高猎隼裁令决斗终拍可额外贯穿的目标数',
+    },
+    duelistKnockbackDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `裁决弹击退${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '调整猎隼裁令决斗终拍的额外击退距离',
+    },
+    settlementHitsRequiredDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `血债清算所需命中${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整赤冕清算对同一目标触发血债所需的确认命中数',
+    },
+    settlementDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `血债伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整赤冕清算血债追加伤害相对本发伤害的倍率',
+    },
+    settlementResetMsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `血债重置${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '调整同一目标血债命中序列允许的间隔',
+    },
+    settlementSplashRadius: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `连坐半径${v}px`,
+        tooltip: '血债清算时对目标附近敌人追加连坐余波',
+    },
+    settlementSplashMultiplier: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `连坐伤害倍率${v.toFixed(2)}`,
+        tooltip: '设置赤冕清算连坐余波相对本发伤害的倍率',
+    },
+    settlementSplashMaxTargets: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `连坐目标上限${v}`, tooltip: '设置一次血债清算最多波及的额外目标数',
+    },
+    settlementLowHealthThreshold: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `斩首阈值${Math.round(v * 100)}%`, tooltip: '目标生命低于阈值时强化血债伤害',
+    },
+    settlementLowHealthMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `斩首血债倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`, tooltip: '调整低生命目标受到的血债追加倍率',
+    },
+    corridorTargetsRequiredDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `闭环所需不同目标${v >= 0 ? '+' : ''}${v}`, tooltip: '调整万象回廊闭合前需要标记的不同目标数',
+    },
+    corridorResetMsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `回廊记忆${v >= 0 ? '+' : ''}${v}ms`, tooltip: '调整不同目标标记的保留时间',
+    },
+    corridorEchoMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `回响伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`, tooltip: '调整闭环时每个已标记目标受到的回响伤害倍率',
+    },
+    corridorFocusLastTarget: {
+        category: 'special', applyMode: 'flag', display: () => '回响聚焦末目标', tooltip: '闭环时取消多目标回响并把伤害集中到最后标记的目标',
+    },
+    corridorFocusMultiplier: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `聚焦回响倍率${v.toFixed(2)}`, tooltip: '设置聚焦末目标时的回响伤害倍率',
+    },
+    corridorScatterExtraTargets: {
+        category: 'special', applyMode: 'override', display: (v) => `散射额外目标${v}`, tooltip: '闭环时搜索未被标记的附近敌人',
+    },
+    corridorScatterRange: {
+        category: 'special', applyMode: 'override', display: (v) => `散射范围${v}px`, tooltip: '设置闭环散射搜索未标记敌人的范围',
+    },
+    corridorScatterMultiplier: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `散射伤害倍率${v.toFixed(2)}`, tooltip: '设置未标记敌人受到的散射回响倍率',
+    },
     magicDamagePercent: {
         category: 'damage',
         applyMode: 'multiply',

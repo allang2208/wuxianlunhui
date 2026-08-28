@@ -1245,3 +1245,23 @@ CRAFT_DEFAULT_SLOTS.weapon48 = [
   { id: 'stock', name: '荆棘托', x: 0.92, y: 0.36, lineTarget: { x: 0.5, y: 0.67 } },
   { id: 'sight', name: '寻迹镜', x: 0.92, y: 0.75, lineTarget: { x: 0.5, y: 0.34 } },
 ];
+CRAFT_DEFAULT_SLOTS.weapon52 = [
+  { id: 'chamber', name: '圣膛', x: 0.16, y: 0.28, lineTarget: { x: 0.56, y: 0.44 } },
+  { id: 'bullet', name: '裁决弹', x: 0.86, y: 0.26, lineTarget: { x: 0.7, y: 0.43 } },
+  { id: 'grip', name: '誓约握柄', x: 0.84, y: 0.72, lineTarget: { x: 0.45, y: 0.62 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon53 = [
+  { id: 'trigger', name: '决斗机括', x: 0.16, y: 0.7, lineTarget: { x: 0.52, y: 0.57 } },
+  { id: 'bullet', name: '猎隼弹', x: 0.86, y: 0.26, lineTarget: { x: 0.71, y: 0.43 } },
+  { id: 'grip', name: '节律握柄', x: 0.84, y: 0.72, lineTarget: { x: 0.44, y: 0.64 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon54 = [
+  { id: 'lock', name: '血债机括', x: 0.16, y: 0.28, lineTarget: { x: 0.54, y: 0.49 } },
+  { id: 'bullet', name: '清算弹', x: 0.86, y: 0.26, lineTarget: { x: 0.72, y: 0.43 } },
+  { id: 'grip', name: '王座握柄', x: 0.84, y: 0.72, lineTarget: { x: 0.43, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon55 = [
+  { id: 'prism', name: '回廊棱镜', x: 0.16, y: 0.28, lineTarget: { x: 0.58, y: 0.39 } },
+  { id: 'core', name: '映射核心', x: 0.86, y: 0.26, lineTarget: { x: 0.7, y: 0.48 } },
+  { id: 'grip', name: '回廊握柄', x: 0.84, y: 0.72, lineTarget: { x: 0.43, y: 0.66 } },
+];

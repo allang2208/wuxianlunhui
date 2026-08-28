@@ -141,6 +141,76 @@ export const WEAPON_ATTACK_CONFIG = {
         knockback: 0
     },
 
+    // M1911A1：普通级大口径半自动，低射速、高单发稳定性
+    m1911a1: {
+        type: 'RangedAttack', cooldown: 420, projectileSpeed: 960, projectileRange: 800,
+        projectileSize: 5, damage: { min: 3, max: 6 }, piercing: false, knockback: 5
+    },
+    m1911a1Offhand: {
+        type: 'RangedAttack', cooldown: 420, projectileSpeed: 960, projectileRange: 800,
+        projectileSize: 5, damage: { min: 3, max: 6 }, piercing: false, knockback: 5
+    },
+
+    // USP .45：优质级稳定战术半自动
+    usp45: {
+        type: 'RangedAttack', cooldown: 300, projectileSpeed: 1100, projectileRange: 900,
+        projectileSize: 5, damage: { min: 3, max: 6 }, piercing: false, knockback: 3
+    },
+    usp45Offhand: {
+        type: 'RangedAttack', cooldown: 300, projectileSpeed: 1100, projectileRange: 900,
+        projectileSize: 5, damage: { min: 3, max: 6 }, piercing: false, knockback: 3
+    },
+
+    // FN Five-seveN：稀有级高速小口径，轻度贯穿一个目标
+    fiveSeven: {
+        type: 'RangedAttack', cooldown: 260, projectileSpeed: 1500, projectileRange: 1050,
+        projectileSize: 4, damage: { min: 2, max: 5 }, piercing: 1, knockback: 1
+    },
+    fiveSevenOffhand: {
+        type: 'RangedAttack', cooldown: 260, projectileSpeed: 1500, projectileRange: 1050,
+        projectileSize: 4, damage: { min: 2, max: 5 }, piercing: 1, knockback: 1
+    },
+
+    // 神话手炮“恒星圣谕”：停火蓄势，下一发获得高倍率与强贯穿
+    eternalEdict: {
+        type: 'RangedAttack', cooldown: 620, projectileSpeed: 1420, projectileRange: 1180,
+        projectileSize: 7, damage: { min: 8, max: 16 }, piercing: false, knockback: 14
+    },
+    eternalEdictOffhand: {
+        type: 'RangedAttack', cooldown: 620, projectileSpeed: 1420, projectileRange: 1180,
+        projectileSize: 7, damage: { min: 8, max: 16 }, piercing: false, knockback: 14
+    },
+
+    // 神话手炮“猎隼裁令”：连续三发构成决斗节拍，终拍收束增伤
+    falconEdict: {
+        type: 'RangedAttack', cooldown: 360, projectileSpeed: 1580, projectileRange: 1120,
+        projectileSize: 6, damage: { min: 6, max: 12 }, piercing: false, knockback: 8
+    },
+    falconEdictOffhand: {
+        type: 'RangedAttack', cooldown: 360, projectileSpeed: 1580, projectileRange: 1120,
+        projectileSize: 6, damage: { min: 6, max: 12 }, piercing: false, knockback: 8
+    },
+
+    // 传说手炮“赤冕清算”：同一目标三次确认命中后追债
+    crimsonCrownSettlement: {
+        type: 'RangedAttack', cooldown: 380, projectileSpeed: 1520, projectileRange: 1160,
+        projectileSize: 7, damage: { min: 8, max: 16 }, piercing: false, knockback: 11
+    },
+    crimsonCrownSettlementOffhand: {
+        type: 'RangedAttack', cooldown: 380, projectileSpeed: 1520, projectileRange: 1160,
+        projectileSize: 7, damage: { min: 8, max: 16 }, piercing: false, knockback: 11
+    },
+
+    // 传说手炮“万象回廊”：命中三个不同目标后闭合回响
+    myriadCorridor: {
+        type: 'RangedAttack', cooldown: 290, projectileSpeed: 1700, projectileRange: 1080,
+        projectileSize: 5, damage: { min: 5, max: 10 }, piercing: false, knockback: 3
+    },
+    myriadCorridorOffhand: {
+        type: 'RangedAttack', cooldown: 290, projectileSpeed: 1700, projectileRange: 1080,
+        projectileSize: 5, damage: { min: 5, max: 10 }, piercing: false, knockback: 3
+    },
+
     // 机枪/步枪
     pkm: {
         type: 'RangedAttack',

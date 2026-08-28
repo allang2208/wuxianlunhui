@@ -198,6 +198,13 @@ class Player extends Combatant {
             this.deagleImage = loadImage(defs.images.deagle);
             this.revolverImage = loadImage(defs.images.revolver);
             this.p4040Image = loadImage(defs.images.p4040);
+            this.m1911a1Image = loadImage(defs.images.m1911a1);
+            this.usp45Image = loadImage(defs.images.usp45);
+            this.fiveSevenImage = loadImage(defs.images.fiveSeven);
+            this.eternalEdictImage = loadImage(defs.images.eternalEdict);
+            this.falconEdictImage = loadImage(defs.images.falconEdict);
+            this.crimsonCrownSettlementImage = loadImage(defs.images.crimsonCrownSettlement);
+            this.myriadCorridorImage = loadImage(defs.images.myriadCorridor);
             this.pkmImage = loadImage(defs.images.pkm);
             this.rpdImage = loadImage(defs.images.rpd);
             this.m249Image = loadImage(defs.images.m249);

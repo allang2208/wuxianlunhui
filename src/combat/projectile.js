@@ -137,7 +137,7 @@ class Projectile {
                         });
                         if (!this._firstHitTriggered && typeof this._onFirstHit === 'function') {
                             this._firstHitTriggered = true;
-                            this._onFirstHit(entity, this);
+                            this._onFirstHit(entity, this, damage);
                         }
                         if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
                         else { this.active = false; }

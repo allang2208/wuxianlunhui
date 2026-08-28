@@ -270,13 +270,8 @@ import { isGoldItem } from '../items/item-stack-rules.js';
                         player.equippedRangedType = 'pistol';
                         // 同步手枪贴图（G18/沙漠之鹰等）
                         if (currentItem.equipImage) {
-                            if (currentItem.canvasImageProp === 'deagleImage') {
-                                player.deagleImage = loadImage(currentItem.equipImage);
-                            } else if (currentItem.canvasImageProp === 'revolverImage') {
-                                player.revolverImage = loadImage(currentItem.equipImage);
-                            } else {
-                                player.pistolImage = loadImage(currentItem.equipImage);
-                            }
+                            const canvasImageProp = currentItem.canvasImageProp || 'pistolImage';
+                            player[canvasImageProp] = loadImage(currentItem.equipImage);
                         }
                         if (currentItem.weaponAsset && currentItem.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = loadImage(currentItem.weaponAsset.muzzleImage);
@@ -656,13 +651,8 @@ import { isGoldItem } from '../items/item-stack-rules.js';
                     } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                         player.equippedRangedType = 'pistol';
                         if (item.equipImage) {
-                            if (item.canvasImageProp === 'deagleImage') {
-                                player.deagleImage = loadImage(item.equipImage);
-                            } else if (item.canvasImageProp === 'revolverImage') {
-                                player.revolverImage = loadImage(item.equipImage);
-                            } else {
-                                player.pistolImage = loadImage(item.equipImage);
-                            }
+                            const canvasImageProp = item.canvasImageProp || 'pistolImage';
+                            player[canvasImageProp] = loadImage(item.equipImage);
                         }
                         if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                             player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);

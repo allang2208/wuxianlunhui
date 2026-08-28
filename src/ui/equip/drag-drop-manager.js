@@ -481,7 +481,8 @@ export function createDragDropManager(EquipManager) {
                                 } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                                     this.player.equippedRangedType = 'pistol';
                                     if (item.equipImage) {
-                                        this.player.pistolImage = loadImage(item.equipImage);
+                                        const canvasImageProp = item.canvasImageProp || 'pistolImage';
+                                        this.player[canvasImageProp] = loadImage(item.equipImage);
                                     }
                                     if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                                         this.player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
@@ -582,7 +583,8 @@ export function createDragDropManager(EquipManager) {
                                 } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                                     this.player.equippedRangedType = 'pistol';
                                     if (item.equipImage) {
-                                        this.player.pistolImage = loadImage(item.equipImage);
+                                        const canvasImageProp = item.canvasImageProp || 'pistolImage';
+                                        this.player[canvasImageProp] = loadImage(item.equipImage);
                                     }
                                     if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                                         this.player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);
@@ -778,7 +780,8 @@ export function createDragDropManager(EquipManager) {
                                 } else if (item.weaponType === 'pistol' || item.rangedType === 'pistol') {
                                     this.player.equippedRangedType = 'pistol';
                                     if (item.equipImage) {
-                                        this.player.pistolImage = loadImage(item.equipImage);
+                                        const canvasImageProp = item.canvasImageProp || 'pistolImage';
+                                        this.player[canvasImageProp] = loadImage(item.equipImage);
                                     }
                                     if (item.weaponAsset && item.weaponAsset.muzzleImage) {
                                         this.player.muzzleFlashImg = loadImage(item.weaponAsset.muzzleImage);

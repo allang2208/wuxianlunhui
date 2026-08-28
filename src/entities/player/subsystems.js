@@ -17,6 +17,8 @@ import { createWeaponRicochetHandler } from '../../combat/weapon-ricochet.js';
 import { createLegendaryLmgHitHandler } from '../../combat/weapon-legendary-lmg.js';
 import { createVoidFuneralHitHandler, prepareMythicShotgunBlast } from '../../combat/mythic-shotgun.js';
 import { createLegendaryShotgunHitHandler, prepareLegendaryShotgunBlast } from '../../combat/legendary-shotgun.js';
+import { prepareMythicHandCannonShot } from '../../combat/mythic-hand-cannon.js';
+import { createLegendaryPistolHitHandler } from '../../combat/legendary-pistol.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound, resolveGunAttackInterval } from '../../config/gun-ammo.js';
 import { AUTO_GUN_FAMILY } from '../../config/weapon-families.js';
@@ -1201,13 +1203,8 @@ switchWeaponMode() {
                 } else if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol')) {
                     this.equippedRangedType = 'pistol';
                     if (nextItem.equipImage) {
-                        if (nextItem.canvasImageProp === 'deagleImage') {
-                            this.deagleImage = loadImage(nextItem.equipImage);
-                        } else if (nextItem.canvasImageProp === 'revolverImage') {
-                            this.revolverImage = loadImage(nextItem.equipImage);
-                        } else {
-                            this.pistolImage = loadImage(nextItem.equipImage);
-                        }
+                        const canvasImageProp = nextItem.canvasImageProp || 'pistolImage';
+                        this[canvasImageProp] = loadImage(nextItem.equipImage);
                     }
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
                         this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
@@ -1284,13 +1281,8 @@ loadWeaponAssets(item) {
                         this.bowEquipImage = loadImage(item.equipImage);
                     }
                 } else if (wt === 'pistol' && wa.image) {
-                    if (item.canvasImageProp === 'deagleImage') {
-                        this.deagleImage = loadImage(wa.image);
-                    } else if (item.canvasImageProp === 'revolverImage') {
-                        this.revolverImage = loadImage(wa.image);
-                    } else {
-                        this.pistolImage = loadImage(wa.image);
-                    }
+                    const canvasImageProp = item.canvasImageProp || 'pistolImage';
+                    this[canvasImageProp] = loadImage(wa.image);
                     this.equippedRangedType = 'pistol';
                     if (wa.muzzleImage) { this.muzzleFlashImg = loadImage(wa.muzzleImage); }
                 }
@@ -1984,6 +1976,8 @@ _fireRanged(hand = 'main') {
                         if (offhandHasAmmo) {
                             this._consumeAmmo(offhandSlot);
                             this._registerGunSpreadShot('offhand', offhandItem);
+                            const mythicHandCannonShot = prepareMythicHandCannonShot(offhandItem);
+                            const legendaryPistolOnHit = createLegendaryPistolHitHandler(this, offhandItem, d.entities);
                             const offhandAttackKey = offhandItem.offhandAttackKey || 'pistolOffhand';
                             const offPC = this.attacks[offhandAttackKey].config;
                             const fxCfg = WEAPON_FX_CONFIG.pistolOffhand;
@@ -1995,21 +1989,36 @@ _fireRanged(hand = 'main') {
                             let offhandSpreadFactor = this._currentSpreadFactorOff;
                             const offhandMaxSpreadAngle = this._currentSpreadMaxAngleOff || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             const leftSpreadRad = (Math.random() - 0.5) * 2 * (offhandMaxSpreadAngle * Math.PI / 180) * offhandSpreadFactor;
-                            const leftFinalAngle = leftAngle + leftSpreadRad;
+                            const leftFinalAngle = leftAngle + leftSpreadRad
+                                * (mythicHandCannonShot?.spreadMultiplier || 1);
                             let offhandDamage = offPC.damage.min;
                             if (this.getCurrentWeaponAtk) {
                                 offhandDamage = this.getCurrentWeaponAtk(offhandItem);
                             }
+                            offhandDamage = Math.round(offhandDamage
+                                * (mythicHandCannonShot?.damageMultiplier || 1));
                             const offhandDamageObj = { min: offhandDamage, max: offhandDamage };
                             const offIsDarkGold = offhandItem.isDarkGold || false;
                             const offBallistics = this._getGunBallistics(offhandItem, offPC.projectileRange);
+                            const offCraftEffects = offhandItem._craftEffects || {};
+                            const offSpeed = offPC.projectileSpeed
+                                * Math.max(0.1, 1 + (Number(offCraftEffects.projectileSpeedPercent) || 0));
+                            const offKnockback = (Number(offPC.knockback) || 0)
+                                + (Number(offCraftEffects.knockbackDelta) || 0)
+                                + (Number(mythicHandCannonShot?.knockbackDelta) || 0);
                             ProjectileFactory.create({
                                 x: muzzlePos.x, y: muzzlePos.y, angle: leftFinalAngle,
                                 ...this._projectileAim3D(muzzlePos, d.targetX, d.targetY, 24, leftFinalAngle, d.entities),
-                                speed: offPC.projectileSpeed, maxRange: offBallistics.maxRange, size: offPC.projectileSize,
-                                damage: offhandDamageObj, piercing: this._getEffectivePiercing(offPC.piercing, offhandItem),
+                                speed: offSpeed, maxRange: offBallistics.maxRange, size: offPC.projectileSize,
+                                damage: offhandDamageObj, piercing: this._getEffectivePiercing(offPC.piercing, offhandItem)
+                                    + (mythicHandCannonShot?.piercingBonus || 0),
+                                knockback: offKnockback,
                                 source: this, effectWeapon: offhandItem, entities: d.entities, image: null,
                                 isTracer: !offIsDarkGold, isDarkGold: offIsDarkGold,
+                                isPurple: mythicHandCannonShot?.kind === 'sanctified',
+                                isCrimson: !!offhandItem.bloodDebtParams,
+                                isCyan: mythicHandCannonShot?.kind === 'duelist' || !!offhandItem.corridorParams,
+                                onFirstHit: legendaryPistolOnHit,
                                 damageFalloff: offBallistics.damageFalloff,
                                 playerGunWallSparks: true
                             });
@@ -2053,6 +2062,8 @@ _fireRanged(hand = 'main') {
                         if (mainHasAmmo) {
                             this._consumeAmmo(mainSlot);
                             this._registerGunSpreadShot('main', currentItem);
+                            const mythicHandCannonShot = prepareMythicHandCannonShot(currentItem);
+                            const legendaryPistolOnHit = createLegendaryPistolHitHandler(this, currentItem, d.entities);
                             let muzzlePos = this._getMuzzleWorldPosition('main');
                             if (!muzzlePos) muzzlePos = this._getMuzzlePosition(gunLX, gunLY, fxCfg.muzzleForward);
                             const angle = Math.atan2(d.targetY - muzzlePos.y, d.targetX - muzzlePos.x);
@@ -2060,23 +2071,38 @@ _fireRanged(hand = 'main') {
                             const mainSpreadFactor = this._currentSpreadFactor;
                             const maxSpreadAngle = this._currentSpreadMaxAngle || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
                             const spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * mainSpreadFactor;
-                            const finalAngle = angle + spreadRad;
+                            const finalAngle = angle + spreadRad
+                                * (mythicHandCannonShot?.spreadMultiplier || 1);
                             const mainPC = this.attacks[mainAttackKey].config;
                             let mainDamage = mainPC.damage.min;
                             if (this.getCurrentWeaponAtk) {
                                 mainDamage = this.getCurrentWeaponAtk();
                             }
+                            mainDamage = Math.round(mainDamage
+                                * (mythicHandCannonShot?.damageMultiplier || 1));
                             const mainDamageObj = { min: mainDamage, max: mainDamage };
                             // 创建主手弹丸
                             const mainIsDarkGold = currentItem.isDarkGold || false;
                             const mainBallistics = this._getGunBallistics(currentItem, mainPC.projectileRange);
+                            const mainCraftEffects = currentItem._craftEffects || {};
+                            const mainSpeed = mainPC.projectileSpeed
+                                * Math.max(0.1, 1 + (Number(mainCraftEffects.projectileSpeedPercent) || 0));
+                            const mainKnockback = (Number(mainPC.knockback) || 0)
+                                + (Number(mainCraftEffects.knockbackDelta) || 0)
+                                + (Number(mythicHandCannonShot?.knockbackDelta) || 0);
                             ProjectileFactory.create({
                                 x: muzzlePos.x, y: muzzlePos.y, angle: finalAngle,
                                 ...this._projectileAim3D(muzzlePos, d.targetX, d.targetY, 24, finalAngle, d.entities),
-                                speed: mainPC.projectileSpeed, maxRange: mainBallistics.maxRange, size: mainPC.projectileSize,
-                                damage: mainDamageObj, piercing: this._getEffectivePiercing(mainPC.piercing, currentItem),
+                                speed: mainSpeed, maxRange: mainBallistics.maxRange, size: mainPC.projectileSize,
+                                damage: mainDamageObj, piercing: this._getEffectivePiercing(mainPC.piercing, currentItem)
+                                    + (mythicHandCannonShot?.piercingBonus || 0),
+                                knockback: mainKnockback,
                                 source: this, effectWeapon: currentItem, entities: d.entities, image: null,
                                 isTracer: !mainIsDarkGold, isDarkGold: mainIsDarkGold,
+                                isPurple: mythicHandCannonShot?.kind === 'sanctified',
+                                isCrimson: !!currentItem.bloodDebtParams,
+                                isCyan: mythicHandCannonShot?.kind === 'duelist' || !!currentItem.corridorParams,
+                                onFirstHit: legendaryPistolOnHit,
                                 damageFalloff: mainBallistics.damageFalloff,
                                 playerGunWallSparks: true
                             });

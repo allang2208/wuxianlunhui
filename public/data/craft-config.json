@@ -7834,5 +7834,218 @@
                 }
             ]
         }
+    },
+    "weapon49": {
+        "slots": [
+            { "id": "bullet", "name": ".45口径弹药", "x": 0.08, "y": 0.28, "lineTarget": { "x": 0.54, "y": 0.42 } },
+            { "id": "trigger", "name": "击发组件", "x": 0.92, "y": 0.68, "lineTarget": { "x": 0.52, "y": 0.58 } },
+            { "id": "magazine", "name": "弹匣", "x": 0.92, "y": 0.28, "lineTarget": { "x": 0.44, "y": 0.53 } }
+        ],
+        "options": {
+            "bullet": [
+                {
+                    "id": "m1911_hardball_load",
+                    "name": "230格令硬头军弹",
+                    "icon": "assets/icons/craft-pistols/m1911-hardball.png",
+                    "desc": "【弹药二选一】伤害 +12%，穿透目标 +1，攻击间隔 +70ms；强化重弹突出单发与队列贯穿，但显著放慢跟枪",
+                    "effects": { "damagePercent": 0.12, "piercingBonus": 1, "attackIntervalDelta": 70 }
+                },
+                {
+                    "id": "m1911_hollow_point_load",
+                    "name": "185格令空尖弹",
+                    "icon": "assets/icons/craft-pistols/m1911-hollow-point.png",
+                    "desc": "【弹药二选一】伤害 +8%，击退 +18px，射程 -120px；换取近距离止停能力",
+                    "effects": { "damagePercent": 0.08, "knockbackDelta": 18, "rangeDelta": -120 }
+                }
+            ],
+            "trigger": [
+                {
+                    "id": "m1911_short_reset_sear",
+                    "name": "赛用短复位阻铁",
+                    "icon": "assets/icons/craft-pistols/m1911-short-reset-sear.png",
+                    "desc": "攻击间隔 -80ms，伤害 -9%，每次射击散布 +2°；把慢射重手感改造成近距快速补枪",
+                    "effects": { "attackIntervalDelta": -80, "damagePercent": -0.09, "shotSpreadDelta": 2 }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "m1911_ten_round_mag",
+                    "name": "十发延长弹匣",
+                    "icon": "assets/icons/craft-pistols/m1911-ten-round-mag.png",
+                    "desc": "弹容量 +3，换弹时间 +250ms，移动速度 -3%；降低七发弹匣的断火频率",
+                    "effects": { "magazineDelta": 3, "reloadTimeDelta": 250, "moveSpeedPercent": -0.03 }
+                }
+            ]
+        }
+    },
+    "weapon50": {
+        "slots": [
+            { "id": "barrel", "name": ".45战术枪管", "x": 0.08, "y": 0.28, "lineTarget": { "x": 0.56, "y": 0.4 } },
+            { "id": "trigger", "name": "LEM火控", "x": 0.92, "y": 0.68, "lineTarget": { "x": 0.52, "y": 0.58 } },
+            { "id": "magazine", "name": "弹匣井", "x": 0.92, "y": 0.28, "lineTarget": { "x": 0.44, "y": 0.53 } }
+        ],
+        "options": {
+            "barrel": [
+                {
+                    "id": "usp45_polygonal_match_barrel",
+                    "name": "多边形精射枪管",
+                    "icon": "assets/icons/craft-pistols/usp45-match-barrel.png",
+                    "desc": "【枪管二选一】伤害 +8%，射程 +120px，攻击间隔 +45ms；强化远距首发质量但放慢射击节奏",
+                    "effects": { "damagePercent": 0.08, "rangeDelta": 120, "attackIntervalDelta": 45 }
+                },
+                {
+                    "id": "usp45_compact_tactical_barrel",
+                    "name": "紧凑战术枪管",
+                    "icon": "assets/icons/craft-pistols/usp45-compact-barrel.png",
+                    "desc": "【枪管二选一】攻击间隔 -35ms，移动速度 +4%，射程 -120px，每次射击散布 +1°；改为近距机动路线",
+                    "effects": { "attackIntervalDelta": -35, "moveSpeedPercent": 0.04, "rangeDelta": -120, "shotSpreadDelta": 1 }
+                }
+            ],
+            "trigger": [
+                {
+                    "id": "usp45_lem_trigger_module",
+                    "name": "LEM战术扳机组",
+                    "icon": "assets/icons/craft-pistols/usp45-lem-trigger.png",
+                    "desc": "攻击间隔 -35ms，后坐恢复 -80ms，伤害 -7%，每次射击散布 +1°；提升连续补枪速度但削弱单发与初始稳定",
+                    "effects": { "attackIntervalDelta": -35, "recoilRecoveryDelta": -80, "damagePercent": -0.07, "shotSpreadDelta": 1 }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "usp45_jet_funnel_mag",
+                    "name": "十八发导流弹匣",
+                    "icon": "assets/icons/craft-pistols/usp45-jet-funnel-mag.png",
+                    "desc": "弹容量 +6，换弹时间 +320ms，移动速度 -4%；稳定压制更久但整枪更笨重",
+                    "effects": { "magazineDelta": 6, "reloadTimeDelta": 320, "moveSpeedPercent": -0.04 }
+                }
+            ]
+        }
+    },
+    "weapon51": {
+        "slots": [
+            { "id": "bullet", "name": "5.7毫米弹药", "x": 0.08, "y": 0.28, "lineTarget": { "x": 0.56, "y": 0.41 } },
+            { "id": "barrel", "name": "套筒组件", "x": 0.08, "y": 0.68, "lineTarget": { "x": 0.53, "y": 0.48 } },
+            { "id": "magazine", "name": "弹匣", "x": 0.92, "y": 0.3, "lineTarget": { "x": 0.44, "y": 0.54 } }
+        ],
+        "options": {
+            "bullet": [
+                {
+                    "id": "five_seven_ss190_core",
+                    "name": "SS190硬芯弹",
+                    "icon": "assets/icons/craft-pistols/five-seven-ss190-core.png",
+                    "desc": "【弹药二选一】穿透目标 +1，伤害 -12%，击退 -1px；扩大队列贯穿能力但牺牲单体效率",
+                    "effects": { "piercingBonus": 1, "damagePercent": -0.12, "knockbackDelta": -1 }
+                },
+                {
+                    "id": "five_seven_high_velocity_load",
+                    "name": "高速轻弹装药",
+                    "icon": "assets/icons/craft-pistols/five-seven-high-velocity.png",
+                    "desc": "【弹药二选一】伤害 +10%，弹速 +15%，射程 +80px，攻击间隔 +45ms；强化远距单点但放慢连续点射",
+                    "effects": { "damagePercent": 0.1, "projectileSpeedPercent": 0.15, "rangeDelta": 80, "attackIntervalDelta": 45 }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "five_seven_skeleton_slide",
+                    "name": "镂空轻量套筒",
+                    "icon": "assets/icons/craft-pistols/five-seven-skeleton-slide.png",
+                    "desc": "攻击间隔 -45ms，伤害 -10%，弹容量 -4，每次射击散布 +1.5°；换取更高瞬时射速",
+                    "effects": { "attackIntervalDelta": -45, "damagePercent": -0.1, "magazineDelta": -4, "shotSpreadDelta": 1.5 }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "five_seven_thirty_round_mag",
+                    "name": "三十发延长弹匣",
+                    "icon": "assets/icons/craft-pistols/five-seven-thirty-round-mag.png",
+                    "desc": "弹容量 +10，换弹时间 +380ms，移动速度 -6%；把高速点射改为长续航压制",
+                    "effects": { "magazineDelta": 10, "reloadTimeDelta": 380, "moveSpeedPercent": -0.06 }
+                }
+            ]
+        }
+    },
+    "weapon52": {
+        "slots": [
+            { "id": "chamber", "name": "圣膛", "x": 0.16, "y": 0.28, "lineTarget": { "x": 0.56, "y": 0.44 } },
+            { "id": "bullet", "name": "裁决弹", "x": 0.86, "y": 0.26, "lineTarget": { "x": 0.7, "y": 0.43 } },
+            { "id": "grip", "name": "誓约握柄", "x": 0.84, "y": 0.72, "lineTarget": { "x": 0.45, "y": 0.62 } }
+        ],
+        "options": {
+            "chamber": [
+                { "id": "eternal_edict_hasty_liturgy", "name": "疾行祷序", "icon": "assets/icons/craft-mythic-pistols/eternal-hasty-liturgy.png", "desc": "【圣膛二选一】蓄势等待 -180ms（0.90→0.72秒），圣膛伤害倍率 -0.15（1.80→1.65）；更快取得强化弹，但压低爆发上限。", "specialModification": true, "ticketCost": 4, "effects": { "sanctifiedRestMsDelta": -180, "sanctifiedDamageMultiplierDelta": -0.15 } },
+                { "id": "eternal_edict_patient_oracle", "name": "静候神谕", "icon": "assets/icons/craft-mythic-pistols/eternal-patient-oracle.png", "desc": "【圣膛二选一】蓄势等待 +250ms（0.90→1.15秒），圣膛伤害倍率 +0.35（1.80→2.15），攻击间隔 +40ms；等待更久换取真正的首发裁决。", "specialModification": true, "ticketCost": 6, "effects": { "sanctifiedRestMsDelta": 250, "sanctifiedDamageMultiplierDelta": 0.35, "attackIntervalDelta": 40 } }
+            ],
+            "bullet": [
+                { "id": "eternal_edict_solar_lance", "name": "日枪贯芯弹", "icon": "assets/icons/craft-mythic-pistols/eternal-solar-lance.png", "desc": "【裁决弹二选一】圣膛弹额外贯穿 +1，圣膛伤害倍率 -0.10；强化列队穿透，牺牲单体倍率。", "specialModification": true, "ticketCost": 5, "effects": { "sanctifiedPiercingBonus": 1, "sanctifiedDamageMultiplierDelta": -0.1 } },
+                { "id": "eternal_edict_gravity_verdict", "name": "引力裁决弹", "icon": "assets/icons/craft-mythic-pistols/eternal-gravity-verdict.png", "desc": "【裁决弹二选一】圣膛弹击退 +16px，但圣膛散布倍率 +0.15（0.35→0.50）；获得强止退，远距绝对精度下降。", "specialModification": true, "ticketCost": 5, "effects": { "sanctifiedKnockbackDelta": 16, "sanctifiedSpreadMultiplierDelta": 0.15 } }
+            ],
+            "grip": [
+                { "id": "eternal_edict_anchor_grip", "name": "恒定锚握", "icon": "assets/icons/craft-mythic-pistols/eternal-anchor-grip.png", "desc": "【握柄二选一】圣膛散布倍率 -0.18（0.35→0.17），攻击间隔 +65ms；首发近乎钉线，但连续补枪更慢。", "specialModification": true, "ticketCost": 5, "effects": { "sanctifiedSpreadMultiplierDelta": -0.18, "attackIntervalDelta": 65 } },
+                { "id": "eternal_edict_breaker_grip", "name": "破誓速射握", "icon": "assets/icons/craft-mythic-pistols/eternal-breaker-grip.png", "desc": "【握柄二选一】攻击间隔 -90ms，伤害 -10%，圣膛等待 +120ms；强化连续补枪，但削弱每一发与蓄势频率。", "specialModification": true, "ticketCost": 4, "effects": { "attackIntervalDelta": -90, "damagePercent": -0.1, "sanctifiedRestMsDelta": 120 } }
+            ]
+        }
+    },
+    "weapon53": {
+        "slots": [
+            { "id": "trigger", "name": "决斗机括", "x": 0.16, "y": 0.7, "lineTarget": { "x": 0.52, "y": 0.57 } },
+            { "id": "bullet", "name": "猎隼弹", "x": 0.86, "y": 0.26, "lineTarget": { "x": 0.71, "y": 0.43 } },
+            { "id": "grip", "name": "节律握柄", "x": 0.84, "y": 0.72, "lineTarget": { "x": 0.44, "y": 0.64 } }
+        ],
+        "options": {
+            "trigger": [
+                { "id": "falcon_edict_double_tap_law", "name": "双拍律令", "icon": "assets/icons/craft-mythic-pistols/falcon-double-tap-law.png", "desc": "【机括二选一】裁决由每第3发改为每第2发，但裁决伤害倍率 -0.25（1.50→1.25）；触发频繁，单次终拍更轻。", "specialModification": true, "ticketCost": 5, "effects": { "duelistRequiredShotsDelta": -1, "duelistDamageMultiplierDelta": -0.25 } },
+                { "id": "falcon_edict_fourth_challenge", "name": "第四挑战者", "icon": "assets/icons/craft-mythic-pistols/falcon-fourth-challenge.png", "desc": "【机括二选一】裁决由每第3发改为每第4发，裁决伤害倍率 +0.35（1.50→1.85）；延后终拍换取更高爆发。", "specialModification": true, "ticketCost": 6, "effects": { "duelistRequiredShotsDelta": 1, "duelistDamageMultiplierDelta": 0.35 } }
+            ],
+            "bullet": [
+                { "id": "falcon_edict_split_beak", "name": "裂喙穿甲弹", "icon": "assets/icons/craft-mythic-pistols/falcon-split-beak.png", "desc": "【猎隼弹二选一】裁决弹额外贯穿 +1，裁决伤害倍率 -0.10；强化队列收割，牺牲单点爆发。", "specialModification": true, "ticketCost": 5, "effects": { "duelistPiercingBonus": 1, "duelistDamageMultiplierDelta": -0.1 } },
+                { "id": "falcon_edict_hammer_talon", "name": "锤爪震荡弹", "icon": "assets/icons/craft-mythic-pistols/falcon-hammer-talon.png", "desc": "【猎隼弹二选一】裁决弹击退 +12px，但裁决散布倍率 +0.15（0.45→0.60）；近距止退更强，终拍精度下降。", "specialModification": true, "ticketCost": 5, "effects": { "duelistKnockbackDelta": 12, "duelistSpreadMultiplierDelta": 0.15 } }
+            ],
+            "grip": [
+                { "id": "falcon_edict_memory_grip", "name": "长忆节律握", "icon": "assets/icons/craft-mythic-pistols/falcon-memory-grip.png", "desc": "【握柄二选一】决斗律重置等待 +650ms（1.20→1.85秒），换弹 +250ms；走位容错更高，但空仓惩罚更重。", "specialModification": true, "ticketCost": 4, "effects": { "duelistResetMsDelta": 650, "reloadTimeDelta": 250 } },
+                { "id": "falcon_edict_quickdraw_grip", "name": "掠空快拔握", "icon": "assets/icons/craft-mythic-pistols/falcon-quickdraw-grip.png", "desc": "【握柄二选一】攻击间隔 -55ms，伤害 -8%，决斗律重置等待 -250ms；三拍更快，但要求更紧的连续命中节奏。", "specialModification": true, "ticketCost": 5, "effects": { "attackIntervalDelta": -55, "damagePercent": -0.08, "duelistResetMsDelta": -250 } }
+            ]
+        }
+    },
+    "weapon54": {
+        "slots": [
+            { "id": "lock", "name": "血债机括", "x": 0.16, "y": 0.28, "lineTarget": { "x": 0.54, "y": 0.49 } },
+            { "id": "bullet", "name": "清算弹", "x": 0.86, "y": 0.26, "lineTarget": { "x": 0.72, "y": 0.43 } },
+            { "id": "grip", "name": "王座握柄", "x": 0.84, "y": 0.72, "lineTarget": { "x": 0.43, "y": 0.66 } }
+        ],
+        "options": {
+            "lock": [
+                { "id": "crimson_double_gavel", "name": "双联法槌", "icon": "assets/icons/craft-legendary-pistols/crimson-double-gavel.png", "desc": "【机括二选一】血债由第3次改为第2次命中触发，追加倍率 0.75→0.35，武器伤害 -5%；清算更频繁但单次更轻。", "specialModification": true, "ticketCost": 5, "effects": { "settlementHitsRequiredDelta": -1, "settlementDamageMultiplierDelta": -0.4, "damagePercent": -0.05 } },
+                { "id": "crimson_fourth_judgment", "name": "四阶终审", "icon": "assets/icons/craft-legendary-pistols/crimson-fourth-judgment.png", "desc": "【机括二选一】血债延至第4次命中，追加倍率 0.75→1.25，序列时限 +450ms，攻击间隔 +45ms；以更长审判换取重击。", "specialModification": true, "ticketCost": 6, "effects": { "settlementHitsRequiredDelta": 1, "settlementDamageMultiplierDelta": 0.5, "settlementResetMsDelta": 450, "attackIntervalDelta": 45 } }
+            ],
+            "bullet": [
+                { "id": "crimson_collateral_oathbreaker", "name": "连坐碎誓弹", "icon": "assets/icons/craft-legendary-pistols/crimson-collateral-oathbreaker.png", "desc": "【清算弹二选一】主目标血债倍率 -0.15；清算时在120px内对最多3个额外目标造成本发28%伤害。", "specialModification": true, "ticketCost": 5, "effects": { "settlementDamageMultiplierDelta": -0.15, "settlementSplashRadius": 120, "settlementSplashMultiplier": 0.28, "settlementSplashMaxTargets": 3 } },
+                { "id": "crimson_decapitation_covenant", "name": "斩首红契弹", "icon": "assets/icons/craft-legendary-pistols/crimson-decapitation-covenant.png", "desc": "【清算弹二选一】目标生命不高于30%时血债倍率额外 +0.45；射程 -140px、弹速 -12%，强化近距处决。", "specialModification": true, "ticketCost": 6, "effects": { "settlementLowHealthThreshold": 0.3, "settlementLowHealthMultiplierDelta": 0.45, "rangeDelta": -140, "projectileSpeedPercent": -0.12 } }
+            ],
+            "grip": [
+                { "id": "crimson_immovable_throne_grip", "name": "不移王座握", "icon": "assets/icons/craft-legendary-pistols/crimson-immovable-throne-grip.png", "desc": "【握柄二选一】血债序列时限 +700ms，移动速度 -8%，攻击间隔 +25ms；提高追击容错但牺牲机动。", "specialModification": true, "ticketCost": 4, "effects": { "settlementResetMsDelta": 700, "moveSpeedPercent": -0.08, "attackIntervalDelta": 25 } },
+                { "id": "crimson_usurper_quickbreak_grip", "name": "篡位速断握", "icon": "assets/icons/craft-legendary-pistols/crimson-usurper-quickbreak-grip.png", "desc": "【握柄二选一】攻击间隔 -70ms、伤害 -10%、血债时限 -300ms；以更紧的窗口换取高速追债。", "specialModification": true, "ticketCost": 5, "effects": { "attackIntervalDelta": -70, "damagePercent": -0.1, "settlementResetMsDelta": -300 } }
+            ]
+        }
+    },
+    "weapon55": {
+        "slots": [
+            { "id": "prism", "name": "回廊棱镜", "x": 0.16, "y": 0.28, "lineTarget": { "x": 0.58, "y": 0.39 } },
+            { "id": "core", "name": "映射核心", "x": 0.86, "y": 0.26, "lineTarget": { "x": 0.7, "y": 0.48 } },
+            { "id": "grip", "name": "回廊握柄", "x": 0.84, "y": 0.72, "lineTarget": { "x": 0.43, "y": 0.66 } }
+        ],
+        "options": {
+            "prism": [
+                { "id": "corridor_dual_prism_shortcut", "name": "双棱捷径", "icon": "assets/icons/craft-legendary-pistols/corridor-dual-prism-shortcut.png", "desc": "【棱镜二选一】闭环由3个改为2个不同目标，回响倍率 0.25→0.14，弹容量 -2；更快成环但群体收益下降。", "specialModification": true, "ticketCost": 5, "effects": { "corridorTargetsRequiredDelta": -1, "corridorEchoMultiplierDelta": -0.11, "magazineDelta": -2 } },
+                { "id": "corridor_fourfold_expansion", "name": "四象展开", "icon": "assets/icons/craft-legendary-pistols/corridor-fourfold-expansion.png", "desc": "【棱镜二选一】闭环需要4个不同目标，回响倍率 0.25→0.36，标记时限 +500ms，攻击间隔 +35ms；专注大规模战场。", "specialModification": true, "ticketCost": 6, "effects": { "corridorTargetsRequiredDelta": 1, "corridorEchoMultiplierDelta": 0.11, "corridorResetMsDelta": 500, "attackIntervalDelta": 35 } }
+            ],
+            "core": [
+                { "id": "corridor_return_focus_lens", "name": "折返焦镜", "icon": "assets/icons/craft-legendary-pistols/corridor-return-focus-lens.png", "desc": "【核心二选一】闭环时仅对最后标记目标造成本发90%聚焦回响，取消其他标记回响；射程 -100px。", "specialModification": true, "ticketCost": 6, "effects": { "corridorFocusLastTarget": true, "corridorFocusMultiplier": 0.9, "rangeDelta": -100 } },
+                { "id": "corridor_parallel_scatter_prism", "name": "并行散射棱", "icon": "assets/icons/craft-legendary-pistols/corridor-parallel-scatter-prism.png", "desc": "【核心二选一】已标记目标回响倍率 0.25→0.20；闭环时再对150px内最多2个未标记敌人各造成本发20%伤害。", "specialModification": true, "ticketCost": 5, "effects": { "corridorEchoMultiplierDelta": -0.05, "corridorScatterExtraTargets": 2, "corridorScatterRange": 150, "corridorScatterMultiplier": 0.2 } }
+            ],
+            "grip": [
+                { "id": "corridor_long_memory_grip", "name": "长廊记忆握", "icon": "assets/icons/craft-legendary-pistols/corridor-long-memory-grip.png", "desc": "【握柄二选一】标记时限 +900ms，换弹时间 +320ms，移动速度 -7%；显著提高跨目标成环容错。", "specialModification": true, "ticketCost": 4, "effects": { "corridorResetMsDelta": 900, "reloadTimeDelta": 320, "moveSpeedPercent": -0.07 } },
+                { "id": "corridor_instant_skirmish_grip", "name": "瞬映游击握", "icon": "assets/icons/craft-legendary-pistols/corridor-instant-skirmish-grip.png", "desc": "【握柄二选一】攻击间隔 -50ms、回响倍率 -0.07、弹容量 -3、移动速度 +6%；强化高速切换目标的游击节奏。", "specialModification": true, "ticketCost": 5, "effects": { "attackIntervalDelta": -50, "corridorEchoMultiplierDelta": -0.07, "magazineDelta": -3, "moveSpeedPercent": 0.06 } }
+            ]
+        }
     }
 }
