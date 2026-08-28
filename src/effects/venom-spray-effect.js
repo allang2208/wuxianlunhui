@@ -3,7 +3,18 @@
  * visual-only and deliberately shares the same origin, direction, range and arc.
  */
 class VenomSprayEffect {
-    constructor({ x, y, angle, range, arcDegrees, durationMs = 1000, particleCount = 84 }) {
+    constructor({
+        x,
+        y,
+        angle,
+        range,
+        arcDegrees,
+        durationMs = 1000,
+        particleCount = 84,
+        colors = null,
+        hazeColor = 0x6f1b92,
+        coreColor = 0xc886eb,
+    }) {
         this.x = x;
         this.y = y;
         this.angle = angle;
@@ -14,12 +25,16 @@ class VenomSprayEffect {
         this.active = true;
         this._graphics = null;
         this._particles = [];
+        this._colors = Array.isArray(colors) && colors.length > 0
+            ? colors
+            : [0x43105f, 0x641786, 0x8427ad, 0xa948d2, 0xc878ea, 0x783098];
+        this._hazeColor = hazeColor;
+        this._coreColor = coreColor;
         this._buildParticles(Math.max(1, Math.floor(Number(particleCount) || 84)));
         this._ensureGraphics();
     }
 
     _buildParticles(count) {
-        const colors = [0x43105f, 0x641786, 0x8427ad, 0xa948d2, 0xc878ea, 0x783098];
         for (let i = 0; i < count; i++) {
             const localAngle = (Math.random() - 0.5) * this.arc;
             const distance = this.range * (0.18 + Math.sqrt(Math.random()) * 0.82);
@@ -32,7 +47,7 @@ class VenomSprayEffect {
                 size: 4 + Math.random() * 9,
                 hazeScale: 1.8 + Math.random() * 2.8,
                 alpha: 0.35 + Math.random() * 0.35,
-                color: colors[Math.floor(Math.random() * colors.length)],
+                color: this._colors[Math.floor(Math.random() * this._colors.length)],
                 drift: (Math.random() - 0.5) * 14,
             });
         }
@@ -76,7 +91,7 @@ class VenomSprayEffect {
         // A faint haze body keeps the particle field legible as a single cone.
         const left = this.angle - this.arc / 2;
         const right = this.angle + this.arc / 2;
-        g.fillStyle(0x6f1b92, 0.055 * globalFade);
+        g.fillStyle(this._hazeColor, 0.055 * globalFade);
         g.beginPath();
         g.moveTo(this.x, this.y);
         g.lineTo(this.x + Math.cos(left) * this.range, this.y + Math.sin(left) * this.range);
@@ -103,7 +118,7 @@ class VenomSprayEffect {
             g.fillCircle(px, py, size * particle.hazeScale);
             g.fillStyle(particle.color, alpha * 0.5);
             g.fillCircle(px, py, size * 1.55);
-            g.fillStyle(0xc886eb, alpha * 0.75);
+            g.fillStyle(this._coreColor, alpha * 0.75);
             g.fillCircle(px, py, Math.max(1.25, size * 0.52));
         }
     }

@@ -3985,10 +3985,16 @@
       "spit": {
         "range": 600,
         "duration": 3000,
-        "frames": 16,
-        "startFrame": 6,
-        "stopFrame": 14,
+        "frames": 33,
+        "startFrame": 14,
+        "stopFrame": 27,
         "fanAngle": 0.7853981633974483,
+        "sprayVisual": {
+          "range": 360,
+          "arcDegrees": 36,
+          "durationMs": 700,
+          "particleCount": 64
+        },
         "intervalMs": 50,
         "projectileSpeed": 500,
         "projectileRange": 600,
@@ -3998,10 +4004,24 @@
         "damageType": "magic",
         "poisonChance": 0.33,
         "poisonStacks": 1,
-        "muzzleForward": 150,
-        "muzzleUpY": 94,
-        "muzzleRightDx": -7,
-        "muzzleRightDy": -5,
+        "muzzleAnchors": {
+          "comment": "正式 spitting 精灵表逐帧口器坐标；运行时结合帧格、显示尺寸、origin 与 flipX 换算世界出发点",
+          "frames": {
+            "14": [546, 240],
+            "15": [548, 239],
+            "16": [548, 238],
+            "17": [551, 237],
+            "18": [552, 236],
+            "19": [554, 234],
+            "20": [554, 233],
+            "21": [555, 232],
+            "22": [555, 231],
+            "23": [556, 232],
+            "24": [556, 232],
+            "25": [553, 235],
+            "26": [552, 238]
+          }
+        },
         "depthBonus": 150,
         "orbit": {
           "comment": "毒球环绕绿色粒子：发射后在投射物圆周上持续生成短生命周期粒子",
@@ -4034,16 +4054,60 @@
       "idle": "assets/enemies/poison_maggot/idle.png",
       "spitting": "assets/enemies/poison_maggot/spitting.png",
       "walking": "assets/enemies/poison_maggot/walking.png",
-      "idleFrameWidth": 512,
-      "idleFrameHeight": 512,
-      "idleFrameCount": 1,
-      "idleSheetColumns": 8
+      "death": "assets/enemies/poison_maggot/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 8,
+          "rows": 3,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "footY": 357,
+          "frameRate": 8,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 40,
+          "footY": 357,
+          "frameRate": 16,
+          "repeat": -1
+        },
+        "spitting": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 33,
+          "footY": 357,
+          "duration": 3000,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 27,
+          "footY": 357,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    },
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1000
     },
     "description": "臃肿的亡灵幼虫，行动迟缓却能喷吐剧毒脓液，被击中的目标有几率中毒。",
     "skills": [
       {
         "name": "毒液喷射",
-        "desc": "距离 600px，3s 播放 16 帧动画（第 6~14 帧持续发射），面向目标 45° 扇形随机方向射出绿色毒球（每 0.05s 一发），命中造成魔法攻击 ×0.33 伤害并有 33% 几率叠加 1 层中毒；冷却 8s，攻击时不可移动"
+        "desc": "距离 600px，3s 播放 33 帧喷毒动画（第 14~27 帧持续发射），起喷时叠加绿色扇形毒雾，随后按面向目标 45° 扇形随机方向射出绿色毒球（每 0.05s 一发），命中造成魔法攻击 ×0.33 伤害并有 33% 几率叠加 1 层中毒；冷却 8s，攻击时不可移动"
       }
     ],
     "height": 76
