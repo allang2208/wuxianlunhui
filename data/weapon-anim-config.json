@@ -736,6 +736,18 @@
       "x": 0.29,
       "y": 0.54
     },
+    "textureGrips": {
+      "weapon_s686": { "x": 0.32, "y": 0.51 },
+      "weapon_m870_breacher": { "x": 0.2, "y": 0.54 },
+      "weapon_ksg12": { "x": 0.35, "y": 0.55 },
+      "weapon_spas12": { "x": 0.27, "y": 0.55 },
+      "weapon_aa12": { "x": 0.3, "y": 0.56 },
+      "weapon_winchester1887": { "x": 0.31, "y": 0.53 },
+      "weapon_terminus_pendulum": { "x": 0.31, "y": 0.54 },
+      "weapon_void_funeral_tide": { "x": 0.32, "y": 0.55 },
+      "weapon_black_sun_verdict": { "x": 0.31, "y": 0.54 },
+      "weapon_royal_hunt_finale": { "x": 0.32, "y": 0.54 }
+    },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,

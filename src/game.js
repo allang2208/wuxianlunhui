@@ -1175,6 +1175,16 @@ export const Game = {
         EquipDataManager.QJB201_ITEM,                  // QJB-201 (weapon11)
         EquipDataManager.SUPER90_ITEM,                  // Super90 (weapon12)
         EquipDataManager.SAIGA12K_ITEM,                // SAIGA-12K (weapon13)
+        EquipDataManager.S686_ITEM,                    // S686 (weapon39)
+        EquipDataManager.M870_BREACHER_ITEM,           // M870 短管型 (weapon40)
+        EquipDataManager.KSG12_ITEM,                   // KSG-12 (weapon41)
+        EquipDataManager.SPAS12_ITEM,                  // SPAS-12 (weapon42)
+        EquipDataManager.AA12_ITEM,                    // AA-12 (weapon43)
+        EquipDataManager.WINCHESTER1887_ITEM,          // Winchester 1887 (weapon44)
+        EquipDataManager.TERMINUS_PENDULUM_ITEM,       // 末日钟摆 (weapon45)
+        EquipDataManager.VOID_FUNERAL_TIDE_ITEM,       // 虚空葬潮 (weapon46)
+        EquipDataManager.BLACK_SUN_VERDICT_ITEM,       // 黑日圣裁 (weapon47)
+        EquipDataManager.ROYAL_HUNT_FINALE_ITEM,       // 王猎终局 (weapon48)
         EquipDataManager.ENERGY_LMG_ITEM,              // 能量轻机枪 (weapon15)
     ],
     spawnAllWeapons() {

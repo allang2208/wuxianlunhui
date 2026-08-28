@@ -298,6 +298,120 @@ export const CRAFT_EFFECT_REGISTRY = {
         tooltip: '开启1倍瞄准模式',
     },
 
+    // ========== 神话霰弹机制类 ==========
+    terminusCycleShotsDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `终钟周期${v >= 0 ? '+' : ''}${v}发`,
+        tooltip: '改变末日钟摆触发终钟齐射所需的实际击发数',
+    },
+    terminusDamageMultiplierDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `终钟伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变终钟齐射的独立伤害倍率',
+    },
+    terminusSpreadMultiplierDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `终钟散布倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变终钟齐射散布倍率（负值=进一步收束）',
+    },
+    terminusPiercingBonus: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `终钟穿透+${v}`,
+        tooltip: '只为终钟齐射增加穿透目标数',
+    },
+    terminusKnockbackDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `终钟击退${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '只改变终钟齐射的击退距离',
+    },
+    voidFuneralRangeDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `葬潮范围${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '改变虚空葬潮首命中裂隙搜索半径',
+    },
+    voidFuneralDamageMultiplierDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `葬潮伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变葬潮回响相对整次弹群伤害的倍率',
+    },
+    voidFuneralMaxTargetsDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `葬潮目标${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '改变每次葬潮回响最多影响的额外目标数',
+    },
+    voidFuneralBindDurationDelta: {
+        category: 'mythicShotgun', applyMode: 'add',
+        display: (v) => `葬潮束缚${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变葬潮回响对幸存目标的束缚时长',
+    },
+
+    // ========== 传说霰弹机制类 ==========
+    eclipseMarkDurationDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `蚀印时限${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变黑日圣裁月相蚀印的持续时间',
+    },
+    eclipseSlowDurationDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `月蚀迟滞${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变月相首命中造成的迟滞时长',
+    },
+    eclipseFocusDamageMultiplierDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `日冕聚焦倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变日相消耗蚀印时对主目标追加的整组伤害倍率',
+    },
+    eclipseSplashDamageMultiplierDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `日冕溅射倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变日相裁决对周围目标追加的整组伤害倍率',
+    },
+    eclipseRadiusDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `日冕范围${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '改变日相裁决搜索周围目标的半径',
+    },
+    eclipseMaxTargetsDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `日冕目标${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '改变日相裁决最多溅射的额外目标数',
+    },
+    huntResetTimeDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `猎印窗口${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变王猎终局连续命中同一目标的判定窗口',
+    },
+    huntRequiredHitsDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `终局触发${v >= 0 ? '+' : ''}${v}次命中`,
+        tooltip: '改变触发终局处决所需的连续有效命中次数',
+    },
+    huntFinisherDamageMultiplierDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `终局基础倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变终局处决相对整组弹群伤害的基础倍率',
+    },
+    huntMissingHealthMultiplierDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `已损生命倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变终局处决按目标已损生命追加伤害的比例',
+    },
+    huntMissingHealthCapMultiplierDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `处决封顶倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变已损生命追加伤害相对整组弹群的封顶倍率',
+    },
+    huntBindDurationDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `王猎束缚${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变终局处决对幸存目标的束缚时长',
+    },
+    huntKnockbackDelta: {
+        category: 'legendaryShotgun', applyMode: 'add',
+        display: (v) => `终局击退${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '改变终局处决追加伤害的击退距离',
+    },
+
     // ========== 过热类 ==========
     overheatTimeDelta: {
         category: 'overheat',

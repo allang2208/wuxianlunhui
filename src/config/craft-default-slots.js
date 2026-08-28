@@ -1177,3 +1177,71 @@ CRAFT_DEFAULT_SLOTS.weapon35 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...s
 CRAFT_DEFAULT_SLOTS.weapon36 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
 CRAFT_DEFAULT_SLOTS.weapon37 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
 CRAFT_DEFAULT_SLOTS.weapon38 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon39 = [
+  { id: 'barrel', name: '枪管/扳机', x: 0.08, y: 0.22, lineTarget: { x: 0.5, y: 0.38 } },
+  { id: 'bullet', name: '猎装弹', x: 0.92, y: 0.25, lineTarget: { x: 0.5, y: 0.47 } },
+  { id: 'magazine', name: '退壳器', x: 0.92, y: 0.5, lineTarget: { x: 0.5, y: 0.48 } },
+  { id: 'stock', name: '枪托', x: 0.92, y: 0.78, lineTarget: { x: 0.5, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon40 = [
+  { id: 'muzzle', name: '破门顶帽', x: 0.08, y: 0.14, lineTarget: { x: 0.5, y: 0.31 } },
+  { id: 'barrel', name: '短枪管', x: 0.08, y: 0.4, lineTarget: { x: 0.5, y: 0.38 } },
+  { id: 'magazine', name: '弹托', x: 0.92, y: 0.25, lineTarget: { x: 0.5, y: 0.47 } },
+  { id: 'grip', name: '泵动护木', x: 0.92, y: 0.53, lineTarget: { x: 0.5, y: 0.55 } },
+  { id: 'stock', name: '握把/吊带', x: 0.92, y: 0.8, lineTarget: { x: 0.5, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon41 = [
+  { id: 'barrel', name: '泵动组件', x: 0.08, y: 0.25, lineTarget: { x: 0.5, y: 0.38 } },
+  { id: 'sight', name: '导轨瞄具', x: 0.08, y: 0.62, lineTarget: { x: 0.5, y: 0.52 } },
+  { id: 'magazine', name: '双管仓', x: 0.92, y: 0.3, lineTarget: { x: 0.5, y: 0.47 } },
+  { id: 'grip', name: '缓冲组件', x: 0.92, y: 0.67, lineTarget: { x: 0.5, y: 0.55 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon42 = [
+  { id: 'muzzle', name: '枪口罩', x: 0.08, y: 0.14, lineTarget: { x: 0.5, y: 0.31 } },
+  { id: 'barrel', name: '循环模式', x: 0.08, y: 0.38, lineTarget: { x: 0.5, y: 0.38 } },
+  { id: 'bullet', name: '镇暴弹', x: 0.08, y: 0.66, lineTarget: { x: 0.5, y: 0.47 } },
+  { id: 'grip', name: '调节器', x: 0.92, y: 0.4, lineTarget: { x: 0.5, y: 0.55 } },
+  { id: 'stock', name: '钩形枪托', x: 0.92, y: 0.76, lineTarget: { x: 0.5, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon43 = [
+  { id: 'muzzle', name: '制退器', x: 0.08, y: 0.14, lineTarget: { x: 0.5, y: 0.31 } },
+  { id: 'barrel', name: '枪机组件', x: 0.08, y: 0.4, lineTarget: { x: 0.5, y: 0.4 } },
+  { id: 'bullet', name: '箭形弹', x: 0.08, y: 0.68, lineTarget: { x: 0.5, y: 0.48 } },
+  { id: 'magazine', name: '弹鼓', x: 0.92, y: 0.28, lineTarget: { x: 0.5, y: 0.5 } },
+  { id: 'stock', name: '缓冲枪托', x: 0.92, y: 0.76, lineTarget: { x: 0.5, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon44 = [
+  { id: 'muzzle', name: '喉缩', x: 0.08, y: 0.14, lineTarget: { x: 0.5, y: 0.31 } },
+  { id: 'barrel', name: '枪管组', x: 0.08, y: 0.4, lineTarget: { x: 0.5, y: 0.38 } },
+  { id: 'bullet', name: '猎装弹', x: 0.08, y: 0.68, lineTarget: { x: 0.5, y: 0.47 } },
+  { id: 'grip', name: '杠杆组', x: 0.92, y: 0.38, lineTarget: { x: 0.5, y: 0.55 } },
+  { id: 'stock', name: '马鞍枪托', x: 0.92, y: 0.76, lineTarget: { x: 0.5, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon45 = [
+  { id: 'barrel', name: '共鸣机芯', x: 0.08, y: 0.18, lineTarget: { x: 0.5, y: 0.38 } },
+  { id: 'muzzle', name: '双联喉缩', x: 0.08, y: 0.5, lineTarget: { x: 0.5, y: 0.31 } },
+  { id: 'bullet', name: '终钟弹', x: 0.08, y: 0.78, lineTarget: { x: 0.5, y: 0.48 } },
+  { id: 'grip', name: '擒纵组件', x: 0.92, y: 0.34, lineTarget: { x: 0.5, y: 0.55 } },
+  { id: 'stock', name: '钟摆枪托', x: 0.92, y: 0.74, lineTarget: { x: 0.5, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon46 = [
+  { id: 'sight', name: '折射镜', x: 0.08, y: 0.16, lineTarget: { x: 0.5, y: 0.34 } },
+  { id: 'barrel', name: '棱镜线圈', x: 0.08, y: 0.46, lineTarget: { x: 0.5, y: 0.4 } },
+  { id: 'bullet', name: '晶簇弹', x: 0.08, y: 0.76, lineTarget: { x: 0.5, y: 0.48 } },
+  { id: 'grip', name: '相位泵组', x: 0.92, y: 0.36, lineTarget: { x: 0.5, y: 0.55 } },
+  { id: 'stock', name: '深涡核心', x: 0.92, y: 0.75, lineTarget: { x: 0.5, y: 0.66 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon47 = [
+  { id: 'sight', name: '新月镜', x: 0.08, y: 0.15, lineTarget: { x: 0.5, y: 0.34 } },
+  { id: 'barrel', name: '日冕腔', x: 0.08, y: 0.45, lineTarget: { x: 0.5, y: 0.4 } },
+  { id: 'muzzle', name: '黑日环', x: 0.08, y: 0.75, lineTarget: { x: 0.5, y: 0.3 } },
+  { id: 'bullet', name: '蚀核弹', x: 0.92, y: 0.36, lineTarget: { x: 0.5, y: 0.49 } },
+  { id: 'grip', name: '双相机', x: 0.92, y: 0.75, lineTarget: { x: 0.5, y: 0.57 } },
+];
+CRAFT_DEFAULT_SLOTS.weapon48 = [
+  { id: 'grip', name: '速记机', x: 0.08, y: 0.16, lineTarget: { x: 0.5, y: 0.56 } },
+  { id: 'barrel', name: '终局膛', x: 0.08, y: 0.46, lineTarget: { x: 0.5, y: 0.4 } },
+  { id: 'bullet', name: '红冠弹', x: 0.08, y: 0.76, lineTarget: { x: 0.5, y: 0.49 } },
+  { id: 'stock', name: '荆棘托', x: 0.92, y: 0.36, lineTarget: { x: 0.5, y: 0.67 } },
+  { id: 'sight', name: '寻迹镜', x: 0.92, y: 0.75, lineTarget: { x: 0.5, y: 0.34 } },
+];

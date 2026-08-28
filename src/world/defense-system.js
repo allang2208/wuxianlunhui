@@ -27,6 +27,16 @@ import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
 import { createWeaponRicochetHandler } from '../combat/weapon-ricochet.js';
 import { createLegendaryLmgHitHandler } from '../combat/weapon-legendary-lmg.js';
+import {
+    createVoidFuneralHitHandler,
+    prepareMythicShotgunBlast,
+    rollbackMythicShotgunBlast,
+} from '../combat/mythic-shotgun.js';
+import {
+    createLegendaryShotgunHitHandler,
+    prepareLegendaryShotgunBlast,
+    rollbackLegendaryShotgunBlast,
+} from '../combat/legendary-shotgun.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
@@ -507,9 +517,14 @@ const WEAPON_IMAGE_PATHS = {
  */
 function towerWeaponImagePath(item) {
     if (!item) return null;
-    const pick = (o) => (o && (o.iconImage || o.equipImage || o.slotImage || o.dropImage)) || null;
-    return pick(item)
-        || pick(findWeaponConfig(item.weaponId, item.name))
+    // 塔上需要侧视枪身；斜向背包/掉落图标只作为最后兜底。
+    const fullConfig = findWeaponConfig(item.weaponId, item.name);
+    const pickSide = (o) => (o && (o.equipImage || o.weaponAsset?.image)) || null;
+    const pickAny = (o) => (o && (o.dropImage || o.slotImage || o.iconImage)) || null;
+    return pickSide(item)
+        || pickSide(fullConfig)
+        || pickAny(item)
+        || pickAny(fullConfig)
         || WEAPON_IMAGE_PATHS[item.weaponId]
         || WEAPON_IMAGE_PATHS[item.weaponType]
         || null;
@@ -539,8 +554,18 @@ const TOWER_FIRE_SOUNDS = {
     qjb201: 'assets/sounds/weapons/qjb201_single_600ms.wav',
     m416: 'assets/sounds/weapons/m416_fire.wav',
     energy_lmg: 'assets/sounds/weapons/apex_shot_600ms.wav',
-    super90: 'assets/sounds/weapons/apex2_shot_1s.wav',
-    saiga12k: 'assets/sounds/weapons/apex2_shot_1s.wav',
+    weapon12: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    weapon13: 'assets/sounds/weapons/gunshot_600ms_open.wav',
+    weapon39: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    weapon40: 'assets/sounds/weapons/gunshot_600ms_open.wav',
+    weapon41: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    weapon42: 'assets/sounds/weapons/gunshot_600ms_open.wav',
+    weapon43: 'assets/sounds/weapons/gunshot_600ms_open.wav',
+    weapon44: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    weapon45: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    weapon46: 'assets/sounds/weapons/gunshot_600ms_open.wav',
+    weapon47: 'assets/sounds/weapons/gunshot_600ms_clean.wav',
+    weapon48: 'assets/sounds/weapons/gunshot_600ms_open.wav',
     bow: 'assets/sounds/bow/arrow_whoosh_sharp.wav',
 };
 
@@ -1844,6 +1869,16 @@ export const DEFENSE_TOWER_VISUAL = {
             weapon11: { x: 1325, y: 916,  w: 619, h: 151, height: 11 }, // QJB-201
             weapon12: { x: 1335, y: 1010, w: 625, h: 175, height: 12 }, // Super90
             weapon13: { x: 1335, y: 500,  w: 625, h: 283, height: 14 }, // SAIGA-12K
+            weapon39: { x: 831,  y: 512,  w: 397, h: 101, height: 12 }, // S686
+            weapon40: { x: 832,  y: 466,  w: 397, h: 167, height: 13 }, // M870 短管型
+            weapon41: { x: 836,  y: 376,  w: 405, h: 245, height: 13 }, // KSG-12
+            weapon42: { x: 836,  y: 481,  w: 401, h: 150, height: 12 }, // SPAS-12
+            weapon43: { x: 1184, y: 130,  w: 576, h: 277, height: 13 }, // AA-12
+            weapon44: { x: 1337, y: 184,  w: 640, h: 134, height: 12 }, // Winchester 1887
+            weapon45: { x: 1443, y: 116,  w: 701, h: 331, height: 14 }, // 末日钟摆
+            weapon46: { x: 1448, y: 142,  w: 703, h: 207, height: 13 }, // 虚空葬潮
+            weapon47: { x: 831,  y: 469,  w: 395, h: 155, height: 14 }, // 黑日圣裁（塔载专用透明侧视源）
+            weapon48: { x: 1440, y: 173,  w: 692, h: 152, height: 13 }, // 王猎终局
             weapon15: { x: 1335, y: 886,  w: 625, h: 381, height: 16 }, // 能量轻机枪
         },
     },
@@ -2781,6 +2816,31 @@ class DefenseTower extends Combatant {
         const mx = p.mx, my = p.my;
         const attack = this.attacks[this._attackKey];
         const wallContext = this._projectileWallIgnore();
+        const mythicBlast = prepareMythicShotgunBlast(this.weaponItem);
+        const legendaryBlast = prepareLegendaryShotgunBlast(this.weaponItem);
+        const attackCfg = attack.config;
+        const rawDamage = attackCfg.damage || { min: 1, max: 1 };
+        const damageMultiplier = mythicBlast?.damageMultiplier || 1;
+        const damageOverride = damageMultiplier !== 1 ? {
+            min: Number(rawDamage.min ?? rawDamage) * damageMultiplier,
+            max: Number(rawDamage.max ?? rawDamage) * damageMultiplier,
+        } : null;
+        const averageDamage = ((Number(rawDamage.min ?? rawDamage) || 0)
+            + (Number(rawDamage.max ?? rawDamage) || 0)) * 0.5 * damageMultiplier;
+        const voidFuneralOnHit = createVoidFuneralHitHandler(
+            this,
+            this.weaponItem,
+            entities,
+            averageDamage * pelletCount
+        );
+        const legendaryShotgunOnHit = createLegendaryShotgunHitHandler(
+            this,
+            this.weaponItem,
+            entities,
+            averageDamage * pelletCount,
+            legendaryBlast
+        );
+        const shotgunOnHit = voidFuneralOnHit || legendaryShotgunOnHit;
         let fired = false;
         for (let i = 0; i < pelletCount; i++) {
             attack.cooldown = 0; // 弹丸间不互相挡冷却
@@ -2800,9 +2860,24 @@ class DefenseTower extends Combatant {
                 wallContext,
                 // 散弹每颗 pellet 都复用 fireProjectile，但整次击发只能在 _muzzleEffects 播一次声。
                 suppressFireSound: true,
+                damageOverride,
+                piercingOverride: (typeof attackCfg.piercing === 'number' ? attackCfg.piercing : 0)
+                    + (mythicBlast?.piercingBonus || 0),
+                knockbackOverride: (Number(attackCfg.knockback) || 0)
+                    + (mythicBlast?.knockbackDelta || 0),
+                spreadMultiplier: mythicBlast?.spreadMultiplier || 1,
+                onFirstHit: shotgunOnHit,
+                isCrimson: mythicBlast?.charged === true || !!this.weaponItem?.royalHuntParams,
+                isPurple: !!this.weaponItem?.voidFuneralParams,
+                isCyan: legendaryBlast?.phase === 'lunar',
+                isDarkGold: legendaryBlast?.phase === 'solar',
             })) fired = true;
         }
-        if (!fired) return false;
+        if (!fired) {
+            rollbackMythicShotgunBlast(this.weaponItem, mythicBlast);
+            rollbackLegendaryShotgunBlast(this.weaponItem, legendaryBlast);
+            return false;
+        }
         this._consumeAmmo('weapon'); // 一次击发 = 1 发弹壳
         this._muzzleEffects(mx, my, aim.screenX, aim.screenY);
         return true;

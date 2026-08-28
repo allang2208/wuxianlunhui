@@ -311,6 +311,46 @@ export const WEAPON_ATTACK_CONFIG = {
     },
 
     // 霰弹枪
+    s686: {
+        type: 'RangedAttack', cooldown: 900, projectileSpeed: 1248, projectileRange: 560,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 16
+    },
+    m870_breacher: {
+        type: 'RangedAttack', cooldown: 720, projectileSpeed: 1180, projectileRange: 420,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 24
+    },
+    ksg12: {
+        type: 'RangedAttack', cooldown: 600, projectileSpeed: 1210, projectileRange: 520,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 15
+    },
+    spas12: {
+        type: 'RangedAttack', cooldown: 570, projectileSpeed: 1220, projectileRange: 620,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 18
+    },
+    aa12: {
+        type: 'RangedAttack', cooldown: 195, projectileSpeed: 1180, projectileRange: 500,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 8
+    },
+    winchester1887: {
+        type: 'RangedAttack', cooldown: 750, projectileSpeed: 1300, projectileRange: 680,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 22
+    },
+    terminus_pendulum: {
+        type: 'RangedAttack', cooldown: 460, projectileSpeed: 1320, projectileRange: 720,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 18
+    },
+    void_funeral_tide: {
+        type: 'RangedAttack', cooldown: 500, projectileSpeed: 1280, projectileRange: 650,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 14
+    },
+    black_sun_verdict: {
+        type: 'RangedAttack', cooldown: 445, projectileSpeed: 1340, projectileRange: 730,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 17
+    },
+    royal_hunt_finale: {
+        type: 'RangedAttack', cooldown: 510, projectileSpeed: 1360, projectileRange: 760,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 20
+    },
     super90: {
         type: 'RangedAttack',
         cooldown: 333,

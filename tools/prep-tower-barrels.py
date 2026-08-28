@@ -34,6 +34,16 @@ WEAPONS = {
     'weapon11': (os.path.join(ROOT, 'assets', 'icons', '201-icon.png'), (1325, 916, 619, 151)),
     'weapon12': (os.path.join(ROOT, 'assets', 'icons', 'M4s90_icon.png'), (1335, 1010, 625, 175)),
     'weapon13': (os.path.join(ROOT, 'assets', 'icons', 'S12k-icon.png'), (1335, 500, 625, 283)),
+    'weapon39': (os.path.join(ROOT, 'assets', 'weapons', 's686-equip.png'), (831, 512, 397, 101)),
+    'weapon40': (os.path.join(ROOT, 'assets', 'weapons', 'm870-breacher-equip.png'), (832, 466, 397, 167)),
+    'weapon41': (os.path.join(ROOT, 'assets', 'weapons', 'ksg12-equip.png'), (836, 376, 405, 245)),
+    'weapon42': (os.path.join(ROOT, 'assets', 'weapons', 'spas12-equip.png'), (836, 481, 401, 150)),
+    'weapon43': (os.path.join(ROOT, 'assets', 'weapons', 'aa12-equip.png'), (1184, 130, 576, 277)),
+    'weapon44': (os.path.join(ROOT, 'assets', 'weapons', 'winchester1887-equip.png'), (1337, 184, 640, 134)),
+    'weapon45': (os.path.join(ROOT, 'assets', 'weapons', 'terminus-pendulum-equip.png'), (1443, 116, 701, 331)),
+    'weapon46': (os.path.join(ROOT, 'assets', 'weapons', 'void-funeral-tide-equip.png'), (1448, 142, 703, 207)),
+    'weapon47': (os.path.join(ROOT, 'tools', 'ai-gen', 'weapon-gen', 'shotgun-inventory-icons-20260828', 'black-sun-tower-side.png'), (831, 469, 395, 155)),
+    'weapon48': (os.path.join(ROOT, 'assets', 'weapons', 'royal-hunt-finale-equip.png'), (1440, 173, 692, 152)),
     'weapon15': (os.path.join(ROOT, 'assets', 'icons', 'devotion-icon.png'), (1335, 886, 625, 381)),
 }
 

@@ -3938,6 +3938,400 @@
             ]
         }
     },
+    "weapon39": {
+        "slots": [
+            { "id": "barrel", "name": "枪管/扳机", "x": 0.08, "y": 0.22, "lineTarget": { "x": 0.5, "y": 0.38 } },
+            { "id": "bullet", "name": "猎装弹", "x": 0.92, "y": 0.25, "lineTarget": { "x": 0.5, "y": 0.47 } },
+            { "id": "magazine", "name": "退壳器", "x": 0.92, "y": 0.5, "lineTarget": { "x": 0.5, "y": 0.48 } },
+            { "id": "stock", "name": "枪托", "x": 0.92, "y": 0.78, "lineTarget": { "x": 0.5, "y": 0.66 } }
+        ],
+        "options": {
+            "barrel": [
+                {
+                    "id": "s686_double_trigger",
+                    "name": "双扳机速击组",
+                    "icon": "assets/icons/craft-cold-steel/double_tap_trigger.png",
+                    "desc": "攻击间隔 -420ms，最大散布 +3°；两根枪管可以快速衔接，但第二发更难收束",
+                    "effects": { "attackIntervalDelta": -420, "maxSpreadAngleDelta": 3 }
+                },
+                {
+                    "id": "s686_field_barrel",
+                    "name": "猎场加长管组",
+                    "icon": "assets/icons/craft-cold-steel/longshot_barrel.png",
+                    "desc": "射程 +120px，最大散布 -3°，移动速度 -6%",
+                    "effects": { "rangeDelta": 120, "maxSpreadAngleDelta": -3, "moveSpeedPercent": -0.06 }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "s686_express_pair",
+                    "name": "双基快燃猎装弹",
+                    "icon": "assets/icons/craft-cold-steel/buckshot_heavy.png",
+                    "desc": "伤害 +12%，击退 +4px，最大散布 +3°",
+                    "effects": { "damagePercent": 0.12, "knockbackDelta": 4, "maxSpreadAngleDelta": 3 }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "s686_selective_ejector",
+                    "name": "选择式强制退壳器",
+                    "icon": "assets/icons/craft-cold-steel/fast_loader.png",
+                    "desc": "折管换弹时间 -450ms，移动速度 -4%",
+                    "effects": { "reloadTimeDelta": -450, "moveSpeedPercent": -0.04 }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "s686_balanced_walnut",
+                    "name": "配重胡桃木枪托",
+                    "icon": "assets/icons/craft-cold-steel/walnut_fixed_stock.png",
+                    "desc": "静止射击散布 -20%，移动速度 -4%",
+                    "effects": { "stationarySpreadPercent": -0.2, "moveSpeedPercent": -0.04 }
+                }
+            ]
+        }
+    },
+    "weapon40": {
+        "slots": [
+            { "id": "muzzle", "name": "破门顶帽", "x": 0.08, "y": 0.14, "lineTarget": { "x": 0.5, "y": 0.31 } },
+            { "id": "barrel", "name": "短枪管", "x": 0.08, "y": 0.4, "lineTarget": { "x": 0.5, "y": 0.38 } },
+            { "id": "magazine", "name": "弹托", "x": 0.92, "y": 0.25, "lineTarget": { "x": 0.5, "y": 0.47 } },
+            { "id": "grip", "name": "泵动护木", "x": 0.92, "y": 0.53, "lineTarget": { "x": 0.5, "y": 0.55 } },
+            { "id": "stock", "name": "握把/吊带", "x": 0.92, "y": 0.8, "lineTarget": { "x": 0.5, "y": 0.66 } }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "m870_breaching_standoff",
+                    "name": "齿形破门顶帽",
+                    "icon": "assets/icons/craft-cold-steel/heavy_muzzle.png",
+                    "desc": "击退 +12px，伤害 +5%，射程 -90px",
+                    "effects": { "knockbackDelta": 12, "damagePercent": 0.05, "rangeDelta": -90 }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "m870_breacher_crown",
+                    "name": "十四寸破障管",
+                    "icon": "assets/icons/craft-cold-steel/cqb_barrel.png",
+                    "desc": "伤害 +10%，最大散布 +4°，射程 -60px",
+                    "effects": { "damagePercent": 0.1, "maxSpreadAngleDelta": 4, "rangeDelta": -60 }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "m870_side_saddle",
+                    "name": "贴身四发弹托",
+                    "icon": "assets/icons/craft-cold-steel/shell_caddy.png",
+                    "desc": "逐发装填时间 -180ms，弹管容量 -1",
+                    "effects": { "reloadTimeDelta": -180, "magazineDelta": -1 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "m870_slam_pump",
+                    "name": "速泵防滑护木",
+                    "icon": "assets/icons/craft-cold-steel/short_compact_grip.png",
+                    "desc": "攻击间隔 -110ms，最大散布 +3°",
+                    "effects": { "attackIntervalDelta": -110, "maxSpreadAngleDelta": 3 }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "m870_breacher_sling",
+                    "name": "破门手枪握把吊带",
+                    "icon": "assets/icons/craft-cold-steel/pistol_grip.png",
+                    "desc": "移动速度 +15%，击退 +3px，最大散布 +4°",
+                    "effects": { "moveSpeedPercent": 0.15, "knockbackDelta": 3, "maxSpreadAngleDelta": 4 }
+                }
+            ]
+        }
+    },
+    "weapon41": {
+        "slots": [
+            { "id": "barrel", "name": "泵动组件", "x": 0.08, "y": 0.25, "lineTarget": { "x": 0.5, "y": 0.38 } },
+            { "id": "sight", "name": "导轨瞄具", "x": 0.08, "y": 0.62, "lineTarget": { "x": 0.5, "y": 0.52 } },
+            { "id": "magazine", "name": "双管仓", "x": 0.92, "y": 0.3, "lineTarget": { "x": 0.5, "y": 0.47 } },
+            { "id": "grip", "name": "缓冲组件", "x": 0.92, "y": 0.67, "lineTarget": { "x": 0.5, "y": 0.55 } }
+        ],
+        "options": {
+            "barrel": [
+                {
+                    "id": "ksg12_short_stroke_pump",
+                    "name": "短行程泵动组",
+                    "icon": "assets/icons/craft-cold-steel/piston_tuning.png",
+                    "desc": "攻击间隔 -90ms，最大散布 +3°",
+                    "effects": { "attackIntervalDelta": -90, "maxSpreadAngleDelta": 3 }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "ksg12_dual_tube_follower",
+                    "name": "双管仓延长托弹簧",
+                    "icon": "assets/icons/craft-cold-steel/extended_tube.png",
+                    "desc": "弹管容量 +4，逐发装填时间 +120ms，移动速度 -4%",
+                    "effects": { "magazineDelta": 4, "reloadTimeDelta": 120, "moveSpeedPercent": -0.04 }
+                },
+                {
+                    "id": "ksg12_combat_load_gate",
+                    "name": "双发战斗装填门",
+                    "icon": "assets/icons/craft-cold-steel/shell_caddy.png",
+                    "desc": "每次装入2发，移动速度 -5%",
+                    "effects": { "fastReload": true, "moveSpeedPercent": -0.05 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "ksg12_bullpup_recoil_pad",
+                    "name": "牛尾式配重缓冲垫",
+                    "icon": "assets/icons/craft-cold-steel/stabilized_grip.png",
+                    "desc": "伤害 +7%，攻击间隔 +60ms，最大散布 -4°",
+                    "effects": { "damagePercent": 0.07, "attackIntervalDelta": 60, "maxSpreadAngleDelta": -4 }
+                }
+            ],
+            "sight": [
+                {
+                    "id": "ksg12_top_rail_ring",
+                    "name": "全长导轨鬼环照门",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
+                    "desc": "射程 +60px，最大散布 -2°，启用单倍瞄准",
+                    "effects": { "rangeDelta": 60, "maxSpreadAngleDelta": -2, "redDotScope": true }
+                }
+            ]
+        }
+    },
+    "weapon42": {
+        "slots": [
+            { "id": "muzzle", "name": "枪口罩", "x": 0.08, "y": 0.14, "lineTarget": { "x": 0.5, "y": 0.31 } },
+            { "id": "barrel", "name": "循环模式", "x": 0.08, "y": 0.38, "lineTarget": { "x": 0.5, "y": 0.38 } },
+            { "id": "bullet", "name": "镇暴弹", "x": 0.08, "y": 0.66, "lineTarget": { "x": 0.5, "y": 0.47 } },
+            { "id": "grip", "name": "调节器", "x": 0.92, "y": 0.4, "lineTarget": { "x": 0.5, "y": 0.55 } },
+            { "id": "stock", "name": "钩形枪托", "x": 0.92, "y": 0.76, "lineTarget": { "x": 0.5, "y": 0.66 } }
+        ],
+        "options": {
+            "muzzle": [
+                {
+                    "id": "spas12_riot_spreader",
+                    "name": "警用扩散罩",
+                    "icon": "assets/icons/craft-cold-steel/heavy_muzzle.png",
+                    "desc": "击退 +10px，最大散布 +6°，射程 -100px",
+                    "effects": { "knockbackDelta": 10, "maxSpreadAngleDelta": 6, "rangeDelta": -100 }
+                }
+            ],
+            "barrel": [
+                {
+                    "id": "spas12_pump_lock",
+                    "name": "泵动锁止精射组",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
+                    "desc": "伤害 +12%，攻击间隔 +140ms，最大散布 -3°，击退 +4px",
+                    "effects": { "damagePercent": 0.12, "attackIntervalDelta": 140, "maxSpreadAngleDelta": -3, "knockbackDelta": 4 }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "spas12_riot_load",
+                    "name": "低致命镇暴弹",
+                    "icon": "assets/icons/craft-cold-steel/heavy_blunt.png",
+                    "desc": "伤害 -20%，击退 +16px，射程 -70px",
+                    "effects": { "damagePercent": -0.2, "knockbackDelta": 16, "rangeDelta": -70 }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "spas12_dual_mode_regulator",
+                    "name": "双模式循环调节器",
+                    "icon": "assets/icons/craft-cold-steel/rapid_trigger.png",
+                    "desc": "攻击间隔 -80ms，伤害 -8%，最大散布 +2°",
+                    "effects": { "attackIntervalDelta": -80, "damagePercent": -0.08, "maxSpreadAngleDelta": 2 }
+                }
+            ],
+            "stock": [
+                {
+                    "id": "spas12_hook_stock",
+                    "name": "钩形折叠枪托",
+                    "icon": "assets/icons/craft-cold-steel/side_folding_stock.png",
+                    "desc": "移动速度 +12%，最大散布 +4°",
+                    "effects": { "moveSpeedPercent": 0.12, "maxSpreadAngleDelta": 4 }
+                }
+            ]
+        }
+    },
+    "weapon43": {
+        "slots": [
+            { "id": "muzzle", "name": "制退器", "x": 0.08, "y": 0.14, "lineTarget": { "x": 0.5, "y": 0.31 } },
+            { "id": "barrel", "name": "枪机组件", "x": 0.08, "y": 0.4, "lineTarget": { "x": 0.5, "y": 0.4 } },
+            { "id": "bullet", "name": "箭形弹", "x": 0.08, "y": 0.68, "lineTarget": { "x": 0.5, "y": 0.48 } },
+            { "id": "magazine", "name": "弹鼓", "x": 0.92, "y": 0.28, "lineTarget": { "x": 0.5, "y": 0.5 } },
+            { "id": "stock", "name": "缓冲枪托", "x": 0.92, "y": 0.76, "lineTarget": { "x": 0.5, "y": 0.66 } }
+        ],
+        "options": {
+            "muzzle": [{ "id": "aa12_overpressure_brake", "name": "高压排焰制退器", "icon": "assets/icons/craft-shotguns/aa12-overpressure-brake.png", "desc": "最大散布 -4°，击退 +4px，射程 -50px", "effects": { "maxSpreadAngleDelta": -4, "knockbackDelta": 4, "rangeDelta": -50 } }],
+            "barrel": [{ "id": "aa12_open_bolt_accelerator", "name": "开膛待击加速机", "icon": "assets/icons/craft-shotguns/aa12-open-bolt-accelerator.png", "desc": "攻击间隔 -25ms，伤害 -8%，最大散布 +3°", "effects": { "attackIntervalDelta": -25, "damagePercent": -0.08, "maxSpreadAngleDelta": 3 } }],
+            "bullet": [{ "id": "aa12_tungsten_flechette", "name": "钨芯箭形弹", "icon": "assets/icons/craft-shotguns/aa12-tungsten-flechette.png", "desc": "切换为箭形弹，伤害 -12%，最大散布 +2°", "effects": { "flechetteMode": true, "damagePercent": -0.12, "maxSpreadAngleDelta": 2 } }],
+            "magazine": [{ "id": "aa12_combat_drum", "name": "二十发战斗弹鼓", "icon": "assets/icons/craft-shotguns/aa12-combat-drum.png", "desc": "弹容量 +8，换弹时间 +700ms，移动速度 -8%", "effects": { "magazineDelta": 8, "reloadTimeDelta": 700, "moveSpeedPercent": -0.08 } }],
+            "stock": [{ "id": "aa12_hydraulic_stock", "name": "液压缓冲枪托", "icon": "assets/icons/craft-shotguns/aa12-hydraulic-stock.png", "desc": "最大散布 -5°，攻击间隔 +20ms，移动速度 -5%", "effects": { "maxSpreadAngleDelta": -5, "attackIntervalDelta": 20, "moveSpeedPercent": -0.05 } }]
+        }
+    },
+    "weapon44": {
+        "slots": [
+            { "id": "muzzle", "name": "喉缩", "x": 0.08, "y": 0.14, "lineTarget": { "x": 0.5, "y": 0.31 } },
+            { "id": "barrel", "name": "枪管组", "x": 0.08, "y": 0.4, "lineTarget": { "x": 0.5, "y": 0.38 } },
+            { "id": "bullet", "name": "猎装弹", "x": 0.08, "y": 0.68, "lineTarget": { "x": 0.5, "y": 0.47 } },
+            { "id": "grip", "name": "杠杆组", "x": 0.92, "y": 0.38, "lineTarget": { "x": 0.5, "y": 0.55 } },
+            { "id": "stock", "name": "马鞍枪托", "x": 0.92, "y": 0.76, "lineTarget": { "x": 0.5, "y": 0.66 } }
+        ],
+        "options": {
+            "muzzle": [{ "id": "w1887_full_choke", "name": "老式全收束喉缩", "icon": "assets/icons/craft-shotguns/w1887-full-choke.png", "desc": "射程 +120px，最大散布 -4°，击退 -3px", "effects": { "rangeDelta": 120, "maxSpreadAngleDelta": -4, "knockbackDelta": -3 } }],
+            "barrel": [{ "id": "w1887_frontier_barrel", "name": "边境短枪管组", "icon": "assets/icons/craft-shotguns/w1887-frontier-barrel.png", "desc": "攻击间隔 -100ms，射程 -120px，最大散布 +4°", "effects": { "attackIntervalDelta": -100, "rangeDelta": -120, "maxSpreadAngleDelta": 4 } }],
+            "bullet": [{ "id": "w1887_black_powder_magnum", "name": "黑火药马格南猎装弹", "icon": "assets/icons/craft-shotguns/w1887-magnum-shell.png", "desc": "伤害 +15%，击退 +8px，攻击间隔 +100ms，最大散布 +3°", "effects": { "damagePercent": 0.15, "knockbackDelta": 8, "attackIntervalDelta": 100, "maxSpreadAngleDelta": 3 } }],
+            "grip": [{ "id": "w1887_large_loop_lever", "name": "大环杠杆组", "icon": "assets/icons/craft-shotguns/w1887-large-loop-lever.png", "desc": "攻击间隔 -120ms，移动速度 +8%，伤害 -6%，最大散布 +2°", "effects": { "attackIntervalDelta": -120, "moveSpeedPercent": 0.08, "damagePercent": -0.06, "maxSpreadAngleDelta": 2 } }],
+            "stock": [{ "id": "w1887_saddle_ring_stock", "name": "马鞍环轻型枪托", "icon": "assets/icons/craft-shotguns/w1887-saddle-ring-stock.png", "desc": "移动速度 +12%，逐发装填 -80ms，最大散布 +3°", "effects": { "moveSpeedPercent": 0.12, "reloadTimeDelta": -80, "maxSpreadAngleDelta": 3 } }]
+        }
+    },
+    "weapon45": {
+        "slots": [
+            { "id": "barrel", "name": "共鸣机芯", "x": 0.08, "y": 0.18, "lineTarget": { "x": 0.5, "y": 0.38 } },
+            { "id": "muzzle", "name": "双联喉缩", "x": 0.08, "y": 0.5, "lineTarget": { "x": 0.5, "y": 0.31 } },
+            { "id": "bullet", "name": "终钟弹", "x": 0.08, "y": 0.78, "lineTarget": { "x": 0.5, "y": 0.48 } },
+            { "id": "grip", "name": "擒纵组件", "x": 0.92, "y": 0.34, "lineTarget": { "x": 0.5, "y": 0.55 } },
+            { "id": "stock", "name": "钟摆枪托", "x": 0.92, "y": 0.74, "lineTarget": { "x": 0.5, "y": 0.66 } }
+        ],
+        "options": {
+            "barrel": [{
+                "id": "terminus_cathedral_chamber", "name": "大圣堂共鸣腔", "icon": "assets/icons/craft-mythic-shotguns/terminus-cathedral-chamber.png",
+                "desc": "终钟周期由4发延后至5发，终钟伤害倍率由1.45提升至1.70；移动速度 -8%。更慢蓄势换取更重的单次裁决。",
+                "effects": { "terminusCycleShotsDelta": 1, "terminusDamageMultiplierDelta": 0.25, "moveSpeedPercent": -0.08 }, "ticketCost": 6
+            }],
+            "muzzle": [{
+                "id": "terminus_twin_choke", "name": "双联归束喉缩", "icon": "assets/icons/craft-mythic-shotguns/terminus-twin-choke.png",
+                "desc": "终钟散布倍率由0.45降至0.30，射程 +80px；普通击发最大散布 +2°。终钟更准，但常态弹群更松。",
+                "effects": { "terminusSpreadMultiplierDelta": -0.15, "rangeDelta": 80, "maxSpreadAngleDelta": 2 }, "ticketCost": 5
+            }],
+            "bullet": [{
+                "id": "terminus_penetrator_shell", "name": "末日贯穿弹", "icon": "assets/icons/craft-mythic-shotguns/terminus-penetrator-shell.png",
+                "desc": "终钟齐射额外再贯穿1个目标；全部击发伤害 -10%。以常态火力换取狭窄通道的终钟穿列。",
+                "effects": { "terminusPiercingBonus": 1, "damagePercent": -0.1 }, "ticketCost": 5
+            }],
+            "grip": [{
+                "id": "terminus_rapid_escapement", "name": "急奏擒纵机", "icon": "assets/icons/craft-mythic-shotguns/terminus-rapid-escapement.png",
+                "desc": "终钟周期由4发提前至3发，但终钟伤害倍率由1.45降至1.30，攻击间隔 +30ms。爆发更频繁但每次更轻。",
+                "effects": { "terminusCycleShotsDelta": -1, "terminusDamageMultiplierDelta": -0.15, "attackIntervalDelta": 30 }, "ticketCost": 5
+            }],
+            "stock": [{
+                "id": "terminus_counterweight_stock", "name": "钟摆配重枪托", "icon": "assets/icons/craft-mythic-shotguns/terminus-counterweight-stock.png",
+                "desc": "终钟齐射额外击退 +8px；逐发装填 +100ms，移动速度 -5%。以机动和补弹节奏换取强制清线。",
+                "effects": { "terminusKnockbackDelta": 8, "reloadTimeDelta": 100, "moveSpeedPercent": -0.05 }, "ticketCost": 4
+            }]
+        }
+    },
+    "weapon46": {
+        "slots": [
+            { "id": "sight", "name": "折射镜", "x": 0.08, "y": 0.16, "lineTarget": { "x": 0.5, "y": 0.34 } },
+            { "id": "barrel", "name": "棱镜线圈", "x": 0.08, "y": 0.46, "lineTarget": { "x": 0.5, "y": 0.4 } },
+            { "id": "bullet", "name": "晶簇弹", "x": 0.08, "y": 0.76, "lineTarget": { "x": 0.5, "y": 0.48 } },
+            { "id": "grip", "name": "相位泵组", "x": 0.92, "y": 0.36, "lineTarget": { "x": 0.5, "y": 0.55 } },
+            { "id": "stock", "name": "深涡核心", "x": 0.92, "y": 0.75, "lineTarget": { "x": 0.5, "y": 0.66 } }
+        ],
+        "options": {
+            "sight": [{
+                "id": "void_refraction_lens", "name": "裂隙折射镜", "icon": "assets/icons/craft-mythic-shotguns/void-refraction-lens.png",
+                "desc": "葬潮搜索半径 +100px，但回响伤害倍率由0.30降至0.25。扩大折射覆盖，牺牲单个回响强度。",
+                "effects": { "voidFuneralRangeDelta": 100, "voidFuneralDamageMultiplierDelta": -0.05 }, "ticketCost": 5
+            }],
+            "barrel": [{
+                "id": "void_triple_prism_coil", "name": "三棱分潮线圈", "icon": "assets/icons/craft-mythic-shotguns/void-triple-prism-coil.png",
+                "desc": "葬潮额外目标上限由3增至5；全部击发伤害 -10%，逐发装填 +100ms。显著强化群体扩散但削弱正面火力。",
+                "effects": { "voidFuneralMaxTargetsDelta": 2, "damagePercent": -0.1, "reloadTimeDelta": 100 }, "ticketCost": 6
+            }],
+            "bullet": [{
+                "id": "void_stasis_shell", "name": "静滞晶簇弹", "icon": "assets/icons/craft-mythic-shotguns/void-stasis-shell.png",
+                "desc": "葬潮束缚由500ms延长至850ms；武器射程 -70px，最大散布 +2°。控制更久但本体接敌距离更危险。",
+                "effects": { "voidFuneralBindDurationDelta": 350, "rangeDelta": -70, "maxSpreadAngleDelta": 2 }, "ticketCost": 5
+            }],
+            "grip": [{
+                "id": "void_phase_pump", "name": "相位速泵护木", "icon": "assets/icons/craft-mythic-shotguns/void-phase-pump.png",
+                "desc": "攻击间隔 -70ms；葬潮搜索半径 -60px，最大散布 +3°。以更快泵动换取更短、更不稳定的裂隙。",
+                "effects": { "attackIntervalDelta": -70, "voidFuneralRangeDelta": -60, "maxSpreadAngleDelta": 3 }, "ticketCost": 5
+            }],
+            "stock": [{
+                "id": "void_undertow_core", "name": "深涡增压核心", "icon": "assets/icons/craft-mythic-shotguns/void-undertow-core.png",
+                "desc": "葬潮伤害倍率由0.30提升至0.42，但束缚 -200ms、攻击间隔 +40ms。回响更重，控制与击发节奏更弱。",
+                "effects": { "voidFuneralDamageMultiplierDelta": 0.12, "voidFuneralBindDurationDelta": -200, "attackIntervalDelta": 40 }, "ticketCost": 6
+            }]
+        }
+    },
+    "weapon47": {
+        "slots": [
+            { "id": "sight", "name": "新月镜", "x": 0.08, "y": 0.15, "lineTarget": { "x": 0.5, "y": 0.34 } },
+            { "id": "barrel", "name": "日冕腔", "x": 0.08, "y": 0.45, "lineTarget": { "x": 0.5, "y": 0.4 } },
+            { "id": "muzzle", "name": "黑日环", "x": 0.08, "y": 0.75, "lineTarget": { "x": 0.5, "y": 0.3 } },
+            { "id": "bullet", "name": "蚀核弹", "x": 0.92, "y": 0.36, "lineTarget": { "x": 0.5, "y": 0.49 } },
+            { "id": "grip", "name": "双相机", "x": 0.92, "y": 0.75, "lineTarget": { "x": 0.5, "y": 0.57 } }
+        ],
+        "options": {
+            "sight": [{
+                "id": "black_sun_crescent_lens", "name": "新月延轨镜", "icon": "assets/icons/craft-legendary-shotguns/black-sun-crescent-lens.png",
+                "desc": "蚀印时限由3秒延长至4.5秒，月蚀迟滞由500ms延长至750ms；全部击发伤害 -8%。为日相留出更宽容的追击窗口。",
+                "effects": { "eclipseMarkDurationDelta": 1500, "eclipseSlowDurationDelta": 250, "damagePercent": -0.08 }, "ticketCost": 5
+            }],
+            "barrel": [{
+                "id": "black_sun_solar_focus_chamber", "name": "日冕聚焦腔", "icon": "assets/icons/craft-legendary-shotguns/black-sun-solar-focus-chamber.png",
+                "desc": "日冕主目标聚焦倍率由0.35提升至0.55，溅射倍率由0.45降至0.30；攻击间隔 +40ms。把群体裁决压缩为单点审判。",
+                "effects": { "eclipseFocusDamageMultiplierDelta": 0.2, "eclipseSplashDamageMultiplierDelta": -0.15, "attackIntervalDelta": 40 }, "ticketCost": 6
+            }],
+            "muzzle": [{
+                "id": "black_sun_horizon_ring", "name": "黑日扩界环", "icon": "assets/icons/craft-legendary-shotguns/black-sun-horizon-ring.png",
+                "desc": "日冕半径由170px扩大至270px，额外目标由4增至6；逐发装填 +120ms，移动速度 -5%。扩大清群边界但显著拖慢周转。",
+                "effects": { "eclipseRadiusDelta": 100, "eclipseMaxTargetsDelta": 2, "reloadTimeDelta": 120, "moveSpeedPercent": -0.05 }, "ticketCost": 6
+            }],
+            "bullet": [{
+                "id": "black_sun_eclipse_shell", "name": "蚀核重击弹", "icon": "assets/icons/craft-legendary-shotguns/black-sun-eclipse-shell.png",
+                "desc": "日冕溅射倍率由0.45提升至0.63；射程 -90px，最大散布 +3°。用更危险的近距弹群换取更重范围爆发。",
+                "effects": { "eclipseSplashDamageMultiplierDelta": 0.18, "rangeDelta": -90, "maxSpreadAngleDelta": 3 }, "ticketCost": 5
+            }],
+            "grip": [{
+                "id": "black_sun_phase_indexer", "name": "双相速轮机", "icon": "assets/icons/craft-legendary-shotguns/black-sun-phase-indexer.png",
+                "desc": "攻击间隔 -60ms；蚀印时限缩短800ms、日冕聚焦倍率 -0.10、最大散布 +2°。以更快相位轮转换取更苛刻且更轻的裁决。",
+                "effects": { "attackIntervalDelta": -60, "eclipseMarkDurationDelta": -800, "eclipseFocusDamageMultiplierDelta": -0.1, "maxSpreadAngleDelta": 2 }, "ticketCost": 6
+            }]
+        }
+    },
+    "weapon48": {
+        "slots": [
+            { "id": "grip", "name": "速记机", "x": 0.08, "y": 0.16, "lineTarget": { "x": 0.5, "y": 0.56 } },
+            { "id": "barrel", "name": "终局膛", "x": 0.08, "y": 0.46, "lineTarget": { "x": 0.5, "y": 0.4 } },
+            { "id": "bullet", "name": "红冠弹", "x": 0.08, "y": 0.76, "lineTarget": { "x": 0.5, "y": 0.49 } },
+            { "id": "stock", "name": "荆棘托", "x": 0.92, "y": 0.36, "lineTarget": { "x": 0.5, "y": 0.67 } },
+            { "id": "sight", "name": "寻迹镜", "x": 0.92, "y": 0.75, "lineTarget": { "x": 0.5, "y": 0.34 } }
+        ],
+        "options": {
+            "grip": [{
+                "id": "royal_hunt_quick_ledger", "name": "猎王速记机", "icon": "assets/icons/craft-legendary-shotguns/royal-hunt-quick-ledger.png",
+                "desc": "终局由同目标3次命中提前至2次，但基础终局倍率由0.65降至0.40；攻击间隔 +40ms。更快结算，单次处决更轻。",
+                "effects": { "huntRequiredHitsDelta": -1, "huntFinisherDamageMultiplierDelta": -0.25, "attackIntervalDelta": 40 }, "ticketCost": 6
+            }],
+            "barrel": [{
+                "id": "royal_hunt_grand_chamber", "name": "终局重膛", "icon": "assets/icons/craft-legendary-shotguns/royal-hunt-grand-chamber.png",
+                "desc": "终局延后至同目标4次命中，基础终局倍率由0.65提升至1.00；移动速度 -8%。更长狩猎换取一次完整弹群的额外裁决。",
+                "effects": { "huntRequiredHitsDelta": 1, "huntFinisherDamageMultiplierDelta": 0.35, "moveSpeedPercent": -0.08 }, "ticketCost": 6
+            }],
+            "bullet": [{
+                "id": "royal_hunt_red_crown_shell", "name": "红冠处决弹", "icon": "assets/icons/craft-legendary-shotguns/royal-hunt-red-crown-shell.png",
+                "desc": "已损生命伤害由10%提升至18%，封顶由整组35%提升至60%；全部击发伤害 -10%。专精残血处决，削弱常态输出。",
+                "effects": { "huntMissingHealthMultiplierDelta": 0.08, "huntMissingHealthCapMultiplierDelta": 0.25, "damagePercent": -0.1 }, "ticketCost": 6
+            }],
+            "stock": [{
+                "id": "royal_hunt_thorn_stock", "name": "锁猎荆棘托", "icon": "assets/icons/craft-legendary-shotguns/royal-hunt-thorn-stock.png",
+                "desc": "终局束缚由400ms延长至750ms、额外击退 +6px；射程 -80px。让处决兼具控场，但必须更近接敌。",
+                "effects": { "huntBindDurationDelta": 350, "huntKnockbackDelta": 6, "rangeDelta": -80 }, "ticketCost": 5
+            }],
+            "sight": [{
+                "id": "royal_hunt_trail_lens", "name": "不失焦寻迹镜", "icon": "assets/icons/craft-legendary-shotguns/royal-hunt-trail-lens.png",
+                "desc": "同目标猎印窗口由2.2秒延长至3.4秒；逐发装填 +120ms，最大散布 +2°。更容易维持猎印，牺牲补弹与命中稳定。",
+                "effects": { "huntResetTimeDelta": 1200, "reloadTimeDelta": 120, "maxSpreadAngleDelta": 2 }, "ticketCost": 5
+            }]
+        }
+    },
     "weapon15": {
         "slots": [
             {

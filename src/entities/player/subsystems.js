@@ -15,6 +15,8 @@ import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { createWeaponRicochetHandler } from '../../combat/weapon-ricochet.js';
 import { createLegendaryLmgHitHandler } from '../../combat/weapon-legendary-lmg.js';
+import { createVoidFuneralHitHandler, prepareMythicShotgunBlast } from '../../combat/mythic-shotgun.js';
+import { createLegendaryShotgunHitHandler, prepareLegendaryShotgunBlast } from '../../combat/legendary-shotgun.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound, resolveGunAttackInterval } from '../../config/gun-ammo.js';
 import { AUTO_GUN_FAMILY } from '../../config/weapon-families.js';
@@ -2232,6 +2234,8 @@ _fireRanged(hand = 'main') {
                         if (this._hasAmmo(mainSlot)) {
                             this._consumeAmmo(mainSlot);
                             this._registerGunSpreadShot('main', currentItem);
+                            const mythicBlast = prepareMythicShotgunBlast(currentItem);
+                            const legendaryBlast = prepareLegendaryShotgunBlast(currentItem);
                             const pc = this.attacks[attackKey].config;
                             const gunLX = this.size + sgCfg.gunLX, gunLY = holdY;
                             let spawnPos = this._getMuzzleWorldPosition('main');
@@ -2245,6 +2249,7 @@ _fireRanged(hand = 'main') {
                                 // 防御分支（玩家侧永不触发）——原 weapon-damage-formulas.js 硬编码回退已删除
                                 weaponDamage = 0;
                             }
+                            weaponDamage = Math.round(weaponDamage * (mythicBlast?.damageMultiplier || 1));
                             const damage = { min: weaponDamage, max: weaponDamage };
                             // 应用改造效果（射程、击退）
                             const ballistics = this._getGunBallistics(currentItem, pc.projectileRange);
@@ -2259,6 +2264,7 @@ _fireRanged(hand = 'main') {
                                 const sm = this.skills.shotgunMastery.getEffect(this.skills.shotgunMastery.level);
                                 effectiveKnockback += sm.knockbackBonus || 0;
                             }
+                            effectiveKnockback += mythicBlast?.knockbackDelta || 0;
                             // 屏幕抖动
                             Camera.triggerShake(sgCfg.cameraShake);
                             // 开火音效
@@ -2269,6 +2275,21 @@ _fireRanged(hand = 'main') {
                                 piercing = 1;
                             }
                             piercing = this._getEffectivePiercing(piercing, currentItem);
+                            piercing += mythicBlast?.piercingBonus || 0;
+                            const voidFuneralOnHit = createVoidFuneralHitHandler(
+                                this,
+                                currentItem,
+                                d.entities,
+                                weaponDamage * (isSlug ? 1 : pelletCount)
+                            );
+                            const legendaryShotgunOnHit = createLegendaryShotgunHitHandler(
+                                this,
+                                currentItem,
+                                d.entities,
+                                weaponDamage * (isSlug ? 1 : pelletCount),
+                                legendaryBlast
+                            );
+                            const shotgunOnHit = voidFuneralOnHit || legendaryShotgunOnHit;
                             if (isSlug) {
                                 // 独头弹模式：单发弹丸，后坐力层数控制散布（应用改造效果）
                                 this._slugRecoilLayers++;
@@ -2277,7 +2298,7 @@ _fireRanged(hand = 'main') {
                                 const slugSpreadAngle = Math.min(slugTuning.maxAngle,
                                     Math.max(0, this._slugRecoilLayers - 1) * slugTuning.perShotAngle);
                                 const slugSpreadRad = (Math.random() - 0.5) * 2 * (slugSpreadAngle * Math.PI / 180);
-                                const angle = baseAngle + slugSpreadRad;
+                                const angle = baseAngle + slugSpreadRad * (mythicBlast?.spreadMultiplier || 1);
                                 ProjectileFactory.create({
                                     x: spawnPos.x, y: spawnPos.y, angle: angle,
                                     ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
@@ -2287,7 +2308,12 @@ _fireRanged(hand = 'main') {
                                     isGold: true,
                                     knockback: effectiveKnockback,
                                     damageFalloff: ballistics.damageFalloff,
-                                    playerGunWallSparks: true
+                                    playerGunWallSparks: true,
+                                    onFirstHit: shotgunOnHit,
+                                    isCrimson: mythicBlast?.charged === true || !!currentItem.royalHuntParams,
+                                    isPurple: !!currentItem.voidFuneralParams,
+                                    isCyan: legendaryBlast?.phase === 'lunar',
+                                    isDarkGold: legendaryBlast?.phase === 'solar',
                                 });
                             } else {
                                 // 普通模式：多发弹丸，每发随机散布（应用改造效果）
@@ -2295,7 +2321,7 @@ _fireRanged(hand = 'main') {
                                 const spreadAngle = this._getGunSpreadTuning(currentItem).maxAngle;
                                 for (let pellet = 0; pellet < pelletCount; pellet++) {
                                     const spreadRad = (Math.random() - 0.5) * 2 * (spreadAngle * Math.PI / 180);
-                                    const angle = baseAngle + spreadRad;
+                                    const angle = baseAngle + spreadRad * (mythicBlast?.spreadMultiplier || 1);
                                     ProjectileFactory.create({
                                         x: spawnPos.x, y: spawnPos.y, angle: angle,
                                         ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
@@ -2305,7 +2331,12 @@ _fireRanged(hand = 'main') {
                                         isGold: true,
                                         knockback: effectiveKnockback,
                                         damageFalloff: ballistics.damageFalloff,
-                                        playerGunWallSparks: true
+                                        playerGunWallSparks: true,
+                                        onFirstHit: shotgunOnHit,
+                                        isCrimson: mythicBlast?.charged === true || !!currentItem.royalHuntParams,
+                                        isPurple: !!currentItem.voidFuneralParams,
+                                        isCyan: legendaryBlast?.phase === 'lunar',
+                                        isDarkGold: legendaryBlast?.phase === 'solar',
                                     });
                                 }
                             }

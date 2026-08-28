@@ -202,6 +202,16 @@ export function createDevToolPanel() {
         ['qjb201', '🔥 QJB-201'],
         ['super90', '🔫 Super90'],
         ['saiga12k', '🔫 S12K'],
+        ['s686', '🔫 S686'],
+        ['m870_breacher', '🔫 M870 短管型'],
+        ['ksg12', '🔫 KSG-12'],
+        ['spas12', '🔫 SPAS-12'],
+        ['aa12', '🔫 AA-12'],
+        ['winchester1887', '🔫 Winchester 1887'],
+        ['terminus_pendulum', '🔫 末日钟摆'],
+        ['void_funeral_tide', '🔫 虚空葬潮'],
+        ['black_sun_verdict', '🔫 黑日圣裁'],
+        ['royal_hunt_finale', '🔫 王猎终局'],
         ['energy_lmg', '🔫 能量轻机枪'],
     ];
     weaponOptions.forEach(([value, text]) => {

@@ -22,6 +22,16 @@ export function getWeaponTextureKey(item) {
         weapon19: 'weapon_beretta93r',
         weapon12: 'weapon_super90',
         weapon13: 'weapon_saiga12k',
+        weapon39: 'weapon_s686',
+        weapon40: 'weapon_m870_breacher',
+        weapon41: 'weapon_ksg12',
+        weapon42: 'weapon_spas12',
+        weapon43: 'weapon_aa12',
+        weapon44: 'weapon_winchester1887',
+        weapon45: 'weapon_terminus_pendulum',
+        weapon46: 'weapon_void_funeral_tide',
+        weapon47: 'weapon_black_sun_verdict',
+        weapon48: 'weapon_royal_hunt_finale',
     };
     if (specialMap[weaponId]) return specialMap[weaponId];
     if (weaponType) return `weapon_${weaponType}`;
@@ -68,6 +78,16 @@ export function getWeaponTextureLoadList() {
         { key: 'weapon_energy_lmg', path: 'assets/icons/devotion-icon.png' },
         { key: 'weapon_super90', path: 'assets/icons/M4s90_icon.png' },
         { key: 'weapon_saiga12k', path: 'assets/icons/S12k-icon.png' },
+        { key: 'weapon_s686', path: 'assets/weapons/s686-equip.png' },
+        { key: 'weapon_m870_breacher', path: 'assets/weapons/m870-breacher-equip.png' },
+        { key: 'weapon_ksg12', path: 'assets/weapons/ksg12-equip.png' },
+        { key: 'weapon_spas12', path: 'assets/weapons/spas12-equip.png' },
+        { key: 'weapon_aa12', path: 'assets/weapons/aa12-equip.png' },
+        { key: 'weapon_winchester1887', path: 'assets/weapons/winchester1887-equip.png' },
+        { key: 'weapon_terminus_pendulum', path: 'assets/weapons/terminus-pendulum-equip.png' },
+        { key: 'weapon_void_funeral_tide', path: 'assets/weapons/void-funeral-tide-equip.png' },
+        { key: 'weapon_black_sun_verdict', path: 'assets/weapons/black-sun-verdict-equip.png' },
+        { key: 'weapon_royal_hunt_finale', path: 'assets/weapons/royal-hunt-finale-equip.png' },
         { key: 'weapon_staff', path: 'assets/weapons/学徒法杖.png' },
         { key: 'weapon_shield', path: 'assets/weapons/woodshied-equip.png' },
     ].map(({ key, path }) => ({

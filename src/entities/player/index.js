@@ -221,6 +221,16 @@ class Player extends Combatant {
             this.qjb201Image = loadImage(defs.images.qjb201);
             this.super90Image = loadImage(defs.images.super90);
             this.saiga12kImage = loadImage(defs.images.saiga12k);
+            this.s686Image = loadImage(defs.images.s686);
+            this.m870BreacherImage = loadImage(defs.images.m870Breacher);
+            this.ksg12Image = loadImage(defs.images.ksg12);
+            this.spas12Image = loadImage(defs.images.spas12);
+            this.aa12Image = loadImage(defs.images.aa12);
+            this.winchester1887Image = loadImage(defs.images.winchester1887);
+            this.terminusPendulumImage = loadImage(defs.images.terminusPendulum);
+            this.voidFuneralTideImage = loadImage(defs.images.voidFuneralTide);
+            this.blackSunVerdictImage = loadImage(defs.images.blackSunVerdict);
+            this.royalHuntFinaleImage = loadImage(defs.images.royalHuntFinale);
             this.energyLmgImage = loadImage(defs.images.energyLmg);
             this.shieldImage = loadImage(defs.images.shield);
             // 角色动画已由 Phaser 接管，不再加载 Canvas 精灵图
