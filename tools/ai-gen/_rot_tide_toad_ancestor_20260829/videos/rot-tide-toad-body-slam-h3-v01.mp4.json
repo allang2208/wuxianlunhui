@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T02:48:10.804706+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-body-slam-h3-v01.mp4",
+    "bytes": 1307025,
+    "sha256": "f601fe386de4a57085d7778e80c85a186756ecf75e69fe1051f4bc0f50716920"
+  },
+  "promptId": "139acf32-99c4-45c2-88b8-c9b8d64f06e9",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 829106,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.2 seconds: the toad compresses into a deep crouch, folds its hindlegs tightly, plants both forefeet, and gathers its heavy body for one explosive slam.\n1.2-3.2 seconds: it performs exactly one body-slam attack. The hindlegs drive the complete body through a short low upward hop without travelling across the frame; the legs tuck briefly, then the broad belly and forequarters drop hard into one low flattened impact pose. The impact is communicated only by the body motion and splayed limbs.\n3.2-5.17 seconds: the toad pushes itself back up, restores all four feet to the original stance, returns once to its low crouch, and holds.\n\nKeep the same stable screen scale, complete four-limbed anatomy, amber eyes, paired parotoid glands, gray-yellow throat sac, mottled wet warted skin, and right-facing silhouette. Keep the horizontal root position fixed. The camera remains static. The entire body stays fully inside the frame. The background remains flat white and shadowless, with no ground crack, dust, splash, debris, shockwave, or other impact effect.",
+  "effectivePrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.2 seconds: the toad compresses into a deep crouch, folds its hindlegs tightly, plants both forefeet, and gathers its heavy body for one explosive slam.\n1.2-3.2 seconds: it performs exactly one body-slam attack. The hindlegs drive the complete body through a short low upward hop without travelling across the frame; the legs tuck briefly, then the broad belly and forequarters drop hard into one low flattened impact pose. The impact is communicated only by the body motion and splayed limbs.\n3.2-5.17 seconds: the toad pushes itself back up, restores all four feet to the original stance, returns once to its low crouch, and holds.\n\nKeep the same stable screen scale, complete four-limbed anatomy, amber eyes, paired parotoid glands, gray-yellow throat sac, mottled wet warted skin, and right-facing silhouette. Keep the horizontal root position fixed. The camera remains static. The entire body stays fully inside the frame. The background remains flat white and shadowless, with no ground crack, dust, splash, debris, shockwave, or other impact effect.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.2 seconds: the toad compresses into a deep crouch, folds its hindlegs tightly, plants both forefeet, and gathers its heavy body for one explosive slam.\n1.2-3.2 seconds: it performs exactly one body-slam attack. The hindlegs drive the complete body through a short low upward hop without travelling across the frame; the legs tuck briefly, then the broad belly and forequarters drop hard into one low flattened impact pose. The impact is communicated only by the body motion and splayed limbs.\n3.2-5.17 seconds: the toad pushes itself back up, restores all four feet to the original stance, returns once to its low crouch, and holds.\n\nKeep the same stable screen scale, complete four-limbed anatomy, amber eyes, paired parotoid glands, gray-yellow throat sac, mottled wet warted skin, and right-facing silhouette. Keep the horizontal root position fixed. The camera remains static. The entire body stays fully inside the frame. The background remains flat white and shadowless, with no ground crack, dust, splash, debris, shockwave, or other impact effect. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "77f4a51399707e8470488273449a57b70d61927af29fb11e2907e6f195e87d46",
+  "effectivePromptSha256": "77f4a51399707e8470488273449a57b70d61927af29fb11e2907e6f195e87d46",
+  "finalPromptSha256": "bdcf7c969eb883517ba547840c50476eec6269ccec4b483dcc3521bb17fc2c46",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\prompts\\body-slam-h3-v01.txt",
+      "bytes": 1273,
+      "sha256": "fe3315008460320e78ee215688700a76bf16a1733496d345589225c906f4835d"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-general-safe-white-1024x576.png",
+      "bytes": 403471,
+      "sha256": "0791d3aef70e8fac32871e432b5c4e3e0d6805fdbfa648b2158d5e9d0d017066"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-body-slam-h3-v01_contact.png",
+    "bytes": 622586,
+    "sha256": "924f2bf6ec91bf01766d434b133cf2ca3910bda1bddf28b1b4e82a6472e0c5b8"
+  },
+  "elapsedSeconds": 425.59
+}

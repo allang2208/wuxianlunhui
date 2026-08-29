@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T01:19:35.210878+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-moving-h3-v01.mp4",
+    "bytes": 1260824,
+    "sha256": "718fb1a6052360510a20cf5beddcc76d20396c826861c74bce8eb3a9abab84a2"
+  },
+  "promptId": "4708edcc-61f8-4b6d-b5fe-b99eac38eb2c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 829102,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.0 seconds: the toad lowers its chest slightly, bends both powerful hindlegs and shifts weight into its planted forefeet, visibly preparing a heavy locomotion cycle.\n1.0-3.8 seconds: it performs one complete in-place toad locomotion cycle toward screen-right. The hindlegs push and extend together, the broad torso rises in one low compact bound, the forefeet reach and plant, then the hindfeet fold forward beneath the body. The motion is weighty and close to the baseline rather than a high jump. Its body center stays inside the same safe framing so gameplay can provide world movement.\n3.8-5.17 seconds: all four feet settle on the original baseline and the body returns smoothly to the exact opening crouch for a seamless loop.\n\nKeep the body at a stable screen scale and preserve the same amber eye, paired parotoid glands, gray-yellow throat sac, complete four-limbed anatomy and right-facing silhouette. The camera is static. The background stays flat white and shadowless.",
+  "effectivePrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the toad lowers its chest slightly, bends both powerful hindlegs and shifts weight into its planted forefeet, visibly preparing a heavy locomotion cycle.\n1.0-3.8 seconds: it performs one complete in-place toad locomotion cycle toward screen-right. The hindlegs push and extend together, the broad torso rises in one low compact bound, the forefeet reach and plant, then the hindfeet fold forward beneath the body. The motion is weighty and close to the baseline rather than a high jump. Its body center stays inside the same safe framing so gameplay can provide world movement.\n3.8-5.17 seconds: all four feet settle on the original baseline and the body returns smoothly to the exact opening crouch for a seamless loop.\n\nKeep the body at a stable screen scale and preserve the same amber eye, paired parotoid glands, gray-yellow throat sac, complete four-limbed anatomy and right-facing silhouette. The camera is static. The background stays flat white and shadowless.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the toad lowers its chest slightly, bends both powerful hindlegs and shifts weight into its planted forefeet, visibly preparing a heavy locomotion cycle.\n1.0-3.8 seconds: it performs one complete in-place toad locomotion cycle toward screen-right. The hindlegs push and extend together, the broad torso rises in one low compact bound, the forefeet reach and plant, then the hindfeet fold forward beneath the body. The motion is weighty and close to the baseline rather than a high jump. Its body center stays inside the same safe framing so gameplay can provide world movement.\n3.8-5.17 seconds: all four feet settle on the original baseline and the body returns smoothly to the exact opening crouch for a seamless loop.\n\nKeep the body at a stable screen scale and preserve the same amber eye, paired parotoid glands, gray-yellow throat sac, complete four-limbed anatomy and right-facing silhouette. The camera is static. The background stays flat white and shadowless. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "8ebde176ddb4a5cfe34ea89ae2d3057688d438277c6a9cbf8b5cb783a9540fc9",
+  "effectivePromptSha256": "c27878778161370f8e52cfaa876fac6a3f07277555ab8c05125efec19ac8a7fe",
+  "finalPromptSha256": "9bf9f356187241c93ff6a429837eb8e720c3a96424adef7bd53df67a1d548607",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\prompts\\moving-h3-v01.txt",
+      "bytes": 1198,
+      "sha256": "f00d78fefcc6bdf0383e035691da394f90007c16166baef39e83e7a34d2e88d0"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-general-safe-white-1024x576.png",
+      "bytes": 403471,
+      "sha256": "0791d3aef70e8fac32871e432b5c4e3e0d6805fdbfa648b2158d5e9d0d017066"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-general-safe-white-1024x576.png",
+      "bytes": 403471,
+      "sha256": "0791d3aef70e8fac32871e432b5c4e3e0d6805fdbfa648b2158d5e9d0d017066"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-moving-h3-v01_contact.png",
+    "bytes": 616093,
+    "sha256": "51c9310c823810ab8703b3f996feed9967073a57e39bfa919e6ce47be518d619"
+  },
+  "elapsedSeconds": 540.894
+}

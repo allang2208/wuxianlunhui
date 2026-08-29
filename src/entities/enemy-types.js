@@ -2541,6 +2541,61 @@ function createSwampVampireMosquito(x, y, overrides = {}) {
  * 芦影镰螳：敏捷大型昆虫精英。普通攻击保持锁向单体交错镰斩；独立冷却
  * 的双镰裂扇播放专属宽格动画，在真实回扫接触帧结算一次前方扇形 AOE。
  */
+class SmallRotbogRhinocerosBeetleEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.smallRotbogRhinocerosBeetle,
+            ...config,
+        });
+        // 贴地小型甲虫不叠加通用椭圆阴影，避免腹部下方出现独立黑块。
+        this._noShadow = true;
+    }
+
+    _getSmallRotbogVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getSmallRotbogVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_small_rotbog_rhinoceros_beetle_${this._getSmallRotbogVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getSmallRotbogVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_small_rotbog_rhinoceros_beetle_${visualState}_v1`;
+        return options;
+    }
+}
+
+function createSmallRotbogRhinocerosBeetle(x, y, overrides = {}) {
+    const base = enemyConfigData.smallRotbogRhinocerosBeetle || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new SmallRotbogRhinocerosBeetleEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 芦影镰螳：敏捷大型昆虫精英。普通攻击保持锁向单体交错镰斩；独立冷却
+ * 的双镰裂扇播放专属宽格动画，在真实回扫接触帧结算一次前方扇形 AOE。
+ */
+
 class ReedShadowSickleMantisEnemy extends ZombieDogEnemy {
     constructor(x, y, config = {}) {
         super(x, y, {
@@ -3780,7 +3835,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
             Math.max(0, Math.floor(Number(this._summonCfg.count) || 2)),
             Math.max(0, cap - this._summons.size)
         );
-        const radius = Math.max(4, Number(enemyConfigData.swampVampireMosquito?.collisionRadius) || 20);
+        const radius = Math.max(4, Number(enemyConfigData.smallRotbogRhinocerosBeetle?.collisionRadius) || 20);
         for (let index = 0; index < count; index++) {
             const angle = this.rotation + (index === 0 ? 2.15 : -2.15);
             const distance = 130 + index * 35;
@@ -3788,7 +3843,7 @@ class RotbogRhinocerosBeetleKingEnemy extends ZombieDogEnemy {
             const desiredY = (this.collider?.y ?? this.y) + Math.sin(angle) * distance;
             const safe = WallSystem.findSafeSpawn(desiredX, desiredY, radius, 16);
             if (!WallSystem.canMoveTo(safe.x, safe.y, radius)) continue;
-            const summon = createSwampVampireMosquito(safe.x, safe.y);
+            const summon = createSmallRotbogRhinocerosBeetle(safe.x, safe.y);
             summon._summoned = true;
             summon._rotbogSummoner = this;
             summon.target = this.target;
@@ -3908,6 +3963,545 @@ function createRotbogRhinocerosBeetleKing(x, y, overrides = {}) {
  * 播放人变熊动画并进入强化四足近战阶段。两种形态共用同一生命链，
  * 只在变熊完成时应用一次既有属性倍率。
  */
+class RotTideToadAncestorEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.rotTideToadAncestor,
+            ...config,
+        });
+        const skills = this.config?.attackSkills || {};
+        this._toadSkillCfg = {
+            tongueSweep: skills.tongueSweep || {},
+            bodySlam: skills.bodySlam || {},
+            poisonBelch: skills.poisonBelch || {},
+            summonCroak: skills.summonCroak || {},
+        };
+        this._toadSkillCooldowns = Object.fromEntries(
+            Object.entries(this._toadSkillCfg).map(([key, cfg]) => [
+                key,
+                Math.max(0, Number(cfg.initialCooldownMs) || 0),
+            ])
+        );
+        this._toadSkillCycle = ['tongueSweep', 'bodySlam', 'poisonBelch', 'summonCroak'];
+        this._toadSkillCursor = 0;
+        this._toadAction = null;
+        this._toadActionCfg = null;
+        this._toadActionTimer = 0;
+        this._toadActionDuration = 0;
+        this._toadActionReleased = false;
+        this._toadActionTarget = null;
+        this._toadActionAngle = 0;
+        this._toadActionScreenAngle = 0;
+        this._toadActionPhaseUp = false;
+        this._toadSummons = new Set();
+        this._lastToadEntities = null;
+
+        this._toadPhaseCfg = this.config?.phase || {};
+        this._toadPhaseIndex = 0;
+        this._baseToadSpeed = Math.max(0, Number(this.speed) || 0);
+        this._noShadow = true;
+    }
+
+    _getToadVisualState(state = this._animState) {
+        if (state === 'death') return 'dying';
+        if (state === 'run' || state === 'walk') return 'moving';
+        if (state === 'attack') return 'attacking';
+        return state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getToadVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_rot_tide_toad_ancestor_${this._getToadVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getToadVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_rot_tide_toad_ancestor_${visualState}_v1`;
+        return options;
+    }
+
+    update(dt, entities) {
+        super.update(dt, entities);
+        if (!this.active) return;
+
+        const delta = Math.max(0, Number(dt) || 0);
+        this._lastToadEntities = entities;
+        updateVenomZones(this, delta, entities);
+        this._pruneToadSummons();
+
+        const phaseCooldownMultiplier = this._getToadPhaseValue('cooldownMultipliers', 1);
+        const attackDt = this.getAttackIntervalDelta(delta)
+            / Math.max(0.1, phaseCooldownMultiplier);
+        for (const key of Object.keys(this._toadSkillCooldowns)) {
+            this._toadSkillCooldowns[key] = Math.max(
+                0,
+                this._toadSkillCooldowns[key] - attackDt
+            );
+        }
+
+        const controlled = this.hasStatusEffect
+            && (this.hasStatusEffect('stun')
+                || this.hasStatusEffect('frozen')
+                || this.hasStatusEffect('petrified')
+                || this.hasStatusEffect('fear'));
+        if (this._toadAction) {
+            if (controlled) this._cancelToadAction();
+            else this._updateToadAction(delta);
+            return;
+        }
+        if (controlled || !this._isReadyForToadSkill()) return;
+
+        if (this._shouldAdvanceToadPhase()) {
+            this._startToadAction('summonCroak', this.target, true);
+            return;
+        }
+        for (let offset = 0; offset < this._toadSkillCycle.length; offset++) {
+            const index = (this._toadSkillCursor + offset) % this._toadSkillCycle.length;
+            const skill = this._toadSkillCycle[index];
+            if (!this._canStartToadAction(skill, this.target)) continue;
+            this._toadSkillCursor = (index + 1) % this._toadSkillCycle.length;
+            this._startToadAction(skill, this.target, false);
+            return;
+        }
+    }
+
+    _getToadPhaseValue(key, fallback) {
+        const values = this._toadPhaseCfg?.[key];
+        if (!Array.isArray(values) || this._toadPhaseIndex <= 0) return fallback;
+        const index = Math.min(values.length - 1, this._toadPhaseIndex - 1);
+        const value = Number(values[index]);
+        return Number.isFinite(value) ? value : fallback;
+    }
+
+    _shouldAdvanceToadPhase() {
+        const thresholds = this._toadPhaseCfg?.hpThresholds;
+        if (!Array.isArray(thresholds) || this._toadPhaseIndex >= thresholds.length) return false;
+        const threshold = Math.max(0, Math.min(1, Number(thresholds[this._toadPhaseIndex]) || 0));
+        return this.maxHp > 0 && this.hp / this.maxHp <= threshold;
+    }
+
+    _isReadyForToadSkill() {
+        return !this._deathStarted
+            && !this._toadAction
+            && !(this._attackTimer > 0)
+            && !(this._attackAnimTimer > 0)
+            && !this._pendingThrust?.active
+            && !(this._attackTelegraphTimer > 0)
+            && !this._frozenForCast;
+    }
+
+    _canStartToadAction(skill, target) {
+        if (!this._isReadyForToadSkill() || !this._isToadTarget(target)) return false;
+        if ((this._toadSkillCooldowns[skill] || 0) > 0) return false;
+        const cfg = this._toadSkillCfg[skill] || {};
+        const distance = distanceToEntityShape(target, this.x, this.y);
+        const maxRange = Math.max(0, Number(cfg.triggerRange) || 0);
+        const minRange = Math.max(0, Number(cfg.minTriggerRange) || 0);
+        if (maxRange > 0 && (distance < minRange || distance > maxRange)) return false;
+        if (skill === 'summonCroak') {
+            const cap = Math.max(0, Number(cfg.aliveCap) || 6);
+            if (this._toadSummons.size >= cap) return false;
+        }
+        return true;
+    }
+
+    _startToadAction(skill, target, phaseUp = false) {
+        const cfg = this._toadSkillCfg[skill] || {};
+        const duration = Math.max(100, Number(cfg.durationMs) || 1000);
+        const targetX = target?.collider?.x ?? target?.x ?? (this.x + 1);
+        const targetY = target?.collider?.y ?? target?.y ?? this.y;
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        this._toadAction = skill;
+        this._toadActionCfg = cfg;
+        this._toadActionTimer = duration;
+        this._toadActionDuration = duration;
+        this._toadActionReleased = false;
+        this._toadActionTarget = target;
+        const targetDx = targetX - originX;
+        const targetDy = targetY - originY;
+        // GroundSector works in the unprojected ground plane. Keep that angle
+        // separate from the screen-space facing angle used by the billboard.
+        this._toadActionAngle = Math.atan2(targetDy / PERSPECTIVE_SCALE_Y, targetDx);
+        this._toadActionScreenAngle = Math.atan2(targetDy, targetDx);
+        this._toadActionPhaseUp = phaseUp;
+        this._toadSkillCooldowns[skill] = Math.max(0, Number(cfg.cooldown) || 0);
+        this._frozenForCast = true;
+        this._animState = this._toadAnimationState(skill);
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.rotation = this._toadActionScreenAngle;
+        this._lastHorizontalFacing = Math.cos(this._toadActionAngle) < 0 ? 'left' : 'right';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+        return true;
+    }
+
+    _toadAnimationState(skill) {
+        switch (skill) {
+            case 'tongueSweep': return 'tongue_sweep';
+            case 'bodySlam': return 'body_slam';
+            case 'poisonBelch': return 'poison_belch';
+            case 'summonCroak': return 'summon_croak';
+            default: return 'idle';
+        }
+    }
+
+    _updateToadAction(dt) {
+        const cfg = this._toadActionCfg || {};
+        const duration = Math.max(100, this._toadActionDuration || 1000);
+        const frameCount = Math.max(1, Math.floor(Number(cfg.frameCount) || 1));
+        const contactFrame = Math.max(0, Math.min(
+            frameCount - 1,
+            Math.floor(Number(cfg.contactFrame ?? cfg.releaseFrame) || 0)
+        ));
+        this._toadActionTimer = Math.max(0, this._toadActionTimer - dt);
+        const elapsed = duration - this._toadActionTimer;
+        if (!this._toadActionReleased && elapsed >= duration * contactFrame / frameCount) {
+            this._toadActionReleased = true;
+            this._resolveToadAction();
+        }
+        this._frozenForCast = true;
+        this._animState = this._toadAnimationState(this._toadAction);
+        this.rotation = this._toadActionScreenAngle;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._toadActionTimer <= 0) this._finishToadAction();
+    }
+
+    _resolveToadAction() {
+        switch (this._toadAction) {
+            case 'tongueSweep':
+                this._resolveToadTongueSweep();
+                break;
+            case 'bodySlam':
+                this._resolveToadBodySlam();
+                break;
+            case 'poisonBelch':
+                this._resolveToadPoisonBelch();
+                break;
+            case 'summonCroak':
+                this._resolveToadCroak();
+                break;
+            default:
+                break;
+        }
+    }
+
+    _resolveToadTongueSweep() {
+        const cfg = this._toadActionCfg || {};
+        const shape = new GroundSector(
+            this.collider?.x ?? this.x,
+            this.collider?.y ?? this.y,
+            this._toadActionAngle,
+            Math.max(1, Number(cfg.range) || 430),
+            Math.max(1, Number(cfg.arcDegrees) || 160) * Math.PI / 180,
+            surfaceEffectFromEntity(this)
+        );
+        this._damageToadShape(shape, cfg, 'rotTideTongueSweep', true);
+    }
+
+    _resolveToadBodySlam() {
+        const cfg = this._toadActionCfg || {};
+        const radius = Math.max(1, Number(cfg.radius) || 310);
+        const shape = new GroundEllipse(
+            this.collider?.x ?? this.x,
+            this.collider?.y ?? this.y,
+            radius,
+            radius * PERSPECTIVE_SCALE_Y,
+            surfaceEffectFromEntity(this)
+        );
+        this._damageToadShape(shape, cfg, 'rotTideBodySlam', true);
+    }
+
+    _resolveToadPoisonBelch() {
+        const cfg = this._toadActionCfg || {};
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        const shape = new GroundSector(
+            originX,
+            originY,
+            this._toadActionAngle,
+            Math.max(1, Number(cfg.range) || 620),
+            Math.max(1, Number(cfg.arcDegrees) || 72) * Math.PI / 180,
+            surfaceEffectFromEntity(this)
+        );
+        this._damageToadShape(shape, cfg, 'rotTidePoisonBelch', false);
+        const visual = cfg.sprayVisual || {};
+        const parseColor = (value, fallback) => {
+            if (typeof value === 'string') {
+                const parsed = parseInt(value, 16);
+                return Number.isFinite(parsed) ? parsed : fallback;
+            }
+            return Number.isFinite(Number(value)) ? Number(value) : fallback;
+        };
+        EffectManager.add(new VenomSprayEffect({
+            x: originX,
+            y: originY,
+            angle: this._toadActionAngle,
+            perspective: true,
+            range: Math.max(1, Number(cfg.range) || 620),
+            arcDegrees: Math.max(1, Number(cfg.arcDegrees) || 72),
+            durationMs: Math.max(100, Number(visual.durationMs) || 1000),
+            particleCount: Math.max(1, Number(visual.particleCount) || 96),
+            colors: Array.isArray(visual.colors)
+                ? visual.colors.map(color => parseColor(color, 0x799c4a)) : null,
+            hazeColor: parseColor(visual.hazeColor, 0x496732),
+            coreColor: parseColor(visual.coreColor, 0xc5e58a),
+        }));
+        const zoneDistance = Math.max(0, Number(cfg.zoneDistance) || 330);
+        createVenomZone(
+            this,
+            cfg.zone || {},
+            originX + Math.cos(this._toadActionAngle) * zoneDistance,
+            originY + Math.sin(this._toadActionAngle) * zoneDistance * PERSPECTIVE_SCALE_Y,
+            surfaceEffectFromEntity(this)
+        );
+    }
+
+    _resolveToadCroak() {
+        const cfg = this._toadActionCfg || {};
+        const radius = Math.max(1, Number(cfg.pulseRadius) || 420);
+        const pulseCfg = {
+            ...cfg,
+            damageMultiplier: Math.max(0, Number(cfg.pulseDamageMultiplier) || 0.55),
+        };
+        const shape = new GroundEllipse(
+            this.collider?.x ?? this.x,
+            this.collider?.y ?? this.y,
+            radius,
+            radius * PERSPECTIVE_SCALE_Y,
+            surfaceEffectFromEntity(this)
+        );
+        this._damageToadShape(shape, pulseCfg, 'rotTideSummonCroak', false);
+        this._releaseToadSummons();
+    }
+
+    _damageToadShape(shape, cfg, skillId, isMelee) {
+        const stat = cfg.damageType === 'magic'
+            ? (this.data?.matk || this.data?.int || 20)
+            : (this.data?.atk || this.data?.str || 20);
+        const damage = Math.max(1, Math.round(
+            stat * Math.max(0, Number(cfg.damageMultiplier) || 1)
+        ));
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        for (const target of this._collectToadTargets()) {
+            if (!shape.intersectsEntity(target)) continue;
+            const targetX = target.collider?.x ?? target.x;
+            const targetY = target.collider?.y ?? target.y;
+            const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+            if (WallSystem?.blocked?.(originX, originY, targetX, targetY, ignore)) {
+                const range = Math.max(Number(cfg.range) || 0, Number(cfg.radius) || 0,
+                    Number(cfg.pulseRadius) || 0);
+                const structureInReach = target._isDefenseStructure
+                    && distanceToEntityShape(target, originX, originY) <= range;
+                if (!structureInReach) continue;
+            }
+            const result = DamagePipeline.applyHit(this, target, {
+                damage,
+                damageType: cfg.damageType || 'physical',
+                knockback: Math.max(0, Number(cfg.knockback) || 0),
+                angle: Math.atan2(targetY - originY, targetX - originX),
+                isMelee,
+                confirmedHitContext: { skillId },
+            });
+            const parried = isMelee && target.shieldSystem && target.shieldSystem._lastParried;
+            if (!result.hit || parried || !target.active || target._isDead || !(target.hp > 0)) continue;
+            if (Number(cfg.poisonStacks) > 0) target.applyPoison?.(Number(cfg.poisonStacks));
+            if (Number(cfg.stunMs) > 0) target.applyStun?.(Number(cfg.stunMs));
+        }
+    }
+
+    _isToadTarget(target) {
+        return !!target && target !== this && target.active && !target._isDead
+            && target.hittable !== false && target.hp > 0
+            && target._faction !== 'enemy' && !isFriendlyFire(this, target);
+    }
+
+    _collectToadTargets() {
+        const supplied = this._lastToadEntities?.values
+            ? this._lastToadEntities.values() : (this._lastToadEntities || []);
+        const candidates = new Set(supplied);
+        for (const member of PartySystem.members || []) candidates.add(member);
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            candidates.add(friendly);
+        }
+        return [...candidates].filter(target => this._isToadTarget(target));
+    }
+
+    _releaseToadSummons() {
+        this._pruneToadSummons();
+        const registry = this._lastToadEntities?.set
+            ? this._lastToadEntities
+            : (typeof window !== 'undefined' ? window.Game?.entities : null);
+        if (!registry?.set) return;
+        const cfg = this._toadActionCfg || {};
+        const cap = Math.max(0, Number(cfg.aliveCap) || 6);
+        const phaseCount = this._toadActionPhaseUp
+            ? this._getToadPhaseSummonCount(cfg) : Math.max(0, Math.floor(Number(cfg.count) || 2));
+        const count = Math.min(phaseCount, Math.max(0, cap - this._toadSummons.size));
+        const summonRadius = Math.max(
+            4,
+            Number(enemyConfigData.smallRotbogRhinocerosBeetle?.collisionRadius) || 22
+        );
+        for (let index = 0; index < count; index++) {
+            const safe = this._findToadSummonPoint(registry, summonRadius, index, count);
+            if (!safe) continue;
+            const summon = createSmallRotbogRhinocerosBeetle(safe.x, safe.y);
+            summon._summoned = true;
+            summon._rotTideToadSummoner = this;
+            summon.target = this.target;
+            this._toadSummons.add(summon);
+            registry.set(
+                `rot_tide_brood_${Date.now()}_${index}_${Math.random().toString(36).slice(2, 8)}`,
+                summon
+            );
+        }
+    }
+
+    _findToadSummonPoint(registry, summonRadius, index, count) {
+        const originX = this.collider?.x ?? this.x;
+        const originY = this.collider?.y ?? this.y;
+        const baseAngle = this._toadActionAngle + Math.PI * 2 * index / Math.max(1, count);
+        const candidates = registry?.values ? [...registry.values()] : [];
+        if (!candidates.includes(this)) candidates.push(this);
+        if (this.target && !candidates.includes(this.target)) candidates.push(this.target);
+        for (const member of PartySystem.members || []) {
+            if (!candidates.includes(member)) candidates.push(member);
+        }
+        for (const friendly of (typeof window !== 'undefined' && window.Game?.friendlyUnits) || []) {
+            if (!candidates.includes(friendly)) candidates.push(friendly);
+        }
+        const padding = 8;
+        const isOccupied = (x, y) => candidates.some((entity) => {
+            if (!entity || !entity.active || entity._isDead) return false;
+            const entityX = entity.collider?.x ?? entity.x;
+            const entityY = entity.collider?.y ?? entity.y;
+            if (!Number.isFinite(entityX) || !Number.isFinite(entityY)) return false;
+            const entityRadius = Math.max(
+                0,
+                Number(entity.collider?.radius ?? entity.groundRadius ?? entity.collisionRadius) || 0
+            );
+            return Math.hypot(x - entityX, (y - entityY) / PERSPECTIVE_SCALE_Y)
+                < summonRadius + entityRadius + padding;
+        });
+
+        // Alternate nearby rings and angles. Each accepted summon is inserted
+        // into registry immediately, so later summons in the same cast avoid it.
+        for (let attempt = 0; attempt < 16; attempt++) {
+            const ring = Math.floor(attempt / 8);
+            const angle = baseAngle + (attempt % 8) * Math.PI / 4;
+            const distance = 150 + (index % 2) * 42 + ring * 56;
+            const desiredX = originX + Math.cos(angle) * distance;
+            const desiredY = originY + Math.sin(angle) * distance * PERSPECTIVE_SCALE_Y;
+            const safe = WallSystem.findSafeSpawn(desiredX, desiredY, summonRadius, 16);
+            if (!safe || !WallSystem.canMoveTo(safe.x, safe.y, summonRadius)) continue;
+            if (!isOccupied(safe.x, safe.y)) return safe;
+        }
+        return null;
+    }
+
+    _getToadPhaseSummonCount(cfg) {
+        const values = this._toadPhaseCfg?.summonCounts;
+        if (!Array.isArray(values) || !values.length) return Math.max(0, Number(cfg.count) || 2);
+        const index = Math.min(values.length - 1, this._toadPhaseIndex);
+        return Math.max(0, Math.floor(Number(values[index]) || 0));
+    }
+
+    _pruneToadSummons() {
+        for (const summon of this._toadSummons) {
+            if (!summon?.active || summon._isDead || !(summon.hp > 0)) {
+                this._toadSummons.delete(summon);
+            }
+        }
+    }
+
+    _finishToadAction() {
+        const phaseUp = this._toadActionPhaseUp && this._toadActionReleased;
+        this._clearToadActionState();
+        if (phaseUp) {
+            this._toadPhaseIndex += 1;
+            const speedMultiplier = this._getToadPhaseValue('speedMultipliers', 1);
+            this.speed = this._baseToadSpeed * Math.max(0, speedMultiplier);
+            this.maxSpeed = this.speed;
+        }
+    }
+
+    _cancelToadAction() {
+        if (this._toadActionPhaseUp && this._toadActionReleased) {
+            this._finishToadAction();
+            return;
+        }
+        this._clearToadActionState();
+    }
+
+    _clearToadActionState() {
+        this._toadAction = null;
+        this._toadActionCfg = null;
+        this._toadActionTimer = 0;
+        this._toadActionDuration = 0;
+        this._toadActionReleased = false;
+        this._toadActionTarget = null;
+        this._toadActionAngle = 0;
+        this._toadActionScreenAngle = 0;
+        this._toadActionPhaseUp = false;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._animState = 'idle';
+        this._animStateTimer = 0;
+        this.aiTimer = 0;
+    }
+
+    _destroyCustomEffects() {
+        destroyVenomZones(this);
+    }
+
+    onDeath(source) {
+        this._clearToadActionState();
+        this._destroyCustomEffects();
+        // 小独角仙召唤体拥有独立生命周期；Boss 死亡不强制清除。
+        super.onDeath(source);
+    }
+}
+
+function createRotTideToadAncestor(x, y, overrides = {}) {
+    const base = enemyConfigData.rotTideToadAncestor || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new RotTideToadAncestorEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 黑熊领主：初始为黑袍德鲁伊，轮流施放冰锥、闪电与火球；半血后
+ * 播放人变熊动画并进入强化四足近战阶段。两种形态共用同一生命链，
+ * 只在变熊完成时应用一次既有属性倍率。
+ */
+
 class BlackBearEnemy extends ZombieDogEnemy {
     constructor(x, y, config = {}) {
         super(x, y, {
@@ -4355,4 +4949,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, ReedShadowSickleMantisEnemy, createReedShadowSickleMantis, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, RotbogRhinocerosBeetleKingEnemy, createRotbogRhinocerosBeetleKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, SmallRotbogRhinocerosBeetleEnemy, createSmallRotbogRhinocerosBeetle, ReedShadowSickleMantisEnemy, createReedShadowSickleMantis, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, RotbogRhinocerosBeetleKingEnemy, createRotbogRhinocerosBeetleKing, RotTideToadAncestorEnemy, createRotTideToadAncestor, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

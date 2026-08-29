@@ -1,0 +1,175 @@
+{
+  "task": "rot-tide-toad-ancestor",
+  "displayName": "腐潮蟾祖·格罗玛",
+  "date": "2026-08-29",
+  "status": "approved-integrated-awaiting-runtime-verification",
+  "generationMode": "approved-imagegen-mother-plus-minimax-h3-white-background-plus-birefnet-rife",
+  "mother": "mother/rot-tide-toad-ancestor-mother-v01-approved.png",
+  "motherApproved": true,
+  "videoGeneration": {
+    "provider": "MiniMax H3 ImageToVideo",
+    "size": "1024x576",
+    "durationSeconds": 5.17,
+    "sourceFrameCount": 124,
+    "sourceFrameRate": 24,
+    "steps": 20,
+    "visualProfile": "character-asset",
+    "audioMode": "visual-only",
+    "background": "#FFFFFF",
+    "shadowPolicy": "no floor, no contact shadow, no cast shadow"
+  },
+  "references": {
+    "general": "references/rot-tide-toad-general-safe-white-1024x576.png",
+    "attack": "references/rot-tide-toad-attack-safe-white-1024x576.png"
+  },
+  "animations": {
+    "idle": {
+      "actionMode": "loop",
+      "seed": 829101,
+      "prompt": "prompts/idle-h3-v01.txt",
+      "video": "videos/rot-tide-toad-idle-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-idle-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/idle.png",
+      "formalGif": "previews/sprites/final/idle/rot-tide-toad-idle-interpolated.gif",
+      "frameCount": 30,
+      "frameRate": 12,
+      "frameWidth": 768,
+      "frameHeight": 640,
+      "loop": true
+    },
+    "moving": {
+      "actionMode": "loop",
+      "seed": 829102,
+      "prompt": "prompts/moving-h3-v01.txt",
+      "video": "videos/rot-tide-toad-moving-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-moving-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/moving.png",
+      "formalGif": "previews/sprites/final/moving/rot-tide-toad-moving-interpolated.gif",
+      "frameCount": 34,
+      "frameRate": 20,
+      "frameWidth": 1152,
+      "frameHeight": 640,
+      "rootAnchor": "torso-center-x-y-locked",
+      "rifeVerticalPolicy": "preserve-locked-root-no-alpha-bottom-alignment",
+      "loop": true
+    },
+    "attacking": {
+      "actionMode": "recover",
+      "seed": 829103,
+      "prompt": "prompts/attacking-h3-v01.txt",
+      "video": "videos/rot-tide-toad-attacking-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-attacking-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/attacking.png",
+      "formalGif": "previews/sprites/final/attacking/rot-tide-toad-attacking-interpolated.gif",
+      "frameCount": 43,
+      "frameRate": 24,
+      "frameWidth": 1152,
+      "frameHeight": 640,
+      "loop": false,
+      "maximumTongueExtensionFrame": 28
+    },
+    "dying": {
+      "actionMode": "one-way",
+      "seed": 829104,
+      "prompt": "prompts/dying-h3-v01.txt",
+      "video": "videos/rot-tide-toad-dying-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-dying-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/dying.png",
+      "formalGif": "previews/sprites/final/dying/rot-tide-toad-dying-interpolated.gif",
+      "frameCount": 29,
+      "frameRate": 16,
+      "frameWidth": 896,
+      "frameHeight": 640,
+      "loop": false
+    },
+    "tongue_sweep": {
+      "actionMode": "recover",
+      "seed": 829105,
+      "prompt": "prompts/tongue-sweep-h3-v01.txt",
+      "video": "videos/rot-tide-toad-tongue-sweep-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-tongue-sweep-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/tongue_sweep.png",
+      "formalGif": "previews/sprites/final/tongue_sweep/rot-tide-toad-tongue-sweep-interpolated.gif",
+      "frameCount": 43,
+      "frameRate": 24,
+      "frameWidth": 1280,
+      "frameHeight": 640,
+      "loop": false
+    },
+    "body_slam": {
+      "actionMode": "recover",
+      "seed": 829106,
+      "prompt": "prompts/body-slam-h3-v01.txt",
+      "video": "videos/rot-tide-toad-body-slam-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-body-slam-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/body_slam.png",
+      "formalGif": "previews/sprites/final/body_slam/rot-tide-toad-body-slam-interpolated.gif",
+      "frameCount": 53,
+      "frameRate": 24,
+      "frameWidth": 1152,
+      "frameHeight": 640,
+      "loop": false,
+      "airbornePeakFrame": 24,
+      "impactFrame": 30
+    },
+    "poison_belch": {
+      "actionMode": "recover",
+      "seed": 829107,
+      "prompt": "prompts/poison-belch-h3-v01.txt",
+      "video": "videos/rot-tide-toad-poison-belch-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-poison-belch-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/poison_belch.png",
+      "formalGif": "previews/sprites/final/poison_belch/rot-tide-toad-poison-belch-interpolated.gif",
+      "frameCount": 41,
+      "frameRate": 24,
+      "frameWidth": 1152,
+      "frameHeight": 640,
+      "loop": false,
+      "releaseFrame": 18,
+      "embeddedVfxPolicy": "removed-forward-emission-runtime-vfx-only"
+    },
+    "summon_croak": {
+      "actionMode": "recover",
+      "seed": 829108,
+      "prompt": "prompts/summon-croak-h3-v01.txt",
+      "video": "videos/rot-tide-toad-summon-croak-h3-v01.mp4",
+      "provenance": "videos/rot-tide-toad-summon-croak-h3-v01.mp4.json",
+      "formalSheet": "assets/enemies/rot_tide_toad_ancestor/summon_croak.png",
+      "formalGif": "previews/sprites/final/summon_croak/rot-tide-toad-summon-croak-interpolated.gif",
+      "frameCount": 51,
+      "frameRate": 16,
+      "frameWidth": 896,
+      "frameHeight": 640,
+      "loop": false,
+      "channelFrames": [18, 40]
+    }
+  },
+  "proposedAdditionalActions": [
+    {
+      "id": "tongue_sweep",
+      "role": "forward sector AOE",
+      "status": "approved-integrated"
+    },
+    {
+      "id": "body_slam",
+      "role": "short leap and radial impact AOE",
+      "status": "approved-integrated"
+    },
+    {
+      "id": "poison_belch",
+      "role": "cone or ground-hazard release pose; VFX remains runtime-only",
+      "status": "approved-integrated"
+    },
+    {
+      "id": "summon_croak",
+      "role": "summon command and phase-transition cast",
+      "status": "approved-integrated"
+    }
+  ],
+  "spriteSheetManifest": "sprite-sheet-manifest.json",
+  "referenceCell": 640,
+  "footY": 560,
+  "runtimeIntegrated": true,
+  "runtimeLayouts": "trim-layouts.json",
+  "nextGate": "user runtime-verifies boss scale, footline, all contact frames, poison pool direction and safe summon spacing"
+}

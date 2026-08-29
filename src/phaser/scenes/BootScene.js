@@ -695,6 +695,22 @@ export class BootScene extends Scene {
         loadSwampVampireMosquitoSheet('attack', 'enemy_swamp_vampire_mosquito_attack', 'assets/enemies/swamp_vampire_mosquito/attacking.png');
         loadSwampVampireMosquitoSheet('death', 'enemy_swamp_vampire_mosquito_death', 'assets/enemies/swamp_vampire_mosquito/dying.png');
 
+        // 腐沼小独角仙：四套 512 方格透明动画，walking 同时承担逻辑 run。
+        const smallRotbogBeetleTextures = enemyConfigData.smallRotbogRhinocerosBeetle?.textures || {};
+        const smallRotbogBeetleLayouts = smallRotbogBeetleTextures.frameLayouts || {};
+        const loadSmallRotbogBeetleSheet = (state, textureKey, fallbackPath) => {
+            const layout = smallRotbogBeetleLayouts[state] || {};
+            this.load.spritesheet(textureKey, smallRotbogBeetleTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadSmallRotbogBeetleSheet('idle', 'enemy_small_rotbog_rhinoceros_beetle_idle', 'assets/enemies/small_rotbog_rhinoceros_beetle/idle.png');
+        loadSmallRotbogBeetleSheet('walk', 'enemy_small_rotbog_rhinoceros_beetle_walk', 'assets/enemies/small_rotbog_rhinoceros_beetle/walking.png');
+        loadSmallRotbogBeetleSheet('attack', 'enemy_small_rotbog_rhinoceros_beetle_attack', 'assets/enemies/small_rotbog_rhinoceros_beetle/attacking.png');
+        loadSmallRotbogBeetleSheet('death', 'enemy_small_rotbog_rhinoceros_beetle_death', 'assets/enemies/small_rotbog_rhinoceros_beetle/dying.png');
+
         // 芦影镰螳五动作：普通攻击与双镰裂扇使用宽格，保留双镰完整扫掠轨迹。
         const reedMantisTextures = enemyConfigData.reedShadowSickleMantis?.textures || {};
         const reedMantisLayouts = reedMantisTextures.frameLayouts || {};
@@ -731,6 +747,26 @@ export class BootScene extends Scene {
         loadRotbogBeetleSheet('phase_open', 'enemy_rotbog_rhinoceros_beetle_king_phase_open', 'assets/enemies/rotbog_rhinoceros_beetle_king/phase_open.png');
         loadRotbogBeetleSheet('enraged_idle', 'enemy_rotbog_rhinoceros_beetle_king_enraged_idle', 'assets/enemies/rotbog_rhinoceros_beetle_king/enraged_idle.png');
         loadRotbogBeetleSheet('dying', 'enemy_rotbog_rhinoceros_beetle_king_dying', 'assets/enemies/rotbog_rhinoceros_beetle_king/dying.png');
+
+        // 腐潮蟾祖八动作：宽格保留舌扫、坐压与毒雾轮廓；所有状态共用稳定脚点。
+        const rotTideToadTextures = enemyConfigData.rotTideToadAncestor?.textures || {};
+        const rotTideToadLayouts = rotTideToadTextures.frameLayouts || {};
+        const loadRotTideToadSheet = (state, textureKey, fallbackPath) => {
+            const layout = rotTideToadLayouts[state] || {};
+            this.load.spritesheet(textureKey, rotTideToadTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 640,
+                frameHeight: layout.frameHeight || 640,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadRotTideToadSheet('idle', 'enemy_rot_tide_toad_ancestor_idle', 'assets/enemies/rot_tide_toad_ancestor/idle.png');
+        loadRotTideToadSheet('moving', 'enemy_rot_tide_toad_ancestor_moving', 'assets/enemies/rot_tide_toad_ancestor/moving.png');
+        loadRotTideToadSheet('attacking', 'enemy_rot_tide_toad_ancestor_attacking', 'assets/enemies/rot_tide_toad_ancestor/attacking.png');
+        loadRotTideToadSheet('tongue_sweep', 'enemy_rot_tide_toad_ancestor_tongue_sweep', 'assets/enemies/rot_tide_toad_ancestor/tongue_sweep.png');
+        loadRotTideToadSheet('body_slam', 'enemy_rot_tide_toad_ancestor_body_slam', 'assets/enemies/rot_tide_toad_ancestor/body_slam.png');
+        loadRotTideToadSheet('poison_belch', 'enemy_rot_tide_toad_ancestor_poison_belch', 'assets/enemies/rot_tide_toad_ancestor/poison_belch.png');
+        loadRotTideToadSheet('summon_croak', 'enemy_rot_tide_toad_ancestor_summon_croak', 'assets/enemies/rot_tide_toad_ancestor/summon_croak.png');
+        loadRotTideToadSheet('dying', 'enemy_rot_tide_toad_ancestor_dying', 'assets/enemies/rot_tide_toad_ancestor/dying.png');
 
         // 黑色眼镜蛇王：walking 使用宽帧保留完整蛇身；攻击帧保留源视频前探位移。
         const blackKingCobraTextures = enemyConfigData.blackKingCobra?.textures || {};
@@ -1474,6 +1510,25 @@ export class BootScene extends Scene {
         createSwampVampireMosquitoAnim('attack', 'enemy_swamp_vampire_mosquito_attack');
         createSwampVampireMosquitoAnim('death', 'enemy_swamp_vampire_mosquito_death');
 
+        // 腐沼小独角仙：待机/移动循环，短角冲顶与死亡各播放一次。
+        const smallRotbogBeetleLayouts = enemyConfigData.smallRotbogRhinocerosBeetle?.textures?.frameLayouts || {};
+        const createSmallRotbogBeetleAnim = (state, textureKey) => {
+            const layout = smallRotbogBeetleLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_small_rotbog_rhinoceros_beetle_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createSmallRotbogBeetleAnim('idle', 'enemy_small_rotbog_rhinoceros_beetle_idle');
+        createSmallRotbogBeetleAnim('walk', 'enemy_small_rotbog_rhinoceros_beetle_walk');
+        createSmallRotbogBeetleAnim('attack', 'enemy_small_rotbog_rhinoceros_beetle_attack');
+        createSmallRotbogBeetleAnim('death', 'enemy_small_rotbog_rhinoceros_beetle_death');
+
         // 芦影镰螳：待机/移动循环，交错镰斩、双镰裂扇与死亡均单次播放。
         const reedMantisLayouts = enemyConfigData.reedShadowSickleMantis?.textures?.frameLayouts || {};
         const createReedMantisAnim = (state, textureKey) => {
@@ -1516,6 +1571,29 @@ export class BootScene extends Scene {
         createRotbogBeetleAnim('phase_open', 'enemy_rotbog_rhinoceros_beetle_king_phase_open');
         createRotbogBeetleAnim('enraged_idle', 'enemy_rotbog_rhinoceros_beetle_king_enraged_idle');
         createRotbogBeetleAnim('dying', 'enemy_rotbog_rhinoceros_beetle_king_dying');
+
+        // 腐潮蟾祖：待机与移动循环，五种攻击及死亡动画均只播放一次。
+        const rotTideToadLayouts = enemyConfigData.rotTideToadAncestor?.textures?.frameLayouts || {};
+        const createRotTideToadAnim = (state, textureKey) => {
+            const layout = rotTideToadLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_rot_tide_toad_ancestor_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'moving' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createRotTideToadAnim('idle', 'enemy_rot_tide_toad_ancestor_idle');
+        createRotTideToadAnim('moving', 'enemy_rot_tide_toad_ancestor_moving');
+        createRotTideToadAnim('attacking', 'enemy_rot_tide_toad_ancestor_attacking');
+        createRotTideToadAnim('tongue_sweep', 'enemy_rot_tide_toad_ancestor_tongue_sweep');
+        createRotTideToadAnim('body_slam', 'enemy_rot_tide_toad_ancestor_body_slam');
+        createRotTideToadAnim('poison_belch', 'enemy_rot_tide_toad_ancestor_poison_belch');
+        createRotTideToadAnim('summon_croak', 'enemy_rot_tide_toad_ancestor_summon_croak');
+        createRotTideToadAnim('dying', 'enemy_rot_tide_toad_ancestor_dying');
 
         // 黑色眼镜蛇王：idle/walk 循环，attack/death 单次播放并停在末帧。
         const blackKingCobraLayouts = enemyConfigData.blackKingCobra?.textures?.frameLayouts || {};

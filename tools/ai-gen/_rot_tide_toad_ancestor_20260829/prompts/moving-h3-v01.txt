@@ -1,0 +1,7 @@
+One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.
+
+0.0-1.0 seconds: the toad lowers its chest slightly, bends both powerful hindlegs and shifts weight into its planted forefeet, visibly preparing a heavy locomotion cycle.
+1.0-3.8 seconds: it performs one complete in-place toad locomotion cycle toward screen-right. The hindlegs push and extend together, the broad torso rises in one low compact bound, the forefeet reach and plant, then the hindfeet fold forward beneath the body. The motion is weighty and close to the baseline rather than a high jump. Its body center stays inside the same safe framing so gameplay can provide world movement.
+3.8-5.17 seconds: all four feet settle on the original baseline and the body returns smoothly to the exact opening crouch for a seamless loop.
+
+Keep the body at a stable screen scale and preserve the same amber eye, paired parotoid glands, gray-yellow throat sac, complete four-limbed anatomy and right-facing silhouette. The camera is static. The background stays flat white and shadowless.

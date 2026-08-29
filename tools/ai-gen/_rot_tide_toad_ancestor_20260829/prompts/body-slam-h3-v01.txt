@@ -1,0 +1,7 @@
+One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.
+
+0.0-1.2 seconds: the toad compresses into a deep crouch, folds its hindlegs tightly, plants both forefeet, and gathers its heavy body for one explosive slam.
+1.2-3.2 seconds: it performs exactly one body-slam attack. The hindlegs drive the complete body through a short low upward hop without travelling across the frame; the legs tuck briefly, then the broad belly and forequarters drop hard into one low flattened impact pose. The impact is communicated only by the body motion and splayed limbs.
+3.2-5.17 seconds: the toad pushes itself back up, restores all four feet to the original stance, returns once to its low crouch, and holds.
+
+Keep the same stable screen scale, complete four-limbed anatomy, amber eyes, paired parotoid glands, gray-yellow throat sac, mottled wet warted skin, and right-facing silhouette. Keep the horizontal root position fixed. The camera remains static. The entire body stays fully inside the frame. The background remains flat white and shadowless, with no ground crack, dust, splash, debris, shockwave, or other impact effect.

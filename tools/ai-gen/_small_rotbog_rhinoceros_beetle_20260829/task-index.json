@@ -1,0 +1,163 @@
+{
+  "task": "small-rotbog-rhinoceros-beetle",
+  "displayName": "小独角仙",
+  "date": "2026-08-29",
+  "status": "approved-and-integrated-awaiting-runtime-verification",
+  "scope": "mother-four-videos-and-four-formal-spritesheets",
+  "generationMode": "openai-built-in-imagegen",
+  "motherCandidate": "mother/small-rotbog-rhinoceros-beetle-mother-v02-white-approved.png",
+  "motherPrompt": "prompts/mother-v02-white-cleanup-imagegen.txt",
+  "motherApproved": true,
+  "motherApprovedDate": "2026-08-29",
+  "motherApprovalEvidence": "user explicitly requested progression to Doubao idle, moving, attack and death videos",
+  "sourceOutput": "mother/small-rotbog-rhinoceros-beetle-mother-v01-source.png",
+  "sourcePrompt": "prompts/mother-v01-imagegen.txt",
+  "sourceRelation": "v02 is a background cleanup edit of v01; v01 remains the direct generated source",
+  "referenceImages": [
+    "../_rotbog_rhinoceros_beetle_king_20260828/mother/rotbog-rhinoceros-beetle-king-mother-v02-white-candidate.png"
+  ],
+  "referenceRoles": [
+    "bloodline, chitin material, camera and production framing reference only; not an edit target"
+  ],
+  "identityLocks": [
+    "exactly one small subordinate adult rhinoceros beetle",
+    "same peat-black, bog-brown and restrained moss-olive bloodline as the king",
+    "exactly one short continuous cephalic horn",
+    "exactly six distinct thoracic legs in three readable pairs",
+    "two short segmented antennae and compact mandibles",
+    "closed paired elytra with no exposed wings",
+    "right-facing slightly elevated orthographic game-sprite view",
+    "pure white shadowless background with full silhouette and safe margins"
+  ],
+  "videoProvider": "doubao-desktop",
+  "videoModel": "Seedance 2.0 Mini",
+  "videoDurationSeconds": 5,
+  "videoSize": "1024x576",
+  "videoCandidateCountPerMotion": 1,
+  "paidQuotaConfirmationUsed": false,
+  "videoReference": "references/small-rotbog-rhinoceros-beetle-safe-blue-1024x576.png",
+  "videoReferenceMask": "references/small-rotbog-rhinoceros-beetle-mother-v02-birefnet-mask.png",
+  "videoReferenceCutout": "references/small-rotbog-rhinoceros-beetle-mother-v02-cutout.png",
+  "plannedVideos": [
+    {
+      "motion": "idle",
+      "motionMode": "loop",
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "video": "videos/idle-doubao-v01.mp4",
+      "provenance": "videos/idle-doubao-v01.mp4.json",
+      "previewGif": "previews/sprites/final/idle/small-rotbog-beetle-idle-interpolated.gif",
+      "status": "approved",
+      "staticReview": "subtle leg and antenna motion; beginning and ending poses remain close enough for loop review"
+    },
+    {
+      "motion": "moving",
+      "motionMode": "loop",
+      "prompt": "prompts/moving-doubao-v01.txt",
+      "video": "videos/moving-doubao-v01.mp4",
+      "provenance": "videos/moving-doubao-v01.mp4.json",
+      "previewGif": "previews/sprites/final/walking/small-rotbog-beetle-walking-interpolated.gif",
+      "status": "approved",
+      "staticReview": "six-leg alternating walk cycle with stable framing; beginning and ending poses remain close enough for loop review"
+    },
+    {
+      "motion": "attacking",
+      "motionMode": "recover",
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "video": "videos/attacking-doubao-v01.mp4",
+      "provenance": "videos/attacking-doubao-v01.mp4.json",
+      "previewGif": "previews/sprites/final/attacking/small-rotbog-beetle-attacking-interpolated.gif",
+      "status": "approved",
+      "staticReview": "single horn-and-mandible forward strike followed by recovery to the starting stance"
+    },
+    {
+      "motion": "dying",
+      "motionMode": "one-way",
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "video": "videos/dying-doubao-v01.mp4",
+      "provenance": "videos/dying-doubao-v01.mp4.json",
+      "previewGif": "previews/sprites/final/dying/small-rotbog-beetle-dying-interpolated.gif",
+      "status": "approved",
+      "staticReview": "one-way forward collapse; corpse pose is held through the remaining sampled frames"
+    }
+  ],
+  "videoCandidatesApproved": true,
+  "videoCandidatesApprovedDate": "2026-08-29",
+  "videoApprovalEvidence": "user replied that the four delivered action candidates are usable",
+  "candidateReviewNotes": [
+    "all four videos retain one beetle, one short horn, six legs, closed elytra and the requested right-facing view in sampled frames",
+    "Doubao watermark appears in the blue background away from the subject; downstream frame extraction must remove it as a disconnected background component",
+    "the four videos were approved by the user and used as the formal spritesheet sources"
+  ],
+  "spritesheetPipeline": {
+    "sourceBuilder": "build-source-sheets.py",
+    "idleLoopAnalyzer": "analyze-idle-loop.py",
+    "finalAudit": "audit-final-sheets.py",
+    "keyManifest": "rebuilds into the disposable spritesheets work directory",
+    "auditReport": "reports/final-audit.json",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "columns": 8,
+    "sharedScale": true,
+    "matte": "idle/attack use pure-blue inverse matte; walking/dying use BiRefNet semantic alpha with nearest reliable foreground RGB edge fill and post-placement despill",
+    "interpolation": "RIFE v4.6 RGB/alpha split, 2x, original key frames preserved at even indices"
+  },
+  "formalSpritesheets": [
+    {
+      "motion": "idle",
+      "mode": "loop",
+      "sourceFrameCount": 9,
+      "frameCount": 18,
+      "frameRate": 8,
+      "sheet": "assets/enemies/small_rotbog_rhinoceros_beetle/idle.png",
+      "previewGif": "previews/sprites/final/idle/small-rotbog-beetle-idle-interpolated.gif",
+      "loopSeamMotionRatio": 0.7855473797516673,
+      "status": "approved-and-integrated"
+    },
+    {
+      "motion": "walking",
+      "mode": "loop",
+      "sourceFrameCount": 20,
+      "frameCount": 40,
+      "frameRate": 20,
+      "sheet": "assets/enemies/small_rotbog_rhinoceros_beetle/walking.png",
+      "previewGif": "previews/sprites/final/walking/small-rotbog-beetle-walking-interpolated.gif",
+      "loopSeamMotionRatio": 0.45045187229871436,
+      "repair": "BiRefNet semantic cutout removes attached blue fog and dark ground residue; nearest reliable subject-color edge fill prevents RIFE neon chroma fringes",
+      "status": "approved-and-integrated"
+    },
+    {
+      "motion": "attacking",
+      "mode": "one-shot",
+      "sourceFrameCount": 16,
+      "frameCount": 31,
+      "frameRate": 16,
+      "sheet": "assets/enemies/small_rotbog_rhinoceros_beetle/attacking.png",
+      "previewGif": "previews/sprites/final/attacking/small-rotbog-beetle-attacking-interpolated.gif",
+      "status": "approved-and-integrated"
+    },
+    {
+      "motion": "dying",
+      "mode": "one-shot",
+      "sourceFrameCount": 13,
+      "frameCount": 25,
+      "frameRate": 13,
+      "sheet": "assets/enemies/small_rotbog_rhinoceros_beetle/dying.png",
+      "previewGif": "previews/sprites/final/dying/small-rotbog-beetle-dying-interpolated.gif",
+      "repair": "BiRefNet semantic cutout removes attached blue fog and dark ground residue; nearest reliable subject-color edge fill prevents RIFE neon chroma fringes",
+      "status": "approved-and-integrated"
+    }
+  ],
+  "formalSpritesheetsApproved": true,
+  "formalSpritesheetsApprovedDate": "2026-08-29",
+  "formalSpritesheetsApprovalEvidence": "user confirmed the repaired sprite sheets can be used and requested game integration",
+  "runtimeIntegrationActive": true,
+  "runtimeIntegration": {
+    "enemyType": "smallRotbogRhinocerosBeetle",
+    "assetFamily": "assets/enemies/small_rotbog_rhinoceros_beetle",
+    "dungeonRole": "weakest normal monster in all swamp dungeon encounter sets",
+    "families": ["自然", "昆虫"],
+    "summoner": "rotbogRhinocerosBeetleKing",
+    "summonedRewardRule": "_summoned disables experience, gold, item drops and skill-training kill credit"
+  },
+  "nextGate": "user runtime-verifies scale, footline, melee contact timing, swamp pool appearance and beetle-king summon behavior"
+}

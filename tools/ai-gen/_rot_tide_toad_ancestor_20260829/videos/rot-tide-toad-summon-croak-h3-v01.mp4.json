@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T03:03:42.147839+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-summon-croak-h3-v01.mp4",
+    "bytes": 1079750,
+    "sha256": "4f17225b52b13e902d2665d0b604457a8f423397072a2c8cf7f95dc1c98659d7"
+  },
+  "promptId": "877352c2-1348-4cfb-8b8e-791cd2b1cf88",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 829108,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.2 seconds: the toad plants all four webbed feet, straightens its forelegs, raises its head and chest, and draws one deep breath while the broad gray-yellow throat sac begins to expand.\n1.2-3.8 seconds: it performs one deliberate summoning croak sequence. The throat sac becomes large and round, then pulses visibly two times while the mouth stays mostly closed; the head and shoulders lift with each pulse and the body remains firmly planted. The two pulses belong to one continuous command action rather than repeated attacks.\n3.8-5.17 seconds: the throat sac deflates fully, the head lowers, and the toad returns once to its original low crouch and holds.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless, with no sound-wave graphics, runes, glow, particles, fog, summoned creatures, or environmental effects.",
+  "effectivePrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.2 seconds: the toad plants all four webbed feet, straightens its forelegs, raises its head and chest, and draws one deep breath while the broad gray-yellow throat sac begins to expand.\n1.2-3.8 seconds: it performs one deliberate summoning croak sequence. The throat sac becomes large and round, then pulses visibly two times while the mouth stays mostly closed; the head and shoulders lift with each pulse and the body remains firmly planted. The two pulses belong to one continuous command action rather than repeated attacks.\n3.8-5.17 seconds: the throat sac deflates fully, the head lowers, and the toad returns once to its original low crouch and holds.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless, with no sound-wave graphics, runes, glow, particles, fog, summoned creatures, or environmental effects.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.2 seconds: the toad plants all four webbed feet, straightens its forelegs, raises its head and chest, and draws one deep breath while the broad gray-yellow throat sac begins to expand.\n1.2-3.8 seconds: it performs one deliberate summoning croak sequence. The throat sac becomes large and round, then pulses visibly two times while the mouth stays mostly closed; the head and shoulders lift with each pulse and the body remains firmly planted. The two pulses belong to one continuous command action rather than repeated attacks.\n3.8-5.17 seconds: the throat sac deflates fully, the head lowers, and the toad returns once to its original low crouch and holds.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless, with no sound-wave graphics, runes, glow, particles, fog, summoned creatures, or environmental effects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "0983f1496829882a6e56e8e9aeb5fd8a4c067f1476780724eef52e46af26c065",
+  "effectivePromptSha256": "0983f1496829882a6e56e8e9aeb5fd8a4c067f1476780724eef52e46af26c065",
+  "finalPromptSha256": "9fb884a1b73bad8667792a3263c72e3d51c6007470b049e3747cd67c081722a9",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\prompts\\summon-croak-h3-v01.txt",
+      "bytes": 1238,
+      "sha256": "2ea239dfefc848b5203b1d729a2dafc84ddcd21fc38d603ad072ae264b64995e"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-general-safe-white-1024x576.png",
+      "bytes": 403471,
+      "sha256": "0791d3aef70e8fac32871e432b5c4e3e0d6805fdbfa648b2158d5e9d0d017066"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-summon-croak-h3-v01_contact.png",
+    "bytes": 669971,
+    "sha256": "8f22894ef38c23d0b6e756f4642ab5c8e6d5a8b50e51ddce47316379b19a6deb"
+  },
+  "elapsedSeconds": 425.719
+}

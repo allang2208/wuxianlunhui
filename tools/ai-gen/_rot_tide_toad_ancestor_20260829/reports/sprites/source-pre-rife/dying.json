@@ -1,0 +1,183 @@
+{
+  "video": "videos/rot-tide-toad-dying-h3-v01.mp4",
+  "sourceFrameCount": 124,
+  "selectedFrames": [
+    0,
+    8,
+    16,
+    24,
+    30,
+    36,
+    42,
+    48,
+    54,
+    58,
+    62,
+    66,
+    70,
+    84,
+    123
+  ],
+  "frameCount": 15,
+  "frameRate": 8.0,
+  "frameWidth": 896,
+  "frameHeight": 640,
+  "cols": 8,
+  "footY": 560,
+  "targetHeight": 360.0,
+  "fixedScale": 0.9917355371900827,
+  "mode": "one-shot",
+  "anchor": "source-motion",
+  "frames": [
+    {
+      "slot": 0,
+      "sourceFrame": 0,
+      "alphaBBox": [
+        145,
+        200,
+        752,
+        560
+      ]
+    },
+    {
+      "slot": 1,
+      "sourceFrame": 8,
+      "alphaBBox": [
+        145,
+        200,
+        750,
+        560
+      ]
+    },
+    {
+      "slot": 2,
+      "sourceFrame": 16,
+      "alphaBBox": [
+        146,
+        200,
+        749,
+        560
+      ]
+    },
+    {
+      "slot": 3,
+      "sourceFrame": 24,
+      "alphaBBox": [
+        145,
+        203,
+        752,
+        608
+      ]
+    },
+    {
+      "slot": 4,
+      "sourceFrame": 30,
+      "alphaBBox": [
+        157,
+        211,
+        751,
+        608
+      ]
+    },
+    {
+      "slot": 5,
+      "sourceFrame": 36,
+      "alphaBBox": [
+        157,
+        213,
+        751,
+        608
+      ]
+    },
+    {
+      "slot": 6,
+      "sourceFrame": 42,
+      "alphaBBox": [
+        157,
+        216,
+        750,
+        608
+      ]
+    },
+    {
+      "slot": 7,
+      "sourceFrame": 48,
+      "alphaBBox": [
+        158,
+        222,
+        751,
+        608
+      ]
+    },
+    {
+      "slot": 8,
+      "sourceFrame": 54,
+      "alphaBBox": [
+        145,
+        227,
+        752,
+        608
+      ]
+    },
+    {
+      "slot": 9,
+      "sourceFrame": 58,
+      "alphaBBox": [
+        145,
+        243,
+        754,
+        608
+      ]
+    },
+    {
+      "slot": 10,
+      "sourceFrame": 62,
+      "alphaBBox": [
+        116,
+        257,
+        837,
+        608
+      ]
+    },
+    {
+      "slot": 11,
+      "sourceFrame": 66,
+      "alphaBBox": [
+        94,
+        259,
+        837,
+        608
+      ]
+    },
+    {
+      "slot": 12,
+      "sourceFrame": 70,
+      "alphaBBox": [
+        95,
+        259,
+        841,
+        608
+      ]
+    },
+    {
+      "slot": 13,
+      "sourceFrame": 84,
+      "alphaBBox": [
+        94,
+        286,
+        839,
+        607
+      ]
+    },
+    {
+      "slot": 14,
+      "sourceFrame": 123,
+      "alphaBBox": [
+        88,
+        195,
+        839,
+        560
+      ]
+    }
+  ]
+}

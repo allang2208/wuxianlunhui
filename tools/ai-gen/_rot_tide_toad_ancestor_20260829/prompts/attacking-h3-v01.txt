@@ -1,0 +1,7 @@
+One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.
+
+0.0-1.0 seconds: the toad drops its chest, braces all four webbed feet, compresses the throat sac and opens its broad mouth while fixing its amber eye on a target directly to screen-right.
+1.0-3.2 seconds: it performs exactly one decisive tongue-lash attack. The shoulders and whole torso lunge forward with visible weight as one long wet muscular tongue shoots straight from the center of the mouth toward screen-right, reaches one clear maximum extension, then immediately retracts completely back into the mouth. The tongue remains anatomically attached throughout and never touches the frame edge.
+3.2-5.17 seconds: the mouth closes, the forelegs push the torso back, and the toad makes one stable recovery into its original low crouch, then holds still.
+
+Keep the body at a stable screen scale and preserve the same complete four-limbed anatomy, paired parotoid glands, mottled warted skin and right-facing silhouette. Only one tongue and one attack occur. The camera is static. The background stays flat white and shadowless.

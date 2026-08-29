@@ -4313,6 +4313,127 @@
       }
     }
   },
+  "smallRotbogRhinocerosBeetle": {
+    "id": "smallRotbogRhinocerosBeetle",
+    "name": "腐沼小独角仙",
+    "hp": 70,
+    "maxHp": 70,
+    "size": 9,
+    "collisionRadius": 22,
+    "speed": 210,
+    "level": 4,
+    "color": "#514738",
+    "highlightColor": "rgba(126, 108, 72, 0.28)",
+    "str": 16,
+    "dex": 14,
+    "con": 6,
+    "int": 3,
+    "wis": 4,
+    "luck": 5,
+    "rank": "normal",
+    "type": "普通",
+    "category": "monster",
+    "family": "自然",
+    "families": ["自然", "昆虫"],
+    "attackRange": 100,
+    "attackDistance": 100,
+    "basicMelee": {
+      "approachReach": 100,
+      "impactReach": 90,
+      "width": 32,
+      "timeline": {
+        "durationMs": 1938,
+        "frameCount": 31,
+        "contactFrame": 15,
+        "activeFrames": [14, 17]
+      }
+    },
+    "aiInterval": 1900,
+    "ai": {
+      "aggroRange": 2500,
+      "pacingRange": 140,
+      "loseTimeout": 1800
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2000,
+      "dynamicRange": 110,
+      "width": 32,
+      "knockback": 4
+    },
+    "description": "腐沼里最弱小的普通地面昆虫。体型、生命与六维均低于同地牢其他普通怪物，只会用短角进行一次缓慢的单体冲顶。",
+    "skills": [],
+    "attackType": "短角冲顶",
+    "render": {
+      "spriteSize": 300,
+      "collisionWidth": 72,
+      "collisionHeight": 48,
+      "footOffsetY": 101.95,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 72,
+        "height": 48,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "height": 48,
+    "deathAnim": {
+      "duration": 1923,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/small_rotbog_rhinoceros_beetle/idle.png",
+      "walk": "assets/enemies/small_rotbog_rhinoceros_beetle/walking.png",
+      "attack": "assets/enemies/small_rotbog_rhinoceros_beetle/attacking.png",
+      "death": "assets/enemies/small_rotbog_rhinoceros_beetle/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 8,
+          "rows": 3,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 18,
+          "footY": 430,
+          "frameRate": 8,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 40,
+          "footY": 432,
+          "frameRate": 20,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 31,
+          "footY": 431,
+          "duration": 1938,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 25,
+          "footY": 431,
+          "duration": 1923,
+          "repeat": 0
+        }
+      }
+    }
+  },
   "reedShadowSickleMantis": {
     "id": "reedShadowSickleMantis",
     "name": "芦影镰螳",
@@ -4482,6 +4603,222 @@
       }
     }
   },
+  "rotTideToadAncestor": {
+    "id": "rotTideToadAncestor",
+    "name": "腐潮蟾祖·格罗玛",
+    "hp": 5600,
+    "maxHp": 5600,
+    "size": 42,
+    "collisionRadius": 92,
+    "speed": 145,
+    "level": 14,
+    "color": "#3d4935",
+    "highlightColor": "rgba(101, 151, 72, 0.38)",
+    "str": 92,
+    "dex": 28,
+    "con": 96,
+    "int": 68,
+    "wis": 62,
+    "luck": 16,
+    "rank": "boss",
+    "type": "最终首领",
+    "category": "monster",
+    "family": "自然",
+    "families": ["自然", "动物", "大型", "两栖"],
+    "basicMeleeResolver": true,
+    "attackRange": 500,
+    "attackDistance": 500,
+    "basicMelee": {
+      "approachReach": 500,
+      "impactReach": 480,
+      "width": 58,
+      "timeline": {
+        "durationMs": 1792,
+        "frameCount": 43,
+        "contactFrame": 27,
+        "activeFrames": [26, 29],
+        "rebaseOnImpact": true
+      }
+    },
+    "aiInterval": 2100,
+    "ai": {
+      "aggroRange": 3000,
+      "pacingRange": 430,
+      "loseTimeout": 4000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2100,
+      "dynamicRange": 510,
+      "width": 58,
+      "knockback": 24
+    },
+    "attackSkills": {
+      "tongueSweep": {
+        "cooldown": 8500,
+        "initialCooldownMs": 2600,
+        "triggerRange": 430,
+        "durationMs": 1792,
+        "frameCount": 43,
+        "contactFrame": 28,
+        "range": 430,
+        "arcDegrees": 160,
+        "damageMultiplier": 1.2,
+        "damageType": "physical",
+        "knockback": 52
+      },
+      "bodySlam": {
+        "cooldown": 11000,
+        "initialCooldownMs": 4500,
+        "triggerRange": 320,
+        "durationMs": 2208,
+        "frameCount": 53,
+        "contactFrame": 30,
+        "radius": 310,
+        "damageMultiplier": 1.55,
+        "damageType": "physical",
+        "knockback": 90,
+        "stunMs": 900
+      },
+      "poisonBelch": {
+        "cooldown": 12500,
+        "initialCooldownMs": 3200,
+        "minTriggerRange": 220,
+        "triggerRange": 720,
+        "durationMs": 1708,
+        "frameCount": 41,
+        "releaseFrame": 18,
+        "range": 620,
+        "arcDegrees": 72,
+        "damageMultiplier": 0.8,
+        "damageType": "magic",
+        "poisonStacks": 2,
+        "zoneDistance": 330,
+        "sprayVisual": {
+          "durationMs": 1000,
+          "particleCount": 96,
+          "colors": ["0x334d24", "0x547535", "0x799c4a", "0xa8c96b", "0x627f3c"],
+          "hazeColor": "0x496732",
+          "coreColor": "0xc5e58a"
+        },
+        "zone": {
+          "impactRadius": 190,
+          "zoneDuration": 6500,
+          "tickMs": 700,
+          "damageMul": 0.32,
+          "poisonStacks": 1,
+          "oil": {
+            "color": "0x325b2c",
+            "alpha": 0.42,
+            "growMs": 220,
+            "gloss": {
+              "color": "0xa6cf62",
+              "alpha": 0.34,
+              "lineWidth": 9
+            }
+          },
+          "flame": {
+            "tint": ["0x8fba4e", "0x617f38", "0xb8d66a"],
+            "blendMode": "ADD",
+            "morphMs": 100,
+            "points": 3,
+            "burstCount": 10,
+            "scale": { "start": 1.25, "end": 0.15 },
+            "alpha": { "start": 0.42, "end": 0 },
+            "lifespan": 650,
+            "jitterX": 90,
+            "jitterY": 70
+          }
+        }
+      },
+      "summonCroak": {
+        "cooldown": 18000,
+        "initialCooldownMs": 6500,
+        "triggerRange": 900,
+        "durationMs": 3188,
+        "frameCount": 51,
+        "releaseFrame": 26,
+        "count": 2,
+        "aliveCap": 6,
+        "summonType": "smallRotbogRhinocerosBeetle",
+        "pulseRadius": 420,
+        "pulseDamageMultiplier": 0.55,
+        "damageType": "magic",
+        "knockback": 46,
+        "stunMs": 400
+      }
+    },
+    "phase": {
+      "hpThresholds": [0.66, 0.33],
+      "speedMultipliers": [1.1, 1.2],
+      "cooldownMultipliers": [0.9, 0.75],
+      "summonCounts": [2, 3]
+    },
+    "description": "沼泽地牢尽头的远古巨蟾。格罗玛以长舌刺穿单体、横扫前线、坐压近敌并喷吐会残留毒池的腐潮；生命降至约三分之二和三分之一时，它会用召唤震鸣强制换阶段并唤来腐沼小独角仙。",
+    "skills": [
+      {
+        "name": "腐舌穿刺",
+        "desc": "以长舌快速刺击最远480像素内的单一目标；攻击锁定方向，接触帧才结算。"
+      },
+      {
+        "name": "蟾舌横潮",
+        "desc": "舌头横扫前方160度、430像素扇区，对每个可见目标造成物攻×1.2物理伤害并击退，冷却8.5秒。"
+      },
+      {
+        "name": "腐躯坐压",
+        "desc": "腾身后重压身边310像素区域，造成物攻×1.55物理伤害、强力击退并眩晕0.9秒，冷却11秒。"
+      },
+      {
+        "name": "瘴毒喷潮",
+        "desc": "向前方72度、620像素扇区喷出瘴毒并叠加中毒，随后在前方留下持续6.5秒、会造成短暂减速的190像素毒池，冷却12.5秒。"
+      },
+      {
+        "name": "召沼震鸣",
+        "desc": "震鸣冲击周围420像素并召唤2只腐沼小独角仙，存活上限6只；在66%和33%生命时强制施放并强化后续阶段。召唤体不提供经验、金币或物品。"
+      }
+    ],
+    "attackType": "长舌单体、扇区横扫、范围坐压、毒雾毒池与阶段召唤",
+    "render": {
+      "spriteSize": 520,
+      "collisionWidth": 250,
+      "collisionHeight": 160,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 250,
+        "height": 160,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "height": 160,
+    "deathAnim": {
+      "duration": 1813,
+      "holdMs": 1800
+    },
+    "textures": {
+      "idle": "assets/enemies/rot_tide_toad_ancestor/idle.png",
+      "moving": "assets/enemies/rot_tide_toad_ancestor/moving.png",
+      "attacking": "assets/enemies/rot_tide_toad_ancestor/attacking.png",
+      "dying": "assets/enemies/rot_tide_toad_ancestor/dying.png",
+      "tongue_sweep": "assets/enemies/rot_tide_toad_ancestor/tongue_sweep.png",
+      "body_slam": "assets/enemies/rot_tide_toad_ancestor/body_slam.png",
+      "poison_belch": "assets/enemies/rot_tide_toad_ancestor/poison_belch.png",
+      "summon_croak": "assets/enemies/rot_tide_toad_ancestor/summon_croak.png",
+      "referenceCell": 640,
+      "frameLayouts": {
+        "idle": { "columns": 8, "rows": 4, "frameWidth": 672, "frameHeight": 480, "frameCount": 30, "footY": 432, "frameRate": 12, "repeat": -1 },
+        "moving": { "columns": 8, "rows": 5, "frameWidth": 1024, "frameHeight": 480, "frameCount": 34, "footY": 400, "frameRate": 20, "repeat": -1 },
+        "attacking": { "columns": 8, "rows": 6, "frameWidth": 928, "frameHeight": 448, "frameCount": 43, "footY": 400, "duration": 1792, "repeat": 0 },
+        "dying": { "columns": 8, "rows": 4, "frameWidth": 832, "frameHeight": 480, "frameCount": 29, "footY": 400, "duration": 1813, "repeat": 0 },
+        "tongue_sweep": { "columns": 6, "rows": 8, "frameWidth": 1216, "frameHeight": 480, "frameCount": 43, "footY": 400, "duration": 1792, "repeat": 0 },
+        "body_slam": { "columns": 8, "rows": 7, "frameWidth": 896, "frameHeight": 576, "frameCount": 53, "footY": 496, "duration": 2208, "repeat": 0 },
+        "poison_belch": { "columns": 8, "rows": 6, "frameWidth": 864, "frameHeight": 448, "frameCount": 41, "footY": 432, "duration": 1708, "repeat": 0 },
+        "summon_croak": { "columns": 8, "rows": 7, "frameWidth": 704, "frameHeight": 512, "frameCount": 51, "footY": 464, "duration": 3188, "repeat": 0 }
+      }
+    }
+  },
   "rotbogRhinocerosBeetleKing": {
     "id": "rotbogRhinocerosBeetleKing",
     "name": "腐沼独角仙王",
@@ -4573,7 +4910,7 @@
         "durationMs": 2200,
         "frameCount": 39,
         "releaseFrame": 20,
-        "summonType": "swampVampireMosquito"
+        "summonType": "smallRotbogRhinocerosBeetle"
       }
     },
     "phase": {
@@ -4582,7 +4919,7 @@
       "speedMultiplier": 1.25,
       "chargeCooldownMultiplier": 0.7
     },
-    "description": "栖居腐沼深处的巨型独角仙领主。它以巨角横扫成片目标，蓄力后沿锁定方向冲城，并用虫巢号令召来吸血大蚊；半血时张开鞘翅，显著加快移动与冲锋频率。",
+    "description": "栖居腐沼深处的巨型独角仙领主。它以巨角横扫成片目标，蓄力后沿锁定方向冲城，并用虫巢号令召来腐沼小独角仙；半血时张开鞘翅，显著加快移动与冲锋频率。",
     "skills": [
       {
         "name": "巨颚横扫",
@@ -4594,7 +4931,7 @@
       },
       {
         "name": "虫巢号令",
-        "desc": "召唤2只现有沼泽吸血大蚊，场上由它召唤且存活的蚊群上限为4只，冷却18秒；独角仙王死亡不会强制清除召唤物。"
+        "desc": "召唤2只腐沼小独角仙，场上由它召唤且存活的小独角仙上限为4只，冷却18秒；召唤体不提供经验、金币或物品掉落，独角仙王死亡不会强制清除召唤物。"
       },
       {
         "name": "开鞘暴行",

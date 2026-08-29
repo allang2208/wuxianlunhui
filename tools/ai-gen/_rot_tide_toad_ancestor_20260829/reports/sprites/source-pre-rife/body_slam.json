@@ -1,0 +1,344 @@
+{
+  "video": "videos/rot-tide-toad-body-slam-h3-v01.mp4",
+  "sourceFrameCount": 124,
+  "selectedFrames": [
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    62,
+    64,
+    66,
+    68,
+    70,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96,
+    102,
+    110,
+    118,
+    123
+  ],
+  "frameCount": 27,
+  "frameRate": 12.0,
+  "frameWidth": 1152,
+  "frameHeight": 640,
+  "cols": 8,
+  "footY": 560,
+  "targetHeight": 360.0,
+  "fixedScale": 0.989010989010989,
+  "mode": "one-shot",
+  "anchor": "source-motion",
+  "removedForwardEmissionPixels": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "frames": [
+    {
+      "slot": 0,
+      "sourceFrame": 20,
+      "alphaBBox": [
+        270,
+        200,
+        881,
+        560
+      ]
+    },
+    {
+      "slot": 1,
+      "sourceFrame": 24,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 2,
+      "sourceFrame": 28,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 3,
+      "sourceFrame": 32,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 4,
+      "sourceFrame": 36,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 5,
+      "sourceFrame": 40,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 6,
+      "sourceFrame": 44,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 7,
+      "sourceFrame": 48,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 8,
+      "sourceFrame": 52,
+      "alphaBBox": [
+        270,
+        196,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 9,
+      "sourceFrame": 56,
+      "alphaBBox": [
+        270,
+        197,
+        876,
+        607
+      ]
+    },
+    {
+      "slot": 10,
+      "sourceFrame": 60,
+      "alphaBBox": [
+        270,
+        197,
+        879,
+        607
+      ]
+    },
+    {
+      "slot": 11,
+      "sourceFrame": 62,
+      "alphaBBox": [
+        270,
+        196,
+        880,
+        607
+      ]
+    },
+    {
+      "slot": 12,
+      "sourceFrame": 64,
+      "alphaBBox": [
+        270,
+        151,
+        880,
+        608
+      ]
+    },
+    {
+      "slot": 13,
+      "sourceFrame": 66,
+      "alphaBBox": [
+        270,
+        151,
+        880,
+        608
+      ]
+    },
+    {
+      "slot": 14,
+      "sourceFrame": 68,
+      "alphaBBox": [
+        270,
+        125,
+        887,
+        608
+      ]
+    },
+    {
+      "slot": 15,
+      "sourceFrame": 70,
+      "alphaBBox": [
+        270,
+        108,
+        934,
+        607
+      ]
+    },
+    {
+      "slot": 16,
+      "sourceFrame": 72,
+      "alphaBBox": [
+        270,
+        107,
+        951,
+        607
+      ]
+    },
+    {
+      "slot": 17,
+      "sourceFrame": 76,
+      "alphaBBox": [
+        191,
+        109,
+        972,
+        607
+      ]
+    },
+    {
+      "slot": 18,
+      "sourceFrame": 80,
+      "alphaBBox": [
+        190,
+        101,
+        972,
+        607
+      ]
+    },
+    {
+      "slot": 19,
+      "sourceFrame": 84,
+      "alphaBBox": [
+        190,
+        101,
+        972,
+        607
+      ]
+    },
+    {
+      "slot": 20,
+      "sourceFrame": 88,
+      "alphaBBox": [
+        190,
+        109,
+        972,
+        607
+      ]
+    },
+    {
+      "slot": 21,
+      "sourceFrame": 92,
+      "alphaBBox": [
+        190,
+        109,
+        972,
+        607
+      ]
+    },
+    {
+      "slot": 22,
+      "sourceFrame": 96,
+      "alphaBBox": [
+        189,
+        109,
+        982,
+        607
+      ]
+    },
+    {
+      "slot": 23,
+      "sourceFrame": 102,
+      "alphaBBox": [
+        187,
+        109,
+        998,
+        607
+      ]
+    },
+    {
+      "slot": 24,
+      "sourceFrame": 110,
+      "alphaBBox": [
+        187,
+        108,
+        967,
+        607
+      ]
+    },
+    {
+      "slot": 25,
+      "sourceFrame": 118,
+      "alphaBBox": [
+        270,
+        109,
+        966,
+        607
+      ]
+    },
+    {
+      "slot": 26,
+      "sourceFrame": 123,
+      "alphaBBox": [
+        270,
+        109,
+        967,
+        607
+      ]
+    }
+  ]
+}

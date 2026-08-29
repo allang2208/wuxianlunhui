@@ -1,0 +1,7 @@
+One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.
+
+0.0-1.0 seconds: the enormous toad holds its low, broad neutral crouch with all four webbed feet planted on one baseline; its peat-black, mud-brown and dark-olive warted skin, amber eye, paired parotoid glands and relaxed gray-yellow throat sac remain unchanged.
+1.0-3.8 seconds: it completes one restrained breathing cycle. The throat sac slowly swells a little and relaxes, the abdomen rises and falls with heavy weight, one eyelid closes in a slow blink, and the front toes make one tiny natural adjustment. The torso and feet remain grounded with no locomotion.
+3.8-5.17 seconds: the breathing motion settles smoothly back into the exact opening crouch for a seamless loop.
+
+Keep the body at a stable screen scale and preserve the same complete four-limbed anatomy, right-facing silhouette and surface details throughout. The camera is static. The background stays flat white and shadowless.
