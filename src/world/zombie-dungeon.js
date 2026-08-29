@@ -1164,24 +1164,25 @@ export class ZombieDungeonCombat {
     }
 }
 
-// ==================== NPC 小鼠大王（地牢商店） ====================
+// ==================== NPC 小鼠铁匠（地牢商店） ====================
 export class ZombieDungeonShop {
     /**
-     * 打开地牢商店（NPC小鼠大王对话模式）
+     * 打开地牢商店（NPC 小鼠铁匠对话模式）
      */
     static open() {
-        const mouseKingCfg = GAME_CONFIG.npcs?.shopMouseKing || {};
+        const blacksmithCfg = GAME_CONFIG.npcs?.mouseBlacksmith || {};
         const fakeNPC = {
-            id: 'mouse_king_dungeon',
-            name: mouseKingCfg.name || '小鼠大王',
-            portrait: mouseKingCfg.portrait || 'assets/ui/npc_portrait.png',
-            npcType: 'shop',
+            id: 'mouse_blacksmith_dungeon',
+            name: blacksmithCfg.name || '小鼠铁匠',
+            portrait: blacksmithCfg.portrait || 'assets/npc/mouse_blacksmith/portrait.png',
+            npcType: 'blacksmith',
+            shopId: blacksmithCfg.shopId || 'blacksmith',
             getRandomGreeting() {
                 const greetings = [
-                    '欢迎来到恐怖地牢的分店！虽然环境差了点，但货还是一样的全。',
-                    '能在这种地方遇到我，说明你的运气不错。买点什么？',
-                    '小鼠大王的生意遍布各个世界，包括这个鬼地方。',
-                    '外面的僵尸可不会跟你讨价还价，但我会。'
+                    '地牢里照样能开炉，缺什么就来找我。',
+                    '武器钝了、护甲裂了，都能在这里处理。',
+                    '先把装备收拾利索，再去对付那些僵尸。',
+                    '火候正好，挑件趁手的再出发。'
                 ];
                 return greetings[Math.floor(Math.random() * greetings.length)];
             }

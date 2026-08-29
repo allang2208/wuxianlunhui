@@ -1,0 +1,43 @@
+{
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "pipeline": "MiniMax H3 first-last same-frame loop -> BiRefNet-general cutout -> fixed scale and foot line -> RIFE v4.6 RGBA 2x",
+  "action": "idle",
+  "sourceVideo": "videos/mouse-blacksmith-idle-h3-v01.mp4",
+  "sourceSheet": "final/mouse-blacksmith-idle-h3-v01-source.png",
+  "sheet": "final/mouse-blacksmith-idle-h3-v01-rife.png",
+  "runtimeSheet": "assets/npc/mouse_blacksmith/idle.png",
+  "preview": "final/previews/mouse_blacksmith_idle_h3_v01-interpolated.gif",
+  "contactPreview": "final/previews/mouse_blacksmith_idle_h3_v01-interpolated-contact.png",
+  "report": "final/mouse-blacksmith-idle-h3-v01-rife-report.json",
+  "sha256": "a69a118b07a3928753f7c7288c71f92032fe965bb050f587d256c588d70a1c46",
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "frameCount": 60,
+  "frameRate": 12,
+  "repeat": -1,
+  "displaySize": 196,
+  "footOffsetY": 93,
+  "runtimeFootprint": {
+    "shape": "rect",
+    "width": 70,
+    "height": 50,
+    "radius": 32.5,
+    "offsetX": 0,
+    "offsetY": -12.5,
+    "bodyHeight": 92.5
+  },
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 499,
+    "alphaBottomMax": 499,
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "visibleDarkOutlierFrames": {},
+    "visibleRedOutlierFrames": {},
+    "visibleBlueSpillFrames": {},
+    "visibleCyanSpillFrames": {}
+  }
+}

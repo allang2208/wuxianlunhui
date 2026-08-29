@@ -499,6 +499,14 @@ this._tacticalTarget = null;
   仲裁后的 NPC Sprite depth−0.1 绘制；`collisionShape:'rect'` 只描述躯干矩形，不能拉伸阴影。
   `colliderOffsetX/Y` 会通过 Collider 圆心同时作用于范围红圈与阴影。
 
+#### 4.1 NPC 职能必须显式分流
+- `npcType` 是交互权限，不是装饰标签：`ruler` 仅保留对话，`blacksmith` 承接商店/强化/附魔/改造，`shop` 只开商店；未知类型不得回退为全套装备服务。
+- `npc-dialogue.js` 的按钮可见性与 `openShop/openEnhance/openCraft/openEnchant` 入口守卫必须同源，避免隐藏按钮后仍能由旧调用绕过职能边界。地牢代理商店也使用铁匠身份与 `shopId:'blacksmith'`，不要重新借用小鼠大王。
+
+#### 4.2 平视 NPC 改为无道具站立待机时的换表合同
+- 若场景建筑采用俯视等距视角而既有单位统一平视，固定 NPC 应保持单位视角，只移除铁砧、木料等强透视道具并改为站立待机；不要单独把角色改成俯视，避免破坏全单位视觉体系。
+- 母图补完后重新量 60 帧主体 Alpha、脚线、点击区和碰撞体；旧锤击动作的 `frameSounds` 必须删除。保持既有动画键可让状态机无缝换表，只同步 `endFrame`、播放范围和帧率。
+
 #### 5. 验证
 lint / vite build / test-collider / test-config-integrity；实机验证 idle/walk 切换、朝向翻转、游走范围与停留节奏、名字标签位置。
 

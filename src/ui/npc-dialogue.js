@@ -100,12 +100,12 @@ const NPCDialogue = {
 
     },
 
-    // 根据NPC类型更新对话框按钮；所有NPC默认带「调整立绘」与「关闭」
+    // 根据 NPC 职能更新对话框按钮；所有 NPC 默认只保留「调整立绘」与「关闭」
     _updateDialogueButtons(npc) {
         const dialogueOptions = getElement('npcDialogueOptions');
         if (!dialogueOptions) return;
         const npcType = npc.npcType || 'shop';
-        let typeButtons;
+        let typeButtons = '';
         let closeText = '👋 再见';
         if (npcType === 'altar') {
             typeButtons = `
@@ -120,19 +120,16 @@ const NPCDialogue = {
                 <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔</button>
                 <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造</button>
             `;
+        } else if (npcType === 'shop') {
+            typeButtons = `
+                <button class="npc-option-btn" id="npcOptionShop" onclick="NPCDialogue.openShop()">🏪 打开商店</button>
+            `;
         } else if (npcType === 'quest') {
             typeButtons = `
                 <button class="npc-option-btn" id="npcOptionQuest" onclick="NPCDialogue.openQuest()">📜 开始任务</button>
                 <button class="npc-option-btn" id="npcOptionTeleport" onclick="NPCDialogue.teleportToQuest()">🌨️ 传送至任务地点</button>
                 <button class="npc-option-btn" id="npcOptionInfo" onclick="NPCDialogue.showInfo()">ℹ️ 了解信息</button>
                 <button class="npc-option-btn" id="npcOptionHelp" onclick="NPCDialogue.showHelp()">❓ 获取帮助</button>
-            `;
-        } else {
-            typeButtons = `
-                <button class="npc-option-btn" id="npcOptionShop" onclick="NPCDialogue.openShop()">🏪 打开商店</button>
-                <button class="npc-option-btn" id="npcOptionEnhance" onclick="NPCDialogue.openEnhance()">⚒️ 强化装备</button>
-                <button class="npc-option-btn" id="npcOptionCraft" onclick="NPCDialogue.openCraft()">🔧 改造装备</button>
-                <button class="npc-option-btn" id="npcOptionEnchant" onclick="NPCDialogue.openEnchant()">✨ 附魔装备</button>
             `;
         }
         // 无立绘 NPC（祭坛/仓库等）不显示「调整立绘」按钮
@@ -349,6 +346,7 @@ const NPCDialogue = {
     openShop() {
         if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
+        if (!npc || (npc.npcType !== 'shop' && npc.npcType !== 'blacksmith')) return;
         if (UIState.isOpen('shop')) { ShopSystem.close(); return; }
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
         if (UIState.isOpen('craft')) CraftSystem.close();
@@ -365,6 +363,7 @@ const NPCDialogue = {
     openEnhance() {
         if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
+        if (!npc || npc.npcType !== 'blacksmith') return;
         if (UIState.isOpen('enhance')) { EnhanceSystem.close(); return; }
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('craft')) CraftSystem.close();
@@ -384,6 +383,7 @@ const NPCDialogue = {
     openCraft() {
         if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
+        if (!npc || npc.npcType !== 'blacksmith') return;
         if (UIState.isOpen('craft')) { CraftSystem.close(); return; }
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
@@ -406,6 +406,7 @@ const NPCDialogue = {
     openEnchant() {
         if (Input && Input.mouse) Input.mouse.leftPressed = false; // 消费点击，防止 NPC 检测二次触发
         const npc = this._currentNPC;
+        if (!npc || npc.npcType !== 'blacksmith') return;
         if (UIState.isOpen('enchant')) { EnchantSystem.close(); return; }
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();

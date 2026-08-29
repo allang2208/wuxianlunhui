@@ -660,8 +660,7 @@
       "collisionRadius": 32.5,
       "color": "#c4a35a",
       "portrait": "assets/ui/npc_portrait.png",
-      "npcType": "shop",
-      "shopId": "main",
+      "npcType": "ruler",
       "sprite": {
         "comment": "贴图动画：idle/walk 动画键（BootScene 注册）；size=显示边长(方形帧)；footOffsetY=逻辑脚底到贴图中心偏移；walkFps=行走动画帧率",
         "idleKey": "npc_mouse_king_idle",
@@ -796,36 +795,29 @@
       },
       "name": "小鼠铁匠",
       "size": 20,
-      "collisionRadius": 60,
+      "collisionRadius": 32.5,
       "color": "#8a6a4a",
       "portrait": "assets/npc/mouse_blacksmith/portrait.png",
       "npcType": "blacksmith",
       "shopId": "blacksmith",
       "noSeparation": true,
       "sprite": {
-        "comment": "贴图动画：idle 29 帧循环（BootScene 8×8 切帧，12fps）；内容 420×505/512 锚定脚底（人物+铁砧）",
+        "comment": "站立待机：MiniMax H3 + BiRefNet + RIFE v4.6，60帧循环（8×8、512单格、12fps）；真透明RGBA，脚线y=499，不含铁砧/锤击动作",
         "idleKey": "npc_mouse_blacksmith_idle",
         "size": 196,
-        "footOffsetY": 125,
-        "frameSounds": {
-          "comment": "动画帧触发音效：idle 循环播到第 5/15 帧（1 基帧号）各播放一次（每轮两次，铁匠敲打声）",
-          "frames": [
-            5,
-            15
-          ],
-          "path": "assets/sounds/npc/blacksmith/hammering.mp3"
-        }
+        "footOffsetY": 93
       },
       "clickArea": {
-        "comment": "点击交互区域（按贴图内容收窄：内容 420×505/512 × size250 ≈ 205×247，锚定脚底）",
-        "width": 205,
-        "height": 247
+        "comment": "按60帧站立主体最大Alpha范围约306×480/512、显示边长196收窄，锚定脚底",
+        "width": 120,
+        "height": 186
       },
       "collisionShape": "rect",
-      "collisionWidth": 150,
-      "collisionHeight": 57,
-      "colliderOffsetX": -3,
-      "colliderOffsetY": -40.5
+      "collisionWidth": 70,
+      "collisionHeight": 50,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": -12.5,
+      "height": 92.5
     }
   },
   "trees": {

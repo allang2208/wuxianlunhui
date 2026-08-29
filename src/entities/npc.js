@@ -10,7 +10,7 @@ class NPC extends Entity {
         this.hittable = false; // 不可被攻击
         this.active = true;
         this.name = config.name || '商人NPC';
-        this.npcType = config.npcType || 'shop'; // 'shop' | 'quest'
+        this.npcType = config.npcType || 'shop'; // 'ruler' | 'blacksmith' | 'shop' | 'quest' | 'altar' | 'warehouse'
         this.portrait = config.portrait || ''; // 默认无立绘（祭坛/仓库等未配置 portrait 的 NPC 不显示）
         this.color = config.color || '#d4a373'; // 温暖棕色
         this.greetings = config.greetings || [

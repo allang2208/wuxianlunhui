@@ -507,6 +507,8 @@ setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rang
 #### 4. 商店（shop-system.js SHOP_CATALOGS.blacksmith）
 - blacksmith 目录 = ItemDatabase 装备 id 字符串数组，运行时懒解析（`_equipFromDatabase`），
   缺 price 按稀有度标准价兜底（rare=400）。新装备加 id 即上架，无需完整商品对象。
+- 主神空间装备服务统一归小鼠铁匠：铁匠目录合并旧 `main`、`blacksmith` 与 ItemDatabase 中全部 `weaponCategory:'mainhand'` 武器，并按商品 id 去重；小鼠大王保持 `ruler`，不再持有 `shopId`。
+- 展示排序读取玩家可见的 `item.type` 分武器品种，不使用动作实现键 `weaponType`；每个品种内按 `RARITY_ORDER` 从普通到传说稳定排序，防具、饰品、消耗品和地牢钥匙排在武器之后。
 - 掉落：`chest-room-system.js _equipmentPool()` 自动含全部 armor/accessory（ItemDatabase 数据源），
   新增装备零登记自动进精英宝箱房掉落池。
 

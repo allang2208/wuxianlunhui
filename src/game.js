@@ -374,7 +374,7 @@ export const Game = {
 
     spawnNPC() {
         const npcCfg = GAME_CONFIG.npcs || {};
-        const shopCfg = npcCfg.shopMouseKing || { offset: { x: 120, y: -150 }, name: '小鼠大王', size: 20, collisionRadius: 14, color: '#c4a35a', portrait: 'assets/ui/npc_portrait.png', npcType: 'shop' };
+        const shopCfg = npcCfg.shopMouseKing || { offset: { x: 120, y: -150 }, name: '小鼠大王', size: 20, collisionRadius: 14, color: '#c4a35a', portrait: 'assets/ui/npc_portrait.png', npcType: 'ruler' };
         const attendantCfg = npcCfg.mouseAttendant || { relativeTo: 'shopMouseKing', offset: { x: -100, y: 0 }, name: '小鼠侍从', size: 20, collisionRadius: 14, color: '#c4a35a', portrait: 'assets/npc/mouse_attendant.png', npcType: 'quest' };
         const npcX = CONFIG.WORLD_WIDTH / 2 + shopCfg.offset.x;
         const npcY = CONFIG.WORLD_HEIGHT / 2 + shopCfg.offset.y;
@@ -385,8 +385,7 @@ export const Game = {
             collisionRadius: shopCfg.collisionRadius,
             color: shopCfg.color,
             portrait: shopCfg.portrait,
-            npcType: shopCfg.npcType,
-            shopId: shopCfg.shopId || 'main', // 商店目录键（ShopSystem.SHOP_CATALOGS；不同 NPC 配不同键卖不同商品）
+            npcType: shopCfg.npcType || 'ruler',
             sprite: shopCfg.sprite,
             wander: shopCfg.wander,
             clickArea: shopCfg.clickArea,
@@ -399,12 +398,9 @@ export const Game = {
             greetings: [
                 '你好，冒险者！欢迎来到无限轮回。',
                 '今天的天空格外晴朗呢。',
-                '你看起来很强，要不要来商店看看？',
                 '我听说最近在附近出现了一些奇怪的怪物。',
-                '如果你需要强化装备，我可以帮你。',
                 '你收集了多少战利品了？',
                 '这个地方有时候会很危险，要小心。',
-                '新鲜的货物刚到，快来看看！',
                 '循环的世界永远不会无聊，对吧？',
                 '你看起来需要帮助，有什么我可以做的吗？'
             ]
@@ -493,8 +489,8 @@ export const Game = {
         setupStructureDepth(altarNpc);
         altarNpc.rebuildCollider();
         this.entities.set('npc_altar', altarNpc);
-        // 小鼠铁匠 NPC（小鼠大王右下方，idle 30 帧循环；对话提供强化/附魔/改造）
-        const bsCfg = npcCfg.mouseBlacksmith || { relativeTo: 'shopMouseKing', offset: { x: 460, y: -80 }, name: '小鼠铁匠', size: 20, collisionRadius: 60, color: '#8a6a4a', portrait: 'assets/npc/mouse_blacksmith/portrait.png', npcType: 'blacksmith', noSeparation: true };
+        // 小鼠铁匠 NPC（小鼠大王右下方，站立 idle 60 帧循环；承接商店/强化/附魔/改造）
+        const bsCfg = npcCfg.mouseBlacksmith || { relativeTo: 'shopMouseKing', offset: { x: 460, y: -80 }, name: '小鼠铁匠', size: 20, collisionRadius: 32.5, color: '#8a6a4a', portrait: 'assets/npc/mouse_blacksmith/portrait.png', npcType: 'blacksmith', noSeparation: true };
         const bsX = bsCfg.relativeTo === 'shopMouseKing' ? npcX + bsCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + bsCfg.offset.x;
         const bsY = bsCfg.relativeTo === 'shopMouseKing' ? npcY + bsCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + bsCfg.offset.y;
         const blacksmithNpc = new NPC(bsX, bsY, {
@@ -505,7 +501,7 @@ export const Game = {
             color: bsCfg.color,
               portrait: bsCfg.portrait,
               npcType: bsCfg.npcType,
-              shopId: bsCfg.shopId || 'blacksmith', // 商店目录键（黑铁商店：优质非武器装备）
+              shopId: bsCfg.shopId || 'blacksmith', // 商店目录键（小鼠铁匠：武器、防具与装备服务）
               sprite: bsCfg.sprite,
             noSeparation: bsCfg.noSeparation,
             collisionShape: bsCfg.collisionShape,

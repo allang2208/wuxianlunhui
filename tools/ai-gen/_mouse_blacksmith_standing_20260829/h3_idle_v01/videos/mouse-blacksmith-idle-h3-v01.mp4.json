@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T10:09:09.450636+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mouse_blacksmith_standing_20260829\\h3_idle_v01\\videos\\mouse-blacksmith-idle-h3-v01.mp4",
+    "bytes": 381446,
+    "sha256": "79822aa19e64bf0dae938068724658eae43a40a0a9495c30d10904b7d2fbd070"
+  },
+  "promptId": "b8cffa8d-d026-46d9-87fa-ff2114cc68dd",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 810820562,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A single full-body female mouse blacksmith stands naturally in place against a perfectly uniform pure white background. Preserve exactly the supplied character identity: the same friendly face, amber-orange eyes, short gray-brown hair, gray mouse ears, long pink-gray tail, silver plate armor, white undershirt, worn brown leather apron, red-brown leather accents, belt, and every small waist tool. Her feet remain planted on one fixed horizontal foot line and her body center stays fixed.\n\nShe performs one restrained standing idle cycle. Her chest and shoulders rise and fall subtly with calm breathing. She blinks once naturally. Both mouse ears make one very small attentive twitch. Her tail makes one slow low-amplitude side-to-side sway and returns to its exact starting curve. A few hair tips and the apron edge respond with minimal secondary motion. Her arms, empty hands, armor plates, belt, and waist tools remain stable without changing shape.\n\nThe camera is completely locked, orthographic-looking, and motionless. The character keeps the same frontal billboard viewpoint, scale, silhouette, screen position, costume topology, and lighting throughout. The pure white background remains flat and unchanged with no floor or shadow. End in the exact same pose, tail curve, facial expression, scale, and position as the first frame for a seamless loop. No walking, stepping, turning, hammering, tools in hands, new objects, scenery, zoom, pan, shake, morphing, duplicated limbs, or costume changes.",
+  "effectivePrompt": "A single full-body female mouse blacksmith stands naturally in place against a perfectly uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Preserve exactly the supplied character identity: the same friendly face, amber-orange eyes, short gray-brown hair, gray mouse ears, long pink-gray tail, silver plate armor, white undershirt, worn brown leather apron, red-brown leather accents, belt, and every small waist tool. Her feet remain planted on one fixed horizontal foot line and her body center stays fixed.\n\nShe performs one restrained standing idle cycle. Her chest and shoulders rise and fall subtly with calm breathing. She blinks once naturally. Both mouse ears make one very small attentive twitch. Her tail makes one slow low-amplitude side-to-side sway and returns to its exact starting curve. A few hair tips and the apron edge respond with minimal secondary motion. Her arms, empty hands, armor plates, belt, and waist tools remain stable without changing shape.\n\nThe camera is completely locked, orthographic-looking, and motionless. The character keeps the same frontal billboard viewpoint, scale, silhouette, screen position, costume topology, and lighting throughout. The solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow remains flat and unchanged with no floor or shadow. End in the exact same pose, tail curve, facial expression, scale, and position as the first frame for a seamless loop. No walking, stepping, turning, hammering, tools in hands, new objects, scenery, zoom, pan, shake, morphing, duplicated limbs, or costume changes.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A single full-body female mouse blacksmith stands naturally in place against a perfectly uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Preserve exactly the supplied character identity: the same friendly face, amber-orange eyes, short gray-brown hair, gray mouse ears, long pink-gray tail, silver plate armor, white undershirt, worn brown leather apron, red-brown leather accents, belt, and every small waist tool. Her feet remain planted on one fixed horizontal foot line and her body center stays fixed.\n\nShe performs one restrained standing idle cycle. Her chest and shoulders rise and fall subtly with calm breathing. She blinks once naturally. Both mouse ears make one very small attentive twitch. Her tail makes one slow low-amplitude side-to-side sway and returns to its exact starting curve. A few hair tips and the apron edge respond with minimal secondary motion. Her arms, empty hands, armor plates, belt, and waist tools remain stable without changing shape.\n\nThe camera is completely locked, orthographic-looking, and motionless. The character keeps the same frontal billboard viewpoint, scale, silhouette, screen position, costume topology, and lighting throughout. The solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow remains flat and unchanged with no floor or shadow. End in the exact same pose, tail curve, facial expression, scale, and position as the first frame for a seamless loop. No walking, stepping, turning, hammering, tools in hands, new objects, scenery, zoom, pan, shake, morphing, duplicated limbs, or costume changes. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "2d4b706aaf9fdcc75a1ad9570f182c7e8689c6a4b50fa17430ead7027c394d38",
+  "effectivePromptSha256": "91db4e8ba372e02388f98a1df9bcaaf653deebb8e42b9703773541054778a4e3",
+  "finalPromptSha256": "0fce44ff4919ac7bc28907f82f78dba0fce4025329768aa34a73b0d49ff7bed0",
+  "parameters": {
+    "width": 1344,
+    "height": 768,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mouse_blacksmith_standing_20260829\\h3_idle_v01\\prompts\\mouse-blacksmith-idle-h3-v01.txt",
+      "bytes": 1507,
+      "sha256": "a9e5f570100f31db6a3786c2c720f443a24d23a389ce371d0184e88df7bd7baa"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mouse_blacksmith_standing_20260829\\h3_idle_v01\\references\\mouse-blacksmith-idle-h3-v01-reference.png",
+      "bytes": 167867,
+      "sha256": "4be1c5669e7499035ceba14a96c953acc050bbc1d9979bc8251d9386f7aba01d"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mouse_blacksmith_standing_20260829\\h3_idle_v01\\references\\mouse-blacksmith-idle-h3-v01-reference.png",
+      "bytes": 167867,
+      "sha256": "4be1c5669e7499035ceba14a96c953acc050bbc1d9979bc8251d9386f7aba01d"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mouse_blacksmith_standing_20260829\\h3_idle_v01\\videos\\mouse-blacksmith-idle-h3-v01_contact.png",
+    "bytes": 201202,
+    "sha256": "443c6c643066f4a688250f2af49d4d84d46621fde56f20602752745b4189f0d1"
+  },
+  "elapsedSeconds": 961.691
+}

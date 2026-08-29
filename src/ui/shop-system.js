@@ -1,6 +1,6 @@
 import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { RARITY_LABELS } from '../config/rarity.js';
+import { RARITY_LABELS, RARITY_ORDER } from '../config/rarity.js';
 import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
@@ -25,6 +25,13 @@ const RARITY_STANDARD_PRICE = {
     mythic: 1600,
     legendary: 3200,
 };
+
+// 商店展示分组：先按玩家可识别的武器品种，再放防具、饰品、消耗品与钥匙。
+// weaponType 是运行时动作/枪械实现键，同一种“自动步枪”会有多个不同值，因此展示分组读取 type。
+const SHOP_WEAPON_TYPE_ORDER = [
+    '单手剑', '法杖', '弓', '手枪', '手炮', '自动步枪', '机枪', '散弹枪', '盾',
+];
+const SHOP_NON_WEAPON_CATEGORY_ORDER = ['armor', 'accessory', 'consumable', 'tribute'];
 
 const ShopSystem = {
     _isOpen: false,
@@ -97,9 +104,8 @@ const ShopSystem = {
         { id: 'anchorTokenB', name: 'B 级时空锚点代币', icon: '🌀', iconImage: 'assets/ui/icons/dungeon-key-token.png', category: 'tribute', rarity: 'mythic', type: '地牢钥匙', price: 1600, shopPrice: 3200, shopOnly: true, stats: [{ name: '用途', value: 'B 级地牢钥匙' }], desc: 'B 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭。', stack: 1, maxStack: 999 },
         { id: 'anchorTokenA', name: 'A 级时空锚点代币', icon: '🌀', iconImage: 'assets/ui/icons/dungeon-key-token.png', category: 'tribute', rarity: 'legendary', type: '地牢钥匙', price: 3200, shopPrice: 6400, shopOnly: true, stats: [{ name: '用途', value: 'A 级地牢钥匙' }], desc: 'A 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭。', stack: 1, maxStack: 999 }
         ],
-        // 小鼠铁匠商店：出售全部优质（uncommon）非武器装备（铠甲/饰品，共 18 件）。
-        // 条目 = ItemDatabase 装备 id，运行时懒解析自 equipment.json（属性/贴图单一数据源，
-        // 改数据自动生效）；缺 price 时按稀有度标准价（uncommon = 200）兜底。
+        // 小鼠铁匠商店：保留现有防具/饰品目录；全部主手武器（含法杖）由
+        // _itemsFor() 从 ItemDatabase 动态追加，新增武器无需再维护第二份商店名单。
         blacksmith: [
             'light_helmet', 'light_armor', 'light_boots',
             'robe_helmet', 'robe_armor', 'robe_boots',
@@ -132,15 +138,64 @@ const ShopSystem = {
         return (npc && (npc.shopId || (npc.config && npc.config.shopId))) || 'main';
     },
 
-    /** 当前商店商品目录（缺省回退 main 全量目录） */
+    /** 当前商店商品目录；小鼠铁匠合并承接旧 main 全量商品与铁匠装备目录。 */
     _itemsFor(npc = this._currentNPC) {
-        const cat = this.SHOP_CATALOGS[this._shopIdFor(npc)];
-        const list = cat || this.SHOP_CATALOGS.main || [];
+        const shopId = this._shopIdFor(npc);
+        const cat = this.SHOP_CATALOGS[shopId];
+        const baseList = shopId === 'blacksmith'
+            ? [...(this.SHOP_CATALOGS.main || []), ...(cat || [])]
+            : (cat || this.SHOP_CATALOGS.main || []);
+        const mainhandWeaponIds = shopId === 'blacksmith'
+            ? Object.entries(ItemDatabase.items || {})
+                .filter(([, item]) => item?.weaponId && item.weaponCategory === 'mainhand')
+                .map(([id]) => id)
+            : [];
+        const list = [...baseList, ...mainhandWeaponIds];
+        const seenIds = new Set();
         // 目录条目支持两种形态：完整商品对象（main 现状）或 ItemDatabase 装备 id 字符串
-        // （数据目录，如 blacksmith——懒解析，缺 price 按稀有度标准价兜底）
-        return list
+        // （数据目录，如 blacksmith——懒解析，缺 price 按稀有度标准价兜底）。
+        const items = list
             .map(it => (typeof it === 'string' ? this._equipFromDatabase(it) : it))
-            .filter(Boolean);
+            .filter(item => {
+                if (!item || seenIds.has(item.id)) return false;
+                seenIds.add(item.id);
+                return true;
+            });
+        return this._sortItems(items);
+    },
+
+    /** 武器按品种分组，每组内按普通→优质→稀有→史诗→神话→传说稳定排列。 */
+    _sortItems(items) {
+        const weaponTypeCount = SHOP_WEAPON_TYPE_ORDER.length;
+        const rarityRank = (item) => {
+            const rank = RARITY_ORDER.indexOf(item?.rarity || 'common');
+            return rank >= 0 ? rank : RARITY_ORDER.length;
+        };
+        const groupOf = (item) => {
+            const type = item?.type || '';
+            const knownWeaponRank = SHOP_WEAPON_TYPE_ORDER.indexOf(type);
+            if (knownWeaponRank >= 0) return { rank: knownWeaponRank, label: type };
+
+            const category = item?.category || '';
+            const isWeapon = !!item?.weaponId || category.startsWith('weapon_');
+            if (isWeapon) return { rank: weaponTypeCount, label: type };
+
+            const categoryRank = SHOP_NON_WEAPON_CATEGORY_ORDER.indexOf(category);
+            return {
+                rank: weaponTypeCount + 1 + (categoryRank >= 0 ? categoryRank : SHOP_NON_WEAPON_CATEGORY_ORDER.length),
+                label: category,
+            };
+        };
+
+        return items
+            .map((item, sourceIndex) => ({ item, sourceIndex, group: groupOf(item) }))
+            .sort((a, b) => {
+                if (a.group.rank !== b.group.rank) return a.group.rank - b.group.rank;
+                if (a.group.label !== b.group.label) return a.group.label.localeCompare(b.group.label, 'zh-CN');
+                const rarityDiff = rarityRank(a.item) - rarityRank(b.item);
+                return rarityDiff || (a.sourceIndex - b.sourceIndex);
+            })
+            .map(entry => entry.item);
     },
 
     /** ItemDatabase 装备 id → 商店商品对象（找不到返回 null，调用方过滤） */
