@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Build transparent, grounded brown-snake sprite sheets from accepted H3 videos."""
+"""Shared transparent-sheet helpers for the versioned brown-snake builders."""
 
 from __future__ import annotations
 
-import json
 import math
 import sys
 from pathlib import Path
@@ -20,58 +19,15 @@ sys.path.insert(0, str(TOOLS))
 from rmbg_cutout import get_model, predict_alpha  # noqa: E402
 
 
-VIDEO_DIR = ROOT / "video"
 OUT_DIR = ROOT / "generated" / "final"
 PREVIEW_DIR = ROOT / "previews" / "final"
 
 # Snake contract: normalize by body thickness, not the pose-dependent bbox height.
-TARGET_BODY_THICKNESS = 42.0
 FOOT_Y = 410
 CELL_HEIGHT = 512
 EDGE_PAD = 18
 ALPHA_THRESHOLD = 16
 HARD_ALPHA = 245
-
-ACTIONS = {
-    "idle": {
-        # One complete locked loop without duplicating frame 123 at the seam.
-        "video": VIDEO_DIR / "brown-snake-idle-h3.mp4",
-        "frames": list(range(0, 120, 10)),
-        "cols": 6,
-        "mode": "stabilized",
-        "frameRate": 4,
-        "repeat": -1,
-    },
-    "walking": {
-        # Full locked slither loop, sampled densely enough to retain the wave path.
-        "video": VIDEO_DIR / "brown-snake-walking-h3.mp4",
-        "frames": list(range(0, 120, 6)),
-        "cols": 5,
-        "mode": "stabilized",
-        "frameRate": 12,
-        "repeat": -1,
-    },
-    "attacking": {
-        # Neutral anticipation through full extension and recovery. Source-space X
-        # displacement is preserved so the lunge does not become an in-place morph.
-        "video": VIDEO_DIR / "brown-snake-attacking-h3.mp4",
-        "frames": list(range(20, 81, 3)),
-        "cols": 6,
-        "mode": "source_motion",
-        "duration": 900,
-        "repeat": 0,
-    },
-    "dying": {
-        # Collapse motion followed by two settled-corpse holds; omit the long tail.
-        "video": VIDEO_DIR / "brown-snake-dying-h3.mp4",
-        "frames": list(range(0, 61, 4)) + [72, 96],
-        "cols": 6,
-        "mode": "source_motion_grounded",
-        "duration": 1800,
-        "repeat": 0,
-    },
-}
-
 
 def decode(path: Path) -> list[Image.Image]:
     with av.open(str(path)) as container:
@@ -296,45 +252,3 @@ def build_sheet(name: str, spec: dict, processed: dict, scale: float) -> dict:
         **({"duration": spec["duration"]} if "duration" in spec else {}),
         "repeat": spec["repeat"],
     }
-
-
-def main() -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    decoded = {name: decode(spec["video"]) for name, spec in ACTIONS.items()}
-    for name, frames in decoded.items():
-        if len(frames) != 124:
-            raise ValueError(f"{name}: expected 124 frames, got {len(frames)}")
-
-    model = get_model()
-    processed = {
-        name: process_frames(model, decoded[name], spec["frames"], name)
-        for name, spec in ACTIONS.items()
-    }
-    source_thicknesses = {
-        name: body_thickness(processed[name][spec["frames"][0]][1])
-        for name, spec in ACTIONS.items()
-    }
-    action_scales = {
-        name: TARGET_BODY_THICKNESS / thickness
-        for name, thickness in source_thicknesses.items()
-    }
-
-    manifest = {
-        "normalization": "fixed per-action scale from neutral-frame body thickness",
-        "targetBodyThickness": TARGET_BODY_THICKNESS,
-        "sourceBodyThicknesses": source_thicknesses,
-        "actionScales": action_scales,
-        "actions": {},
-    }
-    for name, spec in ACTIONS.items():
-        manifest["actions"][name] = build_sheet(name, spec, processed[name], action_scales[name])
-        print(f"[brown-snake] built {name}: {manifest['actions'][name]}", flush=True)
-
-    path = ROOT / "sheet-manifest.json"
-    path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[brown-snake] manifest -> {path}", flush=True)
-
-
-if __name__ == "__main__":
-    main()

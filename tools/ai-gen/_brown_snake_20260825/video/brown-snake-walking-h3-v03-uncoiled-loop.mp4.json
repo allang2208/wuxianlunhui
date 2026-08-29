@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T11:49:06.412745+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-walking-h3-v03-uncoiled-loop.mp4",
+    "bytes": 420288,
+    "sha256": "2fdf4a7c588c2420e17ef1890ff772c06ba26e1cd6cbef2e131485a9435b5b7d"
+  },
+  "promptId": "cd6f29bf-ab60-429a-ba4b-408396882b18",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 360115532,
+  "mode": "ref2va",
+  "actionMode": "free",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Create a seamless locomotion animation for the exact ordinary adult brown snake shown in Picture 1. Picture 1 supplies only the identity: its warm chestnut-brown scales, narrow angular head, amber-brown eye, lighter tan underside, subtle umber mottling, realistic material, body diameter, and proportions. Video 1 supplies only the continuous side-view slithering rhythm and traveling body-wave timing.\n\nFor the entire video, the snake is already fully uncoiled in one long natural ground-level traveling shape facing right. The raised pose and round coil from Picture 1 never appear in this locomotion shot. From the first frame onward, one clean muscular lateral wave travels continuously from the head through the neck and torso to one single tapering tail tip. The snake moves with a steady purposeful rhythm while remaining centered in the frame. The head stays slightly raised, the mouth remains closed, and the complete body stays anatomically connected with constant length and diameter. The final motion phase naturally matches the opening slither phase for a seamless cycle.\n\nPreserve Picture 1's identity throughout, but use Video 1's low traveling posture and wave timing. Show exactly one head, one continuous body, and one single tail tip in every frame. Use a static locked low side camera with generous horizontal margins; the full snout and tail remain visible and never approach the frame edges. Flat solid pure white background with soft diffuse neutral light. No pose transition, coiling, uncoiling, raised cobra stance, forked tail, extra limb or body branch, attack, bite, hood, species change, stretching, shortening, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark.",
+  "effectivePrompt": "Create a seamless locomotion animation for the exact ordinary adult brown snake shown in Picture 1. Picture 1 supplies only the identity: its warm chestnut-brown scales, narrow angular head, amber-brown eye, lighter tan underside, subtle umber mottling, realistic material, body diameter, and proportions. Video 1 supplies only the continuous side-view slithering rhythm and traveling body-wave timing.\n\nFor the entire video, the snake is already fully uncoiled in one long natural ground-level traveling shape facing right. The raised pose and round coil from Picture 1 never appear in this locomotion shot. From the first frame onward, one clean muscular lateral wave travels continuously from the head through the neck and torso to one single tapering tail tip. The snake moves with a steady purposeful rhythm while remaining centered in the frame. The head stays slightly raised, the mouth remains closed, and the complete body stays anatomically connected with constant length and diameter. The final motion phase naturally matches the opening slither phase for a seamless cycle.\n\nPreserve Picture 1's identity throughout, but use Video 1's low traveling posture and wave timing. Show exactly one head, one continuous body, and one single tail tip in every frame. Use a static locked low side camera with generous horizontal margins; the full snout and tail remain visible and never approach the frame edges. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. No pose transition, coiling, uncoiling, raised cobra stance, forked tail, extra limb or body branch, attack, bite, hood, species change, stretching, shortening, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] Create a seamless locomotion animation for the exact ordinary adult brown snake shown in Picture 1. Picture 1 supplies only the identity: its warm chestnut-brown scales, narrow angular head, amber-brown eye, lighter tan underside, subtle umber mottling, realistic material, body diameter, and proportions. Video 1 supplies only the continuous side-view slithering rhythm and traveling body-wave timing.\n\nFor the entire video, the snake is already fully uncoiled in one long natural ground-level traveling shape facing right. The raised pose and round coil from Picture 1 never appear in this locomotion shot. From the first frame onward, one clean muscular lateral wave travels continuously from the head through the neck and torso to one single tapering tail tip. The snake moves with a steady purposeful rhythm while remaining centered in the frame. The head stays slightly raised, the mouth remains closed, and the complete body stays anatomically connected with constant length and diameter. The final motion phase naturally matches the opening slither phase for a seamless cycle.\n\nPreserve Picture 1's identity throughout, but use Video 1's low traveling posture and wave timing. Show exactly one head, one continuous body, and one single tail tip in every frame. Use a static locked low side camera with generous horizontal margins; the full snout and tail remain visible and never approach the frame edges. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. No pose transition, coiling, uncoiling, raised cobra stance, forked tail, extra limb or body branch, attack, bite, hood, species change, stretching, shortening, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Follow the authored temporal order exactly and keep every transition visually readable.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "e3260a1baa185a759e6053c35d58b60b438d115f955dfcc16ead4827249869c1",
+  "effectivePromptSha256": "1067c2238bed21af4433de00ade2286af35e06d632cb6228afb90c358051a7f0",
+  "finalPromptSha256": "d8564a5c6621b503e0e159dc742d20f3ea69477451ec9bf195a9727327690402",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\prompts\\brown-snake-walking-v03-h3-uncoiled-loop.txt",
+      "bytes": 1789,
+      "sha256": "cadb3b6f8582e36401404a7997c158071845c894ec052e98b34dbbbe210d8f5d"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-raised-attack-v02-white.png",
+        "bytes": 125707,
+        "sha256": "4dabf19e6561c88650ef35312bd463ccf2a255949645a0601667a1bd85a7895e"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-walking-h3.mp4",
+        "bytes": 306382,
+        "sha256": "93786ce278156c544c02ec43bfb4a2ee4c967523c3f50eeb2c5909867e5f2f74"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-walking-h3-v03-uncoiled-loop_contact.png",
+    "bytes": 259036,
+    "sha256": "096feed1e4f546b5826d01d2ed2eb17a9cea709f2a0373ef0521ed8bb049c61b"
+  },
+  "elapsedSeconds": 425.517
+}

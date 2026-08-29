@@ -504,6 +504,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 - 正式归档只保留：获准母图与直接编辑源、不可变提示词、定稿 MP4 与 provenance、插帧前透明源表、RIFE 成品/报告，以及按运行时时钟生成的最终 GIF/联系图。`frames/birefnet-source`、插帧前重复预览和其他可由上述真源重建的缓存不进 Git；确实参与生成的单帧参考须移入对应正式子目录并由 manifest 显式引用，不能随缓存整批删除。
 - 被否视频不以“溯源”为由留在仓库：删除 MP4 和对应 GIF/联系图，仅保留小体积提示词、provenance 和失败原因；任务索引把状态写成 `rejected_archived_metadata_only`，不得继续引用已删除的大文件。
 - 运行时接通后，任务索引、最终 `spritesheet-manifest.json` 及生成该清单的脚本必须同时写 `assetOnly:false`、`runtimeIntegrationActive:true`。只手改生成结果会在重跑插帧时退回“仅资产”状态，属于不可复现交付。
+- 已有 RIFE 正式表只调整播放节奏时，不重新抽帧、插帧或重采样可见像素；只同步双份运行时配置的 `frameRate`、发布脚本中的布局真源和最终运行时时钟预览。GIF 只有 10ms 时间粒度，高于 50 FPS 时必须用分布式 10/20ms 帧时长逼近目标总时长，并在报告中同时写明游戏内精确帧率与 GIF 量化后的实际循环时长；世界移动速度、碰撞和战斗时钟保持独立不变。
 - 超宽多动作表的显存核算以实际 PNG 整图 `width × height × 4` 为准，不能用 `frameWidth × frameHeight × frameCount × 4` 代替；末行空格和行列重排仍会完整上传 GPU。单个需要强驻留的资源族必须独立落在软预算内，每张表还必须低于目标 WebGL 最大纹理边长。
 
 #### 多视图/多件排列硬筛（2026-08-03 沉淀：SDXL 帽子/法袍顽固出多视图）

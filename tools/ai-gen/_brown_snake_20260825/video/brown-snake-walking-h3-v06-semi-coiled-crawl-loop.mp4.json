@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T13:23:39.104051+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-walking-h3-v06-semi-coiled-crawl-loop.mp4",
+    "bytes": 462636,
+    "sha256": "c2a5b878236fe4027425249293f8916b15114e6ea47188301ddfd1a3a7bb158c"
+  },
+  "promptId": "0a998114-bfaa-40b0-9d04-ba4f167683bb",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 968301442,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Create one seamless slow locomotion cycle for the exact adult brown snake in the supplied first frame. Preserve its warm chestnut-brown scales, narrow angular head, amber-brown eye, pale tan underside, subtle dark mottling, realistic material, head size, neck width, thick body diameter, total length, proportions, and single tapering tail.\n\nThe snake performs a biologically plausible semi-coiled crawl toward screen-right while the root remains centered for a game locomotion loop. Begin with the supplied compact two-turn coil and raised front neck. The head lowers modestly and reaches forward; at the same time, the right-side outer turn of the coil genuinely opens into one short, broad S-curve on the ground. A muscular lateral wave travels from the neck through this S-curve into the rear body. The rear turn compresses against the ground, then releases and advances to replace the opened section. The tail follows the same continuous body path, and the rear body reforms the original two-turn coil as the neck rises back to the exact supplied pose. The coil must visibly unroll and reform segment by segment; it must not remain a rigid circular disk sliding beneath a moving neck. Keep the complete body thick and heavy, with local neck and torso diameter visually constant through the entire cycle.\n\nUse a static locked three-quarter side camera matching the reference, with the complete silhouette and comfortable margins visible throughout. Flat solid pure white background with soft diffuse neutral light. Exactly one snake, one head, one continuous anatomical body path, and one tail tip in every frame. Avoid a frozen coil, rigid disk sliding, full straightening, long thin body, size drift, attack, bite, open mouth, hood expansion, forked tail, detached branch, topology change, camera motion, crop, ground shadow, scenery, text, logo, and watermark.",
+  "effectivePrompt": "Create one seamless slow locomotion cycle for the exact adult brown snake in the supplied first frame. Preserve its warm chestnut-brown scales, narrow angular head, amber-brown eye, pale tan underside, subtle dark mottling, realistic material, head size, neck width, thick body diameter, total length, proportions, and single tapering tail.\n\nThe snake performs a biologically plausible semi-coiled crawl toward screen-right while the root remains centered for a game locomotion loop. Begin with the supplied compact two-turn coil and raised front neck. The head lowers modestly and reaches forward; at the same time, the right-side outer turn of the coil genuinely opens into one short, broad S-curve on the ground. A muscular lateral wave travels from the neck through this S-curve into the rear body. The rear turn compresses against the ground, then releases and advances to replace the opened section. The tail follows the same continuous body path, and the rear body reforms the original two-turn coil as the neck rises back to the exact supplied pose. The coil must visibly unroll and reform segment by segment; it must not remain a rigid circular disk sliding beneath a moving neck. Keep the complete body thick and heavy, with local neck and torso diameter visually constant through the entire cycle.\n\nUse a static locked three-quarter side camera matching the reference, with the complete silhouette and comfortable margins visible throughout. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. Exactly one snake, one head, one continuous anatomical body path, and one tail tip in every frame. Avoid a frozen coil, rigid disk sliding, full straightening, long thin body, size drift, attack, bite, open mouth, hood expansion, forked tail, detached branch, topology change, camera motion, crop, ground shadow, scenery, text, logo, and watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Create one seamless slow locomotion cycle for the exact adult brown snake in the supplied first frame. Preserve its warm chestnut-brown scales, narrow angular head, amber-brown eye, pale tan underside, subtle dark mottling, realistic material, head size, neck width, thick body diameter, total length, proportions, and single tapering tail.\n\nThe snake performs a biologically plausible semi-coiled crawl toward screen-right while the root remains centered for a game locomotion loop. Begin with the supplied compact two-turn coil and raised front neck. The head lowers modestly and reaches forward; at the same time, the right-side outer turn of the coil genuinely opens into one short, broad S-curve on the ground. A muscular lateral wave travels from the neck through this S-curve into the rear body. The rear turn compresses against the ground, then releases and advances to replace the opened section. The tail follows the same continuous body path, and the rear body reforms the original two-turn coil as the neck rises back to the exact supplied pose. The coil must visibly unroll and reform segment by segment; it must not remain a rigid circular disk sliding beneath a moving neck. Keep the complete body thick and heavy, with local neck and torso diameter visually constant through the entire cycle.\n\nUse a static locked three-quarter side camera matching the reference, with the complete silhouette and comfortable margins visible throughout. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. Exactly one snake, one head, one continuous anatomical body path, and one tail tip in every frame. Avoid a frozen coil, rigid disk sliding, full straightening, long thin body, size drift, attack, bite, open mouth, hood expansion, forked tail, detached branch, topology change, camera motion, crop, ground shadow, scenery, text, logo, and watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "658f15c0fc77821dcd4b638ec276f84c07954414f095293b29fcb70c346a0fa8",
+  "effectivePromptSha256": "043b0f107315647dd61ebe373033aa5d3c072b490356707bd5bd1596cb432ee7",
+  "finalPromptSha256": "353daed951da9af77e578e095ab80e47b820deb0288b1ae4fc9fa313a0bf9ded",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\prompts\\brown-snake-walking-v06-h3-semi-coiled-crawl-loop.txt",
+      "bytes": 1868,
+      "sha256": "467e4ed7d5450b26777243ff317c0d28051789b6b57c91279555c677085cf923"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-raised-attack-v02-white.png",
+      "bytes": 125707,
+      "sha256": "4dabf19e6561c88650ef35312bd463ccf2a255949645a0601667a1bd85a7895e"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-raised-attack-v02-white.png",
+      "bytes": 125707,
+      "sha256": "4dabf19e6561c88650ef35312bd463ccf2a255949645a0601667a1bd85a7895e"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-walking-h3-v06-semi-coiled-crawl-loop_contact.png",
+    "bytes": 315059,
+    "sha256": "07ca432ed31a8b70495f87e54e6e20868c7dc18a68e95fe987dfe42d08743ba4"
+  },
+  "elapsedSeconds": 465.671
+}

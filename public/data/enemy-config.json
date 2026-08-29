@@ -87,9 +87,9 @@
       "width": 24,
       "timeline": {
         "durationMs": 900,
-        "frameCount": 21,
-        "contactFrame": 10,
-        "activeFrames": [9, 11]
+        "frameCount": 41,
+        "contactFrame": 18,
+        "activeFrames": [17, 20]
       }
     },
     "aiInterval": 1200,
@@ -157,41 +157,40 @@
       "frameLayouts": {
         "idle": {
           "columns": 6,
-          "rows": 2,
+          "rows": 4,
           "frameWidth": 640,
           "frameHeight": 512,
-          "frameCount": 12,
+          "frameCount": 24,
           "footY": 410,
-          "frameRate": 4,
+          "frameRate": 8,
           "repeat": -1
         },
         "walk": {
           "columns": 5,
-          "rows": 4,
-          "frameWidth": 1152,
+          "rows": 8,
+          "frameWidth": 640,
           "frameHeight": 512,
-          "frameCount": 20,
+          "frameCount": 40,
           "footY": 410,
-          "visualScale": 0.98952,
-          "frameRate": 12,
+          "frameRate": 72,
           "repeat": -1
         },
         "attack": {
-          "columns": 6,
-          "rows": 4,
-          "frameWidth": 1024,
+          "columns": 8,
+          "rows": 6,
+          "frameWidth": 896,
           "frameHeight": 512,
-          "frameCount": 21,
+          "frameCount": 41,
           "footY": 410,
           "duration": 900,
           "repeat": 0
         },
         "death": {
           "columns": 6,
-          "rows": 3,
-          "frameWidth": 640,
+          "rows": 6,
+          "frameWidth": 768,
           "frameHeight": 512,
-          "frameCount": 18,
+          "frameCount": 35,
           "footY": 410,
           "duration": 1800,
           "repeat": 0

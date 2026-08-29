@@ -1,0 +1,91 @@
+{
+  "asset": "brown_snake",
+  "action": "attacking",
+  "candidate": "v02-cobra-motion",
+  "accepted": true,
+  "sourceVideo": "video/brown-snake-attacking-h3-v02-cobra-motion.mp4",
+  "builder": "build-sheets.py",
+  "normalization": "fixed action scale from accepted attack median visible width",
+  "targetMedianVisibleWidth": 540.0,
+  "sourceVisibleWidths": [
+    758,
+    757,
+    739,
+    674,
+    621,
+    601,
+    627,
+    675,
+    796,
+    943,
+    919,
+    863,
+    817,
+    784,
+    761,
+    758,
+    757,
+    757,
+    757,
+    757,
+    757
+  ],
+  "sourceMedianVisibleWidth": 757.0,
+  "actionScale": 0.71334214002642,
+  "actionData": {
+    "file": "generated\\source-pre-rife\\attacking-v02-source.png",
+    "frameWidth": 896,
+    "frameHeight": 512,
+    "columns": 8,
+    "rows": 3,
+    "frameCount": 21,
+    "footY": 410,
+    "sourceFrames": [
+      0,
+      8,
+      16,
+      24,
+      32,
+      40,
+      46,
+      50,
+      54,
+      58,
+      62,
+      66,
+      70,
+      74,
+      80,
+      88,
+      96,
+      104,
+      112,
+      120,
+      123
+    ],
+    "mode": "source_motion_grounded",
+    "scale": 0.71334214002642,
+    "bodyThicknessRange": [
+      86.0,
+      89.58
+    ],
+    "alphaPixels": [
+      34062,
+      36164
+    ],
+    "feetRange": [
+      409,
+      410
+    ],
+    "centerRange": [
+      393.0,
+      514.0
+    ],
+    "blankFrames": [],
+    "edgeHitFrames": [],
+    "semiPixels": 0,
+    "transparentRgbPixels": 0,
+    "duration": 900,
+    "repeat": 0
+  }
+}

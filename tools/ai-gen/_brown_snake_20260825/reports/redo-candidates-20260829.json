@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "subject": "brown-snake-four-action-animation-redo",
+  "provider": "minimax-h3-local",
+  "status": "accepted-and-runtime-integrated",
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "runtimeIntegrated": true,
+  "candidates": [
+    {
+      "action": "idle",
+      "status": "accepted_runtime_integrated",
+      "video": "video/brown-snake-idle-h3-v02-raised.mp4",
+      "videoSha256": "e89c603d734c40bd5100495d76c944dfea967aee08065adac97309dca36e9e75",
+      "prompt": "prompts/brown-snake-idle-v02-h3-raised.txt",
+      "promptSha256": "d38d12f4461b891a4409a6ff8c1dd63de9ebda64b644e9cb890892b0b56e3e23",
+      "seed": 1651995260,
+      "review": "Raised rear coil and S-curved neck remain stable; only restrained breathing, head motion, and a brief tongue flick occur."
+    },
+    {
+      "action": "walking",
+      "status": "accepted_runtime_integrated",
+      "video": "video/brown-snake-walking-h3-v06-semi-coiled-crawl-loop.mp4",
+      "videoSha256": "c2a5b878236fe4027425249293f8916b15114e6ea47188301ddfd1a3a7bb158c",
+      "prompt": "prompts/brown-snake-walking-v06-h3-semi-coiled-crawl-loop.txt",
+      "promptSha256": "467e4ed7d5450b26777243ff317c0d28051789b6b57c91279555c677085cf923",
+      "seed": 968301442,
+      "review": "User-approved semi-coiled concertina crawl: the outer coil opens into one short thick S-curve, the rear body compresses and advances, then the original two-turn coil reforms. Local body thickness stays stable and the coil does not slide as a rigid disk."
+    },
+    {
+      "action": "attacking",
+      "status": "accepted_runtime_integrated",
+      "video": "video/brown-snake-attacking-h3-v02-cobra-motion.mp4",
+      "videoSha256": "c1cc9053e7a901ed666508db5649766cc2ca2b3edb0a05b427a2d7d8023be969",
+      "prompt": "prompts/brown-snake-attacking-v02-h3-cobra-motion.txt",
+      "promptSha256": "5c6ef30bd808667c053defb9bbb18e92ad6d9882097a18f64a20cc55d8f2ffc2",
+      "seed": 1500359322,
+      "review": "User-approved raised-coil cobra-like strike: one forward bite from a planted rear coil, then a complete recovery to the raised guard pose without changing species."
+    },
+    {
+      "action": "dying",
+      "status": "accepted_runtime_integrated",
+      "video": "video/brown-snake-dying-h3-v02-raised-collapse.mp4",
+      "videoSha256": "285181a8b461cacf59f23a51a31b9bcc926fff2189a35a80716095dc1c5b878d",
+      "prompt": "prompts/brown-snake-dying-v02-h3-raised-collapse.txt",
+      "promptSha256": "ea5e812ee193b638d7fc3969173c451c30bef0e3b59330aeff545baf11263516",
+      "seed": 77552746,
+      "review": "Readable one-way collapse from the raised guard pose into a stable grounded corpse; body remains connected and the final pose holds."
+    }
+  ],
+  "rejections": [
+    {
+      "id": "attacking-h3-v03-raised-recover",
+      "action": "attacking",
+      "provenance": "video/brown-snake-attacking-h3-v03-raised-recover.mp4.json",
+      "prompt": "prompts/brown-snake-attacking-v03-h3-raised-recover.txt",
+      "promptSha256": "aabe05e01a0912a10978238e1440717f5b4407909e971dd1948f54f19da8943c",
+      "seed": 225072271,
+      "reason": "The motion did not rise into the requested stable cobra-like strike posture.",
+      "status": "rejected_archived_metadata_only"
+    },
+    {
+      "id": "walking-h3-v02-attack-identity",
+      "action": "walking",
+      "provenance": "video/brown-snake-walking-h3-v02-attack-identity.mp4.json",
+      "prompt": "prompts/brown-snake-walking-v02-h3-identity-motion.txt",
+      "promptSha256": "16d09097bd7fad4d3ab2e0d9a645ac29cea42b504941373dab15419a9b416809",
+      "seed": 793605636,
+      "reason": "The raised-to-ground transition creates a forked double-tail silhouette and prevents a seamless locomotion loop.",
+      "status": "rejected_archived_metadata_only"
+    },
+    {
+      "id": "walking-h3-v03-uncoiled-loop",
+      "action": "walking",
+      "provenance": "video/brown-snake-walking-h3-v03-uncoiled-loop.mp4.json",
+      "prompt": "prompts/brown-snake-walking-v03-h3-uncoiled-loop.txt",
+      "promptSha256": "cadb3b6f8582e36401404a7997c158071845c894ec052e98b34dbbbe210d8f5d",
+      "seed": 360115532,
+      "reason": "The first half contains an extra tail/body branch and the snake drifts into the left crop boundary.",
+      "status": "rejected_archived_metadata_only"
+    },
+    {
+      "id": "walking-h3-v04-locked-straight-loop",
+      "action": "walking",
+      "provenance": "video/brown-snake-walking-h3-v04-locked-straight-loop.mp4.json",
+      "prompt": "prompts/brown-snake-walking-v04-h3-locked-straight-loop.txt",
+      "promptSha256": "4ccc963e27c614a54cf5ac5b1ca4db36f14899649b37bf04d76551bdd7519f8d",
+      "seed": 1506171244,
+      "reason": "The long straight crawl discarded the approved raised/coiled identity. Pose-bbox normalization hid a severe size error: the runtime body thickness was about 20px while the other actions were about 81-90px.",
+      "status": "rejected_archived_metadata_only"
+    },
+    {
+      "id": "walking-h3-v05-coiled-thick-loop",
+      "action": "walking",
+      "provenance": "video/brown-snake-walking-h3-v05-coiled-thick-loop.mp4.json",
+      "prompt": "prompts/brown-snake-walking-v05-h3-coiled-thick-loop.txt",
+      "promptSha256": "15b4b7b6b3bec494ed69629ca391bbeb3339cc720217226a0fd0cce4c9b1c974",
+      "seed": 1321179656,
+      "reason": "The rear coil remained nearly rigid while only the neck reached and swayed, so the cycle read as alert probing rather than biologically plausible locomotion.",
+      "status": "rejected_archived_metadata_only"
+    }
+  ]
+}

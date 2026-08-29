@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T11:25:12.984901+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-idle-h3-v02-raised.mp4",
+    "bytes": 271037,
+    "sha256": "e89c603d734c40bd5100495d76c944dfea967aee08065adac97309dca36e9e75"
+  },
+  "promptId": "0df6b02d-dd12-4e90-8586-84ddf6597e9a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1651995260,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Create a seamless idle animation for the exact ordinary adult brown snake shown in the supplied first frame. Preserve the exact warm chestnut-brown color, narrow angular head, amber-brown eyes, lighter tan underside, subtle umber mottling, small realistic scales, slender neck, body diameter, tail length, and one-coil raised S-curve silhouette.\n\nThe rear half remains planted in one compact natural coil on a single ground baseline. The front third stays raised in the same alert S-curve facing right. Over the full shot, the snake performs only quiet living motion: a slow breath passes through the torso, the raised neck makes a very small controlled sway, the head observes slightly forward and back, and the tongue flicks briefly once. The mouth otherwise remains closed. The tail tip and rear coil stay planted without sliding. The motion naturally settles back into the exact supplied pose, position, scale, orientation, closed mouth, and coil shape for a seamless loop.\n\nUse a static locked low three-quarter side camera and generous wide framing. Keep the complete tail tip, coil, torso, raised neck, head, tongue, and snout visible throughout. Flat solid pure white background with soft diffuse neutral light. No attack, bite, lunge, hood, species change, uncoiling, crawling, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark.",
+  "effectivePrompt": "Create a seamless idle animation for the exact ordinary adult brown snake shown in the supplied first frame. Preserve the exact warm chestnut-brown color, narrow angular head, amber-brown eyes, lighter tan underside, subtle umber mottling, small realistic scales, slender neck, body diameter, tail length, and one-coil raised S-curve silhouette.\n\nThe rear half remains planted in one compact natural coil on a single ground baseline. The front third stays raised in the same alert S-curve facing right. Over the full shot, the snake performs only quiet living motion: a slow breath passes through the torso, the raised neck makes a very small controlled sway, the head observes slightly forward and back, and the tongue flicks briefly once. The mouth otherwise remains closed. The tail tip and rear coil stay planted without sliding. The motion naturally settles back into the exact supplied pose, position, scale, orientation, closed mouth, and coil shape for a seamless loop.\n\nUse a static locked low three-quarter side camera and generous wide framing. Keep the complete tail tip, coil, torso, raised neck, head, tongue, and snout visible throughout. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. No attack, bite, lunge, hood, species change, uncoiling, crawling, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Create a seamless idle animation for the exact ordinary adult brown snake shown in the supplied first frame. Preserve the exact warm chestnut-brown color, narrow angular head, amber-brown eyes, lighter tan underside, subtle umber mottling, small realistic scales, slender neck, body diameter, tail length, and one-coil raised S-curve silhouette.\n\nThe rear half remains planted in one compact natural coil on a single ground baseline. The front third stays raised in the same alert S-curve facing right. Over the full shot, the snake performs only quiet living motion: a slow breath passes through the torso, the raised neck makes a very small controlled sway, the head observes slightly forward and back, and the tongue flicks briefly once. The mouth otherwise remains closed. The tail tip and rear coil stay planted without sliding. The motion naturally settles back into the exact supplied pose, position, scale, orientation, closed mouth, and coil shape for a seamless loop.\n\nUse a static locked low three-quarter side camera and generous wide framing. Keep the complete tail tip, coil, torso, raised neck, head, tongue, and snout visible throughout. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. No attack, bite, lunge, hood, species change, uncoiling, crawling, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "761aadb40b1e9ccf9efeef8e40badc3a5d57c0d5d173a4511201a8bd7dd4fbfe",
+  "effectivePromptSha256": "f79678b3b85308f9b6286510cc40926964b0ecce33318780812193b17dd457fe",
+  "finalPromptSha256": "1fed51a9ddb6d5e37c0abe5621aecddf00e082485631b631c63e399789b8ef9c",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\prompts\\brown-snake-idle-v02-h3-raised.txt",
+      "bytes": 1435,
+      "sha256": "d38d12f4461b891a4409a6ff8c1dd63de9ebda64b644e9cb890892b0b56e3e23"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-raised-attack-v02-white.png",
+      "bytes": 125707,
+      "sha256": "4dabf19e6561c88650ef35312bd463ccf2a255949645a0601667a1bd85a7895e"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-raised-attack-v02-white.png",
+      "bytes": 125707,
+      "sha256": "4dabf19e6561c88650ef35312bd463ccf2a255949645a0601667a1bd85a7895e"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-idle-h3-v02-raised_contact.png",
+    "bytes": 295077,
+    "sha256": "e5401e533ba739eca10079319c4ea74c82e334f7f12fdd448f5cc790786ef8d0"
+  },
+  "elapsedSeconds": 636.269
+}

@@ -1,7 +1,7 @@
 {
   "asset": "brown_snake",
   "date": "2026-08-25",
-  "stage": "spritesheets-complete",
+  "stage": "runtime-integration-complete",
   "mother": {
     "generator": "built-in-imagegen",
     "whiteSource": "mother/brown-snake-imagegen-white.png",
@@ -14,121 +14,361 @@
     "provider": "h3",
     "host": "192.168.3.142",
     "size": "1024x576",
-    "durationSeconds": 5,
+    "durationSeconds": 5.17,
     "frames": 124,
-    "steps": 16,
+    "steps": 20,
+    "attackingV02Steps": 20,
     "scheduler": "res_multistep/simple"
   },
   "states": {
     "idle": {
-      "file": "video/brown-snake-idle-h3.mp4",
-      "sha256": "d79d451c947c7fc67f761aeb7d28b0b645d42529135ed4bf7571a2f8b3812466",
-      "seed": 523678623,
-      "reference": "references/brown-snake-idle-white.png",
-      "prompt": "prompts/brown-snake-idle.txt",
-      "promptChars": 1651,
-      "promptSha256": "a0f487e8255000092ff31621ffd1cc73cfc031d83decbc524317ce632c3b526b",
+      "file": "video/brown-snake-idle-h3-v02-raised.mp4",
+      "sha256": "e89c603d734c40bd5100495d76c944dfea967aee08065adac97309dca36e9e75",
+      "seed": 1651995260,
+      "provider": "minimax-h3-local",
+      "mode": "i2v_firstframe",
+      "actionMode": "loop",
+      "prompt": "prompts/brown-snake-idle-v02-h3-raised.txt",
+      "promptSha256": "d38d12f4461b891a4409a6ff8c1dd63de9ebda64b644e9cb890892b0b56e3e23",
+      "provenance": "video/brown-snake-idle-h3-v02-raised.mp4.json",
       "lastFrameLocked": true,
-      "minimumMarginsPx": { "left": 128, "right": 183, "top": 304, "bottom": 160 }
+      "accepted": true,
+      "acceptanceDate": "2026-08-29"
     },
     "walking": {
-      "file": "video/brown-snake-walking-h3.mp4",
-      "sha256": "93786ce278156c544c02ec43bfb4a2ee4c967523c3f50eeb2c5909867e5f2f74",
-      "seed": 499868537,
-      "reference": "references/brown-snake-walking-white.png",
-      "prompt": "prompts/brown-snake-walking.txt",
-      "promptChars": 1396,
-      "promptSha256": "75e0f8466f5b14d5f9d010fdb81daad768318b7d6ed19d7739c64a13cf72436f",
+      "file": "video/brown-snake-walking-h3-v06-semi-coiled-crawl-loop.mp4",
+      "sha256": "c2a5b878236fe4027425249293f8916b15114e6ea47188301ddfd1a3a7bb158c",
+      "seed": 968301442,
+      "provider": "minimax-h3-local",
+      "mode": "i2v_firstframe",
+      "actionMode": "loop",
+      "prompt": "prompts/brown-snake-walking-v06-h3-semi-coiled-crawl-loop.txt",
+      "promptSha256": "467e4ed7d5450b26777243ff317c0d28051789b6b57c91279555c677085cf923",
+      "provenance": "video/brown-snake-walking-h3-v06-semi-coiled-crawl-loop.mp4.json",
       "lastFrameLocked": true,
-      "minimumMarginsPx": { "left": 133, "right": 174, "top": 352, "bottom": 172 }
+      "accepted": true,
+      "acceptanceDate": "2026-08-29"
     },
     "attacking": {
-      "file": "video/brown-snake-attacking-h3.mp4",
-      "sha256": "fc5a2a63d2a06f63654d83780146c5f21e456806cfc24a0314b76fbee6ac7d9f",
-      "seed": 1170742702,
-      "reference": "references/brown-snake-attacking-white.png",
-      "prompt": "prompts/brown-snake-attacking.txt",
-      "promptChars": 1984,
-      "promptSha256": "f8de14d264bf1d2d8d912dc52b0df2e186bec0826f917f565a13061f3d951cf8",
-      "lastFrameLocked": true,
-      "minimumMarginsPx": { "left": 87, "right": 333, "top": 314, "bottom": 171 }
+      "file": "video/brown-snake-attacking-h3-v02-cobra-motion.mp4",
+      "sha256": "c1cc9053e7a901ed666508db5649766cc2ca2b3edb0a05b427a2d7d8023be969",
+      "seed": 1500359322,
+      "provider": "minimax-h3-local",
+      "mode": "ref2va",
+      "actionMode": "recover",
+      "prompt": "prompts/brown-snake-attacking-v02-h3-cobra-motion.txt",
+      "promptSha256": "5c6ef30bd808667c053defb9bbb18e92ad6d9882097a18f64a20cc55d8f2ffc2",
+      "provenance": "video/brown-snake-attacking-h3-v02-cobra-motion.mp4.json",
+      "lastFrameLocked": false,
+      "accepted": true,
+      "acceptanceDate": "2026-08-29"
     },
     "dying": {
-      "file": "video/brown-snake-dying-h3.mp4",
-      "sha256": "362e29875aa38d8c72c9496507bbaa8fac8549df8e58646b93180dbc7ed0073d",
-      "seed": 424795492,
-      "reference": "references/brown-snake-dying-white.png",
-      "prompt": "prompts/brown-snake-dying.txt",
-      "promptChars": 1531,
-      "promptSha256": "e5a7b12e175a83ae186920d78e457569a370a55de3073249635a48b72e1252a4",
+      "file": "video/brown-snake-dying-h3-v02-raised-collapse.mp4",
+      "sha256": "285181a8b461cacf59f23a51a31b9bcc926fff2189a35a80716095dc1c5b878d",
+      "seed": 77552746,
+      "provider": "minimax-h3-local",
+      "mode": "i2v_firstframe",
+      "actionMode": "one-way",
+      "prompt": "prompts/brown-snake-dying-v02-h3-raised-collapse.txt",
+      "promptSha256": "ea5e812ee193b638d7fc3969173c451c30bef0e3b59330aeff545baf11263516",
+      "provenance": "video/brown-snake-dying-h3-v02-raised-collapse.mp4.json",
       "lastFrameLocked": false,
-      "minimumMarginsPx": { "left": 146, "right": 286, "top": 301, "bottom": 172 }
+      "accepted": true,
+      "acceptanceDate": "2026-08-29"
     }
   },
+  "rejectedCandidates": [
+    {
+      "id": "attacking-h3-v03-raised-recover",
+      "prompt": "prompts/brown-snake-attacking-v03-h3-raised-recover.txt",
+      "promptSha256": "aabe05e01a0912a10978238e1440717f5b4407909e971dd1948f54f19da8943c",
+      "provenance": "video/brown-snake-attacking-h3-v03-raised-recover.mp4.json",
+      "seed": 225072271,
+      "reason": "The motion did not rise into the requested stable cobra-like strike posture.",
+      "status": "rejected_archived_metadata_only",
+      "runtimeIntegrated": false
+    },
+    {
+      "id": "walking-h3-v02-attack-identity",
+      "prompt": "prompts/brown-snake-walking-v02-h3-identity-motion.txt",
+      "promptSha256": "16d09097bd7fad4d3ab2e0d9a645ac29cea42b504941373dab15419a9b416809",
+      "provenance": "video/brown-snake-walking-h3-v02-attack-identity.mp4.json",
+      "seed": 793605636,
+      "reason": "The raised-to-ground transition creates a forked double-tail silhouette and prevents a seamless locomotion loop.",
+      "status": "rejected_archived_metadata_only",
+      "runtimeIntegrated": false
+    },
+    {
+      "id": "walking-h3-v03-uncoiled-loop",
+      "prompt": "prompts/brown-snake-walking-v03-h3-uncoiled-loop.txt",
+      "promptSha256": "cadb3b6f8582e36401404a7997c158071845c894ec052e98b34dbbbe210d8f5d",
+      "provenance": "video/brown-snake-walking-h3-v03-uncoiled-loop.mp4.json",
+      "seed": 360115532,
+      "reason": "The first half contains an extra tail/body branch and the snake drifts into the left crop boundary.",
+      "status": "rejected_archived_metadata_only",
+      "runtimeIntegrated": false
+    },
+    {
+      "id": "walking-h3-v04-locked-straight-loop",
+      "prompt": "prompts/brown-snake-walking-v04-h3-locked-straight-loop.txt",
+      "promptSha256": "4ccc963e27c614a54cf5ac5b1ca4db36f14899649b37bf04d76551bdd7519f8d",
+      "provenance": "video/brown-snake-walking-h3-v04-locked-straight-loop.mp4.json",
+      "seed": 1506171244,
+      "reason": "The long straight crawl discarded the approved raised/coiled identity. Pose-bbox normalization hid a severe size error: the runtime body thickness was about 20px while the other actions were about 81-90px.",
+      "status": "rejected_archived_metadata_only",
+      "runtimeIntegrated": false
+    },
+    {
+      "id": "walking-h3-v05-coiled-thick-loop",
+      "prompt": "prompts/brown-snake-walking-v05-h3-coiled-thick-loop.txt",
+      "promptSha256": "15b4b7b6b3bec494ed69629ca391bbeb3339cc720217226a0fd0cce4c9b1c974",
+      "provenance": "video/brown-snake-walking-h3-v05-coiled-thick-loop.mp4.json",
+      "seed": 1321179656,
+      "reason": "The rear coil remained nearly rigid while only the neck reached and swayed, so the cycle read as alert probing rather than biologically plausible locomotion.",
+      "status": "rejected_archived_metadata_only",
+      "runtimeIntegrated": false
+    }
+  ],
   "spriteSheets": {
-    "builder": "build-sheets.py",
-    "builderSha256": "afa94e11196c38bad64963cab3c56f7f1c7f514555793d8eeae61c06df898b9f",
-    "manifest": "sheet-manifest.json",
-    "normalization": "fixed per-action scale from neutral-frame body thickness",
-    "targetBodyThickness": 42,
+    "manifest": "spritesheet-manifest.json",
+    "assetOnly": false,
+    "runtimeIntegrationActive": true,
+    "builders": {
+      "source": "build-nonattack-v02-sources.py",
+      "attackSource": "build-attacking-v02-source.py",
+      "rife": "apply-rife-nonattack-v02.py",
+      "attackRife": "apply-rife-attacking-v02.py",
+      "runtimePreview": "build-nonattack-v02-runtime-previews.py",
+      "attackRuntimePreview": "build-attacking-v02-runtime-preview.py",
+      "publisher": "finalize-nonattack-v02.py"
+    },
+    "normalization": "fixed per-action scale from local snake body thickness; pose bbox excluded; no per-frame rescaling",
+    "targetBodyThickness": 88.0,
     "footY": 410,
     "actions": {
       "idle": {
-        "file": "generated/final/idle.png",
-        "sha256": "f8ad3cb2f197e25361345fe590a189a11d916c9d12ba6f23ca79680885d0cad4",
-        "frameWidth": 640,
-        "frameHeight": 512,
-        "columns": 6,
-        "rows": 2,
-        "frameCount": 12,
-        "frameRate": 4,
-        "repeat": -1,
-        "preview": "previews/final/idle.gif"
+        "candidate": "v02-raised",
+        "sourceVideo": "video/brown-snake-idle-h3-v02-raised.mp4",
+        "sourceVideoSha256": "e89c603d734c40bd5100495d76c944dfea967aee08065adac97309dca36e9e75",
+        "provenance": "video/brown-snake-idle-h3-v02-raised.mp4.json",
+        "prompt": "prompts/brown-snake-idle-v02-h3-raised.txt",
+        "promptSha256": "d38d12f4461b891a4409a6ff8c1dd63de9ebda64b644e9cb890892b0b56e3e23",
+        "sourceSheet": "generated/source-pre-rife/idle-v02-source.png",
+        "sourceSheetSha256": "2a97531bbdcbd45c8ddd750598fc62f1bf1df3a051e3ef176795d077132c0283",
+        "file": "generated/final/idle-v02.png",
+        "sha256": "3fa19ef59c849b1ff45cfa9d9a69a858893c57bcbbacbdbff1b019f5a9c9106f",
+        "runtimeFile": "assets/enemies/brown_snake/idle.png",
+        "runtimeSha256": "3fa19ef59c849b1ff45cfa9d9a69a858893c57bcbbacbdbff1b019f5a9c9106f",
+        "preview": "previews/final/idle-v02-runtime.gif",
+        "previewSha256": "8afab8ebcc975a554597d859258476da45b6dfd5fa0f4f8f700d2e7748b5d9ee",
+        "contactPreview": "previews/final/idle-v02-runtime-contact.png",
+        "contactPreviewSha256": "0ebdad420dcf138047e8fb3c0185c48723f38069fd137bc9c08808cc16b89cea",
+        "interpolation": "RIFE v4.6 2x RGBA loop",
+        "interpolationReport": "reports/rife/idle-v02.json",
+        "sourceFrameCount": 12,
+        "keyFrameMapping": "outputIndex = sourceIndex * 2",
+        "normalization": "fixed per-action scale from local snake body thickness; pose bbox excluded",
+        "scale": 0.7096774193548387,
+        "layout": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "footY": 410,
+          "frameRate": 8,
+          "repeat": -1
+        },
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomRange": [
+            409,
+            410
+          ],
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "heldSourceKeyFallbacks": [],
+          "colorOutlierFrames": {
+            "dark": {},
+            "red": {},
+            "blue": {},
+            "cyan": {}
+          }
+        },
+        "targetBodyThickness": 88.0
       },
       "walking": {
-        "file": "generated/final/walking.png",
-        "sha256": "93074adbe7b548bfb9c001718520524e6fbd32264bb75857f4b19237215c1ae5",
-        "frameWidth": 1152,
-        "frameHeight": 512,
-        "columns": 5,
-        "rows": 4,
-        "frameCount": 20,
-        "frameRate": 12,
-        "repeat": -1,
-        "preview": "previews/final/walking.gif"
+        "candidate": "v06-semi-coiled-crawl-loop",
+        "sourceVideo": "video/brown-snake-walking-h3-v06-semi-coiled-crawl-loop.mp4",
+        "sourceVideoSha256": "c2a5b878236fe4027425249293f8916b15114e6ea47188301ddfd1a3a7bb158c",
+        "provenance": "video/brown-snake-walking-h3-v06-semi-coiled-crawl-loop.mp4.json",
+        "prompt": "prompts/brown-snake-walking-v06-h3-semi-coiled-crawl-loop.txt",
+        "promptSha256": "467e4ed7d5450b26777243ff317c0d28051789b6b57c91279555c677085cf923",
+        "sourceSheet": "generated/source-pre-rife/walking-v06-source.png",
+        "sourceSheetSha256": "8296b8c8dec8a8e8e43ebbe9438fc77d1d800f25de45a889f185faeaf5cca454",
+        "file": "generated/final/walking-v06.png",
+        "sha256": "2dff1d13ebae4f96351a21cd4ed99a9d2f09353757033d57f483061f57d705b1",
+        "runtimeFile": "assets/enemies/brown_snake/walking.png",
+        "runtimeSha256": "2dff1d13ebae4f96351a21cd4ed99a9d2f09353757033d57f483061f57d705b1",
+        "preview": "previews/final/walking-v06-runtime.gif",
+        "previewSha256": "ea8334874d5d878757cfdc7e55160eec639176ad5c4cfb2e8254261e0428f1ec",
+        "contactPreview": "previews/final/walking-v06-runtime-contact.png",
+        "contactPreviewSha256": "cf490551da216afbef7e4320dc7ae3d242b10e4c1ed55d21f21d3440bced3726",
+        "interpolation": "RIFE v4.6 2x RGBA loop",
+        "interpolationReport": "reports/rife/walking-v06.json",
+        "sourceFrameCount": 20,
+        "keyFrameMapping": "outputIndex = sourceIndex * 2",
+        "normalization": "fixed per-action scale from local snake body thickness; pose bbox excluded",
+        "scale": 0.7131638772429322,
+        "layout": {
+          "columns": 5,
+          "rows": 8,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 40,
+          "footY": 410,
+          "frameRate": 72,
+          "repeat": -1
+        },
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomRange": [
+            409,
+            410
+          ],
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "heldSourceKeyFallbacks": [],
+          "colorOutlierFrames": {
+            "dark": {},
+            "red": {},
+            "blue": {},
+            "cyan": {}
+          }
+        },
+        "targetBodyThickness": 88.0
       },
       "attacking": {
-        "file": "generated/final/attacking.png",
-        "sha256": "0ec9aff6fe44a3e2654851c5162d26dd1d1357e437f797b50bf25add34174fd2",
-        "frameWidth": 1024,
-        "frameHeight": 512,
-        "columns": 6,
-        "rows": 4,
-        "frameCount": 21,
-        "duration": 900,
-        "repeat": 0,
-        "preview": "previews/final/attacking.gif"
+        "candidate": "v02-cobra-motion",
+        "sourceVideo": "video/brown-snake-attacking-h3-v02-cobra-motion.mp4",
+        "sourceVideoSha256": "c1cc9053e7a901ed666508db5649766cc2ca2b3edb0a05b427a2d7d8023be969",
+        "provenance": "video/brown-snake-attacking-h3-v02-cobra-motion.mp4.json",
+        "prompt": "prompts/brown-snake-attacking-v02-h3-cobra-motion.txt",
+        "promptSha256": "5c6ef30bd808667c053defb9bbb18e92ad6d9882097a18f64a20cc55d8f2ffc2",
+        "sourceSheet": "generated/source-pre-rife/attacking-v02-source.png",
+        "sourceSheetSha256": "5dd56e7f34fdc5355d2c2e49696e83a85153089182847f5c76f2418313a3fdec",
+        "file": "generated/final/attacking-v02.png",
+        "sha256": "82896ce1bdb68b24c4b53aa6dd392b58b0dbaadd10d0ddc783ccbd28cf7eaae7",
+        "runtimeFile": "assets/enemies/brown_snake/attacking.png",
+        "runtimeSha256": "82896ce1bdb68b24c4b53aa6dd392b58b0dbaadd10d0ddc783ccbd28cf7eaae7",
+        "preview": "previews/final/attacking-v02-runtime.gif",
+        "previewSha256": "a413531e2cbf39b1690bed2efcdfd8b68933cfc7b8a5647518dcb5a6ef0fe4fa",
+        "contactPreview": "previews/final/attacking-v02-runtime-contact.png",
+        "contactPreviewSha256": "d1b62d06b4350c50ab78197f3c1f0bf6009c4f3672247d15f0e68c6e4ec0161f",
+        "interpolation": "RIFE v4.6 2x RGBA one-shot",
+        "interpolationReport": "reports/rife/attacking-v02.json",
+        "sourceFrameCount": 21,
+        "keyFrameMapping": "outputIndex = sourceIndex * 2",
+        "normalization": "fixed action scale from accepted attack median visible width",
+        "scale": 0.71334214002642,
+        "layout": {
+          "columns": 8,
+          "rows": 6,
+          "frameWidth": 896,
+          "frameHeight": 512,
+          "frameCount": 41,
+          "footY": 410,
+          "duration": 900,
+          "repeat": 0
+        },
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomRange": [
+            409,
+            410
+          ],
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "heldSourceKeyFallbacks": [],
+          "colorOutlierFrames": {
+            "dark": {},
+            "red": {},
+            "blue": {},
+            "cyan": {}
+          }
+        },
+        "scaleReference": {
+          "sourceMedianVisibleWidth": 757.0,
+          "targetMedianVisibleWidth": 540.0
+        }
       },
       "dying": {
-        "file": "generated/final/dying.png",
-        "sha256": "a30f476180ab5b61e673becdc87d7963cb6b64668a35beeaa552777f65a7dc48",
-        "frameWidth": 640,
-        "frameHeight": 512,
-        "columns": 6,
-        "rows": 3,
-        "frameCount": 18,
-        "duration": 1800,
-        "repeat": 0,
-        "preview": "previews/final/dying.gif"
+        "candidate": "v02-raised-collapse",
+        "sourceVideo": "video/brown-snake-dying-h3-v02-raised-collapse.mp4",
+        "sourceVideoSha256": "285181a8b461cacf59f23a51a31b9bcc926fff2189a35a80716095dc1c5b878d",
+        "provenance": "video/brown-snake-dying-h3-v02-raised-collapse.mp4.json",
+        "prompt": "prompts/brown-snake-dying-v02-h3-raised-collapse.txt",
+        "promptSha256": "ea5e812ee193b638d7fc3969173c451c30bef0e3b59330aeff545baf11263516",
+        "sourceSheet": "generated/source-pre-rife/dying-v02-source.png",
+        "sourceSheetSha256": "a50b7a37e9453cd15b30cdca2a343ff0bd5125de8cbeae736bb3b8e24002c9de",
+        "file": "generated/final/dying-v02.png",
+        "sha256": "c1182887f9bd39a654497d3fdbb89b0a46e76beaba6ce3fdee3ce0703c5c30af",
+        "runtimeFile": "assets/enemies/brown_snake/dying.png",
+        "runtimeSha256": "c1182887f9bd39a654497d3fdbb89b0a46e76beaba6ce3fdee3ce0703c5c30af",
+        "preview": "previews/final/dying-v02-runtime.gif",
+        "previewSha256": "697dfa2161c86fde749323f498bc8cca6c011b497580bfc6433e60028b049c54",
+        "contactPreview": "previews/final/dying-v02-runtime-contact.png",
+        "contactPreviewSha256": "451433869ff79a192c92d72efe3b09410d6dcc03596086297955592042c8dcca",
+        "interpolation": "RIFE v4.6 2x RGBA one-shot",
+        "interpolationReport": "reports/rife/dying-v02.json",
+        "sourceFrameCount": 18,
+        "keyFrameMapping": "outputIndex = sourceIndex * 2",
+        "normalization": "fixed per-action scale from local snake body thickness; pose bbox excluded",
+        "scale": 0.7096774193548387,
+        "layout": {
+          "columns": 6,
+          "rows": 6,
+          "frameWidth": 768,
+          "frameHeight": 512,
+          "frameCount": 35,
+          "footY": 410,
+          "duration": 1800,
+          "repeat": 0
+        },
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomRange": [
+            409,
+            410
+          ],
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "heldSourceKeyFallbacks": [],
+          "colorOutlierFrames": {
+            "dark": {},
+            "red": {},
+            "blue": {},
+            "cyan": {}
+          }
+        },
+        "targetBodyThickness": 88.0
       }
     },
     "staticChecks": {
       "blankFrames": 0,
       "edgeHitFrames": 0,
-      "semiTransparentPixels": 0,
       "transparentRgbPixels": 0,
-      "bodyThicknessRangePx": [39.15, 42.34],
-      "groundLineRangePx": [409, 412]
+      "groundLineRangePx": [
+        409,
+        410
+      ],
+      "rifeHeldFrameFallbacks": 0,
+      "rifeColorOutlierFrames": 0
     }
   },
   "runtime": {
@@ -142,5 +382,6 @@
     "poisonStacksPerConfirmedHit": 1,
     "encounterPoolAssigned": false
   },
-  "runtimeIntegrated": true
+  "runtimeIntegrated": true,
+  "updatedAt": "2026-08-30"
 }

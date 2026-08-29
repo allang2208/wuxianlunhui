@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T10:31:54.672588+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-attacking-h3-v02-cobra-motion.mp4",
+    "bytes": 360800,
+    "sha256": "c1cc9053e7a901ed666508db5649766cc2ca2b3edb0a05b427a2d7d8023be969"
+  },
+  "promptId": "9b7ffa4e-b29e-4180-b75a-1493c16c13ec",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1500359322,
+  "mode": "ref2va",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Create a clean game-character attack animation for the exact ordinary adult brown snake shown in Picture 1. Picture 1 is the sole identity, anatomy, material, color, lighting, and proportion reference. Video 1 supplies only the desired motion structure and timing: a planted rear coil, a raised front body, one forward bite, and a complete recovery.\n\nThe same slender warm chestnut-brown snake gathers its rear body into one stable natural ground coil and raises the front third into a compact defensive S-curve facing right. It is an ordinary non-venom-display snake: narrow angular head, slim neck, amber-brown eye, subtle umber mottling, lighter tan underside, realistic small scales, no cobra hood. The rear coil stays planted on one ground baseline. The raised front body draws back slightly, then one muscular impulse travels from the coil through the torso and neck. The head and upper neck thrust quickly forward and slightly downward toward an off-screen target on the right. The mouth opens once, two small realistic fangs are briefly visible, the jaws snap shut once at maximum reach, and the head immediately withdraws. The snake settles completely back into the same compact raised S-curve and identical one-coil stance. One attack and one bite only.\n\nPreserve one continuous anatomically correct body, constant body thickness, scale, markings, head shape, and coil count throughout. The action must read like Video 1, but never inherit Video 1's black color, broad cobra hood, heavy cobra proportions, or species identity. Use a static locked low three-quarter side camera with generous wide framing. Keep the full tail tip, coil, torso, raised neck, head, open mouth, fangs, and snout visible throughout the strike. Flat solid pure white background with soft diffuse neutral light. No camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom spray, magic, particles, text, logo, or watermark.",
+  "effectivePrompt": "Create a clean game-character attack animation for the exact ordinary adult brown snake shown in Picture 1. Picture 1 is the sole identity, anatomy, material, color, lighting, and proportion reference. Video 1 supplies only the desired motion structure and timing: a planted rear coil, a raised front body, one forward bite, and a complete recovery.\n\nThe same slender warm chestnut-brown snake gathers its rear body into one stable natural ground coil and raises the front third into a compact defensive S-curve facing right. It is an ordinary non-venom-display snake: narrow angular head, slim neck, amber-brown eye, subtle umber mottling, lighter tan underside, realistic small scales, no cobra hood. The rear coil stays planted on one ground baseline. The raised front body draws back slightly, then one muscular impulse travels from the coil through the torso and neck. The head and upper neck thrust quickly forward and slightly downward toward an off-screen target on the right. The mouth opens once, two small realistic fangs are briefly visible, the jaws snap shut once at maximum reach, and the head immediately withdraws. The snake settles completely back into the same compact raised S-curve and identical one-coil stance. One attack and one bite only.\n\nPreserve one continuous anatomically correct body, constant body thickness, scale, markings, head shape, and coil count throughout. The action must read like Video 1, but never inherit Video 1's black color, broad cobra hood, heavy cobra proportions, or species identity. Use a static locked low three-quarter side camera with generous wide framing. Keep the full tail tip, coil, torso, raised neck, head, open mouth, fangs, and snout visible throughout the strike. Flat solid pure white background with soft diffuse neutral light. No camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom spray, magic, particles, text, logo, or watermark.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] Create a clean game-character attack animation for the exact ordinary adult brown snake shown in Picture 1. Picture 1 is the sole identity, anatomy, material, color, lighting, and proportion reference. Video 1 supplies only the desired motion structure and timing: a planted rear coil, a raised front body, one forward bite, and a complete recovery.\n\nThe same slender warm chestnut-brown snake gathers its rear body into one stable natural ground coil and raises the front third into a compact defensive S-curve facing right. It is an ordinary non-venom-display snake: narrow angular head, slim neck, amber-brown eye, subtle umber mottling, lighter tan underside, realistic small scales, no cobra hood. The rear coil stays planted on one ground baseline. The raised front body draws back slightly, then one muscular impulse travels from the coil through the torso and neck. The head and upper neck thrust quickly forward and slightly downward toward an off-screen target on the right. The mouth opens once, two small realistic fangs are briefly visible, the jaws snap shut once at maximum reach, and the head immediately withdraws. The snake settles completely back into the same compact raised S-curve and identical one-coil stance. One attack and one bite only.\n\nPreserve one continuous anatomically correct body, constant body thickness, scale, markings, head shape, and coil count throughout. The action must read like Video 1, but never inherit Video 1's black color, broad cobra hood, heavy cobra proportions, or species identity. Use a static locked low three-quarter side camera with generous wide framing. Keep the full tail tip, coil, torso, raised neck, head, open mouth, fangs, and snout visible throughout the strike. Flat solid pure white background with soft diffuse neutral light. No camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom spray, magic, particles, text, logo, or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "99aaf6853695e62164135dcb9229f9e280e1eb9016a50de331881fb48277401f",
+  "effectivePromptSha256": "99aaf6853695e62164135dcb9229f9e280e1eb9016a50de331881fb48277401f",
+  "finalPromptSha256": "82228cb59d571c04bde91b046e9c4441c715ee8b3c70098f4db7e28fc9de8e7b",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\prompts\\brown-snake-attacking-v02-h3-cobra-motion.txt",
+      "bytes": 1954,
+      "sha256": "5c6ef30bd808667c053defb9bbb18e92ad6d9882097a18f64a20cc55d8f2ffc2"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-idle-white.png",
+        "bytes": 155521,
+        "sha256": "b3fe348269d7d8e0543a0ff59398f79b7890bf3f9f338ea1ea8979370976e490"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_king_cobra_20260825\\video\\black-king-cobra-attacking-doubao.mp4",
+        "bytes": 647116,
+        "sha256": "c9502e6d9483c91e1d5eaed850d43688d5a9c701b1b8f839a476975621b81262"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-attacking-h3-v02-cobra-motion_contact.png",
+    "bytes": 320690,
+    "sha256": "eabeff08232c9298bcf41d63af72aec025ccdba2f03314021bcf8243bada0010"
+  },
+  "elapsedSeconds": 410.542
+}

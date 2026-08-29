@@ -1,0 +1,65 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T13:08:05.3939373+00:00",
+  "recoveredAfterLocalTimeout": true,
+  "output": {
+    "path": "tools/ai-gen/_brown_snake_20260825/video/brown-snake-walking-h3-v05-coiled-thick-loop.mp4",
+    "bytes": 421878,
+    "sha256": "d976647d6b9d2678d4eac2ea8243662a16b1614c66c9cf38ea02dfc7d51123fb"
+  },
+  "promptId": "415e4576-9562-4604-8fce-ccb554d8cd5c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1321179656,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "tools/ai-gen/_brown_snake_20260825/prompts/brown-snake-walking-v05-h3-coiled-thick-loop.txt",
+      "bytes": 1749,
+      "sha256": "15b4b7b6b3bec494ed69629ca391bbeb3339cc720217226a0fd0cce4c9b1c974"
+    },
+    "firstFrame": {
+      "path": "tools/ai-gen/_brown_snake_20260825/references/brown-snake-raised-attack-v02-white.png",
+      "bytes": 125707,
+      "sha256": "4dabf19e6561c88650ef35312bd463ccf2a255949645a0601667a1bd85a7895e"
+    },
+    "lastFrame": {
+      "path": "tools/ai-gen/_brown_snake_20260825/references/brown-snake-raised-attack-v02-white.png",
+      "bytes": 125707,
+      "sha256": "4dabf19e6561c88650ef35312bd463ccf2a255949645a0601667a1bd85a7895e"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "tools/ai-gen/_brown_snake_20260825/video/brown-snake-walking-h3-v05-coiled-thick-loop_contact.png",
+    "bytes": 332697,
+    "sha256": "888eb4407882fd3f88f4856e2b26aee7775b78756cb52f277c3f1080c5748ce3"
+  },
+  "previewGif": {
+    "path": "tools/ai-gen/_brown_snake_20260825/previews/candidates/brown-snake-walking-h3-v05-coiled-thick-loop.gif",
+    "bytes": 3239654,
+    "sha256": "53f4c3117a18398cd7579aae0021f6b4a9ed32df8302709b0203dbda3ae7163f"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T11:57:47.737459+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-walking-h3-v04-locked-straight-loop.mp4",
+    "bytes": 293733,
+    "sha256": "f92ca61b8f47a8feef627b7f75c5d34f117959957927bbc3de8353791437c2f2"
+  },
+  "promptId": "8e6261b8-890a-4e97-bb3f-ad14abba3bfa",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1506171244,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Create a seamless locomotion loop for the exact ordinary adult brown snake shown in the supplied first frame. Preserve its exact warm chestnut-brown scales, narrow angular head, amber-brown eye, lighter tan underside, subtle umber mottling, realistic material, body diameter, length, proportions, and single tapering tail.\n\nThe snake remains in one long natural ground-level traveling shape facing right for the entire shot. From the supplied opening pose, one clean muscular lateral wave travels continuously from the head through the neck and torso to the single tail tip. The wave advances with a steady purposeful slithering rhythm while the snake remains centered at the same apparent scale. The head stays slightly raised, the mouth remains closed, and the complete body remains anatomically connected with constant length and diameter. The motion completes a natural whole gait cycle and settles back into the exact supplied pose, position, scale, orientation, and wave phase for a seamless loop.\n\nUse a static locked low side camera with generous horizontal margins. Keep the complete snout and tail visible throughout. Flat solid pure white background with soft diffuse neutral light. Show exactly one head, one continuous body, and one single tail tip in every frame. No coiling, raised cobra stance, pose transition, forked tail, extra body branch, attack, bite, hood, species change, stretching, shortening, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark.",
+  "effectivePrompt": "Create a seamless locomotion loop for the exact ordinary adult brown snake shown in the supplied first frame. Preserve its exact warm chestnut-brown scales, narrow angular head, amber-brown eye, lighter tan underside, subtle umber mottling, realistic material, body diameter, length, proportions, and single tapering tail.\n\nThe snake remains in one long natural ground-level traveling shape facing right for the entire shot. From the supplied opening pose, one clean muscular lateral wave travels continuously from the head through the neck and torso to the single tail tip. The wave advances with a steady purposeful slithering rhythm while the snake remains centered at the same apparent scale. The head stays slightly raised, the mouth remains closed, and the complete body remains anatomically connected with constant length and diameter. The motion completes a natural whole gait cycle and settles back into the exact supplied pose, position, scale, orientation, and wave phase for a seamless loop.\n\nUse a static locked low side camera with generous horizontal margins. Keep the complete snout and tail visible throughout. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. Show exactly one head, one continuous body, and one single tail tip in every frame. No coiling, raised cobra stance, pose transition, forked tail, extra body branch, attack, bite, hood, species change, stretching, shortening, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Create a seamless locomotion loop for the exact ordinary adult brown snake shown in the supplied first frame. Preserve its exact warm chestnut-brown scales, narrow angular head, amber-brown eye, lighter tan underside, subtle umber mottling, realistic material, body diameter, length, proportions, and single tapering tail.\n\nThe snake remains in one long natural ground-level traveling shape facing right for the entire shot. From the supplied opening pose, one clean muscular lateral wave travels continuously from the head through the neck and torso to the single tail tip. The wave advances with a steady purposeful slithering rhythm while the snake remains centered at the same apparent scale. The head stays slightly raised, the mouth remains closed, and the complete body remains anatomically connected with constant length and diameter. The motion completes a natural whole gait cycle and settles back into the exact supplied pose, position, scale, orientation, and wave phase for a seamless loop.\n\nUse a static locked low side camera with generous horizontal margins. Keep the complete snout and tail visible throughout. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with soft diffuse neutral light. Show exactly one head, one continuous body, and one single tail tip in every frame. No coiling, raised cobra stance, pose transition, forked tail, extra body branch, attack, bite, hood, species change, stretching, shortening, camera motion, zoom, crop, tracking, ground line, cast shadow, reflection, scenery, prey, blood, venom, magic, particles, text, logo, or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "1bbfeba9203073bdca25d051d591d08d78c721bcba80ff85fb316adb282d2cf5",
+  "effectivePromptSha256": "201b2e42ab898f8855b6ed0c089dd0ee072c0ddfc323020ece9b932ac6bfe50e",
+  "finalPromptSha256": "d6d47decdcba97e4a62d9595781edb3546faf3f900b619c399a8f8bae8bc6580",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\prompts\\brown-snake-walking-v04-h3-locked-straight-loop.txt",
+      "bytes": 1568,
+      "sha256": "4ccc963e27c614a54cf5ac5b1ca4db36f14899649b37bf04d76551bdd7519f8d"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-walking-white.png",
+      "bytes": 92147,
+      "sha256": "8e1dfbe1fe0ef668c60c582322b2226c09d114e262373914d29bfa9d477fdca5"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\references\\brown-snake-walking-white.png",
+      "bytes": 92147,
+      "sha256": "8e1dfbe1fe0ef668c60c582322b2226c09d114e262373914d29bfa9d477fdca5"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_brown_snake_20260825\\video\\brown-snake-walking-h3-v04-locked-straight-loop_contact.png",
+    "bytes": 127160,
+    "sha256": "8c18ae8c2e601741ba0e926dbe5142579c90731d9ca85af05d946e658ad1327d"
+  },
+  "elapsedSeconds": 470.98
+}
