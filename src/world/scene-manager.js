@@ -598,7 +598,9 @@ export const SceneManager = {
             this._showSceneLabel(scene.name);
             // BGM 场景切换（data/audio-config.json bgm 映射；无配置场景自动停止）
             if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
-                SoundManager.playBgmForScene(sceneId);
+                SoundManager.playBgmForScene(sceneId, {
+                    dungeonType: loadingDungeonType,
+                });
             }
             if (!opts.worldDestructionTx) this._clearRollbackState();
             return true;
@@ -817,7 +819,9 @@ export const SceneManager = {
             player.y = this._rollbackPlayerPos.y;
         }
         window.__phaserScene?.refreshMinimapForSceneTransition?.();
-        SoundManager?.playBgmForScene?.(rollbackSceneId);
+        SoundManager?.playBgmForScene?.(rollbackSceneId, {
+            dungeonType: rollbackSceneId === 'scene7' ? window.DungeonMapSystem?.dungeonType : null,
+        });
         this._clearRollbackState();
     },
 

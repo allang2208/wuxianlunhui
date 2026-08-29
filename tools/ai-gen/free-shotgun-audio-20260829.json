@@ -1,0 +1,80 @@
+{
+  "date": "2026-08-29",
+  "selectionRule": "one candidate per real in-game model; exact real-model recording plus explicit commercial-use permission; CC0 first, then CC BY, then the Sonniss GDC commercial game license",
+  "searchOrder": [
+    "OpenGameArt CC0",
+    "Freesound CC0",
+    "Freesound CC BY",
+    "Sonniss GameAudioGDC"
+  ],
+  "accepted": {
+    "m870Breacher": {
+      "realModelMatch": "Remington 870, 12x70mm",
+      "sourceUrl": "https://freesound.org/people/areniporgen/sounds/702672/",
+      "title": "Remington 870",
+      "creator": "areniporgen",
+      "license": "Creative Commons Zero 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "commercialUse": true,
+      "attributionRequired": false,
+      "description": "Remington 870 shooting on exterior close. 12x70mm.",
+      "sourceFilename": "702672__areniporgen__remington-870.wav",
+      "sourceFormat": "stereo 48000Hz 32-bit WAV",
+      "sourceBytes": 357422,
+      "sourceSha256": "8CE043621E43DB882089223F8C7F11277E5C63B531B5F6B31F6312E601D1C490",
+      "processing": "none; original Freesound WAV copied byte-for-byte",
+      "runtimeDurationSeconds": 0.915,
+      "runtimePath": "assets/sounds/weapons/m870_fire.wav",
+      "runtimeSha256": "8CE043621E43DB882089223F8C7F11277E5C63B531B5F6B31F6312E601D1C490"
+    },
+    "spas12": {
+      "realModelMatch": "Franchi SPAS-12, 12 gauge solid slug",
+      "collection": "Sonniss.com - GDC 2016 - Game Audio Bundle",
+      "library": "Pole Position Production - SPAS-12 12g solid slug",
+      "sourceFilename": "SPAS-12_12g_solid_slug_1m_right_MKH8040_1_clean_Double_shots_x_1.wav",
+      "archivePage": "https://sonniss.com/gameaudiogdc/",
+      "downloadEndpoint": "https://ftpmirror.your.org/pub/misc/sonniss2016/Sonniss.com%20-%20GDC%202016-%20Game%20Audio%20Bundle%20Part%204of6.zip",
+      "downloadEndpointAuthority": "listed by Sonniss as GDC 2016 Mirror #1",
+      "licenseUrl": "https://sonniss.com/gdc-bundle-license/",
+      "licenseVersion": "2.0, effective 2026-08-27 and governing downloads on 2026-08-29",
+      "commercialUse": true,
+      "attributionRequired": false,
+      "restrictions": [
+        "no standalone sound-effect redistribution",
+        "no sound-library, sample-pack, asset-pack, template or SDK redistribution",
+        "no AI or machine-learning training usage"
+      ],
+      "sourceFormat": "mono 96000Hz 24-bit PCM WAV",
+      "sourceBytes": 845456,
+      "sourceSha256": "30F86D4A1F48D018A1C7C949C957398810E312DFBF8EE4389356BB7D853BC8C1",
+      "processing": "crop begins at source 0.450s; mute first 38ms to remove the earlier shot tail before the second direct blast; 4ms fade-in; preserve all remaining samples and original 96kHz/24-bit mono encoding",
+      "runtimeDurationSeconds": 2.203,
+      "runtimePath": "assets/sounds/weapons/spas12_fire.wav",
+      "runtimeSha256": "0AD66387D00C7528464262992915143C80E93FC873AA9609F40DF7EF7861533C",
+      "publicGitDisposition": "excluded from the public source repository because the license prohibits raw or independently extractable sound redistribution; public runtime keeps the existing generic SPAS-12 sound"
+    }
+  },
+  "notChangedByUserDecision": {
+    "saiga12k": {
+      "candidateUrl": "https://freesound.org/people/Kobrakon47/sounds/569309/",
+      "title": "Saiga 12k Gunshot(12ga).mp3",
+      "creator": "Kobrakon47",
+      "license": "Creative Commons 0",
+      "description": "creator-recorded Saiga 12 firing 00 buckshot 12 gauge",
+      "listedFormat": "stereo 48000Hz 160kbps MP3",
+      "listedDurationSeconds": 1.834,
+      "decision": "user explicitly declined replacement on 2026-08-29; existing runtime sound remains unchanged"
+    },
+    "super90": {
+      "decision": "user explicitly declined replacement on 2026-08-29; existing runtime sound remains unchanged",
+      "runtimeChange": "none"
+    }
+  },
+  "rejectedOrUnresolved": {
+    "ksg12": "no exact-model commercially usable result found in OpenGameArt, Freesound or the searched Sonniss GDC track lists",
+    "aa12": "no exact-model commercially usable result found in OpenGameArt, Freesound or the searched Sonniss GDC track lists",
+    "winchester1887": "no exact-model commercially usable result found; generic Winchester lever-action sounds are not accepted as Model 1887 proof",
+    "spas12Freesound": "exact Freesound item 509431 is Attribution-NonCommercial 4.0 and was rejected",
+    "openGameArtFreeFirearmLibrary": "the CC0 library records Model 12, Mossberg and Nova shotguns, none matching the remaining in-game models"
+  }
+}

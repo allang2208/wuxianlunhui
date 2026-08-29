@@ -561,11 +561,17 @@
             // ==================== BGM（场景背景音乐，data/audio-config.json bgm 映射驱动） ====================
 
             /**
-             * 播放场景 BGM：读 audio-config.json bgm[sceneId]，null 则停止；
+             * 播放场景 BGM：普通场景读 bgm[sceneId]；scene7 可按 dungeonBgm[dungeonType]
+             * 选择子类型音轨，未命中时回退 bgm.scene7；null 则停止；
              * 循环播放（交叉淡入 bgmCrossfadeSec），音量 = 配置音量 × music 声道 × masterVolume
+             * @param {string} sceneId
+             * @param {{ dungeonType?: string }} [context]
              */
-            playBgmForScene(sceneId) {
-                const track = (audioConfig.bgm || {})[sceneId];
+            playBgmForScene(sceneId, context = {}) {
+                const dungeonBgmKey = sceneId === 'scene7'
+                    ? (audioConfig.dungeonBgm || {})[context.dungeonType]
+                    : null;
+                const track = (audioConfig.bgm || {})[dungeonBgmKey || sceneId];
                 if (!track) {
                     this.stopBgm();
                     return;

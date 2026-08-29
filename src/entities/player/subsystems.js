@@ -20,7 +20,7 @@ import { createLegendaryShotgunHitHandler, prepareLegendaryShotgunBlast } from '
 import { prepareMythicHandCannonShot } from '../../combat/mythic-hand-cannon.js';
 import { createLegendaryPistolHitHandler } from '../../combat/legendary-pistol.js';
 import { loadImage } from '../../utils/image-loader.js';
-import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound, resolveGunAttackInterval } from '../../config/gun-ammo.js';
+import { isGunWeapon, isTwoHanded, isRifle, getAmmoConfig, getEquipSound, getFireSound, resolveGunAttackInterval } from '../../config/gun-ammo.js';
 import { AUTO_GUN_FAMILY } from '../../config/weapon-families.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
@@ -1324,7 +1324,8 @@ _initAmmoForSlot(slot) {
                         max: maxAmmo,
                         reloading: false,
                         reloadTimer: 0,
-                        reloadTime: reloadTime
+                        reloadTime: reloadTime,
+                        reloadStartedEmpty: false
                     };
                 } else {
                     // 同一武器，更新最大弹药数（防止配置变更）
@@ -1419,6 +1420,8 @@ _startReload(slot) {
                 const singleReloadMode = ammoConfig && ammoConfig.singleReloadMode;
                 const reloadSound = ammoConfig && ammoConfig.reloadSound;
                 state.reloading = true;
+                // 只记录本次换弹开始时是否已经空仓；主动中途换弹必须保持 false。
+                state.reloadStartedEmpty = state.current <= 0;
                 // 双持模式下换弹时间 +50%（副手为手枪或盾）
                 let actualReloadTime = state.reloadTime;
                 if (item && (item.weaponType === 'pistol' || item.rangedType === 'pistol')) {
@@ -1457,6 +1460,7 @@ _interruptReload(slot) {
                 if (!state || !state.reloading || !state.singleReloadMode) return false;
                 state.reloading = false;
                 state.reloadTimer = 0;
+                state.reloadStartedEmpty = false;
                 return true;
             },
 
@@ -1502,11 +1506,19 @@ _updateReload(dt) {
                             }
                         } else {
                             // 普通武器：一次性装满
-                            
+                            const completedEmptyReload = state.reloadStartedEmpty === true;
                             state.reloading = false;
                             state.current = state.max;
+                            state.reloadStartedEmpty = false;
                             this._gunSpreadShots = 0; // 主手换弹后重置主手散布
                             this._gunSpreadShotsOff = 0; // 同时重置副手散布
+                            // 自动步枪只有打空后的换弹完成时才追加一次统一枪机闭锁声；
+                            // 中途主动换弹不会播放这条收尾音。
+                            if (completedEmptyReload && item && isRifle(item.weaponType)
+                                && SoundManager && SoundManager.playFile) {
+                                const finishSnd = getEquipSound(item);
+                                if (finishSnd) SoundManager.playFile(finishSnd);
+                            }
                         }
                     }
                 }
@@ -1708,7 +1720,7 @@ _prepareConvergenceShot(item) {
 _playFireSound(item, defaultSound = 'gun_fire', branchSound = null) {
                 // 改造音效覆盖（如 P4040 锤击点弹药）优先于武器自带 fireSound
                 const sound = (item && item._craftEffects && item._craftEffects.fireSoundOverride)
-                    || branchSound || (item && item.fireSound) || defaultSound;
+                    || branchSound || getFireSound(item) || defaultSound;
                 if (!SoundManager) return;
                 if (sound.startsWith('assets/')) {
                     if (SoundManager.playGunshot) SoundManager.playGunshot(sound);

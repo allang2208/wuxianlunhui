@@ -12,6 +12,10 @@
     "rightSidebarPanel": "assets/sounds/ui/right_sidebar_panel.mp3",
     "buttonClick": "assets/sounds/ui/button_click.mp3"
   },
+  "combatCues": {
+    "comment": "跨实体共用战斗命中音；由最终命中结算点触发，世界坐标衰减",
+    "gunHitZombieAnimal": "assets/sounds/weapons/gun_hit.mp3"
+  },
   "performance": {
     "fileVoiceLimit": 24,
     "perPathVoiceLimit": 4,
@@ -26,13 +30,17 @@
       "assets/sounds/weapons/cs_deagle_35_80.wav",
       "assets/sounds/weapons/gunshot_600ms_clean.wav",
       "assets/sounds/weapons/gunshot_600ms_open.wav",
+      "assets/sounds/weapons/s686_fire.mp3",
+      "assets/sounds/weapons/m870_fire.wav",
       "assets/sounds/weapons/m416_fire.wav",
+      "assets/sounds/weapons/m416_fire.mp3",
+      "assets/sounds/weapons/frontier_rifle_fire.mp3",
       "assets/sounds/weapons/p4040_hammer_fire.mp3",
       "assets/sounds/weapons/pkm_half_sec.wav",
       "assets/sounds/weapons/rpd_fire.wav",
       "assets/sounds/weapons/m249_fire.wav",
       "assets/sounds/weapons/ultimax100_fire.wav",
-      "assets/sounds/weapons/mg42_fire.wav",
+      "assets/sounds/weapons/mg42_fire.mp3",
       "assets/sounds/weapons/fusion_core_lmg_fire.wav",
       "assets/sounds/weapons/singularity_loom_lmg_fire.wav",
       "assets/sounds/weapons/celestial_cartographer_lmg_fire.wav",
@@ -40,8 +48,11 @@
       "assets/sounds/weapons/qbz191_shot6_valley.mp3",
       "assets/sounds/weapons/qjb201_single_600ms.wav",
       "assets/sounds/weapons/revolver357_fire.mp3",
-      "assets/sounds/weapons/stg44_fire.wav",
-      "assets/sounds/weapons/qbz95_fire.wav",
+      "assets/sounds/weapons/m1911_fire.mp3",
+      "assets/sounds/weapons/usp45_fire.mp3",
+      "assets/sounds/weapons/fn57_fire.mp3",
+      "assets/sounds/weapons/stg44_fire.mp3",
+      "assets/sounds/weapons/qbz95_fire.mp3",
       "assets/sounds/enemies/time_agent_shield/gunshot.mp3",
       "assets/companions/hamster_musketeer/fire.mp3",
       "assets/sounds/friendly/hamster_anti_vehicle_attack.mp3",
@@ -51,14 +62,22 @@
     "repeatGuardMs": 35
   },
   "bgm": {
-    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）。main=主神空间（罗马庭院，2026-08-22）；scene7=普通僵尸地牢（初级/中级/高级共用场景）；scene8=世界-122（旷野慢风，2026-08-16）；scene11=位面僵尸地牢世界（幽洞回声，2026-08-22）",
+    "comment": "场景/BGM键 → 音轨（循环播放，切换场景自动切换；null = 无 BGM）。scene7 保留普通僵尸地牢默认音轨，雪原地牢通过 dungeonBgm 子类型映射到 frozenDungeon；scene9=雪原位面。",
     "main": "assets/sounds/music/罗马庭院.wav",
     "scene7": "assets/sounds/music/dungeon_echo.mp3",
     "scene8": "assets/sounds/music/旷野慢风.mp3",
+    "scene9": "assets/sounds/music/雪原回声.mp3",
+    "frozenDungeon": "assets/sounds/music/雪原回声.mp3",
     "scene11": "assets/sounds/music/幽洞回声.wav"
   },
-    "bgmCrossfadeSec": 1.5,
-    "distanceAttenuation": {
+  "dungeonBgm": {
+    "comment": "scene7 地牢子类型 → bgm 键；未列出的地牢继续回退到 bgm.scene7",
+    "frozenBeginner": "frozenDungeon",
+    "frozenMid": "frozenDungeon",
+    "frozen": "frozenDungeon"
+  },
+  "bgmCrossfadeSec": 1.5,
+  "distanceAttenuation": {
         "comment": "世界音效距离衰减（2026-08-11）：playWorld / playFileAt / setLoopPosition 的默认衰减参数。后续调整音效传播距离只改这里，勿硬编码。",
         "enabled": true,
         "defaultNearDist": 0,

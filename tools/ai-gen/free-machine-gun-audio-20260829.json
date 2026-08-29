@@ -1,0 +1,52 @@
+{
+  "date": "2026-08-29",
+  "selectionRule": "one candidate per real in-game model; exact model recording and explicit commercial-use license required",
+  "searchScope": "Freesound Creative Commons 0 and Attribution results after the Aigei pass",
+  "accepted": {
+    "m249": {
+      "realModelMatch": "M249 machine gun",
+      "sourceUrl": "https://freesound.org/people/Baelphazoar/sounds/568010/",
+      "title": "249 bursts.wav",
+      "creator": "Baelphazoar",
+      "description": "Short bursts from an M249 machine gun on a range circa 2009",
+      "license": "Creative Commons Attribution 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "commercialUse": true,
+      "attributionRequired": true,
+      "sourceFilename": "568010__baelphazoar__249-bursts.wav",
+      "sourceFormat": "stereo 96000Hz 16-bit PCM WAV",
+      "sourceDurationSeconds": 44.2026666667,
+      "sourceBytes": 16981124,
+      "sourceSha256": "439B6C767BA31D922BDF41F8250AE05BFA55E9CBAD38D56051E903B7450F8394",
+      "processing": "extract final shot of the burst from source 26.69496875s through 27.55s; begin on a zero crossing; apply 20ms fade-out; preserve stereo 96kHz/16-bit PCM",
+      "processingScript": "tools/ai-gen/extract-m249-single-shot.py",
+      "replacedRuntimeSha256": "517BB7D551DC4072ED2464C0C8F289C97FA62632D3588BDE2AA66E693A1496D0",
+      "runtimeDurationSeconds": 0.85503125,
+      "runtimeBytes": 328376,
+      "runtimePath": "assets/sounds/weapons/m249_fire.wav",
+      "runtimeSha256": "F40524CAFBEF10E3C28E1DE4BE240CAAB6734723A413FB39A637AE75F9DA1909"
+    }
+  },
+  "noExactFreesoundResult": {
+    "pkm": {
+      "query": "\"PKM\" machine gun",
+      "licenseFilter": "Creative Commons 0 or Attribution",
+      "resultCount": 0
+    },
+    "qjb201": {
+      "query": "\"QJB-201\"",
+      "licenseFilter": "Creative Commons 0 or Attribution",
+      "resultCount": 0
+    },
+    "rpd": {
+      "query": "\"RPD\" machine gun",
+      "licenseFilter": "Creative Commons 0 or Attribution",
+      "resultCount": 0
+    },
+    "ultimax100Mk8": {
+      "query": "\"Ultimax 100 Mk8\"",
+      "licenseFilter": "Creative Commons 0 or Attribution",
+      "resultCount": 0
+    }
+  }
+}

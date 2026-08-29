@@ -2,6 +2,9 @@ import { applyEnchantOnHit } from './attack.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { GunFeel } from '../effects/gunfeel.js';
 import { canMeleeShareSurface } from './melee-surface.js';
+import { isGunWeapon } from '../config/gun-ammo.js';
+import { hasEnemyFamily } from '../config/enemy-family.js';
+import audioConfig from '../../data/audio-config.json';
 
 /**
  * 统一伤害处理管道
@@ -78,6 +81,19 @@ class DamagePipeline {
         // 盾牌弹反成功后，不应再对持盾者施加击退、 craft 特效等后续效果
         const parried = target.shieldSystem && target.shieldSystem._lastParried;
 
+        // 玩家/防御塔枪械命中僵尸或动物时播放统一肉体命中声。
+        // 友方仓鼠属于 companion 阵营，不会进入本分支。
+        if (!parried && isPlayerOrTowerGunHit(source, target, weapon)) {
+            const path = audioConfig.combatCues?.gunHitZombieAnimal;
+            if (path && SoundManager && typeof SoundManager.playWorld === 'function') {
+                const colliderX = Number(target.collider?.x);
+                const colliderY = Number(target.collider?.y);
+                const hitX = Number.isFinite(colliderX) ? colliderX : target.x;
+                const hitY = Number.isFinite(colliderY) ? colliderY : target.y;
+                SoundManager.playWorld(path, hitX, hitY);
+            }
+        }
+
         // 仅在伤害调用完成、确认未被弹反后触发的附加效果入口。
         // 需要“每次实际命中”语义的怪物效果（如棕蛇毒牙）走这里，避免在
         // takeDamage 之前无法识别弹反，也不改变旧 _onHitEntity 的既有时序。
@@ -147,6 +163,16 @@ function isValidKnockback(knockback, angle) {
     return knockback != null && angle != null &&
            typeof knockback === 'number' && Number.isFinite(knockback) &&
            typeof angle === 'number' && Number.isFinite(angle);
+}
+
+function isPlayerOrTowerGunHit(source, target, weapon) {
+    if (!source || !target || target._faction !== 'enemy' || !isGunWeapon(weapon)) return false;
+    const isPlayer = source._faction === 'player'
+        && !source._isDefenseStructure
+        && !source._isDefenseTower;
+    const isDefenseTower = source._isDefenseTower === true;
+    if (!isPlayer && !isDefenseTower) return false;
+    return hasEnemyFamily(target, '僵尸') || hasEnemyFamily(target, '动物');
 }
 
 export { DamagePipeline };
