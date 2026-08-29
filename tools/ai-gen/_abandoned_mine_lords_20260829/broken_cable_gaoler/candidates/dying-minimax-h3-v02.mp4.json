@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T08:28:55.013351+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\candidates\\dying-minimax-h3-v02.mp4",
+    "bytes": 457635,
+    "sha256": "3ff0b6d0093f0c5fd8108d70acbaf42be63875f29e1cdfad9f1ef67682e2dbc3"
+  },
+  "promptId": "8158fc0b-b25c-4fad-98dd-7227b3627878",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082905,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact first frame defines one original dark-fantasy game monster and all of its materials. Preserve the same cadaverous gray skin, gaunt face, dented miner helmet with one lamp, torn mud-brown miner uniform, dark leather boots, corroded iron shoulder winch with one drum, one steel cable wrapped around the screen-left forearm, one heavy hook, one short chain in the screen-right hand, and one empty broken wood-and-iron mine cage. Keep the restrained realistic PBR game-asset look and muted brown, gray, and rust palette throughout.\n\nCreate one irreversible death fall over 5.17 seconds. During the first 0.8 seconds the monster stiffens from a fatal impact and its knees lose strength. The heavy shoulder winch then pulls the upper body backward and toward screen-left. The legs buckle in sequence and the body falls with believable mass and inertia. The hook lands with the screen-left arm while remaining connected to the winch cable. The short chain remains connected to the empty cage; the cage slides only a short distance along the ground. By about 3.8 seconds the full body is down, then naturally settles and remains completely motionless in the final corpse pose through the end.\n\nUse one fixed orthographic 16:9 camera. Preserve the natural horizontal displacement of the fall. Keep the complete body, winch, cable, hook, chain, and cage visible with safe margins at every moment. Use an evenly lit pure white studio background suitable for transparent sprite extraction. The final state is a complete intact corpse with all equipment present.",
+  "effectivePrompt": "The exact first frame defines one original dark-fantasy game monster and all of its materials. Preserve the same cadaverous gray skin, gaunt face, dented miner helmet with one lamp, torn mud-brown miner uniform, dark leather boots, corroded iron shoulder winch with one drum, one steel cable wrapped around the screen-left forearm, one heavy hook, one short chain in the screen-right hand, and one empty broken wood-and-iron mine cage. Keep the restrained realistic PBR game-asset look and muted brown, gray, and rust palette throughout.\n\nCreate one irreversible death fall over 5.17 seconds. During the first 0.8 seconds the monster stiffens from a fatal impact and its knees lose strength. The heavy shoulder winch then pulls the upper body backward and toward screen-left. The legs buckle in sequence and the body falls with believable mass and inertia. The hook lands with the screen-left arm while remaining connected to the winch cable. The short chain remains connected to the empty cage; the cage slides only a short distance along the ground. By about 3.8 seconds the full body is down, then naturally settles and remains completely motionless in the final corpse pose through the end.\n\nUse one fixed orthographic 16:9 camera. Preserve the natural horizontal displacement of the fall. Keep the complete body, winch, cable, hook, chain, and cage visible with safe margins at every moment. Use an evenly lit pure white studio background suitable for transparent sprite extraction. The final state is a complete intact corpse with all equipment present, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact first frame defines one original dark-fantasy game monster and all of its materials. Preserve the same cadaverous gray skin, gaunt face, dented miner helmet with one lamp, torn mud-brown miner uniform, dark leather boots, corroded iron shoulder winch with one drum, one steel cable wrapped around the screen-left forearm, one heavy hook, one short chain in the screen-right hand, and one empty broken wood-and-iron mine cage. Keep the restrained realistic PBR game-asset look and muted brown, gray, and rust palette throughout.\n\nCreate one irreversible death fall over 5.17 seconds. During the first 0.8 seconds the monster stiffens from a fatal impact and its knees lose strength. The heavy shoulder winch then pulls the upper body backward and toward screen-left. The legs buckle in sequence and the body falls with believable mass and inertia. The hook lands with the screen-left arm while remaining connected to the winch cable. The short chain remains connected to the empty cage; the cage slides only a short distance along the ground. By about 3.8 seconds the full body is down, then naturally settles and remains completely motionless in the final corpse pose through the end.\n\nUse one fixed orthographic 16:9 camera. Preserve the natural horizontal displacement of the fall. Keep the complete body, winch, cable, hook, chain, and cage visible with safe margins at every moment. Use an evenly lit pure white studio background suitable for transparent sprite extraction. The final state is a complete intact corpse with all equipment present, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "814051c5ce6c186127a9c6a14535a8126707458d961cea77a4b5c831c8153e46",
+  "effectivePromptSha256": "37ffc383173d3f79c8985a187d5d5bbf14e45586344df3c5f0bd84e821b6ccba",
+  "finalPromptSha256": "00a893a367e12c1616a223255cddd3d0bf2a1160e551667e667405080e237085",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\prompts\\dying-minimax-h3-v02.txt",
+      "bytes": 1560,
+      "sha256": "8c9b6d18902af657aecd1e75661dbfd1201c0a2b28bcbc59a109a9dc912a7b5c"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\references\\broken-cable-gaoler-death-ref-v01.png",
+      "bytes": 197871,
+      "sha256": "b2268505c32de52b950a06b734df6eadb1a566d7bf8930e5166db2fb6f6b393c"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\candidates\\dying-minimax-h3-v02_contact.png",
+    "bytes": 241612,
+    "sha256": "a9e9b126976d6b64cab41f67d659dd76bdcea773cbc7f28331328f4a2ee783fd"
+  },
+  "elapsedSeconds": 430.63
+}

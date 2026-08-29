@@ -1,0 +1,26 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Primary request: Create exactly one giant undead abandoned-mine gaoler, the Broken-Cable Gaoler, in a calm animation-friendly neutral idle pose.
+
+Subject identity: a huge heavy bipedal undead miner-jailer with believable human anatomy and weight; desaturated gray-brown dead skin; massive torso and thick arms; worn dark olive mine uniform, torn leather suspenders, heavy mining boots, battered iron helmet. A single corroded mechanical hoist drum is mounted rigidly on his upper back like an old mine elevator winch. One thick continuous steel cable comes from that single drum, wraps once around his right forearm, and ends in exactly one large mining hook held low and clearly visible. His left hand holds one short heavy chain connected to exactly one broken rectangular mine elevator cage dragged close behind his left side; the cage is compact, damaged, open, empty, and fully visible without hiding his legs. No other weapons.
+
+Identity anchors: one back-mounted hoist drum; one continuous thick steel cable; one large hook; one compact broken elevator cage; battered iron mining helmet; torn olive mine uniform. Preserve these as clear separate rigid components.
+
+Anatomy and materials: physically plausible bipedal anatomy, correct joints and hands, believable weight distribution, both boots firmly contacting one baseline; realistic corroded iron, oily steel cable, weathered wood and iron cage, cracked leather, frayed dirty fabric, restrained grime; high-detail realistic PBR materials, no glossy plastic.
+
+Style/medium: high-detail realistic PBR 3D game character render, grounded dark-fantasy production asset, matching a serious abandoned-mine zombie roster; controlled saturation, clear readable silhouette, not a photograph and not cartoon art.
+
+Pose: calm neutral idle, slight forward hunch from the winch weight, right arm lowered with hook safely away from the body, left arm holding the cage chain, both legs separated and fully readable; no attack motion, no dramatic action.
+
+Composition/framing: locked orthographic-style low three-quarter side view facing right, complete full body and complete equipment visible, character uses about 60% of canvas height and at most 68% of canvas width, centered with generous margin on every side, all contacts on one baseline.
+
+Scene/backdrop: perfectly flat solid pure white #FFFFFF background, no horizon, no floor, no cast shadow, no reflection, no scenery.
+
+Lighting: soft flat diffuse studio light only, neutral material readability, no rim light, no directional shadow.
+
+Constraints: exactly one subject; exactly two arms, two legs, one head; one winch drum, one cable, one hook, one cage; cable visibly connects drum to right forearm and hook; cage chain visibly connects left hand to cage; full silhouette and all props uncropped; no text, logo, watermark, particles or blood spray.
+
+Avoid: extra or missing limbs, extra hooks, duplicated cable, duplicated cage, floating disconnected chain, tangled cable obscuring anatomy, oversized cage hiding the body, detached gear, fused hands, cropped equipment, front view, top view, perspective distortion, cinematic background, ground plane, shadows, fog, sparks, magic glow, cartoon, anime, chibi, low-poly toy, glossy plastic.
+
+Background correction applied after generation: change only the background to uniform pure white #FFFFFF while preserving the subject and every identity anchor.

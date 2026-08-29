@@ -1,0 +1,13 @@
+Use case: precise-object-edit
+Asset type: animation-safe production mother frame correction
+Input image: the provided Black-Lung Lamp Keeper v02 is the exact edit target.
+
+Primary request: zoom out the entire existing character and all of his equipment by exactly about 18 percent within the same portrait canvas. Change only overall framing. The full character currently fills about 73 percent of canvas height; the corrected complete silhouette must fill 59 to 61 percent of canvas height.
+
+Preserve invariants exactly: same undead miner identity, face, bald hair pattern, soot-gray skin, aged-brass respirator with exactly two short filters, single chest lantern and its tiny amber wick, coat, apron, trousers, boots, exact short mining pick, anatomy, pose, low three-quarter right-facing view, materials, lighting and colors. Do not redraw, redesign, replace, add or remove anything.
+
+Composition: keep the character centered horizontally, keep both boots on one shared baseline, preserve the full pick, leave at least 19 percent blank white margin above and below, and at least 22 percent blank white margin left and right. No crop. The only intended visual change is a uniformly smaller complete character with more pure-white space around it.
+
+Background: uniform pure white #FFFFFF, no floor, horizon, shadow, reflection, haze or scenery.
+Constraints: exactly one subject, two arms, two legs, one head, one respirator, two filters, one lantern, one pick. No text, logo or watermark.
+Avoid: identity drift, pose change, equipment change, enlarged lantern, extra filter, duplicated tool, camera angle change, perspective change, crop, shadow, fog, particles, cartoon or style change.

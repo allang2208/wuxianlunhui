@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T13:49:44.359248+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\drill-rush-minimax-h3-v02.mp4",
+    "bytes": 831691,
+    "sha256": "4c08362b740d6d566465b2ebff4bc135cae424c8a14e07d397825765d2e51aed"
+  },
+  "promptId": "94076845-07b5-45d2-8445-c83eba518e11",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082935,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "raw",
+  "authoredPrompt": "The supplied first frame is already a correctly letterboxed 16:9 character reference and defines the exact Sealed-Shaft Rock Wraith: one tall headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two long legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel conical mining drill pointing vertically upward as the complete head replacement. No face, head, eyes, helmet or neck exists.\n\nPreserve the exact first-frame body proportions throughout. Never widen, squash, shorten, bulk up or anamorphically stretch the torso, shoulders, hips, arms, legs or drill. Never move the character closer to the camera. Neutral and recovery poses must match the first-frame shoulder width, hip width, leg length, drill length and apparent scale.\n\nCreate exactly one high-speed spinning Drill Rush animation over 5.17 seconds, authored for game-code world translation. From 0.00 to 1.50 seconds, remain on the same root point, crouch without changing body scale, brace the arms and accelerate the upward drill into a visibly fast spin. From 1.50 to 2.60 seconds, pivot the shoulder bearing so the attached spinning drill lowers into a clear forward-right charge line while the legs perform one powerful sprinting-in-place drive cycle; the root remains on the same screen point because game code supplies the actual forward movement. Show one readable full-extension piercing pose, without moving toward the camera. From 2.60 to 5.17 seconds, decelerate, raise the drill vertically and recover to the exact tall opening guard. One charge only; no repeat or reverse playback.\n\nUse one fixed orthographic camera with constant focal length and constant subject scale. No camera movement, tracking, zoom, reframing, perspective push-in, root translation or body-size change. Keep the complete drill tip, arms, hands and feet visible inside the white frame. No target, victim, sparks, debris, motion-blur smear, floor, shadow, scenery, extra limb, extra drill, text, logo or watermark.",
+  "effectivePrompt": "The supplied first frame is already a correctly letterboxed 16:9 character reference and defines the exact Sealed-Shaft Rock Wraith: one tall headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two long legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel conical mining drill pointing vertically upward as the complete head replacement. No face, head, eyes, helmet or neck exists.\n\nPreserve the exact first-frame body proportions throughout. Never widen, squash, shorten, bulk up or anamorphically stretch the torso, shoulders, hips, arms, legs or drill. Never move the character closer to the camera. Neutral and recovery poses must match the first-frame shoulder width, hip width, leg length, drill length and apparent scale.\n\nCreate exactly one high-speed spinning Drill Rush animation over 5.17 seconds, authored for game-code world translation. From 0.00 to 1.50 seconds, remain on the same root point, crouch without changing body scale, brace the arms and accelerate the upward drill into a visibly fast spin. From 1.50 to 2.60 seconds, pivot the shoulder bearing so the attached spinning drill lowers into a clear forward-right charge line while the legs perform one powerful sprinting-in-place drive cycle; the root remains on the same screen point because game code supplies the actual forward movement. Show one readable full-extension piercing pose, without moving toward the camera. From 2.60 to 5.17 seconds, decelerate, raise the drill vertically and recover to the exact tall opening guard. One charge only; no repeat or reverse playback.\n\nUse one fixed orthographic camera with constant focal length and constant subject scale. No camera movement, tracking, zoom, reframing, perspective push-in, root translation or body-size change. Keep the complete drill tip, arms, hands and feet visible inside the white frame. No target, victim, sparks, debris, motion-blur smear, floor, shadow, scenery, extra limb, extra drill, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "The supplied first frame is already a correctly letterboxed 16:9 character reference and defines the exact Sealed-Shaft Rock Wraith: one tall headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two long legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel conical mining drill pointing vertically upward as the complete head replacement. No face, head, eyes, helmet or neck exists.\n\nPreserve the exact first-frame body proportions throughout. Never widen, squash, shorten, bulk up or anamorphically stretch the torso, shoulders, hips, arms, legs or drill. Never move the character closer to the camera. Neutral and recovery poses must match the first-frame shoulder width, hip width, leg length, drill length and apparent scale.\n\nCreate exactly one high-speed spinning Drill Rush animation over 5.17 seconds, authored for game-code world translation. From 0.00 to 1.50 seconds, remain on the same root point, crouch without changing body scale, brace the arms and accelerate the upward drill into a visibly fast spin. From 1.50 to 2.60 seconds, pivot the shoulder bearing so the attached spinning drill lowers into a clear forward-right charge line while the legs perform one powerful sprinting-in-place drive cycle; the root remains on the same screen point because game code supplies the actual forward movement. Show one readable full-extension piercing pose, without moving toward the camera. From 2.60 to 5.17 seconds, decelerate, raise the drill vertically and recover to the exact tall opening guard. One charge only; no repeat or reverse playback.\n\nUse one fixed orthographic camera with constant focal length and constant subject scale. No camera movement, tracking, zoom, reframing, perspective push-in, root translation or body-size change. Keep the complete drill tip, arms, hands and feet visible inside the white frame. No target, victim, sparks, debris, motion-blur smear, floor, shadow, scenery, extra limb, extra drill, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "authoredPromptSha256": "7e5fe08876789fa1109289f92a857fd0f156cd48915a067752a10c7c83d1ac15",
+  "effectivePromptSha256": "097c63c10c7d7b3fcdbdbc159717d9d4598507c0ca68c101ce4b2a0aa347ba80",
+  "finalPromptSha256": "097c63c10c7d7b3fcdbdbc159717d9d4598507c0ca68c101ce4b2a0aa347ba80",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\drill-rush-minimax-h3-v02.txt",
+      "bytes": 2046,
+      "sha256": "e9404bda580877fdc2debd4f43953b89f7061c7271608756448d5c3b1d825d11"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\drill-rush-video-safe-v02.png",
+      "bytes": 175231,
+      "sha256": "53d08a1b27c1ad102888d18455b83fb49e2e23d6b78a2af4dd1e1653a1747cee"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\drill-rush-minimax-h3-v02_contact.png",
+    "bytes": 332852,
+    "sha256": "f65db5697895bc73187ad6b81e41831ad05741ac1c870cefde6367073eb8b9e2"
+  },
+  "elapsedSeconds": 430.715
+}

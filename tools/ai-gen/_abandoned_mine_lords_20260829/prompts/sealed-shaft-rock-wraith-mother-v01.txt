@@ -1,0 +1,24 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Scene/backdrop: perfectly flat solid pure white #FFFFFF background across the entire canvas, no gradient, no vignette, no horizon, no floor, no shadow, no reflection, no scenery.
+
+Primary request: Create exactly one giant sealed-mine-shaft rock wraith, the Sealed-Shaft Rock Wraith, in a calm animation-friendly neutral idle pose.
+
+Subject identity: a colossal heavy bipedal mine monster formed from compact dark slate, coal seams and crushed mine debris, with a clearly readable humanoid torso, one head, two massive arms and two legs. Its anatomy is built from interlocking broad stone plates rather than a shapeless pile. Exactly two broken weathered timber railway sleepers are embedded horizontally across its shoulders like structural braces, one on each side. Exactly one bent rusted rail segment emerges along each forearm as an integrated blunt striking edge, two rail segments total, not held as weapons. In the center of its chest is exactly one narrow cracked mineral seam glowing a very dim deep ember-red; no other glowing cracks. Small restrained fragments of old miner leather and one dented helmet are trapped in the torso as archaeological debris, not living bodies.
+
+Identity anchors: broad layered slate head and torso; two shoulder railway sleepers; two forearm rail segments; one narrow ember-red chest seam; coal-black plate texture; massive stone feet.
+
+Anatomy and materials: physically plausible bipedal weight distribution, clear shoulder, elbow, hip and knee articulation, both heavy stone feet firmly contacting one baseline; realistic dark slate, coal, dusty mineral grain, splintered aged timber, oxidized iron rail, restrained loose grit; high-detail realistic PBR game materials, large readable surfaces, no glossy plastic.
+
+Style/medium: high-detail realistic PBR 3D game monster render, grounded dark-fantasy production asset for a serious abandoned-mine roster; controlled low saturation, clear silhouette, not a photograph and not cartoon art.
+
+Pose: calm neutral idle, torso slightly forward under enormous weight, arms lowered and separated from the body, forearm rail edges fully readable, legs apart, no attack motion, no falling debris cloud.
+
+Composition/framing: locked orthographic-style low three-quarter side view facing right, complete full body visible, monster uses about 62% of canvas height and at most 58% of canvas width, centered with generous margins on every side, all contacts on one baseline.
+
+Lighting: soft flat diffuse neutral studio light only for material readability; the chest seam has only a contained dim red color, no bloom, no aura, no dramatic rim light.
+
+Constraints: exactly one subject; exactly two arms, two legs and one head; exactly two shoulder sleepers, exactly two forearm rail segments, exactly one chest seam; full silhouette uncropped; no separate weapon, no text, logo, watermark, particles, fog or blood.
+
+Avoid: extra limbs, extra heads, more than two rails, railway tracks extending into the background, mine cart, floating rocks, shapeless rock pile, stone armor worn by a normal human, lava monster, bright orange magma, glowing whole body, blue or purple magic, duplicated sleepers, detached props, tiny legs, fused feet, cropped silhouette, front view, top view, perspective distortion, cinematic cave background, ground plane, shadow, dust cloud, cartoon, anime, chibi, low-poly toy, glossy plastic.

@@ -1,0 +1,52 @@
+{
+  "source": "tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\candidates\\dying-minimax-h3-v02.mp4",
+  "sourceFps": 24.0,
+  "sourceFrames": 124,
+  "window": [
+    0,
+    81
+  ],
+  "includedSourceFrames": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80
+  ],
+  "frameCount": 21,
+  "frameWidth": 896,
+  "frameHeight": 640,
+  "cols": 5,
+  "rows": 5,
+  "frameRate": 6.0,
+  "sourceFrameStep": 4,
+  "scaleFrame": 0,
+  "fixedScale": 1.103244837758112,
+  "anchorMode": "source",
+  "repeat": 0,
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 595,
+    "alphaBottomMax": 616,
+    "adjacentDeltaMin": 2.3846752643585205,
+    "adjacentDeltaMedian": 25.366591453552246,
+    "adjacentDeltaMax": 47.95659255981445
+  }
+}

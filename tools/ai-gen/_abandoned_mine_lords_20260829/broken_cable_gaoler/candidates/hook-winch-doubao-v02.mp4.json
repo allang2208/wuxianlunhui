@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\references\\broken-cable-gaoler-hook-winch-ref-v02.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\prompts\\hook-winch-doubao-v02.txt",
+  "promptChars": 660,
+  "promptSha256": "1b1c4841ae3b56cdfc294c9d72eded17ac1a8769c9085e5f912e09105dd13e03",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T08:03:24.588Z",
+  "sourceUrlScheme": "https"
+}

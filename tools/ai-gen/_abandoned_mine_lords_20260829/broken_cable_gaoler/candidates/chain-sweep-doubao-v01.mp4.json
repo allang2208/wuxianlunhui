@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\references\\broken-cable-gaoler-attack-ref-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\prompts\\chain-sweep-doubao-v01.txt",
+  "promptChars": 641,
+  "promptSha256": "d945e73056e28cc543fdf481423428196c47aba0c3cf9d4571f221157225476a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T07:56:00.176Z",
+  "sourceUrlScheme": "https"
+}

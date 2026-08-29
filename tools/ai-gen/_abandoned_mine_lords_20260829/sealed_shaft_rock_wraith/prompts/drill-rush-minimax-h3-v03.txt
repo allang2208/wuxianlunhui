@@ -1,0 +1,7 @@
+Use the supplied correctly letterboxed 16:9 first frame as the exact character design and exact visual scale. It is one tall headless humanoid mine wraith made of muted-purple crystal and coal-black seams, with two arms, two long legs, sealing timbers, rusted braces, and one dark-steel conical mining drill pointing upward in place of the entire head.
+
+Create one 5.17-second in-place Drill Rush combat animation. The character's planted root stays over the same fixed center point of the white frame for the entire shot, like a game sprite running on a treadmill. Keep one fixed orthographic camera and a constant character scale.
+
+Motion timing: 0.00-1.50 seconds, lower into a compact brace while the upward drill accelerates into a rapid spin. 1.50-2.60 seconds, pivot the spinning drill forward-right and perform one forceful running-in-place drive cycle, ending in a readable piercing pose while the hips remain on the fixed center point. 2.60-5.17 seconds, decelerate, lift the drill back upward, and recover to the exact opening stance and size.
+
+Maintain the same torso width, limb length, drill length, and apparent distance from camera throughout. Keep the complete silhouette visible against a clean pure-white background. The game supplies all forward world translation, so the animation shows only the pose and leg drive. One character, one drill, one action, no target or effects.

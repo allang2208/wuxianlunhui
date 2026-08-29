@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T11:17:39.010290+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\videos\\dying-minimax-h3-v01.mp4",
+    "bytes": 337321,
+    "sha256": "47797f9b7189b02b98a7fef62726ae6ba0b97c1ac7ce4a91873e70106d402920"
+  },
+  "promptId": "89139b1a-03a5-44d9-b65f-5773f71e18c4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082915,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. Keep every rigid object intact and attached to the same place throughout the fall.\n\nCreate one irreversible heavy death fall over 5.17 seconds. Begin in the supplied neutral stance. During the first moment the monster stiffens from a fatal internal collapse, the lantern wick fades, and the knees lose strength. The torso folds and rotates slightly toward screen-left, one knee reaches the ground, then the full body falls sideways and backward with believable weight. The pick remains in the same hand or lands immediately beside that hand without teleporting. The respirator and exactly two filters remain attached, and the fixed chest lantern stays on the chest. By about 3.8 seconds the complete body is down in a readable intact corpse pose, then settles naturally and remains motionless through the end. Do not return to standing.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Preserve the natural horizontal displacement of the fall while keeping the complete corpse, both boots, coat, lantern, respirator filters, and pick inside frame with safe margins. No camera movement, smoke, gas, blood, particles, floor mark, shadow, scenery, text, logo, or watermark.",
+  "effectivePrompt": "The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. Keep every rigid object intact and attached to the same place throughout the fall.\n\nCreate one irreversible heavy death fall over 5.17 seconds. Begin in the supplied neutral stance. During the first moment the monster stiffens from a fatal internal collapse, the lantern wick fades, and the knees lose strength. The torso folds and rotates slightly toward screen-left, one knee reaches the ground, then the full body falls sideways and backward with believable weight. The pick remains in the same hand or lands immediately beside that hand without teleporting. The respirator and exactly two filters remain attached, and the fixed chest lantern stays on the chest. By about 3.8 seconds the complete body is down in a readable intact corpse pose, then settles naturally and remains motionless through the end. Do not return to standing.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Preserve the natural horizontal displacement of the fall while keeping the complete corpse, both boots, coat, lantern, respirator filters, and pick inside frame with safe margins. No camera movement, smoke, gas, blood, particles, floor mark, shadow, scenery, text, logo, or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. Keep every rigid object intact and attached to the same place throughout the fall.\n\nCreate one irreversible heavy death fall over 5.17 seconds. Begin in the supplied neutral stance. During the first moment the monster stiffens from a fatal internal collapse, the lantern wick fades, and the knees lose strength. The torso folds and rotates slightly toward screen-left, one knee reaches the ground, then the full body falls sideways and backward with believable weight. The pick remains in the same hand or lands immediately beside that hand without teleporting. The respirator and exactly two filters remain attached, and the fixed chest lantern stays on the chest. By about 3.8 seconds the complete body is down in a readable intact corpse pose, then settles naturally and remains motionless through the end. Do not return to standing.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Preserve the natural horizontal displacement of the fall while keeping the complete corpse, both boots, coat, lantern, respirator filters, and pick inside frame with safe margins. No camera movement, smoke, gas, blood, particles, floor mark, shadow, scenery, text, logo, or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "67fd391c2e0ee870ce1ff195f225225265205ba8c93ac123e2feda7787d6f254",
+  "effectivePromptSha256": "339778f6cb565c6d472a05090ba76af756a5c76727bc25f3f0a5a3e8d488b2bd",
+  "finalPromptSha256": "9a89808f9b5320e4c4e5becb7df163466c485586f5a556ef22112f96139a81c9",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\prompts\\dying-minimax-h3-v01.txt",
+      "bytes": 1619,
+      "sha256": "39c9f0565e9973e11c79b8fb23119d439bae043e3df2a142ab2ce9499250de70"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\references\\idle-jimeng-v01.png",
+      "bytes": 149932,
+      "sha256": "b33c1a7be238aa42d71a1c19d0384e62b90cf54b85bdf397c736afaf2614f5ca"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\videos\\dying-minimax-h3-v01_contact.png",
+    "bytes": 173019,
+    "sha256": "0c1a7c8fe84228702b6d6a3846bf220a5a49a9b98cec702ed3aa8de2bb8e38c2"
+  },
+  "elapsedSeconds": 430.71
+}

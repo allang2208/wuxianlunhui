@@ -1,0 +1,64 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T08:21:01.844025+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\candidates\\dying-minimax-h3-v01.mp4",
+    "bytes": 758444,
+    "sha256": "e75827a0649199030562edf470d09f866d4136e891f4b0a4ebfbcec682dcdb56"
+  },
+  "promptId": "72c32121-bc02-4019-9e23-b9b7943909b9",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082904,
+  "mode": "ref2va",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "最高优先级：严格保持参考图中的同一个原创游戏怪物、脸部、体型、矿工制服、头盔、靴子、配色、材质和右向三分之四侧视角。该角色不涉及任何真人肖像。不得重新设计，不得水平翻转。\n\n死亡全程仍锁定刚性结构：背部始终只有一台卷扬机和一个卷筒；卷筒连出一根连续粗钢索；钢索缠绕右前臂并连接唯一一只大吊钩；左手短链连接唯一一个破损空吊笼。所有配件随角色受重力运动但不得消失、复制、断开、融化、变形或换手。\n\n生成一个连续5秒、16:9的单向死亡倒地动作，只死亡一次且绝不恢复站立。前0.8秒角色受到致命冲击后身体僵直、膝盖失力；随后背部沉重卷扬机把上身向后下方拖拽，角色失去平衡并朝画面左后侧自然倒下，双腿依次屈曲，身体与装备遵循重量和惯性。右手吊钩随手臂落地，钢索保持连接；左手松开力量但短链仍连接吊笼，吊笼只被带动小幅滑动，不飞起、不压住主体。约3.8秒完成倒地，最后自然松弛并稳定保持完整尸体姿势直到结束。不得回弹、倒放、起身、消失、爆炸或碎裂；不添加血腥内容。\n\n固定正交镜头，无透视变化。保持参考图右向身份角度，允许倒地带来的自然身体旋转，但不得切镜头或重构角色。死亡自然水平位移必须保留，镜头不得跟随、缩放、旋转、抖动或重新构图。完整尸体、卷扬机、钢索、吊钩、短链和吊笼全程不得触边或出框。\n\n纯#FFFFFF均匀白色背景；无地面、接触阴影、投影、倒影、雾、烟尘、血液、粒子、文字、水印、界面或其他角色。",
+  "effectivePrompt": "最高优先级：严格保持参考图中的同一个原创游戏怪物、脸部、体型、矿工制服、头盔、靴子、配色、材质和右向三分之四侧视角。该角色不涉及任何真人肖像。不得重新设计，不得水平翻转。\n\n死亡全程仍锁定刚性结构：背部始终只有一台卷扬机和一个卷筒；卷筒连出一根连续粗钢索；钢索缠绕右前臂并连接唯一一只大吊钩；左手短链连接唯一一个破损空吊笼。所有配件随角色受重力运动但不得消失、复制、断开、融化、变形或换手。\n\n生成一个连续5秒、16:9的单向死亡倒地动作，只死亡一次且绝不恢复站立。前0.8秒角色受到致命冲击后身体僵直、膝盖失力；随后背部沉重卷扬机把上身向后下方拖拽，角色失去平衡并朝画面左后侧自然倒下，双腿依次屈曲，身体与装备遵循重量和惯性。右手吊钩随手臂落地，钢索保持连接；左手松开力量但短链仍连接吊笼，吊笼只被带动小幅滑动，不飞起、不压住主体。约3.8秒完成倒地，最后自然松弛并稳定保持完整尸体姿势直到结束。不得回弹、倒放、起身、消失、爆炸或碎裂；不添加血腥内容。\n\n固定正交镜头，无透视变化。保持参考图右向身份角度，允许倒地带来的自然身体旋转，但不得切镜头或重构角色。死亡自然水平位移必须保留，镜头不得跟随、缩放、旋转、抖动或重新构图。完整尸体、卷扬机、钢索、吊钩、短链和吊笼全程不得触边或出框。\n\n纯#FFFFFF均匀白色背景；无地面、接触阴影、投影、倒影、雾、烟尘、血液、粒子、文字、水印、界面或其他角色。",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n\nsummary:\n[reference generation] The target video preserves <Subject 1>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n\ndetailed_description:\n[Shot 1] 最高优先级：严格保持参考图中的同一个原创游戏怪物、脸部、体型、矿工制服、头盔、靴子、配色、材质和右向三分之四侧视角。该角色不涉及任何真人肖像。不得重新设计，不得水平翻转。\n\n死亡全程仍锁定刚性结构：背部始终只有一台卷扬机和一个卷筒；卷筒连出一根连续粗钢索；钢索缠绕右前臂并连接唯一一只大吊钩；左手短链连接唯一一个破损空吊笼。所有配件随角色受重力运动但不得消失、复制、断开、融化、变形或换手。\n\n生成一个连续5秒、16:9的单向死亡倒地动作，只死亡一次且绝不恢复站立。前0.8秒角色受到致命冲击后身体僵直、膝盖失力；随后背部沉重卷扬机把上身向后下方拖拽，角色失去平衡并朝画面左后侧自然倒下，双腿依次屈曲，身体与装备遵循重量和惯性。右手吊钩随手臂落地，钢索保持连接；左手松开力量但短链仍连接吊笼，吊笼只被带动小幅滑动，不飞起、不压住主体。约3.8秒完成倒地，最后自然松弛并稳定保持完整尸体姿势直到结束。不得回弹、倒放、起身、消失、爆炸或碎裂；不添加血腥内容。\n\n固定正交镜头，无透视变化。保持参考图右向身份角度，允许倒地带来的自然身体旋转，但不得切镜头或重构角色。死亡自然水平位移必须保留，镜头不得跟随、缩放、旋转、抖动或重新构图。完整尸体、卷扬机、钢索、吊钩、短链和吊笼全程不得触边或出框。\n\n纯#FFFFFF均匀白色背景；无地面、接触阴影、投影、倒影、雾、烟尘、血液、粒子、文字、水印、界面或其他角色。 Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "1bd9dd5c992e3a07282205d89c9df22ebb38867ef37a624a9c2cf19cc3e04f7c",
+  "effectivePromptSha256": "1bd9dd5c992e3a07282205d89c9df22ebb38867ef37a624a9c2cf19cc3e04f7c",
+  "finalPromptSha256": "ba9c234be713036451d8d130be51056cac97c82271384f7fb697ecca075b0065",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\prompts\\dying-doubao-v01.txt",
+      "bytes": 1752,
+      "sha256": "c573d128aa420c7a6757d446802cffa17ce466cd932c2e0d850d3bbbedee00a8"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\references\\broken-cable-gaoler-death-ref-v01.png",
+        "bytes": 197871,
+        "sha256": "b2268505c32de52b950a06b734df6eadb1a566d7bf8930e5166db2fb6f6b393c"
+      }
+    ],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\candidates\\dying-minimax-h3-v01_contact.png",
+    "bytes": 925765,
+    "sha256": "1674ac5c5333f5714eac69139e2816c62918ceff4e8e1d4fc23bb1820b774fb1"
+  },
+  "elapsedSeconds": 405.496
+}

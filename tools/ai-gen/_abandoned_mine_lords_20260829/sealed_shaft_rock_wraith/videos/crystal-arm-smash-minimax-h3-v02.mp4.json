@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T13:34:02.792905+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\crystal-arm-smash-minimax-h3-v02.mp4",
+    "bytes": 594587,
+    "sha256": "6f12269f8e0e67e9275f1a22fe33ef952d4c71107357ff8a1cc6739abf5a765e"
+  },
+  "promptId": "10f13a23-ac81-4426-9614-fa14c8ef0223",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082933,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is already a correctly letterboxed 16:9 character reference and defines the exact Sealed-Shaft Rock Wraith: one tall headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two long legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel mining drill pointing vertically upward as the complete head replacement. No face, head, eyes, helmet or neck exists.\n\nPreserve the exact first-frame body proportions throughout. Never widen, squash, shorten, bulk up or anamorphically stretch the torso, shoulders, hips, arms, legs or drill. Neutral and recovery poses must match the first-frame shoulder width, hip width, leg length, drill length and apparent scale.\n\nCreate exactly one close-range crystal-arm smash toward screen-right over 5.17 seconds. Anticipation: keep both feet planted, twist the torso slightly left and draw the screen-left crystal forearm back. Power: drive weight through the hips and shoulders, then swing that one forearm down and forward in one heavy hammering arc. Contact: the knuckles and forearm reach one clear low forward impact pose near the ground to screen-right while the opposite hand counterbalances. Recovery: recoil once and return naturally to the exact tall opening guard. The upward drill remains attached and mostly vertical; it is not the striking part. One strike only.\n\nThe root stays fixed. Use one fixed orthographic camera with constant focal length and constant subject scale. No camera movement, tracking, zoom, reframing, perspective push-in or body-size change. Keep the complete drill tip, arm arc, hands and feet visible inside the white frame. No shockwave, rubble, particles, detached crystal, floor, shadow, scenery, extra limb, extra drill, text, logo or watermark.",
+  "effectivePrompt": "The supplied first frame is already a correctly letterboxed 16:9 character reference and defines the exact Sealed-Shaft Rock Wraith: one tall headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two long legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel mining drill pointing vertically upward as the complete head replacement. No face, head, eyes, helmet or neck exists.\n\nPreserve the exact first-frame body proportions throughout. Never widen, squash, shorten, bulk up or anamorphically stretch the torso, shoulders, hips, arms, legs or drill. Neutral and recovery poses must match the first-frame shoulder width, hip width, leg length, drill length and apparent scale.\n\nCreate exactly one close-range crystal-arm smash toward screen-right over 5.17 seconds. Anticipation: keep both feet planted, twist the torso slightly left and draw the screen-left crystal forearm back. Power: drive weight through the hips and shoulders, then swing that one forearm down and forward in one heavy hammering arc. Contact: the knuckles and forearm reach one clear low forward impact pose near the ground to screen-right while the opposite hand counterbalances. Recovery: recoil once and return naturally to the exact tall opening guard. The upward drill remains attached and mostly vertical; it is not the striking part. One strike only.\n\nThe root stays fixed. Use one fixed orthographic camera with constant focal length and constant subject scale. No camera movement, tracking, zoom, reframing, perspective push-in or body-size change. Keep the complete drill tip, arm arc, hands and feet visible inside the white frame. No shockwave, rubble, particles, detached crystal, floor, shadow, scenery, extra limb, extra drill, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is already a correctly letterboxed 16:9 character reference and defines the exact Sealed-Shaft Rock Wraith: one tall headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two long legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel mining drill pointing vertically upward as the complete head replacement. No face, head, eyes, helmet or neck exists.\n\nPreserve the exact first-frame body proportions throughout. Never widen, squash, shorten, bulk up or anamorphically stretch the torso, shoulders, hips, arms, legs or drill. Neutral and recovery poses must match the first-frame shoulder width, hip width, leg length, drill length and apparent scale.\n\nCreate exactly one close-range crystal-arm smash toward screen-right over 5.17 seconds. Anticipation: keep both feet planted, twist the torso slightly left and draw the screen-left crystal forearm back. Power: drive weight through the hips and shoulders, then swing that one forearm down and forward in one heavy hammering arc. Contact: the knuckles and forearm reach one clear low forward impact pose near the ground to screen-right while the opposite hand counterbalances. Recovery: recoil once and return naturally to the exact tall opening guard. The upward drill remains attached and mostly vertical; it is not the striking part. One strike only.\n\nThe root stays fixed. Use one fixed orthographic camera with constant focal length and constant subject scale. No camera movement, tracking, zoom, reframing, perspective push-in or body-size change. Keep the complete drill tip, arm arc, hands and feet visible inside the white frame. No shockwave, rubble, particles, detached crystal, floor, shadow, scenery, extra limb, extra drill, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "6f8fdfbe6eed5c026428b544ca482994c90f3841185b1212a4f94f51dbfe06d0",
+  "effectivePromptSha256": "8d67ddf3bf1ede6f0c546a06e1b6706b785e60d16041561b292197d2b69f6525",
+  "finalPromptSha256": "df2ef460e9908fdb000cb0971ac1dc32b4c6a8b44c3fd99dfcc0574e29a1539b",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\crystal-arm-smash-minimax-h3-v02.txt",
+      "bytes": 1821,
+      "sha256": "0d8f3f973e409a4cae12aedec83d75efa4970caaa6b60c8c6d47a3a3aff84e20"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\crystal-bore-video-safe-v02.png",
+      "bytes": 175279,
+      "sha256": "0fb9895af093936c48c7042589ca9fbb42e2f5a35d1160195a988ec20bf7b4e9"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\crystal-arm-smash-minimax-h3-v02_contact.png",
+    "bytes": 271295,
+    "sha256": "afd70d967d5d2befc04e8f4ea91acf3da98575d34bae48d4e68a3dfb7f0654aa"
+  },
+  "elapsedSeconds": 430.705
+}

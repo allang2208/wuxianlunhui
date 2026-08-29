@@ -1,0 +1,26 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser abandoned-mine lord animation pipeline
+
+Reference roles:
+- references/ore-spider-purple-mineral-reference.png is material/color reference only: deep-purple dusty translucent mineral clusters, muted amethyst variation, coal-dark seams and restrained brown rootlike binding fibers. Do not copy spider anatomy.
+- mothers/sealed-shaft-rock-wraith-mother-v01.png is only a loose role, weight and composition reference. Redesign it rather than recoloring it.
+
+Primary request: Create exactly one redesigned Sealed-Shaft Rock Wraith, a clearly humanoid abandoned-mine lord whose body is naturally grown from the same kind of purple ore material as the Ore Spider reference.
+
+Subject: one head, exactly two long heavy arms, exactly two powerful legs, broad shoulders, readable chest, waist, elbows, knees, hands and two separate massive feet. Build the torso and limbs from layered clusters of large muted violet mineral crystals and coal-black stone seams, with smaller dusty crystals bridging the joints. Give it a recessed mask-like rock face with two tiny dim lavender mineral eyes, not a human face. Embed a few restrained splintered sealing timbers and short rusted iron braces across the upper back and shoulders as structural debris, not weapons. Keep both hands empty. The silhouette must read first as a humanoid monster, never as a spider, beetle, rock pile or armored human.
+
+Materials/textures: cloudy semi-translucent amethyst, smoky lavender crystal planes, chipped dusty edges, subtle internal color depth, coal-dark crevices and occasional dry brown binding roots. Avoid neon, glossy candy crystal, bright magic and smooth gemstone jewelry. Use high-detail realistic PBR game materials with large animation-readable shapes.
+
+Style/medium: high-detail realistic PBR 3D dark-fantasy game monster render, serious production asset, controlled low saturation, not a photograph and not cartoon.
+
+Pose: calm animation-safe neutral idle; torso slightly forward under heavy weight; arms lowered and clearly separated from the body; elbows slightly bent; fingers readable; legs apart; both feet fully planted on one shared baseline; no attack motion.
+
+Composition/framing: locked orthographic-style low three-quarter view facing right, full body visible and centered. After generation, uniformly scale the complete unchanged subject down so it occupies 61 to 63 percent of canvas height and no more than 58 percent width, with generous clean margins around the head, arms, hands and feet.
+
+Scene/backdrop: perfectly flat solid pure white #FFFFFF across the entire canvas, no gradient, vignette, horizon, floor, shadow, reflection, scenery or dust cloud.
+
+Lighting/mood: soft flat neutral studio illumination for material readability; restrained dim internal lavender only inside a few crystal cores, no bloom, aura, rim-light spectacle or cast shadow.
+
+Constraints: exactly one subject; one head, two arms, two legs, two hands and two feet; complete silhouette uncropped; no held weapon; no text, logo or watermark. Preserve the generated identity exactly during the framing correction.
+
+Avoid: spider anatomy, insect legs, extra limbs or heads, duplicated feet, normal human wearing crystal armor, generic gray rock golem, bright pink crystal, blue ice, lava, orange magma, full-body glow, crystal crown, giant shoulder spikes obscuring the silhouette, separate weapon, mine cart, long railway tracks, cave background, floor shadow, floating rocks, particles, fog, blood, crop, front view, top view, extreme perspective, cartoon, anime, chibi, low-poly toy or glossy plastic.

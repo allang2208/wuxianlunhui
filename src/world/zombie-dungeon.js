@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, BrokenCableGaoler, BlackLungLampKeeper, SealedShaftRockWraith, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -241,6 +241,66 @@ export function createCoreDrillWorm(x, y) {
         return new CoreDrillWorm(x, y, { name: '岩芯钻虫', hp: 780, maxHp: 780, size: 18, showWeapon: false });
     }
     return new CoreDrillWorm(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999,
+        },
+    });
+}
+
+export function createBrokenCableGaoler(x, y) {
+    const cfg = enemyConfigData.brokenCableGaoler;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: brokenCableGaoler');
+        return new BrokenCableGaoler(x, y, {
+            name: '断索狱监', hp: 1850, maxHp: 1850, size: 25, showWeapon: false,
+        });
+    }
+    return new BrokenCableGaoler(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999,
+        },
+    });
+}
+
+export function createBlackLungLampKeeper(x, y) {
+    const cfg = enemyConfigData.blackLungLampKeeper;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: blackLungLampKeeper');
+        return new BlackLungLampKeeper(x, y, {
+            name: '黑肺提灯长', hp: 1700, maxHp: 1700, size: 24, showWeapon: false,
+        });
+    }
+    return new BlackLungLampKeeper(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999,
+        },
+    });
+}
+
+export function createSealedShaftRockWraith(x, y) {
+    const cfg = enemyConfigData.sealedShaftRockWraith;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: sealedShaftRockWraith');
+        return new SealedShaftRockWraith(x, y, {
+            name: '封井岩魇', hp: 2050, maxHp: 2050, size: 26, showWeapon: false,
+        });
+    }
+    return new SealedShaftRockWraith(x, y, {
         ...cfg,
         showWeapon: false,
         ai: {
@@ -539,6 +599,9 @@ export const ZOMBIE_FACTORY_MAP = {
     bombZombie: createBombZombie,
     supportBeamBrute: createSupportBeamBrute,
     coreDrillWorm: createCoreDrillWorm,
+    brokenCableGaoler: createBrokenCableGaoler,
+    blackLungLampKeeper: createBlackLungLampKeeper,
+    sealedShaftRockWraith: createSealedShaftRockWraith,
     foremanZombie: createForemanZombie,
     oreSpider: createOreSpider,
     mineCave: createMineCave,

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T12:56:51.707860+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\dying-minimax-h3-v01.mp4",
+    "bytes": 544819,
+    "sha256": "0fd33ae78e5051c2b566fd20d959c7c46f6955b057620ae02b550e9ddb8d0d44"
+  },
+  "promptId": "2da3d2bc-2664-46de-8466-632eb2cb1792",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082926,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless humanoid built from dusty muted-purple ore clusters and coal-black seams, exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one vertical upward dark-steel mining drill replacing the entire head. No face, eyes, helmet, skull or neck exists. Preserve every identity anchor and rigid component throughout.\n\nCreate one irreversible death collapse over 5.17 seconds. The vertical drill sputters and slows to a complete stop; the shoulder bearing loses torque. The knees buckle unevenly, the enormous torso lists toward screen-right, one hand reaches down too late, then the whole connected body falls heavily onto its side. Crystal plates remain attached, timbers and braces stay embedded, and the single drill remains connected to the collar while naturally tilting with the fallen torso. Finish as one stable readable corpse pose with no rebound, recovery, reverse motion or return to standing. No gore.\n\nPreserve natural downward and sideways motion; do not recenter or rescale the body during the fall. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the entire falling trajectory, drill tip, hands, feet and final corpse inside generous margins. No detached rocks, dust cloud, sparks, floor, shadow, scenery, camera movement, zoom, crop, extra limb, extra drill, text, logo or watermark.",
+  "effectivePrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless humanoid built from dusty muted-purple ore clusters and coal-black seams, exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one vertical upward dark-steel mining drill replacing the entire head. No face, eyes, helmet, skull or neck exists. Preserve every identity anchor and rigid component throughout.\n\nCreate one irreversible death collapse over 5.17 seconds. The vertical drill sputters and slows to a complete stop; the shoulder bearing loses torque. The knees buckle unevenly, the enormous torso lists toward screen-right, one hand reaches down too late, then the whole connected body falls heavily onto its side. Crystal plates remain attached, timbers and braces stay embedded, and the single drill remains connected to the collar while naturally tilting with the fallen torso. Finish as one stable readable corpse pose with no rebound, recovery, reverse motion or return to standing. No gore.\n\nPreserve natural downward and sideways motion; do not recenter or rescale the body during the fall. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the entire falling trajectory, drill tip, hands, feet and final corpse inside generous margins. No detached rocks, dust cloud, sparks, floor, shadow, scenery, camera movement, zoom, crop, extra limb, extra drill, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless humanoid built from dusty muted-purple ore clusters and coal-black seams, exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one vertical upward dark-steel mining drill replacing the entire head. No face, eyes, helmet, skull or neck exists. Preserve every identity anchor and rigid component throughout.\n\nCreate one irreversible death collapse over 5.17 seconds. The vertical drill sputters and slows to a complete stop; the shoulder bearing loses torque. The knees buckle unevenly, the enormous torso lists toward screen-right, one hand reaches down too late, then the whole connected body falls heavily onto its side. Crystal plates remain attached, timbers and braces stay embedded, and the single drill remains connected to the collar while naturally tilting with the fallen torso. Finish as one stable readable corpse pose with no rebound, recovery, reverse motion or return to standing. No gore.\n\nPreserve natural downward and sideways motion; do not recenter or rescale the body during the fall. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the entire falling trajectory, drill tip, hands, feet and final corpse inside generous margins. No detached rocks, dust cloud, sparks, floor, shadow, scenery, camera movement, zoom, crop, extra limb, extra drill, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b60072cbd1d80b9bb2b5ce29828b502977432e9204103ddd98aa82b0caf3b1e6",
+  "effectivePromptSha256": "57ddc02d9b1eaadd4a8e57653ecd31806b6e4e08a477ae2069112cdd01c1add4",
+  "finalPromptSha256": "a052b983bd3455d0d0ff7cb788e3c267e9c283893bfa51f7529e2e83a35aea90",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\dying-minimax-h3-v01.txt",
+      "bytes": 1469,
+      "sha256": "e2840d52caaf585c41d817858eff0981c737813da05fa3f0e0d4a56b189e7715"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\mother-v04.png",
+      "bytes": 1186475,
+      "sha256": "dd2adfca87abebeeaf49d97406026a8bcb1e0b53aa5996cea9a55a3709f9b97f"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\dying-minimax-h3-v01_contact.png",
+    "bytes": 295638,
+    "sha256": "ef3054df09a13c71fbeb23067fa8bf356736c6eac79c93cbdd6f6f3681177b70"
+  },
+  "elapsedSeconds": null,
+  "recovery": {
+    "reason": "local polling client interrupted after remote queue submission",
+    "historyVerified": true
+  }
+}

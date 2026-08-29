@@ -1,0 +1,18 @@
+Use case: stylized-concept
+Asset type: corrected production identity mother frame for a Phaser game monster animation pipeline
+Input image: the provided Black-Lung Lamp Keeper v01 is the exact identity and material reference and must remain the same character.
+
+Primary request: Create a new full-body v02 mother frame of the exact same Black-Lung Lamp Keeper. Correct only the animation-safe framing and neutral pose readability. Preserve the identity, equipment, anatomy, materials, colors, face, clothing and realistic PBR game-render style.
+
+Identity invariants: exactly one tall broad undead senior miner; the same soot-gray swollen dead skin; the same rigid aged-brass respirator covering nose and mouth with exactly two short cylindrical filter canisters; exactly one small chest-mounted reinforced safety lantern on the same leather harness with a restrained enclosed dirty-amber wick; exactly one short-handled mining pick held low in his anatomical right hand; empty relaxed left hand; same long charcoal mine coat, stained leather apron, heavy trousers and miner boots; no backpack, explosives, tubes or extra gear.
+
+Pose: calm animation-friendly neutral idle, slight forward hunch, both boots fully visible and planted on one horizontal baseline, shoulders heavy, pick held low and safely separated from the legs, empty hand open and fully readable. No attack, gas discharge or dramatic gesture.
+
+Composition/framing: portrait production asset, locked orthographic-style low three-quarter side view facing right. Full silhouette including hair, respirator, both filters, chest lantern, both hands, entire pick and both boots. The complete character including the pick must occupy no more than 62% of canvas height and no more than 52% of canvas width, centered with at least 16% clear white margin above and below and at least 18% clear margin left and right. This generous safe frame is mandatory for later animation; do not zoom, crop or use a close-up.
+
+Scene/backdrop: perfectly flat uniform pure white #FFFFFF background, no floor, horizon, shadow, reflection or scenery.
+Lighting: soft flat diffuse studio light, restrained saturation, material-readable, tiny contained lantern wick only, no bloom or haze.
+Style/medium: high-detail realistic PBR 3D dark-fantasy game character render, production asset, believable anatomy and weight, not a photograph and not an illustration.
+
+Constraints: change only framing and neutral-pose readability; preserve the exact character identity. Exactly two arms, two legs, one head, one respirator, two filters, one lantern and one pick. No text, logo, watermark, particles, fog, sparks or blood.
+Avoid: identity redesign, enlarged lantern, extra filter, duplicated tool, backpack, explosives, missing limbs, fused hands, cropped equipment, front view, top view, perspective distortion, cinematic background, cast shadow, contact shadow, magical glow, cartoon, anime, chibi, low-poly toy, glossy plastic.
