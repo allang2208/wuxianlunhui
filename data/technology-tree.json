@@ -1,5 +1,5 @@
 {
-  "version": 43,
+  "version": 44,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -30,11 +30,10 @@
     },
     {
       "id": "fortification_engineering", "name": "城防工事", "icon": "🏰", "iconPath": "assets/ui/technology-icons/fortification_engineering.png", "branch": "工程", "column": 1, "lane": 0, "researchCost": 90,
-      "prerequisites": ["engineering_drafting"], "description": "掌握大型城门、城墙楼梯与外沿女墙结构，为更高等级的城墙塔和自动防御工事建立基础。",
+      "prerequisites": ["engineering_drafting"], "description": "掌握大型城门与城墙楼梯结构，为高低女墙、城墙塔和自动防御工事建立基础。",
       "unlocks": [
         { "type": "building", "id": "gate_4cell", "label": "四格城门" },
         { "type": "building", "id": "wall_staircase", "label": "城墙楼梯" },
-        { "type": "building", "id": "wall_battlement", "label": "城垛女墙" },
         { "type": "upgrade", "id": "research_structure_hp", "label": "结构耐久研究" }
       ]
     },
@@ -108,17 +107,22 @@
       "unlocks": [{ "type": "building", "id": "interplane_research_hub", "label": "跨位面中枢" }]
     },
     {
-      "id": "wall_tower_engineering", "name": "城墙塔工程", "icon": "🏯", "iconPath": "assets/ui/building-thumbnails/wall_tower_sand.png", "branch": "工程", "column": 2, "lane": 0, "researchCost": 160,
-      "prerequisites": ["fortification_engineering"], "description": "把四个独立城墙单元组合为2×2双层塔楼，形成可从四向相邻城墙无缝进入的封闭塔顶步道。",
+      "id": "wall_battlement_engineering", "name": "女墙构筑", "icon": "🛡️", "iconPath": "assets/ui/technology-icons/wall_battlement_engineering.png", "branch": "工程", "column": 2, "lane": 0, "researchCost": 120,
+      "prerequisites": ["fortification_engineering"], "description": "在标准城墙外沿建立高低交替的防护女墙，形成方向性射击掩护，并为后续城墙塔统一接口与承重规范。",
+      "unlocks": [{ "type": "building", "id": "wall_battlement", "label": "城垛女墙" }]
+    },
+    {
+      "id": "wall_tower_engineering", "name": "城墙塔工程", "icon": "🏯", "iconPath": "assets/ui/building-thumbnails/wall_tower_sand.png", "branch": "工程", "column": 3, "lane": 0, "researchCost": 160,
+      "prerequisites": ["wall_battlement_engineering"], "description": "把四个独立城墙单元组合为2×2双层塔楼，形成可从四向相邻城墙无缝进入的封闭塔顶步道。",
       "unlocks": [{ "type": "building", "id": "wall_tower", "label": "城墙塔" }]
     },
     {
-      "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "iconPath": "assets/ui/technology-icons/defense_tower_engineering.png", "branch": "工程", "column": 3, "lane": 0, "researchCost": 240,
+      "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "iconPath": "assets/ui/technology-icons/defense_tower_engineering.png", "branch": "工程", "column": 4, "lane": 0, "researchCost": 240,
       "prerequisites": ["wall_tower_engineering"], "description": "在城墙塔承重与高位平台工程基础上整合自动索敌、武器挂载和强化基座技术，允许建造高级防御塔。",
       "unlocks": [{ "type": "building", "id": "tower", "label": "防御塔" }]
     },
     {
-      "id": "modular_reconstruction", "name": "打包重建", "icon": "📦", "iconPath": "assets/ui/technology-icons/modular_reconstruction.png", "branch": "工程", "column": 4, "lane": 0, "researchCost": 300,
+      "id": "modular_reconstruction", "name": "打包重建", "icon": "📦", "iconPath": "assets/ui/technology-icons/modular_reconstruction.png", "branch": "工程", "column": 5, "lane": 0, "researchCost": 300,
       "prerequisites": ["defense_tower_engineering"], "description": "把已建成的标准建筑打包为可复用模块，允许免费迁移并在满足占地条件的位置重建。",
       "unlocks": [{ "type": "mechanic", "id": "building_relocation", "label": "建筑打包重建" }]
     },

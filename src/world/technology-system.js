@@ -6,7 +6,7 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 43;
+const VERSION = 44;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
 const V41_CAVALRY_SCOUT_RIFLE_ID = 'cavalry_scout_rifle';
@@ -928,6 +928,14 @@ export const TechnologySystem = {
             && nodesById.has('wall_tower_engineering')
             && !completed.includes('wall_tower_engineering')) {
             completed.push('wall_tower_engineering');
+        }
+        // v44 将女墙从“城防工事”拆成城墙塔之前的独立科技。
+        // 旧档完成过原城防工事即补齐新节点，避免既有女墙建造权限被回锁。
+        if (savedVersion < 44
+            && completed.includes('fortification_engineering')
+            && nodesById.has('wall_battlement_engineering')
+            && !completed.includes('wall_battlement_engineering')) {
+            completed.push('wall_battlement_engineering');
         }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {

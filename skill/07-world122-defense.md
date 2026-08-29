@@ -3027,6 +3027,7 @@
 4. 新科研建筑必须同时复核造价、岗位、房屋容量、每位面/全局数量上限、`requiredWorldCount`、集群类型和五至六位面极限原始/有效速度。
 5. 前台`PopulationEconomySystem`、后台`world122-sim`、`WorldSimDriver`全局汇总、建筑详情、科技面板和快照恢复必须使用同一数值口径；不得只接当前位面。
 6. 每次修改科技图数据都要同步检查`technology-tree.json#version`与`TechnologySystem.VERSION`。仅新增节点时不得重放旧成本迁移；只有成本曲线再次改变时才提高独立的成本迁移版本，旧档未完成科技仍按百分比迁移。
+   - **女墙独立解锁（v44）**：工程主链固定为`fortification_engineering → wall_battlement_engineering → wall_tower_engineering → defense_tower_engineering`；`wall_battlement_engineering`基础科研点数为120并独占`building:wall_battlement`解锁，城防工事不再直接开放女墙。v44以前已完成城防工事的旧档必须自动补齐女墙构筑，保留原有建造权限；该迁移只补完成态，不改女墙尺寸、材质等级、放置或塔楼覆盖逻辑。
 7. 交付记录必须给出“新总成本、分支占比、典型时间、五/六位面极限速度、单位面科研岗位/房屋容量”五项结论；不得只报“JSON可解析”。分批开发期间的局部预算不能替代收口审计：当计划中的新科技、新科研建筑及其升级全部开发完成后，必须再执行一次覆盖完整科技树、全部科研产出、产业集群、岗位住房和五至六位面极限的全量数值审计，再决定是否调整成本曲线或吞吐阶段。
 - **研究院三级视觉真源**：LV1/LV2/LV3 分别使用稳定键 `research_institute`、`research_institute_lv2`、`research_institute_lv3`；三档共用蓝色屋顶、白灰石墙、哥特尖拱、四面裙楼与菱形围柱语言，只通过塔楼高度和细节密度递进，禁止重新抽图造成配色或建筑语法漂移。三档正式源分别锁定 LV1 refine v02、LV2 refine v01、LV3 refine v02；运行时元数据必须继续指向对应 accepted body，模型、Depth、提示词和最小可复现源集按 AI 资产分卷的定稿瘦身规则保留。升级只切换贴图、显示高度、脚点和派生光照图，不改变标准2×2逻辑 footprint、碰撞、道路预约或寻路占格。
 - **气象科研汇总口径（2026-08-24；2026-08-26重平衡）**：气象科研每级 +0.25、满级0.75点/秒，与研究院原始速率共同进入 `WorldSimDriver` 的单次全局科技推进和同一科研软阈值，但不计入科技树面板的“研究院数量”。前台读取 `PopulationEconomySystem.getWeatherForecastResearchSnapshot()`，后台读取同一模块等级、1岗位、全局人口效率和最强经济工坊增效；岗位与 `weatherModules` 随快照恢复，禁止只在当前位面加科研或把天气塔数量误显示成研究院数量。
