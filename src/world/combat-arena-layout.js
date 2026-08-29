@@ -290,9 +290,14 @@ export function computeGridMazeLayout({
     cellW = 128,
     cellD = 64,
     margin = 300,
+    entryEdge = 'LT',
+    passageGateAxis = null,
 }) {
     const n = sizes.length;
-    const R = rows > 0 ? Math.max(1, Math.min(rows, n)) : Math.max(1, Math.ceil(Math.sqrt(n)));
+    const horizontalPassageGates = passageGateAxis === 'horizontal';
+    const R = horizontalPassageGates
+        ? 1
+        : rows > 0 ? Math.max(1, Math.min(rows, n)) : Math.max(1, Math.ceil(Math.sqrt(n)));
     const cols = Math.ceil(n / R);
     const passageCells = Math.max(4, Math.round(corridorCells));
     const stepV1 = { x: cellW / 2, y: cellD / 2 };
@@ -307,11 +312,12 @@ export function computeGridMazeLayout({
         };
     };
     const stepFor = (a, b) => (a.edgeCells + b.edgeCells) / 2 + passageCells;
-    const dirForRow = (row) => row % 2 === 0
-        ? { ...stepV1 }
-        : { x: -stepV1.x, y: -stepV1.y };
+    const dirForRow = (row) => horizontalPassageGates
+        ? { ...stepV2 }
+        : row % 2 === 0 ? { ...stepV1 } : { x: -stepV1.x, y: -stepV1.y };
 
     const rooms = [];
+    const normalizedEntryEdge = ['TR', 'RB', 'BL', 'LT'].includes(entryEdge) ? entryEdge : 'LT';
     let cur = { x: margin, y: margin };
     let prevRoom = null;
     let placed = 0;
@@ -322,7 +328,7 @@ export function computeGridMazeLayout({
         const inThisRow = Math.min(cols, n - placed);
         for (let c = 0; c < inThisRow; c++) {
             const geo = roomGeo(sizes[placed]);
-            const inEdge = placed > 0 ? passageEdges(lastDir).in : 'LT';
+            const inEdge = placed > 0 ? passageEdges(lastDir).in : normalizedEntryEdge;
             const isLast = placed === n - 1;
             const isRowEnd = c === inThisRow - 1 && !isLast;
             const outDir = isRowEnd ? { x: 1, y: -1 } : dir;

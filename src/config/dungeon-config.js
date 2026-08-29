@@ -2,6 +2,7 @@ import dungeonConfigData from '../../data/dungeon-config.json';
 import dungeonTerrainConfig from '../../data/dungeon-terrain.json';
 import swampDungeonTerrainConfig from '../../data/swamp-dungeon-terrain.json';
 import abandonedMineTerrainConfig from '../../data/abandoned-mine-terrain.json';
+import { getFrozenTerrainBase, getFrozenTerrainDeco } from './frozen-terrain.js';
 import { getTributeCombatChanceDelta, getTributeEliteChanceDelta } from './tribute-effects.js';
 
 // 难度等级顺序（与 dungeon-event-definitions.js GRADE_ORDER 保持一致）
@@ -143,6 +144,19 @@ export const DungeonConfig = {
     getDungeonFloorProfile(dungeonType) {
         const cfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
         const floor = cfg.floor || null;
+        if (floor?.terrainProfile === 'frozenTerrain') {
+            const base = getFrozenTerrainBase();
+            return {
+                tiles: base.key ? [base.key] : [],
+                glow: false,
+                continuous: base.continuous === true,
+                backgroundColor: base.backgroundColor || '#101a2b',
+                textureScaleY: base.textureScaleY ?? 0.5774,
+                corridorToneAlpha: base.corridorToneAlpha ?? 0,
+                cellDetails: null,
+                deco: getFrozenTerrainDeco('dungeon'),
+            };
+        }
         if (floor?.terrainProfile === 'zombieDungeonStone') {
             const base = dungeonTerrainConfig.base || {};
             return {

@@ -10150,6 +10150,7 @@ export class GameScene extends Scene {
         } = minimapLayout;
         const styles = minimapCfg.styles || {};
         const bg = minimapCfg.background || {};
+        const boxX0 = mx, boxY0 = my, boxX1 = mx + minimapW, boxY1 = my + minimapH;
 
         // 背景（所有绘制坐标 × 1/zoom，抵消相机缩放对 scrollFactor-0 图形的作用）
         const bgColor = this._parseColor(bg.fill || 'rgba(0,0,0,0.6)', 0x000000, 0.6);
@@ -10163,7 +10164,6 @@ export class GameScene extends Scene {
         if (WallSystem && WallSystem.walls) {
             const wallColor = this._parseColor(styles.wall || 'rgba(80,80,80,0.5)', 0x505050, 0.5);
             g.fillStyle(wallColor.color, wallColor.alpha);
-            const boxX0 = mx, boxY0 = my, boxX1 = mx + minimapW, boxY1 = my + minimapH;
             for (const w of WallSystem.walls) {
                 const wx = mx + offX + w.x * scale;
                 const wy = my + offY + w.y * scale;
@@ -10183,10 +10183,40 @@ export class GameScene extends Scene {
             if (boundarySegs.length > 0) {
                 const bColor = this._parseColor(styles.playableBoundary || 'rgba(120,255,170,0.85)', 0x78ffaa, 0.85);
                 g.lineStyle((styles.playableBoundaryWidth || 1) * invZ, bColor.color, bColor.alpha);
+                // Graphics 在 WebGL 下不能依赖 geometry mask；线段必须在提交前裁到地图框内。
+                const clipLineToBox = (x1, y1, x2, y2) => {
+                    const dx = x2 - x1, dy = y2 - y1;
+                    let t0 = 0, t1 = 1;
+                    const tests = [
+                        [-dx, x1 - boxX0], [dx, boxX1 - x1],
+                        [-dy, y1 - boxY0], [dy, boxY1 - y1],
+                    ];
+                    for (const [p, q] of tests) {
+                        if (p === 0) {
+                            if (q < 0) return null;
+                            continue;
+                        }
+                        const r = q / p;
+                        if (p < 0) {
+                            if (r > t1) return null;
+                            if (r > t0) t0 = r;
+                        } else {
+                            if (r < t0) return null;
+                            if (r < t1) t1 = r;
+                        }
+                    }
+                    return {
+                        x1: x1 + t0 * dx, y1: y1 + t0 * dy,
+                        x2: x1 + t1 * dx, y2: y1 + t1 * dy,
+                    };
+                };
                 for (const s of boundarySegs) {
                     const x1 = mx + offX + s.x1 * scale, y1 = my + offY + s.y1 * scale;
                     const x2 = mx + offX + s.x2 * scale, y2 = my + offY + s.y2 * scale;
-                    g.lineBetween(x1 * invZ, y1 * invZ, x2 * invZ, y2 * invZ);
+                    const clipped = clipLineToBox(x1, y1, x2, y2);
+                    if (!clipped) continue;
+                    g.lineBetween(clipped.x1 * invZ, clipped.y1 * invZ,
+                        clipped.x2 * invZ, clipped.y2 * invZ);
                 }
             }
         }

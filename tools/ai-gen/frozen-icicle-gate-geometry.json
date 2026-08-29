@@ -20,6 +20,8 @@
   "gateX": [32, 608],
   "slope": 0.5,
   "halfThick": 13,
+  "depthSlices": 6,
+  "tuckEndSlices": true,
   "spikeCount": 13,
   "generator": "tools/ai-gen/build-frozen-icicle-gate.py"
 }

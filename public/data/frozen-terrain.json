@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "base": {
+    "key": "floor_snow_fresh_seamless",
+    "src": "assets/terrain/floor_snow_fresh_seamless.png",
+    "continuous": true,
+    "backgroundColor": "#101a2b",
+    "textureScaleY": 0.5774,
+    "corridorToneAlpha": 0.08
+  },
+  "profiles": {
+    "plane": {
+      "placementMode": "world-grid",
+      "cellSize": 238,
+      "density": 0.6,
+      "jitterMin": 0.18,
+      "jitterMax": 0.82,
+      "scaleJitter": 0.13,
+      "edgeInset": 100,
+      "seedSalt": 73931
+    },
+    "dungeon": {
+      "placementMode": "world-grid",
+      "cellSize": 220,
+      "density": 0.56,
+      "jitterMin": 0.18,
+      "jitterMax": 0.82,
+      "scaleJitter": 0.12,
+      "edgeInset": 104,
+      "seedSalt": 73951
+    }
+  },
+  "assets": [
+    { "key": "frozen_prop_snow_clods", "src": "assets/terrain/frozen-props/frozen_prop_snow_clods.png", "planeWeight": 1.3, "dungeonWeight": 0.82, "size": 123, "originY": 0.875 },
+    { "key": "frozen_prop_ice_pebbles", "src": "assets/terrain/frozen-props/frozen_prop_ice_pebbles.png", "planeWeight": 1.25, "dungeonWeight": 0.9, "size": 117, "originY": 0.875 },
+    { "key": "frozen_prop_frost_stones", "src": "assets/terrain/frozen-props/frozen_prop_frost_stones.png", "planeWeight": 1.2, "dungeonWeight": 1.0, "size": 126, "originY": 0.875 },
+    { "key": "frozen_prop_broken_ice_slab", "src": "assets/terrain/frozen-props/frozen_prop_broken_ice_slab.png", "planeWeight": 1.1, "dungeonWeight": 1.05, "size": 132, "originY": 0.875 },
+    { "key": "frozen_prop_wind_snow_ridge", "src": "assets/terrain/frozen-props/frozen_prop_wind_snow_ridge.png", "planeWeight": 1.1, "dungeonWeight": 0.78, "size": 138, "originY": 0.875 },
+    { "key": "frozen_prop_refrozen_shards", "src": "assets/terrain/frozen-props/frozen_prop_refrozen_shards.png", "planeWeight": 1.0, "dungeonWeight": 1.1, "size": 126, "originY": 0.875 },
+    { "key": "frozen_prop_frozen_grass", "src": "assets/terrain/frozen-props/frozen_prop_frozen_grass.png", "planeWeight": 1.05, "dungeonWeight": 0.62, "size": 129, "originY": 0.875 },
+    { "key": "frozen_prop_frost_heather", "src": "assets/terrain/frozen-props/frozen_prop_frost_heather.png", "planeWeight": 0.92, "dungeonWeight": 0.58, "size": 123, "originY": 0.875 },
+    { "key": "frozen_prop_twig_bundle", "src": "assets/terrain/frozen-props/frozen_prop_twig_bundle.png", "planeWeight": 0.92, "dungeonWeight": 0.92, "size": 132, "originY": 0.875 },
+    { "key": "frozen_prop_dead_root", "src": "assets/terrain/frozen-props/frozen_prop_dead_root.png", "planeWeight": 0.82, "dungeonWeight": 0.86, "size": 141, "originY": 0.875 },
+    { "key": "frozen_prop_bark_pinecones", "src": "assets/terrain/frozen-props/frozen_prop_bark_pinecones.png", "planeWeight": 0.78, "dungeonWeight": 0.52, "size": 126, "originY": 0.875 },
+    { "key": "frozen_prop_animal_bones", "src": "assets/terrain/frozen-props/frozen_prop_animal_bones.png", "planeWeight": 0.62, "dungeonWeight": 0.86, "size": 123, "originY": 0.875 },
+    { "key": "frozen_prop_antler_fragment", "src": "assets/terrain/frozen-props/frozen_prop_antler_fragment.png", "planeWeight": 0.55, "dungeonWeight": 0.82, "size": 138, "originY": 0.875 },
+    { "key": "frozen_prop_frozen_tracks", "src": "assets/terrain/frozen-props/frozen_prop_frozen_tracks.png", "planeWeight": 0.86, "dungeonWeight": 0.5, "size": 129, "originY": 0.875 },
+    { "key": "frozen_prop_broken_chain", "src": "assets/terrain/frozen-props/frozen_prop_broken_chain.png", "planeWeight": 0.38, "dungeonWeight": 1.18, "size": 123, "originY": 0.875 },
+    { "key": "frozen_prop_rope_coil", "src": "assets/terrain/frozen-props/frozen_prop_rope_coil.png", "planeWeight": 0.4, "dungeonWeight": 1.05, "size": 120, "originY": 0.875 },
+    { "key": "frozen_prop_torn_cloth", "src": "assets/terrain/frozen-props/frozen_prop_torn_cloth.png", "planeWeight": 0.42, "dungeonWeight": 0.98, "size": 123, "originY": 0.875 },
+    { "key": "frozen_prop_broken_lantern", "src": "assets/terrain/frozen-props/frozen_prop_broken_lantern.png", "planeWeight": 0.32, "dungeonWeight": 1.12, "size": 126, "originY": 0.875 }
+  ]
+}

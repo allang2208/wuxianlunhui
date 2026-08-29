@@ -31,7 +31,7 @@ const ISO_WALL_GEO = {
     frozen_block: { tex: 'frozen_wall_block', w: 1024, h: 1024, groundCenter: [512, 753.1737], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, editor: '冰封单格墙' },
     // 冰封竞技场功能门：整段门洞由13枚冰锥构成，帧0完全升起、帧15沉入地面。
     // base 与 gateX 同跨度，开门后整段6格门洞放行；不附带会被横向拉伸的门框/砖墙。
-    frozen_gate: { tex: 'frozen_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 288, slope: 0.5, halfThick: 13, depthSlices: 3, editor: '冰封冰锥门', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
+    frozen_gate: { tex: 'frozen_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 288, slope: 0.5, halfThick: 13, depthSlices: 6, tuckEndSlices: true, editor: '冰封冰锥门', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
     // 僵尸地牢战斗房：Blender 黑方砖单格墙 + 仅含移动门叶的锈铁升降栅栏。
     // 门洞两端继续用 zombie_block 作同材质墙柱，不在 gate 内重复门柱/横梁；
     // 与冰封门共享精确六格底线、13px 碰撞半厚和浅/中/深分层合同。

@@ -158,7 +158,12 @@ export const WallGate = {
                 const tx1 = hole[0] + span * (index + 1) / depthSliceCount;
                 const sA = baseAt(tx0);
                 const sB = baseAt(tx1);
-                const spriteDepth = Math.max(sA.y, sB.y) + 3.9;
+                const endAnchorY = index === 0
+                    ? sA.y
+                    : (index === depthSliceCount - 1 ? sB.y : null);
+                const spriteDepth = (g.tuckEndSlices && endAnchorY != null
+                    ? endAnchorY
+                    : Math.max(sA.y, sB.y)) + 3.9;
                 const crop = { x: Math.floor(tx0), w: Math.ceil(tx1) - Math.floor(tx0) };
                 makeSprite(crop, spriteDepth);
                 this.depthSegments.push({ A: sA, B: sB, depth: spriteDepth, crop });

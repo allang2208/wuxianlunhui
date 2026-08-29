@@ -1,0 +1,42 @@
+Use case: stylized-concept
+Asset type: World-122 frozen-dungeon natural terrain autotile material source, previewed above the runtime 1x1 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: preserve the supplied Blender Depth composition as one complete natural frozen-floor collapse: a clean 128x64 isometric terrain-contact boundary, one irregular but continuous compacted snow lip, one continuous readable blue-gray ice-break band and one broad dark void; the snow and ice erode inward toward the opening, while the outside edge remains a clean alpha-ready terrain seam
+Generation stage: structural frozen-terrain material draft only
+Structure contract: preserve the supplied single 128x64 isometric ice-shelf cutout silhouette, exact orthographic camera and opening proportions; render one compacted snow overhang, one continuous stratified blue-gray ice break and one broad matte near-black abyss interior. This is a hole cut into the existing dungeon floor, never a free-standing object
+Detail budget: use broad calm snow, ice and abyss value groups with sparse medium-scale fractures and restrained erosion; omit fine gravel noise, repeated teeth, decorative spikes and tiny high-frequency cracks
+Palette lock: cool off-white compacted snow, muted low-saturation blue-gray ice, charcoal blue-black abyss; no saturated cyan, purple, green, orange or fantasy glow
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: none
+Foundation exception: this asset class is not a medium functional building; preserve its authored ground contact and do not invent a building plinth, slab or pedestal.
+Canonical World-122 frozen-terrain autotile rendering subset:
+Style/medium: sober semi-realistic natural dungeon terrain cutout with physically plausible game-ready PBR materials, broad readable forms and the established World-122 isometric finish.
+Material grammar: compacted low-saturation snow with restrained granular breakup; dense blue-gray glacial ice with broad stratified fracture planes and subdued translucent depth; a matte near-black blue abyss interior with no emissive glow. Material boundaries follow only the authored Blender depth silhouette.
+Color treatment: deliberately low saturation and controlled neutral contrast; snow stays cool off-white, ice stays muted blue-gray and the abyss stays nearly black. No saturated cyan, fantasy glow or colored grading.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where snow meets the ice break; absolutely no cast shadow, ground shadow, backdrop shadow or green-screen shadow gradient.
+Detail scale: prioritize the continuous snow lip, one readable ice-break band, broad ice strata and the large dark void at 128x64 game scale; keep fractures sparse and medium-sized, avoiding photographic snow noise and hairline cracks.
+Shape treatment: this image represents a hole cut downward through an existing flat dungeon floor. Preserve a clean terrain-contact perimeter and believable inward erosion; never give it outer side walls, a raised base, regular battlements or an object-like underside.
+Absolute class lock: this object is one frozen abyss terrain overlay prepared as the shared material source for a deterministic void-plus-four-direction-edge autotile system, not a building, mine entrance, portal, well, platform or isolated raised block.
+Asset-specific style scope: match the accepted world122-building-v5 assets in material realism, neutral upper-left light, restrained contrast, low saturation, low grain, broad calm PBR surfaces and sparse medium wear; keep the subject strictly natural terrain rather than architecture
+
+Composition/framing: strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; preserve one complete 128x64 projected terrain-cell opening with a continuous snow overhang, continuous ice break and broad abyss interior; the outer terrain-contact boundary must remain clean and alpha-ready; no perspective convergence
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one natural frozen abyss terrain cutout only; no free-standing block, cube, pedestal, podium, platform, floor slab, well, fountain, portal, cave entrance, building, wall, masonry, brick, timber, metal frame, fence, bridge, road, stairs, crenellations, repeated teeth, regular spikes, glowing cyan liquid, lava, water, fog bank, cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient, scenery, character, animal, text, logo or watermark
+Asset-specific absolute exclusions: no raised square block, cube, pedestal, podium, platform, foundation, floor slab, masonry, brick, regular crenellations, repeated ice teeth, decorative spikes, cave entrance, portal, well, fountain, building, wall, bridge, stairs, road, timber, metal frame, cyan liquid, water, lava, fog, external scenery, cast shadow, background shadow, characters, animals, text, logo or watermark
