@@ -29,7 +29,7 @@ import { getUnitStatusRows, getUnitUpgradeRows } from './rts-unit-detail-model.j
 import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
-const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']);
 
 const _game = () => (typeof window !== 'undefined' ? window.Game : null);
 const _scene = () => (typeof window !== 'undefined' ? window.__phaserScene : null);

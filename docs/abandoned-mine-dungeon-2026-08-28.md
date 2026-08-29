@@ -17,7 +17,11 @@
 - 地面：`floor_abandoned_mine_seamless.png`，1024×1024 双轴连续母材，运行时按世界坐标铺贴并使用 `textureScaleY: 0.5774`。首尾行列最大 RGB 差均为 0。
 - 小物：18 件 Blender 正交模型化地面装饰，按世界晶格和入场 seed 确定性散布；只进入地板视觉层，不创建碰撞、占格、寻路或快照实体。
 
-结构真源、Depth、Alpha、门帧、拼接证明、12 步材质源和光照归一化报告位于 `tools/ai-gen/_abandoned_mine_wall_kit_20260828/`；地面源位于 `_abandoned_mine_20260828/`；18 件小物母版位于 `_abandoned_mine_terrain_20260828/`。正式墙门不再使用早期连续墙位图实现。
+结构真源、Depth、Alpha、门帧、拼接证明、12 步材质源和光照归一化报告位于 `tools/ai-gen/_abandoned_mine_wall_kit_20260828/`；地面源位于 `_abandoned_mine_20260828/`；18 件小物母版位于 `_abandoned_mine_terrain_20260828/`；五款障碍物模型、Body Depth、获批 V01 与运行时标定位于 `_world126_mine_obstacles_20260829/`。正式墙门不再使用早期连续墙位图实现。
+
+## World-126 位面复用边界
+
+`scene12`“世界-126·废弃矿洞”复用本地牢的连续地面规则与全部 18 件纯视觉小物，但不改变地牢战斗房合同；`ObstacleSpawnSystem`仍对地牢返回零生成。位面另由 `world126-environment.js` 按世界代际 seed 散布坍塌木支护、脱轨满载矿车、天然岩柱簇、手摇卷扬机和矿石分选料斗五款障碍物，共 50 件且按五款循环抽取。每件必须通过菱形内缩、玩家/传送门排除、最小中心距、footprint 间距和墙碰撞五点探针；碰撞取紧裁接地带矩形，遮挡深度取 footprint 前缘，不随机翻转或旋转。
 
 ## 怪物池拆分
 

@@ -48,7 +48,7 @@ const gameSceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScen
 const scene9Body = (sceneSrc.split('_loadScene9(player) {')[1] || '').split('_loadScene7(')[0];
 
 check('世界-123镜头缩放与世界-122一致为70%',
-    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11'\]\)/.test(gameSceneSrc)
+    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11', 'scene12'\]\)/.test(gameSceneSrc)
     && /const sceneBaseZoom = zoomedOutWorld \? 0\.7 : 1/.test(gameSceneSrc));
 
 check('世界-123使用分块连续地面与三张雪纹理',

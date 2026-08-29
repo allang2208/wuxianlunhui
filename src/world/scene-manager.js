@@ -37,8 +37,10 @@ import {
 import { EnergyManager } from '../systems/energy-manager.js';
 import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
+import { scatterWorld126MineEnvironment } from './world126-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import desertTerrainConfig from '../../data/desert-terrain.json';
+import abandonedMineTerrainConfig from '../../data/abandoned-mine-terrain.json';
 import { TechnologySystem } from './technology-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import loadingScreenConfig from '../../data/loading-screen-config.json';
@@ -111,7 +113,8 @@ export const SceneManager = {
             scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } },
             scene9: cfg.scene9 || { name: '世界-123·雪原', type: 'instance', label: '场景九', width: 12288, height: 8192, background: '#101a2b', origin: { x: 6144, y: 4096 } },
             scene10: cfg.scene10 || { name: '世界-124·林地', type: 'instance', label: '场景十', width: 12288, height: 8192, background: '#102015', origin: { x: 6144, y: 4096 } },
-            scene11: cfg.scene11 || { name: '世界-125·地牢遗迹', type: 'instance', label: '场景十一', width: 12288, height: 8192, background: '#050505', origin: { x: 6144, y: 4096 } }
+            scene11: cfg.scene11 || { name: '世界-125·地牢遗迹', type: 'instance', label: '场景十一', width: 12288, height: 8192, background: '#050505', origin: { x: 6144, y: 4096 } },
+            scene12: cfg.scene12 || { name: '世界-126·废弃矿洞', type: 'instance', label: '场景十二', width: 12288, height: 8192, background: '#0b0a09', origin: { x: 6144, y: 4096 } }
         };
         // loading 背景走浏览器图片缓存，不进入 Phaser 世界纹理生命周期。
         if (typeof Image !== 'undefined') {
@@ -461,7 +464,8 @@ export const SceneManager = {
                 FogOfWarSystem.deactivateScene(this.currentScene);
             }
             if (this.currentScene === 'scene8' || this.currentScene === 'scene9'
-                || this.currentScene === 'scene10' || this.currentScene === 'scene11') clearDecoClearZones();
+                || this.currentScene === 'scene10' || this.currentScene === 'scene11'
+                || this.currentScene === 'scene12') clearDecoClearZones();
             // 世界-122 建筑面板随场景离场关闭
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
@@ -537,6 +541,8 @@ export const SceneManager = {
                 this._loadScene10(player);
             } else if (sceneId === 'scene11') {
                 await this._loadScene11(player);
+            } else if (sceneId === 'scene12') {
+                this._loadScene12(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -769,6 +775,7 @@ export const SceneManager = {
         else if (sceneId === 'scene9') this._loadScene9(player, 'explore');
         else if (sceneId === 'scene10') this._loadScene10(player);
         else if (sceneId === 'scene11') await this._loadScene11(player);
+        else if (sceneId === 'scene12') this._loadScene12(player);
     },
 
     async _rollback(player, failedSceneId = null, teardownStarted = true) {
@@ -1604,15 +1611,79 @@ export const SceneManager = {
         this._setupPersistentWorld('scene11', player, diamond);
     },
 
+    /** 世界-126（场景十二）：复用废弃矿洞连续地面、18件小物与五款正式路径障碍。 */
+    _loadScene12(player) {
+        clearDecoClearZones();
+        Camera.aimOffsetX = 0;
+        Camera.aimOffsetY = 0;
+        Camera.shakeX = 0;
+        Camera.shakeY = 0;
+        Camera.shakeIntensity = 0;
+        Camera.lockY = false;
+        Camera.yLockedValue = 0;
+
+        const scene = this.scenes.scene12;
+        const w = scene.width;
+        const h = scene.height;
+        CONFIG.WORLD_WIDTH = w;
+        CONFIG.WORLD_HEIGHT = h;
+        const diamond = this._scene8Diamond(scene);
+        const base = abandonedMineTerrainConfig.base || {};
+        const deco = abandonedMineTerrainConfig.deco || null;
+        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene12', 'floor_deco');
+        setDungeonFloorProfile({
+            tiles: base.key ? [base.key] : [],
+            continuous: base.continuous === true,
+            glow: false,
+            backgroundColor: base.backgroundColor || scene.background || '#0b0a09',
+            textureScaleY: base.textureScaleY ?? 0.5774,
+            deco: deco ? {
+                ...deco,
+                seed: floorSeed,
+                assets: (deco.assets || []).map(asset => ({ ...asset })),
+            } : null,
+        });
+        applyDungeonFloorChunked(w, h, 2048, diamond);
+
+        WallSystem.init(w, h);
+        WallSystem.walls = [
+            { x: 0, y: 0, w, h: 20, noVisual: true },
+            { x: 0, y: h - 20, w, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h, noVisual: true },
+            { x: w - 20, y: 0, w: 20, h, noVisual: true },
+        ];
+        this._registerScene8Boundary(diamond);
+        WallSystem._syncWallsToPhaser?.();
+
+        const portalSpawn = WorldProgressionSystem.getWorldConfig('scene12')?.portalSpawn
+            || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
+        if (player && !Game._observerMode) {
+            const savedPos = Game._worldPlayerPos?.scene12;
+            player.x = Number.isFinite(savedPos?.x) ? savedPos.x : portalSpawn.x + 228;
+            player.y = Number.isFinite(savedPos?.y) ? savedPos.y : portalSpawn.y;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+            QuickBar.refreshSpecialAttack(player);
+        } else if (Game._observerMode) {
+            Camera.x = portalSpawn.x;
+            Camera.y = portalSpawn.y;
+        }
+
+        scatterWorld126MineEnvironment(scene, diamond, Game._observerMode ? null : player, portalSpawn, {
+            random: WorldProgressionSystem.createWorldRandom('scene12', 'obstacles'),
+        });
+        this._setupPersistentWorld('scene12', player, diamond);
+    },
+
     _isPersistentWorld(sceneId) {
-        return ['scene8', 'scene9', 'scene10', 'scene11'].includes(sceneId);
+        return ['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(sceneId);
     },
 
     isQuestInstance(sceneId = this.currentScene) {
         return !!sceneId && this._activeQuestInstance?.sceneId === sceneId;
     },
 
-    /** scene8~scene11 共用的建筑、资源、快照与入侵运行时。 */
+    /** scene8~scene12 共用的建筑、资源、快照与入侵运行时。 */
     _setupPersistentWorld(sceneId, player, diamond) {
         // 目标仍是后台账本时，先结算经济/出兵，再补齐不足一个入侵阶段窗；
         // 随后才 setup 运行时，保证入侵读取的是最新军力摘要且不会在物化后改旧快照。

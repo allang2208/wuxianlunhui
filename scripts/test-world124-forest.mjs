@@ -28,7 +28,7 @@ check('世界-124已注册主神空间入口与菱形地块',
     scene?.diamondFloor?.enabled === true
     && cfg.portals?.mainHub?.entries?.some((entry) => entry.targetScene === 'scene10'));
 check('世界-124镜头缩放与世界-122一致为70%',
-    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11'\]\)/.test(gameSceneSrc)
+    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11', 'scene12'\]\)/.test(gameSceneSrc)
     && /const sceneBaseZoom = zoomedOutWorld \? 0\.7 : 1/.test(gameSceneSrc));
 check('场景十加载草地地板、草簇与林地树散布',
     /_loadScene10\(player\)/.test(sceneSrc)

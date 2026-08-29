@@ -152,5 +152,13 @@
     "minimumDurationMs": 1000,
     "title": "废弃矿洞加载中...",
     "backgrounds": []
+  },
+  "world126Mine": {
+    "sceneIds": [
+      "scene12"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "世界-126·废弃矿洞加载中...",
+    "backgrounds": []
   }
 }

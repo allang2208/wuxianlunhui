@@ -19,6 +19,7 @@ const WORLDS = [
     { id: 'scene9', icon: '❄️', desc: '雪原（观景）' },
     { id: 'scene10', icon: '🌲', desc: '林地（观景）' },
     { id: 'scene11', icon: '🕯️', desc: '地牢遗迹（观景）' },
+    { id: 'scene12', icon: '⛏️', desc: '废弃矿洞（观景）' },
 ];
 
 export const WorldSwitchPanel = {

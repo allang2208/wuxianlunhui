@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "status": "promoted-to-runtime",
+  "finalizer": {
+    "script": "tools/ai-gen/finalize-isometric-obstacle-imagegen.py",
+    "margin": 6,
+    "despillGreen": true,
+    "alphaModel": "BiRefNet-general"
+  },
+  "runtimeScene": "scene12",
+  "runtimeConfig": "data/abandoned-mine-terrain.json",
+  "depthRule": "footprint-front-edge",
+  "assets": [
+    {
+      "id": "mine_obstacle_collapsed_support",
+      "runtime": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_collapsed_support_cutout.png",
+      "sourceSize": [345, 525],
+      "displayH": 252,
+      "footSource": [313, 121],
+      "footWorld": [150.24, 58.08]
+    },
+    {
+      "id": "mine_obstacle_derailed_cart",
+      "runtime": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_derailed_cart_cutout.png",
+      "sourceSize": [458, 450],
+      "displayH": 205,
+      "footSource": [386, 132],
+      "footWorld": [175.84, 60.13]
+    },
+    {
+      "id": "mine_obstacle_stone_pillar",
+      "runtime": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_stone_pillar_cutout.png",
+      "sourceSize": [294, 444],
+      "displayH": 246,
+      "footSource": [266, 112],
+      "footWorld": [147.32, 62.05]
+    },
+    {
+      "id": "mine_obstacle_hand_winch",
+      "runtime": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_hand_winch_cutout.png",
+      "sourceSize": [447, 460],
+      "displayH": 215,
+      "footSource": [353, 133],
+      "footWorld": [165.02, 62.16]
+    },
+    {
+      "id": "mine_obstacle_sorting_hopper",
+      "runtime": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_sorting_hopper_cutout.png",
+      "sourceSize": [402, 517],
+      "displayH": 245,
+      "footSource": [354, 148],
+      "footWorld": [167.78, 70.14]
+    }
+  ]
+}

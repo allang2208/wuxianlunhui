@@ -20,6 +20,7 @@ const snapshotSource = read('src/world/world122-snapshot.js');
 const resetPolicySource = read('src/world/world-reset-policy.js');
 const energyNodeSource = read('src/world/energy-node-system.js');
 const world125EnvironmentSource = read('src/world/world125-environment.js');
+const world126EnvironmentSource = read('src/world/world126-environment.js');
 
 const {
     WorldProgressionSystem, WORLD_LIFECYCLE_STATUS,
@@ -42,6 +43,10 @@ check('世界-125只由僵尸初级地牢完成状态解锁',
     config.worlds?.scene11?.constructionEnabled === true
     && config.worlds.scene11.requirements?.completedDungeons?.length === 1
     && config.worlds.scene11.requirements.completedDungeons[0] === 'zombieBeginner');
+check('世界-126只由废弃矿洞初级完成状态解锁',
+    config.worlds?.scene12?.constructionEnabled === true
+    && config.worlds.scene12.requirements?.completedDungeons?.length === 1
+    && config.worlds.scene12.requirements.completedDungeons[0] === 'abandonedMineBeginner');
 check('世界-124只由沼泽初级地牢完成状态解锁',
     config.worlds?.scene10?.constructionEnabled === true
     && config.worlds.scene10.requirements?.completedDungeons?.length === 1
@@ -229,8 +234,8 @@ check('地牢运行期间世界时钟和入侵倒计时使用零增量冻结',
     && /const worldDelta = worldClockRunning \? _delta : 0/.test(gameSceneSource)
     && /const invasionDelta = Math\.max\(0, worldTimeAfter - worldTimeBefore\)/.test(gameSceneSource)
     && /WorldInvasionSystem\?\.update\?\.\(invasionDelta/.test(gameSceneSource));
-check('scene8~scene11全部接入共用持久世界运行时',
-    ['scene8', 'scene9', 'scene10', 'scene11'].every((sceneId) =>
+check('scene8~scene12全部接入共用持久世界运行时',
+    ['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].every((sceneId) =>
         sceneSource.includes(`this._setupPersistentWorld('${sceneId}', player, diamond)`)));
 check('主神空间入口在开局和每次回城时按传送网络状态重新同步',
     /syncMainHubWorldPortals\(\)/.test(gameSource)
@@ -283,13 +288,14 @@ check('基础模板、生成版本、世代种子和资源规则由统一重置�
     && /export function createWorldGenerationContext\(sceneId, worldEpoch\)/.test(resetPolicySource)
     && /BASE_SNAPSHOT_TEMPLATES/.test(snapshotSource)
     && /portal_only_v1: _portalOnlyBaseTemplate/.test(snapshotSource));
-check('四世界地表、障碍和资源生成均消费按世代派生的独立随机流',
-    ['scene8', 'scene9', 'scene10'].every((sceneId) =>
+check('五世界地表、障碍和资源生成均消费按世代派生的独立随机流',
+    ['scene8', 'scene9', 'scene10', 'scene12'].every((sceneId) =>
         sceneSource.includes(`getWorldGenerationSeed('${sceneId}', 'floor_deco')`))
-    && ['scene8', 'scene9', 'scene10', 'scene11'].every((sceneId) =>
+    && ['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].every((sceneId) =>
         sceneSource.includes(`createWorldRandom('${sceneId}', 'obstacles')`))
     && /setup\(\{ random = Math\.random \} = \{\}\)/.test(energyNodeSource)
-    && /\{ random = Math\.random \} = \{\}/.test(world125EnvironmentSource));
+    && /\{ random = Math\.random \} = \{\}/.test(world125EnvironmentSource)
+    && /\{ random = Math\.random \} = \{\}/.test(world126EnvironmentSource));
 check('毁灭清理入口按resetPolicy读取快照与旧坐标范围',
     /shouldClearWorldScope\(sceneId, 'snapshot'\)/.test(sceneSource)
     && /shouldClearWorldScope\(sceneId, 'playerPosition'\)/.test(sceneSource)

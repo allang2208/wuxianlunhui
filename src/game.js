@@ -287,7 +287,7 @@ export const Game = {
     syncMainHubWorldPortals() {
         if (!this.entities) return;
         // 清理旧版按世界分别生成的自动触发圆圈；旧主城快照也会在这里完成迁移。
-        const worldIds = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+        const worldIds = new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']);
         for (const [key, entity] of Array.from(this.entities.entries())) {
             if (!entity?._isWorldNetworkPortal && !worldIds.has(entity?.targetScene)) continue;
             entity._destroyPhaserSprite?.();
@@ -1289,7 +1289,7 @@ export const Game = {
     },
     _updateWorldTimeSystems(dt) {
         // 多世界入侵：目标世界加载时由 DefenseSystem 物化波次。
-        if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
+        if (['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(SceneManager.currentScene)
             && DefenseSystem && DefenseSystem.active) {
             DefenseSystem.update(dt);
         }
@@ -1372,7 +1372,7 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
         // （rts-command.js mousedown/mouseup）处理，这里清掉边沿标志短路下方既有逻辑。
         if (RTSCommand) {
             RTSCommand.tick(SceneManager.currentScene, Input, dt);
-            if (RTSCommand.enabled && (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene) || this._observerMode)) {
+            if (RTSCommand.enabled && (['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(SceneManager.currentScene) || this._observerMode)) {
                 Input.mouse.leftDown = false;
                 Input.mouse.rightDown = false;
                 Input.mouse.leftPressed = false;
@@ -1729,7 +1729,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
 
             // 传送门检测
             if (portalReady && entity.targetScene) {
-                if (['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene)
+                if (['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(entity.targetScene)
                     && !window.WorldProgressionSystem?.isPortalConstructed?.(entity.targetScene)) {
                     continue;
                 }
@@ -1746,7 +1746,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                                 this._questReturnPending = true;
                                 Promise.resolve(SceneManager.switchScene(entity.targetScene, this.player, undefined, {
                                     portalTravel: entity.targetScene === 'main'
-                                        || ['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene),
+                                        || ['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(entity.targetScene),
                                 })).then((switched) => {
                                     // 只有确认回城后才结算；切场失败时保留任务会话和返回门供重试。
                                     if (switched === true) {
@@ -1761,7 +1761,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                             } else {
                                 SceneManager.switchScene(entity.targetScene, this.player, undefined, {
                                     portalTravel: entity.targetScene === 'main'
-                                        || ['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene),
+                                        || ['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(entity.targetScene),
                                 });
                             }
                         }
@@ -1775,7 +1775,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
             this._portalArrivalLock = false;
         }
 this.resolveCollisions();
-        if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
+        if (['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(SceneManager.currentScene)
             && DefenseSystem?.active
             && typeof DefenseSystem.reconcileElevatedSurfaces === 'function') {
             DefenseSystem.reconcileElevatedSurfaces();

@@ -103,6 +103,10 @@
 - 世界-124：连续草地 + 林地草簇 + 五姿态针叶树；与世界-122同为 `0.7` 基础镜头缩放。
 - 世界-125：遗迹大石板 `ruinslab_1/2` 砖池（2026-08-23 起，见下条）+ 石柱/烛台/纯障碍预制组合；
   与世界-122同为 `0.7` 基础镜头缩放。
+- 世界-126：复用废弃矿洞 `floor_abandoned_mine_seamless` 连续地面和18件纯视觉小物；五款正式矿洞障碍
+  由 `world126-environment.js` 按世界代际seed散布，保持获批视角且不翻转/旋转。候选依次通过菱形内缩、
+  玩家/传送门排除、中心距、footprint间距与墙碰撞五点探针；正式件标 `_scatter:true` 复用建造清除，
+  深度固定取footprint前缘。地牢自身的零障碍合同不变。
 
 #### 世界-125 遗迹大石板地砖（2026-08-23）
 - 旧 `blackbrick_7/8` 内部砖缝实测约 ±37°，与建筑底边 2:1（0.5）口径不符，scene11 已换
@@ -139,7 +143,8 @@
   同一次房间重烘焙必须稳定；竞技场小件只落在各房间菱形，通道不散布，边缘安全距不小于贴图半径。
 - `ObstacleSpawnSystem.spawnForRoom/spawnForPassages`固定返回0，房间烛台、中央石柱、预制障碍组合
   与通道火把全部停止生成；配置`combatRoom.obstacles:false`作为第二道门禁。不要删除这些全局资产，
-  `obstacle_candle/obstacle_torch`仍被世界-125、建筑和编辑器复用。
+  `obstacle_candle/obstacle_torch`仍被世界-125、建筑和编辑器复用。World-126 位面障碍走独立环境模块，
+  禁止为复用位面素材而恢复废弃矿洞或其他地牢的战斗房障碍。
 
 #### 沼泽地牢连续湿泥地貌（2026-08-26）
 - 沼泽初级/中级/高级统一通过`floor.terrainProfile:'swampDungeonWetland'`路由到

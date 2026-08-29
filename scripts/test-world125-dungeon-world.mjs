@@ -47,7 +47,7 @@ check('场景十一使用遗迹大石板地砖池并使用2048分块',
     && /applyDungeonFloorChunked\(w, h, 2048, diamond\)/.test(sceneSrc)
     && bootSrc.includes("this.load.image('ruinslab_1'")
     && bootSrc.includes("this.load.image('ruinslab_2'"));
-check('世界-125接入 scene8~scene11 共用建筑、采矿、生产与入侵运行时',
+check('世界-125接入 scene8~scene12 共用建筑、采矿、生产与入侵运行时',
     /this\._setupPersistentWorld\('scene11', player, diamond\)/.test(sceneSrc)
     && /_setupPersistentWorld\(sceneId, player, diamond\)/.test(sceneSrc)
     && /DefenseSystem\.setup\(player, \{ managedExternally: true, worldId: sceneId \}\)/.test(sceneSrc)
@@ -82,7 +82,7 @@ check('世界-125构造资格由僵尸初级地牢完成状态解锁',
 check('世界-125使用幽洞回声环境音乐',
     audio.bgm?.scene11 === 'assets/sounds/music/幽洞回声.wav');
 check('世界-125镜头缩放与世界-122一致为70%',
-    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11'\]\)/.test(gameSceneSrc)
+    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11', 'scene12'\]\)/.test(gameSceneSrc)
     && /const sceneBaseZoom = zoomedOutWorld \? 0\.7 : 1/.test(gameSceneSrc));
 
 // 运行散布函数本体：用真实几何和真实预制库，只隔离 Phaser 同步接口。

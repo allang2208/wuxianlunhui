@@ -42,8 +42,8 @@ check('122 正常进入按坐标记忆原位恢复',
     /Game\._worldPlayerPos\.scene8/.test(sceneMgr));
 check('123/124 观察模式不生成玩家（两处分支）',
     (sceneMgr.match(/else if \(Game\._observerMode\)/g) || []).length >= 3);
-check('123/124/125 正常返回按各自世界坐标恢复',
-    ['scene9', 'scene10', 'scene11'].every((id) => sceneMgr.includes(`Game._worldPlayerPos?.${id}`)));
+check('123/124/125/126 正常返回按各自世界坐标恢复',
+    ['scene9', 'scene10', 'scene11', 'scene12'].every((id) => sceneMgr.includes(`Game._worldPlayerPos?.${id}`)));
 check('观察主城不生成玩家，也不污染主城驻留快照与本体坐标',
     /Game\.entities = new Map\(this\._mainEntities\)/.test(sceneMgr)
     && /else if \(observing\)[\s\S]*?Game\.entities\.delete\('player'\)/.test(sceneMgr)
@@ -74,7 +74,7 @@ check('面板标记本体所在世界并给返回入口',
     /_observerHomeScene/.test(panel) && /返回本体/.test(panel) && /ws-home-badge/.test(panel));
 
 // ---- 3. 指挥模式 RTS 化 ----
-check('指挥模式可用域 = scene8~scene11 或观察模式',
+check('指挥模式可用域 = scene8~scene12 或观察模式',
     /PERSISTENT_WORLDS\.has\(sceneId\) \|\| observer/.test(rts));
 check('边缘平移（四缘 24px / 900px/s / dt 缩放 / 世界边界钳制）',
     /_edgePan\(dt/.test(rts) && /EDGE = 24/.test(rts) && /Camera\.x = Math\.max\(0, Math\.min\(W/.test(rts));

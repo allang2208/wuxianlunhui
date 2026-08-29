@@ -1,6 +1,6 @@
 # World-126 mine obstacle candidates
 
-This directory contains the minimal editable source chain for five approved V2 model and material candidates. They are candidate-only and are not installed into runtime assets.
+This directory contains the minimal editable source chain for five approved V2 model and material candidates, plus the runtime-promotion metadata for the accepted V01 set.
 
 ## Selected candidates
 
@@ -19,4 +19,8 @@ This directory contains the minimal editable source chain for five approved V2 m
 - Generator: `run-v2-klein-refine.py`.
 - Explicit task exception: `flux2-klein-4b-depth`, 48 steps, Depth 0.82, denoise 0.30, direct from the approved textured V2 model render. This does not replace the project's global Dev default.
 
-Before runtime promotion, create true-alpha cutouts, trim to the visible bottom edge, calibrate the visual footprint/collider, and check per-object front-edge depth ordering in the dungeon.
+## Runtime promotion
+
+The five accepted V01 images were finalized with `finalize-isometric-obstacle-imagegen.py --margin 6 --despill-green`, producing tight BiRefNet RGBA cutouts under `assets/terrain/abandoned-mine-obstacles/`. `runtime-promotion.json` records the final source dimensions, display heights, calibrated footprint rectangles and footprint-front-edge depth rule.
+
+Runtime placement is limited to World-126 (`scene12`). The plane reuses the abandoned-mine continuous floor and all 18 visual-only floor props; the five collidable obstacles use world-generation seed placement, preserve player/portal clearance, avoid footprint overlap and boundary collision, and retain the approved non-flipped view.

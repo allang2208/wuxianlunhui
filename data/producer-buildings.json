@@ -263,7 +263,8 @@
       { "sceneId": "main", "label": "主神空间", "icon": "🏛️" },
       { "sceneId": "scene9", "label": "世界-123·雪原", "icon": "❄️" },
       { "sceneId": "scene10", "label": "世界-124·林地", "icon": "🌲" },
-      { "sceneId": "scene11", "label": "世界-125·地牢遗迹", "icon": "🕯️" }
+      { "sceneId": "scene11", "label": "世界-125·地牢遗迹", "icon": "🕯️" },
+      { "sceneId": "scene12", "label": "世界-126·废弃矿洞", "icon": "⛏️" }
     ]
   },
   "snow_castle": {

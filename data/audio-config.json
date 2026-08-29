@@ -51,11 +51,12 @@
     "repeatGuardMs": 35
   },
   "bgm": {
-    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）。main=主神空间（罗马庭院，2026-08-22）；scene7=普通僵尸地牢（初级/中级/高级共用场景）；scene8=世界-122（旷野慢风，2026-08-16）；scene11=位面僵尸地牢世界（幽洞回声，2026-08-22）",
+    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）。main=主神空间（罗马庭院，2026-08-22）；scene7=地牢共用场景；scene8=世界-122（旷野慢风）；scene11=地牢遗迹位面；scene12=废弃矿洞位面（后两者复用幽洞回声）",
     "main": "assets/sounds/music/罗马庭院.wav",
     "scene7": "assets/sounds/music/dungeon_echo.mp3",
     "scene8": "assets/sounds/music/旷野慢风.mp3",
-    "scene11": "assets/sounds/music/幽洞回声.wav"
+    "scene11": "assets/sounds/music/幽洞回声.wav",
+    "scene12": "assets/sounds/music/幽洞回声.wav"
   },
     "bgmCrossfadeSec": 1.5,
     "distanceAttenuation": {

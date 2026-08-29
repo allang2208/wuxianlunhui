@@ -82,7 +82,7 @@ export function configureWorld122SnapshotRuntime(deps = {}) {
 
 const SNAPSHOT_VERSION = 1;
 
-// 多世界驻留：scene8~scene11 共用同一套建筑协议，按 sceneId 分槽保存。
+// 多世界驻留：scene8~scene12 共用同一套建筑协议，按 sceneId 分槽保存。
 const _storedByWorld = {};
 setCrossPlaneSnapshotProvider(() => _storedByWorld);
 

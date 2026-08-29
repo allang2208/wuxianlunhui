@@ -33,11 +33,12 @@ check('传送门配置为传送模式建筑（不产兵/无模块）',
 check('传送门数值正确（2000能源/HP3000/def80/mdef80/回收50%）',
     portal?.cost === 2000 && portal.hp === 3000 && portal.def === 80 && portal.mdef === 80
     && portal.sellRefundRatio === 0.5);
-check('传送门带目的地列表（主神空间/123/124/125）',
-    Array.isArray(portal.destinations) && portal.destinations.length === 4
+check('传送门带目的地列表（主神空间/123/124/125/126）',
+    Array.isArray(portal.destinations) && portal.destinations.length === 5
     && portal.destinations.some((d) => d.sceneId === 'main')
     && portal.destinations.some((d) => d.sceneId === 'scene9')
-    && portal.destinations.some((d) => d.sceneId === 'scene11'));
+    && portal.destinations.some((d) => d.sceneId === 'scene11')
+    && portal.destinations.some((d) => d.sceneId === 'scene12'));
 check('传送门贴图已注册（BootScene load + 投影清单）',
     /this\.load\.image\('portal', 'assets\/terrain\/portal\.png'\)/.test(boot)
     && lightingAssets.assets?.portal?.source === 'assets/terrain/portal.png');

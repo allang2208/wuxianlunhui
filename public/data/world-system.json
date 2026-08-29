@@ -70,6 +70,15 @@
       "portalSpawn": { "x": 6144, "y": 4096 },
       "featureBuilding": { "cfgKey": "explorer_camp", "offsetX": -330, "offsetY": 180 },
       "resetPolicy": { "baseSeed": 125011 }
+    },
+    "scene12": {
+      "name": "世界-126·废弃矿洞",
+      "icon": "⛏️",
+      "description": "废弃矿洞位面",
+      "constructionEnabled": true,
+      "requirements": { "completedDungeons": ["abandonedMineBeginner"] },
+      "portalSpawn": { "x": 6144, "y": 4096 },
+      "resetPolicy": { "baseSeed": 126012 }
     }
   },
   "portal": {
