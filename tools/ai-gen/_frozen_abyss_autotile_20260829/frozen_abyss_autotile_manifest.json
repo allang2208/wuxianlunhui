@@ -1,0 +1,85 @@
+{
+  "asset": "frozen_abyss_autotile",
+  "stage": "blockout_approval",
+  "scope": [
+    "frozenBeginner",
+    "frozenMid",
+    "frozen"
+  ],
+  "logicalCell": {
+    "width": 128,
+    "depth": 64
+  },
+  "maskBits": [
+    {
+      "bit": 0,
+      "direction": "+u"
+    },
+    {
+      "bit": 1,
+      "direction": "+v"
+    },
+    {
+      "bit": 2,
+      "direction": "-u"
+    },
+    {
+      "bit": 3,
+      "direction": "-v"
+    }
+  ],
+  "frameCount": 16,
+  "assetClass": "terrain_autotile_natural_structure",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "assetPrompt": "tools/ai-gen/prompts/frozen-abyss-style.md",
+  "foundationStyle": "none_terrain_cutout",
+  "camera": {
+    "type": "orthographic",
+    "elevationDegrees": 30.0,
+    "azimuthDegrees": 0.0,
+    "rootRotationDegrees": 44.8
+  },
+  "lighting": "World-122 soft neutral upper-left top-side key plus broad fill",
+  "materialDirection": {
+    "target": "clean semi-realistic strategy-game PBR",
+    "largeForms": [
+      "compacted snow overhang",
+      "stratified blue-ice break",
+      "deep low-detail void"
+    ],
+    "detailDensity": "sparse medium-scale fractures; no micro-grain or regular teeth",
+    "color": "low-saturation neutral blue-gray with restrained value separation"
+  },
+  "outputs": {
+    "blend": "tools/ai-gen/_frozen_abyss_autotile_20260829/frozen_abyss_autotile_blockout.blend",
+    "approvalPreview": "tools/ai-gen/_frozen_abyss_autotile_20260829/previews/frozen_abyss_autotile_approval_preview.png",
+    "depth": "tools/ai-gen/_frozen_abyss_autotile_20260829/depth/frozen_abyss_autotile_depth.png",
+    "seamProof": "tools/ai-gen/_frozen_abyss_autotile_20260829/previews/frozen_abyss_autotile_seam_proof.png",
+    "seamDepth": "tools/ai-gen/_frozen_abyss_autotile_20260829/depth/frozen_abyss_autotile_seam_depth.png",
+    "isolatedStylePreview": "tools/ai-gen/_frozen_abyss_autotile_20260829/previews/frozen_abyss_style_model_preview.png",
+    "isolatedStyleDepth": "tools/ai-gen/_frozen_abyss_autotile_20260829/depth/frozen_abyss_style_depth.png",
+    "stylePreview": "tools/ai-gen/_frozen_abyss_autotile_20260829/previews/frozen_abyss_style_floor_model_preview.png",
+    "styleDepth": "tools/ai-gen/_frozen_abyss_autotile_20260829/depth/frozen_abyss_style_floor_depth.png"
+  },
+  "runtimeComposition": {
+    "masters": [
+      "void",
+      "+u edge",
+      "+v edge",
+      "-u edge",
+      "-v edge"
+    ],
+    "atlasFrames": "deterministically compose the five masters into the 16 neighbor masks",
+    "reason": "one authored edge per direction prevents mask-to-mask material and lighting drift"
+  },
+  "runtimeStatus": "not_integrated_pending_user_approval",
+  "notes": [
+    "The preview uses diagnostic blockout materials, not final PBR art.",
+    "The blockout inherits World-122 building-v5 camera, lighting, value hierarchy and material density.",
+    "The frozen dungeon contributes only snow/ice identity; legacy cartoon-like wall rendering is not the style authority.",
+    "Runtime must select frames by neighborMask; no frame may be rotated or stretched.",
+    "Void cells use non-beveled slight overdraw; rim endpoints keep a fixed seam profile.",
+    "Final abyss interior remains a baked terrain layer; only rim/cliff topology comes from the atlas."
+  ]
+}

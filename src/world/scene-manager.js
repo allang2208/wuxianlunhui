@@ -39,6 +39,7 @@ import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import desertTerrainConfig from '../../data/desert-terrain.json';
+import { getFrozenTerrainBase, getFrozenTerrainDeco } from '../config/frozen-terrain.js';
 import { TechnologySystem } from './technology-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import loadingScreenConfig from '../../data/loading-screen-config.json';
@@ -1244,23 +1245,22 @@ export const SceneManager = {
         // 连续无缝主雪层 + 两层确定性软边补丁。渲染器统一按 0.5774 做30°等距纵向压缩。
         const diamond = this._scene8Diamond(scene);
         const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene9', 'floor_deco');
+        const frozenBase = getFrozenTerrainBase();
         setDungeonFloorProfile({
-            tiles: ['floor_snow_fresh_seamless'],
-            continuous: true,
+            tiles: [frozenBase.key || 'floor_snow_fresh_seamless'],
+            continuous: frozenBase.continuous === true,
             glow: false,
-            backgroundColor: scene.background || '#101a2b',
+            backgroundColor: scene.background || frozenBase.backgroundColor || '#101a2b',
+            textureScaleY: frozenBase.textureScaleY ?? 0.5774,
             surfacePatches: [
                 { texture: 'floor_snow_packed_seamless', perChunk: 4, size: 920, minDist: 1150 },
                 { texture: 'floor_snow_wind_seamless', perChunk: 5, size: 620, minDist: 820 },
             ],
-            // 雪地草/蕨已缩至荒漠点缀物的 50%：128² 成品、55px 显示；不参与碰撞。
+            // 18件冰原模型化小物按世界格网确定性散布；只烘焙视觉，不参与碰撞或寻路。
             deco: {
-                textures: ['deco_snow_1', 'deco_snow_2', 'deco_snow_3', 'deco_snow_4', 'deco_snow_5'],
+                ...getFrozenTerrainDeco('plane'),
                 // 同一位面世代固定 seed；重建传送门后换新布局。
                 seed: floorSeed,
-                perChunk: 14,
-                size: 55,
-                minDist: 120,
             },
         });
         applyDungeonFloorChunked(w, h, 2048, diamond);

@@ -1,0 +1,117 @@
+{
+  "asset": "frozen_abyss_autotile",
+  "status": "runtime_installed",
+  "date": "2026-08-29",
+  "selectedSource": "tools/ai-gen/_frozen_abyss_autotile_20260829/candidates_dev_s12_floor/frozen_abyss_style/frozen_abyss_style_refine_v02_raw.png",
+  "selectedSourceSha256": "b4126bfbd1812f7cb002ad76c57c7699a1e2b0ea95739985e203d8df23345747",
+  "sourceGeneration": {
+    "model": "flux2-dev-depth",
+    "style": "world122-building-v5",
+    "steps": 48,
+    "cfg": 3.5,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "seed": 122202
+  },
+  "geometry": {
+    "frameWidth": 128,
+    "frameHeight": 64,
+    "atlasColumns": 4,
+    "atlasRows": 4,
+    "maskBits": [
+      {
+        "bit": 0,
+        "direction": "+u",
+        "screenEdge": "bottom_right"
+      },
+      {
+        "bit": 1,
+        "direction": "+v",
+        "screenEdge": "top_right"
+      },
+      {
+        "bit": 2,
+        "direction": "-u",
+        "screenEdge": "top_left"
+      },
+      {
+        "bit": 3,
+        "direction": "-v",
+        "screenEdge": "bottom_left"
+      }
+    ],
+    "connectedBitMeaning": "1 removes that directional edge; 0 draws it"
+  },
+  "composition": {
+    "sharedVoidMaster": "masters/frozen_abyss_void.png",
+    "directionalEdgeMasters": [
+      "masters/frozen_abyss_edge_0_bottom_right.png",
+      "masters/frozen_abyss_edge_1_top_right.png",
+      "masters/frozen_abyss_edge_2_top_left.png",
+      "masters/frozen_abyss_edge_3_bottom_left.png"
+    ],
+    "method": "deterministic shared master composition; no per-mask generation or rotation",
+    "crop": {
+      "componentX": 283,
+      "componentY": 380,
+      "componentWidth": 455,
+      "componentHeight": 237,
+      "cropX": 260,
+      "cropY": 373,
+      "cropWidth": 501,
+      "cropHeight": 251
+    }
+  },
+  "outputs": {
+    "atlas": "frozen_abyss_autotile_4x4.png",
+    "frames": "frames/frozen_abyss_mask_00.png ... frozen_abyss_mask_15.png",
+    "contactSheet": "frozen_abyss_autotile_contact_sheet.jpg",
+    "fiveMasters": "frozen_abyss_five_masters.jpg",
+    "seamProof": "frozen_abyss_autotile_seam_proof.jpg"
+  },
+  "reviewBackdrop": "assets/terrain/floor_snow_fresh_seamless.png",
+  "seamProofCells": [
+    {
+      "u": 2,
+      "v": -1,
+      "mask": 2
+    },
+    {
+      "u": 0,
+      "v": 0,
+      "mask": 3
+    },
+    {
+      "u": 1,
+      "v": 0,
+      "mask": 7
+    },
+    {
+      "u": 2,
+      "v": 0,
+      "mask": 12
+    },
+    {
+      "u": -1,
+      "v": 1,
+      "mask": 1
+    },
+    {
+      "u": 0,
+      "v": 1,
+      "mask": 15
+    },
+    {
+      "u": 1,
+      "v": 1,
+      "mask": 12
+    },
+    {
+      "u": 0,
+      "v": 2,
+      "mask": 8
+    }
+  ],
+  "runtimeAsset": "assets/terrain/frozen_abyss_autotile.png",
+  "runtimeInstalled": true
+}
