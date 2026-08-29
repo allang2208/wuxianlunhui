@@ -777,6 +777,13 @@
 - 替换素材前先把旧图备份到 `assets/terrain/.bak-*`（保持可选回退）。
 - 换模型后 pivot/tip/pivotWorldY/naturalAngle 四参数必须随新图同步重标定，不能只换 png。
 
+#### 防御塔正式材质、碰撞、瞄准与阴影收口（2026-08-29/30）
+
+- **美术定稿与最小溯源链**：获选方案固定为冷灰预制混凝土 + 蓝黑钢 + 克制维护标；模型、30°正交相机、324×498底座画布、261×164炮臂帧画布和逐像素 Alpha 均保持不变。正式资源为底座、48帧炮臂表、建筑缩略图及 silhouette/projection/height/normal 四套派生图；仓库只保留获选3号材质、必要 Blender/处理脚本、参数、选择报告和实际大小预览，旧整批候选与旧图标废案不得入库。
+- **逻辑占地与视觉标定分离**：塔始终通过 `applyBuildingFootprint(tower, 2)` 使用标准2×2、256×128等距碰撞棱柱；`data/defense-structures.json#defenseTowerVisual.visualFootprint` 仅以 `strict` 把底部法兰映射到该棱柱，`assemblyScale` 只放大底座/炮臂/挂载武器。玩法碰撞体高度固定读取 `collisionBodyHeight:262`，不得被429px视觉高度反写。玩家、友军和怪物的实体分离都必须命中该 footprint，寻路器也不得再排除 `_isDefenseTower`。
+- **炮臂、枪口、弹道和阴影同角**：运行时只认 `_renderAimAngle()` 的48向量化角；炮臂帧、挂载武器、枪口点、开火容差和 `shadowCaster.parts` 必须消费同一角度快照。枪口/阴影高度独立读取 `muzzleHeight/shadowHeight`，预测瞄准由 `defenseTowerCombat` 配置节流，索敌快照与实际弹体射程同源；帧角或武器变化时只失效一次塔阴影，不允许每帧重建全场静态阴影。
+- **升级图标双路径**：六维芯片与六项模块正式图固定在 `assets/ui/tower/cold-steel/`（209×209 RGBA），DOM轻量镜像固定在 `assets/ui/runtime-icons/ui/tower/cold-steel/`（128×128 RGBA）。十二图共用同一四铆钉枪灰母框，只替换中央战术符号；业务配置引用正式路径，由 `renderLightweightProjectImage` 选择运行时镜像，禁止恢复 emoji 或旧棕金卡片。
+
 ### 防御塔战斗机制沉淀（2026-08-14/15 定稿，世界-122 防守塔全套）
 
 > 以下机制全部在 `defense-system.js` / `GameScene._syncDefenseTowers` 落地并实机验证，
@@ -795,10 +802,10 @@
   仅真实墙阻挡才回退；否则 resolve 会把枪口沿掩体滑回塔脚（"下沉到底座" bug）。
 
 **图层锚点与阻挡口径**
-- 塔三层深度 = **脚底锚**：基座 `e.y+2`、机械臂 `e.y+2.5`、武器 `e.y+3`
-  （怪物脚底 y < 塔脚 → 塔盖怪物；y > 塔脚 → 怪物盖塔，与全游戏 depth=地面锚线 一致）。
-- 阻挡：塔只挡**怪物**（`game.js resolveCollisions`：防御塔与 player/companion 跳过分离）；
-  塔被摧毁 `active=false` → 停火/停渲染/分离跳过（怪物可穿过废墟）。
+- 塔三层共用 `setupStructureDepth` 产出的 `_structureRenderDepth`，机械臂/武器只在其上增加稳定小偏移；
+  前后关系仍由2×2接地 footprint 与单位脚点仲裁，禁止按高塔贴图 AABB 反推地面占地。
+- 阻挡：存活防御塔对玩家、友军和怪物统一参与实体分离，并作为真实2×2寻路硬障碍；
+  塔被摧毁 `active=false` 后才停火、停渲染并退出分离/寻路。
 
 **换弹/过热（玩家口径复制）**
 - 弹药：塔覆盖 `_hasAmmo`/`_consumeAmmo`（Combatant 默认无限弹，玩家口径才真扣）；

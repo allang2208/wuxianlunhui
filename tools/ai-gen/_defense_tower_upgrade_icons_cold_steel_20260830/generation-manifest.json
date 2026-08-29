@@ -1,0 +1,24 @@
+{
+  "generator": "Codex built-in image_gen",
+  "date": "2026-08-30",
+  "styleReference": "assets/ui/building-upgrades/attack-damage.png",
+  "masterFrame": "tower-chip-strength-raw.png",
+  "formalRoot": "assets/ui/tower/cold-steel",
+  "runtimeRoot": "assets/ui/runtime-icons/ui/tower/cold-steel",
+  "formalSize": [209, 209],
+  "runtimeSize": [128, 128],
+  "entries": {
+    "tower-chip-strength": "exec-a964f065-5855-4239-bdf5-70a6d3cb7445.png",
+    "tower-chip-dexterity": "exec-6f6fed76-1ca6-4183-be6d-fbb9d80a62d3.png",
+    "tower-chip-constitution": "exec-6b600580-b414-469e-94e6-286bd81dae79.png",
+    "tower-chip-intelligence": "exec-094915cc-cd1f-415c-b028-8ecca2e17c90.png",
+    "tower-chip-spirit": "exec-31086efe-9f59-4aef-9e38-eac6b47e4a9f.png",
+    "tower-chip-luck": "exec-830f5f05-c025-4efe-b2c3-92ef7db930dc.png",
+    "tower-module-damage": "exec-ebcd21d9-6f93-4a61-a4d3-c5b6190cb9be.png",
+    "tower-module-range": "exec-5e69a851-bd6c-40b3-b397-c69436e4ade2.png",
+    "tower-module-attspd": "exec-f3044918-3bc6-4129-8887-910850992cc0.png",
+    "tower-module-reload": "exec-28435545-fd87-4a1e-b313-437d99ea4b13.png",
+    "tower-module-overheat": "exec-4a8dcf00-a536-414f-8e2d-aef6bd30d9e8.png",
+    "tower-module-cooling": "exec-0e8abb96-4d0c-47b9-ba67-f8f452d9b735.png"
+  }
+}

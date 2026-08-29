@@ -1,5 +1,37 @@
 {
   "_comment": "世界-122 防御结构配置唯一真源。城墙楼梯按目标墙顶高度自动向地面延伸。",
+  "defenseTowerVisual": {
+    "_comment": "底座源图 324x498；模型底部法兰直径 116，按 2.56 px/模型单位投影为 296.96x148.48。strict 只把视觉接地面映射到既有 2x2 碰撞棱柱，不修改碰撞、占格或寻路。",
+    "textureKey": "obstacle_defense_tower",
+    "sourceWidth": 324,
+    "sourceHeight": 498,
+    "referenceDisplayWidth": 170,
+    "referenceDisplayHeight": 262,
+    "displayW": 279.310345,
+    "displayH": 429.310345,
+    "footOffsetY": 214.655172,
+    "assemblyScale": 1.643002,
+    "collisionBodyHeight": 262,
+    "muzzleHeight": 386.10547,
+    "shadowHeight": 386.10547,
+    "armShadowHalfWidth": 12,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.850923695,
+      "widthRatio": 0.91654321,
+      "depthRatio": 0.29815261,
+      "scaleMode": "strict"
+    }
+  },
+  "defenseTowerCombat": {
+    "_comment": "塔载武器瞄准与索敌参数；炮臂、枪口和弹道必须消费同一份预判快照。",
+    "trackingSpeedRadPerSec": 9,
+    "returnSpeedRadPerSec": 4,
+    "fireToleranceDegrees": 5,
+    "targetScanIntervalMs": 125,
+    "targetSwitchDistanceRatio": 0.9,
+    "predictiveAim": true
+  },
   "wallBattlement": {
     "id": "wall_battlement",
     "name": "城垛女墙",

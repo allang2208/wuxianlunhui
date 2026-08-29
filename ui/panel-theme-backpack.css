@@ -6519,3 +6519,496 @@ body.expedition-preparing #systemPanel .panel-close {
         transform: none !important;
     }
 }
+
+/* ===== Defense tower archive: complete cold-steel detail panel ===== */
+.defense-tower-panel.bp-right-column {
+    gap: 0;
+    padding: 0 !important;
+    overflow: hidden !important;
+    font-family: var(--bp-font-ui) !important;
+}
+
+.defense-tower-panel .dt-panel-header {
+    min-height: 76px;
+    padding: 12px 18px;
+    background: linear-gradient(180deg, rgba(45, 54, 63, 0.98), rgba(22, 28, 34, 0.99));
+    border-bottom-color: var(--bp-ui-line-strong);
+}
+
+.defense-tower-panel .dt-panel-kicker {
+    margin-bottom: 2px;
+    color: var(--bp-ui-text-dim);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-caption);
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.defense-tower-panel .dt-panel-title {
+    overflow: hidden;
+    color: var(--bp-ui-white) !important;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.defense-tower-panel .dt-panel-header-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.defense-tower-panel .dt-panel-body {
+    gap: 12px;
+    padding: 14px 16px 18px;
+    background:
+        linear-gradient(rgba(181, 205, 217, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(181, 205, 217, 0.014) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.defense-tower-panel .dt-building-detail {
+    flex: 0 0 auto;
+}
+
+.defense-tower-panel .dt-panel-section {
+    flex: 0 0 auto;
+    padding: 12px;
+    color: var(--bp-ui-text);
+    background: rgba(255, 255, 255, 0.035) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 6px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.defense-tower-panel .dt-panel-section--weapon {
+    border-left: 3px solid var(--bp-ui-line-accent) !important;
+}
+
+.defense-tower-panel .dt-section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-bottom: 9px;
+}
+
+.defense-tower-panel .dt-section-title {
+    min-width: 0;
+    color: var(--bp-ui-white);
+    font-size: var(--bp-type-subtitle);
+    font-weight: 700;
+    line-height: var(--bp-leading-tight);
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.defense-tower-panel .dt-section-meta,
+.defense-tower-panel .dt-field-label,
+.defense-tower-panel .dt-section-note,
+.defense-tower-panel .dt-weapon-meta,
+.defense-tower-panel .dt-list-weapon-damage,
+.defense-tower-panel .dt-empty-state {
+    color: var(--bp-ui-text-muted);
+}
+
+.defense-tower-panel .dt-section-meta {
+    flex: 0 1 auto;
+    text-align: right;
+}
+
+.defense-tower-panel .dt-section-note {
+    margin-bottom: 10px;
+    font-size: var(--bp-type-caption);
+    line-height: var(--bp-leading-body);
+}
+
+.defense-tower-panel .dt-field-label {
+    margin: 10px 0 6px;
+    font-size: var(--bp-type-meta);
+}
+
+.defense-tower-panel .dt-weapon-slot,
+.defense-tower-panel .dt-weapon-list {
+    background: rgba(7, 10, 13, 0.45) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 6px;
+}
+
+.defense-tower-panel .dt-weapon-slot {
+    min-height: 68px;
+    padding: 10px;
+    border-style: dashed !important;
+}
+
+.defense-tower-panel .dt-weapon-list {
+    max-height: 240px !important;
+    padding: 3px 8px;
+    overflow-y: auto;
+}
+
+.defense-tower-panel .dt-equipped-row,
+.defense-tower-panel .dt-weapon-list-row,
+.defense-tower-panel .dt-weapon-identity {
+    display: flex;
+    align-items: center;
+}
+
+.defense-tower-panel .dt-equipped-row,
+.defense-tower-panel .dt-weapon-list-row {
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.defense-tower-panel .dt-weapon-list-row {
+    min-height: 44px;
+    padding: 6px 2px;
+    border-bottom: 1px solid var(--bp-ui-line);
+}
+
+.defense-tower-panel .dt-weapon-list-row:last-child {
+    border-bottom: 0;
+}
+
+.defense-tower-panel .dt-weapon-identity {
+    min-width: 0;
+    gap: 10px;
+}
+
+.defense-tower-panel .dt-weapon-copy,
+.defense-tower-panel .dt-list-weapon-name {
+    min-width: 0;
+}
+
+.defense-tower-panel .dt-weapon-name,
+.defense-tower-panel .dt-list-weapon-name {
+    overflow: hidden;
+    color: var(--bp-ui-text);
+    font-size: var(--bp-type-body);
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.defense-tower-panel .dt-weapon-meta,
+.defense-tower-panel .dt-list-weapon-damage {
+    font-size: var(--bp-type-meta);
+    font-weight: 400;
+}
+
+.defense-tower-panel .dt-equipped-weapon-image,
+.defense-tower-panel .dt-list-weapon-image {
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.defense-tower-panel .dt-equipped-weapon-image {
+    width: 130px;
+    height: 42px;
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.58));
+}
+
+.defense-tower-panel .dt-list-weapon-image {
+    width: 90px;
+    height: 30px;
+}
+
+.defense-tower-panel .dt-weapon-fallback {
+    font-size: 26px;
+}
+
+.defense-tower-panel .dt-list-weapon-fallback {
+    font-size: var(--bp-type-subtitle);
+}
+
+.defense-tower-panel .dt-enhance-badge {
+    color: var(--bp-ui-accent-bright);
+    font-size: var(--bp-type-meta);
+}
+
+.defense-tower-panel .dt-empty-state {
+    padding: 10px 8px;
+    font-size: var(--bp-type-meta);
+    line-height: var(--bp-leading-body);
+}
+
+.defense-tower-panel .dt-telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.defense-tower-panel .dt-metric {
+    min-width: 0;
+    padding: 7px 6px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 5px;
+}
+
+.defense-tower-panel .dt-metric-label,
+.defense-tower-panel .dt-progress-label,
+.defense-tower-panel .dt-status-row {
+    color: var(--bp-ui-text-dim);
+    font-size: var(--bp-type-caption);
+}
+
+.defense-tower-panel .dt-metric-value {
+    overflow: hidden;
+    color: var(--bp-ui-white-soft);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-body);
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.defense-tower-panel .dt-metric-value.is-low,
+.defense-tower-panel .dt-status-value.is-overheated {
+    color: #ff8a66;
+}
+
+.defense-tower-panel .dt-status-row,
+.defense-tower-panel .dt-progress-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.defense-tower-panel .dt-status-row {
+    align-items: center;
+    margin-top: 8px;
+}
+
+.defense-tower-panel .dt-status-value {
+    font-weight: 700;
+}
+
+.defense-tower-panel .dt-status-value.is-active {
+    color: #7fe0c8;
+}
+
+.defense-tower-panel .dt-status-value.is-reloading,
+.defense-tower-panel .dt-progress-label.is-reloading {
+    color: #8ad0ff;
+}
+
+.defense-tower-panel .dt-progress-label {
+    margin-top: 6px;
+}
+
+.defense-tower-panel .dt-progress-label.is-heat {
+    color: #d6a17d;
+}
+
+.defense-tower-panel .dt-progress-track {
+    height: 7px;
+    margin-top: 4px;
+    overflow: hidden;
+    background: var(--bp-ui-black-soft);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 4px;
+}
+
+.defense-tower-panel .dt-progress-fill {
+    height: 100%;
+    background: var(--bp-ui-accent-bright);
+    transition: width 0.12s linear;
+}
+
+.defense-tower-panel .dt-progress-track.is-reloading .dt-progress-fill {
+    background: #62b7df;
+}
+
+.defense-tower-panel .dt-progress-track.is-heat .dt-progress-fill {
+    background: #d68a45;
+}
+
+.defense-tower-panel .dt-progress-track.is-heat.is-overheated .dt-progress-fill {
+    background: #ff654f;
+}
+
+.defense-tower-panel .dt-repair-progress {
+    height: 9px;
+    margin: 0 0 10px;
+}
+
+.defense-tower-panel .dt-repair-progress .dt-progress-fill.is-healthy {
+    background: #7fd47f;
+}
+
+.defense-tower-panel .dt-repair-progress .dt-progress-fill.is-warning {
+    background: #e0b85c;
+}
+
+.defense-tower-panel .dt-repair-progress .dt-progress-fill.is-critical {
+    background: #ff6666;
+}
+
+.defense-tower-panel .dt-upgrade-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.defense-tower-panel .dt-upgrade-card {
+    min-width: 0;
+    min-height: 174px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+    padding: 9px 7px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(52, 63, 73, 0.72), rgba(20, 25, 30, 0.88));
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.defense-tower-panel .dt-upgrade-card:focus-within {
+    border-color: var(--bp-ui-line-accent);
+    box-shadow: inset 3px 0 0 var(--bp-ui-accent);
+}
+
+.defense-tower-panel .dt-upgrade-name {
+    overflow: hidden;
+    color: var(--bp-ui-white-soft);
+    font-size: var(--bp-type-meta);
+    font-weight: 700;
+    line-height: var(--bp-leading-tight);
+    text-overflow: ellipsis;
+}
+
+.defense-tower-panel .dt-upgrade-level {
+    color: var(--bp-ui-text-muted);
+    font-family: var(--bp-font-number);
+    font-weight: 400;
+}
+
+.defense-tower-panel .dt-upgrade-value {
+    color: var(--bp-ui-white);
+    font-family: var(--bp-font-number);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.defense-tower-panel .dt-upgrade-effect {
+    min-height: 31px;
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-caption);
+    line-height: 1.4;
+}
+
+.defense-tower-panel .dt-effect-state.is-linked {
+    color: #7fe0c8;
+}
+
+.defense-tower-panel .dt-effect-state.is-empty,
+.defense-tower-panel .dt-effect-state.is-unlinked,
+.defense-tower-panel .dt-upgrade-max {
+    color: var(--bp-ui-text-dim);
+}
+
+.defense-tower-panel .dt-upgrade-preview {
+    margin-top: 2px;
+    color: #8ad0ff;
+}
+
+.defense-tower-panel .dt-upgrade-next {
+    color: var(--bp-ui-text-dim);
+    font-size: var(--bp-type-caption);
+    line-height: 1.35;
+}
+
+.defense-tower-panel .dt-upgrade-max {
+    margin-top: auto;
+    padding: 6px 0;
+    font-size: var(--bp-type-caption);
+}
+
+.defense-tower-panel .dt-resource-gold {
+    color: #f0ca67;
+    font-family: var(--bp-font-number);
+}
+
+.defense-tower-panel .dt-button,
+.defense-tower-panel .dt-upgrade-button {
+    min-height: 32px;
+    padding: 5px 10px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-control) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 5px;
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-meta);
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.defense-tower-panel .dt-button:hover,
+.defense-tower-panel .dt-upgrade-button:hover {
+    color: var(--bp-ui-white);
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+.defense-tower-panel .dt-button--primary,
+.defense-tower-panel .dt-upgrade-button,
+.defense-tower-panel .dt-button--repair {
+    box-shadow: inset 3px 0 0 var(--bp-ui-accent);
+}
+
+.defense-tower-panel .dt-button--secondary {
+    color: var(--bp-ui-text-muted);
+}
+
+.defense-tower-panel .dt-button--danger {
+    color: #ffe7e5;
+    background: linear-gradient(180deg, #612f32, #351a1d) !important;
+    border-color: #9b565b !important;
+}
+
+.defense-tower-panel .dt-button--danger:hover {
+    background: linear-gradient(180deg, #7a3b3f, #482226) !important;
+    border-color: #c2767b !important;
+}
+
+.defense-tower-panel .dt-upgrade-button {
+    width: 100%;
+    margin-top: auto;
+}
+
+.defense-tower-panel :is(.dt-button, .dt-upgrade-button):focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
+}
+
+.defense-tower-panel :is(.dt-button, .dt-upgrade-button):disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.defense-tower-panel .dt-button--repair {
+    width: 100%;
+}
+
+@media (max-width: 1100px) {
+    .defense-tower-panel .dt-upgrade-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .defense-tower-panel .dt-equipped-weapon-image {
+        width: 96px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .defense-tower-panel .dt-progress-fill,
+    .defense-tower-panel .dt-button,
+    .defense-tower-panel .dt-upgrade-button {
+        transition-duration: 0.01ms !important;
+    }
+}

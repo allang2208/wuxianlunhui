@@ -607,7 +607,7 @@ class PathFinder {
 
       /**
        * 把普通静态建筑的真实 iso footprint 同步为寻路硬障碍。
-       * 墙、门、高架楼梯继续由 WallSystem/高架导航拥有；防御塔保留“友军可穿过”的既有契约。
+       * 墙、门、高架楼梯继续由 WallSystem/高架导航拥有；普通建筑与防御塔统一按真实占地阻挡。
        * 方法由 MovementSystem 高频调用，内部 250ms 节流且仅在签名变化时失效缓存。
        */
       syncEntityFootprintObstacles(entities, now = Date.now()) {
@@ -636,7 +636,7 @@ class PathFinder {
               if (!entity || entity.active === false || entity.noCollision === true) continue;
               if (entity.collisionShape !== 'iso_rect') continue;
               if (!(entity.immovable || entity.noSeparation || entity._isBuilding || entity._isDefenseStructure)) continue;
-              if (entity._isDefenseTower || entity._isDefenseCover || entity._isCoverGate || entity._isWallStaircase) continue;
+              if (entity._isDefenseCover || entity._isCoverGate || entity._isWallStaircase) continue;
               const vertices = isoFootprintVertices(entity);
               if (!vertices.length) continue;
               let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;

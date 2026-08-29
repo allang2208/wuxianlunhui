@@ -1,0 +1,46 @@
+{
+  "selected": "candidate_3",
+  "label": "现代防御型：冷灰预制混凝土 + 蓝黑钢",
+  "runtimeAssetsTouchedByThisScript": false,
+  "promotionReady": true,
+  "promotedToRuntime": true,
+  "base": {
+    "path": "tools/ai-gen/_defense_tower_style_refine_candidates_20260829/renders/selected_obstacle_defense_tower.png",
+    "size": [
+      324,
+      498
+    ],
+    "alphaExact": true,
+    "sha256": "4844105e23e19672e0e08b60cbbd8c9a7b90a84c83c7340c73618fe5dab09c06"
+  },
+  "armSheet": {
+    "path": "tools/ai-gen/_defense_tower_style_refine_candidates_20260829/renders/selected_obstacle_defense_tower_arm_frames.png",
+    "size": [
+      2088,
+      984
+    ],
+    "frames": 48,
+    "frameSize": [
+      261,
+      164
+    ],
+    "grid": [
+      8,
+      6
+    ],
+    "allFrameAlphaExact": true,
+    "sha256": "6b59699c809329701af5bc30dbf1cf4399e05d1c71686db24f6b316bb959f0a7"
+  },
+  "previews": [
+    "tools/ai-gen/_defense_tower_style_refine_candidates_20260829/previews/selected_candidate_3_runtime_preview.png",
+    "tools/ai-gen/_defense_tower_style_refine_candidates_20260829/previews/selected_candidate_3_arm_8_angles.png"
+  ],
+  "invariants": {
+    "geometry": "unchanged",
+    "camera": "unchanged",
+    "baseCanvas": "unchanged",
+    "armFrameCanvas": "unchanged",
+    "transparentArea": "locked to prior runtime assets",
+    "collisionAndGameplayConfig": "not touched"
+  }
+}

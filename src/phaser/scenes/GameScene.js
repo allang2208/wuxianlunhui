@@ -839,10 +839,14 @@ export class GameScene extends Scene {
         // 世界-122 毒蛆大椭圆阴影在基地掩体线反复压住虫身的根因；所有怪物适用）
         this._syncEntityShadows(_game);
         this._sunShadowSyncTimer = (this._sunShadowSyncTimer ?? 80) + _delta;
-        if (this._sunShadowSyncTimer >= 80) {
+        const periodicShadowSync = this._sunShadowSyncTimer >= 80;
+        const towerShadowDirty = this._dynamicTowerShadowDirty === true;
+        if (periodicShadowSync || towerShadowDirty) {
             // 太阳角度和静态建筑拓扑不会按 60Hz 发生可见变化；12.5Hz 足够平滑，
-            // 同时避免每帧创建阴影任务、Set、签名及触发聚类检查。
-            this._sunShadowSyncTimer %= 80;
+            // 同时避免每帧创建阴影任务、Set、签名及触发聚类检查。炮臂帧角变化则
+            // 立即失效一次共享层，防止 80ms 节流让炮臂阴影落后于已显示的量化帧。
+            if (periodicShadowSync) this._sunShadowSyncTimer %= 80;
+            this._dynamicTowerShadowDirty = false;
             this._syncStructureSunShadows(_game);
             this._syncStaticSunShadows();
         }
@@ -12089,7 +12093,7 @@ export class GameScene extends Scene {
     /**
      * 防御塔三层渲染：基座（静态，已去臂贴图）+ 机械臂（绕塔顶枢轴 360° 旋转）+
      * 挂载武器（跟随臂尖，朝向=塔 aimAngle）。
-     * 世界-122 防守塔：臂贴图 `obstacle_defense_tower_arm`，几何见 DEFENSE_TOWER_VISUAL。
+     * 世界-122 防守塔：臂帧表 `obstacle_defense_tower_arm_frames`，几何见 DEFENSE_TOWER_VISUAL。
      */
     _syncDefenseTowers(_game) {
         if (!_game || !_game.entities) return;
@@ -12111,6 +12115,7 @@ export class GameScene extends Scene {
                     base: this.add.sprite(0, 0, 'obstacle_defense_tower'),
                     arm: this.add.sprite(0, 0, 'obstacle_defense_tower_arm_frames'),
                     weapon: this.add.sprite(0, 0, 'weapon_rusty_sword'),
+                    shadowRevision: -1,
                 };
                 sp.arm._frameIdx = -1;
                 sp.base.setOrigin(0.5, 0.5);
@@ -12118,14 +12123,25 @@ export class GameScene extends Scene {
                 sp.weapon.setOrigin(0.5, 0.5);
                 this._defenseSprites.set(e, sp);
             }
-            // 基座
-            const towerGroundY = e.y + (Number(e._visualGroundOffsetY)
-                || V.base.footprintCenterOffsetY
-                || 0);
-            sp.base.setPosition(e.x, towerGroundY - V.base.footOffsetY);
-            sp.base.setDisplaySize(V.base.w, V.base.h);
+            // 基座：沿普通建筑唯一入口，把素材法兰接地面映射到既有 2x2 碰撞棱柱。
+            // 这里仅消费视觉拟合结果，不反写碰撞、占格或寻路。
+            this._applyStructureVisualSize(e, sp.base);
+            const baseFootOffset = this._getFootOffsetY(e, sp.base);
+            const baseVisualOffsetX = this._getVisualOffsetX(e, sp.base);
+            const towerGroundY = e.y;
+            sp.base.setPosition(e.x + baseVisualOffsetX, towerGroundY - baseFootOffset);
             sp.base.setFlipX(!!e._mirrored);
             sp.base.setVisible(true);
+            const assemblyScale = Math.max(0.01,
+                (Number(sp.base.displayWidth) || V.base.w) / V.base.referenceW);
+            e._defenseTowerAssemblyScale = assemblyScale;
+            e._visualGroundOffsetY = 0;
+            e._visualFootOffsetY = baseFootOffset;
+            if (typeof e._syncShadowCaster === 'function') e._syncShadowCaster();
+            if (sp.shadowRevision !== e._towerShadowRevision) {
+                sp.shadowRevision = e._towerShadowRevision;
+                this._dynamicTowerShadowDirty = true;
+            }
             // 统一遮挡锚线（2026-08-16 全建筑同口径）：塔深度 = _faceDepth（接地线 y + 12），
             // 与小屋/基地/能源矿一致；单位在其后被压到塔下、在前/同线被抬到塔上（+0.5）。
             // 旧实现用 e.y + 2：与中立建筑深度不一致，同线单位 z-fight（建筑遮挡仓鼠）。
@@ -12135,12 +12151,15 @@ export class GameScene extends Scene {
             sp.base.setDepth(towerDepth);
             // 机械臂：预渲染 3D 旋转帧（48 帧），按 aimAngle 选最近帧；
             // 枢轴=帧内固定像素（相机固定 + 模型绕塔顶轴旋转），origin 设枢轴。
-            const pivotX = e.x;
-            const pivotY = towerGroundY - V.arm.pivotWorldY;
+            const pivotX = sp.base.x;
+            const pivotY = towerGroundY - V.muzzleHeight;
             const m = e._mirrored ? -1 : 1;
+            const renderAimAngle = typeof e._renderAimAngle === 'function'
+                ? e._renderAimAngle()
+                : e.aimAngle;
             // 世界旋转 = -aimAngle（游戏 y 向下，屏幕顺时针=世界逆时针的镜像）；
             // 镜像塔再取反并 flipX 帧
-            const theta = e._mirrored ? e.aimAngle : -e.aimAngle;
+            const theta = e._mirrored ? renderAimAngle : -renderAimAngle;
             const armStep = (Math.PI * 2) / V.arm.frames;
             let armIdx = Math.round(theta / armStep) % V.arm.frames;
             if (armIdx < 0) armIdx += V.arm.frames;
@@ -12151,7 +12170,7 @@ export class GameScene extends Scene {
             const armFrame = sp.arm.frame;
             sp.arm.setOrigin(V.arm.pivot.x / armFrame.width, V.arm.pivot.y / armFrame.height);
             sp.arm.setPosition(pivotX, pivotY);
-            sp.arm.setDisplaySize(V.arm.w, V.arm.h);
+            sp.arm.setDisplaySize(V.arm.w * assemblyScale, V.arm.h * assemblyScale);
             sp.arm.setRotation(0);
             sp.arm.setFlipX(!!e._mirrored);
             sp.arm.setDepth(towerDepth + 0.05);
@@ -12162,12 +12181,12 @@ export class GameScene extends Scene {
             if (item) {
                 let tex = getWeaponTextureKey(item);
                 if (!this.textures.exists(tex)) tex = 'weapon_rusty_sword';
-                const gs = V.arm.gameScale;
-                const tipOX = gs * V.arm.k * V.arm.reach * Math.cos(e.aimAngle) * m;
-                const tipOY = gs * V.arm.k * (0.5 * V.arm.reach * Math.sin(e.aimAngle) - 0.866 * V.arm.dz);
+                const gs = V.arm.gameScale * assemblyScale;
+                const tipOX = gs * V.arm.k * V.arm.reach * Math.cos(renderAimAngle) * m;
+                const tipOY = gs * V.arm.k * (0.5 * V.arm.reach * Math.sin(renderAimAngle) - 0.866 * V.arm.dz);
                 const tipX = pivotX + tipOX;
                 const tipY = pivotY + tipOY;
-                let wAng = Math.atan2(0.5 * V.arm.reach * Math.sin(e.aimAngle) - 0.866 * V.arm.dz, V.arm.reach * Math.cos(e.aimAngle));
+                let wAng = Math.atan2(0.5 * V.arm.reach * Math.sin(renderAimAngle) - 0.866 * V.arm.dz, V.arm.reach * Math.cos(renderAimAngle));
                 if (e._mirrored) wAng = Math.PI - wAng;
                 const flipY = Math.abs(wAng) > Math.PI / 2;
                 // 枪管模式（"枪插进机械臂"假象，2026-08-14）：用预裁剪的枪管独立贴图，
@@ -12177,17 +12196,21 @@ export class GameScene extends Scene {
                     const barrelTex = `tower_barrel_${item.weaponId}`;
                     if (sp.weapon.texture.key !== barrelTex) sp.weapon.setTexture(barrelTex);
                     sp.weapon.setOrigin(0, 0.5);
-                    const rootInset = barrelCfg.inset ?? 7;
+                    const rootInset = (barrelCfg.inset ?? 7) * assemblyScale;
                     sp.weapon.setPosition(tipX - Math.cos(wAng) * rootInset, tipY - Math.sin(wAng) * rootInset);
                     sp.weapon.setRotation(wAng);
                     sp.weapon.setFlipX(false);
                     sp.weapon.setFlipY(flipY);
-                    sp.weapon.setScale(barrelCfg.height / barrelCfg.h);
+                    sp.weapon.setScale(barrelCfg.height * assemblyScale / barrelCfg.h);
                 } else {
                     if (sp.weapon.texture.key !== tex) sp.weapon.setTexture(tex);
                     sp.weapon.setOrigin(0.5, 0.5);
-                    const wH = V.weapon.heights[item.weaponType] || V.weapon.defaultHeight;
-                    sp.weapon.setPosition(tipX + Math.cos(wAng) * 8, tipY + Math.sin(wAng) * 8);
+                    const wH = (V.weapon.heights[item.weaponType] || V.weapon.defaultHeight)
+                        * assemblyScale;
+                    sp.weapon.setPosition(
+                        tipX + Math.cos(wAng) * 8 * assemblyScale,
+                        tipY + Math.sin(wAng) * 8 * assemblyScale
+                    );
                     sp.weapon.setRotation(wAng);
                     sp.weapon.setFlipX(false);
                     sp.weapon.setFlipY(flipY);

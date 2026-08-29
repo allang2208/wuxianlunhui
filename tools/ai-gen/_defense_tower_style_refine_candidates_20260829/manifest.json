@@ -1,0 +1,55 @@
+{
+  "asset": "obstacle_defense_tower",
+  "status": "candidate_3_selected_and_promoted",
+  "selectedVariant": "candidate_3",
+  "model": "flux2-dev-fp8",
+  "generation": {
+    "size": "1024x1024",
+    "steps": 24,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple"
+  },
+  "invariants": {
+    "geometrySource": "tools/render-defense-tower.py",
+    "armGeometrySource": "tools/render-defense-tower-frames.py",
+    "cameraElevation": 30,
+    "orthoScale": 400,
+    "baseCanvas": [324, 498],
+    "armFrameCanvas": [261, 164],
+    "runtimeBaseSize": [279.310345, 429.310345],
+    "assemblyScale": 1.643002,
+    "baseAlphaSource": "assets/terrain/obstacle_defense_tower.png",
+    "armAlphaSource": "assets/terrain/obstacle_defense_tower_arm_frames.png",
+    "runtimeAssetsTouched": true
+  },
+  "promotedAssets": [
+    "assets/terrain/obstacle_defense_tower.png",
+    "assets/terrain/obstacle_defense_tower_arm_frames.png",
+    "assets/ui/building-thumbnails/tower.png",
+    "assets/terrain/lighting/obstacle_defense_tower_silhouette.png",
+    "assets/terrain/lighting/obstacle_defense_tower_projection.png",
+    "assets/terrain/lighting/obstacle_defense_tower_height.png",
+    "assets/terrain/lighting/obstacle_defense_tower_normal.png"
+  ],
+  "variants": [
+    {
+      "id": "candidate_1",
+      "label": "桥接型：风化暖灰混凝土 + 分段枪灰钢",
+      "concreteSeed": 829101,
+      "metalSeed": 829102
+    },
+    {
+      "id": "candidate_2",
+      "label": "中世纪工业型：矿物骨料混凝土 + 锻黑钢",
+      "concreteSeed": 829201,
+      "metalSeed": 829205
+    },
+    {
+      "id": "candidate_3",
+      "label": "现代防御型：冷灰预制混凝土 + 蓝黑钢",
+      "concreteSeed": 829303,
+      "metalSeed": 829304
+    }
+  ]
+}

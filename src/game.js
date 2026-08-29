@@ -1958,12 +1958,6 @@ EffectManager.update(dt);
                 if (a._elevatedNavigationBridge || b._elevatedNavigationBridge) continue;
                 // 墙上/楼梯单位与墙下地面单位垂直区间不重叠时，二维投影即使重合也不分离。
                 if (!verticalRangesOverlap(a, b)) continue;
-                // 防御塔只挡怪物、不挡玩家/友军（友方可贴塔站位；2026-08-14）
-                const aTower = !!a._isDefenseTower, bTower = !!b._isDefenseTower;
-                if (aTower !== bTower) {
-                    const other = aTower ? b : a;
-                    if (other._faction === 'player' || other._faction === 'companion') continue;
-                }
                 // 玩家与正在攻击自己的敌人不再互相推开，避免近战攻击时把目标小幅挤开
                 if (player && (
                     (a === player && this._isEnemyAttackingTarget(b, player)) ||
