@@ -9,7 +9,8 @@ import {
 // 建筑图层统一口径（2026-08-16，世界-122 全建筑共用）
 //
 // 唯一规则（与掩体/铁闸门/仓鼠小屋同一套）：
-// - iso_rect 建筑：以完整地面 footprint 的屏幕前缘为排序边界；
+// - iso_rect 建筑：整张可见贴图只负责画面相交候选，前后关系仍以完整地面
+//   footprint 为几何真源；禁止把贴图高度投影成虚假的地面占地；
 // - 墙/门等线结构：以实际接地面线为排序边界；
 // - `_faceDepth`：统一由 `structureDepthAtY(前缘Y)` 生成；
 // - 普通建筑与移动单位共用 u/v footprint 前后关系；墙/门仍走面线仲裁；
@@ -247,6 +248,9 @@ export function dynamicStructureDepthConstraints(
         const structureBaseDepth = Number.isFinite(structure._structureTopologyBaseDepth)
             ? structure._structureTopologyBaseDepth
             : renderDepth;
+        // 可见 AABB 只决定是否需要仲裁。前后关系继续消费真实接地 footprint：
+        // 若把高塔/屋顶的屏幕高度映射进 u/v，会把左右斜前方误吞进建筑体内，
+        // 随后的自然深度回退便会让本应在前方的单位被整栋建筑压住。
         let relation = compareIsoBoundsOrder(unitGroundBounds, structureGroundBounds);
         if (relation === 0) {
             // 斜向交叉/同角接触时，与静态结构的 stableNodeCompare 一样回退自然深度；

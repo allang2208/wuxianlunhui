@@ -1,0 +1,27 @@
+{
+  "variant": "low",
+  "tier": "brick",
+  "source": "tools/ai-gen/_wall_battlement_20260828/tier_renders/wall_battlement_low_brick_raw.png",
+  "cropBox": [
+    339,
+    150,
+    685,
+    931
+  ],
+  "fileSize": [
+    346,
+    781
+  ],
+  "modelFootprint": [
+    64,
+    64
+  ],
+  "modelFootprintSide": 64,
+  "logicalFootprintAreaCells": 0.25,
+  "placementRole": "attach_to_standard_wall_outer_edge",
+  "standardWallHeight": 160,
+  "totalHeight": 196,
+  "heightAboveWall": 36,
+  "runtimeStatus": "integrated",
+  "output": "assets/terrain/wall_battlement_low_brick.png"
+}

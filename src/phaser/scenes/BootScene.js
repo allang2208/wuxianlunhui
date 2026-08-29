@@ -339,6 +339,25 @@ export class BootScene extends Scene {
         this.load.image('obstacle_block', 'assets/terrain/obstacle_block.png');
         this.load.image('obstacle_block_concrete', 'assets/terrain/obstacle_block_concrete.png');
         this.load.image('obstacle_block_rune', 'assets/terrain/obstacle_block_rune.png');
+        // 外沿女墙与城墙塔随方块墙五级材质同步换肤。
+        for (const tier of ['sand', 'brick', 'black_brick', 'concrete', 'rune']) {
+            this.load.image(
+                `wall_battlement_high_${tier}`,
+                `assets/terrain/wall_battlement_high_${tier}.png`
+            );
+            this.load.image(
+                `wall_battlement_low_${tier}`,
+                `assets/terrain/wall_battlement_low_${tier}.png`
+            );
+            this.load.image(
+                `wall_tower_${tier}`,
+                `assets/terrain/wall_tower_${tier}.png`
+            );
+            this.load.image(
+                `wall_tower_${tier}_foreground`,
+                `assets/terrain/wall_tower_${tier}_foreground.png`
+            );
+        }
         // 2026-08-17：4 格门图标（面板缩略图 + 放置幽灵预览）
         this.load.image('gate_4cell', 'assets/terrain/gate_4cell.png');
         // 世界-122 掩体（F→A 六档；v1=定稿 + v2~v5 随机变体库，2026-08-05 入库）

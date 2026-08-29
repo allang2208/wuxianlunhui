@@ -1,5 +1,5 @@
 {
-  "version": 42,
+  "version": 43,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -30,31 +30,32 @@
     },
     {
       "id": "fortification_engineering", "name": "城防工事", "icon": "🏰", "iconPath": "assets/ui/technology-icons/fortification_engineering.png", "branch": "工程", "column": 1, "lane": 0, "researchCost": 90,
-      "prerequisites": ["engineering_drafting"], "description": "掌握大型城门与城墙通行结构，形成完整防线。",
+      "prerequisites": ["engineering_drafting"], "description": "掌握大型城门、城墙楼梯与外沿女墙结构，为更高等级的城墙塔和自动防御工事建立基础。",
       "unlocks": [
         { "type": "building", "id": "gate_4cell", "label": "四格城门" },
         { "type": "building", "id": "wall_staircase", "label": "城墙楼梯" },
+        { "type": "building", "id": "wall_battlement", "label": "城垛女墙" },
         { "type": "upgrade", "id": "research_structure_hp", "label": "结构耐久研究" }
       ]
     },
     {
       "id": "wall_brickwork", "name": "烧制砖工艺", "icon": "🧱", "iconPath": "assets/ui/technology-icons/wall_brickwork.png", "branch": "工程", "column": 2, "lane": 3, "researchCost": 140,
-      "prerequisites": ["fortification_engineering"], "description": "改良窑炉、砂浆与错缝砌筑工艺，使方块墙由基础沙墙升级为耐候砖墙。",
+      "prerequisites": ["fortification_engineering"], "description": "改良窑炉、砂浆与错缝砌筑工艺，使方块墙、城垛女墙与城墙塔升级为耐候砖砌结构。",
       "unlocks": [{ "type": "upgrade", "id": "wall_material_brick", "label": "二级墙体：砖墙" }]
     },
     {
       "id": "wall_black_brickwork", "name": "黑砖砌筑", "icon": "⬛", "iconPath": "assets/ui/technology-icons/wall_black_brickwork.png", "branch": "工程", "column": 3, "lane": 3, "researchCost": 220,
-      "prerequisites": ["wall_brickwork"], "description": "通过高温烧结与致密砂浆强化砖体，使方块墙升级为深色高密度黑砖墙。",
+      "prerequisites": ["wall_brickwork"], "description": "通过高温烧结与致密砂浆强化砖体，使方块墙、城垛女墙与城墙塔升级为深色高密度黑砖工事。",
       "unlocks": [{ "type": "upgrade", "id": "wall_material_black_brick", "label": "三级墙体：黑砖墙" }]
     },
     {
       "id": "wall_concrete_fortification", "name": "混凝土工事", "icon": "🏗️", "iconPath": "assets/ui/technology-icons/wall_concrete_fortification.png", "branch": "工程", "column": 4, "lane": 3, "researchCost": 360,
-      "prerequisites": ["wall_black_brickwork"], "description": "引入级配骨料与标准化浇筑技术，在保留砌块结构的同时升级为混凝土墙。",
+      "prerequisites": ["wall_black_brickwork"], "description": "引入级配骨料与标准化浇筑技术，使方块墙、城垛女墙与城墙塔升级为混凝土工事。",
       "unlocks": [{ "type": "upgrade", "id": "wall_material_concrete", "label": "四级墙体：混凝土墙" }]
     },
     {
       "id": "wall_rune_fortification", "name": "符文城防", "icon": "🔷", "iconPath": "assets/ui/technology-icons/wall_rune_fortification.png", "branch": "工程", "column": 5, "lane": 3, "researchCost": 560,
-      "prerequisites": ["wall_concrete_fortification"], "description": "把能量回路刻入黑色砌砖并稳定供能，使方块墙升级为高科技符文墙。",
+      "prerequisites": ["wall_concrete_fortification"], "description": "把能量回路刻入黑色砌砖并稳定供能，使方块墙、城垛女墙与城墙塔升级为高科技符文城防。",
       "unlocks": [{ "type": "upgrade", "id": "wall_material_rune", "label": "五级墙体：高科技符文墙" }]
     },
     {
@@ -107,12 +108,17 @@
       "unlocks": [{ "type": "building", "id": "interplane_research_hub", "label": "跨位面中枢" }]
     },
     {
-      "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "iconPath": "assets/ui/technology-icons/defense_tower_engineering.png", "branch": "工程", "column": 2, "lane": 0, "researchCost": 240,
-      "prerequisites": ["fortification_engineering"], "description": "整合自动索敌、武器挂载和强化基座技术，允许建造高级防御塔。",
+      "id": "wall_tower_engineering", "name": "城墙塔工程", "icon": "🏯", "iconPath": "assets/ui/building-thumbnails/wall_tower_sand.png", "branch": "工程", "column": 2, "lane": 0, "researchCost": 160,
+      "prerequisites": ["fortification_engineering"], "description": "把四个独立城墙单元组合为2×2双层塔楼，形成可从四向相邻城墙无缝进入的封闭塔顶步道。",
+      "unlocks": [{ "type": "building", "id": "wall_tower", "label": "城墙塔" }]
+    },
+    {
+      "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "iconPath": "assets/ui/technology-icons/defense_tower_engineering.png", "branch": "工程", "column": 3, "lane": 0, "researchCost": 240,
+      "prerequisites": ["wall_tower_engineering"], "description": "在城墙塔承重与高位平台工程基础上整合自动索敌、武器挂载和强化基座技术，允许建造高级防御塔。",
       "unlocks": [{ "type": "building", "id": "tower", "label": "防御塔" }]
     },
     {
-      "id": "modular_reconstruction", "name": "打包重建", "icon": "📦", "iconPath": "assets/ui/technology-icons/modular_reconstruction.png", "branch": "工程", "column": 3, "lane": 0, "researchCost": 300,
+      "id": "modular_reconstruction", "name": "打包重建", "icon": "📦", "iconPath": "assets/ui/technology-icons/modular_reconstruction.png", "branch": "工程", "column": 4, "lane": 0, "researchCost": 300,
       "prerequisites": ["defense_tower_engineering"], "description": "把已建成的标准建筑打包为可复用模块，允许免费迁移并在满足占地条件的位置重建。",
       "unlocks": [{ "type": "mechanic", "id": "building_relocation", "label": "建筑打包重建" }]
     },

@@ -1,0 +1,44 @@
+{
+  "camera": {
+    "elevation": 30.0,
+    "azimuth": 0.0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 930,
+    "topMargin": 36,
+    "widthMargin": 0.84
+  },
+  "palette": {
+    "stone": [0.36, 0.34, 0.30, 1.0],
+    "stoneBand": [0.28, 0.27, 0.25, 1.0]
+  },
+  "buildings": {
+    "wall_tower": {
+      "assetClass": "defense_wall_structure",
+      "foundationStyle": "none",
+      "dimensions": {
+        "cell": 128,
+        "cellJoint": 3,
+        "currentWallHeight": 160,
+        "towerHeight": 320,
+        "parapetHeight": 38,
+        "parapetThickness": 18,
+        "merlonHeight": 34,
+        "doorSpringZ": 110,
+        "doorArchRadius": 48,
+        "archRingThickness": 14,
+        "upperPassageFloorZ": 160,
+        "upperPassageSpringZ": 226,
+        "upperPassageArchRadius": 44
+      },
+      "materialTiers": [
+        { "id": "sand", "wallTextureKey": "obstacle_block_sand", "source": "tools/ai-gen/_depth_templates/stair_tread_sand.png", "runtimeTextureKey": "wall_tower_sand" },
+        { "id": "brick", "wallTextureKey": "obstacle_block_brick", "source": "tools/ai-gen/_depth_templates/stair_tread_brick.png", "runtimeTextureKey": "wall_tower_brick" },
+        { "id": "black_brick", "wallTextureKey": "obstacle_block", "source": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png", "runtimeTextureKey": "wall_tower_black_brick" },
+        { "id": "concrete", "wallTextureKey": "obstacle_block_concrete", "source": "tools/ai-gen/_depth_templates/stair_tread_concrete.png", "runtimeTextureKey": "wall_tower_concrete" },
+        { "id": "rune", "wallTextureKey": "obstacle_block_rune", "source": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png", "runtimeTextureKey": "wall_tower_rune", "ornamentStyle": "sparse_structural_runes" }
+      ],
+      "structureContract": "Exactly four separately editable 1x1 square wall-block masses form one connected 2x2 square tower. The tower body is exactly twice the current wall-block height. Preserve one fully open ground-level round-arched passage running front to rear and one fully open second-level round-arched wall connection running left to right at the current wall-top height. The ground passage is cut directly through the wall body and must not have a decorative exterior arch ring, jambs or keystone; the second-level arch trim remains. The roof must remain one completely closed solid 2x2 walkable surface inside a restrained Stronghold-style crenellated parapet, with no central hole, stair shaft or visible internal stairs. All passage mouths must be true mesh openings with no closed door, dark backing or fake painted void. No roof cover, spire, annex, weapons, flags, terrain or detached props."
+    }
+  }
+}

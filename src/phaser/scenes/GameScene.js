@@ -3223,6 +3223,55 @@ export class GameScene extends Scene {
      * 让玩家、敌人、武器、技能特效都按世界 Y 坐标与环境墙壁/树木在同一深度空间排序。
      * 在 _syncBodiesToPhysics 之后调用，确保 Sprite 位置已更新。
      */
+    _wallTowerForegroundBand(entity) {
+        const surface = entity?._surfaceWall;
+        // 高差切换仍以真实 _surfaceWall 为准；图层则从脚底圆首次触及连接面开始
+        // 预取塔楼前景遮挡，消除普通墙→塔楼中心归属切换前的一帧闪层。
+        const transitionOccluder = entity?._surfaceForegroundOccluder;
+        const owner = transitionOccluder?.active
+            ? transitionOccluder
+            : (surface?._wallTowerOwner
+                || (surface?._isWallTower && surface?._wallTowerWalk ? surface : null));
+        const foreground = owner?.spriteCfg?.foregroundOverlay;
+        if (!owner?.active || foreground?.depthMode !== 'wallTowerParapet') return null;
+        const baseDepth = Number(owner._structureRenderDepth);
+        if (!Number.isFinite(baseDepth)) return null;
+        const foregroundOffset = Number.isFinite(Number(foreground.depthOffset))
+            ? Number(foreground.depthOffset)
+            : 0.45;
+        const unitClearance = Math.max(0.02,
+            Number(foreground.unitClearance) || 0.12);
+        return {
+            owner,
+            foregroundDepth: baseDepth + foregroundOffset,
+            maxUnitDepth: baseDepth + foregroundOffset - unitClearance,
+            surfaceOffset: Math.max(0.01,
+                Number(owner._wallTowerWalk?.surfaceDepthOffset) || 0.08),
+        };
+    }
+
+    _resolveElevatedSurfaceDepth(entity, depth, surfaceDepth) {
+        const band = this._wallTowerForegroundBand(entity);
+        const floor = surfaceDepth + (band?.surfaceOffset ?? 1);
+        const raised = Math.max(depth, floor);
+        return band ? Math.min(raised, band.maxUnitDepth) : raised;
+    }
+
+    _capWallTowerForegroundDepth(entity, depth) {
+        const band = this._wallTowerForegroundBand(entity);
+        return band ? Math.min(depth, band.maxUnitDepth) : depth;
+    }
+
+    _foregroundOverlayDepth(entity, baseDepth, foregroundCfg = null) {
+        const cfg = foregroundCfg || entity?.spriteCfg?.foregroundOverlay;
+        if (entity?._isWallTower && cfg?.depthMode === 'wallTowerParapet') {
+            return baseDepth + (Number.isFinite(Number(cfg.depthOffset))
+                ? Number(cfg.depthOffset)
+                : 0.45);
+        }
+        return entity?._structureRenderChannels?.frontFx ?? (baseDepth + 0.04);
+    }
+
     _updateDynamicDepths() {
         const Game = window.Game;
         if (!Game) return;
@@ -3270,7 +3319,7 @@ export class GameScene extends Scene {
 
         // 1. 玩家：深度基于脚底 Y（Sprite.y + footOffsetY）
         let playerNatural = 0, playerCorrected = 0;
-        if (this.playerSprite && this.playerSprite.active) {
+        if (Game.player && this.playerSprite && this.playerSprite.active) {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
             const depthProfile = this._getDynamicDepthProfile(
                 Game.player,
@@ -3298,7 +3347,8 @@ export class GameScene extends Scene {
                 || Game.player?._surfaceKind === 'stairs')
                 && Number.isFinite(playerSurfaceDepth)
                 && (Number(Game.player?.z) || 0) > 0) {
-                playerCorrected = Math.max(playerCorrected, playerSurfaceDepth + 1);
+                playerCorrected = this._resolveElevatedSurfaceDepth(
+                    Game.player, playerCorrected, playerSurfaceDepth);
             }
             setVisualDepthIfChanged(this.playerSprite, playerCorrected, depthStats);
         }
@@ -3334,7 +3384,7 @@ export class GameScene extends Scene {
                 if ((e._surfaceKind === 'wall_walk' || e._surfaceKind === 'stairs')
                     && Number.isFinite(surfaceDepth)
                     && (Number(e.z) || 0) > 0) {
-                    d = Math.max(d, surfaceDepth + 1);
+                    d = this._resolveElevatedSurfaceDepth(e, d, surfaceDepth);
                 }
                 setVisualDepthIfChanged(sprite, d, depthStats);
             });
@@ -3345,6 +3395,8 @@ export class GameScene extends Scene {
                 this.playerSprite,
                 playerCorrected
             );
+            playerCorrected = this._capWallTowerForegroundDepth(
+                Game.player, playerCorrected);
             setVisualDepthIfChanged(this.playerSprite, playerCorrected, depthStats);
         }
 
@@ -3400,9 +3452,10 @@ export class GameScene extends Scene {
                     && (unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')
                     && Number.isFinite(surfaceDepth)
                     && (Number(unit.z) || 0) > 0) {
-                    d = Math.max(d, surfaceDepth + 1);
+                    d = this._resolveElevatedSurfaceDepth(unit, d, surfaceDepth);
                 }
                 if (worldAnchored) d = raiseElevatedAboveLowerUnits(unit, sprite, d);
+                if (worldAnchored) d = this._capWallTowerForegroundDepth(unit, d);
                 setVisualDepthIfChanged(sprite, d, depthStats);
                 const ghost = this._companionGhosts?.[cid];
                 if (ghost?.active) setVisualDepthIfChanged(ghost, d - 0.05, depthStats);
@@ -3425,12 +3478,16 @@ export class GameScene extends Scene {
         // 玩家被墙压下（仲裁后 depth < 自然 depth）时跟随件改用 <0.5 的紧凑偏移——
         // 否则 +2/+1 的常规偏移会浮到遮挡墙之上（武器/盾牌穿墙显示）
         const playerDepth = (this.playerSprite && this.playerSprite.active) ? this.playerSprite.depth : 0;
-        const occluded = !!(this.playerSprite && this.playerSprite.active) && playerCorrected < playerNatural;
-        const weaponOff = occluded ? 0.4 : 2, offhandOff = occluded ? 0.3 : 1, shieldOff = occluded ? 0.2 : 1;
+        const towerParapetOccluded = !!this._wallTowerForegroundBand(Game.player);
+        const occluded = towerParapetOccluded
+            || (!!(this.playerSprite && this.playerSprite.active) && playerCorrected < playerNatural);
+        const weaponOff = towerParapetOccluded ? 0.06 : (occluded ? 0.4 : 2);
+        const offhandOff = towerParapetOccluded ? 0.05 : (occluded ? 0.3 : 1);
+        const shieldOff = towerParapetOccluded ? 0.04 : (occluded ? 0.2 : 1);
         if (this.weaponSprite && this.weaponSprite.active) {
             setVisualDepthIfChanged(this.weaponSprite, playerDepth + weaponOff, depthStats);
-            if (!this._pushStrikeWeaponDepth?.syncDepth(playerDepth, occluded)) {
-                this._whirlwindWeaponDepth?.syncDepth(playerDepth, occluded);
+            if (!this._pushStrikeWeaponDepth?.syncDepth(playerDepth, occluded, weaponOff)) {
+                this._whirlwindWeaponDepth?.syncDepth(playerDepth, occluded, weaponOff);
             }
         }
         if (this.offhandWeaponSprite && this.offhandWeaponSprite.active) {
@@ -3441,7 +3498,7 @@ export class GameScene extends Scene {
         }
         // 手部分层：恒在武器之上（身体 + 常规偏移之上再 +1）
         if (this.playerHandSprite && this.playerHandSprite.active) {
-            const handOff = occluded ? 0.5 : 3;
+            const handOff = towerParapetOccluded ? 0.08 : (occluded ? 0.5 : 3);
             setVisualDepthIfChanged(this.playerHandSprite, playerDepth + handOff, depthStats);
         }
         // 枪械姿态的躯干/手臂在动态仲裁前按上一帧 player depth 写入；这里必须跟随
@@ -3708,6 +3765,7 @@ export class GameScene extends Scene {
      */
     _getFootOffsetY(entity, sprite) {
         if (!sprite) return 0;
+        if (!entity) return (Number(sprite.displayHeight) || 0) * 0.5;
         const configured = entity.footOffsetY ?? entity.config?.render?.footOffsetY;
         if (shouldAutoAnchorStructure(entity) && sprite.texture?.key) {
             const fit = this._resolveStructureVisualFit(entity, sprite);
@@ -11268,7 +11326,8 @@ export class GameScene extends Scene {
                         neutral.overlaySprite.setDepth(channels.sprite + 0.01);
                     }
                     if (neutral?.foregroundSprite?.active) {
-                        neutral.foregroundSprite.setDepth(channels.frontFx);
+                        neutral.foregroundSprite.setDepth(this._foregroundOverlayDepth(
+                            entity, depth, neutral.sprCfg?.foregroundOverlay));
                     }
                     if (neutral?.workingEffectGraphics?.active) {
                         neutral.workingEffectGraphics.setDepth(channels.sprite + 0.015);
@@ -11970,7 +12029,8 @@ export class GameScene extends Scene {
                 }
                 if (overlaySprite?.active) overlaySprite.setDepth(dd + 0.01);
                 if (foregroundSprite?.active) {
-                    foregroundSprite.setDepth(e._structureRenderChannels?.frontFx ?? (dd + 0.04));
+                    foregroundSprite.setDepth(this._foregroundOverlayDepth(
+                        e, dd, sprCfg?.foregroundOverlay));
                 }
                 if (data.workingEffectGraphics?.active) {
                     data.workingEffectGraphics.setDepth(dd + 0.015);

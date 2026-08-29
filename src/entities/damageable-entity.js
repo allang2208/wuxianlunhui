@@ -28,6 +28,7 @@ import {
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { applyOutgoingDamageModifiers } from '../combat/outgoing-damage-modifiers.js';
+import { resolveDirectionalWallBattlementCover } from '../world/wall-battlement.js';
 
 // 友方阵营组：玩家与友军互相免疫伤害（防御塔/基地/掩体/伙伴等，2026-08-14）
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
@@ -278,6 +279,19 @@ export function isFriendlyFire(source, target) {
                     const marked = this.statusEffects.find(e => e.type === 'marked');
                     const markedMul = 1 + (marked && marked.value ? marked.value : 0.15);
                     baseDamage = Math.floor(baseDamage * markedMul);
+                }
+                // 女墙方向掩护在所有承伤、防御、暴击与来源增减伤之后结算，确保目标实际
+                // 少承受 50%，而不是把原始攻击力减半后再次走非线性防御公式。
+                const battlementCover = !isMelee
+                    ? resolveDirectionalWallBattlementCover(this, hitContext)
+                    : null;
+                if (battlementCover?.battlement && baseDamage > 0) {
+                    const battlement = battlementCover.battlement;
+                    const reduction = Math.max(0, Math.min(1,
+                        Number(battlement._battlementDamageReduction) || 0.5));
+                    const redirected = Math.floor(baseDamage * reduction);
+                    baseDamage -= redirected;
+                    battlement.takeRedirectedBattlementDamage?.(redirected, source);
                 }
                 // 扣血
                 this.hp -= baseDamage;

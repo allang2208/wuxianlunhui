@@ -4,8 +4,9 @@ import buildingUpgrades from '../../data/building-upgrades.json';
 import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
+import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 42;
+const VERSION = 43;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
 const V41_CAVALRY_SCOUT_RIFLE_ID = 'cavalry_scout_rifle';
@@ -550,6 +551,10 @@ export const TechnologySystem = {
         return this.getWallVisualTier().textureKey;
     },
 
+    getWallBattlementTextureKey(variant = 'high') {
+        return wallBattlementTextureKey(variant, this.getWallVisualTier().stairTextureSuffix);
+    },
+
     getWallStairTextureKey(baseTextureKey) {
         if (!baseTextureKey) return baseTextureKey;
         const baseKey = String(baseTextureKey).replace(WALL_STAIR_TIER_SUFFIX, '');
@@ -916,6 +921,14 @@ export const TechnologySystem = {
             && !completed.includes(V42_CAVALRY_TIER_3_ID)) {
             completed.push(V42_CAVALRY_TIER_3_ID);
         }
+        // v43 将城墙塔从“城防工事”拆成防御塔工程之前的独立科技。
+        // 旧档已经完成原城防工事时补齐新节点，保留既有塔楼权限。
+        if (savedVersion < 43
+            && completed.includes('fortification_engineering')
+            && nodesById.has('wall_tower_engineering')
+            && !completed.includes('wall_tower_engineering')) {
+            completed.push('wall_tower_engineering');
+        }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {
             const node = this.getNode(id);
@@ -1039,10 +1052,17 @@ export const TechnologySystem = {
         const wallTextureKey = this.getWallTextureKey();
         for (const entity of game?.entities?.values?.() || []) {
             entity?.refreshRecruitmentTier?.();
+            entity?.refreshWallTowerTier?.();
             if (entity?._isBlockCover && entity.spriteCfg) {
                 entity.spriteCfg.idleKey = wallTextureKey;
                 delete entity._structureVisualFitKey;
                 delete entity._structureVisualFit;
+                continue;
+            }
+            if (entity?._isWallBattlement && entity.spriteCfg) {
+                entity.spriteCfg.idleKey = this.getWallBattlementTextureKey(
+                    entity._wallBattlementVariant
+                );
                 continue;
             }
             if (!entity?._isWallStaircase || !Array.isArray(entity.visualSegments)) continue;
@@ -1058,6 +1078,7 @@ export const TechnologySystem = {
         }
         for (const building of game?.ProducerBuildingSystem?.buildings || []) {
             building?.refreshRecruitmentTier?.();
+            building?.refreshWallTowerTier?.();
         }
         game?.BuildingSystem?.refreshTechnologyUnlocks?.();
         game?.ProducerBuildingSystem?._panel?.refresh?.();

@@ -1999,6 +1999,18 @@ EffectManager.update(dt);
                     // 防御墙体的权威碰撞是同几何生成的 WallSystem._coverSeg；所有阵营都
                     // 只走该通道，避免实体 footprint 二次推出门洞或产生玩家/友军口径差异。
                     if (isoEnt._isDefenseCover) continue;
+                    // 城墙塔的建筑 footprint 只约束地面层。单位一旦取得与该塔相连的
+                    // wall_walk 承载组件，塔顶/塔墙升降接缝由统一高架surface负责，
+                    // 禁止普通建筑分离再次把单位从无缝接缝推出。
+                    if (isoEnt._isWallTower && other._surfaceKind === 'wall_walk') {
+                        const supports = [
+                            other._surfaceRef,
+                            other._surfaceWall,
+                            ...(Array.isArray(other._surfaceWalls) ? other._surfaceWalls : []),
+                        ];
+                        if (supports.some((support) => support === isoEnt
+                            || support?._wallTowerOwner === isoEnt)) continue;
+                    }
                     const immIso = !!isoEnt.noSeparation;
                     const immOther = !!other.noSeparation;
                     if (!(immIso && immOther)) {

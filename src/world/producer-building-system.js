@@ -126,6 +126,7 @@ import {
 } from './building-upgrade-projects.js';
 import { ResearchSystem } from './research-system.js';
 import { applyBuildingFootprint } from './building-footprint.js';
+import { buildingRoadLayout } from './building-road-system.js';
 import { SpawnPlacement } from './spawn-placement.js';
 import { RECRUIT_MODE, normalizeRecruitMode, recruitModeLabel, recruitStatusText } from './recruit-mode.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
@@ -546,6 +547,12 @@ export class ProducerBuilding extends DamageableEntity {
         this._cfg = cfg;
         this.id = config.id || `${cfg.id}_${Math.random().toString(36).slice(2, 8)}`;
         this._isProducerBuilding = true;
+        this._wallTowerWalk = cfg.wallTowerWalk ? { ...cfg.wallTowerWalk } : null;
+        this._wallTowerTopVision = cfg.wallTowerTopVision
+            ? { ...cfg.wallTowerTopVision }
+            : null;
+        this._isWallTower = this._wallTowerWalk?.enabled === true
+            || this._wallTowerTopVision?.enabled === true;
         this._isWorld122TributeAltar = cfg.panelMode === 'tribute';
         this._isDefenseStructure = true;
         this._allowsEnergyNodeOverlap = cfg.allowsEnergyNodeOverlap === true;
@@ -598,6 +605,21 @@ export class ProducerBuilding extends DamageableEntity {
             shadowCaster: this.spriteCfg.shadowCaster,
         };
         this._recruitmentBaseName = cfg.name;
+        this._wallTowerBaseVisual = this._isWallTower ? {
+            tex: this.spriteCfg.idleKey,
+            displayW: this.spriteCfg.size,
+            displayH: this.spriteCfg.sizeH,
+            footOffsetY: this.spriteCfg.footOffsetY,
+            foregroundOverlay: this.spriteCfg.foregroundOverlay
+                ? { ...this.spriteCfg.foregroundOverlay }
+                : null,
+        } : null;
+        this._wallTowerBaseStats = this._isWallTower ? {
+            name: cfg.name,
+            hp: Math.max(1, Number(cfg.hp) || 1),
+            def: Math.max(0, Number(cfg.def) || 0),
+            mdef: Math.max(0, Number(cfg.mdef) || 0),
+        } : null;
         this.footOffsetY = this.spriteCfg.footOffsetY;
         applyBuildingFootprint(this, Number(cfg.footprintCells) || 2);
         setupStructureDepth(this);
@@ -693,6 +715,8 @@ export class ProducerBuilding extends DamageableEntity {
         FieldHospitalSystem.initializeBuilding(this, config);
         CandleSanctuarySystem.initializeBuilding(this, config);
         WeatherForecastTowerSystem.initializeBuilding(this, config);
+        this.refreshWallTowerTier({ preserveHealthRatio: config.hp != null });
+        this.refreshWallTowerWalkNodes();
         this.rebuildCollider();
     }
 
@@ -1488,10 +1512,130 @@ export class ProducerBuilding extends DamageableEntity {
         }
     }
 
+    /**
+     * 城墙材质科技同时替换塔楼贴图与数值。逻辑占地始终保持2×2，
+     * 不让科技换肤改变碰撞、寻路或墙顶节点。
+     */
+    refreshWallTowerTier({ preserveHealthRatio = true } = {}) {
+        if (!this._isWallTower || !this._wallTowerBaseVisual || !this._wallTowerBaseStats) {
+            return false;
+        }
+        const targetLevel = Math.max(1, Number(TechnologySystem.getWallVisualTier()?.level) || 1);
+        const tier = (this._cfg.buildingTiers || [])
+            .filter((candidate) => Math.max(1, Number(candidate?.level) || 1) <= targetLevel)
+            .sort((left, right) => Number(right.level) - Number(left.level))[0] || {};
+        const visual = {
+            ...this._wallTowerBaseVisual,
+            ...(tier.visual || {}),
+        };
+        const nextTexture = visual.tex || this._wallTowerBaseVisual.tex;
+        const previousTexture = this.spriteCfg.idleKey;
+        const previousMaxHp = Math.max(1, Number(this.maxHp) || 1);
+        const healthRatio = preserveHealthRatio
+            ? Math.max(0, Math.min(1, (Number(this.hp) || 0) / previousMaxHp))
+            : 1;
+        const nextMaxHp = Math.max(1, Number(tier.hp) || this._wallTowerBaseStats.hp);
+        const nextName = tier.name || this._wallTowerBaseStats.name;
+        const nextForeground = visual.foregroundOverlay
+            ? { ...visual.foregroundOverlay }
+            : null;
+        const changed = previousTexture !== nextTexture
+            || this.name !== nextName
+            || this.maxHp !== nextMaxHp
+            || this.def !== (Number(tier.def) || this._wallTowerBaseStats.def)
+            || this.mdef !== (Number(tier.mdef) || this._wallTowerBaseStats.mdef);
+
+        this.level = Math.max(1, Number(tier.level) || 1);
+        this.name = nextName;
+        this._cfg.name = nextName;
+        this.spriteCfg.idleKey = nextTexture;
+        this.spriteCfg.size = Number(visual.displayW) || this._wallTowerBaseVisual.displayW;
+        this.spriteCfg.sizeH = Number(visual.displayH) || this._wallTowerBaseVisual.displayH;
+        this.spriteCfg.footOffsetY = Number(visual.footOffsetY)
+            || this._wallTowerBaseVisual.footOffsetY;
+        this.spriteCfg.foregroundOverlay = nextForeground;
+        this._cfg.foregroundOverlay = nextForeground;
+        this.footOffsetY = this.spriteCfg.footOffsetY;
+        this.maxHp = nextMaxHp;
+        this.hp = Math.max(0, Math.min(nextMaxHp, Math.round(nextMaxHp * healthRatio)));
+        this.def = Math.max(0, Number(tier.def) || this._wallTowerBaseStats.def);
+        this.mdef = Math.max(0, Number(tier.mdef) || this._wallTowerBaseStats.mdef);
+        if (changed) {
+            delete this._structureVisualFitKey;
+            delete this._structureVisualFit;
+            RuntimeAssetManager.transitionBuildingVisual(previousTexture, nextTexture, this.cfgKey);
+        }
+        return changed;
+    }
+
+    /**
+     * 城墙塔仍由 ProducerBuilding 负责生命值/建造/换肤，但高架导航按四个标准墙格展开。
+     * 节点不进入 Game.entities，避免重复渲染、受击和建筑碰撞；DefenseSystem 的统一
+     * ElevatedTopology 会从塔楼实体展开这些节点。
+     */
+    refreshWallTowerWalkNodes() {
+        if (!this._isWallTower || this._wallTowerWalk?.enabled === false) {
+            this._wallTowerWalkNodes = [];
+            return this._wallTowerWalkNodes;
+        }
+        const topZ = Math.max(1, Number(this._wallTowerWalk?.topZ) || 250);
+        const cells = buildingRoadLayout(
+            this.x,
+            this.y,
+            Number(this._cfg?.footprintCells) || 2
+        ).buildingCells;
+        const previous = Array.isArray(this._wallTowerWalkNodes)
+            ? this._wallTowerWalkNodes
+            : [];
+        this._wallTowerWalkNodes = cells.map((cell, index) => {
+            const owner = this;
+            const node = previous[index] || {
+                id: `${this.id}:wall-top:${index}`,
+                _isWalkableWall: true,
+                _isBlockCover: true,
+                _isWallTower: true,
+                _wallTowerOwner: owner,
+                get active() {
+                    return owner.active !== false && !owner._sinking;
+                },
+                get _sinking() {
+                    return !!owner._sinking;
+                },
+                get _faceDepth() {
+                    return Number(owner._structureRenderDepth)
+                        || Number(owner._surfaceRenderDepth)
+                        || Number(owner._structureFrontDepth)
+                        || 0;
+                },
+            };
+            node.id = `${this.id}:wall-top:${index}`;
+            const nextX = Number(cell.x) || 0;
+            const nextY = Number(cell.y) || 0;
+            const geometryChanged = node.x !== nextX
+                || node.y !== nextY
+                || node._wallTopZ !== topZ;
+            node.x = nextX;
+            node.y = nextY;
+            node._wallTopZ = topZ;
+            node._wallTowerTopVision = this._wallTowerTopVision;
+            if (geometryChanged || !Array.isArray(node._faceLine)) {
+                node._faceLine = [
+                    { x: node.x - 32, y: node.y - 16 },
+                    { x: node.x + 32, y: node.y + 16 },
+                ];
+                delete node._wallTopWalkGeometry;
+                delete node._wallTopConnectorCache;
+            }
+            return node;
+        });
+        return this._wallTowerWalkNodes;
+    }
+
     onDeath(_source) {
         this.active = true;
         this.hittable = false;
         this._sinking = true;
+        Game?.DefenseSystem?.invalidateElevatedTopology?.();
         this._destroyCleanup();
         if (EffectManager) {
             EffectManager.add(new BuildingSinkEffect(this));

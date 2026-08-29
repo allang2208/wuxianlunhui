@@ -1,0 +1,27 @@
+{
+  "variant": "high",
+  "tier": "rune",
+  "source": "tools/ai-gen/_wall_battlement_20260828/tier_renders/wall_battlement_high_rune_raw.png",
+  "cropBox": [
+    339,
+    75,
+    685,
+    931
+  ],
+  "fileSize": [
+    346,
+    856
+  ],
+  "modelFootprint": [
+    64,
+    64
+  ],
+  "modelFootprintSide": 64,
+  "logicalFootprintAreaCells": 0.25,
+  "placementRole": "attach_to_standard_wall_outer_edge",
+  "standardWallHeight": 160,
+  "totalHeight": 220,
+  "heightAboveWall": 60,
+  "runtimeStatus": "integrated",
+  "output": "assets/terrain/wall_battlement_high_rune.png"
+}

@@ -1,5 +1,58 @@
 {
   "_comment": "产兵建筑配置表：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。普通出兵建筑不配置 unitCap，只受房屋容量派生的全局军事人口限制；带 featureWorldId 的位面特色出兵建筑同时保留建筑/兵种 unitCap。升级项目统一由 building-upgrades.json 维护，建筑通过 upgradeProject 关联；每栋出兵建筑常显一组升级卡，通用模块同步应用其全部 unitTypes，特殊模块用 unitKinds 限定；recruitmentTiers 描述三级兵种槽位与占位状态，只有整级单位全部落地且科技解锁后才替换招募；supplementalUnitUnlocks 允许已完成独立科技的单个兵种在整级换代前作为补充选项出现；出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
+  "wall_tower": {
+    "id": "wall_tower",
+    "name": "沙砌城墙塔",
+    "cost": 2400,
+    "currency": "energy",
+    "hp": 6400,
+    "radius": 128,
+    "def": 70,
+    "mdef": 50,
+    "usesDefenseStats": true,
+    "tex": "wall_tower_sand",
+    "assetPath": "assets/terrain/wall_tower_sand.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/wall_tower_sand.png",
+    "displayW": 360,
+    "displayH": 509,
+    "footOffsetY": 252,
+    "foregroundOverlay": {
+      "textureKey": "wall_tower_sand_foreground",
+      "assetPath": "assets/terrain/wall_tower_sand_foreground.png",
+      "displayW": 360,
+      "displayH": 509,
+      "footOffsetY": 252,
+      "depthMode": "wallTowerParapet",
+      "depthOffset": 0.45,
+      "unitClearance": 0.12
+    },
+    "footprintCells": 2,
+    "perimeterTile": "none",
+    "replaceCoveredBlockWalls": true,
+    "coveredWallRefundRatio": 0.5,
+    "buildCategory": "defense",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "panelMode": "detail",
+    "unitTypes": [],
+    "modules": {},
+    "wallTowerWalk": {
+      "enabled": true,
+      "topZ": 250,
+      "surfaceDepthOffset": 0.08
+    },
+    "wallTowerTopVision": { "enabled": true, "radiusMultiplier": 2, "ignoreOcclusion": true },
+    "panelDescription": "由四个标准城墙顶单元组成的2×2高塔；塔顶与相邻城墙属于同一wall_walk通行区域，跨过接缝时保持对应XY位置并瞬时切换到目标高度，不播放上下移动过程。单位实际登顶后获得基础视野2倍的无阻挡高空视野。",
+    "buildWarning": "占地2×2；贴住现有方块墙或覆盖四格内至少1段独立方块墙即可建造，覆盖的1～4段旧墙按耐久返还半价，门柱与承载楼梯的墙不可替换。塔楼不提供地面入口；要让单位实际登顶，仍需连接带楼梯的现有城墙。连接后的四个方向均与相邻城墙无缝通行。",
+    "buildingTiers": [
+      { "id": "wall_tower_level_1", "level": 1, "name": "沙砌城墙塔", "baseline": true, "hp": 6400, "def": 70, "mdef": 50 },
+      { "id": "wall_tower_level_2", "level": 2, "name": "砖砌城墙塔", "hp": 8000, "def": 90, "mdef": 65, "visual": { "tex": "wall_tower_brick", "assetPath": "assets/terrain/wall_tower_brick.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "foregroundOverlay": { "textureKey": "wall_tower_brick_foreground", "assetPath": "assets/terrain/wall_tower_brick_foreground.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "depthMode": "wallTowerParapet", "depthOffset": 0.45, "unitClearance": 0.12 } } },
+      { "id": "wall_tower_level_3", "level": 3, "name": "黑砖城墙塔", "hp": 10000, "def": 120, "mdef": 85, "visual": { "tex": "wall_tower_black_brick", "assetPath": "assets/terrain/wall_tower_black_brick.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "foregroundOverlay": { "textureKey": "wall_tower_black_brick_foreground", "assetPath": "assets/terrain/wall_tower_black_brick_foreground.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "depthMode": "wallTowerParapet", "depthOffset": 0.45, "unitClearance": 0.12 } } },
+      { "id": "wall_tower_level_4", "level": 4, "name": "混凝土城墙塔", "hp": 12500, "def": 160, "mdef": 110, "visual": { "tex": "wall_tower_concrete", "assetPath": "assets/terrain/wall_tower_concrete.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "foregroundOverlay": { "textureKey": "wall_tower_concrete_foreground", "assetPath": "assets/terrain/wall_tower_concrete_foreground.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "depthMode": "wallTowerParapet", "depthOffset": 0.45, "unitClearance": 0.12 } } },
+      { "id": "wall_tower_level_5", "level": 5, "name": "符文城墙塔", "hp": 15000, "def": 190, "mdef": 160, "visual": { "tex": "wall_tower_rune", "assetPath": "assets/terrain/wall_tower_rune.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "foregroundOverlay": { "textureKey": "wall_tower_rune_foreground", "assetPath": "assets/terrain/wall_tower_rune_foreground.png", "displayW": 360, "displayH": 509, "footOffsetY": 252, "depthMode": "wallTowerParapet", "depthOffset": 0.45, "unitClearance": 0.12 } } }
+    ]
+  },
+
   "thatch_hut": {
     "id": "thatch_hut",
     "name": "仓鼠草屋",

@@ -37,6 +37,26 @@ function positiveNumber(value, fallback) {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+/**
+ * 塔顶继续使用现有 wall_walk 移动/战斗层，但视野必须精确识别当前承载体。
+ * 只认已提交的承载引用，不按坐标或高度猜测，避免塔下、门洞内和邻墙单位误获高空视野。
+ */
+function wallTowerTopVisionConfigOf(entity) {
+    if (!entity || entity._surfaceKind !== 'wall_walk') return null;
+    const carriers = [entity._surfaceRef, entity._surfaceWall];
+    const visited = new Set();
+    for (const carrier of carriers) {
+        if (!carrier || visited.has(carrier)) continue;
+        visited.add(carrier);
+        if (carrier.active === false || carrier._sinking) continue;
+        const config = carrier._wallTowerTopVision || carrier._cfg?.wallTowerTopVision;
+        if (carrier._isWallTower !== true && config?.enabled !== true) continue;
+        if (config?.enabled === false) continue;
+        return config || {};
+    }
+    return null;
+}
+
 function inferProfile(entity, game) {
     if (!entity) return null;
     const explicit = entity.fogVisionProfile || entity.config?.fogVisionProfile;
@@ -46,6 +66,8 @@ function inferProfile(entity, game) {
     if (!FRIENDLY_FACTIONS.has(faction)) return null;
     if (entity === game?.player) return 'player';
     if (entity._isWorldPortalCore || entity._isMainHubPortalBuilding) return 'portal';
+    // 空塔本体不是常驻视野源；高空视野只由实际登顶单位提供。
+    if (entity._isWallTower) return null;
     if (entity._isDefenseTower) return 'defenseTower';
     if (entity._isTroopProducer || entity._isProducerBuilding || entity._isHamsterHut) return 'troopProducer';
     if (entity._isHamsterScout) return 'scout';
@@ -200,7 +222,10 @@ export const VisionSourceRegistry = {
                 visionConfig
             );
         }
-        if (radius > 0 && entity._surfaceKind === 'wall_walk') {
+        const wallTowerTopVision = wallTowerTopVisionConfigOf(entity);
+        if (radius > 0 && wallTowerTopVision) {
+            radius *= positiveNumber(wallTowerTopVision.radiusMultiplier, 2);
+        } else if (radius > 0 && entity._surfaceKind === 'wall_walk') {
             radius *= positiveNumber(visionConfig.wallWalkMultiplier, 2);
         } else if (radius > 0 && entity._surfaceKind === 'stairs') {
             radius *= positiveNumber(visionConfig.stairsMultiplier, 1.2);
@@ -211,7 +236,8 @@ export const VisionSourceRegistry = {
     ignoresOcclusion(entity) {
         return this._records.get(entity)?.ignoreOcclusion === true
             || entity?.fogSightIgnoreOcclusion === true
-            || entity?.config?.fogSightIgnoreOcclusion === true;
+            || entity?.config?.fogSightIgnoreOcclusion === true
+            || wallTowerTopVisionConfigOf(entity)?.ignoreOcclusion === true;
     },
 
     describe(visionConfig = {}) {

@@ -1,5 +1,20 @@
 {
   "_comment": "世界-122 防御结构配置唯一真源。城墙楼梯按目标墙顶高度自动向地面延伸。",
+  "wallBattlement": {
+    "id": "wall_battlement",
+    "name": "城垛女墙",
+    "cost": 25,
+    "hp": 800,
+    "damageReduction": 0.5,
+    "attachRadius": 120,
+    "logicalSide": 64,
+    "displayWidth": 96,
+    "displayHeightHigh": 238,
+    "displayHeightLow": 217,
+    "highHeight": 220,
+    "lowHeight": 196,
+    "standardWallHeight": 160
+  },
   "wallStaircase": {
     "id": "wall_staircase",
     "name": "城墙楼梯",

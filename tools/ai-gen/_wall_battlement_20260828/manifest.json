@@ -1,0 +1,45 @@
+{
+  "camera": {
+    "elevation": 30.0,
+    "azimuth": 0.0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 930,
+    "topMargin": 54,
+    "widthMargin": 0.82
+  },
+  "palette": {
+    "stone": [0.36, 0.34, 0.30, 1.0],
+    "stoneBand": [0.28, 0.27, 0.25, 1.0]
+  },
+  "wallBattlement": {
+    "assetClass": "outer_edge_square_battlement_obstacle",
+    "dimensions": {
+      "cell": 128,
+      "segmentSide": 64,
+      "wallHeight": 160,
+      "highHeight": 220,
+      "lowHeight": 196,
+      "baseCourseHeight": 10,
+      "capCourseHeight": 12,
+      "bodyInset": 0,
+      "capOutwardOverhang": 3,
+      "crownBandHeight": 4,
+      "crownBandOutwardOverhang": 1,
+      "wallDatumBandHeight": 4,
+      "wallDatumBandOutwardOverhang": 2,
+      "separationGrooveHeight": 3,
+      "separationGrooveOutwardOverhang": 1,
+      "upperPilasterWidth": 7,
+      "upperPilasterProjection": 2
+    },
+    "materialTiers": [
+      { "id": "sand", "wallTextureKey": "obstacle_block_sand", "source": "tools/ai-gen/_depth_templates/stair_tread_sand.png" },
+      { "id": "brick", "wallTextureKey": "obstacle_block_brick", "source": "tools/ai-gen/_depth_templates/stair_tread_brick.png" },
+      { "id": "black_brick", "wallTextureKey": "obstacle_block", "source": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png" },
+      { "id": "concrete", "wallTextureKey": "obstacle_block_concrete", "source": "tools/ai-gen/_depth_templates/stair_tread_concrete.png" },
+      { "id": "rune", "wallTextureKey": "obstacle_block_rune", "source": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png", "ornamentStyle": "single_restrained_inset_channel" }
+    ],
+    "structureContract": "Two separate full-height square battlement segments attach along the outside edge of a standard wall. Each logical footprint is exactly 64x64, so two adjacent battlements span exactly one 128-unit wall edge with no body gap or overlap and each occupies one quarter of a 128x128 wall cell by area. All bands and caps remain exactly 64 units along the wall direction; their relief may project only in the outward depth direction, preserving the exact two-per-wall rhythm. The high segment is 220 units tall and the low segment is 196 units tall; both clearly exceed the existing 160-unit wall, while their restrained 24-unit difference creates a readable firing notch. A dark separation groove and projecting datum band mark the standard wall-top height, and the raised portion adds front-face pilasters, a crown band and an outward-projecting cap so the parapet remains identifiable even with the same wall texture. The main wall remains the continuous walkable rampart behind them; each outer-edge battlement top is solid, blocked and non-walkable. Geometry, camera and scale remain identical across all five material tiers."
+  }
+}

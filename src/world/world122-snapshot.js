@@ -29,6 +29,8 @@ import {
 import { FogOfWarSystem } from './fog-of-war-system.js';
 import { setCrossPlaneSnapshotProvider } from './cross-plane-resource-system.js';
 import { takeLegacyLocalResearchLevels } from './ability-store.js';
+import { blockCellOf } from './gate4-grid.js';
+import { createWallBattlementAttachment } from './wall-battlement.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -355,6 +357,18 @@ export function captureWorld(sceneId = 'scene8') {
                 modules: e.modules ? { ...e.modules } : {},
                 weaponItem: e.weaponItem ? _clone(e.weaponItem) : null,
                 dps: _towerDps(e),
+                buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
+            });
+        } else if (e._isWallBattlement) {
+            const attachment = e._wallBattlementAttachment;
+            if (!attachment?.wallCell || !attachment.edge) continue;
+            structures.push({
+                kind: 'wall_battlement',
+                x: e.x, y: e.y, hp: Math.ceil(e.hp), maxHp: Math.ceil(e.maxHp),
+                variant: e.battlementVariant || attachment.variant || 'high',
+                wallCell: { ...attachment.wallCell },
+                edge: attachment.edge,
+                slot: attachment.slot,
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
         } else if (e._isGate4 && e._buildGroupRoot === e) {
@@ -1001,6 +1015,34 @@ function _restoreBlock(s) {
     return cover;
 }
 
+function _restoreWallBattlement(s) {
+    const wallCell = s.wallCell;
+    if (!wallCell || !s.edge || !Number.isInteger(s.slot)) return false;
+    let wall = null;
+    for (const entity of Game.entities.values()) {
+        if (!entity?.active || !entity._isBlockCover || entity._buildGroupRoot) continue;
+        const [i, j] = blockCellOf(entity.x, entity.y);
+        if (i === wallCell.i && j === wallCell.j) {
+            wall = entity;
+            break;
+        }
+    }
+    if (!wall) return false;
+    const attachment = createWallBattlementAttachment(wall, wallCell, s.edge, s.slot);
+    if (!attachment) return false;
+    const cover = new DefenseCover(attachment.x, attachment.y, {
+        grade: 'C', orient: 'v', mirror: false,
+        battlement: true,
+        battlementVariant: s.variant || attachment.variant,
+        attachment,
+        walkable: false,
+        id: s.id || `built_wall_battlement_r${++_seq}`,
+    });
+    _markRestored(cover, s);
+    Game.entities.set(cover.id, cover);
+    return true;
+}
+
 function _restoreGate4(s) {
     // 先石柱后门（与 _placeGate4 同序），整组回收链路重建
     const group = [];
@@ -1253,6 +1295,7 @@ function _restoreProducer(s, sceneId) {
     }
     Game.entities.set(producer.id, producer);
     ProducerBuildingSystem.buildings.push(producer);
+    if (producer._isWallTower) DefenseSystem?.invalidateElevatedTopology?.();
     BuildingRoadSystem.attach(producer, { allowOverlap: true });
     // 构造注册会先消费主存档 pending 能源；随后按快照覆盖本仓精确分量，避免同一库存重复恢复。
     if (producer._isEnergyWarehouse && EnergyManager) {
@@ -1411,6 +1454,7 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
     let restored = 0;
     for (const s of snap.structures || []) {
         if (!(s.hp > 0)) continue; // 后台战斗被毁建筑不复活
+        if (s.kind === 'wall_battlement') continue; // 依赖支撑墙，统一在首轮结构恢复后处理。
         try {
             if (s.kind === 'tower') _restoreTower(s);
             else if (s.kind === 'block') _restoreBlock(s);
@@ -1424,6 +1468,14 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             restored++;
         } catch (err) {
             console.error('[WorldSnapshot] 建筑恢复失败:', sceneId, s.kind, err);
+        }
+    }
+    for (const s of snap.structures || []) {
+        if (s.kind !== 'wall_battlement' || !(s.hp > 0)) continue;
+        try {
+            if (_restoreWallBattlement(s)) restored++;
+        } catch (err) {
+            console.error('[WorldSnapshot] 女墙恢复失败:', sceneId, err);
         }
     }
     // v1 全局粮食必须等仓库实体恢复并注册后再迁移；v2 粮食已逐仓库存档。

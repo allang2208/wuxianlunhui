@@ -41,6 +41,7 @@ export class ElevatedTopology {
         this._getTopZ = options.getTopZ || (() => 0);
         this._connectorFor = options.connectorFor || (() => null);
         this._junctionFor = options.junctionFor || (() => null);
+        this._expandWallCandidates = options.expandWallCandidates || ((candidate) => [candidate]);
         this._stepVectors = options.stepVectors || [];
         this._neighborToleranceFor = options.neighborToleranceFor || (() => 0);
         this._bucketSize = Math.max(32, Number(options.bucketSize) || 128);
@@ -79,6 +80,7 @@ export class ElevatedTopology {
 
     refresh(entitySource, staircases = []) {
         const walls = sourceValues(entitySource)
+            .flatMap((candidate) => this._expandWallCandidates(candidate) || [])
             .filter((wall) => wall?.active !== false && this._isWall(wall))
             .sort((left, right) => wallKey(left).localeCompare(wallKey(right)));
         const stairs = Array.from(staircases || [])
@@ -142,7 +144,8 @@ export class ElevatedTopology {
                     const key = pairKey(wall, neighbor);
                     if (seenPairs.has(key)) continue;
                     seenPairs.add(key);
-                    if (Math.abs(this._getTopZ(wall) - this._getTopZ(neighbor)) > 1) continue;
+                    // 是否允许连接不同高度由 connectorFor 的真实几何决定。普通墙仍会
+                    // 拒绝高差；城墙塔则在同一 wall_walk 拓扑内提供瞬时高度切换接缝。
                     const connector = this._connectorFor(wall, neighbor);
                     if (!connector) continue;
                     this._neighbors.get(wall).push(neighbor);

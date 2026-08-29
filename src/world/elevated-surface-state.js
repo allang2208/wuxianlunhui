@@ -80,12 +80,14 @@ export function commitElevatedSurfaceIdentity(unit, surface, staircase, z, trans
         || staircase?._wallStairGroupMembers
         || (staircase ? [staircase] : []);
     unit._surfaceComponentId = Number(surface?.topologyComponentId) || null;
+    unit._surfaceForegroundOccluder = surface?.foregroundOccluder || null;
     if (!unit._elevatedState) unit._elevatedState = {};
     unit._elevatedState.kind = unit._surfaceKind;
     unit._elevatedState.wall = wall;
     unit._elevatedState.staircase = staircase || null;
     unit._elevatedState.z = z;
     unit._elevatedState.transition = transition || null;
+    unit._elevatedState.foregroundOccluder = unit._surfaceForegroundOccluder;
     if (surface?.validatedSupport
         && (surface.kind === 'stairs' || surface.kind === 'wall_walk')) {
         unit._elevatedState.lastValidated = {

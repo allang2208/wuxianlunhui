@@ -14,6 +14,7 @@ import {
 } from './elevated-ranged.js';
 import { entityVerticalRange } from '../physics/elevation.js';
 import { spawnPlayerBulletImpactSparks } from '../effects/player-bullet-impact-fx.js';
+import { dynamicStructureDepthConstraints } from '../world/structure-depth.js';
 
 class Projectile {
     constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1, textureKey = null) {
@@ -125,6 +126,34 @@ class Projectile {
                         const weapon = snap
                             ? { _enchantEffects: snap.enchant, _craftEffects: snap.craft }
                             : (this.source ? (this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null)) : null);
+                        const projectileOrigin = this._wallContext?.projectileOrigin;
+                        const targetX = Number(entity.collider?.x);
+                        const targetY = Number(entity.collider?.y);
+                        const hitX = Number.isFinite(targetX) ? targetX : Number(entity.x) || this.x;
+                        const hitY = Number.isFinite(targetY) ? targetY : Number(entity.y) || this.y;
+                        const stepX = this.x - prevX;
+                        const stepY = this.y - prevY;
+                        const stepLengthSq = stepX * stepX + stepY * stepY;
+                        const hitT = stepLengthSq > 1e-6
+                            ? Math.max(0, Math.min(1,
+                                ((hitX - prevX) * stepX + (hitY - prevY) * stepY)
+                                / stepLengthSq))
+                            : 1;
+                        const projectileRadius = Math.max(0, Number(this.size) || 0) * 0.5;
+                        const impactZ = this.prevZ + (this.z - this.prevZ) * hitT
+                            + projectileRadius;
+                        this._hitContext = {
+                            ...(this._hitContext || {}),
+                            directionalProjectile: {
+                                originX: Number(projectileOrigin?.x ?? this.source?.x ?? prevX),
+                                originY: Number(projectileOrigin?.y ?? this.source?.y ?? prevY),
+                                originZ: Number(projectileOrigin?.z ?? this.prevZ) + projectileRadius,
+                                impactX: hitX,
+                                impactY: hitY,
+                                impactZ,
+                                projectileRadius,
+                            },
+                        };
                         DamagePipeline.applyHit(this.source, entity, {
                             damage,
                             damageType: this.damageType || 'ranged',
@@ -253,6 +282,8 @@ class Projectile {
             && entity !== this.source
             && entity.active
             && entity.hittable
+            // 女墙是软掩体：弹体继续命中墙后单位，伤害在承伤链中按方向 50/50 分摊。
+            && !entity._projectileSoftCover
             && !isFriendlyFire(this.source, entity)
             && !(!devFF && this.source?._faction && entity._faction
                 && this.source._faction === entity._faction)
@@ -430,14 +461,62 @@ class Projectile {
         return undefined;
     }
 
+    /**
+     * 女墙/城墙塔沿用单位的 footprint 前后关系。只有低于结构顶面且画面相交的
+     * 弹体会被压到结构后方；墙顶射手自己的女墙不参与，保证出膛方向单向放行。
+     */
+    _projectileRenderDepth() {
+        const baseDepth = (this.y || 0) + 500 + (this.depthBonus || 0);
+        const structures = WallSystem?.collectDynamicStructureDepthEntities?.();
+        if (!structures?.length) return baseDepth;
+        const centerZ = (Number(this.z) || 0) + Math.max(0, Number(this.size) || 0) * 0.5;
+        const sourceWalls = new Set([
+            ...(Array.isArray(this.source?._surfaceWalls) ? this.source._surfaceWalls : []),
+            this.source?._surfaceWall,
+        ].filter(Boolean));
+        const occluders = structures.filter((structure) => {
+            if (!structure?.active) return false;
+            if (structure._isWallBattlement) {
+                const support = structure._wallBattlementAttachment?.wall;
+                if (support && sourceWalls.has(support)) return false;
+                const supportTopZ = Math.max(0, Number(support?._wallTopZ) || 0);
+                const referenceHeight = Math.max(1,
+                    Number(structure._battlementReferenceWallHeight) || supportTopZ || 1);
+                const configuredHeight = Math.max(referenceHeight,
+                    Number(structure._battlementCoverHeight) || referenceHeight);
+                return centerZ < supportTopZ + Math.max(0, configuredHeight - referenceHeight);
+            }
+            if (structure._isWallTower) {
+                const topZ = Math.max(1,
+                    Number(structure._wallTowerWalk?.topZ)
+                    || Number(structure._wallTowerWalkNodes?.[0]?._wallTopZ)
+                    || 250);
+                return centerZ < topZ;
+            }
+            return false;
+        });
+        if (!occluders.length) return baseDepth;
+        const sprite = this._phaserSprite;
+        const width = Math.max(2, Number(sprite?.displayWidth) || Number(this.size) * 2 || 2);
+        const height = Math.max(2, Number(sprite?.displayHeight) || Number(this.size) * 2 || 2);
+        const screenY = (Number(this.y) || 0) - (Number(this.z) || 0);
+        const constraints = dynamicStructureDepthConstraints(this.x, this.y, screenY + 12, {
+            minX: this.x - width * 0.5,
+            maxX: this.x + width * 0.5,
+            minY: screenY - height * 0.5,
+            maxY: screenY + height * 0.5,
+        }, occluders);
+        return Number.isFinite(constraints.upperDepth)
+            ? Math.min(baseDepth, constraints.upperDepth)
+            : baseDepth;
+    }
+
     _createPhaserSprite() {
         const phaserScene = window.__phaserScene;
         if (!phaserScene || !phaserScene.projectilesGroup) return;
         const key = this._getProjectileTextureKey();
         const sprite = phaserScene.add.sprite(this.x, this.y - this.z, key);
-        // 深度=脚底 y + 500（原 +12）：弹道贴图必须压在墙壁之上——贴墙飞行时被墙面盖住又露出的根因；
-        // 物理上子弹不会穿墙（嵌墙"只出不进"），视觉上压墙永远成立
-        sprite.setDepth((this.y || 0) + 500 + (this.depthBonus || 0));
+        sprite.setDepth(this._projectileRenderDepth());
         const tint = this._getProjectileTint();
         if (tint !== undefined) sprite.setTint(tint);
         phaserScene.projectilesGroup.add(sprite);
@@ -450,9 +529,7 @@ class Projectile {
         this._phaserSprite.setPosition(this.x, this.y - this.z);
         // 显式纹理键投射物不随弹道旋转（球体光照贴图旋转会丢失光照方向）
         this._phaserSprite.setRotation(this.textureKey ? 0 : (this.visualAngle ?? this.angle));
-        // 深度=脚底 y + 500（与 _createPhaserSprite 同口径）：弹道贴图必须压在墙壁之上——
-        // 贴墙飞行时被墙面盖住又露出的根因；此处曾残留 y+12 覆盖掉创建时的 y+500，修复未生效
-        this._phaserSprite.setDepth((this.y || 0) + 500 + (this.depthBonus || 0));
+        this._phaserSprite.setDepth(this._projectileRenderDepth());
         if (this._noRender) {
             this._phaserSprite.setVisible(false);
             return;

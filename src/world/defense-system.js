@@ -93,11 +93,32 @@ import {
     projectileTargetZ,
     wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
+import {
+    registerWallBattlement,
+    unregisterWallBattlement,
+} from './wall-battlement.js';
 
 // ==================== 配置 ====================
 
 const stairCfg = defenseStructuresJson.wallStaircase || {};
 const wallWalkCfg = defenseStructuresJson.wallWalk || {};
+const battlementCfg = defenseStructuresJson.wallBattlement || {};
+
+export const WALL_BATTLEMENT_CONFIG = Object.freeze({
+    id: battlementCfg.id || 'wall_battlement',
+    name: battlementCfg.name || '城垛女墙',
+    cost: Math.max(0, Number(battlementCfg.cost) || 25),
+    hp: Math.max(1, Number(battlementCfg.hp) || 800),
+    damageReduction: Math.max(0, Math.min(1, Number(battlementCfg.damageReduction) || 0.5)),
+    attachRadius: Math.max(32, Number(battlementCfg.attachRadius) || 120),
+    logicalSide: Math.max(1, Number(battlementCfg.logicalSide) || 64),
+    displayWidth: Math.max(1, Number(battlementCfg.displayWidth) || 96),
+    displayHeightHigh: Math.max(1, Number(battlementCfg.displayHeightHigh) || 238),
+    displayHeightLow: Math.max(1, Number(battlementCfg.displayHeightLow) || 217),
+    highHeight: Math.max(1, Number(battlementCfg.highHeight) || 220),
+    lowHeight: Math.max(1, Number(battlementCfg.lowHeight) || 196),
+    standardWallHeight: Math.max(1, Number(battlementCfg.standardWallHeight) || 160),
+});
 
 export const WALL_STAIR_CONFIG = Object.freeze({
     id: stairCfg.id || 'wall_staircase',
@@ -839,6 +860,30 @@ export const BLOCK_VISUAL = Object.freeze({
 });
 export const BLOCK_FOOT_OFFSET = BLOCK_VISUAL.footOffsetY;
 
+/** 女墙为标准 128×128 墙格的半边长、半边深方形，占地面积严格为 1/4 格。 */
+export const WALL_BATTLEMENT_FOOT = Object.freeze({
+    w: BLOCK_FOOT.w / 2,
+    d: BLOCK_FOOT.d / 2,
+    offY: 0,
+    thick: BLOCK_FOOT.thick / 2,
+});
+
+export const WALL_BATTLEMENT_VISUAL = Object.freeze({
+    w: WALL_BATTLEMENT_CONFIG.displayWidth,
+    highH: WALL_BATTLEMENT_CONFIG.displayHeightHigh,
+    lowH: WALL_BATTLEMENT_CONFIG.displayHeightLow,
+    // 女墙实体锚点在 1/4 格菱形中心；可见底脚应落在该菱形的前顶点，
+    // 不能把整张 PNG 底边错误地钉在格心，否则视觉会悬空半个菱形深度。
+    groundFrontY: WALL_BATTLEMENT_FOOT.d / 2,
+});
+
+export function wallBattlementFootOffsetY(variant = 'high') {
+    const height = variant === 'low'
+        ? WALL_BATTLEMENT_VISUAL.lowH
+        : WALL_BATTLEMENT_VISUAL.highH;
+    return height / 2 - WALL_BATTLEMENT_VISUAL.groundFrontY;
+}
+
 function _closestPointOnPolygon(x, y, vertices) {
     let best = null;
     for (let index = 0; index < vertices.length; index++) {
@@ -887,7 +932,7 @@ function _convexHull(points) {
     return [...lower, ...upper];
 }
 
-/** 方块墙贴图真实顶面：像素顶面先转成屏幕偏移，再把topZ加回地面世界坐标。 */
+/** 方块墙贴图真实顶面：普通墙用topZ反算地面平面；塔楼虚拟格复用普通墙的平面标定。 */
 export function blockWallTopWalkGeometry(wall) {
     if (!wall?._isBlockCover) return null;
     const cfg = WALL_WALK_CONFIG.blockTopSurface;
@@ -901,14 +946,21 @@ export function blockWallTopWalkGeometry(wall) {
     ];
     if (ordered.some(([, point]) => !Array.isArray(point) || point.length < 2)) return null;
     const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
-    const cacheKey = `${wall.x}:${wall.y}:${topZ}:${BLOCK_VISUAL.w}:${BLOCK_VISUAL.h}`;
+    // 顶面 footprint 是地面平面中的承托区域，高度只由 surface.z 表达。塔楼虚拟墙格
+    // 没有独立的单格贴图可供反算，因此继续使用普通墙顶的像素标定高度；若把塔楼
+    // topZ=250再次加进平面Y，四个塔顶格会整体偏移一个墙高，墙塔接缝看似相邻却不可走。
+    const footprintCalibrationZ = wall._wallTowerOwner
+        ? WALL_WALK_CONFIG.defaultTopZ
+        : topZ;
+    const cacheKey = `${wall.x}:${wall.y}:${topZ}:${footprintCalibrationZ}:${BLOCK_VISUAL.w}:${BLOCK_VISUAL.h}`;
     if (wall._wallTopWalkGeometry?.cacheKey === cacheKey) return wall._wallTopWalkGeometry;
     const sx = BLOCK_VISUAL.w / Math.max(1, Number(source[0]) || 1024);
     const sy = BLOCK_VISUAL.h / Math.max(1, Number(source[1]) || 1024);
     const localVertices = ordered.map(([key, point]) => ({
         key,
         x: (Number(point[0]) - source[0] / 2) * sx,
-        y: -BLOCK_FOOT_OFFSET + (Number(point[1]) - source[1] / 2) * sy + topZ,
+        y: -BLOCK_FOOT_OFFSET + (Number(point[1]) - source[1] / 2) * sy
+            + footprintCalibrationZ,
     }));
     const footprint = {
         x: wall.x,
@@ -963,14 +1015,15 @@ function _movePointToward(point, target, distance) {
 }
 
 /**
- * 两块相邻同高方块墙的连续墙顶接缝。连接面会分别压进两侧墙顶，并沿接缝横向
- * 略微放宽；同一拓扑组件因此按“墙顶多边形并集”移动，不再逐块跨越零宽边界。
+ * 两块相邻方块墙的连续墙顶接缝。连接面会分别压进两侧墙顶，并沿接缝横向
+ * 略微放宽；普通同高墙连续通行，墙塔高差则在接缝中线直接切换目标高度。
  */
 export function blockWallTopConnectorGeometry(wallA, wallB) {
     if (!wallA?._isBlockCover || !wallB?._isBlockCover || wallA === wallB) return null;
     const topA = Number(wallA._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
     const topB = Number(wallB._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
-    if (Math.abs(topA - topB) > 1) return null;
+    const towerTransition = !!(wallA._wallTowerOwner || wallB._wallTowerOwner);
+    if (Math.abs(topA - topB) > 1 && !towerTransition) return null;
     const geometryA = blockWallTopWalkGeometry(wallA);
     const geometryB = blockWallTopWalkGeometry(wallB);
     if (!geometryA || !geometryB) return null;
@@ -994,7 +1047,7 @@ export function blockWallTopConnectorGeometry(wallA, wallB) {
         geometryB.wallConnectorSideMargin
     );
     const cacheKey = [
-        'wall-component-seam-v3',
+        'wall-component-seam-v4-instant-tower',
         geometryA.cacheKey,
         geometryB.cacheKey,
         overlap,
@@ -1074,6 +1127,23 @@ export function blockWallTopConnectorGeometry(wallA, wallB) {
         wallA,
         wallB,
         topZ: (topA + topB) * 0.5,
+        topZA: topA,
+        topZB: topB,
+        wallTowerTransition: towerTransition,
+        instantHeightTransfer: towerTransition,
+        topZAt(x, y) {
+            const dx = alignedB.x - alignedA.x;
+            const dy = alignedB.y - alignedA.y;
+            const lengthSq = dx * dx + dy * dy;
+            const t = lengthSq > 1e-9
+                ? Math.max(0, Math.min(1,
+                    ((Number(x) - alignedA.x) * dx + (Number(y) - alignedA.y) * dy) / lengthSq))
+                : 0.5;
+            // 城墙塔不表现坡道或升降过程：单位脚点跨过接缝中线后直接采用
+            // 对应一侧墙顶高度，XY位置保持不变。普通同高墙仍返回连续同值。
+            if (towerTransition) return t < 0.5 ? topA : topB;
+            return topA + (topB - topA) * t;
+        },
         vertices,
         footprint,
         center: {
@@ -1089,6 +1159,42 @@ export function blockWallTopConnectorGeometry(wallA, wallB) {
     };
     wallA._wallTopConnectorCache.set(wallBKey, connector);
     return connector;
+}
+
+function wallTowerOwnerOf(wall) {
+    const owner = wall?._wallTowerOwner
+        || (wall?._isWallTower && wall?._wallTowerWalk ? wall : null);
+    return owner || null;
+}
+
+/**
+ * 单位中心仍在普通墙顶、但脚底圆已经进入墙塔连接面时，提前取得塔楼前景遮挡。
+ * 这只改变渲染归属，不提前切换 surface wall / z，避免接缝前一帧被建筑仲裁抬到城垛之前。
+ */
+function wallTowerForegroundOccluder(surface, x, y, topology, margin = 0) {
+    if (surface?.kind !== 'wall_walk') return null;
+    const directOwner = wallTowerOwnerOf(surface.wall);
+    if (directOwner?.active) return directOwner;
+    if (!topology || typeof topology.nearbyConnectors !== 'function') return null;
+
+    const supportWall = surface.wall || null;
+    for (const connector of topology.nearbyConnectors(x, y, 128)) {
+        if (!connector?.wallTowerTransition) continue;
+        if (supportWall
+            && connector.wallA !== supportWall
+            && connector.wallB !== supportWall
+            && surface.walkConnector !== connector) continue;
+        const owner = wallTowerOwnerOf(connector.wallA)
+            || wallTowerOwnerOf(connector.wallB);
+        if (!owner?.active || !pointInIsoFootprint(
+            x,
+            y,
+            connector.footprint,
+            Math.max(0, Number(margin) || 0)
+        )) continue;
+        return owner;
+    }
+    return null;
 }
 
 /** 四块同高相邻墙围成的最小网格中心补片；沿墙顶四个内角生成菱形，不扩大外墙边界。 */
@@ -1135,6 +1241,9 @@ export function blockWallTopJunctionGeometry(walls) {
 }
 
 const elevatedTopology = new ElevatedTopology({
+    expandWallCandidates: (entity) => entity?._isWallTower
+        ? (entity.refreshWallTowerWalkNodes?.() || entity._wallTowerWalkNodes || [])
+        : [entity],
     isWall: (wall) => !!(wall?._isWalkableWall && !wall?._sinking
         && Array.isArray(wall?._faceLine)),
     getTopZ: (wall) => Number(wall?._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ,
@@ -1152,6 +1261,16 @@ const elevatedTopology = new ElevatedTopology({
 
 function _blockWallIndex(entitySource) {
     return elevatedTopology.ensure(entitySource, DefenseSystem?.staircases || []);
+}
+
+function _walkableWallById(id, entitySource = null) {
+    if (!id) return null;
+    const source = entitySource || Game?.entities;
+    const topology = _blockWallIndex(source);
+    for (const wall of topology.values()) {
+        if (wall?.active && wall.id === id) return wall;
+    }
+    return null;
 }
 
 function _blockWallNeighbors(wall, index) {
@@ -1202,10 +1321,11 @@ export function blockWallTopRoute(startWall, targetWall, entitySource = null) {
         const wall = queue.shift();
         for (const neighbor of _blockWallNeighbors(wall, index)) {
             if (previous.has(neighbor)) continue;
+            const connector = blockWallTopConnectorGeometry(wall, neighbor);
+            if (!connector) continue;
             const topA = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
             const topB = Number(neighbor._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
-            if (Math.abs(topA - topB) > 1) continue;
-            if (!blockWallTopConnectorGeometry(wall, neighbor)) continue;
+            if (Math.abs(topA - topB) > 1 && !connector.wallTowerTransition) continue;
             previous.set(neighbor, wall);
             if (neighbor === targetWall) {
                 const route = [];
@@ -1306,10 +1426,13 @@ function _blockWallComponent(startWall, index) {
         walls.push(wall);
         for (const neighbor of _blockWallNeighbors(wall, index)) {
             if (seen.has(neighbor)) continue;
+            const connector = blockWallTopConnectorGeometry(wall, neighbor);
+            if (!connector) continue;
             const topA = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
             const topB = Number(neighbor._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
-            if (Math.abs(topA - topB) <= 1
-                && blockWallTopConnectorGeometry(wall, neighbor)) queue.push(neighbor);
+            if (Math.abs(topA - topB) <= 1 || connector.wallTowerTransition) {
+                queue.push(neighbor);
+            }
         }
     }
     return walls;
@@ -1980,19 +2103,40 @@ class DefenseCover extends Combatant {
         const mirror = !!config.mirror;
         const eff = mirror ? (orient === 'v' ? 'h' : 'v') : orient;
         const isBlock = !!config.block; // 2026-08-17：1×1 方格块（单一贴图）
-        const hp = config.hp ?? (DEFENSE_CONFIG.covers.hp[grade] ?? 400);
+        const isBattlement = !!config.battlement;
+        const battlementVariant = config.battlementVariant === 'low' ? 'low' : 'high';
+        const hp = config.hp ?? (isBattlement
+            ? WALL_BATTLEMENT_CONFIG.hp
+            : (DEFENSE_CONFIG.covers.hp[grade] ?? 400));
         super(x, y, {
             faction: 'player',
             hp,
             maxHp: hp,
             size: config.size ?? 60,
             collisionRadius: 26,
-            name: config.name ?? `掩体·${grade}级`,
+            name: config.name ?? (isBattlement
+                ? `${WALL_BATTLEMENT_CONFIG.name}·${battlementVariant === 'high' ? '高段' : '低段'}`
+                : `掩体·${grade}级`),
         });
         this.id = config.id || `defense_cover_${grade}_${orient}_${Math.random().toString(36).slice(2, 7)}`;
           this._isDefenseCover = true; // HUD 专用：满血不显示名字/血量文字，残血只显示血条
         this._isDefenseStructure = true;
         this._isBlockCover = !!isBlock; // 2026-08-17：方块墙（建筑面板网格吸附用）
+        this._isWallBattlement = isBattlement;
+        this._projectileSoftCover = isBattlement;
+        this.battlementVariant = battlementVariant;
+        this._battlementDamageReduction = isBattlement
+            ? WALL_BATTLEMENT_CONFIG.damageReduction
+            : 0;
+        this._battlementCoverHeight = isBattlement
+            ? (battlementVariant === 'high'
+                ? WALL_BATTLEMENT_CONFIG.highHeight
+                : WALL_BATTLEMENT_CONFIG.lowHeight)
+            : 0;
+        this._battlementReferenceWallHeight = isBattlement
+            ? WALL_BATTLEMENT_CONFIG.standardWallHeight
+            : 0;
+        this._wallBattlementAttachment = isBattlement ? (config.attachment || null) : null;
         this._dormantBand = true; // 2026-08-19：静态结构进休眠带（主循环 1/4 帧率聚合 dt）
         this.noSeparation = true;
         this.noNameLabel = true;
@@ -2005,7 +2149,9 @@ class DefenseCover extends Combatant {
         this.data.mdef = 0;
         // 矩形 footprint（长边=有效朝向的水平/垂直摆方向），供怪物碰撞与近战判定；
         // 镜像后 h/v 互换，避免“视觉横墙、碰撞竖矩形”错位
-        const foot = isBlock
+        const foot = isBattlement
+            ? WALL_BATTLEMENT_FOOT
+            : isBlock
             ? BLOCK_FOOT
             : (config.w && config.d)
             ? (mirror ? { w: config.d, d: config.w } : { w: config.w, d: config.d })
@@ -2020,14 +2166,25 @@ class DefenseCover extends Combatant {
         this._facingLeft = mirror; // 镜像：中立精灵渲染 flipX
         // 城墙顶面是独立于贴图深度的逻辑可行走表面。当前六档掩体共用同一几何，
         // 后续若高墙/塔墙高度不同，只需由配置或构造参数覆盖 topZ。
-        this._isWalkableWall = config.walkable !== false;
+        this._isWalkableWall = !isBattlement && config.walkable !== false;
         this._wallTopZ = Number.isFinite(config.topZ) ? config.topZ : WALL_WALK_CONFIG.defaultTopZ;
         this._wallWalkWidth = Number.isFinite(config.walkWidth) ? config.walkWidth : WALL_WALK_CONFIG.laneWidth;
         // 图层深度锚点：按墙段底边线（贴图接地线）的 max 端点 y + 12。
         // 注意不能用 e.y+12：e.y 是贴图显示框底边，比接地线深 22~137px（贴图内容
         // 在框内偏上），会导致“墙前实体（脚线在接地线之下、但仍在 e.y 之上）被
         // 错误排到墙后被盖”——2026-08-05 实机复现（怪物 depth 2100 < 掩体 2121）。
-        const face = isBlock
+        const face = isBattlement && Array.isArray(config.attachment?.faceLine)
+            ? {
+                A: {
+                    x: config.attachment.faceLine[0].x - x,
+                    y: config.attachment.faceLine[0].y - y,
+                },
+                B: {
+                    x: config.attachment.faceLine[1].x - x,
+                    y: config.attachment.faceLine[1].y - y,
+                },
+            }
+            : isBlock
             ? (BLOCK_FACE[eff] || BLOCK_FACE.v)
             : (COVER_FACE[grade] && COVER_FACE[grade][eff])
             || COVER_FACE.D[eff] || COVER_FACE.D.v;
@@ -2042,13 +2199,13 @@ class DefenseCover extends Combatant {
                 Math.max(this._faceLine[0].y, this._faceLine[1].y),
                 config.depthBias || 0
             );
-            if (isBlock) {
+            if (isBlock || isBattlement) {
                 this.collisionShape = 'iso_rect';
-                this.collisionWidth = BLOCK_FOOT.w;
-                this.collisionHeight = BLOCK_FOOT.d;
-                this.collisionIsoHalfU = BLOCK_FOOT.w / (2 * Math.SQRT2);
-                this.collisionIsoHalfV = BLOCK_FOOT.w / (2 * Math.SQRT2);
-                this.collisionRadius = BLOCK_FOOT.w / 2;
+                this.collisionWidth = foot.w;
+                this.collisionHeight = foot.d;
+                this.collisionIsoHalfU = foot.w / (2 * Math.SQRT2);
+                this.collisionIsoHalfV = foot.w / (2 * Math.SQRT2);
+                this.collisionRadius = foot.w / 2;
                 this.colliderOffsetX = 0;
                 this.colliderOffsetY = 0;
             } else {
@@ -2067,6 +2224,7 @@ class DefenseCover extends Combatant {
                 halfThick: this._coverHalfThick,
                 _cover: true,
                 _owner: this, // 回链：怪物被挡路时转火本掩体（movement-system 卡住检测用）
+                _movementOnly: isBattlement,
             };
             WallSystem.isoSegments.push(this._coverSeg);
             // [PERF-2026-08-08] 掩体墙段注册后只局部失效该线段周边（bbox 外扩 800px 由
@@ -2084,18 +2242,34 @@ class DefenseCover extends Combatant {
         // v1=定稿（无后缀）；v2~v5=细节微调变体（A 级符文形态随机替换）。
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）。
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）
-        const variant = isBlock ? 1 : 1 + Math.floor(Math.random() * 5);
-        const tex = isBlock
+        const variant = (isBlock || isBattlement) ? 1 : 1 + Math.floor(Math.random() * 5);
+        const tex = isBattlement
+            ? TechnologySystem.getWallBattlementTextureKey(battlementVariant)
+            : isBlock
             ? TechnologySystem.getWallTextureKey()
             : variant === 1
             ? `obstacle_cover_${grade}_${orient}`
             : `obstacle_cover_${grade}_v${variant}_${orient}`;
         const aspect = isBlock ? (BLOCK_VISUAL.w / BLOCK_VISUAL.h) : ((COVER_ASPECT[grade] && COVER_ASPECT[grade][orient]) || 1);
-        const sizeH = isBlock ? BLOCK_VISUAL.h : Math.round(COVER_DISPLAY_W / aspect);
-        const footOff = isBlock ? BLOCK_FOOT_OFFSET : sizeH / 2;
-        this.spriteCfg = { idleKey: tex, size: isBlock ? BLOCK_VISUAL.w : COVER_DISPLAY_W, sizeH, footOffsetY: footOff };
+        const sizeH = isBattlement
+            ? (battlementVariant === 'high' ? WALL_BATTLEMENT_VISUAL.highH : WALL_BATTLEMENT_VISUAL.lowH)
+            : isBlock ? BLOCK_VISUAL.h : Math.round(COVER_DISPLAY_W / aspect);
+        const footOff = isBattlement
+            ? wallBattlementFootOffsetY(battlementVariant)
+            : isBlock ? BLOCK_FOOT_OFFSET : sizeH / 2;
+        this.spriteCfg = {
+            idleKey: tex,
+            size: isBattlement ? WALL_BATTLEMENT_VISUAL.w : (isBlock ? BLOCK_VISUAL.w : COVER_DISPLAY_W),
+            sizeH,
+            footOffsetY: footOff,
+        };
         this.footOffsetY = footOff;
-        if (isBlock) applyResearchHp(this, hp);
+        // 女墙的渲染体是完整 1/4 格正方形。碰撞墙段仍保留上面的支撑墙外沿线，
+        // 但动态遮挡必须使用完整 iso footprint 的两条前缘；若继续使用中心线，
+        // 四种外沿朝向中会有半格单位被错误压到女墙前/后。
+        if (isBattlement) setupStructureDepth(this);
+        if (isBlock || isBattlement) applyResearchHp(this, hp);
+        if (isBattlement) registerWallBattlement(this);
         this.rebuildCollider();
     }
 
@@ -2103,6 +2277,30 @@ class DefenseCover extends Combatant {
         // 沉陷死亡逻辑在 onDeath 接管（DamageableEntity.onDeath 默认 active=false +
         // 血雾/死亡粒子，掩体需要保持活跃让精灵下沉）
         return super.takeDamage(damage, source, damageType, isMelee);
+    }
+
+    /** 女墙承担被保护单位减免掉的最终伤害；不重复计算攻击者暴击、穿甲或增伤。 */
+    takeRedirectedBattlementDamage(damage, source) {
+        if (!this._isWallBattlement || !this.active || !this.hittable || this._sinking) return 0;
+        const applied = Math.max(0, Math.floor(Number(damage) || 0));
+        if (applied <= 0) return 0;
+        this.hp -= applied;
+        if (this.data) this.data.hp = Math.max(0, this.hp);
+        this.hitFlash = this.hitFlashDuration;
+        if (EffectManager?.createDamageText) {
+            EffectManager.createDamageText(this.x, this.y - this.size, applied, false, {
+                target: this,
+                source,
+                damageType: 'physical',
+                isMelee: false,
+            });
+        }
+        if (this.hp <= 0) {
+            this.hp = 0;
+            if (this.data) this.data.hp = 0;
+            this.onDeath(source);
+        }
+        return applied;
     }
 
     /** 掩体沉陷死亡（2026-08-16 试点）：不设 active=false、不播血雾/死亡粒子；
@@ -2121,6 +2319,7 @@ class DefenseCover extends Combatant {
     /** 从 WallSystem.isoSegments 移除本墙段（销毁/场景清理时调用） */
     removeFromCollision() {
         DefenseSystem?.invalidateElevatedTopology?.();
+        if (this._isWallBattlement) unregisterWallBattlement(this);
         if (this._coverSeg && WallSystem && WallSystem.isoSegments) {
             const i = WallSystem.isoSegments.indexOf(this._coverSeg);
             if (i >= 0) WallSystem.isoSegments.splice(i, 1);
@@ -2138,6 +2337,14 @@ class DefenseCover extends Combatant {
       }
 
     update(dt) {
+        if (this._isWallBattlement && !this._sinking) {
+            const support = this._wallBattlementAttachment?.wall;
+            if (!support?.active || support?._sinking || support?.hittable === false || support?.hp <= 0) {
+                this.hp = 0;
+                if (this.data) this.data.hp = 0;
+                this.onDeath(support || null);
+            }
+        }
         super.update(dt);
     }
 }
@@ -3829,8 +4036,8 @@ export const DefenseSystem = {
     },
 
     /**
-     * 墙顶防坠线只覆盖连续墙体的真实外轮廓。墙墙共享边与墙梯入口边都是Portal，
-     * 必须保持开放；不能再由楼梯向墙外伸线，否则会重新切断宽入口。
+     * 墙顶防坠线只覆盖连续墙体的真实外轮廓。墙墙共享边与墙梯入口边保持开放；
+     * 城墙塔和普通方块墙一样，仅由实际相邻墙体开放对应共享边。
      */
     _rebuildWallTopGuardSegs(topology = elevatedTopology) {
         this._clearWallTopGuardSegs();
@@ -4195,8 +4402,12 @@ export const DefenseSystem = {
                 const junction = blockSupport.junction;
                 best = {
                     kind: 'wall_walk',
-                    z: junction?.topZ ?? connector?.topZ ?? topZ,
-                    owner: wall,
+                    // 墙塔连接面只负责同一XY通道的承托；在当前载体切换前保持
+                    // 当前墙顶高度，避免单位在接缝宽度内出现渐进升降动画。
+                    z: junction?.topZ ?? (connector?.instantHeightTransfer
+                        ? topZ
+                        : (connector?.topZAt?.(x, y) ?? connector?.topZ ?? topZ)),
+                    owner: wall._wallTowerOwner || wall,
                     wall,
                     walls: blockIndex.component(wall),
                     renderDepth: junction
@@ -4290,8 +4501,8 @@ export const DefenseSystem = {
         }
 
         const blockIndex = Game?.entities ? _blockWallIndex(Game.entities) : null;
-        if (Game?.entities) {
-            for (const wall of Game.entities.values()) {
+        if (blockIndex) {
+            for (const wall of blockIndex.values()) {
                 if (!wall?.active || !wall._isWalkableWall || !Array.isArray(wall._faceLine)) continue;
                 const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
                 const blockGeometry = blockWallTopWalkGeometry(wall);
@@ -4302,6 +4513,7 @@ export const DefenseSystem = {
                         blockGeometry.footprint,
                         blockGeometry.edgeTolerance
                     );
+                    let supportedZ = topZ;
                     if (!supported) {
                         for (const neighbor of _blockWallNeighbors(wall, blockIndex)) {
                             const connector = blockWallTopConnectorGeometry(wall, neighbor);
@@ -4312,6 +4524,9 @@ export const DefenseSystem = {
                                 connector.tolerance
                             )) {
                                 supported = true;
+                                supportedZ = connector.topZAt?.(pointX, pointY)
+                                    ?? connector.topZ
+                                    ?? topZ;
                                 break;
                             }
                         }
@@ -4330,7 +4545,7 @@ export const DefenseSystem = {
                         }
                     }
                     if (supported) {
-                        pushCandidate({ z: topZ, surfaceKind: 'wall_walk', wall });
+                        pushCandidate({ z: supportedZ, surfaceKind: 'wall_walk', wall });
                     }
                     continue;
                 }
@@ -4430,8 +4645,8 @@ export const DefenseSystem = {
         const Game = (typeof window !== 'undefined') ? window.Game : null;
         const blockIndex = Game?.entities ? _blockWallIndex(Game.entities) : null;
         let wallSurface = null;
-        if (Game?.entities) {
-            for (const wall of Game.entities.values()) {
+        if (blockIndex) {
+            for (const wall of blockIndex.values()) {
                 if (!wall?.active || !wall._isWalkableWall || !Array.isArray(wall._faceLine)) continue;
                 const [a, b] = wall._faceLine;
                 const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
@@ -4461,6 +4676,7 @@ export const DefenseSystem = {
                                 wall,
                                 x: projection.x,
                                 y: projection.y,
+                                z: topZ,
                                 distance,
                             };
                         }
@@ -4483,6 +4699,9 @@ export const DefenseSystem = {
                                 wall,
                                 x,
                                 y: groundY,
+                                z: connector.topZAt?.(x, groundY)
+                                    ?? connector.topZ
+                                    ?? topZ,
                                 distance,
                                 connector,
                             };
@@ -4504,6 +4723,7 @@ export const DefenseSystem = {
                                 wall,
                                 x,
                                 y: groundY,
+                                z: junction.topZ ?? topZ,
                                 distance,
                                 junction,
                             };
@@ -4521,7 +4741,7 @@ export const DefenseSystem = {
                 const distance = Math.hypot(x - px, groundY - py);
                 if (distance > (Number(wall._wallWalkWidth) || WALL_WALK_CONFIG.laneWidth) / 2 + 18) continue;
                 if (!wallSurface || distance < wallSurface.distance) {
-                    wallSurface = { wall, x: px, y: py, distance };
+                    wallSurface = { wall, x: px, y: py, z: topZ, distance };
                 }
             }
         }
@@ -4543,7 +4763,9 @@ export const DefenseSystem = {
             }
             const staircase = (this.staircases || []).find((candidate) =>
                 staircaseServesWall(candidate, wallSurface.wall, Game?.entities));
-            const topZ = Number(wallSurface.wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+            const topZ = Number.isFinite(Number(wallSurface.z))
+                ? Number(wallSurface.z)
+                : (Number(wallSurface.wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ);
             const renderDepth = wallSurface.junction
                 ? Math.max(...wallSurface.junction.walls.map((candidate) =>
                     Number(candidate?._faceDepth) || 0))
@@ -4565,7 +4787,7 @@ export const DefenseSystem = {
                     renderDepth,
                     route: [],
                     unreachable: true,
-                    reason: '需要城墙楼梯',
+                    reason: '需要连接至该城墙区域的城墙楼梯',
                 };
             }
             const route = staircase && typeof staircase.routePoints === 'function'
@@ -4630,8 +4852,7 @@ export const DefenseSystem = {
             && unit._surfaceKind !== 'wall_walk'
             && unit._surfaceKind !== 'stairs') {
             const targetWall = Game?.entities
-                ? Array.from(Game.entities.values()).find((wall) =>
-                    wall?.active && wall.id === target.wallId)
+                ? _walkableWallById(target.wallId, Game.entities)
                 : null;
             const candidates = targetWall
                 ? (this.staircases || []).filter((staircase) =>
@@ -4676,8 +4897,7 @@ export const DefenseSystem = {
         if (target.surfaceKind === 'wall_walk'
             && (unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')) {
             const targetWall = Game?.entities
-                ? Array.from(Game.entities.values()).find((wall) =>
-                    wall?.active && wall.id === target.wallId)
+                ? _walkableWallById(target.wallId, Game.entities)
                 : null;
             const currentStaircase = unit._surfaceKind === 'stairs'
                 ? unit._surfaceStaircase
@@ -5072,7 +5292,7 @@ export const DefenseSystem = {
                     u._surfaceNavRetryAt = 0;
                 }
             }
-            if (!wasElevated && previousZ <= 1) {
+            if (!wasElevated && previousZ <= 1 && !surfaceTransition) {
                 // ground只能从首段底部门户进入stairs，禁止侧向、投影重叠或墙面重叠吸附。
                 // ground也绝不能直接取得wall_walk身份。
                 if (Game?.showAttackRange) u._surfacePortalDebug = null;
@@ -5162,7 +5382,8 @@ export const DefenseSystem = {
                 }
                 missedSurfaceAtAttempt = !surface;
             }
-            if (wasElevated && Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)) {
+            if (wasElevated && !surfaceTransition
+                && Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)) {
                 const swept = unifiedElevatedNavigation.sweep(
                     { x: previousSafeX, y: previousSafeY },
                     { x: attemptedX, y: attemptedY },
@@ -5197,8 +5418,8 @@ export const DefenseSystem = {
                     }
                 );
                 if (swept.transition) {
-                    u.x = swept.x;
-                    u.y = swept.y;
+                    u.x = swept.transition.groundPoint?.x ?? swept.x;
+                    u.y = swept.transition.groundPoint?.y ?? swept.y;
                     surface = null;
                     staircase = null;
                     surfaceTransition = swept.transition;
@@ -5237,7 +5458,8 @@ export const DefenseSystem = {
             } else {
                 u._surfaceEdgeRecovered = false;
             }
-            if (!surface && u._surfaceKind === 'wall_walk' && u._surfaceWall?.active) {
+            if (!surface && !surfaceTransition
+                && u._surfaceKind === 'wall_walk' && u._surfaceWall?.active) {
                 // 最后有效点因拓扑变化失效时，只允许回夹到仍有真实footprint承托的位置。
                 const wall = u._surfaceWall;
                 const blockGeometry = blockWallTopWalkGeometry(wall);
@@ -5551,6 +5773,13 @@ export const DefenseSystem = {
             const enteringWallFromStairs = wasOnStairs && surface?.kind === 'wall_walk';
             let enteringStairsFromWall = u._surfaceKind === 'wall_walk'
                 && surface?.kind === 'stairs';
+            const previousWall = u._surfaceKind === 'wall_walk' ? u._surfaceWall : null;
+            const nextWall = surface?.kind === 'wall_walk' ? surface.wall : null;
+            const previousTower = wallTowerOwnerOf(previousWall);
+            const nextTower = wallTowerOwnerOf(nextWall);
+            const crossingWallTowerBoundary = u._surfaceKind === 'wall_walk'
+                && surface?.kind === 'wall_walk'
+                && !!previousTower !== !!nextTower;
             if (enteringStairsFromWall && !ElevatedNavigationController.canCrossPortal(
                 u,
                 staircase?.id,
@@ -5584,11 +5813,22 @@ export const DefenseSystem = {
                     toKind: 'stairs',
                     staircase,
                 };
+            } else if (!surfaceTransition && crossingWallTowerBoundary) {
+                surfaceTransition = {
+                    kind: nextTower ? 'wall_to_tower' : 'tower_to_wall',
+                    fromKind: 'wall_walk',
+                    toKind: 'wall_walk',
+                    fromWall: previousWall,
+                    toWall: nextWall,
+                    preserveWorldPosition: true,
+                };
             }
             let z;
-            if (surface?.kind === 'stairs' || enteringWallFromStairs || transitioningToGround) {
+            if (surface?.kind === 'stairs' || enteringWallFromStairs || transitioningToGround
+                || crossingWallTowerBoundary) {
                 // 踏步直接贴当前一级顶面；正常情况下只有楼梯下入口允许切回地面。
                 // 承托结构已被拆除/沉陷时允许受控落地，避免保留失效高架身份永久卡死。
+                // 普通墙与塔顶之间同样直接切换目标Z，不插值、不改写当前XY位置。
                 z = targetZ;
             } else {
                 const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0) / 1000);
@@ -5599,6 +5839,17 @@ export const DefenseSystem = {
             u.z = z;
             u._surfaceTargetZ = targetZ;
             if (u.collider && typeof u.collider.syncPosition === 'function') u.collider.syncPosition();
+            // 只对最终选中的surface计算一次前景归属。遮挡从脚底圆触及塔楼接缝
+            // 开始，早于中心点切换_wallTowerOwner；扫掠过程中的临时候选无需重复查询。
+            if (surface) {
+                surface.foregroundOccluder = wallTowerForegroundOccluder(
+                    surface,
+                    u.x,
+                    u.y,
+                    topology,
+                    Number(u._wallWalkSupportRadius) || WALL_WALK_CONFIG.surfaceUnitRadius
+                );
+            }
             commitElevatedSurfaceIdentity(u, surface, staircase, z, surfaceTransition);
             unifiedElevatedNavigation.commitFlags(u, surface);
             if (surfaceTransition) {

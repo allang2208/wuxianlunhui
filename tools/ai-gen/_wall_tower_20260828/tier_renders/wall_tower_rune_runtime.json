@@ -1,0 +1,35 @@
+{
+  "tier": "rune",
+  "source": "tools/ai-gen/_wall_tower_20260828/tier_renders/wall_tower_rune_raw.png",
+  "output": "assets/terrain/wall_tower_rune.png",
+  "foregroundMaskSource": "tools/ai-gen/_wall_tower_20260828/tier_renders/wall_tower_rune_foreground_mask_raw.png",
+  "foregroundOutput": "assets/terrain/wall_tower_rune_foreground.png",
+  "materialSource": "tools/ai-gen/_depth_templates/stair_tread_black_brick.png",
+  "ornamentSource": "tools/ai-gen/render-wall-tower-tiers.py#add_rune_ornaments",
+  "cropBox": [
+    201,
+    55,
+    823,
+    935
+  ],
+  "fileSize": [
+    622,
+    880
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    618,
+    876
+  ],
+  "foregroundAlphaBBox": [
+    25,
+    147,
+    618,
+    403
+  ],
+  "displayW": 360,
+  "displayH": 509,
+  "footOffsetY": 252,
+  "logicalFootprintCells": 2
+}
