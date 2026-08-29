@@ -294,13 +294,20 @@ export const SceneManager = {
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'loadingOverlay';
-            overlay.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;background-color:#1a1a1a;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.3s;font-family:SimHei, "Microsoft YaHei", sans-serif;';
+            overlay.className = 'loading-overlay';
+            overlay.setAttribute('role', 'status');
+            overlay.setAttribute('aria-live', 'polite');
+            overlay.setAttribute('aria-labelledby', 'loadingTitle');
             overlay.innerHTML = `
-                <div id="loadingTitle" style="color:#f1e6d1;font-size:28px;font-weight:700;margin-bottom:30px;text-shadow:0 2px 8px #000,0 0 18px #000;">场景加载中...</div>
-                <div style="width:min(400px,70vw);height:20px;background:rgba(25,25,25,0.88);border-radius:10px;overflow:hidden;border:2px solid #8a7352;box-shadow:0 2px 14px rgba(0,0,0,0.8);">
-                    <div id="loadingProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg, #6a8a5a, #8aaa7a);transition:width 0.2s;"></div>
+                <div class="loading-shell">
+                    <div class="loading-eyebrow">TRANSIT ARCHIVE // RUNTIME ASSETS</div>
+                    <div id="loadingTitle" class="loading-title">场景加载中...</div>
+                    <div class="loading-progress-track">
+                        <div id="loadingProgressBar" class="loading-progress-bar"
+                             role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                    </div>
+                    <div id="loadingProgressText" class="loading-progress-text">0%</div>
                 </div>
-                <div id="loadingProgressText" style="color:#ddd1bc;font-size:14px;margin-top:10px;text-shadow:0 1px 5px #000;">0%</div>
             `;
             document.body.appendChild(overlay);
         } else {
@@ -336,7 +343,10 @@ export const SceneManager = {
         this.loadProgress = Math.min(100, Math.max(0, pct));
         const bar = getElement('loadingProgressBar');
         const text = getElement('loadingProgressText');
-        if (bar) bar.style.width = this.loadProgress + '%';
+        if (bar) {
+            bar.style.width = this.loadProgress + '%';
+            bar.setAttribute('aria-valuenow', String(Math.floor(this.loadProgress)));
+        }
         if (text) text.textContent = Math.floor(this.loadProgress) + '%';
     },
 

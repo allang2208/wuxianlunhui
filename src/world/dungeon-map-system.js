@@ -35,9 +35,6 @@ import { anchorRect } from '../utils/layout.js';
  *  下区地图 = 60%（648/1080），上区背景 = 40%（432/1080）；
  *  left/bottom 零边距 + height 按视口等比缩放 → 任意分辨率下都是 40/60 分界 */
 const MAP_AREA_SPEC = { left: 0, bottom: 0, width: 1920, height: 648 };
-// 路线图显示窗口（2K 2560×1440 基准，其他分辨率按视口等比换算）：
-// 地图内容（节点/连线）限定在此窗口内，居中于下方区域
-const MAP_VIEW_SPEC = { left: 572, bottom: 112, width: 1391, height: 579 };
 // 地牢等级 → 稀有度档（与出征祭品门槛同序：F=普通、E=优质、D=稀有、C=史诗、B=神话、A=传说）
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
@@ -98,51 +95,34 @@ export const DungeonMapSystem = {
     _observerHiddenUi: null,
     _mapAnimT: 0, // 地图动画时钟（ms 累计：流动虚线/呼吸环/脉冲）
 
-    // 地图缩放范围与初始倍数（滚轮与 _centerRouteMap 共用，勿再散落硬编码）
+    // 地图缩放范围与初始倍数（路线栏的全图/聚焦操作共用，勿再散落硬编码）
     MIN_MAP_SCALE: 0.3,
     MAX_MAP_SCALE: 3,
     DEFAULT_ZOOM_FACTOR: 3,
 
     TYPE_COLORS: {
-        start:  "#3a5a3a",
-        combat: "#7a3a3a",
-        event:  "#6a5a3a",
-        boss:   "#7a0000",
-        reward: "#5a3a7a",
-        empty:  "#3a3a3a",
+        start:  "#202b31",
+        combat: "#2b2428",
+        event:  "#2c2a24",
+        boss:   "#301f25",
+        reward: "#292635",
+        empty:  "#22282d",
     },
     TYPE_BORDER_COLORS: {
-        start:  "#6aca6a",
-        combat: "#aa5a5a",
-        event:  "#9a8a5a",
-        boss:   "#aa0000",
-        reward: "#8a5aaa",
-        empty:  "#5a5a5a",
+        start:  "#7fc7b0",
+        combat: "#c27378",
+        event:  "#c8ad70",
+        boss:   "#df6b75",
+        reward: "#9e88c4",
+        empty:  "#75838b",
     },
     TYPE_ICONS: {
-        start:  "▶",
-        combat: "⚔",
+        start:  "起",
+        combat: "战",
         event:  "?",
-        boss:   "☠",
-        reward: "💎",
+        boss:   "首",
+        reward: "赏",
         empty:  "·",
-    },
-    // 节点贴图（素材库地牢界面：已透明底；boss/reward 暂用纯色圆+图标）
-    NODE_TEX: {
-        start:  'node_start',
-        combat: 'node_combat',
-        event:  'node_event',
-        empty:  'node_empty',
-    },
-    NODE_TEX_SIZE: 42, // 节点贴图最大边（地图单位；84 → 42 缩小 50%）
-    // 节点贴图内容包围盒（1536² 画布内，密集图案实测 + 4px 余量）：
-    // 整画布缩放会让图标只占 ~26% 而显得极小（"环比节点大 3~4 倍"根因）；
-    // 随机事件须用密集区 bbox（568,576）~（972,972），几何包围盒被左上大片空白撑大
-    NODE_TEX_CROP: {
-        node_start:  [574, 566, 414, 408],
-        node_combat: [560, 556, 414, 408],
-        node_empty:  [572, 570, 414, 408],
-        node_event:  [564, 572, 412, 404],
     },
 
     COMBAT_ROOM_SIZE: 1024,
@@ -164,10 +144,6 @@ export const DungeonMapSystem = {
     BOSS_GOLD_REWARD: 300,
     COMBAT_GOLD_BASE: 50,
     COMBAT_GOLD_BONUS: 100,
-
-    // UI 点击区域（X/Y 由 _getExitButtonRect 随视口计算，此处只留固定尺寸）
-    EXIT_BUTTON_W: 90,
-    EXIT_BUTTON_H: 28,
 
     _backupWalls: [],
     _backupCameraFollow: null,
@@ -217,7 +193,7 @@ export const DungeonMapSystem = {
         // 宝箱离场确认框状态复位（与 shutdown 同口径，防上一局残留）
         this._chestLeaveConfirm = false;
         this._chestLeaveCd = 0;
-        const staleChestConfirm = getElement('chestLeaveConfirm');
+        const staleChestConfirm = getElementIfExists('chestLeaveConfirm');
         if (staleChestConfirm) staleChestConfirm.remove();
 
         // 初始化迷雾系统
@@ -270,6 +246,7 @@ export const DungeonMapSystem = {
         this._createDungeonNameLabel();
         // 地图选路模式顶部状态栏（生命/魔法/等级）
         this._createMapStatusBar();
+        this._createRouteControls();
 
         
     },
@@ -291,10 +268,13 @@ export const DungeonMapSystem = {
         this._removeAbandonButton();
         this._removeDungeonNameLabel();
         this._removeMapStatusBar();
+        this._removeRouteControls();
         this._removeNodeTooltip();
         // 通关结算面板兜底移除（异常退出路径）
-        const victoryOverlay = getElement('dungeonVictoryOverlay');
+        const victoryOverlay = getElementIfExists('dungeonVictoryOverlay');
         if (victoryOverlay) victoryOverlay.remove();
+        const exitConfirm = getElementIfExists('dungeonExitConfirm');
+        if (exitConfirm) exitConfirm.remove();
         this._unbindEvents();
         // 时空特工追击机制复位（含几率显示）
         AgentInvasionSystem.reset();
@@ -305,7 +285,7 @@ export const DungeonMapSystem = {
         // 永远不进 _leaveCombatViaPortal，玩家出不了战斗房（软锁）+ 全屏 overlay 残留主神空间
         this._chestLeaveConfirm = false;
         this._chestLeaveCd = 0;
-        const chestConfirmEl = getElement('chestLeaveConfirm');
+        const chestConfirmEl = getElementIfExists('chestLeaveConfirm');
         if (chestConfirmEl) chestConfirmEl.remove();
         // 地板配置恢复默认（离开地牢）
         setDungeonFloorProfile(null);
@@ -379,6 +359,7 @@ export const DungeonMapSystem = {
             this._updateSafeEvacButton();
             this._createDungeonNameLabel();
             this._createMapStatusBar();
+            this._createRouteControls();
             this._setMapInfoVisibility(true);
         }
     },
@@ -402,12 +383,9 @@ export const DungeonMapSystem = {
             if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
             if (e.button !== 0 || this.state !== "map") return;
             const inMapArea = this._isInMapArea(e.clientX, e.clientY);
-            const exitButton = this._getExitButtonRect();
-            const inExitButton = e.clientX >= exitButton.x && e.clientX <= exitButton.x + exitButton.w
-                && e.clientY >= exitButton.y && e.clientY <= exitButton.y + exitButton.h;
-            // 路线节点与退出按钮使用地牢自己的点击边沿，不进入角色攻击/RTS 的全局 Input 链。
-            if (!inMapArea && !inExitButton) return;
-            this._routePointerRegion = inExitButton ? 'exit' : 'map';
+            // 路线节点使用地牢自己的点击边沿，不进入角色攻击/RTS 的全局 Input 链。
+            if (!inMapArea) return;
+            this._routePointerRegion = 'map';
             this.isDragging = false;
             this._dragMoved = false;
             this.dragStartX = inMapArea ? e.clientX : undefined;
@@ -447,11 +425,7 @@ export const DungeonMapSystem = {
             const pointerRegion = this._routePointerRegion;
             this._routePointerRegion = null;
             if (e.button !== 0 || this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
-            const exitButton = this._getExitButtonRect();
-            const releasedOnExit = e.clientX >= exitButton.x && e.clientX <= exitButton.x + exitButton.w
-                && e.clientY >= exitButton.y && e.clientY <= exitButton.y + exitButton.h;
-            const releaseRegion = releasedOnExit ? 'exit'
-                : (this._isInMapArea(e.clientX, e.clientY) ? 'map' : null);
+            const releaseRegion = this._isInMapArea(e.clientX, e.clientY) ? 'map' : null;
             // 如果发生了拖动，标记本次点击为拖动，避免触发节点选择
             const wasDragging = this.isDragging || this._dragMoved;
             if (wasDragging) {
@@ -470,8 +444,7 @@ export const DungeonMapSystem = {
         window.addEventListener("mousemove", onMouseMove);
         window.addEventListener("mouseup", onMouseUp);
 
-        // 滚轮：节点贴图版禁止缩放（只能拖动调整位置，防止贴图大小随缩放变化）——
-        // 仅阻止页面滚动，保留拖动平移
+        // 滚轮只阻止路线区带动页面滚动；缩放由可聚焦的路线栏按钮明确控制。
         const onWheel = (e) => {
             if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
             if (this.state !== "map") return;
@@ -617,38 +590,49 @@ export const DungeonMapSystem = {
         this._positionMapButtons(viewW, w);
     },
 
-    /**
-     * 下方地图选择区域背景图（assets/ui/dungeon-map/map-bg.png）：
-     * 拉伸放大铺满整个地图区域（area），节点/连线绘制在其上；
-     * 图片未就绪时保持默认深色底块（#08080a）。
-     */
+    /** 下方路线操作区：冷钢档案底板 + 克制网格，不再混用羊皮卷/蜡封素材。 */
     _drawMapAreaBackground(ctx, area) {
-        const path = 'assets/ui/dungeon-map/map-bg.png';
-        if (!this._mapBgImg || this._mapBgImgPath !== path) {
-            this._mapBgImgPath = path;
-            this._mapBgImg = loadImage(path);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(area.left, area.top, area.width, area.height);
+        ctx.clip();
+        const base = ctx.createLinearGradient(0, area.top, 0, area.top + area.height);
+        base.addColorStop(0, '#11171b');
+        base.addColorStop(0.58, '#0b1013');
+        base.addColorStop(1, '#080b0d');
+        ctx.fillStyle = base;
+        ctx.fillRect(area.left, area.top, area.width, area.height);
+
+        const major = Math.max(56, Math.round(Math.min(area.width, area.height) / 8));
+        const minor = Math.max(14, Math.round(major / 4));
+        for (let x = area.left; x <= area.left + area.width; x += minor) {
+            const majorLine = Math.round((x - area.left) / minor) % 4 === 0;
+            ctx.strokeStyle = majorLine ? 'rgba(142, 166, 178, 0.13)' : 'rgba(142, 166, 178, 0.045)';
+            ctx.lineWidth = majorLine ? 1 : 0.6;
+            ctx.beginPath();
+            ctx.moveTo(x, area.top);
+            ctx.lineTo(x, area.top + area.height);
+            ctx.stroke();
         }
-        const img = this._mapBgImg;
-        if (!img || !img.complete || img.naturalWidth === 0) return;
-        ctx.drawImage(img, area.left, area.top, area.width, area.height);
+        for (let y = area.top; y <= area.top + area.height; y += minor) {
+            const majorLine = Math.round((y - area.top) / minor) % 4 === 0;
+            ctx.strokeStyle = majorLine ? 'rgba(142, 166, 178, 0.13)' : 'rgba(142, 166, 178, 0.045)';
+            ctx.lineWidth = majorLine ? 1 : 0.6;
+            ctx.beginPath();
+            ctx.moveTo(area.left, y);
+            ctx.lineTo(area.left + area.width, y);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = 'rgba(185, 211, 221, 0.34)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(area.left + 0.5, area.top + 0.5, area.width - 1, area.height - 1);
+        ctx.restore();
     },
 
     /** 当前地牢的路线选择界面背景图路径（配置驱动，含兜底） */
     _getMapBackgroundPath() {
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
         return (cfg && cfg.mapBackground) || 'assets/scenes/dungeon-map-bg.png';
-    },
-
-    /** 节点贴图懒加载（缓存于 this._nodeTexImgs） */
-    _getNodeTexImage(key) {
-        if (!this._nodeTexImgs) this._nodeTexImgs = {};
-        const path = `assets/ui/dungeon-map/${key}.png`;
-        const cached = this._nodeTexImgs[key];
-        if (cached && cached._path === path) return cached;
-        const img = loadImage(path);
-        img._path = path;
-        this._nodeTexImgs[key] = img;
-        return img;
     },
 
     /**
@@ -662,18 +646,19 @@ export const DungeonMapSystem = {
         return anchorRect(MAP_AREA_SPEC, vw, vh);
     },
 
-    /** 路线图显示窗口（2K 2560×1440 基准等比换算；地图内容限定于此窗口内） */
+    /** 路线图显示窗口：桌面保留左右 HUD 安全区，窄屏改用近全宽，不再缩放固定坐标。 */
     _getMapViewRect(viewW, viewH) {
         const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 2560);
         const vh = viewH || ((typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1440);
-        const sx = vw / 2560;
-        const sy = vh / 1440;
-        const height = Math.round(MAP_VIEW_SPEC.height * sy);
+        const compact = vw <= 900;
+        const sideSafe = compact ? 24 : Math.max(260, Math.round(vw * 0.22));
+        const top = Math.round(vh * 0.52);
+        const bottomSafe = Math.max(70, Math.round(vh * 0.075));
         return {
-            left: Math.round(MAP_VIEW_SPEC.left * sx),
-            top: Math.round(vh - MAP_VIEW_SPEC.bottom * sy - height),
-            width: Math.round(MAP_VIEW_SPEC.width * sx),
-            height,
+            left: sideSafe,
+            top,
+            width: Math.max(240, vw - sideSafe * 2),
+            height: Math.max(180, vh - top - bottomSafe),
         };
     },
 
@@ -724,12 +709,6 @@ export const DungeonMapSystem = {
         const v = this._getMapViewRect();
         return x >= v.left && x <= v.left + v.width &&
                y >= v.top && y <= v.top + v.height;
-    },
-
-    /** 退出按钮绘制/点击共用同一矩形（随视口右对齐，不再写死 1920） */
-    _getExitButtonRect(viewW) {
-        const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920);
-        return { x: vw - 110, y: 15, w: this.EXIT_BUTTON_W, h: this.EXIT_BUTTON_H };
     },
 
     /**
@@ -807,6 +786,23 @@ export const DungeonMapSystem = {
         const focusY = startNode ? startNode.y : (bounds.minY + bounds.maxY) / 2;
         this.mapOffsetX = TARGET_AREA.left + TARGET_AREA.width / 2 - focusX * this.mapScale;
         this.mapOffsetY = TARGET_AREA.top + TARGET_AREA.height / 2 - focusY * this.mapScale;
+        this._clampMapOffset();
+    },
+
+    /** 查看完整路线：只改变路线视图，不改变当前位置、迷雾或可达关系。 */
+    _fitRouteMap() {
+        const area = this._getMapViewRect();
+        if (!this.nodes.length) {
+            this._centerRouteMap();
+            return;
+        }
+        const bounds = this._calculateNodeBounds();
+        const padding = 80;
+        const routeW = bounds.maxX - bounds.minX + padding * 2;
+        const routeH = bounds.maxY - bounds.minY + padding * 2;
+        this.mapScale = Math.max(this.MIN_MAP_SCALE, Math.min(area.width / routeW, area.height / routeH, 1.5));
+        this.mapOffsetX = area.left + area.width / 2 - bounds.cx * this.mapScale;
+        this.mapOffsetY = area.top + area.height / 2 - bounds.cy * this.mapScale;
         this._clampMapOffset();
     },
 
@@ -942,41 +938,135 @@ export const DungeonMapSystem = {
         }
     },
 
-    /** 未开宝箱离场确认框：是=直接离开并正常清场进路线图；否=关闭并退回场内 */
+    /** 冷钢决策模态：统一结构、焦点循环与 Escape 取消，业务回调只处理结果。 */
+    _createDecisionModal({ id, eyebrow, title, description, dangerText = '', tone = 'neutral', actions = [] }) {
+        if (typeof document === 'undefined' || getElementIfExists(id)) return null;
+        const previousFocus = document.activeElement;
+        const overlay = document.createElement('div');
+        overlay.id = id;
+        overlay.className = 'dungeon-decision-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+
+        const modal = document.createElement('section');
+        modal.className = `dungeon-decision-modal dungeon-decision-modal--${tone}`;
+        const eyebrowEl = document.createElement('div');
+        eyebrowEl.className = 'dungeon-decision-eyebrow';
+        eyebrowEl.textContent = eyebrow;
+        const titleEl = document.createElement('h2');
+        titleEl.id = `${id}Title`;
+        titleEl.className = 'dungeon-decision-title';
+        titleEl.textContent = title;
+        const descriptionEl = document.createElement('p');
+        descriptionEl.id = `${id}Description`;
+        descriptionEl.className = 'dungeon-decision-description';
+        descriptionEl.append(document.createTextNode(description));
+        if (dangerText) {
+            const danger = document.createElement('strong');
+            danger.className = 'dungeon-decision-warning';
+            danger.textContent = dangerText;
+            descriptionEl.append(document.createElement('br'), danger);
+        }
+        const actionsEl = document.createElement('div');
+        actionsEl.className = 'dungeon-decision-actions';
+        modal.append(eyebrowEl, titleEl, descriptionEl, actionsEl);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        overlay.setAttribute('aria-labelledby', titleEl.id);
+        overlay.setAttribute('aria-describedby', descriptionEl.id);
+
+        let closed = false;
+        const close = ({ restoreFocus = true } = {}) => {
+            if (closed) return;
+            closed = true;
+            overlay.remove();
+            if (restoreFocus && previousFocus?.isConnected && typeof previousFocus.focus === 'function') {
+                previousFocus.focus({ preventScroll: true });
+            }
+        };
+        const buttons = actions.map((action) => {
+            const button = document.createElement('button');
+            button.id = action.id;
+            button.type = 'button';
+            button.className = `bp-button dungeon-decision-button dungeon-decision-button--${action.kind || 'muted'}`;
+            button.textContent = action.label;
+            button.setAttribute('aria-label', action.ariaLabel || action.label);
+            if (action.cancel) button.dataset.cancel = 'true';
+            button.addEventListener('click', () => action.onSelect?.({ close, overlay, button }));
+            actionsEl.appendChild(button);
+            return button;
+        });
+        overlay.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                const cancel = buttons.find(button => button.dataset.cancel === 'true');
+                if (cancel) {
+                    event.preventDefault();
+                    cancel.click();
+                }
+                return;
+            }
+            if (event.key !== 'Tab' || buttons.length < 2) return;
+            const first = buttons[0];
+            const last = buttons[buttons.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        });
+        const initialButton = buttons.find((button, index) => actions[index]?.autofocus) || buttons[0];
+        requestAnimationFrame(() => initialButton?.focus({ preventScroll: true }));
+        return { overlay, close, buttons };
+    },
+
+    /** 未开宝箱离场确认框：离开=正常清场进路线图；返回=退回场内 */
     _showChestLeaveConfirm() {
         this._chestLeaveConfirm = true;
-        const overlay = document.createElement('div');
-        overlay.id = 'chestLeaveConfirm';
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10005;display:flex;align-items:center;justify-content:center;';
-        overlay.innerHTML = `
-            <div style="background:linear-gradient(135deg,rgba(45,40,35,0.98),rgba(35,30,25,0.99));border:2px solid #a08a5a;border-radius:12px;padding:32px 44px;text-align:center;">
-                <div style="font-size:20px;color:#e8d5a8;font-weight:700;margin-bottom:24px;">场地内还有未获取的宝箱奖励，是否离开？</div>
-                <div style="display:flex;gap:20px;justify-content:center;">
-                    <button id="chestLeaveYes" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#7a3a3a,#5a2a2a);color:#f0c8c8;border:1px solid #aa5a5a;border-radius:8px;">是</button>
-                    <button id="chestLeaveNo" style="padding:10px 36px;font-size:17px;font-weight:700;cursor:pointer;background:linear-gradient(to bottom,#3a6a3a,#2a5a2a);color:#c8f0c8;border:1px solid #5aaa5a;border-radius:8px;">否</button>
-                </div>
-            </div>`;
-        document.body.appendChild(overlay);
-        const close = () => {
-            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        const modal = this._createDecisionModal({
+            id: 'chestLeaveConfirm',
+            eyebrow: 'LOOT ARCHIVE // UNCLAIMED CACHE',
+            title: '仍有未领取的宝箱',
+            description: '离开战斗场地后，本房间将按正常流程清理。',
+            dangerText: '尚未获取的宝箱奖励将永久丢失。',
+            tone: 'warning',
+            actions: [
+                {
+                    id: 'chestLeaveNo',
+                    label: '返回场内',
+                    kind: 'muted',
+                    cancel: true,
+                    autofocus: true,
+                    onSelect: ({ close }) => {
+                        close();
+                        this._chestLeaveConfirm = false;
+                        // 退回场内：从门区向场地中心方向退回一段，并给 1s 冷却防连发
+                        const b = CombatRoomSystem._roomBounds;
+                        if (b && this.player) {
+                            const dx = b.cx - this.player.x, dy = b.cy - this.player.y;
+                            const len = Math.hypot(dx, dy) || 1;
+                            this.player.x += dx / len * 160;
+                            this.player.y += dy / len * 160;
+                        }
+                        this._chestLeaveCd = 1;
+                    },
+                },
+                {
+                    id: 'chestLeaveYes',
+                    label: '确认离开',
+                    kind: 'danger',
+                    onSelect: ({ close }) => {
+                        close({ restoreFocus: false });
+                        this._chestLeaveConfirm = false;
+                        this._leaveCombatViaPortal();
+                    },
+                },
+            ],
+        });
+        if (!modal) {
             this._chestLeaveConfirm = false;
-        };
-        getElement('chestLeaveYes').onclick = () => {
-            close();
-            this._leaveCombatViaPortal();
-        };
-        getElement('chestLeaveNo').onclick = () => {
-            close();
-            // 退回场内：从门区向场地中心方向退回一段，并给 1s 冷却防连发
-            const b = CombatRoomSystem._roomBounds;
-            if (b && this.player) {
-                const dx = b.cx - this.player.x, dy = b.cy - this.player.y;
-                const len = Math.hypot(dx, dy) || 1;
-                this.player.x += dx / len * 160;
-                this.player.y += dy / len * 160;
-            }
-            this._chestLeaveCd = 1;
-        };
+        }
     },
 
     _updateHover(pointer = Input.mouse) {
@@ -1010,10 +1100,8 @@ export const DungeonMapSystem = {
         if (!el) {
             el = document.createElement('div');
             el.id = 'dungeonNodeTooltip';
-            el.style.cssText = `position:fixed;z-index:9005;pointer-events:none;user-select:none;
-                background:rgba(35,30,25,0.95);border:1px solid #a08a5a;border-radius:6px;
-                padding:6px 12px;font-family:SimHei,"Microsoft YaHei",sans-serif;font-size:15px;
-                color:#d4c5a9;white-space:nowrap;`;
+            el.className = 'dungeon-route-tooltip';
+            el.setAttribute('role', 'tooltip');
             document.body.appendChild(el);
         }
         const streak = DungeonRunStats.combatStreak;
@@ -1021,17 +1109,17 @@ export const DungeonMapSystem = {
         let text = '';
         if (node.type === 'combat') {
             const est = Math.round(getRoomExpEstimate(this.dungeonType, !!node.isElite) * mul);
-            text = `${node.isElite ? '★ 精英战斗' : '⚔ 战斗'} ≈ +${est} EXP`;
+            text = `${node.isElite ? '[精英] 精英战斗' : '[战斗] 普通战斗'} ≈ +${est} EXP`;
             if (streak >= 2) text += `（连战 x${streak + 1} ×${mul.toFixed(2)}）`;
         } else if (node.type === 'boss') {
             const bossEst = Math.round((getDungeonExpBase(this.dungeonType) * 10 + getRoomClearBonus(this.dungeonType)) * mul);
-            text = `☠ Boss ≈ +${bossEst} EXP`;
+            text = `[首领] Boss ≈ +${bossEst} EXP`;
             if (streak >= 2) text += `（连战 x${streak + 1} ×${mul.toFixed(2)}）`;
         } else if (node.type === 'event') {
-            text = node.eventType === 'treasureChest' ? '◆ 宝箱：金币/材料' : '? 随机事件';
+            text = node.eventType === 'treasureChest' ? '[宝箱] 金币/材料' : '[事件] 随机事件';
             if (streak >= 3) text += '（选择将中断连战）';
         } else if (node.type === 'reward') {
-            text = '✦ 奖励节点';
+            text = '[奖励] 战利品节点';
         }
         if (!text) { el.style.display = 'none'; return; }
         el.textContent = text;
@@ -1049,13 +1137,6 @@ export const DungeonMapSystem = {
 
     _handleClick(pointer = Input.mouse) {
         const mx = pointer.x, my = pointer.y;
-        // 检测退出按钮点击（与绘制共用 _getExitButtonRect，随视口右对齐）
-        const btn = this._getExitButtonRect();
-        if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
-            this._showExitConfirm();
-            return;
-        }
-
         if (!this.hoveredNodeId) return;
         const node = this.nodes.find(n => n.id === this.hoveredNodeId);
         if (!node || !this.isNodeClickable(node)) return;
@@ -1065,6 +1146,7 @@ export const DungeonMapSystem = {
     _enterNode(node) {
         // 进入节点前隐藏地图按钮
         this._removeAbandonButton();
+        this._removeRouteControls();
         this._removeNodeTooltip();
         // 左侧地牢信息（入侵几率标签 + 预期奖励面板）仅路线选择画面显示，
         // 进战斗/事件/奖励一律隐藏，返回地图时再恢复
@@ -1111,10 +1193,18 @@ export const DungeonMapSystem = {
     },
 
     /** 事件/战斗完成返回地图：保持当前缩放，聚焦居中玩家所在节点（不再重置回出发点） */
-    _focusOnCurrentNode() {
+    _focusOnCurrentNode({ restoreDefaultZoom = false } = {}) {
         const node = this.getCurrentNode();
         if (!node) { this._centerRouteMap(); return; }
-        const area = this._getMapTargetArea();
+        const area = this._getMapViewRect();
+        if (restoreDefaultZoom) {
+            const bounds = this._calculateNodeBounds();
+            const padding = 80;
+            const routeW = bounds.maxX - bounds.minX + padding * 2;
+            const routeH = bounds.maxY - bounds.minY + padding * 2;
+            const fitScale = Math.min(area.width / routeW, area.height / routeH, 1.5);
+            this.mapScale = Math.min(fitScale * this.DEFAULT_ZOOM_FACTOR, this.MAX_MAP_SCALE);
+        }
         this.mapOffsetX = area.left + area.width / 2 - node.x * this.mapScale;
         this.mapOffsetY = area.top + area.height / 2 - node.y * this.mapScale;
         this._clampMapOffset();
@@ -1140,6 +1230,7 @@ export const DungeonMapSystem = {
         // 显示地图界面按钮
         this._createAbandonButton();
         this._updateSafeEvacButton();
+        this._createRouteControls();
         // 恢复左侧地牢信息（仅路线选择画面显示）
         this._setMapInfoVisibility(true);
 
@@ -2086,25 +2177,25 @@ export const DungeonMapSystem = {
             const isAvailable = this.currentNodeId === fromNode.id && availableIds.has(toNode.id);
 
             if (isVisited) {
-                // 已走路径：暗色粗底 + 绿色细线（路径感双层）
-                ctx.strokeStyle = 'rgba(38, 54, 38, 0.7)';
+                // 已走路径：冷钢深槽 + 青灰确认线
+                ctx.strokeStyle = 'rgba(24, 34, 39, 0.92)';
                 ctx.lineWidth = 5;
                 ctx.lineCap = 'round';
                 ctx.beginPath();
                 ctx.moveTo(fromNode.x, fromNode.y);
                 ctx.lineTo(toNode.x, toNode.y);
                 ctx.stroke();
-                ctx.strokeStyle = 'rgba(90, 138, 90, 0.75)';
+                ctx.strokeStyle = 'rgba(104, 157, 166, 0.82)';
                 ctx.lineWidth = 2.2;
                 ctx.beginPath();
                 ctx.moveTo(fromNode.x, fromNode.y);
                 ctx.lineTo(toNode.x, toNode.y);
                 ctx.stroke();
             } else if (isAvailable) {
-                // 可点击路径：金色光晕底 + 流动虚线（指向下一步）
-                ctx.shadowColor = 'rgba(230, 190, 90, 0.65)';
+                // 可点击路径：银青光晕底 + 流动虚线（指向下一步）
+                ctx.shadowColor = 'rgba(174, 211, 222, 0.58)';
                 ctx.shadowBlur = 10 / this.mapScale; // 屏幕恒定光晕强度（缩放时补偿）
-                ctx.strokeStyle = 'rgba(180, 150, 70, 0.20)';
+                ctx.strokeStyle = 'rgba(142, 182, 194, 0.22)';
                 ctx.lineWidth = 5;
                 ctx.lineCap = 'round';
                 ctx.beginPath();
@@ -2112,7 +2203,7 @@ export const DungeonMapSystem = {
                 ctx.lineTo(toNode.x, toNode.y);
                 ctx.stroke();
                 ctx.shadowBlur = 0;
-                ctx.strokeStyle = 'rgba(236, 200, 115, 0.95)';
+                ctx.strokeStyle = 'rgba(190, 220, 228, 0.96)';
                 ctx.lineWidth = 2.4;
                 ctx.setLineDash([12 / this.mapScale, 8 / this.mapScale]);
                 ctx.lineDashOffset = -(t * 0.04) / this.mapScale;
@@ -2124,7 +2215,7 @@ export const DungeonMapSystem = {
                 ctx.lineDashOffset = 0;
             } else {
                 // 未开放/迷雾路径：暗色细虚线（保持可见但不抢眼）
-                ctx.strokeStyle = 'rgba(42, 42, 42, 0.45)';
+                ctx.strokeStyle = 'rgba(86, 101, 109, 0.38)';
                 ctx.lineWidth = 1.6;
                 ctx.setLineDash([6 / this.mapScale, 6 / this.mapScale]);
                 ctx.beginPath();
@@ -2156,99 +2247,72 @@ export const DungeonMapSystem = {
 
             let radius = this.NODE_RADIUS;
             let color, borderColor;
-            let glow = false;
 
             if (isCurrent) {
-                color = this.TYPE_COLORS[node.type] || "#3a5a3a";
-                borderColor = "#ffffff";
+                color = this.TYPE_COLORS[node.type] || "#202b31";
+                borderColor = "#d7e7ed";
                 radius += 4;
-                glow = true;
             } else if (isVisited) {
-                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
-                borderColor = "#5a5a5a";
-                ctx.globalAlpha = 0.5;
+                color = this.TYPE_COLORS[node.type] || "#22282d";
+                borderColor = node.completed ? "#689da6" : "#65747c";
+                ctx.globalAlpha = 0.72;
             } else if (isAvailable) {
                 // 相邻可点击节点：显示实际类型
-                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
-                borderColor = this.TYPE_BORDER_COLORS[node.type] || "#aaaaaa";
-                glow = true;
+                color = this.TYPE_COLORS[node.type] || "#22282d";
+                borderColor = this.TYPE_BORDER_COLORS[node.type] || "#9fb5bf";
             } else if (isRevealed) {
                 // 已揭示但未访问：显示实际类型但暗淡
-                color = this.TYPE_COLORS[node.type] || "#3a3a3a";
-                borderColor = "#444444";
-                ctx.globalAlpha = 0.4;
+                color = this.TYPE_COLORS[node.type] || "#22282d";
+                borderColor = "#58666d";
+                ctx.globalAlpha = 0.48;
             } else {
                 // 未揭示：迷雾状态
-                color = "#1a1a1a";
-                borderColor = "#111111";
-                ctx.globalAlpha = 0.3;
+                color = "#151a1d";
+                borderColor = "#343e43";
+                ctx.globalAlpha = 0.42;
             }
 
             if (isHovered && isAvailable) {
                 radius += 5;
-                borderColor = "#ffffff";
+                borderColor = "#e8f5f8";
             }
 
-            // E: 呼吸发光（可点击/当前节点，随动画时钟脉动）
+            // 可点击/当前节点使用克制的冷钢呼吸反馈。
             const breathe = 0.55 + 0.45 * Math.sin(t * 0.004);
 
-            // 节点贴图（start/combat/event/empty；迷雾 unknown 与 boss/reward 走纯色圆）
-            const texKey = this.NODE_TEX[displayType] || null;
-            const texImg = texKey ? this._getNodeTexImage(texKey) : null;
-            const hasTex = !!(texKey && texImg && texImg.complete && texImg.naturalWidth > 0 && displayType !== 'unknown');
-            let tw = 0, th = 0;
-            if (hasTex) {
-                radius = this.NODE_TEX_SIZE / 2; // 特效（环/★/你）按贴图尺寸定位
-                // 只画内容包围盒（源矩形），避免整画布透明边距把图标缩得极小
-                const crop = this.NODE_TEX_CROP[texKey] || [0, 0, texImg.naturalWidth, texImg.naturalHeight];
-                const texScale = this.NODE_TEX_SIZE / Math.max(crop[2], crop[3]);
-                tw = crop[2] * texScale;
-                th = crop[3] * texScale;
-            }
-            if (isHovered && isAvailable) {
-                radius += 5;
-                borderColor = "#ffffff";
-            }
-
-            if (hasTex) {
-                // 贴图节点：直接绘制贴图（状态透明度沿用上方 globalAlpha）。
-                // 不加阴影光晕——阴影会沿贴图轮廓扩散成一大圈金色光晕（低缩放时数倍于贴图），
-                // 金色呼吸环已足够提示可点击/当前位置
-                ctx.shadowBlur = 0;
-                const crop = this.NODE_TEX_CROP[texKey] || [0, 0, texImg.naturalWidth, texImg.naturalHeight];
-                ctx.drawImage(texImg, crop[0], crop[1], crop[2], crop[3],
-                    node.x - tw / 2, node.y - th / 2, tw, th);
-                ctx.shadowBlur = 0;
+            if (isAvailable) {
+                ctx.shadowColor = this.TYPE_BORDER_COLORS[node.type] || '#9fb5bf';
+                ctx.shadowBlur = (8 + 6 * breathe) / this.mapScale;
+            } else if (isCurrent) {
+                ctx.shadowColor = '#d7e7ed';
+                ctx.shadowBlur = 10 / this.mapScale;
             } else {
-                // 纯色圆（boss/reward/迷雾 unknown）
-                if (isAvailable && glow) {
-                    ctx.shadowColor = this.TYPE_BORDER_COLORS[node.type] || '#aaaaaa';
-                    ctx.shadowBlur = (10 + 8 * breathe) / this.mapScale;
-                } else if (isCurrent) {
-                    ctx.shadowColor = '#ffffff';
-                    ctx.shadowBlur = 12 / this.mapScale;
-                } else {
-                    ctx.shadowBlur = 0;
-                }
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = borderColor;
-                ctx.lineWidth = isHovered ? 3 : 2;
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-                ctx.stroke();
                 ctx.shadowBlur = 0;
             }
+            // 金属档案节点：外壳、内圈和顶部高光共同建立冷钢层级。
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = isHovered ? 3 : 2;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(226, 239, 243, 0.18)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, Math.max(4, radius - 5), Math.PI * 1.08, Math.PI * 1.92);
+            ctx.stroke();
             ctx.globalAlpha = 1.0;
 
-            // E: 可点击节点——金色呼吸外环（提示可前进）
+            // 可点击节点——银青呼吸外环（提示可前进）
             if (isAvailable) {
-                ctx.strokeStyle = `rgba(230, 195, 110, ${0.30 + 0.30 * breathe})`;
+                ctx.strokeStyle = `rgba(190, 220, 228, ${0.32 + 0.30 * breathe})`;
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, radius + 2, 0, Math.PI * 2); // 贴紧贴图边缘
+                ctx.arc(node.x, node.y, radius + 3, 0, Math.PI * 2);
                 ctx.stroke();
             }
             // E: 当前节点——白色脉冲双环
@@ -2273,15 +2337,6 @@ export const DungeonMapSystem = {
                 ctx.arc(node.x, node.y, radius + 2, 0, Math.PI * 2);
                 ctx.stroke();
             }
-            // 贴图节点 hover：白色定位圈
-            if (hasTex && isHovered && isAvailable) {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, radius + 3, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-
             // 收集屏幕空间标签元数据（C：图标/★/你 反缩放绘制）
             labelMeta.push({
                 displayType, isRevealed, isAvailable, isCurrent,
@@ -2289,7 +2344,7 @@ export const DungeonMapSystem = {
                 sy: node.y * this.mapScale + this.mapOffsetY,
                 radius,
                 elite: node.isElite,
-                hasTex,
+                completed: !!node.completed,
             });
         }
 
@@ -2340,22 +2395,28 @@ export const DungeonMapSystem = {
         for (const m of labelMeta) {
             const screenR = Math.max(12, m.radius * this.mapScale);
             const iconSize = Math.max(12, Math.min(18, Math.round(screenR * 0.60)));
-            // 贴图节点自带图案，不再叠加图标；迷雾/boss/reward 仍画图标
-            if (!m.hasTex) {
-                const icon = m.isRevealed ? (this.TYPE_ICONS[m.displayType] || '•') : '?';
-                ctx.font = `${iconSize}px "Microsoft YaHei", sans-serif`;
-                ctx.fillStyle = (m.isAvailable || m.isCurrent || m.isRevealed) ? '#ffffff' : '#8a8a8a';
-                ctx.fillText(icon, m.sx, m.sy + 1);
-            }
+            const icon = m.isRevealed ? (this.TYPE_ICONS[m.displayType] || '•') : '?';
+            ctx.font = `700 ${iconSize}px "Microsoft YaHei", sans-serif`;
+            ctx.fillStyle = (m.isAvailable || m.isCurrent || m.isRevealed) ? '#e3edf0' : '#6f7b81';
+            ctx.fillText(icon, m.sx, m.sy + 1);
             if (m.elite && m.isRevealed) {
                 ctx.font = `bold ${iconSize - 1}px "Microsoft YaHei", sans-serif`;
                 ctx.fillStyle = '#d08ae0';
                 ctx.fillText('★', m.sx, m.sy - screenR - 6);
             }
+            if (m.completed && !m.isCurrent) {
+                ctx.font = '700 12px "Microsoft YaHei", sans-serif';
+                ctx.fillStyle = '#83c8b4';
+                ctx.fillText('✓', m.sx + screenR * 0.72, m.sy + screenR * 0.66);
+            }
             if (m.isCurrent) {
-                ctx.font = 'bold 13px sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText('你', m.sx, m.sy + screenR + 8);
+                ctx.font = '700 12px "Microsoft YaHei", sans-serif';
+                ctx.fillStyle = '#dcebef';
+                ctx.fillText('当前位置', m.sx, m.sy + screenR + 10);
+            } else if (m.isAvailable) {
+                ctx.font = '600 11px "Microsoft YaHei", sans-serif';
+                ctx.fillStyle = '#a9c8d1';
+                ctx.fillText('可前往', m.sx, m.sy + screenR + 9);
             }
         }
 
@@ -2382,37 +2443,94 @@ export const DungeonMapSystem = {
         // 恢复原始状态（解除区域裁剪与地图变换）
         ctx.restore();
 
-        // ── 绘制 UI 覆盖层（不受地图变换影响，固定在地图区域内）─
-        // 标题与提示已改为 DOM 覆盖层（#dungeonMapTitle），底部居中
+        // 进度、全图/当前位置与可达节点改由可聚焦的 DOM 路线控制栏承载。
+    },
 
-        // 进度：跟随地图区域（不再用 viewW/viewH，避免 2K 下跑出区域）
-        const progress = `${this.visitedNodeIds.size} / ${this.nodes.length}`;
-        ctx.fillStyle = "#666666";
-        ctx.font = "13px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "alphabetic";
-        ctx.fillText(`进度: ${progress} 节点`, area.left + area.width / 2, area.top + area.height - 10);
+    _getRouteNodeLabel(node) {
+        if (!node) return '未知节点';
+        if (node.type === 'combat') return node.isElite ? '精英战斗' : '战斗节点';
+        if (node.type === 'event') return node.eventType === 'treasureChest' ? '宝箱事件' : '随机事件';
+        if (node.type === 'boss') return '首领节点';
+        if (node.type === 'reward') return '奖励节点';
+        if (node.type === 'start') return '地牢入口';
+        return '通行节点';
+    },
 
-        // 缩放指示：区域右下角
-        ctx.fillStyle = "#444444";
-        ctx.font = "11px sans-serif";
-        ctx.textAlign = "right";
-        ctx.fillText(`${Math.round(this.mapScale * 100)}%`, area.left + area.width - 12, area.top + area.height - 10);
-        ctx.textAlign = "center";
+    /** 路线控制栏：提供键盘可达的全图/当前位置和下一步节点入口。 */
+    _createRouteControls() {
+        let root = getElementIfExists('dungeonRouteControls');
+        if (!root) {
+            root = document.createElement('nav');
+            root.id = 'dungeonRouteControls';
+            root.className = 'dungeon-route-controls';
+            root.setAttribute('aria-label', '地牢路线控制');
+            root.innerHTML = `
+                <div class="dungeon-route-controls-head">
+                    <div>
+                        <div class="dungeon-route-controls-kicker">ROUTE ARCHIVE // NEXT MOVE</div>
+                        <div class="dungeon-route-controls-title">选择下一步路线</div>
+                    </div>
+                    <div id="dungeonRouteProgress" class="dungeon-route-progress" aria-live="polite"></div>
+                </div>
+                <div class="dungeon-route-controls-body">
+                    <div id="dungeonRouteNodeActions" class="dungeon-route-node-actions" role="group" aria-label="可前往节点"></div>
+                    <div class="dungeon-route-view-actions">
+                        <button id="dungeonRouteFit" type="button" class="bp-button bp-button--muted">查看全图</button>
+                        <button id="dungeonRouteFocus" type="button" class="bp-button bp-button--muted">聚焦当前位置</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(root);
+            getElement('dungeonRouteFit').addEventListener('click', () => {
+                if (this.active && this.state === 'map') this._fitRouteMap();
+            });
+            getElement('dungeonRouteFocus').addEventListener('click', () => {
+                if (this.active && this.state === 'map') this._focusOnCurrentNode({ restoreDefaultZoom: true });
+            });
+        }
+        this._updateRouteControls();
+    },
 
-        // 退出按钮（绘制位置与点击热区共用 _getExitButtonRect，随视口右对齐）
-        const btn = this._getExitButtonRect(viewW);
-        ctx.fillStyle = "#3a5a3a";
-        ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
-        ctx.strokeStyle = "#6a8a5a";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
-        ctx.fillStyle = "#d4c5a9";
-        ctx.font = "12px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("退出地牢", btn.x + btn.w / 2, btn.y + btn.h / 2);
-        ctx.textBaseline = "alphabetic";
+    _updateRouteControls() {
+        const progress = getElementIfExists('dungeonRouteProgress');
+        const actions = getElementIfExists('dungeonRouteNodeActions');
+        if (!progress || !actions) return;
+        progress.textContent = `已探索 ${this.visitedNodeIds.size}/${this.nodes.length}`;
+        const available = this.getAvailableNodes();
+        actions.replaceChildren();
+        if (!available.length) {
+            const empty = document.createElement('span');
+            empty.className = 'dungeon-route-node-empty';
+            empty.textContent = '当前没有可前往节点';
+            actions.appendChild(empty);
+            return;
+        }
+        for (const node of available) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `dungeon-route-node-action dungeon-route-node-action--${node.type || 'empty'}`;
+            const label = this._getRouteNodeLabel(node);
+            button.setAttribute('aria-label', `前往${label}${node.completed ? '，已完成' : ''}`);
+            const icon = document.createElement('span');
+            icon.className = 'dungeon-route-node-action-icon';
+            icon.setAttribute('aria-hidden', 'true');
+            icon.textContent = this.TYPE_ICONS[node.type] || '·';
+            const copy = document.createElement('span');
+            copy.className = 'dungeon-route-node-action-copy';
+            const title = document.createElement('strong');
+            title.textContent = label;
+            const meta = document.createElement('span');
+            meta.textContent = node.completed ? '已完成 · 可返回' : '可前往';
+            copy.append(title, meta);
+            button.append(icon, copy);
+            button.addEventListener('click', () => {
+                if (this.active && this.state === 'map' && this.isNodeClickable(node)) this._enterNode(node);
+            });
+            actions.appendChild(button);
+        }
+    },
+
+    _removeRouteControls() {
+        getElementIfExists('dungeonRouteControls')?.remove();
     },
 
     /**
@@ -2658,32 +2776,37 @@ export const DungeonMapSystem = {
 
         const overlay = document.createElement("div");
         overlay.id = "dungeonVictoryOverlay";
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-        `;
+        overlay.className = 'dungeon-decision-overlay dungeon-victory-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'dungeonVictoryTitle');
+        overlay.setAttribute('aria-describedby', 'dungeonVictorySummary');
         overlay.innerHTML = `
-            <h1 style="color: #e8c878; font-size: 52px; margin-bottom: 16px; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">地牢通关！</h1>
-            <div style="background: rgba(45,40,35,0.95); border: 2px solid #a08a5a; border-radius: 12px; padding: 24px 44px; margin-bottom: 32px; min-width: 480px;">
-                <div style="color:#e8d5a8; font-size: 19px; font-weight: 700; margin-bottom: 14px; text-align: center;">— 通关结算 —</div>
-                <div style="color:#d4c5a9; font-size: 16px; line-height: 1.9;">
-                    <div>击杀统计：${killLine}</div>
-                    <div>经验合计：<b style="color:#ffd700">${stats.exp} EXP</b>${clearBonus > 0 ? ` <span style="color:#7ee787">＋全清奖励 ${clearBonus} EXP</span>` : ''}</div>
-                    <div>探索完成度：${clearPct}%（${clearedNodes}/${totalNodes} 节点）</div>
-                    ${d ? `<div>当前等级 Lv.${d.level} · 距下一级还需 <b style="color:#ffd700">${expRemain} EXP</b></div>` : ''}
+            <section class="dungeon-victory-modal">
+                <div class="dungeon-decision-eyebrow">MISSION ARCHIVE // DUNGEON CLEARED</div>
+                <h1 id="dungeonVictoryTitle" class="dungeon-victory-title">地牢通关</h1>
+                <div id="dungeonVictorySummary" class="dungeon-victory-summary">
+                    <div class="dungeon-victory-row"><span>击杀统计</span><strong>${killLine}</strong></div>
+                    <div class="dungeon-victory-row"><span>经验合计</span><strong class="dungeon-victory-value">${stats.exp} EXP</strong></div>
+                    ${clearBonus > 0 ? `<div class="dungeon-victory-row dungeon-victory-row--success"><span>全清奖励</span><strong>+${clearBonus} EXP</strong></div>` : ''}
+                    <div class="dungeon-victory-row"><span>探索完成度</span><strong>${clearPct}%（${clearedNodes}/${totalNodes} 节点）</strong></div>
+                    ${d ? `<div class="dungeon-victory-row"><span>当前进度</span><strong>Lv.${d.level} · 距下一级 ${expRemain} EXP</strong></div>` : ''}
                 </div>
-            </div>
-            <button id="dungeonVictoryBtn" style="padding: 16px 48px; font-size: 18px; background: #4a6a3a; border: 2px solid #6a8a5a; color: #d4c5a9; border-radius: 8px; cursor: pointer; transition: background 0.15s;">返回主神空间</button>
+                <button id="dungeonVictoryBtn" type="button" class="bp-button dungeon-victory-button">返回主神空间</button>
+            </section>
         `;
         document.body.appendChild(overlay);
 
         const btn = getElement("dungeonVictoryBtn");
-        btn.onmouseenter = () => btn.style.background = "#5a7a4a";
-        btn.onmouseleave = () => btn.style.background = "#4a6a3a";
+        requestAnimationFrame(() => btn?.focus({ preventScroll: true }));
+        overlay.addEventListener('keydown', (event) => {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                btn?.focus({ preventScroll: true });
+            }
+        });
         btn.onclick = async () => {
-
+            btn.disabled = true;
             overlay.remove();
             this._recordRunResult('success');
             this.shutdown();
@@ -2731,56 +2854,47 @@ export const DungeonMapSystem = {
     },
 
     _showExitConfirm() {
-        if (getElement("dungeonExitConfirm")) return;
-
-        const overlay = document.createElement("div");
-        overlay.id = "dungeonExitConfirm";
-        overlay.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.80); z-index: 10001;
-            display: flex; align-items: center; justify-content: center;
-            font-family: SimHei, "Microsoft YaHei", sans-serif; user-select: none;
-        `;
-        overlay.innerHTML = `
-            <div style="background: #2a2520; border: 2px solid #5a4a3a; border-radius: 10px; padding: 30px; max-width: 400px; width: 90%; color: #d4c5a9; text-align: center;">
-                <h3 style="color: #e8c878; margin: 0 0 15px; font-size: 22px;">确认放弃地牢</h3>
-                <p style="margin: 0 0 25px; line-height: 1.6;">放弃并返回将<span style="color:#ff6b6b;">丢失背包中所有物品</span>。<br>确定要返回主神空间吗？</p>
-                <div style="display: flex; gap: 15px; justify-content: center;">
-                    <button id="dungeonExitConfirmBtn" style="padding: 12px 30px; background: #4a6a3a; border: 2px solid #6a8a5a; color: #d4c5a9; border-radius: 5px; cursor: pointer; font-size: 15px;">确认退出</button>
-                    <button id="dungeonExitCancelBtn" style="padding: 12px 30px; background: #3a3a3a; border: 2px solid #5a5a5a; color: #888; border-radius: 5px; cursor: pointer; font-size: 15px;">继续探索</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-
-        const confirmBtn = getElement("dungeonExitConfirmBtn");
-        const cancelBtn = getElement("dungeonExitCancelBtn");
-
-        confirmBtn.onmouseenter = () => confirmBtn.style.background = "#5a7a4a";
-        confirmBtn.onmouseleave = () => confirmBtn.style.background = "#4a6a3a";
-        cancelBtn.onmouseenter = () => cancelBtn.style.background = "#4a4a4a";
-        cancelBtn.onmouseleave = () => cancelBtn.style.background = "#3a3a3a";
-
-        confirmBtn.onclick = async () => {
-            overlay.remove();
-            // 放弃惩罚：丢失背包中所有物品（安全撤离/通关/胜利不触发）
-            this._clearPlayerBackpack();
-            this._recordRunResult('abandoned');
-            this.shutdown();
-            const player = Game.player || this.player;
-            if (player) {
-                try {
-                    await SceneManager.switchScene("main", player);
-                } catch (err) {
-                    console.error('[DungeonMapSystem] Exit to main failed:', err);
-                    alert('返回主神空间失败: ' + (err.message || '未知错误'));
-                }
-            }
-        };
-
-        cancelBtn.onclick = () => {
-            overlay.remove();
-        };
+        if (getElementIfExists("dungeonExitConfirm")) return;
+        this._createDecisionModal({
+            id: 'dungeonExitConfirm',
+            eyebrow: 'EXPEDITION ARCHIVE // ABANDON RUN',
+            title: '确认放弃地牢',
+            description: '放弃将立即结束本次探险并返回主神空间。',
+            dangerText: '背包中的所有物品都会丢失，且无法恢复。',
+            tone: 'danger',
+            actions: [
+                {
+                    id: 'dungeonExitCancelBtn',
+                    label: '继续探索',
+                    kind: 'muted',
+                    cancel: true,
+                    autofocus: true,
+                    onSelect: ({ close }) => close(),
+                },
+                {
+                    id: 'dungeonExitConfirmBtn',
+                    label: '确认放弃',
+                    kind: 'danger',
+                    onSelect: async ({ close, overlay }) => {
+                        overlay.querySelectorAll('button').forEach(button => { button.disabled = true; });
+                        close({ restoreFocus: false });
+                        // 放弃惩罚：丢失背包中所有物品（安全撤离/通关/胜利不触发）
+                        this._clearPlayerBackpack();
+                        this._recordRunResult('abandoned');
+                        this.shutdown();
+                        const player = Game.player || this.player;
+                        if (player) {
+                            try {
+                                await SceneManager.switchScene("main", player);
+                            } catch (err) {
+                                console.error('[DungeonMapSystem] Exit to main failed:', err);
+                                alert('返回主神空间失败: ' + (err.message || '未知错误'));
+                            }
+                        }
+                    },
+                },
+            ],
+        });
     },
 
 };
