@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_bomb_zombie_20260829\\mother\\bomb-zombie-mother-v02-empty-hand.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_bomb_zombie_20260829\\prompts\\dying-doubao-v01.txt",
+  "promptChars": 484,
+  "promptSha256": "e702e321bab4c3407cdc2043d8aad5a7ae0c7b9091d67ebdf50a4f1a1ccf95a4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T00:14:28.962Z",
+  "sourceUrlScheme": "https"
+}

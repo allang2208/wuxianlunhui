@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: corrected production identity mother frame for a Phaser game monster animation pipeline
+
+Primary request: Remove only the dynamite bundle and its dangling fuse from the character's lowered right hand. Reconstruct that right hand as a natural empty relaxed hand hanging beside the thigh, with five anatomically correct fingers. The character must begin empty-handed so a later animation can show him taking one dynamite bundle from the satchel.
+
+Invariants: preserve exactly the same original undead miner identity, face, soot-burned cheek, pale eyes, pose, right-facing low three-quarter view, body proportions, mining helmet and lamp, clothing, boots, apron, cross-body straps, satchel, brass fuse reel, the exactly three dark red-brown dynamite sticks still stored in the satchel, materials, colors, lighting, scale, framing, ground baseline and pure white background. Change nothing except removing the hand-held bundle and fuse and reconstructing the exposed empty right hand.
+
+Constraints: exactly one character, exactly two arms and hands, right hand empty, satchel contents unchanged, complete silhouette, animation-safe margins.
+
+Avoid: adding or removing any satchel dynamite, moving the left hand, changing the face or pose, new tools, new equipment, lit fuse, flame, smoke, explosion, shadow, scenery, text, logo or watermark.

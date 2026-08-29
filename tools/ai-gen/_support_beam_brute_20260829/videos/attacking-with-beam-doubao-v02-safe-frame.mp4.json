@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\mother\\support-beam-brute-attack-safe-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\videos\\attacking-with-beam-doubao-v02-safe-frame_doubao_bg.txt",
+  "promptChars": 979,
+  "promptSha256": "391ccd455ef7fef349121bcff51e769b7dd2198d4099f95c57aced168bf2cffb",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T01:36:46.163Z",
+  "sourceUrlScheme": "https"
+}

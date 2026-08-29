@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\mother\\support-beam-brute-empty-hand-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\videos\\dying-unarmed-doubao-v01_doubao_bg.txt",
+  "promptChars": 766,
+  "promptSha256": "3a39be85d7dfc331fabd0822ec517e942348be360595a1b8304058cf5f363836",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T01:18:35.842Z",
+  "sourceUrlScheme": "https"
+}

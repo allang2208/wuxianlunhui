@@ -1,0 +1,51 @@
+{
+  "idle": {
+    "source": "videos/idle-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/idle-preview.gif",
+    "contact": "previews/videos/idle-contact.png"
+  },
+  "moving": {
+    "source": "videos/moving-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/moving-preview.gif",
+    "contact": "previews/videos/moving-contact.png"
+  },
+  "break-discard": {
+    "source": "videos/break-discard-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/break-discard-preview.gif",
+    "contact": "previews/videos/break-discard-contact.png"
+  },
+  "attacking-with-beam-v02": {
+    "source": "videos/attacking-with-beam-doubao-v02-safe-frame.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/attacking-with-beam-v02-preview.gif",
+    "contact": "previews/videos/attacking-with-beam-v02-contact.png"
+  },
+  "moving-unarmed": {
+    "source": "videos/moving-unarmed-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/moving-unarmed-preview.gif",
+    "contact": "previews/videos/moving-unarmed-contact.png"
+  },
+  "attacking-unarmed": {
+    "source": "videos/attacking-unarmed-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/attacking-unarmed-preview.gif",
+    "contact": "previews/videos/attacking-unarmed-contact.png"
+  },
+  "dying-unarmed-v02": {
+    "source": "videos/dying-unarmed-doubao-v02-left-back.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/dying-unarmed-v02-preview.gif",
+    "contact": "previews/videos/dying-unarmed-v02-contact.png"
+  }
+}

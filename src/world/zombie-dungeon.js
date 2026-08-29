@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -200,6 +200,58 @@ export function createLanternMinerZombie(x, y) {
     });
 }
 
+export function createBombZombie(x, y) {
+    const cfg = enemyConfigData.bombZombie;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: bombZombie');
+        return new BombZombie(x, y, { name: '炸弹僵尸', hp: 600, maxHp: 600, size: 17, showWeapon: false });
+    }
+    return new BombZombie(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999,
+        },
+    });
+}
+
+export function createSupportBeamBrute(x, y) {
+    const cfg = enemyConfigData.supportBeamBrute;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: supportBeamBrute');
+        return new SupportBeamBrute(x, y, { name: '支护梁巨尸', hp: 900, maxHp: 900, size: 20, showWeapon: false });
+    }
+    return new SupportBeamBrute(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+        },
+    });
+}
+
+export function createCoreDrillWorm(x, y) {
+    const cfg = enemyConfigData.coreDrillWorm;
+    if (!cfg) {
+        console.warn('[ZombieDungeon] Missing enemy config: coreDrillWorm');
+        return new CoreDrillWorm(x, y, { name: '岩芯钻虫', hp: 780, maxHp: 780, size: 18, showWeapon: false });
+    }
+    return new CoreDrillWorm(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999,
+        },
+    });
+}
+
 export function createForemanZombie(x, y) {
     const cfg = enemyConfigData.foremanZombie;
     if (!cfg) {
@@ -209,6 +261,7 @@ export function createForemanZombie(x, y) {
     return new ForemanZombie(x, y, {
         ...cfg,
         showWeapon: false,
+        mineCaveFactory: (cx, cy) => createMineCave(cx, cy),
         ai: {
             ...(cfg.ai || {}),
             aggroRange: 9999,
@@ -483,6 +536,9 @@ export const ZOMBIE_FACTORY_MAP = {
     poisonMaggot: createPoisonMaggot,
     minerZombie: createMinerZombie,
     lanternMinerZombie: createLanternMinerZombie,
+    bombZombie: createBombZombie,
+    supportBeamBrute: createSupportBeamBrute,
+    coreDrillWorm: createCoreDrillWorm,
     foremanZombie: createForemanZombie,
     oreSpider: createOreSpider,
     mineCave: createMineCave,
@@ -512,12 +568,12 @@ const ZOMBIE_DUNGEON_CONFIG = {
     monsterPool: {
         get normal() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && !cfg.poolWhitelistOnly && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         get elite() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && !cfg.poolWhitelistOnly && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         // lord 领主池：僵尸 family 限定（2026-07-29 修复——此前跨 family 按 rank 抽取，
@@ -525,7 +581,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
         // 特工只走 AgentInvasionSystem 入侵机制，不进怪物池）
         get lord() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && !cfg.poolWhitelistOnly && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         }
     },
@@ -975,7 +1031,7 @@ export class ZombieDungeonCombat {
         // 匹配 normal/elite/lord/boss 槽位；未开启时保留旧版跨阶级占位池语义。
         // 其次按 family 限定（如中级 Boss 只刷僵尸类领主），无匹配时退回原池兜底。
         const poolKeys = Array.isArray(this._encounter.poolKeys)
-            ? this._encounter.poolKeys.filter(key => ZOMBIE_FACTORY_MAP[key])
+            ? this._encounter.poolKeys.filter(key => ZOMBIE_FACTORY_MAP[key] && !enemyConfigData[key]?.noPool)
             : [];
         const matchPoolRanks = this._encounter.matchPoolRanks === true;
         const poolFamily = this._encounter.poolFamily || null;
@@ -998,7 +1054,7 @@ export class ZombieDungeonCombat {
                 .filter(key => {
                     const cfg = enemyConfigData[key];
                     // noPool（如墓碑）即使 family/rank 满足也不进任何刷怪池
-                    if (!cfg || cfg.noPool || !hasEnemyFamily(cfg, poolFamily)) return false;
+                    if (!cfg || cfg.noPool || cfg.poolWhitelistOnly || !hasEnemyFamily(cfg, poolFamily)) return false;
                     if (tier === 'elite' || tier === 'lord' || tier === 'boss') return cfg.rank === tier;
                     return cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss';
                 })

@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: corrected production identity mother frame for a Phaser game monster animation pipeline
+
+Primary request: Edit only the leg topology of the supplied rock-core drill worm. Keep the existing three clearly visible near-side digging legs exactly where they are, and add exactly three partially visible far-side digging legs behind them, creating exactly three anatomical left-right leg pairs and exactly six legs total. Each far-side leg must emerge naturally from the opposite side of the same one of the first three armored thoracic segments, be visibly distinct beneath/behind the body, and touch the same baseline. The three far-side legs should be partially occluded by the body but still individually countable.
+
+Invariants: preserve the exact same monster identity, wedge-shaped plated head, circular toothed grinder mouth, two pale recessed eyes, basalt armor plates, thin iron-colored veins, ash-gray segmented rear abdomen, body proportions, right-facing low three-quarter orthographic pose, camera, framing, scale, pure white background, flat diffuse lighting, textures, and all safe margins. Change nothing except making the three missing far-side legs visible and anatomically connected.
+
+Constraints: exactly one continuous creature; exactly six legs total; three near-side and three partially visible far-side; exactly one pair per each of the first three armored thoracic segments; clean body attachment; no extra stumps; no fused, overlapping, detached, or ambiguous limbs; complete silhouette fully inside frame.
+
+Avoid: changing the head, grinder mouth, teeth, eyes, armor, tail, materials, pose, crop, lighting, background, or creature proportions; no spider anatomy, no eight legs, no extra appendages, no crystal growths, no scenery, shadow, text, logo, or watermark.

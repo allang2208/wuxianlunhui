@@ -1183,3 +1183,10 @@ this.ai = config.ai || {};
 - **新增怪物门禁**：先把每种攻击分类为通用单体、自管单体、多段连击、范围/位移或远程/施法，再选对应合同；通用单体必须显式填写
   `basicMelee`，并让 `attackRange/attackDistance` 与 `approachReach` 同步。交付前覆盖贴脸、极限距离、横向擦边、后撤空挥、墙体隔断和长帧跨窗口六种场景；
   没有逐帧确认接触姿态、没有可视化判定证据，不能仅凭“能造成伤害”视为完成。
+
+## 64. 多阶段怪物动作的技能时钟、帧布局与代码兜底必须同源（2026-08-29）
+
+- 最终裁帧后，以正式精灵表逐阶段回写 `duration/frameCount/contactFrame|impactFrame`；帧号统一 0-based。
+- 双份 `enemy-config.attackSkills`、`textures.frameLayouts` 与怪类代码兜底必须使用同一组数值，不能只改美术布局。
+- 入土/隐藏/破土、持械/断裂/空手等跨阶段动作要分别登记墙钟；命中使用跨阈值判定且每次动作只结算一次。
+- 最终 manifest 和生成 manifest 的脚本同时标记运行时状态，避免重跑管线后退回 `assetOnly`。

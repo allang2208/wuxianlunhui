@@ -1,0 +1,22 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Input images: style, camera, framing, palette, material and production-finish references only; do not copy their exact anatomy, face, pose or equipment.
+
+Primary request: Create exactly one elite undead blasting miner, “爆破工尸”, as a production-ready game monster identity, holding a calm animation-friendly neutral idle pose.
+
+Subject identity: a lean adult male zombie miner facing right; gray-brown decayed skin, hollow pale eyes, soot-burned right cheek, battered dark brass mining helmet with one small unlit round lamp, dusty dark-brown work shirt, worn canvas blasting apron, heavy leather boots, a compact cross-body blasting satchel with exactly three restrained dark red-brown dynamite sticks and a brass fuse reel. His right hand loosely holds one unlit dynamite bundle pointed downward; left hand is empty and readable. No pickaxe, no lantern, no whip.
+
+Anatomy and material: physically plausible biped anatomy, correct hands and joints, continuous body topology, believable slumped weight distribution; high-detail weathered fabric, cracked leather, oxidized brass, dusty wood and restrained undead skin; realistic roughness and muted variation, no glossy plastic.
+
+Style and medium: match the supplied mine-monster assets: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, controlled desaturated brown/charcoal/oxidized-brass palette, readable silhouette; not a photograph and not a cartoon illustration.
+
+Pose: low three-quarter side view facing right, both boots firmly on one baseline, slight forward miner stoop, arms separated from torso enough for animation, calm neutral expression, dynamite and satchel clearly readable, no active attack and no lit fuse.
+
+Composition and camera: orthographic-style locked camera matching references; complete single subject; visible body height approximately 60% of canvas height and at most 55% of width; centered with generous margins on every side; equipment stays inside silhouette safety area; all contacts on one baseline.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon or floor; soft flat diffuse ambient studio light only, no directional shadow.
+
+Identity locks: exactly one subject; preserve soot-burned right cheek, pale eyes, brass helmet lamp, cross-body satchel, three dark red-brown dynamite sticks and brass fuse reel; exactly two arms, two hands, two legs, one head; full silhouette and clean edges.
+
+Avoid: extra or missing limbs or fingers, duplicate dynamite, extra tools, lit fuse, flame, smoke, explosion, gore, cropping, front or top view, perspective distortion, cinematic lighting, rim halo, cast shadow, reflection, scenery, particles, text, logo, watermark, cartoon, anime, chibi, flat illustration, low-poly toy, glossy plastic.

@@ -1,0 +1,173 @@
+{
+  "unitKey": "supportBeamBrute",
+  "displayName": "支护梁巨尸",
+  "status": "runtime_integrated",
+  "generatedAt": "2026-08-29",
+  "provider": "doubao",
+  "requestedPipeline": "Doubao Seedance via tools/ai-gen/ai-asset.py",
+  "model": "Seedance 2.0 Mini unless the current page shows a different lowest-cost available model",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "armedIdentityMother": "mother/support-beam-brute-mother-v01.png",
+  "unarmedIdentityMother": "mother/support-beam-brute-empty-hand-v01.png",
+  "unarmedReferenceSource": "final stable frame from the accepted break-discard source video, cleaned with BiRefNet onto white",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "productionDelivery": {
+    "pipeline": "accepted Doubao videos -> BiRefNet-general -> artifact filtering -> fixed effective-body scale -> RIFE v4.6 RGBA 2x",
+    "targetEffectiveBodyHeight": 345,
+    "frameHeight": 640,
+    "feetY": 476,
+    "runtimeAssetDirectory": "assets/enemies/support_beam_brute",
+    "sourceSheetReport": "source-sheet-report.json",
+    "spritesheetManifest": "spritesheet-manifest.json",
+    "runtimeClass": "src/entities/enemy-types/support-beam-brute.js",
+    "enemyConfigKey": "supportBeamBrute",
+    "abandonedMineWhitelistOnly": true,
+    "artifactRemoval": {
+      "breakDiscard": "skipped the connected incoming-projectile key and adjacent smoke/debris keys; kept the intact beam, the clean split and both deliberate discarded halves",
+      "armedAttack": "kept the connected actor-plus-beam silhouette and removed the detached wood block"
+    }
+  },
+  "stateContract": {
+    "armedStates": ["idle", "moving", "attacking_with_beam"],
+    "transition": "break_discard",
+    "unarmedStates": ["moving_unarmed", "attacking_unarmed", "dying_unarmed"],
+    "beamBreakPieces": 2,
+    "beamReturnsAfterBreak": false
+  },
+  "breakDiscardCleanupContract": {
+    "sourceVideoRetained": "videos/break-discard-doubao-v01.mp4",
+    "removeIncomingProjectile": true,
+    "method": "Keep the primary connected character plus the beam pieces held by its hands; remove the separate projectile entering from screen-left, then remove detached gray smoke and small wood-debris components in the projectile trajectory ROI.",
+    "protection": "Do not remove the intact held beam before the break or either of the two hand-held broken pieces before their release."
+  },
+  "beamAttackCleanupContract": {
+    "sourceVideo": "videos/attacking-with-beam-doubao-v02-safe-frame.mp4",
+    "removeDetachedWoodBlock": true,
+    "method": "After BiRefNet, preserve the primary character-plus-held-beam component and remove the small detached rectangular wood component ahead of the beam tip in the contact interval.",
+    "protection": "Never shorten, reshape or erase the connected held beam; the v02 source keeps the complete attack silhouette inside the canvas."
+  },
+  "generationNotes": [
+    "The first break-discard submission was interrupted after the user reported that the old account had exhausted its quota.",
+    "After the user switched accounts, only break-discard was resubmitted; idle and moving were not duplicated.",
+    "The unarmed reference was extracted from source frame 120 of the completed break-discard video and cleaned with BiRefNet onto white."
+  ],
+  "tasks": [
+    {
+      "motion": "idle",
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "approved_runtime_integrated",
+      "reference": "mother/support-beam-brute-mother-v01.png",
+      "video": "videos/idle-doubao-v01.mp4",
+      "provenance": "videos/idle-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/idle-preview.gif",
+      "contact": "previews/videos/idle-contact.png",
+      "promptSha256": "547e66d08a768463295fb97f39335c2f6bdf4e52b3ae1e4de782441b93f32e15",
+      "reviewNote": "Identity, single intact beam, two-hand grip and right-facing orientation remain stable; gray matte, soft shadow and Doubao marks are deferred to sprite cleanup."
+    },
+    {
+      "motion": "moving_with_beam",
+      "prompt": "prompts/moving-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "approved_runtime_integrated",
+      "reference": "mother/support-beam-brute-mother-v01.png",
+      "video": "videos/moving-doubao-v01.mp4",
+      "provenance": "videos/moving-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/moving-preview.gif",
+      "contact": "previews/videos/moving-contact.png",
+      "promptSha256": "a5b8fd9ee3362ca3a6e3c028610aed4af9692fbeb8786e9a6e24f55760d16655",
+      "reviewNote": "Clear alternating heavy steps while both hands keep the intact beam raised; no beam duplication, break or release."
+    },
+    {
+      "motion": "break_discard",
+      "prompt": "prompts/break-discard-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_integrated",
+      "reference": "mother/support-beam-brute-mother-v01.png",
+      "video": "videos/break-discard-doubao-v01.mp4",
+      "provenance": "videos/break-discard-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/break-discard-preview.gif",
+      "contact": "previews/videos/break-discard-contact.png",
+      "promptSha256": "e404ec86d223d2cc3badb816c5e9b8a14b933c00c88b9397ce235ac5af46b6fd",
+      "unarmedReferenceFrame": 120,
+      "reviewNote": "The intact beam visibly breaks into two held pieces and both pieces are discarded before the brute settles empty-handed. Localized smoke and small wood debris are separate cleanup components."
+    },
+    {
+      "motion": "attacking_unarmed",
+      "prompt": "prompts/attacking-unarmed-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_integrated",
+      "reference": "mother/support-beam-brute-empty-hand-v01.png",
+      "video": "videos/attacking-unarmed-doubao-v01.mp4",
+      "provenance": "videos/attacking-unarmed-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/attacking-unarmed-preview.gif",
+      "contact": "previews/videos/attacking-unarmed-contact.png",
+      "promptSha256": "040491c7a4413d85c4414c1e153fd787e9ce13851a65b4ee5a4d8fabe41a9724",
+      "reviewNote": "One complete two-fist overhead smash with anticipation, contact and recovery; no beam return or repeated strike."
+    },
+    {
+      "motion": "dying_unarmed_rejected_v01",
+      "prompt": "prompts/dying-unarmed-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "rejected_archived_metadata_only",
+      "reference": "mother/support-beam-brute-empty-hand-v01.png",
+      "provenance": "videos/dying-unarmed-doubao-v01.mp4.json",
+      "removedArtifacts": ["sourceVideo", "previewGif", "contactSheet"],
+      "promptSha256": "3a39be85d7dfc331fabd0822ec517e942348be360595a1b8304058cf5f363836",
+      "reviewNote": "Rejected by the user because the corpse falls toward screen-right/front instead of the required opposite direction. Retained only as immutable provenance."
+    },
+    {
+      "motion": "attacking_with_beam_rejected_v01",
+      "prompt": "prompts/attacking-with-beam-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "rejected_archived_metadata_only",
+      "reference": "mother/support-beam-brute-mother-v01.png",
+      "provenance": "videos/attacking-with-beam-doubao-v01.mp4.json",
+      "removedArtifacts": ["sourceVideo", "previewGif", "contactSheet"],
+      "promptSha256": "cc5a9e4b8429f75a91f29cd7d97d6908ea5e1b5bf4b42f5b8818b710820bb2ea",
+      "reviewNote": "Action is correct but the beam tip crosses the right frame edge at maximum reach; retained only as immutable provenance."
+    },
+    {
+      "motion": "attacking_with_beam",
+      "prompt": "prompts/attacking-with-beam-doubao-v02-safe-frame.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_integrated",
+      "reference": "mother/support-beam-brute-attack-safe-white-1024x576.png",
+      "video": "videos/attacking-with-beam-doubao-v02-safe-frame.mp4",
+      "provenance": "videos/attacking-with-beam-doubao-v02-safe-frame.mp4.json",
+      "previewGif": "previews/videos/attacking-with-beam-v02-preview.gif",
+      "contact": "previews/videos/attacking-with-beam-v02-contact.png",
+      "promptSha256": "391ccd455ef7fef349121bcff51e769b7dd2198d4099f95c57aced168bf2cffb",
+      "reviewNote": "The full thrust silhouette remains inside the canvas and the brute returns to guard. A small detached wood block ahead of the beam tip is isolated and must be removed by the beam-attack cleanup contract."
+    },
+    {
+      "motion": "moving_unarmed",
+      "prompt": "prompts/moving-unarmed-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "approved_runtime_integrated",
+      "reference": "mother/support-beam-brute-empty-hand-v01.png",
+      "video": "videos/moving-unarmed-doubao-v01.mp4",
+      "provenance": "videos/moving-unarmed-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/moving-unarmed-preview.gif",
+      "contact": "previews/videos/moving-unarmed-contact.png",
+      "promptSha256": "f1ba767c434e2499132109625d55c2e9c68ab448874a54f092e9e2f10545db34",
+      "reviewNote": "Alternating heavy unarmed steps with natural arm counter-swing and no beam return; extract a real internal gait cycle instead of forcing the source endpoints to loop."
+    },
+    {
+      "motion": "dying_unarmed",
+      "prompt": "prompts/dying-unarmed-doubao-v02-left-back.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_integrated",
+      "reference": "mother/support-beam-brute-empty-hand-v01.png",
+      "video": "videos/dying-unarmed-doubao-v02-left-back.mp4",
+      "provenance": "videos/dying-unarmed-doubao-v02-left-back.mp4.json",
+      "previewGif": "previews/videos/dying-unarmed-v02-preview.gif",
+      "contact": "previews/videos/dying-unarmed-v02-contact.png",
+      "promptSha256": "f246ac7b140553ea678fcb9b8a9ef37c8c4f577efd77bc44f329001e10629789",
+      "reviewNote": "Corrected opposite fall direction: the brute falls left/backward and settles with head on screen-left and feet on screen-right without rebound."
+    }
+  ]
+}

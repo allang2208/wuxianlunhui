@@ -6,6 +6,7 @@ import {
     canStartBasicMelee,
     createBasicMeleeSnapshot,
 } from '../../combat/melee-attack-resolver.js';
+import { summonMonster } from './_shared/summon-helper.js';
 
 /**
  * 僵尸工头（领主，僵尸 family）
@@ -43,6 +44,12 @@ export class ForemanZombie extends Enemy {
         this._whipSnapshot = null;
         this._whipAimPoint = null;
 
+        // 工头登场时建立一个全场唯一矿洞；安全落点失败时短间隔重试。
+        // 已成功生成或已发现现存矿洞后，本工头不再补建，玩家摧毁矿洞不会无限刷新。
+        this._mineCaveFactory = config.mineCaveFactory || null;
+        this._mineCaveSpawnResolved = false;
+        this._mineCaveSpawnRetry = 0;
+
         // 移动音效计时
         this._walkSoundTimer = 0;
 
@@ -66,6 +73,10 @@ export class ForemanZombie extends Enemy {
         return this.config?.death || {};
     }
 
+    _getMineCaveSpawnConfig() {
+        return this.config?.attackSkills?.mineCaveSpawn || {};
+    }
+
     update(dt, entities) {
         if (!this.active) {
             this._updateDeathSequence(dt);
@@ -73,6 +84,8 @@ export class ForemanZombie extends Enemy {
         }
 
         super.update(dt, entities);
+
+        this._ensureSingleMineCave(dt);
 
         const attackDt = this.getAttackIntervalDelta(dt);
         if (this._whipCd > 0) this._whipCd -= attackDt;
@@ -408,11 +421,56 @@ export class ForemanZombie extends Enemy {
         this._corpseTimer = 0;
         this._fadeTimer = 0;
         this._deathSoundDone = false;
-        // 工头死亡：同步杀死场上所有矿洞（矿洞死亡不影响工头，单向联动）
-        this._killAllMineCaves(source);
+        // 最后一名工头死亡时同步清除矿洞；仍有其他工头在场则保留共享矿洞。
+        if (!this._hasOtherActiveForeman()) this._killAllMineCaves(source);
         if (typeof super.onDeath === 'function') {
             super.onDeath(source);
         }
+    }
+
+    _ensureSingleMineCave(dt) {
+        if (this._mineCaveSpawnResolved || typeof this._mineCaveFactory !== 'function') return;
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        if (!game || !game.entities) return;
+
+        for (const e of game.entities.values()) {
+            if (e && e.active && e.id === 'mineCave') {
+                this._mineCaveSpawnResolved = true;
+                return;
+            }
+        }
+
+        this._mineCaveSpawnRetry -= dt;
+        if (this._mineCaveSpawnRetry > 0) return;
+
+        const cfg = this._getMineCaveSpawnConfig();
+        const created = summonMonster(this, {
+            factory: this._mineCaveFactory,
+            count: 1,
+            mode: 'radial',
+            radius: cfg.radius ?? 64,
+            distance: cfg.distance ?? 180,
+            tag: 'foreman_mine_cave',
+            setAnchor: true,
+            statusImmune: true,
+            playFx: true,
+        });
+        if (created.length > 0) {
+            const cave = created[0];
+            cave._spawnDirX = cave.x >= this.x ? 1 : -1;
+            this._mineCaveSpawnResolved = true;
+        } else {
+            this._mineCaveSpawnRetry = cfg.retryMs ?? 500;
+        }
+    }
+
+    _hasOtherActiveForeman() {
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        if (!game || !game.entities) return false;
+        for (const e of game.entities.values()) {
+            if (e && e !== this && e.active && e.id === 'foremanZombie') return true;
+        }
+        return false;
     }
 
     _killAllMineCaves(source) {

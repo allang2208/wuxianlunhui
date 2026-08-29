@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: World-122 enemy projectile sprite mother image
+Input images: Image 1 is the approved bomb-zombie visual-style reference; Image 2 shows the exact three-stick dynamite bundle held during the approved throw animation and is the main shape/identity reference; Image 3 is the existing abandoned-mine dynamite prop and is a secondary weathering/material reference.
+Primary request: create one isolated, compact bundle of exactly three short old red-brown dynamite sticks, tightly bound together with two dark worn leather straps, with one short braided fuse emerging from one end. The fuse is already lit, with a very small readable yellow-orange ember/flame and only two or three tiny sparks. No explosion.
+Style/medium: match the gritty semi-realistic painterly 2.5D rendering and aged brown-black mine grime of the approved bomb zombie; crisp readable silhouette at small game size; believable scuffed paper cylinders, soot and worn leather.
+Composition/framing: single object only, horizontal three-quarter side view, centered, fully visible with generous transparent padding, useful as a projectile that will rotate in runtime. No ground contact and no cast shadow.
+Lighting/mood: neutral soft game-asset lighting, restrained warm fuse glow only.
+Constraints: genuinely transparent RGBA background; exactly one dynamite bundle and exactly three sticks; preserve the compact proportions seen in Image 2; no character, hands, satchel, floor, pedestal, backdrop, checkerboard, border, text, logo, watermark, smoke cloud, debris, explosion, extra fuse, extra sticks, or separate loose objects.

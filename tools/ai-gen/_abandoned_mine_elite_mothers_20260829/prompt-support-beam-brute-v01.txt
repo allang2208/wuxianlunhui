@@ -1,0 +1,22 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Input images: style, camera, framing, palette, material and production-finish references only; do not copy their exact anatomy, face, pose or equipment.
+
+Primary request: Create exactly one elite undead mine-support brute, “支护梁巨尸”, as a production-ready game monster identity, holding a calm animation-friendly neutral idle pose.
+
+Subject identity: a massive broad adult male zombie miner facing right, roughly 25% taller and much wider than the standard miner zombie but clearly an elite rather than a boss. Gray-brown dead skin, small recessed pale eyes, crushed dark steel mining helmet with no lamp, thick torn canvas work clothes, iron back brace and heavy boots. He grips exactly one short heavy weathered timber mine-support beam with both hands across the lower chest; the beam has one bent iron brace band and splintered ends but remains compact and fully inside the framing. No pickaxe, no lantern, no whip, no shield.
+
+Anatomy and material: physically plausible oversized biped anatomy, correct hands and joints, both hands visibly gripping the same beam, continuous body topology, believable forward-heavy weight distribution; powerful shoulders, thick torso and planted legs; high-detail dry timber grain, rusted iron, dusty fabric, cracked leather and restrained undead skin; realistic roughness, no glossy plastic.
+
+Style and medium: match the supplied mine-monster assets: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, controlled desaturated brown/charcoal/rusted-iron palette, strong readable silhouette; not a photograph and not a cartoon illustration.
+
+Pose: low three-quarter side view facing right, both boots firmly on one baseline in a stable wide stance, hunched shoulders, elbows separated from torso, beam held horizontally with a slight downward right tilt at lower-chest height, calm neutral expression, no swing or attack.
+
+Composition and camera: orthographic-style locked camera matching references; complete single subject; visible body height approximately 64% of canvas height and at most 62% of width including the compact beam; centered with generous margins; beam must not touch the frame; all contacts on one baseline. Keep the body visibly larger than the reference miners without filling the canvas.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon or floor; soft flat diffuse ambient studio light only, no directional shadow.
+
+Identity locks: exactly one subject; preserve crushed unlit steel helmet, recessed pale eyes, huge shoulders and torso, iron back brace, exactly one compact timber support beam with one bent iron brace band, both hands gripping the same beam, planted heavy boots; exactly two arms, two hands, two legs, one head; full silhouette and clean edges.
+
+Avoid: extra limbs or fingers, duplicate beam, oversized beam spanning the canvas, pickaxe, lantern, whip, shield, armor plating, active attack, gore, cropping, front or top view, perspective distortion, cinematic lighting, rim halo, cast shadow, reflection, scenery, particles, text, logo, watermark, cartoon, anime, chibi, flat illustration, low-poly toy, glossy plastic.

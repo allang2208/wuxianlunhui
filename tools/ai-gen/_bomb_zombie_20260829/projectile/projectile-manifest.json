@@ -1,0 +1,35 @@
+{
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "generator": "built-in imagegen",
+  "source": "bomb-projectile-mother-v01.png",
+  "prompt": "prompt-v01.txt",
+  "referenceImages": [
+    "../mother/bomb-zombie-mother-v02-empty-hand.png",
+    "attacking-release-reference-f080.png",
+    "assets/terrain/abandoned-mine-props/abandoned_mine_prop_dynamite.png"
+  ],
+  "output": "bomb-projectile-256.png",
+  "runtimeCandidate": "assets/enemies/bomb_zombie/projectile.png",
+  "canvas": [
+    256,
+    256
+  ],
+  "contentLongEdge": 224,
+  "contentBBox": [
+    16,
+    70,
+    239,
+    185
+  ],
+  "keptComponents": 3,
+  "componentContract": "one dynamite bundle plus two deliberate fuse sparks",
+  "transparentRgbNonzero": 0,
+  "edgeTouch": false,
+  "futureRuntimeContract": {
+    "rotation": "runtime",
+    "trajectory": "runtime parabolic throw",
+    "landingFuseMs": 2000,
+    "explosion": "runtime"
+  }
+}

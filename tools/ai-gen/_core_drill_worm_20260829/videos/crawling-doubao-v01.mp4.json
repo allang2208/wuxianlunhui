@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_core_drill_worm_20260829\\mother\\core-drill-worm-mother-v03-six-legs.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_core_drill_worm_20260829\\prompts\\crawling-doubao-v01.txt",
+  "promptChars": 632,
+  "promptSha256": "5d0e24d6f3d908ee5db827522a53f4ec4ecdb1acbae8db6adba90f4f6b057caa",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T02:55:07.087Z",
+  "sourceUrlScheme": "https"
+}

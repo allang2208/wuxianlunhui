@@ -915,6 +915,49 @@ export class BootScene extends Scene {
         // 提灯投射物贴图（单帧）
         this.load.image('enemy_lantern_miner_projectile', 'assets/enemies/lantern_miner_zombie/projective.png');
 
+        // 炸弹僵尸（废弃矿洞精英）：豆包视频管线正式精灵图，统一 12fps
+        this.load.spritesheet('enemy_bomb_zombie_idle',   'assets/enemies/bomb_zombie/idle.png',      { frameWidth: 512, frameHeight: 512, endFrame: 59 });
+        this.load.spritesheet('enemy_bomb_zombie_walk',   'assets/enemies/bomb_zombie/walking.png',   { frameWidth: 512, frameHeight: 512, endFrame: 21 });
+        this.load.spritesheet('enemy_bomb_zombie_attack', 'assets/enemies/bomb_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 60 });
+        this.load.spritesheet('enemy_bomb_zombie_death',  'assets/enemies/bomb_zombie/dying.png',     { frameWidth: 640, frameHeight: 512, endFrame: 32 });
+        this.load.image('enemy_bomb_zombie_projectile', 'assets/enemies/bomb_zombie/projectile.png');
+
+        // 支护梁巨尸（废弃矿洞专属精英）：持梁/断梁/空手双阶段，正式表统一 12fps。
+        const supportBeamLayouts = enemyConfigData.supportBeamBrute?.textures?.frameLayouts || {};
+        const loadSupportBeamSheet = (state, textureKey, filename) => {
+            const layout = supportBeamLayouts[state] || {};
+            this.load.spritesheet(textureKey, `assets/enemies/support_beam_brute/${filename}.png`, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 640,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadSupportBeamSheet('armedIdle', 'enemy_support_beam_brute_armed_idle', 'armed_idle');
+        loadSupportBeamSheet('armedWalk', 'enemy_support_beam_brute_armed_walk', 'armed_walk');
+        loadSupportBeamSheet('beamBreak', 'enemy_support_beam_brute_beam_break', 'beam_break');
+        loadSupportBeamSheet('armedAttack', 'enemy_support_beam_brute_armed_attack', 'armed_attack');
+        loadSupportBeamSheet('unarmedIdle', 'enemy_support_beam_brute_unarmed_idle', 'unarmed_idle');
+        loadSupportBeamSheet('unarmedWalk', 'enemy_support_beam_brute_unarmed_walk', 'unarmed_walk');
+        loadSupportBeamSheet('unarmedAttack', 'enemy_support_beam_brute_unarmed_attack', 'unarmed_attack');
+        loadSupportBeamSheet('death', 'enemy_support_beam_brute_death', 'death');
+
+        // 岩芯钻虫（废弃矿洞专属精英）：同一源像素比例，跨动作画布宽度由实体动态换算。
+        const coreDrillWormLayouts = enemyConfigData.coreDrillWorm?.textures?.frameLayouts || {};
+        const loadCoreDrillWormSheet = (state, layoutKey, filename) => {
+            const layout = coreDrillWormLayouts[layoutKey] || {};
+            this.load.spritesheet(`enemy_core_drill_worm_${state}`, `assets/enemies/core_drill_worm/${filename}.png`, {
+                frameWidth: layout.frameWidth || 896,
+                frameHeight: layout.frameHeight || 640,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadCoreDrillWormSheet('idle', 'idle', 'idle');
+        loadCoreDrillWormSheet('crawling', 'crawling', 'crawling');
+        loadCoreDrillWormSheet('grinder_attack', 'grinderAttack', 'grinder_attack');
+        loadCoreDrillWormSheet('burrow_enter', 'burrowEnter', 'burrow_enter');
+        loadCoreDrillWormSheet('burrow_exit', 'burrowExit', 'burrow_exit');
+        loadCoreDrillWormSheet('death', 'death', 'dying');
+
         // 矿石蜘蛛（精英）：8列×4行 512×512 切帧（idle 1 / walking 14 / attacking 28 / attacking-2 18 / dying 12）
         this.load.spritesheet('enemy_ore_spider_idle',   'assets/enemies/ore_spider/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
         this.load.spritesheet('enemy_ore_spider_walk',   'assets/enemies/ore_spider/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 13 });
@@ -2022,6 +2065,86 @@ export class BootScene extends Scene {
             duration: 1500, // 15 帧一次性死亡动画（与 death.animMs 对齐）
             repeat: 0,
         });
+
+        // ---- 炸弹僵尸动画（正式表统一 12fps；释放帧由实体配置 0-based 42 驱动） ----
+        this.anims.create({
+            key: 'enemy_bomb_zombie_idle',
+            frames: this.anims.generateFrameNumbers('enemy_bomb_zombie_idle', { start: 0, end: 59 }),
+            frameRate: 12,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_bomb_zombie_walk',
+            frames: this.anims.generateFrameNumbers('enemy_bomb_zombie_walk', { start: 0, end: 21 }),
+            frameRate: 12,
+            repeat: -1,
+        });
+        this.anims.create({
+            key: 'enemy_bomb_zombie_attack',
+            frames: this.anims.generateFrameNumbers('enemy_bomb_zombie_attack', { start: 0, end: 60 }),
+            duration: 5083,
+            repeat: 0,
+        });
+        this.anims.create({
+            key: 'enemy_bomb_zombie_death',
+            frames: this.anims.generateFrameNumbers('enemy_bomb_zombie_death', { start: 0, end: 32 }),
+            duration: 2750,
+            repeat: 0,
+        });
+
+        // ---- 支护梁巨尸动画（动作键与实体双阶段状态一一对应） ----
+        const supportBeamLayouts = enemyConfigData.supportBeamBrute?.textures?.frameLayouts || {};
+        const supportBeamStates = {
+            armed_idle: 'armedIdle',
+            armed_walk: 'armedWalk',
+            beam_break: 'beamBreak',
+            armed_attack: 'armedAttack',
+            unarmed_idle: 'unarmedIdle',
+            unarmed_walk: 'unarmedWalk',
+            unarmed_attack: 'unarmedAttack',
+            death: 'death',
+        };
+        for (const [state, layoutKey] of Object.entries(supportBeamStates)) {
+            const layout = supportBeamLayouts[layoutKey] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_support_beam_brute_${state}`,
+                frames: this.anims.generateFrameNumbers(`enemy_support_beam_brute_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state.endsWith('idle') || state.endsWith('walk') ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = 12;
+            this.anims.create(animation);
+        }
+
+        // ---- 岩芯钻虫动画（研磨/入土/破土均为一次性状态） ----
+        const coreDrillWormLayouts = enemyConfigData.coreDrillWorm?.textures?.frameLayouts || {};
+        const coreDrillWormStates = {
+            idle: 'idle',
+            crawling: 'crawling',
+            grinder_attack: 'grinderAttack',
+            burrow_enter: 'burrowEnter',
+            burrow_exit: 'burrowExit',
+            death: 'death',
+        };
+        for (const [state, layoutKey] of Object.entries(coreDrillWormStates)) {
+            const layout = coreDrillWormLayouts[layoutKey] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_core_drill_worm_${state}`,
+                frames: this.anims.generateFrameNumbers(`enemy_core_drill_worm_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'crawling' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = 12;
+            this.anims.create(animation);
+        }
 
         // ---- 巫婆动画 ----
         this.anims.create({

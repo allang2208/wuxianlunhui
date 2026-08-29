@@ -1,0 +1,37 @@
+{
+  "idle": {
+    "source": "videos/idle-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/idle-preview.gif",
+    "contact": "previews/videos/idle-contact.png"
+  },
+  "crawling": {
+    "source": "videos/crawling-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/crawling-preview.gif",
+    "contact": "previews/videos/crawling-contact.png"
+  },
+  "grinder-attack-v02": {
+    "source": "videos/grinder-attack-doubao-v02-fixed-mouth.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/grinder-attack-v02-preview.gif",
+    "contact": "previews/videos/grinder-attack-v02-contact.png"
+  },
+  "burrow-ambush": {
+    "source": "videos/burrow-ambush-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/burrow-ambush-preview.gif",
+    "contact": "previews/videos/burrow-ambush-contact.png"
+  },
+  "dying": {
+    "source": "videos/dying-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/dying-preview.gif",
+    "contact": "previews/videos/dying-contact.png"
+  }
+}

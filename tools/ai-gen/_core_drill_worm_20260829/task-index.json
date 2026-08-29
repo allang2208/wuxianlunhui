@@ -1,0 +1,129 @@
+{
+  "unitKey": "coreDrillWorm",
+  "displayName": "岩芯钻虫",
+  "status": "runtime_integrated",
+  "generatedAt": "2026-08-29",
+  "provider": "doubao",
+  "model": "Seedance 2.0 Mini unless the current page exposes a different lowest-cost available model",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "mother": "mother/core-drill-worm-mother-v03-six-legs.png",
+  "motherSource": "../_abandoned_mine_elite_mothers_20260829/core-drill-worm-mother-v03-six-legs.png",
+  "motherApproved": true,
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "runtime": {
+    "assetDirectory": "../../../assets/enemies/core_drill_worm",
+    "entity": "../../../src/entities/enemy-types/core-drill-worm.js",
+    "enemyConfigKey": "coreDrillWorm",
+    "dungeonWhitelist": "abandonedMineDungeonBeginner, abandonedMineDungeonMid, abandonedMineDungeon",
+    "states": ["idle", "crawling", "grinder_attack", "burrow_enter", "burrow_hidden", "burrow_exit", "death"]
+  },
+  "previewReport": "previews/videos/preview-report.json",
+  "sourceSheetReport": "source-sheet-report.json",
+  "spritesheetManifest": "spritesheet-manifest.json",
+  "postprocessRequired": {
+    "background": "BiRefNet general foreground extraction; remove regenerated floor, contact shadows and Doubao corner marks",
+    "burrowAmbush": "remove the generated ground hole, dirt and shadow components while preserving the continuous body, tail-tip hidden interval and emergence trajectory",
+    "framePolicy": "preserve the source motion window and root trajectory; do not normalize each frame independently"
+  },
+  "generationNotes": [
+    "The first burrow-ambush submission was stopped after the user reported that the old account had no quota. A read-only inspect showed the switched account on an empty home page with no active video card, so only burrow-ambush was resubmitted.",
+    "Grinder attack v01 was rejected because the toothed recessed mouth morphed into a smooth protruding silver cylinder. V02 was generated from a new immutable prompt that forbids any telescoping drill or metal piston."
+  ],
+  "actionContract": {
+    "idle": "loop",
+    "crawling": "loop with alternating tripod gait",
+    "grinderAttack": "single forward grinder strike and recovery",
+    "burrowAmbush": "single dive, hidden interval and emergence",
+    "dying": "one-way collapse and corpse hold"
+  },
+  "tasks": [
+    {
+      "motion": "idle",
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "approved_runtime_integrated",
+      "video": "videos/idle-doubao-v01.mp4",
+      "provenance": "videos/idle-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/idle-preview.gif",
+      "contact": "previews/videos/idle-contact.png",
+      "spritesheet": "spritesheets/idle.png",
+      "spritesheetPreview": "previews/spritesheets/core_drill_worm_idle-interpolated.gif",
+      "promptSha256": "5406c3dfa6b5571d7843b8650722ea9c40c5d637d3d0783a397a6d0dc90fdedb"
+    },
+    {
+      "motion": "crawling",
+      "prompt": "prompts/crawling-doubao-v01.txt",
+      "loopRequested": true,
+      "status": "approved_runtime_integrated",
+      "video": "videos/crawling-doubao-v01.mp4",
+      "provenance": "videos/crawling-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/crawling-preview.gif",
+      "contact": "previews/videos/crawling-contact.png",
+      "spritesheet": "spritesheets/crawling.png",
+      "spritesheetPreview": "previews/spritesheets/core_drill_worm_crawling-interpolated.gif",
+      "promptSha256": "5d0e24d6f3d908ee5db827522a53f4ec4ecdb1acbae8db6adba90f4f6b057caa"
+    },
+    {
+      "motion": "grinder_attack",
+      "prompt": "prompts/grinder-attack-doubao-v02-fixed-mouth.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_integrated",
+      "video": "videos/grinder-attack-doubao-v02-fixed-mouth.mp4",
+      "provenance": "videos/grinder-attack-doubao-v02-fixed-mouth.mp4.json",
+      "previewGif": "previews/videos/grinder-attack-v02-preview.gif",
+      "contact": "previews/videos/grinder-attack-v02-contact.png",
+      "spritesheet": "spritesheets/grinder_attack.png",
+      "spritesheetPreview": "previews/spritesheets/core_drill_worm_grinder_attack-interpolated.gif",
+      "promptSha256": "1aaedaf4174f15ca389279323cc66fd80b4bd9617c26adeebac93b3a5fd5f5b9",
+      "rejectedCandidates": [
+        {
+          "provenance": "videos/grinder-attack-doubao-v01.mp4.json",
+          "prompt": "prompts/grinder-attack-doubao-v01.txt",
+          "removedArtifacts": ["sourceVideo", "previewGif", "contactSheet"],
+          "reason": "The recessed toothed grinder mouth morphed into a smooth protruding silver cylinder during the attack."
+        }
+      ]
+    },
+    {
+      "motion": "burrow_ambush",
+      "prompt": "prompts/burrow-ambush-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_integrated",
+      "video": "videos/burrow-ambush-doubao-v01.mp4",
+      "provenance": "videos/burrow-ambush-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/burrow-ambush-preview.gif",
+      "contact": "previews/videos/burrow-ambush-contact.png",
+      "spritesheets": [
+        "spritesheets/burrow_enter.png",
+        "spritesheets/burrow_exit.png"
+      ],
+      "spritesheetPreviews": [
+        "previews/spritesheets/core_drill_worm_burrow_enter-interpolated.gif",
+        "previews/spritesheets/core_drill_worm_burrow_exit-interpolated.gif"
+      ],
+      "sourceFrameRanges": {
+        "enter": [0, 60],
+        "hidden": [64, 80],
+        "exit": [84, 120]
+      },
+      "extractionRepair": "Removed the legacy fixed y>=420 alpha clear that clipped the abdomen and six legs; excluded dirt-only boundary frames before RIFE interpolation.",
+      "promptSha256": "721ae11081568d8a6a58ba4b9faba827f2fb61d7a18c4d0ff1c8c1b7c3983e3c"
+    },
+    {
+      "motion": "dying",
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "loopRequested": false,
+      "status": "approved_runtime_integrated",
+      "video": "videos/dying-doubao-v01.mp4",
+      "provenance": "videos/dying-doubao-v01.mp4.json",
+      "previewGif": "previews/videos/dying-preview.gif",
+      "contact": "previews/videos/dying-contact.png",
+      "spritesheet": "spritesheets/dying.png",
+      "spritesheetPreview": "previews/spritesheets/core_drill_worm_dying-interpolated.gif",
+      "promptSha256": "a56922df80bdda4865954c2d86eb3563e8437e59dff6fc7e3e5aff1272803e65"
+    }
+  ]
+}

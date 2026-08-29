@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\mother\\support-beam-brute-empty-hand-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\videos\\attacking-unarmed-doubao-v01_doubao_bg.txt",
+  "promptChars": 870,
+  "promptSha256": "040491c7a4413d85c4414c1e153fd787e9ce13851a65b4ee5a4d8fabe41a9724",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T01:16:05.854Z",
+  "sourceUrlScheme": "https"
+}

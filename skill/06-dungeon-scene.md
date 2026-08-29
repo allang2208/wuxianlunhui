@@ -352,6 +352,8 @@ normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；�
 - `encounter.poolKeys` 是遭遇级白名单，缺省保持旧版“白名单内跨阶级随机”语义；需要让同一白名单按波次槽位匹配阶级时，显式声明 `matchPoolRanks: true`。
 - 阶级匹配口径以双份 `enemy-config.json#<key>.rank` 为真源：normal 槽排除 `elite/lord/boss`，elite、lord、boss 槽只接受同名 rank。普通、精英、领主工厂仍必须全部登记到 `ZOMBIE_FACTORY_MAP`，不能只写配置键。
 - 某槽位在白名单内找不到对应阶级时会继续走 `poolFamily` / 默认池兜底；因此启用 `matchPoolRanks` 的遭遇必须覆盖 `waveComposition`、`monsterComposition` 实际使用的每一种阶级，否则会漏入白名单外怪物。修改后同步 `data/`、`public/data/`，并让 `scripts/generate-dungeons-table.mjs` 输出真实分池，避免总表仍显示扁平白名单。
+- **只允许指定地牢抽取的怪物**：怪物配置写 `poolWhitelistOnly:true`，并在通用 normal/elite/lord getter、family 回退和阶级缺口回退三条路径都排除该键；目标地牢通过显式 `poolKeys` 加入，配合 `matchPoolRanks:true` 只占自身 rank 槽。`forceMonsters` 是明确事件注入，不受普通池限制；`poolKeys` 不能绕过 `noPool`。
+- **首领绑定的全场唯一生成器**：矿洞/巢穴等结构本体继续 `noPool`，由首领工厂注入生成工厂；首领更新时先查全场现存同类结构，再通过墙体安全召唤器创建 1 个并把“已解决”锁存。多首领共享这一个结构，最后一名首领死亡才清除；玩家提前摧毁后不自动补建，避免无限刷新。
 - **地牢怪物预载合同（2026-08-28）**：所有地牢入场统一调用 `resolveDungeonEnemyPreloadTypes()`，以普通/精英/Boss `poolKeys` 和显式 `enemyPreloadTypes` 为基础，再展开家族回退池、阶级缺口、当前 scope/等级事件强制怪、D 级以上时空特工、通用集合体 Boss，以及墓碑/矿洞/巫婆等伴生与召唤链。`ExpeditionSystem.depart()` 必须在扣钥匙和清主场景之前用 `RuntimeAssetManager.setDungeonEnemyTypes()` 驻留本次资源族，并以 `required: true` 等待 `prefetchEnemyTypes()`；任一类型未登记或加载失败均取消入场且不消耗钥匙，禁止用 `enemy_circle` 胶囊继续。`DungeonMapSystem.shutdown()` 负责解除驻留。只有无法由解析器推导的自定义生成源才写入配置 `enemyPreloadTypes`。
 
 #### 5. 验证

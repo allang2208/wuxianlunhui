@@ -1792,6 +1792,9 @@
      "spitterZombie",
      "minerZombie",
      "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
      "foremanZombie",
      "oreSpider",
      "mineCave"
@@ -1815,6 +1818,9 @@
      "spitterZombie",
      "minerZombie",
      "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
      "foremanZombie",
      "oreSpider",
      "mineCave"
@@ -1861,6 +1867,9 @@
     "spitterZombie",
     "minerZombie",
     "lanternMinerZombie",
+    "bombZombie",
+    "supportBeamBrute",
+    "coreDrillWorm",
     "foremanZombie",
     "oreSpider",
     "mineCave"
@@ -1923,6 +1932,9 @@
      "spitterZombie",
      "minerZombie",
      "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
      "foremanZombie",
      "oreSpider",
      "mineCave"
@@ -1946,6 +1958,9 @@
      "spitterZombie",
      "minerZombie",
      "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
      "foremanZombie",
      "oreSpider",
      "mineCave"
@@ -1991,6 +2006,9 @@
     "spitterZombie",
     "minerZombie",
     "lanternMinerZombie",
+    "bombZombie",
+    "supportBeamBrute",
+    "coreDrillWorm",
     "foremanZombie",
     "oreSpider",
     "mineCave"
@@ -2065,6 +2083,9 @@
      "spitterZombie",
      "minerZombie",
      "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
      "foremanZombie",
      "oreSpider",
      "mineCave"
@@ -2100,6 +2121,9 @@
      "spitterZombie",
      "minerZombie",
      "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
      "foremanZombie",
      "oreSpider",
      "mineCave"
@@ -2146,6 +2170,9 @@
     "spitterZombie",
     "minerZombie",
     "lanternMinerZombie",
+    "bombZombie",
+    "supportBeamBrute",
+    "coreDrillWorm",
     "foremanZombie",
     "oreSpider",
     "mineCave"

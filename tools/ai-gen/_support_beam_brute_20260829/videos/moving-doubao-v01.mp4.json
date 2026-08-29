@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\mother\\support-beam-brute-mother-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_support_beam_brute_20260829\\videos\\moving-doubao-v01_doubao_bg.txt",
+  "promptChars": 990,
+  "promptSha256": "a5b8fd9ee3362ca3a6e3c028610aed4af9692fbeb8786e9a6e24f55760d16655",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T01:07:46.842Z",
+  "sourceUrlScheme": "https"
+}

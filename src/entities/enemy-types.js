@@ -53,6 +53,9 @@ import { TimeAgentShield } from './enemy-types/time-agent-shield.js';
 import { PoisonMaggot } from './enemy-types/poison-maggot.js';
 import { MinerZombie } from './enemy-types/miner-zombie.js';
 import { LanternMinerZombie } from './enemy-types/lantern-miner-zombie.js';
+import { BombZombie } from './enemy-types/bomb-zombie.js';
+import { SupportBeamBrute } from './enemy-types/support-beam-brute.js';
+import { CoreDrillWorm } from './enemy-types/core-drill-worm.js';
 import { ForemanZombie } from './enemy-types/foreman-zombie.js';
 import { MineCave } from './enemy-types/mine-cave.js';
 import { Tombstone } from './enemy-types/tombstone.js';
@@ -4153,4 +4156,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

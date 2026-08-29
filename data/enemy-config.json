@@ -2147,6 +2147,383 @@
     ],
     "attackType": "物理"
   },
+  "bombZombie": {
+    "id": "bombZombie",
+    "name": "炸弹僵尸",
+    "type": "精英",
+    "category": "monster",
+    "family": "僵尸",
+    "poolWhitelistOnly": true,
+    "color": "#7b6544",
+    "size": 17,
+    "collisionRadius": 36.3,
+    "height": 158.8,
+    "hp": 600,
+    "maxHp": 600,
+    "speed": 130,
+    "level": 6,
+    "rank": "elite",
+    "str": 50,
+    "dex": 28,
+    "con": 26,
+    "int": 14,
+    "wis": 12,
+    "luck": 10,
+    "attackRange": 650,
+    "attackDistance": 650,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 9000,
+      "dynamicRange": 650,
+      "width": 22,
+      "knockback": 0
+    },
+    "attackSkills": {
+      "bombThrow": {
+        "comment": "掏取、点燃并抛出炸药：61 帧攻击动画在 0-based 第 42 帧释放；炸药 1s 抛物线落地，独立等待 2s 后爆炸",
+        "range": 650,
+        "duration": 5083,
+        "frames": 61,
+        "releaseFrame": 42,
+        "flyDuration": 1000,
+        "arcHeight": 110,
+        "projectileSize": 64,
+        "landedSize": 64,
+        "landedVisualUpY": 14,
+        "muzzleForward": 80,
+        "muzzleUpY": 60,
+        "fuseMs": 2000,
+        "impactRadius": 180,
+        "damageMul": 1.75,
+        "cooldown": 9000
+      }
+    },
+    "death": {
+      "animMs": 2750,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 520,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 260.7,
+      "collisionWidth": 57.5,
+      "collisionHeight": 158.8,
+      "footOffsetY": 58,
+      "projectileHitbox": {
+        "width": 57.5,
+        "height": 158.8,
+        "offsetX": 2,
+        "bottom": -9
+      },
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "textures": {
+      "idle": "assets/enemies/bomb_zombie/idle.png",
+      "walk": "assets/enemies/bomb_zombie/walking.png",
+      "attack": "assets/enemies/bomb_zombie/attacking.png",
+      "death": "assets/enemies/bomb_zombie/dying.png",
+      "projectile": "assets/enemies/bomb_zombie/projectile.png",
+      "frameLayouts": {
+        "idle": { "columns": 8, "rows": 8, "frameWidth": 512, "frameHeight": 512, "frameCount": 60, "duration": 5000, "repeat": -1 },
+        "walk": { "columns": 8, "rows": 3, "frameWidth": 512, "frameHeight": 512, "frameCount": 22, "duration": 1833, "repeat": -1 },
+        "attack": { "columns": 8, "rows": 8, "frameWidth": 512, "frameHeight": 512, "frameCount": 61, "duration": 5083, "releaseFrame": 42, "repeat": 0 },
+        "death": { "columns": 8, "rows": 5, "frameWidth": 640, "frameHeight": 512, "frameCount": 33, "duration": 2750, "repeat": 0 }
+      }
+    },
+    "description": "背着炸药包的矿洞爆破手。它会从包中掏出炸药、点燃引线后抛向目标，炸药落地两秒后爆炸。只配置在废弃矿洞遭遇白名单中。",
+    "skills": [
+      {
+        "name": "延时爆破",
+        "desc": "650px 内掏取、点燃并抛出炸药；攻击动画 0-based 第 42 帧释放，炸药飞行 1s 后落地并警示 2s，随后对 180px 椭圆范围造成物理攻击 ×1.75 伤害；冷却 9s，攻击时不可移动。"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "supportBeamBrute": {
+    "id": "supportBeamBrute",
+    "name": "支护梁巨尸",
+    "type": "精英",
+    "category": "monster",
+    "family": "僵尸",
+    "families": ["僵尸", "大型"],
+    "poolWhitelistOnly": true,
+    "color": "#665b49",
+    "size": 20,
+    "collisionRadius": 46,
+    "height": 198,
+    "hp": 900,
+    "maxHp": 900,
+    "speed": 110,
+    "level": 6,
+    "rank": "elite",
+    "str": 56,
+    "dex": 14,
+    "con": 42,
+    "int": 3,
+    "wis": 8,
+    "luck": 7,
+    "attackRange": 225,
+    "attackDistance": 225,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 7000,
+      "range": 225,
+      "dynamicRange": 225,
+      "width": 90,
+      "knockback": 0
+    },
+    "basicMelee": {
+      "approachReach": 225,
+      "impactReach": 205,
+      "width": 90,
+      "forwardOffset": 36,
+      "backExtension": 8,
+      "requiresSameSurface": true,
+      "requiresLosAtImpact": true
+    },
+    "attackSkills": {
+      "beamGuard": {
+        "comment": "完整横梁只防御正面物理伤害；魔法、电系与背后伤害绕过横梁",
+        "durability": 420,
+        "absorbRatio": 0.65,
+        "frontHalfAngleDeg": 75
+      },
+      "beamBreak": {
+        "duration": 4417,
+        "frames": 53,
+        "brokenSpeed": 145
+      },
+      "beamThrust": {
+        "range": 225,
+        "approachReach": 225,
+        "impactReach": 205,
+        "forwardOffset": 36,
+        "backExtension": 8,
+        "width": 90,
+        "duration": 5083,
+        "frames": 61,
+        "hitFrame": 30,
+        "damageMul": 1.45,
+        "knockback": 120,
+        "cooldown": 7000
+      },
+      "unarmedSmash": {
+        "range": 150,
+        "approachReach": 150,
+        "impactReach": 135,
+        "forwardOffset": 34,
+        "backExtension": 12,
+        "width": 120,
+        "duration": 5083,
+        "frames": 61,
+        "hitFrame": 36,
+        "damageMul": 1.65,
+        "knockback": 90,
+        "cooldown": 6000
+      }
+    },
+    "death": {
+      "animMs": 5083,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 210,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 325.9,
+      "collisionWidth": 88,
+      "collisionHeight": 198,
+      "footOffsetY": 79.4,
+      "projectileHitbox": {
+        "width": 88,
+        "height": 198,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "textures": {
+      "armedIdle": "assets/enemies/support_beam_brute/armed_idle.png",
+      "armedWalk": "assets/enemies/support_beam_brute/armed_walk.png",
+      "beamBreak": "assets/enemies/support_beam_brute/beam_break.png",
+      "armedAttack": "assets/enemies/support_beam_brute/armed_attack.png",
+      "unarmedIdle": "assets/enemies/support_beam_brute/unarmed_idle.png",
+      "unarmedWalk": "assets/enemies/support_beam_brute/unarmed_walk.png",
+      "unarmedAttack": "assets/enemies/support_beam_brute/unarmed_attack.png",
+      "death": "assets/enemies/support_beam_brute/death.png",
+      "frameLayouts": {
+        "armedIdle": { "columns": 8, "rows": 8, "frameWidth": 512, "frameHeight": 640, "frameCount": 60, "duration": 5000, "repeat": -1 },
+        "armedWalk": { "columns": 8, "rows": 4, "frameWidth": 512, "frameHeight": 640, "frameCount": 28, "duration": 2333, "repeat": -1 },
+        "beamBreak": { "columns": 8, "rows": 7, "frameWidth": 512, "frameHeight": 640, "frameCount": 53, "duration": 4417, "repeat": 0 },
+        "armedAttack": { "columns": 8, "rows": 8, "frameWidth": 1024, "frameHeight": 640, "frameCount": 61, "duration": 5083, "hitFrame": 30, "repeat": 0 },
+        "unarmedIdle": { "columns": 8, "rows": 1, "frameWidth": 512, "frameHeight": 640, "frameCount": 1, "duration": 1000, "repeat": -1 },
+        "unarmedWalk": { "columns": 8, "rows": 3, "frameWidth": 512, "frameHeight": 640, "frameCount": 22, "duration": 1833, "repeat": -1 },
+        "unarmedAttack": { "columns": 8, "rows": 8, "frameWidth": 512, "frameHeight": 640, "frameCount": 61, "duration": 5083, "hitFrame": 36, "repeat": 0 },
+        "death": { "columns": 8, "rows": 8, "frameWidth": 640, "frameHeight": 640, "frameCount": 61, "duration": 5083, "repeat": 0 }
+      }
+    },
+    "description": "扛着矿洞支护梁的巨型僵尸。横梁会吸收来自正面的物理伤害，耐久耗尽后断成两段并被丢弃；随后巨尸提速，改用双拳砸击。仅通过废弃矿洞遭遇白名单生成。",
+    "skills": [
+      {
+        "name": "支护横梁",
+        "desc": "完整横梁拥有 420 点耐久，在正面 150° 范围吸收 65% 物理伤害；横梁耗尽后播放断裂丢弃动作，永久失去减伤，移动速度由 110 提升至 145。"
+      },
+      {
+        "name": "持梁突击",
+        "desc": "225px 起手、205px 命中范围，61 帧攻击动画第 30 帧结算物理攻击 ×1.45 并击退 120px；冷却 7s。"
+      },
+      {
+        "name": "双拳砸击",
+        "desc": "横梁断裂后启用：150px 起手、135px 命中范围，61 帧攻击动画第 36 帧结算物理攻击 ×1.65 并击退 90px；冷却 6s。"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "coreDrillWorm": {
+    "id": "coreDrillWorm",
+    "name": "岩芯钻虫",
+    "type": "精英",
+    "category": "monster",
+    "family": "其他",
+    "families": ["其他", "昆虫"],
+    "poolWhitelistOnly": true,
+    "color": "#77634a",
+    "size": 18,
+    "collisionRadius": 48,
+    "height": 90,
+    "hp": 780,
+    "maxHp": 780,
+    "speed": 145,
+    "level": 6,
+    "rank": "elite",
+    "str": 54,
+    "dex": 24,
+    "con": 36,
+    "int": 4,
+    "wis": 10,
+    "luck": 8,
+    "attackRange": 175,
+    "attackDistance": 175,
+    "aiInterval": 1500,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 5500,
+      "range": 175,
+      "dynamicRange": 175,
+      "width": 120,
+      "knockback": 90
+    },
+    "basicMelee": {
+      "approachReach": 175,
+      "impactReach": 160,
+      "width": 120,
+      "forwardOffset": 45,
+      "backExtension": 12,
+      "requiresSameSurface": true,
+      "requiresLosAtImpact": true
+    },
+    "attackSkills": {
+      "grinderStrike": {
+        "comment": "常态研磨突击：起手锁定方向，61 帧动画只在 0-based 第 34 帧复查并结算一次方向性近战",
+        "range": 175,
+        "approachReach": 175,
+        "impactReach": 160,
+        "forwardOffset": 45,
+        "backExtension": 12,
+        "width": 120,
+        "duration": 5083,
+        "frames": 61,
+        "hitFrame": 34,
+        "damageMul": 1.6,
+        "knockback": 90,
+        "cooldown": 5500
+      },
+      "burrowAmbush": {
+        "comment": "冷却钻地伏击：入土后短暂不可见、不可选取和不可受伤，在预判落点钻出并于出土接触帧结算一次范围冲击",
+        "minRange": 210,
+        "maxRange": 700,
+        "enterDuration": 2583,
+        "enterFrames": 31,
+        "hiddenDuration": 900,
+        "exitDuration": 1583,
+        "exitFrames": 19,
+        "impactFrame": 6,
+        "predictionClamp": 180,
+        "impactRadius": 170,
+        "damageMul": 1.9,
+        "knockback": 140,
+        "cooldown": 12000
+      }
+    },
+    "death": {
+      "animMs": 5083,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 165,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 360,
+      "referenceCell": 896,
+      "collisionWidth": 210,
+      "collisionHeight": 90,
+      "footOffsetY": 92.4,
+      "projectileHitbox": {
+        "width": 190,
+        "height": 85,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "textures": {
+      "idle": "assets/enemies/core_drill_worm/idle.png",
+      "crawling": "assets/enemies/core_drill_worm/crawling.png",
+      "grinderAttack": "assets/enemies/core_drill_worm/grinder_attack.png",
+      "burrowEnter": "assets/enemies/core_drill_worm/burrow_enter.png",
+      "burrowExit": "assets/enemies/core_drill_worm/burrow_exit.png",
+      "death": "assets/enemies/core_drill_worm/dying.png",
+      "frameLayouts": {
+        "idle": { "columns": 8, "rows": 8, "frameWidth": 896, "frameHeight": 640, "frameCount": 60, "duration": 5000, "footY": 550, "repeat": -1 },
+        "crawling": { "columns": 8, "rows": 8, "frameWidth": 896, "frameHeight": 640, "frameCount": 60, "duration": 5000, "footY": 550, "repeat": -1 },
+        "grinderAttack": { "columns": 8, "rows": 8, "frameWidth": 1024, "frameHeight": 640, "frameCount": 61, "duration": 5083, "footY": 550, "hitFrame": 34, "repeat": 0 },
+        "burrowEnter": { "columns": 8, "rows": 4, "frameWidth": 640, "frameHeight": 640, "frameCount": 31, "duration": 2583, "footY": 550, "repeat": 0 },
+        "burrowExit": { "columns": 8, "rows": 3, "frameWidth": 768, "frameHeight": 640, "frameCount": 19, "duration": 1583, "footY": 550, "impactFrame": 6, "repeat": 0 },
+        "death": { "columns": 8, "rows": 8, "frameWidth": 768, "frameHeight": 640, "frameCount": 61, "duration": 5083, "footY": 550, "repeat": 0 }
+      }
+    },
+    "description": "盘踞废弃矿层的重甲钻虫，头部岩质钻盘能撕开护甲。它会钻入地下追踪猎物，再从预判落点破土震击；仅通过废弃矿洞遭遇白名单生成。",
+    "skills": [
+      {
+        "name": "研磨突击",
+        "desc": "175px 起手、160px 命中范围，61 帧攻击动画第 34 帧复查方向并结算物理攻击 ×1.6，击退 90px；冷却 5.5s。"
+      },
+      {
+        "name": "钻地伏击",
+        "desc": "目标位于 210—700px 时可钻地：入土 2.583s 后隐藏 0.9s，期间不可选取或受伤；随后在预判落点钻出，第 6 帧对 170px 椭圆范围造成物理攻击 ×1.9 并击退 140px；冷却 12s。"
+      }
+    ],
+    "attackType": "物理"
+  },
+
   "foremanZombie": {
     "id": "foremanZombie",
     "name": "僵尸工头",
@@ -2196,6 +2573,13 @@
         "speedMul": 1.33,
         "atkMul": 1.5,
         "cooldown": 30000
+      },
+      "mineCaveSpawn": {
+        "comment": "工头登场后在墙体安全位置生成全场唯一矿洞；矿洞被摧毁后不重复补建，最后一名工头死亡时同步清除",
+        "count": 1,
+        "distance": 180,
+        "radius": 64,
+        "retryMs": 500
       }
     },
     "death": {

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_core_drill_worm_20260829\\mother\\core-drill-worm-mother-v03-six-legs.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_core_drill_worm_20260829\\prompts\\grinder-attack-doubao-v02-fixed-mouth.txt",
+  "promptChars": 654,
+  "promptSha256": "1aaedaf4174f15ca389279323cc66fd80b4bd9617c26adeebac93b3a5fd5f5b9",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T03:13:45.689Z",
+  "sourceUrlScheme": "https"
+}

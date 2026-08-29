@@ -1,0 +1,52 @@
+{
+  "batch": "abandoned-mine-elite-mothers-20260829",
+  "status": "completed_runtime_integrated",
+  "generatedAt": "2026-08-29",
+  "generationTool": "Codex built-in image_gen",
+  "sharedStyle": "realistic PBR dark-fantasy game render, right-facing low three-quarter orthographic view, pure white shadowless background, animation-safe margins",
+  "acceptedPreview": null,
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "references": [
+    "assets/enemies/miner_zombie/idle.png",
+    "assets/enemies/lantern_miner_zombie/idle.png",
+    "assets/enemies/foreman_zombie/idle.png",
+    "assets/enemies/ore_spider/idle.png"
+  ],
+  "units": [
+    {
+      "unitKey": "bombZombie",
+      "displayName": "炸弹僵尸",
+      "output": "../_bomb_zombie_20260829/mother/bomb-zombie-mother-v02-empty-hand.png",
+      "prompt": "../_bomb_zombie_20260829/prompts/mother-empty-hand-edit-v02.txt",
+      "sourceOutput": "blasting-zombie-mother-v01.png",
+      "sourcePrompt": "prompt-blasting-zombie-v01.txt",
+      "approved": true,
+      "approvedAt": "2026-08-29",
+      "approvalNote": "用户批准角色方向，并将攻击合同修订为掏取、点燃、抛出；母图相应移除右手预持炸药。"
+    },
+    {
+      "unitKey": "coreDrillWorm",
+      "displayName": "岩芯钻虫",
+      "output": "core-drill-worm-mother-v03-six-legs.png",
+      "prompt": "prompt-core-drill-worm-v03-six-legs-edit.txt",
+      "sourceOutput": "core-drill-worm-mother-v02.png",
+      "sourcePrompt": "prompt-core-drill-worm-v02-edit.txt",
+      "approved": true,
+      "approvedAt": "2026-08-29",
+      "status": "approved_for_doubao_video",
+      "reviewNote": "用户要求继续豆包视频管线，视为批准 v03；母图保留楔形头、圆形钻口、苍白凹眼、玄武岩甲和灰白腹部，并让近侧三腿与远侧三腿可逐一计数。"
+    },
+    {
+      "unitKey": "supportBeamBrute",
+      "displayName": "支护梁巨尸",
+      "output": "support-beam-brute-mother-v01.png",
+      "prompt": "prompt-support-beam-brute-v01.txt",
+      "sourceOutput": null,
+      "sourcePrompt": null,
+      "approved": true,
+      "approvedAt": "2026-08-29",
+      "approvalNote": "用户明确要求继续以该母图通过豆包管线生成五个状态视频；动画生产已转入 ../_support_beam_brute_20260829。"
+    }
+  ]
+}
