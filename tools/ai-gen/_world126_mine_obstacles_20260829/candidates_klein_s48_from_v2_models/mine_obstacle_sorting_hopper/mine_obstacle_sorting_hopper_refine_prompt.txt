@@ -1,0 +1,42 @@
+Use case: stylized-concept
+Asset type: World-126 abandoned-mine path-blocking timber-supported ore sorting hopper obstacle, previewed above the authored 2.35 by 1.85 rectangular obstacle footprint
+Pipeline/style version: world122-building-v5
+Primary request: exactly one refine the same sorting hopper with broad worn iron plates, readable seams and rivets, restrained rust, dark oak grain and chipped ore without changing any leg, brace, hopper, chute or footprint
+Generation stage: detail refinement of the supplied abandoned-mine obstacle image
+Structure contract: preserve the initial image's exact obstacle silhouette, connected-component count, open gaps, orthographic camera, center, authored rectangular footprint and visible ground-contact line; do not add, remove, duplicate, relocate, rotate, resize, merge or reinterpret any structural, mechanical or natural mass
+Detail budget: improve only the already-present broad slate planes, damp timber grain, blackened iron, restrained oxidation, dark ore and component-contact occlusion; add no scenery, floor, cast shadow or unmodelled part
+Palette lock: damp dark oak posts and braces, matte charcoal riveted iron hopper and chute, muted oxidation and non-glowing dark ore only.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: none
+Foundation exception: this asset class is not a medium functional building; preserve its authored ground contact and do not invent a building plinth, slab or pedestal.
+Canonical World-126 abandoned-mine obstacle rendering subset:
+Style/medium: sober semi-realistic handcrafted strategy-game environmental obstacle with physically plausible game-ready PBR materials and solid readable proportions.
+Material grammar: low-saturation charcoal and cool-gray slate, damp weathered dark oak, matte blackened iron, restrained orange-brown oxidation and dark non-glowing ore. Material boundaries follow only the authored Blender components.
+Color treatment: deliberately dark and desaturated with controlled neutral contrast; rust and timber warmth remain small functional accents, never bright orange, gold, cyan, green or neon.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where connected parts meet; absolutely no cast shadow, ground shadow, backdrop shadow or green-screen gradient.
+Detail scale: prioritize broad chipped rock planes, readable timber grain, thick iron bands, rivets, wheels, drums, braces and hopper plates; avoid photographic gravel noise, dense micro-scratches and tiny greebles.
+Shape treatment: preserve the exact authored orthographic silhouette, footprint, verticals, openings and connected-part count; use modest bevels and believable structural thickness.
+Absolute class lock: this is one path-blocking abandoned-mine environmental obstacle, not a building, cave entrance, treasure chest, terrain patch or decorative floor scatter.
+Asset-specific style scope: apply mine materials only to the existing four timber legs, cross braces, upper hopper, lower chute, screen deck and connected ore load.
+
+Composition/framing: strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; preserve the complete authored rectangular footprint, exact ground-contact line and all connected components; no perspective convergence
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one isolated abandoned-mine obstacle only; no house, building facade, roof, room, tower, wall, gate, cave entrance, portal, second obstacle, detached platform, floor tile, terrain patch, road, grass, tree, cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient, character, animal, sign, readable text, logo or watermark
+Asset-specific absolute exclusions: no building walls, no roof, no second hopper, no conveyor belt extending outside the footprint, no minecart, no worker, no sign and no detached ore pile
