@@ -56,6 +56,7 @@ import { LanternMinerZombie } from './enemy-types/lantern-miner-zombie.js';
 import { BombZombie } from './enemy-types/bomb-zombie.js';
 import { SupportBeamBrute } from './enemy-types/support-beam-brute.js';
 import { CoreDrillWorm } from './enemy-types/core-drill-worm.js';
+export { CoreDrillLarva, OreShardling } from './enemy-types/mine-small-monsters.js';
 import { ForemanZombie } from './enemy-types/foreman-zombie.js';
 import { MineCave } from './enemy-types/mine-cave.js';
 import { Tombstone } from './enemy-types/tombstone.js';

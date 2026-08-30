@@ -1,0 +1,12 @@
+# Regenerable extraction/preview intermediates; canonical runtime input PNGs remain tracked.
+animations/__pycache__/
+animations/core-drill-larva/previews/
+animations/ore-shardling/previews/
+animations/sprite-build/*
+!animations/sprite-build/source-manifest.json
+animations/runtime-build/*/previews/*
+!animations/runtime-build/*/previews/idle.gif
+!animations/runtime-build/*/previews/walk.gif
+!animations/runtime-build/*/previews/attack.gif
+!animations/runtime-build/*/previews/death.gif
+animations/runtime-build/runtime-overview.png

@@ -1,0 +1,92 @@
+{
+  "task": "abandoned-mine-normal-monster-mother-images",
+  "date": "2026-08-30",
+  "status": "runtime-integrated-archive-finalized",
+  "generator": "built-in image_gen",
+  "model": null,
+  "seed": null,
+  "generationMetadataNote": "The built-in tool did not expose model or seed; exact prompts and source paths are retained.",
+  "scope": "Two ordinary mine monsters integrated; selected sources archived, reproducible intermediates removed.",
+  "futurePlanOnly": false,
+  "animationTask": "animations/task-index.json",
+  "approvalBasis": "User requested proceeding from these displayed mothers to four actions through the Doubao pipeline on 2026-08-30.",
+  "runtimeIntegrationActive": true,
+  "sharedStyle": "Realistic PBR mineral surfaces, white background, idle pose, single full-body subject.",
+  "candidates": [
+    {
+      "assetSlug": "core-drill-larva",
+      "name": "岩芯幼钻虫",
+      "currentImage": "core-drill-larva-mother-v01.png",
+      "prompt": "prompt-core-drill-larva-v01.txt",
+      "approved": true,
+      "status": "approved-for-animation-generation",
+      "mode": "generate",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04e8d-b81e-7463-b8c4-af8faa93ed35/exec-6a61bfd6-9b16-4ea1-aa2b-8f0e6c9da166.png",
+      "inputImages": [],
+      "visualContextOnly": {
+        "path": "../_core_drill_worm_20260829/mother/core-drill-worm-mother-v03-six-legs.png",
+        "use": "Inspected for family/style context; not passed to the generation tool."
+      },
+      "reviewNotes": [
+        "Short thick segmented body, sparse slate armor and a mineral drill crown; right-facing.",
+        "Retained unchanged after the user's ore-monster-only revision.",
+        "Runtime body size is not established by this isolated candidate."
+      ]
+    },
+    {
+      "assetSlug": "ore-shardling",
+      "name": "碎矿石怪",
+      "currentImage": "ore-shardling-mother-v02-purple-one-arm.png",
+      "prompt": "prompt-ore-shardling-v02-purple-one-arm.txt",
+      "approved": true,
+      "status": "approved-for-animation-generation",
+      "mode": "edit",
+      "revisionReason": "User requested the purple-crystal style of the ore spider and mine lord, one arm/hand, and one spike growing from the back.",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04e8d-b81e-7463-b8c4-af8faa93ed35/exec-b8705734-2bda-4d5e-b79e-9a9a9b00fd46.png",
+      "inputImages": [
+        {
+          "index": 1,
+          "role": "edit-target",
+          "path": "ore-shardling-mother-v01.png"
+        },
+        {
+          "index": 2,
+          "role": "material-reference-only",
+          "path": "references/ore-spider-purple-mineral-reference.png",
+          "originalPath": "../_abandoned_mine_lords_20260829/references/ore-spider-purple-mineral-reference.png"
+        },
+        {
+          "index": 3,
+          "role": "material-and-family-reference-only",
+          "path": "references/sealed-shaft-rock-wraith-mother-v04.png",
+          "originalPath": "../_abandoned_mine_lords_20260829/mothers/sealed-shaft-rock-wraith-mother-v04.png"
+        }
+      ],
+      "reviewNotes": [
+        "Dusty purple crystal surfaces and dark stone joints replace yellow pyrite and gray rock.",
+        "One visible connected arm with one blunt fist, two short legs, and one backward-upward crystal spine.",
+        "White-background full-body three-quarter candidate; final camera and silhouette remain subject to user approval.",
+        "No second arm or facial features were introduced."
+      ],
+      "previousCandidates": [
+        {
+          "image": "ore-shardling-mother-v01.png",
+          "prompt": "prompt-ore-shardling-v01.txt",
+          "status": "superseded-by-user-design-revision",
+          "approved": false,
+          "mode": "generate",
+          "generatedSource": "C:/Users/allan/.codex/generated_images/01a04e8d-b81e-7463-b8c4-af8faa93ed35/exec-5afcc0a3-d948-444e-aab5-a2302d2c2980.png"
+        }
+      ]
+    }
+  ],
+  "deliveryNotes": [
+    "Accepted mothers, direct edit input, immutable prompts, eight approved MP4/provenance files, current pre-RIFE inputs, final GIFs and runtime assets retained.",
+    "Original generation paths are historical provenance; archived currentImage/inputImages paths are the reproducible local sources.",
+    "Intermediate/full-size superseded sheets and duplicate previews moved to a recoverable ignored directory; see archive-manifest.json.",
+    "Runtime is integrated; no game tests or runtime validation have been run."
+  ],
+  "assetOnly": false,
+  "runtimeDelivery": "animations/INTEGRATION.md",
+  "archiveManifest": "archive-manifest.json"
+}

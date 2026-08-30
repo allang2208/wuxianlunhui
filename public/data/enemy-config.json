@@ -2391,6 +2391,325 @@
     ],
     "attackType": "物理"
   },
+  "coreDrillLarva": {
+    "id": "coreDrillLarva",
+    "name": "岩芯幼钻虫",
+    "type": "普通",
+    "category": "monster",
+    "family": "其他",
+    "families": [
+      "其他",
+      "昆虫"
+    ],
+    "poolWhitelistOnly": true,
+    "color": "#776b59",
+    "size": 12,
+    "collisionRadius": 28,
+    "height": 40,
+    "hp": 125,
+    "maxHp": 125,
+    "speed": 165,
+    "level": 4,
+    "rank": "normal",
+    "str": 14,
+    "dex": 18,
+    "con": 13,
+    "int": 3,
+    "wis": 4,
+    "luck": 5,
+    "showWeapon": false,
+    "basicMeleeResolver": true,
+    "attackRange": 70,
+    "attackDistance": 70,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2400,
+      "range": 70,
+      "dynamicRange": 70,
+      "width": 36,
+      "knockback": 12
+    },
+    "basicMelee": {
+      "approachReach": 70,
+      "impactReach": 70,
+      "width": 36,
+      "forwardOffset": 0,
+      "backExtension": 8,
+      "requiresSameSurface": true,
+      "requiresLosAtImpact": true,
+      "timeline": {
+        "durationMs": 1200,
+        "frameCount": 37,
+        "contactFrame": 18,
+        "activeFrames": [
+          18,
+          20
+        ],
+        "rebaseOnImpact": true
+      }
+    },
+    "attackSkills": {
+      "strike": {
+        "comment": "0-based 接触帧；锁定起手目标与方向，整次攻击最多结算一次，命中前复查同地表/距离/视线；受控取消未结算命中",
+        "range": 70,
+        "duration": 1200,
+        "frames": 37,
+        "hitFrame": 18,
+        "damageMul": 0.85,
+        "knockback": 12,
+        "cooldown": 2400
+      }
+    },
+    "death": {
+      "animMs": 1600,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 70,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 136.53333333333333,
+      "collisionWidth": 124,
+      "collisionHeight": 40,
+      "footOffsetY": 46.93333333333333,
+      "projectileHitbox": {
+        "width": 124,
+        "height": 40,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "textures": {
+      "idle": "assets/enemies/core_drill_larva/idle.png",
+      "walk": "assets/enemies/core_drill_larva/walk.png",
+      "attack": "assets/enemies/core_drill_larva/attack.png",
+      "death": "assets/enemies/core_drill_larva/death.png",
+      "referenceCell": 256,
+      "idleFrameWidth": 320,
+      "idleFrameHeight": 256,
+      "idleFrameCount": 66,
+      "idleSheetColumns": 8,
+      "frameLayouts": {
+        "idle": {
+          "frameWidth": 320,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 9,
+          "frameCount": 66,
+          "footY": 216,
+          "duration": 2750,
+          "frameRate": 24,
+          "repeat": -1
+        },
+        "walk": {
+          "frameWidth": 320,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 5,
+          "frameCount": 38,
+          "footY": 216,
+          "duration": 1000,
+          "frameRate": 38,
+          "repeat": -1
+        },
+        "attack": {
+          "frameWidth": 320,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 5,
+          "frameCount": 37,
+          "footY": 216,
+          "duration": 1200,
+          "frameRate": 30.833333333333332,
+          "repeat": 0
+        },
+        "death": {
+          "frameWidth": 320,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 8,
+          "frameCount": 61,
+          "footY": 216,
+          "duration": 1600,
+          "frameRate": 38.125,
+          "repeat": 0
+        }
+      }
+    },
+    "description": "岩芯钻虫的幼体，低伏的片岩甲壳包裹柔软身躯。比矿工僵尸更灵活但更脆弱，以短促钻击威胁近身目标。",
+    "skills": [
+      {
+        "name": "短促钻击",
+        "desc": "1.2s 单次攻击，0-based 第 18 帧命中，2.4s 冷却；攻击期间停步，眩晕/冻结/石化/恐惧会取消攻击。"
+      }
+    ],
+    "attackType": "物理"
+  },
+  "oreShardling": {
+    "id": "oreShardling",
+    "name": "碎矿石怪",
+    "type": "普通",
+    "category": "monster",
+    "family": "其他",
+    "families": [
+      "其他"
+    ],
+    "poolWhitelistOnly": true,
+    "color": "#79638c",
+    "size": 14,
+    "collisionRadius": 27,
+    "height": 80,
+    "hp": 190,
+    "maxHp": 190,
+    "speed": 115,
+    "level": 4,
+    "rank": "normal",
+    "str": 20,
+    "dex": 8,
+    "con": 22,
+    "int": 2,
+    "wis": 6,
+    "luck": 4,
+    "showWeapon": false,
+    "basicMeleeResolver": true,
+    "attackRange": 60,
+    "attackDistance": 60,
+    "attack": {
+      "type": "thrust",
+      "cooldown": 3000,
+      "range": 60,
+      "dynamicRange": 60,
+      "width": 36,
+      "knockback": 22
+    },
+    "basicMelee": {
+      "approachReach": 60,
+      "impactReach": 60,
+      "width": 36,
+      "forwardOffset": 0,
+      "backExtension": 8,
+      "requiresSameSurface": true,
+      "requiresLosAtImpact": true,
+      "timeline": {
+        "durationMs": 1600,
+        "frameCount": 51,
+        "contactFrame": 28,
+        "activeFrames": [
+          28,
+          30
+        ],
+        "rebaseOnImpact": true
+      }
+    },
+    "attackSkills": {
+      "strike": {
+        "comment": "0-based 接触帧；锁定起手目标与方向，整次攻击最多结算一次，命中前复查同地表/距离/视线；受控取消未结算命中",
+        "range": 60,
+        "duration": 1600,
+        "frames": 51,
+        "hitFrame": 28,
+        "damageMul": 1.15,
+        "knockback": 22,
+        "cooldown": 3000
+      }
+    },
+    "death": {
+      "animMs": 1800,
+      "holdMs": 1000,
+      "fadeMs": 300
+    },
+    "ai": {
+      "aggroRange": 9999,
+      "pacingRange": 60,
+      "loseTimeout": 3000
+    },
+    "render": {
+      "spriteSize": 136.53333333333333,
+      "collisionWidth": 84,
+      "collisionHeight": 80,
+      "footOffsetY": 51.2,
+      "projectileHitbox": {
+        "width": 84,
+        "height": 80,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "capsuleHudAnchor": true,
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "textures": {
+      "idle": "assets/enemies/ore_shardling/idle.png",
+      "walk": "assets/enemies/ore_shardling/walk.png",
+      "attack": "assets/enemies/ore_shardling/attack.png",
+      "death": "assets/enemies/ore_shardling/death.png",
+      "referenceCell": 256,
+      "idleFrameWidth": 448,
+      "idleFrameHeight": 256,
+      "idleFrameCount": 50,
+      "idleSheetColumns": 8,
+      "frameLayouts": {
+        "idle": {
+          "frameWidth": 448,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 7,
+          "frameCount": 50,
+          "footY": 224,
+          "duration": 2083.3333333333335,
+          "frameRate": 24,
+          "repeat": -1
+        },
+        "walk": {
+          "frameWidth": 448,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 8,
+          "frameCount": 58,
+          "footY": 224,
+          "duration": 1000,
+          "frameRate": 58,
+          "repeat": -1
+        },
+        "attack": {
+          "frameWidth": 448,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 7,
+          "frameCount": 51,
+          "footY": 224,
+          "duration": 1600,
+          "frameRate": 31.875,
+          "repeat": 0
+        },
+        "death": {
+          "frameWidth": 448,
+          "frameHeight": 256,
+          "columns": 8,
+          "rows": 8,
+          "frameCount": 61,
+          "footY": 224,
+          "duration": 1800,
+          "frameRate": 33.888888888888886,
+          "repeat": 0
+        }
+      }
+    },
+    "description": "由废弃矿洞中的紫色晶石凝成的小型矿石怪。只有一只粗壮石臂，背后长出一根晶石尖刺；护甲和生命较高，移动和出拳较慢。",
+    "skills": [
+      {
+        "name": "独臂砸击",
+        "desc": "1.6s 单次攻击，0-based 第 28 帧命中，3s 冷却；攻击期间停步，眩晕/冻结/石化/恐惧会取消攻击。"
+      }
+    ],
+    "attackType": "物理"
+  },
   "coreDrillWorm": {
     "id": "coreDrillWorm",
     "name": "岩芯钻虫",

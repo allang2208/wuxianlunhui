@@ -1,0 +1,2158 @@
+{
+  "task": "abandoned-mine-two-normal-monsters",
+  "date": "2026-08-30",
+  "status": "recoverable-cleanup-completed",
+  "runtimeIntegrationActive": true,
+  "assetOnly": false,
+  "retention": "Accepted mothers + direct edit references + immutable prompts + approved videos/provenance + actual current pre-RIFE inputs + runtime PNGs + final GIFs/reports + reproducible scripts.",
+  "recoveryDirectory": "tools/.trash-mine-small-monsters-20260830",
+  "removedFileCount": 515,
+  "removedBytes": 519960769,
+  "removed": [
+    {
+      "path": "animations/core-drill-larva/previews/attacking-doubao-v01-contact.png",
+      "bytes": 1095025
+    },
+    {
+      "path": "animations/core-drill-larva/previews/attacking-doubao-v01-preview.json",
+      "bytes": 1413
+    },
+    {
+      "path": "animations/core-drill-larva/previews/attacking-doubao-v01-source.gif",
+      "bytes": 5301700
+    },
+    {
+      "path": "animations/core-drill-larva/previews/dying-doubao-v01-contact.png",
+      "bytes": 1110183
+    },
+    {
+      "path": "animations/core-drill-larva/previews/dying-doubao-v01-preview.json",
+      "bytes": 1401
+    },
+    {
+      "path": "animations/core-drill-larva/previews/dying-doubao-v01-source.gif",
+      "bytes": 5446098
+    },
+    {
+      "path": "animations/core-drill-larva/previews/four-actions-overview.gif",
+      "bytes": 13686315
+    },
+    {
+      "path": "animations/core-drill-larva/previews/idle-doubao-v01-contact.png",
+      "bytes": 1144681
+    },
+    {
+      "path": "animations/core-drill-larva/previews/idle-doubao-v01-preview.json",
+      "bytes": 1398
+    },
+    {
+      "path": "animations/core-drill-larva/previews/idle-doubao-v01-source.gif",
+      "bytes": 5658066
+    },
+    {
+      "path": "animations/core-drill-larva/previews/walking-doubao-v01-contact.png",
+      "bytes": 1160778
+    },
+    {
+      "path": "animations/core-drill-larva/previews/walking-doubao-v01-preview.json",
+      "bytes": 1407
+    },
+    {
+      "path": "animations/core-drill-larva/previews/walking-doubao-v01-source.gif",
+      "bytes": 5568422
+    },
+    {
+      "path": "animations/ore-shardling/previews/attacking-doubao-v01-contact.png",
+      "bytes": 968875
+    },
+    {
+      "path": "animations/ore-shardling/previews/attacking-doubao-v01-preview.json",
+      "bytes": 1404
+    },
+    {
+      "path": "animations/ore-shardling/previews/attacking-doubao-v01-source.gif",
+      "bytes": 4698560
+    },
+    {
+      "path": "animations/ore-shardling/previews/dying-doubao-v01-contact.png",
+      "bytes": 869083
+    },
+    {
+      "path": "animations/ore-shardling/previews/dying-doubao-v01-preview.json",
+      "bytes": 1392
+    },
+    {
+      "path": "animations/ore-shardling/previews/dying-doubao-v01-source.gif",
+      "bytes": 4314921
+    },
+    {
+      "path": "animations/ore-shardling/previews/four-actions-overview.gif",
+      "bytes": 12358481
+    },
+    {
+      "path": "animations/ore-shardling/previews/idle-doubao-v01-contact.png",
+      "bytes": 1037080
+    },
+    {
+      "path": "animations/ore-shardling/previews/idle-doubao-v01-preview.json",
+      "bytes": 1389
+    },
+    {
+      "path": "animations/ore-shardling/previews/idle-doubao-v01-source.gif",
+      "bytes": 5052192
+    },
+    {
+      "path": "animations/ore-shardling/previews/walking-doubao-v01-contact.png",
+      "bytes": 1089427
+    },
+    {
+      "path": "animations/ore-shardling/previews/walking-doubao-v01-preview.json",
+      "bytes": 1398
+    },
+    {
+      "path": "animations/ore-shardling/previews/walking-doubao-v01-source.gif",
+      "bytes": 5175989
+    },
+    {
+      "path": "animations/runtime-build/runtime-overview.png",
+      "bytes": 372724
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/attack-contact.png",
+      "bytes": 741917
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/attack-keys-contact.png",
+      "bytes": 608755
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/attack-keys.gif",
+      "bytes": 839062
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/death-contact.png",
+      "bytes": 704641
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/death-keys-contact.png",
+      "bytes": 709083
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/death-keys.gif",
+      "bytes": 1320420
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/idle-contact.png",
+      "bytes": 758960
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/idle-keys-contact.png",
+      "bytes": 767644
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/idle-keys.gif",
+      "bytes": 1490278
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/walk-contact.png",
+      "bytes": 742481
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/walk-keys-contact.png",
+      "bytes": 607185
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/walk-keys.gif",
+      "bytes": 844109
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-attack-interpolated-contact.png",
+      "bytes": 339622
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-attack-interpolated.gif",
+      "bytes": 1190948
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-death-interpolated-contact.png",
+      "bytes": 509072
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-death-interpolated.gif",
+      "bytes": 1915717
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-idle-interpolated-contact.png",
+      "bytes": 598184
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-idle-interpolated.gif",
+      "bytes": 2168687
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-walk-interpolated-contact.png",
+      "bytes": 344079
+    },
+    {
+      "path": "animations/runtime-build/core-drill-larva/previews/rife/core_drill_larva-walk-interpolated.gif",
+      "bytes": 1228852
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/attack-contact.png",
+      "bytes": 624195
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/attack-keys-contact.png",
+      "bytes": 639071
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/attack-keys.gif",
+      "bytes": 1037548
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/death-contact.png",
+      "bytes": 573027
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/death-keys-contact.png",
+      "bytes": 576729
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/death-keys.gif",
+      "bytes": 1136437
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/idle-contact.png",
+      "bytes": 670078
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/idle-keys-contact.png",
+      "bytes": 678123
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/idle-keys.gif",
+      "bytes": 1044807
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/walk-contact.png",
+      "bytes": 657669
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/walk-keys-contact.png",
+      "bytes": 671614
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/walk-keys.gif",
+      "bytes": 1195405
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-attack-interpolated-contact.png",
+      "bytes": 386540
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-attack-interpolated.gif",
+      "bytes": 1402017
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-death-interpolated-contact.png",
+      "bytes": 415079
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-death-interpolated.gif",
+      "bytes": 1561973
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-idle-interpolated-contact.png",
+      "bytes": 392953
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-idle-interpolated.gif",
+      "bytes": 1451840
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-walk-interpolated-contact.png",
+      "bytes": 460668
+    },
+    {
+      "path": "animations/runtime-build/ore-shardling/previews/rife/ore_shardling-walk-interpolated.gif",
+      "bytes": 1662511
+    },
+    {
+      "path": "animations/sprite-build/cycle-candidates.json",
+      "bytes": 19223
+    },
+    {
+      "path": "animations/sprite-build/selection.json",
+      "bytes": 1239
+    },
+    {
+      "path": "animations/sprite-build/sprite-manifest.json",
+      "bytes": 38732
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/transform.json",
+      "bytes": 492
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f000.png",
+      "bytes": 366564
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f002.png",
+      "bytes": 371604
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f004.png",
+      "bytes": 372030
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f006.png",
+      "bytes": 372128
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f008.png",
+      "bytes": 371247
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f010.png",
+      "bytes": 405890
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f012.png",
+      "bytes": 367139
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f014.png",
+      "bytes": 368691
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f016.png",
+      "bytes": 369221
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f018.png",
+      "bytes": 370119
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f020.png",
+      "bytes": 370989
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f022.png",
+      "bytes": 371213
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f024.png",
+      "bytes": 371862
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f026.png",
+      "bytes": 371134
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f028.png",
+      "bytes": 373340
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f030.png",
+      "bytes": 371471
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f032.png",
+      "bytes": 374327
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f034.png",
+      "bytes": 372307
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f036.png",
+      "bytes": 374819
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f038.png",
+      "bytes": 372373
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f040.png",
+      "bytes": 375472
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f042.png",
+      "bytes": 373100
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f044.png",
+      "bytes": 376455
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f046.png",
+      "bytes": 375223
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f048.png",
+      "bytes": 375189
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f050.png",
+      "bytes": 375265
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f052.png",
+      "bytes": 375336
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f054.png",
+      "bytes": 240657
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f056.png",
+      "bytes": 324650
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f058.png",
+      "bytes": 366683
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f060.png",
+      "bytes": 419703
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f062.png",
+      "bytes": 378416
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f064.png",
+      "bytes": 380987
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f066.png",
+      "bytes": 386395
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f068.png",
+      "bytes": 388165
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f070.png",
+      "bytes": 387002
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f072.png",
+      "bytes": 385804
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f074.png",
+      "bytes": 380218
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f076.png",
+      "bytes": 381188
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f078.png",
+      "bytes": 376106
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f080.png",
+      "bytes": 378580
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f082.png",
+      "bytes": 371111
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f084.png",
+      "bytes": 373210
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f086.png",
+      "bytes": 368288
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f088.png",
+      "bytes": 370194
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f090.png",
+      "bytes": 374862
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f092.png",
+      "bytes": 382364
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f094.png",
+      "bytes": 387876
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f096.png",
+      "bytes": 390537
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f098.png",
+      "bytes": 392364
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f100.png",
+      "bytes": 392158
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f102.png",
+      "bytes": 391912
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f104.png",
+      "bytes": 392487
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f106.png",
+      "bytes": 393830
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f108.png",
+      "bytes": 393901
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f110.png",
+      "bytes": 420676
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f112.png",
+      "bytes": 393239
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f114.png",
+      "bytes": 393754
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f116.png",
+      "bytes": 392620
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f118.png",
+      "bytes": 392799
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/attacking/f120.png",
+      "bytes": 392268
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f000.png",
+      "bytes": 364397
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f002.png",
+      "bytes": 371500
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f004.png",
+      "bytes": 368571
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f006.png",
+      "bytes": 373932
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f008.png",
+      "bytes": 383451
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f010.png",
+      "bytes": 431839
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f012.png",
+      "bytes": 418711
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f014.png",
+      "bytes": 421564
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f016.png",
+      "bytes": 411607
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f018.png",
+      "bytes": 415601
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f020.png",
+      "bytes": 406228
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f022.png",
+      "bytes": 413874
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f024.png",
+      "bytes": 405724
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f026.png",
+      "bytes": 413018
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f028.png",
+      "bytes": 405430
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f030.png",
+      "bytes": 415182
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f032.png",
+      "bytes": 404098
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f034.png",
+      "bytes": 415820
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f036.png",
+      "bytes": 406412
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f038.png",
+      "bytes": 411522
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f040.png",
+      "bytes": 403988
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f042.png",
+      "bytes": 408929
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f044.png",
+      "bytes": 399129
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f046.png",
+      "bytes": 405746
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f048.png",
+      "bytes": 394230
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f050.png",
+      "bytes": 397603
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f052.png",
+      "bytes": 387613
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f054.png",
+      "bytes": 390878
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f056.png",
+      "bytes": 383000
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f058.png",
+      "bytes": 382026
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f060.png",
+      "bytes": 402355
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f062.png",
+      "bytes": 374191
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f064.png",
+      "bytes": 362768
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f066.png",
+      "bytes": 371280
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f068.png",
+      "bytes": 361642
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f070.png",
+      "bytes": 370280
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f072.png",
+      "bytes": 369427
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f074.png",
+      "bytes": 367217
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f076.png",
+      "bytes": 371330
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f078.png",
+      "bytes": 372391
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f080.png",
+      "bytes": 371327
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f082.png",
+      "bytes": 372710
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f084.png",
+      "bytes": 371523
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f086.png",
+      "bytes": 372987
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f088.png",
+      "bytes": 372372
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f090.png",
+      "bytes": 373289
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f092.png",
+      "bytes": 372606
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f094.png",
+      "bytes": 374134
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f096.png",
+      "bytes": 373346
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f098.png",
+      "bytes": 373539
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f100.png",
+      "bytes": 373332
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f102.png",
+      "bytes": 373416
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f104.png",
+      "bytes": 372765
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f106.png",
+      "bytes": 373202
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f108.png",
+      "bytes": 375764
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f110.png",
+      "bytes": 403142
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f112.png",
+      "bytes": 390625
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f114.png",
+      "bytes": 381742
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f116.png",
+      "bytes": 380300
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f118.png",
+      "bytes": 379901
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/dying/f120.png",
+      "bytes": 379607
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f000.png",
+      "bytes": 366055
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f016.png",
+      "bytes": 415753
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f018.png",
+      "bytes": 425772
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f020.png",
+      "bytes": 417879
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f022.png",
+      "bytes": 427239
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f024.png",
+      "bytes": 420403
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f026.png",
+      "bytes": 428844
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f028.png",
+      "bytes": 421299
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f030.png",
+      "bytes": 429350
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f032.png",
+      "bytes": 422226
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f034.png",
+      "bytes": 431886
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f036.png",
+      "bytes": 424503
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f038.png",
+      "bytes": 432413
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f040.png",
+      "bytes": 425894
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f042.png",
+      "bytes": 431995
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f044.png",
+      "bytes": 428072
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f046.png",
+      "bytes": 432746
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f048.png",
+      "bytes": 430768
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f050.png",
+      "bytes": 432226
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f052.png",
+      "bytes": 426782
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f054.png",
+      "bytes": 428887
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f056.png",
+      "bytes": 421199
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f058.png",
+      "bytes": 425793
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f060.png",
+      "bytes": 447391
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f062.png",
+      "bytes": 422234
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f064.png",
+      "bytes": 414244
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f066.png",
+      "bytes": 419247
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f068.png",
+      "bytes": 410652
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f070.png",
+      "bytes": 416295
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f072.png",
+      "bytes": 406773
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f074.png",
+      "bytes": 412657
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f076.png",
+      "bytes": 404276
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f078.png",
+      "bytes": 409229
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/idle/f080.png",
+      "bytes": 401029
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f000.png",
+      "bytes": 362414
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f034.png",
+      "bytes": 404076
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f036.png",
+      "bytes": 397125
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f038.png",
+      "bytes": 407295
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f040.png",
+      "bytes": 401595
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f042.png",
+      "bytes": 409774
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f044.png",
+      "bytes": 405450
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f046.png",
+      "bytes": 414454
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f048.png",
+      "bytes": 405942
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f050.png",
+      "bytes": 412191
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f052.png",
+      "bytes": 400907
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f054.png",
+      "bytes": 408758
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f056.png",
+      "bytes": 396624
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f058.png",
+      "bytes": 403526
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f060.png",
+      "bytes": 435717
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f062.png",
+      "bytes": 397693
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f064.png",
+      "bytes": 392702
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f066.png",
+      "bytes": 394621
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f068.png",
+      "bytes": 388910
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/cutouts/walking/f070.png",
+      "bytes": 395597
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/attacking-contact.png",
+      "bytes": 769982
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/attacking.gif",
+      "bytes": 5211724
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/dying-contact.png",
+      "bytes": 732868
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/dying.gif",
+      "bytes": 5050829
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/four-actions-overview.gif",
+      "bytes": 24023839
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/four-actions-overview.png",
+      "bytes": 261953
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/idle-contact.png",
+      "bytes": 788355
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/idle.gif",
+      "bytes": 2938394
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/walking-contact.png",
+      "bytes": 775385
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/final/walking.gif",
+      "bytes": 1652231
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-attacking-interpolated-contact.png",
+      "bytes": 1057392
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-attacking-interpolated.gif",
+      "bytes": 4328959
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-dying-interpolated-contact.png",
+      "bytes": 970715
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-dying-interpolated.gif",
+      "bytes": 4263411
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-idle-interpolated-contact.png",
+      "bytes": 588403
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-idle-interpolated.gif",
+      "bytes": 2395795
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-walking-interpolated-contact.png",
+      "bytes": 346127
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/rife/core-drill-larva-walking-interpolated.gif",
+      "bytes": 1367539
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/attacking-contact.png",
+      "bytes": 776828
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/attacking.gif",
+      "bytes": 2639055
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/dying-contact.png",
+      "bytes": 735364
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/dying.gif",
+      "bytes": 2552423
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/idle-contact.png",
+      "bytes": 789200
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/idle.gif",
+      "bytes": 1475045
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/walking-contact.png",
+      "bytes": 623880
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/previews/source/walking.gif",
+      "bytes": 830893
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/references/attacking-f000.png",
+      "bytes": 387231
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/references/dying-f000.png",
+      "bytes": 373591
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/references/idle-cycle-candidates.png",
+      "bytes": 726603
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/references/idle-f000.png",
+      "bytes": 381277
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/references/walking-cycle-candidates.png",
+      "bytes": 730857
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/references/walking-f000.png",
+      "bytes": 375989
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/reports/rife/attacking.json",
+      "bytes": 4555
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/reports/rife/dying.json",
+      "bytes": 4544
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/reports/rife/idle.json",
+      "bytes": 3279
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/reports/rife/walking.json",
+      "bytes": 2647
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/source-sheets-pre-interpolation/attacking.png",
+      "bytes": 7107658
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/source-sheets-pre-interpolation/dying.png",
+      "bytes": 6620036
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/source-sheets-pre-interpolation/idle.png",
+      "bytes": 4194922
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/source-sheets-pre-interpolation/walking.png",
+      "bytes": 2389566
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/spritesheets/attacking.png",
+      "bytes": 13831476
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/spritesheets/dying.png",
+      "bytes": 13122479
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/spritesheets/idle.png",
+      "bytes": 8079032
+    },
+    {
+      "path": "animations/sprite-build/core-drill-larva/spritesheets/walking.png",
+      "bytes": 4593068
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/transform.json",
+      "bytes": 490
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f000.png",
+      "bytes": 303265
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f002.png",
+      "bytes": 306684
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f004.png",
+      "bytes": 305918
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f006.png",
+      "bytes": 305759
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f008.png",
+      "bytes": 309981
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f010.png",
+      "bytes": 346500
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f012.png",
+      "bytes": 344611
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f014.png",
+      "bytes": 303511
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f016.png",
+      "bytes": 305814
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f018.png",
+      "bytes": 293419
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f020.png",
+      "bytes": 293240
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f022.png",
+      "bytes": 290511
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f024.png",
+      "bytes": 290573
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f026.png",
+      "bytes": 293361
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f028.png",
+      "bytes": 290363
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f030.png",
+      "bytes": 296500
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f032.png",
+      "bytes": 291089
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f034.png",
+      "bytes": 298741
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f036.png",
+      "bytes": 292542
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f038.png",
+      "bytes": 298267
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f040.png",
+      "bytes": 292403
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f042.png",
+      "bytes": 299213
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f044.png",
+      "bytes": 293787
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f046.png",
+      "bytes": 298204
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f048.png",
+      "bytes": 291927
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f050.png",
+      "bytes": 295740
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f052.png",
+      "bytes": 290016
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f054.png",
+      "bytes": 293665
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f056.png",
+      "bytes": 288812
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f058.png",
+      "bytes": 286502
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f060.png",
+      "bytes": 313417
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f062.png",
+      "bytes": 240647
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f064.png",
+      "bytes": 230419
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f066.png",
+      "bytes": 265516
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f068.png",
+      "bytes": 267245
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f070.png",
+      "bytes": 285179
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f072.png",
+      "bytes": 285593
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f074.png",
+      "bytes": 296115
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f076.png",
+      "bytes": 294937
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f078.png",
+      "bytes": 296531
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f080.png",
+      "bytes": 294633
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f082.png",
+      "bytes": 288316
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f084.png",
+      "bytes": 291289
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f086.png",
+      "bytes": 263660
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f088.png",
+      "bytes": 272137
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f090.png",
+      "bytes": 252202
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f092.png",
+      "bytes": 277519
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f094.png",
+      "bytes": 270597
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f096.png",
+      "bytes": 293462
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f098.png",
+      "bytes": 295550
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f100.png",
+      "bytes": 306973
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f102.png",
+      "bytes": 315562
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f104.png",
+      "bytes": 313404
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f106.png",
+      "bytes": 325506
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f108.png",
+      "bytes": 336342
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f110.png",
+      "bytes": 357070
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f112.png",
+      "bytes": 348356
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f114.png",
+      "bytes": 347473
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f116.png",
+      "bytes": 344187
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f118.png",
+      "bytes": 345204
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/attacking/f120.png",
+      "bytes": 343572
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f000.png",
+      "bytes": 303394
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f002.png",
+      "bytes": 313746
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f004.png",
+      "bytes": 312021
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f006.png",
+      "bytes": 319205
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f008.png",
+      "bytes": 315820
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f010.png",
+      "bytes": 348780
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f012.png",
+      "bytes": 346082
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f014.png",
+      "bytes": 318567
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f016.png",
+      "bytes": 314231
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f018.png",
+      "bytes": 296651
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f020.png",
+      "bytes": 294600
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f022.png",
+      "bytes": 256986
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f024.png",
+      "bytes": 260669
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f026.png",
+      "bytes": 243717
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f028.png",
+      "bytes": 249046
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f030.png",
+      "bytes": 242222
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f032.png",
+      "bytes": 247587
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f034.png",
+      "bytes": 236615
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f036.png",
+      "bytes": 244707
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f038.png",
+      "bytes": 241474
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f040.png",
+      "bytes": 248107
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f042.png",
+      "bytes": 235588
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f044.png",
+      "bytes": 241480
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f046.png",
+      "bytes": 232693
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f048.png",
+      "bytes": 239505
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f050.png",
+      "bytes": 239378
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f052.png",
+      "bytes": 241424
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f054.png",
+      "bytes": 244988
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f056.png",
+      "bytes": 245067
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f058.png",
+      "bytes": 249876
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f060.png",
+      "bytes": 267552
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f062.png",
+      "bytes": 253693
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f064.png",
+      "bytes": 252521
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f066.png",
+      "bytes": 255601
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f068.png",
+      "bytes": 254710
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f070.png",
+      "bytes": 256522
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f072.png",
+      "bytes": 255884
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f074.png",
+      "bytes": 255479
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f076.png",
+      "bytes": 256124
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f078.png",
+      "bytes": 256553
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f080.png",
+      "bytes": 256650
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f082.png",
+      "bytes": 256225
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f084.png",
+      "bytes": 256089
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f086.png",
+      "bytes": 256589
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f088.png",
+      "bytes": 256606
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f090.png",
+      "bytes": 258018
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f092.png",
+      "bytes": 257692
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f094.png",
+      "bytes": 258346
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f096.png",
+      "bytes": 257901
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f098.png",
+      "bytes": 257185
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f100.png",
+      "bytes": 256608
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f102.png",
+      "bytes": 257102
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f104.png",
+      "bytes": 256626
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f106.png",
+      "bytes": 256792
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f108.png",
+      "bytes": 256465
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f110.png",
+      "bytes": 276538
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f112.png",
+      "bytes": 263840
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f114.png",
+      "bytes": 262278
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f116.png",
+      "bytes": 261593
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f118.png",
+      "bytes": 261611
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/dying/f120.png",
+      "bytes": 261374
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f000.png",
+      "bytes": 296937
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f054.png",
+      "bytes": 319807
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f056.png",
+      "bytes": 324557
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f058.png",
+      "bytes": 351825
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f060.png",
+      "bytes": 358595
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f062.png",
+      "bytes": 339539
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f064.png",
+      "bytes": 344254
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f066.png",
+      "bytes": 338567
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f068.png",
+      "bytes": 342518
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f070.png",
+      "bytes": 337206
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f072.png",
+      "bytes": 338783
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f074.png",
+      "bytes": 332450
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f076.png",
+      "bytes": 337638
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f078.png",
+      "bytes": 331030
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f080.png",
+      "bytes": 335334
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f082.png",
+      "bytes": 333567
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f084.png",
+      "bytes": 327464
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f086.png",
+      "bytes": 333533
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f088.png",
+      "bytes": 328422
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f090.png",
+      "bytes": 334365
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f092.png",
+      "bytes": 329257
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f094.png",
+      "bytes": 332814
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f096.png",
+      "bytes": 330002
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f098.png",
+      "bytes": 332678
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f100.png",
+      "bytes": 326641
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/idle/f102.png",
+      "bytes": 331240
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f000.png",
+      "bytes": 297523
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f026.png",
+      "bytes": 326863
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f028.png",
+      "bytes": 324143
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f030.png",
+      "bytes": 329329
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f032.png",
+      "bytes": 325458
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f034.png",
+      "bytes": 326854
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f036.png",
+      "bytes": 320676
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f038.png",
+      "bytes": 309207
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f040.png",
+      "bytes": 304795
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f042.png",
+      "bytes": 301028
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f044.png",
+      "bytes": 296606
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f046.png",
+      "bytes": 298384
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f048.png",
+      "bytes": 294993
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f050.png",
+      "bytes": 300467
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f052.png",
+      "bytes": 300919
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f054.png",
+      "bytes": 306374
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f056.png",
+      "bytes": 309753
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f058.png",
+      "bytes": 315193
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f060.png",
+      "bytes": 344976
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f062.png",
+      "bytes": 317277
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f064.png",
+      "bytes": 311878
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f066.png",
+      "bytes": 312215
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f068.png",
+      "bytes": 308351
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f070.png",
+      "bytes": 307630
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f072.png",
+      "bytes": 307151
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f074.png",
+      "bytes": 312816
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f076.png",
+      "bytes": 311939
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f078.png",
+      "bytes": 322639
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f080.png",
+      "bytes": 320976
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/cutouts/walking/f082.png",
+      "bytes": 329542
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/attacking-contact.png",
+      "bytes": 657420
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/attacking.gif",
+      "bytes": 5454261
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/dying-contact.png",
+      "bytes": 589335
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/dying.gif",
+      "bytes": 5115931
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/four-actions-overview.gif",
+      "bytes": 21699902
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/four-actions-overview.png",
+      "bytes": 255742
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/idle-contact.png",
+      "bytes": 695390
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/idle.gif",
+      "bytes": 2343209
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/walking-contact.png",
+      "bytes": 686545
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/final/walking.gif",
+      "bytes": 2687976
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-attacking-interpolated-contact.png",
+      "bytes": 952211
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-attacking-interpolated.gif",
+      "bytes": 3960732
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-dying-interpolated-contact.png",
+      "bytes": 837842
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-dying-interpolated.gif",
+      "bytes": 3688725
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-idle-interpolated-contact.png",
+      "bytes": 414037
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-idle-interpolated.gif",
+      "bytes": 1689876
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-walking-interpolated-contact.png",
+      "bytes": 492951
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/rife/ore-shardling-walking-interpolated.gif",
+      "bytes": 1945434
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/attacking-contact.png",
+      "bytes": 664629
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/attacking.gif",
+      "bytes": 2757258
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/dying-contact.png",
+      "bytes": 593600
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/dying.gif",
+      "bytes": 2585398
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/idle-contact.png",
+      "bytes": 699728
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/idle.gif",
+      "bytes": 1173736
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/walking-contact.png",
+      "bytes": 693744
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/previews/source/walking.gif",
+      "bytes": 1348215
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/references/attacking-f000.png",
+      "bytes": 328459
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/references/dying-f000.png",
+      "bytes": 325765
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/references/idle-cycle-candidates.png",
+      "bytes": 638737
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/references/idle-f000.png",
+      "bytes": 315926
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/references/walking-cycle-candidates.png",
+      "bytes": 688771
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/references/walking-f000.png",
+      "bytes": 320398
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/reports/rife/attacking.json",
+      "bytes": 4548
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/reports/rife/dying.json",
+      "bytes": 4535
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/reports/rife/idle.json",
+      "bytes": 2904
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/reports/rife/walking.json",
+      "bytes": 3098
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/source-sheets-pre-interpolation/attacking.png",
+      "bytes": 10945192
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/source-sheets-pre-interpolation/dying.png",
+      "bytes": 8882778
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/source-sheets-pre-interpolation/idle.png",
+      "bytes": 5040017
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/source-sheets-pre-interpolation/walking.png",
+      "bytes": 5611182
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/spritesheets/attacking.png",
+      "bytes": 20752209
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/spritesheets/dying.png",
+      "bytes": 17249334
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/spritesheets/idle.png",
+      "bytes": 9417671
+    },
+    {
+      "path": "animations/sprite-build/ore-shardling/spritesheets/walking.png",
+      "bytes": 10522809
+    },
+    {
+      "path": "animations/__pycache__/build-sprites.cpython-311.pyc",
+      "bytes": 40723
+    }
+  ],
+  "retained": [
+    "core-drill-larva-mother-v01.png",
+    "ore-shardling-mother-v01.png",
+    "ore-shardling-mother-v02-purple-one-arm.png",
+    "prompt-core-drill-larva-v01.txt",
+    "prompt-ore-shardling-v01.txt",
+    "prompt-ore-shardling-v02-purple-one-arm.txt",
+    "task-index.json",
+    "animations/build-runtime-sprites.py",
+    "animations/build-sprites.py",
+    "animations/build-video-previews.py",
+    "animations/generate-doubao.ps1",
+    "animations/INTEGRATION.md",
+    "animations/REVIEW.md",
+    "animations/SPRITES.md",
+    "animations/task-index.json",
+    "animations/core-drill-larva/prompts/attacking-doubao-v01.txt",
+    "animations/core-drill-larva/prompts/dying-doubao-v01.txt",
+    "animations/core-drill-larva/prompts/idle-doubao-v01.txt",
+    "animations/core-drill-larva/prompts/walking-doubao-v01.txt",
+    "animations/core-drill-larva/videos/attacking-doubao-v01.mp4",
+    "animations/core-drill-larva/videos/attacking-doubao-v01.mp4.json",
+    "animations/core-drill-larva/videos/dying-doubao-v01.mp4",
+    "animations/core-drill-larva/videos/dying-doubao-v01.mp4.json",
+    "animations/core-drill-larva/videos/idle-doubao-v01.mp4",
+    "animations/core-drill-larva/videos/idle-doubao-v01.mp4.json",
+    "animations/core-drill-larva/videos/walking-doubao-v01.mp4",
+    "animations/core-drill-larva/videos/walking-doubao-v01.mp4.json",
+    "animations/ore-shardling/prompts/attacking-doubao-v01.txt",
+    "animations/ore-shardling/prompts/dying-doubao-v01.txt",
+    "animations/ore-shardling/prompts/idle-doubao-v01.txt",
+    "animations/ore-shardling/prompts/walking-doubao-v01.txt",
+    "animations/ore-shardling/videos/attacking-doubao-v01.mp4",
+    "animations/ore-shardling/videos/attacking-doubao-v01.mp4.json",
+    "animations/ore-shardling/videos/dying-doubao-v01.mp4",
+    "animations/ore-shardling/videos/dying-doubao-v01.mp4.json",
+    "animations/ore-shardling/videos/idle-doubao-v01.mp4",
+    "animations/ore-shardling/videos/idle-doubao-v01.mp4.json",
+    "animations/ore-shardling/videos/walking-doubao-v01.mp4",
+    "animations/ore-shardling/videos/walking-doubao-v01.mp4.json",
+    "animations/runtime-build/runtime-manifest.json",
+    "animations/runtime-build/runtime-overview.gif",
+    "animations/runtime-build/size-comparison.png",
+    "animations/runtime-build/source-manifest.json",
+    "animations/runtime-build/core-drill-larva/previews/attack.gif",
+    "animations/runtime-build/core-drill-larva/previews/death.gif",
+    "animations/runtime-build/core-drill-larva/previews/idle.gif",
+    "animations/runtime-build/core-drill-larva/previews/walk.gif",
+    "animations/runtime-build/core-drill-larva/reports/attack.json",
+    "animations/runtime-build/core-drill-larva/reports/death.json",
+    "animations/runtime-build/core-drill-larva/reports/idle.json",
+    "animations/runtime-build/core-drill-larva/reports/walk.json",
+    "animations/runtime-build/core-drill-larva/source/attack.png",
+    "animations/runtime-build/core-drill-larva/source/death.png",
+    "animations/runtime-build/core-drill-larva/source/idle.png",
+    "animations/runtime-build/core-drill-larva/source/walk.png",
+    "animations/runtime-build/ore-shardling/previews/attack.gif",
+    "animations/runtime-build/ore-shardling/previews/death.gif",
+    "animations/runtime-build/ore-shardling/previews/idle.gif",
+    "animations/runtime-build/ore-shardling/previews/walk.gif",
+    "animations/runtime-build/ore-shardling/reports/attack.json",
+    "animations/runtime-build/ore-shardling/reports/death.json",
+    "animations/runtime-build/ore-shardling/reports/idle.json",
+    "animations/runtime-build/ore-shardling/reports/walk.json",
+    "animations/runtime-build/ore-shardling/source/attack.png",
+    "animations/runtime-build/ore-shardling/source/death.png",
+    "animations/runtime-build/ore-shardling/source/idle.png",
+    "animations/runtime-build/ore-shardling/source/walk.png",
+    "animations/sprite-build/source-manifest.json",
+    "references/ore-spider-purple-mineral-reference.png",
+    "references/sealed-shaft-rock-wraith-mother-v04.png",
+    ".gitignore",
+    "archive-manifest.json"
+  ],
+  "runtimeAssets": [
+    "assets/enemies/core_drill_larva/idle.png",
+    "assets/enemies/core_drill_larva/walk.png",
+    "assets/enemies/core_drill_larva/attack.png",
+    "assets/enemies/core_drill_larva/death.png",
+    "assets/enemies/ore_shardling/idle.png",
+    "assets/enemies/ore_shardling/walk.png",
+    "assets/enemies/ore_shardling/attack.png",
+    "assets/enemies/ore_shardling/death.png"
+  ],
+  "reproduction": "Use animations/build-runtime-sprites.py build then previews with the documented ComfyUI Python environment. Retained runtime-build/source PNGs are canonical. No video generation call is needed."
+}

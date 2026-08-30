@@ -1,0 +1,20 @@
+Use case: precise-object-edit
+Asset type: revised identity mother frame for an ordinary abandoned-mine monster, not a sprite sheet.
+Input images:
+- Image 1 is the EDIT TARGET: the small gray ore creature. Preserve its compact squat scale, heavy low center of gravity, two short wedge-footed legs, connected rough mineral anatomy, and realistic PBR quality.
+- Image 2 is a MATERIAL REFERENCE ONLY: the ore spider. Borrow its muted dusty purple amethyst crystal color, irregular natural facets, dark rock seams, and mineral surface quality. Do not copy the spider's anatomy, legs, faces, ropes, or silhouette.
+- Image 3 is a MATERIAL/FAMILY REFERENCE ONLY: the existing mine lord. Borrow its purple crystalline rock material language and dark interstitial stone. Do not copy its tall humanoid build, drill head, metal, wooden parts, chains, fingers, or boss complexity.
+
+Primary request: Redesign the target as a SMALL ONE-ARMED PURPLE CRYSTAL ORE CREATURE with ONE SPIKE GROWING FROM ITS BACK. This is a low-tier ordinary monster in the same visual family as the two references.
+
+Required changes:
+1. Replace the gray-black rock and yellow pyrite appearance with widespread subdued violet/amethyst crystalline mineral masses interspersed with dark rough stone joints. Crystal planes are imperfect, chipped, slightly cloudy, naturally translucent at edges, dusty, and physically plausible. No bright neon purple or magical glow. Remove all yellow pyrite.
+2. The creature has EXACTLY ONE ARM and ONE HAND total: one short powerful articulated mineral arm on its camera-visible side, ending in a chunky blunt fingerless stone fist. The opposite side is naturally armless, a continuous sloping rocky flank with no shoulder socket, no stump, no hidden second hand, no extra limb.
+3. EXACTLY ONE prominent tapered amethyst crystal spike grows from the UPPER BACK, anatomically behind the head-chest mass. The spike projects diagonally backward and upward (toward upper-left in the image), clearly separated in silhouette. It is a single solid faceted crystal point, not a cluster, not a drill, not a head horn, not a weapon held in the hand. Its exposed length is approximately half the torso height. Other body facets remain low and blunt.
+4. Orient the whole creature decisively toward SCREEN RIGHT in a side-dominant three-quarter view, approximately 70 degrees turned away from frontal toward the right. The forward-leaning head-chest mass and both short wedge feet must point right. Clearly show the back spike trailing left and the single foreground arm. Do not keep the source's front-facing symmetrical presentation. Camera elevation only about 10 degrees, orthographic-style.
+5. Relaxed animation-ready standing pose, single fist hanging near the forward leg, two feet grounded on one baseline. Whole body is small, broad, short-legged, compact, asymmetrical; head and chest form one rough mass with NO eyes, mouth, or human face.
+
+Preserve: one subject only, simple ordinary-monster silhouette, continuous weight-bearing anatomy, physically realistic mineral textures, calm idle pose, no environment.
+Composition: wide 16:9 white canvas; entire creature including the back spike visible, about 60 percent of canvas height, centered with generous safety margins. No cropping.
+Lighting/background: pure white #FFFFFF background, no horizon or visible floor; soft even diffuse studio light; no cast shadow, no contact shadow, no reflection, no gray ground patch.
+Avoid: second arm, second hand, hidden extra limbs, more than one long spike, giant shoulders, adult boss proportions, spider legs, human limbs, face, glowing seams, energy effects, loose floating crystals, rubble, props, text, labels, watermark, dramatic perspective, cartoon style, glossy plastic.

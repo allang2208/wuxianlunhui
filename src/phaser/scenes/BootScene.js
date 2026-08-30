@@ -945,6 +945,19 @@ export class BootScene extends Scene {
         loadSupportBeamSheet('unarmedAttack', 'enemy_support_beam_brute_unarmed_attack', 'unarmed_attack');
         loadSupportBeamSheet('death', 'enemy_support_beam_brute_death', 'death');
 
+        // 矿洞普通小怪：各状态同一像素比例/脚点；endFrame 排除尾行空格。
+        for (const [type, family] of [['coreDrillLarva', 'core_drill_larva'], ['oreShardling', 'ore_shardling']]) {
+            const textures = enemyConfigData[type].textures;
+            for (const state of ['idle', 'walk', 'attack', 'death']) {
+                const layout = textures.frameLayouts[state];
+                this.load.spritesheet(`enemy_${family}_${state}`, textures[state], {
+                    frameWidth: layout.frameWidth,
+                    frameHeight: layout.frameHeight,
+                    endFrame: layout.frameCount - 1,
+                });
+            }
+        }
+
         // 岩芯钻虫（废弃矿洞专属精英）：同一源像素比例，跨动作画布宽度由实体动态换算。
         const coreDrillWormLayouts = enemyConfigData.coreDrillWorm?.textures?.frameLayouts || {};
         const loadCoreDrillWormSheet = (state, layoutKey, filename) => {
@@ -2122,6 +2135,19 @@ export class BootScene extends Scene {
             if (layout.duration) animation.duration = layout.duration;
             else animation.frameRate = 12;
             this.anims.create(animation);
+        }
+
+        // ---- 矿洞普通小怪（资源目录登记；实体用同一逻辑时钟选帧/命中） ----
+        for (const [type, family] of [['coreDrillLarva', 'core_drill_larva'], ['oreShardling', 'ore_shardling']]) {
+            for (const [state, layout] of Object.entries(enemyConfigData[type].textures.frameLayouts)) {
+                const key = `enemy_${family}_${state}`;
+                this.anims.create({
+                    key,
+                    frames: this.anims.generateFrameNumbers(key, { start: 0, end: layout.frameCount - 1 }),
+                    duration: layout.duration,
+                    repeat: layout.repeat,
+                });
+            }
         }
 
         // ---- 岩芯钻虫动画（研磨/入土/破土均为一次性状态） ----

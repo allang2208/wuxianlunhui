@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_normal_mothers_20260830\\ore-shardling-mother-v02-purple-one-arm.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_normal_mothers_20260830\\animations\\ore-shardling\\prompts\\idle-doubao-v01.txt",
+  "promptChars": 626,
+  "promptSha256": "ecce9bd0933229edc5f1c1a57e4c1e662174d21ea4348d0e69cc61d6fc79465d",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-30T01:19:54.489Z",
+  "sourceUrlScheme": "https"
+}

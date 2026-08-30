@@ -10,6 +10,7 @@
 
 import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
+import { CoreDrillLarva, OreShardling } from '../entities/enemy-types/mine-small-monsters.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
 import { DungeonConfig } from '../config/dungeon-config.js';
@@ -231,6 +232,18 @@ export function createSupportBeamBrute(x, y) {
             ...(cfg.ai || {}),
             aggroRange: 9999,
         },
+    });
+}
+
+export function createCoreDrillLarva(x, y) {
+    return new CoreDrillLarva(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 },
+    });
+}
+
+export function createOreShardling(x, y) {
+    return new OreShardling(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 },
     });
 }
 
@@ -539,6 +552,8 @@ export const ZOMBIE_FACTORY_MAP = {
     bombZombie: createBombZombie,
     supportBeamBrute: createSupportBeamBrute,
     coreDrillWorm: createCoreDrillWorm,
+    coreDrillLarva: createCoreDrillLarva,
+    oreShardling: createOreShardling,
     foremanZombie: createForemanZombie,
     oreSpider: createOreSpider,
     mineCave: createMineCave,
