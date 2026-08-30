@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     
     // 平台信息
     platform: process.platform,
+    getTestRelease: () => ipcRenderer.invoke('get-test-release'),
     
     // 版本信息
     versions: {

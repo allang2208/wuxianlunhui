@@ -13,6 +13,8 @@
     "build": "node scripts/bump-version.js && node scripts/backup.js && vite build && node scripts/copy-assets.js && electron-builder",
     "build:win": "node scripts/bump-version.js && node scripts/backup.js && vite build && node scripts/copy-assets.js && electron-builder --win",
     "build:portable": "node scripts/bump-version.js && node scripts/backup.js && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" CSC_IDENTITY_AUTO_DISCOVERY=false vite build && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" node scripts/copy-assets.js && cross-env PATH=\"C:\\Program Files\\nodejs;C:\\WINDOWS\\System32;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0;%PATH%\" npm=\"C:\\Program Files\\nodejs\\npm.cmd\" electron-builder --win portable",
+    "release:test": "node scripts/publish-test-exe.cjs",
+    "start:test": "node scripts/start-test-exe.cjs",
     "prebuild": "node scripts/backup.js",
     "preview": "vite preview",
     "analyze:sprites": "node scripts/sprite-analyzer.js",

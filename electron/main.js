@@ -1,6 +1,8 @@
-const { app, BrowserWindow, screen, ipcMain, globalShortcut, dialog } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, globalShortcut, dialog, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { configureFixedTest } = require('./fixed-test');
+const fixedTest = configureFixedTest({ app, protocol, net });
 
 // 禁用 Windows 系统 DPI 缩放，确保游戏内坐标一致
 app.commandLine.appendSwitch('force-device-scale-factor', '1');
@@ -8,17 +10,21 @@ app.commandLine.appendSwitch('force-device-scale-factor', '1');
 // 全局窗口引用
 let mainWindow = null;
 let isFullScreen = true;
+const VITE_DEV_URL = 'http://localhost:5173';
+const DIST_INDEX_PATH = path.join(__dirname, '../dist/index.html');
 
 function isDevelopmentMode() {
+    // 打包 EXE 永不因继承 NODE_ENV=development 而连接 Vite。
+    if (app.isPackaged) return false;
     if (process.env.NODE_ENV === 'production') return false;
     return process.env.NODE_ENV === 'development' || !app.isPackaged;
 }
 
-function loadMainPage(targetWindow) {
-    if (isDevelopmentMode()) {
-        return targetWindow.loadURL('http://localhost:5173');
-    }
-    return targetWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+function loadMainPage(targetWindow, mode = isDevelopmentMode() ? 'vite' : 'dist') {
+    if (fixedTest) return targetWindow.loadURL(fixedTest.url);
+    return mode === 'vite'
+        ? targetWindow.loadURL(VITE_DEV_URL)
+        : targetWindow.loadFile(DIST_INDEX_PATH);
 }
 
 function createWindow() {
@@ -48,15 +54,20 @@ function createWindow() {
             zoomFactor: 1.0
         },
         // 标题
-        title: '无限轮回',
+        title: fixedTest ? `无限轮回 · 固定测试版 ${fixedTest.release.id}` : '无限轮回',
         // 背景色（加载前显示）
         backgroundColor: '#0a0a0a',
         // 启动时显示（加载完成后显示）
         show: false
     });
 
-    // 开发模式加载 Vite；打包生产环境加载 dist。两条入口与失败恢复共用同一判定。
-    loadMainPage(mainWindow);
+    // 未打包版本优先连接 Vite；若 Vite 不存在但已有 dist，只允许单向回退一次。
+    let mainPageMode = isDevelopmentMode() ? 'vite' : 'dist';
+    let viteDistFallbackAttempted = false;
+    let loadRecoveryAttempted = false;
+    let loadFailureDialogShown = false;
+    loadMainPage(mainWindow, mainPageMode)
+        .catch(err => console.error('[main] Initial page load failed:', err));
     // 自动打开 DevTools
     // mainWindow.webContents.openDevTools();
 
@@ -83,16 +94,42 @@ function createWindow() {
             if (mainWindow && !mainWindow.isDestroyed()) mainWindow.reload();
         }).catch(err => console.error('[main] crash dialog failed:', err));
     });
-    let loadRecoveryAttempted = false;
     mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDesc, _validatedURL, isMainFrame) => {
         console.error('[main] Failed to load page:', errorCode, errorDesc);
         // -3 = ERR_ABORTED（主动导航中断）；子 frame 失败不应重载整页。
         if (!mainWindow || mainWindow.isDestroyed() || errorCode === -3 || isMainFrame === false) return;
-        // 只按当前开发/生产模式恢复一次，禁止无条件跳 dist 后形成 ERR_FILE_NOT_FOUND 循环。
+        if (mainPageMode === 'vite' && !viteDistFallbackAttempted && fs.existsSync(DIST_INDEX_PATH)) {
+            viteDistFallbackAttempted = true;
+            mainPageMode = 'dist';
+            loadRecoveryAttempted = false;
+            setTimeout(() => {
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    loadMainPage(mainWindow, 'dist')
+                        .catch(err => console.error('[main] dist fallback failed:', err));
+                }
+            }, 150);
+            return;
+        }
+        // 当前入口只重试一次；dist 失败后绝不跳回 Vite，避免双向恢复循环。
         if (loadRecoveryAttempted) return;
         loadRecoveryAttempted = true;
         setTimeout(() => {
-            if (mainWindow && !mainWindow.isDestroyed()) loadMainPage(mainWindow);
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                loadMainPage(mainWindow, mainPageMode).catch((err) => {
+                    console.error('[main] Page recovery failed:', err);
+                    if (loadFailureDialogShown || !mainWindow || mainWindow.isDestroyed()) return;
+                    loadFailureDialogShown = true;
+                    mainWindow.show();
+                    dialog.showMessageBox(mainWindow, {
+                        type: 'error',
+                        title: '页面加载失败',
+                        message: mainPageMode === 'vite' && !fs.existsSync(DIST_INDEX_PATH)
+                            ? '未检测到 Vite 开发服务器，且 dist/index.html 不存在。请先启动开发服务器或执行构建。'
+                            : '游戏页面加载失败，请检查 dist 文件或开发服务器。',
+                        buttons: ['确定'],
+                    }).catch(dialogError => console.error('[main] load dialog failed:', dialogError));
+                });
+            }
         }, 500);
     });
 
@@ -108,6 +145,7 @@ function createWindow() {
     // 启动就绪后同步一次当前全屏状态（初始 fullscreen:true 不保证触发 enter-full-screen）
     mainWindow.webContents.on('did-finish-load', () => {
         loadRecoveryAttempted = false;
+        loadFailureDialogShown = false;
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('fullscreen-changed', mainWindow.isFullScreen());
         }
@@ -117,6 +155,7 @@ function createWindow() {
 }
 
 // IPC 通信：处理前端发来的全屏切换和退出请求
+ipcMain.handle('get-test-release', () => fixedTest ? fixedTest.release : null);
 
 function getWeaponConfigPaths() {
     const isDev = isDevelopmentMode();
@@ -270,6 +309,10 @@ ipcMain.on('exit-app', () => {
 
 // 应用生命周期
 app.whenReady().then(() => {
+    if (fixedTest) {
+        if (!fixedTest.canRun) return;
+        fixedTest.registerProtocol();
+    }
     createWindow();
 
     // 注册 ESC 全局快捷键：转发给渲染进程由游戏菜单统一处理
@@ -286,6 +329,15 @@ app.whenReady().then(() => {
             createWindow();
         }
     });
+});
+
+// 旧版正在测试时，启动新版只唤回旧窗口；不重载，不切换版本。
+app.on('second-instance', () => {
+    if (fixedTest && mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
+    }
 });
 
 app.on('window-all-closed', () => {

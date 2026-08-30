@@ -31,6 +31,12 @@
             if (!document.getElementById('modularBadge')) { document.body.appendChild(badge); }
             if (window.location.protocol === 'file:') { badge.textContent = 'LEGACY'; }
             else { badge.textContent = 'MODULAR'; }
+            window.electronAPI?.getTestRelease?.().then((release) => {
+                if (!release) return;
+                badge.textContent = '固定测试版 · ' + release.version + ' · ' + release.id;
+                badge.title = '仅手动更新；构建时间：' + release.createdAt;
+                document.title = '无限轮回 · ' + badge.textContent;
+            }).catch((err) => console.warn('读取测试版信息失败', err));
         </script>
     </div>
 

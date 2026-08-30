@@ -237,6 +237,10 @@ if (this._facing === 'left') {
 
 ## Electron portable 打包排错（2026-08-23）
 
+- **固定 EXE 测试通道（2026-08-30）**：浏览器实时开发，EXE 仅在用户明确要求同步时运行 `npm run release:test`；生成独立版本快照和免安装 EXE 目录包，不写共享 dist、不改正在运行的版本。`npm run start:test` 只启动上次成功发布的包，无包不回退 Vite。固定 userData 与 `wl-test://game` origin 保留通道存档，首次不迁入历史存档；详见 `docs/exe-test-release.md`。
+
+- **首次“尚未发布”是空通道，不是启动失败**：经用户授权先运行 `release:test`，成功才原子更新 `.exe-releases/latest.json`；之后日常只用启动脚本。发布构建授权不包含启动游戏或测试，Git提交/推送也不代表再次同步EXE。已发布快照与成品全部忽略，不随代码清理；目录包须连同resources等依赖保留，不能单独搬走EXE。
+
 - **资源只进入安装包一次**：本项目先由 `scripts/copy-assets.js` 把根 `assets/` 复制到 `dist/assets/`，Electron 生产入口再加载 `dist/index.html`。若 `electron-builder.json#files` 已包含 `dist/**/*`，不要同时用 `extraResources` 再复制同一份根资源；修改前仍须确认运行时代码没有依赖 `process.resourcesPath/assets`。重复打包会让 `win-unpacked` 和 NSIS 临时归档近乎翻倍。
 - **`failed creating mmap` 先查归档体积**：portable 阶段在生成 `.nsis.7z` 时失败且归档逼近或超过 2GB，优先分别量 `dist`、`dist/assets`、`win-unpacked` 与临时 `.nsis.7z`；若 `win-unpacked` 明显约为 `dist` 的两倍，先消除重复 payload，不要先归因于中文输出路径。
 - **删除旧入口后同步收口复制脚本**：若根 `legacy.js` 已删除且全项目没有运行时引用，`copy-assets.js` 不应再因缺少它而退出 1；先用全局引用检索确认旧入口确实废弃，再移除或降级该复制检查，不能用空占位文件掩盖断链。

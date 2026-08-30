@@ -58,3 +58,6 @@ assets/terrain/_fpv*
 tools/verify-shots/
 assets/terrain/.bak_*/
 tools/ai-gen/_tmp_*
+
+# Immutable manual EXE test releases (source snapshots and packaged artifacts).
+.exe-releases/
