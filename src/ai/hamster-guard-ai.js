@@ -10,7 +10,7 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
-import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { canMeleeReachTarget } from '../combat/melee-reach.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterGuardAI {
@@ -134,7 +134,7 @@ export class HamsterGuardAI {
             m.target = enemy;
             const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
             const range = this._attackRange + (enemy.groundRadius || 24);
-            if (dist <= range && canMeleeReachElevation(m, enemy)) {
+            if (dist <= range && canMeleeReachTarget(m, enemy)) {
                 // 进入攻击范围：站定；挥击节奏由 attackTimer 控制
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -222,7 +222,7 @@ export class HamsterGuardAI {
             m.target = t;
             const dist = Math.hypot(t.x - m.x, t.y - m.y);
             const range = this._attackRange + (t.groundRadius || 24);
-            if (dist <= range && canMeleeReachElevation(m, t)) {
+            if (dist <= range && canMeleeReachTarget(m, t)) {
                 // 进范围：站定 + 启动一次挥击（与索敌分支同口径）
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -278,7 +278,7 @@ export class HamsterGuardAI {
         if (e._isEnergyNode) return;
         const dist = Math.hypot(e.x - m.x, e.y - m.y);
         const range = this._attackRange + (e.groundRadius || 24);
-        if (dist > range || !canMeleeReachElevation(m, e)) return;
+        if (dist > range || !canMeleeReachTarget(m, e)) return;
         if (typeof e.takeDamage === 'function') {
             e.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, e), m, 'physical', true);
             this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与战士共用）

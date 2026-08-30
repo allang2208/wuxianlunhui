@@ -15,6 +15,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { canMeleeReachTarget } from '../combat/melee-reach.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterWarriorAI {
@@ -100,7 +101,7 @@ export class HamsterWarriorAI {
             m.target = enemy;
             const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
             const range = this._attackRange + (enemy.groundRadius || 24);
-            if (dist <= range && canMeleeReachElevation(m, enemy)) {
+            if (dist <= range && canMeleeReachTarget(m, enemy)) {
                 // 进入攻击范围：站定攻击（动画由渲染层两段式播放）
                 m._tacticalTarget = null;
                 m._animState = 'attack';
@@ -178,7 +179,7 @@ export class HamsterWarriorAI {
             m.target = t;
             const dist = Math.hypot(t.x - m.x, t.y - m.y);
             const range = this._attackRange + (t.groundRadius || 24);
-            if (dist <= range && canMeleeReachElevation(m, t)) {
+            if (dist <= range && canMeleeReachTarget(m, t)) {
                 m._tacticalTarget = null;
                 m._animState = 'attack';
                 m.maxSpeed = 0;
@@ -224,7 +225,7 @@ export class HamsterWarriorAI {
         if (e._isEnergyNode) return;
         const dist = Math.hypot(e.x - m.x, e.y - m.y);
         const range = this._attackRange + (e.groundRadius || 24);
-        if (dist > range || !canMeleeReachElevation(m, e)) return;
+        if (dist > range || !canMeleeReachTarget(m, e)) return;
         if (this._attackTimer > 0) return;
         this._attackTimer = this._attackInterval;
         if (typeof e.takeDamage === 'function') {
