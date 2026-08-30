@@ -9,15 +9,24 @@ import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 
 export const RecruitUI = {
     _overlay: null,
+    _previousFocus: null,
+
+    get isOpen() { return !!this._overlay?.isConnected && this._overlay.style.display === 'flex'; },
 
     open() {
+        if (!this.isOpen) this._previousFocus = document.activeElement;
         this._ensureElement();
         this._render();
         this._overlay.style.display = 'flex';
+        this._overlay.querySelector('.recruit-close').focus({ preventScroll: true });
     },
 
     close() {
+        if (!this.isOpen) return;
         if (this._overlay) this._overlay.style.display = 'none';
+        const previousFocus = this._previousFocus;
+        this._previousFocus = null;
+        if (previousFocus?.isConnected && previousFocus.getClientRects().length) previousFocus.focus({ preventScroll: true });
     },
 
     _ensureElement() {
@@ -25,6 +34,25 @@ export const RecruitUI = {
         const overlay = document.createElement('div');
         overlay.id = 'recruitOverlay';
         overlay.className = 'recruit-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'recruitTitle');
+        // 拦截新操作，释放事件仍交给全局输入清除已有按键/拖动状态。
+        for (const type of ['pointerdown', 'mousedown', 'click']) {
+            overlay.addEventListener(type, event => event.stopPropagation());
+        }
+        overlay.addEventListener('keydown', event => {
+            event.stopPropagation();
+            if (event.key === 'Escape') { event.preventDefault(); this.close(); return; }
+            if (event.key !== 'Tab') return;
+            const buttons = [...overlay.querySelectorAll('button:not(:disabled)')];
+            const first = buttons[0], last = buttons[buttons.length - 1];
+            if (!buttons.includes(document.activeElement) || (event.shiftKey && document.activeElement === first)) {
+                event.preventDefault(); (event.shiftKey ? last : first)?.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault(); first?.focus();
+            }
+        });
         // 事件委托：点背景关闭；点卡片按钮加入（重建卡片后绑定不丢失）
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) { this.close(); return; }
@@ -34,8 +62,8 @@ export const RecruitUI = {
         overlay.innerHTML = `
             <div class="recruit-panel">
                 <div class="recruit-header">
-                    <span class="recruit-title">🔍 寻找帮手</span>
-                    <button class="recruit-close">✕</button>
+                    <span class="recruit-title" id="recruitTitle">🔍 寻找帮手</span>
+                    <button type="button" class="recruit-close" aria-label="关闭寻找帮手">✕</button>
                 </div>
                 <div class="recruit-sub">选择一位助手加入队伍（最多 ${PartySystem.maxSize} 名侍从）</div>
                 <div class="recruit-status" id="recruitStatus"></div>
@@ -50,6 +78,7 @@ export const RecruitUI = {
 
     _render() {
         const cards = this._overlay.querySelector('#recruitCards');
+        const restoreFocus = this.isOpen && cards.contains(document.activeElement);
         const status = this._overlay.querySelector('#recruitStatus');
         if (status) status.textContent = '';
         const candidates = PartySystem.candidates;
@@ -72,6 +101,7 @@ export const RecruitUI = {
                 </div>
             `;
         }).join('');
+        if (restoreFocus) this._overlay.querySelector('.recruit-close').focus({ preventScroll: true });
     },
 
     /** 卡片点击（事件委托：overlay 级统一监听，重建卡片后绑定不丢失，防"点了没反应"） */

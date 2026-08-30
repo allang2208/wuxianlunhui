@@ -205,6 +205,13 @@
   }
  },
  "zombieDungeon": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror-v9.png",
+   "assets/scenes/loading/zombie-dungeon-1.png",
+   "assets/scenes/loading/zombie-dungeon-2.png",
+   "assets/scenes/loading/zombie-dungeon-3.png"
+  ],
   "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
   "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
   "mapBackgroundVariants": [
@@ -355,6 +362,13 @@
   "wallStyle": "zombie"
  },
  "zombieDungeonBeginner": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror-v9.png",
+   "assets/scenes/loading/zombie-dungeon-1.png",
+   "assets/scenes/loading/zombie-dungeon-2.png",
+   "assets/scenes/loading/zombie-dungeon-3.png"
+  ],
   "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
   "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
   "mapBackgroundVariants": [
@@ -502,6 +516,11 @@
   "wallStyle": "zombie"
  },
  "frozenDungeonBeginner": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/snowfield-1.png",
+   "assets/scenes/loading/snowfield-2.png"
+  ],
   "combatRoom": {
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
@@ -609,6 +628,11 @@
   "wallStyle": "frozen"
  },
  "frozenDungeonMid": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/snowfield-1.png",
+   "assets/scenes/loading/snowfield-2.png"
+  ],
   "combatRoom": {
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
@@ -712,6 +736,11 @@
   "wallStyle": "frozen"
  },
  "frozenDungeon": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/snowfield-1.png",
+   "assets/scenes/loading/snowfield-2.png"
+  ],
   "combatRoom": {
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
@@ -815,6 +844,13 @@
   "wallStyle": "frozen"
  },
  "zombieDungeonMid": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror-v9.png",
+   "assets/scenes/loading/zombie-dungeon-1.png",
+   "assets/scenes/loading/zombie-dungeon-2.png",
+   "assets/scenes/loading/zombie-dungeon-3.png"
+  ],
   "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
   "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
   "mapBackgroundVariants": [
@@ -960,6 +996,15 @@
   "wallStyle": "zombie"
  },
  "swampDungeon": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/swamp-forest-1.png",
+   "assets/scenes/loading/swamp-forest-2.png",
+   "assets/scenes/loading/swamp-forest-3.png",
+   "assets/scenes/loading/swamp-forest-4.png",
+   "assets/scenes/loading/swamp-forest-5.png",
+   "assets/scenes/loading/swamp-forest-6.png"
+  ],
   "combatRoom": {
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
@@ -1115,6 +1160,15 @@
   }
  },
  "swampDungeonBeginner": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/swamp-forest-1.png",
+   "assets/scenes/loading/swamp-forest-2.png",
+   "assets/scenes/loading/swamp-forest-3.png",
+   "assets/scenes/loading/swamp-forest-4.png",
+   "assets/scenes/loading/swamp-forest-5.png",
+   "assets/scenes/loading/swamp-forest-6.png"
+  ],
   "combatRoom": {
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
@@ -1269,6 +1323,15 @@
   }
  },
  "swampDungeonMid": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/swamp-forest-1.png",
+   "assets/scenes/loading/swamp-forest-2.png",
+   "assets/scenes/loading/swamp-forest-3.png",
+   "assets/scenes/loading/swamp-forest-4.png",
+   "assets/scenes/loading/swamp-forest-5.png",
+   "assets/scenes/loading/swamp-forest-6.png"
+  ],
   "combatRoom": {
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
@@ -1697,6 +1760,10 @@
  },
  "swamp": {},
  "demonCavern": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror-v9.png"
+  ],
   "combatRoom": {
    "bossSize": 1024
   },
@@ -1791,6 +1858,18 @@
   "family": "zombie"
  },
  "abandonedMineDungeonBeginner": {
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-03-ore-station.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-04-chain-prison.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-05-buried-crypt.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-06-flooded-pumpworks.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-07-fungal-grotto.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-08-forgotten-forge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-09-sealed-sanctum.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-10-subterranean-harbor.png"
+  ],
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
@@ -1953,6 +2032,18 @@
   "wallStyle": "abandonedMine"
  },
  "abandonedMineDungeonMid": {
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-03-ore-station.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-04-chain-prison.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-05-buried-crypt.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-06-flooded-pumpworks.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-07-fungal-grotto.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-08-forgotten-forge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-09-sealed-sanctum.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-10-subterranean-harbor.png"
+  ],
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
@@ -2113,6 +2204,18 @@
   "wallStyle": "abandonedMine"
  },
  "abandonedMineDungeon": {
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-03-ore-station.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-04-chain-prison.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-05-buried-crypt.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-06-flooded-pumpworks.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-07-fungal-grotto.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-08-forgotten-forge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-09-sealed-sanctum.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-10-subterranean-harbor.png"
+  ],
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
