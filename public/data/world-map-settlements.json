@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "path": "assets/ui/world-map/settlements.png",
+  "frameSize": 256,
+  "columns": 4,
+  "rows": 3,
+  "anchor": [
+    0.5,
+    0.5978698432445526
+  ],
+  "cameraElevationDegrees": 55.0,
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 55.0,
+    "elevationReference": "above XY ground plane; 90 degrees is top-down",
+    "azimuthDegrees": 0,
+    "azimuthReference": "from -Y toward +X; camera on -Y looking toward +Y",
+    "rollDegrees": 0,
+    "worldUp": "+Z",
+    "source": "data/world-map-layout.json",
+    "target": [
+      0,
+      0.05,
+      0.85
+    ],
+    "orthoScale": 5.4,
+    "resolution": 768,
+    "anchor": [
+      0.5,
+      0.5978698432445526
+    ]
+  },
+  "display": {
+    "town": {
+      "scale": 1.1,
+      "min": 0,
+      "max": 92
+    },
+    "outpost": {
+      "scale": 1.1,
+      "min": 0,
+      "max": 80
+    }
+  },
+  "frames": {
+    "desert_town": {
+      "column": 0,
+      "row": 0,
+      "bounds": [
+        0.039062,
+        0.097656,
+        0.960938,
+        0.949219
+      ],
+      "label": "荒原城寨"
+    },
+    "desert_outpost": {
+      "column": 1,
+      "row": 0,
+      "bounds": [
+        0.121094,
+        0.234375,
+        0.878906,
+        0.878906
+      ],
+      "label": "荒原据点"
+    },
+    "snow_town": {
+      "column": 2,
+      "row": 0,
+      "bounds": [
+        0.039062,
+        0.113281,
+        0.960938,
+        0.949219
+      ],
+      "label": "雪原城寨"
+    },
+    "snow_outpost": {
+      "column": 3,
+      "row": 0,
+      "bounds": [
+        0.121094,
+        0.226562,
+        0.878906,
+        0.878906
+      ],
+      "label": "雪原据点"
+    },
+    "forest_town": {
+      "column": 0,
+      "row": 1,
+      "bounds": [
+        0.039062,
+        0.171875,
+        0.960938,
+        0.949219
+      ],
+      "label": "林地城寨"
+    },
+    "forest_outpost": {
+      "column": 1,
+      "row": 1,
+      "bounds": [
+        0.121094,
+        0.234375,
+        0.878906,
+        0.878906
+      ],
+      "label": "林地据点"
+    },
+    "ruins_town": {
+      "column": 2,
+      "row": 1,
+      "bounds": [
+        0.039062,
+        0.097656,
+        0.960938,
+        0.949219
+      ],
+      "label": "遗迹城寨"
+    },
+    "ruins_outpost": {
+      "column": 3,
+      "row": 1,
+      "bounds": [
+        0.121094,
+        0.234375,
+        0.878906,
+        0.878906
+      ],
+      "label": "遗迹据点"
+    },
+    "mine_town": {
+      "column": 0,
+      "row": 2,
+      "bounds": [
+        0.039062,
+        0.113281,
+        0.960938,
+        0.949219
+      ],
+      "label": "矿区城寨"
+    },
+    "mine_outpost": {
+      "column": 1,
+      "row": 2,
+      "bounds": [
+        0.121094,
+        0.253906,
+        0.878906,
+        0.878906
+      ],
+      "label": "矿区据点"
+    },
+    "destroyed_town": {
+      "column": 2,
+      "row": 2,
+      "bounds": [
+        0.039062,
+        0.234375,
+        0.960938,
+        0.949219
+      ],
+      "label": "城市废墟"
+    },
+    "destroyed_outpost": {
+      "column": 3,
+      "row": 2,
+      "bounds": [
+        0.121094,
+        0.304688,
+        0.878906,
+        0.878906
+      ],
+      "label": "据点废墟"
+    }
+  }
+}

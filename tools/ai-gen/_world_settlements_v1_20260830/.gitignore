@@ -1,0 +1,7 @@
+/renders/
+/whitebox/
+/settlements.png
+/settlement-visuals.json
+*.log
+*.blend1
+__pycache__/

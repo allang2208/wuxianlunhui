@@ -1,0 +1,125 @@
+{
+  "date": "2026-08-31",
+  "scope": "This strategic expedition and siege task only",
+  "status": "removed",
+  "count": 23,
+  "bytes": 8368440.0,
+  "policy": "Retain official atlas/metadata, editable model, production scripts, manifest and model preview; keep accepted siege preview locally; no runtime code or unrelated assets removed",
+  "removed": [
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/desert_outpost.png",
+      "bytes": 511166,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/desert_town.png",
+      "bytes": 627141,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/destroyed_outpost.png",
+      "bytes": 463790,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/destroyed_town.png",
+      "bytes": 520849,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/forest_outpost.png",
+      "bytes": 494165,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/forest_town.png",
+      "bytes": 577714,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/mine_outpost.png",
+      "bytes": 488003,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/mine_town.png",
+      "bytes": 598571,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/ruins_outpost.png",
+      "bytes": 499977,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/ruins_town.png",
+      "bytes": 610878,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/snow_outpost.png",
+      "bytes": 499621,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/renders/snow_town.png",
+      "bytes": 611708,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/whitebox/desert_town.png",
+      "bytes": 609163,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/whitebox/forest_outpost.png",
+      "bytes": 491412,
+      "reason": "Regenerable native Blender render; model and build/export scripts retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/render.log",
+      "bytes": 1578,
+      "reason": "Production log or obsolete preview from before the approved display-size reduction"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/render-remaining.log",
+      "bytes": 2766,
+      "reason": "Production log or obsolete preview from before the approved display-size reduction"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/settlements-preview.jpg",
+      "bytes": 334035,
+      "reason": "Production log or obsolete preview from before the approved display-size reduction"
+    },
+    {
+      "path": "tools/ai-gen/_world_settlements_v1_20260830/settlements-terrain-preview.jpg",
+      "bytes": 229145,
+      "reason": "Production log or obsolete preview from before the approved display-size reduction"
+    },
+    {
+      "path": "tools/verify-shots/strategic-expedition-preview-20260830/expedition-preparation.png",
+      "bytes": 87119,
+      "reason": "Superseded expedition fixture and screenshots; current panel implementation retained"
+    },
+    {
+      "path": "tools/verify-shots/strategic-expedition-preview-20260830/expedition-preparation-details.png",
+      "bytes": 84974,
+      "reason": "Superseded expedition fixture and screenshots; current panel implementation retained"
+    },
+    {
+      "path": "tools/verify-shots/strategic-expedition-preview-20260830/index.html",
+      "bytes": 753,
+      "reason": "Superseded expedition fixture and screenshots; current panel implementation retained"
+    },
+    {
+      "path": "tools/verify-shots/strategic-expedition-preview-20260830/panel-fixture.js",
+      "bytes": 22997,
+      "reason": "Superseded expedition fixture and screenshots; current panel implementation retained"
+    },
+    {
+      "path": "tools/verify-shots/strategic-expedition-preview-20260830/README.md",
+      "bytes": 915,
+      "reason": "Superseded expedition fixture and screenshots; current panel implementation retained"
+    }
+  ]
+}
