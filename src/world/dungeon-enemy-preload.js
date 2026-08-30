@@ -33,7 +33,7 @@ function rankMatchesTier(rank, tier) {
 
 function getFamilyPoolTypes(family, tier) {
     return Object.entries(enemyConfigData)
-        .filter(([, cfg]) => cfg && !cfg.noPool
+        .filter(([, cfg]) => cfg && !cfg.noPool && !cfg.poolWhitelistOnly
             && hasEnemyFamily(cfg, family)
             && rankMatchesTier(cfg.rank, tier))
         .map(([type]) => type);
@@ -127,6 +127,13 @@ function closeEnemyDependencies(out) {
             pending.push(dependency);
         }
     }
+}
+
+/** 将即将生成的怪物类型扩展为包含召唤物/伴生物的资源闭包。 */
+export function expandDungeonEnemyDependencies(types) {
+    const out = new Set((types || []).filter(Boolean));
+    closeEnemyDependencies(out);
+    return [...out].sort();
 }
 
 /**

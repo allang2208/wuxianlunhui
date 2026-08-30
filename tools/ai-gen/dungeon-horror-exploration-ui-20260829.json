@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-08-29",
+  "tool": "OpenAI built-in ImageGen",
+  "mode": "reference-guided edit",
+  "referenceAsset": "assets/scenes/dungeon-map-bg.png",
+  "selectedAsset": "assets/scenes/dungeon-map-bg-horror-cold-steel-v2.png",
+  "selectedDimensions": {
+    "width": 1672,
+    "height": 941
+  },
+  "promptSummary": "Create a seamless 16:9 horror-dungeon exploration interface background. Reserve the upper 40 percent for a moody gothic ruined castle scene with dark blue-gray fog and safe negative space for HUD cards. Make the lower 60 percent a dark gunmetal route-planning board with restrained grid, contour markings, riveted mechanical framing and a clear horizontal division. Cold-steel military archive style, readable low contrast, no parchment, no wax seal, no text, no icons, no route nodes, no buttons, no logos, no watermark.",
+  "selectionNotes": "The selected second iteration corrected the composition boundary to approximately 40/60. The earlier 60/40 candidate was discarded and not retained in runtime assets.",
+  "runtimeScope": "data/dungeon-config.json#zombieDungeon and public/data/dungeon-config.json#zombieDungeon"
+}

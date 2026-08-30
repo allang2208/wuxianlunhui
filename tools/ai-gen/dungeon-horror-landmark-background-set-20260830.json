@@ -1,0 +1,50 @@
+{
+  "createdAt": "2026-08-30",
+  "generator": "Codex built-in ImageGen",
+  "mode": "built-in",
+  "useCase": "stylized-concept",
+  "purpose": "恐怖地牢五张静态地标路线背景",
+  "globalPromptContract": "16:9固定镜头，写实冷钢哥特恐怖环境，路线承载结构位于画面中下部；只生成环境，不生成角色、僵尸、尸体、文字、UI、节点、圆圈、虚线、箭头或烘焙路线。",
+  "assets": [
+    {
+      "id": "citadel",
+      "asset": "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-1f21eafe-84da-40a1-b93f-3c2c7f5f02c5.png",
+      "promptSummary": "月照废墟城塞；左下断桥、门楼、中央宽阶和梯田庭院通往右侧塔门；六段结构、上下分支。"
+    },
+    {
+      "id": "flooded-cathedral",
+      "asset": "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-741bb08a-a1f2-4dc5-bbc6-387d8bd4bd6b.png",
+      "promptSummary": "黑水淹没的哥特大教堂；左下堤道、回廊、下层水道、上层拱廊和中央耳堂通往右侧圣所门；六段结构、上下分支。"
+    },
+    {
+      "id": "necropolis",
+      "asset": "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-03-necropolis.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-398335df-5f0c-45e2-99e1-e1e88272296d.png",
+      "promptSummary": "月照墓园城塞；左下藏骨门、陵墓庭院、墓园梯田、石桥和钟楼广场通往右侧墓穴堡垒；六段结构、上下分支。"
+    },
+    {
+      "id": "quarantine-foundry",
+      "asset": "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-04-quarantine-foundry.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-57bc59d5-bf1f-40a1-8fbd-ed8293048627.png",
+      "promptSummary": "瘟疫检疫铸造城塞；左下铁轨与铁桥、检疫门、中央炉庭、稀疏栈桥和石阶通往右侧指挥堡；六段结构、上下分支。"
+    },
+    {
+      "id": "plague-ramparts",
+      "asset": "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-c87adf4d-30fa-418f-9a84-45cb941eba6b.png",
+      "promptSummary": "封锁疫城街区；左下病区街道与石拱门、路障广场、市场庭院、屋顶和城墙步道通往右侧内堡门；六段结构、上下分支。"
+    }
+  ],
+  "runtimeContract": {
+    "fit": "center cover",
+    "bakedUi": false,
+    "routeOverlay": "runtime canvas",
+    "selection": "拓扑指标加权距离；路线指纹只用于稳定破同分",
+    "metrics": ["branchDensity", "columnLoad", "verticality", "rowSpread"],
+    "focus": "每4个生成列一个区段，聚焦时映射到当前背景六段锚点带",
+    "collisionAvoidance": "同列自适应多轨和纵向槽位，随后执行72px最小中心距确定性消碰撞",
+    "fallback": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png"
+  }
+}

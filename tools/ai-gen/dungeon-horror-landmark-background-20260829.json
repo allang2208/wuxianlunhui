@@ -1,0 +1,19 @@
+{
+  "asset": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png",
+  "createdAt": "2026-08-29",
+  "generator": "Codex built-in ImageGen",
+  "useCase": "stylized-concept",
+  "purpose": "恐怖地牢地标路线全屏环境背景",
+  "references": [
+    "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-9fb6e139-4a84-4605-85c9-3b81bc361380.png",
+    "assets/scenes/dungeon-map-bg-horror-cold-steel-v2.png"
+  ],
+  "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-164f7dd5-c4df-4c5d-b198-85d14b22e6c1.png",
+  "promptSummary": "月光下的哥特城堡、断桥、阶梯、城门和庭院组成可读地标；左侧274px、右侧104px及顶部/底部HUD区域保持暗部；仅生成环境，不含文字、节点、路线、按钮、面板、网格或40/60底板。",
+  "runtimeContract": {
+    "fit": "center cover",
+    "bakedUi": false,
+    "routeOverlay": "runtime canvas",
+    "acceptedConcept": "selected option 02"
+  }
+}

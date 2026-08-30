@@ -1,0 +1,61 @@
+{
+  "createdAt": "2026-08-29",
+  "generator": "Codex built-in ImageGen",
+  "useCase": "logo-brand",
+  "purpose": "恐怖地牢地标路线节点透明徽记",
+  "references": [
+    "C:/Users/allan/AppData/Local/Temp/codex-clipboard-ef8370dc-a61d-47e0-9030-e19d74e3d9c8.png",
+    "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-9fb6e139-4a84-4605-85c9-3b81bc361380.png"
+  ],
+  "artDirection": "独立透明黑化钢徽记，磨损银边，少量冷蓝/暗红/暗紫状态光；不含外壳、文字、蜡封、羊皮卷或金色装饰。",
+  "runtimeContract": {
+    "canvas": "128x128 RGBA",
+    "displaySize": "24-44px",
+    "nodeShell": "runtime canvas",
+    "loading": "src/utils/image-loader.js"
+  },
+  "assets": [
+    {
+      "type": "combat",
+      "path": "assets/ui/dungeon-map/cold-steel-v2/route-node-combat.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-70f4aad8-b72d-40e7-bab0-0497dbd15102.png",
+      "prompt": "透明背景的黑化钢交叉短剑徽记，磨损银边与克制冷蓝高光。"
+    },
+    {
+      "type": "event",
+      "path": "assets/ui/dungeon-map/cold-steel-v2/route-node-event.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-c4aa48cc-d236-413f-9391-92cb9724e680.png",
+      "prompt": "透明背景的黑化钢分岔路径与渡鸦之眼徽记，表达未知随机事件。"
+    },
+    {
+      "type": "elite",
+      "path": "assets/ui/dungeon-map/cold-steel-v2/route-node-elite.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-e26eaf04-95b5-40d5-b2ac-af01f707feff.png",
+      "prompt": "透明背景的角冠骷髅与双刃精英战斗徽记，暗紫凹槽光。"
+    },
+    {
+      "type": "boss",
+      "path": "assets/ui/dungeon-map/cold-steel-v2/route-node-boss.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-656e84e9-f6b4-43ee-89ce-5bd7b525f7db.png",
+      "prompt": "透明背景的铁皇冠骷髅首领徽记，磨损银边与暗红凹槽光。"
+    },
+    {
+      "type": "reward",
+      "path": "assets/ui/dungeon-map/cold-steel-v2/route-node-reward.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-6d5a7e3d-30f8-478e-858e-91c7da5fc190.png",
+      "prompt": "透明背景的黑化钢锁扣宝箱徽记，磨损银边与单点冷光。"
+    },
+    {
+      "type": "start",
+      "path": "assets/ui/dungeon-map/cold-steel-v2/route-node-start.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-7dafe42e-d762-49c1-9763-54aa6378b3da.png",
+      "prompt": "透明背景的哥特入口与向前路径徽记，黑化钢、石质暗面和冷蓝导向光。"
+    },
+    {
+      "type": "unknown",
+      "path": "assets/ui/dungeon-map/cold-steel-v2/route-node-unknown.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-db5632bd-1b20-4e0b-bd37-e27c707244a0.png",
+      "prompt": "透明背景的闭合铁锁未侦察徽记，黑化钢与克制冷蓝轮廓光。"
+    }
+  ]
+}

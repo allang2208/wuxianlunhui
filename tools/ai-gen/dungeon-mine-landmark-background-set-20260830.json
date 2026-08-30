@@ -1,0 +1,87 @@
+{
+  "createdAt": "2026-08-30",
+  "generator": "Codex built-in ImageGen",
+  "mode": "built-in",
+  "useCase": "stylized-concept",
+  "purpose": "废弃矿洞初中高三级静态地标路线背景",
+  "assets": [
+    {
+      "id": "rail-junction",
+      "name": "木支护运矿枢纽",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-2996d993-b702-4f77-a063-61ab9e2f5185.png",
+      "prompt": "Use case: stylized-concept. Asset: static 16:9 abandoned-mine dungeon route-selection background, environment only. Scene: immense old timber-supported underground rail junction, rough slate cave, weathered wooden galleries, iron rails, sparse abandoned ore carts, lanterns. A broad main haulage terrace crosses the center from left to right; parallel upper and lower walkable terraces connect with visible stairs and ramps at several intervals. Six distinct roomy landings along the route. Composition: wide elevated oblique fixed camera, subject walkways readable across x20–88% and y32–80%, quiet dark outer margins for existing game HUD; no gigantic foreground object blocking paths, no tiny vanishing-point paths. Cold-steel dark fantasy realism, PBR worn iron and charcoal rock, restrained warm lamps, blue-gray ambient cave light. No castle, outdoor city, people, zombies, creatures, text, symbols, UI, icons, circles, route overlay, dotted lines, arrows, watermark. Render a full environment, no diagram or collage."
+    },
+    {
+      "id": "winding-shaft",
+      "name": "巨型升降井",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-ef54c135-7c67-49d7-9bc1-449d99cd4beb.png",
+      "prompt": "Use case: stylized-concept. Asset: static 16:9 abandoned-mine exploration background. Scene: colossal abandoned winding-shaft chamber, deep vertical pit behind a huge weathered iron hoist and chain elevator, old winding drums and cable wheels positioned in rear architecture, three wide continuous mining galleries crossing left to right at different heights, connected by clearly visible stair towers. Six broad empty landing areas, main middle gallery dominant. Fixed elevated oblique wide camera; walkable structure centered x20–88%, y30–82%; keep foreground edges quiet, do not put the machinery in front of walkways. PBR realistic cold-steel dark fantasy, coal-black stone, gunmetal, worn timber, subtle ochre work lamps and dim cool cave light. Entirely underground, abandoned, no humans, creatures, zombies, text, signage, icons, circles, dotted routes, arrows, UI or watermark. No castle, no collage."
+    },
+    {
+      "id": "pump-hall",
+      "name": "积水泵房",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-03-pump-hall.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-6f27e7ef-e428-4d4b-816a-754c501ab9d1.png",
+      "prompt": "Use case: stylized-concept. Static wide 16:9 realistic abandoned mine route background. A drowned underground pumping hall: black still water below, riveted antique pump housings and thick iron pipes on rear rock walls, three wide continuous dry stone-and-iron service galleries across the screen, linked by broad stair ramps, upper pipe gallery, central pump maintenance terrace, lower waterside causeway. Six roomy landings along left-to-right progression. Elevated oblique camera, full cavern environment; readable main structure x20–88%, y28–82%, quiet dark margins, small props pushed to walls. Cold-steel blue-gray cave lighting, damp slate, oxidized iron, tiny warm industrial lamps, restrained reflections. No people, creatures, zombies, text, signage, UI, icons, circles, arrows, dotted lines, watermark, no sci-fi, no collage. Walkways must be continuous and broad, not suspended disconnected islands."
+    },
+    {
+      "id": "slate-quarry",
+      "name": "采石梯田",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-04-slate-quarry.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-68ff577a-c013-4d94-b110-4dea21c439e6.png",
+      "prompt": "Use case: stylized-concept. Static 16:9 abandoned mine route-screen environment. A gigantic subterranean slate quarry with three broad stepped rock benches carved into a cavern wall, abandoned narrow-gauge rail tracks on the middle bench, weathered support arches, stone-cut stairs and gently sloped hauling ramps connecting all three terraces at regular intervals, six spacious empty staging platforms left to right. A monumental rough-cut excavation face in the rear, broken cranes only at far edges. Elevated oblique wide fixed camera, usable terraces centered x20–88%, y28–82%, all paths wide and continuous, clear foreground and dark quiet HUD margins. Cold-steel realistic dark fantasy, gray-black slate, worn timber, oxidized steel, sparse amber mining lanterns with cold blue ambient haze. No people, monsters, zombies, text, signage, symbols, UI, circles, dotted lines, arrows, watermark, no castle, no collage."
+    },
+    {
+      "id": "crushing-works",
+      "name": "矿石破碎车间",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-05-crushing-works.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-cd208ee2-f01c-4514-9707-2888a0402da0.png",
+      "prompt": "Use case: stylized-concept. Static 16:9 abandoned underground mine exploration scene. A vast derelict ore crushing works, towering antique riveted jaw crushers and stone hoppers along the rear wall, large static flywheels, three continuous wide iron-and-stone maintenance terraces layered across the middle and lower image, old haulage rails on central deck, broad stairs and ramps connecting decks at left, center and right. Six open staging areas distributed left to right; machinery belongs behind and beside the playable walkways, not blocking them. Fixed elevated oblique cinematic camera, paths readable within x20–88%, y28–82%, quiet dark margins. Realistic PBR cold-steel horror aesthetic, charcoal ore dust, weathered steel and timber, restrained copper oxidation and warm work lamps, dim gray-blue light. No active workers, monsters, corpses, text, labels, UI, icons, circles, arrows, dotted lines, watermark, no futuristic sci-fi or collage."
+    },
+    {
+      "id": "mineral-gallery",
+      "name": "矿脉回廊",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-06-mineral-gallery.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-52c0c69a-d946-454a-baff-6175dad0188e.png",
+      "prompt": "Use case: stylized-concept. Static 16:9 abandoned mine route-selection background, full environment only. An underground mineral-vein gallery, rugged black rock with subtle smoky quartz and dull copper veins embedded in the rear cliffs, three wide stepped excavation walkways curving gently across the screen, timber shoring, narrow-gauge rails on the middle level, broad stair ramps visibly linking the three levels at left, center and right. Six roomy landings in the middle subject, rails continuous and clear. Fixed elevated oblique camera, usable paths x20–88%, y28–82%, quiet dark edges. Realistic PBR cold-steel dark fantasy, desaturated stone and steel, minimal pale mineral glint, small warm lamps; no neon glowing crystal fantasy, no crystal blocking paths. No people, creatures, text, symbols, signage, UI, node markers, circles, route lines, arrows, watermark, no collage."
+    },
+    {
+      "id": "supply-depot",
+      "name": "地下补给站",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-07-supply-depot.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-a6088b1f-abbd-40e3-ad1e-05fab05f8c78.png",
+      "prompt": "Use case: stylized-concept. Static 16:9 abandoned underground mining depot background for route selection. Derelict miners' supply station inside a vast cave: weathered timber storehouses and boarded tool rooms embedded in rear rock, a disused loading platform, empty rail sidings, sparse crates against walls. Three broad continuous terraces carry upper storehouse access, central haulage tracks and lower loading yard, linked by clear wide stairs and ramps at several intervals; six spacious landings distributed left to right. Elevated oblique fixed wide camera, usable subject platforms within x20–88%, y28–82%, no foreground clutter, dark quiet outer margins. PBR cold-steel dark fantasy realism, charcoal gray rock and worn iron, low-saturation timber, tiny warm lantern pools, cold ambient light. No people, creatures, zombies, text, signs, symbols, UI, nodes, circles, dotted routes, arrows, watermark. No outdoor village, no castle, no collage."
+    },
+    {
+      "id": "collapse-bypass",
+      "name": "塌方绕行区",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-08-collapse-bypass.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-9d8005a4-1595-4a85-a714-314a835b6b2f.png",
+      "prompt": "Use case: stylized-concept. Static 16:9 abandoned-mine exploration background. A collapsed underground tunnel chamber with a huge fallen rock mass and snapped timbers in the rear central excavation. Crucially, three surviving broad walkways and reinforced bypass bridges curve around the collapse from left to right, connected by obvious stair ramps; upper rock ledge, middle timber haulage gallery, lower stone bypass. Six broad open landings. The intact traversable routes are visually distinct from rubble and dark pits, do not block them with debris. Fixed elevated oblique wide camera, main route subject x20–88%, y28–82%, dark quiet margins. Cold-steel realistic PBR dark fantasy, rough charcoal stone, worn wooden shoring, steel braces, sparse amber lanterns and blue-gray dust haze. No people, zombies, creatures, text, UI, markers, circles, arrows, dotted lines, watermark, no collage."
+    },
+    {
+      "id": "excavated-vault",
+      "name": "古代掘进遗址",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-09-excavated-vault.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-9b4ead50-082e-4b0e-ba29-1e8a3843122a.png",
+      "prompt": "Use case: stylized-concept. Static 16:9 abandoned-mine dungeon route environment. Mining excavation has broken into an ancient subterranean stone vault: massive eroded masonry pillars and sealed stone niches in the rear, later timber braces and rusted narrow-gauge rails show miners reused the site. Three broad continuous stepped stone galleries run left to right across the main subject, with visible worn stairs connecting them at left, center and right; six generous clear landing areas. Do not obstruct the walkways with statues or rubble. Fixed elevated oblique wide camera; usable routes centered x20–88%, y28–82%, dark quiet margins. Realistic cold-steel dark fantasy PBR, charcoal stone, aged steel, sparse amber mine lamps, faint cool cavern haze. No magical glyphs, no glowing runes, no people, monsters, bodies, text, signage, UI, icons, nodes, circles, dotted lines, arrows, watermark, no collage."
+    },
+    {
+      "id": "deep-smelter",
+      "name": "深层熔炉区",
+      "asset": "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png",
+      "generatedSource": "C:/Users/allan/.codex/generated_images/01a04ad0-8c21-7b02-9db8-9b679ef3f024/exec-ab5dfbf1-8693-4dfd-91c4-fdc7837a6278.png",
+      "prompt": "Use case: stylized-concept. Static wide 16:9 abandoned mine exploration background. Deep underground smelting galleries: gigantic dormant stone blast furnaces and riveted iron chimneys recessed into the rear cavern wall, traces of weak amber embers in furnace mouths, no lava river. Three wide continuous maintenance terraces span left to right across the middle and lower subject, a central ore-haul rail deck and lower slag-service yard, connected by broad clearly visible stone stair ramps at several intervals, six open landings. Machinery and ore piles kept behind railings away from walking surfaces. Fixed elevated oblique wide camera, paths inside x20–88%, y28–82%, quiet dark HUD margins. High quality realistic PBR cold-steel dark fantasy, charcoal stone, soot, worn gunmetal, desaturated bronze, warm ember accents against cool gray cave light. No people, creatures, zombies, text, symbols, UI, icons, circles, dotted lines, arrows, watermark, no sci-fi or collage."
+    }
+  ],
+  "runtimeContract": {
+    "fit": "center cover",
+    "bakedUi": false,
+    "profile": "src/config/mine-route-landmarks.js",
+    "layout": "通道中心线候选槽位，至少76源像素间隔，密集区段缩短展示列数",
+    "edges": "沿通道折线及显式楼梯连接；不修改逻辑路线图",
+    "selection": "同局稳定选择，不随进入战斗或返回路线页切换"
+  }
+}

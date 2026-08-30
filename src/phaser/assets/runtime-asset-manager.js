@@ -383,6 +383,14 @@ class RuntimeAssetManagerImpl {
         return this.resolveEnemyVisualKeysForTypes(types).keys;
     }
 
+    validateEnemyTypes(types, { required = true } = {}) {
+        const result = this.resolveEnemyVisualKeysForTypes(types);
+        if (required && result.unresolvedTypes.length) {
+            throw new Error(`敌人资源未登记: ${result.unresolvedTypes.join(', ')}`);
+        }
+        return result;
+    }
+
     prefetchEnemyTypes(types, options = {}) {
         const { keys, unresolvedTypes } = this.resolveEnemyVisualKeysForTypes(types);
         if (options.required && unresolvedTypes.length) {
@@ -503,7 +511,8 @@ class RuntimeAssetManagerImpl {
                 if (!scene.load.isLoading()) scene.load.start();
             }).catch((error) => {
                 const retryAt = Date.now() + this.negativeCacheTtlMs;
-                for (const entry of missing) this.enemyFailedUntil.set(entry.key, retryAt);
+                const failed = failedKeys.size ? failedKeys : new Set(missing.map(entry => entry.key));
+                for (const key of failed) this.enemyFailedUntil.set(key, retryAt);
                 if (required) throw error;
                 optionalLoadFailed = true;
             });

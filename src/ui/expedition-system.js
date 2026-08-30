@@ -371,19 +371,18 @@ export const ExpeditionSystem = {
         // 先让浏览器绘制 loading，再执行地牢资源预载。
         if (SceneManager?.delay) await SceneManager.delay(50);
 
-        // 在扣除钥匙、清理主场景前完成全量怪物资源校验。
-        // 任一可能生成的怪物无资源映射或加载失败时，本次出征直接中止，不消耗钥匙。
-        RuntimeAssetManager.setDungeonEnemyTypes(dungeonEnemyTypes);
+        // 入场只校验整个生态的资源登记；贴图由战斗系统按实际波次加载并驻留。
+        // 这样仍能在扣钥匙前拦截配置缺失，又不会把所有候选怪物一次上传到显存。
         try {
-            await RuntimeAssetManager.prefetchEnemyTypes(dungeonEnemyTypes, {
-                required: true,
-                onProgress: (ratio) => SceneManager.setProgress(10 + ratio * 35),
-            });
+            RuntimeAssetManager.validateEnemyTypes(dungeonEnemyTypes, { required: true });
+            RuntimeAssetManager.setDungeonEnemyTypes([]);
+            SceneManager?.setProgress?.(45);
         } catch (error) {
             RuntimeAssetManager.setDungeonEnemyTypes([]);
             SceneManager?.hideLoadingScreen?.();
-            console.error('[ExpeditionSystem] 地牢怪物资源预载失败:', dungeonType, error);
-            this._showMessage('地牢怪物资源加载失败，未消耗钥匙', 'error');
+            console.error('[ExpeditionSystem] 地牢怪物资源登记校验失败:', dungeonType, error);
+            const detail = error?.message || '未知资源登记错误';
+            this._showMessage(`地牢怪物资源登记失败：${detail}（未消耗钥匙）`, 'error');
             return;
         }
         if (!this._consumeDungeonKey(grade)) {
@@ -412,10 +411,11 @@ export const ExpeditionSystem = {
         if (DungeonMapSystem) {
             const player = Game.player;
 
-            // 出征前保存主神空间状态（depart 绕开 switchScene 直接清实体——不保存的话，
-            // 返回时 SceneManager._mainEntities 为空，_loadMainScene 走兜底只剩光杆玩家，
-            // "放弃/撤离/通关返回后主神空间什么都没有"的根因）
-            if (SceneManager && typeof SceneManager._saveMainSceneState === 'function') {
+            // 仅允许在主神空间现场保存主场景快照。正常流程已由 main -> scene7 的
+            // switchScene 保存过一次；若此处处于出征准备场景仍重复保存，会用 scene7
+            // 的精简实体覆盖主神空间，导致资源失败或撤离后返回到错误空间。
+            if (SceneManager?.currentScene === 'main'
+                && typeof SceneManager._saveMainSceneState === 'function') {
                 SceneManager._saveMainSceneState();
             }
             // 仓鼠兵种及其他场景友军留在主神空间：只从地牢运行态暂存，不销毁、不改坐标。

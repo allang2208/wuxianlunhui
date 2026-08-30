@@ -3826,10 +3826,21 @@
 }
 
 /* ===== 地图选择界面：统一隐藏 HUD（body.map-mode 驱动，防覆盖遗漏） ===== */
-body.map-mode .bottom-bar,
-body.map-mode .top-bar,
-body.map-mode .controls-hint-left,
-body.map-mode #weaponInfo {
+body.map-mode :is(
+  .bottom-bar,
+  .top-bar,
+  .controls-hint-left,
+  #weaponInfo,
+  .back-menu-btn,
+  .top-right-hud,
+  .attack-indicator-left,
+  .attack-range-toggle,
+  .dev-tool-trigger,
+  .invincible-toggle,
+  .rts-command-btn,
+  .troop-line-panel,
+  .rts-command-bar
+) {
   display: none !important;
 }
 

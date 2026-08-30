@@ -354,7 +354,7 @@ normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；�
 - 某槽位在白名单内找不到对应阶级时会继续走 `poolFamily` / 默认池兜底；因此启用 `matchPoolRanks` 的遭遇必须覆盖 `waveComposition`、`monsterComposition` 实际使用的每一种阶级，否则会漏入白名单外怪物。修改后同步 `data/`、`public/data/`，并让 `scripts/generate-dungeons-table.mjs` 输出真实分池，避免总表仍显示扁平白名单。
 - **只允许指定地牢抽取的怪物**：怪物配置写 `poolWhitelistOnly:true`，并在通用 normal/elite/lord getter、family 回退和阶级缺口回退三条路径都排除该键；目标地牢通过显式 `poolKeys` 加入，配合 `matchPoolRanks:true` 只占自身 rank 槽。`forceMonsters` 是明确事件注入，不受普通池限制；`poolKeys` 不能绕过 `noPool`。
 - **首领绑定的全场唯一生成器**：矿洞/巢穴等结构本体继续 `noPool`，由首领工厂注入生成工厂；首领更新时先查全场现存同类结构，再通过墙体安全召唤器创建 1 个并把“已解决”锁存。多首领共享这一个结构，最后一名首领死亡才清除；玩家提前摧毁后不自动补建，避免无限刷新。
-- **地牢怪物预载合同（2026-08-28）**：所有地牢入场统一调用 `resolveDungeonEnemyPreloadTypes()`，以普通/精英/Boss `poolKeys` 和显式 `enemyPreloadTypes` 为基础，再展开家族回退池、阶级缺口、当前 scope/等级事件强制怪、D 级以上时空特工、通用集合体 Boss，以及墓碑/矿洞/巫婆等伴生与召唤链。`ExpeditionSystem.depart()` 必须在扣钥匙和清主场景之前用 `RuntimeAssetManager.setDungeonEnemyTypes()` 驻留本次资源族，并以 `required: true` 等待 `prefetchEnemyTypes()`；任一类型未登记或加载失败均取消入场且不消耗钥匙，禁止用 `enemy_circle` 胶囊继续。`DungeonMapSystem.shutdown()` 负责解除驻留。只有无法由解析器推导的自定义生成源才写入配置 `enemyPreloadTypes`。
+- **地牢怪物登记与按波加载合同（2026-08-29）**：所有地牢入场统一调用 `resolveDungeonEnemyPreloadTypes()`，它以 `DungeonConfig.getDungeonEnemyPreloadTypes()` 的 `encounters.normal/elite`、`bossEncounter.poolKeys` 与显式 `enemyPreloadTypes` 为基础，再自动合并实际刷怪会使用的家族回退池、等级匹配缺口、当前 scope/等级可抽到的事件强制怪、D 级以上时空特工入侵、无独立 `bossEncounter` 时的通用 Boss，以及墓碑/矿洞/巫婆等伴生与召唤链。`ExpeditionSystem.depart()` 在扣钥匙和清主场景之前只以 `validateEnemyTypes(required:true)` 校验全生态登记完整性，禁止一次性上传并 pin 全部候选怪物；`DungeonMapSystem` 取得实际波次工厂后，必须先将其反查为类型、用 `expandDungeonEnemyDependencies()` 补齐伴生/召唤闭包，再 `setDungeonEnemyTypes()` + `prefetchEnemyTypes(required:true)`，加载成功后才允许实例化。加载期间不能把空怪数组判作清场，失败不得生成 `enemy_circle` 占位怪，并需提供重试或保留背包退出；返回路线图或 `shutdown()` 时解除波次驻留。新增无法由上述规则推导的自定义生成源时，才把额外怪物写入地牢配置 `enemyPreloadTypes`。
 
 #### 5. 验证
 JSON 校验；lint / vite build / test-collider / test-craft-sync；`node scripts/generate-dungeons-table.mjs` 刷新 dungeons-table.md；CHANGELOG 记录。
@@ -613,8 +613,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 #### 主神空间状态缓存（2026-07-30 补齐）
 - **机制**：`SceneManager._saveMainSceneState()`（保存 `_mainEntities/_mainPlayerPos/_mainTrees/_mainEffects/_mainCamera`）→ `_loadMainScene` 恢复实体与玩家位置；无缓存时走兜底=只剩光杆玩家。
-- **保存时机（三个，缺一不可）**：①`switchScene` 离开 main 时；②**出征 `depart()` 清实体前**——depart 绕开 switchScene 直接 `Game.entities.clear()`，不保存则任何地牢返回路径都拿到空缓存（"放弃返回后主神空间什么都没有"根因，2026-07-30 修复）；③`Game.init` 初始生成完毕后（安全网）。
-- **教训：场景切换的旁路（bypass switchScene 直接改 currentScene/清实体的路径）必须逐个核对状态保存**——depart() 设 `SceneManager.currentScene='scene7'` 跳过了整个 switchScene 生命周期（保存/清理/进度条），是隐性旁路的典型。
+- **保存时机（2026-08-29 修订）**：①`switchScene` 离开 main 时保存正式快照；②`Game.init` 初始生成完毕后保存安全网；③只有仍在 `main` 现场直接调用出征的兼容路径，`depart()` 才允许在清实体前补存。正常流程已先执行 `main → scene7`，此时再次保存会用出征准备场景的精简实体覆盖主神空间，是“资源失败返回错误空间/只剩光杆玩家”的根因。
+- **失败回城合同**：地牢怪物资源失败的无损退出必须先解除 `SceneManager` loading 锁，再调用 `switchScene('main', player, undefined, { forceReload:true })` 并确认场景提交；禁止因 `isLoading` 或当前场景相同而静默短路。
+- **教训：所有旁路必须同时核对保存与覆盖**——缺少快照会空城，离开 main 后重复保存同样会污染正确快照；判断依据必须是当前现场是否确实为 `main`，不能仅因为即将清实体就无条件保存。
 
 #### NPC 立绘调整工具（2026-07-30 重构）
 - **交互**：点击「调整立绘」后直接拖对话左侧立绘（X/Y 自由拖动）；面板只负责缩放/旋转/镜像/重置/保存。

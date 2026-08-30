@@ -205,6 +205,16 @@
   }
  },
  "zombieDungeon": {
+  "mapBackground": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-03-necropolis.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-04-quarantine-foundry.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
+  ],
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "landmark",
   "combatRoom": {
    "normalSize": 1152,
    "eliteSize": 1664,
@@ -344,6 +354,16 @@
   "wallStyle": "zombie"
  },
  "zombieDungeonBeginner": {
+  "mapBackground": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-03-necropolis.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-04-quarantine-foundry.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
+  ],
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "landmark",
   "combatRoom": {
    "normalSize": 896,
    "eliteSize": 1280,
@@ -793,6 +813,16 @@
   "wallStyle": "frozen"
  },
  "zombieDungeonMid": {
+  "mapBackground": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-03-necropolis.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-04-quarantine-foundry.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
+  ],
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "landmark",
   "combatRoom": {
    "normalSize": 1024,
    "eliteSize": 1536,
@@ -1749,6 +1779,22 @@
   "family": "zombie"
  },
  "abandonedMineDungeonBeginner": {
+  "mapBackground": "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-03-pump-hall.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-04-slate-quarry.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-05-crushing-works.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-06-mineral-gallery.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-07-supply-depot.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-08-collapse-bypass.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-09-excavated-vault.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
+  ],
+  "mapBackgroundSelection": "weighted-terrain",
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "landmark",
   "combatRoom": {
    "normalSize": 896,
    "eliteSize": 1280,
@@ -1884,12 +1930,27 @@
   "floor": {
    "terrainProfile": "abandonedMine"
   },
-  "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie",
   "eventScope": "abandonedMine",
   "wallStyle": "abandonedMine"
  },
  "abandonedMineDungeonMid": {
+  "mapBackground": "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-03-pump-hall.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-04-slate-quarry.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-05-crushing-works.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-06-mineral-gallery.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-07-supply-depot.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-08-collapse-bypass.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-09-excavated-vault.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
+  ],
+  "mapBackgroundSelection": "weighted-terrain",
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "landmark",
   "combatRoom": {
    "normalSize": 1024,
    "eliteSize": 1536,
@@ -2023,12 +2084,27 @@
   "floor": {
    "terrainProfile": "abandonedMine"
   },
-  "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie",
   "eventScope": "abandonedMine",
   "wallStyle": "abandonedMine"
  },
  "abandonedMineDungeon": {
+  "mapBackground": "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-03-pump-hall.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-04-slate-quarry.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-05-crushing-works.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-06-mineral-gallery.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-07-supply-depot.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-08-collapse-bypass.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-09-excavated-vault.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
+  ],
+  "mapBackgroundSelection": "weighted-terrain",
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "landmark",
   "combatRoom": {
    "normalSize": 1152,
    "eliteSize": 1664,
@@ -2187,7 +2263,6 @@
   "floor": {
    "terrainProfile": "abandonedMine"
   },
-  "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie",
   "eventScope": "abandonedMine",
   "wallStyle": "abandonedMine"
