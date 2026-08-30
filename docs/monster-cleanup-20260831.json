@@ -1,0 +1,303 @@
+{
+  "date": "2026-08-31",
+  "removedCount": 73,
+  "removedBytes": 133955360.0,
+  "archivedCount": 12,
+  "archivedBytes": 97605755.0,
+  "optionalLocalArchive": "tools/.trash-monster-cleanup-20260831/approved-runtime-input",
+  "reason": "Reproducible caches removed; immutable native keys, reports, final assets and comparison GIFs retained",
+  "removed": [
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/__pycache__/compact.cpython-311.pyc",
+      "bytes": 32981
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/core_drill_worm/burrow_enter.png",
+      "bytes": 1836589
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/core_drill_worm/burrow_exit.png",
+      "bytes": 1404507
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/core_drill_worm/crawling.png",
+      "bytes": 5674093
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/core_drill_worm/dying.png",
+      "bytes": 4423115
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/core_drill_worm/grinder_attack.png",
+      "bytes": 5902855
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/core_drill_worm/idle.png",
+      "bytes": 5862071
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/werewolf_king/attack.png",
+      "bytes": 4685683
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/werewolf_king/dying.png",
+      "bytes": 3451681
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/werewolf_king/howl.png",
+      "bytes": 5531072
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/werewolf_king/idle.png",
+      "bytes": 3960983
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/werewolf_king/pounce.png",
+      "bytes": 6217801
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/runtime/werewolf_king/running.png",
+      "bytes": 2345282
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-attack-interpolated-contact.png",
+      "bytes": 433355
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-attack-interpolated.gif",
+      "bytes": 1854752
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-dying-interpolated-contact.png",
+      "bytes": 322336
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-dying-interpolated.gif",
+      "bytes": 1379744
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-howl-interpolated-contact.png",
+      "bytes": 519080
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-howl-interpolated.gif",
+      "bytes": 2309660
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-idle-interpolated-contact.png",
+      "bytes": 369004
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-idle-interpolated.gif",
+      "bytes": 1779230
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-pounce-interpolated-contact.png",
+      "bytes": 304970
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-pounce-interpolated.gif",
+      "bytes": 1224649
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-running-interpolated-contact.png",
+      "bytes": 245199
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/source-clock-previews/werewolf_king-running-interpolated.gif",
+      "bytes": 1145176
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/attack.log",
+      "bytes": 5223
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/attack.png",
+      "bytes": 4710712
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/dying.log",
+      "bytes": 4351
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/dying.png",
+      "bytes": 3435285
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/howl.log",
+      "bytes": 6084
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/howl.png",
+      "bytes": 5760067
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/idle.log",
+      "bytes": 5186
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/idle.png",
+      "bytes": 4247227
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/pounce.log",
+      "bytes": 5290
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/pounce.png",
+      "bytes": 6685407
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/running.log",
+      "bytes": 4053
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/werewolf_king/running.png",
+      "bytes": 2439553
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/werewolf_king/attack-comparison.png",
+      "bytes": 423427
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/werewolf_king/dying-comparison.png",
+      "bytes": 403895
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/werewolf_king/howl-comparison.png",
+      "bytes": 408227
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/werewolf_king/idle-comparison.png",
+      "bytes": 379086
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/werewolf_king/pounce-comparison.png",
+      "bytes": 590556
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/werewolf_king/running-comparison.png",
+      "bytes": 347480
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-burrowEnter-interpolated-contact.png",
+      "bytes": 342761
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-burrowEnter-interpolated.gif",
+      "bytes": 1362973
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-burrowExit-interpolated-contact.png",
+      "bytes": 191919
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-burrowExit-interpolated.gif",
+      "bytes": 723281
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-crawling-interpolated-contact.png",
+      "bytes": 587427
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-crawling-interpolated.gif",
+      "bytes": 2298176
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-death-interpolated-contact.png",
+      "bytes": 566725
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-death-interpolated.gif",
+      "bytes": 2317799
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-grinderAttack-interpolated-contact.png",
+      "bytes": 462155
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-grinderAttack-interpolated.gif",
+      "bytes": 1867638
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-idle-interpolated-contact.png",
+      "bytes": 583054
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/source-clock-previews/core_drill_worm-idle-interpolated.gif",
+      "bytes": 2335762
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/burrowEnter.log",
+      "bytes": 3916
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/burrowEnter.png",
+      "bytes": 1828865
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/burrowExit.log",
+      "bytes": 3029
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/burrowExit.png",
+      "bytes": 1420380
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/crawling.log",
+      "bytes": 6082
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/crawling.png",
+      "bytes": 5637489
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/death.log",
+      "bytes": 6088
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/death.png",
+      "bytes": 4482545
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/grinderAttack.log",
+      "bytes": 6113
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/grinderAttack.png",
+      "bytes": 5885991
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/idle.log",
+      "bytes": 6069
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/rife/core_drill_worm/idle.png",
+      "bytes": 5830611
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/core_drill_worm/burrowEnter-comparison.png",
+      "bytes": 247933
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/core_drill_worm/burrowExit-comparison.png",
+      "bytes": 317843
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/core_drill_worm/crawling-comparison.png",
+      "bytes": 409422
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/core_drill_worm/death-comparison.png",
+      "bytes": 324878
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/core_drill_worm/grinderAttack-comparison.png",
+      "bytes": 411810
+    },
+    {
+      "path": "tools/ai-gen/_monster_texture_compaction_20260830/previews/core_drill_worm/idle-comparison.png",
+      "bytes": 409649
+    }
+  ]
+}
