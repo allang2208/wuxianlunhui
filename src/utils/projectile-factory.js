@@ -36,6 +36,8 @@ import {
  * @property {number} [poisonChance] 命中附加中毒概率（0~1）
  * @property {number} [poisonStacks] 附加中毒层数
  * @property {string|null} [textureKey] 显式 Phaser 纹理键（优先于 image 的箭头回退）
+ * @property {boolean} [rotateWithVelocity] 定向弹体显式跟随弹道；默认保留球形贴图朝向
+ * @property {number|null} [displaySize] 显示画布边长，独立于碰撞直径 size
  * @property {number} [depthBonus] 深度加成（叠加在 y+12 之上，用于保证贴图层级不被遮挡）
  * @property {number} [z] 发射高度
  * @property {number} [targetZ] 瞄准高度
@@ -75,6 +77,8 @@ export const ProjectileFactory = {
             poisonChance = 0,
             poisonStacks = 1,
             textureKey = null,
+            rotateWithVelocity = false,
+            displaySize = null,
             depthBonus = 0,
             z = null,
             targetZ = null,
@@ -163,6 +167,8 @@ export const ProjectileFactory = {
             p.poisonStacks = poisonStacks;
             // 始终重置，防止对象池复用时残留上一发投射物的击退/纹理键/深度加成/清理回调
             p.textureKey = textureKey;
+            p.rotateWithVelocity = rotateWithVelocity === true;
+            p.displaySize = Number.isFinite(displaySize) && displaySize > 0 ? displaySize : null;
             p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
             p.damageFalloff = damageFalloff ? { ...damageFalloff } : null;
@@ -199,6 +205,8 @@ export const ProjectileFactory = {
             p.damageFalloff = damageFalloff ? { ...damageFalloff } : null;
             p.playerGunWallSparks = playerGunWallSparks === true;
             p.isPurple = isPurple;
+            p.rotateWithVelocity = rotateWithVelocity === true;
+            p.displaySize = Number.isFinite(displaySize) && displaySize > 0 ? displaySize : null;
             p.isCrimson = isCrimson;
             p.isCyan = isCyan;
             p._onFirstHit = typeof onFirstHit === 'function' ? onFirstHit : null;

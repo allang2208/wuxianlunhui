@@ -1,0 +1,31 @@
+{
+  "asset": "ossuary-caster",
+  "action": "attacking",
+  "selectedVideo": "h3-attack-power-v02/videos/ossuary-attack-h3-v02.mp4",
+  "acceptedMotionVideo": "h3-attack-power-v02/videos/ossuary-attack-h3-v02.mp4",
+  "userFeedback": "蓄力、转肩后甩出的发力方式 我觉得可以了，换边也问题不大。",
+  "preserveMotion": true,
+  "handSideChangeAccepted": true,
+  "reviewHistory": [
+    {
+      "video": "ossuary-caster/videos/attacking-doubao-v01.mp4",
+      "status": "rejected_for_revision",
+      "reason": "Hand switched during wind-up and fingertips reached the frame edge; user agreed to regenerate."
+    },
+    {
+      "video": "h3-completion-v01/videos/ossuary-attack-h3-v01.mp4",
+      "status": "rejected_by_user",
+      "reason": "Throw lacks force and looks like a casual toss. User explicitly requested another version."
+    },
+    {
+      "video": "h3-attack-power-v02/videos/ossuary-attack-h3-v02.mp4",
+      "status": "motion_and_hand_change_accepted",
+      "reason": "User approved the wind-up, shoulder turn and forceful release, and explicitly accepted the hand-side change. Preserve this motion; do not regenerate to correct the side change. Raised-hand top-edge cropping around frame 43 remains a source note, not explicitly accepted or resolved by this feedback."
+    }
+  ],
+  "currentRevision": "h3-attack-power-v02/manifest.json",
+  "acceptance": "Power v02 motion and hand-side change are accepted. This source is now selected and integrated by the explicit runtime integration request. Preserve the original motion. Top-edge clipping remains unresolved and is not claimed accepted or reconstructed; runtime verification is pending.",
+  "status": "selected_and_integrated_pending_runtime_test",
+  "integrationAuthorization": "注意大小统一、优化插帧、接入游戏，参考其他同级怪物设计数值，完善动作状态机",
+  "runtimeManifest": "remaining-sprite-build-v01/runtime-manifest.json"
+}

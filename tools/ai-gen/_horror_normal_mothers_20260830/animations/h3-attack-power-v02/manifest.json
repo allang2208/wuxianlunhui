@@ -1,0 +1,36 @@
+{
+  "provider": "minimax-h3-local",
+  "authorization": "User rejected the first H3 attack as a casual toss and explicitly requested another version with forceful throwing power.",
+  "host": "192.168.3.142:8188",
+  "parameters": {
+    "size": "1024x576",
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "candidates": 1,
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "scope": "One attack revision only; other batch continues independently.",
+  "replacesCandidate": "../h3-completion-v01/videos/ossuary-attack-h3-v01.mp4",
+  "referenceSource": "../h3-completion-v01/references/03-ossuary-caster-v02.png",
+  "jobs": [
+    {
+      "id": "ossuary-attack-power",
+      "asset": "ossuary-caster",
+      "action": "attacking",
+      "mode": "recover",
+      "reference": "references/ossuary-power-first.png",
+      "prompt": "prompts/ossuary-attack-power.txt",
+      "video": "videos/ossuary-attack-h3-v02.mp4",
+      "status": "downloaded_candidate_awaiting_user_review",
+      "seed": 202608310,
+      "startedAt": "2026-08-30T06:35:34.557771+00:00",
+      "log": "logs/ossuary-attack-power.log",
+      "preview": "previews/ossuary-attack-power-source.gif",
+      "reviewStatus": "motion_and_hand_change_accepted",
+      "reviewReason": "User approved the wind-up, shoulder turn and forceful release, and explicitly accepted the hand-side change. Preserve this motion; do not regenerate to correct the side change. Raised-hand top-edge cropping around frame 43 remains a source note, not explicitly accepted or resolved by this feedback."
+    }
+  ],
+  "downloadedCount": 1
+}

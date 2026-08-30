@@ -1,0 +1,72 @@
+{
+  "asset": "ossuary-caster/bone-dart",
+  "status": "integrated_pending_user_runtime_test",
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "generator": "built-in image_gen",
+  "reference": "../../mother/03-ossuary-caster-v02.png",
+  "source": "bone-dart-source-v02.png",
+  "sourceAncestor": "bone-dart-source-v01.png",
+  "prompts": [
+    "prompt-v01.txt",
+    "prompt-v02-alpha.txt"
+  ],
+  "generationFiles": [
+    "C:/Users/allan/.codex/generated_images/01a050f5-cf67-7012-b82a-6534d2e91b0e/exec-58d980f7-ce45-41d0-8e42-a4ad67908a6c.png",
+    "C:/Users/allan/.codex/generated_images/01a050f5-cf67-7012-b82a-6534d2e91b0e/exec-4ca4048a-912d-462e-aae1-b1e82be72592.png"
+  ],
+  "cutout": {
+    "entrypoint": "tools/ai-gen/ai-asset.py cutout",
+    "model": "BiRefNet-general",
+    "mask": "bone-dart-mask-v01.png",
+    "alphaCutoff": 8
+  },
+  "transparentSource": "bone-dart-transparent-v01.png",
+  "output": "bone-dart-256-v01.png",
+  "canvas": [
+    256,
+    256
+  ],
+  "contentBounds": [
+    16,
+    107,
+    240,
+    148
+  ],
+  "sourceContentBounds": [
+    166,
+    346,
+    1504,
+    589
+  ],
+  "contentSize": [
+    224,
+    41
+  ],
+  "tipDirection": "right",
+  "origin": [
+    0.5,
+    0.5
+  ],
+  "axis": "+X",
+  "rotationOffsetRadians": 0,
+  "transparentPixels": 58038,
+  "notes": [
+    "Both imagegen outputs were RGB; transparency comes from the separate BiRefNet mask.",
+    "One static projectile; no baked trail, glow, spin or motion blur.",
+    "Integrated with accepted H3 power-v02 attack; independent display/collision size, velocity-facing, no homing or piercing. Runtime verification pending."
+  ],
+  "runtimePath": "assets/enemies/ossuary_caster/projectile.png",
+  "runtimeTextureKey": "enemy_ossuary_caster_projectile",
+  "integrationAuthorization": "注意大小统一、优化插帧、接入游戏，参考其他同级怪物设计数值，完善动作状态机",
+  "runtime": {
+    "displaySize": 24,
+    "collisionRadius": 3,
+    "factorySizeDiameter": 6,
+    "projectileSpeed": 560,
+    "projectileRange": 520,
+    "releaseSourceFrame": 44,
+    "releaseRuntimeFrame": 38,
+    "runtimeVerified": false
+  }
+}

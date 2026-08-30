@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T06:44:16.879145+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\videos\\knell-walk-h3-v01.mp4",
+    "bytes": 536862,
+    "sha256": "bb4f354feb2a7f7af1a181a3073676ff8e2a5055ea02dfd41b0427e50c86b637"
+  },
+  "promptId": "71a62a73-f7e1-4cb2-bce1-640e29b29aa4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 202608301,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A single original eldritch game creature, realistic PBR materials and subdued natural wear, exactly matching the supplied first frame. Locked camera, constant orthographic-looking three-quarter view facing screen right. One continuous 5.17-second shot. Preserve the provided actor scale, body proportions, material colors and limb count. The whole actor stays fully inside the frame with wide clear margins; do not zoom to fill the blank space. Feet remain anchored to the same central ground position except for the specified in-place steps or collapse. Flat uniform pure white background identical to the first frame, with no set, horizon, shadow, reflection, particles, captions or other characters. Preserve rigid equipment and coherent fingers. No audio is needed.\n\nThe same hunched creature with a single dark weathered bronze bell-shaped torso, an open hollow bell mouth, small hooded wrapped head, two thin arms and two bent legs. The bronze bell is a rigid integral part of its body. Preserve the short ivory bone striker in its original hand, which is the hand initially on SCREEN LEFT at the bell rim. The other hand hangs empty on SCREEN RIGHT. Do not swap hands, detach the bell, add chains or deform the shell.\nPerform a continuous heavy IN-PLACE walking cycle facing screen right. Clearly alternate lifting and planting the two feet with small steps, bent knees and restrained weight shifts. Keep the body root in the same central screen position. Hold the bone striker steadily in the original hand; the empty arm swings slightly. The bell tilts a little as a single rigid object but never stretches, flattens or touches the floor. Do not strike the bell or travel across the screen. Complete alternating steps and smoothly return to the exact supplied end-frame pose and position, without a freeze at the loop seam.",
+  "effectivePrompt": "A single original eldritch game creature, realistic PBR materials and subdued natural wear, exactly matching the supplied first frame. Locked camera, constant orthographic-looking three-quarter view facing screen right. One continuous 5.17-second shot. Preserve the provided actor scale, body proportions, material colors and limb count. The whole actor stays fully inside the frame with wide clear margins; do not zoom to fill the blank space. Feet remain anchored to the same central ground position except for the specified in-place steps or collapse. Flat uniform pure white background identical to the first frame, with no set, horizon, shadow, reflection, particles, captions or other characters. Preserve rigid equipment and coherent fingers. No audio is needed.\n\nThe same hunched creature with a single dark weathered bronze bell-shaped torso, an open hollow bell mouth, small hooded wrapped head, two thin arms and two bent legs. The bronze bell is a rigid integral part of its body. Preserve the short ivory bone striker in its original hand, which is the hand initially on SCREEN LEFT at the bell rim. The other hand hangs empty on SCREEN RIGHT. Do not swap hands, detach the bell, add chains or deform the shell.\nPerform a continuous heavy IN-PLACE walking cycle facing screen right. Clearly alternate lifting and planting the two feet with small steps, bent knees and restrained weight shifts. Keep the body root in the same central screen position. Hold the bone striker steadily in the original hand; the empty arm swings slightly. The bell tilts a little as a single rigid object but never stretches, flattens or touches the floor. Do not strike the bell or travel across the screen. Complete alternating steps and smoothly return to the exact supplied end-frame pose and position, without a freeze at the loop seam.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A single original eldritch game creature, realistic PBR materials and subdued natural wear, exactly matching the supplied first frame. Locked camera, constant orthographic-looking three-quarter view facing screen right. One continuous 5.17-second shot. Preserve the provided actor scale, body proportions, material colors and limb count. The whole actor stays fully inside the frame with wide clear margins; do not zoom to fill the blank space. Feet remain anchored to the same central ground position except for the specified in-place steps or collapse. Flat uniform pure white background identical to the first frame, with no set, horizon, shadow, reflection, particles, captions or other characters. Preserve rigid equipment and coherent fingers. No audio is needed.\n\nThe same hunched creature with a single dark weathered bronze bell-shaped torso, an open hollow bell mouth, small hooded wrapped head, two thin arms and two bent legs. The bronze bell is a rigid integral part of its body. Preserve the short ivory bone striker in its original hand, which is the hand initially on SCREEN LEFT at the bell rim. The other hand hangs empty on SCREEN RIGHT. Do not swap hands, detach the bell, add chains or deform the shell.\nPerform a continuous heavy IN-PLACE walking cycle facing screen right. Clearly alternate lifting and planting the two feet with small steps, bent knees and restrained weight shifts. Keep the body root in the same central screen position. Hold the bone striker steadily in the original hand; the empty arm swings slightly. The bell tilts a little as a single rigid object but never stretches, flattens or touches the floor. Do not strike the bell or travel across the screen. Complete alternating steps and smoothly return to the exact supplied end-frame pose and position, without a freeze at the loop seam. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "980b45b872c6a5714c9ef316249d3e4deea677527fa4e90bb07d09fc51c22e9e",
+  "effectivePromptSha256": "980b45b872c6a5714c9ef316249d3e4deea677527fa4e90bb07d09fc51c22e9e",
+  "finalPromptSha256": "d8ec9e058cfa79eae4abbcb9ec66f8a83073ce2d81fe1602cb01e02ab6e21057",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\prompts\\knell-walk.txt",
+      "bytes": 1837,
+      "sha256": "ec4707cbac7cdcb8ead7b703da01b5f5ecbcdb9a53641d4b7c811e59b89ed8f9"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\references\\04-knell-attendant-v01.png",
+      "bytes": 224439,
+      "sha256": "d86182e094574ce072335b33234086e0f361977bf483314998fbb0eb6e9c8492"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\references\\04-knell-attendant-v01.png",
+      "bytes": 224439,
+      "sha256": "d86182e094574ce072335b33234086e0f361977bf483314998fbb0eb6e9c8492"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\videos\\knell-walk-h3-v01_contact.png",
+    "bytes": 280111,
+    "sha256": "6da31091333f79f2334c2831b6c6cd82e4d036ad9d49a707d2736344dc46de55"
+  },
+  "elapsedSeconds": 671.579
+}

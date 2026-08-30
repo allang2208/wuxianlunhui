@@ -1,0 +1,50 @@
+{
+  "id": "shroud-thrall",
+  "profile": "crowd",
+  "runtimeIntegrationActive": true,
+  "estimatedRgbaMiB": 50.50542449951172,
+  "dependencies": [],
+  "sheets": [
+    {
+      "textureKey": "enemy_shroud_thrall_idle",
+      "path": "assets/enemies/shroud_thrall/idle.png",
+      "frameWidth": 118,
+      "frameHeight": 226,
+      "frameCount": 34,
+      "endFrame": 33,
+      "footX": 59.261146496815286,
+      "footY": 217.56687898089172
+    },
+    {
+      "textureKey": "enemy_shroud_thrall_walk",
+      "path": "assets/enemies/shroud_thrall/walk.png",
+      "frameWidth": 158,
+      "frameHeight": 235,
+      "frameCount": 60,
+      "endFrame": 59,
+      "footX": 79.26114649681529,
+      "footY": 219.56687898089172
+    },
+    {
+      "textureKey": "enemy_shroud_thrall_attack",
+      "path": "assets/enemies/shroud_thrall/attack.png",
+      "frameWidth": 250,
+      "frameHeight": 234,
+      "frameCount": 107,
+      "endFrame": 106,
+      "footX": 125.26114649681529,
+      "footY": 216.56687898089172
+    },
+    {
+      "textureKey": "enemy_shroud_thrall_death",
+      "path": "assets/enemies/shroud_thrall/death.png",
+      "frameWidth": 258,
+      "frameHeight": 233,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 129.2611464968153,
+      "footY": 216.56687898089172
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "1:1",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\mother\\01-shroud-thrall-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\shroud-thrall\\prompts\\dying-v01.txt",
+  "promptChars": 568,
+  "promptSha256": "42b7b3903633c3b7253fc2393f1e20e6af787097da6eb0657b8b933f15e5fed2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-30T05:57:41.127Z",
+  "sourceUrlScheme": "https"
+}

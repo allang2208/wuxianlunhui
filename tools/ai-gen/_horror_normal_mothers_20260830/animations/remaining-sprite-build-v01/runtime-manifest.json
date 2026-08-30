@@ -1,0 +1,108 @@
+{
+  "status": "installed_pending_user_runtime_test",
+  "authorization": "注意大小统一、优化插帧、接入游戏，参考其他同级怪物设计数值，完善动作状态机",
+  "reference": {
+    "id": "minerZombie",
+    "bodySourceHeight": 274,
+    "bodyDisplayHeight": 139.515234375,
+    "collisionRadius": 36.3
+  },
+  "testsRun": false,
+  "runtimeVerified": false,
+  "codeReviewFixes": {
+    "status": "implemented_pending_user_runtime_test",
+    "scope": ["coffinWard", "shroudThrall", "ossuaryCaster", "knellAttendant"],
+    "items": [
+      "Refresh the current action foot offset before the scene positions the sprite, including externally selected idle states.",
+      "Keep fading corpses visible, synchronized, depth-sorted and resident until fade completion."
+    ],
+    "files": [
+      "src/entities/enemy-types/_shared/horror-normal-enemy.js",
+      "src/entities/enemy-types/coffin-ward.js",
+      "src/phaser/scenes/GameScene.js",
+      "src/phaser/assets/runtime-asset-manager.js"
+    ],
+    "testsRun": false,
+    "runtimeVerified": false
+  },
+  "actors": [
+    {
+      "id": "shroudThrall",
+      "name": "裹尸囚徒",
+      "manifest": "remaining-sprite-build-v01/shroud-thrall/sprite-manifest.json",
+      "spriteSize": 171.7110576923077,
+      "bodyDisplayHeight": 139.515234375,
+      "rgbaMiB": 50.50542449951172,
+      "eventFrame": 50,
+      "sourceEventFrame": 50,
+      "eventMs": 2083.333333333332,
+      "overviewGif": "remaining-sprite-build-v01/shroud-thrall/previews/final/four-actions.gif",
+      "sourceLimitations": [
+        "Source motion and side changes retained; no retiming."
+      ]
+    },
+    {
+      "id": "ossuaryCaster",
+      "name": "掷骨殓徒",
+      "manifest": "remaining-sprite-build-v01/ossuary-caster/sprite-manifest.json",
+      "spriteSize": 171.7110576923077,
+      "bodyDisplayHeight": 139.515234375,
+      "rgbaMiB": 55.54948425292969,
+      "eventFrame": 38,
+      "sourceEventFrame": 44,
+      "eventMs": 1833.3333333333326,
+      "overviewGif": "remaining-sprite-build-v01/ossuary-caster/previews/final/four-actions.gif",
+      "sourceLimitations": [
+        "Source motion and side changes retained; no retiming.",
+        "Raised hand at source f43-44 reaches top edge; original clipping is retained, not claimed reconstructed."
+      ]
+    },
+    {
+      "id": "knellAttendant",
+      "name": "缚钟侍者",
+      "manifest": "remaining-sprite-build-v01/knell-attendant/sprite-manifest.json",
+      "spriteSize": 171.7110576923077,
+      "bodyDisplayHeight": 139.515234375,
+      "rgbaMiB": 41.213661193847656,
+      "eventFrame": 50,
+      "sourceEventFrame": 50,
+      "eventMs": 2083.333333333332,
+      "overviewGif": "remaining-sprite-build-v01/knell-attendant/previews/final/four-actions.gif",
+      "sourceLimitations": [
+        "Source motion and side changes retained; no retiming."
+      ]
+    }
+  ],
+  "poolEdits": [
+    {
+      "file": "data/dungeon-config.json",
+      "section": "zombieDungeon",
+      "pools": 2
+    },
+    {
+      "file": "data/dungeon-config.json",
+      "section": "zombieDungeonBeginner",
+      "pools": 3
+    },
+    {
+      "file": "data/dungeon-config.json",
+      "section": "zombieDungeonMid",
+      "pools": 3
+    },
+    {
+      "file": "public/data/dungeon-config.json",
+      "section": "zombieDungeon",
+      "pools": 2
+    },
+    {
+      "file": "public/data/dungeon-config.json",
+      "section": "zombieDungeonBeginner",
+      "pools": 3
+    },
+    {
+      "file": "public/data/dungeon-config.json",
+      "section": "zombieDungeonMid",
+      "pools": 3
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "1:1",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\mother\\03-ossuary-caster-v02.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\ossuary-caster\\prompts\\dying-v01.txt",
+  "promptChars": 554,
+  "promptSha256": "9392042324643e8f224a1df0901afa4511f0d0236a561f9b87ab8191a9619cb5",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-30T06:07:41.037Z",
+  "sourceUrlScheme": "https"
+}

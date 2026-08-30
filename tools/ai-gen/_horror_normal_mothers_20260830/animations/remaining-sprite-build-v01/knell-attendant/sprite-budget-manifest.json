@@ -1,0 +1,50 @@
+{
+  "id": "knell-attendant",
+  "profile": "crowd",
+  "runtimeIntegrationActive": true,
+  "estimatedRgbaMiB": 41.213661193847656,
+  "dependencies": [],
+  "sheets": [
+    {
+      "textureKey": "enemy_knell_attendant_idle",
+      "path": "assets/enemies/knell_attendant/idle.png",
+      "frameWidth": 138,
+      "frameHeight": 226,
+      "frameCount": 40,
+      "endFrame": 39,
+      "footX": 69.82380216383308,
+      "footY": 217.50231839258115
+    },
+    {
+      "textureKey": "enemy_knell_attendant_walk",
+      "path": "assets/enemies/knell_attendant/walk.png",
+      "frameWidth": 148,
+      "frameHeight": 235,
+      "frameCount": 48,
+      "endFrame": 47,
+      "footX": 74.62227602905568,
+      "footY": 222.30508474576274
+    },
+    {
+      "textureKey": "enemy_knell_attendant_attack",
+      "path": "assets/enemies/knell_attendant/attack.png",
+      "frameWidth": 172,
+      "frameHeight": 226,
+      "frameCount": 109,
+      "endFrame": 108,
+      "footX": 86.62227602905568,
+      "footY": 217.30508474576274
+    },
+    {
+      "textureKey": "enemy_knell_attendant_death",
+      "path": "assets/enemies/knell_attendant/death.png",
+      "frameWidth": 246,
+      "frameHeight": 233,
+      "frameCount": 63,
+      "endFrame": 62,
+      "footX": 123.62227602905568,
+      "footY": 216.30508474576274
+    }
+  ],
+  "version": 1
+}
