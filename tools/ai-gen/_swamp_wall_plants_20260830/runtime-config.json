@@ -1,0 +1,242 @@
+{
+  "version": 1,
+  "enabled": true,
+  "source": "tools/ai-gen/_swamp_wall_plants_20260830/manifest.json",
+  "density": 0.72,
+  "spacing": 260,
+  "torchClearance": 150,
+  "repeatDistance": 400,
+  "maxPerRoom": 5,
+  "maxPerPassage": 1,
+  "maxTotal": 20,
+  "mountHeight": 68,
+  "faceOffset": {
+    "x": 40,
+    "y": 20
+  },
+  "gateClearance": 130,
+  "cornerClearance": 90,
+  "skipBlocks": [],
+  "assets": [
+    {
+      "id": "shelf_fungus",
+      "labelZh": "青荧壁菌",
+      "weight": 1,
+      "glow": {
+        "color": 7986354,
+        "radius": 82,
+        "alpha": 0.15,
+        "coreRadius": 22,
+        "coreAlpha": 0.18,
+        "flicker": 0.035,
+        "pulsePeriodMs": 2600
+      },
+      "views": {
+        "down": {
+          "key": "swamp_wall_plant_shelf_fungus_down",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_shelf_fungus_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.4647683,
+            0.7520103
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_shelf_fungus_down.png"
+        },
+        "up": {
+          "key": "swamp_wall_plant_shelf_fungus_up",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_shelf_fungus_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.5352317,
+            0.7520103
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_shelf_fungus_up.png"
+        }
+      }
+    },
+    {
+      "id": "lantern_vine",
+      "labelZh": "灯笼果藤",
+      "weight": 1,
+      "glow": {
+        "color": 14409094,
+        "radius": 88,
+        "alpha": 0.14,
+        "coreRadius": 22,
+        "coreAlpha": 0.18,
+        "flicker": 0.035,
+        "pulsePeriodMs": 2600
+      },
+      "views": {
+        "down": {
+          "key": "swamp_wall_plant_lantern_vine_down",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_lantern_vine_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.4724752,
+            0.7941374
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_lantern_vine_down.png"
+        },
+        "up": {
+          "key": "swamp_wall_plant_lantern_vine_up",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_lantern_vine_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.5275248,
+            0.7941374
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_lantern_vine_up.png"
+        }
+      }
+    },
+    {
+      "id": "star_fern",
+      "labelZh": "星芒蕨",
+      "weight": 1,
+      "glow": {
+        "color": 10606977,
+        "radius": 80,
+        "alpha": 0.14,
+        "coreRadius": 22,
+        "coreAlpha": 0.18,
+        "flicker": 0.035,
+        "pulsePeriodMs": 2600
+      },
+      "views": {
+        "down": {
+          "key": "swamp_wall_plant_star_fern_down",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_star_fern_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.4735762,
+            0.735397
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_star_fern_down.png"
+        },
+        "up": {
+          "key": "swamp_wall_plant_star_fern_up",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_star_fern_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.5264238,
+            0.735397
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_star_fern_up.png"
+        }
+      }
+    },
+    {
+      "id": "dew_bells",
+      "labelZh": "垂露花",
+      "weight": 1,
+      "glow": {
+        "color": 9362400,
+        "radius": 84,
+        "alpha": 0.15,
+        "coreRadius": 22,
+        "coreAlpha": 0.18,
+        "flicker": 0.035,
+        "pulsePeriodMs": 2600
+      },
+      "views": {
+        "down": {
+          "key": "swamp_wall_plant_dew_bells_down",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_dew_bells_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.4669703,
+            0.7887902
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_dew_bells_down.png"
+        },
+        "up": {
+          "key": "swamp_wall_plant_dew_bells_up",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_dew_bells_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.5330297,
+            0.7887902
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_dew_bells_up.png"
+        }
+      }
+    },
+    {
+      "id": "firefly_moss",
+      "labelZh": "萤芽苔",
+      "weight": 1,
+      "glow": {
+        "color": 10345386,
+        "radius": 76,
+        "alpha": 0.14,
+        "coreRadius": 22,
+        "coreAlpha": 0.18,
+        "flicker": 0.035,
+        "pulsePeriodMs": 2600
+      },
+      "views": {
+        "down": {
+          "key": "swamp_wall_plant_firefly_moss_down",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_firefly_moss_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.4735762,
+            0.7489287
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_firefly_moss_down.png"
+        },
+        "up": {
+          "key": "swamp_wall_plant_firefly_moss_up",
+          "src": "assets/terrain/swamp-wall-plants/swamp_wall_plant_firefly_moss_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "lightOrigin": [
+            0.5264238,
+            0.7489287
+          ],
+          "displayWidth": 307.2,
+          "source": "swamp_wall_plant_firefly_moss_up.png"
+        }
+      }
+    }
+  ]
+}

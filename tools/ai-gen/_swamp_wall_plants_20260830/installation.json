@@ -1,0 +1,7 @@
+{
+  "developmentInstalled": true,
+  "fixedExeUpdated": false,
+  "userRequest": "墙壁小物同步生成五个，可以帮我做点发光植物挂上去形成光源",
+  "runtimeAcceptance": "pending user test",
+  "config": "data/swamp-wall-plants.json"
+}

@@ -1,5 +1,6 @@
 import { WallSystem, ISO_WALL_GEO } from './wall-system.js';
 import mineWallDecorConfig from '../../data/abandoned-mine-wall-decor.json';
+import swampWallPlantConfig from '../../data/swamp-wall-plants.json';
 
 // 旧 obstacle_torch 原图 144×278：金属背板挂点与燃烧杯中心，不能把画布中心当火源。
 const MOUNT = { x: 120, y: 128 };
@@ -68,10 +69,12 @@ export const DungeonWallTorchSystem = {
     spawn({ rooms = [], corridors = [], gates = [], avoidPoints = [] } = {}) {
         this.clear();
         const style = WallSystem.getWallStyle();
-        const cfg = style?.wallTorches;
+        const plantCfg = style?.wallDecorations === 'swampGlowPlants' ? swampWallPlantConfig : null;
+        const cfg = plantCfg || style?.wallTorches;
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         const torch = ISO_WALL_GEO.torch;
-        if (!cfg?.enabled || !scene?.textures.exists(torch.tex)) return 0;
+        if (!cfg?.enabled || !scene) return 0;
+        if (!plantCfg && !scene.textures.exists(torch.tex)) return 0;
         const blocks = new Set(style.blocks || [style.block]);
         const pieces = WallSystem.isoVisuals.filter((piece) => piece._gridBlockWall
             && blocks.has(piece._gridBlockVariant));
@@ -111,22 +114,24 @@ export const DungeonWallTorchSystem = {
         candidates.sort((a, b) => a.hash - b.hash || a.center.y - b.center.y || a.center.x - b.center.x);
         this._scene = scene;
         scene.events.once('shutdown', this.clear, this);
-        scene._ensureImpactDotTexture?.();
-        for (const candidate of candidates) {
-            if (this._records.length >= cfg.maxTotal) break;
-            if (candidate.region.count >= candidate.region.limit) continue;
-            if (this._records.some((record) => distance(record.center, candidate.center) < cfg.spacing)) continue;
-            this._place(candidate, cfg, torch);
-            candidate.region.count++;
+        // 沼泽只生成植物，不能因复用生命周期而混入矿洞火把/火焰粒子。
+        if (!plantCfg) {
+            scene._ensureImpactDotTexture?.();
+            for (const candidate of candidates) {
+                if (this._records.length >= cfg.maxTotal) break;
+                if (candidate.region.count >= candidate.region.limit) continue;
+                if (this._records.some((record) => distance(record.center, candidate.center) < cfg.spacing)) continue;
+                this._place(candidate, cfg, torch);
+                candidate.region.count++;
+            }
         }
         // 火把先完成，挂饰仅填剩余净空，保持已有火把的位置和数量。
-        if (style.wallDecorations) this._placeDecorations(candidates);
+        if (style.wallDecorations) this._placeDecorations(candidates, plantCfg || mineWallDecorConfig);
         return this._records.length;
     },
 
-    _placeDecorations(candidates) {
+    _placeDecorations(candidates, cfg) {
         const scene = this._scene;
-        const cfg = mineWallDecorConfig;
         const counts = new Map();
         let total = 0;
         const sorted = candidates.map((candidate) => ({ ...candidate,
@@ -163,7 +168,26 @@ export const DungeonWallTorchSystem = {
                 .setDepth(piece.depth + 0.12);
             // 两个墙向分别建模渲染，禁止再水平镜像烘焙光照。
             scene.worldEffectsGroup?.add(body);
-            this._records.push({ center, body, emitter: null, glowKeys: [], decorationId: asset.id });
+            const glowKeys = [];
+            if (asset.glow) {
+                // 发光器官与挂点均来自同一模型投影，不能把挂点当光源中心。
+                const lightX = body.x + (view.lightOrigin[0] - view.origin[0]) * view.displayWidth;
+                const lightY = body.y + (view.lightOrigin[1] - view.origin[1]) * view.displayWidth;
+                const key = `dungeon-wall-plant:${asset.id}:${coordinateKey(center)}`;
+                for (const [suffix, radius, alpha] of [
+                    ['wash', asset.glow.radius, asset.glow.alpha],
+                    ['core', asset.glow.coreRadius, asset.glow.coreAlpha],
+                ]) {
+                    const glowKey = `${key}:${suffix}`;
+                    const glow = scene.registerEnvironmentGlow?.(glowKey, lightX, lightY, {
+                        color: asset.glow.color, radius, alpha, depth: piece.depth + 0.07,
+                        flicker: asset.glow.flicker, pulsePeriodMs: asset.glow.pulsePeriodMs + decorHash % 700,
+                    });
+                    if (glow) glow.setAlpha(0); // 后续同步遵守局部光源设置、迷雾与地图模式。
+                    glowKeys.push(glowKey);
+                }
+            }
+            this._records.push({ center, body, emitter: null, glowKeys, decorationId: asset.id });
             counts.set(region, (counts.get(region) || 0) + 1);
             total++;
         }
@@ -220,7 +244,7 @@ export const DungeonWallTorchSystem = {
         if (!scene) return;
         for (let i = this._records.length - 1; i >= 0; i--) {
             const record = this._records[i];
-            // 通用场景实体清理也会销毁worldEffectsGroup，及时摘除配对暖光。
+            // 通用场景实体清理也会销毁worldEffectsGroup，及时摘除配对光源。
             if (!record.body.scene) {
                 record.glowKeys.forEach((key) => scene.unregisterEnvironmentGlow?.(key));
                 if (record.emitter?.scene) record.emitter.destroy();

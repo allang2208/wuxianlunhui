@@ -134,6 +134,7 @@ const ISO_WALL_STYLES = {
         blockVariantHashShift: 8,
         allowBlockFlipX: false,
         gate: 'swamp_stone_gate',
+        wallDecorations: 'swampGlowPlants',
         gateSound: 'assets/sounds/environment/swamp_gate.mp3',
     },
     // 恶魔洞窟（C 级，2026-08-11）：矿洞岩壁 + 铁闸门。corners 待 demon 转角预制就绪后登记

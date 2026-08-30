@@ -18,6 +18,7 @@ import dungeonTerrainConfig from '../../../data/dungeon-terrain.json';
 import swampDungeonTerrainConfig from '../../../data/swamp-dungeon-terrain.json';
 import abandonedMineTerrainConfig from '../../../data/abandoned-mine-terrain.json';
 import mineWallDecorConfig from '../../../data/abandoned-mine-wall-decor.json';
+import swampWallPlantConfig from '../../../data/swamp-wall-plants.json';
 import roadsideDecorationConfig from '../../../data/roadside-decorations.json';
 import enemyConfigData from '../../../data/enemy-config.json';
 import {
@@ -336,6 +337,9 @@ export class BootScene extends Scene {
         this.load.image('obstacle_chains', 'assets/terrain/obstacle_chains.png');
         this.load.image('obstacle_torch', 'assets/terrain/obstacle_torch.png');
         for (const asset of mineWallDecorConfig.assets) {
+            for (const view of Object.values(asset.views)) this.load.image(view.key, view.src);
+        }
+        for (const asset of swampWallPlantConfig.assets) {
             for (const view of Object.values(asset.views)) this.load.image(view.key, view.src);
         }
         this.load.image('obstacle_bottle1', 'assets/terrain/obstacle_bottle1.png');

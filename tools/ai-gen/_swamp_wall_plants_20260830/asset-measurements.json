@@ -1,0 +1,135 @@
+{
+  "kind": "offline source alpha measurements only",
+  "views": [
+    {
+      "key": "swamp_wall_plant_shelf_fungus_down",
+      "alphaBBox": [
+        198,
+        348,
+        279,
+        423
+      ],
+      "displayBodySize": [
+        48.6,
+        45.0
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_shelf_fungus_up",
+      "alphaBBox": [
+        227,
+        331,
+        311,
+        428
+      ],
+      "displayBodySize": [
+        50.4,
+        58.2
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_lantern_vine_down",
+      "alphaBBox": [
+        206,
+        322,
+        287,
+        451
+      ],
+      "displayBodySize": [
+        48.6,
+        77.4
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_lantern_vine_up",
+      "alphaBBox": [
+        227,
+        321,
+        308,
+        452
+      ],
+      "displayBodySize": [
+        48.6,
+        78.6
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_star_fern_down",
+      "alphaBBox": [
+        193,
+        337,
+        286,
+        411
+      ],
+      "displayBodySize": [
+        55.8,
+        44.4
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_star_fern_up",
+      "alphaBBox": [
+        226,
+        337,
+        319,
+        411
+      ],
+      "displayBodySize": [
+        55.8,
+        44.4
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_dew_bells_down",
+      "alphaBBox": [
+        203,
+        331,
+        284,
+        443
+      ],
+      "displayBodySize": [
+        48.6,
+        67.2
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_dew_bells_up",
+      "alphaBBox": [
+        228,
+        331,
+        309,
+        442
+      ],
+      "displayBodySize": [
+        48.6,
+        66.6
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_firefly_moss_down",
+      "alphaBBox": [
+        211,
+        342,
+        277,
+        445
+      ],
+      "displayBodySize": [
+        39.6,
+        61.8
+      ]
+    },
+    {
+      "key": "swamp_wall_plant_firefly_moss_up",
+      "alphaBBox": [
+        235,
+        341,
+        300,
+        445
+      ],
+      "displayBodySize": [
+        39.0,
+        62.4
+      ]
+    }
+  ]
+}
