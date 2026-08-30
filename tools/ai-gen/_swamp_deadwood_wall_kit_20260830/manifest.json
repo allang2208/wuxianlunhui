@@ -1,0 +1,37 @@
+{
+  "stage": "user accepted current four fine-twig wall variants and assembly preview; runtime acceptance pending",
+  "visualAcceptance": {
+    "status": "accepted",
+    "date": "2026-08-30",
+    "userStatement": "用这一版本",
+    "runtimeRegistryVersion": 5
+  },
+  "runtimeInstalled": true,
+  "model": "swamp_deadwood_wall_kit.blend",
+  "builder": "tools/ai-gen/build-swamp-living-wall-kit.py",
+  "composer": "tools/ai-gen/compose-swamp-living-wall-kit.py",
+  "sourceType": "new native Blender geometry and procedural PBR",
+  "walls": [
+    "swamp_living_block_a",
+    "swamp_living_block_b",
+    "swamp_living_block_c",
+    "swamp_living_block_d"
+  ],
+  "gate": "assets/terrain/swamp_stone_gate.png",
+  "gatePolicy": "accepted bilateral growth gate reused byte-for-byte; not written by this builder/composer",
+  "reference": "assets/terrain/swamp_wall_straight.png; visual reference only, no pixels reused",
+  "variantSeeds": [
+    831011,
+    831077,
+    831149,
+    831233
+  ],
+  "maxBaseTwigRadius": 0.042,
+  "previews": [
+    "deadwood-wall-variants.jpg",
+    "deadwood-wall-overview.jpg",
+    "deadwood-wall-floor-context.jpg",
+    "deadwood-wall-vine-gate.gif"
+  ],
+  "scope": "wall appearance only; footprint, collision, doors, gameplay and fixed EXE unchanged"
+}

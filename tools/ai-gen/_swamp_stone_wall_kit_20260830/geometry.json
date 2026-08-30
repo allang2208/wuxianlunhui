@@ -1,0 +1,292 @@
+{
+  "version": 1,
+  "walls": [
+    {
+      "key": "swamp_stone_block_a",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13,
+      "modelCore": [
+        2.12,
+        2.12,
+        3.04
+      ]
+    },
+    {
+      "key": "swamp_stone_block_b",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13,
+      "modelCore": [
+        2.12,
+        2.12,
+        3.04
+      ]
+    },
+    {
+      "key": "swamp_stone_block_c",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13,
+      "modelCore": [
+        2.12,
+        2.12,
+        3.04
+      ]
+    },
+    {
+      "key": "swamp_stone_block_d",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13,
+      "modelCore": [
+        2.12,
+        2.12,
+        3.04
+      ]
+    }
+  ],
+  "gate": {
+    "key": "swamp_stone_gate",
+    "canvas": [
+      640,
+      640
+    ],
+    "frames": 16,
+    "base": [
+      [
+        32.0003,
+        299.9994
+      ],
+      [
+        608.0002,
+        588.0004
+      ]
+    ],
+    "face": [
+      [
+        32.0003,
+        299.9994
+      ],
+      [
+        608.0002,
+        588.0004
+      ]
+    ],
+    "gateX": [
+      32,
+      608
+    ],
+    "wallH": 227.1078,
+    "slope": 0.5,
+    "halfThick": 13,
+    "depthSlices": 6,
+    "tuckEndSlices": true,
+    "hideWhenOpen": true,
+    "motion": [
+      {
+        "frame": 0,
+        "growth": 1.0,
+        "growthMin": 1,
+        "growthMax": 1
+      },
+      {
+        "frame": 1,
+        "growth": 0.933333,
+        "growthMin": 0.98347,
+        "growthMax": 0.986859
+      },
+      {
+        "frame": 2,
+        "growth": 0.866667,
+        "growthMin": 0.937419,
+        "growthMax": 0.949921
+      },
+      {
+        "frame": 3,
+        "growth": 0.8,
+        "growthMin": 0.867153,
+        "growthMax": 0.892915
+      },
+      {
+        "frame": 4,
+        "growth": 0.733333,
+        "growthMin": 0.77798,
+        "growthMax": 0.81957
+      },
+      {
+        "frame": 5,
+        "growth": 0.666667,
+        "growthMin": 0.675207,
+        "growthMax": 0.733615
+      },
+      {
+        "frame": 6,
+        "growth": 0.6,
+        "growthMin": 0.564141,
+        "growthMax": 0.638777
+      },
+      {
+        "frame": 7,
+        "growth": 0.533333,
+        "growthMin": 0.450088,
+        "growthMax": 0.538786
+      },
+      {
+        "frame": 8,
+        "growth": 0.466667,
+        "growthMin": 0.338358,
+        "growthMax": 0.43737
+      },
+      {
+        "frame": 9,
+        "growth": 0.4,
+        "growthMin": 0.234255,
+        "growthMax": 0.338258
+      },
+      {
+        "frame": 10,
+        "growth": 0.333333,
+        "growthMin": 0.143088,
+        "growthMax": 0.245179
+      },
+      {
+        "frame": 11,
+        "growth": 0.266667,
+        "growthMin": 0.070164,
+        "growthMax": 0.161861
+      },
+      {
+        "frame": 12,
+        "growth": 0.2,
+        "growthMin": 0.020789,
+        "growthMax": 0.092033
+      },
+      {
+        "frame": 13,
+        "growth": 0.133333,
+        "growthMin": 0.000271,
+        "growthMax": 0.039423
+      },
+      {
+        "frame": 14,
+        "growth": 0.066667,
+        "growthMin": 0,
+        "growthMax": 0.00776
+      },
+      {
+        "frame": 15,
+        "growth": 0.0,
+        "growthMin": 0,
+        "growthMax": 0
+      }
+    ],
+    "containsStaticJambs": false,
+    "animation": {
+      "type": "bilateral-vine-growth",
+      "rootsWorldX": [
+        -2.84,
+        2.84
+      ],
+      "closedFrame": 0,
+      "openFrame": 15,
+      "wholeLeafTranslation": false,
+      "closing": "vines extend from both sides, tips unfurl, leaves follow",
+      "opening": "tips retract into both stone jambs, leaves fold"
+    },
+    "appearance": "interwoven living vines and sparse leaves; no timber stakes or crossrails",
+    "visualReference": "assets/terrain/swamp_gate.png (reference only; not copied into new frames)"
+  },
+  "projection": "worldBlock1x1-2to1",
+  "camera": {
+    "wallOrthoScale": 5.25,
+    "wallPosition": [
+      10,
+      -10,
+      9.645
+    ],
+    "wallTarget": [
+      0,
+      0,
+      1.48
+    ]
+  },
+  "seams": {
+    "pitchModel": 1.8275990652206153,
+    "runtimeSteps": [
+      [
+        64,
+        32
+      ],
+      [
+        -64,
+        32
+      ]
+    ],
+    "sharedCore": true,
+    "allowFlipX": false,
+    "blockVariantHashShift": 8
+  },
+  "source": "Native Blender PBR; new swamp meshes; shared mine camera/render helpers",
+  "runtimeInstalled": false
+}

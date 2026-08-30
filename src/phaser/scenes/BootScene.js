@@ -6,6 +6,7 @@ import { Scene } from 'phaser';
 import { getWeaponTextureLoadList } from '../../config/weapon-texture-map.js';
 import { buildingArtUrl } from '../../config/building-art-revision.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
+import swampStoneWallKit from '../../../data/swamp-stone-wall-kit.json';
 import { loadWallPrefabs, loadObstacleLayout, loadObstacleDefaults } from '../../world/wall-prefabs.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
@@ -291,7 +292,17 @@ export class BootScene extends Scene {
         for (const [file, url] of Object.entries(v3DepletedModules)) {
             this.load.image(file.split('/').pop().replace('.png', ''), url);
         }
-        // 沼泽地墙（柴墙直墙 + 藤蔓门闸 16 帧）
+        // 沼泽单格枯枝盘根墙及生长藤蔓门：源图、帧格与几何登记同源。
+        for (const geo of Object.values(swampStoneWallKit.geometry)) {
+            if (geo.frames) {
+                this.load.spritesheet(geo.tex, geo.source, {
+                    frameWidth: geo.w, frameHeight: geo.h, endFrame: geo.frames - 1,
+                });
+            } else {
+                this.load.image(geo.tex, geo.source);
+            }
+        }
+        // 保留历史柴墙预制资产；新的沼泽战斗房不再引用此样式。
         this.load.image('swamp_wall_straight', 'assets/terrain/swamp_wall_straight.png');
         this.load.spritesheet('swamp_gate', 'assets/terrain/swamp_gate.png', { frameWidth: 640, frameHeight: 612, endFrame: 15 });
         // 恶魔洞窟（2026-08-11）：矿洞岩壁 + 铁闸门（16 帧）

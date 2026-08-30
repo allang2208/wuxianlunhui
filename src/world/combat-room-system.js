@@ -2692,7 +2692,7 @@ export const CombatRoomSystem = {
             ^ Math.imul(gridY, 19349663)
             ^ 0x07a6b1d5
         ) >>> 0;
-        const geoKey = blockKeys[variantHash % blockKeys.length];
+        const geoKey = blockKeys[(variantHash >>> (style?.blockVariantHashShift || 0)) % blockKeys.length];
         const geo = ISO_WALL_GEO[geoKey];
         if (!geo) return null;
         const scaleX = (geo.displayW || geo.displaySize || 260) / geo.w;

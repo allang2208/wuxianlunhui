@@ -1,0 +1,32 @@
+{
+  "stage": "bilateral vine animation visually accepted; user runtime review pending",
+  "runtimeInstalled": true,
+  "model": "swamp_stone_wall_kit.blend",
+  "builder": "tools/ai-gen/build-swamp-stone-wall-kit.py",
+  "composer": "tools/ai-gen/compose-swamp-stone-wall-kit.py",
+  "geometry": "geometry.json",
+  "sourceType": "new swamp geometry and procedural PBR, no external textures or AI images",
+  "sharedDependency": "tools/ai-gen/abandoned-mine-wall-kit-blender.py (camera/render/primitive helpers)",
+  "walls": [],
+  "gate": "swamp_stone_gate.png",
+  "previews": [
+    "../_swamp_deadwood_wall_kit_20260830/deadwood-wall-vine-gate.gif"
+  ],
+  "scope": "swamp combat walls and compatible gates only; no EXE update, monsters/rewards/floor unchanged",
+  "gateAppearance": "interwoven living vines and sparse leaves; no timber stakes or crossrails",
+  "gateVisualReference": "assets/terrain/swamp_gate.png (reference only; not copied into new frames)",
+  "gateAnimation": {
+    "type": "bilateral-vine-growth",
+    "rootsWorldX": [
+      -2.84,
+      2.84
+    ],
+    "closedFrame": 0,
+    "openFrame": 15,
+    "wholeLeafTranslation": false,
+    "closing": "vines extend from both sides, tips unfurl, leaves follow",
+    "opening": "tips retract into both stone jambs, leaves fold"
+  },
+  "approval": "User accepted this bilateral vine growth/retraction version on 2026-08-30; preserve its authored motion. LT/RB source-crop/depth wiring reviewed without runtime tests; runtime acceptance pending",
+  "activeScope": "accepted bilateral vine gate only; stone wall renders retired"
+}

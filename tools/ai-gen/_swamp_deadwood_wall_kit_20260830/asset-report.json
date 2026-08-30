@@ -1,0 +1,55 @@
+{
+  "kind": "offline asset production measurements, not runtime validation",
+  "walls": [
+    {
+      "key": "swamp_living_block_a",
+      "alphaBBox": [
+        250,
+        118,
+        774,
+        856
+      ],
+      "visibleBodyHeight": 162.886,
+      "luminanceMedian": 0.18281,
+      "luminanceMean": 0.18553
+    },
+    {
+      "key": "swamp_living_block_b",
+      "alphaBBox": [
+        250,
+        114,
+        774,
+        856
+      ],
+      "visibleBodyHeight": 163.897,
+      "luminanceMedian": 0.18647,
+      "luminanceMean": 0.18901
+    },
+    {
+      "key": "swamp_living_block_c",
+      "alphaBBox": [
+        250,
+        104,
+        774,
+        868
+      ],
+      "visibleBodyHeight": 166.427,
+      "luminanceMedian": 0.18255,
+      "luminanceMean": 0.18526
+    },
+    {
+      "key": "swamp_living_block_d",
+      "alphaBBox": [
+        250,
+        114,
+        774,
+        856
+      ],
+      "visibleBodyHeight": 163.897,
+      "luminanceMedian": 0.18647,
+      "luminanceMean": 0.18771
+    }
+  ],
+  "luminanceMedianSpread": 0.00392,
+  "luminanceMeanSpread": 0.00375
+}

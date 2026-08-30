@@ -961,6 +961,9 @@
  },
  "swampDungeon": {
   "combatRoom": {
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
    "bossSize": 1024
   },
   "nodeCount": {
@@ -1106,13 +1109,16 @@
   "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
   "family": "zombie",
   "eventScope": "swamp",
-  "wallStyle": "swamp",
+  "wallStyle": "swampStone",
   "combatArena": {
    "enabled": true
   }
  },
  "swampDungeonBeginner": {
   "combatRoom": {
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
    "bossSize": 1024
   },
   "nodeCount": {
@@ -1257,13 +1263,16 @@
   "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
   "family": "zombie",
   "eventScope": "swamp",
-  "wallStyle": "swamp",
+  "wallStyle": "swampStone",
   "combatArena": {
    "enabled": true
   }
  },
  "swampDungeonMid": {
   "combatRoom": {
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
    "bossSize": 1024
   },
   "nodeCount": {
@@ -1409,7 +1418,7 @@
   "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
   "family": "zombie",
   "eventScope": "swamp",
-  "wallStyle": "swamp",
+  "wallStyle": "swampStone",
   "combatArena": {
    "enabled": true
   }

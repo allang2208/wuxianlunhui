@@ -6,11 +6,14 @@ import {
     structureOcclusionBounds,
 } from './structure-depth.js';
 import lightingAssets from '../../data/environment-lighting-assets.json';
+import swampStoneWallKit from '../../data/swamp-stone-wall-kit.json';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
 // base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
 // vertex: 转角接合点；tipX: 臂尖底边点；wallH: 底边→顶沿墙高；slope: 贴图底边固有斜率
 const ISO_WALL_GEO = {
+    // 沼泽细碎枯枝墙与藤蔓门共用几何/预载清单。
+    ...swampStoneWallKit.geometry,
     diag:   { tex: 'wall_diag', w: 1600, h: 1315, base: [[0, 625.6], [1600, 1409.2]], face: [[150, 699.1], [1450, 1335.7]], wallH: 824, slope: 0.4897 },
     straight: { tex: 'wall_straight', w: 1600, h: 1383, base: [[5, 617], [1594, 1418]], face: [[16, 622], [1516, 1379]], wallH: 691, slope: 0.5048, editor: '直墙·新' },
     gate: { tex: 'wall_gate', w: 640, h: 641, frames: 16, base: [[4, 294.0], [634, 611.3]], face: [[4, 294.0], [634, 611.3]], gateX: [265, 360], wallH: 290, slope: 0.5037, editor: '门墙', states: { open: { hole: [265, 360] }, closed: { hole: null } } },
@@ -122,6 +125,16 @@ const ISO_WALL_STYLES = {
     swamp: {
         straight: 'swamp_straight', gate: 'swamp_gate', chestPrefab: '沼泽宝箱房', gateSound: 'assets/sounds/environment/swamp_gate.mp3',
         corners: { top: '沼泽墙上夹角', bottom: '沼泽下夹角', left: '沼泽墙左夹角', right: '沼泽墙右夹角' },
+    },
+    swampStone: {
+        // 保留历史样式键，三档地牢和实体宝箱房继续消费同一墙体合同。
+        block: 'swamp_living_block_a',
+        blocks: ['swamp_living_block_a', 'swamp_living_block_b', 'swamp_living_block_c', 'swamp_living_block_d'],
+        // 64/32整数步长的散列低两位固定；四款取较高位，不改变旧样式选款。
+        blockVariantHashShift: 8,
+        allowBlockFlipX: false,
+        gate: 'swamp_stone_gate',
+        gateSound: 'assets/sounds/environment/swamp_gate.mp3',
     },
     // 恶魔洞窟（C 级，2026-08-11）：矿洞岩壁 + 铁闸门。corners 待 demon 转角预制就绪后登记
     demonCavern: {

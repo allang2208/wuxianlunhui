@@ -3009,7 +3009,7 @@ export const DungeonMapSystem = {
             const lastRoomBounds = CombatRoomSystem.getArenaRoomBounds(lastRoomIdx);
             const dungeonCfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
             const usePhysicalTreasureRoom = crCfg.wallConstruction === 'worldBlock1x1'
-                && dungeonCfg.wallStyle === 'zombie';
+                && (dungeonCfg.wallStyle === 'zombie' || dungeonCfg.wallStyle === 'swampStone');
             const worldBlockRoom = usePhysicalTreasureRoom
                 ? CombatRoomSystem.appendWorldBlockTreasureRoom(lastRoomBounds)
                 : null;

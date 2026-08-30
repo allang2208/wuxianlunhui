@@ -1,0 +1,208 @@
+{
+  "date": "2026-08-30",
+  "policy": "Reversible move to ignored tools/.trash-swamp-delivery-20260830; not staged or uploaded",
+  "files": [
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/asset-report.json",
+      "bytes": 1148,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/geometry.json",
+      "bytes": 1959,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/living-wall-floor-context.jpg",
+      "bytes": 443275,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/living-wall-overview.jpg",
+      "bytes": 357482,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/living-wall-vine-gate.gif",
+      "bytes": 4631852,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/manifest.json",
+      "bytes": 880,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/runtime-wall-kit.json",
+      "bytes": 2867,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_a_alpha.png",
+      "bytes": 37581,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_a_depth.png",
+      "bytes": 274874,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_a.png",
+      "bytes": 617225,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_b_alpha.png",
+      "bytes": 38873,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_b_depth.png",
+      "bytes": 280532,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_b.png",
+      "bytes": 626869,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_c_alpha.png",
+      "bytes": 38735,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_c_depth.png",
+      "bytes": 289349,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_c.png",
+      "bytes": 641499,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_d_alpha.png",
+      "bytes": 38986,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_d_depth.png",
+      "bytes": 282639,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_block_d.png",
+      "bytes": 627770,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_living_wall_kit_20260830/swamp_living_wall_kit.blend",
+      "bytes": 892363,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/asset-report.json",
+      "bytes": 1345,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_a_alpha.png",
+      "bytes": 8049,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_a_depth.png",
+      "bytes": 210417,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_a.png",
+      "bytes": 690940,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_b_alpha.png",
+      "bytes": 8049,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_b_depth.png",
+      "bytes": 220499,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_b.png",
+      "bytes": 713508,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_c_alpha.png",
+      "bytes": 8049,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_c_depth.png",
+      "bytes": 226080,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_c.png",
+      "bytes": 692098,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_d_alpha.png",
+      "bytes": 8049,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_d_depth.png",
+      "bytes": 218382,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp_stone_block_d.png",
+      "bytes": 695409,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/swamp-gate-preview.gif",
+      "bytes": 4302529,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/wall-kit-floor-context.jpg",
+      "bytes": 294859,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_swamp_stone_wall_kit_20260830/wall-kit-overview.jpg",
+      "bytes": 285628,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "assets/terrain/swamp_stone_block_a.png",
+      "bytes": 690940,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "assets/terrain/swamp_stone_block_b.png",
+      "bytes": 713508,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "assets/terrain/swamp_stone_block_c.png",
+      "bytes": 692098,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    },
+    {
+      "path": "assets/terrain/swamp_stone_block_d.png",
+      "bytes": 695409,
+      "reason": "Retired green/stone wall candidate or preview; accepted fine-twig wall and vine gate sources retained"
+    }
+  ],
+  "fileCount": 40,
+  "totalBytes": 21502603.0
+}

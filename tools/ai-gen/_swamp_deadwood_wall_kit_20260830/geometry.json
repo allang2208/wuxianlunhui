@@ -1,0 +1,107 @@
+{
+  "version": 4,
+  "walls": [
+    {
+      "key": "swamp_living_block_a",
+      "label": "碎枝随机 A",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13
+    },
+    {
+      "key": "swamp_living_block_b",
+      "label": "碎枝随机 B",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13
+    },
+    {
+      "key": "swamp_living_block_c",
+      "label": "碎枝随机 C",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13
+    },
+    {
+      "key": "swamp_living_block_d",
+      "label": "碎枝随机 D",
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "footprint": [
+        128,
+        64
+      ],
+      "wallH": 132,
+      "halfThick": 13
+    }
+  ],
+  "source": "Native Blender tapered forked branch meshes and branch-local procedural PBR",
+  "reference": "assets/terrain/swamp_wall_straight.png (visual reference only, no pixels reused)",
+  "sharedStructure": "fine-twig inner fill and shared seam/contact twigs; four independently seeded short-twig faces; no coarse roots, logs or knots",
+  "gateSource": "tools/ai-gen/_swamp_stone_wall_kit_20260830/geometry.json",
+  "gatePolicy": "Accepted bilateral vine gate is read-only; no regeneration or replacement",
+  "variantSeeds": [
+    831011,
+    831077,
+    831149,
+    831233
+  ],
+  "maxBaseTwigRadius": 0.042,
+  "allowBlockFlipX": false,
+  "blockVariantHashShift": 8
+}

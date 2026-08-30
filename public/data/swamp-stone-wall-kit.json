@@ -1,0 +1,133 @@
+{
+  "version": 5,
+  "wallDesign": "deadwood-thicket",
+  "source": "tools/ai-gen/_swamp_deadwood_wall_kit_20260830/geometry.json",
+  "gateSource": "tools/ai-gen/_swamp_stone_wall_kit_20260830/geometry.json",
+  "geometry": {
+    "swamp_living_block_a": {
+      "tex": "swamp_living_block_a",
+      "source": "assets/terrain/swamp_living_block_a.png",
+      "w": 1024,
+      "h": 1024,
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "displayW": 260,
+      "displayH": 259,
+      "wallH": 132,
+      "halfThick": 13,
+      "footprint": [
+        128,
+        64
+      ],
+      "editor": "碎枝随机 A"
+    },
+    "swamp_living_block_b": {
+      "tex": "swamp_living_block_b",
+      "source": "assets/terrain/swamp_living_block_b.png",
+      "w": 1024,
+      "h": 1024,
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "displayW": 260,
+      "displayH": 259,
+      "wallH": 132,
+      "halfThick": 13,
+      "footprint": [
+        128,
+        64
+      ],
+      "editor": "碎枝随机 B"
+    },
+    "swamp_living_block_c": {
+      "tex": "swamp_living_block_c",
+      "source": "assets/terrain/swamp_living_block_c.png",
+      "w": 1024,
+      "h": 1024,
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "displayW": 260,
+      "displayH": 259,
+      "wallH": 132,
+      "halfThick": 13,
+      "footprint": [
+        128,
+        64
+      ],
+      "editor": "碎枝随机 C"
+    },
+    "swamp_living_block_d": {
+      "tex": "swamp_living_block_d",
+      "source": "assets/terrain/swamp_living_block_d.png",
+      "w": 1024,
+      "h": 1024,
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "displayW": 260,
+      "displayH": 259,
+      "wallH": 132,
+      "halfThick": 13,
+      "footprint": [
+        128,
+        64
+      ],
+      "editor": "碎枝随机 D"
+    },
+    "swamp_stone_gate": {
+      "tex": "swamp_stone_gate",
+      "source": "assets/terrain/swamp_stone_gate.png",
+      "w": 640,
+      "h": 640,
+      "frames": 16,
+      "base": [
+        [
+          32.0003,
+          299.9994
+        ],
+        [
+          608.0002,
+          588.0004
+        ]
+      ],
+      "face": [
+        [
+          32.0003,
+          299.9994
+        ],
+        [
+          608.0002,
+          588.0004
+        ]
+      ],
+      "gateX": [
+        32,
+        608
+      ],
+      "wallH": 227.1078,
+      "slope": 0.5,
+      "halfThick": 13,
+      "depthSlices": 6,
+      "tuckEndSlices": true,
+      "hideWhenOpen": true,
+      "editor": "沼泽六格双向生长藤蔓门",
+      "states": {
+        "open": {
+          "hole": [
+            32,
+            608
+          ]
+        },
+        "closed": {
+          "hole": null
+        }
+      }
+    }
+  }
+}
