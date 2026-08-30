@@ -18,6 +18,8 @@ function semanticPoint(point, fallback = null) {
         wallId: source.wallId || source._surfaceWall?.id || null,
         staircaseId: source.staircaseId || source._surfaceStaircase?.id || null,
         stairGroupId: source.stairGroupId || source._surfaceStairGroupId || null,
+        ...(source.formationSlot === true ? { formationSlot: true } : {}),
+        ...(source.routeAnchor ? { routeAnchor: { ...source.routeAnchor } } : {}),
     };
 }
 

@@ -3,6 +3,9 @@ import { GAME_CONFIG } from '../config/game-config.js';
 
 export const RTS_ROUTE_NODE_DISTANCE = 12;
 export const RTS_ROUTE_Z_TOLERANCE = 12;
+export const RTS_FORMATION_ARRIVE_DISTANCE = 4;
+// 相邻单位各自提前到位时，仍为两个到达容差保留空间。
+export const RTS_FORMATION_SLOT_CLEARANCE = RTS_FORMATION_ARRIVE_DISTANCE * 2;
 export const RTS_DEFAULT_ACQUIRE_RANGE = Math.max(
     0,
     Number(GAME_CONFIG.rtsCommand?.defaultAcquireRange) || 900
@@ -16,6 +19,28 @@ export function getRtsAcquireRange(unit) {
 
 function isElevatedSurfaceKind(kind) {
     return kind === 'stairs' || kind === 'wall_walk';
+}
+
+/** 只对地面编队的最终槽位精确收口；普通移动、高架航点及自主表面路线保持原语义。 */
+export function getRtsFormationGroundPoint(entity, command = entity?._command) {
+    const point = command?.point;
+    if (command?.mode !== 'move' || point?.formationSlot !== true || point.unreachable || point.navigationPending) return null;
+    if (isElevatedSurfaceKind(point.surfaceKind)
+        || Number(point.z) > RTS_ROUTE_Z_TOLERANCE
+        || isElevatedSurfaceKind(entity?._surfaceKind)
+        || Number(entity?.z) > RTS_ROUTE_Z_TOLERANCE
+        || entity?._surfaceNavCommand || entity?._surfaceExitCommand || entity?._spawnEgress
+        || entity?._surfaceNavWaiting || entity?._elevatedNavigationBridge) return null;
+    // 下楼后仍保留完整route，但最后的地面编队槽应恢复编队精度；入口/踏步/墙顶节点不适用。
+    const route = point.route;
+    if (route?.length) {
+        const last = route[route.length - 1];
+        if (command.routeIndex !== route.length - 1
+            || last?.surfaceKind !== 'ground'
+            || Number(last.z) > RTS_ROUTE_Z_TOLERANCE
+            || Math.hypot(last.x - point.x, last.y - point.y) > 0.001) return null;
+    }
+    return Number.isFinite(point.x) && Number.isFinite(point.y) ? point : null;
 }
 
 function entityMatchesWaypointSurface(entity, waypoint) {
@@ -92,7 +117,9 @@ export function resolveRtsMoveDestination(
     const route = Array.isArray(point.route) ? point.route : [];
     const effectiveArriveDistance = route.length
         ? Math.min(arriveDistance, RTS_ROUTE_NODE_DISTANCE)
-        : arriveDistance;
+        : (getRtsFormationGroundPoint(entity, command)
+            ? Math.min(arriveDistance, RTS_FORMATION_ARRIVE_DISTANCE)
+            : arriveDistance);
     const effectiveZTolerance = route.length
         ? Math.min(zTolerance, RTS_ROUTE_Z_TOLERANCE)
         : zTolerance;
@@ -185,12 +212,15 @@ export function resolveRtsMoveDestination(
     }
 
     if (route.length) command.routeIndex = routeIndex;
+    const finalArriveDistance = getRtsFormationGroundPoint(entity, command)
+        ? Math.min(effectiveArriveDistance, RTS_FORMATION_ARRIVE_DISTANCE)
+        : effectiveArriveDistance;
     const arrived = waypointAccepted(
         entity,
         destination,
         distance,
         verticalDistance,
-        effectiveArriveDistance,
+        finalArriveDistance,
         effectiveZTolerance
     );
     // 路线的第一个节点通常是楼梯在地面的入口。单位尚在地面时必须继续使用普通 A* 靠近
