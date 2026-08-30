@@ -1,0 +1,74 @@
+{
+  "createdAt": "2026-08-30",
+  "generator": "Codex built-in ImageGen",
+  "useCase": "stylized-concept + background-extraction",
+  "purpose": "Cold-steel pointer/grab/grabbing visuals only; preserve all existing input and drag behavior",
+  "styleReference": "assets/ui/cursors/normal-pointer-cold-steel.png",
+  "normalization": "Uniformly fit each source alpha bounding box to a 44px longest edge, centered on a 48x48 canvas. Preserve RGBA and aspect ratio. Transform source fingertip/palm hotspots with the exact same crop and scale; do not normalize by palm-plate width.",
+  "canvasSize": 48,
+  "visibleLongEdge": 44,
+  "cssOutput": "ui/hand-cursors.generated.css",
+  "cssNote": "Theme imports embedded PNG cursor tokens so var() consumers in different stylesheet directories and inline styles use identical URLs and hotspots.",
+  "variants": [
+    {
+      "state": "pointer",
+      "source": "click-source.png",
+      "asset": "assets/ui/cursors/click-hand-cold-steel.png",
+      "sourceBounds": [
+        158,
+        12,
+        836,
+        1362
+      ],
+      "sourceHotspot": [
+        457,
+        12
+      ],
+      "generationPrompt": "Use case: stylized-concept.\nAsset type: game UI mouse cursor, click / pointer hand.\nImage 1 is MATERIAL AND PALETTE reference only, not a shape to copy.\nCreate exactly ONE compact right-hand armored glove cursor, dorsal/back-of-hand view, index finger extended straight upward, other three fingers naturally curled, thumb on the left. Classic unambiguous clickable-link hand silhouette. Fingertip is the exact interaction point. Show the full hand and a short wrist cuff, no arm.\nCold-steel design system: satin silver main plates (#d9e0e5), charcoal gunmetal structure (#232b33), deep seams (#090c0f), restrained silver highlights (#f3f6f8). Neutral grayscale steel only, no colored accent. Broad simplified 3D beveled plates, almost orthographic frontal view, steady upper-left light, crisp dark outer contour with thin silver rim so it reads on both light and dark game backgrounds. Three broad knuckle divisions at most, no tiny screws, no decorative engravings, no exaggerated perspective.\nComposition: one upright icon on a square canvas with full safe padding, hand fills about 80 percent of canvas height. Index fingertip near upper center, wrist toward bottom center. Strong readable silhouette designed to be exported as a 48x48 cursor. No detached objects, no arrow, no emblem, no label, no text, no watermark, no shadow outside the hand.\nOutput a truly transparent RGBA PNG: alpha zero everywhere outside the glove, including gaps. Do NOT draw a checkerboard, white background, black background, backdrop, border, or glow. This is a single production cursor asset, not a presentation sheet.",
+      "alphaPrompt": "Use case: background-extraction. Image 1 is the edit target. Remove ONLY the accidentally baked white/gray checkerboard background from this cold-steel clicking glove. Preserve exactly the glove shape, index finger, dark metal seams and silver faces. Output a cut-out image with REAL alpha transparency: all background pixels must have alpha=0, NOT a drawn checkerboard, not white, not black. Preserve antialiased edges. No redesign, no recoloring, no new object, no outside shadow. Full glove visible.",
+      "originalGeneration": "click-before-alpha.png",
+      "originalTransparent": "click-source.png"
+    },
+    {
+      "state": "grab",
+      "source": "grab-source.png",
+      "asset": "assets/ui/cursors/grab-hand-cold-steel.png",
+      "sourceBounds": [
+        77,
+        9,
+        973,
+        1256
+      ],
+      "sourceHotspot": [
+        650,
+        880
+      ],
+      "generationPrompt": "Use case: stylized-concept. Asset type: one 48x48 game UI hand mouse cursor (render large for clean downsampling). Image 1 is the exact cold-steel GLOVE IDENTITY, MATERIAL and VIEW reference. Same right hand, back of hand facing viewer, thumb on left, same satin silver plates, charcoal joints, broad geometric main hand plate, very short cuff and black/silver outline. Nearly orthographic upright view, upper-left lighting. Neutral grayscale only. Clear silhouette, simplify tiny detail for 48px. Single isolated full hand only; no arrow, no text, no badge, no background scene, no cast shadow, no glow. TRUE TRANSPARENT RGBA PNG with alpha=0 background, NOT a drawn checkerboard or solid background. Change only the gesture to OPEN GRAB hand: all FOUR fingers fully extended upward with gentle natural spacing, thumb extended to left, relaxed gently curved fingers ready to grab. It must be unmistakably a spread open hand, NOT a pointing finger or fist. Five digits total. Keep palm broad and centered, wrist below. Full hand with safe transparent padding.",
+      "alphaPrompt": "Use case: background-extraction. Image 1 is the edit target. Remove ONLY the accidentally baked white/gray checkerboard background from this cold-steel glove. Keep EXACT glove gesture, geometry, full silhouette, dark metal seams, silver face plates, cuff and lighting. The output MUST be a true RGBA cut-out with alpha zero outside the glove and in finger gaps. No checkerboard pixels, no solid background, no outside shadow or halo. Preserve antialiased edges and opaque metal. Do not redraw, recolor, crop the glove, or add any element.",
+      "originalGeneration": "grab-before-alpha.png",
+      "originalTransparent": "grab-source.png"
+    },
+    {
+      "state": "grabbing",
+      "source": "grabbing-source.png",
+      "asset": "assets/ui/cursors/grabbing-hand-cold-steel.png",
+      "sourceBounds": [
+        80,
+        30,
+        1052,
+        1196
+      ],
+      "sourceHotspot": [
+        631,
+        756
+      ],
+      "generationPrompt": "Use case: stylized-concept. Asset type: one 48x48 game UI hand mouse cursor (render large for clean downsampling). Image 1 is the exact cold-steel GLOVE IDENTITY, MATERIAL and VIEW reference. Create the GRABBING / drag-in-progress variant: same right hand and same back-of-hand view, but all four fingers curl down into a tight gripping fist with compact knuckles at top, thumb curled across the left front side. UNMISTAKABLE CLOSED HAND silhouette, no finger pointing up, no open palm. Keep the broad main back-of-hand plate and very short wrist cuff. A gripping gesture, not punching at viewer.\nSame satin silver plates, charcoal joints, broad geometric main plate and black/silver outline. Nearly orthographic upright view, upper-left lighting, neutral grayscale only. Clear simple silhouette for 48px. Full glove visible with safe padding.\nSingle isolated full hand ONLY, no held object, no arrow, no text, no badge, no background scene, no cast shadow, no glow. Output cut-out PNG with ACTUAL alpha transparency outside glove, not a checkerboard picture, not white or black fill.",
+      "alphaPrompt": "Use case: background-extraction. Image 1 is the edit target. Remove ONLY the accidentally baked white/gray checkerboard background from this cold-steel glove. Keep EXACT glove gesture, geometry, full silhouette, dark metal seams, silver face plates, cuff and lighting. The output MUST be a true RGBA cut-out with alpha zero outside the glove and in finger gaps. No checkerboard pixels, no solid background, no outside shadow or halo. Preserve antialiased edges and opaque metal. Do not redraw, recolor, crop the glove, or add any element.",
+      "originalGeneration": "grabbing-before-alpha.png",
+      "originalTransparent": "grabbing-source.png"
+    }
+  ],
+  "scope": "Replace existing pointer/grab/grabbing declarations only. Keep none/default/text/help/move/resize/not-allowed, world command priorities and native drag-and-drop feedback unchanged.",
+  "runtimeValidation": "Not run. User to test per project contract.",
+  "archiveContract": "Source paths are relative to this manifest; retain accepted RGBA masters and direct background-extraction inputs. Generated-directory duplicates are recoverably removed after archiving. Runtime PNG/CSS are exported together by export.ps1."
+}

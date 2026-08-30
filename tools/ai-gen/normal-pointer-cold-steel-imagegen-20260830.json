@@ -1,0 +1,33 @@
+{
+  "createdAt": "2026-08-30",
+  "generator": "Codex built-in ImageGen",
+  "useCase": "stylized-concept + background-extraction",
+  "purpose": "普通/指挥/建筑模式及面板空白区共用的冷钢默认鼠标指针；枪弓瞄准与语义指令保持独立",
+  "styleReference": "assets/ui/cursors/elevated-climb-arrow.png",
+  "generatedSources": [
+    {
+      "path": "tools/ai-gen/cursor-sources-20260830/normal-pointer-before-alpha.png",
+      "role": "cold-steel pointer generation",
+      "note": "造型与材质合格，但透明棋盘格被烘焙进画面，仅作为透明提取输入"
+    },
+    {
+      "path": "tools/ai-gen/cursor-sources-20260830/normal-pointer-source.png",
+      "role": "accepted transparent source",
+      "note": "1312x1199 RGBA，四角alpha=0，alpha>16包围盒为132,43..1142,1095"
+    }
+  ],
+  "asset": "assets/ui/cursors/normal-pointer-cold-steel.png",
+  "runtimeContract": {
+    "runtimeAsset": "48x48 RGBA",
+    "visibleBounds": "x=3..44, y=2..45",
+    "cssHotspot": "3 2",
+    "cursorCss": "url(assets/ui/cursors/normal-pointer-cold-steel.png) 3 2, default",
+    "scope": "normal unarmed/melee, RTS/build default state, and noninteractive DOM panel/map areas",
+    "priority": "DOM controls own UI; gameplay semantic command > elevated target > interactive building > default arrow or gun/bow crosshair",
+    "excluded": "click/grab/grabbing controls, text/resize/disabled states, native drag-and-drop feedback, direct-control gun/bow crosshair"
+  },
+  "prompts": {
+    "generation": "Use case: stylized-concept. Create exactly one familiar classic desktop mouse pointer for a medieval fortress RTS normal selection state. Use the existing elevated arrow only as a cold-steel material reference, not as a shape reference. The pointer must have a sharp upper-left hotspot tip, broad triangular head and short tapered tail; charcoal gunmetal casing, black separation and satin silver face; genuinely transparent RGBA background; neutral colors only; no semantic green, glow, text, emblem, platform, extra icon, checkerboard or cast shadow.",
+    "backgroundExtraction": "Use case: background-extraction. Remove only the accidentally baked checkerboard from the generated pointer. Preserve the exact sharp upper-left hotspot, silhouette, proportions, gunmetal casing, silver face, black seams, brushed-steel texture and lighting. Output genuine transparent RGBA with clean antialiased edges and no halo, redesign, recoloring, cropping or added object."
+  }
+}

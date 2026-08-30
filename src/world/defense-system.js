@@ -6955,7 +6955,7 @@ export const DefenseSystem = {
         this._hoverTower = t;
         if (typeof document === 'undefined') return;
         const cv = document.querySelector('canvas');
-        if (cv) cv.style.cursor = (t || Game?.RTSCommand?._hoverBuilding) ? 'pointer' : '';
+        if (cv) cv.style.cursor = (t || Game?.RTSCommand?._hoverBuilding) ? 'var(--bp-cursor-pointer, pointer)' : '';
     },
 
     /**

@@ -1804,9 +1804,9 @@ class ProducerBuildingPanel extends BasePanel {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div id="pbTitle" style="font-size:18px;font-weight:700;color:#ffd700;"></div>
                 <div style="display:flex;gap:8px;">
-                    <button id="pbPackedRebuild" type="button" style="display:none;background:#263b34;color:#a8ffd7;border:1px solid #4f8a72;border-radius:6px;padding:4px 10px;cursor:pointer;">打包重建</button>
-                    <button id="pbSell" type="button" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:pointer;">出售</button>
-                    <button id="pbClose" type="button" aria-label="关闭建筑详情" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
+                    <button id="pbPackedRebuild" type="button" style="display:none;background:#263b34;color:#a8ffd7;border:1px solid #4f8a72;border-radius:6px;padding:4px 10px;cursor:var(--bp-cursor-pointer, pointer);">打包重建</button>
+                    <button id="pbSell" type="button" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:var(--bp-cursor-pointer, pointer);">出售</button>
+                    <button id="pbClose" type="button" aria-label="关闭建筑详情" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:var(--bp-cursor-pointer, pointer);">关闭</button>
                 </div>
             </div>
             <div id="pbBuildingDetail"></div>
@@ -3196,7 +3196,7 @@ class ProducerBuildingPanel extends BasePanel {
             const active = b.unitType === u.key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${u.key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${u.key}"
-                style="flex:1;cursor:pointer;">
+                style="flex:1;cursor:var(--bp-cursor-pointer, pointer);">
                     <span class="troop-panel-unit-button-main">
                         ${renderTroopUnitIcon(u.key)}
                         <span class="troop-panel-unit-button-copy"><span>${u.name}</span><small>${u.roleLabel ? `${u.roleLabel} · ` : ''}${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost(u.key) }).food} 粮食</small></span>
@@ -4604,7 +4604,7 @@ class ProducerBuildingPanel extends BasePanel {
                 </div>`;
             const travelHtml = destinations.length
                 ? `<div style="display:grid;grid-template-columns:1fr;gap:8px;">${destinations.map((entry) => `
-                    <button data-portal-destination="${entry.sceneId}" style="background:#302a58;color:#e8e0ff;border:1px solid #7566b0;border-radius:7px;padding:9px 10px;cursor:pointer;text-align:left;">
+                    <button data-portal-destination="${entry.sceneId}" style="background:#302a58;color:#e8e0ff;border:1px solid #7566b0;border-radius:7px;padding:9px 10px;cursor:var(--bp-cursor-pointer, pointer);text-align:left;">
                         <b style="font-size:14px;">${entry.icon || '🌀'} ${entry.name || entry.label || entry.sceneId}</b>
                         <span style="display:block;font-size:11px;color:#b8a8d8;margin-top:2px;">点击传送</span>
                     </button>`).join('')}</div>`
@@ -4616,7 +4616,7 @@ class ProducerBuildingPanel extends BasePanel {
                         const costText = entry.firstConstruction
                             ? '首次构造免费'
                             : `重建：${entry.cost.gold || 0} 金币 + ${entry.cost.energy || 0} 能源`;
-                        return `<button data-portal-construct="${entry.sceneId}" style="display:block;width:100%;margin-top:6px;background:#3d3428;color:#ffe4ba;border:1px solid #8a704d;border-radius:7px;padding:9px 10px;cursor:pointer;text-align:left;">
+                        return `<button data-portal-construct="${entry.sceneId}" style="display:block;width:100%;margin-top:6px;background:#3d3428;color:#ffe4ba;border:1px solid #8a704d;border-radius:7px;padding:9px 10px;cursor:var(--bp-cursor-pointer, pointer);text-align:left;">
                             <b>${entry.icon || '🌀'} ${entry.name || entry.sceneId}</b>
                             <span style="display:block;font-size:11px;color:#cdb58f;margin-top:2px;">${costText}</span>
                         </button>`;

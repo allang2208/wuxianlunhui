@@ -1,3 +1,5 @@
+@import url('./hand-cursors.generated.css');
+
 /*
  * Backpack-derived panel theme
  *
@@ -38,6 +40,7 @@
     --bp-ui-shadow: -8px 0 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(197, 219, 228, 0.05);
     --bp-ui-shadow-float: 0 18px 60px rgba(0, 0, 0, 0.76), 0 0 0 1px rgba(197, 219, 228, 0.07);
     --bp-ui-radius: 10px;
+    --bp-cursor-default: url('../assets/ui/cursors/normal-pointer-cold-steel.png') 3 2, default;
 
     /* Six-step desktop UI type scale. */
     --bp-font-ui: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
@@ -54,6 +57,19 @@
     --bp-tracking-title: 0.08em;
     --bp-scrollbar-size: 8px;
     --bp-scrollbar-radius: 4px;
+}
+
+/* 只设置 UI 根层的默认值，由子控件继承；不要覆盖 pointer/text/grab/grabbing 等专用状态。 */
+:where(body, #menuLayer, #uiLayer, .right-sidebar-panel-layer, .bp-right-column, .game-menu-overlay, .panel-overlay, .npc-dialogue-box, [role="dialog"]) {
+    cursor: var(--bp-cursor-default);
+}
+
+/* 旧样式显式 default 的非交互信息区与面板背景，同样消费主题箭头。禁用控件不在此覆盖。 */
+.attr-item,
+.shop-sell-cell.empty,
+.expedition-overlay.active,
+.expedition-panel.active {
+    cursor: var(--bp-cursor-default);
 }
 
 /* ===== Global cold-steel scrollbar contract ===== */
@@ -2197,7 +2213,7 @@
     font: 600 var(--bp-type-body)/1.3 var(--bp-font-ui);
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
@@ -2341,7 +2357,7 @@
     background: var(--bp-ui-control);
     border: 1px solid var(--bp-ui-line-strong);
     border-radius: 5px;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
 }
 
 .building-detail-column-body {
@@ -2443,7 +2459,7 @@
     font-size: var(--bp-type-body);
     font-weight: 700;
     letter-spacing: 0.04em;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
 }
 
 .recruit-mode-btn:hover {
@@ -2737,7 +2753,7 @@
     font-family: var(--bp-font-ui);
     font-size: var(--bp-type-body);
     font-weight: 700;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
 }
 
 :is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover:not(:disabled) {
@@ -2898,7 +2914,7 @@
     min-width: 72px !important;
     padding: 5px 12px !important;
     border-radius: 5px !important;
-    cursor: pointer !important;
+    cursor: var(--bp-cursor-pointer, pointer) !important;
 }
 
 :is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbClose, #hhClose) {
@@ -3886,7 +3902,7 @@
     color: var(--bp-ui-white);
     background: linear-gradient(180deg, #43515a, #222b31);
     font: 700 12px/1 var(--bp-font-ui);
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
 }
 
 .rts-command-bar__order[data-order="attack_move"] {
@@ -3937,7 +3953,7 @@
     color: #ffe9ec;
     background: linear-gradient(180deg, #64313a, #351b21);
     font: 700 12px/1 var(--bp-font-ui);
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
 }
 
 .rts-command-bar.has-explorer .rts-command-bar__stealth {
@@ -4346,7 +4362,7 @@
     border: 1px solid var(--bp-ui-line-strong);
     border-radius: 6px;
     font: inherit;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 
@@ -4401,7 +4417,7 @@
     font-family: var(--bp-font-ui);
     font-size: var(--bp-type-body);
     font-weight: 700;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
 }
 
@@ -6676,7 +6692,7 @@ body.dungeon-route-landmark-mode .dungeon-route-dossier-enter {
     background: var(--bp-ui-surface) !important;
     border: 1px solid var(--bp-ui-line) !important;
     border-radius: 5px;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     transition: background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
@@ -7146,7 +7162,7 @@ body.dungeon-route-landmark-mode .dungeon-route-dossier-enter {
     border: 0 !important;
     border-radius: 8px !important;
     box-shadow: 0 12px 26px rgba(0, 0, 0, 0.48) !important;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     appearance: none;
     animation: none !important;
     transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease !important;
@@ -7472,7 +7488,7 @@ body.dungeon-route-landmark-mode .dungeon-route-dossier-enter {
     border-left: 3px solid var(--event-chance-color);
     border-radius: 7px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     appearance: none;
     transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
@@ -7608,7 +7624,7 @@ body.dungeon-route-landmark-mode .dungeon-route-dossier-enter {
     border: 1px solid var(--bp-ui-white);
     border-radius: 7px;
     box-shadow: 0 5px 16px rgba(0, 0, 0, 0.32), inset 0 1px 0 #fff;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     appearance: none;
     transition: filter 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
@@ -8093,7 +8109,7 @@ body.dungeon-route-landmark-mode .dungeon-route-dossier-enter {
     font-family: var(--bp-font-ui);
     font-size: var(--bp-type-meta);
     font-weight: 700;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 

@@ -256,7 +256,7 @@ export const WorldSwitchPanel = {
                     : `<button class="ws-go" data-world="${w.id}">前往 →</button>`);
             const invasionTarget = window.WorldInvasionSystem?.getState?.().active?.targetWorld === w.id;
             const support = !SceneManager.isDungeonRunActive() && !isCurrent && invasionTarget
-                ? `<button class="ws-support" data-support-world="${w.id}" style="margin-left:6px;background:#7a3028;color:#ffe5df;border:1px solid #d85d50;border-radius:5px;padding:5px 8px;cursor:pointer;">⚔ 本体支援</button>`
+                ? `<button class="ws-support" data-support-world="${w.id}" style="margin-left:6px;background:#7a3028;color:#ffe5df;border:1px solid #d85d50;border-radius:5px;padding:5px 8px;cursor:var(--bp-cursor-pointer, pointer);">⚔ 本体支援</button>`
                 : '';
             return `
                 <div class="ws-row${isCurrent ? ' current' : ''}">
@@ -279,7 +279,7 @@ export const WorldSwitchPanel = {
                 <div class="ws-row-head"><span class="ws-icon">🛠️</span><span class="ws-name">传送网络应急重建</span></div>
                 <div class="ws-status"><span style="color:#d6b98a;">所有已搭建位面均已断线，只能在主城重建曾经搭建过的传送门。</span></div>
                 ${emergencyRebuilds.map((entry) => `
-                    <button class="ws-rebuild" data-rebuild-world="${entry.sceneId}" style="width:100%;margin-top:7px;background:#4b3828;color:#ffe2b8;border:1px solid #94704d;border-radius:6px;padding:8px;cursor:pointer;text-align:left;">
+                    <button class="ws-rebuild" data-rebuild-world="${entry.sceneId}" style="width:100%;margin-top:7px;background:#4b3828;color:#ffe2b8;border:1px solid #94704d;border-radius:6px;padding:8px;cursor:var(--bp-cursor-pointer, pointer);text-align:left;">
                         <b>${entry.icon || '🌀'} ${entry.name || entry.sceneId}</b>
                         <span style="display:block;font-size:11px;margin-top:2px;">${entry.cost.gold || 0} 金币 + ${entry.cost.energy || 0} 能源</span>
                     </button>`).join('')}

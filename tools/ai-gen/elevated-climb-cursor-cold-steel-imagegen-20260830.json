@@ -1,0 +1,34 @@
+{
+  "createdAt": "2026-08-30",
+  "generator": "Codex built-in ImageGen",
+  "useCase": "precise-object-edit + background-extraction",
+  "purpose": "将RTS可登高鼠标箭头收敛为冷钢档案风格，并保留可精确锚定的居中平底",
+  "editTarget": "tools/ai-gen/cursor-sources-20260830/elevated-climb-original-reference.png",
+  "generatedSources": [
+    {
+      "path": "tools/ai-gen/cursor-sources-20260830/elevated-climb-before-alpha.png",
+      "role": "cold-steel material edit",
+      "note": "候选材质合格，但棋盘格被烘焙为不透明RGB，仅作为第二次透明提取输入"
+    },
+    {
+      "path": "tools/ai-gen/cursor-sources-20260830/elevated-climb-source.png",
+      "role": "accepted transparent source",
+      "note": "1024x1536 RGBA，四角alpha=0"
+    }
+  ],
+  "asset": "assets/ui/cursors/elevated-climb-arrow.png",
+  "runtimeContract": {
+    "runtimeAsset": "192x256 RGBA",
+    "visibleBounds": "x=22..169, y=8..247",
+    "bottomTransparentInset": "8px",
+    "displayHeight": "92px",
+    "animation": "960ms upward-only 6px loop with restrained wrap fade",
+    "anchor": "visible steel base center -> resolved wall target screen point",
+    "normalProjection": "Renderer.worldToScreen(target.x, target.y - target.z)",
+    "flatProjection": "Renderer.worldToScreen(target.x, target.y)"
+  },
+  "prompts": [
+    "Use case: precise-object-edit. Refine the existing upward arrow to match the project's restrained cold-steel tactical UI. Preserve the centered vertical silhouette, upward direction, overall proportions and flat centered base. Use charcoal gunmetal and dark graphite casing, thin silver-gray bevels and restrained success-green enamel; reduce neon saturation. Keep genuine transparent RGBA, one arrow, no platform, circle, text, logo, glow or cast shadow.",
+    "Use case: background-extraction. Remove only the accidentally baked checkerboard background and convert it to genuine RGBA transparency. Preserve the cold-steel arrow's silhouette, centered flat bottom, materials, lighting, proportions and clean antialiased edges; no matte fringe, redesign or recoloring."
+  ]
+}

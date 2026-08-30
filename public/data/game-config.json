@@ -920,21 +920,21 @@
       "baseGap": 5,
       "maxGapExtra": 24,
       "projectionScale": 48,
-      "lineLen": 7,
-      "capLen": 3,
-      "lineWidth": 1.75,
-      "outlineWidth": 2.25
+      "lineLen": 6,
+      "capLen": 1.5,
+      "lineWidth": 1.5,
+      "outlineWidth": 1.5
     },
     "colors": {
-      "outline": "#071419",
-      "main": "#69e7e3",
-      "highlight": "#c8ffff",
-      "centerOuter": "#071419",
-      "centerInner": "#b9ffff"
+      "outline": "--bp-ui-black",
+      "main": "--bp-ui-white-soft",
+      "highlight": "--bp-ui-white",
+      "centerOuter": "--bp-ui-black",
+      "centerInner": "--bp-ui-white"
     },
     "centerDot": {
-      "outerRadius": 2.1,
-      "innerRadius": 1.05
+      "outerRadius": 2,
+      "innerRadius": 1
     }
   },
   "weatherEffects": {

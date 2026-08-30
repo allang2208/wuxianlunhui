@@ -47,7 +47,7 @@ export const BackpackDialogManager = {
             <div style="color:#d4c5a9;font-size:18px;font-weight:700;margin-bottom:16px;text-align:center;">拆分物品</div>
             <div style="color:#8a7d6b;font-size:14px;margin-bottom:12px;text-align:center;">${item.name} (堆叠: ${item.stack})</div>
             <div style="margin-bottom:12px;">
-                <input type="range" id="splitSlider" min="1" max="${item.stack - 1}" value="${Math.floor(item.stack / 2)}" style="width:100%;cursor:pointer;">
+                <input type="range" id="splitSlider" min="1" max="${item.stack - 1}" value="${Math.floor(item.stack / 2)}" style="width:100%;cursor:var(--bp-cursor-pointer, pointer);">
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
                 <span style="color:#8a7d6b;font-size:13px;">数量:</span>
@@ -55,8 +55,8 @@ export const BackpackDialogManager = {
                 <span style="color:#6b5d4f;font-size:12px;">/ ${item.stack}</span>
             </div>
             <div style="display:flex;gap:10px;">
-                <button id="splitConfirmBtn" style="flex:1;padding:8px;background:#5a7a4a;color:#d4c5a9;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;">确认</button>
-                <button id="splitCancelBtn" style="flex:1;padding:8px;background:#7a5a4a;color:#d4c5a9;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;">取消</button>
+                <button id="splitConfirmBtn" style="flex:1;padding:8px;background:#5a7a4a;color:#d4c5a9;border:none;border-radius:6px;cursor:var(--bp-cursor-pointer, pointer);font-size:14px;font-weight:600;">确认</button>
+                <button id="splitCancelBtn" style="flex:1;padding:8px;background:#7a5a4a;color:#d4c5a9;border:none;border-radius:6px;cursor:var(--bp-cursor-pointer, pointer);font-size:14px;font-weight:600;">取消</button>
             </div>
         `;
         document.body.appendChild(dialog);

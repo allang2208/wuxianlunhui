@@ -612,8 +612,8 @@ class HamsterBarracksPanel extends BasePanel {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div id="hbTitle" style="font-size:18px;font-weight:700;color:#ffd700;"></div>
                 <div style="display:flex;gap:8px;">
-                    <button id="hbSell" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:pointer;">出售</button>
-                    <button id="hbClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
+                    <button id="hbSell" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:var(--bp-cursor-pointer, pointer);">出售</button>
+                    <button id="hbClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:var(--bp-cursor-pointer, pointer);">关闭</button>
                 </div>
             </div>
             <div id="hbBuildingDetail"></div>
@@ -776,7 +776,7 @@ class HamsterBarracksPanel extends BasePanel {
             const active = b.unitType === key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${key}"
-                style="flex:1;cursor:pointer;">
+                style="flex:1;cursor:var(--bp-cursor-pointer, pointer);">
                     <span class="troop-panel-unit-button-main">
                         ${renderTroopUnitIcon(key)}
                         <span class="troop-panel-unit-button-copy"><span>${u.name}</span><small>${CrossPlaneResourceSystem.quote({ food: cfg.barracks.unitSpawnFoodCost?.[key] || 0 }).food} 粮食</small></span>

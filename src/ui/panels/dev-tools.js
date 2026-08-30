@@ -362,7 +362,7 @@ export function createDevToolPanel() {
     const weaponImg = document.createElement('img');
     weaponImg.id = 'devToolWeaponImg';
     weaponImg.src = '';
-    weaponImg.style.cssText = 'display:none; cursor: grab;';
+    weaponImg.style.cssText = 'display:none; cursor: var(--bp-cursor-grab, grab);';
     weaponImg.alt = 'weapon';
     weaponImg.setAttribute('draggable', 'true');
     weaponPreview.appendChild(weaponImg);

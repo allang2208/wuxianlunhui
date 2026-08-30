@@ -63,6 +63,7 @@ import { RuntimeAssetManager } from '../assets/runtime-asset-manager.js';
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
 import { Input } from '../../ui/input.js';
+import { isGameplayPointerEvent } from '../../ui/gameplay-pointer-boundary.js';
 import { RiftSystem } from '../../quest/rift-system.js';
 import { isGunWeapon, isTwoHanded, isRifle } from '../../config/gun-ammo.js';
 import { GUN_FAMILY } from '../../config/weapon-families.js';
@@ -157,6 +158,14 @@ const setVisualDepthIfChanged = (visual, depth, stats) => {
 // 世界-122~125 共用大世界尺寸与广角镜头。集中登记，避免新位面已按
 // 12288×8192 构建却遗漏相机名单、仍以 1:1 放大显示。
 const ZOOMED_OUT_WORLD_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+const COMMAND_CURSOR_STYLES = Object.freeze({
+    attack_move: 'url("assets/ui/cursors/attack-move-cold-steel.png") 24 24, crosshair',
+    patrol: 'url("assets/ui/cursors/patrol-cold-steel.png") 24 24, crosshair',
+    rally: 'url("assets/ui/cursors/rally-cold-steel.png") 20 41, crosshair',
+    attack_target: 'url("assets/ui/cursors/attack-target-cold-steel.png") 24 24, crosshair',
+    invalid: 'url("assets/ui/cursors/invalid-command-cold-steel.png") 24 24, not-allowed',
+    recycle: 'url("assets/ui/cursors/recycle-cold-steel.png") 24 20, crosshair',
+});
 
 // 无人岗位提示：只画描边，中心保持完全透明；斜杠随整枚标识旋转。
 const NO_WORKERS_INDICATOR = Object.freeze({
@@ -9903,26 +9912,57 @@ export class GameScene extends Scene {
 
     _syncCrosshair(_g) {
         const player = window.Game && window.Game.player;
-        if (!player) return;
         // 出征面板或地牢地图模式：强制恢复默认鼠标指针，避免与地图/面板交互冲突
         const isDungeonNonCombat = DungeonMapSystem && DungeonMapSystem.active &&
             (DungeonMapSystem.state === 'map' || DungeonMapSystem.state === 'event' ||
              DungeonMapSystem.state === 'shop' || DungeonMapSystem.state === 'reward');
         if ((ExpeditionSystem && ExpeditionSystem._isOpen) || isDungeonNonCombat) {
-            document.body.style.cursor = 'default';
+            document.body.style.cursor = '';
+            if (this.game?.canvas) this.game.canvas.style.cursor = '';
+            this._normalCommandCursorActive = false;
             if (this._domCursor) this._domCursor.style.display = 'none';
             return;
         }
-        const currentWeapon = player.equipments[player.weaponMode];
-        const isBowWeapon = currentWeapon && currentWeapon.weaponType === 'bow';
-        const wantCursor = (!currentWeapon || (!isGunWeapon(currentWeapon) && !isBowWeapon)) ? 'default' : 'none';
-        document.body.style.cursor = wantCursor;
-        if (wantCursor === 'default') {
-            if (this._domCursor) this._domCursor.style.display = 'none';
-            return;
-        }
+        const game = window.Game;
         const mx = Input.mouse.x;
         const my = Input.mouse.y;
+        // 与世界输入共用表面白名单；面板在静止鼠标下打开时也立即交回原生指针。
+        const pointerTarget = Number.isFinite(mx) && Number.isFinite(my)
+            ? document.elementFromPoint(mx, my)
+            : null;
+        if (!isGameplayPointerEvent({ target: pointerTarget })) {
+            document.body.style.cursor = '';
+            if (this.game?.canvas) this.game.canvas.style.cursor = '';
+            this._normalCommandCursorActive = false;
+            if (this._domCursor) this._domCursor.style.display = 'none';
+            return;
+        }
+        if (this._syncSemanticCommandCursor(game)) return;
+        const elevatedTarget = game?.RTSCommand?.elevatedCursorTarget?.();
+        const elevatedAnchor = elevatedTarget
+            ? this._elevatedCommandCursorAnchor(elevatedTarget, Input.mouse.x, Input.mouse.y)
+            : null;
+        if (elevatedAnchor && this._drawElevatedCommandCursor(elevatedAnchor.x, elevatedAnchor.y)) {
+            document.body.style.cursor = 'none';
+            if (this.game?.canvas) this.game.canvas.style.cursor = 'none';
+            return;
+        }
+        if (elevatedTarget && this.game?.canvas) {
+            // 首次异步加载贴图的一瞬间保留既有建筑鼠标，不制造不可见空档。
+            this.game.canvas.style.cursor = game?.RTSCommand?._hoverBuilding ? 'var(--bp-cursor-pointer, pointer)' : '';
+        }
+        const currentWeapon = player?.equipments?.[player.weaponMode];
+        const usesWeaponCrosshair = !!currentWeapon
+            && (isGunWeapon(currentWeapon) || currentWeapon.weaponType === 'bow');
+        if (this._syncNormalWorldCursor(game, usesWeaponCrosshair)) return;
+        if (!player) {
+            document.body.style.cursor = '';
+            if (this.game?.canvas) this.game.canvas.style.cursor = '';
+            if (this._domCursor) this._domCursor.style.display = 'none';
+            return;
+        }
+        document.body.style.cursor = 'none';
+        if (this.game?.canvas) this.game.canvas.style.cursor = 'none';
         const mainSpreadAngle = (Number(player._currentSpreadFactor) || 0)
             * (Number(player._currentSpreadMaxAngle) || 0);
         const offSpreadAngle = (Number(player._currentSpreadFactorOff) || 0)
@@ -9933,7 +9973,7 @@ export class GameScene extends Scene {
         const crosshairCfg = GAME_CONFIG.crosshair || {};
         const lerpSpeed = crosshairCfg.lerpSpeed || 0.3;
         this._crosshairSpread += (spreadAngle - this._crosshairSpread) * lerpSpeed;
-        const geometry = crosshairCfg.geometry || { baseGap: 5, maxGapExtra: 24, projectionScale: 48, lineLen: 7, capLen: 3, lineWidth: 1.75, outlineWidth: 2.25 };
+        const geometry = crosshairCfg.geometry || { baseGap: 5, maxGapExtra: 24, projectionScale: 48, lineLen: 6, capLen: 1.5, lineWidth: 1.5, outlineWidth: 1.5 };
         const baseGap = geometry.baseGap || 4;
         const maxGapExtra = geometry.maxGapExtra || 16;
         const mouseWorld = Renderer.screenToWorld(mx, my);
@@ -9949,23 +9989,21 @@ export class GameScene extends Scene {
         const projectionScale = Math.max(1, geometry.projectionScale || 48);
         const gap = baseGap + maxGapExtra * (1 - Math.exp(-projectedRadius / projectionScale));
         const lineLen = geometry.lineLen || 6;
-        const capLen = geometry.capLen || 3;
-        const lineWidth = geometry.lineWidth || 2.5;
-        const outlineWidth = geometry.outlineWidth || 2.5;
-        const colors = crosshairCfg.colors || { outline: '#071419', main: '#69e7e3', highlight: '#c8ffff' };
-        const centerDot = crosshairCfg.centerDot || { outerRadius: 1.5, innerRadius: 0.8 };
+        const capLen = geometry.capLen ?? 1.5;
+        const lineWidth = geometry.lineWidth || 1.5;
+        const outlineWidth = geometry.outlineWidth || 1.5;
+        const colors = this._resolveCrosshairColors(crosshairCfg.colors);
+        const centerDot = crosshairCfg.centerDot || {};
 
-        // DOM 置顶准星（2026-07-30）：NPC对话/商店/改造等 DOM 面板会盖住 Phaser 画布准星
-        // （cursor:none 下面板区域鼠标完全不可见——"面板遮盖鼠标"根因）。
-        // 用最高 z-index 的 DOM canvas 克隆同一准星几何，保证鼠标始终在所有图层之上；
-        // DOM 准星接管后 Phaser 层不再画（gScreen 每帧已 clear，无双准星无残留）
+        // 只在真实游戏表面显示最高层 DOM 准星；进入 UI 已在统一入口恢复原生指针。
+        // 中心固定在鼠标坐标，只有外围刻度随原散布变化；Phaser 层不重复绘制。
         const cursorSize = Math.max(64, Number(crosshairCfg.canvasSize) || 96);
         const dom = this._ensureDomCursor(cursorSize);
         const dctx = this._domCursorCtx;
         dctx.clearRect(0, 0, cursorSize, cursorSize);
         const dcx = cursorSize * 0.5, dcy = cursorSize * 0.5;
-        const outlineColor = colors.outline || '#000000';
-        const mainColor = colors.main || '#69e7e3';
+        const outlineColor = colors.outline;
+        const mainColor = colors.main;
         for (const [w, color] of [[lineWidth + outlineWidth, outlineColor], [lineWidth, mainColor]]) {
             dctx.strokeStyle = color;
             dctx.lineWidth = w;
@@ -9976,23 +10014,23 @@ export class GameScene extends Scene {
             dctx.moveTo(dcx, dcy + gap); dctx.lineTo(dcx, dcy + gap + lineLen);
             dctx.moveTo(dcx - gap, dcy); dctx.lineTo(dcx - gap - lineLen, dcy);
             dctx.moveTo(dcx + gap, dcy); dctx.lineTo(dcx + gap + lineLen, dcy);
-            // 冷钢档案式端帽：四条轴线末端形成机械刻度，不增加视觉遮挡面积。
+            // 短端帽保留冷钢机械刻度，避免厚重外框遮住小目标。
             dctx.moveTo(dcx - capLen, dcy - gap - lineLen); dctx.lineTo(dcx + capLen, dcy - gap - lineLen);
             dctx.moveTo(dcx - capLen, dcy + gap + lineLen); dctx.lineTo(dcx + capLen, dcy + gap + lineLen);
             dctx.moveTo(dcx - gap - lineLen, dcy - capLen); dctx.lineTo(dcx - gap - lineLen, dcy + capLen);
             dctx.moveTo(dcx + gap + lineLen, dcy - capLen); dctx.lineTo(dcx + gap + lineLen, dcy + capLen);
             dctx.stroke();
         }
-        const outerRadius = centerDot.outerRadius || 2.1;
-        const innerRadius = centerDot.innerRadius || 1.05;
-        dctx.fillStyle = colors.centerOuter || outlineColor;
+        const outerRadius = centerDot.outerRadius || 2;
+        const innerRadius = centerDot.innerRadius || 1;
+        dctx.fillStyle = colors.centerOuter;
         dctx.beginPath();
-        dctx.moveTo(dcx, dcy - outerRadius); dctx.lineTo(dcx + outerRadius, dcy);
-        dctx.lineTo(dcx, dcy + outerRadius); dctx.lineTo(dcx - outerRadius, dcy); dctx.closePath(); dctx.fill();
-        dctx.fillStyle = colors.centerInner || colors.highlight || mainColor;
+        dctx.arc(dcx, dcy, outerRadius, 0, Math.PI * 2);
+        dctx.fill();
+        dctx.fillStyle = colors.centerInner;
         dctx.beginPath();
-        dctx.moveTo(dcx, dcy - innerRadius); dctx.lineTo(dcx + innerRadius, dcy);
-        dctx.lineTo(dcx, dcy + innerRadius); dctx.lineTo(dcx - innerRadius, dcy); dctx.closePath(); dctx.fill();
+        dctx.arc(dcx, dcy, innerRadius, 0, Math.PI * 2);
+        dctx.fill();
 
         // Hitmarker（COD 式三级命中确认：命中白 / 暴击金 / 击杀红，出现瞬间外扩后淡出）
         const hm = GunFeel.hitmarker;
@@ -10020,6 +10058,157 @@ export class GameScene extends Scene {
         dom.style.left = (mx - cursorSize * 0.5) + 'px';
         dom.style.top = (my - cursorSize * 0.5) + 'px';
         dom.style.display = 'block';
+    }
+
+    /** Canvas 颜色消费冷钢 CSS 真源；缓存解析结果，避免逐帧读取计算样式。 */
+    _resolveCrosshairColors(configuredColors) {
+        if (this._crosshairPalette && this._crosshairPaletteSource === configuredColors) {
+            return this._crosshairPalette;
+        }
+        const theme = getComputedStyle(document.documentElement);
+        const resolve = (value, token, fallback) => {
+            const source = value || token;
+            return source.startsWith('--') ? theme.getPropertyValue(source).trim() || fallback : source;
+        };
+        const colors = configuredColors || {};
+        const outline = resolve(colors.outline, '--bp-ui-black', '#000000');
+        const main = resolve(colors.main, '--bp-ui-white-soft', '#ffffff');
+        const highlight = resolve(colors.highlight, '--bp-ui-white', main);
+        this._crosshairPaletteSource = configuredColors;
+        this._crosshairPalette = {
+            outline,
+            main,
+            highlight,
+            centerOuter: resolve(colors.centerOuter, '--bp-ui-black', outline),
+            centerInner: resolve(colors.centerInner, '--bp-ui-white', highlight),
+        };
+        return this._crosshairPalette;
+    }
+
+    /** 六种模式指令游标的唯一写入点；业务系统只返回语义状态。 */
+    _syncSemanticCommandCursor(game) {
+        const building = game?.BuildingSystem;
+        const rts = game?.RTSCommand;
+        const mx = Input?.mouse?.x;
+        const my = Input?.mouse?.y;
+        const state = building?.active
+            ? building.commandCursorState?.(mx, my)
+            : rts?.commandCursorState?.(mx, my);
+        if (!state) return false;
+
+        const canvas = this.game?.canvas;
+        const cursor = state === 'ui' ? '' : COMMAND_CURSOR_STYLES[state];
+        if (cursor === undefined) return false;
+        this._normalCommandCursorActive = true;
+        if (this._domCursor) this._domCursor.style.display = 'none';
+        document.body.style.cursor = cursor;
+        if (canvas) canvas.style.cursor = cursor;
+        return true;
+    }
+
+    /** 三种模式共用普通世界箭头；直接操控枪械/弓箭仍由专用准星接管。 */
+    _syncNormalWorldCursor(game, usesWeaponCrosshair) {
+        const rts = game?.RTSCommand;
+        const building = game?.BuildingSystem;
+        const rtsActive = !!rts?.enabled;
+        const buildingActive = !!building?.active;
+        const canvas = this.game?.canvas;
+        const directPointerActive = !!game?.player && !usesWeaponCrosshair;
+        if (!rtsActive && !buildingActive && !directPointerActive) {
+            if (this._normalCommandCursorActive && canvas) {
+                canvas.style.cursor = '';
+            }
+            this._normalCommandCursorActive = false;
+            return false;
+        }
+
+        this._normalCommandCursorActive = true;
+        if (this._domCursor) this._domCursor.style.display = 'none';
+        const pointerOverUi = (rtsActive && !!rts._pointerOverUi)
+            || (buildingActive && !!building._pointerOverUi);
+        if (pointerOverUi) {
+            document.body.style.cursor = '';
+            if (canvas) canvas.style.cursor = '';
+            return true;
+        }
+
+        const hoveringBuilding = (rtsActive && !!rts._hoverBuilding) || !!game?.DefenseSystem?._hoverTower;
+        // 普通态清除临时覆盖，继承冷钢主题；路径和热点仅由 CSS 真源维护。
+        const cursor = hoveringBuilding
+            ? 'var(--bp-cursor-pointer, pointer)'
+            : '';
+        document.body.style.cursor = cursor;
+        if (canvas) canvas.style.cursor = cursor;
+        return true;
+    }
+
+    /**
+     * 可登城 RTS 鼠标：箭头底部贴近解析后的真实墙顶目标，每个周期只向上移动并在回绕处淡出。
+     * 语义判定归 RTSCommand；此处只负责加载正式贴图和统一置顶绘制。
+     */
+    _elevatedCommandCursorAnchor(target, fallbackX, fallbackY) {
+        const x = Number(target?.x);
+        const groundY = Number(target?.y);
+        if (Number.isFinite(x) && Number.isFinite(groundY)) {
+            // 正常立面显示真实墙顶 y-z；压平视图显示墙体物理 footprint y。
+            const displayY = FlatViewSystem?.enabled
+                ? groundY
+                : groundY - (Number(target?.z) || 0);
+            const screen = Renderer.worldToScreen(x, displayY);
+            if (Number.isFinite(screen?.x) && Number.isFinite(screen?.y)) return screen;
+        }
+        return { x: fallbackX, y: fallbackY };
+    }
+
+    _drawElevatedCommandCursor(anchorX, anchorY) {
+        if (!this._elevatedCursorImage
+            && !this._elevatedCursorImageLoading
+            && !this._elevatedCursorImageFailed) {
+            const image = new Image();
+            image.decoding = 'async';
+            image.onload = () => {
+                this._elevatedCursorImage = image;
+                this._elevatedCursorImageLoading = null;
+            };
+            image.onerror = () => {
+                this._elevatedCursorImageLoading = null;
+                this._elevatedCursorImageFailed = true;
+            };
+            image.src = 'assets/ui/cursors/elevated-climb-arrow.png';
+            this._elevatedCursorImageLoading = image;
+        }
+        const image = this._elevatedCursorImage;
+        if (!image?.naturalWidth || !image?.naturalHeight) return false;
+
+        const cursorSize = 112;
+        const displayH = 92;
+        const displayW = displayH * image.naturalWidth / image.naturalHeight;
+        const phase = ((typeof performance !== 'undefined' ? performance.now() : Date.now()) % 960) / 960;
+        const upwardOffset = -phase * 6;
+        const alpha = 0.58 + Math.sin(Math.PI * phase) * 0.34;
+        const drawY = 8 + upwardOffset;
+        // 正式资产可见底边距固定为 8/256；扣除后，箭头钢框底边精确落在目标锚点。
+        const visibleBottomInset = displayH * 8 / 256;
+        const visibleBaseY = 8 + displayH - visibleBottomInset;
+        const dom = this._ensureDomCursor(cursorSize);
+        const dctx = this._domCursorCtx;
+        dctx.clearRect(0, 0, cursorSize, cursorSize);
+        dctx.save();
+        dctx.globalAlpha = alpha;
+        dctx.imageSmoothingEnabled = true;
+        dctx.imageSmoothingQuality = 'high';
+        dctx.drawImage(
+            image,
+            (cursorSize - displayW) * 0.5,
+            drawY,
+            displayW,
+            displayH
+        );
+        dctx.restore();
+        dom.style.left = `${anchorX - cursorSize * 0.5}px`;
+        dom.style.top = `${anchorY - visibleBaseY}px`;
+        dom.style.display = 'block';
+        return true;
     }
 
     /** DOM 置顶准星（最高 z-index 的独立 canvas，pointer-events 不拦截） */

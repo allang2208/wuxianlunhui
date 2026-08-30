@@ -206,7 +206,7 @@ export const NpcPortraitTool = {
         // 工具激活期间恢复可点（默认 none 穿透，见 init 注释）
         const portrait = getElement('npcPortrait');
         if (portrait) {
-            portrait.style.cursor = 'grab';
+            portrait.style.cursor = 'var(--bp-cursor-grab, grab)';
             portrait.style.transition = 'none';
             portrait.style.pointerEvents = 'auto';
         }
@@ -309,7 +309,7 @@ export const NpcPortraitTool = {
         this._drag.startX = this._params.x || 0;
         this._drag.startY = this._params.y || 0;
         const portrait = getElement('npcPortrait');
-        if (portrait) portrait.style.cursor = 'grabbing';
+        if (portrait) portrait.style.cursor = 'var(--bp-cursor-grabbing, grabbing)';
         document.addEventListener('mousemove', this._boundDragMove);
         document.addEventListener('mouseup', this._boundDragUp);
     },
@@ -324,7 +324,7 @@ export const NpcPortraitTool = {
     _onDragUp() {
         this._drag.active = false;
         const portrait = getElement('npcPortrait');
-        if (portrait && this._active) portrait.style.cursor = 'grab';
+        if (portrait && this._active) portrait.style.cursor = 'var(--bp-cursor-grab, grab)';
         this._removeDragListeners();
     },
 

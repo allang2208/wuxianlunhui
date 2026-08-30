@@ -1,0 +1,19 @@
+{
+  "createdAt": "2026-08-29",
+  "generator": "Codex built-in ImageGen",
+  "useCase": "stylized-concept",
+  "purpose": "RTS可登城墙、墙顶与塔楼的立体绿色上箭头鼠标贴图",
+  "status": "superseded_runtime_retained_direct_edit_reference",
+  "supersededBy": "tools/ai-gen/elevated-climb-cursor-cold-steel-imagegen-20260830.json",
+  "generatedSource": "tools/ai-gen/cursor-sources-20260830/elevated-climb-original-reference.png",
+  "asset": "assets/ui/cursors/elevated-climb-arrow.png",
+  "runtimeContract": {
+    "generatedSource": "1145x1374 RGBA",
+    "historicalRuntimeAsset": "192x230 RGBA",
+    "displayHeight": "88px",
+    "hotspot": "arrow base aligned above pointer",
+    "animation": "900ms upward-only loop with wrap fade",
+    "ownership": "RTSCommand resolves semantics; GameScene owns cursor rendering"
+  },
+  "prompt": "Use case: stylized-concept. Asset type: game UI cursor sprite for a medieval fortress RTS. Primary request: a single three-dimensional upward-pointing green arrow that communicates climb onto this elevated structure. Subject: one bold vertical arrow, arrowhead pointing precisely toward the top of the canvas, chunky extruded body, compact and highly readable at 64 to 96 pixels. Style/medium: polished isometric 3D game UI icon, classic medieval fortress strategy-game visual language, original design. Composition/framing: centered single object, front three-quarter isometric view, generous transparent safety margin, balanced silhouette. Lighting/mood: restrained top-left highlight, tactical and confident. Color palette: vivid emerald green front face, lime highlight on bevels, deep forest-green side faces, thin charcoal cold-steel outer edge. Materials/textures: beveled painted metal or carved enamel, subtle wear only, crisp edges. Constraints: genuinely transparent RGBA background; exactly one arrow; no platform; no circle; no cursor hand; no text; no letters; no numbers; no emblem; no logo; no watermark; no cast shadow outside the arrow; arrow must remain legible when downscaled. Avoid: neon bloom, excessive glow, cartoon sticker look, flat vector appearance, photorealistic scene, buildings, walls, people, extra symbols."
+}

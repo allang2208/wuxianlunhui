@@ -69,6 +69,7 @@ export const RTSCommand = {
     _rallyPicking: false,
     _troopLineRevision: -1,
     _hoverBuilding: null,  // 指挥态鼠标悬停的可交互建筑（GameScene 读取并绘制金色轮廓）
+    _hoverElevatedTarget: null, // 已选友军可登上的墙顶/塔楼表面（GameScene 读取并替换鼠标贴图）
 
     init() {
         this._createButton();
@@ -116,11 +117,13 @@ export const RTSCommand = {
             this._consumeNormalCommandPointer = false;
         }
         if (!this.enabled) {
+            this._setElevatedHover(null);
             this._setHoverBuilding(null);
             return;
         }
         this._pruneSelection();
         this._syncBuildingHover(Input?.mouse?.x, Input?.mouse?.y);
+        this._syncElevatedHover(Input?.mouse?.x, Input?.mouse?.y);
         this._edgePan(dt, Input);
         const input = Input || this._input();
         const pendingRightClick = this._pendingRightClick;
@@ -154,6 +157,7 @@ export const RTSCommand = {
         if (this._troopLinePanel) this._troopLinePanel.style.display = this.enabled ? '' : 'none';
         this._syncCommandBarVisibility();
         if (!this.enabled) {
+            this._setElevatedHover(null);
             this._rallyPicking = false;
             this._commandPicking = null;
             this._pendingRightClick = null;
@@ -262,7 +266,7 @@ export const RTSCommand = {
             <div data-role="status" style="font-size:12px;line-height:1.55;color:#aeb9c8;margin-top:8px;height:76px;overflow:hidden;box-sizing:border-box;white-space:pre-line;"></div>
         `;
         for (const button of el.querySelectorAll('[data-mode]')) {
-            button.style.cssText = 'padding:6px 2px;border:1px solid #586474;border-radius:5px;background:#29313c;color:#d8dfeb;cursor:pointer;font-size:12px;';
+            button.style.cssText = 'padding:6px 2px;border:1px solid #586474;border-radius:5px;background:#29313c;color:#d8dfeb;cursor:var(--bp-cursor-pointer, pointer);font-size:12px;';
             if (button.dataset.mode === 'hold') {
                 TechnologyGate.bind(button, { type: 'mechanic', id: 'troop_hold' });
             } else if (button.dataset.mode === 'rally') {
@@ -797,11 +801,159 @@ export const RTSCommand = {
     },
 
     _setHoverBuilding(building) {
-        if (this._hoverBuilding === building) return;
-        this._hoverBuilding = building || null;
-        if (typeof document === 'undefined') return;
-        const canvas = document.querySelector('canvas');
-        if (canvas) canvas.style.cursor = this._hoverBuilding ? 'pointer' : '';
+        const next = building || null;
+        if (this._hoverBuilding === next) return;
+        this._hoverBuilding = next;
+        this._applyCanvasCursor();
+    },
+
+    /** 只在普通移动语义下提示“可登高”；攻击移动、巡逻、集结和拖框各自保留原指令状态。 */
+    _syncElevatedHover(sx, sy) {
+        const selectedAllies = this._selection
+            .filter((entry) => entry?.kind === 'ally' && entry.ref && entry.ref.active !== false)
+            .map((entry) => entry.ref);
+        const invalidPointer = this._pointerOverUi
+            || !Number.isFinite(sx)
+            || !Number.isFinite(sy)
+            || selectedAllies.length === 0
+            || !!this._commandPicking
+            || this._rallyPicking
+            || this._dragging
+            || this._minimapDragging;
+        if (invalidPointer) {
+            this._setElevatedHover(null);
+            return;
+        }
+        const point = this._resolveCommandPoint(sx, sy);
+        if (point?.surfaceKind !== 'wall_walk') {
+            this._setElevatedHover(null);
+            return;
+        }
+        const reachable = this._isCommandPointRoutable(point, selectedAllies);
+        this._setElevatedHover(reachable ? point : null);
+    },
+
+    _setElevatedHover(point) {
+        const wasActive = !!this._hoverElevatedTarget;
+        this._hoverElevatedTarget = point || null;
+        if (wasActive !== !!this._hoverElevatedTarget) this._applyCanvasCursor();
+    },
+
+    /** GameScene 是唯一鼠标图形绘制方；这里仅公开已完成的 RTS 语义判定。 */
+    elevatedCursorTarget() {
+        return this.enabled ? this._hoverElevatedTarget : null;
+    },
+
+    _commandCursorAllies() {
+        return (this.enabled
+            ? this._selection
+                .filter((entry) => entry?.kind === 'ally')
+                .map((entry) => entry.ref)
+            : this._commandBarAllies()
+        ).filter((unit) => unit && unit.active !== false);
+    },
+
+    _isCommandPointRoutable(point, units) {
+        if (!point || point.unreachable) return false;
+        const candidates = (units || []).filter((unit) => unit && unit.active !== false
+            && !this._isExplorationLocked(unit));
+        if (!candidates.length) return false;
+        return candidates.some((unit) => {
+            const routed = this._movePointForUnit(unit, point);
+            return !!routed && !routed.unreachable;
+        });
+    },
+
+    _validatePickedCommand(mode, point) {
+        if (mode !== 'attack_move' && mode !== 'patrol') {
+            return { valid: false, point, reason: '未知指令' };
+        }
+        if (!point || point.unreachable) {
+            return { valid: false, point, reason: point?.reason || '目标不可达' };
+        }
+        const allies = this._commandCursorAllies();
+        if (!allies.length) return { valid: false, point, reason: '没有可接收指令的单位' };
+        if (!this._isCommandPointRoutable(point, allies)) {
+            return { valid: false, point, reason: '选中单位均无法到达该位置' };
+        }
+        return { valid: true, point, reason: '' };
+    },
+
+    _validateRallyPoint(point, producer = null) {
+        if (!point || point.unreachable) {
+            return { valid: false, point, reason: point?.reason || '该位置无法集结' };
+        }
+        if (producer) {
+            const reachable = this._producerRallyPoint(producer, point);
+            if (!reachable || reachable.unreachable) {
+                return {
+                    valid: false,
+                    point: reachable || point,
+                    reason: reachable?.reason || '该位置无法从建筑出口到达',
+                };
+            }
+            if (!TroopLineSystem.canSetProducerRally?.(producer, this._scene, reachable)) {
+                return { valid: false, point: reachable, reason: '独立集结点设置失败' };
+            }
+            return { valid: true, point: reachable, reason: '' };
+        }
+        if (!TroopLineSystem.canSetRally?.(this._scene, point)) {
+            return { valid: false, point, reason: '当前位面未接入传送网络' };
+        }
+        return { valid: true, point, reason: '' };
+    },
+
+    _canUnitAttackFromCursor(unit) {
+        if (!unit || unit.active === false || unit._rtsCanAttack === false
+            || this._isExplorationLocked(unit)) return false;
+        if (this._isPlayerUnit(unit)) return typeof unit._rtsController?.issueAttack === 'function';
+        return true;
+    },
+
+    /**
+     * GameScene 的唯一游标仲裁输入。这里只返回指令语义，不直接写 canvas/body cursor。
+     * 返回值与正式提交共用同一套目标解析和门禁，避免显示、点击两套判断漂移。
+     */
+    commandCursorState(sx, sy) {
+        const hasModalCommand = !!this._commandPicking || this._rallyPicking;
+        const hasProducerRally = this.enabled && !!this._selectedTroopProducer();
+        if (!this.enabled && !hasModalCommand) return null;
+        if (this._pointerOverUi) return (hasModalCommand || hasProducerRally) ? 'ui' : null;
+        if (!Number.isFinite(sx) || !Number.isFinite(sy) || this._dragging || this._minimapDragging) {
+            return null;
+        }
+
+        const point = this._resolveCommandPoint(sx, sy);
+        if (this._commandPicking) {
+            const validation = this._validatePickedCommand(this._commandPicking, point);
+            return validation.valid ? this._commandPicking : 'invalid';
+        }
+        if (this._rallyPicking) {
+            return this._validateRallyPoint(point).valid ? 'rally' : 'invalid';
+        }
+
+        const producer = this._selectedTroopProducer();
+        if (producer) {
+            return this._validateRallyPoint(point, producer).valid ? 'rally' : 'invalid';
+        }
+
+        const allies = this._commandCursorAllies();
+        if (!allies.length) return null;
+        const hit = this._hitUnitAt(sx, sy);
+        if (hit?.kind === 'enemy') {
+            return allies.some((unit) => this._canUnitAttackFromCursor(unit))
+                ? 'attack_target'
+                : 'invalid';
+        }
+        if (!point || point.unreachable) return 'invalid';
+        const elevatedPoint = (point.surfaceKind && point.surfaceKind !== 'ground')
+            || Number(point.z) > 0;
+        if (elevatedPoint && !this._isCommandPointRoutable(point, allies)) return 'invalid';
+        return null;
+    },
+
+    _applyCanvasCursor() {
+        // 鼠标图形由 GameScene._syncCrosshair 每帧统一仲裁；RTS 只维护语义状态。
     },
 
     _surfaceLayerKey(entity) {
@@ -1087,25 +1239,40 @@ export const RTSCommand = {
 
     _issuePickedCommand(mode, sx, sy) {
         const point = this._resolveCommandPoint(sx, sy);
-        if (!point) return 0;
-        if (point.unreachable) {
+        const validation = this._validatePickedCommand(mode, point);
+        if (!validation.valid) {
+            const rejectedPoint = validation.point || point;
+            if (!rejectedPoint) return 0;
             EffectManager.add(new FloatingTextEffect(
-                point.x,
-                point.y - (point.z || 0),
-                point.reason || '目标不可达',
+                rejectedPoint.x,
+                rejectedPoint.y - (rejectedPoint.z || 0),
+                validation.reason || '目标不可达',
                 '#ff8855'
             ));
             return 0;
         }
-        const commanded = this.issueWheelCommand(mode, point);
+        const commandPoint = validation.point;
+        const commanded = this.issueWheelCommand(mode, commandPoint);
         if (commanded > 0) {
-            _scene()?.showMoveMarker?.(point.x, point.y, point.z, point.renderDepth);
+            _scene()?.showMoveMarker?.(
+                commandPoint.x,
+                commandPoint.y,
+                commandPoint.z,
+                commandPoint.renderDepth
+            );
             const label = mode === 'patrol' ? '巡逻' : '移动攻击';
             EffectManager.add(new FloatingTextEffect(
-                point.x,
-                point.y - (Number(point.z) || 0) - 36,
+                commandPoint.x,
+                commandPoint.y - (Number(commandPoint.z) || 0) - 36,
                 `${label}（${commanded} 单位）`,
                 mode === 'patrol' ? '#ffd77f' : '#ff9d9d'
+            ));
+        } else {
+            EffectManager.add(new FloatingTextEffect(
+                commandPoint.x,
+                commandPoint.y - (Number(commandPoint.z) || 0),
+                '选中单位均未接受该指令',
+                '#ff8855'
             ));
         }
         return commanded;
@@ -1353,19 +1520,37 @@ export const RTSCommand = {
             return;
         }
         if (this._rallyPicking) {
-            if (point.unreachable) {
-                EffectManager.add(new FloatingTextEffect(point.x, point.y, point.reason || '该位置无法集结', '#ff8855'));
+            const validation = this._validateRallyPoint(point);
+            if (!validation.valid) {
+                const rejectedPoint = validation.point || point;
+                EffectManager.add(new FloatingTextEffect(
+                    rejectedPoint.x,
+                    rejectedPoint.y - (rejectedPoint.z || 0),
+                    validation.reason || '该位置无法集结',
+                    '#ff8855'
+                ));
                 this._cancelRallyPick();
                 return;
             }
-            if (!TroopLineSystem.setRally(this._scene, point)) {
-                EffectManager.add(new FloatingTextEffect(point.x, point.y, '当前位面未接入传送网络', '#ff8855'));
+            const rallyPoint = validation.point;
+            if (!TroopLineSystem.setRally(this._scene, rallyPoint)) {
+                EffectManager.add(new FloatingTextEffect(
+                    rallyPoint.x,
+                    rallyPoint.y - (rallyPoint.z || 0),
+                    '当前位面未接入传送网络',
+                    '#ff8855'
+                ));
                 this._cancelRallyPick();
                 return;
             }
             this._rallyPicking = false;
             this._refreshTroopLinePanel(true);
-            EffectManager.add(new FloatingTextEffect(point.x, point.y - (point.z || 0), '集结点已保存', '#8ad0ff'));
+            EffectManager.add(new FloatingTextEffect(
+                rallyPoint.x,
+                rallyPoint.y - (rallyPoint.z || 0),
+                '集结点已保存',
+                '#8ad0ff'
+            ));
             return;
         }
         const producer = this._selectedTroopProducer();
@@ -1374,12 +1559,13 @@ export const RTSCommand = {
                 EffectManager.add(new FloatingTextEffect(producer.x, producer.y - 64, '需要先研发集结战术', '#ffb35c'));
                 return;
             }
-            const reachable = this._producerRallyPoint(producer, point);
-            if (reachable.unreachable) {
+            const validation = this._validateRallyPoint(point, producer);
+            const reachable = validation.point || point;
+            if (!validation.valid) {
                 EffectManager.add(new FloatingTextEffect(
                     reachable.x,
                     reachable.y - (reachable.z || 0),
-                    reachable.reason || '该位置无法从建筑出口到达',
+                    validation.reason || '该位置无法从建筑出口到达',
                     '#ff8855'
                 ));
                 return;

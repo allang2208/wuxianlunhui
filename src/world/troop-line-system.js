@@ -164,7 +164,8 @@ export const TroopLineSystem = {
         return true;
     },
 
-    setRally(sceneId, point) {
+    /** 集结点的只读门禁；鼠标反馈与正式提交必须共用，避免悬停显示可用但点击后拒绝。 */
+    canSetRally(sceneId, point) {
         if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return false;
         const currentSceneId = sceneManager()?.currentScene;
         if (currentSceneId && sceneId !== currentSceneId
@@ -174,8 +175,13 @@ export const TroopLineSystem = {
             || !WorldProgressionSystem.isPortalConstructed(sceneId)) return false;
         const worldEpoch = currentEpoch(sceneId);
         if (!(worldEpoch > 0)) return false;
+        return !!normalizeTarget({ sceneId, worldEpoch, ...point });
+    },
+
+    setRally(sceneId, point) {
+        if (!this.canSetRally(sceneId, point)) return false;
+        const worldEpoch = currentEpoch(sceneId);
         const rally = normalizeTarget({ sceneId, worldEpoch, ...point });
-        if (!rally) return false;
         this.mode = 'rally';
         this.rally = rally;
         // 全局“自订”成功落地后才清空；取点失败或取消不得影响建筑独立设置。
@@ -184,7 +190,8 @@ export const TroopLineSystem = {
         return true;
     },
 
-    setProducerRally(producer, sceneId, point) {
+    /** 独立建筑集结点的只读门禁；不写入存档或 revision。 */
+    canSetProducerRally(producer, sceneId, point) {
         if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return false;
         if (!this.isTroopProducer(producer) || producer.active === false || !producer.id
             || !PERSISTENT_WORLDS.has(sceneId) || !point
@@ -197,7 +204,18 @@ export const TroopLineSystem = {
             originWorldEpoch: worldEpoch,
             target: { sceneId, worldEpoch, ...point },
         });
-        if (!record || !this._isProducerRallyCurrent(record)) return false;
+        return !!record && this._isProducerRallyCurrent(record);
+    },
+
+    setProducerRally(producer, sceneId, point) {
+        if (!this.canSetProducerRally(producer, sceneId, point)) return false;
+        const worldEpoch = currentEpoch(sceneId);
+        const record = normalizeProducerRally({
+            producerId: producer.id,
+            originSceneId: sceneId,
+            originWorldEpoch: worldEpoch,
+            target: { sceneId, worldEpoch, ...point },
+        });
         this._producerRallies.set(
             producerRallyKey(record.producerId, record.originSceneId, record.originWorldEpoch),
             record

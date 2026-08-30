@@ -486,6 +486,7 @@ export const BuildingSystem = {
     _lastPointerClient: null,
     _mouseSeen: false,
     _pointerOverUi: false,
+    _commandCursorCache: null,
     _fogPlacementVisibilityCache: {
         sceneId: null,
         grid: null,
@@ -510,6 +511,7 @@ export const BuildingSystem = {
         Game.Input?.setPlayerControlLocked?.(true);
         this._mouseSeen = false;
         this._pointerOverUi = false;
+        this._commandCursorCache = null;
         // 建筑主面板打开前清理所有独立建筑详情，避免旧面板残留在二级页之外。
         for (const panel of this._buildingDetailPanels()) {
             if (panel.isOpen && typeof panel.close === 'function') panel.close();
@@ -545,6 +547,7 @@ export const BuildingSystem = {
         this._cancelPlacement({ destroyReusableVisuals: true, revealPanel: false });
         Game.Input?.setPlayerControlLocked?.(false);
         this._recycleMode = false;
+        this._commandCursorCache = null;
         this._closeDetail();
         for (const panel of this._buildingDetailPanels()) {
             if (panel.isOpen && typeof panel.close === 'function') panel.close();
@@ -599,6 +602,25 @@ export const BuildingSystem = {
         const worldHeight = CONFIG.WORLD_HEIGHT || 4096;
         Camera.x = Math.max(0, Math.min(worldWidth, Camera.x + dx * step));
         Camera.y = Math.max(0, Math.min(worldHeight, Camera.y + dy * step));
+    },
+
+    /** GameScene 的唯一游标仲裁输入；建筑系统只返回回收语义，不直接写浏览器 cursor。 */
+    commandCursorState(sx, sy) {
+        if (!this.active || !this._recycleMode) return null;
+        if (this._pointerOverUi) return 'ui';
+        if (!Number.isFinite(sx) || !Number.isFinite(sy)) return 'invalid';
+        const point = this._clientToWorld({ clientX: sx, clientY: sy });
+        if (!point?.overCanvas) return 'invalid';
+        const cache = this._commandCursorCache;
+        const now = Date.now();
+        if (cache && now - cache.at <= 80
+            && Math.abs(cache.x - point.x) < 0.25 && Math.abs(cache.y - point.y) < 0.25) {
+            return cache.state;
+        }
+        const candidate = this._recycleCandidateAt(point.x, point.y);
+        const state = candidate.valid ? 'recycle' : 'invalid';
+        this._commandCursorCache = { x: point.x, y: point.y, state, at: now };
+        return state;
     },
 
     /** 点击掩体/铁栅栏门 → 打开建筑详情（2026-08-16 用户口径调整）：
@@ -1545,6 +1567,7 @@ export const BuildingSystem = {
             if (this._detail) this._closeDetail();
         }
         this._recycleMode = next;
+        this._commandCursorCache = null;
         const button = this._panel && this._panel.querySelector('#bpRecycleMode');
         if (button) {
             button.textContent = next ? '退出回收' : '回收建筑';
@@ -4658,6 +4681,39 @@ export const BuildingSystem = {
         return { targets, recyclable, currency, totalCost, refund };
     },
 
+    _recycleRoadInfo(road) {
+        if (!road) return null;
+        const roadItem = BUILD_ITEMS.find((item) => item.kind === 'road');
+        const paidCost = Number.isFinite(Number(road.buildCost)) && Number(road.buildCost) > 0
+            ? Number(road.buildCost)
+            : (road.refundable !== false ? Number(roadItem?.cost) || 0 : 0);
+        const currency = road.buildCurrency === 'gold' ? 'gold' : 'energy';
+        return {
+            road,
+            currency,
+            refund: road.refundable === false ? 0 : Math.floor(paidCost * 0.5),
+        };
+    },
+
+    /** 回收悬停与正式点击共用的只读目标门禁。 */
+    _recycleCandidateAt(wx, wy) {
+        const entity = this._hitTestRecyclableEntity(wx, wy);
+        if (entity) {
+            const info = this._recycleInfo(entity);
+            if (!info.recyclable) return { valid: false, reason: '该建筑不可回收' };
+            if (info.currency === 'energy' && (!EnergyManager || !EnergyManager.canStore(info.refund))) {
+                return { valid: false, reason: '仓库空间不足，无法接收回收返还能源' };
+            }
+            return { valid: true, kind: 'entity', entity, info };
+        }
+        const roadInfo = this._recycleRoadInfo(BuildingRoadSystem.getManualRoadAt(wx, wy));
+        if (!roadInfo) return { valid: false, reason: '此处没有可回收的建筑或道路' };
+        if (roadInfo.currency === 'energy' && (!EnergyManager || !EnergyManager.canStore(roadInfo.refund))) {
+            return { valid: false, reason: '仓库空间不足，无法接收回收返还能源' };
+        }
+        return { valid: true, kind: 'road', ...roadInfo };
+    },
+
     _removeBuiltEntity(entity) {
         if (!entity) return;
         if (entity._isDefenseCover && typeof entity.removeFromCollision === 'function') {
@@ -4757,26 +4813,17 @@ export const BuildingSystem = {
     },
 
     _recycleAt(wx, wy) {
-        const entity = this._hitTestRecyclableEntity(wx, wy);
-        if (entity) {
-            this._recycleEntity(entity);
+        const candidate = this._recycleCandidateAt(wx, wy);
+        this._commandCursorCache = null;
+        if (!candidate.valid) {
+            this._notify(candidate.reason || '此处没有可回收的建筑或道路', '#ff8855');
             return;
         }
-        const road = BuildingRoadSystem.getManualRoadAt(wx, wy);
-        if (!road) {
-            this._notify('此处没有可回收的建筑或道路', '#ff8855');
+        if (candidate.kind === 'entity') {
+            this._recycleEntity(candidate.entity);
             return;
         }
-        const roadItem = BUILD_ITEMS.find((item) => item.kind === 'road');
-        const paidCost = Number.isFinite(Number(road.buildCost)) && Number(road.buildCost) > 0
-            ? Number(road.buildCost)
-            : (road.refundable !== false ? Number(roadItem?.cost) || 0 : 0);
-        const currency = road.buildCurrency === 'gold' ? 'gold' : 'energy';
-        const refund = road.refundable === false ? 0 : Math.floor(paidCost * 0.5);
-        if (currency === 'energy' && (!EnergyManager || !EnergyManager.canStore(refund))) {
-            this._notify('仓库空间不足，无法接收回收返还能源', '#ff5555');
-            return;
-        }
+        const { road, currency, refund } = candidate;
         if (!BuildingRoadSystem.removeManualRoad(road.i, road.j)) {
             this._notify('道路回收失败', '#ff5555');
             return;
@@ -4796,7 +4843,7 @@ export const BuildingSystem = {
         return `<button id="bpRecycle" class="bp-recycle"
             data-technology-gate-type="mechanic" data-technology-gate-id="building_recycle"
             style="background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:7px 4px;
-            ${info.recyclable ? 'cursor:pointer;' : 'opacity:0.45;cursor:default;'}"
+            ${info.recyclable ? 'cursor:var(--bp-cursor-pointer, pointer);' : 'opacity:0.45;cursor:default;'}"
             ${info.recyclable ? '' : 'disabled'}>${info.recyclable ? `回收（+${info.refund}${unit}）` : '不可回收'}</button>`;
     },
 

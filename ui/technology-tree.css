@@ -79,7 +79,7 @@
     width: 38px;
     height: 38px;
     border-radius: 4px;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     color: var(--bp-ui-white-soft);
     background: var(--bp-ui-control);
     border: 1px solid var(--bp-ui-line-strong);
@@ -120,7 +120,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     color: var(--bp-ui-text-muted);
     background: var(--bp-ui-control);
     border: 1px solid var(--bp-ui-line);
@@ -161,18 +161,18 @@
     min-width: 0;
     flex: 1;
     overflow: auto;
-    cursor: grab;
+    cursor: var(--bp-cursor-grab, grab);
     overscroll-behavior: contain;
     background-color: var(--bp-ui-black-soft);
 }
 
 .technology-tree-viewport.is-panning {
-    cursor: grabbing;
+    cursor: var(--bp-cursor-grabbing, grabbing);
     user-select: none;
 }
 
 .technology-tree-viewport.is-panning * {
-    cursor: grabbing !important;
+    cursor: var(--bp-cursor-grabbing, grabbing) !important;
 }
 
 .technology-tree-canvas {
@@ -345,7 +345,7 @@
     align-items: center;
     gap: 10px;
     text-align: left;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     opacity: 1;
     color: var(--bp-ui-text-muted);
     background-color: var(--bp-ui-charcoal);
@@ -914,7 +914,7 @@
     width: 100%;
     margin-top: 28px;
     padding: 12px 10px;
-    cursor: pointer;
+    cursor: var(--bp-cursor-pointer, pointer);
     color: var(--bp-ui-text-dark);
     background: var(--bp-ui-surface-light);
     border: 1px solid var(--bp-ui-white);
