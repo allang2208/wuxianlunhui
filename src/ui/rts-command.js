@@ -16,6 +16,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { TroopLineSystem } from '../world/troop-line-system.js';
 import { RtsTacticalOrderSystem } from '../systems/rts-tactical-order-system.js';
 import { pathFinder } from '../ai/pathfinder.js';
+import { RTS_FORMATION_SLOT_CLEARANCE } from '../ai/rts-command-utils.js';
 import { TechnologySystem } from '../world/technology-system.js';
 import {
     isoFootprintVertices,
@@ -1986,13 +1987,13 @@ export const RTSCommand = {
         const projected = pathFinder.findNearestWalkablePoint(point.x, point.y, radius, 360);
         if (!projected || !reservations) return projected;
         const conflicts = (candidate) => reservations.some((reserved) => {
-            const safeDistance = radius + reserved.radius + 16;
-            return Math.hypot(candidate.x - reserved.x, candidate.y - reserved.y) < safeDistance;
+            const safeDistance = radius + reserved.radius + RTS_FORMATION_SLOT_CLEARANCE;
+            return Math.hypot(candidate.x - reserved.x, candidate.y - reserved.y) + 0.001 < safeDistance;
         });
         if (!conflicts(projected)) return projected;
 
         // 只在下令瞬间围绕原槽位寻找替代点；不建立逐帧队形约束或共享路径。
-        const step = Math.max(40, radius * 2 + 16);
+        const step = Math.max(40, radius * 2 + RTS_FORMATION_SLOT_CLEARANCE);
         const phase = reservations.length * Math.PI * (3 - Math.sqrt(5));
         for (let distance = step; distance <= 360; distance += step) {
             const samples = Math.max(12, Math.ceil(Math.PI * 2 * distance / step));
@@ -2027,7 +2028,9 @@ export const RTSCommand = {
             max,
             Number(unit.groundRadius) || Number(unit.collisionRadius) || 20
         ), 20);
-        const spacing = Math.max(56, maxRadius * 2 + 16);
+        // 槽位在 u/v 中生成，但预约/单位分离在投影后的世界坐标中判距。
+        // 补偿最短投影轴；间距和预约共用留白，且覆盖两名单位各自的到达容差。
+        const spacing = (maxRadius * 2 + RTS_FORMATION_SLOT_CLEARANCE) / Math.min(1, PERSPECTIVE_SCALE_Y);
         const center = validUnits.reduce((sum, unit) => ({
             x: sum.x + (Number(unit.x) || 0),
             y: sum.y + (Number(unit.y) || 0),
@@ -2066,7 +2069,10 @@ export const RTSCommand = {
                 forward.u * slot.forwardOffset + lateral.u * slot.lateralOffset,
                 forward.v * slot.forwardOffset + lateral.v * slot.lateralOffset
             );
-            slot.point = { ...point, x: point.x + delta.x, y: point.y + delta.y, route: [] };
+            slot.point = {
+                ...point, x: point.x + delta.x, y: point.y + delta.y,
+                route: [], formationSlot: true, routeAnchor: { x: point.x, y: point.y },
+            };
         }
 
         // 中心槽优先，逐槽选择最近单位。O(n^2) 仅在下令瞬间执行，减少换位交叉且无每帧成本。

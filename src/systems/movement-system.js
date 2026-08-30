@@ -25,7 +25,7 @@ import {
     verticalRangesOverlap,
 } from '../physics/elevation.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
-import { resolveRtsMoveDestination } from '../ai/rts-command-utils.js';
+import { resolveRtsMoveDestination, finishRtsCommandAtHold, getRtsFormationGroundPoint, RTS_FORMATION_ARRIVE_DISTANCE } from '../ai/rts-command-utils.js';
 import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../config/tribute-effects.js';
 import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 import performanceConfig from '../../data/performance-config.json';
@@ -269,6 +269,16 @@ const MovementSystem = {
             enemy.vy = 0;
             enemy.maxSpeed = 0;
             enemy.isMoving = false;
+            return;
+        }
+
+        // 士兵决策通常每120ms才执行；到槽检查必须逐帧，否则高速单位会越过精确终点。
+        // 仅地面编队 move 生效，且排在控制状态/击退之后，不替代墙碰撞或高架 FIFO。
+        const formationPoint = getRtsFormationGroundPoint(enemy);
+        if (formationPoint
+            && Math.hypot(formationPoint.x - enemy.x, formationPoint.y - enemy.y)
+                <= RTS_FORMATION_ARRIVE_DISTANCE) {
+            finishRtsCommandAtHold(enemy);
             return;
         }
 
@@ -738,10 +748,13 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     },
 
     /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */
-    _getEnemyMoveSpeed(enemy) {
-        return this._getEnemyBaseSpeed(enemy)
+    _getEnemyMoveSpeed(enemy, formationApproach = false) {
+        const speed = this._getEnemyBaseSpeed(enemy)
             * BuildingRoadSystem.movementMultiplierAt(enemy.x, enemy.y)
             * World125FogTideSystem.getZombieMoveSpeedMultiplier(enemy);
+        const point = formationApproach ? getRtsFormationGroundPoint(enemy) : null;
+        // 只限制地面编队末段，不写回兵种属性或影响技能位移。
+        return point ? Math.min(speed, Math.hypot(point.x - enemy.x, point.y - enemy.y) * 8) : speed;
     },
 
     _applyKnockback(enemy, dt) {
@@ -1369,7 +1382,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 if (len > 0) { moveX /= len; moveY /= len; }
             }
 
-            let maxSpd = this._getEnemyMoveSpeed(enemy);
+            let maxSpd = this._getEnemyMoveSpeed(enemy, true);
             if (chargeStraight) {
                 maxSpd *= 1.3;
             }
@@ -1551,7 +1564,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
         const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
-        let maxSpd = this._getEnemyMoveSpeed(enemy);
+        let maxSpd = this._getEnemyMoveSpeed(enemy, true);
         // 直冲型怪物在攻击范围外小幅加速，确保能追上高速目标
         if (chargeStraight && dist > (enemy.attackRange || 70)) {
             maxSpd *= 1.3;

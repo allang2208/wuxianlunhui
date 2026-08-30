@@ -1,6 +1,6 @@
 import { PathManager } from '../../ai/path-manager.js';
 import { PATH_DEFERRED, pathFinder } from '../../ai/pathfinder.js';
-import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from '../../ai/rts-command-utils.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination, getRtsFormationGroundPoint, RTS_FORMATION_ARRIVE_DISTANCE } from '../../ai/rts-command-utils.js';
 import { isGunWeapon } from '../../config/gun-ammo.js';
 import { WallSystem } from '../../world/wall-system.js';
 
@@ -138,27 +138,40 @@ export class PlayerRtsController {
         if (move.waitingForPortal) return intent;
 
         const destination = move.destination;
+        const formationPoint = getRtsFormationGroundPoint(this.player, command);
         const useSurfaceDirection = !!this.player._surfaceRouteActive
             || this.player._surfaceKind === 'stairs'
             || this.player._surfaceKind === 'wall_walk';
         const movementTarget = useSurfaceDirection
             ? destination
-            : this._groundWaypoint(destination, dt, entities);
+            : this._groundWaypoint(destination, dt, entities, formationPoint);
         if (!movementTarget) return intent;
         const dx = movementTarget.x - this.player.x;
         const dy = movementTarget.y - this.player.y;
         const distance = Math.hypot(dx, dy);
         if (distance <= 0.001) return intent;
-        intent.move = { x: dx / distance, y: dy / distance };
+        const approachScale = formationPoint
+            ? Math.min(1, move.distance / 64, distance / 24)
+            : 1;
+        intent.move = { x: dx / distance * approachScale, y: dy / distance * approachScale };
         intent.runVisual = true;
         intent.aimWorld = { x: movementTarget.x, y: movementTarget.y };
         return intent;
     }
 
-    _groundWaypoint(destination, dt, entities) {
+    _groundWaypoint(destination, dt, entities, formationPoint = null) {
         const player = this.player;
         pathFinder.syncEntityFootprintObstacles?.(entities);
         const fullDistance = Math.hypot(destination.x - player.x, destination.y - player.y);
+        // 远端仍使用网格中继路径：编队末段需靠近真实槽位，不能停在最后的网格中心。
+        // 只接回已确认畅通的短线段；实际位移继续走玩家原碰撞链。
+        const radius = player.groundRadius || player.collisionRadius || 20;
+        if (formationPoint && fullDistance <= 64
+            && !pathFinder.isPointBlocked(destination.x, destination.y, radius)
+            && !pathFinder.isSegmentBlocked(player.x, player.y, destination.x, destination.y, radius)
+            && !WallSystem.blocked(player.x, player.y, destination.x, destination.y, WallSystem.ignoreForEntity(player))) {
+            return destination;
+        }
         const relayScale = fullDistance > PLAYER_RTS_RELAY_DISTANCE
             ? PLAYER_RTS_RELAY_DISTANCE / fullDistance
             : 1;
@@ -188,7 +201,8 @@ export class PlayerRtsController {
         this._pathManager.update(dt, pathFinder);
 
         let waypoint = this._pathManager.getCurrentWaypoint();
-        while (waypoint && Math.hypot(waypoint.x - player.x, waypoint.y - player.y) <= 18) {
+        const waypointDistance = formationPoint ? RTS_FORMATION_ARRIVE_DISTANCE : 18;
+        while (waypoint && Math.hypot(waypoint.x - player.x, waypoint.y - player.y) <= waypointDistance) {
             this._pathManager.advanceWaypoint();
             waypoint = this._pathManager.getCurrentWaypoint();
         }
