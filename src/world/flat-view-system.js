@@ -3,7 +3,6 @@ import {
     isoLocalToWorldDelta,
     worldDeltaToIsoLocal,
 } from '../physics/iso-footprint.js';
-import { UIState } from '../ui/ui-state.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
 const SUPPORTED_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
@@ -29,13 +28,6 @@ function isTypingTarget(target) {
 
 function isSpaceEvent(event) {
     return event?.code === 'Space' || event?.key === ' ' || event?.key === 'Spacebar';
-}
-
-function isWorldCanvasTarget(target, game = null) {
-    if (!target || typeof window === 'undefined') return false;
-    const activeGame = game || window.Game;
-    return target === activeGame?.Renderer?.canvas
-        || target === window.__phaserScene?.game?.canvas;
 }
 
 function centerOf(points) {
@@ -101,16 +93,13 @@ export const FlatViewSystem = {
     _blockedMarkers: [],
     _commandMarkers: [],
     _keydown: null,
-    _wheel: null,
 
     init() {
         if (this.initialized || typeof window === 'undefined') return;
         this.initialized = true;
         this._keydown = (event) => this._onKeyDown(event);
-        this._wheel = (event) => this._onWheel(event);
         // 捕获阶段先于 Input 的冒泡监听接管 Space，避免建造/RTS 时同时触发玩家闪避。
         window.addEventListener('keydown', this._keydown, true);
-        window.addEventListener('wheel', this._wheel, { passive: false });
     },
 
     reset() {
@@ -122,11 +111,7 @@ export const FlatViewSystem = {
         if (typeof window !== 'undefined' && this._keydown) {
             window.removeEventListener('keydown', this._keydown, true);
         }
-        if (typeof window !== 'undefined' && this._wheel) {
-            window.removeEventListener('wheel', this._wheel);
-        }
         this._keydown = null;
-        this._wheel = null;
         this.initialized = false;
         if (this._graphics?.active) this._graphics.destroy();
         if (this._unitGraphics?.active) this._unitGraphics.destroy();
@@ -150,29 +135,15 @@ export const FlatViewSystem = {
         if (!this.isAvailable(activeGame)) return false;
         return !!(
             activeGame.RTSCommand?.enabled
-            || activeGame._observerMode
             || activeGame._buildMode
             || activeGame.BuildingSystem?.active
         );
     },
 
-    isWheelAvailable(game = null) {
-        const activeGame = game || (typeof window !== 'undefined' ? window.Game : null);
-        if (!this.isAvailable(activeGame)) return false;
-        if (activeGame._paused
-            || activeGame.RTSCommand?.enabled
-            || activeGame._observerMode
-            || activeGame._wallEditMode
-            || activeGame._collisionEditMode) return false;
-        if (typeof window !== 'undefined' && window.SceneManager?.isLoading) return false;
-        // 建筑模式与正常直接操控共用滚轮；建筑面板打开时只在游戏画布区域响应。
-        if (activeGame._buildMode || activeGame.BuildingSystem?.active) return true;
-        return !Object.values(UIState?._state || {}).some(Boolean);
-    },
-
     setEnabled(next) {
         const value = !!next;
-        if (value && !this.isAvailable()) return false;
+        // 压平视图只属于指挥/建筑输入态；普通直接操控的 Space 继续唯一归玩家闪避。
+        if (value && (!this.isAvailable() || !this.isSpaceAvailable())) return false;
         if (this.enabled === value) return this.enabled;
         this.enabled = value;
         if (!value) {
@@ -207,21 +178,14 @@ export const FlatViewSystem = {
         if (!typing && !event.repeat) this.toggle();
     },
 
-    _onWheel(event) {
-        if (!this.isWheelAvailable() || !isWorldCanvasTarget(event?.target)) return;
-        const deltaY = Number(event.deltaY) || 0;
-        if (deltaY === 0) return;
-        event.preventDefault?.();
-        event.stopPropagation?.();
-        // 浏览器标准：deltaY > 0 为向下滚，进入压平；deltaY < 0 为向上滚，恢复。
-        this.setEnabled(deltaY > 0);
-    },
-
     sync(scene, game, wallSystem) {
-        // 指挥/建造/观察者模式期间每帧清理可能在模式切换前遗留的 Space，
+        // 指挥/建造模式期间每帧清理可能在模式切换前遗留的 Space，
         // 防止“用空格激活带焦点按钮后才进入指挥模式”造成首帧翻滚。
         if (this.isSpaceAvailable(game)) this._clearSpaceKey(game);
-        if (this.enabled && !this.isAvailable(game)) this.setEnabled(false);
+        // 离开指挥/建筑输入态即恢复立面，避免移除滚轮入口后留下无法恢复的压平画面。
+        if (this.enabled && (!this.isAvailable(game) || !this.isSpaceAvailable(game))) {
+            this.setEnabled(false);
+        }
         if (!this.enabled || !scene?.add) {
             this._updateIndicator(0, 0);
             return;
@@ -667,8 +631,7 @@ export const FlatViewSystem = {
         this._indicator.style.opacity = this.enabled ? '1' : '0.72';
         if (this.enabled) {
             const command = this._commandSummary();
-            const restoreHint = this.isWheelAvailable() ? '上滚恢复' : '空格恢复';
-            this._indicator.textContent = `压平视图 · ${count} 个建筑/墙件 · ${elevatedCount} 个高层单位${command ? ` · ${command}` : ''} · ${restoreHint}`;
+            this._indicator.textContent = `压平视图 · ${count} 个建筑/墙件 · ${elevatedCount} 个高层单位${command ? ` · ${command}` : ''} · 空格恢复`;
         } else if (spaceAvailable) {
             this._indicator.textContent = '空格：压平建筑（仅改变显示）';
         }

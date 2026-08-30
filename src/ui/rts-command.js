@@ -60,7 +60,7 @@ export const RTSCommand = {
     _mouseSeen: false,     // 见过真实鼠标移动才允许边缘平移
     _pointerOverUi: false,
     _groups: null,         // 编队：digit -> [友军 ref]
-    _pendingRightClick: null, // RTS 自己捕获右键，避免依赖 Input 边沿标志而漏命令
+    _pendingRightClick: null, // RTS 唯一右键入口：DOM 捕获后下一 tick 消费一次
     _troopLinePanel: null,
     _commandBar: null,
     _commandBarSig: '',
@@ -128,9 +128,6 @@ export const RTSCommand = {
         if (pendingRightClick) {
             this._handleRightClick(pendingRightClick.x, pendingRightClick.y);
             if (input?.mouse) input.mouse.rightPressed = false;
-        } else if (input && input.mouse && input.mouse.rightPressed) {
-            this._handleRightClick(input.mouse.x, input.mouse.y);
-            input.mouse.rightPressed = false;
         }
         this._renderSelectionFx();
         this._refreshPanel();
@@ -929,6 +926,30 @@ export const RTSCommand = {
         return !isGameplayPointerEvent(e);
     },
 
+    /** RTS 的屏幕点只在这里转换一次；压平视图输出的就是物理地面坐标。 */
+    _resolveCommandPoint(sx, sy) {
+        const world = Renderer.screenToWorld(sx, sy);
+        if (!world) return null;
+        const game = _game();
+        const defenseSystem = game?.DefenseSystem;
+        return defenseSystem?.resolveSurfaceTarget
+            ? defenseSystem.resolveSurfaceTarget(world.x, world.y, {
+                coordinateSpace: game?.FlatViewSystem?.enabled ? 'physical' : 'screen',
+            })
+            : { x: world.x, y: world.y, z: 0, surfaceKind: 'ground', route: [] };
+    },
+
+    /** RTS 捕获右键后同步清掉 Input 边沿，确保一次点击只进入一个指令入口。 */
+    _consumeRightCommandPointer(e) {
+        const input = _game()?.Input || this._input();
+        if (input?.mouse) {
+            input.mouse.rightDown = false;
+            input.mouse.rightPressed = false;
+        }
+        e?.preventDefault?.();
+        e?.stopImmediatePropagation?.();
+    },
+
     _onMouseDown(e) {
         const normalCommandPick = !this.enabled && this._commandPicking
             && this._commandBarAllies().length > 0;
@@ -937,7 +958,7 @@ export const RTSCommand = {
         if (this._commandPicking && e.button === 2) {
             this._cancelCommandPick();
             if (normalCommandPick) this._consumeNormalCommandPointer = true;
-            e.preventDefault();
+            this._consumeRightCommandPointer(e);
             return;
         }
         if (this._commandPicking && e.button === 0) {
@@ -958,6 +979,7 @@ export const RTSCommand = {
         }
         if (e.button === 2) {
             this._pendingRightClick = { x: e.clientX, y: e.clientY };
+            this._consumeRightCommandPointer(e);
             return;
         }
         if (e.button !== 0) return;
@@ -1064,12 +1086,8 @@ export const RTSCommand = {
     },
 
     _issuePickedCommand(mode, sx, sy) {
-        const world = Renderer.screenToWorld(sx, sy);
-        if (!world) return 0;
-        const defenseSystem = _game()?.DefenseSystem;
-        const point = defenseSystem?.resolveSurfaceTarget
-            ? defenseSystem.resolveSurfaceTarget(world.x, world.y)
-            : { x: world.x, y: world.y, z: 0, surfaceKind: 'ground', route: [] };
+        const point = this._resolveCommandPoint(sx, sy);
+        if (!point) return 0;
         if (point.unreachable) {
             EffectManager.add(new FloatingTextEffect(
                 point.x,
@@ -1329,16 +1347,12 @@ export const RTSCommand = {
 
     /** 右键空地移动选中友军，右键敌方目标发起进攻。 */
     _handleRightClick(sx, sy) {
-        const w = Renderer.screenToWorld(sx, sy);
-        if (!w) {
+        const point = this._resolveCommandPoint(sx, sy);
+        if (!point) {
             this._cancelRallyPick();
             return;
         }
         if (this._rallyPicking) {
-            const defenseSystem = _game()?.DefenseSystem;
-            const point = defenseSystem?.resolveSurfaceTarget
-                ? defenseSystem.resolveSurfaceTarget(w.x, w.y)
-                : { x: w.x, y: w.y, z: 0, surfaceKind: 'ground', route: [] };
             if (point.unreachable) {
                 EffectManager.add(new FloatingTextEffect(point.x, point.y, point.reason || '该位置无法集结', '#ff8855'));
                 this._cancelRallyPick();
@@ -1360,10 +1374,6 @@ export const RTSCommand = {
                 EffectManager.add(new FloatingTextEffect(producer.x, producer.y - 64, '需要先研发集结战术', '#ffb35c'));
                 return;
             }
-            const defenseSystem = _game()?.DefenseSystem;
-            const point = defenseSystem?.resolveSurfaceTarget
-                ? defenseSystem.resolveSurfaceTarget(w.x, w.y)
-                : { x: w.x, y: w.y, z: 0, surfaceKind: 'ground', route: [] };
             const reachable = this._producerRallyPoint(producer, point);
             if (reachable.unreachable) {
                 EffectManager.add(new FloatingTextEffect(
@@ -1427,10 +1437,6 @@ export const RTSCommand = {
                 this._setSelection([hit]);
             }
         } else if (this._selection.some((s) => s.kind === 'ally')) {
-            const defenseSystem = _game()?.DefenseSystem;
-            const point = defenseSystem?.resolveSurfaceTarget
-                ? defenseSystem.resolveSurfaceTarget(w.x, w.y)
-                : { x: w.x, y: w.y, z: 0, surfaceKind: 'ground', route: [] };
             if (point.unreachable) {
                 EffectManager.add(new FloatingTextEffect(
                     point.x,

@@ -1599,13 +1599,17 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         // 玩家控制器每帧都会发布高架输入意图；AI 也必须把本帧实际采用的移动方向交给
         // 统一表面导航。wall_walk 不安装 _surfaceMoveAxes，缺少该字段时墙顶→楼梯的
         // Portal 永远不会接管，路线节点和楼梯方向预约都会卡住。
+        const usesElevatedMovementContract = !!(
+            enemy._surfaceRouteActive
+            || enemy._surfaceNavWaiting
+            || enemy._surfaceKind === 'stairs'
+            || enemy._surfaceKind === 'wall_walk'
+            || enemy._elevatedNavigationBridge
+        );
         const surfaceIntentLength = Math.hypot(moveX, moveY);
         if (!enemy._surfaceNavWaiting
             && surfaceIntentLength > 1e-6
-            && (enemy._surfaceRouteActive
-                || enemy._surfaceKind === 'stairs'
-                || enemy._surfaceKind === 'wall_walk'
-                || enemy._elevatedNavigationBridge)) {
+            && usesElevatedMovementContract) {
             enemy._surfaceInputIntent = {
                 x: moveX / surfaceIntentLength,
                 y: moveY / surfaceIntentLength,
@@ -1617,10 +1621,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 与玩家同口径：高架窄通道只限制位置积分，AI/动画/路线计时仍使用真实 dt。
         // 避免浏览器长帧一步跨过墙梯连接面后被表面回夹，形成反复顶边。
-        const elevatedMoveDt = enemy._surfaceRouteActive
-            || enemy._surfaceKind === 'stairs'
-            || enemy._surfaceKind === 'wall_walk'
-            || enemy._elevatedNavigationBridge
+        const elevatedMoveDt = usesElevatedMovementContract
             ? Math.min(dt, 34)
             : dt;
         const sc = elevatedMoveDt / 1000;
@@ -1632,7 +1633,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (WallSystem && WallSystem.resolve) {
             const er = resolveWallFor(enemy, enemy.x, enemy.y, nx, ny, enemy.groundRadius);
 
-            if (er.x === enemy.x && er.y === enemy.y) {
+            if (usesElevatedMovementContract) {
+                // 与玩家的楼梯/墙顶积分完全同口径：统一表面解析结果就是本帧终点。
+                // 高架窄通道禁止再做世界 X/Y 轴向滑动，否则斜向楼梯会被二次投影回边缘。
+                enemy.x = er.x;
+                enemy.y = er.y;
+            } else if (er.x === enemy.x && er.y === enemy.y) {
                 // [SLIDE] 沿墙滑动：分解为 x 和 y 方向分别检测
                 // 当目标方向被墙完全挡住时，保留可移动方向的分量
                 const xSlide = resolveWallFor(enemy, enemy.x, enemy.y, enemy.x + enemy.vx * sc, enemy.y, enemy.groundRadius);

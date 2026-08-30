@@ -208,7 +208,7 @@ export class PlayerRtsController {
         const game = typeof window !== 'undefined' ? window.Game : null;
         const defenseSystem = game?.DefenseSystem;
         let point = defenseSystem?.resolveSurfaceTarget
-            ? defenseSystem.resolveSurfaceTarget(target.x, target.y)
+            ? defenseSystem.resolveSurfaceTarget(target.x, target.y, { coordinateSpace: 'physical' })
             : {
                 x: target.x,
                 y: target.y,

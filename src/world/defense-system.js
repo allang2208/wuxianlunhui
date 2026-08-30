@@ -5016,20 +5016,23 @@ export const DefenseSystem = {
 
     /**
      * 把RTS/点击目标解析成带高度与表面路线的位置。
+     * 默认输入是正常立面下的屏幕投影世界坐标；压平视图与实体目标传
+     * coordinateSpace: 'physical'，其 y 已是地面物理坐标，禁止再次叠加表面高度。
      * 墙顶目标自动附带：楼梯底段 → 各段中心 → 墙顶投影点。
      */
-    resolveSurfaceTarget(x, y) {
+    resolveSurfaceTarget(x, y, options = {}) {
+        const physicalCoordinates = options?.coordinateSpace === 'physical';
         let stairTarget = null;
         for (const staircase of this.staircases || []) {
             if (!staircase?.active || typeof staircase.surfaceAt !== 'function') continue;
             for (const segment of staircase.segments || []) {
                 const steps = staircase.stepCountPerSegment || WALL_STAIR_CONFIG.stepCountPerSegment;
                 const rise = segment.topZ - segment.baseZ;
-                // 鼠标给的是最终屏幕位置；逐级加回真实踏步Z，只有落进同一段、同一级
-                // Blender通道四边形的候选才成立。
+                // 普通立面点击给的是最终屏幕投影位置，需逐级加回真实踏步 Z；
+                // 压平/实体目标已经是物理 y，直接拿它匹配同一段、同一级 Blender 通道。
                 for (let stepIndex = 1; stepIndex <= steps; stepIndex++) {
                     const stepZ = segment.baseZ + rise * stepIndex / steps;
-                    const groundY = y + stepZ;
+                    const groundY = physicalCoordinates ? y : y + stepZ;
                     const surface = staircase.surfaceAt(x, groundY);
                     if (!surface || surface.segment !== segment || surface.stepIndex !== stepIndex) continue;
                     const wallGeometry = blockWallTopWalkGeometry(surface.wall);
@@ -5086,7 +5089,7 @@ export const DefenseSystem = {
                 if (!wall?.active || !wall._isWalkableWall || !Array.isArray(wall._faceLine)) continue;
                 const [a, b] = wall._faceLine;
                 const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
-                const groundY = y + topZ;
+                const groundY = physicalCoordinates ? y : y + topZ;
                 const blockGeometry = blockWallTopWalkGeometry(wall);
                 if (blockGeometry) {
                     // 指挥拾取区可以比真实可行走面稍宽，但最终目标仍会按完整单位 footprint

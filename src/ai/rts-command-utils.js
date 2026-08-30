@@ -136,11 +136,23 @@ export function resolveRtsMoveDestination(
         entity._surfaceRouteStage = 'portal_queue';
         entity.vx = 0;
         entity.vy = 0;
-        ElevatedNavigationController.afterRouteResolution(entity, command, destination, false);
+        // 排队时把共享目的地收回到单位脚下。玩家控制器会直接发布零意图；士兵 AI
+        // 则会继续消费 destination，因此这里必须统一返回“原地等待”，否则下一层
+        // MovementSystem 会再次把它推向已被占用的楼梯 Portal。
+        const holdDestination = {
+            x: entity.x,
+            y: entity.y,
+            z: Number(entity.z) || 0,
+            surfaceKind: entity._surfaceKind || 'ground',
+            wallId: entity._surfaceWall?.id || null,
+            staircaseId: entity._surfaceStaircase?.id || null,
+        };
+        ElevatedNavigationController.afterRouteResolution(entity, command, holdDestination, false);
         return {
-            destination,
-            distance,
-            verticalDistance,
+            destination: holdDestination,
+            routeDestination: destination,
+            distance: 0,
+            verticalDistance: 0,
             arrived: false,
             hasRoute: true,
             routeStage: 'portal_queue',

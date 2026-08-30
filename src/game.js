@@ -165,7 +165,7 @@ export const Game = {
         this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
         this.RTSCommand = RTSCommand;     // RTS 指挥模式（探针可直接驱动 enabled/setEnabled）
         this.TroopLineSystem = TroopLineSystem;
-        this.FlatViewSystem = FlatViewSystem; // 正常/建筑模式滚轮压平；RTS/观察者保留空格入口
+        this.FlatViewSystem = FlatViewSystem; // 指挥/建筑模式仅 Space 压平；离开模式自动恢复
         this.Input = Input;               // 模式级快捷键隔离只清理按键状态，不绕过 Input 处理流程
         // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
         this.DefenseSystem = DefenseSystem;
