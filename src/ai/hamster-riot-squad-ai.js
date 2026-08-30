@@ -34,6 +34,17 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
         return Math.min(300, Math.max(1, Number(this._attackRange) || 300));
     }
 
+    _canAttackFromHere(target) {
+        if (!target) return false;
+        const m = this.m;
+        const originX = Number.isFinite(m.collider?.x) ? m.collider.x : m.x;
+        const originY = Number.isFinite(m.collider?.y) ? m.collider.y : m.y;
+        const targetX = Number.isFinite(target.collider?.x) ? target.collider.x : target.x;
+        const targetY = Number.isFinite(target.collider?.y) ? target.collider.y : target.y;
+        return Math.hypot(targetX - originX, (targetY - originY) / PERSPECTIVE_SCALE_Y)
+            <= this._effectiveAttackRange() && this._canShootTarget(target);
+    }
+
     _engage(target) {
         const m = this.m;
         m.target = target;
@@ -44,9 +55,8 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
         const dx = targetX - originX;
         const dy = targetY - originY;
         const projectedDy = dy / PERSPECTIVE_SCALE_Y;
-        const groundDistance = Math.hypot(dx, projectedDy);
 
-        if (groundDistance > this._effectiveAttackRange() || !this._canShootTarget(target)) {
+        if (!this._canAttackFromHere(target)) {
             m._tacticalTarget = { x: target.x, y: target.y };
             m._animState = 'walk';
             m.maxSpeed = this.cfg.walkSpeed ?? 72;

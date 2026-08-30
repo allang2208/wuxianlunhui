@@ -9,7 +9,7 @@
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
-import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
+import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, getRtsAcquireRange } from './rts-command-utils.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -36,7 +36,7 @@ export class HamsterScoutAI {
         this._attackInterval = this.cfg.attackInterval ?? 2500;
         this._attackDamage = this.cfg.attackDamage ?? 25;
         this._attackRange = this.cfg.attackRange ?? 600;
-        this._engageRange = this.cfg.engageRange ?? RTS_DEFAULT_ACQUIRE_RANGE;
+        this._engageRange = getRtsAcquireRange(scout);
         this._projectileSpeed = this.cfg.projectileSpeed ?? 600;
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
@@ -289,6 +289,7 @@ export class HamsterScoutAI {
             if (e._faction !== 'enemy') continue;
             if (e._isEnergyNode) continue; // 不攻击矿点（用户口径）
             const d = Math.hypot(e.x - m.x, e.y - m.y);
+            if (d > this._engageRange) continue;
             if (d < bestD && d <= this._engageRange) {
                 bestD = d;
                 best = e;

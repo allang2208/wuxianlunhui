@@ -29,7 +29,14 @@
     "smooth": 0.12
   },
   "rtsCommand": {
-    "defaultAcquireRange": 900
+    "defaultAcquireRange": 900,
+    "commandQueueLimit": 32,
+    "hotkeys": {
+      "attack_move": "KeyA",
+      "patrol": "KeyP",
+      "stop": "KeyS",
+      "hold": "KeyH"
+    }
   },
   "grid": {
     "size": 60,

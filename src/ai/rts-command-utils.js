@@ -8,6 +8,12 @@ export const RTS_DEFAULT_ACQUIRE_RANGE = Math.max(
     Number(GAME_CONFIG.rtsCommand?.defaultAcquireRange) || 900
 );
 
+/** 兵种配置优先；默认值仅兜底，不作为狙击手等长射程单位的统一上限。 */
+export function getRtsAcquireRange(unit) {
+    const configured = Number(unit?.aiConfig?.engageRange);
+    return Number.isFinite(configured) && configured > 0 ? configured : RTS_DEFAULT_ACQUIRE_RANGE;
+}
+
 function isElevatedSurfaceKind(kind) {
     return kind === 'stairs' || kind === 'wall_walk';
 }
@@ -220,7 +226,11 @@ export function clearRtsSurfaceRoute(entity) {
 /** 显式移动或攻击完成后的统一终态：停在当前位置，等待下一条指令。 */
 export function finishRtsCommandAtHold(entity) {
     if (!entity) return;
-    entity._command = { mode: 'hold', point: null, target: null };
+    // 只在执行器自然完成时发布完成信号；拒绝/替换命令不能推进 Shift 队列。
+    const completed = entity._command;
+    entity._command = { mode: 'hold', point: null, target: null,
+        ...(entity._command?._rtsStop ? { _rtsStop: true } : {}) };
+    entity._rtsCompletedCommand = { command: completed, result: entity._command };
     entity.target = null;
     entity._tacticalTarget = null;
     clearRtsSurfaceRoute(entity);

@@ -19,9 +19,9 @@
     "luck": 6
   },
   "statFormula": "enemy",
-  "groundRadius": 21,
-  "collisionRadius": 21,
-  "bodyHeight": 102,
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
   "size": 64,
   "skills": [],
   "sounds": {
@@ -48,8 +48,8 @@
   "render": {
     "footOffsetY": 40.605469,
     "hudOffsetY": 119,
-    "collisionWidth": 42,
-    "collisionHeight": 102
+    "collisionWidth": 40,
+    "collisionHeight": 100
   },
   "animations": {
     "idle": {

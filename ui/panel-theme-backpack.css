@@ -3897,150 +3897,199 @@ html.item-drag-active * {
     position: fixed;
     left: 10px;
     width: var(--bp-left-hud-width, 252px);
-    height: 88px;
+    padding: 10px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     z-index: 4700;
     box-sizing: border-box;
     pointer-events: auto;
     color: var(--bp-ui-text);
-    background: linear-gradient(145deg, rgba(23, 29, 35, 0.95), rgba(8, 11, 14, 0.96));
+    background: var(--bp-ui-shell);
     border: 1px solid var(--bp-ui-line-accent);
     border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(220, 234, 240, 0.055);
+    box-shadow: var(--bp-ui-shadow);
     backdrop-filter: blur(12px) saturate(0.58);
 }
 
-.rts-command-bar.has-explorer,
-.rts-command-bar.has-ninja {
-    height: 132px;
+.rts-order-icon {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    background-image: url('../assets/ui/rts-command/commands-cold-steel.png');
+    background-repeat: no-repeat;
+    background-size: 400% 300%;
+    border-radius: 4px;
+    pointer-events: none;
 }
 
-.rts-command-bar.has-explorer.has-ninja {
-    height: 176px;
+.rts-command-bar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 22px;
+    margin-bottom: 7px;
 }
 
 .rts-command-bar__title {
-    position: absolute;
-    left: 10px;
-    top: 7px;
-    color: var(--bp-ui-accent-bright);
-    font: 700 12px/1 var(--bp-font-ui);
-    letter-spacing: 0.08em;
+    color: var(--bp-ui-white);
+    font: 700 12px/1.3 var(--bp-font-ui);
 }
 
-.rts-command-bar__order,
-.rts-command-bar__explore,
-.rts-command-bar__stealth {
-    position: absolute;
-    top: 25px;
-    width: 112px;
-    height: 36px;
+.rts-command-bar__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.rts-command-bar__order {
+    position: relative;
+    display: grid;
+    grid-template-rows: 42px var(--rts-command-key-height, 0px) auto;
+    justify-items: center;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 70px;
+    padding: 4px 1px;
     border: 1px solid var(--bp-ui-line-accent);
     border-radius: 5px;
     color: var(--bp-ui-white);
-    background: linear-gradient(180deg, #43515a, #222b31);
-    font: 700 12px/1 var(--bp-font-ui);
+    background: var(--bp-ui-control);
+    font: 600 11px/1.3 var(--bp-font-ui);
     cursor: var(--bp-cursor-pointer, pointer);
 }
 
-.rts-command-bar__order[data-order="attack_move"] {
-    left: 10px;
+.rts-command-bar__grid.has-hotkeys { --rts-command-key-height: 20px; }
+
+.rts-command-bar__order > .rts-order-icon { grid-row: 1; }
+.rts-command-bar__name { grid-row: 3; white-space: nowrap; }
+
+/* 与右侧栏目键位提示同色同字体；独立放在图标下方，不覆盖图像。 */
+.rts-command-bar__key-hint {
+    grid-row: 2;
+    color: var(--bp-ui-accent-bright);
+    font: 700 20px/1 var(--bp-font-number);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.88);
 }
 
-.rts-command-bar__order[data-order="patrol"] {
-    left: 130px;
+.rts-command-bar__count {
+    position: absolute;
+    top: 3px;
+    padding: 1px 3px;
+    border-radius: 3px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-black);
+    font: 10px/1.2 var(--bp-font-ui);
+}
+
+.rts-command-bar__count { left: 3px; }
+
+.rts-command-bar__order:disabled .rts-command-bar__key-hint {
+    color: var(--bp-ui-text-dim);
 }
 
 .rts-command-bar__order:hover:not(:disabled),
-.rts-command-bar__explore:hover:not(:disabled),
-.rts-command-bar__stealth:hover:not(:disabled) {
+.troop-line-actions button:hover:not(:disabled) {
     border-color: var(--bp-ui-accent-bright);
-    background: linear-gradient(180deg, #56666f, #2d3940);
+    background: var(--bp-ui-surface);
 }
 
-.rts-command-bar__order.is-active {
-    color: #fff4d2;
-    border-color: #e8c878;
-    background: linear-gradient(180deg, #665739, #38301f);
-    box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.24);
+.rts-command-bar__order.is-active,
+.troop-line-actions button.is-active {
+    color: var(--bp-ui-white);
+    border-color: var(--bp-ui-accent-bright);
+    background: var(--bp-ui-surface);
+    box-shadow: inset 0 0 0 1px var(--bp-ui-line-strong);
 }
 
-.rts-command-bar__explore {
-    left: 10px;
-    top: 88px;
+.rts-command-bar button:focus-visible,
+.troop-line-actions button:focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
 }
 
-.rts-command-bar__explore.is-stop {
-    border-color: rgba(214, 112, 96, 0.82);
-    background: linear-gradient(180deg, #6a3d39, #3d2321);
-}
-
-.rts-command-bar__explore.is-stop:hover:not(:disabled) {
-    border-color: #f08d7e;
-    background: linear-gradient(180deg, #815049, #4b2c29);
-}
-
-.rts-command-bar__stealth {
-    position: absolute;
-    left: 10px;
-    top: 88px;
-    width: 112px;
-    height: 36px;
-    border: 1px solid rgba(211, 73, 91, 0.86);
-    border-radius: 5px;
-    color: #ffe9ec;
-    background: linear-gradient(180deg, #64313a, #351b21);
-    font: 700 12px/1 var(--bp-font-ui);
+.rts-command-bar__cancel {
+    padding: 3px 7px;
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 4px;
+    background: var(--bp-ui-control);
+    color: var(--bp-ui-text);
+    font: 11px/1.3 var(--bp-font-ui);
     cursor: var(--bp-cursor-pointer, pointer);
 }
 
-.rts-command-bar.has-explorer .rts-command-bar__stealth {
-    top: 132px;
+.rts-command-bar__section {
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid var(--bp-ui-line);
 }
 
-.rts-command-bar__stealth.is-active {
-    border-color: #e9a8b1;
-    background: linear-gradient(180deg, #3f4650, #1d2229);
-    box-shadow: inset 0 0 0 1px rgba(233, 168, 177, 0.18);
+.rts-command-bar__subtitle {
+    margin-bottom: 5px;
+    color: var(--bp-ui-text-muted);
+    font: 600 11px/1.3 var(--bp-font-ui);
 }
 
-.rts-command-bar__order:disabled,
-.rts-command-bar__explore:disabled,
-.rts-command-bar__stealth:disabled {
+.rts-command-bar__section .rts-command-bar__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rts-command-bar__section .rts-command-bar__order { min-height: 64px; }
+
+.rts-command-bar__order:disabled {
     color: var(--bp-ui-text-muted);
     border-color: var(--bp-ui-line);
-    background: #1b2227;
-    cursor: default;
+    background: var(--bp-ui-black-soft);
+    cursor: not-allowed;
 }
+
+.rts-command-bar__order:disabled .rts-order-icon { opacity: 0.32; }
 
 .rts-command-bar__status {
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    top: 65px;
+    margin-top: 7px;
     color: var(--bp-ui-text-muted);
-    font: 11px/1.35 var(--bp-font-ui);
+    font: 11px/1.45 var(--bp-font-ui);
 }
 
-.rts-command-bar__explore-status {
-    position: absolute;
-    left: 132px;
-    right: 8px;
-    top: 88px;
-    color: var(--bp-ui-text-muted);
-    font: 12px/1.45 var(--bp-font-ui);
+.troop-line-title {
+    margin-bottom: 8px;
+    color: var(--bp-ui-white);
+    font: 700 12px/1.3 var(--bp-font-ui);
 }
 
-.rts-command-bar__stealth-status {
-    position: absolute;
-    left: 132px;
-    right: 8px;
-    top: 88px;
-    color: var(--bp-ui-text-muted);
-    font: 12px/1.45 var(--bp-font-ui);
+.troop-line-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 5px 1px;
+    border: 1px solid var(--bp-ui-line-accent);
+    border-radius: 5px;
+    background: var(--bp-ui-control);
+    color: var(--bp-ui-text);
+    cursor: var(--bp-cursor-pointer, pointer);
+    font: 12px/1.3 var(--bp-font-ui);
 }
 
-.rts-command-bar.has-explorer .rts-command-bar__stealth-status {
-    top: 132px;
+.troop-line-actions .rts-order-icon { width: 24px; height: 24px; }
+.companion-wheel .rts-order-icon { width: 32px; height: 32px; }
+
+.companion-wheel .cw-item,
+.companion-wheel .cw-center {
+    background: var(--bp-ui-shell);
+    border-color: var(--bp-ui-line-accent);
+    color: var(--bp-ui-text);
+}
+
+.companion-wheel .cw-center em { color: var(--bp-ui-text-muted); }
+.companion-wheel .cw-name { color: var(--bp-ui-white); }
+
+.companion-wheel .cw-item:hover,
+.companion-wheel .cw-item.cw-hover {
+    background: var(--bp-ui-surface);
+    border-color: var(--bp-ui-accent-bright);
 }
 
 #weaponInfo {

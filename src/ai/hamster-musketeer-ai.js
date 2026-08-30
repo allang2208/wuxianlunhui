@@ -2,7 +2,7 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
+import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, getRtsAcquireRange } from './rts-command-utils.js';
 import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
@@ -27,7 +27,7 @@ export class HamsterMusketeerAI {
         this._attackInterval = this.cfg.attackInterval ?? 2500;
         this._attackDamage = this.cfg.attackDamage ?? 80;
         this._attackRange = this.cfg.attackRange ?? 650;
-        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
+        this._engageRange = getRtsAcquireRange(unit);
         this._projectileSpeed = this.cfg.projectileSpeed ?? 1248;
         this._followOffset = this.cfg.followOffset ?? 160;
         const anim = unit.animations?.attack || {};
@@ -57,6 +57,13 @@ export class HamsterMusketeerAI {
 
     _canShootTarget(target) {
         return hasRangedLineOfSight(this.m, target);
+    }
+
+    /** 待机选敌与实际开火共用；特殊武器可覆盖自己的距离几何。 */
+    _canAttackFromHere(target) {
+        return !!target
+            && Math.hypot(target.x - this.m.x, target.y - this.m.y) <= this._effectiveAttackRange()
+            && this._canShootTarget(target);
     }
 
     update(dt, entities, player) {
@@ -162,8 +169,7 @@ export class HamsterMusketeerAI {
     _engage(target) {
         const m = this.m;
         m.target = target;
-        const d = Math.hypot(target.x - m.x, target.y - m.y);
-        if (d > this._effectiveAttackRange() || !this._canShootTarget(target)) {
+        if (!this._canAttackFromHere(target)) {
             m._tacticalTarget = { x: target.x, y: target.y };
             m._animState = 'walk';
             m.maxSpeed = this.cfg.walkSpeed ?? 120;
@@ -187,13 +193,13 @@ export class HamsterMusketeerAI {
         const m = this.m;
         let best = null, bestD = Infinity;
         let bestShootable = null, bestShootableD = Infinity;
-        const attackRange = this._effectiveAttackRange();
         const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
             const d = Math.hypot(e.x - this.m.x, e.y - this.m.y);
-            if (d <= this._engageRange && d < bestD) { best = e; bestD = d; }
-            if (d <= attackRange && d < bestShootableD && this._canShootTarget(e)) {
+            if (d > this._engageRange) continue;
+            if (d < bestD) { best = e; bestD = d; }
+            if (d < bestShootableD && this._canAttackFromHere(e)) {
                 bestShootable = e;
                 bestShootableD = d;
             }

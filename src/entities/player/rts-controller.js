@@ -57,10 +57,12 @@ export class PlayerRtsController {
         return true;
     }
 
-    hold() {
+    hold(completed = false) {
+        const previous = this.command;
         this._resetAttackCharge();
         this._clearNavigation();
         this.command = { mode: 'hold', point: null, target: null };
+        if (completed) this.player._rtsCompletedCommand = { command: previous, result: this.command };
         const player = this.player;
         player.vx = 0;
         player.vy = 0;
@@ -85,7 +87,7 @@ export class PlayerRtsController {
 
         const target = command.target;
         if (!this._isValidTarget(target)) {
-            this.hold();
+            this.hold(true);
             return intent;
         }
 
@@ -124,12 +126,12 @@ export class PlayerRtsController {
     _moveIntent(command, dt, entities, arriveDistance, finishAtDestination = true) {
         const intent = emptyIntent();
         if (!command.point) {
-            if (finishAtDestination) this.hold();
+            if (finishAtDestination) this.hold(true);
             return intent;
         }
         const move = resolveRtsMoveDestination(this.player, command, arriveDistance);
         if (move.arrived) {
-            if (finishAtDestination) this.hold();
+            if (finishAtDestination) this.hold(true);
             else this._clearNavigation();
             return intent;
         }

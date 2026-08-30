@@ -159,6 +159,8 @@ const setVisualDepthIfChanged = (visual, depth, stats) => {
 // 12288×8192 构建却遗漏相机名单、仍以 1:1 放大显示。
 const ZOOMED_OUT_WORLD_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
 const COMMAND_CURSOR_STYLES = Object.freeze({
+    move: 'crosshair',
+    gather: 'crosshair',
     attack_move: 'url("assets/ui/cursors/attack-move-cold-steel.png") 24 24, crosshair',
     patrol: 'url("assets/ui/cursors/patrol-cold-steel.png") 24 24, crosshair',
     rally: 'url("assets/ui/cursors/rally-cold-steel.png") 20 41, crosshair',

@@ -15,6 +15,7 @@ import { Camera } from '../world/camera.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
+import { RTS_ORDER_UI, rtsOrderIcon } from './rts-command-presentation.js';
 
 export const CompanionCommandWheel = {
     LONG_PRESS_MS: 300,
@@ -24,6 +25,7 @@ export const CompanionCommandWheel = {
     _holding: false,
     _pressTimer: null,
     _worldPoint: null,
+    _queueCommand: false,
     _openAt: null,
     _hovered: null,
     _targetIds: [],
@@ -32,13 +34,8 @@ export const CompanionCommandWheel = {
     _inited: false,
 
     commands: [
-        { id: 'follow', name: '跟随', icon: '🧭', color: '#9dff9d' },
-        { id: 'attack_move', name: '移动攻击', icon: '⚔️', color: '#ff9d9d' },
-        { id: 'patrol', name: '巡逻', icon: '🚶', color: '#ffd77f' },
-        { id: 'gather', name: '采集', icon: '⛏️', color: '#7fd4ff' },
-        { id: 'explore', name: '探险', icon: '🗺️', color: '#c9a0ff' },
-        { id: 'hold', name: '待命', icon: '🛑', color: '#c5b89a' },
-    ],
+        'follow', 'attack_move', 'patrol', 'gather', 'explore', 'stop', 'hold',
+    ].map((id) => ({ id, ...RTS_ORDER_UI[id] })),
 
     init() {
         if (this._inited) return;
@@ -50,17 +47,16 @@ export const CompanionCommandWheel = {
         window.addEventListener('auxclick', (e) => { if (e.button === 1) e.preventDefault(); }, true);
     },
 
-    /** 世界坐标（与 building-system._clientToWorld 同口径） */
+    /** 与按钮/右键共用表面解析，保留墙顶高度，小地图使用地面坐标。 */
     _clientToWorld(e) {
         const scene = window.__phaserScene;
         if (!scene) return null;
         const canvas = scene.game.canvas;
         const rect = canvas.getBoundingClientRect();
         if (!rect.width || !rect.height) return null;
-        const sx = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const sy = (e.clientY - rect.top) * (canvas.height / rect.height);
-        const p = scene.cameras.main.getWorldPoint(sx, sy);
-        return { x: p.x, y: p.y, overCanvas: e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom };
+        const p = RTSCommand._resolveCommandPoint(e.clientX, e.clientY);
+        return p ? { ...p, overCanvas: e.clientX >= rect.left && e.clientX <= rect.right
+            && e.clientY >= rect.top && e.clientY <= rect.bottom } : null;
     },
 
     /** 中键按下是否可触发轮盘（系统 UI / 编辑模式 / 无队员不触发） */
@@ -83,7 +79,8 @@ export const CompanionCommandWheel = {
         const p = this._clientToWorld(e);
         if (!p || !p.overCanvas) return;
         this._holding = true;
-        this._worldPoint = { x: p.x, y: p.y };
+        this._worldPoint = p;
+        this._queueCommand = e.shiftKey;
         this._openAt = { x: e.clientX, y: e.clientY };
         clearTimeout(this._pressTimer);
         this._pressTimer = setTimeout(() => {
@@ -98,6 +95,7 @@ export const CompanionCommandWheel = {
         clearTimeout(this._pressTimer);
         this._pressTimer = null;
         if (this._open) {
+            this._queueCommand ||= e.shiftKey;
             // 多选已由“Shift+点击组队栏名字”承担；松开时不再覆盖为全队
             if (this._hovered) this._execute(this._hovered);
         }
@@ -167,8 +165,7 @@ export const CompanionCommandWheel = {
         el.style.top = `${this._openAt.y}px`;
         el.innerHTML = `<div class="cw-center">${this._targetLabel}<br><em>移动到指令上松开 · 移出取消</em></div>`;
         const R = 88;
-        const commands = this.commands.filter((cmd) => cmd.id !== 'explore'
-            || this._targetRefs.some((unit) => unit?._isHamsterExplorer));
+        const commands = this.commands.filter((cmd) => this._targetRefs.some((unit) => RTSCommand.supportsCommand(unit, cmd.id)));
         commands.forEach((cmd, i) => {
             const ang = (-90 + i * (360 / commands.length)) * Math.PI / 180;
             const btn = document.createElement('div');
@@ -176,8 +173,9 @@ export const CompanionCommandWheel = {
             btn.dataset.cmd = cmd.id;
             btn.style.left = `${Math.round(Math.cos(ang) * R)}px`;
             btn.style.top = `${Math.round(Math.sin(ang) * R)}px`;
-            btn.style.borderColor = cmd.color;
-            btn.innerHTML = `<span class="cw-icon">${cmd.icon}</span><span class="cw-name" style="color:${cmd.color};">${cmd.name}</span>`;
+            const eligible = this._targetRefs.filter((unit) => RTSCommand.supportsCommand(unit, cmd.id)).length;
+            btn.title = `松开中键执行。${cmd.wheelHint || cmd.hint} 可执行 ${eligible}/${targetCount} 单位`;
+            btn.innerHTML = `${rtsOrderIcon(cmd.id)}<span class="cw-name">${cmd.name}</span>`;
             btn.addEventListener('mouseenter', () => { this._hovered = cmd.id; btn.classList.add('cw-hover'); });
             btn.addEventListener('mouseleave', () => { if (this._hovered === cmd.id) this._hovered = null; btn.classList.remove('cw-hover'); });
             el.appendChild(btn);
@@ -201,17 +199,21 @@ export const CompanionCommandWheel = {
         const cmd = this.commands.find((c) => c.id === cmdId);
         if (!cmd) return;
         // 指挥模式统一出口（2026-08-19）：所有选中单位执行（队友视同仓鼠友军）
-        if (RTSCommand && RTSCommand.enabled && RTSCommand.hasAllySelection && RTSCommand.hasAllySelection()) {
-            const n = RTSCommand.issueWheelCommand(cmd.id, this._worldPoint);
+        if (this._targetRefs.length) {
+            const n = RTSCommand.issueWheelCommand(cmd.id, this._worldPoint, {
+                units: this._targetRefs, queue: this._queueCommand,
+            });
             if (n > 0 && EffectManager) {
-                EffectManager.add(new FloatingTextEffect(Camera.x, Camera.y - 100, `指令：${cmd.icon} ${cmd.name}（${n} 单位）`, cmd.color));
+                EffectManager.add(new FloatingTextEffect(Camera.x, Camera.y - 100, `指令：${cmd.name}（${n} 单位）`, '#c9d4dc'));
             }
             return;
         }
-        const n = PartySystem.setCommand(this._targetIds, cmd.id, this._worldPoint);
+        const n = RTSCommand.issueWheelCommand(cmd.id, this._worldPoint, {
+            units: this._targetIds.map((id) => PartySystem.getMember(id)).filter(Boolean), queue: this._queueCommand,
+        });
         if (n > 0 && Game.player && EffectManager) {
             const label = n > 1 ? `（全队 ${n} 人）` : '';
-            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, `指令：${cmd.icon} ${cmd.name}${label}`, cmd.color));
+            EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, `指令：${cmd.name}${label}`, '#c9d4dc'));
         }
     },
 };

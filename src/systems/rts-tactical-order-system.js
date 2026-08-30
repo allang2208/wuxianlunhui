@@ -1,8 +1,9 @@
-import { RTS_DEFAULT_ACQUIRE_RANGE } from '../ai/rts-command-utils.js';
+import { finishRtsCommandAtHold, getRtsAcquireRange, RTS_DEFAULT_ACQUIRE_RANGE } from '../ai/rts-command-utils.js';
 import { FogOfWarSystem } from '../world/fog-of-war-system.js';
+import { canMeleeReachElevation } from '../ai/elevated-navigation-controller.js';
+import { queryNearbyEntities } from '../ai/friendly-spatial-query.js';
 
 const ORDER_MODES = new Set(['attack_move', 'patrol']);
-const HOLD_COMMAND = Object.freeze({ mode: 'hold', point: null, target: null });
 
 const game = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -34,17 +35,10 @@ function explorationLocked(unit) {
 }
 
 function isMilitaryGuard(unit) {
+    const ai = unit?._ai;
     return !!(unit && unit._faction === 'companion' && unit._rtsCanAttack !== false
-        && (unit._isHamsterWarrior
-            || unit._isHamsterGuard
-            || unit._isHamsterMilitia
-            || unit._isHamsterShooter
-            || unit._isHamsterScout
-            || unit._isHamsterMusketeer
-            || unit._isHamsterPriest
-            || unit._isHamsterKnight
-            || unit._isHamsterLightCavalry
-            || unit._isHamsterNinja));
+        && ai && (typeof ai._canStrike === 'function' || typeof ai._canCastAt === 'function'
+            || typeof ai._canShootTarget === 'function' || Number.isFinite(ai._attackRange)));
 }
 
 export const RtsTacticalOrderSystem = {
@@ -58,7 +52,7 @@ export const RtsTacticalOrderSystem = {
         const normalizedMode = mode === 'aggressive' ? 'attack_move' : mode;
         if (!unit || !ORDER_MODES.has(normalizedMode) || explorationLocked(unit)) return false;
         const destination = semanticPoint(point, unit);
-        if (!destination) return false;
+        if (!destination || point?.unreachable) return false;
         const origin = semanticPoint(unit, { x: unit.x, y: unit.y });
         const order = {
             id: `rts_order_${Date.now().toString(36)}_${++this._seq}`,
@@ -83,7 +77,8 @@ export const RtsTacticalOrderSystem = {
         const iter = entities?.values ? entities.values() : (entities || []);
         for (const entity of iter) {
             if (entity?._rtsTacticalOrder) units.add(entity);
-            else if (isMilitaryGuard(entity) && entity._command?.mode === 'hold') {
+            else if (isMilitaryGuard(entity)
+                && (entity._command?.mode === 'hold' || entity._command?._guardFromHold)) {
                 this._updateHoldGuard(entity, entities, sceneId);
             }
         }
@@ -93,20 +88,45 @@ export const RtsTacticalOrderSystem = {
         for (const unit of units) this._updateUnit(unit, entities, sceneId);
     },
 
-    /** 默认/移动完成后的待命士兵保持原地，但会主动攻击进入统一索敌范围的敌军。 */
+    /** 坚守只选择原地可攻击目标；S 停止允许恢复普通自动接敌。 */
     _updateHoldGuard(unit, entities, sceneId) {
         if (unit.active === false || unit._dying || unit.data?.hp <= 0) return;
         const now = Date.now();
         if (now < (unit._rtsHoldGuardScanAt || 0)) return;
         unit._rtsHoldGuardScanAt = now + 120;
-        const target = this._nearestEnemy(unit, entities, sceneId);
+        if (unit._command?._guardFromHold) {
+            const target = unit._command.target;
+            if (this._isValidTarget(target) && this._canHoldAttack(unit, target)
+                && !(sceneId && FogOfWarSystem.shouldHideEntity(sceneId, target))) return;
+            finishRtsCommandAtHold(unit);
+        }
+        const freeAcquire = unit._command?._rtsStop === true;
+        const target = this._nearestEnemy(unit, entities, sceneId,
+            freeAcquire ? null : (enemy) => this._canHoldAttack(unit, enemy));
         if (!target) return;
         unit._command = {
             mode: 'attack',
             point: null,
             target,
-            _guardFromHold: true,
+            ...(freeAcquire ? { _rtsStop: true } : { _guardFromHold: true }),
         };
+    },
+
+    _canHoldAttack(unit, target) {
+        const ai = unit._ai;
+        if (!ai) return false;
+        // 复用各兵种真实射程、近射盲区、LOS 和高度规则，不用统一索敌半径当攻击半径。
+        if (typeof ai._canAttackFromHere === 'function') return ai._canAttackFromHere(target);
+        if (typeof ai._canStrike === 'function') return ai._canStrike(target);
+        if (typeof ai._canCastAt === 'function') return ai._canCastAt(target);
+        const distance = Math.hypot(target.x - unit.x, target.y - unit.y);
+        if (typeof ai._canShootTarget === 'function') {
+            const range = ai._effectiveAttackRange?.() ?? ai._attackRange ?? 0;
+            return distance <= range && ai._canShootTarget(target);
+        }
+        return Number.isFinite(ai._attackRange)
+            && distance <= ai._attackRange + (target.groundRadius || 24)
+            && canMeleeReachElevation(unit, target);
     },
 
     _updateUnit(unit, entities, sceneId) {
@@ -150,6 +170,7 @@ export const RtsTacticalOrderSystem = {
         if (movingThisOrder) return;
 
         if (order.mode === 'attack_move' && command?.mode === 'hold') {
+            unit._rtsCompletedCommand = { command: order, result: command };
             this.clear(unit);
             return;
         }
@@ -169,8 +190,14 @@ export const RtsTacticalOrderSystem = {
                 : commandPoint(endpoint);
         }
         if (!point || point.unreachable) {
+            // 执行中的战术路线失败属于该任务的终态，不是外部命令接管。
+            // 先清旧追击/路径，再把完成记录绑定高层 order，让队列跳过它并续行。
+            finishRtsCommandAtHold(unit);
+            unit._rtsCompletedCommand = {
+                command: order, result: unit._command, failed: true,
+                reason: point?.reason || '战术目标不可达',
+            };
             this.clear(unit);
-            unit._command = { ...HOLD_COMMAND };
             return false;
         }
         unit._command = {
@@ -187,15 +214,19 @@ export const RtsTacticalOrderSystem = {
             && (target._faction === 'enemy' || target._faction === 'agent'));
     },
 
-    _nearestEnemy(unit, entities, sceneId) {
+    _nearestEnemy(unit, entities, sceneId, predicate = null) {
         let nearest = null;
-        let nearestDistance = RTS_DEFAULT_ACQUIRE_RANGE;
-        const iter = entities?.values ? entities.values() : (entities || []);
+        // 军队读取自身默认索敌配置；正式队友的既有战术索敌口径保持不变。
+        const acquireRange = isMilitaryGuard(unit) ? getRtsAcquireRange(unit) : RTS_DEFAULT_ACQUIRE_RANGE;
+        let nearestDistance = acquireRange;
+        const iter = queryNearbyEntities(entities, unit, acquireRange);
         for (const entity of iter) {
             if (!this._isValidTarget(entity)) continue;
             if (sceneId && FogOfWarSystem.shouldHideEntity(sceneId, entity)) continue;
             const distance = Math.hypot(entity.x - unit.x, entity.y - unit.y);
             if (distance <= nearestDistance) {
+                // 先做距离筛选，再检查LOS/抛物线，避免扩大索敌后对更远目标重复计算。
+                if (predicate && !predicate(entity)) continue;
                 nearest = entity;
                 nearestDistance = distance;
             }

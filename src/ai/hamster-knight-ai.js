@@ -171,7 +171,7 @@ export class HamsterKnightAI {
             const distance = Math.hypot(target.x - m.x, target.y - m.y);
             const range = this._attackRange + (target.groundRadius || 24);
             const charge = this._chargeConfig();
-            if (this._chargeCooldown <= 0
+            if (!command._guardFromHold && this._chargeCooldown <= 0
                 && canMeleeReachElevation(m, target)
                 && distance > (charge.minTriggerRange ?? 0)
                 && distance <= (charge.triggerRange ?? 550) + (target.groundRadius || 24)) {

@@ -259,6 +259,19 @@ const MovementSystem = {
             return;
         }
 
+        // 坚守攻击不产生追击/撤步路径；离梯和有限驻守槽位调整仍交给原表面流程。
+        if (enemy._command?._guardFromHold
+            && !enemy._garrisonMoveCommand && !enemy._surfaceExitCommand
+            && enemy._surfaceKind !== 'stairs') {
+            enemy._tacticalTarget = null;
+            enemy._pathManager?._clearPath?.();
+            enemy.vx = 0;
+            enemy.vy = 0;
+            enemy.maxSpeed = 0;
+            enemy.isMoving = false;
+            return;
+        }
+
         // [ENHANCE] 初始化 PathManager（懒加载）
         if (!enemy._pathManager) {
             // 动态导入，避免循环依赖

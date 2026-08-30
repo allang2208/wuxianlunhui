@@ -15,7 +15,7 @@ import {
     clearRtsSurfaceRoute,
     finishRtsCommandAtHold,
     resolveRtsMoveDestination,
-    RTS_DEFAULT_ACQUIRE_RANGE,
+    getRtsAcquireRange,
 } from './rts-command-utils.js';
 import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
@@ -27,7 +27,7 @@ export class HamsterPriestAI {
     constructor(priest) {
         this.m = priest;
         this.cfg = priest.aiConfig || {};
-        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
+        this._engageRange = getRtsAcquireRange(priest);
         this._holyLight = new HolyLightSystem(priest);
         this._decisionTimer = stableAiPhase(priest, this.cfg.decisionMs ?? 120);
         this._castActive = false;

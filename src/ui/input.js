@@ -29,6 +29,13 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
             _holyChargeKeyHeldCode: null, // 正在按住圣光审判蓄力键的 keyCode（长按蓄力检测）
             init() {
     window.addEventListener('keydown', e => {
+        if (e.target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+            && e.code !== CONFIG.KEYS.MENU) {
+            this.keys.delete(e.code);
+            // 保留浏览器文本/下拉操作，不让数字和 WASD 穿入角色或 RTS。
+            e.stopImmediatePropagation();
+            return;
+        }
         // 全屏科技树是独占栏目：ESC 由面板的捕获监听关闭，其余按键不得进入
         // 游戏按键集合或打开其他栏目。
         if (TechnologyTreePanel.isOpen) {
@@ -173,6 +180,7 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                     if (code === CONFIG.KEYS.MENU || code === CONFIG.KEYS.TECHNOLOGY) TechnologyTreePanel.close();
                     return;
                 }
+                if (code === CONFIG.KEYS.MENU && Game.RTSCommand?.cancelPendingCommand?.()) return;
                 if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：按键交给编辑器（捕获监听先处理）
                 // 暂停已与菜单整合（Esc 开菜单即暂停，game-menu open/close 双循环+定时器）；P 键让位队员管理（2026-08-19）
                 if (code === CONFIG.KEYS.MENU) {
