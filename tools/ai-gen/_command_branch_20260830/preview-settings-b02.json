@@ -1,0 +1,11 @@
+{
+  "purpose": "Batch 02 auxiliary previews only; inspect each complete raw before choosing preview key settings.",
+  "default": {
+    "threshold": 80,
+    "removeEnclosedKey": false
+  },
+  "candidates": {
+    "defense_ministry_structure_v02": {"threshold": 80, "removeEnclosedKey": true},
+    "defense_ministry_structure_v03": {"threshold": 110, "removeEnclosedKey": false}
+  }
+}

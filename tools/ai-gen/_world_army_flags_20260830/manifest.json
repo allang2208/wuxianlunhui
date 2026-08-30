@@ -1,0 +1,132 @@
+{
+  "stage": "superseded-after-style-feedback",
+  "runtimeInstalled": false,
+  "supersededBy": "../_world_army_flags_v2_20260830/",
+  "source": "native Blender 5.1 geometry and procedural PBR; no AI image or external texture",
+  "camera": {
+    "elevationDegrees": 55,
+    "orthoScale": 2.1,
+    "resolution": 768,
+    "anchor": [
+      0.5,
+      0.8164476007223129
+    ]
+  },
+  "lighting": "world hex kit upper-left soft key and cool fill; fixed, no mirror",
+  "profiles": [
+    {
+      "key": "player",
+      "label": "亲征军团",
+      "color": [
+        0.065,
+        0.25,
+        0.205
+      ],
+      "trim": [
+        0.63,
+        0.55,
+        0.32
+      ],
+      "shape": "split",
+      "emblem": "compass",
+      "phase": 0.2
+    },
+    {
+      "key": "desert_patrol",
+      "label": "荒原狼群",
+      "color": [
+        0.37,
+        0.105,
+        0.055
+      ],
+      "trim": [
+        0.53,
+        0.34,
+        0.16
+      ],
+      "shape": "torn",
+      "emblem": "claw",
+      "phase": 1.1
+    },
+    {
+      "key": "frozen_patrol",
+      "label": "雪原游猎队",
+      "color": [
+        0.13,
+        0.235,
+        0.31
+      ],
+      "trim": [
+        0.63,
+        0.7,
+        0.72
+      ],
+      "shape": "point",
+      "emblem": "frost",
+      "phase": 2.3
+    },
+    {
+      "key": "forest_raiders",
+      "label": "林地伏击群",
+      "color": [
+        0.125,
+        0.2,
+        0.055
+      ],
+      "trim": [
+        0.49,
+        0.4,
+        0.21
+      ],
+      "shape": "fork",
+      "emblem": "leaf",
+      "phase": 3.2
+    },
+    {
+      "key": "ruin_watch",
+      "label": "遗迹守卫",
+      "color": [
+        0.22,
+        0.13,
+        0.27
+      ],
+      "trim": [
+        0.5,
+        0.42,
+        0.3
+      ],
+      "shape": "stepped",
+      "emblem": "rune",
+      "phase": 4.1
+    },
+    {
+      "key": "mine_roamers",
+      "label": "矿区游荡队",
+      "color": [
+        0.21,
+        0.17,
+        0.115
+      ],
+      "trim": [
+        0.52,
+        0.39,
+        0.19
+      ],
+      "shape": "square",
+      "emblem": "pick",
+      "phase": 5.2
+    }
+  ],
+  "runtime": {
+    "atlas": "assets/ui/world-map/army-flags.png",
+    "metadata": "data/world-map-army-visuals.json",
+    "decodedBytes": 1572864,
+    "approval": "User requested modeled flags rendered and integrated; runtime appearance is not yet reviewed"
+  },
+  "latestRenderStage": "modeled-and-rendered",
+  "archive": {
+    "status": "historical-metadata-only",
+    "cleanup": "docs/world-strategy-source-cleanup.json",
+    "historicalOutputsRemoved": true
+  }
+}

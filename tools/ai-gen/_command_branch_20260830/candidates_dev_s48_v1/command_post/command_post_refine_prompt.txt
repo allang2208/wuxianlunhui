@@ -1,0 +1,34 @@
+Use case: stylized-concept
+Asset type: World-122 4x4 LV1 field command building, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: Sparse medium-scale canvas seams and timber grain, matte olive cloth, quiet fieldstone joints, naturally oxidized brass and subdued blue-grey glazing; keep the map paper low-saturation.
+Generation stage: detail refinement of the selected command-building image
+Structure contract: retain the selected silhouette, floor count, entrance, emblem, pennant, planning table, communications equipment and foundation without moving or replacing parts
+Detail budget: improve only the tier-specific materials and sparse medium-scale wear
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: rubble_stone
+Foundation contract — Isometric Rubble Stone Plinth for Game Assets:
+Use one low integrated medieval irregular dry-stacked rubble foundation, fully visible and completely contained inside the authored footprint. Build the surface from irregular hand-cut rubble slabs with varied stone sizing, randomized worn and beveled corners, natural filled-joint texture and a deliberately non-industrial hand-laid paving character. Give the complete outer perimeter one consistent isometric chamfer so equal-footprint assets align cleanly. Keep the plinth continuous, game-readable and materially distinct from the more regular masonry of the building body; no marble skirt, monolithic polished slab, oversized podium, detached platform or terrain patch.
+
+
+Composition/framing: follow the supplied orthographic 2.5D Depth; keep the complete 4x4 foundation and every modeled component inside its boundary, including the entrance steps and forecourt equipment
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: no additional floor, tower, detached annex, extra flag, extra table, extra aerial or dish, vehicles, weapons, people, animals, real national symbols, readable text or watermark; absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow
+Asset-specific absolute exclusions: no replacing canvas with tiles or thatch; no new roof equipment or table ornaments

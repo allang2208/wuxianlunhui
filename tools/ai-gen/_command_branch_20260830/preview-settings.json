@@ -1,0 +1,9 @@
+{
+  "purpose": "Candidate review only; not the final runtime alpha source. Preserve raw geometry and authored olive material. Adjust per-candidate overrides after viewing generated images.",
+  "default": { "threshold": 128, "removeEnclosedKey": false },
+  "candidates": {
+    "military_headquarters_structure_v01": { "threshold": 100, "removeEnclosedKey": true },
+    "defense_ministry_structure_v01": { "threshold": 100, "removeEnclosedKey": true },
+    "defense_ministry_structure_v03": { "threshold": 80, "removeEnclosedKey": false }
+  }
+}

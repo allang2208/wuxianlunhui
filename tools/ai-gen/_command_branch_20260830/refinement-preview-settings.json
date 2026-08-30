@@ -1,0 +1,13 @@
+{
+  "purpose": "Auxiliary previews only; source and refinement raws remain untouched.",
+  "default": {
+    "threshold": 80,
+    "removeEnclosedKey": false
+  },
+  "candidates": {
+    "command_post_source": {"threshold": 128, "removeEnclosedKey": false},
+    "military_headquarters_source": {"threshold": 80, "removeEnclosedKey": false},
+    "defense_ministry_source": {"threshold": 80, "removeEnclosedKey": true},
+    "defense_ministry_refine_v02": {"threshold": 40, "removeEnclosedKey": true}
+  }
+}

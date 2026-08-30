@@ -1,0 +1,8 @@
+/renders/
+/whitebox/
+/army-flags.png
+/army-visuals.json
+/army-flags-before-after.jpg
+*.log
+*.blend1
+__pycache__/

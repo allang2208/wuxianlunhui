@@ -1,0 +1,157 @@
+{
+  "version": 3,
+  "stage": "not-selected-after-readability-feedback",
+  "runtimeInstalled": false,
+  "source": "Upright authored Blender geometry + unchanged V2 ImageGen heraldry + existing world-map material library",
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 55.0,
+    "elevationReference": "above XY ground plane; 90 degrees is top-down",
+    "azimuthDegrees": 0,
+    "azimuthReference": "from -Y toward +X; camera on -Y looking toward +Y",
+    "rollDegrees": 0,
+    "worldUp": "+Z",
+    "source": "data/world-map-layout.json",
+    "orthoScale": 2.1,
+    "target": [
+      0,
+      0,
+      1.2
+    ],
+    "resolution": 1024,
+    "anchor": [
+      0.5,
+      0.814104825258255
+    ]
+  },
+  "modelPose": {
+    "rootYawDegrees": 0,
+    "staffAxis": "+Z",
+    "clothMeanPlane": "XZ",
+    "clothFrontNormal": "-Y",
+    "clothGlobalLeanDegrees": 0,
+    "localFoldAmplitude": 0.024
+  },
+  "lighting": "Shared world-map upper-left key and sky fill",
+  "profiles": [
+    {
+      "key": "player",
+      "label": "亲征军团",
+      "color": [
+        0.065,
+        0.15,
+        0.125
+      ],
+      "trim": [
+        0.26,
+        0.24,
+        0.17
+      ],
+      "shape": "split",
+      "emblem": "翼刃罗盘",
+      "phase": 0.2
+    },
+    {
+      "key": "desert_patrol",
+      "label": "荒原狼群",
+      "color": [
+        0.27,
+        0.105,
+        0.065
+      ],
+      "trim": [
+        0.29,
+        0.22,
+        0.13
+      ],
+      "shape": "torn",
+      "emblem": "沙漠狼首",
+      "phase": 1.1
+    },
+    {
+      "key": "frozen_patrol",
+      "label": "雪原游猎队",
+      "color": [
+        0.105,
+        0.16,
+        0.195
+      ],
+      "trim": [
+        0.3,
+        0.34,
+        0.35
+      ],
+      "shape": "point",
+      "emblem": "霜冠熊首",
+      "phase": 2.3
+    },
+    {
+      "key": "forest_raiders",
+      "label": "林地伏击群",
+      "color": [
+        0.085,
+        0.13,
+        0.047
+      ],
+      "trim": [
+        0.22,
+        0.205,
+        0.105
+      ],
+      "shape": "fork",
+      "emblem": "古树面具",
+      "phase": 3.2
+    },
+    {
+      "key": "ruin_watch",
+      "label": "遗迹守卫",
+      "color": [
+        0.155,
+        0.115,
+        0.175
+      ],
+      "trim": [
+        0.235,
+        0.22,
+        0.18
+      ],
+      "shape": "stepped",
+      "emblem": "断门守望",
+      "phase": 4.1
+    },
+    {
+      "key": "mine_roamers",
+      "label": "矿区游荡队",
+      "color": [
+        0.2,
+        0.135,
+        0.055
+      ],
+      "trim": [
+        0.255,
+        0.195,
+        0.115
+      ],
+      "shape": "square",
+      "emblem": "矿镐晶簇",
+      "phase": 5.2
+    }
+  ],
+  "emblemSources": "emblem-sources.json",
+  "materialLibrary": "tools/ai-gen/environment-prop-materials.py",
+  "cameraHelper": "tools/ai-gen/world-map-camera.py",
+  "previousVersion": "../_world_army_flags_v2_20260830/",
+  "runtime": {
+    "atlas": "assets/ui/world-map/army-flags.png",
+    "metadata": "data/world-map-army-visuals.json",
+    "decodedBytes": 1572864,
+    "approval": "User requested checking and unifying the strategic map viewing angle; runtime appearance remains for user review",
+    "sourceVersion": 3
+  },
+  "selectedAlternative": "../_world_army_flags_v2_20260830/",
+  "archive": {
+    "status": "historical-metadata-only",
+    "cleanup": "docs/world-strategy-source-cleanup.json",
+    "historicalOutputsRemoved": true
+  }
+}

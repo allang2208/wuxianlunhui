@@ -1,0 +1,139 @@
+{
+  "status": "selected_assets_integrated_runtime_unverified",
+  "buildingId": "expedition_camp",
+  "selection": "tools/ai-gen/_command_branch_20260830/final-selection.json",
+  "assets": [
+    {
+      "id": "command_post",
+      "name": "指挥所",
+      "level": 1,
+      "variant": 1,
+      "choice": "A",
+      "keyThreshold": 80,
+      "edgeRepairPixels": 3,
+      "groundLeft": [
+        79,
+        700
+      ],
+      "groundRight": [
+        944,
+        701
+      ],
+      "groundFrontY": 914,
+      "acceptedRaw": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/command_post/command_post_refine_v01_raw.png",
+      "body": "tools/ai-gen/_command_branch_20260830/accepted/command_post_body.png",
+      "generationMetadata": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/command_post/command_post_refine_v01_generation.json",
+      "runtimeMetadata": "tools/ai-gen/_command_branch_20260830/accepted/command_post_runtime_metadata.json",
+      "visual": {
+        "tex": "command_post",
+        "assetPath": "assets/terrain/command_post.png",
+        "thumbnailPath": "assets/ui/building-thumbnails/command_post.png",
+        "displayW": 516.73526,
+        "displayH": 352.52459,
+        "footOffsetY": 173.864169,
+        "visualFootprint": {
+          "centerXRatio": 0.5,
+          "centerYRatio": 0.630102041,
+          "widthRatio": 0.990836197,
+          "depthRatio": 0.726190476,
+          "scaleMode": "strict"
+        },
+        "assetCutoutHash": "63EF106252022B89C36ADE65A908A429B65FD9C6C269AA8B5A8926DC047E822E"
+      },
+      "alphaReview": "tools/ai-gen/_command_branch_20260830/accepted/command_post_alpha_review.png"
+    },
+    {
+      "id": "military_headquarters",
+      "name": "司令部",
+      "level": 2,
+      "variant": 2,
+      "choice": "B",
+      "keyThreshold": 80,
+      "edgeRepairPixels": 3,
+      "groundLeft": [
+        79,
+        700
+      ],
+      "groundRight": [
+        946,
+        701
+      ],
+      "groundFrontY": 918,
+      "acceptedRaw": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/military_headquarters/military_headquarters_refine_v02_raw.png",
+      "body": "tools/ai-gen/_command_branch_20260830/accepted/military_headquarters_body.png",
+      "generationMetadata": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/military_headquarters/military_headquarters_refine_v02_generation.json",
+      "runtimeMetadata": "tools/ai-gen/_command_branch_20260830/accepted/military_headquarters_runtime_metadata.json",
+      "visual": {
+        "tex": "military_headquarters",
+        "assetPath": "assets/terrain/military_headquarters.png",
+        "thumbnailPath": "assets/ui/building-thumbnails/military_headquarters.png",
+        "displayW": 517.905421,
+        "displayH": 412.542529,
+        "footOffsetY": 203.917241,
+        "visualFootprint": {
+          "centerXRatio": 0.5,
+          "centerYRatio": 0.684022825,
+          "widthRatio": 0.988597491,
+          "depthRatio": 0.620542083,
+          "scaleMode": "strict"
+        },
+        "assetCutoutHash": "02F666CE75DEA9278E7C0FA97E4EC0FD19A77B555A6920F67C1AA9865E7EE062"
+      },
+      "alphaReview": "tools/ai-gen/_command_branch_20260830/accepted/military_headquarters_alpha_review.png"
+    },
+    {
+      "id": "defense_ministry",
+      "name": "国防部",
+      "level": 3,
+      "variant": 1,
+      "choice": "A",
+      "keyThreshold": 80,
+      "edgeRepairPixels": 3,
+      "groundLeft": [
+        78,
+        698
+      ],
+      "groundRight": [
+        945,
+        699
+      ],
+      "groundFrontY": 919,
+      "acceptedRaw": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/defense_ministry/defense_ministry_refine_v01_raw.png",
+      "body": "tools/ai-gen/_command_branch_20260830/accepted/defense_ministry_body.png",
+      "generationMetadata": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/defense_ministry/defense_ministry_refine_v01_generation.json",
+      "runtimeMetadata": "tools/ai-gen/_command_branch_20260830/accepted/defense_ministry_runtime_metadata.json",
+      "visual": {
+        "tex": "defense_ministry",
+        "assetPath": "assets/terrain/defense_ministry.png",
+        "thumbnailPath": "assets/ui/building-thumbnails/defense_ministry.png",
+        "displayW": 516.724337,
+        "displayH": 438.857143,
+        "footOffsetY": 217.687075,
+        "visualFootprint": {
+          "centerXRatio": 0.5,
+          "centerYRatio": 0.704365079,
+          "widthRatio": 0.990857143,
+          "depthRatio": 0.583333333,
+          "scaleMode": "strict"
+        },
+        "assetCutoutHash": "C15B4F0D57C76D61B06F945512C45C644C23F7682AB5575912D92715F2642CE7"
+      },
+      "alphaReview": "tools/ai-gen/_command_branch_20260830/accepted/defense_ministry_alpha_review.png"
+    }
+  ],
+  "runtimeTested": false,
+  "runtimeIntegrationActive": true,
+  "technologyVersion": 53,
+  "configuration": "data/producer-buildings.json#expedition_camp",
+  "technology": "data/technology-tree.json",
+  "finalSelection": {
+    "date": "2026-08-30",
+    "userRequest": "同意",
+    "choices": {
+      "command_post": "A",
+      "military_headquarters": "B",
+      "defense_ministry": "A"
+    },
+    "selection": "tools/ai-gen/_command_branch_20260830/final-selection.json"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "source": "tools/ai-gen/_command_branch_20260830/accepted/command_post_body.png",
+  "output": "assets/terrain/command_post.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    75,
+    330,
+    948,
+    918
+  ],
+  "fileSize": [
+    873,
+    588
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    869,
+    584
+  ],
+  "displayW": 516.73526,
+  "displayH": 352.52459,
+  "footOffsetY": 173.864169,
+  "scaleX": 0.5919075144508671,
+  "scaleY": 0.5995316159250585,
+  "beforeGroundCalibration": {
+    "displayW": 512,
+    "displayH": 345,
+    "footOffsetY": 170,
+    "scaleX": 0.586483390607102,
+    "scaleY": 0.5867346938775511
+  },
+  "acceptedRaw": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/command_post/command_post_refine_v01_raw.png",
+  "visual": {
+    "tex": "command_post",
+    "assetPath": "assets/terrain/command_post.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/command_post.png",
+    "displayW": 516.73526,
+    "displayH": 352.52459,
+    "footOffsetY": 173.864169,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.630102041,
+      "widthRatio": 0.990836197,
+      "depthRatio": 0.726190476,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "63EF106252022B89C36ADE65A908A429B65FD9C6C269AA8B5A8926DC047E822E"
+  },
+  "groundLandmarksSource": {
+    "id": "command_post",
+    "name": "指挥所",
+    "level": 1,
+    "variant": 1,
+    "choice": "A",
+    "keyThreshold": 80,
+    "edgeRepairPixels": 3,
+    "groundLeft": [
+      79,
+      700
+    ],
+    "groundRight": [
+      944,
+      701
+    ],
+    "groundFrontY": 914
+  },
+  "sourceScaleX": 0.5919075144508671,
+  "sourceScaleY": 0.5995316159250585,
+  "calibrationMethod": "Accepted raw foundation outer lower corners; hidden rear corner inferred symmetrically.",
+  "alphaMaskDepth": null,
+  "edgeRepairPixels": 3
+}

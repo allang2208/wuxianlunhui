@@ -1,0 +1,26 @@
+{
+  "batchId": "f01",
+  "reviewedAt": "2026-08-30",
+  "status": "six_refinement_candidates_ready_for_user_selection",
+  "reviewMethod": "Viewed each full refinement raw against its selected 12-step raw. Auxiliary keying is not final alpha approval or in-game verification.",
+  "recommendedCandidates": {"command_post":"A", "military_headquarters":"B", "defense_ministry":"A"},
+  "recommendationOnly": true,
+  "finalSelectionByUser": false,
+  "runtimeIntegrationActive": false,
+  "historicalBoundary": "Known deviations between the selected 12-step raws and the initial Blender models remain recorded. The user explicitly authorized proceeding with refinement; this does not retroactively change the historical structural review to passed.",
+  "commonObservations": [
+    "All six retain the selected sources' major masses, floor counts, foundation bounds and main equipment locations at visual review scale.",
+    "Local emblem artwork, table contents, flag coloration and entrance trim vary. Material-only refinement did not preserve every small detail exactly.",
+    "Some dense roof/brick texture, bright brass and map saturation remain. No claim of final style acceptance or runtime readiness.",
+    "The old model Depth was used for generation, never as an alpha mask over shifted flag or equipment geometry."
+  ],
+  "candidates": [
+    {"assetId":"command_post","variant":1,"label":"A","sourceDisplayVariant":2,"sourceBatch":"b01","positive":"Readable olive canvas seams and timber grain with the original roof, windows, pennant and entrance arrangement retained.","remainingIssues":"Compass-line artwork and tabletop objects changed locally; brass remains bright. Preferred over B for a less conspicuous emblem color change."},
+    {"assetId":"command_post","variant":2,"label":"B","sourceDisplayVariant":2,"sourceBatch":"b01","positive":"Warm timber and canvas surfaces remain coherent and major geometry is retained.","remainingIssues":"Compass acquires a blue-filled face; tabletop details also change. Do not treat this as an unchanged brass emblem."},
+    {"assetId":"military_headquarters","variant":1,"label":"A","sourceDisplayVariant":4,"sourceBatch":"b02","positive":"Brick, slate and stone details are clear; one telegraph crossbar and the selected main layout remain.","remainingIssues":"Entrance gains more carved or dentil-like detail, and dense roof/brick grain remains."},
+    {"assetId":"military_headquarters","variant":2,"label":"B","sourceDisplayVariant":4,"sourceBatch":"b02","positive":"Entrance treatment is less ornate than A and map coloration is quieter; major geometry and the single crossbar remain.","remainingIssues":"Flag shifts toward green and roof/brick textures remain dense. Recommendation is comparative, not final acceptance."},
+    {"assetId":"defense_ministry","variant":1,"label":"A","sourceDisplayVariant":5,"sourceBatch":"b02","positive":"Concrete and utility-metal details improve while floor count, dish, cabinet, flag placement and two emblem positions remain.","remainingIssues":"Table map becomes brighter blue/yellow and minor panel details change; source-to-model flag placement discrepancy persists."},
+    {"assetId":"defense_ministry","variant":2,"label":"B","sourceDisplayVariant":5,"sourceBatch":"b02","positive":"Concrete panels and main building arrangement remain readable.","remainingIssues":"Plain flag becomes a green/blue two-color flag; entrance brass is brighter. Not recommended relative to A; preserve the colored flag in the preview rather than keying it away."}
+  ],
+  "nextStage": "User chooses final A/B candidates; only then finalize alpha, calibrate each tier's visual footprint and prepare approved runtime/technology integration. No additional generation or runtime changes are implied by this delivery."
+}

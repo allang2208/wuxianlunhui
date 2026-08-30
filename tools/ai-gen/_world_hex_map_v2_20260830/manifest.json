@@ -1,0 +1,611 @@
+{
+  "version": 2,
+  "seed": 1228302,
+  "runtimeInstalled": true,
+  "biomes": {
+    "desert": {
+      "sceneId": "scene8",
+      "label": "沙漠位面",
+      "texture": "floor_sand_seamless.png",
+      "tint": [
+        0.43,
+        0.28,
+        0.12
+      ],
+      "variants": [
+        "风积沙丘",
+        "砂岩孤峰",
+        "仙人掌荒地"
+      ]
+    },
+    "snow": {
+      "sceneId": "scene9",
+      "label": "雪原位面",
+      "texture": "floor_snow_fresh_seamless.png",
+      "tint": [
+        0.68,
+        0.77,
+        0.83
+      ],
+      "variants": [
+        "雪覆山脊",
+        "寒地针林",
+        "冰晶雪原"
+      ]
+    },
+    "forest": {
+      "sceneId": "scene10",
+      "label": "森林位面",
+      "texture": "floor_grass_forest_seamless.png",
+      "tint": [
+        0.09,
+        0.145,
+        0.038
+      ],
+      "variants": [
+        "阔叶密林",
+        "针叶林地",
+        "林间空地"
+      ]
+    },
+    "ruins": {
+      "sceneId": "scene11",
+      "label": "遗迹位面",
+      "texture": "floor_dungeon_black_bricks_seamless.png",
+      "tint": [
+        0.13,
+        0.155,
+        0.16
+      ],
+      "variants": [
+        "断柱遗址",
+        "残垣石坪",
+        "荒废石环"
+      ]
+    },
+    "mine": {
+      "sceneId": "scene12",
+      "label": "矿洞位面",
+      "texture": "floor_abandoned_mine_seamless.png",
+      "tint": [
+        0.19,
+        0.15,
+        0.105
+      ],
+      "variants": [
+        "层状岩脊",
+        "坑口山地",
+        "露天矿脉"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "key": "desert_00",
+      "biome": "desert",
+      "variant": 0,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_00",
+      "render": "model-renders/desert_00.png"
+    },
+    {
+      "key": "desert_01",
+      "biome": "desert",
+      "variant": 1,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_01",
+      "render": "model-renders/desert_01.png"
+    },
+    {
+      "key": "desert_02",
+      "biome": "desert",
+      "variant": 2,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_02",
+      "render": "model-renders/desert_02.png"
+    },
+    {
+      "key": "desert_03",
+      "biome": "desert",
+      "variant": 3,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_03",
+      "render": "model-renders/desert_03.png"
+    },
+    {
+      "key": "desert_04",
+      "biome": "desert",
+      "variant": 4,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_04",
+      "render": "model-renders/desert_04.png"
+    },
+    {
+      "key": "desert_05",
+      "biome": "desert",
+      "variant": 5,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_05",
+      "render": "model-renders/desert_05.png"
+    },
+    {
+      "key": "desert_06",
+      "biome": "desert",
+      "variant": 6,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_06",
+      "render": "model-renders/desert_06.png"
+    },
+    {
+      "key": "desert_07",
+      "biome": "desert",
+      "variant": 7,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_07",
+      "render": "model-renders/desert_07.png"
+    },
+    {
+      "key": "desert_08",
+      "biome": "desert",
+      "variant": 8,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_08",
+      "render": "model-renders/desert_08.png"
+    },
+    {
+      "key": "desert_09",
+      "biome": "desert",
+      "variant": 9,
+      "sceneId": "scene8",
+      "sourceCollection": "desert_09",
+      "render": "model-renders/desert_09.png"
+    },
+    {
+      "key": "snow_00",
+      "biome": "snow",
+      "variant": 0,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_00",
+      "render": "model-renders/snow_00.png"
+    },
+    {
+      "key": "snow_01",
+      "biome": "snow",
+      "variant": 1,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_01",
+      "render": "model-renders/snow_01.png"
+    },
+    {
+      "key": "snow_02",
+      "biome": "snow",
+      "variant": 2,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_02",
+      "render": "model-renders/snow_02.png"
+    },
+    {
+      "key": "snow_03",
+      "biome": "snow",
+      "variant": 3,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_03",
+      "render": "model-renders/snow_03.png"
+    },
+    {
+      "key": "snow_04",
+      "biome": "snow",
+      "variant": 4,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_04",
+      "render": "model-renders/snow_04.png"
+    },
+    {
+      "key": "snow_05",
+      "biome": "snow",
+      "variant": 5,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_05",
+      "render": "model-renders/snow_05.png"
+    },
+    {
+      "key": "snow_06",
+      "biome": "snow",
+      "variant": 6,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_06",
+      "render": "model-renders/snow_06.png"
+    },
+    {
+      "key": "snow_07",
+      "biome": "snow",
+      "variant": 7,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_07",
+      "render": "model-renders/snow_07.png"
+    },
+    {
+      "key": "snow_08",
+      "biome": "snow",
+      "variant": 8,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_08",
+      "render": "model-renders/snow_08.png"
+    },
+    {
+      "key": "snow_09",
+      "biome": "snow",
+      "variant": 9,
+      "sceneId": "scene9",
+      "sourceCollection": "snow_09",
+      "render": "model-renders/snow_09.png"
+    },
+    {
+      "key": "forest_00",
+      "biome": "forest",
+      "variant": 0,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_00",
+      "render": "model-renders/forest_00.png"
+    },
+    {
+      "key": "forest_01",
+      "biome": "forest",
+      "variant": 1,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_01",
+      "render": "model-renders/forest_01.png"
+    },
+    {
+      "key": "forest_02",
+      "biome": "forest",
+      "variant": 2,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_02",
+      "render": "model-renders/forest_02.png"
+    },
+    {
+      "key": "forest_03",
+      "biome": "forest",
+      "variant": 3,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_03",
+      "render": "model-renders/forest_03.png"
+    },
+    {
+      "key": "forest_04",
+      "biome": "forest",
+      "variant": 4,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_04",
+      "render": "model-renders/forest_04.png"
+    },
+    {
+      "key": "forest_05",
+      "biome": "forest",
+      "variant": 5,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_05",
+      "render": "model-renders/forest_05.png"
+    },
+    {
+      "key": "forest_06",
+      "biome": "forest",
+      "variant": 6,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_06",
+      "render": "model-renders/forest_06.png"
+    },
+    {
+      "key": "forest_07",
+      "biome": "forest",
+      "variant": 7,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_07",
+      "render": "model-renders/forest_07.png"
+    },
+    {
+      "key": "forest_08",
+      "biome": "forest",
+      "variant": 8,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_08",
+      "render": "model-renders/forest_08.png"
+    },
+    {
+      "key": "forest_09",
+      "biome": "forest",
+      "variant": 9,
+      "sceneId": "scene10",
+      "sourceCollection": "forest_09",
+      "render": "model-renders/forest_09.png"
+    },
+    {
+      "key": "ruins_00",
+      "biome": "ruins",
+      "variant": 0,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_00",
+      "render": "model-renders/ruins_00.png"
+    },
+    {
+      "key": "ruins_01",
+      "biome": "ruins",
+      "variant": 1,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_01",
+      "render": "model-renders/ruins_01.png"
+    },
+    {
+      "key": "ruins_02",
+      "biome": "ruins",
+      "variant": 2,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_02",
+      "render": "model-renders/ruins_02.png"
+    },
+    {
+      "key": "ruins_03",
+      "biome": "ruins",
+      "variant": 3,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_03",
+      "render": "model-renders/ruins_03.png"
+    },
+    {
+      "key": "ruins_04",
+      "biome": "ruins",
+      "variant": 4,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_04",
+      "render": "model-renders/ruins_04.png"
+    },
+    {
+      "key": "ruins_05",
+      "biome": "ruins",
+      "variant": 5,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_05",
+      "render": "model-renders/ruins_05.png"
+    },
+    {
+      "key": "ruins_06",
+      "biome": "ruins",
+      "variant": 6,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_06",
+      "render": "model-renders/ruins_06.png"
+    },
+    {
+      "key": "ruins_07",
+      "biome": "ruins",
+      "variant": 7,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_07",
+      "render": "model-renders/ruins_07.png"
+    },
+    {
+      "key": "ruins_08",
+      "biome": "ruins",
+      "variant": 8,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_08",
+      "render": "model-renders/ruins_08.png"
+    },
+    {
+      "key": "ruins_09",
+      "biome": "ruins",
+      "variant": 9,
+      "sceneId": "scene11",
+      "sourceCollection": "ruins_09",
+      "render": "model-renders/ruins_09.png"
+    },
+    {
+      "key": "mine_00",
+      "biome": "mine",
+      "variant": 0,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_00",
+      "render": "model-renders/mine_00.png"
+    },
+    {
+      "key": "mine_01",
+      "biome": "mine",
+      "variant": 1,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_01",
+      "render": "model-renders/mine_01.png"
+    },
+    {
+      "key": "mine_02",
+      "biome": "mine",
+      "variant": 2,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_02",
+      "render": "model-renders/mine_02.png"
+    },
+    {
+      "key": "mine_03",
+      "biome": "mine",
+      "variant": 3,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_03",
+      "render": "model-renders/mine_03.png"
+    },
+    {
+      "key": "mine_04",
+      "biome": "mine",
+      "variant": 4,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_04",
+      "render": "model-renders/mine_04.png"
+    },
+    {
+      "key": "mine_05",
+      "biome": "mine",
+      "variant": 5,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_05",
+      "render": "model-renders/mine_05.png"
+    },
+    {
+      "key": "mine_06",
+      "biome": "mine",
+      "variant": 6,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_06",
+      "render": "model-renders/mine_06.png"
+    },
+    {
+      "key": "mine_07",
+      "biome": "mine",
+      "variant": 7,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_07",
+      "render": "model-renders/mine_07.png"
+    },
+    {
+      "key": "mine_08",
+      "biome": "mine",
+      "variant": 8,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_08",
+      "render": "model-renders/mine_08.png"
+    },
+    {
+      "key": "mine_09",
+      "biome": "mine",
+      "variant": 9,
+      "sceneId": "scene12",
+      "sourceCollection": "mine_09",
+      "render": "model-renders/mine_09.png"
+    }
+  ],
+  "generation": {
+    "method": "Native Blender geometry -> project textures with independent UV phases -> layered PBR -> Cycles 48 samples",
+    "aiGeneration": false,
+    "externalTransmission": false
+  },
+  "camera": {
+    "elevationDegrees": 55.0,
+    "orthoScale": 2.6,
+    "resolution": [
+      768,
+      768
+    ],
+    "anchorPx": [
+      384.0,
+      421.2733612060547
+    ],
+    "cornersPx": [
+      [
+        639.8106079101562,
+        300.29090881347656
+      ],
+      [
+        384.0,
+        179.30845642089844
+      ],
+      [
+        128.18941497802734,
+        300.29090881347656
+      ],
+      [
+        128.18941497802734,
+        542.2558135986328
+      ],
+      [
+        384.0,
+        663.2382774353027
+      ],
+      [
+        639.8106079101562,
+        542.2558135986328
+      ]
+    ],
+    "pixelsPerWorldUnit": 295.38461538461536
+  },
+  "grid": {
+    "orientation": "pointy-top",
+    "radius": 1,
+    "groundEdgeZ": 0,
+    "rotationOfRenderedTilesAllowed": false
+  },
+  "sourceModel": "world-hex-models-v2.blend",
+  "sourceScript": "build-hex-models.py",
+  "helperSource": "../_world_hex_map_20260830/build-hex-models.py",
+  "materialLibrary": {
+    "library": "tools/ai-gen/environment-prop-materials.py",
+    "version": "environment-prop-pbr-v1"
+  },
+  "runtimeAtlas": {
+    "path": "assets/ui/world-map/terrain-atlas.png",
+    "width": 3200,
+    "height": 1600,
+    "frameSize": 320,
+    "anchorPx": [
+      160.0,
+      175.53056716918945
+    ],
+    "pixelsPerWorldUnit": 123.07692307692307,
+    "frameCount": 50,
+    "rgbaBaseMiB": 19.53125,
+    "fileBytes": 2601210
+  },
+  "layout": {
+    "path": "data/world-map-layout.json",
+    "cellCount": 305,
+    "variantUsage": {
+      "desert_06": 6,
+      "mine_08": 6,
+      "mine_09": 7,
+      "desert_01": 13,
+      "desert_02": 13,
+      "desert_07": 6,
+      "desert_04": 7,
+      "desert_05": 6,
+      "mine_01": 12,
+      "mine_00": 11,
+      "mine_02": 11,
+      "desert_00": 9,
+      "desert_08": 5,
+      "mine_05": 7,
+      "mine_03": 5,
+      "mine_06": 8,
+      "mine_04": 5,
+      "desert_03": 3,
+      "ruins_02": 4,
+      "ruins_06": 4,
+      "ruins_08": 4,
+      "desert_09": 5,
+      "ruins_01": 6,
+      "ruins_00": 6,
+      "ruins_05": 3,
+      "ruins_04": 1,
+      "ruins_09": 2,
+      "forest_05": 7,
+      "forest_01": 6,
+      "forest_08": 3,
+      "forest_06": 10,
+      "snow_05": 3,
+      "snow_06": 5,
+      "snow_00": 11,
+      "snow_02": 12,
+      "forest_09": 8,
+      "forest_00": 6,
+      "forest_04": 8,
+      "forest_03": 5,
+      "snow_08": 3,
+      "snow_01": 10,
+      "snow_03": 4,
+      "ruins_03": 1,
+      "forest_02": 6,
+      "snow_09": 3,
+      "forest_07": 9,
+      "snow_07": 4,
+      "snow_04": 6
+    },
+    "stableSeed": 1228302,
+    "adjacentSameTilePrevented": true
+  }
+}

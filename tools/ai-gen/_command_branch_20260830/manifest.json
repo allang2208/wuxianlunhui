@@ -1,0 +1,230 @@
+{
+  "status": "selected_assets_integrated_runtime_unverified",
+  "activeRefinementManifest": "tools/ai-gen/_command_branch_20260830/refinement-manifest.json",
+  "latestCandidateManifest": "tools/ai-gen/_command_branch_20260830/candidate-manifest-b02.json",
+  "candidateManifest": "tools/ai-gen/_command_branch_20260830/candidate-manifest.json",
+  "runtimeIntegrationActive": true,
+  "family": "expedition_camp",
+  "builder": "tools/ai-gen/command-building-branch-blender.py",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 920,
+    "topMargin": 38,
+    "widthMargin": 0.88
+  },
+  "palette": {
+    "foundation": [
+      0.28,
+      0.27,
+      0.24,
+      1
+    ],
+    "stone": [
+      0.47,
+      0.46,
+      0.41,
+      1
+    ],
+    "plaster": [
+      0.54,
+      0.51,
+      0.43,
+      1
+    ],
+    "timber": [
+      0.18,
+      0.115,
+      0.065,
+      1
+    ],
+    "roof": [
+      0.17,
+      0.22,
+      0.24,
+      1
+    ],
+    "thatch": [
+      0.46,
+      0.34,
+      0.17,
+      1
+    ],
+    "iron": [
+      0.07,
+      0.075,
+      0.07,
+      1
+    ],
+    "brass": [
+      0.4,
+      0.23,
+      0.055,
+      1
+    ],
+    "glass": [
+      0.14,
+      0.23,
+      0.27,
+      1
+    ],
+    "glow": [
+      0.65,
+      0.34,
+      0.1,
+      1
+    ],
+    "straw": [
+      0.54,
+      0.38,
+      0.12,
+      1
+    ],
+    "canvas": [
+      0.38,
+      0.37,
+      0.25,
+      1
+    ],
+    "brick": [
+      0.39,
+      0.25,
+      0.19,
+      1
+    ],
+    "concrete": [
+      0.52,
+      0.53,
+      0.5,
+      1
+    ],
+    "steel": [
+      0.12,
+      0.16,
+      0.18,
+      1
+    ],
+    "accent": [
+      0.54,
+      0.38,
+      0.15,
+      1
+    ],
+    "interior": [
+      0.045,
+      0.035,
+      0.025,
+      1
+    ],
+    "paper": [
+      0.66,
+      0.6,
+      0.43,
+      1
+    ],
+    "banner": [
+      0.095,
+      0.16,
+      0.18,
+      1
+    ]
+  },
+  "buildings": {
+    "command_post": {
+      "assetId": "command_post",
+      "label": "指挥所",
+      "level": 1,
+      "footprintCells": 4,
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "body": [
+          278,
+          222,
+          108
+        ],
+        "bodyCenterY": 35,
+        "roof": [
+          308,
+          252,
+          62
+        ]
+      },
+      "materialBrief": "毛石基座、深色木架与低饱和橄榄帆布，单层野战指挥厅。",
+      "identity": "中央开放门廊、罗盘徽记、左侧军旗、右侧沙盘；无烘焙人物或车辆。"
+    },
+    "military_headquarters": {
+      "assetId": "military_headquarters",
+      "label": "司令部",
+      "level": 2,
+      "footprintCells": 4,
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "body": [
+          304,
+          242,
+          176
+        ],
+        "bodyCenterY": 31,
+        "roof": [
+          332,
+          272,
+          64
+        ]
+      },
+      "materialBrief": "暖灰砖墙、灰石角柱、蓝灰板岩瓦屋顶，双层常设司令部与电报天线。",
+      "identity": "同向中央门廊与罗盘标识；保留军旗和沙盘，增加楼层与石构门厅。"
+    },
+    "defense_ministry": {
+      "assetId": "defense_ministry",
+      "label": "国防部",
+      "level": 3,
+      "footprintCells": 4,
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "body": [
+          324,
+          244,
+          246
+        ],
+        "bodyCenterY": 31
+      },
+      "materialBrief": "清水混凝土、深灰钢与蓝灰玻璃，三层中轴指挥楼、双侧办公翼与屋顶通信碟。",
+      "identity": "中央门廊、罗盘标识、军旗及沙盘延续；分层平屋顶形成现代行政建筑轮廓。"
+    }
+  },
+  "references": [
+    "tools/ai-gen/_engineer_branch_20260830/runtime/engineer-branch-runtime-lineup.png",
+    "tools/ai-gen/building-component-kit.py",
+    "tools/ai-gen/settlement-building-pack-blender.py"
+  ],
+  "promotionPolicy": "用户已接受指挥所A、司令部B、国防部A；三档透明素材、独立4x4视觉标定及v53三级科技已接入。保留选中raw、模型与Depth来源；不使用旧Depth裁切获准附属件。旧camp键和出征玩法不变，未运行游戏验证。",
+  "modelApproval": "2026-08-30: User said 同意，继续生图 after viewing the three-tier model lineup.",
+  "finalSelectionByUser": true,
+  "finalSelection": {
+    "date": "2026-08-30",
+    "userRequest": "同意",
+    "choices": {
+      "command_post": "A",
+      "military_headquarters": "B",
+      "defense_ministry": "A"
+    },
+    "selection": "tools/ai-gen/_command_branch_20260830/final-selection.json"
+  },
+  "runtimeAssets": "tools/ai-gen/_command_branch_20260830/accepted/runtime-assets.json"
+}

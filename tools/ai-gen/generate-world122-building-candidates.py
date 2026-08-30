@@ -149,6 +149,7 @@ def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
     deep_drill = asset.get("id") == "deep_drill"
     solar_power_station = asset.get("assetClass") == "solar_power_station"
     modern_data_center = asset.get("assetClass") == "modern_data_center"
+    command_building = asset.get("assetClass") == "command_building"
     modern_field_barracks = asset.get("assetClass") == "modern_field_barracks"
     roman_barracks = asset.get("assetClass") == "roman_barracks"
     agricultural_compound = asset.get("assetClass") == "agricultural_compound"
@@ -164,7 +165,11 @@ def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
             or asset.get("detailRequest", asset["primaryRequest"])
     else:
         request = asset["primaryRequest"]
-    if stage == "structure" and prop_asset:
+    if stage == "structure" and command_building:
+        stage_contract = """Generation stage: structural command-building candidate
+Structure contract: preserve the authored floor count, connected building masses, entrance porch, compass emblem, pennant, planning table and tier-specific communications equipment in the supplied full-foundation Depth
+Detail budget: establish the specified era materials as broad quiet surfaces; retain the modeled command equipment without inventing additional structures"""
+    elif stage == "structure" and prop_asset:
         stage_contract = """Generation stage: structural prop draft only
 Structure contract: preserve the supplied treasure-chest body, domed lid, four feet, frame, lock and authored open-or-closed lid state as one portable object; every hardware component remains attached to the same chest
 Detail budget: use broad readable metal panels, frame bands, lock plate, medallion and handle shapes so the chest silhouette and lid state can be judged; omit tiny engraving that would collapse at game scale"""
@@ -292,6 +297,10 @@ Detail budget: improve only off-white ceramic composite, charcoal bands, restrai
 Structure contract: preserve the initial image's exact 2x2 footprint, four connected storeys, one continuous gable roof, exactly two ground loading doors, two balconies, exactly one cargo lift, exactly one enclosed sorter, one short conveyor, one routing manifold, two enclosed chutes, two receiving bins and one attached phase-vault assembly; preserve exactly one large faceted core inside exactly one complete stabilizer ring, exactly two sealed reserve canisters, four ring clamps, one short crossfeed conduit, one direct sorter coupler, camera, center and ground-contact edge; do not add, remove, duplicate, relocate or reinterpret any architectural or mechanical component
 Color-isolation contract: the one large faceted phase core inside the single ring is the only cyan or blue luminous object anywhere in the image; both reserve canisters are sealed opaque blackened-iron cylinders with dark tarnished-brass collars, and the lower coupler is non-luminous blackened iron and brown-brass hardware with no blue liquid, lens, crystal, halo or ring
 Detail budget: match the accepted warehouse LV4 family's restrained darkness and weathering; improve only muted gray-purple roof tiles, aged cream plaster, dark-oak grain and joints, chipped fieldstone, matte worn iron, subdued brown tarnished brass with minimal highlights, restrained edge wear and the single controlled cyan core surface; keep contrast neutral and avoid clean laboratory glass, bright gold, polished metal or broad glow"""
+    elif stage == "refine" and command_building:
+        stage_contract = """Generation stage: detail refinement of the selected command-building image
+Structure contract: retain the selected silhouette, floor count, entrance, emblem, pennant, planning table, communications equipment and foundation without moving or replacing parts
+Detail budget: improve only the tier-specific materials and sparse medium-scale wear"""
     elif stage == "refine":
         stage_contract = """Generation stage: detail refinement of the supplied initial image
 Structure contract: preserve the initial image's exact building silhouette, tower count, tower placement, roofline, camera, center and ground-contact edge; do not rebuild, move, merge, remove or add any major architectural mass
@@ -314,7 +323,10 @@ Structure contract: preserve every major component indicated by the control silh
         if footprint_cells != 2 else "runtime 2x2 road-tile fill"
     )
     asset_type = asset.get("assetType", "World-122 RTS building body")
-    if prop_asset:
+    if command_building:
+        composition_contract = "follow the supplied orthographic 2.5D Depth; keep the complete 4x4 foundation and every modeled component inside its boundary, including the entrance steps and forecourt equipment"
+        negative_contract = "no additional floor, tower, detached annex, extra flag, extra table, extra aerial or dish, vehicles, weapons, people, animals, real national symbols, readable text or watermark; absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow"
+    elif prop_asset:
         composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; all four authored feet remain grounded; preserve the exact open-or-closed lid state; no perspective convergence"
         negative_contract = "one portable treasure chest only; no house, no building facade, no roof reinterpretation, no tower, no room, no wall, no window, no door, no platform, no pedestal, no floor tile, no terrain, no cast shadow, no treasure pile, no coins, no weapons, no people, no animals, no text and no watermark"
     elif agricultural_compound:
@@ -498,7 +510,7 @@ Absolute class lock: this object is a portable metal treasure chest, not archite
     return f"""Use case: stylized-concept
 Asset type: {asset_type}, previewed above the {footprint_contract}
 Pipeline/style version: {style_version}
-Primary request: exactly one {request}
+Primary request: {"" if command_building else "exactly one "}{request}
 {stage_contract}
 {local_refine_contract}{palette_contract}{canonical_style_contract}
 Foundation style id: {foundation_style}

@@ -1,0 +1,63 @@
+{
+  "status": "design_snapshot_not_runtime_balance_change",
+  "sourceVersion": 51,
+  "scope": "包含基线节点名义成本与位面专项；非全局平衡审计，不计算当前存档实际待研究余量。",
+  "before": {
+    "nodes": 103,
+    "totalCost": 167030,
+    "branchCosts": {
+      "工程": 55150,
+      "军事指挥": 38940,
+      "经济与位面": 64300,
+      "位面独特": 8640
+    }
+  },
+  "afterDraft": {
+    "nodes": 106,
+    "totalCost": 173000,
+    "branchCosts": {
+      "工程": 55150,
+      "军事指挥": 44910,
+      "经济与位面": 64300,
+      "位面独特": 8640
+    },
+    "branchPercentages": {
+      "工程": 31.88,
+      "军事指挥": 25.96,
+      "经济与位面": 37.17,
+      "位面独特": 4.99
+    }
+  },
+  "addedResearchCost": 5970,
+  "nodeBudgets": [
+    {
+      "id": "command_post_level_1",
+      "baseCost": 180,
+      "effectiveCost": 270,
+      "assumedEffectiveRate": 1.2,
+      "minutesExcludingPrerequisites": 3.75
+    },
+    {
+      "id": "command_post_level_2",
+      "baseCost": 520,
+      "effectiveCost": 1560,
+      "assumedEffectiveRate": 6,
+      "minutesExcludingPrerequisites": 4.33
+    },
+    {
+      "id": "command_post_level_3",
+      "baseCost": 920,
+      "effectiveCost": 4140,
+      "assumedEffectiveRate": 12,
+      "minutesExcludingPrerequisites": 5.75
+    }
+  ],
+  "supplyImpact": {
+    "newResearchPerSecond": 0,
+    "newWorkerSlots": 0,
+    "housingCapacityChange": 0,
+    "effectiveRateCap": 36,
+    "fiveAndSixPlaneBoundary": "不新增科研供给，5/6位面使用现有全局12点全效、超额20%、36点封顶曲线；不假定两者都已达到封顶。"
+  },
+  "idealExtraMinutesAtExistingCap": 2.76
+}

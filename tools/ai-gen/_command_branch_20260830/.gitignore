@@ -1,0 +1,7 @@
+*.log
+*.blend1
+__pycache__/
+/accepted/*_keyed.png
+/candidate-review/*.png
+/candidate-review-b02/*.png
+/refinement-review/*.png

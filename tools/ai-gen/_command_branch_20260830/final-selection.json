@@ -1,0 +1,14 @@
+{
+  "acceptedAt": "2026-08-30",
+  "userRequest": "同意",
+  "selectionBasis": "Approval of the preceding recommendation: command post A, headquarters B, ministry A.",
+  "buildingId": "expedition_camp",
+  "logicalFootprintCells": 4,
+  "depthAlphaMask": false,
+  "depthAlphaReason": "The accepted raw layouts differ from the original modeled flag and accessory positions; the old Depth must not clip them.",
+  "assets": [
+    { "id": "command_post", "name": "指挥所", "level": 1, "variant": 1, "choice": "A", "keyThreshold": 80, "edgeRepairPixels": 3, "groundLeft": [79, 700], "groundRight": [944, 701], "groundFrontY": 914 },
+    { "id": "military_headquarters", "name": "司令部", "level": 2, "variant": 2, "choice": "B", "keyThreshold": 80, "edgeRepairPixels": 3, "groundLeft": [79, 700], "groundRight": [946, 701], "groundFrontY": 918 },
+    { "id": "defense_ministry", "name": "国防部", "level": 3, "variant": 1, "choice": "A", "keyThreshold": 80, "edgeRepairPixels": 3, "groundLeft": [78, 698], "groundRight": [945, 699], "groundFrontY": 919 }
+  ]
+}

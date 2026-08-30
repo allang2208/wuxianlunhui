@@ -1,0 +1,549 @@
+{
+  "version": 1,
+  "stage": "native-model-material-candidates",
+  "runtimeInstalled": false,
+  "generation": {
+    "method": "Blender geometry, packed project textures, native PBR, Cycles CPU rendering",
+    "aiGeneration": false,
+    "externalTransmission": false,
+    "seed": 122830
+  },
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 55.0,
+    "orthoScale": 2.6,
+    "resolution": [
+      768,
+      768
+    ],
+    "anchorPx": [
+      384.0,
+      421.2733612060547
+    ],
+    "cornersPx": [
+      [
+        639.8106079101562,
+        300.29090881347656
+      ],
+      [
+        384.0,
+        179.30845642089844
+      ],
+      [
+        128.18941497802734,
+        300.29090881347656
+      ],
+      [
+        128.18941497802734,
+        542.2558135986328
+      ],
+      [
+        384.0,
+        663.2382774353027
+      ],
+      [
+        639.8106079101562,
+        542.2558135986328
+      ]
+    ],
+    "pixelsPerWorldUnit": 295.38461538461536
+  },
+  "grid": {
+    "orientation": "pointy-top",
+    "coordinateSystem": "axial q,r",
+    "radius": 1,
+    "centerFormula": [
+      "sqrt(3)*(q+r/2)",
+      "1.5*r"
+    ],
+    "groundEdgeZ": 0,
+    "lightDirection": "fixed upper-left",
+    "rotationOfRenderedTilesAllowed": false
+  },
+  "materialLibrary": {
+    "library": "tools/ai-gen/environment-prop-materials.py",
+    "version": "environment-prop-pbr-v1"
+  },
+  "biomes": {
+    "desert": {
+      "sceneId": "scene8",
+      "label": "沙漠位面",
+      "texture": "floor_sand_seamless.png",
+      "tint": [
+        0.43,
+        0.28,
+        0.12
+      ],
+      "variants": [
+        "风积沙丘",
+        "砂岩孤峰",
+        "仙人掌荒地"
+      ]
+    },
+    "snow": {
+      "sceneId": "scene9",
+      "label": "雪原位面",
+      "texture": "floor_snow_fresh_seamless.png",
+      "tint": [
+        0.68,
+        0.77,
+        0.83
+      ],
+      "variants": [
+        "雪覆山脊",
+        "寒地针林",
+        "冰晶雪原"
+      ]
+    },
+    "forest": {
+      "sceneId": "scene10",
+      "label": "森林位面",
+      "texture": "floor_grass_forest_seamless.png",
+      "tint": [
+        0.09,
+        0.145,
+        0.038
+      ],
+      "variants": [
+        "阔叶密林",
+        "针叶林地",
+        "林间空地"
+      ]
+    },
+    "ruins": {
+      "sceneId": "scene11",
+      "label": "遗迹位面",
+      "texture": "floor_dungeon_black_bricks_seamless.png",
+      "tint": [
+        0.13,
+        0.155,
+        0.16
+      ],
+      "variants": [
+        "断柱遗址",
+        "残垣石坪",
+        "荒废石环"
+      ]
+    },
+    "mine": {
+      "sceneId": "scene12",
+      "label": "矿洞位面",
+      "texture": "floor_abandoned_mine_seamless.png",
+      "tint": [
+        0.19,
+        0.15,
+        0.105
+      ],
+      "variants": [
+        "层状岩脊",
+        "坑口山地",
+        "露天矿脉"
+      ]
+    }
+  },
+  "assets": [
+    {
+      "key": "desert_01",
+      "biome": "desert",
+      "variant": 1,
+      "label": "风积沙丘",
+      "sceneId": "scene8",
+      "render": "model-renders/desert_01.png",
+      "materialSource": "assets/terrain/floor_sand_seamless.png"
+    },
+    {
+      "key": "desert_02",
+      "biome": "desert",
+      "variant": 2,
+      "label": "砂岩孤峰",
+      "sceneId": "scene8",
+      "render": "model-renders/desert_02.png",
+      "materialSource": "assets/terrain/floor_sand_seamless.png"
+    },
+    {
+      "key": "desert_03",
+      "biome": "desert",
+      "variant": 3,
+      "label": "仙人掌荒地",
+      "sceneId": "scene8",
+      "render": "model-renders/desert_03.png",
+      "materialSource": "assets/terrain/floor_sand_seamless.png"
+    },
+    {
+      "key": "snow_01",
+      "biome": "snow",
+      "variant": 1,
+      "label": "雪覆山脊",
+      "sceneId": "scene9",
+      "render": "model-renders/snow_01.png",
+      "materialSource": "assets/terrain/floor_snow_fresh_seamless.png"
+    },
+    {
+      "key": "snow_02",
+      "biome": "snow",
+      "variant": 2,
+      "label": "寒地针林",
+      "sceneId": "scene9",
+      "render": "model-renders/snow_02.png",
+      "materialSource": "assets/terrain/floor_snow_fresh_seamless.png"
+    },
+    {
+      "key": "snow_03",
+      "biome": "snow",
+      "variant": 3,
+      "label": "冰晶雪原",
+      "sceneId": "scene9",
+      "render": "model-renders/snow_03.png",
+      "materialSource": "assets/terrain/floor_snow_fresh_seamless.png"
+    },
+    {
+      "key": "forest_01",
+      "biome": "forest",
+      "variant": 1,
+      "label": "阔叶密林",
+      "sceneId": "scene10",
+      "render": "model-renders/forest_01.png",
+      "materialSource": "assets/terrain/floor_grass_forest_seamless.png"
+    },
+    {
+      "key": "forest_02",
+      "biome": "forest",
+      "variant": 2,
+      "label": "针叶林地",
+      "sceneId": "scene10",
+      "render": "model-renders/forest_02.png",
+      "materialSource": "assets/terrain/floor_grass_forest_seamless.png"
+    },
+    {
+      "key": "forest_03",
+      "biome": "forest",
+      "variant": 3,
+      "label": "林间空地",
+      "sceneId": "scene10",
+      "render": "model-renders/forest_03.png",
+      "materialSource": "assets/terrain/floor_grass_forest_seamless.png"
+    },
+    {
+      "key": "ruins_01",
+      "biome": "ruins",
+      "variant": 1,
+      "label": "断柱遗址",
+      "sceneId": "scene11",
+      "render": "model-renders/ruins_01.png",
+      "materialSource": "assets/terrain/floor_dungeon_black_bricks_seamless.png"
+    },
+    {
+      "key": "ruins_02",
+      "biome": "ruins",
+      "variant": 2,
+      "label": "残垣石坪",
+      "sceneId": "scene11",
+      "render": "model-renders/ruins_02.png",
+      "materialSource": "assets/terrain/floor_dungeon_black_bricks_seamless.png"
+    },
+    {
+      "key": "ruins_03",
+      "biome": "ruins",
+      "variant": 3,
+      "label": "荒废石环",
+      "sceneId": "scene11",
+      "render": "model-renders/ruins_03.png",
+      "materialSource": "assets/terrain/floor_dungeon_black_bricks_seamless.png"
+    },
+    {
+      "key": "mine_01",
+      "biome": "mine",
+      "variant": 1,
+      "label": "层状岩脊",
+      "sceneId": "scene12",
+      "render": "model-renders/mine_01.png",
+      "materialSource": "assets/terrain/floor_abandoned_mine_seamless.png"
+    },
+    {
+      "key": "mine_02",
+      "biome": "mine",
+      "variant": 2,
+      "label": "坑口山地",
+      "sceneId": "scene12",
+      "render": "model-renders/mine_02.png",
+      "materialSource": "assets/terrain/floor_abandoned_mine_seamless.png"
+    },
+    {
+      "key": "mine_03",
+      "biome": "mine",
+      "variant": 3,
+      "label": "露天矿脉",
+      "sceneId": "scene12",
+      "render": "model-renders/mine_03.png",
+      "materialSource": "assets/terrain/floor_abandoned_mine_seamless.png"
+    }
+  ],
+  "sourceModel": "world-hex-models.blend",
+  "sourceScript": "build-hex-models.py",
+  "candidateAssets": [
+    {
+      "key": "desert_00",
+      "biome": "desert",
+      "variant": 0,
+      "label": "地貌基底",
+      "file": "candidates/desert_00.png",
+      "source": "model-renders/desert_00.png",
+      "sourceCollection": "desert_01",
+      "baseOnly": true,
+      "sceneId": "scene8"
+    },
+    {
+      "key": "desert_01",
+      "biome": "desert",
+      "variant": 1,
+      "label": "风积沙丘",
+      "file": "candidates/desert_01.png",
+      "source": "model-renders/desert_01.png",
+      "sourceCollection": "desert_01",
+      "baseOnly": false,
+      "sceneId": "scene8"
+    },
+    {
+      "key": "desert_02",
+      "biome": "desert",
+      "variant": 2,
+      "label": "砂岩孤峰",
+      "file": "candidates/desert_02.png",
+      "source": "model-renders/desert_02.png",
+      "sourceCollection": "desert_02",
+      "baseOnly": false,
+      "sceneId": "scene8"
+    },
+    {
+      "key": "desert_03",
+      "biome": "desert",
+      "variant": 3,
+      "label": "仙人掌荒地",
+      "file": "candidates/desert_03.png",
+      "source": "model-renders/desert_03.png",
+      "sourceCollection": "desert_03",
+      "baseOnly": false,
+      "sceneId": "scene8"
+    },
+    {
+      "key": "snow_00",
+      "biome": "snow",
+      "variant": 0,
+      "label": "地貌基底",
+      "file": "candidates/snow_00.png",
+      "source": "model-renders/snow_00.png",
+      "sourceCollection": "snow_01",
+      "baseOnly": true,
+      "sceneId": "scene9"
+    },
+    {
+      "key": "snow_01",
+      "biome": "snow",
+      "variant": 1,
+      "label": "雪覆山脊",
+      "file": "candidates/snow_01.png",
+      "source": "model-renders/snow_01.png",
+      "sourceCollection": "snow_01",
+      "baseOnly": false,
+      "sceneId": "scene9"
+    },
+    {
+      "key": "snow_02",
+      "biome": "snow",
+      "variant": 2,
+      "label": "寒地针林",
+      "file": "candidates/snow_02.png",
+      "source": "model-renders/snow_02.png",
+      "sourceCollection": "snow_02",
+      "baseOnly": false,
+      "sceneId": "scene9"
+    },
+    {
+      "key": "snow_03",
+      "biome": "snow",
+      "variant": 3,
+      "label": "冰晶雪原",
+      "file": "candidates/snow_03.png",
+      "source": "model-renders/snow_03.png",
+      "sourceCollection": "snow_03",
+      "baseOnly": false,
+      "sceneId": "scene9"
+    },
+    {
+      "key": "forest_00",
+      "biome": "forest",
+      "variant": 0,
+      "label": "地貌基底",
+      "file": "candidates/forest_00.png",
+      "source": "model-renders/forest_00.png",
+      "sourceCollection": "forest_01",
+      "baseOnly": true,
+      "sceneId": "scene10"
+    },
+    {
+      "key": "forest_01",
+      "biome": "forest",
+      "variant": 1,
+      "label": "阔叶密林",
+      "file": "candidates/forest_01.png",
+      "source": "model-renders/forest_01.png",
+      "sourceCollection": "forest_01",
+      "baseOnly": false,
+      "sceneId": "scene10"
+    },
+    {
+      "key": "forest_02",
+      "biome": "forest",
+      "variant": 2,
+      "label": "针叶林地",
+      "file": "candidates/forest_02.png",
+      "source": "model-renders/forest_02.png",
+      "sourceCollection": "forest_02",
+      "baseOnly": false,
+      "sceneId": "scene10"
+    },
+    {
+      "key": "forest_03",
+      "biome": "forest",
+      "variant": 3,
+      "label": "林间空地",
+      "file": "candidates/forest_03.png",
+      "source": "model-renders/forest_03.png",
+      "sourceCollection": "forest_03",
+      "baseOnly": false,
+      "sceneId": "scene10"
+    },
+    {
+      "key": "ruins_00",
+      "biome": "ruins",
+      "variant": 0,
+      "label": "地貌基底",
+      "file": "candidates/ruins_00.png",
+      "source": "model-renders/ruins_00.png",
+      "sourceCollection": "ruins_01",
+      "baseOnly": true,
+      "sceneId": "scene11"
+    },
+    {
+      "key": "ruins_01",
+      "biome": "ruins",
+      "variant": 1,
+      "label": "断柱遗址",
+      "file": "candidates/ruins_01.png",
+      "source": "model-renders/ruins_01.png",
+      "sourceCollection": "ruins_01",
+      "baseOnly": false,
+      "sceneId": "scene11"
+    },
+    {
+      "key": "ruins_02",
+      "biome": "ruins",
+      "variant": 2,
+      "label": "残垣石坪",
+      "file": "candidates/ruins_02.png",
+      "source": "model-renders/ruins_02.png",
+      "sourceCollection": "ruins_02",
+      "baseOnly": false,
+      "sceneId": "scene11"
+    },
+    {
+      "key": "ruins_03",
+      "biome": "ruins",
+      "variant": 3,
+      "label": "荒废石环",
+      "file": "candidates/ruins_03.png",
+      "source": "model-renders/ruins_03.png",
+      "sourceCollection": "ruins_03",
+      "baseOnly": false,
+      "sceneId": "scene11"
+    },
+    {
+      "key": "mine_00",
+      "biome": "mine",
+      "variant": 0,
+      "label": "地貌基底",
+      "file": "candidates/mine_00.png",
+      "source": "model-renders/mine_00.png",
+      "sourceCollection": "mine_01",
+      "baseOnly": true,
+      "sceneId": "scene12"
+    },
+    {
+      "key": "mine_01",
+      "biome": "mine",
+      "variant": 1,
+      "label": "层状岩脊",
+      "file": "candidates/mine_01.png",
+      "source": "model-renders/mine_01.png",
+      "sourceCollection": "mine_01",
+      "baseOnly": false,
+      "sceneId": "scene12"
+    },
+    {
+      "key": "mine_02",
+      "biome": "mine",
+      "variant": 2,
+      "label": "坑口山地",
+      "file": "candidates/mine_02.png",
+      "source": "model-renders/mine_02.png",
+      "sourceCollection": "mine_02",
+      "baseOnly": false,
+      "sceneId": "scene12"
+    },
+    {
+      "key": "mine_03",
+      "biome": "mine",
+      "variant": 3,
+      "label": "露天矿脉",
+      "file": "candidates/mine_03.png",
+      "source": "model-renders/mine_03.png",
+      "sourceCollection": "mine_03",
+      "baseOnly": false,
+      "sceneId": "scene12"
+    }
+  ],
+  "candidateAtlas": {
+    "image": "candidates/world-hex-atlas.png",
+    "data": "candidates/world-hex-atlas.json",
+    "size": [
+      1536,
+      1920
+    ],
+    "frameSize": [
+      384,
+      384
+    ],
+    "frameCount": 20,
+    "rgbaBaseMiB": 11.25,
+    "runtimeInstalled": false
+  },
+  "mapPreview": {
+    "layout": "world-layout.json",
+    "cellCount": 305,
+    "biomeCounts": {
+      "desert": 73,
+      "mine": 72,
+      "ruins": 31,
+      "forest": 68,
+      "snow": 61
+    },
+    "panelConcept": "previews/world-panel-concept.png",
+    "terrain": "previews/world-terrain-layout.png",
+    "runtimeImplemented": false
+  },
+  "review": {
+    "status": "candidate-for-user-review",
+    "reviewRecord": "ART_REVIEW.md",
+    "runtimeTestsRun": false,
+    "knownLimits": [
+      "Biome borders intentionally remain visible hex boundaries.",
+      "Only 4 variants per biome; repeated relief can remain visible.",
+      "Display links are conceptual, not gameplay paths or unlock state."
+    ]
+  },
+  "archive": {
+    "status": "shared-geometry-and-layout-retained",
+    "cleanup": "docs/world-strategy-source-cleanup.json",
+    "historicalOutputsRemoved": true
+  }
+}

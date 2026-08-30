@@ -1,0 +1,142 @@
+{
+  "outputRoot": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "steps": 48,
+  "strength": 0.75,
+  "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "refineEdgeStrength": 0.38,
+  "maskEdgePad": 16,
+  "structureSeedBase": 830410,
+  "modelApproval": "2026-08-30 用户确认三档模型：同意，继续生图。",
+  "status": "nine_candidates_generated_structure_revision_required",
+  "runtimeIntegrationActive": false,
+  "submission": {
+    "plannedCandidates": 9,
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Three authored command-building Depth images and their material/structure prompts; no saves or unrelated project data.",
+    "generatedCandidates": 9,
+    "completedAt": "2026-08-30",
+    "result": "All nine requested raw candidates downloaded; no additional variants submitted.",
+    "parallelGenerationLog": "tools/ai-gen/_command_branch_20260830/generation-parallel.log",
+    "dispatchHandoff": "tools/ai-gen/_command_branch_20260830/dispatch-handoff.json",
+    "continuationPolicy": "Recovered the existing headquarters v02 prompt by ID, reused downloaded images, and completed only the remaining planned seeds. No server queue cancellation or reordering.",
+    "firstQueuedPromptId": "da97e4bd-688b-4f81-b57b-b44707ed6eda",
+    "generationLog": "tools/ai-gen/_command_branch_20260830/generation-s12.log",
+    "blockedBy": null,
+    "authorization": "2026-08-30: User explicitly answered 同意 to sending these three building Depth images and prompts to 192.168.3.142:8188 for nine candidate renders.",
+    "preparedInputs": [
+      {
+        "assetId": "command_post",
+        "label": "指挥所",
+        "depth": "tools/ai-gen/_command_branch_20260830/command_post/command_post_depth.png",
+        "prompt": "tools/ai-gen/_command_branch_20260830/prepared-inputs/command_post_structure_prompt.txt",
+        "plannedSeeds": [
+          830411,
+          830412,
+          830413
+        ]
+      },
+      {
+        "assetId": "military_headquarters",
+        "label": "司令部",
+        "depth": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_depth.png",
+        "prompt": "tools/ai-gen/_command_branch_20260830/prepared-inputs/military_headquarters_structure_prompt.txt",
+        "plannedSeeds": [
+          830421,
+          830422,
+          830423
+        ]
+      },
+      {
+        "assetId": "defense_ministry",
+        "label": "国防部",
+        "depth": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_depth.png",
+        "prompt": "tools/ai-gen/_command_branch_20260830/prepared-inputs/defense_ministry_structure_prompt.txt",
+        "plannedSeeds": [
+          830431,
+          830432,
+          830433
+        ]
+      }
+    ]
+  },
+  "assets": [
+    {
+      "id": "command_post",
+      "label": "指挥所",
+      "level": 1,
+      "assetClass": "command_building",
+      "assetType": "World-122 4x4 LV1 field command building",
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "controlImage": "tools/ai-gen/_command_branch_20260830/command_post/command_post_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_command_branch_20260830/command_post/command_post_depth.png",
+      "model": "tools/ai-gen/_command_branch_20260830/command_post/command_post_model.blend",
+      "modelPreview": "tools/ai-gen/_command_branch_20260830/command_post/command_post_model_preview.png",
+      "removeAllGreen": false,
+      "primaryRequest": "a single-storey timber-framed field command post with an olive canvas hip roof",
+      "structureRequest": "one single-storey command hall with timber framing, olive canvas wall panels and one continuous hipped canvas roof, one small attached canvas-roofed entrance porch with open timber doors and a dull brass compass plaque, one plain dark teal pennant at the left forecourt and one small map table at the right; subdued brown wood, matte khaki-olive canvas, dark blue-gray window glass and quiet rough stone",
+      "detailRequest": "preserve the chosen geometry; refine subdued wood grain, broad olive canvas fields with a few visible seams, dull brass compass relief, blue-gray window glass and restrained map-table details",
+      "negativeRequest": "no thatch, brick main walls, tiled roof, second storey, rooftop antenna or communications dish; keep the pennant plain and fictional"
+    },
+    {
+      "id": "military_headquarters",
+      "label": "司令部",
+      "level": 2,
+      "assetClass": "command_building",
+      "assetType": "World-122 4x4 LV2 permanent military headquarters",
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "controlImage": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_depth.png",
+      "model": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_model.blend",
+      "modelPreview": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_model_preview.png",
+      "removeAllGreen": false,
+      "primaryRequest": "a two-storey brick-and-stone military headquarters with a blue-gray slate hip roof",
+      "structureRequest": "one two-storey headquarters hall with muted brown-gray brick walls, gray stone corner quoins and floor belt, one continuous blue-gray slate hip roof and one small roof-mounted telegraph aerial; a flat stone entrance porch with open timber doors and a dull brass compass plaque, one plain dark teal pennant at the left forecourt and one small map table at the right",
+      "detailRequest": "preserve the chosen geometry; refine calm brick fields with sparse broad joints, stone quoins, subdued slate courses, dark window frames, the matte telegraph aerial and a restrained dull-brass compass plaque",
+      "negativeRequest": "no third floor, canvas roof, thatch, industrial corrugated roof, red roof, dish, chimney or real-world flag"
+    },
+    {
+      "id": "defense_ministry",
+      "label": "国防部",
+      "level": 3,
+      "assetClass": "command_building",
+      "assetType": "World-122 4x4 LV3 modern defense ministry",
+      "footprintCells": 4,
+      "foundationStyle": "fair_faced_concrete",
+      "controlImage": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_depth.png",
+      "model": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_model.blend",
+      "modelPreview": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_model_preview.png",
+      "removeAllGreen": false,
+      "primaryRequest": "a modern defense ministry with one three-storey central block and two attached two-storey office wings",
+      "structureRequest": "one three-storey central command block joined to two lower two-storey office wings, flat parapet roofs, a broad central blue-gray glazed facade, one concrete entrance canopy, two small dull brass compass plaques, one roof service cabinet and one supported communications dish on the visible left wing; one plain dark teal pennant at the left forecourt and one small map table at the right; light weathered concrete and charcoal steel with subdued blue-gray glass",
+      "detailRequest": "preserve the chosen geometry; refine large quiet concrete fields, matte charcoal steel, restrained blue-gray glass reflections, the attached communications dish and small dull-brass compass relief; keep roof surfaces uncluttered",
+      "negativeRequest": "no fourth floor, pitched roof, brick castle, sci-fi tower, radar array, second dish, helipad, fence or real-world insignia"
+    }
+  ],
+  "reviewIndex": "tools/ai-gen/_command_branch_20260830/candidate-review/review-index.json",
+  "reviewNotes": "tools/ai-gen/_command_branch_20260830/candidate-review-notes.json",
+  "structuralReviewPassed": false,
+  "selectedByUser": false,
+  "refinementStarted": false
+}

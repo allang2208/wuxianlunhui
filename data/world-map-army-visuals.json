@@ -1,0 +1,108 @@
+{
+  "version": 2,
+  "path": "assets/ui/world-map/army-flags.png",
+  "frameSize": 256,
+  "columns": 3,
+  "rows": 2,
+  "anchor": [
+    0.5,
+    0.814104825258255
+  ],
+  "cameraElevationDegrees": 55,
+  "frames": {
+    "player": {
+      "column": 0,
+      "row": 0,
+      "bounds": [
+        0.203125,
+        0.089844,
+        0.800781,
+        0.890625
+      ],
+      "label": "亲征军团"
+    },
+    "desert_patrol": {
+      "column": 1,
+      "row": 0,
+      "bounds": [
+        0.203125,
+        0.101562,
+        0.820312,
+        0.890625
+      ],
+      "label": "荒原狼群"
+    },
+    "frozen_patrol": {
+      "column": 2,
+      "row": 0,
+      "bounds": [
+        0.203125,
+        0.097656,
+        0.796875,
+        0.890625
+      ],
+      "label": "雪原游猎队"
+    },
+    "forest_raiders": {
+      "column": 0,
+      "row": 1,
+      "bounds": [
+        0.203125,
+        0.097656,
+        0.796875,
+        0.890625
+      ],
+      "label": "林地伏击群"
+    },
+    "ruin_watch": {
+      "column": 1,
+      "row": 1,
+      "bounds": [
+        0.195312,
+        0.089844,
+        0.804688,
+        0.890625
+      ],
+      "label": "遗迹守卫"
+    },
+    "mine_roamers": {
+      "column": 2,
+      "row": 1,
+      "bounds": [
+        0.203125,
+        0.117188,
+        0.828125,
+        0.890625
+      ],
+      "label": "矿区游荡队"
+    }
+  },
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 55.0,
+    "elevationReference": "above XY ground plane; 90 degrees is top-down",
+    "azimuthDegrees": 0,
+    "azimuthReference": "from -Y toward +X; camera on -Y looking toward +Y",
+    "rollDegrees": 0,
+    "worldUp": "+Z",
+    "source": "data/world-map-layout.json",
+    "orthoScale": 2.1,
+    "resolution": 1024,
+    "anchor": [
+      0.5,
+      0.814104825258255
+    ],
+    "target": [
+      0,
+      0,
+      1.2
+    ]
+  },
+  "modelPose": {
+    "rootYawDegrees": 0,
+    "staffAxis": "+Z",
+    "clothGlobalLeanDegrees": 16.69924423399362,
+    "clothPresentation": "user-selected readability priority",
+    "localFoldAmplitude": 0.024
+  }
+}

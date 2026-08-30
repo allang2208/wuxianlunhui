@@ -1,0 +1,100 @@
+{
+  "source": "tools/ai-gen/_command_branch_20260830/accepted/military_headquarters_body.png",
+  "output": "assets/terrain/military_headquarters.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    74,
+    221,
+    951,
+    922
+  ],
+  "fileSize": [
+    877,
+    701
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    873,
+    697
+  ],
+  "displayW": 517.905421,
+  "displayH": 412.542529,
+  "footOffsetY": 203.917241,
+  "scaleX": 0.5905420991926182,
+  "scaleY": 0.5885057471264368,
+  "beforeGroundCalibration": {
+    "displayW": 512,
+    "displayH": 409,
+    "footOffsetY": 202,
+    "scaleX": 0.5838084378563284,
+    "scaleY": 0.5834522111269614
+  },
+  "acceptedRaw": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/military_headquarters/military_headquarters_refine_v02_raw.png",
+  "visual": {
+    "tex": "military_headquarters",
+    "assetPath": "assets/terrain/military_headquarters.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/military_headquarters.png",
+    "displayW": 517.905421,
+    "displayH": 412.542529,
+    "footOffsetY": 203.917241,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.684022825,
+      "widthRatio": 0.988597491,
+      "depthRatio": 0.620542083,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "02F666CE75DEA9278E7C0FA97E4EC0FD19A77B555A6920F67C1AA9865E7EE062"
+  },
+  "groundLandmarksSource": {
+    "id": "military_headquarters",
+    "name": "司令部",
+    "level": 2,
+    "variant": 2,
+    "choice": "B",
+    "keyThreshold": 80,
+    "edgeRepairPixels": 3,
+    "groundLeft": [
+      79,
+      700
+    ],
+    "groundRight": [
+      946,
+      701
+    ],
+    "groundFrontY": 918
+  },
+  "sourceScaleX": 0.5905420991926182,
+  "sourceScaleY": 0.5885057471264368,
+  "calibrationMethod": "Accepted raw foundation outer lower corners; hidden rear corner inferred symmetrically.",
+  "alphaMaskDepth": null,
+  "edgeRepairPixels": 3
+}

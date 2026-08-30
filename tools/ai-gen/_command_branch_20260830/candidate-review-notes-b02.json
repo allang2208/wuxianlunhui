@@ -1,0 +1,31 @@
+{
+  "batchId": "b02",
+  "status": "nine_candidates_generated_structure_revision_required",
+  "displaySummary": "尚未选定；局部结构偏差已记录，未入库",
+  "reviewedAt": "2026-08-30",
+  "reviewMethod": "Viewed all nine complete raw images against the approved model/Depth. Keyed sheets are auxiliary previews only.",
+  "structuralReviewPassed": false,
+  "selectedByUser": false,
+  "refinementStarted": false,
+  "runtimeIntegrationActive": false,
+  "numbering": "Displayed 4/5/6 correspond to batch b02 raw v01/v02/v03. First-batch 1/2/3 are preserved separately.",
+  "comparison": "Shorter asset descriptions improved the pennant placement in command post 4 and headquarters 5, and simplified some communications equipment. The batch still invents or moves other details; it is not a complete structural pass.",
+  "materialDirectionSuggestions": [
+    {"assetId":"command_post","batchId":"b01","displayVariant":2,"reason":"The new batch adds table equipment or replaces windows with canvas panels; first-batch 2 remains the more restrained material direction."},
+    {"assetId":"military_headquarters","batchId":"b02","displayVariant":4,"reason":"Single short crossbar and flatter canopy are closer to the model, although the pennant remains misplaced."},
+    {"assetId":"defense_ministry","batchId":"b02","displayVariant":5,"reason":"One roof cabinet, one dish and two separated emblems; modern material blocks read clearly. Flag placement and window details still differ."}
+  ],
+  "suggestionScope": "Material and layout preferences only, not structural acceptance or authorization for 48-step refinement.",
+  "candidates": [
+    {"assetId":"command_post","variant":1,"displayVariant":4,"positive":"Pennant reaches the near wall corner; continuous olive canvas roof.","issues":"Added equipment with an antenna on the table, a flag emblem and an extra wall medallion; one window becomes a wooden shutter and the entrance is closed."},
+    {"assetId":"command_post","variant":2,"displayVariant":5,"positive":"Broad olive roof and timber frame remain readable.","issues":"Window openings replaced by blank panels, compass and flag move to the far side, extra wall ornaments and a table instrument appear."},
+    {"assetId":"command_post","variant":3,"displayVariant":6,"positive":"Simple canvas roof, timber structure and muted map.","issues":"Windows become canvas shutters, flag moves to the far left and grows taller, two misplaced medallions and several table devices appear."},
+    {"assetId":"military_headquarters","variant":1,"displayVariant":4,"positive":"Single short roof crossbar, flat stone canopy and orderly two-storey brick massing.","issues":"Flag becomes a hanging banner at the far upper-left side; extra attic window and changed roof-end geometry; slate and brick remain densely textured."},
+    {"assetId":"military_headquarters","variant":2,"displayVariant":5,"positive":"Banner reaches the near corner and entrance canopy remains flat.","issues":"Banner becomes wall-mounted, aerial has two crossbars, a second compass plaque appears and the roof perimeter gains heavy stone trim."},
+    {"assetId":"military_headquarters","variant":3,"displayVariant":6,"positive":"Clear brick/slate family identity and one primary compass plaque.","issues":"Two antenna crossbars plus a thin rod, pitched entrance canopy, far-side flag and oversized foundation rubble."},
+    {"assetId":"defense_ministry","variant":1,"displayVariant":4,"positive":"One roof cabinet and one dish; no extra flag or roof antenna.","issues":"Both gold compass plaques collect on the canopy, central window layout changes, pennant stays far left and lighting is relatively bright."},
+    {"assetId":"defense_ministry","variant":2,"displayVariant":5,"positive":"Equipment counts and separated emblem positions are closer to the model; concrete, steel and blue-grey windows are distinct.","issues":"Pennant still at the far left, larger dish mount, changed central glazing and a bright rectangular entrance plaque; map still saturated."},
+    {"assetId":"defense_ministry","variant":3,"displayVariant":6,"positive":"Restrained map, one cabinet, one dish and separated compass plaques.","issues":"Flag remains far left, upper wing-facing windows disappear, facade proportions change and a strong detached ground shadow appears."}
+  ],
+  "nextStage": "Do not automatically reroll indefinitely or enter 48-step refinement. Use the user's next selection or direction; structural deviations must be resolved against the model/control source before promotion."
+}

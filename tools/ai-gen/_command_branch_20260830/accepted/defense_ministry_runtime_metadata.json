@@ -1,0 +1,100 @@
+{
+  "source": "tools/ai-gen/_command_branch_20260830/accepted/defense_ministry_body.png",
+  "output": "assets/terrain/defense_ministry.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    74,
+    166,
+    949,
+    922
+  ],
+  "fileSize": [
+    875,
+    756
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    871,
+    752
+  ],
+  "displayW": 516.724337,
+  "displayH": 438.857143,
+  "footOffsetY": 217.687075,
+  "scaleX": 0.5905420991926182,
+  "scaleY": 0.5804988662131519,
+  "beforeGroundCalibration": {
+    "displayW": 512,
+    "displayH": 442,
+    "footOffsetY": 219,
+    "scaleX": 0.5851428571428572,
+    "scaleY": 0.5846560846560847
+  },
+  "acceptedRaw": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/defense_ministry/defense_ministry_refine_v01_raw.png",
+  "visual": {
+    "tex": "defense_ministry",
+    "assetPath": "assets/terrain/defense_ministry.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/defense_ministry.png",
+    "displayW": 516.724337,
+    "displayH": 438.857143,
+    "footOffsetY": 217.687075,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.704365079,
+      "widthRatio": 0.990857143,
+      "depthRatio": 0.583333333,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "C15B4F0D57C76D61B06F945512C45C644C23F7682AB5575912D92715F2642CE7"
+  },
+  "groundLandmarksSource": {
+    "id": "defense_ministry",
+    "name": "国防部",
+    "level": 3,
+    "variant": 1,
+    "choice": "A",
+    "keyThreshold": 80,
+    "edgeRepairPixels": 3,
+    "groundLeft": [
+      78,
+      698
+    ],
+    "groundRight": [
+      945,
+      699
+    ],
+    "groundFrontY": 919
+  },
+  "sourceScaleX": 0.5905420991926182,
+  "sourceScaleY": 0.5804988662131519,
+  "calibrationMethod": "Accepted raw foundation outer lower corners; hidden rear corner inferred symmetrically.",
+  "alphaMaskDepth": null,
+  "edgeRepairPixels": 3
+}

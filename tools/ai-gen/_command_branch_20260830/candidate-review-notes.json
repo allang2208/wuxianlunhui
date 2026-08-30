@@ -1,0 +1,33 @@
+{
+  "status": "nine_candidates_generated_structure_revision_required",
+  "reviewedAt": "2026-08-30",
+  "reviewMethod": "Viewed all nine complete raw images and the approved model preview; keyed sheets are auxiliary material previews only.",
+  "structuralReviewPassed": false,
+  "selectedByUser": false,
+  "refinementStarted": false,
+  "runtimeIntegrationActive": false,
+  "materialDirectionSuggestions": {
+    "command_post": 2,
+    "military_headquarters": 2,
+    "defense_ministry": 2
+  },
+  "suggestionScope": "Material directions only, not structural acceptance or permission to promote these raw images to 48-step refinement.",
+  "commonIssues": [
+    "The authored front-left flag moved to the far screen-left side. Component placement is not preserved closely enough for structural acceptance.",
+    "Compass emblems are brighter and some stone, brick and roof patterns are denser than the restrained v5 material target.",
+    "Map-table colors are too vivid in several candidates; reduce saturation while keeping their functional identity.",
+    "Generated background shadows or green gradients are not game grounding assets. Do not import them or reuse mismatched Depth as an alpha mask."
+  ],
+  "candidates": [
+    {"assetId":"command_post","variant":1,"positive":"Clear timber, olive canvas and fieldstone materials.","issues":"Roof-end shape, closed entrance and flag placement drift from the approved model; extra table framing."},
+    {"assetId":"command_post","variant":2,"positive":"Preferred LV1 material direction; continuous canvas roof reads clearly.","issues":"Flag placement and entrance differ from the model; added rocks at the wall base and oversized steps."},
+    {"assetId":"command_post","variant":3,"positive":"Canvas seams and wooden frame are legible.","issues":"Invented device or statue on the planning table, plus flag and entrance drift; do not promote."},
+    {"assetId":"military_headquarters","variant":1,"positive":"Two-storey brick and slate identity is clear.","issues":"Telegraph crossbar became a busy multi-arm aerial; roof and flag placement drift; dense fine texture."},
+    {"assetId":"military_headquarters","variant":2,"positive":"Preferred LV2 material direction; orderly brick, stone trim and blue-grey slate, with flat entrance canopy.","issues":"Aerial shape, roof end, window proportions and flag placement differ from the approved model; bright emblem."},
+    {"assetId":"military_headquarters","variant":3,"positive":"Brick and slate remain within the same building family.","issues":"Added a second roof aerial and changed the flat entrance canopy into a pitched roof; do not promote."},
+    {"assetId":"defense_ministry","variant":1,"positive":"Concrete and blue-grey glazing establish the modern tier.","issues":"Added a second flag with an unrequested emblem; altered facade glazing and flag placement; do not promote."},
+    {"assetId":"defense_ministry","variant":2,"positive":"Preferred LV3 material direction; restrained concrete and steel, one dish and one flag.","issues":"Flag placement, central facade proportions and model emblem count differ; roof equipment detail expanded and map too saturated."},
+    {"assetId":"defense_ministry","variant":3,"positive":"Concrete, steel and glazing are distinct from the lower tiers.","issues":"Added a second equipment box and extra roof aerials; flag placement drift; pronounced backdrop shadow. Preview threshold 128 damaged the facade, so only the preview was regenerated at 80."}
+  ],
+  "nextStage": "Choose a material direction if desired; revise the authored model/control representation as needed and rerun 12-step structural candidates. Only a structurally passing, user-selected raw may enter 48-step refinement."
+}

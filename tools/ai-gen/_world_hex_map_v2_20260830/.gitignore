@@ -1,0 +1,7 @@
+/model-renders/
+/whitebox/
+/backups/
+/world-map-layout.json
+*.log
+*.blend1
+__pycache__/

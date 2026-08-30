@@ -1,0 +1,1425 @@
+{
+  "date": "2026-08-30",
+  "scope": "world strategy task only",
+  "status": "removed",
+  "policy": "Keep selected assets, direct refinement ancestors, models, controls, provenance and final previews. Historical manifests may mention removed paths; they are not active inputs.",
+  "count": 283,
+  "bytes": 183860320,
+  "removed": [
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/army-flags-preview.jpg",
+      "bytes": 207943,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/army-flags-terrain-preview.jpg",
+      "bytes": 141311,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/army-flags.png",
+      "bytes": 216585,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/army-visuals.json",
+      "bytes": 1454,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/build-army-flags.py",
+      "bytes": 12952,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/export-army-flags.py",
+      "bytes": 5811,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/render.log",
+      "bytes": 2615,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/renders/desert_patrol.png",
+      "bytes": 509738,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/renders/forest_raiders.png",
+      "bytes": 489340,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/renders/frozen_patrol.png",
+      "bytes": 502659,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/renders/mine_roamers.png",
+      "bytes": 497445,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/renders/player.png",
+      "bytes": 508359,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/renders/ruin_watch.png",
+      "bytes": 495928,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/whitebox/desert_patrol.png",
+      "bytes": 494955,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/whitebox/forest_raiders.png",
+      "bytes": 485269,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/whitebox/frozen_patrol.png",
+      "bytes": 490616,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/whitebox/mine_roamers.png",
+      "bytes": 494514,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/whitebox/player.png",
+      "bytes": 497570,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/whitebox/ruin_watch.png",
+      "bytes": 488976,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_20260830/world-army-flags.blend",
+      "bytes": 312813,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/army-flags-before-after.jpg",
+      "bytes": 215209,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/army-flags.png",
+      "bytes": 232918,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/army-visuals.json",
+      "bytes": 2197,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/render.log",
+      "bytes": 2815,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/renders/desert_patrol.png",
+      "bytes": 975737,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/renders/forest_raiders.png",
+      "bytes": 968545,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/renders/frozen_patrol.png",
+      "bytes": 938002,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/renders/mine_roamers.png",
+      "bytes": 923889,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/renders/player.png",
+      "bytes": 906035,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/renders/ruin_watch.png",
+      "bytes": 921853,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/whitebox/desert_patrol.png",
+      "bytes": 789668,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/whitebox/forest_raiders.png",
+      "bytes": 788836,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/whitebox/frozen_patrol.png",
+      "bytes": 774551,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/whitebox/mine_roamers.png",
+      "bytes": 778041,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/whitebox/player.png",
+      "bytes": 784778,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v2_20260830/whitebox/ruin_watch.png",
+      "bytes": 766865,
+      "reason": "regenerable render or duplicate; current model, official atlas and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/army-flags-before-after.jpg",
+      "bytes": 208347,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/army-flags-preview.jpg",
+      "bytes": 193485,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/army-flags-terrain-preview.jpg",
+      "bytes": 139907,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/army-flags.png",
+      "bytes": 194373,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/army-visuals.json",
+      "bytes": 2179,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/build-army-flags.py",
+      "bytes": 16357,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/emblem-sources.json",
+      "bytes": 11901,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/emblems/desert_patrol.png",
+      "bytes": 2652807,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/emblems/forest_raiders.png",
+      "bytes": 2298928,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/emblems/frozen_patrol.png",
+      "bytes": 2262043,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/emblems/mine_roamers.png",
+      "bytes": 1950035,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/emblems/player.png",
+      "bytes": 1571102,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/emblems/ruin_watch.png",
+      "bytes": 2023140,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/export-army-flags.py",
+      "bytes": 10308,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/render.log",
+      "bytes": 2817,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/renders/desert_patrol.png",
+      "bytes": 881333,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/renders/forest_raiders.png",
+      "bytes": 872754,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/renders/frozen_patrol.png",
+      "bytes": 857467,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/renders/mine_roamers.png",
+      "bytes": 845071,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/renders/player.png",
+      "bytes": 830268,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/renders/ruin_watch.png",
+      "bytes": 845253,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/whitebox/desert_patrol.png",
+      "bytes": 753910,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/whitebox/forest_raiders.png",
+      "bytes": 747998,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/whitebox/frozen_patrol.png",
+      "bytes": 746731,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/whitebox/mine_roamers.png",
+      "bytes": 737501,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/whitebox/player.png",
+      "bytes": 745984,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/whitebox/ruin_watch.png",
+      "bytes": 736168,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/world-army-flags-v3.blend",
+      "bytes": 13407107,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_army_flags_v3_20260830/world-map-camera-guide.jpg",
+      "bytes": 189780,
+      "reason": "unselected flag version; V2 is the user-selected source"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/__pycache__/build-hex-models.cpython-313.pyc",
+      "bytes": 40927,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/desert_00.png",
+      "bytes": 95989,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/desert_01.png",
+      "bytes": 96311,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/desert_02.png",
+      "bytes": 95126,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/desert_03.png",
+      "bytes": 96154,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/forest_00.png",
+      "bytes": 73329,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/forest_01.png",
+      "bytes": 77256,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/forest_02.png",
+      "bytes": 74784,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/forest_03.png",
+      "bytes": 75056,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/mine_00.png",
+      "bytes": 80108,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/mine_01.png",
+      "bytes": 82706,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/mine_02.png",
+      "bytes": 81811,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/mine_03.png",
+      "bytes": 83061,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/ruins_00.png",
+      "bytes": 62649,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/ruins_01.png",
+      "bytes": 67443,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/ruins_02.png",
+      "bytes": 65798,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/ruins_03.png",
+      "bytes": 68801,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/snow_00.png",
+      "bytes": 76143,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/snow_01.png",
+      "bytes": 80702,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/snow_02.png",
+      "bytes": 86391,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/snow_03.png",
+      "bytes": 80162,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/world-hex-atlas.json",
+      "bytes": 7533,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/candidates/world-hex-atlas.png",
+      "bytes": 1470713,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/compose-world-map.py",
+      "bytes": 12628,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/desert_00.png",
+      "bytes": 597665,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/desert_01.png",
+      "bytes": 598258,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/desert_02.png",
+      "bytes": 590095,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/desert_03.png",
+      "bytes": 597154,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/forest_00.png",
+      "bytes": 517723,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/forest_01.png",
+      "bytes": 501162,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/forest_02.png",
+      "bytes": 502283,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/forest_03.png",
+      "bytes": 510119,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/mine_00.png",
+      "bytes": 507119,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/mine_01.png",
+      "bytes": 510300,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/mine_02.png",
+      "bytes": 509072,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/mine_03.png",
+      "bytes": 510394,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/ruins_00.png",
+      "bytes": 422777,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/ruins_01.png",
+      "bytes": 435272,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/ruins_02.png",
+      "bytes": 431867,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/ruins_03.png",
+      "bytes": 438404,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/snow_00.png",
+      "bytes": 511552,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/snow_01.png",
+      "bytes": 511164,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/snow_02.png",
+      "bytes": 530486,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/model-renders/snow_03.png",
+      "bytes": 516662,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/previews/hex-tile-catalog.png",
+      "bytes": 1069194,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/previews/model-to-material.png",
+      "bytes": 495767,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/previews/world-map-unlabeled.png",
+      "bytes": 1294140,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/previews/world-panel-concept.png",
+      "bytes": 1171888,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/previews/world-terrain-layout.png",
+      "bytes": 1447223,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/render-full.log",
+      "bytes": 8024,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/render-samples.log",
+      "bytes": 2633,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/render-source-final.log",
+      "bytes": 1800,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/whitebox/desert_01.png",
+      "bytes": 384916,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/whitebox/forest_01.png",
+      "bytes": 426977,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/whitebox/mine_01.png",
+      "bytes": 407162,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/whitebox/ruins_01.png",
+      "bytes": 402463,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/whitebox/snow_01.png",
+      "bytes": 402771,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_20260830/world-hex-models.blend",
+      "bytes": 9980739,
+      "reason": "superseded terrain candidate; shared geometry and layout retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/CHANGELOG.md",
+      "bytes": 2476843,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/random-entry/docs/world-map-panel.md",
+      "bytes": 4563,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/random-entry/src/ui/world-map-view.js",
+      "bytes": 14030,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/random-entry/src/ui/world-switch-panel.js",
+      "bytes": 26021,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/src/ui/game-menu.js",
+      "bytes": 21675,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/src/ui/input.js",
+      "bytes": 18510,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/src/ui/panels/hud-panels-misc.js",
+      "bytes": 32077,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/src/ui/rts-command.js",
+      "bytes": 117213,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/src/ui/world-switch-panel.js",
+      "bytes": 16739,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/src/world/flat-view-system.js",
+      "bytes": 27861,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/TODO.md",
+      "bytes": 11877,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/backups/ui/panel-theme-backpack.css",
+      "bytes": 243059,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_00.png",
+      "bytes": 608384,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_01.png",
+      "bytes": 586242,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_02.png",
+      "bytes": 592622,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_03.png",
+      "bytes": 581619,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_04.png",
+      "bytes": 578824,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_05.png",
+      "bytes": 585221,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_06.png",
+      "bytes": 604841,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_07.png",
+      "bytes": 564579,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_08.png",
+      "bytes": 569648,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/desert_09.png",
+      "bytes": 576954,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_00.png",
+      "bytes": 506819,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_01.png",
+      "bytes": 505015,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_02.png",
+      "bytes": 497486,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_03.png",
+      "bytes": 499362,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_04.png",
+      "bytes": 517752,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_05.png",
+      "bytes": 513239,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_06.png",
+      "bytes": 505746,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_07.png",
+      "bytes": 497351,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_08.png",
+      "bytes": 505757,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/forest_09.png",
+      "bytes": 504700,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_00.png",
+      "bytes": 504937,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_01.png",
+      "bytes": 498250,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_02.png",
+      "bytes": 514355,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_03.png",
+      "bytes": 509516,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_04.png",
+      "bytes": 506471,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_05.png",
+      "bytes": 515572,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_06.png",
+      "bytes": 507050,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_07.png",
+      "bytes": 505134,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_08.png",
+      "bytes": 512343,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/mine_09.png",
+      "bytes": 505036,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_00.png",
+      "bytes": 430225,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_01.png",
+      "bytes": 430238,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_02.png",
+      "bytes": 423543,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_03.png",
+      "bytes": 426638,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_04.png",
+      "bytes": 432146,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_05.png",
+      "bytes": 435231,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_06.png",
+      "bytes": 428414,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_07.png",
+      "bytes": 439496,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_08.png",
+      "bytes": 444536,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/ruins_09.png",
+      "bytes": 424765,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_00.png",
+      "bytes": 510303,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_01.png",
+      "bytes": 520507,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_02.png",
+      "bytes": 524013,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_03.png",
+      "bytes": 534250,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_04.png",
+      "bytes": 519889,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_05.png",
+      "bytes": 528929,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_06.png",
+      "bytes": 510933,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_07.png",
+      "bytes": 511406,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_08.png",
+      "bytes": 535610,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/model-renders/snow_09.png",
+      "bytes": 512472,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/render.log",
+      "bytes": 16260,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/whitebox/desert_04.png",
+      "bytes": 397824,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/whitebox/forest_04.png",
+      "bytes": 438386,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/whitebox/mine_04.png",
+      "bytes": 398417,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/whitebox/ruins_04.png",
+      "bytes": 396788,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/whitebox/snow_04.png",
+      "bytes": 397204,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_world_hex_map_v2_20260830/world-map-layout.json",
+      "bytes": 51036,
+      "reason": "regenerable render or duplicate; current model, runtime layout and final previews retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/accepted/command_post_finalize.log",
+      "bytes": 1835,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/accepted/command_post_keyed.png",
+      "bytes": 594440,
+      "reason": "regenerable keying intermediate; selected raw and final body retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/accepted/defense_ministry_finalize.log",
+      "bytes": 1852,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/accepted/defense_ministry_keyed.png",
+      "bytes": 831615,
+      "reason": "regenerable keying intermediate; selected raw and final body retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/accepted/military_headquarters_finalize.log",
+      "bytes": 1872,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/accepted/military_headquarters_keyed.png",
+      "bytes": 1000003,
+      "reason": "regenerable keying intermediate; selected raw and final body retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/command_branch_s12_candidates.png",
+      "bytes": 2002684,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/command_branch_s12_raw_contact_sheet.png",
+      "bytes": 3086863,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/command_post_candidate_lineup.png",
+      "bytes": 545653,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/command_post_structure_v01_preview_keyed.png",
+      "bytes": 671140,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/command_post_structure_v02_preview_keyed.png",
+      "bytes": 622335,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/command_post_structure_v03_preview_keyed.png",
+      "bytes": 675659,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/defense_ministry_candidate_lineup.png",
+      "bytes": 709062,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/defense_ministry_structure_v01_preview_keyed.png",
+      "bytes": 852857,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/defense_ministry_structure_v02_preview_keyed.png",
+      "bytes": 876193,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/defense_ministry_structure_v03_preview_keyed.png",
+      "bytes": 852879,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/military_headquarters_candidate_lineup.png",
+      "bytes": 775445,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/military_headquarters_structure_v01_preview_keyed.png",
+      "bytes": 939580,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/military_headquarters_structure_v02_preview_keyed.png",
+      "bytes": 960332,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review/military_headquarters_structure_v03_preview_keyed.png",
+      "bytes": 951048,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/command_branch_s12_candidates.png",
+      "bytes": 2044369,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/command_branch_s12_raw_contact_sheet.png",
+      "bytes": 3173333,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/command_post_candidate_lineup.png",
+      "bytes": 563003,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/command_post_structure_v01_preview_keyed.png",
+      "bytes": 675005,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/command_post_structure_v02_preview_keyed.png",
+      "bytes": 668415,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/command_post_structure_v03_preview_keyed.png",
+      "bytes": 727462,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/defense_ministry_candidate_lineup.png",
+      "bytes": 713869,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/defense_ministry_structure_v01_preview_keyed.png",
+      "bytes": 900925,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/defense_ministry_structure_v02_preview_keyed.png",
+      "bytes": 854222,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/defense_ministry_structure_v03_preview_keyed.png",
+      "bytes": 870916,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/military_headquarters_candidate_lineup.png",
+      "bytes": 798689,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/military_headquarters_structure_v01_preview_keyed.png",
+      "bytes": 1020928,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/military_headquarters_structure_v02_preview_keyed.png",
+      "bytes": 973539,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/military_headquarters_structure_v03_preview_keyed.png",
+      "bytes": 962029,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/command_post/command_post_structure_v01_raw.png",
+      "bytes": 1019524,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/command_post/command_post_structure_v03_raw.png",
+      "bytes": 1048247,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/defense_ministry/defense_ministry_structure_v01_raw.png",
+      "bytes": 1252423,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/defense_ministry/defense_ministry_structure_v02_raw.png",
+      "bytes": 1249818,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/defense_ministry/defense_ministry_structure_v03_raw.png",
+      "bytes": 1235128,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/military_headquarters/military_headquarters_structure_v01_raw.png",
+      "bytes": 1270577,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/military_headquarters/military_headquarters_structure_v02_raw.png",
+      "bytes": 1301445,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v1/military_headquarters/military_headquarters_structure_v03_raw.png",
+      "bytes": 1307852,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2/command_post/command_post_structure_v01_raw.png",
+      "bytes": 1061360,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2/command_post/command_post_structure_v02_raw.png",
+      "bytes": 1083502,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2/command_post/command_post_structure_v03_raw.png",
+      "bytes": 1096446,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2/defense_ministry/defense_ministry_structure_v01_raw.png",
+      "bytes": 1201490,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2/defense_ministry/defense_ministry_structure_v03_raw.png",
+      "bytes": 1251417,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2/military_headquarters/military_headquarters_structure_v02_raw.png",
+      "bytes": 1352453,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2/military_headquarters/military_headquarters_structure_v03_raw.png",
+      "bytes": 1304810,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/command_post/command_post_refine_v02_raw.png",
+      "bytes": 1017604,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/defense_ministry/defense_ministry_refine_v02_raw.png",
+      "bytes": 1182579,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/candidates_dev_s48_v1/military_headquarters/military_headquarters_refine_v01_raw.png",
+      "bytes": 1315841,
+      "reason": "unselected building candidate or regenerable preview"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/command_post/render.log",
+      "bytes": 1430,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/compose-candidate-review.py",
+      "bytes": 5416,
+      "reason": "completed one-off dispatch, draft or obsolete candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/compose-refinement-review.py",
+      "bytes": 4669,
+      "reason": "completed one-off dispatch, draft or obsolete candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/continue-candidates.py",
+      "bytes": 3831,
+      "reason": "completed one-off dispatch, draft or obsolete candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/defense_ministry/render.log",
+      "bytes": 1494,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/dispatch-handoff.json",
+      "bytes": 555,
+      "reason": "completed one-off dispatch, draft or obsolete candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-b02-command_post.log",
+      "bytes": 4156,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-b02-defense_ministry.log",
+      "bytes": 4327,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-b02-military_headquarters.log",
+      "bytes": 4542,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-b02.log",
+      "bytes": 488,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-command_post.log",
+      "bytes": 546,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-defense_ministry.log",
+      "bytes": 4325,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-f01-command_post.log",
+      "bytes": 3462,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-f01-defense_ministry.log",
+      "bytes": 3616,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-f01-military_headquarters.log",
+      "bytes": 3806,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-f01.log",
+      "bytes": 574,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-military_headquarters.log",
+      "bytes": 1719,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-parallel.log",
+      "bytes": 660,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/generation-s12.log",
+      "bytes": 7387,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/handoff-dispatch.ps1",
+      "bytes": 3777,
+      "reason": "completed one-off dispatch, draft or obsolete candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/military_headquarters/render.log",
+      "bytes": 1581,
+      "reason": "regenerable log or cache"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/command_branch_s48_comparison.png",
+      "bytes": 2001474,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/command_branch_s48_raw_comparison.png",
+      "bytes": 3109316,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/command_post_refine_v01_preview_keyed.png",
+      "bytes": 594440,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/command_post_refine_v02_preview_keyed.png",
+      "bytes": 610384,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/command_post_refinement_lineup.png",
+      "bytes": 527420,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/command_post_source_preview_keyed.png",
+      "bytes": 622335,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/defense_ministry_refine_v01_preview_keyed.png",
+      "bytes": 831615,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/defense_ministry_refine_v02_preview_keyed.png",
+      "bytes": 806312,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/defense_ministry_refinement_lineup.png",
+      "bytes": 694747,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/defense_ministry_source_preview_keyed.png",
+      "bytes": 854222,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/military_headquarters_refine_v01_preview_keyed.png",
+      "bytes": 993676,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/military_headquarters_refine_v02_preview_keyed.png",
+      "bytes": 1000003,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/military_headquarters_refinement_lineup.png",
+      "bytes": 815323,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/refinement-review/military_headquarters_source_preview_keyed.png",
+      "bytes": 1020928,
+      "reason": "historical candidate comparison; review metadata and final overview retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/technology-branch.draft.json",
+      "bytes": 4126,
+      "reason": "completed one-off dispatch, draft or obsolete candidate comparison"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/install-selected-config.py",
+      "bytes": 2460,
+      "reason": "obsolete one-time integration or design snapshot writer; current approved sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/prepare-delivery.py",
+      "bytes": 4965,
+      "reason": "obsolete one-time integration or design snapshot writer; current approved sources retained"
+    },
+    {
+      "path": "tools/ai-gen/_command_branch_20260830/record-integration.py",
+      "bytes": 2242,
+      "reason": "obsolete one-time integration or design snapshot writer; current approved sources retained"
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "outputRoot": "tools/ai-gen/_command_branch_20260830/candidates_dev_s12_v2",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "steps": 48,
+  "strength": 0.75,
+  "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "refineEdgeStrength": 0.38,
+  "maskEdgePad": 16,
+  "structureSeedBase": 830510,
+  "modelApproval": "2026-08-30 用户确认三档模型：同意，继续生图。",
+  "status": "nine_candidates_generated_structure_revision_required",
+  "runtimeIntegrationActive": false,
+  "submission": {
+    "plannedCandidates": 9,
+    "generatedCandidates": 9,
+    "completedAt": "2026-08-30",
+    "result": "Nine new raw candidates downloaded through the standard generator; the first batch is preserved.",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "The same three approved building Depth images and revised building prompts only.",
+    "authorization": "2026-08-30: User requested 继续抽 after the first nine-candidate delivery, continuing the already authorized server and Dev Depth workflow.",
+    "generationLog": "tools/ai-gen/_command_branch_20260830/generation-b02.log",
+    "preparedInputs": [
+      {
+        "assetId": "command_post",
+        "label": "指挥所",
+        "depth": "tools/ai-gen/_command_branch_20260830/command_post/command_post_depth.png",
+        "prompt": "tools/ai-gen/_command_branch_20260830/prepared-inputs-b02/command_post_structure_prompt.txt",
+        "plannedSeeds": [
+          830511,
+          830512,
+          830513
+        ]
+      },
+      {
+        "assetId": "military_headquarters",
+        "label": "司令部",
+        "depth": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_depth.png",
+        "prompt": "tools/ai-gen/_command_branch_20260830/prepared-inputs-b02/military_headquarters_structure_prompt.txt",
+        "plannedSeeds": [
+          830521,
+          830522,
+          830523
+        ]
+      },
+      {
+        "assetId": "defense_ministry",
+        "label": "国防部",
+        "depth": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_depth.png",
+        "prompt": "tools/ai-gen/_command_branch_20260830/prepared-inputs-b02/defense_ministry_structure_prompt.txt",
+        "plannedSeeds": [
+          830531,
+          830532,
+          830533
+        ]
+      }
+    ]
+  },
+  "assets": [
+    {
+      "id": "command_post",
+      "label": "指挥所",
+      "level": 1,
+      "assetClass": "command_building",
+      "assetType": "World-122 4x4 LV1 field command building",
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "controlImage": "tools/ai-gen/_command_branch_20260830/command_post/command_post_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_command_branch_20260830/command_post/command_post_depth.png",
+      "model": "tools/ai-gen/_command_branch_20260830/command_post/command_post_model.blend",
+      "modelPreview": "tools/ai-gen/_command_branch_20260830/command_post/command_post_model_preview.png",
+      "removeAllGreen": false,
+      "primaryRequest": "a single-storey timber-framed field command post with an olive canvas hip roof",
+      "structureRequest": "Single-storey timber command hall with olive canvas wall panels and one hipped canvas roof. Preserve the attached canvas porch, open timber doors and one small oxidized-brass compass plaque. The single short dark-teal pennant stands at the near corner where the two visible walls meet, immediately left of the porch. The right-hand low table holds only a muted paper map and low markers.",
+      "detailRequest": "preserve the chosen geometry; refine subdued wood grain, broad olive canvas fields with a few visible seams, dull brass compass relief, blue-gray window glass and restrained map-table details",
+      "negativeRequest": "no flag at the far left image edge or rear corner; no thatch, brick main walls, tiled roof, rooftop equipment, table-mounted device or statue"
+    },
+    {
+      "id": "military_headquarters",
+      "label": "司令部",
+      "level": 2,
+      "assetClass": "command_building",
+      "assetType": "World-122 4x4 LV2 permanent military headquarters",
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "controlImage": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_depth.png",
+      "model": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_model.blend",
+      "modelPreview": "tools/ai-gen/_command_branch_20260830/military_headquarters/military_headquarters_model_preview.png",
+      "removeAllGreen": false,
+      "primaryRequest": "a two-storey brick-and-stone military headquarters with a blue-gray slate hip roof",
+      "structureRequest": "Two-storey brown-grey brick headquarters, grey stone quoins and floor band, one hipped blue-grey slate roof. One short T-shaped telegraph pole on the roof, with exactly one horizontal crossbar. Preserve the flat stone entrance canopy, open timber doors and one small oxidized-brass compass plaque. One short plain dark-teal pennant stands at the near wall corner immediately left of the canopy; the low table on the right holds only a muted paper map.",
+      "detailRequest": "preserve the chosen geometry; refine calm brick fields with sparse broad joints, stone quoins, subdued slate courses, dark window frames, the matte telegraph aerial and a restrained dull-brass compass plaque",
+      "negativeRequest": "no flag at the far left image edge or rear corner; no multiple antenna crossbars, TV antenna, pitched entrance canopy, chimney, dish or table-mounted device"
+    },
+    {
+      "id": "defense_ministry",
+      "label": "国防部",
+      "level": 3,
+      "assetClass": "command_building",
+      "assetType": "World-122 4x4 LV3 modern defense ministry",
+      "footprintCells": 4,
+      "foundationStyle": "fair_faced_concrete",
+      "controlImage": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_depth.png",
+      "model": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_model.blend",
+      "modelPreview": "tools/ai-gen/_command_branch_20260830/defense_ministry/defense_ministry_model_preview.png",
+      "removeAllGreen": false,
+      "primaryRequest": "a modern defense ministry with one three-storey central block and two attached two-storey office wings",
+      "structureRequest": "One three-storey central command block and two attached two-storey wings, flat parapet roofs, light concrete, charcoal steel and muted blue-grey windows. Preserve the concrete entrance canopy and two small oxidized-brass compass plaques. Equipment consists of one plain rectangular service cabinet on the highest roof and one dish on the left wing, without additional rooftop fittings. One short plain dark-teal pennant stands at the near wall corner left of the entrance; the right-hand low table holds only a muted paper map.",
+      "detailRequest": "preserve the chosen geometry; refine large quiet concrete fields, matte charcoal steel, restrained blue-gray glass reflections, the attached communications dish and small dull-brass compass relief; keep roof surfaces uncluttered",
+      "negativeRequest": "no flag at the far left image edge or rear corner; no flag emblem, roof antenna, cable clutter, second service cabinet, brick veneer or pitched roof"
+    }
+  ],
+  "selectedByUser": false,
+  "refinementStarted": false,
+  "batchId": "b02",
+  "variantLabelOffset": 3,
+  "preparedInputsRoot": "tools/ai-gen/_command_branch_20260830/prepared-inputs-b02",
+  "reviewOutputRoot": "tools/ai-gen/_command_branch_20260830/candidate-review-b02",
+  "reviewSettings": "tools/ai-gen/_command_branch_20260830/preview-settings-b02.json",
+  "reviewNotes": "tools/ai-gen/_command_branch_20260830/candidate-review-notes-b02.json",
+  "reviewTitle": "指挥建筑 / 第二批候选",
+  "structuralReviewPassed": false,
+  "revision": {
+    "previousBatch": "tools/ai-gen/_command_branch_20260830/candidate-manifest.json",
+    "geometryChanged": false,
+    "standardParametersChanged": false,
+    "scope": "New seeds and concise asset-level descriptions clarify the near-corner pennant, simple telegraph crossbar, bare planning table and fixed equipment counts. No model, camera, footprint or runtime changes."
+  },
+  "reviewIndex": "tools/ai-gen/_command_branch_20260830/candidate-review-b02/review-index.json"
+}
