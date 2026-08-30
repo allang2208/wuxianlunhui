@@ -1,0 +1,76 @@
+{
+  "date": "2026-08-30",
+  "status": "cleaned_14_task_files",
+  "reason": "User accepted current stage and requested rejected-file cleanup",
+  "removed": [
+    {
+      "path": "tools/ai-gen/_dungeon_console_concepts_20260830/01-map-first.png",
+      "bytes": 2053286
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_concepts_20260830/03-next-choice.png",
+      "bytes": 2102180
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_implementation_20260830/before/data/dungeon-config.json",
+      "bytes": 58301
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_implementation_20260830/before/public/data/dungeon-config.json",
+      "bytes": 58297
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_implementation_20260830/before/src/config/dungeon-config.js",
+      "bytes": 17222
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_implementation_20260830/before/src/ui/dungeon-expedition-layout.js",
+      "bytes": 3804
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_implementation_20260830/before/src/world/dungeon-map-system.js",
+      "bytes": 244893
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_implementation_20260830/before/ui/panel-theme-backpack.css",
+      "bytes": 226769
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_implementation_20260830/exploration-v9-theme.css",
+      "bytes": 15158
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_layout_v10_20260830/before/src/ui/dungeon-expedition-layout.js",
+      "bytes": 6526
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_layout_v10_20260830/before/src/ui/dungeon-exploration-console.js",
+      "bytes": 23600
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_layout_v10_20260830/before/src/world/dungeon-map-system.js",
+      "bytes": 259518
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_layout_v10_20260830/before/ui/panel-theme-backpack.css",
+      "bytes": 201165
+    },
+    {
+      "path": "tools/ai-gen/_dungeon_console_layout_v10_20260830/exploration-v10-theme.css",
+      "bytes": 2121
+    }
+  ],
+  "retained": [
+    "02-black-background-v5.png",
+    "02-blue-cyan-planning-v4.png",
+    "02-center-enter-v7.png",
+    "02-cold-steel-icons-type-v3.png",
+    "02-dark-exploration-hybrid-v9.png",
+    "02-frosted-black-v8.png",
+    "02-inset-console-v6.png",
+    "02-integrated-planning-console-v2.png",
+    "02-map-and-dossier-refined.png",
+    "02-map-and-dossier.png"
+  ],
+  "notes": "Only this task files; old formal backgrounds and source edit ancestors retained. No runtime verification."
+}

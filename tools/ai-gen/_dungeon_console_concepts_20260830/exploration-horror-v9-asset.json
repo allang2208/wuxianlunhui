@@ -1,0 +1,16 @@
+{
+  "asset": "assets/scenes/dungeon-exploration-horror-v9.png",
+  "created": "2026-08-30",
+  "tool": "builtin image_gen",
+  "generation_source": "C:/Users/allan/.codex/generated_images/01a05163-2aea-7b43-ae61-6e583fa1247c/exec-3c6ee44e-8e67-40e3-ab87-73177f121ba5.png",
+  "reference": "tools/ai-gen/_dungeon_console_concepts_20260830/02-dark-exploration-hybrid-v9.png",
+  "dimensions": {
+    "width": 2172,
+    "height": 724
+  },
+  "intended_use": "Standalone scenery for the upper 32vh of accepted v9 dungeon exploration UI. UI and routes are rendered separately.",
+  "prompt": "Use case: stylized-concept. Asset type: production game background, opaque PNG, panoramic 3:1 aspect ratio, ideally 2400x800 or wider. Input image 1 is the accepted game UI mockup and is a STYLE / SCENERY reference only. Generate ONE clean original scenery asset that faithfully recreates the atmosphere and composition of ONLY its upper castle scene, expanded naturally to fill the entire panoramic image. No screenshot, no UI mockup. Scene: a moonlit dark gothic fortress courtyard, dense monumental castle architecture and spires, central fortress gateway reached by long broad worn stone stairs, full moon above center with thin clouds, a carved ancient skull and three or four very small warm candles on the left foreground parapet, one black raven perched on the right foreground parapet. Central staircase and gateway should remain the focal point, rendered across the low panoramic composition, with towers contained within image. Style: highly detailed moody painterly game environment matching the reference, strong atmospheric perspective and carefully readable architecture, original artwork. Palette: near-black and layered charcoal, desaturated cold blue and subtle cyan rim light on stone, extremely restrained amber candlelight. The scene is intended to fill the upper 32 percent of a 16:9 dungeon exploration game screen, so arrange major focal details within this 3:1 band rather than creating a tall picture. Use full bleed edge to edge scenery, no black letterbox bars. Absolutely NO text, letters, labels, numbers, borders, game HUD, panels, interface, buttons, route lines, map nodes, icons, logos or watermarks anywhere. Remove all contents of the lower UI region from the reference; entire output must be uninterrupted environmental artwork.",
+  "inspection": "Viewed generated file. Panoramic original castle, moon, staircase, skull candles and raven. No text, controls, routes or nodes present. No image resizing or postprocessing applied.",
+  "scope": "Only new scene PNG and this provenance file. No source/config edits, tests or runtime verification.",
+  "closureStatus": "accepted_runtime_asset"
+}

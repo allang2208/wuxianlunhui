@@ -1,0 +1,12 @@
+{
+  "date": "2026-08-30",
+  "tool": "built-in image_gen",
+  "output": "02-black-background-v5.png",
+  "source": "C:/Users/allan/.codex/generated_images/01a050ca-f2b6-7a53-acb5-d9d3b5467beb/exec-2af3ff63-be1f-4c87-8451-17624ee1460a.png",
+  "referenced_image_paths": [
+    "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_dungeon_console_concepts_20260830/02-blue-cyan-planning-v4.png"
+  ],
+  "prompt": "Edit this exact image with ONE narrowly scoped color change. Replace the dark blue/navy BACKGROUND SURFACES of the entire LOWER exploration planning console with neutral BLACK, including its header, route-map bed, right dossier background, expected-rewards band and bottom action-dock background. Use matte black #050505 to #090909 with only extremely subtle neutral charcoal material shading, no navy or blue tint in those broad background surfaces. Keep all existing cyan/blue foreground accent lines, the highlighted route, node outlines, silver metal icons, silver text, danger red text, safe green dot and blue action buttons unchanged. Keep all Chinese text, numbers, line paths, node positions, button sizes, panel proportions, separators and ornamental trim exactly the same. The UPPER castle/moon/candles/skull/raven SCENERY must remain unchanged; do not replace it with black. Do not redesign, move, remove or add any elements, do not change typography. Preserve the exact 1672x941 landscape composition. This is a black console-background variant of the supplied image, not a new concept.",
+  "status": "Preview only. Lower console backgrounds changed to black, upper scenery retained. No runtime code, official asset replacement or tests.",
+  "closureStatus": "retained_direct_edit_ancestor"
+}

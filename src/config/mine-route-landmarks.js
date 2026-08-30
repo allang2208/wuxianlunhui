@@ -150,22 +150,30 @@ export function projectMineRouteNodes(nodes, profile, slots = getMineRouteSlots(
 }
 
 /** 在已登记的通道与楼梯网络内取最短展示路径，不修改实际地图边或节点可达性。 */
-export function buildMineRouteEdgePaths(nodes, edges, points, profile, clearance = 36) {
+export function buildMineRouteEdgePaths(nodes, edges, points, profile) {
     const stations = [];
+    const stationByPosition = new Map();
     const graph = new Map();
     const nodeStation = new Map();
+    // 道路中心线既用于放节点，也用于画线；不能为避让徽记把线路平移到路外。
+    // 节点在连线之后绘制，自身遮住线头；多条路线仍由显示层合束。
     const addStation = (lane, x) => {
         const point = lanePoint(profile.lanes[lane], x);
+        const key = `${lane}:${point.x.toFixed(3)}`;
+        if (stationByPosition.has(key)) return stationByPosition.get(key);
         const station = { ...point, lane, id: stations.length };
         stations.push(station);
+        stationByPosition.set(key, station);
         graph.set(station.id, []);
         return station;
     };
     const connect = (a, b, path) => {
+        if (a.id === b.id) return;
         const cost = path.slice(1).reduce((sum, point, index) => sum + distance(path[index], point), 0);
-        const key = [a.id, b.id].sort((left, right) => left - right).join(':');
-        graph.get(a.id).push({ to: b.id, cost, path, key });
-        graph.get(b.id).push({ to: a.id, cost, path: path.slice().reverse(), key });
+        const geometry = path.map(point => ({ x: point.x, y: point.y }));
+        const section = { geometry };
+        graph.get(a.id).push({ to: b.id, cost, section, reverse: false });
+        graph.get(b.id).push({ to: a.id, cost, section, reverse: true });
     };
     for (const node of nodes) {
         const point = points.get(node.id);
@@ -184,12 +192,12 @@ export function buildMineRouteEdgePaths(nodes, edges, points, profile, clearance
         }
     });
     const routes = [];
-    const usage = new Map();
     const uniqueEdges = new Map();
     for (const edge of edges) {
         const [from, to] = [edge.from, edge.to].sort();
         uniqueEdges.set([from, to].join('::'), { from, to });
     }
+    // 固定最短通道；不因其它线路占用而临时改走另一座楼梯。
     for (const [key, edge] of [...uniqueEdges].sort(([a], [b]) => a.localeCompare(b))) {
         const start = nodeStation.get(edge.from), goal = nodeStation.get(edge.to);
         if (!start || !goal) continue;
@@ -200,127 +208,52 @@ export function buildMineRouteEdgePaths(nodes, edges, points, profile, clearance
             open.delete(current);
             if (current === goal.id) break;
             for (const link of graph.get(current)) {
-                // 同长的通路优先分散到另一座楼梯；仍只能走母图登记的完整通道。
-                const cost = costs.get(current) + link.cost + (usage.get(link.key) || 0) * 18;
+                const cost = costs.get(current) + link.cost;
                 if (cost >= (costs.get(link.to) ?? Infinity)) continue;
                 costs.set(link.to, cost);
-                previous.set(link.to, { from: current, path: link.path, key: link.key });
+                previous.set(link.to, { from: current, link });
                 open.add(link.to);
             }
         }
         if (!previous.has(goal.id)) continue;
         const sections = [];
-        const links = new Set();
         let cursor = goal.id;
         while (cursor !== start.id) {
             const step = previous.get(cursor);
-            sections.unshift(step.path);
-            links.add(step.key);
+            sections.unshift(step.link);
             cursor = step.from;
         }
-        const path = sections.flatMap((section, index) => index ? section.slice(1) : section);
-        for (const link of links) usage.set(link, (usage.get(link) || 0) + 1);
-        routes.push({ key, edge, path, links });
+        routes.push({ key, edge, sections });
     }
 
-    // 共用实体线段的逻辑边必须使用不同轨道；正反方向也按同一物理法线偏移。
-    let trackCount = 1;
-    for (const route of routes) {
-        const occupied = new Set(routes.filter(other => other.track !== undefined
-            && [...route.links].some(link => other.links.has(link))).map(other => other.track));
-        route.track = 0;
-        while (occupied.has(route.track)) route.track++;
-        trackCount = Math.max(trackCount, route.track + 1);
-    }
-    const trackSpacing = trackCount > 1 ? Math.min(6, 48 / (trackCount - 1)) : 0;
+    // 返回各真实边的公共中心线路径；显示层把重合片段合束，只描一次主干。
     const paths = new Map();
     for (const route of routes) {
-        const offset = (route.track - (trackCount - 1) / 2) * trackSpacing;
-        const obstacles = nodes.filter(node => node.id !== route.edge.from && node.id !== route.edge.to)
-            .map(node => points.get(node.id)).filter(Boolean);
-        let path = offsetRoutePath(route.path, offset);
-        // 徽记不是通道交叉点。不同轨道用不同绕行半径，避免绕过节点后又合成一条线。
-        const radius = clearance + 3 + (trackCount > 1 ? route.track / (trackCount - 1) * 8 : 0);
-        for (const obstacle of obstacles) path = bypassRouteNode(path, obstacle, radius, obstacles, offset);
-        paths.set(route.key, path);
+        const path = [{ ...points.get(route.edge.from) }];
+        for (const link of route.sections) {
+            const shared = link.section.geometry;
+            path.push(...(link.reverse ? shared.slice().reverse() : shared));
+        }
+        path.push({ ...points.get(route.edge.to) });
+        paths.set(route.key, simplifyRoutePolyline(path));
     }
     return paths;
 }
 
-function pointSegmentDistance(point, a, b) {
-    const dx = b.x - a.x, dy = b.y - a.y;
-    const lengthSquared = dx * dx + dy * dy;
-    const t = lengthSquared ? Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / lengthSquared)) : 0;
-    return Math.hypot(point.x - a.x - t * dx, point.y - a.y - t * dy);
-}
-
-function offsetRoutePath(source, offset) {
-    if (!source.length) return [];
-    const points = [{ ...source[0] }];
-    for (let index = 1; index < source.length; index++) {
-        const a = source[index - 1], b = source[index];
-        const length = distance(a, b);
-        if (length < 0.001) continue;
-        const steps = Math.max(1, Math.ceil(length / 20));
-        for (let step = 1; step <= steps; step++) {
-            const t = step / steps;
-            points.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+/** 只删重复点与同向共线折点，不新增避障绕行或跨段捷径。 */
+function simplifyRoutePolyline(source) {
+    const result = [];
+    for (const point of source) {
+        if (result.length && distance(result[result.length - 1], point) < 0.001) continue;
+        while (result.length >= 2) {
+            const a = result[result.length - 2], b = result[result.length - 1];
+            const ux = b.x - a.x, uy = b.y - a.y, vx = point.x - b.x, vy = point.y - b.y;
+            if (Math.abs(ux * vy - uy * vx) > 0.001 || ux * vx + uy * vy < 0) break;
+            result.pop();
         }
+        result.push(point);
     }
-    const normal = (a, b) => {
-        let dx = b.x - a.x, dy = b.y - a.y;
-        if (dx < 0 || (dx === 0 && dy < 0)) { dx = -dx; dy = -dy; }
-        const length = Math.hypot(dx, dy) || 1;
-        return { x: -dy / length, y: dx / length };
-    };
-    const cumulative = [0];
-    for (let index = 1; index < points.length; index++) cumulative.push(cumulative[index - 1] + distance(points[index - 1], points[index]));
-    const total = cumulative[cumulative.length - 1];
-    return points.map((point, index) => {
-        if (index === 0 || index === points.length - 1) return point;
-        const a = normal(points[index - 1], point), b = normal(point, points[index + 1]);
-        const fade = Math.min(1, cumulative[index] / 40, (total - cumulative[index]) / 40);
-        return { x: point.x + (a.x + b.x) * 0.5 * offset * fade,
-            y: point.y + (a.y + b.y) * 0.5 * offset * fade };
-    });
-}
-
-/** 用圆外弧替换穿过无关徽记的连续路径，不移动节点或改变逻辑边。 */
-function bypassRouteNode(path, center, radius, obstacles, offset) {
-    let entry = null, exit = null;
-    for (let index = 1; index < path.length; index++) {
-        const a = path[index - 1], b = path[index];
-        if (pointSegmentDistance(center, a, b) >= radius) continue;
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const fx = a.x - center.x, fy = a.y - center.y;
-        const aa = dx * dx + dy * dy;
-        if (aa < 0.0001) continue;
-        const bb = 2 * (fx * dx + fy * dy);
-        const cc = fx * fx + fy * fy - radius * radius;
-        const discriminant = bb * bb - 4 * aa * cc;
-        if (discriminant < 0) continue;
-        for (const t of [(-bb - Math.sqrt(discriminant)) / (2 * aa), (-bb + Math.sqrt(discriminant)) / (2 * aa)]) {
-            if (t < 0 || t > 1) continue;
-            const hit = { index, point: { x: a.x + dx * t, y: a.y + dy * t } };
-            if (!entry) entry = hit;
-            exit = hit;
-        }
-    }
-    if (!entry || !exit || distance(entry.point, exit.point) < 0.001) return path;
-    const angleA = Math.atan2(entry.point.y - center.y, entry.point.x - center.x);
-    const angleB = Math.atan2(exit.point.y - center.y, exit.point.x - center.x);
-    const positive = (angleB - angleA + Math.PI * 2) % (Math.PI * 2);
-    const options = [positive, positive - Math.PI * 2].map(sweep => {
-        const steps = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 18)));
-        const arc = Array.from({ length: steps + 1 }, (_, index) => {
-            const angle = angleA + sweep * index / steps;
-            return { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius };
-        });
-        const collisions = arc.filter(point => obstacles.some(other => other !== center && distance(point, other) < 36)).length;
-        return { arc, score: collisions * 10000 + Math.abs(sweep) * radius
-            + ((offset >= 0) === (sweep >= 0) ? 0 : 0.01) };
-    }).sort((a, b) => a.score - b.score);
-    return [...path.slice(0, entry.index), ...options[0].arc, ...path.slice(exit.index)];
+    return result;
 }
 
 export function mineRoutePathMidpoint(path) {
@@ -331,9 +264,10 @@ export function mineRoutePathMidpoint(path) {
         const length = distance(a, b);
         if (length >= remaining) {
             const t = remaining / Math.max(0.001, length);
-            return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+            return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t,
+                angle: Math.atan2(b.y - a.y, b.x - a.x) };
         }
         remaining -= length;
     }
-    return path[0];
+    return { ...path[0], angle: 0 };
 }

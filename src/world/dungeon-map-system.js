@@ -31,6 +31,9 @@ import { WallGate } from './wall-gate.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { loadImage } from '../utils/image-loader.js';
 import { MINE_ROUTE_LANDMARKS, getMineRouteSlots, projectMineRouteNodes, buildMineRouteEdgePaths, mineRoutePathMidpoint } from '../config/mine-route-landmarks.js';
+import { buildRouteBundles, routePathLength, sampleRoutePath } from '../ui/dungeon-route-bundles.js';
+import { buildExpeditionLayout } from '../ui/dungeon-expedition-layout.js';
+import { DungeonExplorationConsole } from '../ui/dungeon-exploration-console.js';
 import { anchorRect } from '../utils/layout.js';
 
 /** 路线选择界面区域 spec（1920×1080 基准；比例固定不随分辨率变化）：
@@ -234,6 +237,8 @@ export const DungeonMapSystem = {
     _landmarkProjectionCache: null,
     _activeLandmarkBackgroundPath: null,
     _mineRouteLayoutCache: null,
+    _showAllRouteEdges: false,
+    _routeColorCache: null,
 
     COMBAT_ROOM_SIZE: 1024,
     BOSS_ROOM_SIZE:   1024,
@@ -295,6 +300,9 @@ export const DungeonMapSystem = {
         this.hoveredNodeId = null;
         this.routeViewMode = 'focus';
         this.routeSectorIndex = 0;
+        this._showAllRouteEdges = false;
+        this._routeColorCache = null;
+        this._expeditionLayoutCache = null;
         this._landmarkProjectionCache = null;
         this._activeLandmarkBackgroundPath = null;
         this._mineRouteLayoutCache = null;
@@ -389,6 +397,7 @@ export const DungeonMapSystem = {
         setCurrentDungeonType(null);
         this.nodes = [];
         this.edges = [];
+        this._expeditionLayoutCache = null;
         this._activeLandmarkBackgroundPath = null;
         this._mineRouteLayoutCache = null;
         this._landmarkProjectionCache = null;
@@ -590,7 +599,10 @@ export const DungeonMapSystem = {
         canvas.addEventListener("wheel", onWheel, { passive: false });
 
         const onResize = () => {
-            if (!this.active || this.state !== 'map' || !this._getLandmarkRouteProfile()?.terrainRouting) return;
+            // 新探索台由自身 ResizeObserver 按真实路线窗口重定位。
+            if (this._usesExplorationConsole()) return;
+            if (!this.active || this.state !== 'map'
+                || (!this._usesSplitRouteMap() && !this._getLandmarkRouteProfile()?.terrainRouting)) return;
             this._mineRouteLayoutCache = null;
             this._landmarkProjectionCache = null;
             this._clearRoutePointerSelection();
@@ -698,6 +710,39 @@ export const DungeonMapSystem = {
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
+        if (this._usesExplorationConsole()) {
+            // contain 完整显示母图；可用高度取实际台面顶部，不让底部阶梯被台面遮住。
+            const bannerH = this._explorationConsole?.bannerBottom ?? Math.round(viewH * 0.30);
+            if (img?.complete && img.naturalWidth > 0) {
+                const scale = Math.min(Math.max(1, viewW - 24) / img.naturalWidth,
+                    Math.max(1, bannerH - 16) / img.naturalHeight);
+                ctx.drawImage(img, (viewW - img.naturalWidth * scale) / 2,
+                    (bannerH - img.naturalHeight * scale) / 2, img.naturalWidth * scale, img.naturalHeight * scale);
+            }
+            return;
+        }
+        if (this._usesSplitRouteMap()) {
+            // 上方只承担环境展示：图片等比裁切，路线拖动不会移动背景。
+            const view = this._getMapViewRect(viewW, viewH);
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(view.left, 0, view.width, topH);
+            ctx.clip();
+            if (img?.complete && img.naturalWidth > 0) {
+                const scale = Math.max(view.width / img.naturalWidth, topH / img.naturalHeight);
+                const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+                ctx.drawImage(img, view.left + (view.width - w) / 2, (topH - h) / 2, w, h);
+            }
+            const shade = ctx.createLinearGradient(0, 0, 0, topH);
+            shade.addColorStop(0, 'rgba(4, 8, 11, 0.58)');
+            shade.addColorStop(0.42, 'rgba(4, 8, 11, 0.08)');
+            shade.addColorStop(1, 'rgba(8, 13, 17, 0.92)');
+            ctx.fillStyle = shade;
+            ctx.fillRect(view.left, 0, view.width, topH);
+            ctx.restore();
+            this._positionMapButtons(viewW, viewW);
+            return;
+        }
         const fullMapBackground = this._usesFullMapBackground();
         if (!img || !img.complete || img.naturalWidth === 0 || (!fullMapBackground && topH <= 0)) {
             this._positionMapButtons(viewW, 0);
@@ -758,6 +803,22 @@ export const DungeonMapSystem = {
 
     /** 路线承载层：旧模式使用冷钢底板；地标模式只加轻暗角，不遮住场景。 */
     _drawMapAreaBackground(ctx, area) {
+        if (this._usesSplitRouteMap()) {
+            ctx.save();
+            const base = ctx.createLinearGradient(0, area.top, 0, area.top + area.height);
+            base.addColorStop(0, '#111b22');
+            base.addColorStop(1, '#080e12');
+            ctx.fillStyle = base;
+            ctx.fillRect(area.left, area.top, area.width, area.height);
+            ctx.strokeStyle = 'rgba(170, 202, 215, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(area.left, area.top + 0.5);
+            ctx.lineTo(area.left + area.width, area.top + 0.5);
+            ctx.stroke();
+            ctx.restore();
+            return;
+        }
         ctx.save();
         ctx.beginPath();
         ctx.rect(area.left, area.top, area.width, area.height);
@@ -804,7 +865,7 @@ export const DungeonMapSystem = {
     /** 当前地牢的路线选择界面背景图路径（配置驱动，含兜底） */
     _getMapBackgroundPath() {
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
-        if (this._activeLandmarkBackgroundPath && cfg?.mapPresentation === 'landmark') {
+        if (this._activeLandmarkBackgroundPath && this._usesLandmarkMap()) {
             return this._activeLandmarkBackgroundPath;
         }
         return (cfg && cfg.mapBackground) || 'assets/scenes/dungeon-map-bg.png';
@@ -812,10 +873,11 @@ export const DungeonMapSystem = {
 
     /** 静态母图只在单次路线生成后选择一次；同一局往返地图不会跳图。 */
     _selectLandmarkRouteBackground() {
+        if (this._usesExplorationConsole()) return;
         if (!this._usesLandmarkMap()) return;
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
         const candidates = Array.isArray(cfg?.mapBackgroundVariants)
-            ? cfg.mapBackgroundVariants.filter(path => this.LANDMARK_ROUTE_PROFILES[path])
+            ? cfg.mapBackgroundVariants.filter(path => typeof path === 'string' && (this._usesSplitRouteMap() || this.LANDMARK_ROUTE_PROFILES[path]))
             : [];
         if (!candidates.length) return;
 
@@ -830,6 +892,11 @@ export const DungeonMapSystem = {
                 .sort(),
         ].join('|');
         const signatureHash = this._hashRouteSignature(signature);
+        if (this._usesSplitRouteMap()) {
+            // 环境图不再筛选或限制玩法拓扑；同局依旧只选一次。
+            this._activeLandmarkBackgroundPath = candidates[signatureHash % candidates.length];
+            return;
+        }
         let bestPath = candidates[signatureHash % candidates.length];
         let bestScore = Infinity;
         const weightedCandidates = [];
@@ -919,17 +986,53 @@ export const DungeonMapSystem = {
 
     /** 配置显式启用的地牢使用完整探索背景，其余地牢沿用旧上区背景合同。 */
     _usesFullMapBackground() {
+        if (this._usesSplitRouteMap()) return false;
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
         return !!(cfg && cfg.mapBackgroundFullPlate);
     },
 
-    /** 地标路线模式：路线直接覆盖在场景地标上，不再使用 40/60 固定作战底板。 */
+    /** 现代路线的共同样式与交互：包含地标贴图和独立探索面板。 */
     _usesLandmarkMap() {
+        if (this._usesSplitRouteMap()) return true;
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
         return cfg?.mapPresentation === 'landmark';
     },
 
+    _usesSplitRouteMap() {
+        const layout = DungeonConfig.getMapLayout(this.dungeonType);
+        return layout === 'split' || layout === 'exploration';
+    },
+
+    _usesExplorationConsole() {
+        return DungeonConfig.getMapLayout(this.dungeonType) === 'exploration';
+    },
+
+    _ensureExplorationConsole() {
+        if (!this._explorationConsole?.root.isConnected) {
+            this._explorationConsole?.destroy();
+            getElementIfExists('dungeonRouteTopHud')?.remove();
+            const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
+            this._explorationConsole = new DungeonExplorationConsole(this, {
+                invasion: AgentInvasionSystem,
+                describeNode: node => this._getExplorationNodeDetails(node),
+                isCurrentScene: () => SceneManager.currentScene === this.sceneId && !SceneManager.isLoading,
+                grade: DungeonConfig.getDungeonGrade(this.dungeonType) || 'F',
+                dossierImage: cfg.mapDossierImage || cfg.mapBackground || 'assets/scenes/dungeon-map-bg.png',
+            });
+        }
+        return this._explorationConsole;
+    },
+
+    _getExpeditionLayout() {
+        const cached = this._expeditionLayoutCache;
+        if (cached?.nodes === this.nodes && cached?.edges === this.edges) return cached;
+        const layout = buildExpeditionLayout(this.nodes, this.edges, { corridors: this._usesExplorationConsole() });
+        this._expeditionLayoutCache = { ...layout, nodes: this.nodes, edges: this.edges };
+        return this._expeditionLayoutCache;
+    },
+
     _getLandmarkRouteProfile() {
+        if (this._usesSplitRouteMap()) return null;
         if (!this._usesLandmarkMap()) return null;
         return this.LANDMARK_ROUTE_PROFILES[this._getMapBackgroundPath()] || null;
     },
@@ -1001,6 +1104,14 @@ export const DungeonMapSystem = {
      * 当前区段包含容量允许的相邻连接列，背景与路线共用原图像素坐标。
      */
     _getLandmarkRouteProjection() {
+        if (this._usesSplitRouteMap()) {
+            if (this.routeViewMode === 'overview') return null;
+            const layout = this._getExpeditionLayout();
+            if (this._landmarkProjectionCache?.points !== layout.points) {
+                this._landmarkProjectionCache = { points: layout.points };
+            }
+            return layout.points;
+        }
         const profile = this._getLandmarkRouteProfile();
         if (!profile || this.routeViewMode === 'overview') return null;
         const activeNodes = this._getActiveRouteNodes();
@@ -1013,8 +1124,7 @@ export const DungeonMapSystem = {
 
         if (profile.terrainRouting) {
             const terrainPoints = projectMineRouteNodes(activeNodes, profile, terrainLayout.slots) || new Map();
-            const edgePaths = buildMineRouteEdgePaths(activeNodes, this.edges, terrainPoints, profile, this.NODE_RADIUS + 12);
-            this._landmarkProjectionCache = { key: cacheKey, points: terrainPoints, edgePaths };
+            this._landmarkProjectionCache = { key: cacheKey, points: terrainPoints };
             return terrainPoints;
         }
 
@@ -1175,13 +1285,13 @@ export const DungeonMapSystem = {
         return !!node && this._getPresentedRouteNodes().some(candidate => candidate.id === node.id);
     },
 
-    _hitTestRouteNode(pointer) {
+    _hitTestRouteNode(pointer, { inspectOnly = false } = {}) {
         if (!this._isInMapArea(pointer.x, pointer.y)) return null;
         const available = new Set(this.getAvailableNodes().map(node => node.id));
         let nearest = null;
         let closest = this.NODE_RADIUS * this.mapScale + 10;
         for (const node of this._getPresentedRouteNodes()) {
-            if (!available.has(node.id)) continue;
+            if (!inspectOnly && !available.has(node.id)) continue;
             const point = this._getRoutePoint(node);
             const screen = this._mapToScreen(point.x, point.y);
             const distance = Math.hypot(pointer.x - screen.x, pointer.y - screen.y);
@@ -1219,24 +1329,136 @@ export const DungeonMapSystem = {
         return img?.complete && img.naturalWidth > 0 ? img : null;
     },
 
-    /** 普通地标使用轻弧线；矿洞优先走通道网络，旧地图继续保持直线。 */
-    _getRouteEdgeControl(fromNode, toNode) {
+    /** 只简化表现层：当前位置的真实连接常显，悬停补充该节点的连接。 */
+    _getPresentedRouteEdges(visibleNodeIds) {
+        const showAll = !this._usesLandmarkMap() || this._showAllRouteEdges
+            || !visibleNodeIds.has(this.currentNodeId);
+        return this.edges.filter(edge => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to)
+            && (showAll || edge.from === this.currentNodeId || edge.to === this.currentNodeId
+                || edge.from === this.hoveredNodeId || edge.to === this.hoveredNodeId));
+    },
+
+    /** 色号按完整逻辑图分配，不随当前位置、悬停、区段或显隐改变。 */
+    _getRouteColors() {
         if (!this._usesLandmarkMap()) return null;
-        const fromPoint = this._getRoutePoint(fromNode);
-        const toPoint = this._getRoutePoint(toNode);
-        const dx = toPoint.x - fromPoint.x;
-        const dy = toPoint.y - fromPoint.y;
-        const length = Math.hypot(dx, dy) || 1;
-        const normalX = -dy / length;
-        const normalY = dx / length;
-        const parity = ((Number(fromNode.col) || 0) + (Number(toNode.col) || 0)
-            + (Number(fromNode.row) || 0) + (Number(toNode.row) || 0)) % 2 === 0 ? 1 : -1;
-        const sameColumn = Number(fromNode.col) === Number(toNode.col);
-        const bend = (sameColumn ? 8 : Math.min(30, Math.max(12, length * 0.07))) * parity;
-        return {
-            x: (fromPoint.x + toPoint.x) / 2 + normalX * bend,
-            y: (fromPoint.y + toPoint.y) / 2 + normalY * bend,
+        const unique = new Map();
+        for (const edge of this.edges) {
+            const ids = [edge.from, edge.to].sort();
+            unique.set(ids.join('::'), ids);
+        }
+        const ordered = [...unique].sort(([a], [b]) => a.localeCompare(b));
+        const key = ordered.map(([id]) => id).join('|');
+        if (this._routeColorCache?.key === key) return this._routeColorCache.colors;
+        const theme = getComputedStyle(document.documentElement);
+        const palette = Array.from({ length: 8 }, (_, index) =>
+            theme.getPropertyValue(`--bp-route-color-${index + 1}`).trim()
+            || theme.getPropertyValue('--bp-ui-accent-bright').trim() || '#c4d3da');
+        const colors = new Map();
+        const endpointUsage = new Map();
+        const totalUsage = palette.map(() => 0);
+        for (const [edgeKey, ids] of ordered) {
+            const usages = ids.map(id => {
+                if (!endpointUsage.has(id)) endpointUsage.set(id, palette.map(() => 0));
+                return endpointUsage.get(id);
+            });
+            // 同一岔口优先异色，之后再均衡整图用色；不使用易撞色的ID取模。
+            const score = index => (usages[0][index] + usages[1][index]) * (ordered.length + 1)
+                + totalUsage[index];
+            let selected = 0;
+            for (let index = 1; index < palette.length; index++) {
+                if (score(index) < score(selected)) selected = index;
+            }
+            colors.set(edgeKey, palette[selected]);
+            usages.forEach(usage => usage[selected]++);
+            totalUsage[selected]++;
+        }
+        this._routeColorCache = { key, colors, bundleTheme: {
+            line: theme.getPropertyValue('--bp-ui-accent-bright').trim() || '#c4d3da',
+            fill: theme.getPropertyValue('--bp-ui-black-soft').trim() || '#101419',
+            text: theme.getPropertyValue('--bp-ui-white-soft').trim() || '#d9e0e5',
+            font: theme.getPropertyValue('--bp-font-ui').trim() || 'sans-serif',
+        } };
+        return colors;
+    },
+
+    /** 先生成本区公共轨道，再决定哪些线可见；悬停和全线开关不重新布线。 */
+    _prepareLandmarkRouteEdges(visibleNodeIds) {
+        if (this._usesSplitRouteMap()) {
+            const layout = this._getExpeditionLayout();
+            const cache = this._landmarkProjectionCache;
+            if (!cache || cache.edgePaths === layout.edgePaths) return;
+            cache.edgePaths = layout.edgePaths;
+            cache.edgeBundles = buildRouteBundles(layout.edgePaths);
+            cache.edgeLengths = new Map([...layout.edgePaths].map(([key, path]) => [key, routePathLength(path)]));
+            return;
+        }
+        const profile = this._getLandmarkRouteProfile();
+        const cache = this._landmarkProjectionCache;
+        if (!profile || !cache) return;
+        const nodes = this._getActiveRouteNodes().filter(node => visibleNodeIds.has(node.id));
+        const edges = this.edges.filter(edge => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to));
+        const view = this._getMapViewRect();
+        const bounds = {
+            left: (view.left - this.mapOffsetX) / this.mapScale,
+            right: (view.left + view.width - this.mapOffsetX) / this.mapScale,
+            top: (view.top - this.mapOffsetY) / this.mapScale,
+            bottom: (view.top + view.height - this.mapOffsetY) / this.mapScale,
         };
+        const key = `${this.mapScale}|${Object.values(bounds).join(',')}|${edges.map(edge => `${edge.from}:${edge.to}`).join(',')}`;
+        if (cache.edgeKey === key) return;
+        cache.edgePaths = profile.terrainRouting
+            ? buildMineRouteEdgePaths(nodes, edges, cache.points, profile)
+            : this._buildLandmarkParallelEdges(nodes, edges, cache.points, bounds);
+        // 模板缺少展示通道时仍保留原直连降级，不能让真实可走边因合束而消失。
+        for (const edge of edges) {
+            const ids = [edge.from, edge.to].sort();
+            const edgeKey = ids.join('::');
+            if (cache.edgePaths.has(edgeKey)) continue;
+            const path = ids.map(id => cache.points.get(id) || nodes.find(node => node.id === id));
+            if (path.every(Boolean)) cache.edgePaths.set(edgeKey, path);
+        }
+        cache.edgeBundles = buildRouteBundles(cache.edgePaths);
+        cache.edgeLengths = new Map([...cache.edgePaths].map(([id, path]) => [id, routePathLength(path)]));
+        cache.edgeKey = key;
+    },
+
+    /** 非矿洞地标按列对共用横竖通道，不再给每条线交替增加正/负弧度。 */
+    _buildLandmarkParallelEdges(nodes, edges, points, bounds) {
+        const byId = new Map(nodes.map(node => [node.id, node]));
+        const columns = new Map();
+        for (const node of nodes) {
+            const point = points.get(node.id);
+            if (!point) continue;
+            if (!columns.has(node.col)) columns.set(node.col, []);
+            columns.get(node.col).push(point.x);
+        }
+        const unique = new Map(edges.map(edge => {
+            const ids = [edge.from, edge.to].sort();
+            return [ids.join('::'), ids];
+        }));
+        const paths = new Map();
+        const spacing = 8 / this.mapScale;
+        for (const [key, [from, to]] of [...unique].sort(([a], [b]) => a.localeCompare(b))) {
+            const a = points.get(from), b = points.get(to);
+            if (!a || !b) continue;
+            const colA = byId.get(from).col, colB = byId.get(to).col;
+            // 同一列对共用中心干线，重叠片段由线束渲染器去重，不再按边横向错开。
+            const xsA = columns.get(colA), xsB = columns.get(colB);
+            let railX;
+            if (colA === colB) {
+                const left = Math.min(...xsA), right = Math.max(...xsA);
+                const margin = this.NODE_RADIUS + 16 + spacing;
+                if (bounds.right - right >= margin + spacing) railX = right + margin;
+                else if (left - bounds.left >= margin + spacing) railX = left - margin;
+                else { paths.set(key, [a, b]); continue; }
+            } else {
+                const centerA = (Math.min(...xsA) + Math.max(...xsA)) / 2;
+                const centerB = (Math.min(...xsB) + Math.max(...xsB)) / 2;
+                railX = Math.max(Math.min(a.x, b.x), Math.min(Math.max(a.x, b.x), (centerA + centerB) / 2));
+            }
+            paths.set(key, [a, { x: railX, y: a.y }, { x: railX, y: b.y }, b]);
+        }
+        return paths;
     },
 
     _traceRouteEdge(ctx, fromNode, toNode) {
@@ -1250,26 +1472,197 @@ export const DungeonMapSystem = {
             ctx.lineJoin = 'round';
             return;
         }
-        const control = this._getRouteEdgeControl(fromNode, toNode);
         ctx.beginPath();
         ctx.moveTo(fromPoint.x, fromPoint.y);
-        if (control) ctx.quadraticCurveTo(control.x, control.y, toPoint.x, toPoint.y);
-        else ctx.lineTo(toPoint.x, toPoint.y);
+        ctx.lineTo(toPoint.x, toPoint.y);
     },
 
     _getRouteEdgeMidpoint(fromNode, toNode) {
         const fromPoint = this._getRoutePoint(fromNode);
         const toPoint = this._getRoutePoint(toNode);
         const terrainPath = this._landmarkProjectionCache?.edgePaths?.get([fromNode.id, toNode.id].sort().join('::'));
-        if (terrainPath?.length) return mineRoutePathMidpoint(terrainPath);
-        const control = this._getRouteEdgeControl(fromNode, toNode);
-        if (!control) {
-            return { x: (fromPoint.x + toPoint.x) / 2, y: (fromPoint.y + toPoint.y) / 2 };
+        if (terrainPath?.length) {
+            const midpoint = mineRoutePathMidpoint(terrainPath);
+            // 公共折线路径按ID排序缓存；箭头须按本次from→to还原方向。
+            return { ...midpoint, angle: midpoint.angle + (String(fromNode.id) > String(toNode.id) ? Math.PI : 0) };
         }
-        return {
-            x: 0.25 * fromPoint.x + 0.5 * control.x + 0.25 * toPoint.x,
-            y: 0.25 * fromPoint.y + 0.5 * control.y + 0.25 * toPoint.y,
+        return { x: (fromPoint.x + toPoint.x) / 2, y: (fromPoint.y + toPoint.y) / 2,
+            angle: Math.atan2(toPoint.y - fromPoint.y, toPoint.x - fromPoint.x),
         };
+    },
+
+    /** 共用段只描一次；只有悬停的可走目标叠加一条完整彩色路线。 */
+    _renderRouteBundles(ctx, routeEdges, availableIds, routeColors, view, t) {
+        const cache = this._landmarkProjectionCache;
+        const theme = this._routeColorCache.bundleTheme;
+        const states = new Map();
+        for (const edge of routeEdges) {
+            const key = [edge.from, edge.to].sort().join('::');
+            const target = edge.from === this.currentNodeId ? edge.to
+                : edge.to === this.currentNodeId ? edge.from : null;
+            states.set(key, { ...edge, target, available: target !== null && availableIds.has(target),
+                inspected: edge.from === this.hoveredNodeId || edge.to === this.hoveredNodeId,
+                visited: this.visitedNodeIds.has(edge.from) && this.visitedNodeIds.has(edge.to) });
+        }
+        const focusKey = availableIds.has(this.hoveredNodeId)
+            ? [this.currentNodeId, this.hoveredNodeId].sort().join('::') : null;
+        const trace = path => {
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let index = 1; index < path.length; index++) ctx.lineTo(path[index].x, path[index].y);
+        };
+        const visible = cache.edgeBundles.map(bundle => {
+            const keys = bundle.edgeKeys.filter(key => states.has(key));
+            return { ...bundle, keys, activeCount: keys.filter(key => states.get(key).available).length,
+                visited: keys.length > 0 && keys.every(key => states.get(key).visited) };
+        }).filter(bundle => bundle.keys.length);
+        visible.sort((a, b) => Number(a.activeCount > 0) - Number(b.activeCount > 0));
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        for (const bundle of visible) {
+            const active = bundle.activeCount > 0;
+            const inspected = focusKey && bundle.keys.includes(focusKey);
+            ctx.globalAlpha = focusKey ? (inspected ? 0.38 : 0.16) : active ? 0.9 : bundle.visited ? 0.32 : 0.2;
+            ctx.setLineDash([]);
+            ctx.strokeStyle = theme.fill;
+            ctx.lineWidth = (active ? 7 : 5) / this.mapScale;
+            trace(bundle.path);
+            ctx.stroke();
+            ctx.strokeStyle = bundle.keys.length > 1 ? theme.line : routeColors.get(bundle.keys[0]);
+            ctx.lineWidth = (bundle.keys.length > 1 ? 3.2 : 2.5) / this.mapScale;
+            if (!active && !bundle.visited) ctx.setLineDash([4 / this.mapScale, 7 / this.mapScale]);
+            trace(bundle.path);
+            ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+        const focusedPath = focusKey && cache.edgePaths.get(focusKey);
+        if (focusedPath?.length) {
+            ctx.strokeStyle = theme.fill;
+            ctx.lineWidth = 8 / this.mapScale;
+            trace(focusedPath);
+            ctx.stroke();
+            ctx.strokeStyle = routeColors.get(focusKey);
+            ctx.shadowColor = ctx.strokeStyle;
+            ctx.shadowBlur = 4 / this.mapScale;
+            ctx.lineWidth = 3.5 / this.mapScale;
+            trace(focusedPath);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = theme.text;
+            ctx.lineWidth = 1 / this.mapScale;
+            ctx.setLineDash([10 / this.mapScale, 9 / this.mapScale]);
+            ctx.lineDashOffset = (String(this.currentNodeId) < String(this.hoveredNodeId) ? -1 : 1) * t * 0.04 / this.mapScale;
+            trace(focusedPath);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.lineDashOffset = 0;
+        }
+        // 箭头放到各自目标端，不再把多条方向箭头堆在线束中点。
+        for (const [key, state] of states) {
+            if (focusKey && key !== focusKey) continue;
+            if (!state.available && (!state.inspected || state.visited)) continue;
+            const path = cache.edgePaths.get(key);
+            if (!path?.length) continue;
+            const length = cache.edgeLengths.get(key);
+            const endGap = Math.min(length / 2, this.NODE_RADIUS + 16);
+            const destination = state.available ? state.target : this.hoveredNodeId;
+            const origin = state.from === destination ? state.to : state.from;
+            const forward = String(origin) < String(destination);
+            const marker = sampleRoutePath(path, forward ? length - endGap : endGap);
+            ctx.save();
+            ctx.translate(marker.x, marker.y);
+            if (!state.available) {
+                // 只在检查不可走节点时保留端点阻断叉，主干不堆满警告标记。
+                const size = 4 / this.mapScale;
+                ctx.strokeStyle = 'rgba(205, 102, 108, 0.94)';
+                ctx.lineWidth = 1.5 / this.mapScale;
+                ctx.beginPath();
+                ctx.moveTo(-size, -size);
+                ctx.lineTo(size, size);
+                ctx.moveTo(-size, size);
+                ctx.lineTo(size, -size);
+                ctx.stroke();
+                ctx.restore();
+                continue;
+            }
+            ctx.rotate(marker.angle + (forward ? 0 : Math.PI));
+            const size = 5 / this.mapScale;
+            ctx.beginPath();
+            ctx.moveTo(size, 0);
+            ctx.lineTo(-size, -size * 0.7);
+            ctx.lineTo(-size * 0.45, 0);
+            ctx.lineTo(-size, size * 0.7);
+            ctx.closePath();
+            ctx.strokeStyle = theme.fill;
+            ctx.lineWidth = 3 / this.mapScale;
+            ctx.stroke();
+            ctx.fillStyle = routeColors.get(key);
+            ctx.fill();
+            ctx.restore();
+        }
+        ctx.restore();
+        this._renderRouteBundleLabels(ctx, visible, view, theme, focusKey);
+    },
+
+    /** 数量只统计当前显示的独立逻辑边；长束优先，同成员只标一次，避让徽记和其它标签。 */
+    _renderRouteBundleLabels(ctx, bundles, view, theme, focusKey) {
+        const candidates = bundles.filter(bundle => bundle.keys.length > 1 && bundle.length * this.mapScale >= 40)
+            .sort((a, b) => Number(b.keys.includes(focusKey)) - Number(a.keys.includes(focusKey))
+                || Number(b.activeCount > 0) - Number(a.activeCount > 0) || b.length - a.length);
+        const nodes = this._getPresentedRouteNodes().map(node => {
+            const point = this._getRoutePoint(node);
+            return this._mapToScreen(point.x, point.y);
+        });
+        const placed = [], labeled = new Set();
+        const intersects = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        const radius = this.NODE_RADIUS * this.mapScale + 16;
+        ctx.save();
+        ctx.font = `600 ${11 / this.mapScale}px ${theme.font}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (const bundle of candidates) {
+            if (placed.length >= 6) break;
+            const signature = bundle.keys.join('|');
+            if (labeled.has(signature)) continue;
+            const mixed = bundle.activeCount > 0 && bundle.activeCount < bundle.keys.length;
+            const text = `×${bundle.keys.length}${mixed ? ` · 可走${bundle.activeCount}` : ''}`;
+            const width = ctx.measureText(text).width * this.mapScale + 14;
+            let label = null;
+            for (const fraction of [0.5, 0.75, 0.25, 0.9, 0.1]) {
+                const anchor = sampleRoutePath(bundle.path, bundle.length * fraction);
+                const screen = this._mapToScreen(anchor.x, anchor.y);
+                for (const side of [-1, 1]) {
+                    const x = screen.x - Math.sin(anchor.angle) * 17 * side;
+                    const y = screen.y + Math.cos(anchor.angle) * 17 * side;
+                    const rect = { left: x - width / 2, right: x + width / 2, top: y - 10, bottom: y + 10 };
+                    if (rect.left < view.left + 4 || rect.right > view.left + view.width - 4
+                        || rect.top < view.top + 4 || rect.bottom > view.top + view.height - 4) continue;
+                    if (nodes.some(node => intersects(rect, { left: node.x - radius, right: node.x + radius,
+                        top: node.y - radius, bottom: node.y + radius + 16 }))) continue;
+                    if (placed.some(other => intersects(rect, { left: other.left - 8, right: other.right + 8,
+                        top: other.top - 8, bottom: other.bottom + 8 }))) continue;
+                    label = { x, y, rect };
+                    break;
+                }
+                if (label) break;
+            }
+            if (!label) continue;
+            placed.push(label.rect);
+            labeled.add(signature);
+            const point = this._screenToMap(label.x, label.y);
+            const w = width / this.mapScale, h = 20 / this.mapScale;
+            ctx.globalAlpha = focusKey && !bundle.keys.includes(focusKey) ? 0.35 : bundle.activeCount ? 0.94 : 0.55;
+            ctx.fillStyle = theme.fill;
+            ctx.fillRect(point.x - w / 2, point.y - h / 2, w, h);
+            ctx.strokeStyle = theme.line;
+            ctx.lineWidth = 0.6 / this.mapScale;
+            ctx.strokeRect(point.x - w / 2, point.y - h / 2, w, h);
+            ctx.fillStyle = theme.text;
+            ctx.fillText(text, point.x, point.y);
+        }
+        ctx.restore();
     },
 
     /**
@@ -1280,6 +1673,11 @@ export const DungeonMapSystem = {
     _getMapTargetArea(viewW, viewH) {
         const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 1920);
         const vh = viewH || ((typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1080);
+        if (this._usesSplitRouteMap()) {
+            const top = Math.round(vh * 0.36);
+            const left = 274, right = 104;
+            return { left, top, width: Math.max(1, vw - left - right), height: vh - top };
+        }
         if (this._usesLandmarkMap()) {
             return { left: 0, top: 0, width: vw, height: vh };
         }
@@ -1290,6 +1688,17 @@ export const DungeonMapSystem = {
     _getMapViewRect(viewW, viewH) {
         const vw = viewW || ((typeof window !== 'undefined' && window.innerWidth) ? window.innerWidth : 2560);
         const vh = viewH || ((typeof window !== 'undefined' && window.innerHeight) ? window.innerHeight : 1440);
+        if (this._usesExplorationConsole()) {
+            // 初始化 DOM 前仅用于临时定位；创建后绘制、拖动和聚焦全部读取同一实测窗口。
+            return this._explorationConsole?.view || { left: 300, top: vh * 0.32 + 90,
+                width: Math.max(240, (vw - 414) * 0.73), height: Math.max(180, vh * 0.68 - 300) };
+        }
+        if (this._usesSplitRouteMap()) {
+            const area = this._getMapTargetArea(vw, vh);
+            const bottom = vw < 1300 ? 130 : 86;
+            return { left: area.left + 16, top: area.top + 64,
+                width: Math.max(1, area.width - 32), height: Math.max(1, area.height - 64 - bottom) };
+        }
         const compact = vw <= 900;
         const fullPlate = this._usesFullMapBackground();
         const landmark = this._usesLandmarkMap();
@@ -1330,8 +1739,8 @@ export const DungeonMapSystem = {
      * 注意不能用 destination-in：未覆盖区域（窗口中心）会被整体清空导致节点全消失。
      */
     _applyMapEdgeFade(ctx, w, h) {
-        const fw = Math.max(24, Math.round(w * 0.12));
-        const fh = Math.max(16, Math.round(h * 0.12));
+        const fw = this._usesSplitRouteMap() ? 18 : Math.max(24, Math.round(w * 0.12));
+        const fh = this._usesSplitRouteMap() ? 14 : Math.max(16, Math.round(h * 0.12));
         ctx.save();
         ctx.globalCompositeOperation = 'destination-out';
         const band = (grad, x, y, bw, bh) => { ctx.fillStyle = grad; ctx.fillRect(x, y, bw, bh); };
@@ -1372,6 +1781,17 @@ export const DungeonMapSystem = {
             return { minX: 0, minY: 0, maxX: this.MAP_WIDTH, maxY: this.MAP_HEIGHT };
         }
         const b = this._calculateNodeBounds(this._getActiveRouteNodes());
+        if (this._usesExplorationConsole()) {
+            const activeIds = new Set(this._getActiveRouteNodes().map(node => node.id));
+            const paths = this._getExpeditionLayout().edgePaths;
+            for (const edge of this.edges) {
+                if (!activeIds.has(edge.from) || !activeIds.has(edge.to)) continue;
+                for (const point of paths.get([edge.from, edge.to].sort().join('::')) || []) {
+                    b.minX = Math.min(b.minX, point.x); b.maxX = Math.max(b.maxX, point.x);
+                    b.minY = Math.min(b.minY, point.y); b.maxY = Math.max(b.maxY, point.y);
+                }
+            }
+        }
         return { minX: b.minX - PAD, minY: b.minY - PAD, maxX: b.maxX + PAD, maxY: b.maxY + PAD };
     },
 
@@ -1413,7 +1833,9 @@ export const DungeonMapSystem = {
             return sectors;
         }
         const sectorBudget = Infinity;
-        const span = Math.max(1, profile?.sectorColumnSpan || this.ROUTE_SECTOR_COLUMN_SPAN || 4);
+        const span = this._usesSplitRouteMap()
+            ? Math.max(1, Math.min(4, Math.floor(this._getMapViewRect().width / 190) - 2))
+            : Math.max(1, profile?.sectorColumnSpan || this.ROUTE_SECTOR_COLUMN_SPAN || 4);
         const sectors = [];
         for (let start = 0; start < columns.length;) {
             const sectorColumns = [];
@@ -1458,6 +1880,7 @@ export const DungeonMapSystem = {
             if (!includeConnectors) return result;
             const capacity = this._getMineRouteLayout().slots.length;
             const coreIds = new Set(result.map(node => node.id));
+            const availableIds = new Set(this.getAvailableNodes().map(node => node.id));
             const adjacentIds = new Set();
             for (const edge of this.edges) {
                 if (coreIds.has(edge.from)) adjacentIds.add(edge.to);
@@ -1465,9 +1888,10 @@ export const DungeonMapSystem = {
             }
             const extra = this.nodes.filter(node => adjacentIds.has(node.id) && !coreIds.has(node.id))
                 .sort((a, b) => Number(b.id === this.currentNodeId) - Number(a.id === this.currentNodeId)
+                    || Number(availableIds.has(b.id)) - Number(availableIds.has(a.id))
                     || Number(a.col) - Number(b.col) || Number(a.row) - Number(b.row)
                     || String(a.id).localeCompare(String(b.id)));
-            // 接头只取真实逻辑邻居，优先保留当前位置；未容纳的节点可在自身区段查看。
+            // 接头只取真实逻辑邻居，优先保留当前位置和可走邻居；其余节点在自身区段查看。
             result.push(...extra.slice(0, Math.max(0, capacity - result.length)));
             return result;
         }
@@ -1562,6 +1986,10 @@ export const DungeonMapSystem = {
     },
 
     _centerRouteMap() {
+        if (this._usesSplitRouteMap() && this.routeViewMode === 'focus' && this.nodes.length) {
+            this._focusRouteSector(this.routeSectorIndex);
+            return;
+        }
         // 路线图显示窗口（与拖动钳制共用 _getMapViewRect）
         const TARGET_AREA = this._getMapViewRect();
 
@@ -1587,12 +2015,15 @@ export const DungeonMapSystem = {
         const routeW = bounds.maxX - bounds.minX + padding * 2;
         const routeH = bounds.maxY - bounds.minY + padding * 2;
         const fitScale = Math.min(TARGET_AREA.width / routeW, TARGET_AREA.height / routeH, 1.5);
-        this.mapScale = Math.min(fitScale * this.DEFAULT_ZOOM_FACTOR, this.MAX_MAP_SCALE);
+        this.mapScale = this._usesExplorationConsole() ? Math.max(0.8, Math.min(fitScale, 1.2))
+            : this._usesSplitRouteMap() ? Math.max(0.95, Math.min(fitScale, 1.2))
+            : Math.min(fitScale * this.DEFAULT_ZOOM_FACTOR, this.MAX_MAP_SCALE);
 
         // 初始聚焦出发点（无出发点时退回路线中心），随后钳制到区域边缘
         const startNode = this.nodes.find(n => n.type === 'start');
-        const focusX = startNode ? startNode.x : (bounds.minX + bounds.maxX) / 2;
-        const focusY = startNode ? startNode.y : (bounds.minY + bounds.maxY) / 2;
+        const startPoint = startNode && this._getRoutePoint(startNode);
+        const focusX = startPoint ? startPoint.x : (bounds.minX + bounds.maxX) / 2;
+        const focusY = startPoint ? startPoint.y : (bounds.minY + bounds.maxY) / 2;
         this.mapOffsetX = TARGET_AREA.left + TARGET_AREA.width / 2 - focusX * this.mapScale;
         this.mapOffsetY = TARGET_AREA.top + TARGET_AREA.height / 2 - focusY * this.mapScale;
         this._clampMapOffset();
@@ -1631,11 +2062,13 @@ export const DungeonMapSystem = {
         const routeW = bounds.maxX - bounds.minX + paddingX * 2;
         const routeH = bounds.maxY - bounds.minY + paddingY * 2;
         const fitScale = Math.min(area.width / routeW, area.height / routeH, 1.55);
-        this.mapScale = Math.max(this.ROUTE_FOCUS_MIN_SCALE,
-            Math.min(fitScale, this.MAX_MAP_SCALE));
+        this.mapScale = this._usesExplorationConsole() ? Math.max(0.8, Math.min(fitScale, 1.2))
+            : this._usesSplitRouteMap() ? Math.max(0.95, Math.min(fitScale, 1.2))
+            : Math.max(this.ROUTE_FOCUS_MIN_SCALE, Math.min(fitScale, this.MAX_MAP_SCALE));
         const focusNode = focusNodeId ? this.nodes.find(node => node.id === focusNodeId) : null;
-        const focusX = focusNode ? focusNode.x : bounds.cx;
-        const focusY = focusNode ? focusNode.y : bounds.cy;
+        const focusPoint = focusNode && this._getRoutePoint(focusNode);
+        const focusX = focusPoint ? focusPoint.x : bounds.cx;
+        const focusY = focusPoint ? focusPoint.y : bounds.cy;
         this.mapOffsetX = area.left + area.width / 2 - focusX * this.mapScale;
         this.mapOffsetY = area.top + area.height / 2 - focusY * this.mapScale;
         this._clampMapOffset();
@@ -1651,12 +2084,11 @@ export const DungeonMapSystem = {
         this._setMapStatusBarVisible(true);
         const routeClick = this._pendingRouteClick;
         this._pendingRouteClick = null;
-        this._updateHover(routeClick || Input.mouse);
-        if (routeClick) {
+        if (!this._usesExplorationConsole()) this._updateHover(routeClick || Input.mouse);
+        if (routeClick && !this._usesExplorationConsole()) {
             this._handleClick(routeClick);
         }
-        // 每帧重置拖动标记，避免拖动后的单次点击被误判
-        this._dragMoved = false;
+        // 本次按下期间的拖动标记保留到下一次按下，停顿一帧不能变回点击。
         // 顶部状态栏（生命/魔法/等级，200ms 节流刷新）
         this._statusBarTimer = (this._statusBarTimer || 0) + _dt;
         if (this._statusBarTimer >= 200) {
@@ -1925,8 +2357,10 @@ export const DungeonMapSystem = {
             return;
         }
 
-        this.hoveredNodeId = this._hitTestRouteNode(pointer)?.id || null;
-        document.body.style.cursor = this.hoveredNodeId ? 'var(--bp-cursor-pointer, pointer)' : '';
+        const hoveredNode = this._hitTestRouteNode(pointer, { inspectOnly: this._usesLandmarkMap() });
+        this.hoveredNodeId = hoveredNode?.id || null;
+        document.body.style.cursor = hoveredNode && this.isNodeClickable(hoveredNode)
+            ? 'var(--bp-cursor-pointer, pointer)' : '';
         // 节点经验/奖励预览（方案D：悬停即见收益，绕开战斗=明确损失）
         this._updateNodeTooltip(mx, my);
     },
@@ -1974,6 +2408,47 @@ export const DungeonMapSystem = {
         const w = el.offsetWidth || 200;
         el.style.left = `${Math.min(mx + 18, (typeof window !== 'undefined' ? window.innerWidth : 1920) - w - 12)}px`;
         el.style.top = `${Math.max(my - 36, 8)}px`;
+    },
+
+    /** 固定档案只使用迷雾已经允许的情报；未知事件不虚构低风险或保底奖励。 */
+    _getExplorationNodeDetails(node) {
+        const available = this.isNodeClickable(node);
+        const current = node.id === this.currentNodeId;
+        const visited = this.visitedNodeIds.has(node.id);
+        const visibility = this.fogOfWar?.getNodeVisibility(node.id);
+        const revealed = !this.fogOfWar || this.fogOfWar.enabled === false || current || available || visited
+            || visibility === 'revealed' || visibility === 'visited';
+        const type = revealed ? node.type : 'unknown';
+        const elite = revealed && type === 'combat' && node.isElite;
+        const iconKey = elite ? 'elite' : type === 'empty' ? 'start' : type;
+        const titles = { start: '地牢入口', empty: '通行节点', combat: elite ? '精英遭遇' : '战斗房间',
+            event: node.eventType === 'treasureChest' ? '宝箱事件' : '未知事件', boss: '首领据点', reward: '战利品房间', unknown: '未侦察房间' };
+        let risk = '未确认', reward = '进入后揭示', clue = '情报尚未揭示，沿相邻房间继续探索。';
+        const mul = getStreakMultiplier(DungeonRunStats.combatStreak + 1);
+        if (type === 'combat' || type === 'boss') {
+            risk = type === 'boss' ? '首领战' : elite ? '精英战' : '普通战斗';
+            const exp = type === 'boss' ? (getDungeonExpBase(this.dungeonType) * 10 + getRoomClearBonus(this.dungeonType)) * mul
+                : getRoomExpEstimate(this.dungeonType, !!node.isElite) * mul;
+            reward = node.completed ? '本房间已完成' : `约 ${Math.round(exp).toLocaleString('zh-CN')} EXP`;
+            clue = node.completed ? '此处已完成探索，可沿已开放的连接继续行进。'
+                : elite ? '前方是精英战斗房间，请先确认队伍状态。' : type === 'boss' ? '路线通向首领据点，请做好最终战准备。' : '进入后将触发房间战斗。';
+        } else if (type === 'start') {
+            risk = '入口区域'; reward = '撤离时保留背包'; clue = '这是本次探险的入口。返回此处可以安全撤离。';
+        } else if (type === 'empty') {
+            risk = '通行区域'; reward = '无房间奖励'; clue = '沿通道前往下一处相邻房间。';
+        } else if (type === 'event') {
+            clue = node.completed ? '本房间事件已完成。' : '事件内容与检定结果将在进入后揭示。';
+            reward = node.completed ? '本房间已完成' : '由事件结果决定';
+        } else if (type === 'reward') {
+            risk = '奖励节点'; reward = node.completed ? '本房间已完成' : '按实际结算发放'; clue = '这里是路线的战利品节点。';
+        }
+        return { number: String(this.nodes.indexOf(node) + 1).padStart(2, '0'), title: titles[type], revealed,
+            state: current ? '当前位置' : available ? '可前往' : visited ? '已探索 · 非相邻' : '当前不可前往',
+            icon: this.ROUTE_NODE_ICON_PATHS[iconKey] || this.ROUTE_NODE_ICON_PATHS.unknown,
+            risk, reward, clue, danger: !node.completed && (elite || type === 'boss'),
+            note: !revealed ? '未揭示的房间不显示类型或具体奖励。'
+                : available ? (node.completed ? '可沿原路返回；进入前仍检查当前可达关系。' : '收益为估算，最终以实际结算为准。')
+                    : current ? '先选择相邻房间，再点击下方进入节点。' : '只能进入与当前位置直接相连的房间。' };
     },
 
     /** 地标路线的节点档案卡：只承载现有节点数据，不改变可达性或点击进入流程。 */
@@ -2132,8 +2607,9 @@ export const DungeonMapSystem = {
             return;
         }
         const area = this._getMapViewRect();
-        this.mapOffsetX = area.left + area.width / 2 - node.x * this.mapScale;
-        this.mapOffsetY = area.top + area.height / 2 - node.y * this.mapScale;
+        const point = this._getRoutePoint(node);
+        this.mapOffsetX = area.left + area.width / 2 - point.x * this.mapScale;
+        this.mapOffsetY = area.top + area.height / 2 - point.y * this.mapScale;
         this._clampMapOffset();
         this._updateRouteControls();
     },
@@ -2143,6 +2619,7 @@ export const DungeonMapSystem = {
         if (!this.active) return;
         RuntimeAssetManager.setDungeonEnemyTypes([]);
         this.state = "map";
+        if (this._explorationConsole) this._explorationConsole.selectedId = this.currentNodeId;
         // 月影增伤标记随战斗结束清除
         if (this.player) this.player._moonshadowBoostActive = false;
         Camera.follow = () => {};
@@ -3221,7 +3698,9 @@ export const DungeonMapSystem = {
             ? this.nodes.find(node => node.id === AgentInvasionSystem.agentNodeId)
             : null;
         const agentSectorIndex = agentNode ? this._getSectorIndexForNode(agentNode) : -1;
-        const columns = Math.min(8, Math.max(4, sectors.length));
+        const columns = this._usesSplitRouteMap()
+            ? Math.min(sectors.length, Math.max(1, Math.min(8, Math.floor(view.width / 150))))
+            : Math.min(8, Math.max(4, sectors.length));
         const rows = Math.ceil(sectors.length / columns);
         const marginX = Math.max(58, Math.min(96, view.width * 0.065));
         const headerH = 64;
@@ -3248,7 +3727,8 @@ export const DungeonMapSystem = {
         ctx.fillText(`远征路线总览 // ${sectors.length} 个区段`, view.left + 18, view.top + 27);
         ctx.fillStyle = 'rgba(157, 177, 185, 0.76)';
         ctx.font = '600 12px "Microsoft YaHei", sans-serif';
-        const sectionRule = this._getLandmarkRouteProfile()?.terrainRouting ? '按可见平台容量分区' : '每 4 列建立地标区段';
+        const sectionRule = this._usesSplitRouteMap() ? '按路线窗口分区'
+            : this._getLandmarkRouteProfile()?.terrainRouting ? '按可见平台容量分区' : '每 4 列建立地标区段';
         ctx.fillText(`共 ${this.nodes.length} 个房间 · ${sectionRule} · 聚焦后查看真实节点与岔路`, view.left + 18, view.top + 48);
 
         for (let index = 0; index < points.length - 1; index++) {
@@ -3334,6 +3814,11 @@ export const DungeonMapSystem = {
 
     render(ctx) {
         if (!this.active || this.state !== "map") return;
+        if (this._usesExplorationConsole()) {
+            this._renderBackground(ctx, ctx.canvas.width, ctx.canvas.height, 0);
+            this._explorationConsole?.render();
+            return;
+        }
 
         // 用实际 canvas 尺寸（视口），不用固定 1920×1080——修复 2K 屏下背景/地图挤左上角
         const viewW = (ctx.canvas && ctx.canvas.width) || this.DEFAULT_VIEWPORT_WIDTH;
@@ -3341,6 +3826,7 @@ export const DungeonMapSystem = {
         if (this.routeViewMode !== 'overview') this._syncLandmarkRouteTransform(viewW, viewH);
         const availableNodes = this.getAvailableNodes();
         const availableIds = new Set(availableNodes.map(n => n.id));
+        const routeColors = this._getRouteColors();
 
         // 界面分两块：上方背景图（纯美观），下方地图选择区域（area）
         const area = this._getMapTargetArea(viewW, viewH);
@@ -3376,6 +3862,26 @@ export const DungeonMapSystem = {
         ctx.fillStyle = gR;
         ctx.fillRect(area.left + area.width - sideW, area.top, sideW, area.height);
 
+        if (this._usesSplitRouteMap()) {
+            const theme = this._routeColorCache.bundleTheme;
+            ctx.save();
+            ctx.fillStyle = theme.text;
+            ctx.textAlign = 'left';
+            ctx.font = `700 20px ${theme.font}`;
+            ctx.fillText('探索路线', view.left + 10, area.top + 29);
+            ctx.font = `12px ${theme.font}`;
+            ctx.fillStyle = theme.line;
+            const hint = view.width < 620 ? '点击探索 · 拖动查看'
+                : '悬停查看风险与收益 · 点击可走节点探索 · 拖动查看路线';
+            ctx.fillText(hint, view.left + 10, area.top + 49);
+            if (view.width >= 620) {
+                ctx.textAlign = 'right';
+                ctx.font = `600 13px ${theme.font}`;
+                ctx.fillText(`${availableIds.size} 处可前往`, view.left + view.width - 10, area.top + 29);
+            }
+            ctx.restore();
+        }
+
         // ── 地图内容：裁剪在路线图窗口内，无论怎么拖/缩放都不溢出 ──
         ctx.save();
         ctx.beginPath();
@@ -3397,17 +3903,22 @@ export const DungeonMapSystem = {
 
         // ── 绘制边（连线）─
         const drawnEdges = new Set();
-        let routeEdges = this.edges;
-        if (this._getLandmarkRouteProfile()?.terrainRouting) {
+        let routeEdges = this._getPresentedRouteEdges(visibleNodeIds);
+        this._prepareLandmarkRouteEdges(visibleNodeIds);
+        if (this._usesLandmarkMap()) {
             const priority = edge => {
                 if ((this.currentNodeId === edge.from && availableIds.has(edge.to))
-                    || (this.currentNodeId === edge.to && availableIds.has(edge.from))) return 2;
+                    || (this.currentNodeId === edge.to && availableIds.has(edge.from))) {
+                    return edge.from === this.hoveredNodeId || edge.to === this.hoveredNodeId ? 3 : 2;
+                }
                 return this.visitedNodeIds.has(edge.from) && this.visitedNodeIds.has(edge.to) ? 1 : 0;
             };
-            // 矿洞共享通道按状态分层，阻断红线不能最后覆盖当前可走路线。
-            routeEdges = this.edges.slice().sort((a, b) => priority(a) - priority(b));
+            // 所有地标地图都让当前可走线最后绘制，悬停的目标线置顶。
+            routeEdges.sort((a, b) => priority(a) - priority(b));
         }
-        for (const edge of routeEdges) {
+        const bundledRoutes = this._usesLandmarkMap() && this._landmarkProjectionCache?.edgeBundles;
+        if (bundledRoutes) this._renderRouteBundles(ctx, routeEdges, availableIds, routeColors, view, t);
+        for (const edge of bundledRoutes ? [] : routeEdges) {
             const fromNode = this.nodes.find(n => n.id === edge.from);
             const toNode = this.nodes.find(n => n.id === edge.to);
             if (!fromNode || !toNode) continue;
@@ -3415,48 +3926,61 @@ export const DungeonMapSystem = {
             const edgeKey = [fromNode.id, toNode.id].sort().join('::');
             if (drawnEdges.has(edgeKey)) continue;
             drawnEdges.add(edgeKey);
+            const routeColor = routeColors?.get(edgeKey);
 
             const isVisited = this.visitedNodeIds.has(fromNode.id) && this.visitedNodeIds.has(toNode.id);
             const isAvailable = (this.currentNodeId === fromNode.id && availableIds.has(toNode.id))
                 || (this.currentNodeId === toNode.id && availableIds.has(fromNode.id));
+            const isInspected = fromNode.id === this.hoveredNodeId || toNode.id === this.hoveredNodeId;
+            const landmark = this._usesLandmarkMap();
+            ctx.save();
+            if (landmark && !isAvailable) ctx.globalAlpha = isInspected ? 0.8 : 0.38;
+            else if (landmark && availableIds.has(this.hoveredNodeId) && !isInspected) ctx.globalAlpha = 0.55;
 
-            if (isVisited) {
+            if (isVisited && !isAvailable) {
                 // 已走路径：冷钢深槽 + 青灰确认线
                 ctx.strokeStyle = 'rgba(24, 34, 39, 0.92)';
                 ctx.lineWidth = 5;
                 ctx.lineCap = 'round';
                 this._traceRouteEdge(ctx, fromNode, toNode);
                 ctx.stroke();
-                ctx.strokeStyle = 'rgba(104, 157, 166, 0.82)';
+                ctx.strokeStyle = routeColor || 'rgba(104, 157, 166, 0.82)';
                 ctx.lineWidth = 2.2;
                 this._traceRouteEdge(ctx, fromNode, toNode);
                 ctx.stroke();
             } else if (isAvailable) {
-                // 可点击路径：银青光晕底 + 流动虚线（指向下一步）
-                ctx.shadowColor = 'rgba(174, 211, 222, 0.58)';
-                ctx.shadowBlur = 10 / this.mapScale; // 屏幕恒定光晕强度（缩放时补偿）
-                ctx.strokeStyle = 'rgba(142, 182, 194, 0.22)';
-                ctx.lineWidth = 5;
+                // 可走优先于已访问：回头路也须高亮。连续实线保证可追踪，细虚线仅提示流向。
+                ctx.strokeStyle = 'rgba(8, 13, 16, 0.96)';
+                ctx.lineWidth = 8 / this.mapScale;
+                ctx.lineCap = 'round';
+                this._traceRouteEdge(ctx, fromNode, toNode);
+                ctx.stroke();
+                ctx.shadowColor = routeColor || 'rgba(174, 211, 222, 0.58)';
+                ctx.shadowBlur = 4 / this.mapScale;
+                ctx.strokeStyle = routeColor || 'rgba(142, 182, 194, 0.96)';
+                ctx.lineWidth = (isInspected ? 3.5 : 3) / this.mapScale;
                 ctx.lineCap = 'round';
                 this._traceRouteEdge(ctx, fromNode, toNode);
                 ctx.stroke();
                 ctx.shadowBlur = 0;
                 ctx.strokeStyle = 'rgba(190, 220, 228, 0.96)';
-                ctx.lineWidth = 2.4;
+                ctx.lineWidth = 1.5 / this.mapScale;
                 ctx.setLineDash([12 / this.mapScale, 8 / this.mapScale]);
-                ctx.lineDashOffset = -(t * 0.04) / this.mapScale;
+                const terrainPath = this._landmarkProjectionCache?.edgePaths?.get(edgeKey);
+                const pathStartId = terrainPath ? [fromNode.id, toNode.id].sort()[0] : fromNode.id;
+                ctx.lineDashOffset = (pathStartId === this.currentNodeId ? -1 : 1) * (t * 0.04) / this.mapScale;
                 this._traceRouteEdge(ctx, fromNode, toNode);
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.lineDashOffset = 0;
             } else {
-                // 当前不可到达路径：黑铁槽底 + 锈红断续线，与可前往的银青流光拉开明显差异。
+                // 地标远线保留低亮度身份色与断续状态；阻断叉仍用锈红，不冒充可走实线。
                 ctx.strokeStyle = 'rgba(31, 19, 22, 0.88)';
                 ctx.lineWidth = 5;
                 ctx.lineCap = 'round';
                 this._traceRouteEdge(ctx, fromNode, toNode);
                 ctx.stroke();
-                ctx.strokeStyle = 'rgba(164, 76, 82, 0.82)';
+                ctx.strokeStyle = routeColor || 'rgba(164, 76, 82, 0.82)';
                 ctx.lineWidth = 2;
                 ctx.setLineDash([5 / this.mapScale, 8 / this.mapScale]);
                 this._traceRouteEdge(ctx, fromNode, toNode);
@@ -3464,20 +3988,37 @@ export const DungeonMapSystem = {
                 ctx.setLineDash([]);
             }
 
-            // 每段中点加入机械接头，长线路仍能清楚辨认连接关系与开放状态。
+            // 可走线使用方向箭头；远端线不再堆满机械接头与阻断叉。
             const joint = this._getRouteEdgeMidpoint(fromNode, toNode);
             const jointX = joint.x;
             const jointY = joint.y;
             const jointSize = isAvailable ? 4.2 : 3.2;
-            ctx.save();
-            ctx.translate(jointX, jointY);
-            ctx.rotate(Math.PI / 4);
-            ctx.fillStyle = isAvailable
-                ? 'rgba(205, 231, 238, 0.95)'
-                : (isVisited ? 'rgba(104, 157, 166, 0.88)' : 'rgba(76, 91, 98, 0.72)');
-            ctx.fillRect(-jointSize / 2, -jointSize / 2, jointSize, jointSize);
-            ctx.restore();
-            if (!isVisited && !isAvailable) {
+            if (isAvailable) {
+                ctx.save();
+                ctx.translate(jointX, jointY);
+                ctx.rotate(joint.angle + (toNode.id === this.currentNodeId ? Math.PI : 0));
+                const arrowSize = 6 / this.mapScale;
+                ctx.beginPath();
+                ctx.moveTo(arrowSize, 0);
+                ctx.lineTo(-arrowSize, -arrowSize * 0.75);
+                ctx.lineTo(-arrowSize * 0.5, 0);
+                ctx.lineTo(-arrowSize, arrowSize * 0.75);
+                ctx.closePath();
+                ctx.strokeStyle = 'rgba(8, 13, 16, 0.96)';
+                ctx.lineWidth = 3 / this.mapScale;
+                ctx.stroke();
+                ctx.fillStyle = routeColor || 'rgba(205, 231, 238, 0.98)';
+                ctx.fill();
+                ctx.restore();
+            } else if (!landmark || isInspected) {
+                ctx.save();
+                ctx.translate(jointX, jointY);
+                ctx.rotate(Math.PI / 4);
+                ctx.fillStyle = isVisited ? 'rgba(104, 157, 166, 0.88)' : 'rgba(76, 91, 98, 0.72)';
+                ctx.fillRect(-jointSize / 2, -jointSize / 2, jointSize, jointSize);
+                ctx.restore();
+            }
+            if (!isVisited && !isAvailable && (!landmark || isInspected)) {
                 // 中点阻断叉在缩放下保持固定屏幕尺寸，远看也能判断这条线当前不能进入。
                 const blockSize = 6.5 / this.mapScale;
                 ctx.save();
@@ -3493,6 +4034,7 @@ export const DungeonMapSystem = {
                 ctx.stroke();
                 ctx.restore();
             }
+            ctx.restore();
         }
 
         // ── 绘制节点 ──
@@ -3504,6 +4046,8 @@ export const DungeonMapSystem = {
             const isCurrent = node.id === this.currentNodeId;
             const isAvailable = availableIds.has(node.id);
             const isHovered = node.id === this.hoveredNodeId;
+            const routeColor = isAvailable
+                ? routeColors?.get([this.currentNodeId, node.id].sort().join('::')) : null;
 
             // 迷雾系统：确定显示类型
             let displayType = node.type;
@@ -3523,14 +4067,14 @@ export const DungeonMapSystem = {
                 color = this.TYPE_COLORS[node.type] || "#202b31";
                 borderColor = "#d7e7ed";
                 radius += 4;
-            } else if (isVisited) {
+            } else if (isVisited && !isAvailable) {
                 color = this.TYPE_COLORS[node.type] || "#22282d";
                 borderColor = node.completed ? "#689da6" : "#65747c";
                 ctx.globalAlpha = 0.72;
             } else if (isAvailable) {
                 // 相邻可点击节点：显示实际类型
                 color = this.TYPE_COLORS[node.type] || "#22282d";
-                borderColor = this.TYPE_BORDER_COLORS[node.type] || "#9fb5bf";
+                borderColor = routeColor || this.TYPE_BORDER_COLORS[node.type] || "#9fb5bf";
             } else if (isRevealed) {
                 // 已揭示但未访问：显示实际类型但暗淡
                 color = this.TYPE_COLORS[node.type] || "#22282d";
@@ -3545,14 +4089,14 @@ export const DungeonMapSystem = {
 
             if (isHovered && isAvailable) {
                 radius += 5;
-                borderColor = "#e8f5f8";
+                borderColor = routeColor || "#e8f5f8";
             }
 
             // 可点击/当前节点使用克制的冷钢呼吸反馈。
             const breathe = 0.55 + 0.45 * Math.sin(t * 0.004);
 
             if (isAvailable) {
-                ctx.shadowColor = this.TYPE_BORDER_COLORS[node.type] || '#9fb5bf';
+                ctx.shadowColor = routeColor || this.TYPE_BORDER_COLORS[node.type] || '#9fb5bf';
                 ctx.shadowBlur = (8 + 6 * breathe) / this.mapScale;
             } else if (isCurrent) {
                 ctx.shadowColor = '#d7e7ed';
@@ -3578,12 +4122,15 @@ export const DungeonMapSystem = {
             ctx.stroke();
             ctx.globalAlpha = 1.0;
 
-            // 可点击节点——银青呼吸外环（提示可前进）
+            // 可走目标的外环与路线同色；内部图标和底色仍表示房间类型。
             if (isAvailable) {
-                ctx.strokeStyle = `rgba(190, 220, 228, ${0.32 + 0.30 * breathe})`;
+                ctx.save();
+                ctx.strokeStyle = routeColor || '#bedce4';
+                ctx.globalAlpha = 0.32 + 0.30 * breathe;
                 ctx.lineWidth = 2;
                 this._traceRouteNode(ctx, point.x, point.y, radius + 3);
                 ctx.stroke();
+                ctx.restore();
             }
             // E: 当前节点——白色脉冲双环
             if (isCurrent) {
@@ -3606,7 +4153,7 @@ export const DungeonMapSystem = {
             }
             // 收集屏幕空间标签元数据（C：图标/★/你 反缩放绘制）
             labelMeta.push({
-                displayType, isRevealed, isAvailable, isCurrent,
+                displayType, isRevealed, isAvailable, isCurrent, routeColor,
                 sx: point.x * this.mapScale + this.mapOffsetX,
                 sy: point.y * this.mapScale + this.mapOffsetY,
                 radius,
@@ -3695,7 +4242,7 @@ export const DungeonMapSystem = {
                 ctx.fillText('当前位置', m.sx, m.sy + screenR + 10);
             } else if (m.isAvailable) {
                 ctx.font = '600 11px "Microsoft YaHei", sans-serif';
-                ctx.fillStyle = '#a9c8d1';
+                ctx.fillStyle = m.routeColor || '#a9c8d1';
                 ctx.fillText('可前往', m.sx, m.sy + screenR + 9);
             }
         }
@@ -3733,13 +4280,18 @@ export const DungeonMapSystem = {
 
     /** 路线控制栏：提供键盘可达的区段索引、战略总览和返回当前位置入口。 */
     _createRouteControls() {
-        const uiVersion = 'cold-steel-landmark-v5';
+        if (this._usesExplorationConsole()) {
+            this._ensureExplorationConsole().refresh();
+            return;
+        }
+        const uiVersion = 'cold-steel-expedition-v1';
         let root = getElementIfExists('dungeonRouteControls');
         // 热更新或同一页面反复进出地牢时，旧控制栏可能仍留在 DOM 中。
         // 旧实现只判断 id 是否存在，会直接复用旧结构，从而看起来“完全没变化”。
         const hasExpectedStructure = root
             && root.querySelector('#dungeonRouteSectorTabs')
             && root.querySelector('#dungeonRouteFit')
+            && root.querySelector('#dungeonRouteEdges')
             && root.querySelector('#dungeonRouteFocus');
         if (root && (root.dataset.routeUiVersion !== uiVersion || !hasExpectedStructure)) {
             root.remove();
@@ -3760,12 +4312,19 @@ export const DungeonMapSystem = {
                         <button id="dungeonRouteNextSector" type="button" class="dungeon-route-sector-step" aria-label="下一段">›</button>
                     </div>
                     <div class="dungeon-route-view-actions" role="group" aria-label="路线视图">
+                        <button id="dungeonRouteEdges" type="button" class="bp-button bp-button--muted" aria-pressed="false">全部连线</button>
                         <button id="dungeonRouteFit" type="button" class="bp-button bp-button--muted">战略总览</button>
                         <button id="dungeonRouteFocus" type="button" class="bp-button bp-button--muted">返回当前位置</button>
                     </div>
                     <div id="dungeonRouteProgress" class="dungeon-route-progress" aria-live="polite"></div>
                 </div>`;
             document.body.appendChild(root);
+            root.querySelector('#dungeonRouteEdges')?.addEventListener('click', () => {
+                if (!this.active || this.state !== 'map' || this.routeViewMode === 'overview') return;
+                this._showAllRouteEdges = !this._showAllRouteEdges;
+                this._clearRoutePointerSelection();
+                this._updateRouteControls();
+            });
             root.querySelector('#dungeonRoutePrevSector')?.addEventListener('click', () => {
                 if (!this.active || this.state !== 'map') return;
                 this._focusRouteSector(this.routeSectorIndex - 1);
@@ -3788,20 +4347,39 @@ export const DungeonMapSystem = {
     },
 
     _updateRouteControls() {
+        if (this._usesExplorationConsole()) {
+            this._explorationConsole?.refresh();
+            return;
+        }
         const progress = getElementIfExists('dungeonRouteProgress');
         const headerProgress = getElementIfExists('dungeonRouteHeaderProgress');
         const sectorTabs = getElementIfExists('dungeonRouteSectorTabs');
         const prev = getElementIfExists('dungeonRoutePrevSector');
         const next = getElementIfExists('dungeonRouteNextSector');
         const overview = getElementIfExists('dungeonRouteFit');
+        const edgeToggle = getElementIfExists('dungeonRouteEdges');
         if (!progress || !sectorTabs || !prev || !next || !overview) return;
+        if (edgeToggle) {
+            edgeToggle.hidden = !this._usesLandmarkMap();
+            edgeToggle.disabled = this.routeViewMode === 'overview';
+            edgeToggle.setAttribute('aria-pressed', String(this._showAllRouteEdges));
+            edgeToggle.textContent = this._showAllRouteEdges ? '简洁连线' : '全部连线';
+            edgeToggle.title = this._showAllRouteEdges
+                ? '点击恢复简洁连线；×N表示共用该段的显示路线数，悬停可走目标可追踪整条路线'
+                : '点击显示本区全部连线；×N表示共用该段的显示路线数，悬停可走目标可追踪整条路线';
+        }
         const sectors = this._getRouteSectors();
+        const availableIds = new Set(this.getAvailableNodes().map(node => node.id));
         const currentSectorIndex = this._getSectorIndexForNode(this.getCurrentNode());
         const safeViewingIndex = Math.max(0, Math.min(Math.max(0, sectors.length - 1), this.routeSectorIndex || 0));
         this.routeSectorIndex = safeViewingIndex;
-        const progressText = `探索进度 ${this.visitedNodeIds.size}/${this.nodes.length} · 当前区 ${currentSectorIndex + 1}/${Math.max(1, sectors.length)}`;
+        const progressText = `探索进度 ${this.visitedNodeIds.size}/${this.nodes.length} · 当前区 ${currentSectorIndex + 1}/${Math.max(1, sectors.length)}${this._usesLandmarkMap() ? ` · ${availableIds.size}处可前往` : ''}`;
         progress.textContent = progressText;
         if (headerProgress) headerProgress.textContent = progressText;
+        if (this._usesSplitRouteMap()) {
+            const controls = getElementIfExists('dungeonRouteControls');
+            if (controls) controls.dataset.presentation = 'split';
+        }
 
         const agentNode = AgentInvasionSystem.triggered && AgentInvasionSystem.agentNodeId
             ? this.nodes.find(node => node.id === AgentInvasionSystem.agentNodeId)
@@ -3809,6 +4387,7 @@ export const DungeonMapSystem = {
         const agentSectorIndex = agentNode ? this._getSectorIndexForNode(agentNode) : -1;
         sectorTabs.replaceChildren();
         for (const sector of sectors) {
+            const availableCount = sector.nodes.filter(node => availableIds.has(node.id)).length;
             const button = document.createElement('button');
             button.type = 'button';
             button.className = 'dungeon-route-sector-tab';
@@ -3816,15 +4395,24 @@ export const DungeonMapSystem = {
             if (sector.index === currentSectorIndex) button.classList.add('is-current');
             if (sector.visitedCount >= sector.nodes.length) button.classList.add('is-complete');
             if (sector.index === agentSectorIndex) button.classList.add('has-agent');
+            if (availableCount) button.classList.add('has-available');
             button.setAttribute('role', 'tab');
             button.setAttribute('aria-selected', String(sector.index === safeViewingIndex && this.routeViewMode === 'focus'));
             if (sector.index === currentSectorIndex) button.setAttribute('aria-current', 'step');
-            button.setAttribute('aria-label', `查看第${sector.index + 1}区段，已探索${sector.visitedCount}/${sector.nodes.length}个房间${sector.index === currentSectorIndex ? '，玩家所在区段' : ''}${sector.index === agentSectorIndex ? '，入侵者所在区段' : ''}`);
+            button.setAttribute('aria-label', `查看第${sector.index + 1}区段，已探索${sector.visitedCount}/${sector.nodes.length}个房间${availableCount ? `，${availableCount}处可前往` : ''}${sector.index === currentSectorIndex ? '，玩家所在区段' : ''}${sector.index === agentSectorIndex ? '，入侵者所在区段' : ''}`);
+            button.title = button.getAttribute('aria-label');
             const number = document.createElement('strong');
             number.textContent = String(sector.index + 1).padStart(2, '0');
             const meta = document.createElement('span');
             meta.textContent = `${sector.visitedCount}/${sector.nodes.length}`;
             button.append(number, meta);
+            if (this._usesLandmarkMap() && availableCount) {
+                const available = document.createElement('span');
+                available.className = 'dungeon-route-sector-available';
+                available.textContent = `可走${availableCount}`;
+                available.setAttribute('aria-hidden', 'true');
+                button.appendChild(available);
+            }
             button.addEventListener('click', () => this._focusRouteSector(sector.index, {
                 focusNodeId: sector.index === currentSectorIndex ? this.currentNodeId : null,
             }));
@@ -3848,7 +4436,7 @@ export const DungeonMapSystem = {
      * 与入侵概率卡共挂左侧信息栈，在上方背景图左黑幕内纵向排列。
      */
     _createDungeonRewardPanel() {
-        const stack = this._ensureMapInfoStack();
+        const stack = this._usesExplorationConsole() ? this._ensureExplorationConsole().rewardHost : this._ensureMapInfoStack();
         const existing = getElement('dungeonRewardPanel');
         if (existing) {
             stack.prepend(existing);
@@ -3888,12 +4476,13 @@ export const DungeonMapSystem = {
         `;
         stack.prepend(el);
         const invasion = getElementIfExists('invasionChanceLabel');
-        if (invasion) stack.appendChild(invasion);
+        if (invasion) (this._usesExplorationConsole() ? this._ensureMapInfoStack() : stack).appendChild(invasion);
     },
 
     /** 路线探索统一指挥层：地标模式横向排布，旧模式保持上方40%三栏。 */
     _ensureRouteTopHud() {
-        const uiVersion = 'cold-steel-landmark-v2';
+        if (this._usesExplorationConsole()) return this._ensureExplorationConsole().root;
+        const uiVersion = 'cold-steel-expedition-v1';
         let root = getElementIfExists('dungeonRouteTopHud');
         if (root && root.dataset.routeTopUiVersion !== uiVersion) {
             root.remove();
@@ -3918,11 +4507,13 @@ export const DungeonMapSystem = {
         const fullPlate = this._usesFullMapBackground();
         const landmark = this._usesLandmarkMap();
         root.dataset.fullPlate = fullPlate ? 'true' : 'false';
-        root.dataset.presentation = landmark ? 'landmark' : 'legacy';
+        const split = this._usesSplitRouteMap();
+        root.dataset.presentation = split ? 'split' : landmark ? 'landmark' : 'legacy';
         document.body.classList.toggle('dungeon-route-full-plate', fullPlate);
         document.body.classList.toggle('dungeon-route-landmark-mode', landmark);
+        document.body.classList.toggle('dungeon-route-split-mode', split);
         const headingTitle = getElementIfExists('dungeonRouteHeadingTitle');
-        if (headingTitle) headingTitle.textContent = `${this.dungeonName || '恐怖地牢'} · 地标路线`;
+        if (headingTitle) headingTitle.textContent = `${this.dungeonName || '恐怖地牢'} · ${split ? '远征探索' : '地标路线'}`;
         return root;
     },
 
@@ -3932,14 +4523,18 @@ export const DungeonMapSystem = {
     },
 
     _removeRouteTopHud() {
+        this._explorationConsole?.destroy();
+        this._explorationConsole = null;
         getElementIfExists('dungeonRouteTopHud')?.remove();
         if (typeof document !== 'undefined') {
             document.body.classList.remove('dungeon-route-full-plate');
             document.body.classList.remove('dungeon-route-landmark-mode');
+            document.body.classList.remove('dungeon-route-split-mode');
         }
     },
 
     _ensureMapInfoStack() {
+        if (this._usesExplorationConsole()) return this._ensureExplorationConsole().infoStack;
         let stack = getElementIfExists('dungeonRouteInfoStack');
         if (!stack) {
             stack = document.createElement('div');
@@ -3991,7 +4586,9 @@ export const DungeonMapSystem = {
         btn.type = 'button';
         btn.className = 'bp-button bp-button--muted dungeon-route-action dungeon-route-action--abandon';
         btn.setAttribute('aria-label', '放弃本次地牢并返回');
-        btn.innerHTML = '<strong>放弃并返回</strong><span>结束本次探险</span>';
+        btn.innerHTML = this._usesExplorationConsole()
+            ? '<strong>强制放弃</strong><span>丢失背包全部物品 · 需二次确认</span>'
+            : '<strong>放弃并返回</strong><span>结束本次探险</span>';
         btn.addEventListener('click', () => {
             if (this.active && this.state === 'map') {
                 this._showExitConfirm();
@@ -4013,13 +4610,16 @@ export const DungeonMapSystem = {
         const current = this.getCurrentNode();
         const atStart = !!(current && current.type === 'start');
         const existing = getElement('safeEvacButton');
-        if (!atStart) {
+        if (!atStart && !this._usesExplorationConsole()) {
             if (existing) existing.remove();
             return;
         }
         const actionZone = this._getRouteTopZone('dungeonRouteTopActions');
         if (existing) {
             if (existing.parentElement !== actionZone) actionZone.prepend(existing);
+            existing.disabled = !atStart;
+            if (this._usesExplorationConsole()) existing.querySelector('span').textContent = atStart
+                ? '仅起点可用 · 保留背包物品' : '返回起点后可用 · 保留背包物品';
             return;
         }
         const btn = document.createElement('button');
@@ -4027,9 +4627,12 @@ export const DungeonMapSystem = {
         btn.type = 'button';
         btn.className = 'bp-button dungeon-route-action dungeon-route-action--evacuate';
         btn.setAttribute('aria-label', '安全撤离并保留当前战利品');
-        btn.innerHTML = '<strong>安全撤离</strong><span>保留当前战利品</span>';
+        btn.disabled = !atStart;
+        btn.innerHTML = this._usesExplorationConsole()
+            ? `<strong>安全撤离</strong><span>${atStart ? '仅起点可用' : '返回起点后可用'} · 保留背包物品</span>`
+            : '<strong>安全撤离</strong><span>保留当前战利品</span>';
         btn.addEventListener('click', () => {
-            if (this.active && this.state === 'map') {
+            if (this.active && this.state === 'map' && !this._observerSuspended && this.getCurrentNode()?.type === 'start') {
                 this._safeEvacuate();
             }
         });
@@ -4056,6 +4659,7 @@ export const DungeonMapSystem = {
     },
 
     _createDungeonNameLabel() {
+        if (this._usesExplorationConsole()) return;
         const stack = this._ensureMapInfoStack();
         const existing = getElement('dungeonMapNameLabel');
         if (existing) {

@@ -205,7 +205,8 @@
   }
  },
  "zombieDungeon": {
-  "mapBackground": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png",
+  "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
+  "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
@@ -214,7 +215,7 @@
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
   ],
   "mapBackgroundFullPlate": true,
-  "mapPresentation": "landmark",
+  "mapPresentation": "exploration",
   "combatRoom": {
    "normalSize": 1152,
    "eliteSize": 1664,
@@ -354,7 +355,8 @@
   "wallStyle": "zombie"
  },
  "zombieDungeonBeginner": {
-  "mapBackground": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png",
+  "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
+  "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
@@ -363,7 +365,7 @@
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
   ],
   "mapBackgroundFullPlate": true,
-  "mapPresentation": "landmark",
+  "mapPresentation": "exploration",
   "combatRoom": {
    "normalSize": 896,
    "eliteSize": 1280,
@@ -813,7 +815,8 @@
   "wallStyle": "frozen"
  },
  "zombieDungeonMid": {
-  "mapBackground": "assets/scenes/dungeon-map-bg-horror-landmark-v3.png",
+  "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
+  "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
@@ -822,7 +825,7 @@
    "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
   ],
   "mapBackgroundFullPlate": true,
-  "mapPresentation": "landmark",
+  "mapPresentation": "exploration",
   "combatRoom": {
    "normalSize": 1024,
    "eliteSize": 1536,
@@ -1779,7 +1782,7 @@
   "family": "zombie"
  },
  "abandonedMineDungeonBeginner": {
-  "mapBackground": "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
    "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
@@ -1793,8 +1796,8 @@
    "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
   ],
   "mapBackgroundSelection": "weighted-terrain",
-  "mapBackgroundFullPlate": true,
-  "mapPresentation": "landmark",
+  "mapBackgroundFullPlate": false,
+  "mapPresentation": "exploration",
   "combatRoom": {
    "normalSize": 896,
    "eliteSize": 1280,
@@ -1941,7 +1944,7 @@
   "wallStyle": "abandonedMine"
  },
  "abandonedMineDungeonMid": {
-  "mapBackground": "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
    "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
@@ -1955,8 +1958,8 @@
    "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
   ],
   "mapBackgroundSelection": "weighted-terrain",
-  "mapBackgroundFullPlate": true,
-  "mapPresentation": "landmark",
+  "mapBackgroundFullPlate": false,
+  "mapPresentation": "exploration",
   "combatRoom": {
    "normalSize": 1024,
    "eliteSize": 1536,
@@ -2101,7 +2104,7 @@
   "wallStyle": "abandonedMine"
  },
  "abandonedMineDungeon": {
-  "mapBackground": "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "mapBackgroundVariants": [
    "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
    "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
@@ -2115,8 +2118,8 @@
    "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
   ],
   "mapBackgroundSelection": "weighted-terrain",
-  "mapBackgroundFullPlate": true,
-  "mapPresentation": "landmark",
+  "mapBackgroundFullPlate": false,
+  "mapPresentation": "exploration",
   "combatRoom": {
    "normalSize": 1152,
    "eliteSize": 1664,

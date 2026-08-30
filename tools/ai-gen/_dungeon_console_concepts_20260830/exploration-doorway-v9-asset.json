@@ -1,0 +1,16 @@
+{
+  "asset": "assets/ui/dungeon-map/exploration-doorway-v9.png",
+  "created": "2026-08-30",
+  "tool": "builtin image_gen",
+  "generation_source": "C:/Users/allan/.codex/generated_images/01a05163-2aea-7b43-ae61-6e583fa1247c/exec-35d8f80b-b8ef-4d28-b267-0a42748d65fc.png",
+  "reference": "tools/ai-gen/_dungeon_console_concepts_20260830/02-dark-exploration-hybrid-v9.png",
+  "dimensions": {
+    "width": 2048,
+    "height": 768
+  },
+  "intended_use": "Generic atmospheric image above the right-side node dossier. Decorative only, no hidden node information.",
+  "prompt": "Use case: stylized-concept. Asset type: small atmospheric environment vignette for a game node dossier, opaque PNG, wide 8:3 aspect ratio (around 640x240 composition; higher resolution okay). Input image 1 is a style reference and the accepted interface concept. Take inspiration only from the SMALL DARK STONE DOORWAY ENVIRONMENT PICTURE in its right-hand dossier. Generate one clean new environment painting, edge-to-edge artwork with no UI. Subject: an empty ancient gothic dungeon doorway set inside heavy carved stone arches, weathered masonry, a closed iron-bar gate deep in shadow, a little worn flagstone floor, just two distant small amber candles casting restrained warm light against a mostly charcoal-black and desaturated blue-gray environment. No focal bright magical portal; ordinary mysterious abandoned dungeon architecture only. Cinematic moody painterly detail consistent with the reference's cold steel medieval game artwork. Composition should remain legible when displayed as a small horizontal banner, gate centered, framing stone at edges, low illumination with subtle cyan-gray rim light. This is purely generic ambient decoration: do not imply any hidden node contents or rewards. Absolutely NO enemies, people, characters, monsters, treasure, chests, loot, type symbols, icons, labels, text, numerals, UI panels, frame border, routes, buttons, logos or watermarks. Entire output is a standalone dark doorway scene, not a game screenshot.",
+  "inspection": "Viewed generated file. Empty gothic stone doorway with closed iron gate and two small candles. No characters, treasure, type symbols, text or UI. No resizing or postprocessing applied.",
+  "scope": "Only new doorway PNG and this provenance file. No source/config edits, tests or runtime verification.",
+  "closureStatus": "accepted_runtime_asset"
+}

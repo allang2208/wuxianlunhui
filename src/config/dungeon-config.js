@@ -9,6 +9,8 @@ const GRADE_ORDER_LOCAL = ['F', 'E', 'D', 'C', 'B', 'A'];
 
 const DEFAULTS = {
     zombieDungeon: {
+        // 已选v9探索台：独立路线/节点档案/收益/撤离整合，背景不限制随机图。
+        mapLayout: 'exploration',
         // 路线选择界面背景图（按地牢类型配置；其他地牢在 dungeon-config.json 各自覆盖）
         mapBackground: 'assets/scenes/dungeon-bg/zombie.png',
         // 达到 Boss 房间的最少房间数（独立约束，与 shortestCombatPath 不冲突：
@@ -80,6 +82,11 @@ export const DungeonConfig = {
         if (dungeonType === 'swamp') return 'swampDungeon';
         if (dungeonType === 'demonCavern') return 'demonCavern';
         return 'zombieDungeon';
+    },
+
+    // 表现层逐帧读取只需静态布局开关，避免每个节点都深合并整份战斗配置。
+    getMapLayout(dungeonType) {
+        return dungeonConfigData[this._keyFor(dungeonType)]?.mapLayout ?? DEFAULTS.zombieDungeon.mapLayout;
     },
 
     getZombieDungeonConfig(dungeonType) {
