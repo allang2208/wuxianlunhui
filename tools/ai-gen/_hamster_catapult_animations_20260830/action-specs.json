@@ -1,0 +1,20 @@
+{
+  "attack": {
+    "video": "videos/attack-v02.mp4",
+    "prompt": "prompts/attack-v02.txt",
+    "reference": "reference/catapult-attack-v02-headroom.png",
+    "referenceScaleFromCommonCanvas": 0.7,
+    "referenceOffset": [154, 153],
+    "rejectedVideo": "videos/attack-v01.mp4",
+    "rejectionReason": "The raised throwing arm/spoon leaves the top of the source frame. Never promote or repair by cropping/recentering.",
+    "denseSourceFrameRange": null,
+    "extraSourceFrameIndices": [35, 37, 38, 39, 41, 42, 43],
+    "separateProjectileSourceFrames": [42, 43],
+    "releaseSourceFrame": 42
+  },
+  "die": {
+    "video": "videos/die-v01.mp4",
+    "extraSourceFrameIndices": [6, 10, 14, 18, 30, 34, 38, 42, 46],
+    "samplingReason": "Retain denser original poses during the initial recoil and the two falls, reducing long RIFE interpolation spans without changing the source trajectory or time."
+  }
+}

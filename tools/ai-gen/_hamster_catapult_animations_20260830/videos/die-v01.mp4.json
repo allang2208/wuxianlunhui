@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T09:39:56.595981+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\videos\\die-v01.mp4",
+    "bytes": 657346,
+    "sha256": "2fa81dbfbc44a809f50735387f0ce195f52718dc02322fb22ce9754ddeab809c"
+  },
+  "promptId": "239879fc-280c-4f50-83a0-65e298ff5e55",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 830104,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Animate the supplied game-unit reference, preserving exactly TWO equally sized adult golden hamster engineers and ONE wooden wheeled catapult. Keep their rounded black eyes, white muzzles, bronze helmets, olive quilted clothing, brown leather aprons, gloves, boots, and all original equipment. Locked mildly elevated right-facing three-quarter camera, identical perspective for crew and machine, fixed framing and scale. Whole falling bodies and the entire machine remain inside the frame. Pure solid white background and white ground, no scenery, text, cast shadows or camera movement.\n\nOne-way 5-second DEATH animation for a stylized game, never a loop. 0-0.8s: both crew recoil from a single unseen impact; the loader lets the held stone drop naturally beside his feet. 0.8-2.8s: the two hamsters independently lose balance and fall onto the ground beside the catapult, one to the left and the other behind and beside the cart, still visible and separate. Helmets and clothes remain on them. The wooden machine shudders once, its rope slackens and its lowered arm settles, but the frame and wheels remain recognizable and grounded. 2.8-5s: BOTH hamsters lie fully still with closed eyes; the dropped stone and cart stop moving. Hold the defeated final pose through the end. No blood, dismemberment, explosion, disappearing bodies, resurrection, recovery, replacement crew or reset to the first pose.",
+  "effectivePrompt": "Animate the supplied game-unit reference, preserving exactly TWO equally sized adult golden hamster engineers and ONE wooden wheeled catapult. Keep their rounded black eyes, white muzzles, bronze helmets, olive quilted clothing, brown leather aprons, gloves, boots, and all original equipment. Locked mildly elevated right-facing three-quarter camera, identical perspective for crew and machine, fixed framing and scale. Whole falling bodies and the entire machine remain inside the frame. Pure solid white background and white ground, no scenery, text, cast shadows or camera movement.\n\nOne-way 5-second DEATH animation for a stylized game, never a loop. 0-0.8s: both crew recoil from a single unseen impact; the loader lets the held stone drop naturally beside his feet. 0.8-2.8s: the two hamsters independently lose balance and fall onto the ground beside the catapult, one to the left and the other behind and beside the cart, still visible and separate. Helmets and clothes remain on them. The wooden machine shudders once, its rope slackens and its lowered arm settles, but the frame and wheels remain recognizable and grounded. 2.8-5s: BOTH hamsters lie fully still with closed eyes; the dropped stone and cart stop moving. Hold the defeated final pose through the end. No blood, dismemberment, explosion, disappearing bodies, resurrection, recovery, replacement crew or reset to the first pose.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Animate the supplied game-unit reference, preserving exactly TWO equally sized adult golden hamster engineers and ONE wooden wheeled catapult. Keep their rounded black eyes, white muzzles, bronze helmets, olive quilted clothing, brown leather aprons, gloves, boots, and all original equipment. Locked mildly elevated right-facing three-quarter camera, identical perspective for crew and machine, fixed framing and scale. Whole falling bodies and the entire machine remain inside the frame. Pure solid white background and white ground, no scenery, text, cast shadows or camera movement.\n\nOne-way 5-second DEATH animation for a stylized game, never a loop. 0-0.8s: both crew recoil from a single unseen impact; the loader lets the held stone drop naturally beside his feet. 0.8-2.8s: the two hamsters independently lose balance and fall onto the ground beside the catapult, one to the left and the other behind and beside the cart, still visible and separate. Helmets and clothes remain on them. The wooden machine shudders once, its rope slackens and its lowered arm settles, but the frame and wheels remain recognizable and grounded. 2.8-5s: BOTH hamsters lie fully still with closed eyes; the dropped stone and cart stop moving. Hold the defeated final pose through the end. No blood, dismemberment, explosion, disappearing bodies, resurrection, recovery, replacement crew or reset to the first pose. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "0d205e5437b340b91a832e2f329a97120110027ed80cdb2187c8a72000ac29ee",
+  "effectivePromptSha256": "0d205e5437b340b91a832e2f329a97120110027ed80cdb2187c8a72000ac29ee",
+  "finalPromptSha256": "19b21f1a5ea20471af2473551218b19b9e5d269c06dc87b90b623a85c5c86995",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\prompts\\die-v01.txt",
+      "bytes": 1403,
+      "sha256": "948cb69d1bf43e37d4e5d6a8d119d88bd266de62217c6cfd5835e1b386e0afb4"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\reference\\catapult-v07-padded-1024x576.png",
+      "bytes": 459710,
+      "sha256": "629ecb1e6dd5f3e7d910791bc490e2b5973070a9bd21aca3e613fdb5e90c6c34"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\videos\\die-v01_contact.png",
+    "bytes": 633875,
+    "sha256": "b59cd6777a36e28a458ea2bda10fee09cd9219e211ead42100fc6e2e944d87b0"
+  },
+  "elapsedSeconds": 1707.252
+}

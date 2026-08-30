@@ -251,16 +251,19 @@ def barrel_vault(collection, parent, name, length, width, height, location,
     return obj
 
 
-def roof_rows(collection, parent, name, length, width, roof_height, base_z, mat, rows=11):
+def roof_rows(collection, parent, name, length, width, roof_height, base_z, mat,
+              rows=11, center=(0, 0)):
     """Add editable overlapping courses on both slopes of a gabled roof."""
+    center_x, center_y = center
     slope_angle = math.degrees(math.atan2(roof_height, width / 2))
     for side in (-1, 1):
         for index in range(rows):
             t = (index + 0.52) / rows
-            y = side * (width / 2) * (1 - t)
+            y = center_y + side * (width / 2) * (1 - t)
             z = base_z + roof_height * t + 2.0
             box(collection, parent, f"{name}_S{side:+d}_Row_{index + 1:02d}",
-                (length + 5, width / rows + 4, 4.5), (0, y, z), mat,
+                (length + 5, width / rows + 4, 4.5),
+                (center_x, y, z), mat,
                 rotation=(-side * slope_angle, 0, 0), bevel_width=0.7)
 
 

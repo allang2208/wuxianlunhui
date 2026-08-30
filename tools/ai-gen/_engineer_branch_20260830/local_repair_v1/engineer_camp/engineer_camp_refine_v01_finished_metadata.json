@@ -1,0 +1,50 @@
+{
+  "input": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_local_raw.png",
+  "inputMetadata": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_local_metadata.json",
+  "original48": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v02_raw.png",
+  "operations": [
+    {
+      "region": "original gear only",
+      "source": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v02_raw.png",
+      "mask": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_gear_grade_mask.png",
+      "saturationFactor": 0.65,
+      "brightnessFactor": 0.72,
+      "geometry": "original source gear restored; RGB-only grading"
+    },
+    {
+      "region": "right hoist upright",
+      "polygon": [
+        [
+          589,
+          657
+        ],
+        [
+          610,
+          646
+        ],
+        [
+          610,
+          783
+        ],
+        [
+          601,
+          789
+        ],
+        [
+          589,
+          782
+        ]
+      ],
+      "mask": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_upright_grade_mask.png",
+      "rgbFactors": [
+        1.12,
+        0.78,
+        0.49
+      ],
+      "geometry": "unchanged"
+    }
+  ],
+  "output": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_finished_raw.png",
+  "alphaProcessing": false,
+  "runtimeIntegrationActive": false
+}

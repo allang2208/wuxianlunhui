@@ -1,0 +1,53 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_engineer_branch_20260830\\runtime\\vehicle_factory_body.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\assets\\terrain\\vehicle_factory.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    74,
+    195,
+    951,
+    920
+  ],
+  "fileSize": [
+    877,
+    725
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    873,
+    721
+  ],
+  "displayW": 512,
+  "displayH": 423,
+  "footOffsetY": 209,
+  "scaleX": 0.5838084378563284,
+  "scaleY": 0.5834482758620689
+}

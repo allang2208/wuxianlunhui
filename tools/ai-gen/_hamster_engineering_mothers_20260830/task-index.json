@@ -1,0 +1,225 @@
+{
+  "task": "hamster_engineering_three_tier_mother_frames",
+  "date": "2026-08-30",
+  "provider": "codex_builtin_imagegen",
+  "status": "accepted_mothers_used_by_all_three_runtime_unit_pipelines",
+  "approvalStatus": "user_accepted_for_animation_production",
+  "acceptedPreview": "previews/hamster-engineering-line-mothers-v06-infantry-camera.png",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "background": "white_background_candidate_not_transparent",
+  "viewContract": "Use champion v01 and phalanx v02 as direct camera references: mildly elevated right-facing three-quarter view shared by BOTH crew and machinery. Distinguish scene-level gun pitch from screen-space barrel slope; previous strict pixel-horizontal/side-elevation rule superseded. Camera correspondence is qualitative image review, not calibrated 3D extrinsics or runtime firing verification.",
+  "preview": "previews/hamster-engineering-line-mothers-v06-infantry-camera.png",
+  "productionBudget": {
+    "profile": "crowd",
+    "futureAnimationTargetMiB": 32,
+    "futureAnimationAdmissionLimitMiB": 64,
+    "budgetChecksRun": false,
+    "runtimeScale": null,
+    "notes": "These are the original mother-stage planning values. Final action budgets and scale are recorded by each runtimeManifest; runtime testing is pending."
+  },
+  "runtimeConfigurationChanged": true,
+  "tasks": [
+    {
+      "unitKey": "hamster_catapult_crew",
+      "unitName": "仓鼠投石组",
+      "level": 1,
+      "building": "工程师营地",
+      "status": "accepted_animation_source",
+      "crewCount": 2,
+      "artilleryCount": 1,
+      "output": "mother/hamster_catapult_crew-mother-v07-infantry-camera-white.png",
+      "prompt": "prompts/hamster_catapult_crew-v07-infantry-camera-white.txt",
+      "sourceOutput": "mother/hamster_catapult_crew-mother-v06-infantry-camera.png",
+      "sourcePrompt": "prompts/hamster_catapult_crew-v06-infantry-camera.txt",
+      "identityReference": "references/hamster-crossbow-mother-v05-face-refined-white.png",
+      "originalReference": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-crossbow-mother-v05-face-refined-white.png",
+      "providerOutputV01": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-6c6b4218-b0b5-4ede-ad2d-0672790c31a6.png",
+      "providerOutputV02": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-7568a86a-c67f-46c2-8390-83d1b52a90c9.png",
+      "providerOutputV03": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-9f4b7133-bab7-4ab8-bff8-4cccd2d8d55c.png",
+      "faceStandard": "mother/hamster_howitzer_crew-mother-v02-white.png",
+      "revisionScope": "参照冠军卫士/方阵兵重绘统一略俯视右向三分之四镜头，人物、轮轴和底盘共享纵深；保留双仓鼠身份与同等体型、各级服装器械，投石组保留装填准备。 v07清理地面阴影，白底仍非透明，不声明像素级保真。",
+      "revisionHistory": [
+        {
+          "version": "v03",
+          "output": "mother/hamster_catapult_crew-mother-v03-modern-face.png",
+          "prompt": "prompts/hamster_catapult_crew-v03-modern-face.txt",
+          "sourceOutput": "mother/hamster_catapult_crew-mother-v02-white.png",
+          "sourcePrompt": "prompts/hamster_catapult_crew-v02-white-cleanup.txt",
+          "revisionScope": "两只仓鼠面部参照现代炮组；原帽服、身体姿势、器械和构图作为保留项"
+        },
+        {
+          "version": "v04",
+          "output": "mother/hamster_catapult_crew-mother-v04-right-facing.png",
+          "prompt": "prompts/hamster_catapult_crew-v04-right-facing.txt",
+          "sourceOutput": "mother/hamster_catapult_crew-mother-v03-modern-face.png",
+          "sourcePrompt": "prompts/hamster_catapult_crew-v03-modern-face.txt",
+          "revisionScope": "投石机底盘转为侧向，投射平面对齐画面向右；投石臂保留抬起姿态，两名仓鼠随组合向右侧转。"
+        },
+        {
+          "version": "v05",
+          "output": "mother/hamster_catapult_crew-mother-v05-equal-crew-loading.png",
+          "prompt": "prompts/hamster_catapult_crew-v05-equal-crew-loading.txt",
+          "sourceOutput": "mother/hamster_catapult_crew-mother-v04-right-facing.png",
+          "sourcePrompt": "prompts/hamster_catapult_crew-v04-right-facing.txt",
+          "revisionScope": "仅投石组：两名仓鼠调为同等成年体型、相近脚线；勺臂降低到装填待机姿态，搬石手靠近空勺斗、操作手在侧面握绞盘。保留朝右视角、脸型和木铁皮革设计。"
+        },
+        {
+          "version": "v06",
+          "output": "mother/hamster_catapult_crew-mother-v06-infantry-camera.png",
+          "prompt": "prompts/hamster_catapult_crew-v06-infantry-camera.txt",
+          "sourceOutput": "mother/hamster_catapult_crew-mother-v05-equal-crew-loading.png",
+          "sourcePrompt": "prompts/hamster_catapult_crew-v05-equal-crew-loading.txt",
+          "revisionScope": "参照冠军卫士/方阵兵重绘统一略俯视右向三分之四镜头，人物、轮轴和底盘共享纵深；保留双仓鼠身份与同等体型、各级服装器械，投石组保留装填准备。"
+        }
+      ],
+      "providerOutputV04": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-27545a03-2553-4735-a403-6ddc6dc34caa.png",
+      "cameraReferences": [
+        "references/hamster-champion-mother-v01.png",
+        "references/hamster-phalanx-mother-v02-double-axe.png",
+        "mother/hamster_howitzer_crew-mother-v06-infantry-camera.png"
+      ],
+      "providerOutputV05": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-c3baf512-ab79-4395-ba03-8608781b252d.png",
+      "providerOutputV06": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-12347432-5153-435a-8c66-0e1ddc4b50b9.png",
+      "providerOutputV07": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-84084021-6818-4583-acc4-72442b2b17ce.png",
+      "runtimeManifest": "../_hamster_catapult_animations_20260830/spritesheet-manifest.json"
+    },
+    {
+      "unitKey": "hamster_field_cannon_crew",
+      "unitName": "仓鼠野战炮组",
+      "level": 2,
+      "building": "工程工坊",
+      "status": "accepted_animation_source",
+      "crewCount": 2,
+      "artilleryCount": 1,
+      "output": "mother/hamster_field_cannon_crew-mother-v07-infantry-camera-white.png",
+      "prompt": "prompts/hamster_field_cannon_crew-v07-infantry-camera-white.txt",
+      "sourceOutput": "mother/hamster_field_cannon_crew-mother-v06-infantry-camera.png",
+      "sourcePrompt": "prompts/hamster_field_cannon_crew-v06-infantry-camera.txt",
+      "identityReference": "references/hamster-crossbow-mother-v05-face-refined-white.png",
+      "originalReference": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-crossbow-mother-v05-face-refined-white.png",
+      "providerOutputV01": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-56334525-4c6d-487d-ae92-128996a13883.png",
+      "providerOutputV02": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-1d36506d-c417-4646-b202-6a19230a71c6.png",
+      "providerOutputV03": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-8e0b4c49-9afd-4207-baca-e4d7d689db95.png",
+      "faceStandard": "mother/hamster_howitzer_crew-mother-v02-white.png",
+      "revisionScope": "参照冠军卫士/方阵兵重绘统一略俯视右向三分之四镜头，人物、轮轴和底盘共享纵深；保留双仓鼠身份与同等体型、各级服装器械，投石组保留装填准备。 v07清理地面阴影，白底仍非透明，不声明像素级保真。",
+      "revisionHistory": [
+        {
+          "version": "v03",
+          "output": "mother/hamster_field_cannon_crew-mother-v03-modern-face.png",
+          "prompt": "prompts/hamster_field_cannon_crew-v03-modern-face.txt",
+          "sourceOutput": "mother/hamster_field_cannon_crew-mother-v02-white.png",
+          "sourcePrompt": "prompts/hamster_field_cannon_crew-v02-white-cleanup.txt",
+          "revisionScope": "两只仓鼠面部参照现代炮组；原帽服、身体姿势、器械和构图作为保留项"
+        },
+        {
+          "version": "v04",
+          "output": "mother/hamster_field_cannon_crew-mother-v04-right-facing.png",
+          "prompt": "prompts/hamster_field_cannon_crew-v04-right-facing.txt",
+          "sourceOutput": "mother/hamster_field_cannon_crew-mother-v03-modern-face.png",
+          "sourcePrompt": "prompts/hamster_field_cannon_crew-v03-modern-face.txt",
+          "revisionScope": "整门炮转为侧向，炮管按画面水平向右；两名仓鼠随炮架向右侧转，保留各级脸型、服装与器械设计。"
+        },
+        {
+          "version": "v05",
+          "output": "mother/hamster_field_cannon_crew-mother-v05-level-barrel.png",
+          "prompt": "prompts/hamster_field_cannon_crew-v05-level-barrel.txt",
+          "sourceOutput": "mother/hamster_field_cannon_crew-mother-v04-right-facing.png",
+          "sourcePrompt": "prompts/hamster_field_cannon_crew-v04-right-facing.txt",
+          "revisionScope": "整门炮转为侧向，炮管按画面水平向右；两名仓鼠随炮架向右侧转，保留各级脸型、服装与器械设计。 v05在v04基础上局部调平铜炮的轻微下倾。"
+        },
+        {
+          "version": "v06",
+          "output": "mother/hamster_field_cannon_crew-mother-v06-infantry-camera.png",
+          "prompt": "prompts/hamster_field_cannon_crew-v06-infantry-camera.txt",
+          "sourceOutput": "mother/hamster_field_cannon_crew-mother-v05-level-barrel.png",
+          "sourcePrompt": "prompts/hamster_field_cannon_crew-v05-level-barrel.txt",
+          "revisionScope": "参照冠军卫士/方阵兵重绘统一略俯视右向三分之四镜头，人物、轮轴和底盘共享纵深；保留双仓鼠身份与同等体型、各级服装器械，投石组保留装填准备。"
+        }
+      ],
+      "providerOutputV04": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-608abffb-9323-41e6-b93c-216a06b45b08.png",
+      "cameraReferences": [
+        "references/hamster-champion-mother-v01.png",
+        "references/hamster-phalanx-mother-v02-double-axe.png",
+        "mother/hamster_howitzer_crew-mother-v06-infantry-camera.png"
+      ],
+      "providerOutputV05": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-fbdc3062-9049-4f3b-899b-909c10275e56.png",
+      "providerOutputV06": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-7f7c959b-db4e-40c5-b4d2-cb5630ec7fb6.png",
+      "providerOutputV07": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-627ea0f6-9200-4c50-b957-4b35078c4d41.png",
+      "runtimeManifest": "../_hamster_field_cannon_animations_20260830/spritesheet-manifest.json"
+    },
+    {
+      "unitKey": "hamster_howitzer_crew",
+      "unitName": "仓鼠榴弹炮组",
+      "level": 3,
+      "building": "载具工厂",
+      "status": "accepted_animation_source",
+      "crewCount": 2,
+      "artilleryCount": 1,
+      "output": "mother/hamster_howitzer_crew-mother-v06-infantry-camera.png",
+      "prompt": "prompts/hamster_howitzer_crew-v06-infantry-camera.txt",
+      "sourceOutput": "mother/hamster_howitzer_crew-mother-v04-right-facing.png",
+      "sourcePrompt": "prompts/hamster_howitzer_crew-v04-right-facing.txt",
+      "identityReference": "references/hamster-heavy-machine-gunner-mother-v02-unified-white.png",
+      "originalReference": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-heavy-machine-gunner-mother-v02-unified-white.png",
+      "providerOutputV01": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-0213989f-d7d5-47b4-89b8-bd3a8ceeb334.png",
+      "providerOutputV02": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-e612fba6-beb7-4432-a2f9-139555003d53.png",
+      "providerOutputV03": "C:\\Users\\allan\\.codex\\generated_images\\01a05161-e725-7c90-be76-f1f68801e8d9\\exec-f4f669d8-a18f-4b7c-a7de-c37d576effbe.png",
+      "faceStandard": "mother/hamster_howitzer_crew-mother-v02-white.png",
+      "revisionScope": "参照冠军卫士/方阵兵重绘统一略俯视右向三分之四镜头，人物、轮轴和底盘共享纵深；保留双仓鼠身份与同等体型、各级服装器械，投石组保留装填准备。",
+      "revisionHistory": [
+        {
+          "version": "v03",
+          "output": "mother/hamster_howitzer_crew-mother-v03-caliber-match.png",
+          "prompt": "prompts/hamster_howitzer_crew-v03-caliber-match.txt",
+          "sourceOutput": "mother/hamster_howitzer_crew-mother-v02-white.png",
+          "sourcePrompt": "prompts/hamster_howitzer_crew-v02-white-cleanup.txt",
+          "revisionScope": "仅炮管、炮口及紧邻连接环的视觉比例；保留现代仓鼠脸型和原炮弹尺寸，不声明机械工程尺寸已验证"
+        },
+        {
+          "version": "v04",
+          "output": "mother/hamster_howitzer_crew-mother-v04-right-facing.png",
+          "prompt": "prompts/hamster_howitzer_crew-v04-right-facing.txt",
+          "sourceOutput": "mother/hamster_howitzer_crew-mother-v03-caliber-match.png",
+          "sourcePrompt": "prompts/hamster_howitzer_crew-v03-caliber-match.txt",
+          "revisionScope": "整门炮转为侧向，炮管按画面水平向右；两名仓鼠随炮架向右侧转，保留各级脸型、服装与器械设计。"
+        }
+      ],
+      "providerOutputV04": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-2d5e59b3-3833-4c37-810e-225488914c88.png",
+      "cameraReferences": [
+        "references/hamster-champion-mother-v01.png",
+        "references/hamster-phalanx-mother-v02-double-axe.png"
+      ],
+      "providerOutputV06": "C:/Users/allan/.codex/generated_images/01a05161-e725-7c90-be76-f1f68801e8d9/exec-6aed1bf7-2f84-4f6f-b5cd-5e04eec9d09a.png",
+      "runtimeManifest": "../_hamster_howitzer_animations_20260830/spritesheet-manifest.json"
+    }
+  ],
+  "faceStandard": "mother/hamster_howitzer_crew-mother-v02-white.png",
+  "latestRevisionRequest": "重新分析现有兵种母图后统一三档人物与器械的略俯视右向三分之四透视；不再仅把炮管压成图片水平线，保留双仓鼠同体型与投石组装填分工。",
+  "cameraReferences": [
+    {
+      "path": "references/hamster-champion-mother-v01.png",
+      "source": "../_hamster_champion_20260826/mother/hamster-champion-mother-v01.png",
+      "role": "direct camera/body-orientation reference"
+    },
+    {
+      "path": "references/hamster-phalanx-mother-v02-double-axe.png",
+      "source": "../_hamster_phalanx_20260826/mother/hamster-phalanx-mother-v02-double-axe.png",
+      "role": "direct camera/body-orientation reference"
+    }
+  ],
+  "cameraAnalysis": "camera-review-v06.md",
+  "previousCameraReferences": [
+    {
+      "path": "references/hamster-longbow-mother-v04-infantry-view-candidate.png",
+      "source": "../_hamster_longbow_20260827/mother/hamster-longbow-mother-v04-infantry-view-candidate.png",
+      "role": "approved infantry camera and coherent whole-body right-facing stance"
+    },
+    {
+      "path": "references/hamster-assault-mother-v03-compact-body-white.png",
+      "source": "../_hamster_missing_mothers_20260826/mother/hamster-assault-mother-v03-compact-body-white.png",
+      "role": "infantry mild elevation and right-facing body; not its downward idle weapon angle"
+    }
+  ],
+  "archivePolicy": "Earlier mother images are retained where they are direct edit inputs; superseded overview images are archived. RuntimeIntegrationActive describes downstream development assets, not a mother-frame runtime texture."
+}

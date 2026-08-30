@@ -39,6 +39,9 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import catapultCrewCfg from '../../data/hamster-catapult-crew-config.json';
+import fieldCannonCrewCfg from '../../data/hamster-field-cannon-crew-config.json';
+import howitzerCrewCfg from '../../data/hamster-howitzer-crew-config.json';
 import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
@@ -90,6 +93,9 @@ export const WORLD122_SIM = {
 };
 
 const UNIT_CFGS = {
+    hamster_catapult_crew: catapultCrewCfg,
+    hamster_field_cannon_crew: fieldCannonCrewCfg,
+    hamster_howitzer_crew: howitzerCrewCfg,
     militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
     guard: guardCfg, phalanx: phalanxCfg, special_forces: specialForcesCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, longbow: longbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
@@ -762,9 +768,14 @@ function _unitDps(kind, levelOverrides = null) {
     const mults = getUnitUpgradeMults(kind, getUpgradeModulesForUnitKind(kind));
     const dmg = (cfg.ai.attackDamage ?? 20) * mults.attackDamageMult;
     const spellCooldownMult = kind === 'jungle_priest' ? mults.jungleSpellCooldownMult : 1;
-    const interval = Math.max(300,
+    const artillery = ['hamster_catapult_crew', 'hamster_field_cannon_crew', 'hamster_howitzer_crew'].includes(kind);
+    const interval = Math.max(300, artillery ? cfg.animations.attack.durationMs : 0,
         (cfg.ai.attackInterval ?? 2000) * mults.attackIntervalMult * spellCooldownMult);
     let dps = dmg * 1000 / interval;
+    if (artillery) {
+        dps *= 1 + Math.max(0, Number(cfg.ai.expectedExtraTargets) || 0)
+            * (1 - (Number(cfg.ai.splashFalloff) || 0) * 0.5);
+    }
     if (kind === 'anti_vehicle') {
         const rocketDamage = (Number(cfg.ai.rocketDamage) || 0) * mults.attackDamageMult;
         dps += rocketDamage * 1000 / Math.max(1000, Number(cfg.ai.rocketCooldownMs) || 8000);

@@ -47,6 +47,11 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
 - 接线时点跟随游戏真实事件：枪声在投射物成功出膛时走 `playGunshotAt`，并把正式路径加入 `audio-config.json#gunshotPreloadPaths`；近战声在命中/接触帧单次播放；烟遁类状态音在隐身真正生效的会话守卫内播放，不在逐帧更新里重复触发。玩家本体技能可用 `playFile`；同一技能由仓鼠/Companion 施放时必须切换为 `playWorld(path, source.x, source.y)`。
 - 可复用实现为 `tools/ai-gen/extract-hamster-soldier-audio.py` 与 `tools/ai-gen/hamster-soldier-video-audio-20260826.json`。正式 MP3、提取脚本和来源清单属于交付件；全程背景噪声、失败编码输出、临时波形/探针才是废案，不得误删其他会话保留的原视频和精灵表真源。
 
+#### 工程器械的开火、退壳与装填事件
+
+- 开火声只在弹丸成功释放时触发；退壳和装填按最终攻击动作的累计毫秒时钟登记为有序 `attackSoundEvents`。一次攻击用消费游标防止逐帧重播，新攻击/改令/硬控/死亡重置游标；追加取弹段不重复播放原炮声。
+- 持续移动底声即使来自正式视频也不自动入库；短移动声仅在实际位移且处于移动状态时按间隔播放，停步不遗留循环句柄。示例来源与裁切窗口：`tools/ai-gen/_engineering_line_completion_20260830/audio-cues.json`；声明事件接线不等于已完成听感/运行时验收。
+
 #### 步骤1: 素材复制建档（规则 4）
 按类别在项目下建子文件夹，把用户提供的音频复制进去：
 ```

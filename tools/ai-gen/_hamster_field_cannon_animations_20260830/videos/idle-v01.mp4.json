@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T10:53:56.635800+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_field_cannon_animations_20260830\\videos\\idle-v01.mp4",
+    "bytes": 398192,
+    "sha256": "e3bbdf5d4f160b8dd6c0c82d40661e0725e72dbdf97c078b134338742878da63"
+  },
+  "promptId": "c29c2733-f2d5-4446-820d-d5c3d7c42c67",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 830201,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers and ONE classical bronze field cannon. Preserve their rounded black eyes, cream-white muzzles, black tricorn hats with brass trim, olive quilted coats, red cuffs, leather straps and brown boots. Preserve the left loader's long wooden ramrod and the cannon's long bronze barrel, dark wooden carriage, wooden spoked wheels with iron rims, and rear trail. Locked mildly elevated right-facing three-quarter camera, identical perspective for crew and machine, fixed framing and scale. Keep the entire unit and ramrod inside the image. Pure solid white background and white ground, no scenery, text, ground shadows or camera movement.\n\nA seamless 5-second IDLE cycle. Both crew remain in their opening positions and keep holding their equipment. Gentle breathing, one natural blink, tiny glove grip adjustments and subtle cloth settling. The left loader holds the ramrod safely at its original angle. The gunner maintains a relaxed ready stance beside the cannon. The rigid barrel and carriage remain planted; wheels do not turn. No loading, firing or extra objects. Finish in the exact initial pose for a continuous loop.",
+  "effectivePrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers and ONE classical bronze field cannon. Preserve their rounded black eyes, cream-white muzzles, black tricorn hats with brass trim, olive quilted coats, red cuffs, leather straps and brown boots. Preserve the left loader's long wooden ramrod and the cannon's long bronze barrel, dark wooden carriage, wooden spoked wheels with iron rims, and rear trail. Locked mildly elevated right-facing three-quarter camera, identical perspective for crew and machine, fixed framing and scale. Keep the entire unit and ramrod inside the image. Pure solid white background and white ground, no scenery, text, ground shadows or camera movement.\n\nA seamless 5-second IDLE cycle. Both crew remain in their opening positions and keep holding their equipment. Gentle breathing, one natural blink, tiny glove grip adjustments and subtle cloth settling. The left loader holds the ramrod safely at its original angle. The gunner maintains a relaxed ready stance beside the cannon. The rigid barrel and carriage remain planted; wheels do not turn. No loading, firing or extra objects. Finish in the exact initial pose for a continuous loop.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers and ONE classical bronze field cannon. Preserve their rounded black eyes, cream-white muzzles, black tricorn hats with brass trim, olive quilted coats, red cuffs, leather straps and brown boots. Preserve the left loader's long wooden ramrod and the cannon's long bronze barrel, dark wooden carriage, wooden spoked wheels with iron rims, and rear trail. Locked mildly elevated right-facing three-quarter camera, identical perspective for crew and machine, fixed framing and scale. Keep the entire unit and ramrod inside the image. Pure solid white background and white ground, no scenery, text, ground shadows or camera movement.\n\nA seamless 5-second IDLE cycle. Both crew remain in their opening positions and keep holding their equipment. Gentle breathing, one natural blink, tiny glove grip adjustments and subtle cloth settling. The left loader holds the ramrod safely at its original angle. The gunner maintains a relaxed ready stance beside the cannon. The rigid barrel and carriage remain planted; wheels do not turn. No loading, firing or extra objects. Finish in the exact initial pose for a continuous loop. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "f1d95b78279ba853d4e4e0c9bc280055171df2b3f848bc68c9a60fe2e7bbccc1",
+  "effectivePromptSha256": "f1d95b78279ba853d4e4e0c9bc280055171df2b3f848bc68c9a60fe2e7bbccc1",
+  "finalPromptSha256": "c7156b23e23f1a3db890e33a72bf78e181dfb85adcf94b83f083c1c5bb3167a7",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_field_cannon_animations_20260830\\prompts\\idle-v01.txt",
+      "bytes": 1216,
+      "sha256": "54894fc773393b644ddaf06c5ccc2df63d3d7ee4ac6b0f166dc2d6f675dad792"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_field_cannon_animations_20260830\\reference\\field-cannon-v07-padded-1024x576.png",
+      "bytes": 365074,
+      "sha256": "ff37e836e7fa75f1f935c537b17b61edcb8c29d2f41e1887162bdd77332b4b95"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_field_cannon_animations_20260830\\reference\\field-cannon-v07-padded-1024x576.png",
+      "bytes": 365074,
+      "sha256": "ff37e836e7fa75f1f935c537b17b61edcb8c29d2f41e1887162bdd77332b4b95"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_field_cannon_animations_20260830\\videos\\idle-v01_contact.png",
+    "bytes": 477023,
+    "sha256": "75a753f5da0cfee0c8fd84efcb4aa9506d17f2f365648f69cfd242f8f13d8345"
+  },
+  "elapsedSeconds": 1312.074
+}

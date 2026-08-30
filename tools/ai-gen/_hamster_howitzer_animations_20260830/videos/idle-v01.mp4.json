@@ -1,0 +1,61 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "promptId": "98db1a0b-5023-4325-a0b3-4895a005e2b9",
+  "createdAt": "2026-08-30T12:19:51.301678+00:00",
+  "recoveredDownload": true,
+  "recoveryReason": "Original local client interrupted; remote job continued without resubmission.",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\idle-v01.mp4",
+    "bytes": 398786,
+    "sha256": "bc815cbc13795ffe86544953e87ac5a61efe11b958f52a0120ee27b9d0fbbe96"
+  },
+  "candidate": 1,
+  "candidateCount": 1,
+  "seed": 830301,
+  "actionMode": "loop",
+  "mode": "i2v_firstframe",
+  "audioMode": "visual-only",
+  "visualProfile": "character-asset",
+  "promptFormat": "h3",
+  "authoredPrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer and ONE reserve shell held by the left loader. Preserve rounded black eyes, cream-white muzzles, olive combat helmets and ear protection, olive uniforms, tactical vests and pouches, knee pads, gloves and brown boots. Preserve the long rigid steel barrel with its slotted muzzle brake, recoil housing, metal shield, two rubber tires, metal wheels and long rear trails. Keep the original relative dimensions of barrel, muzzle opening and held shell. Locked mildly elevated right-facing three-quarter camera shared by both crew and weapon, fixed framing and scale. Keep every body and mechanical part inside the frame. Pure white background and white ground, no scenery, text, ground shadows or camera motion.\n\nA seamless 5-second IDLE cycle. Both engineers stay in their opening positions: the left loader securely cradles the reserve shell with both hands, while the right gunner keeps a hand on the adjustment wheel. Gentle breathing, one natural blink, tiny grip changes and cloth settling. Barrel, shield, wheels and trails remain planted and rigid. No loading or firing; no additional ammunition. Finish in the supplied opening pose for a continuous loop.",
+  "effectivePrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer and ONE reserve shell held by the left loader. Preserve rounded black eyes, cream-white muzzles, olive combat helmets and ear protection, olive uniforms, tactical vests and pouches, knee pads, gloves and brown boots. Preserve the long rigid steel barrel with its slotted muzzle brake, recoil housing, metal shield, two rubber tires, metal wheels and long rear trails. Keep the original relative dimensions of barrel, muzzle opening and held shell. Locked mildly elevated right-facing three-quarter camera shared by both crew and weapon, fixed framing and scale. Keep every body and mechanical part inside the frame. Pure white background and white ground, no scenery, text, ground shadows or camera motion.\n\nA seamless 5-second IDLE cycle. Both engineers stay in their opening positions: the left loader securely cradles the reserve shell with both hands, while the right gunner keeps a hand on the adjustment wheel. Gentle breathing, one natural blink, tiny grip changes and cloth settling. Barrel, shield, wheels and trails remain planted and rigid. No loading or firing; no additional ammunition. Finish in the supplied opening pose for a continuous loop.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer and ONE reserve shell held by the left loader. Preserve rounded black eyes, cream-white muzzles, olive combat helmets and ear protection, olive uniforms, tactical vests and pouches, knee pads, gloves and brown boots. Preserve the long rigid steel barrel with its slotted muzzle brake, recoil housing, metal shield, two rubber tires, metal wheels and long rear trails. Keep the original relative dimensions of barrel, muzzle opening and held shell. Locked mildly elevated right-facing three-quarter camera shared by both crew and weapon, fixed framing and scale. Keep every body and mechanical part inside the frame. Pure white background and white ground, no scenery, text, ground shadows or camera motion.\n\nA seamless 5-second IDLE cycle. Both engineers stay in their opening positions: the left loader securely cradles the reserve shell with both hands, while the right gunner keeps a hand on the adjustment wheel. Gentle breathing, one natural blink, tiny grip changes and cloth settling. Barrel, shield, wheels and trails remain planted and rigid. No loading or firing; no additional ammunition. Finish in the supplied opening pose for a continuous loop. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "frames": 124,
+    "fps": 24.0,
+    "duration": 5.17,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\prompts\\idle-v01.txt",
+      "bytes": 1297,
+      "sha256": "734e2fb4ed5777a1c767463b84786f5a3bc247483316be6248418ce7f18d0185"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "remoteHistory": "logs/idle-remote-history.json"
+}

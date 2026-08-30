@@ -1,0 +1,144 @@
+{
+  "status": "runtime_assets_installed",
+  "acceptedOn": "2026-08-30",
+  "authorization": "用户在询问是否导入游戏后明确要求继续接入当前三档已修正建筑。",
+  "sourceIndex": "local-repair-index.json",
+  "entries": [
+    {
+      "assetId": "engineer_camp",
+      "level": 1,
+      "name": "工程师营地",
+      "visual": {
+        "tex": "engineer_camp",
+        "assetPath": "assets/terrain/engineer_camp.png",
+        "displayW": 512,
+        "displayH": 370,
+        "footOffsetY": 183,
+        "visualFootprint": {
+          "centerXRatio": 0.5,
+          "centerYRatio": 0.654517,
+          "widthRatio": 0.990826,
+          "depthRatio": 0.678288,
+          "scaleMode": "strict"
+        }
+      },
+      "sourceRaw": "local_repair_v1/engineer_camp/engineer_camp_refine_v01_finished_raw.png",
+      "source48": "candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v02_raw.png",
+      "sourceMetadata": "local_repair_v1/engineer_camp/engineer_camp_refine_v01_finished_metadata.json",
+      "keyThreshold": 60,
+      "depthUsedForAlpha": false,
+      "rgbEdgeRepairPixels": 1416,
+      "calibration": {
+        "sideRows": [
+          412.0,
+          414.0
+        ],
+        "frontY": 627,
+        "leftX": 4,
+        "rightX": 867,
+        "fileSize": [
+          872,
+          631
+        ],
+        "logicalFootprintCells": 4,
+        "targetFootprint": [
+          512,
+          256
+        ]
+      },
+      "assetCutoutHash": "83D4EAA1BEE173E42FE8F8DADFFBC7EBE4886F63EA6FB1BD08653DECA905DAE2",
+      "runtimeMetadata": "runtime/engineer_camp_runtime.json"
+    },
+    {
+      "assetId": "engineering_workshop",
+      "level": 2,
+      "name": "工程工坊",
+      "visual": {
+        "tex": "engineering_workshop",
+        "assetPath": "assets/terrain/engineering_workshop.png",
+        "displayW": 512,
+        "displayH": 411,
+        "footOffsetY": 203,
+        "visualFootprint": {
+          "centerXRatio": 0.5,
+          "centerYRatio": 0.684173,
+          "widthRatio": 0.990762,
+          "depthRatio": 0.620144,
+          "scaleMode": "strict"
+        }
+      },
+      "sourceRaw": "local_repair_v1/engineering_workshop/engineering_workshop_refine_v02_finished_raw.png",
+      "source48": "candidates_dev_s48_v1/engineering_workshop/engineering_workshop_refine_v01_raw.png",
+      "sourceMetadata": "local_repair_v1/engineering_workshop/engineering_workshop_refine_v02_finished_metadata.json",
+      "keyThreshold": 110,
+      "depthUsedForAlpha": false,
+      "rgbEdgeRepairPixels": 1712,
+      "calibration": {
+        "sideRows": [
+          475.0,
+          476.0
+        ],
+        "frontY": 691,
+        "leftX": 4,
+        "rightX": 861,
+        "fileSize": [
+          866,
+          695
+        ],
+        "logicalFootprintCells": 4,
+        "targetFootprint": [
+          512,
+          256
+        ]
+      },
+      "assetCutoutHash": "74AB0DFC3BBCC1C1E7AFD997F0CCDD009127F5B80DAB0203A7FF822BE8AEA4FC",
+      "runtimeMetadata": "runtime/engineering_workshop_runtime.json"
+    },
+    {
+      "assetId": "vehicle_factory",
+      "level": 3,
+      "name": "载具工厂",
+      "visual": {
+        "tex": "vehicle_factory",
+        "assetPath": "assets/terrain/vehicle_factory.png",
+        "displayW": 512,
+        "displayH": 423,
+        "footOffsetY": 209,
+        "visualFootprint": {
+          "centerXRatio": 0.5,
+          "centerYRatio": 0.692414,
+          "widthRatio": 0.990878,
+          "depthRatio": 0.604138,
+          "scaleMode": "strict"
+        }
+      },
+      "sourceRaw": "local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_finished_raw.png",
+      "source48": "candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+      "sourceMetadata": "local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_finished_metadata.json",
+      "keyThreshold": 90,
+      "depthUsedForAlpha": false,
+      "rgbEdgeRepairPixels": 1760,
+      "calibration": {
+        "sideRows": [
+          501.0,
+          503.0
+        ],
+        "frontY": 721,
+        "leftX": 4,
+        "rightX": 872,
+        "fileSize": [
+          877,
+          725
+        ],
+        "logicalFootprintCells": 4,
+        "targetFootprint": [
+          512,
+          256
+        ]
+      },
+      "assetCutoutHash": "04DCA2177C7A0CA5D9E2E214AED25CFE6D1EE9027BE9B31515A12BC9B2F7881B",
+      "runtimeMetadata": "runtime/vehicle_factory_runtime.json"
+    }
+  ],
+  "runtimeValidation": "Not run; user will test under project agreement."
+}

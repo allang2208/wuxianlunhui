@@ -22,10 +22,11 @@ const MILITARY_SUB_BRANCH_ROWS = Object.freeze([
     Object.freeze({ label: '草屋→特战', lane: 0, span: 1 }),
     Object.freeze({ label: '军营', lane: 1, span: 1 }),
     Object.freeze({ label: '靶场', lane: 2, span: 1 }),
-    Object.freeze({ label: '骑兵学院', lane: 3, span: 1 }),
-    Object.freeze({ label: '教堂', lane: 4, span: 1 }),
-    Object.freeze({ label: '指挥', lane: 5, span: 1 }),
-    Object.freeze({ label: '军事支援', lane: 6, span: 2 }),
+    Object.freeze({ label: '工程器械', lane: 3, span: 1 }),
+    Object.freeze({ label: '骑兵学院', lane: 4, span: 1 }),
+    Object.freeze({ label: '教堂', lane: 5, span: 1 }),
+    Object.freeze({ label: '指挥', lane: 6, span: 1 }),
+    Object.freeze({ label: '军事支援', lane: 7, span: 2 }),
 ]);
 const ECONOMY_SUB_BRANCH_ROWS = Object.freeze([
     Object.freeze({ label: '住房', lane: 0, span: 1 }),

@@ -5699,6 +5699,345 @@
         "frameWidth": 948,
         "frameHeight": 815
       }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "engineer_camp",
+      "textureKey": "engineer_camp",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/engineer_camp.png",
+      "sourceWidth": 872,
+      "sourceHeight": 631,
+      "displayWidth": 512,
+      "displayHeight": 370,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.654517,
+        "widthRatio": 0.990826,
+        "depthRatio": 0.678288,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 516.5,
+        "displayHeight": 377.5,
+        "scaleX": 0.592592406035724,
+        "scaleY": 0.5981312212422715,
+        "uniformScale": 0.592592406035724,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 186.5,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 436,
+        "sourceFootprintCenterY": 413,
+        "sourceFootprintFrontY": 627,
+        "sourceFootprintHalfDepth": 214,
+        "sourceFootprintWidth": 864,
+        "sourceFootprintDepth": 428,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 436,
+        "groundCenterSourceY": 413,
+        "groundSectionWidth": 864,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 435.5,
+        "bottomY": 626.000091,
+        "sideY": 413.000227,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 872,
+        "frameHeight": 631
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "engineer_camp_level_2",
+      "textureKey": "engineering_workshop",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/engineering_workshop.png",
+      "sourceWidth": 866,
+      "sourceHeight": 695,
+      "displayWidth": 512,
+      "displayHeight": 411,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.684173,
+        "widthRatio": 0.990762,
+        "depthRatio": 0.620144,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 517,
+        "displayHeight": 413,
+        "scaleX": 0.5967366718503037,
+        "scaleY": 0.5939674071522214,
+        "uniformScale": 0.5967366718503037,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 204,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 433,
+        "sourceFootprintCenterY": 475.5,
+        "sourceFootprintFrontY": 691,
+        "sourceFootprintHalfDepth": 215.5,
+        "sourceFootprintWidth": 858,
+        "sourceFootprintDepth": 431,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 433,
+        "groundCenterSourceY": 475.5,
+        "groundSectionWidth": 858,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 432.5,
+        "bottomY": 690.0002750000001,
+        "sideY": 475.50023500000003,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 866,
+        "frameHeight": 695
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "engineer_camp_level_3",
+      "textureKey": "vehicle_factory",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/vehicle_factory.png",
+      "sourceWidth": 877,
+      "sourceHeight": 725,
+      "displayWidth": 512,
+      "displayHeight": 423,
+      "nominalWidth": 512,
+      "nominalHeight": 256,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.692414,
+        "widthRatio": 0.990878,
+        "depthRatio": 0.604138,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 516.5,
+        "displayHeight": 423.5,
+        "scaleX": 0.5891829648617978,
+        "scaleY": 0.5844748191238791,
+        "uniformScale": 0.5891829648617978,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 209.5,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 438.5,
+        "sourceFootprintCenterY": 502,
+        "sourceFootprintFrontY": 721,
+        "sourceFootprintHalfDepth": 219,
+        "sourceFootprintWidth": 869,
+        "sourceFootprintDepth": 438,
+        "mappedFootprintWidth": 512,
+        "mappedFootprintDepth": 256,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 438.5,
+        "groundCenterSourceY": 502,
+        "groundSectionWidth": 869,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 438,
+        "bottomY": 720.0001749999999,
+        "sideY": 502.00014999999996,
+        "leftX": -256,
+        "rightX": 256,
+        "centerX": 0,
+        "centerY": -128,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 128,
+        "collisionWidth": 512,
+        "collisionHeight": 256,
+        "collisionRadius": 256,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -256
+          },
+          {
+            "key": "right",
+            "x": 256,
+            "y": -128
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -256,
+            "y": -128
+          }
+        ],
+        "frameWidth": 877,
+        "frameHeight": 725
+      }
     }
   ]
 }

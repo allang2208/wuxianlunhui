@@ -1,0 +1,61 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "promptId": "d740440b-5803-44d5-bf8e-e2986bdb9ef9",
+  "createdAt": "2026-08-30T11:57:52.371666+00:00",
+  "recoveredDownload": true,
+  "recoveryReason": "Original local client interrupted; remote job continued without resubmission.",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\run-v01.mp4",
+    "bytes": 569201,
+    "sha256": "548cf570e14c2738dabd4e31796254e74115152c33955211a4ce301252aeeb21"
+  },
+  "candidate": 1,
+  "candidateCount": 1,
+  "seed": 830302,
+  "actionMode": "loop",
+  "mode": "i2v_firstframe",
+  "audioMode": "visual-only",
+  "visualProfile": "character-asset",
+  "promptFormat": "h3",
+  "authoredPrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer and ONE reserve shell held by the left loader. Preserve their rounded black eyes, cream-white muzzles, olive helmets with ear protection, olive uniforms, tactical vests, knee pads, gloves and brown boots. Keep the long rigid barrel, slotted muzzle brake, recoil housing, shield, two rubber tires and metal wheels, and rear trails intact and unchanged. The held shell and barrel opening retain their reference proportions. Locked mildly elevated right-facing three-quarter camera shared by crew and weapon; fixed framing and scale. Whole unit stays inside the frame on a pure white background and white ground. No scenery, text, cast ground shadows or camera movement.\n\nA seamless 5-second MOVEMENT cycle toward screen right, centered in place like a treadmill game walk animation. The loader walks with alternating planted steps while holding the single reserve shell securely at chest height. The gunner leans into the carriage and pushes it with both gloved hands, marching beside it. The two rubber wheels roll clockwise as viewed by the camera. The rigid carriage moves with mild natural bob, its rear trail tips clear of the ground; no folding, deploying or transforming mechanisms. Keep the muzzle aimed along the original rightward axis. No firing, turning or sliding off-screen. End in the opening pose while preserving continuous walking rhythm at the loop seam.",
+  "effectivePrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer and ONE reserve shell held by the left loader. Preserve their rounded black eyes, cream-white muzzles, olive helmets with ear protection, olive uniforms, tactical vests, knee pads, gloves and brown boots. Keep the long rigid barrel, slotted muzzle brake, recoil housing, shield, two rubber tires and metal wheels, and rear trails intact and unchanged. The held shell and barrel opening retain their reference proportions. Locked mildly elevated right-facing three-quarter camera shared by crew and weapon; fixed framing and scale. Whole unit stays inside the frame on a pure white background and white ground. No scenery, text, cast ground shadows or camera movement.\n\nA seamless 5-second MOVEMENT cycle toward screen right, centered in place like a treadmill game walk animation. The loader walks with alternating planted steps while holding the single reserve shell securely at chest height. The gunner leans into the carriage and pushes it with both gloved hands, marching beside it. The two rubber wheels roll clockwise as viewed by the camera. The rigid carriage moves with mild natural bob, its rear trail tips clear of the ground; no folding, deploying or transforming mechanisms. Keep the muzzle aimed along the original rightward axis. No firing, turning or sliding off-screen. End in the opening pose while preserving continuous walking rhythm at the loop seam.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer and ONE reserve shell held by the left loader. Preserve their rounded black eyes, cream-white muzzles, olive helmets with ear protection, olive uniforms, tactical vests, knee pads, gloves and brown boots. Keep the long rigid barrel, slotted muzzle brake, recoil housing, shield, two rubber tires and metal wheels, and rear trails intact and unchanged. The held shell and barrel opening retain their reference proportions. Locked mildly elevated right-facing three-quarter camera shared by crew and weapon; fixed framing and scale. Whole unit stays inside the frame on a pure white background and white ground. No scenery, text, cast ground shadows or camera movement.\n\nA seamless 5-second MOVEMENT cycle toward screen right, centered in place like a treadmill game walk animation. The loader walks with alternating planted steps while holding the single reserve shell securely at chest height. The gunner leans into the carriage and pushes it with both gloved hands, marching beside it. The two rubber wheels roll clockwise as viewed by the camera. The rigid carriage moves with mild natural bob, its rear trail tips clear of the ground; no folding, deploying or transforming mechanisms. Keep the muzzle aimed along the original rightward axis. No firing, turning or sliding off-screen. End in the opening pose while preserving continuous walking rhythm at the loop seam. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "frames": 124,
+    "fps": 24.0,
+    "duration": 5.17,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\prompts\\run-v01.txt",
+      "bytes": 1510,
+      "sha256": "617a4bc2d483f0fa9a302b00bbb2974aa89e020736a53b9ecdb0bd90b85a1500"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "remoteHistory": "logs/run-remote-history.json"
+}

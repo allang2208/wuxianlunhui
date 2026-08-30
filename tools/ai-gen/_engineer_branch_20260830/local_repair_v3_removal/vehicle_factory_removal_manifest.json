@@ -1,0 +1,126 @@
+{
+  "outputRoot": "tools/ai-gen/_engineer_branch_20260830/local_repair_v3_removal",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "steps": 48,
+  "strength": 0.75,
+  "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.15,
+  "refineEdgeStrength": 0.38,
+  "structuralOverlapZ": 8,
+  "maskEdgePad": 16,
+  "structureSeedBase": 122830,
+  "status": "local_removal_complete_pending_visual_review",
+  "submission": {
+    "plannedCandidates": 1,
+    "generatedCandidates": 1,
+    "destination": "http://192.168.3.142:8188",
+    "authorization": "User accepted recommended camp 48-step 02, workshop 01 and factory 01 and requested continuing the proposed local repairs on 2026-08-30. Existing destination authorization persists."
+  },
+  "modelApproval": "User requested proceeding with the existing building models under the standard pipeline on 2026-08-30.",
+  "runtimeIntegrationActive": false,
+  "assets": [
+    {
+      "id": "vehicle_factory",
+      "selectionStatus": "user_selected_for_local_masked_repair",
+      "label": "载具工厂",
+      "level": 3,
+      "assetClass": "engineer_compound",
+      "assetType": "World-122 4x4 LV3 engineering recruitment building",
+      "footprintCells": 4,
+      "foundationStyle": "worn_concrete",
+      "controlImage": "tools/ai-gen/_engineer_branch_20260830/vehicle_factory/vehicle_factory_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_engineer_branch_20260830/vehicle_factory/vehicle_factory_depth.png",
+      "model": "tools/ai-gen/_engineer_branch_20260830/vehicle_factory/vehicle_factory_model.blend",
+      "modelPreview": "tools/ai-gen/_engineer_branch_20260830/vehicle_factory/vehicle_factory_model_preview.png",
+      "removeAllGreen": false,
+      "primaryRequest": "one compact modern vehicle assembly workshop evolved from the same engineering hall",
+      "structureRequest": "one single-storey concrete-and-steel assembly hall, one continuous low industrial roof with exactly three attached parallel raised glazed roof strips, one open roller-door bay, one steel service hoist, one tool bench and one small attached wordless gear emblem; quiet gray concrete, charcoal steel frames and metal roof, restrained blue-gray glazing, small worn dark-ochre safety marks and one dull brass gear",
+      "detailRequest": "The entire masked patch is uninterrupted flat gray CONCRETE WALL. Erase the electrical utility box, control panel, all borders, bolts, shadow and markings. Fill the masked region with plain continuous matte gray concrete of the same value, perspective and sparse weathering as the neighboring wall. Absolutely no box, panel, window, niche, door, sign, frame, display or protrusion inside the mask. Everything outside the mask remains exactly unchanged.",
+      "negativeRequest": "Inside the mask: no window, frame, arch, inset panel, electrical box, illumination or ornaments. Outside the mask: no changes.",
+      "selectedStructureImage": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v03_raw.png",
+      "selectedStructureCandidate": 3,
+      "refineControlImage": "tools/ai-gen/_engineer_branch_20260830/vehicle_factory/vehicle_factory_depth.png",
+      "selectedRefineImage": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_local_raw.png",
+      "selectedRefineCandidate": 1,
+      "maskImage": "tools/ai-gen/_engineer_branch_20260830/local_repair_v3_removal/vehicle_factory_removal_mask.png",
+      "maskRegions": [
+        [
+          "restore_side_window",
+          [
+            [
+              173,
+              470
+            ],
+            [
+              278,
+              512
+            ],
+            [
+              278,
+              645
+            ],
+            [
+              173,
+              601
+            ]
+          ]
+        ],
+        [
+          "remove_box",
+          [
+            [
+              691,
+              574
+            ],
+            [
+              754,
+              551
+            ],
+            [
+              757,
+              619
+            ],
+            [
+              691,
+              643
+            ]
+          ]
+        ],
+        [
+          "gear",
+          [
+            273,
+            539,
+            367,
+            655
+          ]
+        ]
+      ],
+      "protectedRegions": [],
+      "maskFeatherPixels": 2,
+      "localDenoise": 0.7,
+      "maskedRefineRequest": "The entire masked patch is uninterrupted flat gray CONCRETE WALL. Erase the electrical utility box, control panel, all borders, bolts, shadow and markings. Fill the masked region with plain continuous matte gray concrete of the same value, perspective and sparse weathering as the neighboring wall. Absolutely no box, panel, window, niche, door, sign, frame, display or protrusion inside the mask. Everything outside the mask remains exactly unchanged.",
+      "localRepairReason": "Prior standard 0.30 refinement retained the unwanted local material/window/box details; higher denoise is confined to the authored repair mask, with explicit nonstandard metadata and original pixels composited outside it."
+    }
+  ],
+  "refineSeedBase": 127850,
+  "localControlException": "The inspected original Depth contains the old modeled tool-rack backboard at the unwanted wall-panel location. Retain that original full Depth as provenance but reduce its influence to 0.15 only for this masked removal trial; unmasked source pixels remain exact in the local composite.",
+  "experiment": "One candidate for a bounded single-purpose removal trial; no full-building redraw. Original standard 48-step source and previous masked variants retained."
+}

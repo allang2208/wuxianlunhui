@@ -1,0 +1,57 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "promptId": "5702da1b-ea06-41c7-bafc-b4e2e93d7a84",
+  "createdAt": "2026-08-30T12:05:27.900048+00:00",
+  "recoveredDownload": true,
+  "recoveryReason": "Original local client interrupted; remote job continued without resubmission.",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\attack-v01.mp4",
+    "bytes": 480967,
+    "sha256": "e20781f2f3b4dcc27f43d26673e8732d5b5fdeee2a9c6d024d93c7df82c6e081"
+  },
+  "candidate": 1,
+  "candidateCount": 1,
+  "seed": 830303,
+  "actionMode": "recover",
+  "mode": "i2v_firstframe",
+  "audioMode": "visual-only",
+  "visualProfile": "character-asset",
+  "promptFormat": "h3",
+  "authoredPrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer, and ONE reserve shell held by the left loader. Preserve their rounded black eyes, cream-white muzzles, combat helmets with ear protection, olive uniforms, tactical gear, gloves, knee pads and boots. Keep the original rigid steel barrel, slotted muzzle brake, recoil housing, shield, rubber tires, metal wheels and rear trails. Preserve the held shell caliber and barrel proportions. Locked mildly elevated right-facing three-quarter camera, fixed framing and scale. Entire crew and weapon remain in frame on a pure white background and white ground; no scenery, text, cast shadows or camera motion.\n\nOne complete 5-second ATTACK from an already loaded gun. At 0-1 seconds both engineers brace; the loader holds the visible reserve shell safely and does NOT insert or release it. At 1-2 seconds the gunner operates the firing control for exactly ONE shot. Emit a tiny, very brief compact muzzle flash directly from the true right-hand muzzle opening, no longer than half the muzzle brake itself, plus two faint side puffs from its brake slots. The flash and smoke remain well inside the frame and clear within half a second. No long flame jet, beam, tracer, visible flying shell, large smoke cloud or explosion. The rigid barrel slides a short distance backward along its existing bore axis into the recoil housing, then returns smoothly; barrel diameter and length never change. The carriage and shield stay planted with only a subtle shock. Both crew flinch and recover. At 2-5 seconds settle back to the original ready pose, the loader still holding the same single reserve shell. No second shot, new ammunition, reloading sequence or weapon transformation.",
+  "effectivePrompt": "Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer, and ONE reserve shell held by the left loader. Preserve their rounded black eyes, cream-white muzzles, combat helmets with ear protection, olive uniforms, tactical gear, gloves, knee pads and boots. Keep the original rigid steel barrel, slotted muzzle brake, recoil housing, shield, rubber tires, metal wheels and rear trails. Preserve the held shell caliber and barrel proportions. Locked mildly elevated right-facing three-quarter camera, fixed framing and scale. Entire crew and weapon remain in frame on a pure white background and white ground; no scenery, text, cast shadows or camera motion.\n\nOne complete 5-second ATTACK from an already loaded gun. At 0-1 seconds both engineers brace; the loader holds the visible reserve shell safely and does NOT insert or release it. At 1-2 seconds the gunner operates the firing control for exactly ONE shot. Emit a tiny, very brief compact muzzle flash directly from the true right-hand muzzle opening, no longer than half the muzzle brake itself, plus two faint side puffs from its brake slots. The flash and smoke remain well inside the frame and clear within half a second. No long flame jet, beam, tracer, visible flying shell, large smoke cloud or explosion. The rigid barrel slides a short distance backward along its existing bore axis into the recoil housing, then returns smoothly; barrel diameter and length never change. The carriage and shield stay planted with only a subtle shock. Both crew flinch and recover. At 2-5 seconds settle back to the original ready pose, the loader still holding the same single reserve shell. No second shot, new ammunition, reloading sequence or weapon transformation.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer, and ONE reserve shell held by the left loader. Preserve their rounded black eyes, cream-white muzzles, combat helmets with ear protection, olive uniforms, tactical gear, gloves, knee pads and boots. Keep the original rigid steel barrel, slotted muzzle brake, recoil housing, shield, rubber tires, metal wheels and rear trails. Preserve the held shell caliber and barrel proportions. Locked mildly elevated right-facing three-quarter camera, fixed framing and scale. Entire crew and weapon remain in frame on a pure white background and white ground; no scenery, text, cast shadows or camera motion.\n\nOne complete 5-second ATTACK from an already loaded gun. At 0-1 seconds both engineers brace; the loader holds the visible reserve shell safely and does NOT insert or release it. At 1-2 seconds the gunner operates the firing control for exactly ONE shot. Emit a tiny, very brief compact muzzle flash directly from the true right-hand muzzle opening, no longer than half the muzzle brake itself, plus two faint side puffs from its brake slots. The flash and smoke remain well inside the frame and clear within half a second. No long flame jet, beam, tracer, visible flying shell, large smoke cloud or explosion. The rigid barrel slides a short distance backward along its existing bore axis into the recoil housing, then returns smoothly; barrel diameter and length never change. The carriage and shield stay planted with only a subtle shock. Both crew flinch and recover. At 2-5 seconds settle back to the original ready pose, the loader still holding the same single reserve shell. No second shot, new ammunition, reloading sequence or weapon transformation. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "frames": 124,
+    "fps": 24.0,
+    "duration": 5.17,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\prompts\\attack-v01.txt",
+      "bytes": 1799,
+      "sha256": "ebb6da1edbd58961b5fd491aed3aea08a13eb72744a71c898c62ae4f3de13cb9"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "remoteHistory": "logs/attack-remote-history.json"
+}

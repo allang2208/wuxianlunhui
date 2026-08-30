@@ -1,0 +1,143 @@
+{
+  "status": "design_only_not_runtime_config",
+  "sourceTechnologyVersion": 50,
+  "sourceDate": "2026-08-30",
+  "family": "engineer_camp",
+  "branch": "工程",
+  "subBranch": "工程制造",
+  "prerequisiteMode": "all",
+  "logicalFootprintCells": 4,
+  "runtimeRegistered": true,
+  "productionRole": "双仓鼠工程器械友军；已命名并生成母图候选，玩法与数值待后续实现",
+  "plannedUnitLine": [
+    "hamster_catapult_crew",
+    "hamster_field_cannon_crew",
+    "hamster_howitzer_crew"
+  ],
+  "motherIndex": "tools/ai-gen/_hamster_engineering_mothers_20260830/task-index.json",
+  "unlockDraftNote": "历史plannedUnlocks保留设计过程；正式配置已使用recruitmentTier，建筑已入库，兵种仍为行级占位。实际状态以data配置与runtime/runtime-index.json为准。",
+  "nodes": [
+    {
+      "id": "engineer_camp_level_1",
+      "name": "工程师营地",
+      "level": 1,
+      "branch": "工程",
+      "subBranch": "工程制造",
+      "column": 2,
+      "lane": 4,
+      "researchCost": 180,
+      "effectiveResearchCost": 270,
+      "prerequisites": [
+        "fortification_engineering"
+      ],
+      "description": "从城防施工发展出常设工程营地，以皮革茅草棚、工具台和手摇吊架建立工程作业场。",
+      "modelAssetId": "engineer_camp",
+      "plannedUnlocks": [
+        {
+          "type": "building",
+          "id": "engineer_camp",
+          "label": "工程师营地"
+        }
+      ],
+      "estimatedEffectiveRate": 1.2,
+      "estimatedResearchMinutes": 3.75
+    },
+    {
+      "id": "engineer_camp_level_2",
+      "name": "工程工坊",
+      "level": 2,
+      "branch": "工程",
+      "subBranch": "工程制造",
+      "column": 3,
+      "lane": 4,
+      "researchCost": 520,
+      "effectiveResearchCost": 1560,
+      "prerequisites": [
+        "engineer_camp_level_1",
+        "wall_brickwork"
+      ],
+      "description": "在工程营地与烧制砖工艺基础上建立石墙红瓦工坊，引入固定作业间和机械绞盘。",
+      "modelAssetId": "engineering_workshop",
+      "plannedUnlocks": [
+        {
+          "type": "buildingTier",
+          "id": "engineer_camp_level_2",
+          "label": "工程工坊"
+        }
+      ],
+      "estimatedEffectiveRate": 6,
+      "estimatedResearchMinutes": 4.333333
+    },
+    {
+      "id": "engineer_camp_level_3",
+      "name": "载具工厂",
+      "level": 3,
+      "branch": "工程",
+      "subBranch": "工程制造",
+      "column": 5,
+      "lane": 4,
+      "researchCost": 920,
+      "effectiveResearchCost": 4140,
+      "prerequisites": [
+        "engineer_camp_level_2",
+        "steam_industry_standardization",
+        "blacksmith_level_3"
+      ],
+      "description": "将工程工坊、动力标准化与现代机械制造汇合，建立混凝土钢架装配厂房；具体载具功能留待独立开发。",
+      "modelAssetId": "vehicle_factory",
+      "plannedUnlocks": [
+        {
+          "type": "buildingTier",
+          "id": "engineer_camp_level_3",
+          "label": "载具工厂"
+        }
+      ],
+      "estimatedEffectiveRate": 9,
+      "estimatedResearchMinutes": 7.666667
+    }
+  ],
+  "budget": {
+    "scope": "名义配置成本，包含默认完成节点；不是净付费通关时间",
+    "beforeNodes": 100,
+    "beforeResearchCost": 161060,
+    "addedNodes": 3,
+    "addedResearchCost": 5970,
+    "proposedNodes": 103,
+    "proposedResearchCost": 167030,
+    "addedResearchJobs": 0,
+    "addedResearchHousing": 0,
+    "researchRateCurveUnchanged": true,
+    "branches": [
+      {
+        "branch": "工程",
+        "beforeNodes": 18,
+        "beforeCost": 49180,
+        "proposedNodes": 21,
+        "proposedCost": 55150
+      },
+      {
+        "branch": "军事指挥",
+        "beforeNodes": 30,
+        "beforeCost": 38940,
+        "proposedNodes": 30,
+        "proposedCost": 38940
+      },
+      {
+        "branch": "经济与位面",
+        "beforeNodes": 44,
+        "beforeCost": 64300,
+        "proposedNodes": 44,
+        "proposedCost": 64300
+      },
+      {
+        "branch": "位面独特科技",
+        "beforeNodes": 8,
+        "beforeCost": 8640,
+        "proposedNodes": 8,
+        "proposedCost": 8640
+      }
+    ]
+  },
+  "runtimeConfig": "data/technology-tree.json",
+  "runtimeVersion": 51
+}

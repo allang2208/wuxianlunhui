@@ -3,12 +3,14 @@ export const HAMSTER_UNIT_CATEGORY = Object.freeze({
     INFANTRY: 'infantry',
     CAVALRY: 'cavalry',
     MAGIC: 'magic',
+    ARTILLERY: 'artillery',
 });
 
 export const HAMSTER_UNIT_CATEGORY_LABELS = Object.freeze({
     [HAMSTER_UNIT_CATEGORY.INFANTRY]: '步兵',
     [HAMSTER_UNIT_CATEGORY.CAVALRY]: '骑兵',
     [HAMSTER_UNIT_CATEGORY.MAGIC]: '法术',
+    [HAMSTER_UNIT_CATEGORY.ARTILLERY]: '工程器械',
 });
 
 export const HAMSTER_UNIT_CATEGORIES = Object.freeze({
@@ -24,6 +26,9 @@ export const HAMSTER_UNIT_CATEGORIES = Object.freeze({
     scout: HAMSTER_UNIT_CATEGORY.INFANTRY,
     ranger: HAMSTER_UNIT_CATEGORY.INFANTRY,
     crossbow: HAMSTER_UNIT_CATEGORY.INFANTRY,
+    hamster_catapult_crew: HAMSTER_UNIT_CATEGORY.ARTILLERY,
+    hamster_field_cannon_crew: HAMSTER_UNIT_CATEGORY.ARTILLERY,
+    hamster_howitzer_crew: HAMSTER_UNIT_CATEGORY.ARTILLERY,
     longbow: HAMSTER_UNIT_CATEGORY.INFANTRY,
     assault: HAMSTER_UNIT_CATEGORY.INFANTRY,
     heavy_machine_gunner: HAMSTER_UNIT_CATEGORY.INFANTRY,

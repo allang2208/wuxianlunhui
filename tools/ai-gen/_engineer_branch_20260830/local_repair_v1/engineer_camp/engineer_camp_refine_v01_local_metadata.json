@@ -1,0 +1,10 @@
+{
+  "source": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v02_raw.png",
+  "generationRaw": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_raw.png",
+  "generationMetadata": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_generation.json",
+  "mask": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp_mask.png",
+  "maskFeatherPixels": 2,
+  "operation": "Image.composite(generationRaw, selectedRefineSource, mask); original pixels wherever mask is zero",
+  "output": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v01_local_raw.png",
+  "runtimeIntegrationActive": false
+}

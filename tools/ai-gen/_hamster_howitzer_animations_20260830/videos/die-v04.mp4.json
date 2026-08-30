@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T13:17:12.146748+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\die-v04.mp4",
+    "bytes": 660336,
+    "sha256": "7c9f61fd62552343aaaf543ee43beaeab7f7e16d12dbd56314e666f6e02598d8"
+  },
+  "promptId": "5d9a11f8-7485-4cfb-b058-d82fc3f6429e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 830344,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A fluid, weighty five-second collapse animation of the reference: TWO golden hamster mechanics beside a cold disabled olive-green wheeled machine. Preserve their faces, equal sizes, helmets and clothing, and the recognizable machine. Locked mildly elevated right-facing view, constant scale and clean white background. Keep both complete bodies and all equipment inside the frame.\n\nMovement begins immediately and flows continuously, with flexible knees, hips, elbows and spines rather than rigid bodies switching poses. The two mechanics lose balance half a beat apart and follow different arcs.\n0-1 seconds: The left loader's knees soften, his hips shift and his torso twists as he tries to catch his balance. His fingers release the cartridge; it drops harmlessly. The right mechanic's grip slips off the handwheel and his shoulder follows into a forward stumble.\n1-3 seconds: The left mechanic reaches briefly toward the rear trail, then his knees fold; he falls onto his left hip and shoulder, rolls gently onto his side in the foreground-left, and his head and arms follow with natural delay. Half a beat later the right mechanic's knees buckle; his forearms bend as he falls toward the foreground-right and settles onto his other side. Show continuous intermediate movement, accelerating under gravity and softening on floor contact. Both heads and torsos stay readable in front of the carriage.\nDuring their falls the long metal tube fractures at the middle sleeve. Its forward section droops, separates and tips down in a short weighted arc to rest on the floor; the broken rear stub stays attached. The carriage rocks once and settles. The tube openings remain dark and empty.\n3-4.5 seconds: Let shoulders sink, hands relax, bent legs slide a little and heads settle; helmets and pouches follow through briefly. End in TWO distinct relaxed full-body lying poses with eyes closed, not matching stiff planks. Rest only for the final half second. No one gets back up.\n\nThis is gravity and loss of balance only. Zero firing, muzzle flash, smoke, flames, sparks, explosion, projectile or outward blast. No frozen pauses during the fall, hovering tube, mechanical snapping between poses, camera movement or extra characters.",
+  "effectivePrompt": "A fluid, weighty five-second collapse animation of the reference: TWO golden hamster mechanics beside a cold disabled olive-green wheeled machine. Preserve their faces, equal sizes, helmets and clothing, and the recognizable machine. Locked mildly elevated right-facing view, constant scale and clean white background. Keep both complete bodies and all equipment inside the frame.\n\nMovement begins immediately and flows continuously, with flexible knees, hips, elbows and spines rather than rigid bodies switching poses. The two mechanics lose balance half a beat apart and follow different arcs.\n0-1 seconds: The left loader's knees soften, his hips shift and his torso twists as he tries to catch his balance. His fingers release the cartridge; it drops harmlessly. The right mechanic's grip slips off the handwheel and his shoulder follows into a forward stumble.\n1-3 seconds: The left mechanic reaches briefly toward the rear trail, then his knees fold; he falls onto his left hip and shoulder, rolls gently onto his side in the foreground-left, and his head and arms follow with natural delay. Half a beat later the right mechanic's knees buckle; his forearms bend as he falls toward the foreground-right and settles onto his other side. Show continuous intermediate movement, accelerating under gravity and softening on floor contact. Both heads and torsos stay readable in front of the carriage.\nDuring their falls the long metal tube fractures at the middle sleeve. Its forward section droops, separates and tips down in a short weighted arc to rest on the floor; the broken rear stub stays attached. The carriage rocks once and settles. The tube openings remain dark and empty.\n3-4.5 seconds: Let shoulders sink, hands relax, bent legs slide a little and heads settle; helmets and pouches follow through briefly. End in TWO distinct relaxed full-body lying poses with eyes closed, not matching stiff planks. Rest only for the final half second. No one gets back up.\n\nThis is gravity and loss of balance only. Zero firing, muzzle flash, smoke, flames, sparks, explosion, projectile or outward blast. No frozen pauses during the fall, hovering tube, mechanical snapping between poses, camera movement or extra characters.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] A fluid, weighty five-second collapse animation of the reference: TWO golden hamster mechanics beside a cold disabled olive-green wheeled machine. Preserve their faces, equal sizes, helmets and clothing, and the recognizable machine. Locked mildly elevated right-facing view, constant scale and clean white background. Keep both complete bodies and all equipment inside the frame.\n\nMovement begins immediately and flows continuously, with flexible knees, hips, elbows and spines rather than rigid bodies switching poses. The two mechanics lose balance half a beat apart and follow different arcs.\n0-1 seconds: The left loader's knees soften, his hips shift and his torso twists as he tries to catch his balance. His fingers release the cartridge; it drops harmlessly. The right mechanic's grip slips off the handwheel and his shoulder follows into a forward stumble.\n1-3 seconds: The left mechanic reaches briefly toward the rear trail, then his knees fold; he falls onto his left hip and shoulder, rolls gently onto his side in the foreground-left, and his head and arms follow with natural delay. Half a beat later the right mechanic's knees buckle; his forearms bend as he falls toward the foreground-right and settles onto his other side. Show continuous intermediate movement, accelerating under gravity and softening on floor contact. Both heads and torsos stay readable in front of the carriage.\nDuring their falls the long metal tube fractures at the middle sleeve. Its forward section droops, separates and tips down in a short weighted arc to rest on the floor; the broken rear stub stays attached. The carriage rocks once and settles. The tube openings remain dark and empty.\n3-4.5 seconds: Let shoulders sink, hands relax, bent legs slide a little and heads settle; helmets and pouches follow through briefly. End in TWO distinct relaxed full-body lying poses with eyes closed, not matching stiff planks. Rest only for the final half second. No one gets back up.\n\nThis is gravity and loss of balance only. Zero firing, muzzle flash, smoke, flames, sparks, explosion, projectile or outward blast. No frozen pauses during the fall, hovering tube, mechanical snapping between poses, camera movement or extra characters. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "e89161730136cfb89ce56592486a471c84d4f892d71a80676b926f4806dadac0",
+  "effectivePromptSha256": "e89161730136cfb89ce56592486a471c84d4f892d71a80676b926f4806dadac0",
+  "finalPromptSha256": "d0a3ae54d6ed18e82149ce52ff1ab874e94e89db88781842db7779f5a8d7808b",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\prompts\\die-v04.txt",
+      "bytes": 2229,
+      "sha256": "1b157a37aecbc88d17d86f2743f24e4d008b3082c8af5f06204c4bd9665927a9"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\die-v04_contact.png",
+    "bytes": 468548,
+    "sha256": "f04df649a2fc3cf66159fe0730a036abfc58df4a64e5452d995aaea64f7e9761"
+  },
+  "elapsedSeconds": 430.534
+}

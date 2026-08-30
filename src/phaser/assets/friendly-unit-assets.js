@@ -11,6 +11,9 @@ import hamsterHalberdierConfig from '../../../data/hamster-halberdier-config.jso
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
 import hamsterRangerConfig from '../../../data/hamster-ranger-config.json';
 import hamsterCrossbowConfig from '../../../data/hamster-crossbow-config.json';
+import hamsterCatapultCrewConfig from '../../../data/hamster-catapult-crew-config.json';
+import hamsterFieldCannonCrewConfig from '../../../data/hamster-field-cannon-crew-config.json';
+import hamsterHowitzerCrewConfig from '../../../data/hamster-howitzer-crew-config.json';
 import hamsterLongbowConfig from '../../../data/hamster-longbow-config.json';
 import hamsterAssaultConfig from '../../../data/hamster-assault-config.json';
 import hamsterHeavyMachineGunnerConfig from '../../../data/hamster-heavy-machine-gunner-config.json';
@@ -47,6 +50,9 @@ export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterScoutConfig,
     hamsterRangerConfig,
     hamsterCrossbowConfig,
+    hamsterCatapultCrewConfig,
+    hamsterFieldCannonCrewConfig,
+    hamsterHowitzerCrewConfig,
     hamsterLongbowConfig,
     hamsterAssaultConfig,
     hamsterHeavyMachineGunnerConfig,

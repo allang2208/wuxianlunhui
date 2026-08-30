@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "id": "hamster_field_cannon_crew",
+  "profile": "crowd",
+  "runtimeIntegrationActive": true,
+  "dependencies": [],
+  "sheets": [
+    {
+      "textureKey": "companion_hamster_field_cannon_crew_idle",
+      "path": "assets/companions/hamster_field_cannon_crew/idle.png",
+      "frameWidth": 240,
+      "frameHeight": 134,
+      "frameCount": 62,
+      "endFrame": 61
+    },
+    {
+      "textureKey": "companion_hamster_field_cannon_crew_walk",
+      "path": "assets/companions/hamster_field_cannon_crew/running.png",
+      "frameWidth": 240,
+      "frameHeight": 134,
+      "frameCount": 62,
+      "endFrame": 61
+    },
+    {
+      "textureKey": "companion_hamster_field_cannon_crew_attack",
+      "path": "assets/companions/hamster_field_cannon_crew/attacking.png",
+      "frameWidth": 334,
+      "frameHeight": 188,
+      "frameCount": 85,
+      "endFrame": 84
+    },
+    {
+      "textureKey": "companion_hamster_field_cannon_crew_dying",
+      "path": "assets/companions/hamster_field_cannon_crew/dying.png",
+      "frameWidth": 344,
+      "frameHeight": 134,
+      "frameCount": 97,
+      "endFrame": 96
+    },
+    {
+      "textureKey": "companion_hamster_field_cannon_crew_projectile",
+      "path": "assets/companions/hamster_field_cannon_crew/iron-ball.svg",
+      "frameWidth": 64,
+      "frameHeight": 64,
+      "frameCount": 1,
+      "endFrame": 0
+    }
+  ]
+}

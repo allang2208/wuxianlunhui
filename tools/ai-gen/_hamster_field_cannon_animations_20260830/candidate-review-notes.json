@@ -1,0 +1,54 @@
+{
+  "unitKey": "hamster_field_cannon_crew",
+  "status": "four_source_animations_user_accepted",
+  "method": "Visual reading of generated source contact sheets; no game, automated asset checks, or runtime tests.",
+  "userAcceptance": {
+    "userMessage": "可用",
+    "scope": "All four v01 source videos and GIF previews",
+    "runtimeAccepted": false,
+    "preserveMotionAndTiming": true
+  },
+  "actions": {
+    "run": {
+      "video": "videos/run-v01.mp4",
+      "contact": "videos/run-v01_contact.png",
+      "observations": [
+        "The left loader alternates leg poses while retaining the ramrod; the gunner remains by the cannon and the group stays in place.",
+        "Both hamster identities and the right-facing cannon silhouette remain recognizable across the sampled poses.",
+        "The gunner's lower body is obscured by the carriage, so exact foot contact and wheel rotation coordination remain user-review items."
+      ],
+      "decision": "User accepted this v01 source animation as usable; retain its motion and timing. Runtime import remains pending."
+    },
+    "idle": {
+      "video": "videos/idle-v01.mp4",
+      "contact": "videos/idle-v01_contact.png",
+      "observations": [
+        "Both crew and the complete ramrod/cannon remain present in the sampled poses.",
+        "The crew make small head/body shifts, including a brief dip by the gunner; the cannon remains largely stationary.",
+        "The sampled beginning and end return toward the same ready composition; exact loop continuity is left for user review."
+      ],
+      "decision": "User accepted this v01 source animation as usable; retain its motion and timing. Runtime import remains pending."
+    },
+    "die": {
+      "video": "videos/die-v01.mp4",
+      "contact": "videos/die-v01_contact.png",
+      "observations": [
+        "Both crew fall and hold a fallen state through the sampled ending frames; the cannon stays intact.",
+        "The loader drops the ramrod on the ground. The second body is partly obscured by the carriage, with the head still visible.",
+        "The source has an opening ready-pose hold before the falls; it has not been trimmed or retimed.",
+        "Review GIF repetition restarts the whole clip. The source death action remains one-way."
+      ],
+      "decision": "User accepted this v01 source animation as usable; retain its motion and timing. Runtime import remains pending."
+    },
+    "attack": {
+      "video": "videos/attack-v01.mp4",
+      "contact": "videos/attack-v01_contact.png",
+      "observations": [
+        "Two hamster engineers, one classical cannon and the long ramrod remain visible in the sampled poses.",
+        "A single muzzle discharge and leftward carriage recoil are visible, followed by recovery toward the ready pose.",
+        "The muzzle flash is longer than requested and reaches the right image border; this is not an approved final transparent combat effect."
+      ],
+      "decision": "User accepted this v01 source animation as usable; retain its motion and timing. Runtime import remains pending."
+    }
+  }
+}

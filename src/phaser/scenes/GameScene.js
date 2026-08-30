@@ -1968,6 +1968,37 @@ export class GameScene extends Scene {
         return sources;
     }
 
+    _companionFrameFootCorrection(member, sprite, anims, scale) {
+        const frameH = sprite.frame?.height || 512;
+        if (member._isHamsterCatapultCrew) {
+            const entry = Object.entries(anims).find(([key]) =>
+                sprite.texture?.key === `companion_${member.animId}_${key}`);
+            const footY = entry?.[1]?.footY;
+            if (Number.isFinite(footY)) {
+                return (frameH / 2 - footY) * scale - (member.spriteOffsetY || 0);
+            }
+        }
+        return -(frameH - 512) * 0.4375 * scale;
+    }
+
+    _syncCatapultAnimation(member, sprite, anims) {
+        const state = member._catapultVisualState || 'idle';
+        const def = anims[state];
+        if (!def) return;
+        const key = `companion_${member.animId}_${state}`;
+        if (!this.textures.exists(key)) return;
+        let elapsed = member._catapultElapsedMs || 0;
+        if (def.repeat === -1) elapsed %= def.durationMs;
+        let frame = 0;
+        while (frame < def.frameCount - 1 && elapsed >= def.frameDurations[frame]) {
+            elapsed -= def.frameDurations[frame++];
+        }
+        // AI 与贴图共用源片时钟；视口外或低帧率也不会推迟离勺事件/重播死亡。
+        if (sprite.anims.isPlaying) sprite.anims.stop();
+        sprite.removeAllListeners('animationcomplete');
+        if (sprite.texture.key !== key || sprite.frame.name !== frame) sprite.setTexture(key, frame);
+    }
+
     /** 侍从跟随渲染：有动作素材的队员（露娜等）跟随玩家，按移动/冲刺/施法播 walk/run/spell */
     _syncCompanionSprites(_game, dt) {
         const player = _game && _game.player;
@@ -2037,11 +2068,12 @@ export class GameScene extends Scene {
                 sprite.setDepth(this.playerSprite.depth + 0.5);
                 this._companionSprites[member.id] = sprite;
             }
-            if (member.hasStatusEffect?.('petrified') || this._petrifyFx?.has(member)) {
+            if ((member.hasStatusEffect?.('petrified') || this._petrifyFx?.has(member))
+                && !(member._isHamsterCatapultCrew && member._dying)) {
                 const normS = size / 512;
                 const frameW = sprite.frame?.width || 512;
                 const frameH = sprite.frame?.height || 512;
-                const feetCorr = -(frameH - 512) * 0.4375 * normS;
+                const feetCorr = this._companionFrameFootCorrection(member, sprite, anims, normS);
                 sprite.setDisplaySize(frameW * normS, frameH * normS);
                 sprite.setPosition(
                     member.x,
@@ -2079,6 +2111,11 @@ export class GameScene extends Scene {
                         faceRight = member._lastFaceRight;
                     }
                 }
+                member._lastFaceRight = faceRight;
+            }
+            if (member._isHamsterCatapultCrew
+                && (member._animState === 'attack' || member._dying)) {
+                faceRight = member._catapultFaceRight;
                 member._lastFaceRight = faceRight;
             }
             sprite.setFlipX(!faceRight);
@@ -2128,7 +2165,9 @@ export class GameScene extends Scene {
                         sprite.setData('knightChargeFinished', false);
                     }
                 }
-                if (st === 'dying' && anims.dying && this.textures.exists(dyingKey)) {
+                if (member._isHamsterCatapultCrew) {
+                    this._syncCatapultAnimation(member, sprite, anims);
+                } else if (st === 'dying' && anims.dying && this.textures.exists(dyingKey)) {
                     // 死亡动画只播一次（repeat 0），播完停在最后一帧；防每帧重播
                     if (!sprite.getData('hamsterDying')) {
                         sprite.setData('hamsterDying', true);
@@ -2592,7 +2631,7 @@ export class GameScene extends Scene {
             const idleState = aiMode
                 ? (member._animState || 'idle') === 'idle'
                 : (!isMoving && !isSprinting && !casting);
-            const idleStill = idleState && !sprite.anims.isPlaying;
+            const idleStill = idleState && !sprite.anims.isPlaying && !member._isHamsterCatapultCrew;
             // 可选 render.idleSwayX：多帧待机也可做纯渲染水平微动，不改变实体/碰撞坐标。
             const renderConfig = member.config?.render || {};
             const idleSwayX = Math.max(0, Number(renderConfig.idleSwayX) || 0);
@@ -2612,7 +2651,7 @@ export class GameScene extends Scene {
                 ? Math.sin((this.time.now / idleSwayPeriodMs) * Math.PI * 2 + idlePhase) * idleSwayX
                 : 0;
             sprite.setDisplaySize(frameW * normS * breatheW, frameH * normS * breatheH);
-            const feetCorr = -(frameH - 512) * 0.4375 * normS
+            const feetCorr = this._companionFrameFootCorrection(member, sprite, anims, normS)
                 - frameH * normS * (breatheH - 1) / 2;
             if (aiMode) {
                 sprite.setPosition(member.x + idleOffsetX, member.y + spriteOffY - elevationZ + feetCorr);
@@ -2980,6 +3019,10 @@ export class GameScene extends Scene {
                         spr = this.add.rectangle(b.x, b.y, sniper ? 72 : 54, sniper ? 3 : 4,
                             sniper ? 0xfff2b3 : 0xffd34d, 1);
                         spr.setBlendMode(BlendModes.ADD);
+                    } else if (b.catapultStone && arrowKey && this.textures.exists(arrowKey)) {
+                        spr = this.add.sprite(b.x, b.y, arrowKey);
+                        spr.setDisplaySize(projectileRender.projectileDisplaySize,
+                            projectileRender.projectileDisplaySize);
                     } else if (ranged && arrowKey && this.textures.exists(arrowKey)) {
                         // 投射物：射手内容 146×40（尖头朝左）、斥候内容 172×17（尖头朝右），
                         // 帧 512×512。帧必须等比放大（内容很小，直接压帧会看不见）：

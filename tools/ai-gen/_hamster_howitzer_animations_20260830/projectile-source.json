@@ -1,0 +1,20 @@
+{
+  "sheet": "final/shell.png",
+  "sourceVideo": "videos/die-v04.mp4",
+  "sourceFrame": 32,
+  "sourceCrop": [
+    326,
+    385,
+    438,
+    435
+  ],
+  "rotationDegrees": -9,
+  "contentSize": [
+    54,
+    18
+  ],
+  "sourceCutout": "reference/projectile-source-die-v04-0032.png",
+  "tipDirection": "right",
+  "sourceUnchanged": true,
+  "meaning": "Inert cartridge dropped by loader; cropped existing art, not an extra death projectile."
+}

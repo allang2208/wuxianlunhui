@@ -1,0 +1,36 @@
+{
+  "unitKey": "hamster_field_cannon_crew",
+  "profile": "crowd",
+  "sourceScale": 0.35,
+  "anchorInVideo": [
+    512,
+    450
+  ],
+  "anchorMeaning": "Fixed art-space ground anchor just below the reference wheels, not runtime placement/collision calibration.",
+  "sourceSelection": "Whole 124-frame span: every fourth source frame for slow motion; all native poses in discharge/recoil and falling phases, plus final one-shot pose.",
+  "allActionsShareTransform": true,
+  "perFrameRecentering": false,
+  "referenceCell": 512,
+  "runtimeScale": 0.7834782608695653,
+  "viewPlanning": {
+    "referenceUnit": "hamster_catapult_crew",
+    "referenceDisplaySize": 345.6,
+    "hamsterBodyPixelHeightAtSourceApprox": 280,
+    "hamsterBodyPixelHeightAtSpriteApprox": 98,
+    "normalViewPlannedBodyPixels": 70,
+    "maximumViewPlannedBodyPixels": 105,
+    "runtimeCalibrationPending": true
+  },
+  "targetMiB": 32,
+  "admissionLimitMiB": 64,
+  "provisionalSheetEstimateMiB": [
+    45,
+    64
+  ],
+  "productionStatus": "imported_pending_user_runtime_test",
+  "formalBudgetCheckRun": false,
+  "sourceAcceptancePreserved": true,
+  "runtimeIntegrationActive": true,
+  "effects": "Retain accepted muzzle flash and smoke to the extent present in the source; source right-edge clipping must remain documented, never regenerate the accepted motion.",
+  "actualDecodedMiB": 53.066192626953125
+}

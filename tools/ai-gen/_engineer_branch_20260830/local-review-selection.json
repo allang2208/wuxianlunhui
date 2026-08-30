@@ -1,0 +1,33 @@
+{
+  "engineer_camp": {
+    "candidate": 1,
+    "reason": "First masked variant restores timber to the beam and left post; retain original gear geometry and finish the remaining gray upright with bounded RGB grading.",
+    "knownLimitations": [
+      "Fine thatch texture and stone hoist feet remain from the selected source."
+    ],
+    "finishedRaw": "local_repair_v1/engineer_camp/engineer_camp_refine_v01_finished_raw.png",
+    "finishedMetadata": "local_repair_v1/engineer_camp/engineer_camp_refine_v01_finished_metadata.json"
+  },
+  "engineering_workshop": {
+    "candidate": 2,
+    "reason": "Compact straight-sided window retained; isolated removal pass restores uninterrupted masonry beside the main door while preserving the foreground tool rack.",
+    "repairInput": "local_repair_v2_removal/engineering_workshop/engineering_workshop_refine_v01_local_raw.png",
+    "repairInputMetadata": "local_repair_v2_removal/engineering_workshop/engineering_workshop_refine_v01_local_metadata.json",
+    "knownLimitations": [
+      "Ground-plinth rubble and existing roof texture are unchanged."
+    ],
+    "finishedRaw": "local_repair_v1/engineering_workshop/engineering_workshop_refine_v02_finished_raw.png",
+    "finishedMetadata": "local_repair_v1/engineering_workshop/engineering_workshop_refine_v02_finished_metadata.json"
+  },
+  "vehicle_factory": {
+    "candidate": 1,
+    "reason": "First masked candidate restores the two-pane side window. The persistent extra panel is removed with a bounded same-image concrete texture repair; original gear geometry is retained with local material grading.",
+    "knownLimitations": [
+      "Existing roof and concrete texture, hoist and bench are retained."
+    ],
+    "repairInput": "local_repair_v4_wall_pixels/vehicle_factory_wall_repaired_raw.png",
+    "repairInputMetadata": "local_repair_v4_wall_pixels/vehicle_factory_wall_repair_metadata.json",
+    "finishedRaw": "local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_finished_raw.png",
+    "finishedMetadata": "local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_finished_metadata.json"
+  }
+}
