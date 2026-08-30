@@ -14,6 +14,7 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { loadImage } from '../../utils/image-loader.js';
 import { getElement, queryElement, queryAllElements } from '../../utils/dom-utils.js';
 import { canEquipSlot as sharedCanEquipSlot } from './equip-rules.js';
+import { ItemDragController } from '../item-drag-controller.js';
 
 export function createDragDropManager(EquipManager) {
     return {
@@ -51,6 +52,21 @@ export function createDragDropManager(EquipManager) {
 
                     setupDragAndDrop() {
                         this._dragSrc = null;
+                        ItemDragController.init({
+                            beforeStart: () => {
+                                this._dragSrc = null;
+                                this._dropHandled = false;
+                            },
+                            beforeEnd: cancelled => {
+                                // Esc/失焦不能进入原 dragend 的丢弃、归还分支。
+                                if (cancelled) this._dropHandled = true;
+                            },
+                            afterEnd: () => {
+                                this._dragSrc = null;
+                                this._dropHandled = false;
+                                this._restoreQuickBarLayer();
+                            },
+                        });
                         const equipGrid = queryElement('.equip-grid');
                         if (equipGrid) {
                             equipGrid.ondragover = function(e) { e.preventDefault(); };

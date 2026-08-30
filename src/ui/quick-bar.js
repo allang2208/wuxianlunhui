@@ -355,7 +355,7 @@ export const QuickBar = {
             slot.classList.remove('dragging');
             queryAllElements('.quick-slot').forEach(s => s.classList.remove('drag-over'));
             // 拖出快捷栏范围（未落在任何槽位）：取消绑定
-            if (e.dataTransfer && e.dataTransfer.dropEffect === 'none') {
+            if (!e.itemDragCancelled && e.dataTransfer && e.dataTransfer.dropEffect === 'none') {
                 delete this.itemAssignments[slot.dataset.keyCode];
                 slot.classList.add('empty');
                 slot.innerHTML = `<span style="font-size:20px">?</span><span class="key-hint">${slot.dataset.key}</span>`;

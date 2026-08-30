@@ -182,7 +182,9 @@ mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }
 
 点击、可拖拽、拖拽中三种手型统一为银灰甲片、炭黑接缝的冷钢手套，分别使用`var(--bp-cursor-pointer, pointer)`、`var(--bp-cursor-grab, grab)`、`var(--bp-cursor-grabbing, grabbing)`。按统一大小要求，三张透明PNG均为48×48，源图Alpha内容框等比缩放至44px可见长边并居中；当前三态可见高度相同，保留各自宽高比，不再按主甲片宽度定标。热点随相同裁框/缩放变换：点击食指尖`(20,2)`、张手掌心`(27,33)`、握手掌心`(25,29)`，不将源图留白或旧热点带入新版。切换不添加漂浮或缩放动画，仅替换图片与热点，保持选择器优先级、禁用态和原有拖动状态机；原生HTML拖放期间浏览器/系统的允许或禁止放置反馈不强行覆盖。
 
-手型变量由主题入口导入`ui/hand-cursors.generated.css`，源图及提示词归档于`tools/ai-gen/hand-cursors-cold-steel-20260830/`；运行其中`export.ps1`同步导出正式PNG与内嵌PNG变量。采用内嵌URL是为了兼容不同目录样式表与内联消费者，避免[CSS变量的相对URL解析规则](https://www.w3.org/TR/css-variables-1/#defining-variables)导致路径漂移，不另建运行时鼠标监听或样式扫描器。
+手型变量由主题入口导入`ui/hand-cursors.generated.css`，源图及提示词归档于`tools/ai-gen/hand-cursors-cold-steel-20260830/`；运行其中`export.ps1`同步导出正式PNG与内嵌PNG变量。采用内嵌URL是为了兼容不同目录样式表与内联消费者，避免[CSS变量的相对URL解析规则](https://www.w3.org/TR/css-variables-1/#defining-variables)导致路径漂移，不增加运行时样式扫描器。
+
+**游戏内物品拖动例外（2026-08-30）**：为避免原生HTML拖放接管后回退Windows指针，背包、装备、仓库、队员背包、改造/附魔槽及快捷栏物品使用统一受控鼠标拖动，复用原有DragEvent/DataTransfer放置处理。只有实际超过起拖阈值后才启用临时`item-drag-active`状态，以`--bp-cursor-grabbing`强制显示现有冷钢握手并屏蔽世界指针/输入，物品小预览放在手掌右下方，不改热点或真实鼠标坐标。松手、Esc、失焦或源失效必须清理状态；取消不能触发丢弃/归还/解绑。技能、文本、外部文件以及非物品原生拖放不接管，正常状态禁止全局覆盖后代cursor。
 
 动画以短、稳、可预测为准；普通控件使用约 `0.16s`，栏目使用 `0.25s`。禁止弹跳、旋转或与战术界面不符的夸张缓动。
 

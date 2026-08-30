@@ -14,6 +14,8 @@ export function isGameplayPointerEvent(event) {
     const target = event?.target;
     if (!target || typeof document === 'undefined') return false;
     if (document.body?.classList?.contains('map-mode')) return false;
+    // DOM 物品拖动越过画布时，不能触发世界命令或被世界准星覆盖握手指针。
+    if (document.documentElement?.classList.contains('item-drag-active')) return false;
 
     const gameContainer = document.getElementById('gameContainer');
     const gameLayer = document.getElementById('gameLayer');
