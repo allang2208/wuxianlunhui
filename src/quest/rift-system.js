@@ -6,7 +6,6 @@ import { SceneManager } from '../world/scene-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
-import { TimerManager } from '../utils/timer-manager.js';
 import { QuestState } from '../ui/quest-system.js';
 export const RiftSystem = {
     rifts: [], // { x, y, id, progress, completed, active }
@@ -217,21 +216,13 @@ export const RiftSystem = {
         }
         this._hideProgressBar();
         // 显示提示
-        const label = document.createElement('div');
-        label.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#5a9a5a;font-size:32px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
-        label.textContent = '时空裂隙已调查';
-        document.body.appendChild(label);
-        TimerManager.setTimeout(() => { if (label && label.parentNode) label.remove(); }, 3000);
+        SceneManager.showTopNotification('时空裂隙已调查', { tone: 'success', emphasis: 'headline' });
     },
 
     // 所有裂隙完成
     _onAllRiftsComplete() {
         // 显示裂隙调查完成提示，告知玩家需要撤离
-        const label = document.createElement('div');
-        label.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#ffd700;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 4s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
-        label.textContent = '返回传送门已开启，请撤离！';
-        document.body.appendChild(label);
-        TimerManager.setTimeout(() => { if (label && label.parentNode) label.remove(); }, 4000);
+        SceneManager.showTopNotification('返回传送门已开启，请撤离！', { tone: 'success', emphasis: 'headline', duration: 4000 });
 
         // 生成返回传送门
         this._spawnReturnPortal();

@@ -11,6 +11,13 @@ let _nextId = 1;
 const timers = new Map();
 // 冻结条目（暂停时从 timers 移入；暂停中新注册的也先入队）
 const frozen = [];
+const lifecycleListeners = new Set();
+
+function notifyLifecycle(event) {
+    for (const listener of lifecycleListeners) {
+        try { listener(event); } catch (error) { console.error('[TimerManager] lifecycle listener error:', error); }
+    }
+}
 
 /** entry: { id, kind: 'timeout'|'interval', callback, delay, remaining, nextAt, handle } */
 function _armTimeout(entry, ms) {
@@ -58,6 +65,12 @@ function _clear(id) {
 }
 
 export const TimerManager = {
+    /** 配套UI同步暂停动画/清理显示；不接管定时器或游戏逻辑。 */
+    subscribeLifecycle(listener) {
+        lifecycleListeners.add(listener);
+        return () => lifecycleListeners.delete(listener);
+    },
+
     /**
      * @param {Function} callback
      * @param {number} delayMs
@@ -93,6 +106,7 @@ export const TimerManager = {
         timers.forEach(e => clearTimeout(e.handle));
         timers.clear();
         frozen.length = 0;
+        notifyLifecycle('clear');
     },
 
     /** 是否处于暂停态 */
@@ -112,6 +126,7 @@ export const TimerManager = {
             frozen.push(e);
         }
         timers.clear();
+        notifyLifecycle('pause');
     },
 
     /** 恢复：按剩余时长重新调度（interval 保留原相位） */
@@ -124,6 +139,7 @@ export const TimerManager = {
             else _armTimeout(e, Math.max(1, e.remaining));
             timers.set(e.id, e);
         }
+        notifyLifecycle('resume');
     },
 
     /** 便捷开关（P 键暂停/菜单开合用） */

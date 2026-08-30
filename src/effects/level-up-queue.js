@@ -1,14 +1,10 @@
-import { queryAllElements } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { TopNotificationQueue } from '../ui/top-notification-queue.js';
 import audioConfig from '../../data/audio-config.json';
-// 效果队列系统：用于顺序播放升级/技能提升等特效
-// 避免多个特效同时叠加显示
+// 升级入口保留；每条立即进入全局提示FIFO，不再持有独立的升级播放队列。
 
 const LevelUpEffectQueue = {
-    _queue: [],
-    _isPlaying: false,
-    _currentTimer: null,
     _DEFAULT_DURATION: 2800, // 默认特效持续时间(ms)
 
     /**
@@ -19,32 +15,26 @@ const LevelUpEffectQueue = {
      * @param {string} effect.title - 标题文字
      * @param {string} effect.effectText - 效果描述
      * @param {string} effect.icon - 图标
-     * @param {function} effect.onShow - 显示时的回调（如属性更新）
+     * @param {function} effect.onShow - 旧命名：升级属性提交回调，入队时立即执行一次，不随显示延后
      * @param {number} [effect.duration] - 持续时间，默认2800ms
      */
     add(effect) {
-        this._queue.push(effect);
-        if (!this._isPlaying) {
-            this._playNext();
+        const { onShow, ...visual } = effect;
+        const requestedDuration = Number(visual.duration);
+        const duration = Number.isFinite(requestedDuration) && requestedDuration > 0
+            ? Math.max(500, requestedDuration) : this._DEFAULT_DURATION;
+        // 先登记触发顺序，再执行升级提交。永久属性不能等待排队，也不能被clear取消。
+        try {
+            TopNotificationQueue.enqueue({
+                group: 'level-up', duration,
+                render: (host, ms) => this._renderEffect(visual, host, ms),
+            });
+        } finally {
+            if (typeof onShow === 'function') onShow();
         }
     },
 
-    _playNext() {
-        if (this._queue.length === 0) {
-            this._isPlaying = false;
-            return;
-        }
-        this._isPlaying = true;
-        const effect = this._queue.shift();
-        this._renderEffect(effect);
-        const duration = effect.duration || this._DEFAULT_DURATION;
-        this._currentTimer = TimerManager.setTimeout(() => {
-            this._currentTimer = null;
-            this._playNext();
-        }, duration);
-    },
-
-    _renderEffect(effect) {
+    _renderEffect(effect, host, duration) {
         if (effect.type === 'playerLevelUp' || effect.type === 'skillLevelUp') {
             const path = audioConfig.uiCues?.playerUpgrade;
             if (path) SoundManager.playFile(path, 1, 'ui');
@@ -53,12 +43,12 @@ const LevelUpEffectQueue = {
         // 屏幕闪光
         const flash = document.createElement('div');
         flash.className = 'screen-flash';
-        document.body.appendChild(flash);
-        TimerManager.setTimeout(() => { if (flash && flash.parentNode) flash.remove(); }, 500);
+        host.appendChild(flash);
 
         // 升级文字提示
         const text = document.createElement('div');
         text.className = 'level-up-text';
+        text.style.setProperty('--bp-upgrade-duration', `${Math.min(2500, duration)}ms`);
         const iconHtml = effect.iconImage
             ? `<span class="lu-icon"><img src="${effect.iconImage}" onerror="this.style.display='none';this.parentElement.textContent='${effect.icon || '⭐'}';"></span>`
             : `<span class="lu-icon">${effect.icon || '⭐'}</span>`;
@@ -67,29 +57,19 @@ const LevelUpEffectQueue = {
             <span class="lu-title">${effect.title}</span>
             <span class="lu-effect">${effect.effectText || ''}</span>
         `;
-        document.body.appendChild(text);
-        TimerManager.setTimeout(() => { if (text && text.parentNode) text.remove(); }, 2500);
-
-        // 执行回调（如属性更新）
-        if (effect.onShow && typeof effect.onShow === 'function') {
-            effect.onShow();
-        }
+        host.appendChild(text);
+        const flashTimer = TimerManager.setTimeout(() => flash.remove(), 500);
+        // 主文字随共享播放槽收尾；提前清理时连同闪光计时器一并撤销。
+        return () => TimerManager.clearTimeout(flashTimer);
     },
 
     // 清空队列（如离开NPC时）
     clear() {
-        this._queue = [];
-        if (this._currentTimer) {
-            TimerManager.clearTimeout(this._currentTimer);
-            this._currentTimer = null;
-        }
-        this._isPlaying = false;
-        // 清除当前正在显示的 level-up-text
-        queryAllElements('.level-up-text').forEach(el => el.remove());
+        TopNotificationQueue.clear('level-up');
     },
 
     // 获取队列长度
-    get length() { return this._queue.length; }
+    get length() { return TopNotificationQueue.pendingCount('level-up'); }
 };
 
 export { LevelUpEffectQueue };

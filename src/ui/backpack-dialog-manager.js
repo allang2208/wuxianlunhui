@@ -1,5 +1,5 @@
 import { getElement } from '../utils/dom-utils.js';
-import { TimerManager } from '../utils/timer-manager.js';
+import { TopNotificationQueue } from './top-notification-queue.js';
 import { isGoldItem } from '../items/item-stack-rules.js';
 
 // Backpack Dialog Manager - Extracted from EquipManager
@@ -21,15 +21,7 @@ export const BackpackDialogManager = {
 
     // 显示背包已满的系统提示（位于屏幕上方，与场景切换提示风格一致）
     _showBackpackFullNotice() {
-        let el = getElement('backpackFullNotice');
-        if (el) { el.remove(); }
-        el = document.createElement('div');
-        el.id = 'backpackFullNotice';
-        // 使用与场景切换提示一致的样式和位置（top:210px，居中，大字体）
-        el.style.cssText = 'position:fixed;top:210px;left:50%;transform:translateX(-50%);color:#d4c5a9;font-size:48px;font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade 3s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;';
-        el.textContent = '背包已满！';
-        document.body.appendChild(el);
-        TimerManager.setTimeout(() => { if (el && el.parentNode) el.remove(); }, 3000);
+        TopNotificationQueue.show('背包已满！', { tone: 'warning' });
     },
     
     _showSplitDialog(item, _slotIdx) {

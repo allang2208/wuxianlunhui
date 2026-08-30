@@ -11,6 +11,7 @@ import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { TopNotificationQueue } from '../ui/top-notification-queue.js';
 import { setDungeonFloorProfile, applyDungeonFloorChunked, clearDecoClearZones } from './dungeon-floor-texture.js';
 import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, loadObstacleDefaults, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
@@ -832,27 +833,21 @@ export const SceneManager = {
     },
 
     _showSceneLabel(name) {
-        this.showTopNotification(name);
+        this.showTopNotification(name, { emphasis: 'headline' });
     },
 
     /**
-     * 在屏幕顶部中央显示一条与场景切换提示同风格的临时通知
+     * 顶部临时通知：普通20px、重要24px，与28px升级标题分层；主题样式统一管理。
      * @param {string} text - 通知文本
      * @param {Object} [options] - 可选配置
-     * @param {string} [options.color='#d4c5a9'] - 文字颜色
-     * @param {string} [options.fontSize='48px'] - 字体大小
+     * @param {'info'|'success'|'warning'|'danger'} [options.tone='info'] - 语义色
+     * @param {'headline'} [options.emphasis] - 重要/场景标题
+     * @param {string} [options.color] - 旧调用颜色，已知色归入语义档
+     * @param {string} [options.fontSize] - 旧调用字号，>=24归入重要档
      * @param {number} [options.duration=3000] - 显示时长（ms）
      */
     showTopNotification(text, options = {}) {
-        if (typeof document === 'undefined' || !document.body) return;
-        const color = options.color || '#d4c5a9';
-        const fontSize = options.fontSize || '48px';
-        const duration = options.duration || 3000;
-        const label = document.createElement('div');
-        label.style.cssText = `position:fixed;top:210px;left:50%;transform:translateX(-50%);color:${color};font-size:${fontSize};font-weight:700;text-shadow:0 2px 8px rgba(0,0,0,0.8);z-index:5000;pointer-events:none;animation:sceneLabelFade ${duration / 1000}s ease-out forwards;font-family:SimHei,"Microsoft YaHei","黑体",sans-serif;`;
-        label.textContent = text;
-        document.body.appendChild(label);
-        TimerManager.setTimeout(() => { if (label && label.parentNode) label.remove(); }, duration);
+        TopNotificationQueue.show(text, options);
     },
 
     _saveMainSceneState() {

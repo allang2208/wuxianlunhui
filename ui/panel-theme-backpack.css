@@ -8215,3 +8215,69 @@ body.dungeon-route-landmark-mode .dungeon-route-dossier-enter {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* BEGIN top-notification-queue: 所有上方瞬态提示共用一个FIFO播放槽。 */
+:root {
+    --bp-notice-size: var(--bp-type-title);
+    --bp-notice-headline-size: var(--bp-type-display);
+    --bp-notice-upgrade-size: 28px;
+    --bp-notice-detail-size: 18px;
+    --bp-notice-info: var(--bp-ui-white-soft);
+    --bp-notice-success: #a8cbb1;
+    --bp-notice-warning: #dfbb7c;
+    --bp-notice-danger: #e39797;
+    --bp-notice-upgrade: #e3c574;
+    --bp-notice-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.top-notification-host { display: contents; }
+.top-notification {
+    --bp-notice-color: var(--bp-notice-info);
+    position: fixed;
+    top: calc(10vh + 128px);
+    left: 50%;
+    transform: translateX(-50%);
+    box-sizing: border-box;
+    width: max-content;
+    max-width: min(820px, calc(100vw - 40px));
+    color: var(--bp-notice-color);
+    font: 600 var(--bp-notice-size)/var(--bp-leading-body) var(--bp-font-ui);
+    text-align: center;
+    text-shadow: var(--bp-notice-shadow);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+    z-index: 5000;
+    animation: sceneLabelFade var(--bp-notice-duration, 3000ms) ease-out forwards;
+}
+
+.top-notification--success { --bp-notice-color: var(--bp-notice-success); }
+.top-notification--warning { --bp-notice-color: var(--bp-notice-warning); }
+.top-notification--danger { --bp-notice-color: var(--bp-notice-danger); }
+.top-notification--headline,
+.top-notification--warning,
+.top-notification--danger {
+    font-size: var(--bp-notice-headline-size);
+    font-weight: 700;
+}
+
+.level-up-text {
+    box-sizing: border-box;
+    max-width: calc(100vw - 40px);
+    color: var(--bp-notice-upgrade);
+    font: 700 var(--bp-notice-upgrade-size)/var(--bp-leading-tight) var(--bp-font-ui);
+    text-shadow: 0 0 16px rgba(227, 197, 116, 0.45), var(--bp-notice-shadow);
+    overflow-wrap: anywhere;
+    animation-duration: var(--bp-upgrade-duration, 2500ms);
+}
+.level-up-text .lu-effect {
+    color: var(--bp-notice-success);
+    font: 600 var(--bp-notice-detail-size)/var(--bp-leading-body) var(--bp-font-ui);
+    text-shadow: var(--bp-notice-shadow);
+}
+.top-notification-host.is-paused .top-notification,
+.top-notification-host.is-paused .level-up-text,
+.top-notification-host.is-paused .screen-flash {
+    animation-play-state: paused;
+}
+/* END top-notification-queue */

@@ -21,6 +21,7 @@ import { FusionSystem } from './fusion-system.js';
 import { QuestSystem } from './quest-system.js';
 import { UIState } from './ui-state.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { TopNotificationQueue } from './top-notification-queue.js';
 import { UnitDisplaySettings } from './unit-display-settings.js';
 import { EnvironmentLightingSettings } from './environment-lighting-settings.js';
 import { CivilianVisualSettings } from '../world/civilian-visual-runtime.js';
@@ -481,6 +482,7 @@ export const GameMenu = {
     },
 
     _exitGame() {
+        TopNotificationQueue.clear();
         // Electron 打包版：preload 暴露的 exitApp → IPC 'exit-app' → app.quit()
         // 浏览器开发环境：window.close()（多数浏览器会忽略，仅 Electron 保证生效）
         try {
