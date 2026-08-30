@@ -1,0 +1,172 @@
+{
+  "stage": "Curated 12 props retained; Dev v3 wall A/B/C and gate installed; gameplay and random rules unchanged",
+  "wallsInstalled": true,
+  "gateInstalled": true,
+  "propsInstalled": true,
+  "devCandidate": "dev-candidate/manifest.json",
+  "model": "mine_visual_v3.blend",
+  "geometry": "geometry.json",
+  "rockSource": "stone-provenance.json",
+  "wallNative": {
+    "a": "wall_a_native.png",
+    "b": "wall_b_native.png",
+    "c": "wall_c_native.png"
+  },
+  "gateNative": "gate_native.png",
+  "propSource": "../_mine_props_material_review_20260830/manifest.json",
+  "propSizing": "prop-sizing.json",
+  "propCamera": "orthographic30deg/root44.8deg/ortho6.4/originY0.875",
+  "remoteGeneration": {
+    "status": "completed: three rock 12-step candidates, rock v01 48-step refinement, gate and supports 48-step refinements; all six raw images saved",
+    "authorization": "User replied 同意 to the explicit new rock Depth, gate/support reference plus Depth, prompts and parameters transfer request, including same-batch rerolls, to 192.168.3.142:8188",
+    "previousBlock": "Earlier auto-review denial was before the above explicit authorization; no earlier upload occurred",
+    "destination": "192.168.3.142:8188",
+    "scope": "new rock Depth; new gate/support green beauty plus their Depth; prompts/parameters only",
+    "excludes": [
+      "Blender files",
+      "source code",
+      "other project files"
+    ],
+    "requests": [
+      "rock/request.json",
+      "gate/request.json",
+      "supports/request.json"
+    ]
+  },
+  "previews": [
+    "prop-size-presentation.png",
+    "dev-candidate/asset-contact.png",
+    "dev-candidate/assembly.png",
+    "dev-candidate/room-presentation.png",
+    "dev-candidate/gate-motion.gif"
+  ],
+  "limits": [
+    "Four Dev v3 PNGs installed by user authorization; runtime visual acceptance pending",
+    "finite ABC pattern remains visible; example room is art composition, not dungeon generation or game screenshot",
+    "new gate front iron changes art depth only; original source-column registration and movement contract retained"
+  ],
+  "tests": "未运行测试或运行时验证，按约定由用户测试。",
+  "installation": {
+    "scope": "12 props plus both config mirrors; no wall/gate PNG change",
+    "date": "2026-08-30",
+    "authorization": "帮我做新的，替代旧的; 继续优化图图片不满意可以重抽。尽量做好来。",
+    "props": [
+      {
+        "key": "abandoned_mine_prop_slate_rubble",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_slate_rubble.png",
+        "weight": 0.9,
+        "size": 238.933,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_coal_chunks",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_coal_chunks.png",
+        "weight": 0.85,
+        "size": 244.87,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_ore_fragments",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_ore_fragments.png",
+        "weight": 0.8,
+        "size": 269.474,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_broken_sleepers",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_broken_sleepers.png",
+        "weight": 0.85,
+        "size": 289.811,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_broken_rail",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_broken_rail.png",
+        "weight": 0.72,
+        "size": 287.03,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_rope_coil",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_rope_coil.png",
+        "weight": 0.38,
+        "size": 197.614,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_pickaxe",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_pickaxe.png",
+        "weight": 0.45,
+        "size": 282.483,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_shovel",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_shovel.png",
+        "weight": 0.35,
+        "size": 248.242,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_floor_lantern",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_floor_lantern.png",
+        "weight": 0.32,
+        "size": 261.953,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_helmet",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_helmet.png",
+        "weight": 0.32,
+        "size": 231.619,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_minecart_wheel",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_minecart_wheel.png",
+        "weight": 0.48,
+        "size": 275.692,
+        "originY": 0.875
+      },
+      {
+        "key": "abandoned_mine_prop_ore_sack",
+        "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_ore_sack.png",
+        "weight": 0.42,
+        "size": 327.111,
+        "originY": 0.875
+      }
+    ],
+    "retiredFromGenericScatter": [
+      "abandoned_mine_prop_rail_spikes",
+      "abandoned_mine_prop_rotten_planks",
+      "abandoned_mine_prop_timber_offcuts",
+      "abandoned_mine_prop_broken_chain",
+      "abandoned_mine_prop_dynamite",
+      "abandoned_mine_prop_fuse_spool"
+    ],
+    "oldFilesPhysicallyRemoved": false,
+    "noRandomMirror": true,
+    "removedHistoricalBackup": "before_prop_install"
+  },
+  "previewContract": {
+    "worldOrigin": [
+      4096,
+      4096
+    ],
+    "worldOriginIsExample": true,
+    "variantOrder": [
+      "a",
+      "b",
+      "c"
+    ],
+    "styleSource": "src/world/wall-system.js:ISO_WALL_STYLES.abandonedMine",
+    "hashSource": "src/world/combat-room-system.js:_makeWorldBlockPiece",
+    "hash": "((round(x)*73856093) XOR (round(y)*19349663) XOR 0x07a6b1d5) unsigned32 modulo variantCount",
+    "wallDepth": "greatest connected half-segment endpoint Y + 4",
+    "posterOffsetAffectsVariant": false,
+    "wallMirror": false,
+    "scope": "offline authored assemblies; not generated rooms, runtime lighting or dynamic occlusion proof"
+  },
+  "wallGateInstallation": "dev-candidate/installation.json",
+  "cleanup": "../../../docs/abandoned-mine-visual-cleanup-20260830.json"
+}

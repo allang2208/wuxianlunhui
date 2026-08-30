@@ -1,0 +1,3 @@
+One rectangular volume of natural dark grey basalt rock, exactly matching the supplied depth image. A single continuous dense stone body with a planar top, planar vertical sides and intact straight edges. The same fine matte mineral material covers all surfaces. Broad softly mottled grey mineral patches give gentle natural variation, with quiet subtle stone roughness. Large continuous surfaces dominate; the upper and lower parts are identical material.
+
+Clean semi-realistic PBR strategy-game asset, restrained texture density, low saturation neutral grey, soft neutral upper-left lighting, gentle readable shading, exact orthographic camera and silhouette from depth. Isolated on a perfectly flat pure green background, without cast shadows or added components.

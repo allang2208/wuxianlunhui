@@ -1,0 +1,56 @@
+{
+  "stage": "Dev v3 wall A/B/C and gate installed by user authorization; runtime visual acceptance pending",
+  "runtimeInstalled": true,
+  "model": "mine_visual_v3.blend",
+  "geometry": "geometry.json",
+  "rockSource": "material-source.json",
+  "woodIronSource": "component-materials.json",
+  "walls": {
+    "a": "wall_a.png",
+    "b": "wall_b.png",
+    "c": "wall_c.png"
+  },
+  "gate": {
+    "closedLeaf": "gate.png",
+    "sheet": "abandoned_mine_gate.png",
+    "frameSize": [
+      640,
+      640
+    ],
+    "frameCount": 16,
+    "liftPixels": [
+      0,
+      5.3179,
+      20.2822,
+      43.4088,
+      73.2138,
+      108.2129,
+      146.9222,
+      187.8576,
+      229.535,
+      270.4704,
+      309.1797,
+      344.1788,
+      373.9838,
+      397.1104,
+      412.0747,
+      417.3926
+    ],
+    "fadeFraction": 0.2,
+    "runtimeMotion": "existing full-leaf frame-zero motion; original sheet frames remain canvas-clipped"
+  },
+  "previewContract": "../manifest.json:previewContract",
+  "previews": [
+    "asset-contact.png",
+    "assembly.png",
+    "room-presentation.png",
+    "gate-motion.gif"
+  ],
+  "limits": [
+    "authored offline layouts only, not game screenshots",
+    "finite ABC variants and repeated support placement remain recognizable"
+  ],
+  "tests": "未运行测试或运行时验证，按约定由用户测试。",
+  "installationRecord": "installation.json",
+  "userAuthorizedInstallation": true
+}

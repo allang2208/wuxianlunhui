@@ -216,5 +216,9 @@
       "report": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/generation/final_12step/lighting-normalization-report.json",
       "flipX": false
     }
-  }
+  },
+  "runtimeInstalled": false,
+  "stage": "superseded historical source",
+  "supersededBy": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/installation.json",
+  "runtimeRecord": "Historical installation only; follow supersededBy for current wall/gate art."
 }

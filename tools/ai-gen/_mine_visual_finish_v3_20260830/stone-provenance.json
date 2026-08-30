@@ -1,0 +1,8 @@
+{
+  "source": "../_mine_wall_dev_final_20260830/accepted-rock-periodic-ratios.npz",
+  "approvedImage": "../_mine_wall_a_dev_refine_20260830/wall_a_refine_v01_candidate.png",
+  "method": "discard old flat collars, periodic-plus-smooth component, shared UV edges and interior-only ABC mixing",
+  "newAIImages": false,
+  "runtimeInstalled": false,
+  "network": "historical local preparation before the new Dev pass; current authorization and generation status are in manifest.json"
+}

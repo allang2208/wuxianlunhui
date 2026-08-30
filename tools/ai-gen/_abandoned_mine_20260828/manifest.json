@@ -5,7 +5,8 @@
   "sources": [
     "tools/ai-gen/_abandoned_mine_20260828/floor-source-imagegen.png"
   ],
-  "runtime": {
+  "modeledWallKit": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/installation.json",
+  "historicalRuntime": {
     "floor_abandoned_mine_seamless": {
       "path": "assets/terrain/floor_abandoned_mine_seamless.png",
       "size": [
@@ -20,5 +21,6 @@
       "sha256": "bb53aac75484562378e636396334e0d413667eb92cbc967a74a0a544992049a7"
     }
   },
-  "modeledWallKit": "tools/ai-gen/_abandoned_mine_wall_kit_20260828/manifest.json"
+  "stage": "historical first floor source; current floor and wall pointers below",
+  "currentFloor": "tools/ai-gen/_abandoned_mine_bedrock_20260830/manifest.json"
 }

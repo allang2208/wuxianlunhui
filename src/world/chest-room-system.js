@@ -21,7 +21,7 @@ import { EnhancementItems } from '../ui/reward-system.js';
 import { MagicDustItem } from '../config/enchant-config.js';
 import { ItemDatabase } from '../items/item-database.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { finishGateSprites, prepareGateSprites } from './gate-visual-state.js';
+import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites, finishGateSprites, prepareGateSprites } from './gate-visual-state.js';
 
 const COUNTDOWN_SEC = 60;
 const OPEN_RANGE = 120; // 与放大一倍的宝箱贴图匹配（原 60）
@@ -410,16 +410,8 @@ export const ChestRoomSystem = {
             gateSprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
             gateSprite.setFlipX(!!piece.flipX);
             gateSprite.setDepth(depth);
-            if (crop && typeof gateSprite.setCrop === 'function') {
-                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
-                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
-                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
-                    const result = originalSetFrame(frame, updateSize, updateOrigin);
-                    applyCrop();
-                    return result;
-                };
-                applyCrop();
-            }
+            bindGateSourceCrop(gateSprite, crop, g.h);
+            bindGateLeafMotion(gateSprite, g, 0);
             sprites.push(gateSprite);
             return gateSprite;
         };
@@ -431,7 +423,12 @@ export const ChestRoomSystem = {
                 const tx1 = hole[0] + span * (index + 1) / depthSliceCount;
                 const sA = baseAt(tx0);
                 const sB = baseAt(tx1);
-                const depth = Math.max(sA.y, sB.y) + 3.9;
+                const endAnchorY = index === 0
+                    ? sA.y
+                    : (index === depthSliceCount - 1 ? sB.y : null);
+                const depth = (g.tuckEndSlices && endAnchorY != null
+                    ? endAnchorY
+                    : Math.max(sA.y, sB.y)) + 3.9;
                 const crop = { x: Math.floor(tx0), w: Math.ceil(tx1) - Math.floor(tx0) };
                 makeSprite(crop, depth);
                 depthSegments.push({ A: sA, B: sB, depth, crop });
@@ -471,10 +468,7 @@ export const ChestRoomSystem = {
                 from: 0, to: (gateGeo.frames || 16) - 1,
                 duration: GATE_ANIM_MS, ease: 'Linear',
                 onUpdate: (tw) => {
-                    const frame = Math.floor(tw.getValue());
-                    for (const sprite of sprites) {
-                        if (sprite && sprite.active) sprite.setFrame(frame);
-                    }
+                    updateGateSprites(sprites, tw.getValue(), Math.floor);
                 },
                 onComplete: () => {
                     finishGateSprites(sprites, (gateGeo.frames || 16) - 1, true, gate.hideWhenOpen);

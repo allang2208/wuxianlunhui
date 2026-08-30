@@ -1,0 +1,42 @@
+{
+  "method": "component-scoped Dev RGB with native light envelope; no alpha/geometry change",
+  "outputs": [
+    {
+      "asset": "gate",
+      "raw": "gate\\raw.png",
+      "output": "gate.png",
+      "alpha": "unchanged authored v3 alpha",
+      "componentCoverage": [
+        {
+          "component": "wood",
+          "authoredPixels": 58558,
+          "materialPixels": 55449
+        },
+        {
+          "component": "iron",
+          "authoredPixels": 49385,
+          "materialPixels": 47448
+        }
+      ]
+    },
+    {
+      "asset": "supports",
+      "raw": "supports\\raw.png",
+      "output": "wall_c.png",
+      "alpha": "unchanged authored v3 alpha",
+      "componentCoverage": [
+        {
+          "component": "wood",
+          "authoredPixels": 66822,
+          "materialPixels": 66821
+        },
+        {
+          "component": "iron",
+          "authoredPixels": 1382,
+          "materialPixels": 1343
+        }
+      ]
+    }
+  ],
+  "runtimeInstalled": false
+}

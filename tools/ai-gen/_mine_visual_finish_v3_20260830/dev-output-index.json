@@ -1,0 +1,56 @@
+{
+  "outputs": [
+    {
+      "asset": "rock",
+      "raw": "rock/raw.png",
+      "native": "wall_a_native.png",
+      "steps": 12,
+      "seed": 122083081,
+      "runtimeInstalled": false
+    },
+    {
+      "asset": "rock",
+      "raw": "rock/raw_refine_v01.png",
+      "native": "wall_a_native.png",
+      "steps": 48,
+      "seed": 122083281,
+      "runtimeInstalled": false
+    },
+    {
+      "asset": "gate",
+      "raw": "gate/raw.png",
+      "native": "gate_native.png",
+      "steps": 48,
+      "seed": 122083082,
+      "runtimeInstalled": false
+    },
+    {
+      "asset": "supports",
+      "raw": "supports/raw.png",
+      "native": "wall_c_native.png",
+      "steps": 48,
+      "seed": 122083083,
+      "runtimeInstalled": false
+    }
+  ],
+  "scope": "raw review sheets only; generation success is not visual acceptance",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。",
+  "discardedHistory": [
+    {
+      "asset": "rock",
+      "native": "wall_a_native.png",
+      "steps": 12,
+      "seed": 122083091,
+      "runtimeInstalled": false,
+      "removedRaw": "rock/raw_v02.png"
+    },
+    {
+      "asset": "rock",
+      "native": "wall_a_native.png",
+      "steps": 12,
+      "seed": 122083101,
+      "runtimeInstalled": false,
+      "removedRaw": "rock/raw_v03.png"
+    }
+  ]
+}

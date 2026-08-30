@@ -1,0 +1,45 @@
+{
+  "asset": "abandoned_mine_wall_block_a",
+  "assetClass": "modular_natural_wall",
+  "model": "flux2-dev-depth",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "size": [
+    1024,
+    1024
+  ],
+  "styleVersion": "mine-wall-pbr-v3",
+  "styleTemplate": "../mine-wall-a-dev-reroll.py:PROMPTS[4]",
+  "styleBasis": "world122-building-v5 shared PBR, material scale, saturation and lighting; building identity and foundation clauses excluded for natural wall",
+  "foundationStyle": "none (modular wall)",
+  "depthSource": "../_mine_wall_pbr_kit_v2_20260830/wall_a_body_depth.png",
+  "depthConversion": "16-bit / 257 to 8-bit; original extent and alpha; no reprojection",
+  "depthSourceMode": "I;16",
+  "depthRange": [
+    0,
+    247
+  ],
+  "geometry": "../_mine_wall_pbr_kit_v2_20260830/geometry.json",
+  "modelSource": "../_mine_wall_pbr_kit_v2_20260830/mine_wall_and_gate_pbr_v2.blend",
+  "stage": "refine",
+  "filePrefix": "wall_a_refine",
+  "steps": 48,
+  "denoise": 0.3,
+  "controlStrength": 0.75,
+  "seeds": [
+    122083050,
+    122083051
+  ],
+  "prompt": "wall_a_refine_prompt.txt",
+  "controlImage": "../_mine_wall_a_dev_depth_20260830_batch4/mine_wall_a_v2_depth_control.png",
+  "initImage": "../_mine_wall_a_dev_depth_20260830_batch4/wall_a_structure_v02_raw.png",
+  "selectedSourceSeed": 122083041,
+  "selectionApproval": "同意入精修",
+  "approvalScope": "Refine batch-4 variant 02 only; not runtime installation or B/C/gate generation",
+  "transferScope": "Selected Dev-generated green-background raw, original Depth control and material prompt to existing ComfyUI at 192.168.3.142:8188; no Blender beauty, blend or repository upload",
+  "runtimeInstalled": false,
+  "approved": false
+}

@@ -141,6 +141,15 @@
   与通道火把全部停止生成；配置`combatRoom.obstacles:false`作为第二道门禁。不要删除这些全局资产，
   `obstacle_candle/obstacle_torch`仍被世界-125、建筑和编辑器复用。
 
+- **矿洞墙面火把显式例外（2026-08-30）**：用户重新要求后，仅`abandonedMine.wallTorches`启用
+  `DungeonWallTorchSystem`。复用正式`obstacle_torch`、粒子与常驻暖光，只读最终墙段/门线及房间、
+  通道含孔轮廓，在墙门完成后稀疏挂饰；不恢复ObstacleSpawnSystem，不加入isoVisuals/碰撞或布局随机流。
+  只挂可见内侧直墙，跳过门端、转角和木撑；杯口/背板锚同变换，离场/失败恢复必须清理粒子并注销光源。
+  参数在墙样式中，来源和范围见`docs/abandoned-mine-wall-torches.md`；普通地板小物仍不登记实时灯光。
+  非发光挂绳/矿镐/木牌经`wallDecorations`与独立配置接入同一挂饰生命周期，火把先占位、挂饰填剩余净空；
+  坐标散列加权选型、同类近距排除、每房/通道/全场数量上限，不改场地随机流。平放小物须在模型中转为挂墙
+  姿态并重渲，两轴独立出图保留光向；宽挂饰沿另一等距轴贴岩体可见侧面，不用屏幕法线或抬depth掩盖邻墙裁切。
+
 #### 沼泽地牢连续湿泥地貌（2026-08-26）
 - 沼泽初级/中级/高级统一通过`floor.terrainProfile:'swampDungeonWetland'`路由到
   `data/swamp-dungeon-terrain.json`；连续湿泥底材、4帧透明泥水细节和18种低矮小件复用僵尸地牢
@@ -425,6 +434,22 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    闭合有效高 `225.7447px`，不得恢复比墙顶明显更高的旧门框比例。`depthSlices:3` 必须由竞技场门、全局 `WallGate`、
    `ChestRoomSystem` 独立门同时消费，门体/金色轮廓/X光遮挡面线/结构遮挡缓存都逐段以 `maxY+3.9` 排序；墙柱为
    `maxY+4`。离线总览也必须按同一分段规则合成，禁止用整门单一中心 depth 伪验收。
+
+10. **双轴门的源图裁片合同（2026-08-30）**：`LT/RB`（左上/右下）门按几何水平镜像时，
+    不得在切片精灵上直接组合`flipX:true + setCrop(原图列)`；Phaser 4会把crop UV取图列翻到另一端，
+    同时镜像quad，导致图像与本段底线/depth错配。三条功能门路径和门轮廓统一调用
+    `gate-visual-state.js:bindGateSourceCrop`，将精灵镜像转换为负`scaleX + flipX:false`，
+    保持中心原点和源图列不变，每次`setFrame`后重新计算crop UV；逻辑`piece.flipX`、门端锚、
+    碰撞线和运动不变。启用`tuckEndSlices`时轮廓只比门体高0.05，避免旧+0.5越过端墙。
+    普通未切片门不改。离线先裁原图再镜像整画布与该合同等价，但不能覆盖引擎渲染问题，
+    不得据离线预览宣布实机方向正确。
+11. **矿洞独立门叶的完整显隐合同（2026-08-30）**：仅`abandoned_mine_gate.leafMotion`启用完整帧0的刚性升降，
+    不再播放被640画布上缘裁断的历史帧1～15。`bindGateSourceCrop`之后绑定`bindGateLeafMotion`，
+    按原Blender16个`liftPixels`关键位移插值，只移动门体/轮廓精灵Y；逻辑底线、六段depth、端片退层和碰撞不动。
+    总时长仍900ms：关闭先在完全升起位置淡入180ms，再下落720ms；开启先升起720ms，再淡出180ms。
+    `_gateVisualFrame`保存连续逻辑进度，实际纹理帧始终0；轮廓同步必须读逻辑进度，不能读`frame.name`，
+    避免每帧把高亮拉回地面。中途反向沿当前进度返回；竞技场入口/通道、全局出口和独立宝箱门共用实现。
+    `hideWhenOpen`仅在alpha归零后隐藏，不另建淡化tween；离场沿现有动画计数器清理。其它门保留原离散帧。
 
 #### 五、透视遮挡（X 光圆圈）
 1. 判定（几何法，不用包围盒）：墙件 depth > 实体 depth 且**脚底在墙面底边线之后 + 身体进入墙面覆盖带（覆盖量 > 身体 15%）**；遮挡物 = iso 墙件 + 门闸统一列表

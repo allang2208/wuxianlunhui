@@ -242,6 +242,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--install", action="store_true", help="copy finalized files into assets/terrain")
     args = parser.parse_args()
+    if args.install:
+        successor = ROOT / "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/installation.json"
+        if successor.exists():
+            raise RuntimeError("Legacy installation retired; follow docs/abandoned-mine-visual-delivery-20260830.md")
+        previous = json.loads((SOURCE / "manifest.json").read_text(encoding="utf-8"))
+        if previous.get("supersededBy"):
+            raise RuntimeError("Legacy AI12 installation retired; follow " + previous["supersededBy"])
     required = [*WALL_RAWS, GATE_RAW, *(SOURCE / f"{key}.png" for key in WALL_KEYS)]
     required.extend(SOURCE / "gate_frames" / f"gate_{index:02d}.png" for index in range(FRAMES))
     missing = [str(path) for path in required if not path.is_file()]

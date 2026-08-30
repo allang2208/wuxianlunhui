@@ -1,7 +1,7 @@
 import dungeonConfigData from '../../data/dungeon-config.json';
 import dungeonTerrainConfig from '../../data/dungeon-terrain.json';
 import swampDungeonTerrainConfig from '../../data/swamp-dungeon-terrain.json';
-import abandonedMineTerrainConfig from '../../data/abandoned-mine-terrain.json';
+import { getAbandonedMineFloorProfile } from './abandoned-mine-terrain.js';
 import { getTributeCombatChanceDelta, getTributeEliteChanceDelta } from './tribute-effects.js';
 
 // 难度等级顺序（与 dungeon-event-definitions.js GRADE_ORDER 保持一致）
@@ -191,23 +191,7 @@ export const DungeonConfig = {
             };
         }
         if (floor?.terrainProfile === 'abandonedMine') {
-            const base = abandonedMineTerrainConfig.base || {};
-            return {
-                tiles: base.key ? [base.key] : [],
-                glow: false,
-                continuous: base.continuous === true,
-                backgroundColor: base.backgroundColor || '#0b0a09',
-                textureScaleY: base.textureScaleY ?? 0.5774,
-                cellDetails: abandonedMineTerrainConfig.detailLayer
-                    ? { ...abandonedMineTerrainConfig.detailLayer, grid: { ...abandonedMineTerrainConfig.detailLayer.grid } }
-                    : null,
-                deco: abandonedMineTerrainConfig.deco
-                    ? {
-                        ...abandonedMineTerrainConfig.deco,
-                        assets: (abandonedMineTerrainConfig.deco.assets || []).map(asset => ({ ...asset })),
-                    }
-                    : null,
-            };
+            return getAbandonedMineFloorProfile();
         }
         if (!floor) return null;
         return {

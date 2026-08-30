@@ -336,8 +336,8 @@ function _drawFloorCellDetails(ctx, profile, ox, oy, cw, ch, diamond) {
 }
 
 /** 地板点缀（草簇等，2026-08-16）：
- * - 独立于地砖层的装饰贴图，固定朝向绘制（仅随机水平镜像，草簇本身径向对称安全），
- *   不做 X/Y 翻转——避免 8 向循环把有方向性的素材翻转；
+ * - 独立于地砖层的装饰贴图，默认仅随机水平镜像；world-grid 的定向PBR小物
+ *   可通过 deco.allowFlipX=false 保持原图光向，不旋转或垂直翻转；
  * - 位置按块坐标种子确定性随机，块重烘焙时点缀位置不变；
  * - 菱形地块模式下只在菱形内（距边留 margin）点缀，草不压黑边。
  */
@@ -389,7 +389,10 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, Math.min(1, Number(asset.alpha) || 1));
                 ctx.translate(px - ox, py - oy);
-                if (rand() < 0.5) ctx.scale(-1, 1);
+                // Fixed-camera PBR props may opt out of reflected baked light.
+                // Still consume the draw so existing seeded layouts stay stable.
+                const flipX = rand() < 0.5;
+                if (deco.allowFlipX !== false && flipX) ctx.scale(-1, 1);
                 ctx.drawImage(asset.img, -width / 2, -height * originY, width, height);
                 ctx.restore();
             }

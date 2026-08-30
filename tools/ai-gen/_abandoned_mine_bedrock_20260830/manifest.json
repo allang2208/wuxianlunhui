@@ -1,0 +1,236 @@
+{
+  "date": "2026-08-30",
+  "generator": "built-in image_gen",
+  "prompt": "prompt.txt",
+  "generatedSource": "generated-bedrock.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "runtime": "assets/terrain/floor_abandoned_mine_seamless.png",
+  "runtimeSize": [
+    1024,
+    1024
+  ],
+  "preparation": "bilinear resize; floor-asset offset wrap; 32px opposing edge blend; original generated palette",
+  "replacementAuthorization": "User: 帮我做新的，替代旧的",
+  "props": "Existing 18 PNGs preserved; alpha-content dimensions calibrated in configuration only",
+  "profiles": {
+    "plane": {
+      "cellSize": 264,
+      "density": 0.48,
+      "sizeScale": 1
+    },
+    "dungeon": {
+      "cellSize": 232,
+      "density": 0.42,
+      "sizeScale": 0.8
+    }
+  },
+  "sizing": [
+    {
+      "key": "abandoned_mine_prop_slate_rubble",
+      "alphaBBox": [
+        99,
+        202,
+        167,
+        236
+      ],
+      "visibleSize": 42,
+      "canvasDisplayHeight": 158
+    },
+    {
+      "key": "abandoned_mine_prop_coal_chunks",
+      "alphaBBox": [
+        92,
+        208,
+        165,
+        237
+      ],
+      "visibleSize": 44,
+      "canvasDisplayHeight": 154
+    },
+    {
+      "key": "abandoned_mine_prop_ore_fragments",
+      "alphaBBox": [
+        100,
+        202,
+        156,
+        233
+      ],
+      "visibleSize": 40,
+      "canvasDisplayHeight": 183
+    },
+    {
+      "key": "abandoned_mine_prop_broken_sleepers",
+      "alphaBBox": [
+        108,
+        206,
+        151,
+        240
+      ],
+      "visibleSize": 60,
+      "canvasDisplayHeight": 357
+    },
+    {
+      "key": "abandoned_mine_prop_rail_spikes",
+      "alphaBBox": [
+        108,
+        206,
+        149,
+        237
+      ],
+      "visibleSize": 30,
+      "canvasDisplayHeight": 187
+    },
+    {
+      "key": "abandoned_mine_prop_broken_rail",
+      "alphaBBox": [
+        105,
+        198,
+        151,
+        239
+      ],
+      "visibleSize": 74,
+      "canvasDisplayHeight": 412
+    },
+    {
+      "key": "abandoned_mine_prop_rotten_planks",
+      "alphaBBox": [
+        106,
+        206,
+        153,
+        241
+      ],
+      "visibleSize": 62,
+      "canvasDisplayHeight": 338
+    },
+    {
+      "key": "abandoned_mine_prop_timber_offcuts",
+      "alphaBBox": [
+        109,
+        204,
+        154,
+        238
+      ],
+      "visibleSize": 54,
+      "canvasDisplayHeight": 307
+    },
+    {
+      "key": "abandoned_mine_prop_rope_coil",
+      "alphaBBox": [
+        104,
+        208,
+        160,
+        234
+      ],
+      "visibleSize": 44,
+      "canvasDisplayHeight": 201
+    },
+    {
+      "key": "abandoned_mine_prop_broken_chain",
+      "alphaBBox": [
+        106,
+        200,
+        149,
+        240
+      ],
+      "visibleSize": 48,
+      "canvasDisplayHeight": 286
+    },
+    {
+      "key": "abandoned_mine_prop_pickaxe",
+      "alphaBBox": [
+        111,
+        203,
+        145,
+        237
+      ],
+      "visibleSize": 64,
+      "canvasDisplayHeight": 482
+    },
+    {
+      "key": "abandoned_mine_prop_shovel",
+      "alphaBBox": [
+        99,
+        208,
+        167,
+        229
+      ],
+      "visibleSize": 64,
+      "canvasDisplayHeight": 241
+    },
+    {
+      "key": "abandoned_mine_prop_floor_lantern",
+      "alphaBBox": [
+        116,
+        185,
+        140,
+        229
+      ],
+      "visibleSize": 44,
+      "canvasDisplayHeight": 256
+    },
+    {
+      "key": "abandoned_mine_prop_helmet",
+      "alphaBBox": [
+        106,
+        201,
+        153,
+        232
+      ],
+      "visibleSize": 38,
+      "canvasDisplayHeight": 207
+    },
+    {
+      "key": "abandoned_mine_prop_dynamite",
+      "alphaBBox": [
+        110,
+        201,
+        149,
+        237
+      ],
+      "visibleSize": 38,
+      "canvasDisplayHeight": 249
+    },
+    {
+      "key": "abandoned_mine_prop_fuse_spool",
+      "alphaBBox": [
+        106,
+        195,
+        151,
+        240
+      ],
+      "visibleSize": 40,
+      "canvasDisplayHeight": 228
+    },
+    {
+      "key": "abandoned_mine_prop_minecart_wheel",
+      "alphaBBox": [
+        109,
+        190,
+        147,
+        238
+      ],
+      "visibleSize": 56,
+      "canvasDisplayHeight": 299
+    },
+    {
+      "key": "abandoned_mine_prop_ore_sack",
+      "alphaBBox": [
+        108,
+        185,
+        148,
+        231
+      ],
+      "visibleSize": 46,
+      "canvasDisplayHeight": 256
+    }
+  ],
+  "previews": [
+    "plane-material-preview.png",
+    "dungeon-material-preview.png",
+    "floor-repeat-preview.png"
+  ],
+  "previewScope": "Offline asset composition, approximate distribution; not a game screenshot or runtime validation"
+}

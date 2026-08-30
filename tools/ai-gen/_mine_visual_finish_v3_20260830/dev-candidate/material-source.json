@@ -1,0 +1,16 @@
+{
+  "rockRaw": "rock\\raw_refine_v01.png",
+  "selection": "agent-selected material candidate; not user acceptance",
+  "generationRecord": "rock\\raw_refine_v01.generation.json",
+  "method": "keyed monochrome unlit variation from Dev raw, periodic-plus-smooth tiles, interior-only ABC mixing; Blender relighting",
+  "nativeGeometry": "../mine_visual_v3.blend",
+  "sameGeometry": true,
+  "runtimeInstalled": false,
+  "smoothingSourcePx": 0.7,
+  "variationStrength": 0.78,
+  "baseColor": [
+    97,
+    103,
+    106
+  ]
+}

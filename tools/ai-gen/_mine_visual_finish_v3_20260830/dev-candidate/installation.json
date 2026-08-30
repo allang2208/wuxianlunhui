@@ -1,0 +1,45 @@
+{
+  "installedOn": "2026-08-30T15:07:44+08:00",
+  "runtimeInstalled": true,
+  "authorization": "我在另一个对话做了战斗事件场地的随机化和修改，你只用把门和墙的贴图进行替换即可生成规则，随机规则做出全面匹配",
+  "scope": "Four existing PNG paths only; no gameplay code, config, layout, random algorithm, collision or gate motion changes",
+  "installed": [
+    {
+      "key": "abandoned_mine_wall_block_a",
+      "source": "wall_a.png",
+      "destination": "assets/terrain/abandoned_mine_wall_block_a.png",
+      "bytes": 620853
+    },
+    {
+      "key": "abandoned_mine_wall_block_b",
+      "source": "wall_b.png",
+      "destination": "assets/terrain/abandoned_mine_wall_block_b.png",
+      "bytes": 612963
+    },
+    {
+      "key": "abandoned_mine_wall_block_c",
+      "source": "wall_c.png",
+      "destination": "assets/terrain/abandoned_mine_wall_block_c.png",
+      "bytes": 542931
+    },
+    {
+      "key": "abandoned_mine_gate",
+      "source": "abandoned_mine_gate.png",
+      "destination": "assets/terrain/abandoned_mine_gate.png",
+      "bytes": 2724090
+    }
+  ],
+  "sourceManifest": "manifest.json",
+  "geometry": "geometry.json",
+  "compatibility": {
+    "walls": "1024x1024; groundCenter 512,761.9959; display 260x259; grid 128x64; no mirror",
+    "gate": "4x4 sheet; 640x640 per frame; 16 frames; original full leaf frame-zero lift and fade",
+    "routing": "Current abandonedMine style: irregular and fallback rooms, passages, loops, interior template walls, entry/passage/exit gates",
+    "randomRules": "Existing other-session rules retained without changes"
+  },
+  "runtimeAcceptance": "Pending user game testing; installation authorization is not runtime visual acceptance",
+  "rebuildPolicy": "This records the last explicit copy. Rebuilding candidate files or their manifests does not reinstall formal assets.",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。",
+  "removedHistoricalBackup": "before_runtime_install",
+  "cleanup": "../../../../docs/abandoned-mine-visual-cleanup-20260830.json"
+}

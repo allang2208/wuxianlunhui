@@ -1,0 +1,269 @@
+{
+  "date": "2026-08-30",
+  "scope": "Mine visual task only; no monsters, events, other-session sources or EXE releases",
+  "files": [
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/rock/raw_v02.png",
+      "bytes": 1385767,
+      "reason": "Unselected Dev rock candidate; strong repeated fissures. Generation metadata retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/rock/raw_v03.png",
+      "bytes": 1342542,
+      "reason": "Unselected Dev rock candidate; strong repeated fissures. Generation metadata retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned-mine-terrain.json",
+      "bytes": 3886,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_broken_rail.png",
+      "bytes": 36927,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_broken_sleepers.png",
+      "bytes": 36449,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_coal_chunks.png",
+      "bytes": 37063,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_floor_lantern.png",
+      "bytes": 37396,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_helmet.png",
+      "bytes": 36953,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_minecart_wheel.png",
+      "bytes": 38492,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_ore_fragments.png",
+      "bytes": 37279,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_ore_sack.png",
+      "bytes": 37616,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_pickaxe.png",
+      "bytes": 35781,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_rope_coil.png",
+      "bytes": 37728,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_shovel.png",
+      "bytes": 35894,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/abandoned_mine_prop_slate_rubble.png",
+      "bytes": 37582,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/before_prop_install/public_abandoned-mine-terrain.json",
+      "bytes": 3886,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/before_runtime_install/abandoned_mine_gate.png",
+      "bytes": 1781413,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/before_runtime_install/abandoned_mine_wall_block_a.png",
+      "bytes": 730636,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/before_runtime_install/abandoned_mine_wall_block_b.png",
+      "bytes": 724280,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/before_runtime_install/abandoned_mine_wall_block_c.png",
+      "bytes": 700047,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_00.png",
+      "bytes": 240249,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_01.png",
+      "bytes": 240219,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_02.png",
+      "bytes": 240102,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_03.png",
+      "bytes": 239923,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_04.png",
+      "bytes": 239682,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_05.png",
+      "bytes": 238599,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_06.png",
+      "bytes": 229249,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_07.png",
+      "bytes": 213252,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_08.png",
+      "bytes": 192636,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_09.png",
+      "bytes": 165542,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_10.png",
+      "bytes": 134634,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_11.png",
+      "bytes": 104276,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_12.png",
+      "bytes": 81373,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_13.png",
+      "bytes": 64439,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_14.png",
+      "bytes": 54157,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_frames/gate_15.png",
+      "bytes": 51004,
+      "reason": "Superseded pre-install copy or reproducible gate frame; current source and installation record retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/gate_keyed.png",
+      "bytes": 228129,
+      "reason": "Reproducible keyed intermediate; selected raw and deterministic key command retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/rock_keyed.png",
+      "bytes": 998581,
+      "reason": "Reproducible keyed intermediate; selected raw and deterministic key command retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/supports_keyed.png",
+      "bytes": 588297,
+      "reason": "Reproducible keyed intermediate; selected raw and deterministic key command retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/blender-production.log",
+      "bytes": 2297,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-rock-raw-review.png",
+      "bytes": 4539682,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-gate-raw-review.png",
+      "bytes": 573805,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-supports-raw-review.png",
+      "bytes": 836058,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/wall-gate-review.png",
+      "bytes": 904715,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/long-wall-assembly.png",
+      "bytes": 1349395,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/room-presentation.png",
+      "bytes": 1315896,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/gate-full-leaf-fade.gif",
+      "bytes": 14765169,
+      "reason": "Obsolete local/native comparison or log; final Dev assembly, room and animation previews retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/mine_visual_v3.blend1",
+      "bytes": 4142295,
+      "reason": "Blender autosave duplicate; editable .blend retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_visual_finish_v3_20260830/dev-candidate/mine_visual_v3.blend1",
+      "bytes": 3804634,
+      "reason": "Blender autosave duplicate; editable .blend retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_wall_pbr_kit_v2_20260830/mine_wall_and_gate_pbr_v2.blend1",
+      "bytes": 3402201,
+      "reason": "Blender autosave duplicate; editable .blend retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_wall_pbr_kit_20260830/mine_wall_pbr_kit.blend1",
+      "bytes": 3302003,
+      "reason": "Blender autosave duplicate; editable .blend retained."
+    },
+    {
+      "path": "tools/ai-gen/_mine_wall_a_rockface_20260830/mine_wall_a_rockface.blend1",
+      "bytes": 724883,
+      "reason": "Blender autosave duplicate; editable .blend retained."
+    }
+  ],
+  "totalBytes": 51324993,
+  "retained": "Selected raw plus refinement ancestor, prompt/Depth/masks, current editable models, final PNGs, previews and installation records",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}

@@ -1,0 +1,9 @@
+{
+  "installedOn": "2026-08-30T16:29:50+08:00",
+  "runtimeInstalled": true,
+  "source": "manifest.json",
+  "scope": "6 new PNGs and separate wall decoration config; existing floor props/walls/gates unchanged",
+  "authorization": "看看墙上还能再添加什么小物，让场景不这么单调，相对于有点随机",
+  "config": "data/abandoned-mine-wall-decor.json",
+  "tests": "未运行测试或运行时验证，按约定由用户测试。"
+}

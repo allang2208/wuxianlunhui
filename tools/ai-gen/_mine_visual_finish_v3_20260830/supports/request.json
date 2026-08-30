@@ -1,0 +1,22 @@
+{
+  "asset": "supports",
+  "model": "flux2-dev-depth",
+  "steps": 48,
+  "denoise": 0.5,
+  "seed": 122083083,
+  "strength": 0.75,
+  "size": [
+    1024,
+    1024
+  ],
+  "style": "world122-building-v5 material/lighting principles, natural mine geometry only",
+  "destination": "192.168.3.142:8188",
+  "uploads": [
+    "depth.png",
+    "prompt.txt",
+    "init_green.png"
+  ],
+  "scope": "mine rock/support/gate payloads, continuation of explicitly approved Dev/Depth rerolls; no blend or repository upload",
+  "experiment": "wood refinement denoise 0.50 because prior 0.30 retained featureless wood; not a new global default",
+  "runtimeInstalled": false
+}

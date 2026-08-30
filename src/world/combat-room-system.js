@@ -40,8 +40,9 @@ import {
     pointInDiamond, MAZE_AXIS_V1, MAZE_AXIS_V2,
 } from './combat-arena-layout.js';
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
+import { DungeonWallTorchSystem } from './dungeon-wall-torch-system.js';
 import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
-import { finishGateSprites, prepareGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
+import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites, finishGateSprites, prepareGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -253,6 +254,11 @@ export const CombatRoomSystem = {
         });
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+        DungeonWallTorchSystem.spawn({
+            rooms: [this._roomBounds],
+            gates: WallGate._seg ? [WallGate._seg] : [],
+            avoidPoints: obstacleAvoid,
+        });
 
         return {
             size: roomSize,
@@ -1103,6 +1109,7 @@ export const CombatRoomSystem = {
     /** 每帧驱动：门闸动画推进 + 悬停金色轮廓（dungeon-map-system.updateCombat 调用） */
     update(dt) {
         WallGate.update(dt);
+        DungeonWallTorchSystem.update();
         // 陷阱：占用判定/延迟/动画/倒放/冷却
         if (typeof TrapSystem !== 'undefined') TrapSystem.update(dt);
         // 宝箱房：倒计时/超时淡出/靠近开箱（仅精英战存在）
@@ -1122,6 +1129,7 @@ export const CombatRoomSystem = {
 
     /** 清理门闸与白区（cleanupRoom 调用） */
     cleanupGate() {
+        DungeonWallTorchSystem.clear();
         WallGate.destroy();
         GateLight.destroy();
         // 竞技场通道门（三房间串联）：拆门 sprite/碰撞段，墙件随场景恢复还原
@@ -1274,6 +1282,7 @@ export const CombatRoomSystem = {
     },
 
     _restoreSceneState() {
+        DungeonWallTorchSystem.clear();
         // 恢复墙壁
         if (WallSystem) {
             WallSystem.walls = [...this._backupWalls];
@@ -1596,6 +1605,16 @@ export const CombatRoomSystem = {
         });
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+        DungeonWallTorchSystem.spawn({
+            rooms: layout.rooms,
+            corridors,
+            gates: [
+                ...passageRecs.flatMap((rec) => rec.gates.map((gate) => [gate.baseA, gate.baseB])),
+                ...(entryGate ? [[entryGate.baseA, entryGate.baseB]] : []),
+                ...(WallGate._seg ? [WallGate._seg] : []),
+            ],
+            avoidPoints: [{ x: spawnX, y: spawnY, r: 150 }],
+        });
 
         // 9. 玩家生成：房间 1 中心偏上（防嵌墙兜底）
         player.x = spawnX;
@@ -2045,32 +2064,28 @@ export const CombatRoomSystem = {
             gateSprite.setFlipX(!!piece.flipX);
             gateSprite.setFlipY(!!piece.flipY);
             gateSprite.setDepth(depth);
-            if (crop && typeof gateSprite.setCrop === 'function') {
-                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
-                // Phaser 4 切 spritesheet 帧后仍保留上一帧 crop UV，必须按新帧重算。
-                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
-                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
-                    const result = originalSetFrame(frame, updateSize, updateOrigin);
-                    applyCrop();
-                    return result;
-                };
-                applyCrop();
-            }
+            bindGateSourceCrop(gateSprite, crop, g.h);
+            bindGateLeafMotion(gateSprite, g, frames - 1);
             sprites.push(gateSprite);
             return gateSprite;
         };
 
         if (depthSliceCount > 1) {
-            // 六格长门整图单 depth 会让浅端压在相邻单格墙之上。按配置切片
-            // 合同拆成浅/中/深三块：每段随自己的底边排序，并比同线墙块的 +4 偏置
-            // 低 0.1，保证门体收在墙后；三块仍共用同一帧和同一世界变换，接缝零位移。
+            // 六格长门整图单 depth 会让浅端压在相邻单格墙之上。按配置切片；
+            // 启用 tuckEndSlices 的门首尾片按外端点排序，比同线墙块 +4 低 0.1，确保两端
+            // 收在墙后。中间片继续按自身较深底边排序，各片共用帧与世界变换。
             const span = hole[1] - hole[0];
             for (let index = 0; index < depthSliceCount; index++) {
                 const tx0 = hole[0] + span * index / depthSliceCount;
                 const tx1 = hole[0] + span * (index + 1) / depthSliceCount;
                 const sA = baseAt(tx0);
                 const sB = baseAt(tx1);
-                const depth = Math.max(sA.y, sB.y) + 3.9;
+                const endAnchorY = index === 0
+                    ? sA.y
+                    : (index === depthSliceCount - 1 ? sB.y : null);
+                const depth = (g.tuckEndSlices && endAnchorY != null
+                    ? endAnchorY
+                    : Math.max(sA.y, sB.y)) + 3.9;
                 makeSprite({ x: Math.floor(tx0), w: Math.ceil(tx1) - Math.floor(tx0) }, depth);
                 depthSegments.push({ A: sA, B: sB, depth });
             }
@@ -2490,9 +2505,11 @@ export const CombatRoomSystem = {
             SoundManager.playFile((style && style.gateSound) || 'assets/sounds/environment/gate.mp3');
         }
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        const from = open ? 0 : inst.frames - 1, to = open ? inst.frames - 1 : 0;
+        const fullLeaf = !!inst.sprite?._gateLeafMotion;
+        const from = fullLeaf ? inst.sprite._gateVisualFrame : (open ? 0 : inst.frames - 1);
+        const to = open ? inst.frames - 1 : 0;
         const sprites = inst.sprites || [inst.sprite];
-        // 关门时先在顶部完全升起帧重生；开门动画期间始终可见。
+        // 矿洞关门先淡入再落下；中途反向从当前进度返回。
         prepareGateSprites(sprites, from);
         if (!scene) {
             finishGateSprites(sprites, to, open, inst.hideWhenOpen);
@@ -2500,12 +2517,9 @@ export const CombatRoomSystem = {
         }
         if (inst._animCounter) inst._animCounter.stop();
         inst._animCounter = scene.tweens.addCounter({
-            from, to, duration: 900, ease: 'Linear',
+            from, to, duration: fullLeaf ? 900 * Math.abs(to - from) / (inst.frames - 1) : 900, ease: 'Linear',
             onUpdate: (tw) => {
-                const frame = Math.round(tw.getValue());
-                for (const gateSprite of sprites) {
-                    if (gateSprite && gateSprite.active) gateSprite.setFrame(frame);
-                }
+                updateGateSprites(sprites, tw.getValue());
             },
             onComplete: () => {
                 finishGateSprites(sprites, to, open, inst.hideWhenOpen);

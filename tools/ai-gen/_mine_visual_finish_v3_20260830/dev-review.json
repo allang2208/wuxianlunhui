@@ -1,0 +1,68 @@
+{
+  "date": "2026-08-30",
+  "scope": "visual review during offline asset production, not game testing",
+  "model": "flux2-dev-depth",
+  "modelFiles": [
+    "flux2_dev_fp8mixed.safetensors",
+    "FLUX.2-dev-Fun-Controlnet-Union.safetensors"
+  ],
+  "rawCount": 6,
+  "rock": [
+    {
+      "raw": "rock/raw.png",
+      "steps": 12,
+      "seed": 122083081,
+      "decision": "selected for refinement",
+      "reason": "relatively restrained short fissures and continuous rock body; broad AI lighting discarded before shared Blender relighting"
+    },
+    {
+      "steps": 12,
+      "seed": 122083091,
+      "decision": "not selected",
+      "reason": "strong full-height fractures would read as repeated joins along a long wall",
+      "removedRaw": "rock/raw_v02.png",
+      "retainedMetadata": "rock/raw_v02.generation.json"
+    },
+    {
+      "steps": 12,
+      "seed": 122083101,
+      "decision": "not selected",
+      "reason": "prominent diagonal fissures; not a better long-wall material than v01",
+      "removedRaw": "rock/raw_v03.png",
+      "retainedMetadata": "rock/raw_v03.generation.json"
+    },
+    {
+      "raw": "rock/raw_refine_v01.png",
+      "steps": 48,
+      "seed": 122083281,
+      "denoise": 0.3,
+      "decision": "selected material source for offline candidate",
+      "reason": "retains v01 mineral layout with more resolved details; only monochrome unlit variation is transferred to original geometry"
+    }
+  ],
+  "components": [
+    {
+      "raw": "gate/raw.png",
+      "steps": 48,
+      "seed": 122083082,
+      "denoise": 0.5,
+      "decision": "selected component material candidate",
+      "reason": "nine timbers and three iron straps remain readable; grain and end wear improve; original model alpha and motion retained"
+    },
+    {
+      "raw": "supports/raw.png",
+      "steps": 48,
+      "seed": 122083083,
+      "denoise": 0.5,
+      "decision": "wood and iron only",
+      "reason": "beam layout and joints retained; generated warm rock not used, preventing independent C-wall material drift"
+    }
+  ],
+  "processingCorrection": "Rejected initial per-channel extraction with purple/green bands; use dedicated green key, safe interior mask and monochrome material variation before neutral slate recoloring and shared Blender relighting.",
+  "candidate": "dev-candidate/manifest.json",
+  "userAccepted": false,
+  "runtimeInstalled": false,
+  "tests": "未运行测试或运行时验证，按约定由用户测试。",
+  "recordType": "Historical generation review; current installation in dev-candidate/installation.json",
+  "cleanup": "../../../docs/abandoned-mine-visual-cleanup-20260830.json"
+}

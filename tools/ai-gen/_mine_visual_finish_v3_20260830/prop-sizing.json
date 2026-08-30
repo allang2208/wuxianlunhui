@@ -1,0 +1,194 @@
+[
+  {
+    "key": "abandoned_mine_prop_slate_rubble",
+    "candidate": "candidates/abandoned_mine_prop_slate_rubble.png",
+    "alphaBBox": [
+      102,
+      206,
+      147,
+      239
+    ],
+    "targetVisibleWorldPx": 42,
+    "proposedSize": 238.933,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.9,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_coal_chunks",
+    "candidate": "candidates/abandoned_mine_prop_coal_chunks.png",
+    "alphaBBox": [
+      106,
+      204,
+      152,
+      233
+    ],
+    "targetVisibleWorldPx": 44,
+    "proposedSize": 244.87,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.85,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_ore_fragments",
+    "candidate": "candidates/abandoned_mine_prop_ore_fragments.png",
+    "alphaBBox": [
+      110,
+      205,
+      148,
+      233
+    ],
+    "targetVisibleWorldPx": 40,
+    "proposedSize": 269.474,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.8,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_broken_sleepers",
+    "candidate": "candidates/abandoned_mine_prop_broken_sleepers.png",
+    "alphaBBox": [
+      105,
+      200,
+      158,
+      242
+    ],
+    "targetVisibleWorldPx": 60,
+    "proposedSize": 289.811,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.85,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_broken_rail",
+    "candidate": "candidates/abandoned_mine_prop_broken_rail.png",
+    "alphaBBox": [
+      95,
+      197,
+      161,
+      241
+    ],
+    "targetVisibleWorldPx": 74,
+    "proposedSize": 287.03,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.72,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_rope_coil",
+    "candidate": "candidates/abandoned_mine_prop_rope_coil.png",
+    "alphaBBox": [
+      106,
+      211,
+      163,
+      235
+    ],
+    "targetVisibleWorldPx": 44,
+    "proposedSize": 197.614,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.38,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_pickaxe",
+    "candidate": "candidates/abandoned_mine_prop_pickaxe.png",
+    "alphaBBox": [
+      97,
+      202,
+      155,
+      237
+    ],
+    "targetVisibleWorldPx": 64,
+    "proposedSize": 282.483,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.45,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_shovel",
+    "candidate": "candidates/abandoned_mine_prop_shovel.png",
+    "alphaBBox": [
+      94,
+      204,
+      160,
+      239
+    ],
+    "targetVisibleWorldPx": 64,
+    "proposedSize": 248.242,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.35,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_floor_lantern",
+    "candidate": "candidates/abandoned_mine_prop_floor_lantern.png",
+    "alphaBBox": [
+      117,
+      186,
+      139,
+      229
+    ],
+    "targetVisibleWorldPx": 44,
+    "proposedSize": 261.953,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.32,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_helmet",
+    "candidate": "candidates/abandoned_mine_prop_helmet.png",
+    "alphaBBox": [
+      108,
+      209,
+      150,
+      235
+    ],
+    "targetVisibleWorldPx": 38,
+    "proposedSize": 231.619,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.32,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_minecart_wheel",
+    "candidate": "candidates/abandoned_mine_prop_minecart_wheel.png",
+    "alphaBBox": [
+      102,
+      207,
+      154,
+      237
+    ],
+    "targetVisibleWorldPx": 56,
+    "proposedSize": 275.692,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.48,
+    "runtimeInstalled": false
+  },
+  {
+    "key": "abandoned_mine_prop_ore_sack",
+    "candidate": "candidates/abandoned_mine_prop_ore_sack.png",
+    "alphaBBox": [
+      110,
+      195,
+      146,
+      230
+    ],
+    "targetVisibleWorldPx": 46,
+    "proposedSize": 327.111,
+    "originX": 0.5,
+    "originY": 0.875,
+    "sourceWeight": 0.42,
+    "runtimeInstalled": false
+  }
+]

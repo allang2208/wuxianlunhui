@@ -26,6 +26,9 @@ def alpha_bbox(image: Image.Image):
 
 
 def main():
+    successor = REPO / "tools/ai-gen/_mine_visual_finish_v3_20260830/manifest.json"
+    if successor.exists() and json.loads(successor.read_text(encoding="utf-8")).get("propsInstalled"):
+        raise SystemExit("旧18件小物已被新版12件替代；请使用 finish-mine-v3-presentation.py install-props，禁止覆盖正式新素材。")
     manifest_path = SOURCE / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     props = manifest["props"]

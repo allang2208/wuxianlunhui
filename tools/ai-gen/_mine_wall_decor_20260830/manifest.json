@@ -1,0 +1,114 @@
+{
+  "stage": "wall-mounted rope, pick rack and old marker installed; runtime visual acceptance pending",
+  "runtimeInstalled": true,
+  "generator": "tools/ai-gen/build-mine-wall-decor.py",
+  "blend": "mine_wall_decor.blend",
+  "materialLibrary": "tools/ai-gen/environment-prop-materials.py",
+  "materialVersion": "environment-prop-pbr-v1",
+  "reusedGeometry": "build-mine-props-model-review.py:pickaxe; rope remodeled hanging; marker newly modeled",
+  "camera": {
+    "elevation": 30.0,
+    "rootDirections": [
+      -44.8,
+      44.8
+    ],
+    "orthoScale": 6.4,
+    "bottomRatio": 0.875,
+    "resolution": [
+      512,
+      512
+    ]
+  },
+  "mountAnchorLocal": [
+    0,
+    0,
+    0.95
+  ],
+  "worldPixelsPerModelUnit": 48,
+  "policy": "Two physical orientations rendered under unchanged lighting; no PNG mirror, ground plane, cast shadow, emission, collision or interaction",
+  "aiGeneration": false,
+  "assets": [
+    {
+      "id": "rope",
+      "labelZh": "挂绳圈",
+      "weight": 1.0,
+      "views": {
+        "down": {
+          "key": "abandoned_mine_wall_decor_rope_down",
+          "src": "assets/terrain/abandoned-mine-wall-decor/abandoned_mine_wall_decor_rope_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "abandoned_mine_wall_decor_rope_down.png"
+        },
+        "up": {
+          "key": "abandoned_mine_wall_decor_rope_up",
+          "src": "assets/terrain/abandoned-mine-wall-decor/abandoned_mine_wall_decor_rope_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "abandoned_mine_wall_decor_rope_up.png"
+        }
+      }
+    },
+    {
+      "id": "pick",
+      "labelZh": "矿镐挂架",
+      "weight": 0.75,
+      "views": {
+        "down": {
+          "key": "abandoned_mine_wall_decor_pick_down",
+          "src": "assets/terrain/abandoned-mine-wall-decor/abandoned_mine_wall_decor_pick_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "abandoned_mine_wall_decor_pick_down.png"
+        },
+        "up": {
+          "key": "abandoned_mine_wall_decor_pick_up",
+          "src": "assets/terrain/abandoned-mine-wall-decor/abandoned_mine_wall_decor_pick_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "abandoned_mine_wall_decor_pick_up.png"
+        }
+      }
+    },
+    {
+      "id": "marker",
+      "labelZh": "旧工区木牌",
+      "weight": 0.55,
+      "views": {
+        "down": {
+          "key": "abandoned_mine_wall_decor_marker_down",
+          "src": "assets/terrain/abandoned-mine-wall-decor/abandoned_mine_wall_decor_marker_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "abandoned_mine_wall_decor_marker_down.png"
+        },
+        "up": {
+          "key": "abandoned_mine_wall_decor_marker_up",
+          "src": "assets/terrain/abandoned-mine-wall-decor/abandoned_mine_wall_decor_marker_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "abandoned_mine_wall_decor_marker_up.png"
+        }
+      }
+    }
+  ],
+  "installationRecord": "installation.json"
+}

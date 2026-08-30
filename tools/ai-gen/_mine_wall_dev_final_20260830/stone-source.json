@@ -1,0 +1,19 @@
+{
+  "selected": "../_mine_wall_a_dev_refine_20260830/wall_a_refine_v01_candidate.png",
+  "approval": "同意，然后继续",
+  "geometrySource": "../_mine_wall_pbr_kit_v2_20260830/geometry.json",
+  "method": "2D unlit Dev material variation in runtime-pitch coordinates over native shading; not new 3D modeling",
+  "periodSourcePixels": [
+    252.06153846153848,
+    126.51737451737452
+  ],
+  "tileSize": [
+    512,
+    512
+  ],
+  "edgeBlendFraction": 0.14,
+  "variantInteriorBlend": 0.25,
+  "silhouette": "original per-variant alpha, unchanged",
+  "components": "Blender-rendered masks preserve original modeled ore/wood/iron",
+  "limitation": "Finite A/B/C and modeled relief remain recognizable; no runtime acceptance claimed"
+}

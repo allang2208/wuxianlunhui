@@ -3,6 +3,7 @@
 The floor itself is generated through floor-asset.py. This script builds exactly
 18 visual-only mine props with the road/dungeon fixed camera contract: orthographic
 30-degree camera, 44.8-degree model-root rotation and one shared prop ortho scale.
+The floor-baked props contain no authored cast-shadow layer.
 """
 
 from __future__ import annotations
@@ -55,9 +56,8 @@ def setup_materials():
                         roughness=0.28, alpha=0.90)
 
 
-def start(name: str, x: float, y: float, shadow=(1.9, 1.05)):
+def start(name: str, x: float, y: float, _legacy_shadow_size=None):
     S.new_model(name, (x, y, 0))
-    S.add_shadow(shadow[0], shadow[1], 0.006)
     return name
 
 
@@ -272,6 +272,7 @@ def main():
         },
         "floorPipeline": "floor-asset.py abandoned-mine -> make-seamless -> desaturate",
         "collisionContract": "all 18 props are floor-baked visual-only decorations",
+        "shadowPolicy": "no-authored-cast-shadow",
         "props": props,
         "model": str(BLEND_OUT.relative_to(REPO)).replace("\\", "/"),
     }

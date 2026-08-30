@@ -9,7 +9,7 @@
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from './wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
-import { finishGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
+import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites, finishGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
 
 const FRAMES = 16;
 const ANIM_MS = 900; // 16 帧总时长
@@ -137,16 +137,8 @@ export const WallGate = {
             gateSprite.setScale(this._scale.sx, this._scale.sy);
             gateSprite.setFlipX(this._flip);
             gateSprite.setDepth(spriteDepth);
-            if (crop && typeof gateSprite.setCrop === 'function') {
-                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
-                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
-                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
-                    const result = originalSetFrame(frame, updateSize, updateOrigin);
-                    applyCrop();
-                    return result;
-                };
-                applyCrop();
-            }
+            bindGateSourceCrop(gateSprite, crop, g.h);
+            bindGateLeafMotion(gateSprite, g, this._frame);
             this.sprites.push(gateSprite);
             return gateSprite;
         };
@@ -158,7 +150,12 @@ export const WallGate = {
                 const tx1 = hole[0] + span * (index + 1) / depthSliceCount;
                 const sA = baseAt(tx0);
                 const sB = baseAt(tx1);
-                const spriteDepth = Math.max(sA.y, sB.y) + 3.9;
+                const endAnchorY = index === 0
+                    ? sA.y
+                    : (index === depthSliceCount - 1 ? sB.y : null);
+                const spriteDepth = (g.tuckEndSlices && endAnchorY != null
+                    ? endAnchorY
+                    : Math.max(sA.y, sB.y)) + 3.9;
                 const crop = { x: Math.floor(tx0), w: Math.ceil(tx1) - Math.floor(tx0) };
                 makeSprite(crop, spriteDepth);
                 this.depthSegments.push({ A: sA, B: sB, depth: spriteDepth, crop });
@@ -203,7 +200,7 @@ export const WallGate = {
         this.state = 'closing';
         this._onDone = onDone || null;
         this.setPassable(false);
-        // 先在完全升起帧重新出现，再从上方落下。
+        // 矿洞完整门叶先在顶部淡入，再沿原轨迹落下。
         this._setVisualVisible(true);
         if (SoundManager && typeof SoundManager.playWorld === 'function') {
             // 世界音效（2026-08-11 距离衰减）：关门声按门闸位置衰减
@@ -232,12 +229,15 @@ export const WallGate = {
     /** 帧动画（Phaser tween 计数器驱动，不依赖手动 update tick） */
     _playAnim(from, to) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        for (const sprite of this.sprites || []) if (sprite && sprite.active) sprite.setFrame(from);
-        for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(from);
+        const fullLeaf = !!this._geo().leafMotion;
+        if (fullLeaf) from = this.sprite?._gateVisualFrame ?? from;
+        updateGateSprites(this.sprites, from);
+        updateGateSprites(this.glowSprites, from);
         if (!scene) {
             this._frame = to;
             this.state = to === 0 ? 'closed' : 'open';
             finishGateSprites(this.sprites, to, to !== 0, !!this._geo().hideWhenOpen);
+            updateGateSprites(this.glowSprites, to);
             if (to !== 0 && this._geo().hideWhenOpen) this._setVisualVisible(false);
             const cb = this._onDone;
             this._onDone = null;
@@ -248,17 +248,17 @@ export const WallGate = {
         this._animCounter = scene.tweens.addCounter({
             from,
             to,
-            duration: ANIM_MS,
+            duration: fullLeaf ? ANIM_MS * Math.abs(to - from) / (FRAMES - 1) : ANIM_MS,
             ease: 'Linear',
             onUpdate: (tw) => {
-                const f = Math.round(tw.getValue());
-                for (const sprite of this.sprites || []) if (sprite && sprite.active) sprite.setFrame(f);
-                for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(f);
+                updateGateSprites(this.sprites, tw.getValue());
+                updateGateSprites(this.glowSprites, tw.getValue());
             },
             onComplete: () => {
                 this._frame = to;
                 this.state = to === 0 ? 'closed' : 'open';
                 finishGateSprites(this.sprites, to, to !== 0, !!this._geo().hideWhenOpen);
+                updateGateSprites(this.glowSprites, to);
                 if (to !== 0 && this._geo().hideWhenOpen) this._setVisualVisible(false);
                 const cb = this._onDone;
                 this._onDone = null;
@@ -270,7 +270,7 @@ export const WallGate = {
     /** 帧推进（CombatRoomSystem.update 驱动） */
     /** 帧推进已改 tween 驱动（_playAnim）；update 仅同步发光帧 */
     update(_dt) {
-        const frame = this.sprite?.frame?.name;
+        const frame = this.sprite?._gateVisualFrame ?? this.sprite?.frame?.name;
         if (frame != null) {
             for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(frame);
         }
@@ -334,18 +334,10 @@ export const WallGate = {
             glow.setOrigin(0.5, 0.5);
             glow.setScale(this._scale.sx, this._scale.sy);
             glow.setFlipX(this._flip);
-            glow.setDepth(descriptor.depth + 0.5);
-            if (descriptor.crop && typeof glow.setCrop === 'function') {
-                const crop = descriptor.crop;
-                const applyCrop = () => glow.setCrop(crop.x, 0, crop.w, g.h);
-                const originalSetFrame = glow.setFrame.bind(glow);
-                glow.setFrame = (frame, updateSize, updateOrigin) => {
-                    const result = originalSetFrame(frame, updateSize, updateOrigin);
-                    applyCrop();
-                    return result;
-                };
-                applyCrop();
-            }
+            // 端片只比端墙低0.1；高亮不能用旧+0.5又翻到墙前。
+            glow.setDepth(descriptor.depth + (g.tuckEndSlices ? 0.05 : 0.5));
+            bindGateSourceCrop(glow, descriptor.crop, g.h);
+            bindGateLeafMotion(glow, g, this._frame);
             glow.setVisible(false);
             this.glowSprites.push(glow);
         }

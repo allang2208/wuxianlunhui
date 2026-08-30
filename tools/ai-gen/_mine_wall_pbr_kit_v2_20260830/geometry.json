@@ -1,0 +1,193 @@
+{
+  "version": 2,
+  "runtimeInstalled": false,
+  "wall": {
+    "key": "abandoned_mine_block_a",
+    "canvas": [
+      1024,
+      1024
+    ],
+    "groundCenter": [
+      512.0,
+      761.9959
+    ],
+    "display": [
+      260,
+      259
+    ],
+    "wallH": 132,
+    "halfThick": 13,
+    "footprint": [
+      128,
+      64
+    ],
+    "modelCore": [
+      2.12,
+      2.12,
+      3.04
+    ],
+    "camera": {
+      "position": [
+        10.0,
+        -10.0,
+        9.645000457763672
+      ],
+      "target": [
+        0,
+        0,
+        1.48
+      ],
+      "orthoScale": 5.25
+    },
+    "allowFlipX": false,
+    "runtimeInstalled": false,
+    "seamContract": {
+      "solidCore": true,
+      "textureAndReliefPeriodWorld": 1.8275990652206153,
+      "crownEdgeHeight": 3.043,
+      "runtimeSteps": [
+        [
+          64,
+          32
+        ],
+        [
+          -64,
+          32
+        ]
+      ],
+      "futureVariantsReuseBase": true,
+      "joinedReliefCorners": true
+    },
+    "variants": [
+      "a",
+      "b",
+      "c"
+    ],
+    "materialMapping": "shared v1 flat albedo; v2 shallow interrupted cleavage; shared oak and iron"
+  },
+  "gate": {
+    "key": "abandoned_mine_gate",
+    "canvas": [
+      640,
+      640
+    ],
+    "frames": 16,
+    "base": [
+      [
+        32.0003,
+        299.9994
+      ],
+      [
+        608.0002,
+        588.0004
+      ]
+    ],
+    "face": [
+      [
+        32.0003,
+        299.9994
+      ],
+      [
+        608.0002,
+        588.0004
+      ]
+    ],
+    "gateX": [
+      32,
+      608
+    ],
+    "wallH": 225.7447,
+    "slope": 0.500002,
+    "halfThick": 13,
+    "depthSlices": 6,
+    "tuckEndSlices": true,
+    "movingCollection": "AnimatedGateLeaf",
+    "containsStaticJambs": false,
+    "stateContract": "frame 0 closed; frame 15 open",
+    "hideWhenOpen": true
+  },
+  "gateMotion": [
+    {
+      "frame": 0,
+      "liftWorld": 0.0,
+      "liftPixels": 0.0
+    },
+    {
+      "frame": 1,
+      "liftWorld": 0.04522962962962963,
+      "liftPixels": 5.317900000000009
+    },
+    {
+      "frame": 2,
+      "liftWorld": 0.1725037037037037,
+      "liftPixels": 20.282200000000046
+    },
+    {
+      "frame": 3,
+      "liftWorld": 0.3692,
+      "liftPixels": 43.40880000000004
+    },
+    {
+      "frame": 4,
+      "liftWorld": 0.6226962962962963,
+      "liftPixels": 73.21380000000005
+    },
+    {
+      "frame": 5,
+      "liftWorld": 0.9203703703703703,
+      "liftPixels": 108.21290000000005
+    },
+    {
+      "frame": 6,
+      "liftWorld": 1.2496,
+      "liftPixels": 146.92220000000003
+    },
+    {
+      "frame": 7,
+      "liftWorld": 1.5977629629629628,
+      "liftPixels": 187.85760000000005
+    },
+    {
+      "frame": 8,
+      "liftWorld": 1.9522370370370368,
+      "liftPixels": 229.53500000000003
+    },
+    {
+      "frame": 9,
+      "liftWorld": 2.3004,
+      "liftPixels": 270.47040000000004
+    },
+    {
+      "frame": 10,
+      "liftWorld": 2.6296296296296293,
+      "liftPixels": 309.1797
+    },
+    {
+      "frame": 11,
+      "liftWorld": 2.9273037037037035,
+      "liftPixels": 344.1788
+    },
+    {
+      "frame": 12,
+      "liftWorld": 3.1807999999999996,
+      "liftPixels": 373.98380000000003
+    },
+    {
+      "frame": 13,
+      "liftWorld": 3.377496296296296,
+      "liftPixels": 397.1104
+    },
+    {
+      "frame": 14,
+      "liftWorld": 3.50477037037037,
+      "liftPixels": 412.0747
+    },
+    {
+      "frame": 15,
+      "liftWorld": 3.55,
+      "liftPixels": 417.3926
+    }
+  ],
+  "gateSource": "../abandoned-mine-wall-kit-blender.py build_gate; original 3.55-world-unit smoothstep lift",
+  "cameraContract": "Original separate wall/gate calibration, identical neutral SUN lighting"
+}
