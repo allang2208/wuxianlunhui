@@ -975,6 +975,17 @@ export class BootScene extends Scene {
         loadCoreDrillWormSheet('burrow_exit', 'burrowExit', 'burrow_exit');
         loadCoreDrillWormSheet('death', 'death', 'dying');
 
+        // 深脉之母：布局/有效帧数由最终制作 manifest 派生到配置；八张图同属一资源族。
+        const deepVeinMotherTextures = enemyConfigData.deepVeinMother.textures;
+        for (const [state, layout] of Object.entries(deepVeinMotherTextures.frameLayouts)) {
+            this.load.spritesheet(`enemy_deep_vein_mother_${state}`, deepVeinMotherTextures[state], {
+                frameWidth: layout.frameWidth,
+                frameHeight: layout.frameHeight,
+                endFrame: layout.frameCount - 1,
+            });
+        }
+        this.load.image('enemy_deep_vein_mother_ore_fragment', deepVeinMotherTextures.oreFragment);
+
         // 矿石蜘蛛（精英）：8列×4行 512×512 切帧（idle 1 / walking 14 / attacking 28 / attacking-2 18 / dying 12）
         this.load.spritesheet('enemy_ore_spider_idle',   'assets/enemies/ore_spider/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
         this.load.spritesheet('enemy_ore_spider_walk',   'assets/enemies/ore_spider/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 13 });
@@ -2174,6 +2185,15 @@ export class BootScene extends Scene {
             if (layout.duration) animation.duration = layout.duration;
             else animation.frameRate = 12;
             this.anims.create(animation);
+        }
+
+        // 深脉之母实体使用同一逻辑时钟手动选帧；仍注册动画供资源管理/编辑器预览。
+        for (const [state, layout] of Object.entries(enemyConfigData.deepVeinMother.textures.frameLayouts)) {
+            const key = `enemy_deep_vein_mother_${state}`;
+            this.anims.create({ key,
+                frames: this.anims.generateFrameNumbers(key, { start: 0, end: layout.frameCount - 1 }),
+                duration: layout.duration, repeat: layout.repeat,
+            });
         }
 
         // ---- 巫婆动画 ----

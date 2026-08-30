@@ -9,6 +9,7 @@
  */
 
 import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { DeepVeinMother } from '../entities/enemy-types/deep-vein-mother.js';
 import { UIState } from '../ui/ui-state.js';
 import { CoreDrillLarva, OreShardling } from '../entities/enemy-types/mine-small-monsters.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
@@ -284,6 +285,15 @@ export function createForemanZombie(x, y) {
     });
 }
 
+export function createDeepVeinMother(x, y) {
+    const cfg = enemyConfigData.deepVeinMother;
+    return new DeepVeinMother(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: { ...cfg.ai, aggroRange: 9999, alertRange: 9999, loseTimeout: 999999 },
+    });
+}
+
 export function createOreSpider(x, y) {
     const cfg = enemyConfigData.oreSpider;
     if (!cfg) {
@@ -555,6 +565,7 @@ export const ZOMBIE_FACTORY_MAP = {
     coreDrillLarva: createCoreDrillLarva,
     oreShardling: createOreShardling,
     foremanZombie: createForemanZombie,
+    deepVeinMother: createDeepVeinMother,
     oreSpider: createOreSpider,
     mineCave: createMineCave,
     tombstone: createTombstone,

@@ -2243,7 +2243,8 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "monsterComposition": {
-    "lord": 1
+    "boss": 1,
+    "normal": 4
    },
    "waveComposition": [
     {
@@ -2254,7 +2255,7 @@
     },
     {
      "normal": 4,
-     "lord": 1
+     "boss": 1
     }
    ],
    "poolKeys": [
@@ -2269,7 +2270,8 @@
     "coreDrillWorm",
     "foremanZombie",
     "oreSpider",
-    "mineCave"
+    "mineCave",
+    "deepVeinMother"
    ],
    "matchPoolRanks": true
   },

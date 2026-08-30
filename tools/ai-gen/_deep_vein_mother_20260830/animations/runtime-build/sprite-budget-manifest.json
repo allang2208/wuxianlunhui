@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "id": "deep-vein-mother",
+  "profile": "boss",
+  "sheets": [
+    {
+      "textureKey": "enemy_deep_vein_mother_idle",
+      "path": "assets/enemies/deep_vein_mother/idle.png",
+      "frameWidth": 320,
+      "frameHeight": 312,
+      "frameCount": 30,
+      "endFrame": 29,
+      "footX": 160.0,
+      "footY": 299
+    },
+    {
+      "textureKey": "enemy_deep_vein_mother_walking",
+      "path": "assets/enemies/deep_vein_mother/walking.png",
+      "frameWidth": 336,
+      "frameHeight": 320,
+      "frameCount": 48,
+      "endFrame": 47,
+      "footX": 168.0,
+      "footY": 301
+    },
+    {
+      "textureKey": "enemy_deep_vein_mother_stomp",
+      "path": "assets/enemies/deep_vein_mother/stomp.png",
+      "frameWidth": 304,
+      "frameHeight": 320,
+      "frameCount": 41,
+      "endFrame": 40,
+      "footX": 152.0,
+      "footY": 299
+    },
+    {
+      "textureKey": "enemy_deep_vein_mother_pipe_blast",
+      "path": "assets/enemies/deep_vein_mother/pipe_blast.png",
+      "frameWidth": 312,
+      "frameHeight": 312,
+      "frameCount": 41,
+      "endFrame": 40,
+      "footX": 156.0,
+      "footY": 299
+    },
+    {
+      "textureKey": "enemy_deep_vein_mother_vein_resonance",
+      "path": "assets/enemies/deep_vein_mother/vein_resonance.png",
+      "frameWidth": 312,
+      "frameHeight": 320,
+      "frameCount": 41,
+      "endFrame": 40,
+      "footX": 156.0,
+      "footY": 300
+    },
+    {
+      "textureKey": "enemy_deep_vein_mother_pressure_release",
+      "path": "assets/enemies/deep_vein_mother/pressure_release.png",
+      "frameWidth": 328,
+      "frameHeight": 312,
+      "frameCount": 49,
+      "endFrame": 48,
+      "footX": 164.0,
+      "footY": 299
+    },
+    {
+      "textureKey": "enemy_deep_vein_mother_dying",
+      "path": "assets/enemies/deep_vein_mother/dying.png",
+      "frameWidth": 400,
+      "frameHeight": 336,
+      "frameCount": 49,
+      "endFrame": 48,
+      "footX": 200.0,
+      "footY": 299
+    },
+    {
+      "textureKey": "enemy_deep_vein_mother_ore_fragment",
+      "path": "assets/enemies/deep_vein_mother/ore_fragment.png",
+      "kind": "image"
+    }
+  ],
+  "dependencies": []
+}

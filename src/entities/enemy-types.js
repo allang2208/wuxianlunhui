@@ -60,6 +60,7 @@ export { CoreDrillLarva, OreShardling } from './enemy-types/mine-small-monsters.
 import { ForemanZombie } from './enemy-types/foreman-zombie.js';
 import { MineCave } from './enemy-types/mine-cave.js';
 import { Tombstone } from './enemy-types/tombstone.js';
+export { DeepVeinMother } from './enemy-types/deep-vein-mother.js';
 import { OreSpider } from './enemy-types/ore-spider.js';
 import { Witch } from './enemy-types/witch.js';
 import { Cauldron } from './enemy-types/cauldron.js';

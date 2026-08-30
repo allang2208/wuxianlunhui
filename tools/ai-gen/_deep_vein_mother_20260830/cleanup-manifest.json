@@ -1,0 +1,80 @@
+{
+  "date": "2026-08-30",
+  "authorization": "用户要求清理本任务废案、整理仓库并允许推送",
+  "disposition": "Moved out of active task into local Git-ignored reversible archive; no other task files touched",
+  "archiveRelativeToRepository": "tools/.trash-deep-vein-mother-20260830",
+  "retired": [
+    {
+      "path": "animations/sprite-build",
+      "files": 538,
+      "bytes": 605753918.0
+    },
+    {
+      "path": "animations/previews",
+      "files": 30,
+      "bytes": 186616039.0
+    },
+    {
+      "path": "animations/runtime-build/integration-before",
+      "files": 7,
+      "bytes": 955267.0
+    },
+    {
+      "path": "animations/runtime-build/rife-previews",
+      "files": 14,
+      "bytes": 32537670.0
+    },
+    {
+      "path": "animations/runtime-build/sheets",
+      "files": 7,
+      "bytes": 35273780.0
+    },
+    {
+      "path": "animations/videos/stomp-doubao-v01.mp4",
+      "files": 1,
+      "bytes": 1325086.0
+    },
+    {
+      "path": "animations/videos/pipe_blast-doubao-v01.mp4",
+      "files": 1,
+      "bytes": 1239834.0
+    },
+    {
+      "path": "animations\\runtime-build\\rife-reports\\dying.log",
+      "files": 1,
+      "bytes": 5200.0
+    },
+    {
+      "path": "animations\\runtime-build\\rife-reports\\idle.log",
+      "files": 1,
+      "bytes": 3838.0
+    },
+    {
+      "path": "animations\\runtime-build\\rife-reports\\pipe_blast.log",
+      "files": 1,
+      "bytes": 4629.0
+    },
+    {
+      "path": "animations\\runtime-build\\rife-reports\\pressure_release.log",
+      "files": 1,
+      "bytes": 5230.0
+    },
+    {
+      "path": "animations\\runtime-build\\rife-reports\\stomp.log",
+      "files": 1,
+      "bytes": 4615.0
+    },
+    {
+      "path": "animations\\runtime-build\\rife-reports\\vein_resonance.log",
+      "files": 1,
+      "bytes": 4620.0
+    },
+    {
+      "path": "animations\\runtime-build\\rife-reports\\walking.log",
+      "files": 1,
+      "bytes": 5161.0
+    }
+  ],
+  "totalFiles": 605.0,
+  "totalBytes": 863734887.0
+}

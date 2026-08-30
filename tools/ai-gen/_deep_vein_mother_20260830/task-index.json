@@ -1,0 +1,102 @@
+{
+  "task": "deep-vein-mother-boss-mother-image",
+  "date": "2026-08-30",
+  "displayName": "深脉之母",
+  "status": "integrated-awaiting-user-runtime-test",
+  "approved": true,
+  "approvedAt": "2026-08-30",
+  "approvalBasis": "用户已确认v03母图与七段当前源视频，随后授权统一大小、优化插帧及接入高级废弃矿洞Boss；运行时尚未测试。",
+  "futurePlanOnly": false,
+  "animationTask": "animations/task-index.json",
+  "videoAuthorization": "2026-08-30 用户：好的，豆包管线出视频。按已确认七种状态生成源视频，暂不做精灵表或运行时接入。",
+  "runtimeIntegrationActive": true,
+  "generator": "Codex built-in image_gen",
+  "model": null,
+  "seed": null,
+  "generationMetadataNote": "Model and seed were not exposed as tool parameters. Exact submitted prompts and output paths are retained.",
+  "currentImage": "deep-vein-mother-v03-asymmetric-mine-fusion.png",
+  "prompt": "prompt-deep-vein-mother-v03-asymmetric-mine-fusion.txt",
+  "userDirection": "原矿工的手脚横七竖八插在主体上，融合升降梯、管道、镐子等挖矿要素；形象不对称，承重脚部保持紫色矿石结构，像大象腿一样粗壮。仅出母图。",
+  "scope": "Approved v03 mother and seven source videos preserved. Optimized 299-frame runtime export and advanced abandoned-mine boss integration implemented; no runtime tests run.",
+  "visualContextOnly": [
+    {
+      "path": "../../../assets/enemies/miner_zombie/idle.png",
+      "role": "Inspected as visual context for v01; also passed directly as a miner-limb, clothing, boot and pickaxe reference for v03."
+    },
+    {
+      "role": "Inspected for dusty purple mineral family and miner-limb motif; not passed as an image input.",
+      "historicalExternalPath": "../_abandoned_mine_lords_20260829/references/ore-spider-purple-mineral-reference.png",
+      "notRequiredForRebuild": true
+    }
+  ],
+  "candidates": [
+    {
+      "image": "deep-vein-mother-v01.png",
+      "prompt": "prompt-deep-vein-mother-v01.txt",
+      "mode": "generate",
+      "inputImages": [],
+      "source": "C:/Users/allan/.codex/generated_images/01a05053-c9b4-73d0-8dfb-9efcfbc3ddb7/exec-e582acd5-fe36-41e0-b5db-5beddbaca3d7.png",
+      "status": "identity-source-framing-too-tight",
+      "approved": false,
+      "archiveRole": "retained-direct-edit-ancestor-not-discarded"
+    },
+    {
+      "image": "deep-vein-mother-v02-safe-frame.png",
+      "prompt": "prompt-deep-vein-mother-v02-safe-frame.txt",
+      "mode": "edit",
+      "inputImages": [
+        {
+          "path": "deep-vein-mother-v01.png",
+          "role": "identity-preserving-reframe-target"
+        }
+      ],
+      "source": "C:/Users/allan/.codex/generated_images/01a05053-c9b4-73d0-8dfb-9efcfbc3ddb7/exec-3c342a6f-9140-4e38-a7ab-5c55dd635e44.png",
+      "status": "superseded-by-user-anatomy-and-asymmetry-correction",
+      "approved": false,
+      "archiveRole": "retained-direct-edit-ancestor-not-discarded"
+    },
+    {
+      "image": "deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "prompt": "prompt-deep-vein-mother-v03-asymmetric-mine-fusion.txt",
+      "mode": "edit",
+      "inputImages": [
+        {
+          "path": "deep-vein-mother-v02-safe-frame.png",
+          "role": "edit-target; preserve mineral material family, redesign anatomy and silhouette"
+        },
+        {
+          "path": "../../../assets/enemies/miner_zombie/idle.png",
+          "role": "reference-only; original miner limb scale, clothing, boots and pickaxe"
+        }
+      ],
+      "source": "C:/Users/allan/.codex/generated_images/01a05053-c9b4-73d0-8dfb-9efcfbc3ddb7/exec-78ae8e1e-236f-4452-8884-7c884e27e8d5.png",
+      "status": "mother-approved-animation-source-candidates-generated",
+      "approved": true
+    }
+  ],
+  "animationSourcesApproved": true,
+  "animationSourcesApprovedAt": "2026-08-30T11:27:47.392755+08:00",
+  "animationSourceApprovalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+  "spritesheetsGenerated": true,
+  "spriteManifest": "animations/runtime-build/manifest.json",
+  "spriteDeliveryDocument": "animations/INTEGRATION.md",
+  "runtimeValidated": false,
+  "runtimeAuthorization": "用户：注意大小统一、优化插帧、接入游戏，作为废弃矿洞boss，参考其他同类型怪物设计数值，完善动作状态机。",
+  "sourceSpriteManifest": "animations/runtime-build/manifest.json",
+  "spriteOverview": "animations/runtime-build/previews/runtime-overview.gif",
+  "assetOnly": false,
+  "reviewNotesHistory": [
+    "User rejected giant human walking hands and booted support legs. V03 replaces them with four thick purple mineral column legs and broad stone feet.",
+    "Original-scale miner arms and booted lower legs protrude irregularly from the torso above ground; no exposed wounds or gore.",
+    "Asymmetrical tall rear mass incorporates a tilted mine-elevator cage and pulley; lower front carries unequal rusted pipes, with diagonal pickaxes embedded in the mineral body.",
+    "User approved all seven current source videos including disclosed visual differences. Stomp and pipe blast use v02; other five use v01. Two rejected v01 videos remain rejected. Preserve the approved natural source motion; no formal spritesheets or runtime integration yet.",
+    "White-background identity candidate, not a transparent runtime asset. No runtime size or collision calibration performed."
+  ],
+  "deliveryNotesHistory": [
+    "No tests or runtime verification run; user performs runtime testing by project agreement.",
+    "User-authorized account-switch resumption completed the remaining five actions. Stomp and pipe blast each received one targeted revision; nine source files total, seven current candidates. No paid confirmation or provider switch. Runtime integration remains inactive.",
+    "User confirmed all seven selected source videos: 没问题，都可以用. This records source acceptance only; no source media changed and no further generation or runtime work performed.",
+    "User continued after source approval. Produced seven transparent sheets (917 frames total at 24 fps), matching GIFs, pre-interpolation source sheets and production reports. Sprite visual acceptance and runtime integration remain separate."
+  ],
+  "archivePolicy": "Keep direct image edit ancestry, approved MP4s/prompts/provenance, current pre-RIFE sheets, runtime assets, reports and final GIF/contact previews. Retire rejected video pixels and reproducible intermediate caches."
+}

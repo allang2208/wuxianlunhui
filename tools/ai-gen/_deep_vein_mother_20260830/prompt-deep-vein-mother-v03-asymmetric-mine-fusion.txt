@@ -1,0 +1,33 @@
+Use case: precise-object-edit
+Asset type: revised white-background identity mother frame for the abandoned-mine boss "Deep Vein Mother / 深脉之母".
+
+Input image 1: EDIT TARGET, the previous purple-crystal black-rock monster. Keep its mineral-family material language and production-render finish, but SUBSTANTIALLY REDESIGN the anatomy and silhouette according to the user's correction below. The old giant human hands and booted walking legs are explicitly REJECTED and must be removed.
+Input image 2: REFERENCE ONLY, the existing zombie miner sprite atlas; the miner is in its first occupied frame near the upper-left corner. Use its ordinary-sized skinny grey-olive hands/forearms, dirty brown work trousers, old leather boots and mining pick as detail references. Do not reproduce the atlas, grid, miner body or pose.
+
+USER'S DESIGN CORRECTION:
+The monster is an ASYMMETRICAL living ore conglomerate that has swallowed mine machinery and zombie miners. ORIGINAL HUMAN-SIZED miner arms, hands, lower legs and feet protrude haphazardly from its upper body at different heights and directions. They are small embedded remnants, NOT the boss's walking limbs. Its true supporting legs and feet must be thick PURPLE MINERAL structures like elephant legs. Fuse a broken mine ELEVATOR, pipes and pickaxes into the mass.
+
+Primary silhouette:
+One enormous connected ore creature, facing RIGHT in a low three-quarter side view. Exactly FOUR stout load-bearing stone legs stand below the body. Each leg is a massive short, nearly cylindrical purple-amethyst column, roughly elephant-leg proportions, with a broad blunt flat purple-stone foot. Continuous mineral from torso into feet, chunky rocky facets, no skin, human fingers, fabric, shoes, leather soles or animal toes on these four supports. Space the legs so each foot can be understood. Remove BOTH giant human forearms/palms from the previous design; no human hand touches the floor.
+Make the torso intentionally crooked and UNEVEN: a tall bulky rear-left shoulder/back and a lower more projecting front-right mass. Do not mirror the rock armor, crystals, machinery or embedded body parts. A muted deep-violet narrow core crevice may remain OFF-CENTER toward the right front. No human face or conventional head. No insect shell or turtle anatomy.
+
+Small absorbed miner appendages:
+Add SEVEN small dry undead miner limb fragments partially emerging from sealed cracks in the torso: four skinny human arms with hands and three trousered lower legs with old work boots. Each hand/foot stays at normal miner scale relative to the industrial props: a hand is only about one-fifth the width of one immense mineral foot. Show varied orientations: one forearm reaches diagonally upward beside the high shoulder, one hand juts sideways from the near flank, one limp arm points down from an upper seam while ending WELL ABOVE THE GROUND, one reaches backward beside a pipe; a boot points horizontally outward, another boot tilts upward out of the back rock, and a third lower leg hangs obliquely from the opposite upper flank. Scatter them asymmetrically, not in pairs, not in a ring, and never as the creature's support limbs. Torn olive-brown canvas cuffs, dry grey-olive sinewy skin, worn rough fingers and cracked old mining boots. Their hidden ends are fully swallowed by crystal and rock, with NO blood, exposed bone, wounds, entrails or raw cut ends. All pieces belong to the same creature; no loose separate remains on the ground.
+
+Mining machinery fused into body:
+- On the HIGH rear-left back embed one damaged old MINE ELEVATOR CAGE at a crooked angle. Make it recognizably a compact rectangular rusted iron hoist cage: bent vertical bars, one small grated platform, short guide rails and one pulley wheel at the top. About half of the cage is swallowed by purple ore; visible upper half changes the skyline. This is an integrated fragment of mining equipment, NOT a whole mine building, crane tower or a separate prop sitting beside the monster.
+- On the LOW near/right flank embed an uneven cluster of TWO corroded thick pipes: a bent elbow pipe with open dark mouth, and a shorter broken pipe with a small flange. Irregular directions, clearly metal, firmly rooted in rock, no smoke or steam.
+- Embed TWO worn miners' pickaxes diagonally at DIFFERENT angles in the shoulders/flank: recognizable curved iron pick heads and short exposed weathered wooden handles, roots partly buried in mineral. Do not put tools into giant hands, and do not create mirrored weapon arms.
+Crystal has visibly grown around the cage bars, pipe bases and pick heads. Retain only a few structural iron straps where natural; avoid uniform paired harness bands. Human limbs, pipe openings, pickaxes and cage must each read as separate categories at a glance.
+
+Materials and palette:
+Dusty smoky grey-purple amethyst is prominent over the huge legs, feet, back and cracked edges; rough charcoal-black slate is the binding torso matrix. Low saturation, geological fractures and thick mineral plates, realistic coarse PBR surfaces. Rust-brown iron cage and pipes, dark oxidized pick heads, old wood, muted dirty work-cloth and dry undead skin accents. No neon purple, gloss-plastic, gold ornament, ornamental horns or spikes carpeting every surface. Grounded dark-fantasy 3D game asset, not a photograph, cartoon, toy or painterly illustration.
+
+Camera, pose and canvas:
+Single connected full-body creature, calm planted idle pose, orthographic-like LOW THREE-QUARTER SIDE view clearly facing RIGHT, slight view of its top. Show the asymmetry and near flank while retaining readable front silhouette. Entire monster INCLUDING highest cage rail, highest hand, pipe, picks and all feet takes at most 70-74 percent of square canvas width and height. Generous pure white margins on all four sides. Keep every small hand, boot, pick handle, pipe and cage part completely inside the image; don't crop. All four MINERAL FEET contact a consistent ground plane.
+
+Lighting and background:
+Pure white #FFFFFF, no floor line, environment, cast shadow, contact-shadow ellipse, reflection, fog, particles or steam. Soft flat diffuse studio lighting with internal crevice shading only.
+No text, watermark, labels, reference panels, multi-view sheet, extra subjects or decorative base.
+
+Priorities: 1) four thick purple MINERAL elephant-like legs/feet, ZERO giant human walking hands or booted support feet; 2) recognizably small original miner appendages sticking out chaotically ABOVE the ground; 3) strong asymmetric silhouette; 4) recognizable integrated broken elevator cage, pipes and picks; 5) consistent purple-ore mine-monster style and animation-safe white framing.

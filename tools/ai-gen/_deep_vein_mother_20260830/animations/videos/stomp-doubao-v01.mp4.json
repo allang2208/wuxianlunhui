@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "1:1",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_deep_vein_mother_20260830\\deep-vein-mother-v03-asymmetric-mine-fusion.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_deep_vein_mother_20260830\\animations\\prompts\\stomp-doubao-v01.txt",
+  "promptChars": 753,
+  "promptSha256": "e7caa49f67bba6a619f2be82e2fa74af9828754c2d7380e8092227735b50fb90",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-30T03:08:30.749Z",
+  "sourceUrlScheme": "https"
+}

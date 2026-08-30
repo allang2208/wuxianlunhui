@@ -1,0 +1,415 @@
+{
+  "task": "deep-vein-mother-seven-doubao-source-videos",
+  "date": "2026-08-30",
+  "status": "integrated-awaiting-user-runtime-test",
+  "provider": "doubao",
+  "model": "Seedance 2.0 Mini",
+  "size": "1024x1024",
+  "candidatesPerAction": 1,
+  "motherApproved": true,
+  "attackDesignApproved": true,
+  "authorization": "用户：好的，豆包管线出视频。授权按已确认七种状态生成视频。",
+  "runtimeIntegrationActive": true,
+  "spritesheetsGenerated": true,
+  "sourceAcceptancePending": false,
+  "jobs": [
+    {
+      "state": "idle",
+      "label": "待机",
+      "duration": 5,
+      "loop": true,
+      "action": "原地待机微动循环。四只矿石脚全程牢固接地不换脚，主体非常轻微地垂直起伏；矿工小手臂和裤腿因惯性有极轻的被动摆动。升降架、管道、矿镐和晶簇不独立移动，绞盘停转，晶核维持原图暗紫亮度。不是完全静止图，但不能摇晃整个躯体、转身或开始攻击。五秒内完成两个缓慢自然的起伏周期，首尾位置、姿态、尺寸和运动相位一致，不暂停、不倒放、不突变。",
+      "mother": "../deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "promptFile": "prompts/idle-doubao-v01.txt",
+      "video": "videos/idle-doubao-v01.mp4",
+      "status": "source-approved-runtime-integrated-awaiting-user-test",
+      "startedAt": "2026-08-30T10:25:22.736477+08:00",
+      "downloadedAt": "2026-08-30T10:27:34.473027+08:00",
+      "gif": "runtime-build/previews/idle.gif",
+      "contact": "runtime-build/previews/idle-contact.png",
+      "provenance": "videos/idle-doubao-v01.mp4.json",
+      "approved": true,
+      "reviewBadge": "v01 · 用户已通过",
+      "visualReviewStatus": "accepted-by-user",
+      "visualReviewNotes": "Identity and attachments remain visible; mild core brightness and initial size shift. Natural cycle not selected.",
+      "returnedVideo": {
+        "sourceSize": [
+          720,
+          720
+        ],
+        "sourceFrames": 121,
+        "sourceFps": 24.0,
+        "sourceDurationSeconds": 5.041666666666667
+      },
+      "preApprovalReview": {
+        "visualReviewStatus": "review-pending",
+        "visualReviewNotes": "Identity and attachments remain visible; mild core brightness and initial size shift. Natural cycle not selected.",
+        "reviewBadge": "v01 · 循环窗口待选"
+      },
+      "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+      "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+      "spritesheet": "../../../../assets/enemies/deep_vein_mother/idle.png",
+      "spritePreview": "runtime-build/previews/idle.gif",
+      "spriteFrameCount": 30,
+      "spriteFrameRate": 6.0,
+      "finalSpriteApprovedByUser": false,
+      "previewClock": "runtime-config-not-source-video",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "state": "walking",
+      "label": "行走",
+      "duration": 6,
+      "loop": true,
+      "action": "原地朝右缓慢步行循环，仿照沉重四足动物的四拍步态：后侧远腿、前侧远腿、后侧近腿、前侧近腿依次交替抬脚前送、落地承重和后推，每次只抬一只脚，另外三脚支撑。四条岩石柱腿在天然连接处转动，小幅离地，不能像橡胶弯曲。主体保持在画面原地，有克制的垂直重心起伏，不横穿画面、滑步或奔跑。升降架、管道、矿镐作为牢固整体随主体运动，小矿工手脚轻微被动晃动，不参与步行。六秒完成两个完整自然步态周期，首尾回到参考图同一位置、姿态、方向与脚步相位，不突然减速、定格或倒放。",
+      "mother": "../deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "promptFile": "prompts/walking-doubao-v01.txt",
+      "video": "videos/walking-doubao-v01.mp4",
+      "status": "source-approved-runtime-integrated-awaiting-user-test",
+      "startedAt": "2026-08-30T10:27:40.080945+08:00",
+      "downloadedAt": "2026-08-30T10:31:42.516652+08:00",
+      "gif": "runtime-build/previews/walking.gif",
+      "contact": "runtime-build/previews/walking-contact.png",
+      "provenance": "videos/walking-doubao-v01.mp4.json",
+      "approved": true,
+      "reviewBadge": "v01 · 用户已通过",
+      "visualReviewStatus": "accepted-by-user",
+      "visualReviewNotes": "Mineral legs alternate; attached miner limbs are passive. Ground shadow and precise four-beat order need review.",
+      "returnedVideo": {
+        "sourceSize": [
+          720,
+          720
+        ],
+        "sourceFrames": 145,
+        "sourceFps": 24.0,
+        "sourceDurationSeconds": 6.041666666666667
+      },
+      "preApprovalReview": {
+        "visualReviewStatus": "review-pending",
+        "visualReviewNotes": "Mineral legs alternate; attached miner limbs are passive. Ground shadow and precise four-beat order need review.",
+        "reviewBadge": "v01 · 四拍顺序待确认"
+      },
+      "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+      "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+      "spritesheet": "../../../../assets/enemies/deep_vein_mother/walking.png",
+      "spritePreview": "runtime-build/previews/walking.gif",
+      "spriteFrameCount": 48,
+      "spriteFrameRate": 12.0,
+      "finalSpriteApprovedByUser": false,
+      "previewClock": "runtime-config-not-source-video",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "state": "stomp",
+      "label": "矿足重踏",
+      "duration": 5,
+      "loop": false,
+      "action": "单腿小幅离地，其余三足固定接地、主体不抬高；一次落脚并复位。",
+      "mother": "../deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "promptFile": "prompts/stomp-doubao-v02-single-foot.txt",
+      "video": "videos/stomp-doubao-v02-single-foot.mp4",
+      "status": "source-approved-runtime-integrated-awaiting-user-test",
+      "previousAttemptStatus": "blocked-by-doubao-seven-day-quota-no-video-generated",
+      "previousStartedAt": "2026-08-30T10:31:48.603541+08:00",
+      "approved": true,
+      "rejectedCandidates": [
+        {
+          "promptFile": "prompts/stomp-doubao-v01.txt",
+          "provenance": "videos/stomp-doubao-v01.mp4.json",
+          "startedAt": "2026-08-30T11:06:32.072159+08:00",
+          "downloadedAt": "2026-08-30T11:08:30.770116+08:00",
+          "action": "只做一次矿足重踏并收势。0.0-0.5秒保持稳定站姿；0.5-1.5秒身体重心缓慢移到其余三腿，靠镜头的前侧紫色矿石腿抬起，宽钝石脚清楚离地，升降架不碰画面上沿；1.5-1.9秒该前腿向下重踏，约1.9秒足底落回原地面高度，这是唯一接触点；1.9-2.8秒身体有一次沉重下压与衰减回弹，小矿工手脚短暂被动晃动；2.8-3.8秒回到原待机姿势；3.8-5.0秒保持自然待机。只有该前腿重踏一次，不跳跃、不同时抬两腿、不用人手打地、不追加第二次攻击。",
+          "status": "rejected_archived_metadata_only",
+          "reason": "v01 rears up on both front legs and clips the cage; violates one-foot contact and full framing.",
+          "approved": false,
+          "removedArtifacts": [
+            "videos/stomp-doubao-v01.mp4",
+            "previews/stomp-doubao-v01-source.gif",
+            "previews/stomp-doubao-v01-contact.png"
+          ],
+          "mediaRetainedInGit": false
+        }
+      ],
+      "revisionReason": "v01 rears up on both front legs and clips the cage; violates one-foot contact and full framing.",
+      "startedAt": "2026-08-30T11:18:25.000270+08:00",
+      "downloadedAt": "2026-08-30T11:21:06.895032+08:00",
+      "gif": "runtime-build/previews/stomp.gif",
+      "contact": "runtime-build/previews/stomp-contact.png",
+      "provenance": "videos/stomp-doubao-v02-single-foot.mp4.json",
+      "reviewBadge": "v02 · 用户已通过",
+      "visualReviewStatus": "accepted-by-user",
+      "visualReviewNotes": "Single near mineral leg now lifts and lands; no rearing or cage clipping observed in contact sheet. Exact contact frame pending.",
+      "returnedVideo": {
+        "sourceSize": [
+          720,
+          720
+        ],
+        "sourceFrames": 121,
+        "sourceFps": 24.0,
+        "sourceDurationSeconds": 5.041666666666667
+      },
+      "preApprovalReview": {
+        "visualReviewStatus": "review-pending",
+        "visualReviewNotes": "Single near mineral leg now lifts and lands; no rearing or cage clipping observed in contact sheet. Exact contact frame pending.",
+        "reviewBadge": "v02 · 接触帧待选"
+      },
+      "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+      "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+      "spritesheet": "../../../../assets/enemies/deep_vein_mother/stomp.png",
+      "spritePreview": "runtime-build/previews/stomp.gif",
+      "spriteFrameCount": 41,
+      "spriteFrameRate": 17.083333333333332,
+      "finalSpriteApprovedByUser": false,
+      "previewClock": "runtime-config-not-source-video",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "state": "pipe_blast",
+      "label": "高压喷矿",
+      "duration": 5,
+      "loop": false,
+      "action": "四足固定接地，1.0、1.6、2.2秒三次短促机械式收身与复位；纯白固定镜头，无发光和外部特效。",
+      "mother": "../deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "promptFile": "prompts/pipe_blast-doubao-v02-three-recoils.txt",
+      "video": "videos/pipe_blast-doubao-v02-three-recoils.mp4",
+      "status": "source-approved-runtime-integrated-awaiting-user-test",
+      "previousAttemptStatus": "not-submitted-doubao-quota-blocked",
+      "approved": true,
+      "rejectedCandidates": [
+        {
+          "promptFile": "prompts/pipe_blast-doubao-v01.txt",
+          "provenance": "videos/pipe_blast-doubao-v01.mp4.json",
+          "startedAt": "2026-08-30T11:08:35.752628+08:00",
+          "downloadedAt": "2026-08-30T11:10:30.428758+08:00",
+          "action": "只做一次三轮高压喷矿的本体蓄力及后坐动作。0.0-0.5秒站稳；0.5-1.7秒四条矿石腿压稳，身体向前管道方向克制地蓄力，管口保持原形、原方向；1.7-2.6秒由两根原有管道依次表现恰好三次短促排压后坐，每次轻微带动整个躯体向后倾后复位，间隔约0.3秒，管道始终牢固嵌在岩体上；2.6-3.6秒重量沉回四脚、恢复待机；3.6-5.0秒自然待机。管口不张合成嘴，不伸长，不瞄准镜头。这里不画弹丸、碎石、火焰或烟雾，仅用本体三次后坐表达发射节点，外部弹体由游戏另做。",
+          "status": "rejected_archived_metadata_only",
+          "reason": "v01 adds a dark environment, continuous laser and camera changes; no three-recoil recovery.",
+          "approved": false,
+          "removedArtifacts": [
+            "videos/pipe_blast-doubao-v01.mp4",
+            "previews/pipe_blast-doubao-v01-source.gif",
+            "previews/pipe_blast-doubao-v01-contact.png"
+          ],
+          "mediaRetainedInGit": false
+        }
+      ],
+      "revisionReason": "v01 adds a dark environment, continuous laser and camera changes; no three-recoil recovery.",
+      "startedAt": "2026-08-30T11:21:12.356531+08:00",
+      "downloadedAt": "2026-08-30T11:23:40.112496+08:00",
+      "gif": "runtime-build/previews/pipe_blast.gif",
+      "contact": "runtime-build/previews/pipe_blast-contact.png",
+      "provenance": "videos/pipe_blast-doubao-v02-three-recoils.mp4.json",
+      "reviewBadge": "v02 · 用户已通过",
+      "visualReviewStatus": "accepted-by-user",
+      "visualReviewNotes": "Dark scene, continuous laser and camera changes removed. Three distinct recoil nodes not confirmed; movement subtle.",
+      "returnedVideo": {
+        "sourceSize": [
+          720,
+          720
+        ],
+        "sourceFrames": 121,
+        "sourceFps": 24.0,
+        "sourceDurationSeconds": 5.041666666666667
+      },
+      "preApprovalReview": {
+        "visualReviewStatus": "action-readability-unconfirmed",
+        "visualReviewNotes": "Dark scene, continuous laser and camera changes removed. Three distinct recoil nodes not confirmed; movement subtle.",
+        "reviewBadge": "v02 · 三次后坐偏弱"
+      },
+      "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+      "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+      "spritesheet": "../../../../assets/enemies/deep_vein_mother/pipe_blast.png",
+      "spritePreview": "runtime-build/previews/pipe_blast.gif",
+      "spriteFrameCount": 41,
+      "spriteFrameRate": 13.666666666666666,
+      "finalSpriteApprovedByUser": false,
+      "previewClock": "runtime-config-not-source-video",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "state": "vein_resonance",
+      "label": "绞盘震脉",
+      "duration": 5,
+      "loop": false,
+      "action": "只进行一次绞盘震脉蓄力与释放。0.0-0.4秒站定；0.4-2.0秒四条矿石腿缓缓撑稳，沉重主体小幅下沉，背侧升降梯框架以极低幅度刚体震颤，其顶部原有绞盘轮在原轴上缓慢转动不足一圈，不能新增齿轮或改变升降架结构。原有紫晶接缝由腿部向背部依次出现克制的紫色内部亮度，不向背景发光。2.0-2.4秒身体向下压出一次明确释放姿态，小矿工手脚短促随动，四只脚仍接地不跳跃；2.4-3.6秒绞盘停止、内部亮度退回原值、主体恢复站姿；3.6-5.0秒自然待机。不要地裂、震波、地面圈、投射物、喷尘、屏幕抖动。升降梯笼始终附着背部，不飞出、不升起、不坠落。",
+      "mother": "../deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "promptFile": "prompts/vein_resonance-doubao-v01.txt",
+      "video": "videos/vein_resonance-doubao-v01.mp4",
+      "status": "source-approved-runtime-integrated-awaiting-user-test",
+      "previousAttemptStatus": "not-submitted-doubao-quota-blocked",
+      "startedAt": "2026-08-30T11:10:36.059437+08:00",
+      "downloadedAt": "2026-08-30T11:13:07.874738+08:00",
+      "gif": "runtime-build/previews/vein_resonance.gif",
+      "contact": "runtime-build/previews/vein_resonance-contact.png",
+      "provenance": "videos/vein_resonance-doubao-v01.mp4.json",
+      "approved": true,
+      "reviewBadge": "v01 · 用户已通过",
+      "visualReviewStatus": "accepted-by-user",
+      "visualReviewNotes": "Brace, sink, crystal brightness and recovery visible. Winch rotation and one release node not clearly readable.",
+      "returnedVideo": {
+        "sourceSize": [
+          720,
+          720
+        ],
+        "sourceFrames": 121,
+        "sourceFps": 24.0,
+        "sourceDurationSeconds": 5.041666666666667
+      },
+      "preApprovalReview": {
+        "visualReviewStatus": "action-readability-unconfirmed",
+        "visualReviewNotes": "Brace, sink, crystal brightness and recovery visible. Winch rotation and one release node not clearly readable.",
+        "reviewBadge": "v01 · 绞盘动作偏弱"
+      },
+      "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+      "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+      "spritesheet": "../../../../assets/enemies/deep_vein_mother/vein_resonance.png",
+      "spritePreview": "runtime-build/previews/vein_resonance.gif",
+      "spriteFrameCount": 41,
+      "spriteFrameRate": 12.8125,
+      "finalSpriteApprovedByUser": false,
+      "previewClock": "runtime-config-not-source-video",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "state": "pressure_release",
+      "label": "矿压泄尽",
+      "duration": 6,
+      "loop": false,
+      "action": "只做一次泄压虚弱及恢复动作。0.0-0.8秒四条矿石腿保持接地，躯体缓慢下沉成低伏姿态；前侧原有狭窄紫晶核缝的两片岩壳略微张开，露出同一个深紫晶核，亮度适度增加但不出现光束或外溢辉光。0.8-3.8秒保持低伏虚弱状态整整三秒，绞盘完全停转、管道无后坐，附着的小矿工手脚自然下垂，仅有轻微惯性余摆；3.8-5.0秒原岩壳闭合、晶核恢复原亮度、主体缓慢回到母图站姿；5.0-6.0秒自然待机。一次张开一次闭合，不反复抽动，不攻击、不死亡，不打开全身岩甲，不让管道或升降梯移动到新位置，不喷烟。",
+      "mother": "../deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "promptFile": "prompts/pressure_release-doubao-v01.txt",
+      "video": "videos/pressure_release-doubao-v01.mp4",
+      "status": "source-approved-runtime-integrated-awaiting-user-test",
+      "previousAttemptStatus": "not-submitted-doubao-quota-blocked",
+      "startedAt": "2026-08-30T11:13:13.324483+08:00",
+      "downloadedAt": "2026-08-30T11:15:23.262048+08:00",
+      "gif": "runtime-build/previews/pressure_release.gif",
+      "contact": "runtime-build/previews/pressure_release-contact.png",
+      "provenance": "videos/pressure_release-doubao-v01.mp4.json",
+      "approved": true,
+      "reviewBadge": "v01 · 用户已通过",
+      "visualReviewStatus": "accepted-by-user",
+      "visualReviewNotes": "Low pose, core opening, approximately three-second hold and close/recover visible. Opening width needs user selection.",
+      "returnedVideo": {
+        "sourceSize": [
+          720,
+          720
+        ],
+        "sourceFrames": 145,
+        "sourceFps": 24.0,
+        "sourceDurationSeconds": 6.041666666666667
+      },
+      "preApprovalReview": {
+        "visualReviewStatus": "review-pending",
+        "visualReviewNotes": "Low pose, core opening, approximately three-second hold and close/recover visible. Opening width needs user selection.",
+        "reviewBadge": "v01 · 核缝开幅待选"
+      },
+      "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+      "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+      "spritesheet": "../../../../assets/enemies/deep_vein_mother/pressure_release.png",
+      "spritePreview": "runtime-build/previews/pressure_release.gif",
+      "spriteFrameCount": 49,
+      "spriteFrameRate": 8.166666666666666,
+      "finalSpriteApprovedByUser": false,
+      "previewClock": "runtime-config-not-source-video",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "state": "dying",
+      "label": "死亡",
+      "duration": 6,
+      "loop": false,
+      "action": "只发生一次不可逆的沉重倒地。0.0-1.0秒四条矿石腿逐渐失去支撑，岩石关节下沉、前侧晶核由原暗紫逐渐熄灭；1.0-3.0秒整个躯体向较低的前侧缓慢倾倒并下沉到原脚下地面，四腿自然外折但保持岩石连接，主体形成低矮完整岩堆，不大幅横移、不翻滚。原升降梯、顶部绞盘、两根管道、两把矿镐随各自所附岩块一起低伏，保留全部结构，不飞散、不新增、不融化；小矿工手脚被动垂落，保持原数量，不能脱离或爬走。3.0-4.2秒所有部分在重量作用下轻微沉降停稳；4.2-6.0秒完整尸体绝对静止。只倒下一次，不弹起、不回到站姿、不倒放、不复活、不化烟消失，不爆炸、不散落新碎石，完整尸体不得出框。",
+      "mother": "../deep-vein-mother-v03-asymmetric-mine-fusion.png",
+      "promptFile": "prompts/dying-doubao-v01.txt",
+      "video": "videos/dying-doubao-v01.mp4",
+      "status": "source-approved-runtime-integrated-awaiting-user-test",
+      "previousAttemptStatus": "not-submitted-doubao-quota-blocked",
+      "startedAt": "2026-08-30T11:15:29.875787+08:00",
+      "downloadedAt": "2026-08-30T11:17:43.429572+08:00",
+      "gif": "runtime-build/previews/dying.gif",
+      "contact": "runtime-build/previews/dying-contact.png",
+      "provenance": "videos/dying-doubao-v01.mp4.json",
+      "approved": true,
+      "reviewBadge": "v01 · 用户已通过",
+      "visualReviewStatus": "accepted-by-user",
+      "visualReviewNotes": "One-way collapse and held corpse present. Left cage touches frame edge with clipping risk; extra debris/dust violates clean isolated source contract.",
+      "returnedVideo": {
+        "sourceSize": [
+          720,
+          720
+        ],
+        "sourceFrames": 145,
+        "sourceFps": 24.0,
+        "sourceDurationSeconds": 6.041666666666667
+      },
+      "preApprovalReview": {
+        "visualReviewStatus": "needs-revision-before-spritesheets",
+        "visualReviewNotes": "One-way collapse and held corpse present. Left cage touches frame edge with clipping risk; extra debris/dust violates clean isolated source contract.",
+        "reviewBadge": "v01 · 边缘与尘土待修"
+      },
+      "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+      "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+      "spritesheet": "../../../../assets/enemies/deep_vein_mother/dying.png",
+      "spritePreview": "runtime-build/previews/dying.gif",
+      "spriteFrameCount": 49,
+      "spriteFrameRate": 14.411764705882353,
+      "finalSpriteApprovedByUser": false,
+      "previewClock": "runtime-config-not-source-video",
+      "runtimeIntegrationActive": true
+    }
+  ],
+  "blockerHistory": [
+    {
+      "provider": "doubao",
+      "message": "近7天的额度用完了，我得休息一阵子了，预计9月1日22:57恢复为你服务。",
+      "observedAt": "2026-08-30T10:38:29.0961739+08:00",
+      "expectedResume": "2026-09-01T22:57:00+08:00",
+      "blockedAction": "stomp",
+      "conversation": "chrome://doubao-chat/chat/38439359850769666",
+      "actionTaken": "Interrupted generation batch. No paid confirmation, automatic retry or backend switch."
+    }
+  ],
+  "resumeAuthorization": {
+    "at": "2026-08-30T11:06:31.9746405+08:00",
+    "userMessage": "已切换账号，继续",
+    "scope": "Resume only the five unfinished Doubao actions. Keep idle and walking untouched."
+  },
+  "completedAt": "2026-08-30T11:25:25.043827+08:00",
+  "sourceCandidateCount": 7,
+  "totalDownloadedVideoCount": 9,
+  "rejectedSourceCount": 2,
+  "overview": "runtime-build/previews/runtime-overview.gif",
+  "reviewDocument": "REVIEW.md",
+  "preApprovalAllActionContractsPassed": false,
+  "allSourcesUserApproved": true,
+  "approvedSourceCount": 7,
+  "approvedAt": "2026-08-30T11:27:47.392755+08:00",
+  "approvalBasis": "用户：没问题，都可以用。确认当前七段源视频，包含此前已披露的视觉差异；不包含已淘汰的重踏与喷矿 v01。",
+  "knownVisualDifferencesAccepted": true,
+  "acceptanceScope": {
+    "videos": [
+      "videos/idle-doubao-v01.mp4",
+      "videos/walking-doubao-v01.mp4",
+      "videos/stomp-doubao-v02-single-foot.mp4",
+      "videos/pipe_blast-doubao-v02-three-recoils.mp4",
+      "videos/vein_resonance-doubao-v01.mp4",
+      "videos/pressure_release-doubao-v01.mp4",
+      "videos/dying-doubao-v01.mp4"
+    ],
+    "sourceVideosOnly": true,
+    "preserveSourceMotion": true,
+    "spritesheetsGenerated": false,
+    "runtimeIntegrationActive": false
+  },
+  "overviewNote": "Current runtime-clock preview; seven approved MP4s retained, rejected videos metadata only.",
+  "spritesheetStage": "runtime-optimized-integrated-awaiting-user-test",
+  "spriteManifest": "runtime-build/manifest.json",
+  "spriteOverview": "runtime-build/previews/runtime-overview.gif",
+  "spriteDeliveryDocument": "INTEGRATION.md",
+  "spriteProductionCompletedAt": "2026-08-30T11:45:08.286410+08:00",
+  "runtimeValidated": false,
+  "runtimeAuthorization": "用户：注意大小统一、优化插帧、接入游戏，作为废弃矿洞boss，参考其他同类型怪物设计数值，完善动作状态机。",
+  "sourceSpriteManifest": "runtime-build/manifest.json",
+  "assetOnly": false
+}

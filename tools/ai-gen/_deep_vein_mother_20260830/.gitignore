@@ -1,0 +1,9 @@
+# Reproducible historical caches and rejected video pixels are not deliverables.
+animations/sprite-build/
+animations/previews/
+animations/runtime-build/sheets/
+animations/runtime-build/integration-before/
+animations/runtime-build/rife-previews/
+animations/runtime-build/rife-reports/*.log
+animations/videos/stomp-doubao-v01.mp4
+animations/videos/pipe_blast-doubao-v01.mp4
