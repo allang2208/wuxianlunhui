@@ -615,6 +615,16 @@ Phaser Sprite.x / y / rotation / scale
 3. 在 `_syncEnemyAnimation()` 中根据 `_animState === 'attack'` 播放对应 spritesheet。
 4. 让 `ZombieDogEnemy.triggerWeaponAnim()` 不只是一个 timer，而是真正驱动一帧一帧的动画 progress。
 
+#### 导航诊断页（2026-08-30）
+
+- 统一入口仍是 T → 交互开发工具 → 导航，由 `src/ui/panels/navigation-debug.js` 创建，不能另建浮窗或混用碰撞编辑器的纸面预览体。只读 RTS 当前选择的真实单位（多选列出前32个），并提供主角入口，不主动启用 RTS、改选中对象或移动镜头。
+- 主角观察必须同时满足 `!Game._observerMode` 和 `Game.entities.get('player') === Game.player`；观察位面可能仍保留本体世界的主角引用，不能把该引用当当前地图单位。
+- 显示当前承载面/高度、航点、路线版本、地面路径、FIFO方向/位置、重试原因和落地受阻标记。`ElevatedRouteTraffic.debugEntity()` 只读已有预约，不得为了显示调用 prune/touch/request。单位快照最多复制后续8个航点，不持有实体/路径引用。
+- “记录导航异常”默认关闭、只在内存中保存；开启后关面板仍在既有规划失败/恢复事件上记录，最多64条、同单位同事件2秒限频。普通FIFO等待、PATH_DEFERRED、攻击/控制停步不记为进度超时，真正队列超时单独分类；这是看门狗事件取证，不是新增全场停滞检测器。控制器场景重置清历史，开关不写存档。
+- 坍塌沿用 `getWallCollapseDiagnostics()` 的32条历史。复制/JSON下载包含当前单位、两类历史和最近120帧性能报告；清空记录不改变单位状态、路线或性能采样。
+- 导航复用面板原有500ms刷新定时器，只在 `_active && _currentTab === 'navigation'` 且自动刷新开启时取样；性能页同样只在面板可见时刷新。即时计数用 `PerformanceMonitor.getCounters()`，不为每次刷新计算帧历史分位数；完整性能统计仅在性能页或手动导出时读取。
+- 查看报告时区分“距上次路线进展的时间”“当前正常动作状态”和“已触发的恢复事件”，不能把任一计时直接等同于持续卡死。复现前开启记录，复现后先导出再切场景；剪贴板失败使用文本框或JSON下载。实现/合入状态见 `docs/world122-navigation-diagnostics-progress-2026-08-30.md`，文档提交不代表运行时代码已发布。
+
 #### 七、技能页资源调试入口（2026-08-22）
 
 - T 交互开发面板由 `src/ui/panels/dev-tools.js#createDevToolPanel()` 动态创建；一次性经济调试按钮放在
