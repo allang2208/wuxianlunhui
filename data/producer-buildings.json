@@ -245,7 +245,17 @@
       "textureKey": "portal",
       "displayW": 512,
       "displayH": 452,
-      "footOffsetY": 224
+      "footOffsetY": 224,
+      "depthMode": "ground",
+      "alignToBody": true
+    },
+    "shadowCaster": {
+      "contactPolygon": [
+        [-124.8, -110.9],
+        [-68.2, -90.6],
+        [125.4, -186.4],
+        [68.8, -207.9]
+      ]
     },
     "autoFootprint": false,
     "perimeterTile": "none",

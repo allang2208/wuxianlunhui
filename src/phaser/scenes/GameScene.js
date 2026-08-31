@@ -3277,6 +3277,13 @@ export class GameScene extends Scene {
         return band ? Math.min(depth, band.maxUnitDepth) : depth;
     }
 
+    _groundContactDepth(baseDepth, groundContactCfg = null) {
+        // 只有显式拆出的地台沉到共享阴影下；旧墙脚覆盖层继续跟随建筑后置通道。
+        return groundContactCfg?.depthMode === 'ground'
+            ? WORLD_RENDER_LAYERS.STRUCTURE_GROUND_CONTACT
+            : baseDepth - 0.04;
+    }
+
     _foregroundOverlayDepth(entity, baseDepth, foregroundCfg = null) {
         const cfg = foregroundCfg || entity?.spriteCfg?.foregroundOverlay;
         if (entity?._isWallTower && cfg?.depthMode === 'wallTowerParapet') {
@@ -3608,7 +3615,8 @@ export class GameScene extends Scene {
                 const depth = data.sprite.y + footOffsetY + 10;
                 setVisualDepthIfChanged(data.sprite, depth, depthStats);
                 if (data.groundContactSprite?.active) {
-                    setVisualDepthIfChanged(data.groundContactSprite, depth - 0.04, depthStats);
+                    setVisualDepthIfChanged(data.groundContactSprite,
+                        this._groundContactDepth(depth, data.sprCfg?.groundContact), depthStats);
                 }
                 if (data.overlaySprite?.active) {
                     setVisualDepthIfChanged(data.overlaySprite, depth + 0.01, depthStats);
@@ -11515,7 +11523,8 @@ export class GameScene extends Scene {
                     entity._structureRenderChannels = channels;
                     sprite.setDepth(channels.sprite);
                     if (neutral?.groundContactSprite?.active) {
-                        neutral.groundContactSprite.setDepth(channels.rearFx);
+                        neutral.groundContactSprite.setDepth(
+                            this._groundContactDepth(depth, neutral.sprCfg?.groundContact));
                     }
                     if (neutral?.overlaySprite?.active) {
                         neutral.overlaySprite.setDepth(channels.sprite + 0.01);
@@ -12126,11 +12135,15 @@ export class GameScene extends Scene {
                 const visualScaleY = Math.max(0.01,
                     Number(e._structureVisualScaleY ?? e._structureVisualScale) || 1);
                 const contactFootOffsetY = Number(groundContactCfg.footOffsetY);
+                // 同画布拆层必须使用主体拟合后的中心，避免配置脚点再次缩放造成错层。
+                const contactY = groundContactCfg.alignToBody === true
+                    ? sprite.y
+                    : e.y - (Number.isFinite(contactFootOffsetY)
+                        ? contactFootOffsetY * visualScaleY
+                        : shift);
                 groundContactSprite.setPosition(
                     sprite.x + (Number(groundContactCfg.offsetX) || 0) * visualScaleX,
-                    e.y - (Number.isFinite(contactFootOffsetY)
-                        ? contactFootOffsetY * visualScaleY
-                        : shift) + (Number(groundContactCfg.offsetY) || 0) * visualScaleY
+                    contactY + (Number(groundContactCfg.offsetY) || 0) * visualScaleY
                 );
                 groundContactSprite.setDisplaySize(
                     (Number(groundContactCfg.displayW) || sprite.displayWidth) * visualScaleX,
@@ -12220,7 +12233,7 @@ export class GameScene extends Scene {
                 sprite.setDepth(dd);
                 if (groundContactSprite?.active) {
                     groundContactSprite.setDepth(
-                        e._structureRenderChannels?.rearFx ?? (dd - 0.04));
+                        this._groundContactDepth(dd, sprCfg?.groundContact));
                 }
                 if (overlaySprite?.active) overlaySprite.setDepth(dd + 0.01);
                 if (foregroundSprite?.active) {
