@@ -1,0 +1,113 @@
+{
+  "date": "2026-08-31",
+  "scope": "hamster audit evidence only",
+  "removedCount": 19,
+  "removedBytes": 3186637,
+  "removed": [
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/hamster-ninja-attack_continuous-all.png",
+      "bytes": 76570,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/hamster-ninja-attack_opening-all.png",
+      "bytes": 93822,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/hamster-phalanx-attack-all.png",
+      "bytes": 103844,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/hamster-warrior-attack-all.png",
+      "bytes": 261252,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/jaguar-warrior-attack-all.png",
+      "bytes": 118998,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/ninja-opening-contact-detail.png",
+      "bytes": 111013,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/melee-source-1.png",
+      "bytes": 181208,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/melee-source-2.png",
+      "bytes": 174571,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/melee-source-3.png",
+      "bytes": 571978,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before/melee-source-4.png",
+      "bytes": 558556,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/after/hamster-ninja-attack_continuous-all.png",
+      "bytes": 76570,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/after/hamster-ninja-attack_opening-all.png",
+      "bytes": 93822,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/after/hamster-phalanx-attack-all.png",
+      "bytes": 103844,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/after/hamster-warrior-attack-all.png",
+      "bytes": 261252,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/after/jaguar-warrior-attack-all.png",
+      "bytes": 118998,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/after/ninja-opening-contact-detail.png",
+      "bytes": 111013,
+      "reason": "reproducible intermediate contact sheet"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/range-table.md",
+      "bytes": 603,
+      "reason": "table already embedded in report"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/unit-table.md",
+      "bytes": 4339,
+      "reason": "table already embedded in report"
+    },
+    {
+      "path": "docs/audits/hamster-attack-tempo-2026-08-31/before-configs.json",
+      "bytes": 164384,
+      "reason": "superseded by minimal frozen inputs"
+    }
+  ],
+  "retained": [
+    "after/melee-source-1.png",
+    "after/melee-source-2.png",
+    "after/melee-source-3.png",
+    "after/melee-source-4.png",
+    "source-frame-inputs.json",
+    "parameter-delta.json",
+    "before/forward-extents.json",
+    "after/forward-extents.json"
+  ]
+}

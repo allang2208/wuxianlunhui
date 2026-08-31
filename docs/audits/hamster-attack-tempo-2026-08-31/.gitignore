@@ -1,0 +1,4 @@
+# Reproducible browsing intermediates; retain the four final after/contact figures.
+/before/*.png
+/after/*-all.png
+/after/ninja-opening-contact-detail.png

@@ -1,0 +1,114 @@
+[
+  {
+    "unit": "militia",
+    "animation": "attack",
+    "frame": 14,
+    "scale": 0.612625775390625,
+    "forwardAlphaExtent": 82.09
+  },
+  {
+    "unit": "halberdier",
+    "animation": "attack",
+    "frame": 23,
+    "scale": 0.612625775390625,
+    "forwardAlphaExtent": 110.27
+  },
+  {
+    "unit": "guard",
+    "animation": "attack",
+    "frame": 18,
+    "scale": 0.430020419921875,
+    "forwardAlphaExtent": 72.24
+  },
+  {
+    "unit": "phalanx",
+    "animation": "attack",
+    "frame": 12,
+    "scale": 0.612625775390625,
+    "forwardAlphaExtent": 55.75
+  },
+  {
+    "unit": "champion",
+    "animation": "attack",
+    "frame": 20,
+    "scale": 0.41015625,
+    "forwardAlphaExtent": 143.55
+  },
+  {
+    "unit": "samurai",
+    "animation": "attack",
+    "frame": 28,
+    "scale": 0.407421875,
+    "forwardAlphaExtent": 91.67
+  },
+  {
+    "unit": "warrior",
+    "animation": "attack",
+    "frame": 24,
+    "scale": 0.41814140234375,
+    "forwardAlphaExtent": 102.03
+  },
+  {
+    "unit": "ninja",
+    "animation": "attack_opening",
+    "frame": 16,
+    "scale": 0.50456,
+    "forwardAlphaExtent": 49.45
+  },
+  {
+    "unit": "ninja",
+    "animation": "attack_continuous",
+    "frame": 24,
+    "scale": 0.50456,
+    "forwardAlphaExtent": 123.62
+  },
+  {
+    "unit": "light-cavalry",
+    "animation": "attack",
+    "frame": 16,
+    "scale": 0.76171875,
+    "forwardAlphaExtent": 114.26
+  },
+  {
+    "unit": "cavalry",
+    "animation": "attack",
+    "frame": 20,
+    "scale": 0.7428977265625,
+    "forwardAlphaExtent": 303.85
+  },
+  {
+    "unit": "camel-cavalry",
+    "animation": "attack",
+    "frame": 16,
+    "scale": 0.578955314453125,
+    "forwardAlphaExtent": 104.21
+  },
+  {
+    "unit": "knight",
+    "animation": "attack",
+    "frame": 30,
+    "scale": 0.768229166015625,
+    "forwardAlphaExtent": 154.41
+  },
+  {
+    "unit": "winged-hussar",
+    "animation": "attack",
+    "frame": 20,
+    "scale": 0.6067396223372187,
+    "forwardAlphaExtent": 267.57
+  },
+  {
+    "unit": "powered-eod-explosive-lancer",
+    "animation": "attack",
+    "frame": 20,
+    "scale": 0.6221111334405145,
+    "forwardAlphaExtent": 273.73
+  },
+  {
+    "unit": "jaguar-warrior",
+    "animation": "attack",
+    "frame": 13,
+    "scale": 0.324126740234375,
+    "forwardAlphaExtent": 89.78
+  }
+]

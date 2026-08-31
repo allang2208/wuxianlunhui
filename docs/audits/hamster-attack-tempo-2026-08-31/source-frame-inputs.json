@@ -1,0 +1,636 @@
+{
+  "description": "Frozen source-frame audit inputs, not runtime unit configurations.",
+  "before": {
+    "hamster-militia": {
+      "displaySize": 313.664397,
+      "spriteOffsetY": -58.199449,
+      "ai": {
+        "attackRange": 55,
+        "attackDamageFrame": 15
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_militia/attacking_rife.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 29,
+          "frameRate": 24.0
+        }
+      }
+    },
+    "hamster-halberdier": {
+      "displaySize": 313.664397,
+      "spriteOffsetY": -58.199449,
+      "ai": {
+        "attackRange": 92,
+        "attackDamageFrame": 24
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_halberdier/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "frameRate": 24
+        }
+      }
+    },
+    "hamster-guard": {
+      "displaySize": 220.170455,
+      "spriteOffsetY": -43.862083,
+      "ai": {
+        "attackRange": 55,
+        "attackDamageFrame": 19
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_guard/attacking_rife.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 23,
+          "frameRate": 24.0
+        }
+      }
+    },
+    "hamster-phalanx": {
+      "displaySize": 313.664397,
+      "spriteOffsetY": -58.199449,
+      "ai": {
+        "attackRange": 68,
+        "attackDamageFrame": 13
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_phalanx/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 41,
+          "frameRate": 24
+        }
+      }
+    },
+    "hamster-champion": {
+      "displaySize": 210,
+      "spriteOffsetY": -40.605469,
+      "ai": {
+        "attackRange": 75,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_champion/attacking.png",
+          "frameWidth": 768,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 47,
+          "frameRate": 24
+        }
+      }
+    },
+    "hamster-samurai": {
+      "displaySize": 208.6,
+      "spriteOffsetY": -81.484375,
+      "ai": {
+        "attackRange": 62,
+        "attackContactDelayMs": 1167
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_samurai/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 43,
+          "frameRate": 24
+        }
+      }
+    },
+    "hamster-warrior": {
+      "displaySize": 214.088398,
+      "spriteOffsetY": -41.395999,
+      "ai": {
+        "attackRange": 55
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_warrior/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 48,
+          "frameRate": 19.0
+        }
+      }
+    },
+    "hamster-ninja": {
+      "displaySize": 258.33472,
+      "spriteOffsetY": -100.912,
+      "ai": {
+        "attackRange": 58,
+        "openingDamageFrame": 23,
+        "continuousDamageFrame": 25
+      },
+      "animations": {
+        "attack_opening": {
+          "src": "assets/companions/hamster_ninja/attack_opening.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 35,
+          "frameRate": 24
+        },
+        "attack_continuous": {
+          "src": "assets/companions/hamster_ninja/attack_continuous.png",
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 35,
+          "frameRate": 24
+        }
+      }
+    },
+    "hamster-light-cavalry": {
+      "displaySize": 390,
+      "spriteOffsetY": -91,
+      "ai": {
+        "attackRange": 55,
+        "attackDamageFrame": 17
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_light_cavalry/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 23,
+          "frameRate": 24.0
+        }
+      }
+    },
+    "hamster-cavalry": {
+      "displaySize": 380.363636,
+      "spriteOffsetY": -88.367188,
+      "ai": {
+        "attackRange": 68,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_cavalry/attacking.png",
+          "frameWidth": 896,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "frameRate": 24
+        }
+      }
+    },
+    "hamster-camel-cavalry": {
+      "displaySize": 296.425121,
+      "spriteOffsetY": -129.7,
+      "ai": {
+        "attackRange": 55,
+        "attackDamageFrame": 17
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/camel_cavalry/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 31,
+          "frameRate": 24.0
+        }
+      }
+    },
+    "hamster-knight": {
+      "displaySize": 393.333333,
+      "spriteOffsetY": -74.5,
+      "ai": {
+        "attackRange": 55,
+        "attackDamageFrame": 31
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_knight/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 61,
+          "frameRate": 41.3333333334
+        }
+      }
+    },
+    "hamster-winged-hussar": {
+      "displaySize": 380.363636,
+      "spriteOffsetY": -88.367188,
+      "ai": {
+        "attackRange": 72,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_winged_hussar/attacking.png",
+          "frameWidth": 1024,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "frameRate": 24
+        }
+      },
+      "render": {
+        "attackVisualScale": {
+          "referenceBodyHeight": 254,
+          "footY": 375,
+          "sourceBodyHeights": [
+            254,
+            258,
+            261,
+            264,
+            276,
+            304,
+            305,
+            305,
+            311,
+            310,
+            311,
+            310,
+            310,
+            311,
+            310,
+            303,
+            302,
+            295,
+            275,
+            275
+          ]
+        }
+      }
+    },
+    "hamster-powered-eod-explosive-lancer": {
+      "displaySize": 390,
+      "spriteOffsetY": -90.644531,
+      "ai": {
+        "attackRange": 78,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_powered_eod_explosive_lancer/attacking.png",
+          "frameWidth": 1024,
+          "frameHeight": 512,
+          "cols": 5,
+          "frameCount": 39,
+          "frameRate": 24
+        }
+      }
+    },
+    "jaguar-warrior": {
+      "displaySize": 165.952891,
+      "spriteOffsetY": -72.280263,
+      "ai": {
+        "attackRange": 58
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/jaguar_warrior/attacking.png",
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 18,
+          "frameRate": 12.413793103448276
+        }
+      }
+    }
+  },
+  "after": {
+    "hamster-militia": {
+      "displaySize": 313.664397,
+      "spriteOffsetY": -58.199449,
+      "ai": {
+        "attackRange": 68,
+        "attackImpactRange": 76,
+        "attackDamageFrame": 15
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_militia/attacking_rife.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 29,
+          "frameRate": 30
+        }
+      }
+    },
+    "hamster-halberdier": {
+      "displaySize": 313.664397,
+      "spriteOffsetY": -58.199449,
+      "ai": {
+        "attackRange": 96,
+        "attackImpactRange": 108,
+        "attackDamageFrame": 24
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_halberdier/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "frameRate": 32
+        }
+      }
+    },
+    "hamster-guard": {
+      "displaySize": 220.170455,
+      "spriteOffsetY": -43.862083,
+      "ai": {
+        "attackRange": 52,
+        "attackImpactRange": 58,
+        "attackDamageFrame": 19
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_guard/attacking_rife.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 23,
+          "frameRate": 30
+        }
+      }
+    },
+    "hamster-phalanx": {
+      "displaySize": 313.664397,
+      "spriteOffsetY": -58.199449,
+      "ai": {
+        "attackRange": 48,
+        "attackImpactRange": 55,
+        "attackDamageFrame": 13
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_phalanx/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 41,
+          "frameRate": 30
+        }
+      }
+    },
+    "hamster-champion": {
+      "displaySize": 210,
+      "spriteOffsetY": -40.605469,
+      "ai": {
+        "attackRange": 120,
+        "attackImpactRange": 132,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_champion/attacking.png",
+          "frameWidth": 768,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 47,
+          "frameRate": 30
+        }
+      }
+    },
+    "hamster-samurai": {
+      "displaySize": 208.6,
+      "spriteOffsetY": -81.484375,
+      "ai": {
+        "attackRange": 76,
+        "attackImpactRange": 86,
+        "attackContactDelayMs": 777.777778
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_samurai/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 43,
+          "frameRate": 36
+        }
+      }
+    },
+    "hamster-warrior": {
+      "displaySize": 214.088398,
+      "spriteOffsetY": -41.395999,
+      "ai": {
+        "attackRange": 80,
+        "attackImpactRange": 90,
+        "attackDamageFrame": 25
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_warrior/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 48,
+          "frameRate": 32
+        }
+      }
+    },
+    "hamster-ninja": {
+      "displaySize": 258.33472,
+      "spriteOffsetY": -100.912,
+      "ai": {
+        "attackRange": 44,
+        "attackImpactRange": 50,
+        "openingDamageFrame": 17,
+        "continuousDamageFrame": 25,
+        "continuousAttackRange": 110,
+        "continuousImpactRange": 120
+      },
+      "animations": {
+        "attack_opening": {
+          "src": "assets/companions/hamster_ninja/attack_opening.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 35,
+          "frameRate": 32
+        },
+        "attack_continuous": {
+          "src": "assets/companions/hamster_ninja/attack_continuous.png",
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 35,
+          "frameRate": 32
+        }
+      }
+    },
+    "hamster-light-cavalry": {
+      "displaySize": 390,
+      "spriteOffsetY": -91,
+      "ai": {
+        "attackRange": 98,
+        "attackImpactRange": 110,
+        "attackDamageFrame": 17
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_light_cavalry/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 23,
+          "frameRate": 30
+        }
+      }
+    },
+    "hamster-cavalry": {
+      "displaySize": 380.363636,
+      "spriteOffsetY": -88.367188,
+      "ai": {
+        "attackRange": 275,
+        "attackImpactRange": 290,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_cavalry/attacking.png",
+          "frameWidth": 896,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "frameRate": 30
+        }
+      }
+    },
+    "hamster-camel-cavalry": {
+      "displaySize": 296.425121,
+      "spriteOffsetY": -129.7,
+      "ai": {
+        "attackRange": 82,
+        "attackImpactRange": 94,
+        "attackDamageFrame": 17
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/camel_cavalry/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 31,
+          "frameRate": 30
+        }
+      }
+    },
+    "hamster-knight": {
+      "displaySize": 393.333333,
+      "spriteOffsetY": -74.5,
+      "ai": {
+        "attackRange": 135,
+        "attackImpactRange": 150,
+        "attackDamageFrame": 31
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_knight/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 61,
+          "frameRate": 41.3333333334
+        }
+      }
+    },
+    "hamster-winged-hussar": {
+      "displaySize": 380.363636,
+      "spriteOffsetY": -88.367188,
+      "ai": {
+        "attackRange": 230,
+        "attackImpactRange": 245,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_winged_hussar/attacking.png",
+          "frameWidth": 1024,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "frameRate": 30
+        }
+      },
+      "render": {
+        "attackVisualScale": {
+          "referenceBodyHeight": 254,
+          "footY": 375,
+          "sourceBodyHeights": [
+            254,
+            258,
+            261,
+            264,
+            276,
+            304,
+            305,
+            305,
+            311,
+            310,
+            311,
+            310,
+            310,
+            311,
+            310,
+            303,
+            302,
+            295,
+            275,
+            275
+          ]
+        }
+      }
+    },
+    "hamster-powered-eod-explosive-lancer": {
+      "displaySize": 390,
+      "spriteOffsetY": -90.644531,
+      "ai": {
+        "attackRange": 255,
+        "attackImpactRange": 272,
+        "attackDamageFrame": 21
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/hamster_powered_eod_explosive_lancer/attacking.png",
+          "frameWidth": 1024,
+          "frameHeight": 512,
+          "cols": 5,
+          "frameCount": 39,
+          "frameRate": 30
+        }
+      }
+    },
+    "jaguar-warrior": {
+      "displaySize": 165.952891,
+      "spriteOffsetY": -72.280263,
+      "ai": {
+        "attackRange": 80,
+        "attackImpactRange": 88,
+        "attackDamageFrame": 14
+      },
+      "animations": {
+        "attack": {
+          "src": "assets/companions/jaguar_warrior/attacking.png",
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 18,
+          "frameRate": 20
+        }
+      }
+    }
+  }
+}
