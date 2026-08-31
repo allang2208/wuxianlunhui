@@ -1,0 +1,17 @@
+{
+  "historicalAsset": "assets/ui/world-map/settler-wagon.png",
+  "assetRemoved": true,
+  "removedBytes": 1433579,
+  "cleanupDate": "2026-08-31",
+  "cleanup": "Moved out of runtime assets to local ignored tools/.trash-settler-wagon-20260831/; only prompt and provenance metadata are published",
+  "source": "OpenAI built-in image_gen; original generated PNG copied without raster editing",
+  "prompt": "prompt.txt",
+  "date": "2026-08-31",
+  "design": "Ivory canvas migration wagon, muted teal house-and-leaves banner, seed sacks and lantern",
+  "camera": "55 degree orthographic view requested; AI illustration, not a calibrated native 3D render",
+  "runtime": false,
+  "replacement": "assets/ui/world-map/settler-flag.png",
+  "display": "Historical wagon candidate only; no longer referenced by runtime code",
+  "animation": "Historical wagon sway was 45% of army flag sway; superseded by the flag presentation",
+  "acceptance": "Rejected by user on 2026-08-31: wagon does not fit the world-map flag style; not an accepted or shipped asset"
+}
