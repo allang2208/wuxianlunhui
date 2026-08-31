@@ -1,0 +1,299 @@
+{
+    "createdAt":  "2026-08-30",
+    "source":  "Codex built-in image_gen; 10 independent generation calls",
+    "authorization":  "User requested generating 10 swamp dungeon backgrounds and applying all 10.",
+    "referenceImagesAttached":  [
+
+                                ],
+    "styleGuidesInspected":  [
+                                 "assets/scenes/dungeon-map-bg-swamp.png",
+                                 "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png"
+                             ],
+    "requestedSize":  {
+                          "width":  3072,
+                          "height":  1024,
+                          "aspectRatio":  "3:1"
+                      },
+    "pixelEdits":  "Deterministic centered native-pixel crop to 40:9; no redraw, stretching, resampling or recoloring. Originals archived in source/.",
+    "totalBytes":  20540679,
+    "integration":  {
+                        "configFiles":  [
+                                            "data/dungeon-config.json",
+                                            "public/data/dungeon-config.json"
+                                        ],
+                        "dungeonKeys":  [
+                                            "swampDungeon",
+                                            "swampDungeonBeginner",
+                                            "swampDungeonMid"
+                                        ],
+                        "field":  "mapExplorationBackgroundVariants",
+                        "selection":  "one uniform draw per new run; each image has 1/10 probability; repeats allowed",
+                        "sameRun":  "kept across room visits, combat and layout adjustments",
+                        "display":  "Native 40:9 crop; existing centered cover / .94 opacity / 40vh banner unchanged. Other viewport ratios or divider heights still crop further.",
+                        "fallbackPreserved":  "assets/scenes/dungeon-map-bg-swamp.png",
+                        "runtimeValidation":  "not run; user testing required",
+                        "fixedExeUpdated":  false
+                    },
+    "assets":  [
+                   {
+                       "number":  "01",
+                       "filename":  "swamp-banner-01-drowned-gate.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2050145,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-c6da4d75-accb-4de1-a750-f4e1c99b59eb.png",
+                       "title":  "沉没石门",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-01-drowned-gate.png",
+                       "prompt":  "prompt-01.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-01-drowned-gate.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2177803,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "02",
+                       "filename":  "swamp-banner-02-deadwood-channel.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2301616,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-50fe9afe-029c-474f-9c26-a8901be70fad.png",
+                       "title":  "枯木水道",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-02-deadwood-channel.png",
+                       "prompt":  "prompt-02.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-02-deadwood-channel.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2877142,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "03",
+                       "filename":  "swamp-banner-03-reed-ferry.png",
+                       "width":  1880,
+                       "height":  423,
+                       "bytes":  1516767,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-bffd7ab3-64f0-45e7-ada2-4734c648eef6.png",
+                       "title":  "芦苇渡口",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-03-reed-ferry.png",
+                       "prompt":  "prompt-03.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-03-reed-ferry.png",
+                       "sourceWidth":  1881,
+                       "sourceHeight":  836,
+                       "sourceBytes":  1983112,
+                       "crop":  {
+                                    "left":  0,
+                                    "top":  206,
+                                    "width":  1880,
+                                    "height":  423,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "04",
+                       "filename":  "swamp-banner-04-sunken-chapel.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2464782,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-6d442b3a-1e25-4b2a-ab97-aaed5f473705.png",
+                       "title":  "沉沦礼拜堂",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-04-sunken-chapel.png",
+                       "prompt":  "prompt-04.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-04-sunken-chapel.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2808801,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "05",
+                       "filename":  "swamp-banner-05-witch-stilts.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2260053,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-9bc3d7b0-564f-4c3f-8afe-00f8c5f9c9a0.png",
+                       "title":  "巫婆高脚屋",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-05-witch-stilts.png",
+                       "prompt":  "prompt-05.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-05-witch-stilts.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2509385,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "06",
+                       "filename":  "swamp-banner-06-root-cellar.png",
+                       "width":  1880,
+                       "height":  423,
+                       "bytes":  1576740,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-e64016ef-bc43-4adb-a0d0-2877ad99690a.png",
+                       "title":  "盘根地窖",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-06-root-cellar.png",
+                       "prompt":  "prompt-06.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-06-root-cellar.png",
+                       "sourceWidth":  1881,
+                       "sourceHeight":  836,
+                       "sourceBytes":  2080204,
+                       "crop":  {
+                                    "left":  0,
+                                    "top":  206,
+                                    "width":  1880,
+                                    "height":  423,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "07",
+                       "filename":  "swamp-banner-07-ghost-fungus-pool.png",
+                       "width":  1880,
+                       "height":  423,
+                       "bytes":  1579645,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-a2a9fbdd-665b-46d7-85a0-5d7dcd53d275.png",
+                       "title":  "幽光菌潭",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-07-ghost-fungus-pool.png",
+                       "prompt":  "prompt-07.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-07-ghost-fungus-pool.png",
+                       "sourceWidth":  1881,
+                       "sourceHeight":  836,
+                       "sourceBytes":  2381606,
+                       "crop":  {
+                                    "left":  0,
+                                    "top":  206,
+                                    "width":  1880,
+                                    "height":  423,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "08",
+                       "filename":  "swamp-banner-08-broken-sluice.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2291909,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-07c098c1-9ab1-433b-8365-4784846a1ac8.png",
+                       "title":  "断裂水闸",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-08-broken-sluice.png",
+                       "prompt":  "prompt-08.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-08-broken-sluice.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2361563,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "09",
+                       "filename":  "swamp-banner-09-graveyard-isle.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2204441,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-8226ffe2-a0d8-4d39-a88d-809fe928d235.png",
+                       "title":  "墓园孤岛",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-09-graveyard-isle.png",
+                       "prompt":  "prompt-09.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-09-graveyard-isle.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2501029,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "10",
+                       "filename":  "swamp-banner-10-abandoned-watermill.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2294581,
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-0ea28ccd-eeef-4d14-bc1f-77c29b07f2ee.png",
+                       "title":  "废弃水磨坊",
+                       "path":  "assets/scenes/dungeon-exploration-swamp/swamp-banner-10-abandoned-watermill.png",
+                       "prompt":  "prompt-10.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_swamp_exploration_banners_20260830/source/swamp-banner-10-abandoned-watermill.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2561037,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   }
+               ],
+    "sourceTotalBytes":  24241682,
+    "cropSpec":  {
+                     "viewport":  "16:9",
+                     "bannerHeight":  "40vh",
+                     "aspectRatio":  "40:9",
+                     "alignment":  "center",
+                     "pixelScale":  1,
+                     "rebuild":  "rebuild-crops.ps1",
+                     "rounding":  "Largest whole multiple of 40 by 9; odd remainder goes to right/bottom."
+                 }
+}

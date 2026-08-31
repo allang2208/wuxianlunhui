@@ -1,0 +1,69 @@
+{
+  "date": "2026-08-31",
+  "scope": "Only this task mine Loading duplicate source copies",
+  "removedCount": 10,
+  "removedBytes": 22334647.0,
+  "retained": "All 30 formal backgrounds, 20 uncropped exploration originals, 2 direct mine edit inputs, final overviews, prompts and rebuild metadata",
+  "removed": [
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-01-rail-hall.png",
+      "bytes": 2348483,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-01-rail-hall.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-02-vertical-shaft.png",
+      "bytes": 2196205,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-02-vertical-shaft.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-03-chasm-bridge.png",
+      "bytes": 1866428,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-03-chasm-bridge.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-04-flooded-pumpworks.png",
+      "bytes": 2035514,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-04-flooded-pumpworks.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-05-terraced-quarry.png",
+      "bytes": 2341822,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-05-terraced-quarry.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-06-mineral-gallery.png",
+      "bytes": 2533380,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-06-mineral-gallery.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-07-smelter-ruins.png",
+      "bytes": 2201866,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-07-smelter-ruins.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-08-winding-engine.png",
+      "bytes": 2209262,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-08-winding-engine.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-09-underground-wharf.png",
+      "bytes": 2291319,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-09-underground-wharf.png"
+    },
+    {
+      "path": "tools/ai-gen/_world126_loading_20260831/source/world126-mine-10-collapsed-main-shaft.png",
+      "bytes": 2310368,
+      "reason": "Byte-identical copy of the retained canonical runtime PNG",
+      "retained": "assets/scenes/loading/world126-mine/world126-mine-10-collapsed-main-shaft.png"
+    }
+  ]
+}

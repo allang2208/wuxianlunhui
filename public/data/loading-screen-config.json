@@ -140,6 +140,25 @@
       "assets/scenes/loading/world125-ruins-6.png"
     ]
   },
+  "world126Mine": {
+    "sceneIds": [
+      "scene12"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "世界-126·矿洞加载中...",
+    "backgrounds": [
+      "assets/scenes/loading/world126-mine/world126-mine-01-rail-hall.png",
+      "assets/scenes/loading/world126-mine/world126-mine-02-vertical-shaft.png",
+      "assets/scenes/loading/world126-mine/world126-mine-03-chasm-bridge.png",
+      "assets/scenes/loading/world126-mine/world126-mine-04-flooded-pumpworks.png",
+      "assets/scenes/loading/world126-mine/world126-mine-05-terraced-quarry.png",
+      "assets/scenes/loading/world126-mine/world126-mine-06-mineral-gallery.png",
+      "assets/scenes/loading/world126-mine/world126-mine-07-smelter-ruins.png",
+      "assets/scenes/loading/world126-mine/world126-mine-08-winding-engine.png",
+      "assets/scenes/loading/world126-mine/world126-mine-09-underground-wharf.png",
+      "assets/scenes/loading/world126-mine/world126-mine-10-collapsed-main-shaft.png"
+    ]
+  },
   "abandonedMineDungeon": {
     "sceneIds": [
       "scene7"
@@ -151,6 +170,17 @@
     ],
     "minimumDurationMs": 1000,
     "title": "废弃矿洞加载中...",
-    "backgrounds": []
+    "backgrounds": [
+      "assets/scenes/loading/world126-mine/world126-mine-01-rail-hall.png",
+      "assets/scenes/loading/world126-mine/world126-mine-02-vertical-shaft.png",
+      "assets/scenes/loading/world126-mine/world126-mine-03-chasm-bridge.png",
+      "assets/scenes/loading/world126-mine/world126-mine-04-flooded-pumpworks.png",
+      "assets/scenes/loading/world126-mine/world126-mine-05-terraced-quarry.png",
+      "assets/scenes/loading/world126-mine/world126-mine-06-mineral-gallery.png",
+      "assets/scenes/loading/world126-mine/world126-mine-07-smelter-ruins.png",
+      "assets/scenes/loading/world126-mine/world126-mine-08-winding-engine.png",
+      "assets/scenes/loading/world126-mine/world126-mine-09-underground-wharf.png",
+      "assets/scenes/loading/world126-mine/world126-mine-10-collapsed-main-shaft.png"
+    ]
   }
 }

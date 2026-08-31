@@ -3,6 +3,13 @@
 
 ## 6. 地牢与场景构建
 
+### Loading与地牢探索背景的接线边界
+
+- 排查“场景没背景”先分别列出：是否调用Loading、Loading图片池、地牢探索横幅池、旧地标/事件图片；目录存在或探索页有图，不代表入场Loading已经绑定图片。空`backgrounds`表示无插画，不代表没有加载界面。
+- Loading消费`data/loading-screen-config.json`并同步`public/data/`镜像：位面按`sceneIds`，同为`scene7`的地牢还须逐档核对`dungeonTypes`。废弃矿洞初/中/高级对应`abandonedMineBeginner/abandonedMineMid/abandonedMine`，不能与矿洞位面`scene12`混用判断。
+- 既有统一入口为`SceneManager.showLoadingScreen()`；核对正常切场、游戏开始，以及绕过`switchScene()`的`ExpeditionSystem.depart()`。配置接图不另建等待器，不改变真实进度、清场、副作用或热缓存缩短规则。
+- Loading每次显示抽一张；探索横幅由`mapExplorationBackgroundVariants`每局抽一次并保持，旧地标`mapBackgroundVariants`另有用途。多图允许连续重复，不保证轮流出现；缺少选择器的Git基线不能靠只提交图片池字段声称已经接入。
+
 ### 出征名册：当前驻留与来源标记
 
 以下对应本地战略实现合同；代码发布边界见`docs/strategic-siege-publication.md`。

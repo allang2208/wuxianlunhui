@@ -1,0 +1,299 @@
+{
+    "createdAt":  "2026-08-30",
+    "source":  "Codex built-in image_gen; 10 independent calls",
+    "authorization":  "Generate and import 10 horror dungeon backgrounds; continue the user-approved native center-crop workflow from this task.",
+    "referenceImagesAttached":  [
+
+                                ],
+    "styleGuidesInspected":  [
+                                 "assets/scenes/dungeon-exploration-horror-v9.png"
+                             ],
+    "requestedSize":  {
+                          "width":  3072,
+                          "height":  1024,
+                          "aspectRatio":  "3:1"
+                      },
+    "pixelEdits":  "Deterministic centered native-pixel crop to 40:9; no redraw, stretching, resampling or recoloring. Originals archived in source/.",
+    "totalBytes":  19991598,
+    "integration":  {
+                        "status":  "applied_development_source",
+                        "configFiles":  [
+                                            "data/dungeon-config.json",
+                                            "public/data/dungeon-config.json"
+                                        ],
+                        "dungeonKeys":  [
+                                            "zombieDungeon",
+                                            "zombieDungeonBeginner",
+                                            "zombieDungeonMid"
+                                        ],
+                        "field":  "mapExplorationBackgroundVariants",
+                        "selection":  "one uniform draw per new run; 1/10 each; repeats allowed",
+                        "sameRun":  "kept across room visits and layout changes",
+                        "display":  "Native 40:9 crop; existing centered cover / .94 opacity / 40vh banner unchanged. Other viewport ratios or divider heights still crop further.",
+                        "fallbackPreserved":  "assets/scenes/dungeon-exploration-horror-v9.png",
+                        "runtimeValidation":  "not run; user testing required",
+                        "fixedExeUpdated":  false
+                    },
+    "assets":  [
+                   {
+                       "number":  "01",
+                       "title":  "月下黑堡",
+                       "filename":  "horror-banner-01-moonlit-citadel.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-01-moonlit-citadel.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-b9288364-90e8-405a-986b-494e9a0b2789.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  1702362,
+                       "prompt":  "prompt-01.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-01-moonlit-citadel.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  1843323,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "02",
+                       "title":  "封锁疫街",
+                       "filename":  "horror-banner-02-quarantine-street.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-02-quarantine-street.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-06e27a8c-16cd-4f3c-b412-dda476935df5.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  1994508,
+                       "prompt":  "prompt-02.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-02-quarantine-street.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2306047,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "03",
+                       "title":  "哭泣修道院",
+                       "filename":  "horror-banner-03-weeping-abbey.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-03-weeping-abbey.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-91f7a365-d21b-470a-adde-629cedcaf7d3.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2082978,
+                       "prompt":  "prompt-03.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-03-weeping-abbey.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2360983,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "04",
+                       "title":  "地下骨库",
+                       "filename":  "horror-banner-04-ossuary-vault.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-04-ossuary-vault.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-35749027-8594-4ee5-82df-8414c7e5d162.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  1990578,
+                       "prompt":  "prompt-04.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-04-ossuary-vault.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2347443,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "05",
+                       "title":  "铁链囚廊",
+                       "filename":  "horror-banner-05-chained-cellblock.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-05-chained-cellblock.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-17c0edd2-ed2b-495f-bbca-177a95bcf1fc.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2178555,
+                       "prompt":  "prompt-05.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-05-chained-cellblock.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2639536,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "06",
+                       "title":  "棺木工坊",
+                       "filename":  "horror-banner-06-coffin-workshop.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-06-coffin-workshop.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-315edb7b-9cf1-4790-95d9-14a325cfc767.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  1899350,
+                       "prompt":  "prompt-06.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-06-coffin-workshop.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2084373,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "07",
+                       "title":  "雨夜钟楼",
+                       "filename":  "horror-banner-07-bell-courtyard.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-07-bell-courtyard.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-a41d351c-b9ca-408c-a097-c39b203b51d9.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2041980,
+                       "prompt":  "prompt-07.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-07-bell-courtyard.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2164810,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "08",
+                       "title":  "断桥墓园",
+                       "filename":  "horror-banner-08-necropolis-bridge.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-08-necropolis-bridge.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-873fad86-3758-431a-8d66-3ea3bb5007db.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2161617,
+                       "prompt":  "prompt-08.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-08-necropolis-bridge.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2236735,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "09",
+                       "title":  "荒弃疗养院",
+                       "filename":  "horror-banner-09-abandoned-infirmary.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-09-abandoned-infirmary.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-28ffb207-5b71-4ae7-b5ad-05cc219652c6.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  2019306,
+                       "prompt":  "prompt-09.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-09-abandoned-infirmary.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2209516,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   },
+                   {
+                       "number":  "10",
+                       "title":  "封印王座厅",
+                       "filename":  "horror-banner-10-sealed-throne-hall.png",
+                       "path":  "assets/scenes/dungeon-exploration-horror/horror-banner-10-sealed-throne-hall.png",
+                       "source":  "C:\\Users\\allan\\.codex\\generated_images\\01a0531f-ccfc-7091-80fb-d705b1430210\\exec-e85741bf-2805-420b-af5e-6c55a4c35e56.png",
+                       "width":  2160,
+                       "height":  486,
+                       "bytes":  1920364,
+                       "prompt":  "prompt-10.txt",
+                       "review":  "Offline crop preview only; game/runtime not tested.",
+                       "rawPath":  "tools/ai-gen/_horror_exploration_banners_20260830/source/horror-banner-10-sealed-throne-hall.png",
+                       "sourceWidth":  2172,
+                       "sourceHeight":  724,
+                       "sourceBytes":  2208238,
+                       "crop":  {
+                                    "left":  6,
+                                    "top":  119,
+                                    "width":  2160,
+                                    "height":  486,
+                                    "alignment":  "center",
+                                    "aspectRatio":  "40:9",
+                                    "resampling":  "none"
+                                }
+                   }
+               ],
+    "sourceTotalBytes":  22401004,
+    "cropSpec":  {
+                     "viewport":  "16:9",
+                     "bannerHeight":  "40vh",
+                     "aspectRatio":  "40:9",
+                     "alignment":  "center",
+                     "pixelScale":  1,
+                     "rebuild":  "rebuild-crops.ps1",
+                     "rounding":  "Largest whole multiple of 40 by 9; odd remainder goes to right/bottom."
+                 }
+}
