@@ -28,6 +28,7 @@
 | `skill/13-history-appendix.md` | 13. 历史记录与变更日志（附录） |
 | `skill/14-performance-optimization.md` | 14. 性能优化与采样 |
 | `skill/15-git-workflow.md` | 15. Git 分支、worktree 与标准提交工作流 |
+| `skill/16b-animation-alignment-and-timing.md` | 统一动画尺寸、XY/Z锚点、插帧时钟、攻击接触与约1.5秒普通攻击标准 |
 
 ## 维护规则（防膨胀）
 
