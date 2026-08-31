@@ -12,6 +12,11 @@ export const isInfiniteResourcesEnabled = () => !!(
     typeof window !== 'undefined' && window.Game && window.Game._devInfiniteResources
 );
 
+/** 地牢免钥匙：不检查、不消耗对应等级代币；解锁与其他出征条件保持不变。 */
+export const isDungeonKeyCostIgnored = () => !!(
+    typeof window !== 'undefined' && window.Game && window.Game._devNoDungeonKeyCost
+);
+
 /** 建筑升级项目跳过读条；费用、科技门禁与完成结算仍走正式链路。 */
 export const isInstantBuildingUpgradeEnabled = () => !!(
     typeof window !== 'undefined' && window.Game && window.Game._devInstantBuildingUpgrades

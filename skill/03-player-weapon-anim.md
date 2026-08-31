@@ -617,6 +617,11 @@ Phaser Sprite.x / y / rotation / scale
 
 #### 七、技能页资源调试入口（2026-08-22）
 
+- **地牢免钥匙调试**：技能页“无限资源”右侧使用独立按钮；默认关闭、不入档，
+  统一读取 `dev-cheats.js#isDungeonKeyCostIgnored` 与 `_devNoDungeonKeyCost`。
+  持有检查、实际扣除和出征说明共同消费该开关；关闭恢复背包优先、仓库其次的扣除。
+  不解锁地牢、不改变资源登记或其他出征条件，也不影响代币买卖、合成及献祭。
+
 - T 交互开发面板由 `src/ui/panels/dev-tools.js#createDevToolPanel()` 动态创建；一次性经济调试按钮放在
   `data-tab-content="skill"` 的技能页，不要另建第二套开发面板或绕过现有 T 键生命周期。
 - 金币必须调用 `GoldManager.depositGold()`，让堆叠上限、背包槽位、满包提示和背包刷新保持一致；

@@ -5,6 +5,7 @@ import { TechnologySystem } from '../../world/technology-system.js';
 import { GoldManager } from '../../systems/gold-manager.js';
 import { EnergyManager } from '../../systems/energy-manager.js';
 import { PerformanceMonitor } from '../../systems/performance-monitor.js';
+import { isDungeonKeyCostIgnored } from '../../config/dev-cheats.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -550,7 +551,7 @@ export function createDevToolPanel() {
 
     // ===== 测试开关：无限资源（军事招募仍按正式规则消耗粮食） =====
     const resourceRow = document.createElement('div');
-    resourceRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
+    resourceRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
     const btnResource = document.createElement('button');
     btnResource.id = 'devToolInfiniteResource';
     btnResource.className = 'dev-tool-menu-btn';
@@ -572,10 +573,37 @@ export function createDevToolPanel() {
         }
     });
     syncResourceBtn();
+    // 与无限资源独立，紧邻其右侧；只绕过地牢入场钥匙门禁和扣除。
+    const btnDungeonKey = document.createElement('button');
+    btnDungeonKey.type = 'button';
+    btnDungeonKey.id = 'devToolNoDungeonKeyCost';
+    btnDungeonKey.className = 'dev-tool-menu-btn';
+    btnDungeonKey.title = '开启后进入地牢不检查、不消耗对应等级钥匙（代币）；仍需满足地牢解锁条件';
+    const syncDungeonKeyBtn = () => {
+        const on = isDungeonKeyCostIgnored();
+        btnDungeonKey.textContent = `🔑 地牢免钥匙：${on ? '开' : '关'}`;
+        btnDungeonKey.classList.toggle('save', on);
+        btnDungeonKey.setAttribute('aria-pressed', String(on));
+    };
+    btnDungeonKey.addEventListener('click', () => {
+        if (!window.Game?.isRunning) {
+            DevTool?._showToast?.('❌ 请先进入游戏');
+            return;
+        }
+        const next = !isDungeonKeyCostIgnored();
+        window.Game._devNoDungeonKeyCost = next;
+        syncDungeonKeyBtn();
+        window.ExpeditionSystem?.refreshDungeonKeyRequirement?.();
+        DevTool?._showToast?.(next
+            ? '✅ 地牢免钥匙 已开启（不检查、不消耗代币）'
+            : '地牢免钥匙 已关闭（恢复钥匙检查与消耗）');
+    });
+    syncDungeonKeyBtn();
     const resourceHint = document.createElement('span');
     resourceHint.textContent = '测试用：经济事务免金币/能源；军事招募仍消耗粮食';
     resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
-    resourceRow.append(btnResource, resourceHint);
+    resourceHint.style.flexBasis = '100%';
+    resourceRow.append(btnResource, btnDungeonKey, resourceHint);
     skillRow.appendChild(resourceRow);
 
     // ===== 测试开关：建筑升级 / 造兵等待 / 军事人口 =====

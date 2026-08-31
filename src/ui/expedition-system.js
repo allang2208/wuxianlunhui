@@ -26,6 +26,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { CONFIG } from '../config/config.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 import { resolveDungeonEnemyPreloadTypes } from '../world/dungeon-enemy-preload.js';
+import { isDungeonKeyCostIgnored } from '../config/dev-cheats.js';
 import {
     countDungeonKeys,
     getDungeonKeyRequirement,
@@ -217,6 +218,7 @@ export const ExpeditionSystem = {
     },
 
     _consumeDungeonKey(grade) {
+        if (isDungeonKeyCostIgnored()) return true;
         const backpack = EquipManager.backpackItems || [];
         const bpIndex = backpack.findIndex((item) => isDungeonKeyItem(item, grade));
         if (bpIndex >= 0) {
@@ -227,6 +229,15 @@ export const ExpeditionSystem = {
             return true;
         }
         return WarehouseSystem.consumeMaterial((item) => isDungeonKeyItem(item, grade), 1) === 1;
+    },
+
+    /** 开发开关切换时同步已打开的出征说明，不改变选择或解锁状态。 */
+    refreshDungeonKeyRequirement() {
+        if (!this._isOpen) return;
+        this._updateRulePanelCurrent();
+        this._showMessage(isDungeonKeyCostIgnored()
+            ? '开发调试：地牢免钥匙已开启，不检查、不消耗对应等级代币'
+            : '出征时将自动从背包或仓库消耗对应等级钥匙');
     },
 
     /** 出征条件说明弹窗：创建（一次）并显示 */
@@ -264,7 +275,7 @@ export const ExpeditionSystem = {
         }).join('');
         panel.innerHTML = `
             <div class="rule-title">⚠ 出征条件</div>
-            <div class="rule-desc">进入地牢会自动检测并消耗背包或仓库中的对应等级钥匙：</div>
+            <div class="rule-desc" id="expeditionKeyRuleDescription"></div>
             ${rows}
             <div class="rule-current" id="expeditionRuleCurrent"></div>
             <div class="rule-rewards" id="expeditionRuleRewards"></div>
@@ -276,16 +287,24 @@ export const ExpeditionSystem = {
     _updateRulePanelCurrent() {
         const el = getElement('expeditionRuleCurrent');
         if (!el) return;
+        const ignoreKeyCost = isDungeonKeyCostIgnored();
+        const description = getElement('expeditionKeyRuleDescription');
+        if (description) description.textContent = ignoreKeyCost
+            ? '开发调试：进入地牢无需持有或消耗钥匙，地牢解锁条件仍生效。以下为正常模式对应钥匙：'
+            : '进入地牢会自动检测并消耗背包或仓库中的对应等级钥匙：';
         const list = DungeonConfig.getDungeonList();
         const d = list[this.selectedDungeon] || {};
         const grade = d.grade || 'F';
         const rarity = RARITY_ORDER[Math.max(0, GRADE_ORDER.indexOf(grade))] || 'common';
         const color = RARITY_COLORS[rarity] || '#c0c0c0';
         const key = getDungeonKeyRequirement(grade);
-        const keyCount = this._getKeyCount(grade);
+        const keyCount = ignoreKeyCost ? 0 : this._getKeyCount(grade);
         const band = (COMBAT_FORMULAS.enemy?.expValue?.bands || {})[grade];
         const bandText = band ? ` · 推荐等级 Lv.${band[0]}~${band[1] - 1}` : '';
-        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> 需要 <b style="color:${color}">${key.name} ×1</b> · 持有 <b style="color:${keyCount > 0 ? '#7affc8' : '#ff6b6b'}">${keyCount}</b>${bandText}`;
+        const keyRequirement = ignoreKeyCost
+            ? '开发调试：免钥匙进入，不检查或消耗代币'
+            : `需要 <b style="color:${color}">${key.name} ×1</b> · 持有 <b style="color:${keyCount > 0 ? '#7affc8' : '#ff6b6b'}">${keyCount}</b>`;
+        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> ${keyRequirement}${bandText}`;
         this._updateRulePanelRewards(grade);
     },
 
@@ -360,7 +379,7 @@ export const ExpeditionSystem = {
         }
         const grade = this._getSelectedGrade();
         const key = getDungeonKeyRequirement(grade);
-        if (this._getKeyCount(grade) <= 0) {
+        if (!isDungeonKeyCostIgnored() && this._getKeyCount(grade) <= 0) {
             this._showMessage(`背包和仓库中都没有 ${key.name}`, 'error');
             this._updateRulePanelCurrent();
             return;
@@ -385,6 +404,8 @@ export const ExpeditionSystem = {
             this._showMessage(`地牢怪物资源登记失败：${detail}（未消耗钥匙）`, 'error');
             return;
         }
+        // loading 的异步等待后重新读取开关，提示与此刻实际扣费行为保持一致。
+        const ignoreKeyCost = isDungeonKeyCostIgnored();
         if (!this._consumeDungeonKey(grade)) {
             RuntimeAssetManager.setDungeonEnemyTypes([]);
             SceneManager?.hideLoadingScreen?.();
@@ -393,7 +414,9 @@ export const ExpeditionSystem = {
             return;
         }
 
-        this._showMessage(`${key.name} 已消耗，准备出征...`, 'success');
+        this._showMessage(ignoreKeyCost
+            ? '开发调试：免钥匙进入地牢，未消耗代币，准备出征...'
+            : `${key.name} 已消耗，准备出征...`, 'success');
 
         // 关闭面板和覆盖层
         this._isOpen = false;
