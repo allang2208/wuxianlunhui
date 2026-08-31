@@ -27,10 +27,10 @@ export const RewardSystem = {
             title: '附魔之礼',
             icon: '📜',
             rewards: [
-                { type: 'scroll', grade: 'F', count: 1 },
+                { type: 'scroll', grade: 'common', count: 1 },
                 { type: 'dust', count: 200 }
             ],
-            desc: '获得随机 F 级附魔卷轴和 200 魔法粉尘'
+            desc: '获得随机普通品质附魔卷轴和 200 魔法粉尘'
         },
         {
             id: 'card2',
@@ -278,7 +278,7 @@ export const RewardSystem = {
         const scrolls = EnchantConfig.getAllScrolls().filter(s => s.grade === grade);
         if (scrolls.length === 0) return false;
         const scroll = scrolls[Math.floor(Math.random() * scrolls.length)];
-        const item = EnchantScrollItems[`enchant_scroll_${scroll.id}`];
+        const item = Object.values(EnchantScrollItems).find(entry => entry.scrollId === scroll.id);
         return !!item && this._addToBackpackOrDrop({ ...item, stack: 1 });
     },
 

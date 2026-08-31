@@ -285,6 +285,7 @@ export const DungeonBuffSystem = {
             type: 'goddessBless',
             remainingBattles: battles,
             atkPercent: DUNGEON_EVENT_CONFIG.goddessStatue.blessAtkPercent,
+            matkPercent: DUNGEON_EVENT_CONFIG.goddessStatue.blessAtkPercent,
         };
 
         // 添加状态栏效果
@@ -327,20 +328,23 @@ export const DungeonBuffSystem = {
             type: 'demonPrayer',
             permanent: true,
             atkPercent: atkPercent ?? DUNGEON_EVENT_CONFIG.demonStatue.demonBuffAtkPercent,
+            matkPercent: atkPercent ?? DUNGEON_EVENT_CONFIG.demonStatue.demonBuffAtkPercent,
         };
 
         // 添加状态栏效果（永久显示）
         if (StatusBar) {
-            StatusBar.addEffect('demonPrayer', 999999, {
+            StatusBar.addEffect('demonPrayer', 0, {
                 icon: this.BUFF_CONFIG.demonPrayer.icon,
                 name: this.BUFF_CONFIG.demonPrayer.name,
                 color: this.BUFF_CONFIG.demonPrayer.color,
+                persistent: true,
+                durationText: '持续至本次地牢结束',
             });
         }
 
         // 添加实体状态效果
         if (player.addStatusEffect) {
-            player.addStatusEffect('demonPrayer', 999999, {
+            player.addStatusEffect('demonPrayer', Infinity, {
                 icon: '🔥',
                 name: '恶魔祈祷',
                 color: '#9a3a3a',
