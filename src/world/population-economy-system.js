@@ -822,7 +822,8 @@ export const PopulationEconomySystem = {
         else if (building._economyType === 'research') this.applyResearchLevel(building, targetLevel);
         else return;
         EffectManager.add(new BuildingFootprintDustEffect(building));
-        const soundPath = populationEconomyConfig[building._economyType]?.upgradeCompleteSound;
+        const configKey = building._economyType === 'housing' ? 'house' : building._economyType;
+        const soundPath = populationEconomyConfig[configKey]?.upgradeCompleteSound;
         if (soundPath) SoundManager.playFile(soundPath, 1, 'ui');
     },
 

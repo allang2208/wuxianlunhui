@@ -16,9 +16,11 @@
 // ============================================================
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
 import {
+    applyGlobalUpgradesToKind,
     getUnitUpgradeMults,
     raiseSharedUnitUpgradeLevel,
 } from './unit-upgrade-store.js';
+import { ResearchSystem } from './research-system.js';
 import { RECRUIT_MODE, normalizeRecruitMode } from './recruit-mode.js';
 import { resolveRecruitmentUnitType } from './recruitment-tier.js';
 import { getProductionResourceMul } from '../config/tribute-effects.js';
@@ -948,16 +950,87 @@ function _wavePool(wave, cfg) {
     return { hp, dps };
 }
 
-/**
- * 后台结算主入口。
- * @param {object} snap 快照（commit 时原地修改）
- * @param {number} elapsedMs 离场时长
- * @param {{commit?:boolean, grant?:(reward:{gold?:number,energy?:number,tributeItemIds?:string[]})=>void}} [opts]
- * @returns 结算报告（世界切换面板预览/回场播报共用）
- */
-export function settleWorld122(snap, elapsedMs, opts = {}) {
-    const commit = opts.commit !== false;
-    const report = {
+// 本栋升级在时间边界提交；字段/项目保持原有快照协议和配置真源。
+const LOCAL_MODULE_UPGRADES = [
+    ['warehouse', 'warehouse_logistics'],
+    ['candle', 'candle_sanctuary'],
+    ['workshop', 'economic_workshop'],
+    ['research', 'research_standard'],
+    ['windmill', 'wheat_windmill_economy'],
+    ['mint', 'royal_mint_economy'],
+    ['armory', 'armory_economy'],
+    ['hospital', 'field_hospital_economy'],
+    ['bank', 'bank_economy'],
+    ['grandMall', 'grand_mall_economy'],
+    ['bakery', 'bakery_economy'],
+    ['chainRestaurant', 'chain_restaurant_economy'],
+    ['cheeseFarm', 'cheese_farm_economy'],
+    ['steam', 'steam_power_plant_economy'],
+    ['tavern', 'tavern_economy'],
+    ['resonator', 'planar_resonator_economy'],
+    ['windPower', 'wind_power_plant_economy'],
+    ['solarPower', 'solar_power_plant_economy'],
+    ['computingCenter', 'computing_center_economy'],
+    ['weather', 'weather_forecast_analysis'],
+];
+
+function _snapshotLocalUpgradeJobs(target) {
+    const jobs = [];
+    const add = (structure, field, modulesField = null, modules = null) => {
+        const upgrade = structure[field];
+        if (!upgrade) return;
+        jobs.push({
+            structure, field, upgrade, modulesField,
+            module: modules?.[upgrade.moduleId],
+            atMs: Math.max(0, Number(upgrade.remainMs) || 0),
+        });
+    };
+    for (const structure of target.structures || []) {
+        if (!(Number(structure.hp ?? 1) > 0)) continue;
+        if (structure.kind === 'hut') {
+            add(structure, 'upgrade', 'modules', MINER_CAMP_CONFIG.modules);
+            continue;
+        }
+        if (structure.kind !== 'producer') continue;
+        const cfg = producerBuildingsJson[structure.cfgKey] || {};
+        if (cfg.economyType) add(structure, 'economyUpgrade');
+        for (const [prefix, projectId] of LOCAL_MODULE_UPGRADES) {
+            const applies = prefix === 'warehouse' ? getProducerStorageCap(structure) > 0
+                : prefix === 'candle' ? cfg.panelMode === 'candle' : !!cfg.economyType;
+            if (!applies) continue;
+            add(structure, `${prefix}Upgrade`, `${prefix}Modules`,
+                buildingUpgradesJson[projectId]?.modules);
+        }
+    }
+    return jobs;
+}
+
+function _advanceLocalUpgradeJobs(jobs, atMs) {
+    for (const job of jobs) {
+        const { structure, field, upgrade, modulesField, module } = job;
+        // 被毁/已完成的工程不复活，也不覆盖后续被替换的队列。
+        if (!(Number(structure.hp ?? 1) > 0) || structure[field] !== upgrade) continue;
+        upgrade.remainMs = Math.max(0, job.atMs - atMs);
+        if (upgrade.remainMs > 0) continue;
+        if (field === 'economyUpgrade') {
+            structure.economyLevel = Math.max(1, Math.floor(Number(upgrade.targetLevel) || 1));
+        } else if (module) {
+            const levels = structure[modulesField] ||= {};
+            levels[upgrade.moduleId] = Math.min(
+                Number(module.maxLevel) || 0,
+                Math.max(0, Math.floor(Number(levels[upgrade.moduleId]) || 0)) + 1
+            );
+        }
+        structure[field] = null;
+        if (field === 'warehouseUpgrade' || (field === 'economyUpgrade'
+            && producerBuildingsJson[structure.cfgKey]?.economyType === 'warehouse')) {
+            structure.storageCapacity = getProducerStorageCap(structure);
+        }
+    }
+}
+
+function _createSettlementReport(elapsedMs) {
+    return {
         elapsedMs, wavesCleared: [], victory: false, defeated: false,
         energyMined: 0, deepDrillEnergyMined: 0, passiveEnergy: 0, titheEnergy: 0, resonatorEnergyProduced: 0,
         windEnergyProduced: 0, solarEnergyProduced: 0,
@@ -970,64 +1043,70 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         abilitiesCompleted: [], modulesCompleted: [], structuresLost: 0, baseDamage: 0,
         explorerRewards: [], plantTributesProduced: 0, enhancementStonesProduced: 0,
     };
+}
+
+/**
+ * 后台结算主入口。
+ * @param {object} snap 快照（commit 时原地修改）
+ * @param {number} elapsedMs 离场时长
+ * @param {{commit?:boolean, grant?:(reward:{gold?:number,energy?:number,tributeItemIds?:string[]})=>void}} [opts]
+ * @returns 结算报告（世界切换面板预览/回场播报共用）
+ */
+export function settleWorld122(snap, elapsedMs, opts = {}) {
+    const report = _createSettlementReport(elapsedMs);
     if (!snap || !snap.wave || !(elapsedMs > 0)) return report;
+    const commit = opts.commit !== false;
     const target = commit ? snap : JSON.parse(JSON.stringify(snap));
     for (const structure of target.structures || []) skipBuildingUpgradeWait(structure);
+    const jobs = _snapshotLocalUpgradeJobs(target);
+    const boundaries = [...new Set([
+        ...jobs.map((job) => job.atMs).filter((atMs) => atMs > 0 && atMs < elapsedMs),
+        elapsedMs,
+    ])].sort((a, b) => a - b);
+    // 预览只推进本次模拟的等级；多段结算不能写全局，也不能丢掉已完成的研究。
+    const simulation = { abilityLevels: {}, passiveEnergyRemainder: 0 };
+    _advanceLocalUpgradeJobs(jobs, 0);
+    let cursor = 0;
+    for (const boundary of boundaries) {
+        const segmentOpts = Number.isFinite(opts.gameTimeMs)
+            ? { ...opts, gameTimeMs: opts.gameTimeMs - elapsedMs + boundary } : opts;
+        const segment = _settleWorld122Interval(target, boundary - cursor, segmentOpts, simulation);
+        for (const [key, value] of Object.entries(segment)) {
+            if (key === 'elapsedMs') continue;
+            if (Array.isArray(value)) report[key].push(...value);
+            else if (typeof value === 'boolean') report[key] ||= value;
+            else if (typeof value === 'number') report[key] += value;
+        }
+        // 先按旧人口、旧岗位效果和旧仓容结算到期时间，再让新等级作用于下一段。
+        _advanceLocalUpgradeJobs(jobs, boundary);
+        cursor = boundary;
+        if (report.defeated) break;
+    }
+    if (commit) {
+        target.capturedAt = Date.now();
+        if (Number.isFinite(opts.gameTimeMs)) target.capturedGameTimeMs = opts.gameTimeMs;
+    }
+    return report;
+}
+
+function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
+    const commit = opts.commit !== false;
+    const report = _createSettlementReport(elapsedMs);
     let t = elapsedMs / 1000; // 秒
     const cfg = target.config || {};
-    const initialPassiveLevel = getAbilityLevel('research_passive_energy');
-    const initialRecruitLevel = getAbilityLevel('research_recruit_speed');
-    const initialStructureHpLevel = getAbilityLevel('research_structure_hp');
+    const initialPassiveLevel = _levelOf('research_passive_energy', simulation.abilityLevels);
+    const initialRecruitLevel = _levelOf('research_recruit_speed', simulation.abilityLevels);
+    const initialStructureHpLevel = _levelOf('research_structure_hp', simulation.abilityLevels);
     const initialCombatLevels = {
-        sweep_aoe: getAbilityLevel('sweep_aoe'),
-        mark_arrow: getAbilityLevel('mark_arrow'),
-        inspire_magic: getAbilityLevel('inspire_magic'),
+        sweep_aoe: _levelOf('sweep_aoe', simulation.abilityLevels),
+        mark_arrow: _levelOf('mark_arrow', simulation.abilityLevels),
+        inspire_magic: _levelOf('inspire_magic', simulation.abilityLevels),
         research_structure_hp: initialStructureHpLevel,
     };
     const completionTimes = {};
     const warehouses = (target.structures || []).filter((s) => s.kind === 'producer'
         && getProducerStorageCap(s) > 0);
     const roadContext = _snapshotRoadContext(target);
-    for (const warehouse of warehouses) {
-        if (!warehouse.warehouseUpgrade) continue;
-        warehouse.warehouseUpgrade.remainMs = Math.max(
-            0,
-            (Number(warehouse.warehouseUpgrade.remainMs) || 0) - elapsedMs
-        );
-        if (warehouse.warehouseUpgrade.remainMs > 0) continue;
-        const moduleId = warehouse.warehouseUpgrade.moduleId;
-        const module = buildingUpgradesJson.warehouse_logistics?.modules?.[moduleId];
-        if (module) {
-            warehouse.warehouseModules = warehouse.warehouseModules || {};
-            warehouse.warehouseModules[moduleId] = Math.min(
-                Number(module.maxLevel) || 0,
-                Math.max(0, Math.floor(Number(warehouse.warehouseModules[moduleId]) || 0)) + 1
-            );
-        }
-        warehouse.warehouseUpgrade = null;
-        warehouse.storageCapacity = getProducerStorageCap(warehouse);
-    }
-    for (const structure of target.structures || []) {
-        if (structure.kind !== 'producer'
-            || producerBuildingsJson[structure.cfgKey]?.panelMode !== 'candle'
-            || !structure.candleUpgrade) continue;
-        structure.candleUpgrade.remainMs = Math.max(
-            0,
-            (Number(structure.candleUpgrade.remainMs) || 0) - elapsedMs
-        );
-        if (structure.candleUpgrade.remainMs > 0) continue;
-        const moduleId = structure.candleUpgrade.moduleId;
-        const module = buildingUpgradesJson.candle_sanctuary?.modules?.[moduleId];
-        if (module) {
-            structure.candleModules = structure.candleModules || {};
-            structure.candleModules[moduleId] = Math.min(
-                Number(module.maxLevel) || 0,
-                Math.max(0, Math.floor(Number(structure.candleModules[moduleId]) || 0)) + 1
-            );
-        }
-        structure.candleUpgrade = null;
-    }
-
     // v1 快照把粮食挂在位面全局；后台结算开始时先迁入真实仓库，放不下的留作回场迁移。
     const savedEconomy = target.populationEconomy && typeof target.populationEconomy === 'object'
         ? target.populationEconomy
@@ -1052,359 +1131,6 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         && Number(structure.hp ?? 1) > 0
         && producerBuildingsJson[structure.cfgKey]?.economyType
     );
-    for (const structure of economyStructures) {
-        if (structure.economyUpgrade) {
-            structure.economyUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.economyUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.economyUpgrade.remainMs <= 0) {
-                structure.economyLevel = Math.max(
-                    1,
-                    Math.floor(Number(structure.economyUpgrade.targetLevel) || 1)
-                );
-                structure.economyUpgrade = null;
-                if (producerBuildingsJson[structure.cfgKey]?.economyType === 'warehouse') {
-                    structure.storageCapacity = getProducerStorageCap(structure);
-                }
-            }
-        }
-        if (structure.workshopUpgrade) {
-            structure.workshopUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.workshopUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.workshopUpgrade.remainMs <= 0) {
-                const moduleId = structure.workshopUpgrade.moduleId;
-                const module = buildingUpgradesJson.economic_workshop?.modules?.[moduleId];
-                if (module) {
-                    structure.workshopModules = structure.workshopModules || {};
-                    structure.workshopModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.workshopModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.workshopUpgrade = null;
-            }
-        }
-        if (structure.researchUpgrade) {
-            structure.researchUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.researchUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.researchUpgrade.remainMs <= 0) {
-                const moduleId = structure.researchUpgrade.moduleId;
-                const module = buildingUpgradesJson.research_standard?.modules?.[moduleId];
-                if (module) {
-                    structure.researchModules = structure.researchModules || {};
-                    structure.researchModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.researchModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.researchUpgrade = null;
-            }
-        }
-        if (structure.windmillUpgrade) {
-            structure.windmillUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.windmillUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.windmillUpgrade.remainMs <= 0) {
-                const moduleId = structure.windmillUpgrade.moduleId;
-                const module = buildingUpgradesJson.wheat_windmill_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.windmillModules = structure.windmillModules || {};
-                    structure.windmillModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.windmillModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.windmillUpgrade = null;
-            }
-        }
-        if (structure.mintUpgrade) {
-            structure.mintUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.mintUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.mintUpgrade.remainMs <= 0) {
-                const moduleId = structure.mintUpgrade.moduleId;
-                const module = buildingUpgradesJson.royal_mint_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.mintModules = structure.mintModules || {};
-                    structure.mintModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.mintModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.mintUpgrade = null;
-            }
-        }
-        if (structure.armoryUpgrade) {
-            structure.armoryUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.armoryUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.armoryUpgrade.remainMs <= 0) {
-                const moduleId = structure.armoryUpgrade.moduleId;
-                const module = buildingUpgradesJson.armory_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.armoryModules = structure.armoryModules || {};
-                    structure.armoryModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.armoryModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.armoryUpgrade = null;
-            }
-        }
-        if (structure.hospitalUpgrade) {
-            structure.hospitalUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.hospitalUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.hospitalUpgrade.remainMs <= 0) {
-                const moduleId = structure.hospitalUpgrade.moduleId;
-                const module = buildingUpgradesJson.field_hospital_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.hospitalModules = structure.hospitalModules || {};
-                    structure.hospitalModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.hospitalModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.hospitalUpgrade = null;
-            }
-        }
-        if (structure.bankUpgrade) {
-            structure.bankUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.bankUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.bankUpgrade.remainMs <= 0) {
-                const moduleId = structure.bankUpgrade.moduleId;
-                const module = buildingUpgradesJson.bank_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.bankModules = structure.bankModules || {};
-                    structure.bankModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.bankModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.bankUpgrade = null;
-            }
-        }
-        if (structure.grandMallUpgrade) {
-            structure.grandMallUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.grandMallUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.grandMallUpgrade.remainMs <= 0) {
-                const moduleId = structure.grandMallUpgrade.moduleId;
-                const module = buildingUpgradesJson.grand_mall_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.grandMallModules = structure.grandMallModules || {};
-                    structure.grandMallModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.grandMallModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.grandMallUpgrade = null;
-            }
-        }
-        if (structure.bakeryUpgrade) {
-            structure.bakeryUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.bakeryUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.bakeryUpgrade.remainMs <= 0) {
-                const moduleId = structure.bakeryUpgrade.moduleId;
-                const module = buildingUpgradesJson.bakery_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.bakeryModules = structure.bakeryModules || {};
-                    structure.bakeryModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.bakeryModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.bakeryUpgrade = null;
-            }
-        }
-        if (structure.chainRestaurantUpgrade) {
-            structure.chainRestaurantUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.chainRestaurantUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.chainRestaurantUpgrade.remainMs <= 0) {
-                const moduleId = structure.chainRestaurantUpgrade.moduleId;
-                const module = buildingUpgradesJson.chain_restaurant_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.chainRestaurantModules = structure.chainRestaurantModules || {};
-                    structure.chainRestaurantModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(
-                            structure.chainRestaurantModules[moduleId]
-                        ) || 0)) + 1
-                    );
-                }
-                structure.chainRestaurantUpgrade = null;
-            }
-        }
-        if (structure.cheeseFarmUpgrade) {
-            structure.cheeseFarmUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.cheeseFarmUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.cheeseFarmUpgrade.remainMs <= 0) {
-                const moduleId = structure.cheeseFarmUpgrade.moduleId;
-                const module = buildingUpgradesJson.cheese_farm_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.cheeseFarmModules = structure.cheeseFarmModules || {};
-                    structure.cheeseFarmModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.cheeseFarmModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.cheeseFarmUpgrade = null;
-            }
-        }
-        if (structure.steamUpgrade) {
-            structure.steamUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.steamUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.steamUpgrade.remainMs <= 0) {
-                const moduleId = structure.steamUpgrade.moduleId;
-                const module = buildingUpgradesJson.steam_power_plant_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.steamModules = structure.steamModules || {};
-                    structure.steamModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.steamModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.steamUpgrade = null;
-            }
-        }
-        if (structure.tavernUpgrade) {
-            structure.tavernUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.tavernUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.tavernUpgrade.remainMs <= 0) {
-                const moduleId = structure.tavernUpgrade.moduleId;
-                const module = buildingUpgradesJson.tavern_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.tavernModules = structure.tavernModules || {};
-                    structure.tavernModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(structure.tavernModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.tavernUpgrade = null;
-            }
-        }
-        if (structure.resonatorUpgrade) {
-            structure.resonatorUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.resonatorUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.resonatorUpgrade.remainMs <= 0) {
-                const moduleId = structure.resonatorUpgrade.moduleId;
-                const module = buildingUpgradesJson.planar_resonator_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.resonatorModules = structure.resonatorModules || {};
-                    structure.resonatorModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.resonatorModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.resonatorUpgrade = null;
-            }
-        }
-        if (structure.windPowerUpgrade) {
-            structure.windPowerUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.windPowerUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.windPowerUpgrade.remainMs <= 0) {
-                const moduleId = structure.windPowerUpgrade.moduleId;
-                const module = buildingUpgradesJson.wind_power_plant_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.windPowerModules = structure.windPowerModules || {};
-                    structure.windPowerModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.windPowerModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.windPowerUpgrade = null;
-            }
-        }
-        if (structure.solarPowerUpgrade) {
-            structure.solarPowerUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.solarPowerUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.solarPowerUpgrade.remainMs <= 0) {
-                const moduleId = structure.solarPowerUpgrade.moduleId;
-                const module = buildingUpgradesJson.solar_power_plant_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.solarPowerModules = structure.solarPowerModules || {};
-                    structure.solarPowerModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.solarPowerModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.solarPowerUpgrade = null;
-            }
-        }
-        if (structure.computingCenterUpgrade) {
-            structure.computingCenterUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.computingCenterUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.computingCenterUpgrade.remainMs <= 0) {
-                const moduleId = structure.computingCenterUpgrade.moduleId;
-                const module = buildingUpgradesJson.computing_center_economy?.modules?.[moduleId];
-                if (module) {
-                    structure.computingCenterModules = structure.computingCenterModules || {};
-                    structure.computingCenterModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.computingCenterModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.computingCenterUpgrade = null;
-            }
-        }
-        if (structure.weatherUpgrade) {
-            structure.weatherUpgrade.remainMs = Math.max(
-                0,
-                (Number(structure.weatherUpgrade.remainMs) || 0) - elapsedMs
-            );
-            if (structure.weatherUpgrade.remainMs <= 0) {
-                const moduleId = structure.weatherUpgrade.moduleId;
-                const module = buildingUpgradesJson.weather_forecast_analysis?.modules?.[moduleId];
-                if (module) {
-                    structure.weatherModules = structure.weatherModules || {};
-                    structure.weatherModules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0,
-                            Math.floor(Number(structure.weatherModules[moduleId]) || 0)) + 1
-                    );
-                }
-                structure.weatherUpgrade = null;
-            }
-        }
-    }
     const houseLevels = populationEconomyConfig.house?.levels || [];
     const populationCapacity = economyStructures.reduce((sum, structure) => {
         if (producerBuildingsJson[structure.cfgKey]?.economyType !== 'housing') return sum;
@@ -1424,24 +1150,6 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     }, 0);
     for (const camp of target.structures || []) {
         if (camp.kind !== 'hut' || !(camp.hp > 0)) continue;
-        if (camp.upgrade) {
-            camp.upgrade.remainMs = Math.max(
-                0,
-                (Number(camp.upgrade.remainMs) || 0) - elapsedMs
-            );
-            if (camp.upgrade.remainMs <= 0) {
-                const moduleId = camp.upgrade.moduleId;
-                const module = MINER_CAMP_CONFIG.modules?.[moduleId];
-                if (module) {
-                    camp.modules = camp.modules || {};
-                    camp.modules[moduleId] = Math.min(
-                        Number(module.maxLevel) || 0,
-                        Math.max(0, Math.floor(Number(camp.modules[moduleId]) || 0)) + 1
-                    );
-                }
-                camp.upgrade = null;
-            }
-        }
         const slots = getMinerEconomyStats(camp.modules || {}).count;
         const migrated = camp.assignedWorkers == null ? camp.miners : camp.assignedWorkers;
         camp.assignedWorkers = Math.max(0, Math.min(slots, Math.floor(Number(migrated) || 0)));
@@ -2242,13 +1950,18 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         const elapsedMsLocal = Math.max(0, elapsedMs);
         if (up.remainMs <= elapsedMsLocal) {
             if (up.abilityId) {
-                if (!completionTimes[up.abilityId]) completionTimes[up.abilityId] = [];
-                completionTimes[up.abilityId].push(Math.max(0, Number(up.remainMs) || 0));
-                if (commit) {
-                    const ability = getBuildingUpgradeAbility(up.abilityId);
-                    raiseAbilityLevel(up.abilityId, ability?.maxLevel ?? 10);
+                const ability = getBuildingUpgradeAbility(up.abilityId);
+                const previousLevel = _levelOf(up.abilityId, simulation.abilityLevels);
+                const level = commit
+                    ? raiseAbilityLevel(up.abilityId, ability?.maxLevel ?? 10)
+                    : Math.min(ability?.maxLevel ?? 10, previousLevel + 1);
+                simulation.abilityLevels[up.abilityId] = level;
+                if (level > previousLevel) {
+                    if (!completionTimes[up.abilityId]) completionTimes[up.abilityId] = [];
+                    completionTimes[up.abilityId].push(Math.max(0, Number(up.remainMs) || 0));
+                    report.abilitiesCompleted.push(up.abilityId);
+                    if (commit) ResearchSystem.onResearchLeveled(up.abilityId);
                 }
-                report.abilitiesCompleted.push(up.abilityId);
             } else if (up.moduleId && up.unitType) {
                 const configuredUnitTypes = _moduleUnitTypesOf(s, up.moduleId);
                 const unitTypes = configuredUnitTypes.length
@@ -2258,7 +1971,12 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                         : [up.unitType]);
                 const module = getUpgradeModulesForUnitKind(unitTypes[0])?.[up.moduleId];
                 if (module) {
-                    if (commit) raiseSharedUnitUpgradeLevel(unitTypes, up.moduleId, module.maxLevel);
+                    if (commit) {
+                        raiseSharedUnitUpgradeLevel(unitTypes, up.moduleId, module.maxLevel);
+                        for (const kind of unitTypes) {
+                            applyGlobalUpgradesToKind(kind, getUpgradeModulesForUnitKind(kind));
+                        }
+                    }
                     report.modulesCompleted.push(`${unitTypes.join('+')}:${up.moduleId}`);
                 }
             }
@@ -2269,7 +1987,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     }
 
     // ---- 被动能源：按研究真正完成的时点分段，不把新等级错误回溯到整段离线时间。----
-    report.passiveEnergy = opts.includePassiveEnergy === false ? 0 : Math.floor(_abilityTimeline(
+    const passiveEnergy = opts.includePassiveEnergy === false ? 0 : _abilityTimeline(
         initialPassiveLevel,
         completionTimes,
         elapsedMs,
@@ -2280,7 +1998,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             segment.level
         );
         return sum + segment.durationMs / 1000 * perSecond;
-    }, 0));
+    }, 0) + simulation.passiveEnergyRemainder;
+    report.passiveEnergy = Math.floor(passiveEnergy);
+    simulation.passiveEnergyRemainder = passiveEnergy - report.passiveEnergy;
 
     // ---- 采矿与仓储 ----
     let warehouseFree = _energyStorableInWarehouses(warehouses);
@@ -2530,7 +2250,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     previousInterval = interval;
                     if (stop || assigned >= cap || producerAssigned >= producerCap) break;
                 }
-                queue.timer = timer;
+                const finalInterval = baseInterval * _recruitMult(
+                    _levelOf('research_recruit_speed', simulation.abilityLevels));
+                queue.timer = Math.max(0, timer * finalInterval / previousInterval);
             }
             s.units = _rosterCount(roster);
             s.unitRoster = roster;
@@ -2619,7 +2341,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         }
         s.units = _rosterCount(roster);
         s.unitRoster = roster;
-        s.spawnTimer = timer;
+        const finalInterval = baseInterval * _recruitMult(
+            _levelOf('research_recruit_speed', simulation.abilityLevels));
+        s.spawnTimer = Math.max(0, timer * finalInterval / previousInterval);
         s.populationBlocked = militaryPopulationBlocked;
         s.foodBlocked = foodBlocked;
         // 混编部队逐兵种结算，切换生产类型不会把旧兵种整体转换。
@@ -2722,9 +2446,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         }
     }
 
-    if (commit) {
-        target.capturedAt = Date.now();
-        if (Number.isFinite(opts.gameTimeMs)) target.capturedGameTimeMs = opts.gameTimeMs;
+    const finalStructureLevel = _levelOf('research_structure_hp', simulation.abilityLevels);
+    if (finalStructureLevel > appliedStructureLevel) {
+        _applyStructureHpLevel(target, appliedStructureLevel, finalStructureLevel);
     }
     if (!opts.skipWaves && commit && report.victory && !target.wave.victoryGrantedPaid) {
         const reward = cfg.victoryReward || { gold: 500, energy: 500 };

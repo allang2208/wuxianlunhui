@@ -24,8 +24,6 @@ import { getWorld122ResearchSummary, settleWorld122 } from './world122-sim.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import { TechnologySystem } from './technology-system.js';
-import { applyGlobalUpgradesToKind } from './unit-upgrade-store.js';
-import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 import { routeBakeryPlantTributes } from './bakery-tribute-routing.js';
 import { routeArmoryEnhancementStones } from './armory-reward-routing.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
@@ -188,10 +186,6 @@ export const WorldSimDriver = {
             console.error(`[WorldSimDriver] ${sceneId} 后台结算异常:`, err);
             invalidateWorldBackgroundLedger(snap, 'settlement-error');
             return null;
-        }
-        for (const completed of report.modulesCompleted || []) {
-            const [kind] = String(completed).split(':');
-            if (kind) applyGlobalUpgradesToKind(kind, getUpgradeModulesForUnitKind(kind));
         }
         for (const reward of report.explorerRewards || []) {
             const structure = (snap.structures || []).find((entry) =>

@@ -116,6 +116,7 @@ _playSound(key) {
 #### 全局升级提示音（2026-08-21）
 - 玩家等级提升与玩家技能升级统一由 `LevelUpEffectQueue._renderEffect()` 在对应提示真正展示时播放，路径读取 `data/audio-config.json#uiCues.playerUpgrade`，使用 `playFile(path, 1, 'ui')`。旧的玩家 `onLevelUp()` 直播放必须移除，避免同一次升级双响；连续技能升级随提示队列逐项播放，声音与画面保持同序。
 - 建筑完工/升级若产品明确要求“无论距离都能听见”，同样属于全局系统提示，可用 `playFile`；房屋的路径放在 `population-economy.json#house.upgradeCompleteSound`。这属于明确的全局通知例外；普通 NPC、门、机关和建筑世界声仍必须走 `playWorld`。
+- 房屋运行时经济类型是`housing`，音效配置键是`house`；完成入口查配置时做局部映射，不能直接用`_economyType`索引，也不能为了提示音改动建筑类型或存档字段。完成音效只在真实前台完成分支播放，后台/预览不为此补播现场声音。
 - 用户素材统一复制为英文稳定名放入 `assets/sounds/ui/`；触发代码只读配置键，不直接引用素材库路径，也不在多个升级入口复制同一 MP3 路径。
 
 #### 全局按钮点击音效（2026-08-22）
