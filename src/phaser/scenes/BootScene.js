@@ -895,8 +895,13 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_timeshield_switch',  'assets/enemies/time_agent_shield/switch.png',    { frameWidth: 512, frameHeight: 512, endFrame: 7 });
         this.load.spritesheet('enemy_timeshield_push',    'assets/enemies/time_agent_shield/push.png',      { frameWidth: 512, frameHeight: 512, endFrame: 16 });
         this.load.spritesheet('enemy_timeshield_defend',  'assets/enemies/time_agent_shield/defending.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
-        // 蝇群（普通）：8列×4行 32 帧循环（帧 512×512）
-        this.load.spritesheet('enemy_flyswarm_idle', 'assets/enemies/flyswarm/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 31 });
+        // 蝇群（普通）：原图 2 倍插帧，8列×8行 64 帧循环（帧 512×512）。
+        const flySwarmTextures = enemyConfigData.flySwarm?.textures || {};
+        this.load.spritesheet('enemy_flyswarm_idle', flySwarmTextures.idle || 'assets/enemies/flyswarm/idle-rife64.png', {
+            frameWidth: flySwarmTextures.idleFrameWidth || 512,
+            frameHeight: flySwarmTextures.idleFrameHeight || 512,
+            endFrame: (flySwarmTextures.idleFrameCount || 64) - 1,
+        });
         // 蝇手（领主）：全部 512×512 帧（idle 已重排统一；walk 8列×2行16帧，攻击 8列×4行）
         this.load.spritesheet('enemy_flyhand_idle',       'assets/enemies/flyhand/idle.png',        { frameWidth: 512, frameHeight: 512, endFrame: 0 });
         this.load.spritesheet('enemy_flyhand_walk',       'assets/enemies/flyhand/walking.png',     { frameWidth: 512, frameHeight: 512, endFrame: 15 });
@@ -1834,11 +1839,14 @@ export class BootScene extends Scene {
             duration: 3000, // 与 howl.duration 对齐（动画时长=技能持续时间）
             repeat: 0,
         });
-        // ---- 蝇群（32 帧循环） ----
+        // ---- 蝇群（64 帧 / 32 FPS，保留原来的 2 秒循环时长） ----
+        const flySwarmAnimationTextures = enemyConfigData.flySwarm?.textures || {};
         this.anims.create({
             key: 'enemy_flyswarm_idle',
-            frames: this.anims.generateFrameNumbers('enemy_flyswarm_idle', { start: 0, end: 31 }),
-            frameRate: 16,
+            frames: this.anims.generateFrameNumbers('enemy_flyswarm_idle', {
+                start: 0, end: (flySwarmAnimationTextures.idleFrameCount || 64) - 1,
+            }),
+            frameRate: flySwarmAnimationTextures.idleFrameRate || 32,
             repeat: -1,
         });
         // ---- 时空特工(突击)-F（双形态）动画 ----

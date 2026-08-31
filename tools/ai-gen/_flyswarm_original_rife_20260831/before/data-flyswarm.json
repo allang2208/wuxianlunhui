@@ -1,0 +1,101 @@
+{
+  "id": "flySwarm",
+  "name": "蝇群",
+  "type": "普通",
+  "category": "monster",
+  "family": "僵尸",
+  "color": "#3a4a3a",
+  "size": 32,
+  "collisionRadius": 45,
+  "noCollision": true,
+  "hp": 80,
+  "maxHp": 80,
+  "speed": 200,
+  "level": 1,
+  "rank": "normal",
+  "str": 20,
+  "dex": 30,
+  "con": 10,
+  "int": 5,
+  "wis": 10,
+  "luck": 10,
+  "atk": 20,
+  "mdef": 55,
+  "rangedDamageTakenMul": 0.5,
+  "attackRange": 60,
+  "attackDistance": 60,
+  "aiInterval": 1000,
+  "ai": {
+    "aggroRange": 700,
+    "pacingRange": 0,
+    "loseTimeout": 3000
+  },
+  "attackType": "虫群侵蚀",
+  "sounds": {
+    "loop": "assets/sounds/enemies/flyswarm/idleing.mp3",
+    "loopVolumeBase": 0.5,
+    "loopVolumeMax": 1.5,
+    "loopNearDist": 150,
+    "loopFarDist": 600,
+    "loopMaxDist": 2000,
+    "loopCrossfadeSec": 0.5
+  },
+  "hitCircles": [
+    {
+      "x": 0,
+      "y": 25,
+      "r": 34
+    },
+    {
+      "x": -26,
+      "y": 29,
+      "r": 22
+    },
+    {
+      "x": 26,
+      "y": 29,
+      "r": 22
+    }
+  ],
+  "contactDamage": {
+    "intervalMs": 500,
+    "damageMul": 1,
+    "damageType": "physical"
+  },
+  "render": {
+    "spriteSize": 120,
+    "collisionWidth": 78,
+    "collisionHeight": 100,
+    "footOffsetY": 30,
+    "projectileHitbox": {
+      "width": 78,
+      "height": 100,
+      "offsetX": 0,
+      "bottom": 0
+    },
+    "colliderOffsetY": 20,
+    "colliderOffsetX": 0
+  },
+  "textures": {
+    "idle": "assets/enemies/flyswarm/idle.png",
+    "idleFrameWidth": 512,
+    "idleFrameHeight": 512,
+    "idleFrameCount": 32,
+    "idleSheetColumns": 8
+  },
+  "description": "成群蠕动的腐蝇，所过之处寸草不生。无形的虫群无法被击退，触碰即被啃噬。",
+  "skills": [
+    {
+      "name": "群聚接触",
+      "desc": "三位一体碰撞体积（判定面积为 0 可穿人，但不可穿墙）：处于其碰撞体积内的目标每 0.5s 受到物理攻击 ×1 伤害"
+    },
+    {
+      "name": "虫群护壳",
+      "desc": "受到的远程攻击伤害减少 50%（物理/魔法远程均减免）"
+    },
+    {
+      "name": "嗡鸣",
+      "desc": "持续循环嗡鸣（音量 50%，接近玩家逐渐提高，最大 150%，超过 2000px 静音）"
+    }
+  ]
+}

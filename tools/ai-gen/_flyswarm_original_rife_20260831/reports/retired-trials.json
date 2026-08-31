@@ -1,0 +1,102 @@
+{
+  "status": "retired_not_runtime_inputs",
+  "cleanupManifest": "reports/cleanup.json",
+  "h3Trials": [
+    {
+      "directory": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831",
+      "status": "retired_user_selected_original_animation",
+      "round": 1,
+      "reason": "User stopped H3 redesign and chose original game animation; none integrated.",
+      "prompts": {
+        "contact.txt": "One continuous shot of the exact realistic carrion-fly swarm from the first frame, same elevated three-quarter orthographic view, same individual fly anatomy, material, lighting and scale. This enemy harms by continuous contact, so the action is an agitated feeding swarm, not a bite or a physical lunge.\nAction: the airborne group tightens gently around its own stationary center, then continuously boils with rapid wingbeats and small independent darting movements. Nearby flies change places in short curved paths within the cloud, keeping their bodies distinct and their size constant. The cloud is at most 10 percent denser than the initial shape; maintain visible gaps and readable foreground insects. A sustained agitated contact/infestation motion with no opponent, victim or prop. Return naturally to the original neutral formation at the end without a freeze or crossfade. No insects are created, lost or joined together.\nThe entire swarm stays centered and fully inside the frame. Fixed camera, pure uniform white background, no ground, shadows or horizon. No large travelling attack, cyclone, vortex, opaque black ball, trails, ghost duplicates, fog, magic or glow. Silent visual-only game animation.\n\n",
+        "dying.txt": "One continuous shot of the same realistic carrion-fly swarm from the supplied first frame, same elevated three-quarter camera, constant body size, anatomy, lighting and materials. The same separate flies remain recognizable.\nAction, one-way death: start with a brief wing flutter in the reference hovering formation. Wingbeats falter asynchronously, each fly curls its legs inward and tips sideways. The insects drop a short distance downward together under gravity, about one fly-body length, then settle in a loose small inert pile directly beneath the original group center. Small final twitches stop by the last third of the clip. Hold the fallen dead flies completely still to the end. Keep the bodies distinct, no insect disappears, grows, spawns or revives. The descent and final pile must remain fully within the frame and preserve individual body sizes. Do not spread outward or fall out of view.\nFixed orthographic camera, no pan or zoom. Uniform pure white empty background matching the reference, no visible floor plane, cast shadows, horizon or scenery. No explosions, smoke, magical particles, blood, trails, ghosts or fade-out. Silent visual-only game animation.\n\n",
+        "flying.txt": "One continuous shot of the same realistic carrion-fly swarm in the supplied first frame. Preserve the separate dark graphite segmented bodies, restrained burgundy eyes, thin six-legged anatomy, veined smoky-gray wings and the same consistent adult insect sizes. Fixed orthographic camera at the reference elevated three-quarter angle; constant light and scale.\nAction: purposeful forward flight toward screen-right performed in place, as a treadmill animation for a moving game unit. The insects angle subtly toward screen-right, beat their wings rapidly and make quick asynchronous small corrections. The same compact cohesive cloud remains centered on screen, with mild leading-edge compression and trailing-edge flutter. Individuals gently pass just above or behind near neighbors without colliding, fusing, changing species or vanishing. Continuous energetic wing motion for the whole clip. Subtle collective breathing of the formation, not whole-swarm translation or rotation. The final arrangement returns naturally to the initial formation, suitable for a flight cycle.\nUniform pure white background, no visible ground, cast shadow or horizon. All members remain inside the original safe area. No camera motion, size changes, motion streaks, afterimages, smoke, sparks or colored aura. Silent visual-only game animation.\n\n",
+        "idle.txt": "One continuous shot of the exact carrion-fly swarm in the supplied first frame, rendered as a crisp realistic PBR game creature. A compact airborne swarm made of separate flies, not a single organism. Keep each fly's dark segmented body, burgundy eyes, six legs and single pair of veined smoky-gray wings distinct and consistent. Same elevated three-quarter view, fixed orthographic camera, constant lighting, individual body sizes and cloud center.\nAction: hovering in place. Wings beat rapidly with clearly changing wing angles; each insect makes tiny independent irregular bobs and short sideways adjustments, different phases, while the group stays compact and stable. All flies remain inside the same small cloud and maintain separation. Motion stays lively throughout. Preserve the overall cloud width and height, and the density from the reference. Naturally complete a subtle cyclic hover returning to the starting arrangement for looping, never freeze and never dissolve between poses.\nFlat uniform pure white background identical to the first frame. No floor, shadows or horizon. The full group stays visible with empty margins, no zoom or translation of the cloud. Only actual wings and bodies move; no trails, doubled ghost insects, fog or glowing particles. Silent visual-only game animation.\n\n",
+        "mother-v02.txt": "Use case: stylized-concept.\nRebuild the attached fly-swarm mother image for a dark-fantasy top-down action game. The attachment is a species/material reference ONLY; replace its flat circular scattered arrangement entirely. Deliver ONE single isolated swarm enemy asset, no sheet or multiple panels.\n\nDESIGN: a compact cohesive irregular horizontal ovoid cloud of approximately 30 carrion flies hovering together in a small three-dimensional volume. Each fly is clearly recognizable, realistic dark graphite/dirty bronze segmented chitin, restrained dark burgundy compound eyes, short bristles, six slender jointed legs and one pair of finely veined translucent smoky silver-gray wings. Wings have visible medium-gray veins and clear finite contours on white. Consistent adult fly size, modest depth variation only, no giant leader, no dust-sized insects.\n\nGROUPING IS THE MAIN CHANGE: three staggered, interlocking depth layers, denser central core with visible small white gaps and a few partial overlaps, sparse irregular edges. Arrange flies in small near-neighbor groups flowing together, not evenly scattered points. A readable unified volumetric cloud, about 1.6 times wider than high. Show around 6 clearly readable near-side bodies and the other equally real flies nestled just behind at varied heights. Never a flat disc, ring, grid, perfect sphere or wall of pasted icons. Keep anatomy of each fly distinct, not fused. Mildly varied orientation with a collective drift toward screen-right.\n\nCAMERA: orthographic three-quarter elevated GAME VIEW looking down roughly 30 degrees; see the upper backs and wings as well as body sides. This is an airborne volumetric swarm viewed from slightly above, NOT insects laid on a surface, NOT a side-on eye-level shot and NOT a straight overhead diagram. Camera stays at a single angle, consistent crisp focus across the swarm.\n\nCOMPOSITION: landscape 16:9 pure white canvas. Swarm occupies the central roughly 62 percent of width and 60 percent of height, ample blank margin on every side; entire wings, legs and perimeter members visible. No remote strays. There is no ground or backdrop texture, just uniform pure white RGB255. No cast/contact shadows, floor, horizon or grey halo.\n\nSTYLE: high quality realistic PBR game creature render matching dark-fantasy wolf/monster assets, restrained neutral lighting, sharp readable insect silhouettes and consistent material response. Preserve rich insect detail without black-clumped noise. No blur, trailing images, smoke, fog, magical particles, colored aura, cyan/blue rim, sparks, blood, text, watermark or border. Only the new mother image.\n\n"
+      },
+      "mediaMetadataFiles": [
+        "flyswarm-v02-h3-20260831/videos/contact.mp4.json",
+        "flyswarm-v02-h3-20260831/videos/dying.mp4.json",
+        "flyswarm-v02-h3-20260831/videos/flying.mp4.json",
+        "flyswarm-v02-h3-20260831/videos/idle.mp4.json"
+      ]
+    },
+    {
+      "directory": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02",
+      "status": "retired_user_selected_original_animation",
+      "round": 2,
+      "reason": "User stopped H3 redesign and chose original game animation; none integrated.",
+      "prompts": {
+        "contact.txt": "The exact dark carrion flies from the first frame, in the same elevated orthographic game view. Each chitin body is rigid, with the same abdomen length, thickness, red-brown eyes and leg count throughout. Preserve the size hierarchy in the image: the large front-center and front-left flies remain large, and the small rear flies remain small. Each fly has one pair of transparent veined wings. Fixed camera, lighting, framing and swarm center. Pure uniform white background, generous empty margins. Crisp game-animation rendering with a short shutter exposure. Continuous agitated infestation for all five seconds. Small near-neighbor groups of three or four flies weave briefly past one another in shallow arcs, staying close to the stationary cloud center. The insects' wings flap continuously in different phases, their abdomen shapes and individual sizes stay constant. Keep the airy gaps and layered depth while the group pulses subtly in density. This is sustained contact activity, with the same level of motion at the end as in the middle. There is no return-to-idle section or end pause. No victim, giant insect, vortex, camera move, zoom, smoke, trails or fog.\n",
+        "death-end-image.txt": "Use case: identity-preserve edit, animation END KEYFRAME, one image.\nEdit the supplied reference of a hovering swarm of realistic dark carrion flies into the unmistakably DEAD end pose of the SAME insects. This is a death-animation end frame, not a new species or new mother image.\nKeep the same landscape framing, elevated orthographic camera, lighting, fly count, dark graphite segmented chitin, muted red-brown eyes, fine bristles and veined smoky-gray wing materials. Preserve the individual size hierarchy: big front-center and front-left flies stay big; rear flies stay small. Maintain their approximate left/right positions and depth order. Do not replace them with uniform tiny flies.\nKEY CHANGE: every single fly is lifeless, lying ON ITS SIDE or ON ITS BACK, with its six jointed legs visibly curled tightly inward and UP toward the abdomen. Show many curled feet sticking into the air, pale underside sections and sideways tilted eyes. None stands upright on its six feet. All wings are stopped and folded or slack against the side, still identifiable as one wing pair. Use natural dead-insect anatomy, not flattened or melted bodies, gore or body fragments.\nThe group has fallen a short distance downward. Arrange the dead flies as a loose shallow scatter beneath the original swarm, occupying approximately x=150..900 and y=315..475 on the supplied 1024x576 layout. Keep ample white margins and the same apparent body sizes as the input. Some bodies overlap slightly but most remain separately legible; no giant pile or fusing.\nBackground remains completely uniform pure white RGB255, no ground texture, visible floor, shadows, horizon, glow, smoke, dust, text or labels. Do not zoom or crop. Sharp detailed game-asset rendering. Deliver only this one death end-frame image, landscape 16:9.\n",
+        "dying.txt": "The exact dark carrion flies from the first frame, in the same elevated orthographic game view. Each chitin body is rigid, with the same abdomen length, thickness, red-brown eyes and leg count throughout. Preserve the size hierarchy in the image: the large front-center and front-left flies remain large, and the small rear flies remain small. Each fly has one pair of transparent veined wings. Fixed camera, lighting, framing and swarm center. Pure uniform white background, generous empty margins. Crisp game-animation rendering with a short shutter exposure. The opening image is the living swarm; the ending image shows the same swarm dead. A single irreversible death: during seconds 0.2 to 1.6, wingbeats falter and each insect rolls visibly sideways or upside down, curling its legs tightly toward its abdomen. The original rigid bodies tumble independently; all insects retain their own sizes. During seconds 1.0 to 3.2 they fall a short distance and settle as in the ending image, lying on their sides or backs with curled legs pointing upward. The bodies are lifeless rather than standing on their feet. From second 3.5 to the end, hold the exact dead pose. Continuous physical movement connects the two images, with no dissolve, teleport, melting, new insects, landing-on-feet, revival, camera movement or shadow.\n",
+        "flying.txt": "The exact dark carrion flies from the first frame, in the same elevated orthographic game view. Each chitin body is rigid, with the same abdomen length, thickness, red-brown eyes and leg count throughout. Preserve the size hierarchy in the image: the large front-center and front-left flies remain large, and the small rear flies remain small. Each fly has one pair of transparent veined wings. Fixed camera, lighting, framing and swarm center. Pure uniform white background, generous empty margins. Crisp game-animation rendering with a short shutter exposure. Continuous energetic forward flight in place toward screen-right. The bodies lean just slightly forward and remain rigid; wings repeatedly sweep up and down faster than a gentle hover, with asynchronous timing. Individual flies make short fore-and-aft corrections within their own neighborhoods, about a quarter body length, while the whole swarm stays centered. Preserve the depth order and original overall cloud envelope. Maintain the same active flight rhythm throughout all five seconds, not a takeoff followed by a stop. No camera move, scaling, blurred trails, shadow, fog or new insects.\n",
+        "idle.txt": "The exact dark carrion flies from the first frame, in the same elevated orthographic game view. Each chitin body is rigid, with the same abdomen length, thickness, red-brown eyes and leg count throughout. Preserve the size hierarchy in the image: the large front-center and front-left flies remain large, and the small rear flies remain small. Each fly has one pair of transparent veined wings. Fixed camera, lighting, framing and swarm center. Pure uniform white background, generous empty margins. Crisp game-animation rendering with a short shutter exposure. Continuous stationary hovering for the entire shot. The bodies make tiny independent vertical bobs while wing angles alternate visibly at a moderate readable flutter rate. The individual bodies keep their own orientation and scale; their wings articulate at the thorax. Different flies flap in different phases. Keep all the original insects separate and in their original neighborhoods. The same gentle activity continues from the first moment through the final moment, with no ending gesture or freeze. No camera move, shadow, blur, trailing body copies, fog or added insects.\n"
+      },
+      "mediaMetadataFiles": [
+        "flyswarm-v02-h3-20260831/round02/videos/contact.mp4.json"
+      ]
+    }
+  ],
+  "rejectedMothers": [
+    {
+      "enemyKey": "zombieDog",
+      "candidate": "mother/zombie-dog-mother-v03-monster-camera-white.png",
+      "prompt": "prompts/zombie-dog-mother-v03-monster-camera.txt",
+      "references": [
+        "references/coffin-ward-camera-reference.png",
+        "references/medusa-camera-reference.png",
+        "mother/zombie-dog-mother-v01-white.png"
+      ],
+      "referenceRoles": [
+        "primary game camera and material reference",
+        "three-quarter front-right orientation reference",
+        "undead canine identity only; side-profile camera explicitly rejected"
+      ],
+      "referenceSources": [
+        "tools/ai-gen/_horror_normal_mothers_20260830/mother/02-coffin-ward-v02-head-wrap.png",
+        "tools/ai-gen/_medusa_20260825/candidates/medusa-mother-v02-white.png"
+      ],
+      "status": "rejected-by-user-use-black-wolf-and-red-wolf-quadruped-references",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-14326f45-59f2-46ff-a2c7-d8cb45459a7a.png",
+      "availability": "historical_metadata_only_media_archived"
+    },
+    {
+      "enemyKey": "zombieDog",
+      "candidate": "mother/zombie-dog-mother-v02-elevated-white.png",
+      "prompt": "prompts/zombie-dog-mother-v02-elevated.txt",
+      "references": [
+        "mother/zombie-dog-mother-v01-white.png",
+        "references/brown-snake-elevation-reference.png"
+      ],
+      "referenceRoles": [
+        "identity edit target",
+        "elevation reference only, not anatomy"
+      ],
+      "cameraPromptTarget": "approximately 30 degrees above ground and 20 degrees toward front from broadside; not a measured output camera",
+      "status": "rejected-by-user-camera-still-incorrect",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-fb61bfbd-bf03-4931-8144-5c7b83cb5b16.png",
+      "availability": "historical_metadata_only_media_archived"
+    },
+    {
+      "enemyKey": "flySwarm",
+      "candidate": "mother/flyswarm-mother-v01-white.png",
+      "prompt": "prompts/flyswarm-mother-v01.txt",
+      "reference": "references/flyswarm-existing-idle-frame-00.png",
+      "referenceSource": "assets/enemies/flyswarm/idle.png",
+      "referenceExtraction": "native 512x512 frame at x=0,y=0, no resizing; System.Drawing used only to decode/extract the inspection reference because the image viewer could not open the full sheet",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-c50f615b-44ae-4b3d-99e1-a54783dcd44a.png",
+      "availability": "historical_metadata_only_media_archived"
+    },
+    {
+      "enemyKey": "zombieDog",
+      "candidate": "mother/zombie-dog-mother-v01-white.png",
+      "prompt": "prompts/zombie-dog-mother-v01.txt",
+      "reference": "references/zombie-dog-existing-mother-v3.png",
+      "referenceSource": "tools/ai-gen/_zombie_dog_upgrade_20260823/zombie-dog-idle-mother-v3-realistic.png",
+      "generatorOutput": "C:/Users/allan/.codex/generated_images/01a052d0-236e-7bc3-80af-b53597574b8a/exec-c00609d3-b95a-4508-a910-dcd685d679e6.png",
+      "availability": "historical_metadata_only_media_archived"
+    }
+  ],
+  "preserved": "Approved ZombieDog v04, its wolf references, and four-action Doubao sources remain unchanged."
+}

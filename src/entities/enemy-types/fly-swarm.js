@@ -150,7 +150,7 @@ export class FlySwarm extends Enemy {
     // ========== 渲染 ==========
 
     _getTextureKey() {
-        // 仅一组 32 帧循环动画
+        // 待机和移动共用原图插帧后的 64 帧循环动画。
         return 'enemy_flyswarm_idle';
     }
 
@@ -163,7 +163,7 @@ export class FlySwarm extends Enemy {
             flipX = Math.cos(this.rotation) < 0;
         }
         return {
-            spriteSize: renderCfg.spriteSize || 120,
+            spriteSize: renderCfg.spriteSize || 144,
             flipX,
             animState: this._animState,
             animKey: this._getTextureKey(),

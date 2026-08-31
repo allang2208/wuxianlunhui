@@ -1,0 +1,189 @@
+{
+  "scope": "offline asset pixels and config only; not runtime acceptance",
+  "checks": {
+    "sheetLayout64x512": true,
+    "sourceLayout32x512": true,
+    "visibleSourceKeysUnchanged": true,
+    "noEmptyFrames": true,
+    "noClippedVisibleFrames": true,
+    "noTransparentRgb": true,
+    "noNewDarkOutlierBlocks": true,
+    "noVerticalRealignment": true,
+    "dataAndPublicMatch": true,
+    "allChangedSizesTimes1p2": true,
+    "nonSizeGameplayUnchanged": true,
+    "cycleStill2Seconds": true,
+    "bothPreviewClocks2Seconds": true
+  },
+  "allScopedChecksPass": true,
+  "changes": [
+    {
+      "field": "collisionRadius",
+      "before": 45,
+      "after": 54
+    },
+    {
+      "field": "hitCircles[0].r",
+      "before": 34,
+      "after": 40.8
+    },
+    {
+      "field": "hitCircles[0].y",
+      "before": 25,
+      "after": 30
+    },
+    {
+      "field": "hitCircles[1].r",
+      "before": 22,
+      "after": 26.4
+    },
+    {
+      "field": "hitCircles[1].x",
+      "before": -26,
+      "after": -31.2
+    },
+    {
+      "field": "hitCircles[1].y",
+      "before": 29,
+      "after": 34.8
+    },
+    {
+      "field": "hitCircles[2].r",
+      "before": 22,
+      "after": 26.4
+    },
+    {
+      "field": "hitCircles[2].x",
+      "before": 26,
+      "after": 31.2
+    },
+    {
+      "field": "hitCircles[2].y",
+      "before": 29,
+      "after": 34.8
+    },
+    {
+      "field": "render.colliderOffsetY",
+      "before": 20,
+      "after": 24
+    },
+    {
+      "field": "render.collisionHeight",
+      "before": 100,
+      "after": 120
+    },
+    {
+      "field": "render.collisionWidth",
+      "before": 78,
+      "after": 93.6
+    },
+    {
+      "field": "render.footOffsetY",
+      "before": 30,
+      "after": 36
+    },
+    {
+      "field": "render.projectileHitbox.height",
+      "before": 100,
+      "after": 120
+    },
+    {
+      "field": "render.projectileHitbox.width",
+      "before": 78,
+      "after": 93.6
+    },
+    {
+      "field": "render.spriteSize",
+      "before": 120,
+      "after": 144
+    },
+    {
+      "field": "size",
+      "before": 32,
+      "after": 38.4
+    },
+    {
+      "field": "textures.idle",
+      "before": "assets/enemies/flyswarm/idle.png",
+      "after": "assets/enemies/flyswarm/idle-rife64.png"
+    },
+    {
+      "field": "textures.idleFrameCount",
+      "before": 32,
+      "after": 64
+    },
+    {
+      "field": "textures.idleFrameRate",
+      "before": null,
+      "after": 32
+    }
+  ],
+  "observations": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 452,
+    "alphaBottomMax": 484,
+    "middleFrameFootShifts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [],
+    "middleFrameVisibleRedPixelsRepaired": [],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "visibleRedOutlierFrames": {},
+    "visibleBlueSpillFrames": {},
+    "visibleCyanSpillFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 73.89725017547607,
+    "adjacentDeltaMeanAfter": 51.630541414022446
+  },
+  "previewClocks": {
+    "flyswarm-rife64-2s.gif": {
+      "frames": 64,
+      "durationMs": 2000
+    },
+    "flyswarm-before-after-2s.gif": {
+      "frames": 64,
+      "durationMs": 2000
+    }
+  },
+  "rgbaMiB": 64,
+  "maxMidpointCentroidDeviationWorldXY": [
+    0.2930620163675943,
+    0.33132134380578293
+  ],
+  "centroidNote": "Diagnostic only: natural motion is not straightened to match a centroid.",
+  "runtimeChecks": "Not run. User to review loop seam, wings, contact range and walls."
+}

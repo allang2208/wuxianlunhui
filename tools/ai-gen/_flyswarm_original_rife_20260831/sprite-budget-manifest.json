@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "id": "flySwarm",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_flyswarm_idle",
+      "path": "assets/enemies/flyswarm/idle-rife64.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frameCount": 64,
+      "endFrame": 63,
+      "footX": 256,
+      "footY": 384
+    }
+  ],
+  "dependencies": [],
+  "notes": "Idle and movement share one texture. footX/footY denote the unchanged logical root, not a stabilized footline; preserve natural hovering. Native source keys retained: 4096x4096 RGBA = 64 MiB, above 32 MiB target and at 64 MiB admission limit. Budget checker not run."
+}

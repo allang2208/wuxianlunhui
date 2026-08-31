@@ -4090,8 +4090,8 @@
     "category": "monster",
     "family": "僵尸",
     "color": "#3a4a3a",
-    "size": 32,
-    "collisionRadius": 45,
+    "size": 38.4,
+    "collisionRadius": 54,
     "noCollision": true,
     "hp": 80,
     "maxHp": 80,
@@ -4128,18 +4128,18 @@
     "hitCircles": [
       {
         "x": 0,
-        "y": 25,
-        "r": 34
+        "y": 30,
+        "r": 40.8
       },
       {
-        "x": -26,
-        "y": 29,
-        "r": 22
+        "x": -31.2,
+        "y": 34.8,
+        "r": 26.4
       },
       {
-        "x": 26,
-        "y": 29,
-        "r": 22
+        "x": 31.2,
+        "y": 34.8,
+        "r": 26.4
       }
     ],
     "contactDamage": {
@@ -4148,25 +4148,26 @@
       "damageType": "physical"
     },
     "render": {
-      "spriteSize": 120,
-      "collisionWidth": 78,
-      "collisionHeight": 100,
-      "footOffsetY": 30,
+      "spriteSize": 144,
+      "collisionWidth": 93.6,
+      "collisionHeight": 120,
+      "footOffsetY": 36,
       "projectileHitbox": {
-        "width": 78,
-        "height": 100,
+        "width": 93.6,
+        "height": 120,
         "offsetX": 0,
         "bottom": 0
       },
-      "colliderOffsetY": 20,
+      "colliderOffsetY": 24,
       "colliderOffsetX": 0
     },
     "textures": {
-      "idle": "assets/enemies/flyswarm/idle.png",
+      "idle": "assets/enemies/flyswarm/idle-rife64.png",
       "idleFrameWidth": 512,
       "idleFrameHeight": 512,
-      "idleFrameCount": 32,
-      "idleSheetColumns": 8
+      "idleFrameCount": 64,
+      "idleSheetColumns": 8,
+      "idleFrameRate": 32
     },
     "description": "成群蠕动的腐蝇，所过之处寸草不生。无形的虫群无法被击退，触碰即被啃噬。",
     "skills": [

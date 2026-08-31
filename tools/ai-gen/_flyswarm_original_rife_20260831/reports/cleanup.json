@@ -1,0 +1,404 @@
+{
+  "status": "moved_to_ignored_recoverable_archive",
+  "reversible": true,
+  "count": 66,
+  "bytes": 124130237.0,
+  "files": [
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/__pycache__/rife-production-snapshot.cpython-311.pyc",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/__pycache__/rife-production-snapshot.cpython-311.pyc",
+      "bytes": 49224,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/before/public-flyswarm.json",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/before/public-flyswarm.json",
+      "bytes": 2308,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/generated/idle-rife64.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/generated/idle-rife64.png",
+      "bytes": 11510422,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/previews/flyswarm-before-after-first-frame.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/previews/flyswarm-before-after-first-frame.png",
+      "bytes": 113984,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/previews/interpolated-frame-01.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/previews/interpolated-frame-01.png",
+      "bytes": 180569,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/previews/original-frame-00.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/previews/original-frame-00.png",
+      "bytes": 163179,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/previews/rife-source-clock/flyswarm-original-interpolated-contact.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/previews/rife-source-clock/flyswarm-original-interpolated-contact.png",
+      "bytes": 1867405,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/previews/rife-source-clock/flyswarm-original-interpolated.gif",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/previews/rife-source-clock/flyswarm-original-interpolated.gif",
+      "bytes": 3874391,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_flyswarm_original_rife_20260831/source/idle-original-32.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_flyswarm_original_rife_20260831/source/idle-original-32.png",
+      "bytes": 5504937,
+      "reason": "Duplicate source/output or regenerable inspection cache"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/make-preview.py",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/make-preview.py",
+      "bytes": 2595,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/mother/flyswarm-mother-v02-white.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/mother/flyswarm-mother-v02-white.png",
+      "bytes": 1324271,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/prepare-reference.py",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/prepare-reference.py",
+      "bytes": 2465,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-000.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-000.png",
+      "bytes": 256913,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-031.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-031.png",
+      "bytes": 337956,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-062.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-062.png",
+      "bytes": 293303,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-093.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-093.png",
+      "bytes": 351701,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-123.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact-frame-123.png",
+      "bytes": 335309,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact.gif",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/contact.gif",
+      "bytes": 16092269,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-000.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-000.png",
+      "bytes": 257421,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-031.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-031.png",
+      "bytes": 247709,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-062.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-062.png",
+      "bytes": 182895,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-093.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-093.png",
+      "bytes": 189069,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-123.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying-frame-123.png",
+      "bytes": 188908,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying.gif",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/dying.gif",
+      "bytes": 9526438,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-000.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-000.png",
+      "bytes": 264427,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-031.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-031.png",
+      "bytes": 293498,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-062.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-062.png",
+      "bytes": 310972,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-093.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-093.png",
+      "bytes": 330594,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-123.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying-frame-123.png",
+      "bytes": 301984,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying.gif",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/flying.gif",
+      "bytes": 15950812,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-000.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-000.png",
+      "bytes": 262616,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-031.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-031.png",
+      "bytes": 298026,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-062.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-062.png",
+      "bytes": 314298,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-093.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-093.png",
+      "bytes": 317640,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-123.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle-frame-123.png",
+      "bytes": 322188,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle.gif",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/previews/idle.gif",
+      "bytes": 15488703,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/references/flyswarm-v02-h3-first-frame.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/references/flyswarm-v02-h3-first-frame.png",
+      "bytes": 484065,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/make-preview.py",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/make-preview.py",
+      "bytes": 2595,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/prepare-round.py",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/prepare-round.py",
+      "bytes": 2394,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-000.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-000.png",
+      "bytes": 256048,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-031.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-031.png",
+      "bytes": 261836,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-062.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-062.png",
+      "bytes": 265262,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-093.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-093.png",
+      "bytes": 269422,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-123.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact-frame-123.png",
+      "bytes": 271366,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact.gif",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/previews/contact.gif",
+      "bytes": 11585321,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/references/death-end-authored.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/references/death-end-authored.png",
+      "bytes": 1227496,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/references/death-end-frame.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/references/death-end-frame.png",
+      "bytes": 531065,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/references/first-frame.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/references/first-frame.png",
+      "bytes": 484065,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/videos/contact_contact.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/videos/contact_contact.png",
+      "bytes": 559216,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/videos/contact.mp4",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/round02/videos/contact.mp4",
+      "bytes": 850101,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/contact_contact.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/contact_contact.png",
+      "bytes": 744270,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/contact.mp4",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/contact.mp4",
+      "bytes": 1399697,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/dying_contact.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/dying_contact.png",
+      "bytes": 462201,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/dying.mp4",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/dying.mp4",
+      "bytes": 896759,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/flying_contact.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/flying_contact.png",
+      "bytes": 740806,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/flying.mp4",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/flying.mp4",
+      "bytes": 1386843,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/idle_contact.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/idle_contact.png",
+      "bytes": 748723,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/idle.mp4",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/flyswarm-v02-h3-20260831/videos/idle.mp4",
+      "bytes": 1388774,
+      "reason": "H3 trial stopped by user; metadata retained"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/flyswarm-mother-v01-white.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/flyswarm-mother-v01-white.png",
+      "bytes": 1325285,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v01-white.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v01-white.png",
+      "bytes": 1569848,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v02-elevated-white.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v02-elevated-white.png",
+      "bytes": 1568545,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v03-monster-camera-white.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v03-monster-camera-white.png",
+      "bytes": 1552869,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/brown-snake-elevation-reference.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/brown-snake-elevation-reference.png",
+      "bytes": 804467,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/coffin-ward-camera-reference.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/coffin-ward-camera-reference.png",
+      "bytes": 1891619,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/medusa-camera-reference.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/medusa-camera-reference.png",
+      "bytes": 1504042,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    },
+    {
+      "source": "tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/zombie-dog-existing-mother-v3.png",
+      "destination": "tools/.trash-flyswarm-animation-20260831/tools/ai-gen/_horror_flyswarm_zombie_dog_20260831/references/zombie-dog-existing-mother-v3.png",
+      "bytes": 1783838,
+      "reason": "Rejected mother or unused reference; approved dog v04 independent"
+    }
+  ]
+}
