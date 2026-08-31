@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "21:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_whip_doubao_20260831\\references\\foreman-whip-wide-v02.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_foreman_whip_doubao_20260831\\prompts\\whip-v02.txt",
+  "promptChars": 853,
+  "promptSha256": "11cfde308f9695a6f5a8a2d5618dadc8ef730cc7e6c84968be9a4c6b05fe875c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-31T01:59:18.433Z",
+  "sourceUrlScheme": "https"
+}

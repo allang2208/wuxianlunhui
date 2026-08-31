@@ -1,0 +1,2085 @@
+{
+  "idle": {
+    "path": "assets\\enemies\\foreman_zombie\\idle.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "frameCount": 1,
+    "records": [
+      {
+        "frame": 0,
+        "bodyBBox": [
+          213,
+          148,
+          323,
+          413
+        ],
+        "bodyHeight": 265,
+        "bodyWidth": 110,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      }
+    ],
+    "bodyHeightRange": [
+      265,
+      265
+    ],
+    "footBottomRange": [
+      413,
+      413
+    ],
+    "footCenterRange": [
+      256.5,
+      256.5
+    ]
+  },
+  "walk": {
+    "path": "assets\\enemies\\foreman_zombie\\walking.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "frameCount": 20,
+    "records": [
+      {
+        "frame": 0,
+        "bodyBBox": [
+          185,
+          150,
+          323,
+          411
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 138,
+        "footBandCenterX": 282.0,
+        "footBottom": 411
+      },
+      {
+        "frame": 1,
+        "bodyBBox": [
+          195,
+          150,
+          317,
+          411
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 122,
+        "footBandCenterX": 272.0,
+        "footBottom": 411
+      },
+      {
+        "frame": 2,
+        "bodyBBox": [
+          210,
+          150,
+          316,
+          411
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 106,
+        "footBandCenterX": 262.0,
+        "footBottom": 411
+      },
+      {
+        "frame": 3,
+        "bodyBBox": [
+          213,
+          149,
+          308,
+          411
+        ],
+        "bodyHeight": 262,
+        "bodyWidth": 95,
+        "footBandCenterX": 237.5,
+        "footBottom": 411
+      },
+      {
+        "frame": 4,
+        "bodyBBox": [
+          195,
+          150,
+          310,
+          411
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 115,
+        "footBandCenterX": 252.5,
+        "footBottom": 411
+      },
+      {
+        "frame": 5,
+        "bodyBBox": [
+          194,
+          149,
+          310,
+          410
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 116,
+        "footBandCenterX": 252.0,
+        "footBottom": 410
+      },
+      {
+        "frame": 6,
+        "bodyBBox": [
+          199,
+          150,
+          313,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 114,
+        "footBandCenterX": 255.5,
+        "footBottom": 410
+      },
+      {
+        "frame": 7,
+        "bodyBBox": [
+          205,
+          150,
+          308,
+          409
+        ],
+        "bodyHeight": 259,
+        "bodyWidth": 103,
+        "footBandCenterX": 253.5,
+        "footBottom": 409
+      },
+      {
+        "frame": 8,
+        "bodyBBox": [
+          194,
+          150,
+          312,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 118,
+        "footBandCenterX": 267.5,
+        "footBottom": 410
+      },
+      {
+        "frame": 9,
+        "bodyBBox": [
+          185,
+          150,
+          319,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 134,
+        "footBandCenterX": 291.5,
+        "footBottom": 410
+      },
+      {
+        "frame": 10,
+        "bodyBBox": [
+          183,
+          149,
+          323,
+          410
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 140,
+        "footBandCenterX": 283.5,
+        "footBottom": 410
+      },
+      {
+        "frame": 11,
+        "bodyBBox": [
+          193,
+          150,
+          318,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 125,
+        "footBandCenterX": 274.0,
+        "footBottom": 410
+      },
+      {
+        "frame": 12,
+        "bodyBBox": [
+          207,
+          150,
+          319,
+          411
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 112,
+        "footBandCenterX": 264.0,
+        "footBottom": 411
+      },
+      {
+        "frame": 13,
+        "bodyBBox": [
+          211,
+          150,
+          307,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 96,
+        "footBandCenterX": 235.0,
+        "footBottom": 410
+      },
+      {
+        "frame": 14,
+        "bodyBBox": [
+          194,
+          150,
+          309,
+          411
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 115,
+        "footBandCenterX": 251.5,
+        "footBottom": 411
+      },
+      {
+        "frame": 15,
+        "bodyBBox": [
+          195,
+          149,
+          309,
+          411
+        ],
+        "bodyHeight": 262,
+        "bodyWidth": 114,
+        "footBandCenterX": 252.0,
+        "footBottom": 411
+      },
+      {
+        "frame": 16,
+        "bodyBBox": [
+          199,
+          150,
+          314,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 115,
+        "footBandCenterX": 254.0,
+        "footBottom": 410
+      },
+      {
+        "frame": 17,
+        "bodyBBox": [
+          206,
+          150,
+          307,
+          409
+        ],
+        "bodyHeight": 259,
+        "bodyWidth": 101,
+        "footBandCenterX": 250.5,
+        "footBottom": 409
+      },
+      {
+        "frame": 18,
+        "bodyBBox": [
+          198,
+          150,
+          312,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 114,
+        "footBandCenterX": 261.0,
+        "footBottom": 410
+      },
+      {
+        "frame": 19,
+        "bodyBBox": [
+          184,
+          150,
+          320,
+          410
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 136,
+        "footBandCenterX": 289.5,
+        "footBottom": 410
+      }
+    ],
+    "bodyHeightRange": [
+      259,
+      262
+    ],
+    "footBottomRange": [
+      409,
+      411
+    ],
+    "footCenterRange": [
+      235.0,
+      291.5
+    ]
+  },
+  "attack": {
+    "path": "assets\\enemies\\foreman_zombie\\attacking.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "frameCount": 31,
+    "records": [
+      {
+        "frame": 0,
+        "bodyBBox": [
+          213,
+          148,
+          323,
+          413
+        ],
+        "bodyHeight": 265,
+        "bodyWidth": 110,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 1,
+        "bodyBBox": [
+          199,
+          151,
+          329,
+          413
+        ],
+        "bodyHeight": 262,
+        "bodyWidth": 130,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 2,
+        "bodyBBox": [
+          167,
+          156,
+          339,
+          413
+        ],
+        "bodyHeight": 257,
+        "bodyWidth": 172,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 3,
+        "bodyBBox": [
+          170,
+          163,
+          353,
+          413
+        ],
+        "bodyHeight": 250,
+        "bodyWidth": 183,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 4,
+        "bodyBBox": [
+          126,
+          166,
+          360,
+          413
+        ],
+        "bodyHeight": 247,
+        "bodyWidth": 234,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 5,
+        "bodyBBox": [
+          142,
+          167,
+          359,
+          413
+        ],
+        "bodyHeight": 246,
+        "bodyWidth": 217,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 6,
+        "bodyBBox": [
+          131,
+          168,
+          361,
+          413
+        ],
+        "bodyHeight": 245,
+        "bodyWidth": 230,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 7,
+        "bodyBBox": [
+          128,
+          168,
+          362,
+          413
+        ],
+        "bodyHeight": 245,
+        "bodyWidth": 234,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 8,
+        "bodyBBox": [
+          129,
+          167,
+          362,
+          413
+        ],
+        "bodyHeight": 246,
+        "bodyWidth": 233,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 9,
+        "bodyBBox": [
+          136,
+          164,
+          371,
+          413
+        ],
+        "bodyHeight": 249,
+        "bodyWidth": 235,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 10,
+        "bodyBBox": [
+          175,
+          161,
+          355,
+          413
+        ],
+        "bodyHeight": 252,
+        "bodyWidth": 180,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 11,
+        "bodyBBox": [
+          210,
+          161,
+          331,
+          413
+        ],
+        "bodyHeight": 252,
+        "bodyWidth": 121,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 12,
+        "bodyBBox": [
+          224,
+          163,
+          326,
+          413
+        ],
+        "bodyHeight": 250,
+        "bodyWidth": 102,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 13,
+        "bodyBBox": [
+          225,
+          166,
+          396,
+          413
+        ],
+        "bodyHeight": 247,
+        "bodyWidth": 171,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 14,
+        "bodyBBox": [
+          225,
+          167,
+          421,
+          413
+        ],
+        "bodyHeight": 246,
+        "bodyWidth": 196,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 15,
+        "bodyBBox": [
+          226,
+          169,
+          412,
+          413
+        ],
+        "bodyHeight": 244,
+        "bodyWidth": 186,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 16,
+        "bodyBBox": [
+          226,
+          170,
+          415,
+          413
+        ],
+        "bodyHeight": 243,
+        "bodyWidth": 189,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 17,
+        "bodyBBox": [
+          223,
+          171,
+          417,
+          413
+        ],
+        "bodyHeight": 242,
+        "bodyWidth": 194,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 18,
+        "bodyBBox": [
+          218,
+          172,
+          419,
+          413
+        ],
+        "bodyHeight": 241,
+        "bodyWidth": 201,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 19,
+        "bodyBBox": [
+          225,
+          169,
+          408,
+          413
+        ],
+        "bodyHeight": 244,
+        "bodyWidth": 183,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 20,
+        "bodyBBox": [
+          224,
+          167,
+          395,
+          413
+        ],
+        "bodyHeight": 246,
+        "bodyWidth": 171,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 21,
+        "bodyBBox": [
+          223,
+          164,
+          380,
+          413
+        ],
+        "bodyHeight": 249,
+        "bodyWidth": 157,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 22,
+        "bodyBBox": [
+          222,
+          160,
+          355,
+          413
+        ],
+        "bodyHeight": 253,
+        "bodyWidth": 133,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 23,
+        "bodyBBox": [
+          222,
+          157,
+          329,
+          413
+        ],
+        "bodyHeight": 256,
+        "bodyWidth": 107,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 24,
+        "bodyBBox": [
+          222,
+          153,
+          317,
+          413
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 95,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 25,
+        "bodyBBox": [
+          220,
+          151,
+          328,
+          413
+        ],
+        "bodyHeight": 262,
+        "bodyWidth": 108,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 26,
+        "bodyBBox": [
+          213,
+          148,
+          340,
+          413
+        ],
+        "bodyHeight": 265,
+        "bodyWidth": 127,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 27,
+        "bodyBBox": [
+          211,
+          147,
+          342,
+          413
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 131,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 28,
+        "bodyBBox": [
+          210,
+          147,
+          344,
+          413
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 134,
+        "footBandCenterX": 256.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 29,
+        "bodyBBox": [
+          210,
+          147,
+          344,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 134,
+        "footBandCenterX": 258.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 30,
+        "bodyBBox": [
+          211,
+          147,
+          347,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 136,
+        "footBandCenterX": 258.0,
+        "footBottom": 414
+      }
+    ],
+    "bodyHeightRange": [
+      241,
+      267
+    ],
+    "footBottomRange": [
+      413,
+      414
+    ],
+    "footCenterRange": [
+      256.0,
+      258.0
+    ]
+  },
+  "howl": {
+    "path": "assets\\enemies\\foreman_zombie\\howling.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "frameCount": 24,
+    "records": [
+      {
+        "frame": 0,
+        "bodyBBox": [
+          210,
+          147,
+          343,
+          413
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 133,
+        "footBandCenterX": 258.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 1,
+        "bodyBBox": [
+          211,
+          147,
+          347,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 136,
+        "footBandCenterX": 257.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 2,
+        "bodyBBox": [
+          210,
+          147,
+          350,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 140,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 3,
+        "bodyBBox": [
+          209,
+          147,
+          355,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 146,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 4,
+        "bodyBBox": [
+          208,
+          148,
+          360,
+          414
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 152,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 5,
+        "bodyBBox": [
+          206,
+          149,
+          361,
+          414
+        ],
+        "bodyHeight": 265,
+        "bodyWidth": 155,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 6,
+        "bodyBBox": [
+          204,
+          148,
+          358,
+          414
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 154,
+        "footBandCenterX": 256.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 7,
+        "bodyBBox": [
+          202,
+          146,
+          349,
+          415
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 147,
+        "footBandCenterX": 257.5,
+        "footBottom": 415
+      },
+      {
+        "frame": 8,
+        "bodyBBox": [
+          200,
+          146,
+          340,
+          415
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 140,
+        "footBandCenterX": 257.5,
+        "footBottom": 415
+      },
+      {
+        "frame": 9,
+        "bodyBBox": [
+          199,
+          145,
+          333,
+          415
+        ],
+        "bodyHeight": 270,
+        "bodyWidth": 134,
+        "footBandCenterX": 256.5,
+        "footBottom": 415
+      },
+      {
+        "frame": 10,
+        "bodyBBox": [
+          198,
+          141,
+          330,
+          414
+        ],
+        "bodyHeight": 273,
+        "bodyWidth": 132,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 11,
+        "bodyBBox": [
+          198,
+          138,
+          329,
+          414
+        ],
+        "bodyHeight": 276,
+        "bodyWidth": 131,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 12,
+        "bodyBBox": [
+          197,
+          136,
+          328,
+          414
+        ],
+        "bodyHeight": 278,
+        "bodyWidth": 131,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 13,
+        "bodyBBox": [
+          197,
+          133,
+          327,
+          414
+        ],
+        "bodyHeight": 281,
+        "bodyWidth": 130,
+        "footBandCenterX": 256.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 14,
+        "bodyBBox": [
+          196,
+          134,
+          326,
+          414
+        ],
+        "bodyHeight": 280,
+        "bodyWidth": 130,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 15,
+        "bodyBBox": [
+          197,
+          141,
+          332,
+          414
+        ],
+        "bodyHeight": 273,
+        "bodyWidth": 135,
+        "footBandCenterX": 256.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 16,
+        "bodyBBox": [
+          198,
+          145,
+          338,
+          414
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 140,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 17,
+        "bodyBBox": [
+          200,
+          145,
+          346,
+          414
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 146,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 18,
+        "bodyBBox": [
+          203,
+          144,
+          356,
+          414
+        ],
+        "bodyHeight": 270,
+        "bodyWidth": 153,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 19,
+        "bodyBBox": [
+          205,
+          145,
+          357,
+          414
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 152,
+        "footBandCenterX": 257.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 20,
+        "bodyBBox": [
+          208,
+          146,
+          346,
+          414
+        ],
+        "bodyHeight": 268,
+        "bodyWidth": 138,
+        "footBandCenterX": 256.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 21,
+        "bodyBBox": [
+          210,
+          146,
+          324,
+          414
+        ],
+        "bodyHeight": 268,
+        "bodyWidth": 114,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 22,
+        "bodyBBox": [
+          211,
+          147,
+          311,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 100,
+        "footBandCenterX": 256.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 23,
+        "bodyBBox": [
+          210,
+          147,
+          310,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 100,
+        "footBandCenterX": 257.0,
+        "footBottom": 414
+      }
+    ],
+    "bodyHeightRange": [
+      265,
+      281
+    ],
+    "footBottomRange": [
+      413,
+      415
+    ],
+    "footCenterRange": [
+      256.5,
+      258.5
+    ]
+  },
+  "death": {
+    "path": "assets\\enemies\\foreman_zombie\\dying.png",
+    "frameWidth": 512,
+    "frameHeight": 512,
+    "frameCount": 14,
+    "records": [
+      {
+        "frame": 0,
+        "bodyBBox": [
+          207,
+          147,
+          313,
+          414
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 106,
+        "footBandCenterX": 257.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 1,
+        "bodyBBox": [
+          200,
+          148,
+          313,
+          414
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 113,
+        "footBandCenterX": 257.5,
+        "footBottom": 414
+      },
+      {
+        "frame": 2,
+        "bodyBBox": [
+          182,
+          153,
+          308,
+          413
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 126,
+        "footBandCenterX": 257.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 3,
+        "bodyBBox": [
+          163,
+          162,
+          295,
+          413
+        ],
+        "bodyHeight": 251,
+        "bodyWidth": 132,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 4,
+        "bodyBBox": [
+          143,
+          178,
+          299,
+          413
+        ],
+        "bodyHeight": 235,
+        "bodyWidth": 156,
+        "footBandCenterX": 256.5,
+        "footBottom": 413
+      },
+      {
+        "frame": 5,
+        "bodyBBox": [
+          122,
+          206,
+          296,
+          413
+        ],
+        "bodyHeight": 207,
+        "bodyWidth": 174,
+        "footBandCenterX": 260.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 6,
+        "bodyBBox": [
+          102,
+          248,
+          301,
+          411
+        ],
+        "bodyHeight": 163,
+        "bodyWidth": 199,
+        "footBandCenterX": 274.0,
+        "footBottom": 411
+      },
+      {
+        "frame": 7,
+        "bodyBBox": [
+          79,
+          289,
+          304,
+          404
+        ],
+        "bodyHeight": 115,
+        "bodyWidth": 225,
+        "footBandCenterX": 181.5,
+        "footBottom": 404
+      },
+      {
+        "frame": 8,
+        "bodyBBox": [
+          65,
+          307,
+          299,
+          411
+        ],
+        "bodyHeight": 104,
+        "bodyWidth": 234,
+        "footBandCenterX": 160.5,
+        "footBottom": 411
+      },
+      {
+        "frame": 9,
+        "bodyBBox": [
+          56,
+          320,
+          302,
+          413
+        ],
+        "bodyHeight": 93,
+        "bodyWidth": 246,
+        "footBandCenterX": 158.0,
+        "footBottom": 413
+      },
+      {
+        "frame": 10,
+        "bodyBBox": [
+          52,
+          320,
+          307,
+          412
+        ],
+        "bodyHeight": 92,
+        "bodyWidth": 255,
+        "footBandCenterX": 201.5,
+        "footBottom": 412
+      },
+      {
+        "frame": 11,
+        "bodyBBox": [
+          52,
+          322,
+          309,
+          412
+        ],
+        "bodyHeight": 90,
+        "bodyWidth": 257,
+        "footBandCenterX": 202.5,
+        "footBottom": 412
+      },
+      {
+        "frame": 12,
+        "bodyBBox": [
+          52,
+          325,
+          309,
+          414
+        ],
+        "bodyHeight": 89,
+        "bodyWidth": 257,
+        "footBandCenterX": 204.0,
+        "footBottom": 414
+      },
+      {
+        "frame": 13,
+        "bodyBBox": [
+          52,
+          325,
+          310,
+          416
+        ],
+        "bodyHeight": 91,
+        "bodyWidth": 258,
+        "footBandCenterX": 207.0,
+        "footBottom": 416
+      }
+    ],
+    "bodyHeightRange": [
+      89,
+      267
+    ],
+    "footBottomRange": [
+      404,
+      416
+    ],
+    "footCenterRange": [
+      158.0,
+      274.0
+    ]
+  },
+  "candidate": {
+    "path": "tools\\ai-gen\\_foreman_whip_doubao_20260831\\sheets\\foreman-whip-hybrid-candidate.png",
+    "frameWidth": 672,
+    "frameHeight": 352,
+    "frameCount": 61,
+    "records": [
+      {
+        "frame": 0,
+        "bodyBBox": [
+          265,
+          43,
+          408,
+          312
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 143,
+        "footBandCenterX": 300.5,
+        "footBottom": 312
+      },
+      {
+        "frame": 1,
+        "bodyBBox": [
+          264,
+          45,
+          395,
+          313
+        ],
+        "bodyHeight": 268,
+        "bodyWidth": 131,
+        "footBandCenterX": 302.0,
+        "footBottom": 313
+      },
+      {
+        "frame": 2,
+        "bodyBBox": [
+          262,
+          46,
+          383,
+          314
+        ],
+        "bodyHeight": 268,
+        "bodyWidth": 121,
+        "footBandCenterX": 303.0,
+        "footBottom": 314
+      },
+      {
+        "frame": 3,
+        "bodyBBox": [
+          260,
+          48,
+          401,
+          314
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 141,
+        "footBandCenterX": 303.0,
+        "footBottom": 314
+      },
+      {
+        "frame": 4,
+        "bodyBBox": [
+          249,
+          51,
+          416,
+          314
+        ],
+        "bodyHeight": 263,
+        "bodyWidth": 167,
+        "footBandCenterX": 303.0,
+        "footBottom": 314
+      },
+      {
+        "frame": 5,
+        "bodyBBox": [
+          241,
+          54,
+          422,
+          314
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 181,
+        "footBandCenterX": 304.0,
+        "footBottom": 314
+      },
+      {
+        "frame": 6,
+        "bodyBBox": [
+          198,
+          56,
+          428,
+          314
+        ],
+        "bodyHeight": 258,
+        "bodyWidth": 230,
+        "footBandCenterX": 304.5,
+        "footBottom": 314
+      },
+      {
+        "frame": 7,
+        "bodyBBox": [
+          197,
+          57,
+          425,
+          314
+        ],
+        "bodyHeight": 257,
+        "bodyWidth": 228,
+        "footBandCenterX": 303.5,
+        "footBottom": 314
+      },
+      {
+        "frame": 8,
+        "bodyBBox": [
+          190,
+          58,
+          421,
+          314
+        ],
+        "bodyHeight": 256,
+        "bodyWidth": 231,
+        "footBandCenterX": 320.5,
+        "footBottom": 314
+      },
+      {
+        "frame": 9,
+        "bodyBBox": [
+          202,
+          58,
+          421,
+          314
+        ],
+        "bodyHeight": 256,
+        "bodyWidth": 219,
+        "footBandCenterX": 305.0,
+        "footBottom": 314
+      },
+      {
+        "frame": 10,
+        "bodyBBox": [
+          207,
+          59,
+          421,
+          314
+        ],
+        "bodyHeight": 255,
+        "bodyWidth": 214,
+        "footBandCenterX": 301.0,
+        "footBottom": 314
+      },
+      {
+        "frame": 11,
+        "bodyBBox": [
+          210,
+          58,
+          421,
+          314
+        ],
+        "bodyHeight": 256,
+        "bodyWidth": 211,
+        "footBandCenterX": 301.0,
+        "footBottom": 314
+      },
+      {
+        "frame": 12,
+        "bodyBBox": [
+          206,
+          58,
+          421,
+          314
+        ],
+        "bodyHeight": 256,
+        "bodyWidth": 215,
+        "footBandCenterX": 300.5,
+        "footBottom": 314
+      },
+      {
+        "frame": 13,
+        "bodyBBox": [
+          201,
+          57,
+          423,
+          314
+        ],
+        "bodyHeight": 257,
+        "bodyWidth": 222,
+        "footBandCenterX": 299.5,
+        "footBottom": 314
+      },
+      {
+        "frame": 14,
+        "bodyBBox": [
+          200,
+          56,
+          426,
+          314
+        ],
+        "bodyHeight": 258,
+        "bodyWidth": 226,
+        "footBandCenterX": 299.5,
+        "footBottom": 314
+      },
+      {
+        "frame": 15,
+        "bodyBBox": [
+          194,
+          55,
+          435,
+          315
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 241,
+        "footBandCenterX": 299.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 16,
+        "bodyBBox": [
+          190,
+          53,
+          447,
+          315
+        ],
+        "bodyHeight": 262,
+        "bodyWidth": 257,
+        "footBandCenterX": 299.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 17,
+        "bodyBBox": [
+          186,
+          51,
+          460,
+          315
+        ],
+        "bodyHeight": 264,
+        "bodyWidth": 274,
+        "footBandCenterX": 299.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 18,
+        "bodyBBox": [
+          181,
+          49,
+          473,
+          315
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 292,
+        "footBandCenterX": 299.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 19,
+        "bodyBBox": [
+          185,
+          47,
+          475,
+          315
+        ],
+        "bodyHeight": 268,
+        "bodyWidth": 290,
+        "footBandCenterX": 299.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 20,
+        "bodyBBox": [
+          195,
+          45,
+          476,
+          315
+        ],
+        "bodyHeight": 270,
+        "bodyWidth": 281,
+        "footBandCenterX": 299.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 21,
+        "bodyBBox": [
+          205,
+          40,
+          470,
+          315
+        ],
+        "bodyHeight": 275,
+        "bodyWidth": 265,
+        "footBandCenterX": 298.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 22,
+        "bodyBBox": [
+          213,
+          37,
+          463,
+          315
+        ],
+        "bodyHeight": 278,
+        "bodyWidth": 250,
+        "footBandCenterX": 298.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 23,
+        "bodyBBox": [
+          223,
+          30,
+          453,
+          315
+        ],
+        "bodyHeight": 285,
+        "bodyWidth": 230,
+        "footBandCenterX": 298.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 24,
+        "bodyBBox": [
+          250,
+          25,
+          425,
+          315
+        ],
+        "bodyHeight": 290,
+        "bodyWidth": 175,
+        "footBandCenterX": 297.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 25,
+        "bodyBBox": [
+          250,
+          25,
+          425,
+          315
+        ],
+        "bodyHeight": 290,
+        "bodyWidth": 175,
+        "footBandCenterX": 297.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 26,
+        "bodyBBox": [
+          275,
+          24,
+          407,
+          315
+        ],
+        "bodyHeight": 291,
+        "bodyWidth": 132,
+        "footBandCenterX": 297.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 27,
+        "bodyBBox": [
+          274,
+          32,
+          426,
+          315
+        ],
+        "bodyHeight": 283,
+        "bodyWidth": 152,
+        "footBandCenterX": 296.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 28,
+        "bodyBBox": [
+          274,
+          33,
+          426,
+          315
+        ],
+        "bodyHeight": 282,
+        "bodyWidth": 152,
+        "footBandCenterX": 296.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 29,
+        "bodyBBox": [
+          265,
+          45,
+          472,
+          315
+        ],
+        "bodyHeight": 270,
+        "bodyWidth": 207,
+        "footBandCenterX": 296.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 30,
+        "bodyBBox": [
+          251,
+          47,
+          497,
+          316
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 246,
+        "footBandCenterX": 295.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 31,
+        "bodyBBox": [
+          250,
+          47,
+          495,
+          316
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 245,
+        "footBandCenterX": 295.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 32,
+        "bodyBBox": [
+          247,
+          47,
+          493,
+          316
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 246,
+        "footBandCenterX": 295.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 33,
+        "bodyBBox": [
+          242,
+          48,
+          493,
+          316
+        ],
+        "bodyHeight": 268,
+        "bodyWidth": 251,
+        "footBandCenterX": 295.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 34,
+        "bodyBBox": [
+          237,
+          49,
+          491,
+          316
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 254,
+        "footBandCenterX": 295.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 35,
+        "bodyBBox": [
+          232,
+          50,
+          489,
+          316
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 257,
+        "footBandCenterX": 295.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 36,
+        "bodyBBox": [
+          227,
+          51,
+          486,
+          316
+        ],
+        "bodyHeight": 265,
+        "bodyWidth": 259,
+        "footBandCenterX": 295.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 37,
+        "bodyBBox": [
+          222,
+          52,
+          484,
+          316
+        ],
+        "bodyHeight": 264,
+        "bodyWidth": 262,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 38,
+        "bodyBBox": [
+          216,
+          53,
+          482,
+          316
+        ],
+        "bodyHeight": 263,
+        "bodyWidth": 266,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 39,
+        "bodyBBox": [
+          214,
+          54,
+          480,
+          316
+        ],
+        "bodyHeight": 262,
+        "bodyWidth": 266,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 40,
+        "bodyBBox": [
+          213,
+          55,
+          478,
+          316
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 265,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 41,
+        "bodyBBox": [
+          213,
+          56,
+          470,
+          316
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 257,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 42,
+        "bodyBBox": [
+          213,
+          56,
+          475,
+          316
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 262,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 43,
+        "bodyBBox": [
+          214,
+          56,
+          468,
+          316
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 254,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 44,
+        "bodyBBox": [
+          215,
+          56,
+          468,
+          316
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 253,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 45,
+        "bodyBBox": [
+          216,
+          56,
+          467,
+          316
+        ],
+        "bodyHeight": 260,
+        "bodyWidth": 251,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 46,
+        "bodyBBox": [
+          218,
+          55,
+          467,
+          316
+        ],
+        "bodyHeight": 261,
+        "bodyWidth": 249,
+        "footBandCenterX": 295.0,
+        "footBottom": 316
+      },
+      {
+        "frame": 47,
+        "bodyBBox": [
+          219,
+          54,
+          468,
+          316
+        ],
+        "bodyHeight": 262,
+        "bodyWidth": 249,
+        "footBandCenterX": 294.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 48,
+        "bodyBBox": [
+          221,
+          53,
+          471,
+          316
+        ],
+        "bodyHeight": 263,
+        "bodyWidth": 250,
+        "footBandCenterX": 294.5,
+        "footBottom": 316
+      },
+      {
+        "frame": 49,
+        "bodyBBox": [
+          223,
+          51,
+          466,
+          315
+        ],
+        "bodyHeight": 264,
+        "bodyWidth": 243,
+        "footBandCenterX": 294.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 50,
+        "bodyBBox": [
+          224,
+          50,
+          471,
+          315
+        ],
+        "bodyHeight": 265,
+        "bodyWidth": 247,
+        "footBandCenterX": 293.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 51,
+        "bodyBBox": [
+          226,
+          49,
+          471,
+          315
+        ],
+        "bodyHeight": 266,
+        "bodyWidth": 245,
+        "footBandCenterX": 293.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 52,
+        "bodyBBox": [
+          227,
+          48,
+          468,
+          315
+        ],
+        "bodyHeight": 267,
+        "bodyWidth": 241,
+        "footBandCenterX": 293.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 53,
+        "bodyBBox": [
+          228,
+          47,
+          465,
+          315
+        ],
+        "bodyHeight": 268,
+        "bodyWidth": 237,
+        "footBandCenterX": 293.5,
+        "footBottom": 315
+      },
+      {
+        "frame": 54,
+        "bodyBBox": [
+          230,
+          46,
+          465,
+          315
+        ],
+        "bodyHeight": 269,
+        "bodyWidth": 235,
+        "footBandCenterX": 293.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 55,
+        "bodyBBox": [
+          231,
+          44,
+          462,
+          315
+        ],
+        "bodyHeight": 271,
+        "bodyWidth": 231,
+        "footBandCenterX": 293.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 56,
+        "bodyBBox": [
+          233,
+          43,
+          462,
+          315
+        ],
+        "bodyHeight": 272,
+        "bodyWidth": 229,
+        "footBandCenterX": 293.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 57,
+        "bodyBBox": [
+          235,
+          42,
+          462,
+          315
+        ],
+        "bodyHeight": 273,
+        "bodyWidth": 227,
+        "footBandCenterX": 293.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 58,
+        "bodyBBox": [
+          236,
+          41,
+          460,
+          315
+        ],
+        "bodyHeight": 274,
+        "bodyWidth": 224,
+        "footBandCenterX": 293.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 59,
+        "bodyBBox": [
+          237,
+          41,
+          461,
+          315
+        ],
+        "bodyHeight": 274,
+        "bodyWidth": 224,
+        "footBandCenterX": 293.0,
+        "footBottom": 315
+      },
+      {
+        "frame": 60,
+        "bodyBBox": [
+          238,
+          40,
+          460,
+          315
+        ],
+        "bodyHeight": 275,
+        "bodyWidth": 222,
+        "footBandCenterX": 293.0,
+        "footBottom": 315
+      }
+    ],
+    "bodyHeightRange": [
+      255,
+      291
+    ],
+    "footBottomRange": [
+      312,
+      316
+    ],
+    "footCenterRange": [
+      293.0,
+      320.5
+    ]
+  }
+}

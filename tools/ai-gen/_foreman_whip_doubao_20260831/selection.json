@@ -1,0 +1,32 @@
+{
+  "status": "runtime_integrated_user_validation_pending",
+  "character": "foremanZombie",
+  "provider": "Doubao Seedance 2.0 Mini",
+  "composition": "Doubao body poses plus an independently authored fixed-length whip; not the original AI whip",
+  "selectedSource": "videos/whip-v04.mp4",
+  "sourceProvenance": "videos/whip-v04.mp4.json",
+  "finalSheet": "../../../assets/enemies/foreman_zombie/attacking_doubao_body.png",
+  "finalPreview": "previews/foreman-whip-runtime-directions.gif",
+  "manifest": "runtime-manifest.json",
+  "alignmentContract": "alignment-integration-contract.json",
+  "alignmentProof": "previews/foreman-whip-runtime-eight-directions.png",
+  "alignmentStatus": "Fixed body scale and foot root; independent directional whip; shared action clock. Offline evidence only, no runtime acceptance.",
+  "rejectedSources": {
+    "videos/whip-v01.mp4": "camera enlargement and edge clipping",
+    "videos/whip-v02.mp4": "overhead whip still clips",
+    "videos/whip-v03.mp4": "frame 46 tip touches right edge",
+    "videos/whip-v04.mp4": "raw whip rejected because of excessive length and trail; body only selected"
+  },
+  "rejectedIntermediateSheets": [
+    "sheets/whip-v04-base.png",
+    "sheets/whip-v04-optimized-base.png"
+  ],
+  "runtimeFilesChanged": true,
+  "runtimeValidationPerformed": false,
+  "pending": [
+    "User runtime review: eight directions, target moving behind, control interruption/release, walls/fog/viewport edge, death and scene exit.",
+    "Short opacity idle crossfade may show a brief double silhouette; it is not generated skeletal in-between motion."
+  ],
+  "retiredBakedReference": "sheets/foreman-whip-hybrid-candidate.png; recoverable archive, see cleanup-manifest.json",
+  "rejectedSourceStorage": "Rejected v01-v03 MP4s retired to ignored trash; provenance and reasons retained; v04 selected body source remains active."
+}

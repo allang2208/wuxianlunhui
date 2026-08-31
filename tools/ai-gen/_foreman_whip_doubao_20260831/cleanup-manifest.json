@@ -1,0 +1,350 @@
+{
+  "date": "2026-08-31",
+  "status": "moved_recoverable",
+  "fileCount": 57,
+  "totalBytes": 51331316,
+  "files": [
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/before-integration/data/enemy-config.json",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/before-integration/data/enemy-config.json",
+      "bytes": 267559,
+      "reason": "安装前整文件备份包含其他任务内容；当前代码不变，不纳入本次提交"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/before-integration/public/data/enemy-config.json",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/before-integration/public/data/enemy-config.json",
+      "bytes": 267559,
+      "reason": "安装前整文件备份包含其他任务内容；当前代码不变，不纳入本次提交"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/before-integration/src/entities/enemy-types/foreman-zombie.js",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/before-integration/src/entities/enemy-types/foreman-zombie.js",
+      "bytes": 20748,
+      "reason": "安装前整文件备份包含其他任务内容；当前代码不变，不纳入本次提交"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/before-integration/src/phaser/scenes/BootScene.js",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/before-integration/src/phaser/scenes/BootScene.js",
+      "bytes": 175142,
+      "reason": "安装前整文件备份包含其他任务内容；当前代码不变，不纳入本次提交"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/before-integration/src/phaser/scenes/GameScene.js",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/before-integration/src/phaser/scenes/GameScene.js",
+      "bytes": 728897,
+      "reason": "安装前整文件备份包含其他任务内容；当前代码不变，不纳入本次提交"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0000.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0000.png",
+      "bytes": 43773,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0009.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0009.png",
+      "bytes": 53030,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0018.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0018.png",
+      "bytes": 61829,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0027.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0027.png",
+      "bytes": 63268,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0033.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0033.png",
+      "bytes": 63015,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0038.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0038.png",
+      "bytes": 61289,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0042.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0042.png",
+      "bytes": 54614,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0044.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0044.png",
+      "bytes": 52978,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0047.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0047.png",
+      "bytes": 68734,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0049.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0049.png",
+      "bytes": 59231,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0053.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0053.png",
+      "bytes": 60441,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0059.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0059.png",
+      "bytes": 63498,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0066.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0066.png",
+      "bytes": 64319,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0073.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0073.png",
+      "bytes": 64068,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0080.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0080.png",
+      "bytes": 65237,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0088.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/cutout-cache/whip-v04/0088.png",
+      "bytes": 62751,
+      "reason": "未优化抠图缓存；实际采用的optimized输入另行保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/foreman-whip-hybrid-1500ms.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/foreman-whip-hybrid-1500ms.gif",
+      "bytes": 2467007,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/foreman-whip-hybrid-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/foreman-whip-hybrid-contact.png",
+      "bytes": 516383,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/hybrid-all-frames.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/hybrid-all-frames.png",
+      "bytes": 1152802,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/hybrid-keyframes-1500ms.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/hybrid-keyframes-1500ms.gif",
+      "bytes": 1371716,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/hybrid-keyframes-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/hybrid-keyframes-contact.png",
+      "bytes": 581098,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v01-source-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v01-source-contact.png",
+      "bytes": 1467557,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v01-source.gif",
+      "bytes": 10714700,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v02-source-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v02-source-contact.png",
+      "bytes": 844547,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v02-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v02-source.gif",
+      "bytes": 6854146,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f000.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f000.png",
+      "bytes": 68850,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f040.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f040.png",
+      "bytes": 85909,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f044.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f044.png",
+      "bytes": 89142,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f048.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f048.png",
+      "bytes": 91542,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f049.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f049.png",
+      "bytes": 93122,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f050.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f050.png",
+      "bytes": 94131,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f053.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f053.png",
+      "bytes": 93419,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-f080.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-f080.png",
+      "bytes": 85440,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-matte-study-checker.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-matte-study-checker.png",
+      "bytes": 58743,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-matte-study.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-matte-study.png",
+      "bytes": 68651,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-release-detail.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-release-detail.png",
+      "bytes": 288505,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-source-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-source-contact.png",
+      "bytes": 556944,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v03-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v03-source.gif",
+      "bytes": 5389516,
+      "reason": "已拒绝v01-v03视频的派生预览"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v04-keyframes-1500ms.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v04-keyframes-1500ms.gif",
+      "bytes": 723164,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v04-optimized-keyframes-1500ms.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v04-optimized-keyframes-1500ms.gif",
+      "bytes": 722808,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/whip-v04-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/whip-v04-source.gif",
+      "bytes": 4370414,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/rife-body/foreman-whip-hybrid-body-interpolated-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/rife-body/foreman-whip-hybrid-body-interpolated-contact.png",
+      "bytes": 259585,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/previews/rife-body/foreman-whip-hybrid-body-interpolated.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/previews/rife-body/foreman-whip-hybrid-body-interpolated.gif",
+      "bytes": 888379,
+      "reason": "历史烘焙/插帧中间预览；当前方向与接触预览保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/sheets/foreman-whip-hybrid-candidate.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/sheets/foreman-whip-hybrid-candidate.png",
+      "bytes": 4398493,
+      "reason": "已替代的带鞭烘焙候选；当前人体表、独立鞭数据及真实生产输入保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/sheets/whip-v04-base.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/sheets/whip-v04-base.png",
+      "bytes": 1346181,
+      "reason": "已替代的带鞭烘焙候选；当前人体表、独立鞭数据及真实生产输入保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/sheets/whip-v04-optimized-base.png",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/sheets/whip-v04-optimized-base.png",
+      "bytes": 1345095,
+      "reason": "已替代的带鞭烘焙候选；当前人体表、独立鞭数据及真实生产输入保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/videos/whip-v01.mp4",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/videos/whip-v01.mp4",
+      "bytes": 837769,
+      "reason": "已拒绝的越框或错误镜头视频；提示词、来源与失败原因保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/videos/whip-v02.mp4",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/videos/whip-v02.mp4",
+      "bytes": 608897,
+      "reason": "已拒绝的越框或错误镜头视频；提示词、来源与失败原因保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/videos/whip-v03.mp4",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/videos/whip-v03.mp4",
+      "bytes": 316446,
+      "reason": "已拒绝的越框或错误镜头视频；提示词、来源与失败原因保留"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/__pycache__/build-candidate.cpython-311.pyc",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/__pycache__/build-candidate.cpython-311.pyc",
+      "bytes": 21475,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/__pycache__/build-hybrid.cpython-311.pyc",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/__pycache__/build-hybrid.cpython-311.pyc",
+      "bytes": 27872,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_foreman_whip_doubao_20260831/__pycache__/whip-length.cpython-311.pyc",
+      "destination": "tools/.trash-animation-publication-20260831/_foreman_whip_doubao_20260831/__pycache__/whip-length.cpython-311.pyc",
+      "bytes": 8888,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    }
+  ]
+}

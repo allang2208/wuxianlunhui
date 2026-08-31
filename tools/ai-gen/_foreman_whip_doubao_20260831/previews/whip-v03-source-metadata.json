@@ -1,0 +1,1222 @@
+{
+  "video": "tools\\ai-gen\\_foreman_whip_doubao_20260831\\videos\\whip-v03.mp4",
+  "fps": 24.0,
+  "frameCount": 121,
+  "size": [
+    960,
+    720
+  ],
+  "note": "RGB component bounds are a review aid only; inspect thin whip and original video visually before cutout.",
+  "frames": [
+    {
+      "frame": 0,
+      "bodyAndConnectedWhipProxyBBox": [
+        306,
+        227,
+        436,
+        479
+      ],
+      "area": 17764
+    },
+    {
+      "frame": 1,
+      "bodyAndConnectedWhipProxyBBox": [
+        306,
+        227,
+        436,
+        479
+      ],
+      "area": 17825
+    },
+    {
+      "frame": 2,
+      "bodyAndConnectedWhipProxyBBox": [
+        308,
+        227,
+        435,
+        479
+      ],
+      "area": 17848
+    },
+    {
+      "frame": 3,
+      "bodyAndConnectedWhipProxyBBox": [
+        308,
+        227,
+        435,
+        479
+      ],
+      "area": 17866
+    },
+    {
+      "frame": 4,
+      "bodyAndConnectedWhipProxyBBox": [
+        308,
+        227,
+        435,
+        479
+      ],
+      "area": 17866
+    },
+    {
+      "frame": 5,
+      "bodyAndConnectedWhipProxyBBox": [
+        306,
+        227,
+        435,
+        479
+      ],
+      "area": 17915
+    },
+    {
+      "frame": 6,
+      "bodyAndConnectedWhipProxyBBox": [
+        306,
+        227,
+        435,
+        479
+      ],
+      "area": 17936
+    },
+    {
+      "frame": 7,
+      "bodyAndConnectedWhipProxyBBox": [
+        306,
+        227,
+        435,
+        479
+      ],
+      "area": 17941
+    },
+    {
+      "frame": 8,
+      "bodyAndConnectedWhipProxyBBox": [
+        306,
+        227,
+        435,
+        479
+      ],
+      "area": 17968
+    },
+    {
+      "frame": 9,
+      "bodyAndConnectedWhipProxyBBox": [
+        306,
+        227,
+        438,
+        479
+      ],
+      "area": 18026
+    },
+    {
+      "frame": 10,
+      "bodyAndConnectedWhipProxyBBox": [
+        291,
+        227,
+        440,
+        479
+      ],
+      "area": 18370
+    },
+    {
+      "frame": 11,
+      "bodyAndConnectedWhipProxyBBox": [
+        290,
+        228,
+        440,
+        479
+      ],
+      "area": 19165
+    },
+    {
+      "frame": 12,
+      "bodyAndConnectedWhipProxyBBox": [
+        302,
+        228,
+        441,
+        479
+      ],
+      "area": 19030
+    },
+    {
+      "frame": 13,
+      "bodyAndConnectedWhipProxyBBox": [
+        304,
+        229,
+        441,
+        479
+      ],
+      "area": 19685
+    },
+    {
+      "frame": 14,
+      "bodyAndConnectedWhipProxyBBox": [
+        304,
+        230,
+        447,
+        479
+      ],
+      "area": 20364
+    },
+    {
+      "frame": 15,
+      "bodyAndConnectedWhipProxyBBox": [
+        303,
+        231,
+        452,
+        479
+      ],
+      "area": 20859
+    },
+    {
+      "frame": 16,
+      "bodyAndConnectedWhipProxyBBox": [
+        303,
+        232,
+        455,
+        479
+      ],
+      "area": 21156
+    },
+    {
+      "frame": 17,
+      "bodyAndConnectedWhipProxyBBox": [
+        304,
+        233,
+        459,
+        479
+      ],
+      "area": 21418
+    },
+    {
+      "frame": 18,
+      "bodyAndConnectedWhipProxyBBox": [
+        303,
+        234,
+        463,
+        479
+      ],
+      "area": 21510
+    },
+    {
+      "frame": 19,
+      "bodyAndConnectedWhipProxyBBox": [
+        302,
+        234,
+        466,
+        479
+      ],
+      "area": 21702
+    },
+    {
+      "frame": 20,
+      "bodyAndConnectedWhipProxyBBox": [
+        299,
+        235,
+        468,
+        479
+      ],
+      "area": 21820
+    },
+    {
+      "frame": 21,
+      "bodyAndConnectedWhipProxyBBox": [
+        292,
+        235,
+        468,
+        479
+      ],
+      "area": 22003
+    },
+    {
+      "frame": 22,
+      "bodyAndConnectedWhipProxyBBox": [
+        284,
+        235,
+        470,
+        479
+      ],
+      "area": 22198
+    },
+    {
+      "frame": 23,
+      "bodyAndConnectedWhipProxyBBox": [
+        278,
+        234,
+        472,
+        479
+      ],
+      "area": 22389
+    },
+    {
+      "frame": 24,
+      "bodyAndConnectedWhipProxyBBox": [
+        274,
+        234,
+        472,
+        479
+      ],
+      "area": 22315
+    },
+    {
+      "frame": 25,
+      "bodyAndConnectedWhipProxyBBox": [
+        263,
+        234,
+        474,
+        479
+      ],
+      "area": 22390
+    },
+    {
+      "frame": 26,
+      "bodyAndConnectedWhipProxyBBox": [
+        256,
+        234,
+        476,
+        479
+      ],
+      "area": 22428
+    },
+    {
+      "frame": 27,
+      "bodyAndConnectedWhipProxyBBox": [
+        252,
+        234,
+        478,
+        479
+      ],
+      "area": 22459
+    },
+    {
+      "frame": 28,
+      "bodyAndConnectedWhipProxyBBox": [
+        254,
+        233,
+        480,
+        479
+      ],
+      "area": 22462
+    },
+    {
+      "frame": 29,
+      "bodyAndConnectedWhipProxyBBox": [
+        254,
+        232,
+        482,
+        479
+      ],
+      "area": 22317
+    },
+    {
+      "frame": 30,
+      "bodyAndConnectedWhipProxyBBox": [
+        264,
+        231,
+        490,
+        479
+      ],
+      "area": 22161
+    },
+    {
+      "frame": 31,
+      "bodyAndConnectedWhipProxyBBox": [
+        267,
+        230,
+        494,
+        479
+      ],
+      "area": 22269
+    },
+    {
+      "frame": 32,
+      "bodyAndConnectedWhipProxyBBox": [
+        272,
+        226,
+        498,
+        480
+      ],
+      "area": 22321
+    },
+    {
+      "frame": 33,
+      "bodyAndConnectedWhipProxyBBox": [
+        276,
+        219,
+        502,
+        479
+      ],
+      "area": 22487
+    },
+    {
+      "frame": 34,
+      "bodyAndConnectedWhipProxyBBox": [
+        286,
+        216,
+        506,
+        479
+      ],
+      "area": 22635
+    },
+    {
+      "frame": 35,
+      "bodyAndConnectedWhipProxyBBox": [
+        290,
+        214,
+        508,
+        479
+      ],
+      "area": 22678
+    },
+    {
+      "frame": 36,
+      "bodyAndConnectedWhipProxyBBox": [
+        294,
+        214,
+        508,
+        480
+      ],
+      "area": 22720
+    },
+    {
+      "frame": 37,
+      "bodyAndConnectedWhipProxyBBox": [
+        294,
+        214,
+        503,
+        479
+      ],
+      "area": 22471
+    },
+    {
+      "frame": 38,
+      "bodyAndConnectedWhipProxyBBox": [
+        290,
+        212,
+        493,
+        479
+      ],
+      "area": 22033
+    },
+    {
+      "frame": 39,
+      "bodyAndConnectedWhipProxyBBox": [
+        300,
+        212,
+        485,
+        479
+      ],
+      "area": 21385
+    },
+    {
+      "frame": 40,
+      "bodyAndConnectedWhipProxyBBox": [
+        310,
+        212,
+        472,
+        480
+      ],
+      "area": 19943
+    },
+    {
+      "frame": 41,
+      "bodyAndConnectedWhipProxyBBox": [
+        340,
+        222,
+        452,
+        479
+      ],
+      "area": 17529
+    },
+    {
+      "frame": 42,
+      "bodyAndConnectedWhipProxyBBox": [
+        338,
+        232,
+        485,
+        479
+      ],
+      "area": 17325
+    },
+    {
+      "frame": 43,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        231,
+        512,
+        480
+      ],
+      "area": 18271
+    },
+    {
+      "frame": 44,
+      "bodyAndConnectedWhipProxyBBox": [
+        328,
+        232,
+        512,
+        480
+      ],
+      "area": 18480
+    },
+    {
+      "frame": 45,
+      "bodyAndConnectedWhipProxyBBox": [
+        320,
+        234,
+        516,
+        480
+      ],
+      "area": 19129
+    },
+    {
+      "frame": 46,
+      "bodyAndConnectedWhipProxyBBox": [
+        314,
+        234,
+        520,
+        479
+      ],
+      "area": 19822
+    },
+    {
+      "frame": 47,
+      "bodyAndConnectedWhipProxyBBox": [
+        312,
+        234,
+        520,
+        479
+      ],
+      "area": 20192
+    },
+    {
+      "frame": 48,
+      "bodyAndConnectedWhipProxyBBox": [
+        310,
+        236,
+        522,
+        480
+      ],
+      "area": 20267
+    },
+    {
+      "frame": 49,
+      "bodyAndConnectedWhipProxyBBox": [
+        302,
+        236,
+        522,
+        480
+      ],
+      "area": 20416
+    },
+    {
+      "frame": 50,
+      "bodyAndConnectedWhipProxyBBox": [
+        296,
+        236,
+        526,
+        480
+      ],
+      "area": 20503
+    },
+    {
+      "frame": 51,
+      "bodyAndConnectedWhipProxyBBox": [
+        294,
+        236,
+        526,
+        480
+      ],
+      "area": 20577
+    },
+    {
+      "frame": 52,
+      "bodyAndConnectedWhipProxyBBox": [
+        292,
+        236,
+        526,
+        480
+      ],
+      "area": 20616
+    },
+    {
+      "frame": 53,
+      "bodyAndConnectedWhipProxyBBox": [
+        292,
+        236,
+        526,
+        479
+      ],
+      "area": 20624
+    },
+    {
+      "frame": 54,
+      "bodyAndConnectedWhipProxyBBox": [
+        292,
+        236,
+        524,
+        479
+      ],
+      "area": 20557
+    },
+    {
+      "frame": 55,
+      "bodyAndConnectedWhipProxyBBox": [
+        293,
+        236,
+        524,
+        479
+      ],
+      "area": 20524
+    },
+    {
+      "frame": 56,
+      "bodyAndConnectedWhipProxyBBox": [
+        294,
+        236,
+        524,
+        480
+      ],
+      "area": 20501
+    },
+    {
+      "frame": 57,
+      "bodyAndConnectedWhipProxyBBox": [
+        296,
+        236,
+        522,
+        480
+      ],
+      "area": 20422
+    },
+    {
+      "frame": 58,
+      "bodyAndConnectedWhipProxyBBox": [
+        298,
+        235,
+        522,
+        480
+      ],
+      "area": 20279
+    },
+    {
+      "frame": 59,
+      "bodyAndConnectedWhipProxyBBox": [
+        300,
+        234,
+        522,
+        480
+      ],
+      "area": 20214
+    },
+    {
+      "frame": 60,
+      "bodyAndConnectedWhipProxyBBox": [
+        302,
+        234,
+        534,
+        480
+      ],
+      "area": 19963
+    },
+    {
+      "frame": 61,
+      "bodyAndConnectedWhipProxyBBox": [
+        304,
+        234,
+        532,
+        480
+      ],
+      "area": 20107
+    },
+    {
+      "frame": 62,
+      "bodyAndConnectedWhipProxyBBox": [
+        308,
+        233,
+        530,
+        479
+      ],
+      "area": 19915
+    },
+    {
+      "frame": 63,
+      "bodyAndConnectedWhipProxyBBox": [
+        310,
+        233,
+        526,
+        480
+      ],
+      "area": 19880
+    },
+    {
+      "frame": 64,
+      "bodyAndConnectedWhipProxyBBox": [
+        313,
+        232,
+        524,
+        480
+      ],
+      "area": 19725
+    },
+    {
+      "frame": 65,
+      "bodyAndConnectedWhipProxyBBox": [
+        316,
+        232,
+        522,
+        480
+      ],
+      "area": 19670
+    },
+    {
+      "frame": 66,
+      "bodyAndConnectedWhipProxyBBox": [
+        319,
+        231,
+        526,
+        480
+      ],
+      "area": 19486
+    },
+    {
+      "frame": 67,
+      "bodyAndConnectedWhipProxyBBox": [
+        322,
+        230,
+        524,
+        480
+      ],
+      "area": 19207
+    },
+    {
+      "frame": 68,
+      "bodyAndConnectedWhipProxyBBox": [
+        324,
+        230,
+        524,
+        480
+      ],
+      "area": 18985
+    },
+    {
+      "frame": 69,
+      "bodyAndConnectedWhipProxyBBox": [
+        326,
+        230,
+        522,
+        480
+      ],
+      "area": 18792
+    },
+    {
+      "frame": 70,
+      "bodyAndConnectedWhipProxyBBox": [
+        328,
+        229,
+        516,
+        480
+      ],
+      "area": 18376
+    },
+    {
+      "frame": 71,
+      "bodyAndConnectedWhipProxyBBox": [
+        328,
+        228,
+        512,
+        480
+      ],
+      "area": 18252
+    },
+    {
+      "frame": 72,
+      "bodyAndConnectedWhipProxyBBox": [
+        330,
+        228,
+        510,
+        480
+      ],
+      "area": 18067
+    },
+    {
+      "frame": 73,
+      "bodyAndConnectedWhipProxyBBox": [
+        330,
+        228,
+        506,
+        480
+      ],
+      "area": 17924
+    },
+    {
+      "frame": 74,
+      "bodyAndConnectedWhipProxyBBox": [
+        332,
+        228,
+        504,
+        480
+      ],
+      "area": 17755
+    },
+    {
+      "frame": 75,
+      "bodyAndConnectedWhipProxyBBox": [
+        332,
+        228,
+        502,
+        480
+      ],
+      "area": 17589
+    },
+    {
+      "frame": 76,
+      "bodyAndConnectedWhipProxyBBox": [
+        332,
+        228,
+        502,
+        480
+      ],
+      "area": 17503
+    },
+    {
+      "frame": 77,
+      "bodyAndConnectedWhipProxyBBox": [
+        332,
+        228,
+        500,
+        479
+      ],
+      "area": 17468
+    },
+    {
+      "frame": 78,
+      "bodyAndConnectedWhipProxyBBox": [
+        332,
+        228,
+        500,
+        479
+      ],
+      "area": 17441
+    },
+    {
+      "frame": 79,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17404
+    },
+    {
+      "frame": 80,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17379
+    },
+    {
+      "frame": 81,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17271
+    },
+    {
+      "frame": 82,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17214
+    },
+    {
+      "frame": 83,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17187
+    },
+    {
+      "frame": 84,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17180
+    },
+    {
+      "frame": 85,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17169
+    },
+    {
+      "frame": 86,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        479
+      ],
+      "area": 17148
+    },
+    {
+      "frame": 87,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        480
+      ],
+      "area": 17128
+    },
+    {
+      "frame": 88,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        500,
+        480
+      ],
+      "area": 17119
+    },
+    {
+      "frame": 89,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        504,
+        480
+      ],
+      "area": 17124
+    },
+    {
+      "frame": 90,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        504,
+        479
+      ],
+      "area": 17111
+    },
+    {
+      "frame": 91,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        503,
+        479
+      ],
+      "area": 17055
+    },
+    {
+      "frame": 92,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        502,
+        480
+      ],
+      "area": 17070
+    },
+    {
+      "frame": 93,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        510,
+        479
+      ],
+      "area": 17406
+    },
+    {
+      "frame": 94,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17375
+    },
+    {
+      "frame": 95,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17416
+    },
+    {
+      "frame": 96,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17457
+    },
+    {
+      "frame": 97,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        507,
+        479
+      ],
+      "area": 17419
+    },
+    {
+      "frame": 98,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        507,
+        479
+      ],
+      "area": 17385
+    },
+    {
+      "frame": 99,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        507,
+        479
+      ],
+      "area": 17381
+    },
+    {
+      "frame": 100,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        507,
+        479
+      ],
+      "area": 17379
+    },
+    {
+      "frame": 101,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17387
+    },
+    {
+      "frame": 102,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17334
+    },
+    {
+      "frame": 103,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17328
+    },
+    {
+      "frame": 104,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17321
+    },
+    {
+      "frame": 105,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17344
+    },
+    {
+      "frame": 106,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17347
+    },
+    {
+      "frame": 107,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17364
+    },
+    {
+      "frame": 108,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17369
+    },
+    {
+      "frame": 109,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        504,
+        479
+      ],
+      "area": 17160
+    },
+    {
+      "frame": 110,
+      "bodyAndConnectedWhipProxyBBox": [
+        336,
+        228,
+        504,
+        479
+      ],
+      "area": 16910
+    },
+    {
+      "frame": 111,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        504,
+        479
+      ],
+      "area": 17013
+    },
+    {
+      "frame": 112,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        504,
+        479
+      ],
+      "area": 16994
+    },
+    {
+      "frame": 113,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        508,
+        479
+      ],
+      "area": 17258
+    },
+    {
+      "frame": 114,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17165
+    },
+    {
+      "frame": 115,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17190
+    },
+    {
+      "frame": 116,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17182
+    },
+    {
+      "frame": 117,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17216
+    },
+    {
+      "frame": 118,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17210
+    },
+    {
+      "frame": 119,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17203
+    },
+    {
+      "frame": 120,
+      "bodyAndConnectedWhipProxyBBox": [
+        334,
+        228,
+        506,
+        479
+      ],
+      "area": 17216
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+/_rebuild/
+/before-integration/
+/cutout-cache/
+/sheets/foreman-whip-hybrid-candidate.png
+/sheets/whip-v04-base.png
+/sheets/whip-v04-optimized-base.png
+/previews/*-source.gif
+/previews/hybrid-*
+/previews/foreman-whip-hybrid-*
+/previews/rife-body/
+/videos/whip-v01.mp4
+/videos/whip-v02.mp4
+/videos/whip-v03.mp4
+__pycache__/

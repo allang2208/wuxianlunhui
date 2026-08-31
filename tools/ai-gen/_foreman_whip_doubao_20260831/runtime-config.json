@@ -1,0 +1,245 @@
+{
+  "id": "foremanZombie",
+  "name": "僵尸工头",
+  "type": "领主",
+  "category": "monster",
+  "family": "僵尸",
+  "families": [
+    "僵尸",
+    "大型"
+  ],
+  "color": "#6a5a3a",
+  "size": 18,
+  "collisionRadius": 60,
+  "hp": 1600,
+  "maxHp": 1600,
+  "speed": 160,
+  "level": 8,
+  "rank": "lord",
+  "str": 66,
+  "dex": 23,
+  "int": 10,
+  "con": 45,
+  "wis": 16,
+  "luck": 33,
+  "attackRange": 320,
+  "attackDistance": 320,
+  "aiInterval": 1500,
+  "attack": {
+    "type": "thrust",
+    "cooldown": 4500,
+    "dynamicRange": 320,
+    "width": 26,
+    "knockback": 0
+  },
+  "attackSkills": {
+    "whip": {
+      "range": 320,
+      "duration": 1500,
+      "frames": 61,
+      "hitFrame": 36,
+      "damageMul": 2,
+      "bleedStacks": 1,
+      "cooldown": 4500,
+      "width": 26,
+      "handHeight": 127.39436625
+    },
+    "howl": {
+      "comment": "号召：3s 动画，释放后场上全体僵尸方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
+      "duration": 3000,
+      "frames": 24,
+      "buffDuration": 15000,
+      "speedMul": 1.33,
+      "atkMul": 1.5,
+      "cooldown": 30000
+    },
+    "mineCaveSpawn": {
+      "comment": "工头登场后在墙体安全位置生成全场唯一矿洞；矿洞被摧毁后不重复补建，最后一名工头死亡时同步清除",
+      "count": 1,
+      "distance": 180,
+      "radius": 64,
+      "retryMs": 500
+    }
+  },
+  "death": {
+    "animMs": 1400,
+    "holdMs": 1000,
+    "fadeMs": 300
+  },
+  "sounds": {
+    "walk": "assets/sounds/enemies/foreman_zombie/walking.mp3",
+    "walkInterval": 700,
+    "whip": "assets/sounds/enemies/foreman_zombie/attacking.mp3",
+    "whipFrame": 30,
+    "howl": "assets/sounds/enemies/foreman_zombie/howling.mp3",
+    "death": "assets/sounds/enemies/foreman_zombie/dying.mp3",
+    "deathFrame": 8
+  },
+  "ai": {
+    "aggroRange": 9999,
+    "pacingRange": 150,
+    "loseTimeout": 3000
+  },
+  "render": {
+    "spriteSize": 480,
+    "collisionWidth": 104,
+    "collisionHeight": 254.6,
+    "footOffsetY": 168.125,
+    "colliderOffsetY": -20,
+    "projectileHitbox": {
+      "width": 104,
+      "height": 254.6,
+      "offsetX": 3,
+      "bottom": -22
+    },
+    "capsuleHudAnchor": true,
+    "colliderOffsetX": 6,
+    "visualCullRadius": 400
+  },
+  "textures": {
+    "idle": "assets/enemies/foreman_zombie/idle_single.png",
+    "walk": "assets/enemies/foreman_zombie/walking.png",
+    "attack": "assets/enemies/foreman_zombie/attacking_doubao_body.png",
+    "howl": "assets/enemies/foreman_zombie/howling.png",
+    "death": "assets/enemies/foreman_zombie/dying.png",
+    "idleFrameWidth": 512,
+    "idleFrameHeight": 512,
+    "idleFrameCount": 1,
+    "idleSheetColumns": 1,
+    "referenceCell": 512,
+    "frameLayouts": {
+      "idle": {
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 1,
+        "endFrame": 0,
+        "footX": 256,
+        "footY": 414,
+        "duration": 1000,
+        "repeat": -1
+      },
+      "walk": {
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 20,
+        "endFrame": 19,
+        "footX": 256,
+        "footY": 414,
+        "duration": 2500,
+        "repeat": -1
+      },
+      "howl": {
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 24,
+        "endFrame": 23,
+        "footX": 256,
+        "footY": 414,
+        "duration": 3000,
+        "repeat": 0
+      },
+      "death": {
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 14,
+        "endFrame": 13,
+        "footX": 256,
+        "footY": 414,
+        "duration": 1400,
+        "repeat": 0
+      },
+      "attack": {
+        "frameWidth": 352,
+        "frameHeight": 320,
+        "frameCount": 61,
+        "endFrame": 60,
+        "cols": 7,
+        "rows": 9,
+        "footX": 140,
+        "footY": 304,
+        "duration": 1500,
+        "frameDurations": [
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          24.193548387096776,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644,
+          25.161290322580644
+        ],
+        "repeat": 0
+      }
+    }
+  },
+  "description": "僵尸矿工的监工，手中的长鞭滴着血。登场时会在安全位置建立一座矿洞，鞭击造成流血，号召激励全场僵尸。",
+  "skills": [
+    {
+      "name": "鞭击",
+      "desc": "锁定方向的单目标鞭击，射程320px、宽26px；1.5秒61帧，第36帧（约871ms）命中，物理攻击×2并附加1层流血（每层每秒1%当前生命值，持续10s，可叠加，到期减一层）；冷却4.5秒，攻击时不可移动，目标离开或被墙隔断则空挥。"
+    },
+    {
+      "name": "号召",
+      "desc": "3s 播放 24 帧动画，释放后场上与僵尸工头同阵营的友方单位获得激励：移动速度 +33%、物理攻击力 +50%，持续 15s；冷却 30s（矿洞、煮锅等常驻状态免疫单位不会被激励）"
+    },
+    {
+      "name": "开掘矿洞",
+      "desc": "登场后在墙体安全位置生成全场唯一的 1 座矿洞；矿洞被摧毁后不再补建，最后一名僵尸工头死亡时矿洞同步死亡。"
+    }
+  ],
+  "attackType": "物理",
+  "height": 242.6
+}

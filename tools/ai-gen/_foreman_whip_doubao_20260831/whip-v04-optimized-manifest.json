@@ -1,0 +1,254 @@
+{
+  "status": "candidate-only; not installed",
+  "provider": "doubao-desktop",
+  "sourceVideo": "tools\\ai-gen\\_foreman_whip_doubao_20260831\\videos\\whip-v04.mp4",
+  "sourceFps": 24.0,
+  "sourceIndices": [
+    0,
+    9,
+    18,
+    27,
+    33,
+    38,
+    42,
+    44,
+    47,
+    49,
+    53,
+    59,
+    66,
+    73,
+    80,
+    88
+  ],
+  "sourceImpactFrame": 49,
+  "sourceNeutralBodyBBox": [
+    466,
+    202,
+    579,
+    415
+  ],
+  "sourceAnchor": [
+    522.5,
+    415
+  ],
+  "fixedScale": 1.2582159624413145,
+  "neutralBodyHeight": 268,
+  "referenceCell": 512,
+  "existingDisplaySize": 480,
+  "existingBodyWorldHeight": 251.25,
+  "frameWidth": 848,
+  "frameHeight": 336,
+  "footX": 424,
+  "footY": 304,
+  "baseCols": 4,
+  "baseFrameCount": 16,
+  "finalCols": 4,
+  "finalRows": 8,
+  "finalFrameCount": 31,
+  "durationMs": 1500,
+  "finalFrameRate": 20.666666666666668,
+  "rifeInputFrameRate": 10.333333333333334,
+  "plannedRgbaMiB": 34.78125,
+  "whipLengthConstraint": [
+    {
+      "sourceFrame": 0,
+      "attachmentXY": [
+        581,
+        295
+      ],
+      "sourceVisibleArcLength": 127.9827560572968,
+      "targetArcLength": 213,
+      "weaponScale": 1.6642867098802099,
+      "weaponPixelCount": 883,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 9,
+      "attachmentXY": [
+        547,
+        373
+      ],
+      "sourceVisibleArcLength": 137.22539674441617,
+      "targetArcLength": 213,
+      "weaponScale": 1.552190812001913,
+      "weaponPixelCount": 1194,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 18,
+      "attachmentXY": [
+        410,
+        306
+      ],
+      "sourceVisibleArcLength": 221.30865786510145,
+      "targetArcLength": 213,
+      "weaponScale": 0.962456697603914,
+      "weaponPixelCount": 1803,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 27,
+      "attachmentXY": [
+        423,
+        299
+      ],
+      "sourceVisibleArcLength": 381.2325394193533,
+      "targetArcLength": 213,
+      "weaponScale": 0.5587141127156027,
+      "weaponPixelCount": 3039,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 33,
+      "attachmentXY": [
+        430,
+        285
+      ],
+      "sourceVisibleArcLength": 241.50966799187813,
+      "targetArcLength": 213,
+      "weaponScale": 0.8819522703627877,
+      "weaponPixelCount": 3365,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 38,
+      "attachmentXY": [
+        410,
+        208
+      ],
+      "sourceVisibleArcLength": 321.82337649086327,
+      "targetArcLength": 213,
+      "weaponScale": 0.6618537233762669,
+      "weaponPixelCount": 2411,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 42,
+      "attachmentXY": [
+        458,
+        191
+      ],
+      "sourceVisibleArcLength": 314.17871555019076,
+      "targetArcLength": 213,
+      "weaponScale": 0.6779580839109158,
+      "weaponPixelCount": 2462,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 44,
+      "attachmentXY": [
+        568,
+        193
+      ],
+      "sourceVisibleArcLength": 350.3624817342649,
+      "targetArcLength": 213,
+      "weaponScale": 0.6079418062849306,
+      "weaponPixelCount": 2808,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 47,
+      "attachmentXY": [
+        644,
+        292
+      ],
+      "sourceVisibleArcLength": 669.5878784786817,
+      "targetArcLength": 213,
+      "weaponScale": 0.3181061169804039,
+      "weaponPixelCount": 6116,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 49,
+      "attachmentXY": [
+        640,
+        307
+      ],
+      "sourceVisibleArcLength": 536.4264068711931,
+      "targetArcLength": 213,
+      "weaponScale": 0.3970721748065353,
+      "weaponPixelCount": 4276,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 53,
+      "attachmentXY": [
+        632,
+        317
+      ],
+      "sourceVisibleArcLength": 593.8944443027292,
+      "targetArcLength": 213,
+      "weaponScale": 0.35864959176386285,
+      "weaponPixelCount": 4646,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 59,
+      "attachmentXY": [
+        627,
+        323
+      ],
+      "sourceVisibleArcLength": 480.4629867976531,
+      "targetArcLength": 213,
+      "weaponScale": 0.4433223908040702,
+      "weaponPixelCount": 3899,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 66,
+      "attachmentXY": [
+        626,
+        317
+      ],
+      "sourceVisibleArcLength": 434.1198410471456,
+      "targetArcLength": 213,
+      "weaponScale": 0.4906479268172129,
+      "weaponPixelCount": 3507,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 73,
+      "attachmentXY": [
+        626,
+        310
+      ],
+      "sourceVisibleArcLength": 411.5634918610412,
+      "targetArcLength": 213,
+      "weaponScale": 0.5175386160634398,
+      "weaponPixelCount": 3241,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 80,
+      "attachmentXY": [
+        622,
+        306
+      ],
+      "sourceVisibleArcLength": 420.5878784786811,
+      "targetArcLength": 213,
+      "weaponScale": 0.5064339960781742,
+      "weaponPixelCount": 3421,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    },
+    {
+      "sourceFrame": 88,
+      "attachmentXY": [
+        619,
+        303
+      ],
+      "sourceVisibleArcLength": 417.1492782986675,
+      "targetArcLength": 213,
+      "weaponScale": 0.5106085784655194,
+      "weaponPixelCount": 3291,
+      "bodyTransform": "none; only isolated whip pixels are transformed"
+    }
+  ],
+  "notes": [
+    "One fixed whole-character transform; no per-frame actor centering or scaling.",
+    "Optional weapon-only length correction is listed separately for every source key.",
+    "Whip only affects common crop, not body scale.",
+    "Existing 1500ms duration used for final GIF; no runtime changes.",
+    "Raw candidates and original keyframes remain archived."
+  ]
+}

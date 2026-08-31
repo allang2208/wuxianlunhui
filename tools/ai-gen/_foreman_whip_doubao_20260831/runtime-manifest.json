@@ -1,0 +1,155 @@
+{
+  "runtimeIntegrationActive": true,
+  "assetOnly": false,
+  "composition": "Doubao body + direction-projected independent whip",
+  "bodySheet": "assets/enemies/foreman_zombie/attacking_doubao_body.png",
+  "idleSheet": "assets/enemies/foreman_zombie/idle_single.png",
+  "bodyCrop": [
+    208,
+    32,
+    560,
+    352
+  ],
+  "layout": {
+    "frameWidth": 352,
+    "frameHeight": 320,
+    "frameCount": 61,
+    "endFrame": 60,
+    "cols": 7,
+    "rows": 9,
+    "footX": 140,
+    "footY": 304,
+    "duration": 1500,
+    "frameDurations": [
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      24.193548387096776,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644,
+      25.161290322580644
+    ],
+    "repeat": 0
+  },
+  "referenceCell": 512,
+  "displaySize": 480,
+  "sourceVideo": "videos/whip-v04.mp4",
+  "sourceProvenance": "videos/whip-v04.mp4.json",
+  "bodySourceFallbacks": {
+    "3": 6,
+    "23": 41,
+    "25": 42,
+    "27": 44,
+    "29": 45
+  },
+  "motionData": "data/foreman-whip-motion.json",
+  "contactFrame": 36,
+  "contactMs": 870.9677419354839,
+  "soundFrame": 30,
+  "soundMs": 725.8064516129036,
+  "idleTransition": "Fixed-root opacity crossfade on frames 0-3 and 57-60; uses original idle pixels; whip opacity follows the same weights.",
+  "directTextures": [
+    {
+      "state": "idle",
+      "path": "assets/enemies/foreman_zombie/idle_single.png",
+      "size": [
+        512,
+        512
+      ],
+      "rgbaMiB": 1.0
+    },
+    {
+      "state": "walk",
+      "path": "assets/enemies/foreman_zombie/walking.png",
+      "size": [
+        2560,
+        2048
+      ],
+      "rgbaMiB": 20.0
+    },
+    {
+      "state": "attack",
+      "path": "assets/enemies/foreman_zombie/attacking_doubao_body.png",
+      "size": [
+        2464,
+        2880
+      ],
+      "rgbaMiB": 27.0703125
+    },
+    {
+      "state": "howl",
+      "path": "assets/enemies/foreman_zombie/howling.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "rgbaMiB": 32.0
+    },
+    {
+      "state": "death",
+      "path": "assets/enemies/foreman_zombie/dying.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "rgbaMiB": 32.0
+    }
+  ],
+  "directRgbaMiB": 112.0703125,
+  "runtimeValidationPerformed": false,
+  "dependencyBudget": "Existing mine-cave/summon dependency closure unchanged; not re-audited."
+}

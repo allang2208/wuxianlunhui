@@ -1,0 +1,390 @@
+{
+  "status": "candidate-only; no runtime replacement",
+  "sourceIdle": "assets\\enemies\\foreman_zombie\\idle.png",
+  "sourceAttack": "assets\\enemies\\foreman_zombie\\attacking.png",
+  "masterFrame": [
+    0,
+    0,
+    512,
+    512
+  ],
+  "idleAlphaBBox": [
+    193,
+    146,
+    324,
+    414
+  ],
+  "reference": {
+    "canvas": [
+      1280,
+      720
+    ],
+    "bodyHeight": 340,
+    "bodyCenterX": 470,
+    "footY": 550,
+    "uniformScale": 1.2686567164179106
+  },
+  "currentAttack": {
+    "frames": 31,
+    "durationMs": 1500,
+    "hitFrame": 18,
+    "hitMs": 870.9677419354839,
+    "soundFrame": 15,
+    "soundMs": 725.8064516129033,
+    "frameBounds": [
+      {
+        "frame": 0,
+        "bbox": [
+          193,
+          146,
+          324,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 1,
+        "bbox": [
+          173,
+          150,
+          330,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 2,
+        "bbox": [
+          166,
+          155,
+          340,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 3,
+        "bbox": [
+          142,
+          162,
+          354,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 4,
+        "bbox": [
+          125,
+          165,
+          361,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 5,
+        "bbox": [
+          109,
+          166,
+          366,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 6,
+        "bbox": [
+          90,
+          167,
+          367,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 7,
+        "bbox": [
+          71,
+          167,
+          367,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 8,
+        "bbox": [
+          55,
+          166,
+          369,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 9,
+        "bbox": [
+          62,
+          163,
+          371,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 10,
+        "bbox": [
+          87,
+          161,
+          356,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 11,
+        "bbox": [
+          120,
+          160,
+          333,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 12,
+        "bbox": [
+          146,
+          162,
+          334,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 13,
+        "bbox": [
+          221,
+          165,
+          486,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 14,
+        "bbox": [
+          225,
+          166,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 15,
+        "bbox": [
+          225,
+          168,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 16,
+        "bbox": [
+          224,
+          169,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 17,
+        "bbox": [
+          220,
+          170,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 18,
+        "bbox": [
+          216,
+          171,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 19,
+        "bbox": [
+          224,
+          168,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 20,
+        "bbox": [
+          223,
+          166,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 21,
+        "bbox": [
+          222,
+          163,
+          512,
+          414
+        ],
+        "touchesFrame": true
+      },
+      {
+        "frame": 22,
+        "bbox": [
+          221,
+          160,
+          490,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 23,
+        "bbox": [
+          221,
+          156,
+          450,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 24,
+        "bbox": [
+          221,
+          152,
+          414,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 25,
+        "bbox": [
+          220,
+          150,
+          383,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 26,
+        "bbox": [
+          210,
+          147,
+          345,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 27,
+        "bbox": [
+          208,
+          146,
+          343,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 28,
+        "bbox": [
+          207,
+          146,
+          345,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 29,
+        "bbox": [
+          207,
+          146,
+          346,
+          414
+        ],
+        "touchesFrame": false
+      },
+      {
+        "frame": 30,
+        "bbox": [
+          208,
+          146,
+          348,
+          414
+        ],
+        "touchesFrame": false
+      }
+    ]
+  },
+  "existingFamily": [
+    {
+      "path": "assets\\enemies\\foreman_zombie\\attacking.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "rgbaMiB": 32.0
+    },
+    {
+      "path": "assets\\enemies\\foreman_zombie\\dying.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "rgbaMiB": 32.0
+    },
+    {
+      "path": "assets\\enemies\\foreman_zombie\\howling.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "rgbaMiB": 32.0
+    },
+    {
+      "path": "assets\\enemies\\foreman_zombie\\idle.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "rgbaMiB": 32.0
+    },
+    {
+      "path": "assets\\enemies\\foreman_zombie\\walking.png",
+      "size": [
+        2560,
+        2048
+      ],
+      "rgbaMiB": 20.0
+    }
+  ],
+  "scope": "Only recreate whip attack. Preserve identity, natural motion, 1500ms gameplay clock, damage, range, collision, other actions and existing arc VFX. Do not install unapproved candidate."
+}
