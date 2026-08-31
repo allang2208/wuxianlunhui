@@ -286,6 +286,16 @@ if (enemy._pathManager) {
   combat-system LOS 分支、attack.js `checkTriangleHit` 命中判定**三处必须同口径**，
   漏任何一处墙背出手都会断（P3 回归就是漏了 attack.js）。
 
+### 城门关门排障：有限门段与单位坐标契约
+
+- `unstickUnitsFromGate`只在`close()`瞬间执行一次，开门及关闭稳态不持续推人；“怪物突然出现”应区分真实坐标变化、目标切换与栅栏遮挡变化，不能仅凭观感认定刷怪。
+- 用实际碰撞中心投影到有限线段：`t=clamp(dot(P-A,B-A)/|B-A|²,0,1)`、`Q=A+t(B-A)`、`distance=|P-Q|`。夹紧投影后仍只取法向分量，会把门端延长线附近的远处单位吸到端点。
+- 仅当`distance < halfThick + radius + 2`时排障。门身沿法向、端帽沿`P-Q`径向向外移动；完全同点才用固定法向。目标位移为`halfThick + radius + 3 - distance`，实际提交不得超过该上限。
+- 地面碰撞中心与位移复用`WallSystem.getEntityMoveOffset/resolveEntityMove`；不可把旧Collider缓存当作本帧坐标。只接受能离开门段、不跨门换边且不超过上限的解析结果，写回后立即调用可用的`collider.syncPosition()`。
+- 排障不接管`wall_walk/stairs/_elevatedNavigationBridge`，不移动防御结构或`immovable`实体。玩家、`Game.entities`及`PartySystem.members`必须合并并按对象去重；侍从不能因未进入entities而漏处理。
+- 墙柱阻挡导致无合法局部落点时保持原位，不搜索远端落点、不强制穿墙。关门仍按原模式执行；该分支不承诺解除所有狭窄门洞卡位。
+- 几何排障与开门动画/寻路是不同职责；修坐标时保持门模式、650ms动画、开门放行时机、门段局部失效和怪物追击规则。运行时验收及代码发布状态另见`docs/gate-unstick-publication-2026-08-31.md`。
+
 ### 防守怪物 A 移动 + 全局移速倍率（2026-08-15 定稿）
 
 **A 移动（RTS A 键语义：终极目标基地，沿途攻击任何敌对目标）**
