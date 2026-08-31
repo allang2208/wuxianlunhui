@@ -1,0 +1,70 @@
+{
+  "generatedAt": "2026-08-31",
+  "generator": "built-in image_gen.imagegen",
+  "style": "cold-steel archive; cool silver, graphite, restrained sage green; transparent PNG",
+  "purpose": "Approved population happiness icons; shared city hall and housing UI integration exists in the local working copy",
+  "publication": {
+    "scope": "approved_assets_and_rebuild_sources_only",
+    "runtimeConsumerPublished": false,
+    "reason": "Runtime integration awaits unmerged city hall and tavern workforce interfaces"
+  },
+  "integration": {
+    "acceptedAt": "2026-08-31",
+    "runtimeDirectory": "assets/ui/happiness",
+    "runtimeSize": 128,
+    "displaySize": 32,
+    "exportScript": "export.ps1",
+    "consumer": "src/ui/population-growth-view.js"
+  },
+  "assets": [
+    {
+      "key": "happiness",
+      "label": "总幸福度",
+      "file": "happiness.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a055d9-1211-7392-8df6-0a5359904bc7\\exec-0fdd1fb2-ba7f-496c-ad16-c78dff29bb08.png",
+      "prompt": "Use case: stylized-concept. Asset type: one isolated raster UI icon for the happiness system in the Chinese dark-fantasy strategy game World-122. Produce exactly ONE icon, not a sheet. Output a square high-resolution PNG with a genuinely transparent alpha background. Unified COLD STEEL ARCHIVE visual language: sculpted satin silver and brushed cool steel, thick readable bevels, graphite recesses, restrained pale sage-green enamel accent occupying less than 8% of the object, subtle natural wear, soft upper-left studio light. Crisp coherent silhouette that remains legible at 32 and 48 pixels; broad simple forms, very little micro-detail, clear internal negative space. Center the whole object, occupy about 78% of the canvas with equal transparent margins; front-facing with very shallow three-dimensional relief. This belongs to a seven-icon matched set. No square tile, no card frame, no background plate behind the object, no scenery, no floor, no cast shadow outside the silhouette, no glow cloud, no sparkles, no text, no letters, no numbers, no watermark. No gold ornamental corners, no saturated blue, no plastic emoji style. Preserve real transparency, never paint a checkerboard.\nSpecific subject: A dignified round silver smiling-face emblem, two simple recessed eyes and one softly curved smiling mouth. The face itself is a thick sculpted steel disk, no surrounding medallion frame. One small sage-green enamel crescent following the lower edge. Friendly and reassuring but crafted metal, not a yellow emoji."
+    },
+    {
+      "key": "food",
+      "label": "食物保障",
+      "file": "food.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a055d9-1211-7392-8df6-0a5359904bc7\\exec-25ca212c-6e7a-4a61-b0df-9abfaf3613c0.png",
+      "prompt": "Use case: stylized-concept. Asset type: one isolated raster UI icon for the happiness system in the Chinese dark-fantasy strategy game World-122. Produce exactly ONE icon, not a sheet. Output a square high-resolution PNG with a genuinely transparent alpha background. Unified COLD STEEL ARCHIVE visual language: sculpted satin silver and brushed cool steel, thick readable bevels, graphite recesses, restrained pale sage-green enamel accent occupying less than 8% of the object, subtle natural wear, soft upper-left studio light. Crisp coherent silhouette that remains legible at 32 and 48 pixels; broad simple forms, very little micro-detail, clear internal negative space. Center the whole object, occupy about 78% of the canvas with equal transparent margins; front-facing with very shallow three-dimensional relief. This belongs to a seven-icon matched set. No square tile, no card frame, no background plate behind the object, no scenery, no floor, no cast shadow outside the silhouette, no glow cloud, no sparkles, no text, no letters, no numbers, no watermark. No gold ornamental corners, no saturated blue, no plastic emoji style. Preserve real transparency, never paint a checkerboard.\nSpecific subject: A single plump bread loaf with three broad scoring cuts, with two short wheat ears rising immediately behind it. The entire compact emblem is sculpted in cool silver, wheat grains simplified into a few bold shapes; a tiny sage-green tie holds the two stalks. Food security, instantly recognizable."
+    },
+    {
+      "key": "housing",
+      "label": "住房供给",
+      "file": "housing.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a055d9-1211-7392-8df6-0a5359904bc7\\exec-17e678ab-6b13-41b0-8a99-372e4cea5c38.png",
+      "prompt": "Use case: stylized-concept. Asset type: one isolated raster UI icon for the happiness system in the Chinese dark-fantasy strategy game World-122. Produce exactly ONE icon, not a sheet. Output a square high-resolution PNG with a genuinely transparent alpha background. Unified COLD STEEL ARCHIVE visual language: sculpted satin silver and brushed cool steel, thick readable bevels, graphite recesses, restrained pale sage-green enamel accent occupying less than 8% of the object, subtle natural wear, soft upper-left studio light. Crisp coherent silhouette that remains legible at 32 and 48 pixels; broad simple forms, very little micro-detail, clear internal negative space. Center the whole object, occupy about 78% of the canvas with equal transparent margins; front-facing with very shallow three-dimensional relief. This belongs to a seven-icon matched set. No square tile, no card frame, no background plate behind the object, no scenery, no floor, no cast shadow outside the silhouette, no glow cloud, no sparkles, no text, no letters, no numbers, no watermark. No gold ornamental corners, no saturated blue, no plastic emoji style. Preserve real transparency, never paint a checkerboard.\nSpecific subject: A compact stout house emblem with one broad pitched roof, one tall recessed doorway and two simple square windows. A tiny sage-green inset over the door. The entire house is cool silver, clear roof-and-door silhouette, no base slab, no landscaping. Housing availability."
+    },
+    {
+      "key": "housing-quality",
+      "label": "住房品质",
+      "file": "housing-quality.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a055d9-1211-7392-8df6-0a5359904bc7\\exec-25e34138-3243-46ef-87e6-a1e1c355246a.png",
+      "prompt": "Use case: stylized-concept. Asset type: one isolated raster UI icon for the happiness system in the Chinese dark-fantasy strategy game World-122. Produce exactly ONE icon, not a sheet. Output a square high-resolution PNG with a genuinely transparent alpha background. Unified COLD STEEL ARCHIVE visual language: sculpted satin silver and brushed cool steel, thick readable bevels, graphite recesses, restrained pale sage-green enamel accent occupying less than 8% of the object, subtle natural wear, soft upper-left studio light. Crisp coherent silhouette that remains legible at 32 and 48 pixels; broad simple forms, very little micro-detail, clear internal negative space. Center the whole object, occupy about 78% of the canvas with equal transparent margins; front-facing with very shallow three-dimensional relief. This belongs to a seven-icon matched set. No square tile, no card frame, no background plate behind the object, no scenery, no floor, no cast shadow outside the silhouette, no glow cloud, no sparkles, no text, no letters, no numbers, no watermark. No gold ornamental corners, no saturated blue, no plastic emoji style. Preserve real transparency, never paint a checkerboard.\nSpecific subject: A refined house-shaped emblem with a clean double-layer pitched roof and a large raised five-point silver star prominently inset in the front facade above its doorway. Tiny sage-green enamel in the center of the star. One house and one star, quality and comfortable housing, distinct from a plain house icon. No base slab or scenery."
+    },
+    {
+      "key": "entertainment",
+      "label": "娱乐服务",
+      "file": "entertainment.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a055d9-1211-7392-8df6-0a5359904bc7\\exec-81eda09d-0064-4fd2-9832-2d18b3a9ed13.png",
+      "prompt": "Use case: stylized-concept. Asset type: one isolated raster UI icon for the happiness system in the Chinese dark-fantasy strategy game World-122. Produce exactly ONE icon, not a sheet. Output a square high-resolution PNG with a genuinely transparent alpha background. Unified COLD STEEL ARCHIVE visual language: sculpted satin silver and brushed cool steel, thick readable bevels, graphite recesses, restrained pale sage-green enamel accent occupying less than 8% of the object, subtle natural wear, soft upper-left studio light. Crisp coherent silhouette that remains legible at 32 and 48 pixels; broad simple forms, very little micro-detail, clear internal negative space. Center the whole object, occupy about 78% of the canvas with equal transparent margins; front-facing with very shallow three-dimensional relief. This belongs to a seven-icon matched set. No square tile, no card frame, no background plate behind the object, no scenery, no floor, no cast shadow outside the silhouette, no glow cloud, no sparkles, no text, no letters, no numbers, no watermark. No gold ornamental corners, no saturated blue, no plastic emoji style. Preserve real transparency, never paint a checkerboard.\nSpecific subject: One compact sturdy pewter tavern tankard with a large open side handle, a small simplified foam cap, and a clearly visible raised musical note on its front. The note contains a restrained sage-green enamel inset. Cozy tavern entertainment and celebration, a single bold cool-silver emblem, no second glass."
+    },
+    {
+      "key": "commerce",
+      "label": "商业便利",
+      "file": "commerce.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a055d9-1211-7392-8df6-0a5359904bc7\\exec-635b7d5c-4a30-44b3-8965-3f07d800f7e7.png",
+      "prompt": "Use case: stylized-concept. Asset type: one isolated raster UI icon for the happiness system in the Chinese dark-fantasy strategy game World-122. Produce exactly ONE icon, not a sheet. Output a square high-resolution PNG with a genuinely transparent alpha background. Unified COLD STEEL ARCHIVE visual language: sculpted satin silver and brushed cool steel, thick readable bevels, graphite recesses, restrained pale sage-green enamel accent occupying less than 8% of the object, subtle natural wear, soft upper-left studio light. Crisp coherent silhouette that remains legible at 32 and 48 pixels; broad simple forms, very little micro-detail, clear internal negative space. Center the whole object, occupy about 78% of the canvas with equal transparent margins; front-facing with very shallow three-dimensional relief. This belongs to a seven-icon matched set. No square tile, no card frame, no background plate behind the object, no scenery, no floor, no cast shadow outside the silhouette, no glow cloud, no sparkles, no text, no letters, no numbers, no watermark. No gold ornamental corners, no saturated blue, no plastic emoji style. Preserve real transparency, never paint a checkerboard.\nSpecific subject: One sturdy shopping bag with a broad trapezoid body and a thick arched handle, sculpted entirely in cool silver. A small hanging sage-green price-tag shape on the upper right of the bag, entirely blank. Deep graphite opening under the handle. Commercial services, broad bold silhouette, no currency symbols or lettering."
+    },
+    {
+      "key": "safety",
+      "label": "安全感",
+      "file": "safety.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a055d9-1211-7392-8df6-0a5359904bc7\\exec-0fe19fe5-f33b-4f1f-b9bd-faaac39bb060.png",
+      "prompt": "Use case: stylized-concept. Asset type: one isolated raster UI icon for the happiness system in the Chinese dark-fantasy strategy game World-122. Produce exactly ONE icon, not a sheet. Output a square high-resolution PNG with a genuinely transparent alpha background. Unified COLD STEEL ARCHIVE visual language: sculpted satin silver and brushed cool steel, thick readable bevels, graphite recesses, restrained pale sage-green enamel accent occupying less than 8% of the object, subtle natural wear, soft upper-left studio light. Crisp coherent silhouette that remains legible at 32 and 48 pixels; broad simple forms, very little micro-detail, clear internal negative space. Center the whole object, occupy about 78% of the canvas with equal transparent margins; front-facing with very shallow three-dimensional relief. This belongs to a seven-icon matched set. No square tile, no card frame, no background plate behind the object, no scenery, no floor, no cast shadow outside the silhouette, no glow cloud, no sparkles, no text, no letters, no numbers, no watermark. No gold ornamental corners, no saturated blue, no plastic emoji style. Preserve real transparency, never paint a checkerboard.\nSpecific subject: One broad classic heater shield in cool silver with a thick beveled rim, graphite recessed center, and a bold raised check mark across the center. A restrained sage-green enamel stripe follows the check mark. Safety and civic protection, a single readable silhouette without weapons, wings, or decorative flourishes."
+    }
+  ]
+}
