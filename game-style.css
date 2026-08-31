@@ -1411,7 +1411,9 @@
         .basic-resource-bar.is-expanded {
             height: auto;
             min-height: var(--top-right-instrument-height);
-            max-height: 460px;
+            /* 按内容向下展开，预留顶部12px、底部箭头及屏幕边距。 */
+            max-height: calc(100vh - 44px);
+            max-height: calc(100dvh - 44px);
         }
         .economy-panel-summary {
             display: grid;
@@ -1466,7 +1468,9 @@
             max-width: 100%;
             min-height: 0;
             box-sizing: border-box;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
         }
         .basic-resource-bar.is-expanded .economy-panel-expanded-details {
             grid-template-rows: 1fr;
