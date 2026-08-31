@@ -1,0 +1,15 @@
+{
+  "id": "waxfaceMourner",
+  "status": "installed_pending_user_runtime_test",
+  "runtimeIntegrationActive": true,
+  "runtimeVerified": false,
+  "testsRun": false,
+  "rgbaMiB": 44.23095703125,
+  "sourceManifest": "manifest.json",
+  "runtimeFiles": [
+    "assets/enemies/waxface_mourner/idle.png",
+    "assets/enemies/waxface_mourner/walk.png",
+    "assets/enemies/waxface_mourner/attack.png",
+    "assets/enemies/waxface_mourner/death.png"
+  ]
+}
