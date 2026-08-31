@@ -1,0 +1,31 @@
+{
+  "date": "2026-08-31",
+  "provider": "doubao",
+  "status": "historical_quota_denial_current_login_has_generated_sources",
+  "resolvedForCurrentLoginEvidence": ["stitchface-headsman/videos/idle-doubao-v01.mp4", "stitchface-headsman/videos/walking-doubao-v02.mp4", "stitchface-headsman/videos/dying-doubao-v01.mp4"],
+  "continuationObservation": "2026-08-31 11:33 +08:00: current Doubao composer is empty, visible account and recent history differ from blocked session. Prior denial remains preserved; retry only stitchface idle once, then act on current response.",
+  "failedJobIndex": 2,
+  "failedAsset": "stitchface-headsman",
+  "failedState": "idle",
+  "title": "游戏角色原地呼吸待机视频生成 - 豆包",
+  "conversationUrl": "chrome://doubao-chat/chat/38439587292656386",
+  "visibleMessage": "近 7 天的额度用完了，我得休息一阵子了，预计 9 月 2 日 18:59 恢复为你服务。升级你的订阅套餐，免等待，继续为你服务。或加购创作额度包，可按需使用，继续生成图片和视频。",
+  "reportedRecoveryText": "9 月 2 日 18:59",
+  "timezoneNotExplicitInMessage": true,
+  "completedSourceCount": 2,
+  "totalPlannedSourceCount": 8,
+  "remainingStates": [
+    "stitchface-headsman/idle",
+    "stitchface-headsman/walking",
+    "stitchface-headsman/dying",
+    "waxface-mourner/idle",
+    "waxface-mourner/walking",
+    "waxface-mourner/dying"
+  ],
+  "submittedPromptProducedNoVideo": true,
+  "waitingHelperStopped": true,
+  "paidQuotaPurchased": false,
+  "subscriptionChanged": false,
+  "alternativeProviderUsed": false,
+  "resume": "Do not auto-resubmit. Confirm quota availability and inspect the blocked conversation before explicitly returning job 2 to prepared; jobs 3-7 are prepared and unsubmitted."
+}

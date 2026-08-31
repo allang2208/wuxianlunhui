@@ -1,0 +1,287 @@
+[
+  {
+    "asset": "stitchface-headsman",
+    "state": "attacking",
+    "candidate": "v01",
+    "review": "One complete overhead/downward cleaver chop and recovery; complete body and blade in sampled contact frames. Native frame50 read to distinguish edge-on/motion blur from clipping.",
+    "landmarks": {
+      "windupFrames": [
+        16,
+        49
+      ],
+      "swingFrames": [
+        50,
+        56
+      ],
+      "firstFullyLoweredBladeFrame": 56,
+      "sourceContactPoseSeconds": 2.3333333333333335,
+      "recoveryBeginsApproxFrame": 86
+    },
+    "limitations": [
+      "The model reframed the character larger than the padded input.",
+      "Includes foot spreading/small step and low-body follow-through; preserve authored trajectory, do not add an independent code dash.",
+      "Low blade pose holds roughly 1.2 seconds; final 1500ms timing has not been produced.",
+      "Source has gray floor shadow, platform watermark and some blade motion blur; no transparent runtime sheet yet."
+    ]
+  },
+  {
+    "asset": "waxface-mourner",
+    "state": "attacking",
+    "candidate": "v01",
+    "review": "One supported-bowl cast with distinct forward palm extension and recovery; attached candles and bowl remain visible in sampled contact frames.",
+    "landmarks": {
+      "windupFrames": [
+        10,
+        40
+      ],
+      "releasePoseApproxFrames": [
+        42,
+        48
+      ],
+      "extendedPoseFrames": [
+        47,
+        78
+      ],
+      "recoveryFrames": [
+        79,
+        100
+      ]
+    },
+    "limitations": [
+      "Small gray smoke puff appears near casting palm despite no-VFX request; must be removed or regenerated before a pure body sprite can be accepted.",
+      "Exact release frame requires close native-frame review and final sampling.",
+      "Source has platform watermark/background gray; no transparent runtime sheet yet."
+    ]
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "idle",
+    "candidate": "v01",
+    "review": "Viewed 24-point contact sheet. Subtle breathing and small hand/chain follow-through, feet retain standing stance; mask, shoulder plate and rectangular cleaver remain recognizable. No attack or walking sequence.",
+    "landmarks": {
+      "sourceFrames": [
+        0,
+        120
+      ],
+      "sourceFps": 24,
+      "sourceDurationSeconds": 5.041666666666667
+    },
+    "limitations": [
+      "First/last sampled standing poses are similar, but this is not a measured seamless runtime loop.",
+      "Character body is visibly smaller than in attack v01; future extraction must align effective body height and feet, not normalize weapon-inclusive bounds.",
+      "Source retains gray background and moving platform watermark; not transparent runtime art."
+    ]
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "walking",
+    "candidate": "v01",
+    "status": "rejected_for_heading_drift",
+    "review": "The 24-point contact sheet shows repeated torso/head turning toward the camera during strides, rather than a consistent reference heading.",
+    "nextAction": "Generate v02 with fixed head/chest/pelvis heading and shorter straight-axis strides; keep v01 as rejected source evidence."
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "walking",
+    "candidate": "v02",
+    "status": "source_candidate_for_user_review",
+    "review": "Viewed the 24-point contact sheet: repeated short steps, retained cleaver/chain and full body within frame. The extreme turn seen in v01 is reduced, but visible shoulder/hip yaw and lateral sway remain; do not claim mathematically fixed heading or a seamless cycle.",
+    "limitations": [
+      "Future loop extraction must select a complete left/right gait cycle and inspect the seam rather than loop all five seconds blindly.",
+      "Body scale differs from idle and attacking; source center/foot placement must be calibrated before sprite integration.",
+      "Gray background, floor shadow and platform watermark remain in the source."
+    ]
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "dying",
+    "candidate": "v01",
+    "review": "Viewed 24-point contact sheet: knees give way, torso settles onto the side and remains a complete corpse; cleaver stays beside the hand and inside frame. No recovery to standing or disappearance in the sampled sequence.",
+    "landmarks": {
+      "kneelingApproxFrames": [
+        16,
+        42
+      ],
+      "sideFallApproxFrames": [
+        47,
+        63
+      ],
+      "settledCorpseApproxFrames": [
+        63,
+        120
+      ]
+    },
+    "limitations": [
+      "Source holds the corpse for about the second half of the clip; final single-shot timing has not been mapped.",
+      "Gray background, floor shadow and platform watermark remain; no transparent sheet or runtime corpse anchor yet."
+    ]
+  },
+  {
+    "asset": "waxface-mourner",
+    "state": "idle",
+    "candidate": "v01",
+    "review": "Viewed 24-point contact sheet: subtle standing idle; wax mask, supported bowl, shoulder candle assembly and visible boots remain in place. No attack, walk or camera pan in the sampled sequence.",
+    "limitations": [
+      "Candle details overlap at this camera angle; native detail and alpha separation remain part of future sprite preparation.",
+      "Source first/last pose similarity is not proof of a seamless extracted loop.",
+      "Platform watermark and nontransparent white/gray background remain."
+    ]
+  },
+  {
+    "asset": "waxface-mourner",
+    "state": "walking",
+    "candidate": "v01",
+    "review": "Viewed 24-point contact sheet: short alternating steps with generally consistent right-facing three-quarter heading, supported bowl and candle assembly retained; feet and robe remain inside frame.",
+    "limitations": [
+      "Select a complete stride cycle and inspect foot contact/loop seam during future extraction.",
+      "This source has slight body sway, background shadow and a moving platform watermark; no runtime alignment or transparency has been applied."
+    ]
+  },
+  {
+    "asset": "waxface-mourner",
+    "state": "dying",
+    "candidate": "v01",
+    "review": "Viewed 24-point contact sheet: kneels, loses balance and settles onto the side; bowl remains near the same hand, and the full corpse stays in frame without standing back up. Shoulder candle assembly follows the torso into partial natural occlusion.",
+    "landmarks": {
+      "kneelingApproxFrames": [
+        21,
+        52
+      ],
+      "sideFallApproxFrames": [
+        57,
+        83
+      ],
+      "settledCorpseApproxFrames": [
+        83,
+        120
+      ]
+    },
+    "limitations": [
+      "Native candle/fixture detail during the fall must be preserved during alpha extraction; sampled contact views do not establish every fine edge.",
+      "Background, shadow and platform watermark remain; no transparent corpse sheet or runtime ground anchor has been made."
+    ]
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "walking",
+    "candidate": "v03",
+    "status": "rejected_heading_and_reframing",
+    "review": "The contact sheet still shows the chest turning toward the viewer each gait cycle. The generated composition enlarges the body, adds a strong gray floor and shadow, and brings toes close to the lower edge. This does not satisfy the requested unchanged camera and slight fixed rightward heading.",
+    "sourceReference": "references/stitchface-headsman-walking-right-v03-safe.png",
+    "nextAction": "v04 uses a clearer rightward derivative with both boot toes aligned and a concise fixed-upper-body treadmill instruction; no other actions are changed."
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "walking",
+    "candidate": "v04",
+    "status": "rejected_after_humanoid_heading_comparison",
+    "instruction": "移动动画没有标准，视角不变，稍微调整一下朝右。",
+    "review": "Compared adopted zombie, minerZombie, foremanZombie and coffinWard walking frames. v04 repeatedly changes from right-facing to nearly frontal at source frames 31 and 68 (1.292 and 2.833 seconds). Earlier wording that this was only small shoulder/hip sway was too optimistic. Camera/framing is comparatively stable, but this source does not meet fixed-heading walking requirements.",
+    "sourceReference": "references/stitchface-headsman-walking-right-v04-safe.png",
+    "limitations": [
+      "Visible repetitive torso yaw toward the viewer; not suitable as the accepted fixed-heading walk.",
+      "Raw five-second source still needs cycle selection and seam treatment for a finished looping sprite.",
+      "Gray background, contact shadow and platform watermark remain; no transparent sprite or runtime integration was performed."
+    ],
+    "unchanged": [
+      "approved original mother",
+      "idle source",
+      "attack source",
+      "death source",
+      "waxface-mourner sources",
+      "game code and runtime configuration"
+    ]
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "walking",
+    "candidate": "v05",
+    "status": "rejected_heading_and_reframing",
+    "sourceReference": "references/stitchface-headsman-walking-right-v05-safe.png",
+    "video": "stitchface-headsman/videos/walking-doubao-v05.mp4",
+    "review": "Viewed full 24-point contact sheet. Side-facing phases alternate with nearly frontal chest/hip poses at f21-31, f57-63 and f89-99. The service also enlarges the subject relative to the padded input. No runtime replacement.",
+    "limitations": [
+      "Periodic body heading changes persist.",
+      "Gray background, baked floor shadow and watermark remain.",
+      "Source reframes subject larger than the 433px-high input."
+    ],
+    "nextAction": "v06: more side-dominant rightward reference derived from v05 image, with upper-body heading held steady."
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "walking",
+    "candidate": "v06",
+    "status": "current_candidate_user_review_pending",
+    "sourceReference": "references/stitchface-headsman-walking-right-v06-safe.png",
+    "promptFile": "stitchface-headsman/prompts/walking-doubao-v06.txt",
+    "review": "After a second explicit account-switch instruction, Doubao accepted the same v06 reference/prompt using daily free quota and produced a 121-frame source. Viewed the full 24-point contact and enlarged source frames 0,21,31,47,63,78,94,115. Heading stays in a right-facing side-dominant to three-quarter range; sampled phases no longer expose the nearly frontal chest seen in v04/v05. Alternating rightward steps, original small-subject framing and complete cleaver/body are retained. Some gait-related shoulder/hip yaw remains; this is not a claim of rigid zero-angle motion.",
+    "video": "stitchface-headsman/videos/walking-doubao-v06.mp4",
+    "sourceMetadata": {
+      "size": [
+        1280,
+        720
+      ],
+      "frameCount": 121,
+      "fps": 24,
+      "durationSeconds": 5.041666666666667
+    },
+    "detailPreview": "stitchface-headsman/previews/walking-doubao-v06-detail.gif",
+    "limitations": [
+      "Only source-candidate visual review performed; user acceptance remains pending.",
+      "Far-side wrist chain is often occluded; detail/alpha separation must be inspected during final sprite production.",
+      "Gray background/contact shadow remain; no transparent sprite sheet.",
+      "Final loop window, seam, body scale/foot anchor across all actions and attack contact clock remain unimplemented."
+    ],
+    "priorQuotaHistory": [
+      "doubao-quota-blocker-walking-v06.json",
+      "doubao-quota-blocker-walking-v06-retry.json"
+    ]
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "all",
+    "candidate": "idle/attack/death v01; walking v06",
+    "userApproval": "可用继续",
+    "status": "formal_sprites_installed_pending_user_runtime_test",
+    "resolution": "BiRefNet removed background; fixed video camera scales equalize standing body height; loop windows selected; RIFE preserves natural trajectory. Source attack f56 maps to output f40 at 833.333ms. Earlier source-only limitations above remain historical observations.",
+    "manifest": "stitchface-headsman/sprite-build-v01/manifest.json"
+  },
+  {
+    "asset": "stitchface-headsman",
+    "state": "all",
+    "status": "offline_workflow_review_passed",
+    "review": "Premultiplied-alpha resize, mild source chroma filtering, corrected final GIF timeline, frozen producer, budget manifest and recoverable archive; no pose/root/timing/gameplay change.",
+    "report": "stitchface-headsman/WORKFLOW_REVIEW.md"
+  },
+  {
+    "asset": "waxface-mourner",
+    "state": "all",
+    "candidate": "v01",
+    "status": "formal_sprites_installed_pending_user_runtime_test",
+    "authorization": "看一遍动画标准工作流，检查。没问题以后下一个",
+    "review": "Inspected source camera references and all 254 final frames. Right three-quarter view, fixed scales/root, complete candles/bowl and falling motion. BiRefNet removed palm smoke. Natural garment chroma variation remains minor; no per-frame alignment.",
+    "landmarks": {
+      "sourceReleaseFrame": 47,
+      "formalReleaseFrame": 34,
+      "releaseMs": 725,
+      "warningMs": 900
+    },
+    "manifest": "waxface-mourner/sprite-build-v01/manifest.json",
+    "testsRun": false,
+    "runtimeVerified": false
+  },
+  {
+    "asset": "waxface-mourner",
+    "state": "all",
+    "candidate": "v01",
+    "status": "final_animation_accepted_by_user",
+    "approval": {
+      "status": "accepted",
+      "date": "2026-08-31",
+      "userMessage": "可用",
+      "scope": "waxface-mourner final four-action animation preview; game runtime acceptance recorded separately"
+    },
+    "manifest": "waxface-mourner/sprite-build-v01/manifest.json",
+    "runtimeVerified": false
+  }
+]

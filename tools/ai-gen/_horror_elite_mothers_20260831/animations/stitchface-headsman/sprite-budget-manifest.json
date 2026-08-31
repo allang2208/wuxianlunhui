@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "id": "stitchfaceHeadsman",
+  "profile": "specialist",
+  "sheets": [
+    {
+      "textureKey": "enemy_stitchface_headsman_idle",
+      "path": "assets/enemies/stitchface_headsman/idle.png",
+      "frameWidth": 128,
+      "frameHeight": 232,
+      "frameCount": 28,
+      "endFrame": 27,
+      "footX": 64.0,
+      "footY": 219.5990783410138
+    },
+    {
+      "textureKey": "enemy_stitchface_headsman_walk",
+      "path": "assets/enemies/stitchface_headsman/walk.png",
+      "frameWidth": 166,
+      "frameHeight": 238,
+      "frameCount": 58,
+      "endFrame": 57,
+      "footX": 83.0,
+      "footY": 224.36036036036035
+    },
+    {
+      "textureKey": "enemy_stitchface_headsman_attack",
+      "path": "assets/enemies/stitchface_headsman/attack.png",
+      "frameWidth": 238,
+      "frameHeight": 264,
+      "frameCount": 77,
+      "endFrame": 76,
+      "footX": 119.0,
+      "footY": 245.3234811165846
+    },
+    {
+      "textureKey": "enemy_stitchface_headsman_death",
+      "path": "assets/enemies/stitchface_headsman/death.png",
+      "frameWidth": 248,
+      "frameHeight": 264,
+      "frameCount": 75,
+      "endFrame": 74,
+      "footX": 124.0,
+      "footY": 217.5990783410138
+    }
+  ],
+  "dependencies": []
+}

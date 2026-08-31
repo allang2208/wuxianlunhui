@@ -1,0 +1,12 @@
+{
+  "preparedBodyHeightPx": 208,
+  "runtimeBodyHeightPx": 139.515234375,
+  "reference": "minerZombie standing body: 274 source pixels * 260.7 / 512; same baseline as the four horror humanoids",
+  "measurement": "Standing frame 0: head top through boot sole, excluding cleaver and chain. Root X follows pelvis/stance center, fixed for the entire video. Separate source camera scales only; no per-frame fitting.",
+  "actions": {
+    "idle": { "bodyHeightPx": 434, "rootX": 574, "groundY": 598 },
+    "walking": { "bodyHeightPx": 444, "rootX": 612, "groundY": 607 },
+    "attacking": { "bodyHeightPx": 609, "rootX": 615, "groundY": 689 },
+    "dying": { "bodyHeightPx": 434, "rootX": 574, "groundY": 598 }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "date": "2026-08-31",
+  "instruction": "移动动画没有标准，视角不变，稍微调整一下朝右。",
+  "tool": "image_gen.imagegen",
+  "mode": "built-in edit",
+  "originalMother": "../../mother/01-stitchface-headsman-v01-white.png",
+  "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05563-10bb-7af0-8252-d19a91dbe2cc/exec-fe6e31da-53f3-411c-b319-73a88e4f141b.png",
+  "workspaceRaw": "stitchface-headsman-walking-right-v03-raw.png",
+  "videoReference": "stitchface-headsman-walking-right-v03-safe.png",
+  "editPrompt": "../stitchface-headsman/prompts/walking-reference-right-v03-imagegen.txt",
+  "intent": "Character slightly more toward screen right while camera/elevation/materials/equipment remain unchanged. Walking-only derivative; approved mother and other actions are untouched.",
+  "requestedYawDeltaDegrees": 15,
+  "yawMeasurement": "Prompt target only, not a measured 3D angle.",
+  "padding": {"canvas": [1280, 720], "subjectWidthRatio": 0.1453125, "anchorX": 0.45, "footY": 0.8305555556, "uniformScalingOnly": true},
+  "modelVersion": null,
+  "seed": null
+}

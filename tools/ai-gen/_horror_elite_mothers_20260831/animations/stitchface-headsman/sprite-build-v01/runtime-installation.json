@@ -1,0 +1,58 @@
+{
+  "id": "stitchfaceHeadsman",
+  "status": "installed_pending_user_runtime_test",
+  "runtimeIntegrationActive": true,
+  "runtimeVerified": false,
+  "testsRun": false,
+  "profile": "specialist",
+  "rgbaMiB": 49.4019775390625,
+  "reference": {
+    "preparedBodyHeightPx": 208,
+    "runtimeBodyHeightPx": 139.515234375,
+    "reference": "minerZombie standing body: 274 source pixels * 260.7 / 512; same baseline as the four horror humanoids",
+    "measurement": "Standing frame 0: head top through boot sole, excluding cleaver and chain. Root X follows pelvis/stance center, fixed for the entire video. Separate source camera scales only; no per-frame fitting.",
+    "actions": {
+      "idle": {
+        "bodyHeightPx": 434,
+        "rootX": 574,
+        "groundY": 598
+      },
+      "walking": {
+        "bodyHeightPx": 444,
+        "rootX": 612,
+        "groundY": 607
+      },
+      "attacking": {
+        "bodyHeightPx": 609,
+        "rootX": 615,
+        "groundY": 689
+      },
+      "dying": {
+        "bodyHeightPx": 434,
+        "rootX": 574,
+        "groundY": 598
+      }
+    }
+  },
+  "collision": {
+    "radius": 36.3,
+    "width": 57.5,
+    "height": 158.8
+  },
+  "reachMeasurement": {
+    "sourceFrame": 56,
+    "rootX": 615,
+    "bladeTipX": 914,
+    "worldPerSourcePixel": 0.22908905480295566,
+    "visualForwardReach": 68.49762738608374,
+    "configuredReach": 70,
+    "groundWidth": 36
+  },
+  "sourceManifest": "manifest.json",
+  "runtimeFiles": [
+    "assets/enemies/stitchface_headsman/idle.png",
+    "assets/enemies/stitchface_headsman/walk.png",
+    "assets/enemies/stitchface_headsman/attack.png",
+    "assets/enemies/stitchface_headsman/death.png"
+  ]
+}

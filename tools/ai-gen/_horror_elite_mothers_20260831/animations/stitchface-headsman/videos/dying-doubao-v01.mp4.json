@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\references\\stitchface-headsman-video-safe.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\stitchface-headsman\\prompts\\dying-doubao-v01.txt",
+  "promptChars": 795,
+  "promptSha256": "87eff046132e22b9ad888e04a3f91ca7da24c12e181ae543969deb781c2fb30e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-31T03:44:20.938Z",
+  "sourceUrlScheme": "https"
+}

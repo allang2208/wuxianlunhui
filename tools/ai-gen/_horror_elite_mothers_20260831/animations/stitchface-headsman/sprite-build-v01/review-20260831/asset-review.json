@@ -1,0 +1,52 @@
+{
+  "scope": "User requested offline sprite/workflow review, no game modules or runtime tests",
+  "passed": true,
+  "errors": [],
+  "actions": [
+    {
+      "action": "idle",
+      "frames": 28,
+      "minimumMargin": 10,
+      "sourceAlphaUnchanged": null,
+      "gifMinimumMs": 80,
+      "gifTotalMs": 2330,
+      "durationMs": 2333.3333333333335,
+      "errors": []
+    },
+    {
+      "action": "walking",
+      "frames": 58,
+      "minimumMargin": 10,
+      "sourceAlphaUnchanged": null,
+      "gifMinimumMs": 40,
+      "gifTotalMs": 2420,
+      "durationMs": 2416.6666666666665,
+      "errors": []
+    },
+    {
+      "action": "attacking",
+      "frames": 77,
+      "minimumMargin": 10,
+      "sourceAlphaUnchanged": null,
+      "gifMinimumMs": 30,
+      "gifTotalMs": 1500,
+      "durationMs": 1500,
+      "errors": []
+    },
+    {
+      "action": "dying",
+      "frames": 75,
+      "minimumMargin": 10,
+      "sourceAlphaUnchanged": null,
+      "gifMinimumMs": 40,
+      "gifTotalMs": 3040,
+      "durationMs": 3041.6666666666665,
+      "errors": []
+    }
+  ],
+  "contactFrame": 40,
+  "contactMs": 833.3333333333339,
+  "budgetPassed": true,
+  "runtimeVerified": false,
+  "gameTestsRun": false
+}
