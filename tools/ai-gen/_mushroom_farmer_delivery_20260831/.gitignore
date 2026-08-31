@@ -1,0 +1,11 @@
+/_rebuild/
+/video-sheets/source-f*.png
+/video-sheets/empty_running.png
+/video-sheets/mushroom_loaded_running.png
+/video-sheets/idle.png
+/previews/empty/
+/previews/loaded/
+/previews/source-video.gif
+/previews/keyframes.gif
+/previews/delivery-preview.*
+__pycache__/

@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-31T01:24:45.817255+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mushroom_farmer_delivery_20260831\\videos\\mushroom-loaded-running-v01.mp4",
+    "bytes": 658669,
+    "sha256": "f0df167b85e45d4d6f30a55d2eb17391d2b6e6009af0605b659502e2a3877ca0"
+  },
+  "promptId": "d9c796ba-e252-4800-a207-5f681ce25272",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 831031,
+  "mode": "ref2va",
+  "actionMode": "free",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> defines the exact identity and rendering style of one hamster farmer: golden-brown and cream-white fur, round black eyes, a woven straw field hat, cream rolled-sleeve shirt, muted olive vest, tan neckerchief, brown trousers, belt and small side pouch. Replace the sickle with one compact armful of four freshly harvested edible mushrooms: broad natural chestnut-brown shiitake caps and thick ivory stems. Both forearms cradle this bundle securely across the chest, with the mushrooms clearly visible in front of the torso. <Video 1> supplies the alternating running cadence only; preserve the farmer identity from Picture 1.\n\nWide full-body game-sprite view. The hat, torso, knees, lower legs and both bare feet stay entirely inside the frame with generous margins on all sides. The farmer occupies about fifty-five percent of the frame height. The single farmer runs briskly in place toward screen right, torso leaning slightly forward, feet alternating naturally through a steady repeating run cycle. The mushrooms remain the same four edible mushrooms, held firmly in both arms throughout; their caps stay below the chin. Begin already running, maintain a stable cadence, and end near the same running pose so a complete middle cycle can be extracted. Stable body proportions, constant subject scale and horizontal center.\n\nStatic orthographic camera and even shadowless studio lighting. Flat uniform solid chroma blue background #2060E0. Preserve the reference face, straw hat, clothes, fur detail and painterly realistic game-sprite rendering. One hamster, compact hidden hamster tail, no long rodent tail. No sickle, corn, basket, bag of produce, weapons, ground plane, dust, cast shadow, letters or camera movement.",
+  "effectivePrompt": "<Picture 1> defines the exact identity and rendering style of one hamster farmer: golden-brown and cream-white fur, round black eyes, a woven straw field hat, cream rolled-sleeve shirt, muted olive vest, tan neckerchief, brown trousers, belt and small side pouch. Replace the sickle with one compact armful of four freshly harvested edible mushrooms: broad natural chestnut-brown shiitake caps and thick ivory stems. Both forearms cradle this bundle securely across the chest, with the mushrooms clearly visible in front of the torso. <Video 1> supplies the alternating running cadence only; preserve the farmer identity from Picture 1.\n\nWide full-body game-sprite view. The hat, torso, knees, lower legs and both bare feet stay entirely inside the frame with generous margins on all sides. The farmer occupies about fifty-five percent of the frame height. The single farmer runs briskly in place toward screen right, torso leaning slightly forward, feet alternating naturally through a steady repeating run cycle. The mushrooms remain the same four edible mushrooms, held firmly in both arms throughout; their caps stay below the chin. Begin already running, maintain a stable cadence, and end near the same running pose so a complete middle cycle can be extracted. Stable body proportions, constant subject scale and horizontal center.\n\nStatic orthographic camera and even shadowless studio lighting. Flat uniform solid chroma blue background #2060E0. Preserve the reference face, straw hat, clothes, fur detail and painterly realistic game-sprite rendering. One hamster, compact hidden hamster tail, no long rodent tail. No sickle, corn, basket, bag of produce, weapons, ground plane, dust, cast shadow, letters or camera movement.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] <Picture 1> defines the exact identity and rendering style of one hamster farmer: golden-brown and cream-white fur, round black eyes, a woven straw field hat, cream rolled-sleeve shirt, muted olive vest, tan neckerchief, brown trousers, belt and small side pouch. Replace the sickle with one compact armful of four freshly harvested edible mushrooms: broad natural chestnut-brown shiitake caps and thick ivory stems. Both forearms cradle this bundle securely across the chest, with the mushrooms clearly visible in front of the torso. <Video 1> supplies the alternating running cadence only; preserve the farmer identity from Picture 1.\n\nWide full-body game-sprite view. The hat, torso, knees, lower legs and both bare feet stay entirely inside the frame with generous margins on all sides. The farmer occupies about fifty-five percent of the frame height. The single farmer runs briskly in place toward screen right, torso leaning slightly forward, feet alternating naturally through a steady repeating run cycle. The mushrooms remain the same four edible mushrooms, held firmly in both arms throughout; their caps stay below the chin. Begin already running, maintain a stable cadence, and end near the same running pose so a complete middle cycle can be extracted. Stable body proportions, constant subject scale and horizontal center.\n\nStatic orthographic camera and even shadowless studio lighting. Flat uniform solid chroma blue background #2060E0. Preserve the reference face, straw hat, clothes, fur detail and painterly realistic game-sprite rendering. One hamster, compact hidden hamster tail, no long rodent tail. No sickle, corn, basket, bag of produce, weapons, ground plane, dust, cast shadow, letters or camera movement. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Follow the authored temporal order exactly and keep every transition visually readable.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "acadc802ac0c4375dd7c9271a120865ca162ed9634b3ff726d5395280f5d92f6",
+  "effectivePromptSha256": "acadc802ac0c4375dd7c9271a120865ca162ed9634b3ff726d5395280f5d92f6",
+  "finalPromptSha256": "7dfdba572256e835862c0f31821d970c5d65bc403084631c46838260309ede66",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mushroom_farmer_delivery_20260831\\prompts\\mushroom-loaded-running-v01.txt",
+      "bytes": 1735,
+      "sha256": "bfc5a9a12bf3b5076ad21ac6fe6330552e7e224738e3036d401e9135ebdc701e"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mushroom_farmer_delivery_20260831\\references\\farmer-master-small.png",
+        "bytes": 106592,
+        "sha256": "4bad0ee5d302a1f1ea2d22cdd0e655c45cdcb1998f9be55e4f50428a0436dc29"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mushroom_farmer_delivery_20260831\\references\\farmer-running-motion-small.mp4",
+        "bytes": 669015,
+        "sha256": "393e3913e89bb8f407e3c4e0887ef14f83e24ca275de3d1108a24ffcda399850"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_mushroom_farmer_delivery_20260831\\videos\\mushroom-loaded-running-v01_contact.png",
+    "bytes": 584347,
+    "sha256": "9e08b3335197143943b8b4d32394f90bdff4679906ed59b5fe6807598e0f68e4"
+  },
+  "elapsedSeconds": 410.652
+}

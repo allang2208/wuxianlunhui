@@ -1,0 +1,127 @@
+{
+  "profile": "crowd",
+  "sourceVideo": "videos\\mushroom-loaded-running-v01.mp4",
+  "start": 42,
+  "endpoint": 72,
+  "sourceStep": 2,
+  "sourceIndices": [
+    42,
+    44,
+    46,
+    48,
+    50,
+    52,
+    54,
+    56,
+    58,
+    60,
+    62,
+    64,
+    66,
+    68,
+    70
+  ],
+  "sourceFrameRate": 24.0,
+  "baseFrameRate": 12.0,
+  "baseFrameCount": 15,
+  "frameCount": 30,
+  "frameRate": 24.0,
+  "durationMs": 1250.0,
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "baseCols": 8,
+  "footX": 128,
+  "footY": 224,
+  "footRatio": 0.875,
+  "displaySize": 128,
+  "scale": 1,
+  "fixedSourceScale": 0.398,
+  "sourceHeightMedian": 500.0,
+  "fixedAffine": [
+    [
+      0.39800000190734863,
+      0.0,
+      -51.099998474121094
+    ],
+    [
+      0.0,
+      0.39800000190734863,
+      11.069999694824219
+    ]
+  ],
+  "verticalMotionPreserved": true,
+  "alphaBottoms": [
+    221,
+    213,
+    218,
+    218,
+    217,
+    212,
+    224,
+    222,
+    218,
+    214,
+    219,
+    218,
+    212,
+    220,
+    223
+  ],
+  "emptyReturn": "assets/companions/hamster_farmer/empty_running.png",
+  "finalCols": 5,
+  "assets": [
+    {
+      "name": "idle",
+      "width": 256,
+      "height": 256,
+      "bytes": 37411,
+      "rgbaMiB": 0.25
+    },
+    {
+      "name": "mushroom_loaded_running",
+      "width": 1280,
+      "height": 1536,
+      "bytes": 1384143,
+      "rgbaMiB": 7.5
+    },
+    {
+      "name": "empty_running",
+      "width": 1536,
+      "height": 1280,
+      "bytes": 1164592,
+      "rgbaMiB": 7.5
+    }
+  ],
+  "totalRgbaMiB": 15.25,
+  "runtimeFamily": "hamster_mushroom_farmer",
+  "targetMiB": 32,
+  "runtimeValidated": false,
+  "finalLoopSeamRatios": {
+    "mushroom_loaded_running": 1.0496474806306217,
+    "empty_running": 0.9325461483653781
+  },
+  "runtimeAnimations": {
+    "idle": {
+      "frameCount": 1,
+      "frameRate": 1,
+      "repeat": -1,
+      "footRatio": 0.7988
+    },
+    "mushroom_loaded_running": {
+      "frameCount": 30,
+      "frameRate": 24,
+      "repeat": -1,
+      "holdFrame": 12,
+      "footRatio": 0.875,
+      "cycleMs": 1250
+    },
+    "empty_running": {
+      "frameCount": 30,
+      "frameRate": 24,
+      "repeat": -1,
+      "holdFrame": 0,
+      "footRatio": 0.8203125,
+      "cycleMs": 1250
+    }
+  }
+}

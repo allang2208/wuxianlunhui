@@ -1,0 +1,185 @@
+{
+  "cheese_farm": {
+    "id": "hamster_cowherd",
+    "name": "仓鼠牛倌",
+    "displaySize": 91.6,
+    "originY": 0.91796875,
+    "animations": {
+      "idle": {
+        "src": "assets/companions/hamster_cowherd/idle.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 8,
+        "frames": [
+          0,
+          7
+        ],
+        "frameRate": 8,
+        "repeat": -1,
+        "scale": 1,
+        "footRatio": 0.91796875
+      },
+      "empty_running": {
+        "src": "assets/companions/hamster_cowherd/empty_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 9,
+        "frames": [
+          0,
+          8
+        ],
+        "frameRate": 12,
+        "repeat": -1,
+        "scale": 0.981982,
+        "footRatio": 0.91796875
+      },
+      "cheese_loaded_running": {
+        "src": "assets/companions/hamster_cowherd/cheese_loaded_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 8,
+        "frames": [
+          0,
+          7
+        ],
+        "frameRate": 12,
+        "repeat": -1,
+        "scale": 0.984199,
+        "footRatio": 0.91796875,
+        "holdFrame": 4
+      }
+    }
+  },
+  "corn_farm": {
+    "id": "hamster_farmer",
+    "name": "仓鼠农夫",
+    "displaySize": 128,
+    "originY": 0.794921875,
+    "animations": {
+      "idle": {
+        "src": "assets/companions/hamster_farmer/idle.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 1,
+        "frames": [
+          0,
+          0
+        ],
+        "frameRate": 1,
+        "repeat": -1,
+        "scale": 1,
+        "footRatio": 0.794921875
+      },
+      "running": {
+        "src": "assets/companions/hamster_farmer/running.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 14,
+        "frames": [
+          0,
+          13
+        ],
+        "frameRate": 14,
+        "repeat": -1,
+        "scale": 0.99,
+        "footRatio": 0.8125
+      },
+      "harvesting": {
+        "src": "assets/companions/hamster_farmer/harvesting.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 18,
+        "frames": [
+          0,
+          17
+        ],
+        "frameRate": 12,
+        "repeat": -1,
+        "scale": 1.02,
+        "footRatio": 0.8047
+      },
+      "corn_loaded_running": {
+        "src": "assets/companions/hamster_farmer/corn_loaded_running.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 30,
+        "frames": [
+          0,
+          29
+        ],
+        "frameRate": 24,
+        "repeat": -1,
+        "holdFrame": 0,
+        "scale": 0.787879,
+        "footRatio": 0.8203125
+      },
+      "empty_running": {
+        "src": "assets/companions/hamster_farmer/empty_running.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 30,
+        "frames": [
+          0,
+          29
+        ],
+        "frameRate": 24,
+        "repeat": -1,
+        "holdFrame": 0,
+        "scale": 0.784906,
+        "footRatio": 0.8203125
+      }
+    }
+  },
+  "mushroom_farm": {
+    "id": "hamster_mushroom_farmer",
+    "name": "仓鼠菌农",
+    "displaySize": 128,
+    "originY": 0.79296875,
+    "animations": {
+      "idle": {
+        "src": "assets/companions/hamster_mushroom_farmer/idle.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 1,
+        "frames": [
+          0,
+          0
+        ],
+        "frameRate": 1,
+        "repeat": -1,
+        "scale": 1,
+        "footRatio": 0.79296875
+      },
+      "mushroom_loaded_running": {
+        "src": "assets/companions/hamster_mushroom_farmer/mushroom_loaded_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 30,
+        "frames": [
+          0,
+          29
+        ],
+        "frameRate": 24,
+        "repeat": -1,
+        "holdFrame": 12,
+        "scale": 0.787879,
+        "footRatio": 0.875
+      },
+      "empty_running": {
+        "src": "assets/companions/hamster_mushroom_farmer/empty_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 30,
+        "frames": [
+          0,
+          29
+        ],
+        "frameRate": 24,
+        "repeat": -1,
+        "holdFrame": 0,
+        "scale": 0.78392,
+        "footRatio": 0.8203125
+      }
+    }
+  }
+}

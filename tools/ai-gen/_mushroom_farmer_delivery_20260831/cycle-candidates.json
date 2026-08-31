@@ -1,0 +1,272 @@
+[
+  {
+    "start": 42,
+    "endpoint": 72,
+    "period": 30,
+    "legIoU": 0.9503244573730141,
+    "endpointDelta": 4.545899868011475,
+    "seamRatio": 1.0990885655761768,
+    "score": 0.8722271027952243
+  },
+  {
+    "start": 58,
+    "endpoint": 88,
+    "period": 30,
+    "legIoU": 0.9414639443961772,
+    "endpointDelta": 5.408188819885254,
+    "seamRatio": 1.0087628290872652,
+    "score": 0.8594648291891719
+  },
+  {
+    "start": 61,
+    "endpoint": 91,
+    "period": 30,
+    "legIoU": 0.9558931377684652,
+    "endpointDelta": 6.097313404083252,
+    "seamRatio": 1.1264626525377903,
+    "score": 0.8517871714534374
+  },
+  {
+    "start": 45,
+    "endpoint": 75,
+    "period": 30,
+    "legIoU": 0.9606201550387596,
+    "endpointDelta": 4.643444538116455,
+    "seamRatio": 0.6030370926762941,
+    "score": 0.8512721962346422
+  },
+  {
+    "start": 53,
+    "endpoint": 83,
+    "period": 30,
+    "legIoU": 0.9427641884564405,
+    "endpointDelta": 6.131365776062012,
+    "seamRatio": 0.9623776045747046,
+    "score": 0.8470314622729808
+  },
+  {
+    "start": 54,
+    "endpoint": 84,
+    "period": 30,
+    "legIoU": 0.944020992127952,
+    "endpointDelta": 6.350473403930664,
+    "seamRatio": 1.0205131512266392,
+    "score": 0.8467125759463282
+  },
+  {
+    "start": 62,
+    "endpoint": 92,
+    "period": 30,
+    "legIoU": 0.9594043022614451,
+    "endpointDelta": 7.689146518707275,
+    "seamRatio": 1.0166251797458987,
+    "score": 0.8424045865062462
+  },
+  {
+    "start": 46,
+    "endpoint": 76,
+    "period": 30,
+    "legIoU": 0.9456711512786279,
+    "endpointDelta": 6.872123718261719,
+    "seamRatio": 0.9454663174342984,
+    "score": 0.8371359272481319
+  },
+  {
+    "start": 57,
+    "endpoint": 87,
+    "period": 30,
+    "legIoU": 0.9422671255690019,
+    "endpointDelta": 5.576276779174805,
+    "seamRatio": 1.336871804899852,
+    "score": 0.8249357933913947
+  },
+  {
+    "start": 65,
+    "endpoint": 95,
+    "period": 30,
+    "legIoU": 0.9138718517551873,
+    "endpointDelta": 7.182387351989746,
+    "seamRatio": 1.1801196530690774,
+    "score": 0.7881240761684334
+  },
+  {
+    "start": 49,
+    "endpoint": 79,
+    "period": 30,
+    "legIoU": 0.9461736150770989,
+    "endpointDelta": 10.057055473327637,
+    "seamRatio": 1.1116905875347007,
+    "score": 0.7841487242237142
+  },
+  {
+    "start": 81,
+    "endpoint": 111,
+    "period": 30,
+    "legIoU": 0.9257609502598366,
+    "endpointDelta": 7.253431797027588,
+    "seamRatio": 0.5661584090662097,
+    "score": 0.7735753142110438
+  },
+  {
+    "start": 73,
+    "endpoint": 103,
+    "period": 30,
+    "legIoU": 0.9060338405874215,
+    "endpointDelta": 8.615079879760742,
+    "seamRatio": 0.9033231282126453,
+    "score": 0.767139955212275
+  },
+  {
+    "start": 37,
+    "endpoint": 67,
+    "period": 30,
+    "legIoU": 0.9184440135724673,
+    "endpointDelta": 7.303077697753906,
+    "seamRatio": 0.5392417757678193,
+    "score": 0.7628220256829407
+  },
+  {
+    "start": 66,
+    "endpoint": 96,
+    "period": 30,
+    "legIoU": 0.911921597816648,
+    "endpointDelta": 8.520588874816895,
+    "seamRatio": 0.7727121625181337,
+    "score": 0.761383980946208
+  },
+  {
+    "start": 44,
+    "endpoint": 74,
+    "period": 30,
+    "legIoU": 0.8729093537063803,
+    "endpointDelta": 8.629426956176758,
+    "seamRatio": 0.8622531969345277,
+    "score": 0.7296932690571817
+  },
+  {
+    "start": 38,
+    "endpoint": 68,
+    "period": 30,
+    "legIoU": 0.9032634032634033,
+    "endpointDelta": 10.302286148071289,
+    "seamRatio": 0.7232678090615912,
+    "score": 0.7210558919484931
+  },
+  {
+    "start": 50,
+    "endpoint": 80,
+    "period": 30,
+    "legIoU": 0.8983750322414238,
+    "endpointDelta": 11.338354110717773,
+    "seamRatio": 1.1292968667389538,
+    "score": 0.7153700339067618
+  },
+  {
+    "start": 41,
+    "endpoint": 71,
+    "period": 30,
+    "legIoU": 0.9121030832949839,
+    "endpointDelta": 11.141271591186523,
+    "seamRatio": 0.6740895601868949,
+    "score": 0.7123929654458755
+  },
+  {
+    "start": 47,
+    "endpoint": 77,
+    "period": 30,
+    "legIoU": 0.8729293352904173,
+    "endpointDelta": 10.123351097106934,
+    "seamRatio": 1.1059502635713558,
+    "score": 0.7104840424766777
+  },
+  {
+    "start": 74,
+    "endpoint": 104,
+    "period": 30,
+    "legIoU": 0.8941524042379788,
+    "endpointDelta": 9.652626037597656,
+    "seamRatio": 0.49740125886518116,
+    "score": 0.699103139560532
+  },
+  {
+    "start": 36,
+    "endpoint": 66,
+    "period": 30,
+    "legIoU": 0.8452016178453242,
+    "endpointDelta": 9.735322952270508,
+    "seamRatio": 1.0140051078168724,
+    "score": 0.6977712627795793
+  },
+  {
+    "start": 59,
+    "endpoint": 89,
+    "period": 30,
+    "legIoU": 0.8985741733238952,
+    "endpointDelta": 11.434301376342773,
+    "seamRatio": 0.6079463407761745,
+    "score": 0.6878542867563711
+  },
+  {
+    "start": 69,
+    "endpoint": 99,
+    "period": 30,
+    "legIoU": 0.8852028639618138,
+    "endpointDelta": 13.214980125427246,
+    "seamRatio": 1.0163016084536554,
+    "score": 0.6853480012350397
+  },
+  {
+    "start": 55,
+    "endpoint": 85,
+    "period": 30,
+    "legIoU": 0.8894425773554294,
+    "endpointDelta": 13.848714828491211,
+    "seamRatio": 0.9072168657917751,
+    "score": 0.6724335415072388
+  },
+  {
+    "start": 16,
+    "endpoint": 44,
+    "period": 28,
+    "legIoU": 0.8308184271010293,
+    "endpointDelta": 11.275552749633789,
+    "seamRatio": 0.8989436980593309,
+    "score": 0.6515795056624556
+  },
+  {
+    "start": 70,
+    "endpoint": 100,
+    "period": 30,
+    "legIoU": 0.8633368019424211,
+    "endpointDelta": 13.703615188598633,
+    "seamRatio": 0.8127757863811155,
+    "score": 0.6390601527515531
+  },
+  {
+    "start": 51,
+    "endpoint": 81,
+    "period": 30,
+    "legIoU": 0.8523334953816237,
+    "endpointDelta": 15.396355628967285,
+    "seamRatio": 0.9616301974606747,
+    "score": 0.6175511806931819
+  },
+  {
+    "start": 77,
+    "endpoint": 107,
+    "period": 30,
+    "legIoU": 0.8456057007125891,
+    "endpointDelta": 14.217127799987793,
+    "seamRatio": 0.8426848023538813,
+    "score": 0.6166172639481604
+  },
+  {
+    "start": 43,
+    "endpoint": 73,
+    "period": 30,
+    "legIoU": 0.8224876441515651,
+    "endpointDelta": 13.1566801071167,
+    "seamRatio": 1.1639653681449766,
+    "score": 0.6087409057303169
+  }
+]

@@ -1,0 +1,170 @@
+{
+  "date": "2026-08-31",
+  "status": "moved_recoverable",
+  "fileCount": 27,
+  "totalBytes": 19580632,
+  "files": [
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/delivery-preview.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/delivery-preview.gif",
+      "bytes": 4872337,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/delivery-preview.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/delivery-preview.png",
+      "bytes": 71810,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/keyframes.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/keyframes.gif",
+      "bytes": 306803,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/source-video.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/source-video.gif",
+      "bytes": 4765607,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/empty/mushroom-farmer-empty-running-interpolated-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/empty/mushroom-farmer-empty-running-interpolated-contact.png",
+      "bytes": 448871,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/empty/mushroom-farmer-empty-running-interpolated.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/empty/mushroom-farmer-empty-running-interpolated.gif",
+      "bytes": 1131463,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/loaded/mushroom-farmer-loaded-running-interpolated-contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/loaded/mushroom-farmer-loaded-running-interpolated-contact.png",
+      "bytes": 525710,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/previews/loaded/mushroom-farmer-loaded-running-interpolated.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/previews/loaded/mushroom-farmer-loaded-running-interpolated.gif",
+      "bytes": 1260183,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/empty_running.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/empty_running.png",
+      "bytes": 1164592,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/idle.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/idle.png",
+      "bytes": 37411,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/mushroom_loaded_running.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/mushroom_loaded_running.png",
+      "bytes": 1384143,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f042.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f042.png",
+      "bytes": 205474,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f044.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f044.png",
+      "bytes": 204469,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f046.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f046.png",
+      "bytes": 206172,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f048.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f048.png",
+      "bytes": 198500,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f050.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f050.png",
+      "bytes": 197146,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f052.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f052.png",
+      "bytes": 201345,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f054.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f054.png",
+      "bytes": 197778,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f056.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f056.png",
+      "bytes": 200509,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f058.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f058.png",
+      "bytes": 207363,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f060.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f060.png",
+      "bytes": 209997,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f062.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f062.png",
+      "bytes": 202017,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f064.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f064.png",
+      "bytes": 194112,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f066.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f066.png",
+      "bytes": 200307,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f068.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f068.png",
+      "bytes": 204555,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/video-sheets/source-f070.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/video-sheets/source-f070.png",
+      "bytes": 197611,
+      "reason": "正式PNG在assets唯一保留；未插帧base表保留，逐帧抠图可再生"
+    },
+    {
+      "source": "tools/ai-gen/_mushroom_farmer_delivery_20260831/videos/mushroom-loaded-running-v01_contact.png",
+      "destination": "tools/.trash-animation-publication-20260831/_mushroom_farmer_delivery_20260831/videos/mushroom-loaded-running-v01_contact.png",
+      "bytes": 584347,
+      "reason": "旧100px或中间速度预览，当前78px送仓预览和最终单动作GIF保留"
+    }
+  ]
+}

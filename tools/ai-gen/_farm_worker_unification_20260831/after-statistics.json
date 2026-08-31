@@ -1,0 +1,386 @@
+{
+  "cheese_farm": {
+    "label": "奶酪农场",
+    "workerSlots": 10,
+    "visualWorkerCap": 1,
+    "baseMoveSpeed": 80,
+    "fieldMoveSpeed": null,
+    "workerOutputEfficiencyShare": 0.1,
+    "displaySize": 91.6,
+    "originY": 0.91796875,
+    "animations": {
+      "idle": {
+        "src": "assets/companions/hamster_cowherd/idle.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 8,
+        "frameRate": 8,
+        "cycleMs": 1000.0,
+        "scale": 1,
+        "footRatio": 0.91796875,
+        "sourceHeightMedian": 218.0,
+        "sourceHeightRange": [
+          217,
+          218
+        ],
+        "sourceFootRange": [
+          235,
+          235
+        ],
+        "worldHeightMedian": 78.003125,
+        "worldHeightRange": [
+          77.64531249999999,
+          78.003125
+        ]
+      },
+      "empty_running": {
+        "src": "assets/companions/hamster_cowherd/empty_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 9,
+        "frameRate": 12,
+        "cycleMs": 750.0,
+        "scale": 0.981982,
+        "footRatio": 0.91796875,
+        "sourceHeightMedian": 222.0,
+        "sourceHeightRange": [
+          215,
+          233
+        ],
+        "sourceFootRange": [
+          235,
+          235
+        ],
+        "worldHeightMedian": 78.00312643125,
+        "worldHeightRange": [
+          75.543568390625,
+          81.868146209375
+        ]
+      },
+      "cheese_loaded_running": {
+        "src": "assets/companions/hamster_cowherd/cheese_loaded_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 8,
+        "frameRate": 12,
+        "cycleMs": 666.6666666666666,
+        "scale": 0.984199,
+        "footRatio": 0.91796875,
+        "sourceHeightMedian": 221.5,
+        "sourceHeightRange": [
+          217,
+          233
+        ],
+        "sourceFootRange": [
+          235,
+          235
+        ],
+        "worldHeightMedian": 78.00315308828125,
+        "worldHeightRange": [
+          76.4184389171875,
+          82.0529781921875
+        ]
+      }
+    }
+  },
+  "corn_farm": {
+    "label": "玉米农场",
+    "workerSlots": 10,
+    "visualWorkerCap": 1,
+    "baseMoveSpeed": 80,
+    "fieldMoveSpeed": null,
+    "workerOutputEfficiencyShare": 0.1,
+    "displaySize": 128,
+    "originY": 0.794921875,
+    "animations": {
+      "idle": {
+        "src": "assets/companions/hamster_farmer/idle.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 1,
+        "frameRate": 1,
+        "cycleMs": 1000.0,
+        "scale": 1,
+        "footRatio": 0.794921875,
+        "sourceHeightMedian": 312.0,
+        "sourceHeightRange": [
+          312,
+          312
+        ],
+        "sourceFootRange": [
+          407,
+          407
+        ],
+        "worldHeightMedian": 78.0,
+        "worldHeightRange": [
+          78.0,
+          78.0
+        ]
+      },
+      "running": {
+        "src": "assets/companions/hamster_farmer/running.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 14,
+        "frameRate": 14,
+        "cycleMs": 1000.0,
+        "scale": 0.99,
+        "footRatio": 0.8125,
+        "sourceHeightMedian": 311.5,
+        "sourceHeightRange": [
+          304,
+          321
+        ],
+        "sourceFootRange": [
+          400,
+          420
+        ],
+        "worldHeightMedian": 77.09625,
+        "worldHeightRange": [
+          75.24,
+          79.4475
+        ]
+      },
+      "harvesting": {
+        "src": "assets/companions/hamster_farmer/harvesting.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 18,
+        "frameRate": 12,
+        "cycleMs": 1500.0,
+        "scale": 1.02,
+        "footRatio": 0.8047,
+        "sourceHeightMedian": 307.5,
+        "sourceHeightRange": [
+          289,
+          384
+        ],
+        "sourceFootRange": [
+          407,
+          451
+        ],
+        "worldHeightMedian": 78.4125,
+        "worldHeightRange": [
+          73.69500000000001,
+          97.92
+        ]
+      },
+      "corn_loaded_running": {
+        "src": "assets/companions/hamster_farmer/corn_loaded_running.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 30,
+        "frameRate": 24,
+        "cycleMs": 1250.0,
+        "scale": 0.787879,
+        "footRatio": 0.8203125,
+        "sourceHeightMedian": 396.0,
+        "sourceHeightRange": [
+          387,
+          403
+        ],
+        "sourceFootRange": [
+          420,
+          421
+        ],
+        "worldHeightMedian": 78.000021,
+        "worldHeightRange": [
+          76.22729325,
+          79.37880925
+        ]
+      },
+      "empty_running": {
+        "src": "assets/companions/hamster_farmer/empty_running.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 30,
+        "frameRate": 24,
+        "cycleMs": 1250.0,
+        "scale": 0.784906,
+        "footRatio": 0.8203125,
+        "sourceHeightMedian": 397.5,
+        "sourceHeightRange": [
+          389,
+          404
+        ],
+        "sourceFootRange": [
+          419,
+          421
+        ],
+        "worldHeightMedian": 78.00003375,
+        "worldHeightRange": [
+          76.3321085,
+          79.275506
+        ]
+      }
+    }
+  },
+  "mushroom_farm": {
+    "label": "蘑菇农场",
+    "workerSlots": 10,
+    "visualWorkerCap": 1,
+    "baseMoveSpeed": 80,
+    "fieldMoveSpeed": null,
+    "workerOutputEfficiencyShare": 0.1,
+    "displaySize": 128,
+    "originY": 0.79296875,
+    "animations": {
+      "idle": {
+        "src": "assets/companions/hamster_mushroom_farmer/idle.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 1,
+        "frameRate": 1,
+        "cycleMs": 1000.0,
+        "scale": 1,
+        "footRatio": 0.79296875,
+        "sourceHeightMedian": 156.0,
+        "sourceHeightRange": [
+          156,
+          156
+        ],
+        "sourceFootRange": [
+          203,
+          203
+        ],
+        "worldHeightMedian": 78.0,
+        "worldHeightRange": [
+          78.0,
+          78.0
+        ]
+      },
+      "mushroom_loaded_running": {
+        "src": "assets/companions/hamster_mushroom_farmer/mushroom_loaded_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 30,
+        "frameRate": 24,
+        "cycleMs": 1250.0,
+        "scale": 0.787879,
+        "footRatio": 0.875,
+        "sourceHeightMedian": 198.0,
+        "sourceHeightRange": [
+          193,
+          204
+        ],
+        "sourceFootRange": [
+          209,
+          224
+        ],
+        "worldHeightMedian": 78.000021,
+        "worldHeightRange": [
+          76.0303235,
+          80.363658
+        ]
+      },
+      "empty_running": {
+        "src": "assets/companions/hamster_mushroom_farmer/empty_running.png",
+        "frameWidth": 256,
+        "frameHeight": 256,
+        "frameCount": 30,
+        "frameRate": 24,
+        "cycleMs": 1250.0,
+        "scale": 0.78392,
+        "footRatio": 0.8203125,
+        "sourceHeightMedian": 199.0,
+        "sourceHeightRange": [
+          194,
+          203
+        ],
+        "sourceFootRange": [
+          209,
+          211
+        ],
+        "worldHeightMedian": 78.00004,
+        "worldHeightRange": [
+          76.04024,
+          79.56787999999999
+        ]
+      }
+    }
+  },
+  "windmill": {
+    "label": "风车田间农夫",
+    "workerSlots": 4,
+    "visualWorkerCap": 4,
+    "baseMoveSpeed": null,
+    "fieldMoveSpeed": 52,
+    "workerOutputEfficiencyShare": null,
+    "displaySize": 128,
+    "originY": 0.8,
+    "animations": {
+      "idle": {
+        "src": "assets/companions/hamster_farmer/idle.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 1,
+        "frameRate": 1,
+        "cycleMs": 1000.0,
+        "scale": 1,
+        "footRatio": 0.7988,
+        "sourceHeightMedian": 312.0,
+        "sourceHeightRange": [
+          312,
+          312
+        ],
+        "sourceFootRange": [
+          407,
+          407
+        ],
+        "worldHeightMedian": 78.0,
+        "worldHeightRange": [
+          78.0,
+          78.0
+        ]
+      },
+      "running": {
+        "src": "assets/companions/hamster_farmer/running.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 14,
+        "frameRate": 14,
+        "cycleMs": 1000.0,
+        "scale": 0.99,
+        "footRatio": 0.8125,
+        "sourceHeightMedian": 311.5,
+        "sourceHeightRange": [
+          304,
+          321
+        ],
+        "sourceFootRange": [
+          400,
+          420
+        ],
+        "worldHeightMedian": 77.09625,
+        "worldHeightRange": [
+          75.24,
+          79.4475
+        ]
+      },
+      "harvesting": {
+        "src": "assets/companions/hamster_farmer/harvesting.png",
+        "frameWidth": 512,
+        "frameHeight": 512,
+        "frameCount": 18,
+        "frameRate": 12,
+        "cycleMs": 1500.0,
+        "scale": 1.02,
+        "footRatio": 0.8047,
+        "sourceHeightMedian": 307.5,
+        "sourceHeightRange": [
+          289,
+          384
+        ],
+        "sourceFootRange": [
+          407,
+          451
+        ],
+        "worldHeightMedian": 78.4125,
+        "worldHeightRange": [
+          73.69500000000001,
+          97.92
+        ]
+      }
+    }
+  }
+}
