@@ -3,6 +3,12 @@
 
 ## 12. 常见陷阱与调试手册
 
+### 固定 EXE 的离线资源与编辑覆盖项
+
+- `navigator.onLine === false` 不能单独阻断本机资源：先按实际 URL 区分 `file:`、`wl-test:`、`blob:`、`data:` 及回环地址，再判断远程网络离线。offline 事件、加载门禁、失败归类和回收调度须保持同一口径；真实加载错误的退避仍保留。
+- 编辑配置保存到 `userData` 后，读取也必须走对应 `electronAPI.loadJson` 通道，再按原规则回退包内默认值；不能保存覆盖项后始终 fetch 包内 JSON，也不回写已发布 EXE 资源。此规则是编辑器配置，不代表游戏存档完成。
+- Electron 的 Escape 转发限定当前窗口，通过 `before-input-event` 拦截并只转发非重复 keydown；渲染端只进入一次原菜单链，不注册占用其他程序的全局 Escape 快捷键。
+
 ### 常见问题
 
 #### 精灵图加载时报 "has no frame X"
