@@ -1,0 +1,389 @@
+{
+  "date": "2026-08-31T11:21:40.247237+08:00",
+  "userRequest": "02更好，抠图注意处理栏杆，看看前面SKILL沉淀的经验",
+  "selectedRaw": "tools\\ai-gen\\_industrial_city_hall_20260831\\refine_s48_v02_b01\\candidates\\city_hall_industrial\\city_hall_industrial_refine_v02_raw.png",
+  "selectedSeed": 831742,
+  "status": "transparent_cutout_ready_for_user_review",
+  "runtimeIntegrationActive": false,
+  "skillSections": [
+    "skill/02-ai-asset-pipeline.md:238-240",
+    "skill/02-ai-asset-pipeline.md:249-252",
+    "skill/02-ai-asset-pipeline.md:423-427"
+  ],
+  "key": {
+    "measuredRgb": [
+      79.0,
+      222.0,
+      26.0
+    ],
+    "softInner": 40.0,
+    "softOuter": 110.0,
+    "mode": "building-specific RGB-distance soft key; includes enclosed railing gaps",
+    "removeAllGreen": false,
+    "depthUsedForAlpha": false,
+    "depthRestore": false
+  },
+  "rgbRepair": {
+    "minGreen": 60,
+    "greenMargin": 22,
+    "maxEdgeDistance": 3,
+    "passes": [
+      {
+        "name": "outer_edge",
+        "rect": [
+          0,
+          0,
+          1024,
+          1024
+        ],
+        "minGreen": 60,
+        "greenMargin": 22,
+        "maxEdgeDistance": 3,
+        "changedPixels": 1076
+      },
+      {
+        "name": "railing_and_pipe_only",
+        "rect": [
+          760,
+          400,
+          838,
+          549
+        ],
+        "minGreen": 20,
+        "greenMargin": 3,
+        "maxEdgeDistance": 3,
+        "changedPixels": 270
+      },
+      {
+        "name": "side_arcade_opening_only",
+        "rect": [
+          769,
+          573,
+          802,
+          611
+        ],
+        "minGreen": 20,
+        "greenMargin": 3,
+        "maxEdgeDistance": 3,
+        "changedPixels": 39
+      }
+    ],
+    "changedPixels": 1305,
+    "alphaChangedPixels": 0
+  },
+  "alpha": {
+    "mode": "RGBA",
+    "fullCanvasSize": [
+      1024,
+      1024
+    ],
+    "bbox": [
+      85,
+      223,
+      940,
+      919
+    ],
+    "transparentPixels": 691211,
+    "semitransparentPixels": 1938,
+    "opaqueComponentsAbove16": 1,
+    "componentAreasAbove16": [
+      357064
+    ],
+    "keyPixelsAtOrBelowInnerStillVisible": 0,
+    "subjectPixelsAtOrAboveOuterNotOpaque": 0,
+    "transparentPixelsWithDirtyRgb": 0,
+    "enclosedTransparentComponents": [
+      {
+        "area": 39,
+        "bbox": [
+          783,
+          484,
+          786,
+          503
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 39,
+        "bbox": [
+          788,
+          486,
+          790,
+          506
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 55,
+        "bbox": [
+          792,
+          489,
+          795,
+          509
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 55,
+        "bbox": [
+          797,
+          491,
+          800,
+          511
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 44,
+        "bbox": [
+          802,
+          493,
+          805,
+          509
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 23,
+        "bbox": [
+          806,
+          496,
+          810,
+          507
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 2,
+        "bbox": [
+          817,
+          497,
+          819,
+          498
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 13,
+        "bbox": [
+          811,
+          498,
+          815,
+          504
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 2,
+        "bbox": [
+          819,
+          499,
+          821,
+          500
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 22,
+        "bbox": [
+          817,
+          511,
+          820,
+          522
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 2,
+        "bbox": [
+          812,
+          516,
+          814,
+          517
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 232,
+        "bbox": [
+          783,
+          582,
+          797,
+          605
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 4,
+        "bbox": [
+          775,
+          592,
+          777,
+          595
+        ],
+        "action": "preserved"
+      }
+    ],
+    "filledHoles": []
+  },
+  "protectedMaterialSamples": {
+    "main_roof": {
+      "samplePixels": 42683,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 114.60366821289062
+    },
+    "rear_roof": {
+      "samplePixels": 4131,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 127.97265625
+    },
+    "flag_left_outer": {
+      "samplePixels": 876,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 132.80059814453125
+    },
+    "flag_left_inner": {
+      "samplePixels": 774,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 138.0
+    },
+    "flag_right_inner": {
+      "samplePixels": 660,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 134.31678771972656
+    },
+    "flag_right_outer": {
+      "samplePixels": 637,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 132.72528076171875
+    },
+    "glazed_balcony_door": {
+      "samplePixels": 1187,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 148.69094848632812
+    },
+    "stone_pillar": {
+      "samplePixels": 463,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 151.46617126464844
+    }
+  },
+  "outputs": {
+    "fullCanvas": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_cutout_full.png",
+    "tightCutout": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_cutout.png",
+    "cropMetadata": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\crop-metadata.json"
+  },
+  "cropNote": "Native pixels retained. display-width equals native crop width for export metadata only; not a runtime placement calibration.",
+  "commands": [
+    [
+      "tools\\ai-gen\\key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\refine_s48_v02_b01\\candidates\\city_hall_industrial\\city_hall_industrial_refine_v02_raw.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_keyed.png",
+      "--soft-key-inner",
+      "40.0",
+      "--soft-key-outer",
+      "110.0",
+      "--nearest-opaque-edge-rgb"
+    ],
+    [
+      "tools\\ai-gen\\repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_edge_rgb.png",
+      "--rect",
+      "0,0,1024,1024",
+      "--min-green",
+      "60",
+      "--green-margin",
+      "22",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "3"
+    ],
+    [
+      "tools\\ai-gen\\repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_edge_rgb.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_railing_rgb.png",
+      "--rect",
+      "760,400,838,549",
+      "--min-green",
+      "20",
+      "--green-margin",
+      "3",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "3"
+    ],
+    [
+      "tools\\ai-gen\\repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_railing_rgb.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_cutout_full.png",
+      "--rect",
+      "769,573,802,611",
+      "--min-green",
+      "20",
+      "--green-margin",
+      "3",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "3"
+    ],
+    [
+      "tools\\ai-gen\\finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_cutout_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_cutout.png",
+      "--display-width",
+      "863",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\crop-metadata.json"
+    ]
+  ],
+  "validationBoundary": "Offline source pixels and preview inspection only, as requested for cutout production; no tests, game/runtime validation, build or installation.",
+  "exportReview": {
+    "tightSize": [
+      863,
+      704
+    ],
+    "cropBox": [
+      81,
+      219,
+      944,
+      923
+    ],
+    "alphaChangedByExport": 0,
+    "opaqueRgbChangedByExport": 0,
+    "transparentPixelsWithDirtyRgb": 0,
+    "reviewBoard": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\cutout_review.png",
+    "detailBoard": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\railing_detail_review.png",
+    "checkerPreview": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\cutout_checker_preview.png"
+  },
+  "imageReview": {
+    "complete": true,
+    "viewed": [
+      "actual tight RGBA",
+      "black/gray/white/Alpha board",
+      "4x raw/keyed/final/Alpha railing and arcade details"
+    ],
+    "railingHolesPreserved": 11,
+    "arcadeHolesPreserved": 2,
+    "twoPixelRailingGapsPreserved": 3,
+    "holesFilled": 0,
+    "note": "All enclosed transparent components correspond to observed backdrop gaps in railing intersections or the side arcade; no blanket hole filling."
+  },
+  "followUpRepairRecord": "tools/ai-gen/_industrial_city_hall_20260831/cutout_s48_v02/balcony-fix-v2-record.json",
+  "latestOutput": "tools/ai-gen/_industrial_city_hall_20260831/cutout_s48_v02/city_hall_industrial_s48_v02_cutout_balcony_fix_v2.png"
+}

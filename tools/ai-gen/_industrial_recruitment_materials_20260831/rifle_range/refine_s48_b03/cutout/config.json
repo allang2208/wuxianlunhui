@@ -1,0 +1,17 @@
+{
+  "label": "近代靶场 · 48步01",
+  "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/candidates/rifle_range_industrial/rifle_range_industrial_refine_v01_raw.png",
+  "softInner": 80,
+  "softOuter": 100,
+  "edgeDistance": 6,
+  "edgeGreenMargin": 10,
+  "opaquePinholes": [[215, 506], [745, 753], [523, 771]],
+  "materialSamples": {
+    "roof": [505, 430, 555, 460],
+    "brick_wall": [282, 555, 310, 605],
+    "courtyard_ground": [690, 767, 718, 789],
+    "dark_wall_under_canopy": [681, 553, 701, 573]
+  },
+  "stage": "selected_48_step_candidate_transparent_delivery",
+  "runtimeIntegrationActive": false
+}

@@ -1,0 +1,209 @@
+{
+  "recordedAt": "2026-08-31T15:37:24.205446+08:00",
+  "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_refine_v01_raw.png",
+  "sourceSize": [
+    1024,
+    1024
+  ],
+  "output": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/cutout/transparent.png",
+  "outputSize": [
+    896,
+    744
+  ],
+  "outputMode": "RGBA",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "keyRgb": [
+    19.0,
+    230.0,
+    12.0
+  ],
+  "softInner": 60,
+  "softOuter": 130,
+  "transparentPixelsWithDirtyRgb": 0,
+  "materialSamples": {
+    "tent_canvas": {
+      "rect": [
+        260,
+        690,
+        300,
+        720
+      ],
+      "pixels": 1200,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 169.79399282660148
+    },
+    "tent_roof": {
+      "rect": [
+        403,
+        548,
+        440,
+        574
+      ],
+      "pixels": 962,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 164.8544812857691
+    },
+    "tower_roof": {
+      "rect": [
+        625,
+        239,
+        660,
+        261
+      ],
+      "pixels": 770,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 158.35403373454054
+    },
+    "sandbags": {
+      "rect": [
+        325,
+        775,
+        345,
+        786
+      ],
+      "pixels": 220,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 177.2484132510077
+    },
+    "concrete_ground": {
+      "rect": [
+        557,
+        794,
+        585,
+        812
+      ],
+      "pixels": 504,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 185.9193373482167
+    },
+    "olive_can": {
+      "rect": [
+        730,
+        700,
+        738,
+        715
+      ],
+      "pixels": 120,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 157.49920634720672
+    }
+  },
+  "oldDepthUsedForAlpha": false,
+  "removeAllGreen": false,
+  "isolatedPinholesRestored": [],
+  "localSpillRects": [
+    [
+      484,
+      302,
+      499,
+      337
+    ],
+    [
+      571,
+      432,
+      584,
+      443
+    ],
+    [
+      668,
+      464,
+      701,
+      485
+    ]
+  ],
+  "fillHoles": false,
+  "runtimeIntegrationActive": false,
+  "limitations": "Native pixel crop only; display metadata is not runtime calibration. Offline asset production and previews only, no tests/build/game validation.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\candidates\\industrial_barracks_tent_v2\\industrial_barracks_tent_v2_refine_v01_raw.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\keyed.png",
+      "--soft-key-inner",
+      "60",
+      "--soft-key-outer",
+      "130"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\spatial.png",
+      "--display-width",
+      "1024",
+      "--padding",
+      "1024",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\spatial-metadata.json"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\spatial.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\body_edge_clean.png",
+      "--rect",
+      "0,0,1024,1024",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "10",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "6"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\body_edge_clean.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\local_spill_01.png",
+      "--rect",
+      "484,302,499,337",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "10",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\local_spill_01.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\local_spill_02.png",
+      "--rect",
+      "571,432,584,443",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "10",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\local_spill_02.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\body_full.png",
+      "--rect",
+      "668,464,701,485",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "10",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\body_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\transparent.png",
+      "--display-width",
+      "896",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\crop-metadata.json"
+    ]
+  ]
+}

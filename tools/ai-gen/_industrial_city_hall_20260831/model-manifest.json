@@ -1,0 +1,1965 @@
+{
+  "id": "city_hall_industrial",
+  "name": "近代市政大厅",
+  "era": "近代工业时代",
+  "status": "model-approved-for-structure-generation",
+  "approved": true,
+  "runtimeIntegrated": false,
+  "sourceSelection": "tools/ai-gen/_city_hall_20260830/selection.json",
+  "sourceModel": "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b01/control-model.blend",
+  "sourcePreview": "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b01/control-model-preview.png",
+  "modernPreview": "tools/ai-gen/_city_hall_20260830/city_hall_lv3/city_hall_lv3_model_preview.png",
+  "componentLibrary": "tools/ai-gen/building-component-kit.py",
+  "materialLibrary": "tools/ai-gen/_industrial_recruitment_materials_20260831/build_material_models.py",
+  "foundationStyle": "fieldstone",
+  "foundationModelSize": [
+    400,
+    400,
+    14
+  ],
+  "logicalFootprint": "4x4 remains unchanged; model-only proposal",
+  "preserve": "已定稿的两层承重壳、唯一后收钟楼、双面钟盘与四坡塔帽、二楼门口和全宽阳台、三面护栏、对称拱窗与旗幅、首层四跨拱廊、入口台阶、无文字市政徽记、原地台和相机。",
+  "changes": "暖灰砖墙与浅色石材腰线、灰绿铜皮立边咬合坡顶、深灰绿金属门窗框、门扇上部玻璃和下部踢脚板、铸铁雨水槽与两根落水管、原有门廊灯具的玻璃灯面。",
+  "exclusions": "不增层、不扩大阳台或地台，不增加办公翼楼、工厂烟囱、军械、屋顶光伏、空调、天线或车辆；不修改现有三个时代的模型、正式素材、科技树、配置、碰撞、寻路和存档。",
+  "palette": {
+    "foundation": "AAA99E",
+    "stone": "C5C3B6",
+    "plaster": "B3A594",
+    "roof": "788E84",
+    "steel": "64766E",
+    "iron": "414E49",
+    "glass": "92A9A3",
+    "brass": "A38E68",
+    "banner": "788675",
+    "interior": "343D37",
+    "clock": "D8D3BE",
+    "lamp": "CBBF9B"
+  },
+  "roofSeams": {
+    "countPerSlope": 7,
+    "spacing": 44,
+    "width": 1.6,
+    "height": 1.6
+  },
+  "doorGlazing": {
+    "widthInset": 6,
+    "heightRatio": 0.66,
+    "centerHeightRatio": 0.1
+  },
+  "model": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model.blend",
+  "approvalPreview": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model_approval_preview.png",
+  "depth": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+  "materialAssignments": [
+    {
+      "object": "CityHallLV2_Arcade_Landing",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Arcade_UpperGallery",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_CivicSeal_Backplate",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_banner",
+      "material": "IND_Civic_banner"
+    },
+    {
+      "object": "CityHallLV2_CivicSeal_Base",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_CivicSeal_Border",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_CivicSeal_Column_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_CivicSeal_Column_0",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_CivicSeal_Column_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_CivicSeal_Lintel",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Interior",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_interior",
+      "material": "IND_Civic_interior"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Jamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Jamb_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Leaf_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Band_+1_-19",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Band_+1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Band_+1_19",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Hinge_+1_-21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Hinge_+1_21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Ring_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Leaf_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Band_-1_-19",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Band_-1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Band_-1_19",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Hinge_-1_-21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Hinge_-1_21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Ring_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Lintel",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_RecessCutter",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_interior",
+      "material": "IND_Civic_interior"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Door_Threshold",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Front_Handrail",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Front_LowerRail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_0_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_0_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_0_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_0_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_0_5",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_1_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_1_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_1_5",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_2_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_2_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_2_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_2_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_2_5",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_3_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_3_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_3_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_3_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontBaluster_3_5",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_00_Cap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_00_Foot",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_00_Shaft",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_01_Cap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_01_Foot",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_01_Shaft",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_02_Cap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_02_Foot",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_02_Shaft",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_03_Cap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_03_Foot",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_03_Shaft",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_04_Cap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_04_Foot",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_FrontPost_04_Shaft",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Paving",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Side_Handrail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Side_Handrail_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Side_LowerRail_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_Side_LowerRail_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_-1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_-1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_-1_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_-1_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_1_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideBaluster_1_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideWallPost_-1_Cap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideWallPost_-1_Foot",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideWallPost_-1_Shaft",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideWallPost_1_Cap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideWallPost_1_Foot",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Balcony_SideWallPost_1_Shaft",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_BellTower_Finial",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_Clock_Face",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_clock"
+    },
+    {
+      "object": "CityHallLV2_Clock_HourHand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_MinuteHand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Rim",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_10",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_11",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_5",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_6",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_7",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_8",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Clock_Tick_9",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_ClockTower_Band_123",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_ClockTower_Band_211",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_ClockTower_Band_293",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_ClockTower_BearingShell",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_plaster",
+      "material": "IND_Civic_plaster"
+    },
+    {
+      "object": "CityHallLV2_ClockTower_Quoin_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_ClockTower_Quoin_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_ClockTowerCap",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Leaf_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Band_+1_-21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Band_+1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Band_+1_21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Hinge_+1_-24",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Hinge_+1_24",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Ring_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Leaf_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Band_-1_-21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Band_-1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Band_-1_21",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Hinge_-1_-24",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Hinge_-1_24",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilDoors_Ring_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_CouncilRoof",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_plaster",
+      "material": "IND_Civic_plaster"
+    },
+    {
+      "object": "CityHallLV2_CouncilRoof",
+      "slot": 1,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_CouncilStorey_Level1_BearingShell",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_CouncilStorey_Level2_BearingShell",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_plaster",
+      "material": "IND_Civic_plaster"
+    },
+    {
+      "object": "CityHallLV2_CouncilStorey_Level2_FloorBandFront",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_CouncilStorey_Level2_FloorBandSide",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Door_Recess",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_interior",
+      "material": "IND_Civic_interior"
+    },
+    {
+      "object": "CityHallLV2_Entry_Step_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Entry_Step_2",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Entry_Step_3",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_-1_Bottom",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_-1_Bracket",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_-1_Cage",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_-1_Glow",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_-1_Top",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_1_Bottom",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_1_Bracket",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_1_Cage",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_1_Glow",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_EntryLantern_1_Top",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_Forecourt_Slab_0",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Forecourt_Slab_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Forecourt_Slab_2",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Forecourt_Slab_3",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_4x4",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_foundation",
+      "material": "IND_Civic_foundation"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_-1_0",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_-1_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_-1_2",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_-1_3",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_-1_4",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_1_0",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_1_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_1_2",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_1_3",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeX_1_4",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_-1_0",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_-1_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_-1_2",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_-1_3",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_-1_4",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_1_0",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_1_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_1_2",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_1_3",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_EdgeY_1_4",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_Foundation_Inset",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_foundation",
+      "material": "IND_Civic_foundation"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_1_Arch",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_1_Pier_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_1_Pier_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_2_Arch",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_2_Pier_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_2_Pier_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_3_Arch",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_3_Pier_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_3_Pier_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_4_Arch",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_4_Pier_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_PublicArcade_4_Pier_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_0_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_0_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_0_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_0_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_0_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_0_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_1_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_1_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_1_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_1_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_1_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_1_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_2_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_2_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_2_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_2_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_2_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_2_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_3_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_3_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_3_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_3_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_3_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_-1_3_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_0_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_0_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_0_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_0_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_0_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_0_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_1_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_1_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_1_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_1_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_1_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_1_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_2_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_2_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_2_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_2_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_2_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_2_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_3_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_3_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_3_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_3_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_3_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_RecordsOfficeWindow_1_3_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S+1_Row_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S+1_Row_02",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S+1_Row_03",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S+1_Row_04",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S+1_Row_05",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S-1_Row_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S-1_Row_02",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S-1_Row_03",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S-1_Row_04",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_RoofCourses_S-1_Row_05",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_roof",
+      "material": "IND_Civic_roof"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Face",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_clock"
+    },
+    {
+      "object": "CityHallLV2_SideClock_HourHand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_MinuteHand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Rim",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_10",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_11",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_5",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_6",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_7",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_8",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideClock_Tick_9",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_0_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_0_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_0_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_0_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_0_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_0_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_1_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_1_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_1_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_1_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_1_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_1_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_2_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_2_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_2_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_2_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_2_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_2_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_3_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_3_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_3_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_3_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_3_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_-1_3_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_0_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_0_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_0_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_0_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_0_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_0_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_1_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_1_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_1_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_1_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_1_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_1_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_2_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_2_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_2_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_2_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_2_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_2_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_3_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_3_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_3_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_3_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_timber",
+      "material": "IND_Civic_steel"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_3_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SideWindow_1_3_TrimMullionH_01",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SymmetricBanner_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_banner",
+      "material": "IND_Civic_banner"
+    },
+    {
+      "object": "CityHallLV2_SymmetricBanner_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_banner",
+      "material": "IND_Civic_banner"
+    },
+    {
+      "object": "CityHallLV2_SymmetricBannerRail_-1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_SymmetricBannerRail_1",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_brass",
+      "material": "IND_Civic_brass"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_-1_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_-1_Mullion",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_-1_StoneFrame",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_-1_Transom",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_1_Glass",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_glass",
+      "material": "IND_Civic_glass"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_1_Mullion",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_1_StoneFrame",
+      "slot": 0,
+      "sourceMaterial": "CityHallLV2_MAT_stone",
+      "material": "IND_Civic_stone"
+    },
+    {
+      "object": "CityHallLV2_SymmetricWindow_1_Transom",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Civic_iron"
+    }
+  ],
+  "foundationChanged": false,
+  "cameraChanged": false,
+  "floorCount": 2,
+  "clockTowerCount": 1,
+  "camera": {
+    "type": "ORTHO",
+    "orthoScale": 658.8909912109375,
+    "rotationEuler": [
+      1.0471975803375244,
+      0.0,
+      0.0
+    ]
+  },
+  "meshCount": 326,
+  "modelApproval": {
+    "recordedAt": "2026-08-31T10:43:46.168690+08:00",
+    "userStatement": "同意，接下来开始逐步12步生图",
+    "scope": "Accept this city-hall model and begin three standard 12-step structure candidates; no 48-step refinement or runtime replacement.",
+    "model": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model.blend",
+    "preview": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model_approval_preview.png"
+  }
+}

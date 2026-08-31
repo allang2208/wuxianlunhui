@@ -1,0 +1,80 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "stage": "structure",
+  "steps": 12,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDepthStrength": 0.75,
+  "refineDenoise": 0.3,
+  "structureSeedBase": 832200,
+  "refineSeedBase": 832210,
+  "batchId": "steam_arsenal_industrial-structure-b01",
+  "outputRoot": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/structure_s12_b01/candidates",
+  "status": "raw_candidates_ready_for_image_review",
+  "runtimeIntegrationActive": false,
+  "assets": [
+    {
+      "id": "steam_arsenal_industrial",
+      "label": "蒸汽军工厂",
+      "assetClass": "industrial_steam_arsenal",
+      "assetType": "compact early-industrial steam arsenal evolved from the blacksmith workshop",
+      "primaryRequest": "Follow the supplied revision-3 steam-arsenal model. Preserve one compact brown-gray brick workshop, one uninterrupted gray-blue metal gable roof, exactly one brick chimney, one broad side window, the attached left-wall flywheel with its small base cylinder and the small gear-and-hammer emblem above the right furnace. The left front loading doorway stays genuinely open: both full door leaves are rotated inward 90 degrees against the jambs, revealing the recessed dark interior and floor. Keep the right furnace with a small restrained orange internal glow, the tall attached mechanical forging hammer at the far right, and the low small processing machine beside stacked material boxes and exposed metal blanks. Preserve the hammer and wrench on those boxes. This box-and-machine group has replaced the former outdoor table: do not rebuild a tabletop, table legs or a tabletop vise. Retain all exact component positions, one complete shallow fieldstone footing, matte black iron and quiet low-saturation worn materials. Use diffuse fill and only narrow contact occlusion so the entrance and equipment remain readable.",
+      "negativeRequest": "No closed loading door, blocked entrance, outdoor table, workbench, tabletop vise, hoist, second factory hall, second chimney, roof skylight, tower, extra steam engine, boiler yard, exposed pipe network, CNC cabinet, induction furnace, power-station equipment, finished cannon, weapon rack, vehicle, people, animal, sign text, neon or broad furnace glow. Absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow.",
+      "model": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_model_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_depth.png",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 2,
+      "footprintMode": "authored",
+      "removeAllGreen": false,
+      "postprocessDepthImage": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_depth.png"
+    }
+  ],
+  "continuation": {
+    "userStatement": "继续",
+    "priorInstruction": "继续，做完以后下一个",
+    "selectedNext": "蒸汽军工厂",
+    "selectionAuthority": "Assistant selects candidates while continuing the established series; no invented per-image user acceptance.",
+    "scope": "Prepared as the next named building in this three-building continuation. Preserve existing models and all runtime resources."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only this named building original Depth, prepared prompt and standard parameters; at refinement, its selected 12-step raw.",
+    "submitted": true,
+    "generatedCandidates": 3,
+    "excluded": "Blender files, project source, saves, unrelated images, other endpoints and runtime installation.",
+    "startedAt": "2026-08-31T19:03:50.832757+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T19:06:41.330606+08:00"
+  },
+  "externalPayloadAuthorization": {
+    "status": "explicitly_authorized",
+    "userResponse": "允许",
+    "authorizedAt": "2026-08-31T18:35:36.677727+08:00",
+    "approvalQuestion": "是否允许把近代骑兵学院、近代炮兵工坊、蒸汽军工厂这三栋的Depth、提示词、参数，以及本轮选中的12步原图或仅用于保持既定结构的局部修正版，发送到同一192.168.3.142:8188，按顺序完成12/48步与透明处理？",
+    "destination": "http://192.168.3.142:8188",
+    "assets": [
+      "cavalry_academy_industrial",
+      "artillery_workshop_industrial",
+      "steam_arsenal_industrial"
+    ],
+    "payloadScope": "Only these three buildings: original Depth PNGs, prepared prompts and standard parameters; later selected original 12-step raws and, only when necessary to preserve the already modeled structure, documented local corrections of the same building raws.",
+    "excluded": "Blender models, project source, saves, unrelated images or buildings, other endpoints, model redesign and runtime installation.",
+    "previousBlockResolvedBy": "User explicitly approved the preceding exact three-building payload question.",
+    "runtimeIntegrationActive": false
+  }
+}

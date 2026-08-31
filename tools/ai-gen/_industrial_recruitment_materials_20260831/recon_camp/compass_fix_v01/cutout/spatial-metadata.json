@@ -1,0 +1,61 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_keyed.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_spatial.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": false,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [
+    "75,730,310,955",
+    "75,865,568,1125"
+  ],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [
+    "0,650;235,650;235,768;229,777;212,785;185,799;161,811;140,821;122,832;110,839;103,845;96,850;90,857;86,865;88,877;94,886;119,900;152,916;201,943;252,969;303,995;357,1023;407,1049;463,1078;507,1100;546,1119;558,1121;590,1107;1253,1253;0,1253"
+  ],
+  "greenHueRange": [
+    45.0,
+    85.0
+  ],
+  "greenSaturationMin": 155,
+  "greenValueMin": 20,
+  "cropBox": [
+    0,
+    0,
+    1254,
+    1254
+  ],
+  "fileSize": [
+    1254,
+    1254
+  ],
+  "alphaBBox": [
+    88,
+    224,
+    1169,
+    1119
+  ],
+  "displayW": 1254,
+  "displayH": 1254,
+  "footOffsetY": 492,
+  "scaleX": 1.0,
+  "scaleY": 1.0
+}

@@ -1,0 +1,765 @@
+{
+  "id": "steam_arsenal_industrial",
+  "name": "蒸汽军工厂",
+  "revision": 3,
+  "revisionBrief": "按用户反馈，装卸门双扇向内打开90度；原实心墙切出真实凹入门洞，暗面与门内工具架后移。保留上一版材料箱、工具、加工机和其他主体。",
+  "source": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv2/blacksmith_lv2_model.blend",
+  "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv2/blacksmith_lv2_model_approval_preview.png",
+  "modernPreview": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv3/blacksmith_lv3_model_approval_preview.png",
+  "foundationObject": "BlacksmithLV2_Foundation_Base",
+  "foundationModelSize": [
+    430,
+    350,
+    16
+  ],
+  "materialBrief": "棕灰砖墙、灰蓝金属坡顶、单座砖烟囱、黑铁机械与克制炉火。",
+  "designBrief": "左侧装卸双门向内打开90度，露出有深度的门内空间；保留右炉膛、单烟囱与齿轮锤徽记；侧面长柄兵器架换为附墙蒸汽传动飞轮，前方铁砧位改为机械锻锤；桌子及台钳替换为材料箱、坯料、手工具与齿轮加工机。无现代感应炉、数控柜、第二厂房或电站设备。",
+  "model": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_model.blend",
+  "approvalPreview": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_model_approval_preview.png",
+  "meshCount": 142,
+  "assignments": [
+    {
+      "object": "BlacksmithLV2_Arsenal_Anvil_Face",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Anvil_Foot",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Anvil_Horn",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Anvil_Waist",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_CrestHammer",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_CrestHammerHead",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_ForgeChimney_Band",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_ForgeChimney_Cap",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_ForgeChimney_Opening",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_ForgeChimney_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_BottomBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Brace_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Brace_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Brace_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Brace_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Post_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Post_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Post_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Post_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_Post_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_FrontTimber_TopBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GabledRoof",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GabledRoof",
+      "slot": 1,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Disk",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Hub",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_07",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_08",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_09",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_10",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_GearCrest_Tooth_11",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Lantern_Bottom",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Lantern_Bracket",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Lantern_Cage",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Lantern_Top",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_BottomBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_Brace_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_Brace_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_Brace_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_Post_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_Post_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_Post_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_Post_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_LeftTimber_TopBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_PlasterUpper",
+      "slot": 0,
+      "sourceMaterial": "MAT_Muted_Plaster",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_07",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_08",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_09",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_10",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_11",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S+1_Row_12",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_07",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_08",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_09",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_10",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_11",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_RoofCourse_S-1_Row_12",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_StoneHall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Workbench_Leg_+1_B",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Workbench_Leg_+1_F",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Workbench_Leg_-1_B",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Workbench_Leg_-1_F",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Workbench_Top",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Workbench_ViceBase",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Arsenal_Workbench_ViceJaw",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Forge_DarkMouth",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Interior_Dark"
+    },
+    {
+      "object": "BlacksmithLV2_Forge_Grate_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Forge_Grate_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Forge_Grate_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_Forge_StoneFrame",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "BlacksmithLV2_Foundation_Base",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Leaf_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Band_+1_-39",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Band_+1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Band_+1_39",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Hinge_+1_-44",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Hinge_+1_44",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Ring_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Leaf_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Band_-1_-39",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Band_-1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Band_-1_39",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Hinge_-1_-44",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Hinge_-1_44",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_ArmoredDoors_Ring_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_DarkInterior",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Interior_Dark"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_HangingTool_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_HangingTool_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_HangingTool_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_HangingTool_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_InteriorRack",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_LeftJamb",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_Lintel",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "BlacksmithLV2_LoadingBay_RightJamb",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Back",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_0_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_0_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_1_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_1_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_2_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_2_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_3_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Polearm_3_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Rail_121",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BlacksmithLV2_WeaponRack_Rail_73",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    }
+  ],
+  "geometryChanged": true,
+  "foundationChanged": false,
+  "cameraChanged": false,
+  "approved": false,
+  "runtimeIntegrated": false
+}

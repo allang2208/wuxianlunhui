@@ -1,0 +1,56 @@
+{
+  "id": "city_hall_industrial",
+  "name": "近代市政大厅",
+  "era": "近代工业时代",
+  "status": "model-approved-for-structure-generation",
+  "approved": true,
+  "runtimeIntegrated": false,
+  "sourceSelection": "tools/ai-gen/_city_hall_20260830/selection.json",
+  "sourceModel": "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b01/control-model.blend",
+  "sourcePreview": "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b01/control-model-preview.png",
+  "modernPreview": "tools/ai-gen/_city_hall_20260830/city_hall_lv3/city_hall_lv3_model_preview.png",
+  "componentLibrary": "tools/ai-gen/building-component-kit.py",
+  "materialLibrary": "tools/ai-gen/_industrial_recruitment_materials_20260831/build_material_models.py",
+  "foundationStyle": "fieldstone",
+  "foundationModelSize": [
+    400,
+    400,
+    14
+  ],
+  "logicalFootprint": "4x4 remains unchanged; model-only proposal",
+  "preserve": "已定稿的两层承重壳、唯一后收钟楼、双面钟盘与四坡塔帽、二楼门口和全宽阳台、三面护栏、对称拱窗与旗幅、首层四跨拱廊、入口台阶、无文字市政徽记、原地台和相机。",
+  "changes": "暖灰砖墙与浅色石材腰线、灰绿铜皮立边咬合坡顶、深灰绿金属门窗框、门扇上部玻璃和下部踢脚板、铸铁雨水槽与两根落水管、原有门廊灯具的玻璃灯面。",
+  "exclusions": "不增层、不扩大阳台或地台，不增加办公翼楼、工厂烟囱、军械、屋顶光伏、空调、天线或车辆；不修改现有三个时代的模型、正式素材、科技树、配置、碰撞、寻路和存档。",
+  "palette": {
+    "foundation": "AAA99E",
+    "stone": "C5C3B6",
+    "plaster": "B3A594",
+    "roof": "788E84",
+    "steel": "64766E",
+    "iron": "414E49",
+    "glass": "92A9A3",
+    "brass": "A38E68",
+    "banner": "788675",
+    "interior": "343D37",
+    "clock": "D8D3BE",
+    "lamp": "CBBF9B"
+  },
+  "roofSeams": {
+    "countPerSlope": 7,
+    "spacing": 44,
+    "width": 1.6,
+    "height": 1.6
+  },
+  "doorGlazing": {
+    "widthInset": 6,
+    "heightRatio": 0.66,
+    "centerHeightRatio": 0.1
+  },
+  "modelApproval": {
+    "recordedAt": "2026-08-31T10:43:46.168690+08:00",
+    "userStatement": "同意，接下来开始逐步12步生图",
+    "scope": "Accept this city-hall model and begin three standard 12-step structure candidates; no 48-step refinement or runtime replacement.",
+    "model": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model.blend",
+    "preview": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model_approval_preview.png"
+  }
+}

@@ -1,0 +1,467 @@
+{
+  "recordedAt": "2026-08-31T12:58:32.671874+08:00",
+  "source": "tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\recon_camp_industrial_s48_v01_compass_fix.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "runtimeIntegrationActive": false,
+  "key": {
+    "rgb": [
+      51.0,
+      190.0,
+      32.0
+    ],
+    "inner": 60.0,
+    "outer": 110.0,
+    "removeAllGreen": false,
+    "depthUsedForAlpha": false,
+    "depthRestore": false
+  },
+  "exteriorShadowPolygon": [
+    [
+      0,
+      650
+    ],
+    [
+      235,
+      650
+    ],
+    [
+      235,
+      768
+    ],
+    [
+      229,
+      777
+    ],
+    [
+      212,
+      785
+    ],
+    [
+      185,
+      799
+    ],
+    [
+      161,
+      811
+    ],
+    [
+      140,
+      821
+    ],
+    [
+      122,
+      832
+    ],
+    [
+      110,
+      839
+    ],
+    [
+      103,
+      845
+    ],
+    [
+      96,
+      850
+    ],
+    [
+      90,
+      857
+    ],
+    [
+      86,
+      865
+    ],
+    [
+      88,
+      877
+    ],
+    [
+      94,
+      886
+    ],
+    [
+      119,
+      900
+    ],
+    [
+      152,
+      916
+    ],
+    [
+      201,
+      943
+    ],
+    [
+      252,
+      969
+    ],
+    [
+      303,
+      995
+    ],
+    [
+      357,
+      1023
+    ],
+    [
+      407,
+      1049
+    ],
+    [
+      463,
+      1078
+    ],
+    [
+      507,
+      1100
+    ],
+    [
+      546,
+      1119
+    ],
+    [
+      558,
+      1121
+    ],
+    [
+      590,
+      1107
+    ],
+    [
+      1253,
+      1253
+    ],
+    [
+      0,
+      1253
+    ]
+  ],
+  "boundedSaturatedGreenCleanup": {
+    "rects": [
+      [
+        75,
+        730,
+        310,
+        955
+      ],
+      [
+        75,
+        865,
+        568,
+        1125
+      ]
+    ],
+    "hueRange": [
+      45,
+      85
+    ],
+    "minimumSaturation": 155,
+    "minimumValue": 20,
+    "scope": "Only saturated backdrop/shadow at the lower-left base and adjacent open tower gap; excludes roofs, flags, cabin windows and supplies. Uses the existing building finalizer, never full-canvas HSV."
+  },
+  "shadowAndSubvisibleAlphaPixelsChanged": 22126,
+  "rgbRepair": {
+    "minGreen": 30,
+    "greenMargin": 15,
+    "maxEdgeDistance": 3,
+    "localPasses": [
+      {
+        "rect": [
+          190,
+          530,
+          250,
+          622
+        ],
+        "minGreen": 0,
+        "greenMargin": 1,
+        "maxEdgeDistance": null
+      }
+    ],
+    "alphaChangedPixels": 0,
+    "rgbChangedPixels": 5453
+  },
+  "alpha": {
+    "opaqueComponentsAbove16": 2,
+    "componentAreasAbove16": [
+      504765,
+      1
+    ],
+    "enclosedTransparentRegions": [
+      {
+        "area": 397,
+        "bbox": [
+          236,
+          535,
+          249,
+          571
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 170,
+        "bbox": [
+          216,
+          544,
+          230,
+          562
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 172,
+        "bbox": [
+          206,
+          561,
+          212,
+          592
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 106,
+        "bbox": [
+          217,
+          567,
+          223,
+          586
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 2,
+        "bbox": [
+          229,
+          574,
+          230,
+          576
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 5292,
+        "bbox": [
+          940,
+          623,
+          1028,
+          728
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 68,
+        "bbox": [
+          264,
+          650,
+          275,
+          660
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 1130,
+        "bbox": [
+          269,
+          662,
+          301,
+          722
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 1254,
+        "bbox": [
+          264,
+          688,
+          291,
+          772
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 1,
+        "bbox": [
+          296,
+          719,
+          297,
+          720
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 2,
+        "bbox": [
+          296,
+          721,
+          298,
+          722
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 4,
+        "bbox": [
+          291,
+          759,
+          293,
+          763
+        ],
+        "action": "preserved"
+      },
+      {
+        "area": 4,
+        "bbox": [
+          290,
+          767,
+          292,
+          769
+        ],
+        "action": "preserved"
+      }
+    ],
+    "filledHoles": [],
+    "transparentPixelsWithDirtyRgb": 0
+  },
+  "protectedMaterialSamples": {
+    "main_roof": {
+      "samplePixels": 33993,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 113.89
+    },
+    "lookout_roof": {
+      "samplePixels": 5531,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 118.88
+    },
+    "supply_awning": {
+      "samplePixels": 9506,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 120.12
+    },
+    "flag_upper": {
+      "samplePixels": 84,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 124.0
+    },
+    "flag_lower": {
+      "samplePixels": 84,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 124.5
+    },
+    "tower_front_post": {
+      "samplePixels": 2275,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 118.94
+    },
+    "tower_left_post": {
+      "samplePixels": 958,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 145.8
+    },
+    "ladder_side": {
+      "samplePixels": 498,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 116.67
+    },
+    "stone_foundation": {
+      "samplePixels": 3174,
+      "alphaBelow255": 0,
+      "rgbChanged": 0,
+      "minimumKeyDistance": 117.31
+    }
+  },
+  "outputs": {
+    "fullCanvas": "tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_cutout_full.png",
+    "tightCutout": "tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_cutout.png"
+  },
+  "cropNote": "Native edited pixels retained. Display dimensions in export metadata are not game placement calibration.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\recon_camp_industrial_s48_v01_compass_fix.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_keyed.png",
+      "--soft-key-inner",
+      "60.0",
+      "--soft-key-outer",
+      "110.0"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_spatial.png",
+      "--display-width",
+      "1254",
+      "--padding",
+      "1254",
+      "--clear-alpha-polygon",
+      "0,650;235,650;235,768;229,777;212,785;185,799;161,811;140,821;122,832;110,839;103,845;96,850;90,857;86,865;88,877;94,886;119,900;152,916;201,943;252,969;303,995;357,1023;407,1049;463,1078;507,1100;546,1119;558,1121;590,1107;1253,1253;0,1253",
+      "--clear-green-rect",
+      "75,730,310,955",
+      "--clear-green-rect",
+      "75,865,568,1125",
+      "--green-hue-min",
+      "45",
+      "--green-hue-max",
+      "85",
+      "--green-saturation-min",
+      "155",
+      "--green-value-min",
+      "20",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\spatial-metadata.json"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_spatial.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_edge_rgb.png",
+      "--rect",
+      "0,0,1254,1254",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "15",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "3"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_edge_rgb.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_railing_rgb.png",
+      "--rect",
+      "190,530,250,622",
+      "--min-green",
+      "0",
+      "--green-margin",
+      "1",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_cutout_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\recon_camp_industrial_cutout.png",
+      "--display-width",
+      "1089",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\compass_fix_v01\\cutout\\crop-metadata.json"
+    ]
+  ],
+  "validationBoundary": "Offline asset production and preview only; no tests, build, runtime checks or installation."
+}

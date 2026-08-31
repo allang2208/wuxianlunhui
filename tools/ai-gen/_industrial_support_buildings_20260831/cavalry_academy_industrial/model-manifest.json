@@ -1,0 +1,865 @@
+{
+  "id": "cavalry_academy_industrial",
+  "name": "近代骑兵学院",
+  "source": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv2/cavalry_school_lv2_model.blend",
+  "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv2/cavalry_school_lv2_model_approval_preview.png",
+  "modernPreview": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv3/cavalry_school_lv3_model_approval_preview.png",
+  "foundationObject": "CavalrySchoolLV2_OpenTrainingGround",
+  "foundationModelSize": [
+    820,
+    680,
+    14
+  ],
+  "materialBrief": "灰米砖、灰绿金属单坡顶、木栏与钢连接件、卡其鞍垫。",
+  "designBrief": "保留同一开放训练场、唯一连续单坡顶、三座共顶猫窝与三组障碍；长矛架改为六支近代骑枪的固定架，增加侧窗，保留猫爪、挽具、护理点与猫粮。无马厩、车辆库、塔楼或动物烘图。",
+  "model": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_model.blend",
+  "approvalPreview": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_model_approval_preview.png",
+  "meshCount": 165,
+  "assignments": [
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_0_Post_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_0_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_0_Rail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_1_Post_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_1_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_1_Rail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_2_Post_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_2_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_AgilityJump_2_Rail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatCareStation_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatCareStation_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatCareWater_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Warm_Glass",
+      "material": "IND_Muted_Window_Glass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatCareWater_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Warm_Glass",
+      "material": "IND_Muted_Window_Glass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_0_Tie",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_1_Tie",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_2_Tie",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_3_Tie",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatFeedSack_4_Tie",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatHarnessRack_0_Post_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatHarnessRack_0_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatHarnessRack_0_Rail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatHarnessRack_1_Post_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatHarnessRack_1_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatHarnessRack_1_Rail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_1_CatEar_Left",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_1_CatEar_Right",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_1_LeftWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_1_RearWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_1_RestingPad",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_1_RightWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_1_SharedRoofHeader",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_2_CatEar_Left",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_2_CatEar_Right",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_2_LeftWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_2_RearWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_2_RestingPad",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_2_RightWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_2_SharedRoofHeader",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_3_CatEar_Left",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_3_CatEar_Right",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_3_LeftWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_3_RearWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_3_RestingPad",
+      "slot": 0,
+      "sourceMaterial": "MAT_Straw",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_3_RightWall",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatNest_3_SharedRoofHeader",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatPawCrest_Pad",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatPawCrest_Toe_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatPawCrest_Toe_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatPawCrest_Toe_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatPawCrest_Toe_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatSaddlePad_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_CatSaddlePad_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Khaki_Padding"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_0_0_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_0_0_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_0_1_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_0_1_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_0_2_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_0_2_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_1_0_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_1_0_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_1_1_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_1_1_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_1_2_Head",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_LongSpear_1_2_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_PlasterShell",
+      "slot": 0,
+      "sourceMaterial": "MAT_Muted_Plaster",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_SingleSlopeRoof",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_StoneSkirt",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_BottomBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Brace_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Brace_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Brace_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Brace_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Brace_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Post_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Post_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Post_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Post_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Post_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_Post_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_MedievalHall_Timber_TopBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_OpenTrainingGround",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackPost_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackPost_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackPost_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackPost_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackPost_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackPost_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackRail_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_BackRail_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontPost_0_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontPost_0_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontPost_1_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontPost_1_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontRail_0_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontRail_0_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontRail_1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_FrontRail_1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GateLeaf_Left_Brace",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GateLeaf_Left_Rail_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GateLeaf_Left_Rail_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GateLeaf_Right_Brace",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GateLeaf_Right_Rail_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GateLeaf_Right_Rail_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GatePost_Left",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_GatePost_Right",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftPost_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftPost_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftPost_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftPost_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftPost_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftPost_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftPost_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftRail_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_LeftRail_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightPost_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightPost_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightPost_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightPost_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightPost_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightPost_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightPost_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightRail_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_Perimeter_RightRail_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_SupplyCrate_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_SupplyCrate_0_IronBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_SupplyCrate_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_SupplyCrate_1_IronBand",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_0_Base",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_0_Post_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_0_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_0_TopRail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_1_Base",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_1_Post_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_1_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "CavalrySchoolLV2_WeaponRack_1_TopRail",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    }
+  ],
+  "geometryChanged": true,
+  "foundationChanged": false,
+  "cameraChanged": false,
+  "approved": false,
+  "runtimeIntegrated": false
+}

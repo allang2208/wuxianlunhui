@@ -1,0 +1,749 @@
+{
+  "id": "recon_camp",
+  "name": "近代侦察营地",
+  "source": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/rework_tier_materials_20260828/thatch_hut_lv2_model.blend",
+  "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/rework_tier_materials_20260828/thatch_hut_lv2_model_approval_preview.png",
+  "materialDirection": "灰米砖墙、灰绿金属屋面、暗钢瞭望架、卡其补给包；保留主厅、单塔、梯子、补给棚与罗盘。",
+  "outputBlend": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_material_model.blend",
+  "preview": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_material_approval_preview.png",
+  "assignments": [
+    {
+      "object": "ThatchHutLV2_TierCompoundFoundation",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Quiet_Fieldstone"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_BaseSkirt",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_CommandShell",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_WeatheredBrick",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_ContinuousCommandRoof",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_WeatheredBrick",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_ContinuousCommandRoof",
+      "slot": 1,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_01",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_02",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_03",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_04",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_05",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_06",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_07",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_08",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_09",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_10",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_11",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_01",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_02",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_03",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_04",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_05",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_06",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_07",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_08",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_09",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_10",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_11",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RidgePole",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontBottomBand",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontTopBand",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontPost_00",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontPost_01",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontPost_02",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontPost_03",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontPost_04",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontPost_05",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RightSidePost_00",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RightSidePost_01",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RightSidePost_02",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_RightSideBeam",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_DarkInterior",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Leaf_-1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Band_-1_-26",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Band_-1_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Band_-1_26",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Hinge_-1_-30",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Hinge_-1_30",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Ring_-1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Leaf_+1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Band_+1_-26",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Band_+1_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Band_+1_26",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Hinge_+1_-30",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Hinge_+1_30",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Ring_+1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_LeftJamb",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_RightJamb",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ThatchHutLV2_CommandEntrance_Lintel",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_Frame",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_MullionV",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_MullionH",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_Shutter_-1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_-18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_+0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_+18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_Shutter_+1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_-18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_+0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_+18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_SideWindow_Frame",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_SideWindow_MullionV",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLonghouse_SideWindow_MullionH",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CompassCrest_Ring",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ThatchHutLV2_CompassCrest_Ray_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CompassCrest_Ray_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CompassCrest_Ray_2",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CompassCrest_Ray_3",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLantern_Bracket",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLantern_Cage",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLantern_Top",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_CommandLantern_Bottom",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ReinforcedFoot",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LeftFrontPost",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LeftRearPost",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_RightFrontPost",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_RightRearPost",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationDeck",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationCabin",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_WeatheredBrick",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_Frame",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_MullionV",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_MullionH",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_Shutter_-1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_-18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_+0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_+18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_Shutter_+1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_-18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_+0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_+18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_TierCanopy",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_RidgeFinial",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_Railing_Front",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_Railing_Back",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_Railing_Left",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_Railing_Right",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRail_-1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRail_+1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRung_00",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRung_01",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRung_02",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRung_03",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRung_04",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_LadderRung_05",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_CommandConnector",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_SignalMast",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_SignalPennant_00",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ThatchHutLV2_Lookout_SignalPennant_01",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ThatchHutLV2_SupplyAwning_ClayTileRoof",
+      "slot": 0,
+      "from": "MAT_ThatchHutLV2_AgedClayTile",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ThatchHutLV2_SupplyAwning_Post_+94",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_SupplyAwning_Post_+194",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ThatchHutLV2_SupplyMapCase",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ThatchHutLV2_SupplyScoutPack",
+      "slot": 0,
+      "from": "MAT_Straw",
+      "to": "IND_Khaki_Canvas"
+    }
+  ],
+  "meshCount": 125,
+  "geometryChanged": false,
+  "cameraChanged": false,
+  "lightingChanged": false,
+  "approved": false,
+  "runtimeIntegrated": false
+}

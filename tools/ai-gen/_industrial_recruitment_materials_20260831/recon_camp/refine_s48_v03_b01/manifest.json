@@ -1,0 +1,165 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "steps": 48,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDepthStrength": 0.75,
+  "refineDenoise": 0.3,
+  "refineSeedBase": 831760,
+  "stage": "refine",
+  "batchId": "industrial-recon-camp-s48-v03-b01",
+  "outputRoot": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/candidates",
+  "initImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v03_raw.png",
+  "status": "raw_generation_complete_descendant_artwork_accepted",
+  "runtimeIntegrationActive": false,
+  "refinementApproval": {
+    "recordedAt": "2026-08-31T12:27:29.905881+08:00",
+    "userStatement": "同意继续 48 步",
+    "acceptedSource": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v03_raw.png",
+    "selectedCandidate": 3,
+    "seed": 831753,
+    "selectionBasis": "User agreed to continue with 48 steps immediately after the recommendation of V03 and its compass/color corrections.",
+    "scope": "Two standard 48-step raw candidates with a smaller subdued compass and calmer roof rust. No cutout or runtime replacement."
+  },
+  "sourcePreparation": {
+    "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v03_raw.png",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "sourceMode": "RGB",
+    "input": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v03_raw.png",
+    "inputSize": [
+      1024,
+      1024
+    ],
+    "operation": "Use the complete original RGB raw directly; no resize, crop, recolor, cutout or duplicate input copy."
+  },
+  "controlNotes": {
+    "depth": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_depth.png",
+    "basis": "Same authored model Depth for view and massing; selected V03 raw is the appearance source.",
+    "postprocessing": "Raw-only. Do not use the older Depth as a hard Alpha mask for changed fine details."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the selected recon-camp V03 raw PNG, the same recon-camp Depth PNG, and prepared refinement prompt with standard generation parameters.",
+    "excluded": "Blender models, source code, saves, unrelated images, other destinations and runtime replacement.",
+    "authorizationBasis": "User explicitly requested 48-step continuation after authorizing this building at the same LAN service; the earlier 12-step permission record is retained unchanged.",
+    "userRequest": "同意继续 48 步",
+    "generatedCandidates": 2,
+    "submitted": true,
+    "startedAt": "2026-08-31T12:36:48.265222+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T12:38:56.251336+08:00"
+  },
+  "assets": [
+    {
+      "id": "recon_camp_industrial",
+      "label": "近代侦察营地",
+      "assetClass": "scout_command_compound",
+      "assetType": "World-122 compact industrial-era reconnaissance camp",
+      "footprintCells": 2,
+      "footprintMode": "authored",
+      "foundationStyle": "rubble_stone",
+      "foundationRoutingNote": "Retain the source model fieldstone foundation; this is an intermediate-era candidate, not the accepted modern tier.",
+      "model": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_material_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_material_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_depth.png",
+      "primaryRequest": "Refine the selected industrial reconnaissance camp V03 supplied as the initial image. Preserve its hall, single lookout cabin, tower supports, railings, ladder, doors, windows, two narrow muted pennants, supply awning, packs, complete stone foundation and sparse metal roof seams. The sole local shape correction is the existing compass emblem: reduce its diameter to about 65 percent of the current size, remove the pendant loop and pocket-watch fittings, and retain one simple attached compass medallion near the lower roof above the entrance. Make its brass dull and understated. Soften the orange roof rust into faint neutral wear. Improve only material clarity, with quiet gray-green sheet metal, gray-beige brick, dark steel, subdued wood and khaki fabric; keep all other geometry and colors.",
+      "negativeRequest": "No second emblem, hanging pocket watch, enlarged bright-gold crest, dense roof corrugation, vivid orange rust, added supplies, changed flag count, clay tiles, extra building or cast shadow.",
+      "removeAllGreen": false,
+      "detailRequest": "Refine the selected industrial reconnaissance camp V03 supplied as the initial image. Preserve its hall, single lookout cabin, tower supports, railings, ladder, doors, windows, two narrow muted pennants, supply awning, packs, complete stone foundation and sparse metal roof seams. The sole local shape correction is the existing compass emblem: reduce its diameter to about 65 percent of the current size, remove the pendant loop and pocket-watch fittings, and retain one simple attached compass medallion near the lower roof above the entrance. Make its brass dull and understated. Soften the orange roof rust into faint neutral wear. Improve only material clarity, with quiet gray-green sheet metal, gray-beige brick, dark steel, subdued wood and khaki fabric; keep all other geometry and colors."
+    }
+  ],
+  "networkBlock": {
+    "recordedAt": "2026-08-31T12:28:59.1673494+08:00",
+    "stage": "Rejected before process launch; no upload or generation occurred",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the selected recon-camp V03 raw PNG, the same recon-camp Depth PNG, prepared refinement prompt and parameters for two 48-step candidates",
+    "reason": "Auto-review requires explicit approval for the newly added V03 raw image and refinement payload; the prior destination/payload approval covers only the 12-step batch.",
+    "bypassAttempted": false,
+    "resolvedBy": "User explicitly approved the exact destination and refinement payload: 允许"
+  },
+  "networkAuthorization": {
+    "status": "explicitly_approved_by_user",
+    "recordedAt": "2026-08-31T12:36:43.60975+08:00",
+    "userStatement": "允许",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the selected recon-camp V03 raw PNG, the same recon-camp Depth PNG, prepared refinement prompt and parameters for two 48-step candidates",
+    "excluded": "Blender models, source code, saves, unrelated images, other destinations and runtime installation"
+  },
+  "review": {
+    "allRawCandidatesViewed": true,
+    "contactSheetViewed": true,
+    "detailSheetViewed": true,
+    "userSelected": true,
+    "recommendedRevisionBase": 1,
+    "approvedForCutout": true,
+    "allRequestedCorrectionsAchieved": false,
+    "pendingCorrections": [
+      "Compass not clearly reduced to approximately 65 percent",
+      "Pendant loop and pocket-watch fittings remain"
+    ],
+    "minorPaletteDrift": "The muted flags shifted from gray olive toward warm brown",
+    "contactSheet": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/recon_camp_industrial_s48_comparison.png",
+    "detailSheet": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/recon_camp_industrial_s48_detail.png",
+    "notes": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/REVIEW.md",
+    "summary": "The original raw candidates retain the initial compass defects. User selected recommended 01 for local editing; its corrected compass and transparent derivative are now available separately. Exact 65-percent reduction is not asserted.",
+    "selectedCandidate": 1,
+    "followUpRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/edit-record.json"
+  },
+  "initial48StepReview": {
+    "allRawCandidatesViewed": true,
+    "contactSheetViewed": true,
+    "detailSheetViewed": true,
+    "userSelected": false,
+    "recommendedRevisionBase": 1,
+    "approvedForCutout": false,
+    "allRequestedCorrectionsAchieved": false,
+    "pendingCorrections": [
+      "Compass not clearly reduced to approximately 65 percent",
+      "Pendant loop and pocket-watch fittings remain"
+    ],
+    "minorPaletteDrift": "The muted flags shifted from gray olive toward warm brown",
+    "contactSheet": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/recon_camp_industrial_s48_comparison.png",
+    "detailSheet": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/recon_camp_industrial_s48_detail.png",
+    "notes": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/REVIEW.md",
+    "summary": "Two 48-step candidates produced. Prefer 01 for calmer roof rust. Neither achieved the requested compass size and loop correction; no final candidate selected, no extra generation, no cutout or runtime replacement."
+  },
+  "followUp": {
+    "recordedAt": "2026-08-31T13:01:26.381203+08:00",
+    "userStatement": "按你推荐继续",
+    "selectedCandidate": 1,
+    "selectedSeed": 831761,
+    "mode": "builtin_imagegen_local_edit_then_existing_building_cutout_tools",
+    "correctedDerivative": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/recon_camp_industrial_s48_v01_compass_fix.png",
+    "transparentDerivative": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/cutout/recon_camp_industrial_cutout.png",
+    "record": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/edit-record.json",
+    "resolved": [
+      "Oversized prominent compass replaced with a smaller simpler medallion",
+      "Pendant loop and side fittings removed"
+    ],
+    "derivativeUserApproved": false,
+    "runtimeIntegrationActive": false
+  },
+  "acceptedDescendant": {
+    "recordedAt": "2026-08-31T05:51:11.031Z",
+    "userStatement": "可以用",
+    "artifact": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+    "sourceRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/edit-record.json",
+    "note": "User acceptance applies to the later compass-corrected and shadow-softened artwork, not to the unedited 48-step raw candidates.",
+    "runtimeIntegrationActive": false
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "recordedAt": "2026-08-31T05:48:56.538Z",
+  "status": "user_accepted_shadow_softened_artwork",
+  "userStatement": "阴影是否需要处理，比较明显",
+  "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/cutout/recon_camp_industrial_cutout.png",
+  "sourceSize": [
+    1089,
+    903
+  ],
+  "scope": "Reduce excessive baked directional shadows on the left platform and broad dark patches under the tower and awning; retain light contact shading. No runtime shadow changes.",
+  "mode": "builtin_imagegen_edits_then_existing_building_cutout_pipeline",
+  "edits": [
+    {
+      "role": "Lighting-only correction",
+      "prompt": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/edit-prompt.txt",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05565-4644-7f91-b42a-c42c9aa544a4/exec-4c2b4e8a-2efb-44d3-9125-b5a3628db7c8.png",
+      "copiedOutput": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened.png",
+      "size": [
+        1377,
+        1142
+      ],
+      "mode": "RGB",
+      "knownIssue": "Requested transparency was not produced; checkerboard is baked into RGB. This intermediate is not a usable transparent asset."
+    },
+    {
+      "role": "Prepare green backdrop for the existing building key pipeline",
+      "parent": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened.png",
+      "prompt": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/background-prompt.txt",
+      "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05565-4644-7f91-b42a-c42c9aa544a4/exec-6f018a9a-f1d6-42c0-abf2-af6c4ff5e15b.png",
+      "copiedOutput": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_raw_green.png",
+      "size": [
+        1377,
+        1142
+      ],
+      "mode": "RGB"
+    }
+  ],
+  "output": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+  "outputSize": [
+    1349,
+    1118
+  ],
+  "outputMode": "RGBA",
+  "processingRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/production-record.json",
+  "comparison": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/shadow_before_after.png",
+  "detail": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/shadow_detail.png",
+  "observedResult": "Large baked shadow on the left platform is substantially reduced; tower/awning wall and stone texture are more readable. Light occlusion at stone joints, post feet and under eaves remains.",
+  "limitations": [
+    "Generative edits introduce minor surface texture differences; no byte-identical claim",
+    "Original artwork and all direct editing ancestors are retained",
+    "Game dimensions, grounding and footprint mapping remain uncalibrated"
+  ],
+  "derivativeUserApproved": true,
+  "runtimeIntegrationActive": false,
+  "validationBoundary": "Offline asset production, file channel inspection and previews only; no tests, build or runtime validation.",
+  "approval": {
+    "recordedAt": "2026-08-31T05:51:11.031Z",
+    "userStatement": "可以用",
+    "acceptedArtifact": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+    "scope": "Artwork accepted as the current industrial recon-camp final; runtime installation and in-game calibration are not performed in this turn."
+  }
+}

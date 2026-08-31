@@ -1,0 +1,80 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "stage": "structure",
+  "steps": 12,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDepthStrength": 0.75,
+  "refineDenoise": 0.3,
+  "structureSeedBase": 832100,
+  "refineSeedBase": 832110,
+  "batchId": "artillery_workshop_industrial-structure-b01",
+  "outputRoot": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/structure_s12_b01/candidates",
+  "status": "raw_candidates_ready_for_image_review",
+  "runtimeIntegrationActive": false,
+  "assets": [
+    {
+      "id": "artillery_workshop_industrial",
+      "label": "近代炮兵工坊",
+      "assetClass": "engineer_compound",
+      "assetType": "compact industrial-era artillery assembly workshop without any baked-in artillery unit",
+      "primaryRequest": "Preserve the exact supplied compact assembly workshop. One warm-gray brick hall has one continuous gray-blue metal gable roof, exactly two low flush skylight panels on the visible roof slope, one short brick chimney, the original side window and one small gear emblem on the visible side wall. Keep the original front assembly entrance visibly open behind the single left-side steel hoist. Preserve its flanged beam, suspended hook, wheel-and-axle stock at the foot, the two short floor assembly rails and the single right-side wooden tool table with vise and the authored hanging hand tools. Use matte charcoal steel, subdued aged brass, quiet brick, restrained roof seams and worn timber. Keep every component in its modeled position on the complete shallow fieldstone footing. Gentle diffuse fill keeps the open entrance and spaces between hoist posts readable.",
+      "negativeRequest": "No artillery piece, complete gun, vehicle, engineer, person, animal, extra hoist, extra worktable, extra wheel group, third skylight, roof monitor, second roof, second hall, additional chimney, tower, new machinery, glowing blueprint or readable text. Absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow.",
+      "model": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_model_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_depth.png",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 2,
+      "footprintMode": "authored",
+      "removeAllGreen": false,
+      "postprocessDepthImage": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_depth.png"
+    }
+  ],
+  "continuation": {
+    "userStatement": "继续",
+    "priorInstruction": "继续，做完以后下一个",
+    "selectedNext": "近代炮兵工坊",
+    "selectionAuthority": "Assistant selects candidates while continuing the established series; no invented per-image user acceptance.",
+    "scope": "Prepared as the next named building in this three-building continuation. Preserve existing models and all runtime resources."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only this named building original Depth, prepared prompt and standard parameters; at refinement, its selected 12-step raw.",
+    "submitted": true,
+    "generatedCandidates": 3,
+    "excluded": "Blender files, project source, saves, unrelated images, other endpoints and runtime installation.",
+    "startedAt": "2026-08-31T18:55:05.012208+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T18:57:49.503143+08:00"
+  },
+  "externalPayloadAuthorization": {
+    "status": "explicitly_authorized",
+    "userResponse": "允许",
+    "authorizedAt": "2026-08-31T18:35:36.677727+08:00",
+    "approvalQuestion": "是否允许把近代骑兵学院、近代炮兵工坊、蒸汽军工厂这三栋的Depth、提示词、参数，以及本轮选中的12步原图或仅用于保持既定结构的局部修正版，发送到同一192.168.3.142:8188，按顺序完成12/48步与透明处理？",
+    "destination": "http://192.168.3.142:8188",
+    "assets": [
+      "cavalry_academy_industrial",
+      "artillery_workshop_industrial",
+      "steam_arsenal_industrial"
+    ],
+    "payloadScope": "Only these three buildings: original Depth PNGs, prepared prompts and standard parameters; later selected original 12-step raws and, only when necessary to preserve the already modeled structure, documented local corrections of the same building raws.",
+    "excluded": "Blender models, project source, saves, unrelated images or buildings, other endpoints, model redesign and runtime installation.",
+    "previousBlockResolvedBy": "User explicitly approved the preceding exact three-building payload question.",
+    "runtimeIntegrationActive": false
+  }
+}

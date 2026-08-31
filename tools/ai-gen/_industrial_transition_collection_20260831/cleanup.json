@@ -1,0 +1,248 @@
+{
+  "date": "2026-08-31",
+  "mode": "completed_recoverable_quarantine",
+  "quarantine": "tools/.trash-industrial-era-20260831",
+  "excluded": "Runtime PNGs, all selected sources and ancestors, icon drafts, parallel-session files",
+  "entries": [
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/whole_raw_comparison.png",
+      "bytes": 1337155,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_refine_v02_raw.png",
+      "bytes": 1260428,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b01/whole_raw_comparison.png",
+      "bytes": 1409032,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b01/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v01_raw.png",
+      "bytes": 1153421,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b01/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v02_raw.png",
+      "bytes": 1162913,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b01/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v03_raw.png",
+      "bytes": 1184219,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b02/whole_raw_comparison.png",
+      "bytes": 1378519,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v01_raw.png",
+      "bytes": 1186017,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v02_raw.png",
+      "bytes": 1088496,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/candidates/recon_camp_industrial/recon_camp_industrial_refine_v02_raw.png",
+      "bytes": 1340671,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v01_raw.png",
+      "bytes": 1282238,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v02_raw.png",
+      "bytes": 1262655,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/whole_raw_comparison.png",
+      "bytes": 1357735,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/candidates/rifle_range_industrial/rifle_range_industrial_refine_v02_raw.png",
+      "bytes": 1214484,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b01/whole_raw_comparison.png",
+      "bytes": 1577383,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b01/candidates/rifle_range_industrial/rifle_range_industrial_structure_v01_raw.png",
+      "bytes": 1361346,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b01/candidates/rifle_range_industrial/rifle_range_industrial_structure_v02_raw.png",
+      "bytes": 1326463,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b01/candidates/rifle_range_industrial/rifle_range_industrial_structure_v03_raw.png",
+      "bytes": 1249758,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b02/whole_raw_comparison.png",
+      "bytes": 1483116,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b02/candidates/rifle_range_industrial/rifle_range_industrial_structure_v01_raw.png",
+      "bytes": 1195863,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b02/candidates/rifle_range_industrial/rifle_range_industrial_structure_v02_raw.png",
+      "bytes": 1216411,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b02/candidates/rifle_range_industrial/rifle_range_industrial_structure_v03_raw.png",
+      "bytes": 1240953,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b03/whole_raw_comparison.png",
+      "bytes": 1505183,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b03/candidates/rifle_range_industrial/rifle_range_industrial_structure_v01_raw.png",
+      "bytes": 1185153,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b03/candidates/rifle_range_industrial/rifle_range_industrial_structure_v02_raw.png",
+      "bytes": 1281468,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_recruitment_materials_20260831/__pycache__/build_material_models.cpython-313.pyc",
+      "bytes": 17744,
+      "reason": "Regenerable Blender backup or Python bytecode"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/refine_s48_b01/whole_raw_comparison.png",
+      "bytes": 1422686,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/refine_s48_b01/candidates/artillery_workshop_industrial/artillery_workshop_industrial_refine_v02_raw.png",
+      "bytes": 1283282,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/structure_s12_b01/whole_raw_comparison.png",
+      "bytes": 1563244,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/structure_s12_b01/candidates/artillery_workshop_industrial/artillery_workshop_industrial_structure_v01_raw.png",
+      "bytes": 1241909,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/structure_s12_b01/candidates/artillery_workshop_industrial/artillery_workshop_industrial_structure_v02_raw.png",
+      "bytes": 1234117,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/refine_s48_b01/whole_raw_comparison.png",
+      "bytes": 1454980,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/refine_s48_b01/candidates/cavalry_academy_industrial/cavalry_academy_industrial_refine_v02_raw.png",
+      "bytes": 1346839,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b01/whole_raw_comparison.png",
+      "bytes": 1374781,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b01/candidates/cavalry_academy_industrial/cavalry_academy_industrial_structure_v02_raw.png",
+      "bytes": 1087405,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b01/candidates/cavalry_academy_industrial/cavalry_academy_industrial_structure_v03_raw.png",
+      "bytes": 1129240,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b02/candidates/cavalry_academy_industrial/cavalry_academy_industrial_structure_v01_raw.png",
+      "bytes": 1105504,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b02/candidates/cavalry_academy_industrial/cavalry_academy_industrial_structure_v02_raw.png",
+      "bytes": 1100948,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b02/candidates/cavalry_academy_industrial/cavalry_academy_industrial_structure_v03_raw.png",
+      "bytes": 1019824,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/refine_s48_b01/whole_raw_comparison.png",
+      "bytes": 1560335,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/refine_s48_b01/candidates/steam_arsenal_industrial/steam_arsenal_industrial_refine_v02_raw.png",
+      "bytes": 1443052,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/structure_s12_b01/whole_raw_comparison.png",
+      "bytes": 1628633,
+      "reason": "Obsolete contact sheet referencing discarded siblings"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/structure_s12_b01/candidates/steam_arsenal_industrial/steam_arsenal_industrial_structure_v01_raw.png",
+      "bytes": 1273778,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/structure_s12_b01/candidates/steam_arsenal_industrial/steam_arsenal_industrial_structure_v02_raw.png",
+      "bytes": 1343310,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/candidates/city_hall_industrial/city_hall_industrial_refine_v01_raw.png",
+      "bytes": 1402610,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/candidates/city_hall_industrial/city_hall_industrial_structure_v01_raw.png",
+      "bytes": 1303898,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/candidates/city_hall_industrial/city_hall_industrial_structure_v03_raw.png",
+      "bytes": 1285144,
+      "reason": "Unselected sibling raw; not an editing ancestor or selected refinement input"
+    },
+    {
+      "path": "tmp/industrial-tech-v63-edit.py",
+      "bytes": 11054,
+      "reason": "Superseded one-shot mutator; unsafe to rerun and not a reconstruction input"
+    }
+  ]
+}

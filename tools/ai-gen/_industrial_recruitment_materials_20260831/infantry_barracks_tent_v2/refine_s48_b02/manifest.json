@@ -1,0 +1,121 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "stage": "refine",
+  "steps": 48,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDepthStrength": 0.75,
+  "refineDenoise": 0.3,
+  "structureSeedBase": 831820,
+  "refineSeedBase": 831830,
+  "batchId": "industrial_barracks_tent_v2-refine-b02",
+  "outputRoot": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/candidates",
+  "status": "selected_48_step_candidate_transparent_delivery_complete",
+  "runtimeIntegrationActive": false,
+  "continuation": {
+    "recordedAt": "2026-08-31T14:26:56.969563+08:00",
+    "userStatement": "继续，做完以后下一个",
+    "scope": "Proceed building by building through standard 12-step drafts, assistant selection, 48-step refinement and transparent delivery. Preserve models and runtime assets.",
+    "selectionAuthority": "Assistant selection under the latest continuation instruction; not fabricated per-image user acceptance.",
+    "modelRouting": "Continue the established 12/48 Dev Depth workflow of this specific series."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the specifically authorized corrected 1024px barracks init image, the existing original barracks Depth PNG, prepared prompt and standard 48-step parameters.",
+    "excluded": "Blender files, source code, saves, unrelated images, other destinations and runtime installation.",
+    "submitted": true,
+    "generatedCandidates": 2,
+    "startedAt": "2026-08-31T15:30:46.582310+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T15:33:08.578651+08:00"
+  },
+  "assets": [
+    {
+      "id": "industrial_barracks_tent_v2",
+      "label": "近代帐篷军营",
+      "assetClass": "modern_field_barracks",
+      "model": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/industrial_barracks_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/industrial_barracks_model_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/industrial_barracks_depth.png",
+      "foundationStyle": "worn_concrete",
+      "assetType": "industrial-era field barracks using the accepted tent and timber lookout design",
+      "primaryRequest": "industrial-era tent barracks with strict source-model topology. The rectangular tent has exactly ONE entrance centered on its LONG near-facing side between two rolled-cover windows; the SHORT left gable end is closed unbroken canvas with no door or window. Retain the three broad webbing seams, tied-back center doorway and four guy ropes. The lookout has ONE open observation deck with perimeter rails; there is NO cabin, central cube, inner cage, secondary raised deck or room on it. Its small canopy is a TWO-SLOPE GABLE roof with one long ridge parallel to the tent ridge, never a four-sided pyramidal roof. Keep the authored timber columns, steel X-braces and fixed ladder. The radio is ONE small low rectangular knob-front box at the tower foot beside a cable spool, with no stacked machinery. Preserve only the two existing crate groups, two cans and two low sandbag groups. Plain subdued khaki canvas, dark matte timber-steel framing, worn wood boxes and the original concrete footing; evenly readable surfaces with gentle contact occlusion.",
+      "negativeRequest": "No door on the short left tent end, second entrance, extra window, hip roof, pyramid roof, enclosed watchtower cabin, central tower cage, extra elevated platform, tall radio stack, oversized radio, extra cans, extra crate groups, ornate gadgets or bright gold fittings. Absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient, detached ambient shadow or broad black shadow patch on the footing.",
+      "footprintCells": 2,
+      "footprintMode": "authored",
+      "removeAllGreen": false,
+      "postprocessDepthImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/industrial_barracks_depth.png",
+      "detailRequest": "Refine the supplied selected raw image without changing its composition, component positions, object count or full footing. Improve only the specified quiet material clarity and preserve all open spaces. industrial-era tent barracks with strict source-model topology. The rectangular tent has exactly ONE entrance centered on its LONG near-facing side between two rolled-cover windows; the SHORT left gable end is closed unbroken canvas with no door or window. Retain the three broad webbing seams, tied-back center doorway and four guy ropes. The lookout has ONE open observation deck with perimeter rails; there is NO cabin, central cube, inner cage, secondary raised deck or room on it. Its small canopy is a TWO-SLOPE GABLE roof with one long ridge parallel to the tent ridge, never a four-sided pyramidal roof. Keep the authored timber columns, steel X-braces and fixed ladder. The radio is ONE small low rectangular knob-front box at the tower foot beside a cable spool, with no stacked machinery. Preserve only the two existing crate groups, two cans and two low sandbag groups. Plain subdued khaki canvas, dark matte timber-steel framing, worn wood boxes and the original concrete footing; evenly readable surfaces with gentle contact occlusion."
+    }
+  ],
+  "initImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_init_1024.png",
+  "selection": {
+    "selectedCandidate": 3,
+    "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_init_1024.png",
+    "selectedBy": "assistant",
+    "authority": "继续，做完以后下一个",
+    "reason": "B02-03 has the correct open gabled lookout and centered long-side entry. A documented local image edit removed the extra short-end door/window and surplus barrels, and reduced the radio stack before refinement.",
+    "userExplicitlySelectedThisImage": false,
+    "original12StepSource": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_s12_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v03_raw.png",
+    "usesDocumentedLocalCorrection": true,
+    "editRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/edit-record.json"
+  },
+  "sourcePreparation": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/input-preparation.json",
+  "networkBlock": {
+    "recordedAt": "2026-08-31T06:31:00.146Z",
+    "stage": "Rejected before process launch; no corrected-init upload or 48-step generation occurred",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_init_1024.png",
+    "reason": "Auto-review treats the locally edited and uniformly reframed derivative as a new specific payload beyond the original 12-step raw authorization.",
+    "bypassAttempted": false,
+    "resolvedBy": "User explicitly approved this corrected 1024px barracks derivative for the same LAN 48-step task.",
+    "resolvedAt": "2026-08-31T15:30:42.004889+08:00"
+  },
+  "supplementalNetworkAuthorization": {
+    "status": "explicitly_approved_by_user",
+    "recordedAt": "2026-08-31T15:30:42.004889+08:00",
+    "userStatement": "同意",
+    "destination": "http://192.168.3.142:8188",
+    "specificAdditionalPayload": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_init_1024.png",
+    "purpose": "The already prepared standard 48-step two-candidate refinement of the corrected barracks image.",
+    "approvedQuestion": "是否允许将这张军营修正版发送至同一192.168.3.142:8188，仅用于48步精修？",
+    "excluded": "No Blender file, code, save, unrelated image, other endpoint or runtime installation."
+  },
+  "networkAuthorization": {
+    "status": "explicitly_approved_by_user",
+    "recordedAt": "2026-08-31T06:15:11.337Z",
+    "userStatement": "同意",
+    "destination": "http://192.168.3.142:8188",
+    "assets": [
+      "industrial_barracks_tent_v2",
+      "rifle_range_industrial"
+    ],
+    "payload": "Each building's Depth PNG, prepared prompts and generation parameters; at 48-step refinement also its selected 12-step full raw PNG.",
+    "scope": "Sequential standard 12-step and 48-step generation for barracks V2 followed by rifle range, followed by local transparent asset delivery.",
+    "excluded": "Blender models, project source code, saves, unrelated images, other destinations and runtime installation.",
+    "approvedQuestion": "是否允许将这两栋的 Depth、提示词，以及后续选中的12步原图发送到局域网 192.168.3.142:8188，逐栋完成12/48步生图？"
+  },
+  "refineSelection": {
+    "selectedCandidate": 1,
+    "selectedBy": "assistant",
+    "userExplicitlySelectedThisImage": false,
+    "reason": "Both retain the corrected entry and open lookout. V01 keeps the radio and olive cans closer to the corrected input with unified khaki canvas.",
+    "raw": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_refine_v01_raw.png",
+    "transparent": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/cutout/transparent.png",
+    "productionRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/cutout/production-record.json"
+  }
+}

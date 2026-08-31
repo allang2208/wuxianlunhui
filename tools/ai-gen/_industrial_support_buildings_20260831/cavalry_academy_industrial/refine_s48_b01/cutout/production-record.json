@@ -1,0 +1,258 @@
+{
+  "recordedAt": "2026-08-31T18:56:47.828444+08:00",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/refine_s48_b01/candidates/cavalry_academy_industrial/cavalry_academy_industrial_refine_v01_raw.png",
+  "sourceSize": [
+    1024,
+    1024
+  ],
+  "output": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/refine_s48_b01/cutout/transparent.png",
+  "outputSize": [
+    887,
+    590
+  ],
+  "outputMode": "RGBA",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "keyRgb": [
+    63.0,
+    189.0,
+    47.0
+  ],
+  "softInner": 45,
+  "softOuter": 75,
+  "transparentPixelsWithDirtyRgb": 0,
+  "materialSamples": {
+    "roof": {
+      "rect": [
+        340,
+        432,
+        370,
+        452
+      ],
+      "pixels": 600,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 100.43903623591775
+    },
+    "wall": {
+      "rect": [
+        222,
+        555,
+        239,
+        581
+      ],
+      "pixels": 442,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 111.46748404803976
+    },
+    "first_pad": {
+      "rect": [
+        394,
+        632,
+        412,
+        644
+      ],
+      "pixels": 216,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 116.2497311824849
+    },
+    "sand": {
+      "rect": [
+        550,
+        738,
+        570,
+        748
+      ],
+      "pixels": 200,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 162.5453782794208
+    },
+    "basin_water": {
+      "rect": [
+        390,
+        763,
+        403,
+        770
+      ],
+      "pixels": 91,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 80.23091673413684
+    },
+    "sack": {
+      "rect": [
+        371,
+        716,
+        378,
+        726
+      ],
+      "pixels": 70,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 117.88977903109328
+    },
+    "harness": {
+      "rect": [
+        286,
+        727,
+        307,
+        738
+      ],
+      "pixels": 231,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 115.2128465059344
+    }
+  },
+  "oldDepthUsedForAlpha": false,
+  "removeAllGreen": false,
+  "isolatedPinholesRestored": [],
+  "localSpillRects": [
+    [
+      742,
+      541,
+      746,
+      546
+    ],
+    [
+      798,
+      570,
+      801,
+      574
+    ],
+    [
+      851,
+      598,
+      859,
+      604
+    ],
+    [
+      872,
+      607,
+      883,
+      617
+    ],
+    [
+      891,
+      618,
+      897,
+      623
+    ]
+  ],
+  "fillHoles": false,
+  "runtimeIntegrationActive": false,
+  "limitations": "Native pixel crop only; display metadata is not runtime calibration. Offline asset production and previews only, no tests/build/game validation.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\candidates\\cavalry_academy_industrial\\cavalry_academy_industrial_refine_v01_raw.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\keyed.png",
+      "--soft-key-inner",
+      "45",
+      "--soft-key-outer",
+      "75"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\spatial.png",
+      "--display-width",
+      "1024",
+      "--padding",
+      "1024",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\spatial-metadata.json"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\spatial.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\body_edge_clean.png",
+      "--rect",
+      "0,0,1024,1024",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "5"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\body_edge_clean.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_01.png",
+      "--rect",
+      "742,541,746,546",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_01.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_02.png",
+      "--rect",
+      "798,570,801,574",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_02.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_03.png",
+      "--rect",
+      "851,598,859,604",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_03.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_04.png",
+      "--rect",
+      "872,607,883,617",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\local_spill_04.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\body_full.png",
+      "--rect",
+      "891,618,897,623",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\body_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\transparent.png",
+      "--display-width",
+      "887",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\cavalry_academy_industrial\\refine_s48_b01\\cutout\\crop-metadata.json"
+    ]
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-08-31T15:41:04.196199+08:00",
+  "status": "assistant_selected_candidate_complete_not_user_accepted_or_installed",
+  "selectionAuthority": "继续，做完以后下一个",
+  "selectedBy": "assistant",
+  "userExplicitlySelectedThisImage": false,
+  "structureBatch": 2,
+  "structureCandidate": 3,
+  "correctedStructure": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_raw.png",
+  "prepared48Init": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_init_1024.png",
+  "transparentDraft": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/transparent_draft/transparent.png",
+  "completed48Candidates": 2,
+  "runtimeIntegrationActive": false,
+  "refineBatch": 2,
+  "refineCandidate": 1,
+  "raw48": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_refine_v01_raw.png",
+  "transparent": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/cutout/transparent.png",
+  "productionRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/cutout/production-record.json",
+  "supplementalNetworkAuthorization": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/corrected-init-network-authorization.json"
+}

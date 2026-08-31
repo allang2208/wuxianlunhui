@@ -1,0 +1,52 @@
+{
+  "label": "近代炮兵工坊 · 48步01",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/refine_s48_b01/candidates/artillery_workshop_industrial/artillery_workshop_industrial_refine_v01_raw.png",
+  "softInner": 60,
+  "softOuter": 115,
+  "edgeDistance": 5,
+  "edgeGreenMargin": 14,
+  "materialSamples": {
+    "roof": [
+      631,
+      430,
+      663,
+      448
+    ],
+    "skylight": [
+      593,
+      363,
+      615,
+      382
+    ],
+    "wall": [
+      240,
+      470,
+      260,
+      490
+    ],
+    "door_interior": [
+      553,
+      560,
+      573,
+      580
+    ],
+    "steel_hoist": [
+      607,
+      670,
+      613,
+      705
+    ],
+    "stone_base": [
+      499,
+      891,
+      509,
+      899
+    ],
+    "table": [
+      780,
+      660,
+      807,
+      672
+    ]
+  }
+}

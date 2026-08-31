@@ -1,0 +1,1014 @@
+{
+  "id": "rifle_range",
+  "name": "近代靶场",
+  "source": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model.blend",
+  "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model_approval_preview.png",
+  "materialDirection": "灰砖围墙、灰蓝金属棚顶、暗钢立柱、保留木质射击台，靶面改为米白黑环；原三靶位置不动。",
+  "sourceCaveat": "Current AI-finished runtime sprite includes a roof tower absent from the archived editable model. This proposal preserves the editable source geometry; it does not claim pixel-identical geometry to the AI-finished runtime image. Existing bow and musket props are retained under the material-only scope.",
+  "outputBlend": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/rifle_range_material_model.blend",
+  "preview": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/rifle_range_material_approval_preview.png",
+  "assignments": [
+    {
+      "object": "ShootingRangeLV2_FortifiedFoundation",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Quiet_Fieldstone"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_StoneHall",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_PlasterUpper",
+      "slot": 0,
+      "from": "MAT_Muted_Plaster",
+      "to": "IND_Lime_Plaster"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Roof",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Roof",
+      "slot": 1,
+      "from": "MAT_Aged_Roof",
+      "to": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "ShootingRangeLV2_SingleRoof_Ridge",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_SingleRoof_FrontFascia",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_SingleRoof_RearFascia",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_BottomBand",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_TopBand",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Post_00",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Post_01",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Post_02",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Post_03",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Post_04",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Brace_00",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Brace_01",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Brace_02",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Timber_Brace_03",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Leaf_-1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Band_-1_-29",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Band_-1_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Band_-1_29",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Hinge_-1_-33",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Hinge_-1_33",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Ring_-1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Leaf_+1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Band_+1_-29",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Band_+1_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Band_+1_29",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Hinge_+1_-33",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Hinge_+1_33",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Door_Ring_+1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_Frame",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_MullionV",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_MullionH",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_Shutter_-1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_ShutterBand_-1_-18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_ShutterBand_-1_+0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_ShutterBand_-1_+18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_Shutter_+1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_ShutterBand_+1_-18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_ShutterBand_+1_+0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Armory_Window_ShutterBand_+1_+18",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftBoundaryWall",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ShootingRangeLV2_RightBoundaryWall",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontBoundary_Left",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontBoundary_Right",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftWallMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftWallMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftWallMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_RightWallMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_RightWallMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_RightWallMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontLeftMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontLeftMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontLeftMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontRightMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontRightMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_FrontRightMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_LeftOuter",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_LeftOuter_Bracket",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_LeftInner",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_LeftInner_Bracket",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_RightInner",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_RightInner_Bracket",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_RightOuter",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringPost_RightOuter_Bracket",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringBench_Left",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringBench_Left_Leg_-32",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringBench_Left_Leg_+32",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringBench_Right",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringBench_Right_Leg_-32",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringBench_Right_Leg_+32",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_0_Post",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_0_Foot",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_0_Outer",
+      "slot": 0,
+      "from": "MAT_Straw",
+      "to": "IND_OffWhite_Target_Face"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_0_MiddleRing",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Charcoal_Target_Ring"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_0_Center",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Charcoal_Target_Ring"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_1_Post",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_1_Foot",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_1_Outer",
+      "slot": 0,
+      "from": "MAT_Straw",
+      "to": "IND_OffWhite_Target_Face"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_1_MiddleRing",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Charcoal_Target_Ring"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_1_Center",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Charcoal_Target_Ring"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_2_Post",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_2_Foot",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_2_Outer",
+      "slot": 0,
+      "from": "MAT_Straw",
+      "to": "IND_OffWhite_Target_Face"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_2_MiddleRing",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Charcoal_Target_Ring"
+    },
+    {
+      "object": "ShootingRangeLV2_Target_2_Center",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Charcoal_Target_Ring"
+    },
+    {
+      "object": "ShootingRangeLV2_WeaponRack_Back",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_WeaponRack_Rail_56",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_WeaponRack_Rail_114",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Longbow_0_Upper",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Longbow_0_Lower",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Longbow_1_Upper",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Longbow_1_Lower",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Matchlock_0_Stock",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Matchlock_0_Barrel",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Matchlock_1_Stock",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Matchlock_1_Barrel",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_Matchlock_2_Stock",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_Matchlock_2_Barrel",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_CrimsonRangeBanner",
+      "slot": 0,
+      "from": "MAT_ShootingRangeLV2_Crimson",
+      "to": "IND_Khaki_Canvas"
+    },
+    {
+      "object": "ShootingRangeLV2_BannerCrossbar",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Base",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Base_IronBand_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Base_IronBand_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Base_LidRail",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Base_Latch",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Upper",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Upper_IronBand_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Upper_IronBand_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Upper_LidRail",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Upper_Latch",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Front",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Front_IronBand_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Front_IronBand_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Front_LidRail",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_LeftAmmoCrate_Front_Latch",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Base",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Base_IronBand_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Base_IronBand_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Base_LidRail",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Base_Latch",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Upper",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Upper_IronBand_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Upper_IronBand_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Upper_LidRail",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Upper_Latch",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Front",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Front_IronBand_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Front_IronBand_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Front_LidRail",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_RightAmmoCrate_Front_Latch",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "ShootingRangeLV2_PowderKeg_0",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_PowderKeg_0_Hoop_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_PowderKeg_0_Hoop_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_PowderKeg_1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_PowderKeg_1_Hoop_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_PowderKeg_1_Hoop_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowQuiver_0",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_0_0",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_0_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_0_1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_0_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_0_2",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_0_2",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_0_3",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_0_3",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowQuiver_1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_1_0",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_1_0",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_1_1",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_1_1",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_1_2",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_1_2",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowBundle_1_3",
+      "slot": 0,
+      "from": "MAT_Dark_Oak",
+      "to": "IND_Retained_Worn_Timber"
+    },
+    {
+      "object": "ShootingRangeLV2_ArrowHead_1_3",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Left_Bracket",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Left_Cage",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Left_Top",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Left_Bottom",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Right_Bracket",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Right_Cage",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Right_Top",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "ShootingRangeLV2_FiringLantern_Right_Bottom",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    }
+  ],
+  "meshCount": 168,
+  "geometryChanged": false,
+  "cameraChanged": false,
+  "lightingChanged": false,
+  "approved": false,
+  "runtimeIntegrated": false
+}

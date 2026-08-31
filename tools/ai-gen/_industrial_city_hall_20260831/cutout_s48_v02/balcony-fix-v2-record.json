@@ -1,0 +1,44 @@
+{
+  "date": "2026-08-31T11:31:31.569949+08:00",
+  "userFeedback": "右边阳台还有绿色残留",
+  "source": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_cutout.png",
+  "output": "tools\\ai-gen\\_industrial_city_hall_20260831\\cutout_s48_v02\\city_hall_industrial_s48_v02_cutout_balcony_fix_v2.png",
+  "method": "Existing repair-local-green-spill.py; only the right-balcony rectangle; RGB replacement only; no keying, crop or resampling.",
+  "rectInCroppedImage": [
+    679,
+    181,
+    757,
+    330
+  ],
+  "rectInOriginal1024Canvas": [
+    760,
+    400,
+    838,
+    549
+  ],
+  "attachedPipeContinuationRect": [
+    690,
+    170,
+    700,
+    181
+  ],
+  "pipeBoundaryNote": "This 10x11px continuation is below the green roof material, which stops above y=164 at this x. The original roof color remains outside both repair rectangles.",
+  "minGreen": 0,
+  "greenMargin": 1,
+  "minAlpha": 1,
+  "edgeDistanceLimit": null,
+  "reason": "The former 3px edge-distance limit missed residual color inside railing junctions and the attached pipe. Removing that limit is confined to this observed small rectangle, never the whole canvas.",
+  "greenDominantPixelsBefore": 569,
+  "greenDominantPixelsBeyondOld3pxLimit": 482,
+  "greenDominantPixelsAfter": 0,
+  "changedRgbPixels": 569,
+  "changedPixelsOutsideRect": 0,
+  "changedAlphaPixels": 0,
+  "size": [
+    863,
+    704
+  ],
+  "originalPreserved": true,
+  "runtimeIntegrationActive": false,
+  "testing": "No tests or runtime validation; only requested local asset repair and output preview."
+}

@@ -1,0 +1,98 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "stage": "structure",
+  "steps": 12,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDepthStrength": 0.75,
+  "refineDenoise": 0.3,
+  "structureSeedBase": 831960,
+  "refineSeedBase": 831970,
+  "batchId": "cavalry_academy_industrial-structure-b01",
+  "outputRoot": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b01/candidates",
+  "status": "rejected_structure_gate_closed",
+  "runtimeIntegrationActive": false,
+  "assets": [
+    {
+      "id": "cavalry_academy_industrial",
+      "label": "近代骑兵学院",
+      "assetClass": "industrial_open_military_training_compound",
+      "model": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_model_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_depth.png",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 4,
+      "footprintMode": "authored",
+      "assetType": "industrial-era cat-mount cavalry academy with one low hall and a broad fenced training court",
+      "primaryRequest": "Preserve this exact industrial-era cat-rider training compound. One low gray-beige brick hall on the rear-left and exactly three attached open-front rectangular resting bays share ONE uninterrupted SINGLE-SLOPE gray-green metal roof plane. Each bay has one khaki pad; do not turn the bays into closed rooms. Keep the small raised paw emblem on the roof, the modeled broad side window, the thin dark timber fence with matte steel joints, and the centered open two-leaf gate on the near-right edge. Keep exactly three simple timber agility jumps in the open court. Along the near-left service edge retain two wooden weapon racks holding a total of six short industrial-era cavalry carbines, two harness racks, two low fixed care stations, the five tied feed sacks and two crates. Preserve all supplied positions and the complete shallow rectangular fieldstone footing with four visible corners. The open court remains the dominant empty area. Use broad calm low-saturation brick, painted roof metal, timber and cloth with sparse seams and restrained wear, and gentle diffuse fill beneath the roof.",
+      "negativeRequest": "No gable ridge, opposite roof slope, second roof, tower, upper floor, detached hut, extra bay, fourth obstacle, additional weapon, horse stable, horse, cat, rider, people, vehicle, cannon, flag, sign text or loose scenery. No dense corrugations, roof micro-panels, ornate gold fittings or excessive grime. Absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow. Keep the gate open.",
+      "removeAllGreen": false,
+      "postprocessDepthImage": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_depth.png"
+    }
+  ],
+  "continuation": {
+    "userStatement": "继续",
+    "priorInstruction": "继续，做完以后下一个",
+    "selectedNext": "近代骑兵学院",
+    "selectionAuthority": "Assistant selects candidates while continuing the established series; no invented per-image user acceptance.",
+    "scope": "This authored academy only. Preserve models, finished barracks/range and all runtime resources."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "This academy original Depth PNG, prepared prompt and standard parameters; at refinement also its selected original 12-step raw.",
+    "submitted": true,
+    "generatedCandidates": 3,
+    "excluded": "Blender files, project source, saves, unrelated images, other endpoints and runtime installation.",
+    "startedAt": "2026-08-31T18:35:49.908573+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T18:39:32.264353+08:00"
+  },
+  "networkBlock": {
+    "recordedAt": "2026-08-31T15:50:52.680046+08:00",
+    "stage": "Rejected before process launch; no image upload or generation",
+    "destination": "http://192.168.3.142:8188",
+    "payload": [
+      "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_depth.png",
+      "prepared-prompt.txt",
+      "standard 12-step parameters"
+    ],
+    "reason": "Auto-review requires explicit approval for this new building; earlier grants covered barracks and range only.",
+    "bypassAttempted": false,
+    "resolvedBy": "User explicitly approved the preceding exact three-building payload question."
+  },
+  "externalPayloadAuthorization": {
+    "status": "explicitly_authorized",
+    "userResponse": "允许",
+    "authorizedAt": "2026-08-31T18:35:36.677727+08:00",
+    "approvalQuestion": "是否允许把近代骑兵学院、近代炮兵工坊、蒸汽军工厂这三栋的Depth、提示词、参数，以及本轮选中的12步原图或仅用于保持既定结构的局部修正版，发送到同一192.168.3.142:8188，按顺序完成12/48步与透明处理？",
+    "destination": "http://192.168.3.142:8188",
+    "assets": [
+      "cavalry_academy_industrial",
+      "artillery_workshop_industrial",
+      "steam_arsenal_industrial"
+    ],
+    "payloadScope": "Only these three buildings: original Depth PNGs, prepared prompts and standard parameters; later selected original 12-step raws and, only when necessary to preserve the already modeled structure, documented local corrections of the same building raws.",
+    "excluded": "Blender models, project source, saves, unrelated images or buildings, other endpoints, model redesign and runtime installation.",
+    "previousBlockResolvedBy": "User explicitly approved the preceding exact three-building payload question.",
+    "runtimeIntegrationActive": false
+  },
+  "review": {
+    "allFullRawsViewed": true,
+    "promoted": false,
+    "rejectionReason": "All first-batch gates were closed; candidate 02 changed roof and bay count, candidate 03 had four bays. Compact duplicated industrial-only prompt and clarify outward-swinging simple gate."
+  }
+}

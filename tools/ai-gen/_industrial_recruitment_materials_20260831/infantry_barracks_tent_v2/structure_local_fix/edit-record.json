@@ -1,0 +1,26 @@
+{
+  "status": "structural_errors_corrected_before_48_step_refinement",
+  "mode": "builtin_imagegen_local_edit",
+  "parent": "../structure_s12_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v03_raw.png",
+  "geometryReference": "../industrial_barracks_model_approval_preview.png",
+  "prompt": "edit-prompt.txt",
+  "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05565-4644-7f91-b42a-c42c9aa544a4/exec-dd5edfa8-2c0c-477d-83b2-2667696a42d5.png",
+  "copiedOriginal": "barracks_structure_corrected_raw.png",
+  "nativeSize": [
+    1254,
+    1254
+  ],
+  "corrected": [
+    "Removed unmodeled door and window from tent short end",
+    "Kept centered long-side entrance and its side windows",
+    "Removed surplus front barrels",
+    "Reduced radio to a small low box and cable spool"
+  ],
+  "preparation": "input-preparation.json",
+  "preparedInit": "barracks_structure_corrected_init_1024.png",
+  "selectedBy": "assistant",
+  "authority": "继续，做完以后下一个",
+  "userExplicitlySelectedImage": false,
+  "runtimeIntegrationActive": false,
+  "limitations": "Local edit has minor material/detail differences; original raw and model remain unchanged."
+}

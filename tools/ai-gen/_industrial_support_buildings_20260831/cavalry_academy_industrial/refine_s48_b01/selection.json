@@ -1,0 +1,10 @@
+{
+  "stage": "refine",
+  "selectedCandidate": 1,
+  "selectedBy": "assistant",
+  "userExplicitlySelectedThisImage": false,
+  "reason": "01 preserves the paw emblem and quiet materials; 02 deforms the paw sign. Both complete raws were viewed. 01 retains three open bays, outward-open gate, three jumps, six carbines and the corrected service groups.",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/refine_s48_b01/candidates/cavalry_academy_industrial/cavalry_academy_industrial_refine_v01_raw.png",
+  "runtimeIntegrationActive": false,
+  "deliveredArtworkAcceptanceRecord": "tools/ai-gen/_industrial_support_buildings_20260831/art-acceptance.json"
+}

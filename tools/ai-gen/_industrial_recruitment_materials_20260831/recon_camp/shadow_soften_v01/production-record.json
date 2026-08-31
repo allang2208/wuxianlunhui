@@ -1,0 +1,115 @@
+{
+  "recordedAt": "2026-08-31T13:48:08.857293+08:00",
+  "source": "tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_raw_green.png",
+  "sourceSize": [
+    1377,
+    1142
+  ],
+  "output": "tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_transparent.png",
+  "outputMode": "RGBA",
+  "outputSize": [
+    1349,
+    1118
+  ],
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "key": {
+    "measuredRgb": [
+      7.0,
+      233.0,
+      13.0
+    ],
+    "cornerDistanceMax": 25.475478405713993,
+    "softInner": 50,
+    "softOuter": 140,
+    "removeAllGreen": false,
+    "oldDepthOrAlphaUsed": false
+  },
+  "protectedMaterialSamples": {
+    "roof": {
+      "rect": [
+        680,
+        310,
+        800,
+        360
+      ],
+      "minimumKeyDistance": 180.80929179663306,
+      "alphaBelow255": 0
+    },
+    "front_stone": {
+      "rect": [
+        700,
+        870,
+        880,
+        920
+      ],
+      "minimumKeyDistance": 180.69587709740364,
+      "alphaBelow255": 0
+    },
+    "dark_window": {
+      "rect": [
+        271,
+        375,
+        305,
+        424
+      ],
+      "minimumKeyDistance": 180.7844019820294,
+      "alphaBelow255": 0
+    },
+    "tower_post": {
+      "rect": [
+        208,
+        600,
+        224,
+        690
+      ],
+      "minimumKeyDistance": 182.9590118031905,
+      "alphaBelow255": 0
+    }
+  },
+  "transparentPixelsWithDirtyRgb": 0,
+  "runtimeIntegrationActive": false,
+  "limitations": "Display metadata is not game placement calibration. Offline asset production only; no tests, builds or runtime validation.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_raw_green.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_keyed.png",
+      "--soft-key-inner",
+      "50",
+      "--soft-key-outer",
+      "140",
+      "--nearest-opaque-edge-rgb"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_edge.png",
+      "--rect",
+      "0,0,1377,1142",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "15",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "3"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_edge.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\recon_camp_industrial_shadow_softened_transparent.png",
+      "--display-width",
+      "1377",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\recon_camp\\shadow_soften_v01\\crop-metadata.json"
+    ]
+  ]
+}

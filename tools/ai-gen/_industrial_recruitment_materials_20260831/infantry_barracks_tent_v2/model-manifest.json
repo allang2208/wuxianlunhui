@@ -1,0 +1,56 @@
+{
+  "id": "industrial_barracks_tent_v2",
+  "name": "近现代野战军营",
+  "status": "model-approved",
+  "approval": { "date": "2026-08-31", "userStatement": "可用，继续骑兵学院系列、工程营地系列、铁匠铺系列的建模", "scope": "Model design only; no AI refinement or runtime replacement approved by this record." },
+  "supersedes": "../infantry_barracks/infantry_barracks_material_model.blend",
+  "scope": "Only the proposed intermediate barracks changes from a masonry fort to a tent and timber-steel lookout. Recon camp, range and all runtime assets remain unchanged.",
+  "referenceModel": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_model.blend",
+  "referencePreview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_model_approval_preview.png",
+  "referenceRuntimeImage": "assets/terrain/hamster_barracks_lv3.png",
+  "sourceBuilder": "tools/ai-gen/settlement-building-pack-blender.py#build_hamster_barracks_lv3",
+  "styleReference": "tools/ai-gen/prompts/world122-building-style.md",
+  "dimensions": {
+    "foundation": [
+      480,
+      392,
+      16
+    ],
+    "tentWall": [
+      282,
+      190,
+      76
+    ],
+    "tentRoof": [
+      306,
+      220,
+      80
+    ],
+    "watchtower": [
+      116,
+      110,
+      176
+    ],
+    "watchtowerRoof": [
+      142,
+      128,
+      38
+    ]
+  },
+  "changes": [
+    "Single khaki canvas tent replaces the previous stone hall and crenellated twin towers.",
+    "Canvas slopes sag between ridge and eaves; three visible webbing seams and four guy ropes attach to stakes inside the original foundation.",
+    "Front canvas is split around a genuine doorway, with tied-back flaps, recessed dark interior and rolled window covers.",
+    "Single lower, broader timber lookout uses steel shoes and X-braces, a timber deck, open guardrails and a ladder opening with extended handrails.",
+    "The connector becomes a grounded timber walkway. Sandbags and existing supply zones remain clear of the main entrance and ladder.",
+    "No camouflage pattern, radar, vehicle, second tower, fort walls or new gameplay functions."
+  ],
+  "runtimeIntegration": false,
+  "approved": true,
+  "meshCount": 122,
+  "curveCount": 7,
+  "model": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/industrial_barracks_model.blend",
+  "approvalPreview": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/industrial_barracks_model_approval_preview.png",
+  "geometryChanged": true,
+  "runtimeChanged": false
+}

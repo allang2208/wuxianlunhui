@@ -1,0 +1,183 @@
+{
+  "recordedAt": "2026-08-31T14:49:25.248868+08:00",
+  "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/candidates/rifle_range_industrial/rifle_range_industrial_refine_v01_raw.png",
+  "sourceSize": [
+    1024,
+    1024
+  ],
+  "output": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/cutout/transparent.png",
+  "outputSize": [
+    887,
+    618
+  ],
+  "outputMode": "RGBA",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "keyRgb": [
+    60.0,
+    197.0,
+    20.0
+  ],
+  "softInner": 80,
+  "softOuter": 100,
+  "transparentPixelsWithDirtyRgb": 0,
+  "materialSamples": {
+    "roof": {
+      "rect": [
+        505,
+        430,
+        555,
+        460
+      ],
+      "pixels": 1500,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 115.34296684236972
+    },
+    "brick_wall": {
+      "rect": [
+        282,
+        555,
+        310,
+        605
+      ],
+      "pixels": 1400,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 116.71332400373147
+    },
+    "courtyard_ground": {
+      "rect": [
+        690,
+        767,
+        718,
+        789
+      ],
+      "pixels": 616,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 103.95191195932858
+    },
+    "dark_wall_under_canopy": {
+      "rect": [
+        681,
+        553,
+        701,
+        573
+      ],
+      "pixels": 400,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 165.93974810153233
+    }
+  },
+  "oldDepthUsedForAlpha": false,
+  "removeAllGreen": false,
+  "isolatedPinholesRestored": [
+    {
+      "xy": [
+        215,
+        506
+      ],
+      "beforeRgba": [
+        47,
+        116,
+        66,
+        200
+      ],
+      "afterRgba": [
+        98,
+        99,
+        92,
+        255
+      ]
+    },
+    {
+      "xy": [
+        745,
+        753
+      ],
+      "beforeRgba": [
+        74,
+        118,
+        74,
+        236
+      ],
+      "afterRgba": [
+        120,
+        106,
+        97,
+        255
+      ]
+    },
+    {
+      "xy": [
+        523,
+        771
+      ],
+      "beforeRgba": [
+        71,
+        151,
+        90,
+        32
+      ],
+      "afterRgba": [
+        154,
+        137,
+        116,
+        255
+      ]
+    }
+  ],
+  "fillHoles": false,
+  "runtimeIntegrationActive": false,
+  "limitations": "Native pixel crop only; display metadata is not runtime calibration. Offline asset production and previews only, no tests/build/game validation.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\candidates\\rifle_range_industrial\\rifle_range_industrial_refine_v01_raw.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\keyed.png",
+      "--soft-key-inner",
+      "80",
+      "--soft-key-outer",
+      "100"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\spatial.png",
+      "--display-width",
+      "1024",
+      "--padding",
+      "1024",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\spatial-metadata.json"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\spatial_pinholes.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\body_full.png",
+      "--rect",
+      "0,0,1024,1024",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "10",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "6"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\body_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\transparent.png",
+      "--display-width",
+      "887",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\rifle_range\\refine_s48_b03\\cutout\\crop-metadata.json"
+    ]
+  ]
+}

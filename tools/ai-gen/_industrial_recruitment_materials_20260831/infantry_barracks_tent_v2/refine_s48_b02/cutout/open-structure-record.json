@@ -1,0 +1,29 @@
+{
+  "backgroundKeyPixelsWithAlpha": 0,
+  "aboveOuterPixelsWithReducedAlpha": 0,
+  "oldDepthUsedForAlpha": false,
+  "fillHoles": false,
+  "runtimeIntegrationActive": false,
+  "localSpillPixelsRecolored": 101,
+  "localSpillRects": [
+    [
+      484,
+      302,
+      499,
+      337
+    ],
+    [
+      571,
+      432,
+      584,
+      443
+    ],
+    [
+      668,
+      464,
+      701,
+      485
+    ]
+  ],
+  "localRepairPreservesAlpha": true
+}

@@ -1,0 +1,85 @@
+{
+  "label": "近代骑兵学院 · 48步01",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/refine_s48_b01/candidates/cavalry_academy_industrial/cavalry_academy_industrial_refine_v01_raw.png",
+  "softInner": 45,
+  "softOuter": 75,
+  "edgeDistance": 5,
+  "edgeGreenMargin": 14,
+  "materialSamples": {
+    "roof": [
+      340,
+      432,
+      370,
+      452
+    ],
+    "wall": [
+      222,
+      555,
+      239,
+      581
+    ],
+    "first_pad": [
+      394,
+      632,
+      412,
+      644
+    ],
+    "sand": [
+      550,
+      738,
+      570,
+      748
+    ],
+    "basin_water": [
+      390,
+      763,
+      403,
+      770
+    ],
+    "sack": [
+      371,
+      716,
+      378,
+      726
+    ],
+    "harness": [
+      286,
+      727,
+      307,
+      738
+    ]
+  },
+  "localSpillRects": [
+    [
+      742,
+      541,
+      746,
+      546
+    ],
+    [
+      798,
+      570,
+      801,
+      574
+    ],
+    [
+      851,
+      598,
+      859,
+      604
+    ],
+    [
+      872,
+      607,
+      883,
+      617
+    ],
+    [
+      891,
+      618,
+      897,
+      623
+    ]
+  ],
+  "localSpillReason": "Viewed rear-fence detail shows green reflected fringe on a few base stones below the lower rail. RGB-only repair in these five small rectangles, no alpha editing."
+}

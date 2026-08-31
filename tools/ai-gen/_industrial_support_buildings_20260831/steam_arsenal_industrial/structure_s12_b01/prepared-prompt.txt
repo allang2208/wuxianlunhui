@@ -1,0 +1,34 @@
+Use case: stylized-concept
+Asset type: compact early-industrial steam arsenal evolved from the blacksmith workshop, previewed above the runtime 2x2 road-tile fill
+Pipeline/style version: world122-building-v5
+Primary request: Follow the supplied revision-3 steam-arsenal model. Preserve one compact brown-gray brick workshop, one uninterrupted gray-blue metal gable roof, exactly one brick chimney, one broad side window, the attached left-wall flywheel with its small base cylinder and the small gear-and-hammer emblem above the right furnace. The left front loading doorway stays genuinely open: both full door leaves are rotated inward 90 degrees against the jambs, revealing the recessed dark interior and floor. Keep the right furnace with a small restrained orange internal glow, the tall attached mechanical forging hammer at the far right, and the low small processing machine beside stacked material boxes and exposed metal blanks. Preserve the hammer and wrench on those boxes. This box-and-machine group has replaced the former outdoor table: do not rebuild a tabletop, table legs or a tabletop vise. Retain all exact component positions, one complete shallow fieldstone footing, matte black iron and quiet low-saturation worn materials. Use diffuse fill and only narrow contact occlusion so the entrance and equipment remain readable.
+Generation stage: structural industrial steam-arsenal candidate
+Structure contract: one compact gabled workshop, one chimney, the left loading doorway visibly open inward, right furnace, gear-and-hammer emblem, attached side flywheel and the authored low forging machinery. Preserve stacked material boxes and hand tools in place of the old table; there is no outdoor worktable or hoist in this model.
+Detail budget: broad muted brick, gray-blue roof metal, black iron and restrained worn timber; no extra machinery.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: rubble_stone
+Foundation contract — Isometric Rubble Stone Plinth for Game Assets:
+Use one low integrated medieval irregular dry-stacked rubble foundation, fully visible and completely contained inside the authored footprint. Build the surface from irregular hand-cut rubble slabs with varied stone sizing, randomized worn and beveled corners, natural filled-joint texture and a deliberately non-industrial hand-laid paving character. Give the complete outer perimeter one consistent isometric chamfer so equal-footprint assets align cleanly. Keep the plinth continuous, game-readable and materially distinct from the more regular masonry of the building body; no marble skirt, monolithic polished slab, oversized podium, detached platform or terrain patch.
+
+
+Composition/framing: follow the supplied full-foundation Depth and orthographic 2.5D view; retain one compact workshop with all machinery attached, its left loading doorway open inward and all four footing corners visible
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: no second hall, extra floor, extra roof, second chimney, tower, crane, hoist, outdoor table, workbench, vice table, new machine, complete weapon, vehicle, people, animals, scenery, text or watermark; absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow
+Asset-specific absolute exclusions: No closed loading door, blocked entrance, outdoor table, workbench, tabletop vise, hoist, second factory hall, second chimney, roof skylight, tower, extra steam engine, boiler yard, exposed pipe network, CNC cabinet, induction furnace, power-station equipment, finished cannon, weapon rack, vehicle, people, animal, sign text, neon or broad furnace glow. Absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow.

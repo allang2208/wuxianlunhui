@@ -1,0 +1,137 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "steps": 48,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDepthStrength": 0.75,
+  "refineDenoise": 0.3,
+  "refineSeedBase": 831740,
+  "stage": "refine",
+  "batchId": "industrial-city-hall-s48-v02-b01",
+  "outputRoot": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/candidates",
+  "status": "v02_selected_cutout_ready",
+  "initImage": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/inputs/city_hall_industrial_v02_flag_balance_init_1024.png",
+  "runtimeIntegrationActive": false,
+  "refinementApproval": {
+    "recordedAt": "2026-08-31T11:02:46.80439+08:00",
+    "userStatement": "可用，同意进入48步",
+    "acceptedSource": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/v02_flag_balance/city_hall_industrial_v02_flag_balance.png",
+    "scope": "Accept the V2 flag-balance image and generate two standard 48-step refinement candidates. No runtime replacement."
+  },
+  "sourcePreparation": {
+    "source": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/v02_flag_balance/city_hall_industrial_v02_flag_balance.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "input": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/inputs/city_hall_industrial_v02_flag_balance_init_1024.png",
+    "inputSize": [
+      1024,
+      1024
+    ],
+    "operation": "Full square canvas uniformly resized with Lanczos; no crop or recolor; original retained.",
+    "directAncestor": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/candidates/city_hall_industrial/city_hall_industrial_structure_v02_raw.png",
+    "sourceColorEditRecord": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/v02_flag_balance/edit-record.json"
+  },
+  "controlNotes": {
+    "depth": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+    "basis": "Reuse the original authored full-building Depth for massing and view. Selected V2 facade and four-banner appearance are retained by the accepted init image and detail request.",
+    "postprocessing": "Raw-only pass. Do not use the older Depth as a hard Alpha mask for the selected image."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the accepted V2 color-edit input resized to 1024x1024, the same authored city-hall Depth PNG, and the prepared refinement prompt with standard generation parameters.",
+    "excluded": "Blender models, source code, saves, unrelated images, other destinations and runtime replacement.",
+    "authorizationBasis": "User explicitly approved this exact input image, Depth and prepared prompt being sent to http://192.168.3.142:8188 after disclosure in the preceding assistant reply.",
+    "userRequest": "可用，同意进入48步",
+    "generatedCandidates": 2,
+    "submitted": true,
+    "startedAt": "2026-08-31T11:05:15.17162+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T11:07:27.330262+08:00"
+  },
+  "assets": [
+    {
+      "id": "city_hall_industrial",
+      "label": "近代市政大厅",
+      "assetClass": "civic_building",
+      "assetType": "World-122 near-modern industrial-era municipal town hall",
+      "footprintCells": 4,
+      "footprintMode": "authored",
+      "foundationStyle": "rubble_stone",
+      "foundationRoutingNote": "The approved fieldstone model uses the generator equivalent rubble_stone; geometry remains unchanged.",
+      "model": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+      "primaryRequest": "Refine the accepted V2 near-modern municipal hall supplied as the initial image. Preserve its exact two storeys, single compact clock housing with two clock faces, warm copper-orange pyramidal tower cap, continuous sage-gray standing-seam main roof, full-width flat iron-railed balcony, central glazed balcony doors, civic medallion, four ground-floor arcade arches, public entrance, steps and complete low stone base. Keep all FOUR narrow hanging banners in the same positions and dimensions as the initial image: muted warm gray-olive/khaki cloth with restrained aged-brass borders, never vivid green. Retain the selected arched upper windows and rectangular lower windows; do not redesign the facade to an earlier draft. Keep the original window/door framing, rail spacing, roof seams and rainwater pipes. Improve only broad material clarity and sparse medium-scale wear, with calmer stone joints and no added grain. Keep the selected palette and neutral soft lighting; no new ornaments or parts.",
+      "paletteConstraint": "selected V2 palette: muted gray-olive/khaki banners with aged-brass thin borders; sage-gray main roof; warm copper-orange tower cap; warm gray masonry and pale stone trim; dark green-gray frames, subdued blue-green glazing and dark iron rails",
+      "negativeRequest": "No bright emerald flags, changed banner count, gray-green tower cap, extra storey, extra tower, stacked clock housing, third clock, moved window or door, added side-wall ornament, enlarged emblem, balcony canopy, solar panels, machinery, factory chimney, vehicles, new lettering, dense surface noise or glossy gold edging.",
+      "removeAllGreen": false,
+      "detailRequest": "Refine the accepted V2 near-modern municipal hall supplied as the initial image. Preserve its exact two storeys, single compact clock housing with two clock faces, warm copper-orange pyramidal tower cap, continuous sage-gray standing-seam main roof, full-width flat iron-railed balcony, central glazed balcony doors, civic medallion, four ground-floor arcade arches, public entrance, steps and complete low stone base. Keep all FOUR narrow hanging banners in the same positions and dimensions as the initial image: muted warm gray-olive/khaki cloth with restrained aged-brass borders, never vivid green. Retain the selected arched upper windows and rectangular lower windows; do not redesign the facade to an earlier draft. Keep the original window/door framing, rail spacing, roof seams and rainwater pipes. Improve only broad material clarity and sparse medium-scale wear, with calmer stone joints and no added grain. Keep the selected palette and neutral soft lighting; no new ornaments or parts."
+    }
+  ],
+  "networkBlock": {
+    "stage": "Rejected before process launch; no generation or upload occurred",
+    "destination": "http://192.168.3.142:8188",
+    "reason": "Automatic safety review requires explicit authorization for the new V2 color input, existing city-hall Depth and prepared prompt to this destination, beyond approval to enter 48-step refinement.",
+    "requiredPayload": [
+      "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/inputs/city_hall_industrial_v02_flag_balance_init_1024.png",
+      "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+      "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/prepared-prompt.txt"
+    ],
+    "excluded": "Blender models, source code, saves, unrelated images, other destinations and runtime replacement.",
+    "resolvedBy": "User replied 同意 after the exact new input image, Depth, prompt, destination and scope were disclosed."
+  },
+  "networkAuthorization": {
+    "status": "explicitly_approved_by_user",
+    "recordedAt": "2026-08-31T11:05:12.1541557+08:00",
+    "userReply": "同意",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the accepted V2 color-edit input resized to 1024x1024, the same authored city-hall Depth PNG, and the prepared refinement prompt with standard generation parameters.",
+    "files": [
+      "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/inputs/city_hall_industrial_v02_flag_balance_init_1024.png",
+      "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+      "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/prepared-prompt.txt"
+    ],
+    "excluded": "Blender models, source code, saves, unrelated images, other destinations and runtime replacement.",
+    "scope": "Generate exactly two standard 48-step candidates from the accepted V2 flag-color input; no runtime replacement."
+  },
+  "review": {
+    "allRawCandidatesViewed": true,
+    "acceptedSourceViewed": true,
+    "generatedCandidates": 2,
+    "userSelected": true,
+    "recommendedCandidate": 1,
+    "acceptedForRuntime": [],
+    "summary": "User explicitly selected 48-step 02, superseding the earlier recommendation of 01. A building-specific transparent cutout with preserved railing gaps is ready; no runtime installation.",
+    "contactSheet": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/city_hall_industrial_s48_comparison.png",
+    "notes": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/REVIEW.md",
+    "selectedCandidate": 2
+  },
+  "cutoutSelection": {
+    "recordedAt": "2026-08-31T11:24:24.3306183+08:00",
+    "userStatement": "02更好，抠图注意处理栏杆，看看前面SKILL沉淀的经验",
+    "selectedCandidate": 2,
+    "seed": 831742,
+    "selectedRaw": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/candidates/city_hall_industrial/city_hall_industrial_refine_v02_raw.png",
+    "cutout": "tools/ai-gen/_industrial_city_hall_20260831/cutout_s48_v02/city_hall_industrial_s48_v02_cutout_balcony_fix_v2.png",
+    "cutoutRecord": "tools/ai-gen/_industrial_city_hall_20260831/cutout_s48_v02/cutout-record.json",
+    "scope": "Accept 48-step 02 and prepare transparent cutout with railing-gap care; no runtime installation requested.",
+    "runtimeIntegrationActive": false,
+    "previousCutout": "tools/ai-gen/_industrial_city_hall_20260831/cutout_s48_v02/city_hall_industrial_s48_v02_cutout.png",
+    "latestFeedback": "右边阳台还有绿色残留",
+    "cutoutRepairRecord": "tools/ai-gen/_industrial_city_hall_20260831/cutout_s48_v02/balcony-fix-v2-record.json"
+  }
+}

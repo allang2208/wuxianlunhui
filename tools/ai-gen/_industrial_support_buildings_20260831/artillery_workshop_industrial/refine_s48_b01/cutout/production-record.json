@@ -1,0 +1,162 @@
+{
+  "recordedAt": "2026-08-31T19:03:05.911533+08:00",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/refine_s48_b01/candidates/artillery_workshop_industrial/artillery_workshop_industrial_refine_v01_raw.png",
+  "sourceSize": [
+    1024,
+    1024
+  ],
+  "output": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/refine_s48_b01/cutout/transparent.png",
+  "outputSize": [
+    875,
+    688
+  ],
+  "outputMode": "RGBA",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "keyRgb": [
+    41.0,
+    231.0,
+    6.0
+  ],
+  "softInner": 60,
+  "softOuter": 115,
+  "transparentPixelsWithDirtyRgb": 0,
+  "materialSamples": {
+    "roof": {
+      "rect": [
+        631,
+        430,
+        663,
+        448
+      ],
+      "pixels": 576,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 160.45248517863473
+    },
+    "skylight": {
+      "rect": [
+        593,
+        363,
+        615,
+        382
+      ],
+      "pixels": 418,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 163.37380450978057
+    },
+    "wall": {
+      "rect": [
+        240,
+        470,
+        260,
+        490
+      ],
+      "pixels": 400,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 150.2431362824938
+    },
+    "door_interior": {
+      "rect": [
+        553,
+        560,
+        573,
+        580
+      ],
+      "pixels": 400,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 161.7188919081503
+    },
+    "steel_hoist": {
+      "rect": [
+        607,
+        670,
+        613,
+        705
+      ],
+      "pixels": 210,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 172.15109642404255
+    },
+    "stone_base": {
+      "rect": [
+        499,
+        891,
+        509,
+        899
+      ],
+      "pixels": 80,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 169.55530071336608
+    },
+    "table": {
+      "rect": [
+        780,
+        660,
+        807,
+        672
+      ],
+      "pixels": 324,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 166.01204775557707
+    }
+  },
+  "oldDepthUsedForAlpha": false,
+  "removeAllGreen": false,
+  "isolatedPinholesRestored": [],
+  "localSpillRects": [],
+  "fillHoles": false,
+  "runtimeIntegrationActive": false,
+  "limitations": "Native pixel crop only; display metadata is not runtime calibration. Offline asset production and previews only, no tests/build/game validation.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\candidates\\artillery_workshop_industrial\\artillery_workshop_industrial_refine_v01_raw.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\keyed.png",
+      "--soft-key-inner",
+      "60",
+      "--soft-key-outer",
+      "115"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\spatial.png",
+      "--display-width",
+      "1024",
+      "--padding",
+      "1024",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\spatial-metadata.json"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\spatial.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\body_full.png",
+      "--rect",
+      "0,0,1024,1024",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "5"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\body_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\transparent.png",
+      "--display-width",
+      "875",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\artillery_workshop_industrial\\refine_s48_b01\\cutout\\crop-metadata.json"
+    ]
+  ]
+}

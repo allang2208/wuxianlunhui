@@ -1,0 +1,4 @@
+{
+  "rejectedMethod": "HSV clearing across southeast quadrant",
+  "reason": "It removed a valid green-tinted machine pixel and produced isolated pinholes in stone/masonry; replaced with a traced exterior-only polygon, without filling interior holes."
+}

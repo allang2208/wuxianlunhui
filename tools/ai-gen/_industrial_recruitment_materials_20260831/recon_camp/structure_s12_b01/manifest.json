@@ -1,0 +1,99 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "steps": 12,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "stage": "structure",
+  "batchId": "industrial-recon-camp-s12-b01",
+  "structureSeedBase": 831750,
+  "outputRoot": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates",
+  "status": "v03_accepted_for_48_step_refinement",
+  "runtimeIntegrationActive": false,
+  "continuation": {
+    "recordedAt": "2026-08-31T12:15:40.692327+08:00",
+    "userStatement": "继续",
+    "earlierDirection": "同意，接下来开始逐步12步生图",
+    "interpretation": "Continue the intermediate-era building art sequence with recon camp, the first remaining building. Keep the completed city-hall cutout unchanged.",
+    "scope": "Three 12-step raw candidates only; no 48-step refinement, cutout, era configuration or runtime installation."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the industrial recon-camp Depth PNG and prepared prompt with generation parameters.",
+    "excluded": "Blender models, source code, saves, other images and other destinations.",
+    "generatedCandidates": 3,
+    "submitted": true,
+    "startedAt": "2026-08-31T12:18:06.660131+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T12:20:58.040888+08:00"
+  },
+  "assets": [
+    {
+      "id": "recon_camp_industrial",
+      "label": "近代侦察营地",
+      "assetClass": "scout_command_compound",
+      "assetType": "World-122 compact industrial-era reconnaissance camp",
+      "footprintCells": 2,
+      "footprintMode": "authored",
+      "foundationStyle": "rubble_stone",
+      "foundationRoutingNote": "Retain the source model fieldstone foundation; this is an intermediate-era candidate, not the accepted modern tier.",
+      "model": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_material_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_material_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/recon_camp_depth.png",
+      "primaryRequest": "Render the supplied reconnaissance-camp model as its industrial-era material evolution. Use gray-beige brick walls, muted gray-green painted sheet-metal on the continuous gable roof, lookout cap and attached supply awning, matte dark-steel tower posts and ladder, khaki supply packs, subdued wood doors and restrained aged-brass compass fittings. Keep the two plain narrow signal pennants, the shallow shuttered windows and every existing opening. Metal roofing has sparse seams and broad quiet panels.",
+      "negativeRequest": "No clay roof tiles, thatch, camouflage pattern, extra storey, sealed lookout supports or bright colored pennants.",
+      "removeAllGreen": false
+    }
+  ],
+  "networkBlock": {
+    "recordedAt": "2026-08-31T12:17:18.7293088+08:00",
+    "stage": "Rejected before process launch; no upload or generation occurred",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the industrial recon-camp Depth PNG, prepared prompt and parameters for three 12-step raw candidates",
+    "reason": "Auto-review requires explicit user approval for this building payload at the LAN destination. Earlier city-hall permission is scoped to that building.",
+    "bypassAttempted": false,
+    "resolvedBy": "User explicitly approved the stated destination and payload: 同意"
+  },
+  "networkAuthorization": {
+    "status": "explicitly_approved_by_user",
+    "recordedAt": "2026-08-31T12:18:03.8306514+08:00",
+    "userStatement": "同意",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the industrial recon-camp Depth PNG, prepared prompt and parameters for three 12-step raw candidates",
+    "excluded": "Blender models, source code, saves, other images, other destinations, 48-step refinement and runtime installation"
+  },
+  "review": {
+    "allRawCandidatesViewed": true,
+    "contactSheetViewed": true,
+    "userSelected": true,
+    "recommendedRevisionBase": 3,
+    "approvedForRefinement": true,
+    "structureFullyAccepted": false,
+    "contactSheet": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/recon_camp_industrial_s12_candidates.png",
+    "notes": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/REVIEW.md",
+    "summary": "User accepted continuation from recommended V03 into 48 steps, with a smaller calmer compass and subdued roof rust. Source and all sibling candidates remain; no runtime installation.",
+    "selectedCandidate": 3,
+    "refinementApproval": {
+      "recordedAt": "2026-08-31T12:27:29.905881+08:00",
+      "userStatement": "同意继续 48 步",
+      "acceptedSource": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v03_raw.png",
+      "selectedCandidate": 3,
+      "seed": 831753,
+      "selectionBasis": "User agreed to continue with 48 steps immediately after the recommendation of V03 and its compass/color corrections.",
+      "scope": "Two standard 48-step raw candidates with a smaller subdued compass and calmer roof rust. No cutout or runtime replacement."
+    },
+    "refinementManifest": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/manifest.json"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "stage": "refine",
+  "selectedCandidate": 1,
+  "selectedBy": "assistant",
+  "userExplicitlySelectedThisImage": false,
+  "allFullRawsViewed": true,
+  "reason": "01 preserves clear gear teeth and a restrained tool table. 02 introduces a more cannon-like cylindrical tabletop prop and a heavier black gear center. 01 retains two skylights, open assembly doorway, hoist, paired wheels and axle, short rails and tool table.",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/refine_s48_b01/candidates/artillery_workshop_industrial/artillery_workshop_industrial_refine_v01_raw.png",
+  "runtimeIntegrationActive": false,
+  "deliveredArtworkAcceptanceRecord": "tools/ai-gen/_industrial_support_buildings_20260831/art-acceptance.json"
+}

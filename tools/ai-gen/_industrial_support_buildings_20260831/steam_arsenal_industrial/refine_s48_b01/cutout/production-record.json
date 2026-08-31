@@ -1,0 +1,208 @@
+{
+  "recordedAt": "2026-08-31T19:30:19.354493+08:00",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/refine_s48_b01/candidates/steam_arsenal_industrial/steam_arsenal_industrial_refine_v01_raw.png",
+  "sourceSize": [
+    1024,
+    1024
+  ],
+  "output": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/refine_s48_b01/cutout/transparent.png",
+  "outputSize": [
+    855,
+    845
+  ],
+  "outputMode": "RGBA",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "keyRgb": [
+    44.0,
+    222.0,
+    3.0
+  ],
+  "softInner": 75,
+  "softOuter": 120,
+  "transparentPixelsWithDirtyRgb": 0,
+  "materialSamples": {
+    "roof": {
+      "rect": [
+        630,
+        380,
+        660,
+        400
+      ],
+      "pixels": 600,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 146.1061258127119
+    },
+    "brick": {
+      "rect": [
+        284,
+        471,
+        304,
+        489
+      ],
+      "pixels": 360,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 152.29904792873788
+    },
+    "window": {
+      "rect": [
+        309,
+        548,
+        324,
+        566
+      ],
+      "pixels": 270,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 162.2004932174992
+    },
+    "dark_door": {
+      "rect": [
+        525,
+        678,
+        544,
+        705
+      ],
+      "pixels": 513,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 219.6747595878962
+    },
+    "flywheel": {
+      "rect": [
+        168,
+        650,
+        180,
+        666
+      ],
+      "pixels": 192,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 161.96913286178943
+    },
+    "cylinder": {
+      "rect": [
+        248,
+        722,
+        267,
+        734
+      ],
+      "pixels": 228,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 153.9415473483361
+    },
+    "press": {
+      "rect": [
+        817,
+        468,
+        828,
+        488
+      ],
+      "pixels": 220,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 168.32112166926646
+    },
+    "material_box": {
+      "rect": [
+        658,
+        736,
+        683,
+        747
+      ],
+      "pixels": 275,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 161.41251500425858
+    },
+    "furnace": {
+      "rect": [
+        699,
+        654,
+        710,
+        665
+      ],
+      "pixels": 121,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 195.0538387215181
+    },
+    "machine": {
+      "rect": [
+        770,
+        700,
+        781,
+        714
+      ],
+      "pixels": 154,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 176.9547964876906
+    },
+    "foundation": {
+      "rect": [
+        468,
+        891,
+        483,
+        899
+      ],
+      "pixels": 120,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 178.20774393948204
+    }
+  },
+  "oldDepthUsedForAlpha": false,
+  "removeAllGreen": false,
+  "isolatedPinholesRestored": [],
+  "localSpillRects": [],
+  "fillHoles": false,
+  "runtimeIntegrationActive": false,
+  "limitations": "Native pixel crop only; display metadata is not runtime calibration. Offline asset production and previews only, no tests/build/game validation.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\candidates\\steam_arsenal_industrial\\steam_arsenal_industrial_refine_v01_raw.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\keyed.png",
+      "--soft-key-inner",
+      "75",
+      "--soft-key-outer",
+      "120"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\spatial.png",
+      "--display-width",
+      "1024",
+      "--padding",
+      "1024",
+      "--clear-alpha-polygon",
+      "445,937;470,923;500,908;550,884;600,857;650,833;700,809;750,784;800,759;850,734;900,709;938,693;953,680;1023,680;1023,1023;445,1023",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\spatial-metadata.json"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\spatial.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\body_full.png",
+      "--rect",
+      "0,0,1024,1024",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "14",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "5"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\body_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\transparent.png",
+      "--display-width",
+      "855",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_support_buildings_20260831\\steam_arsenal_industrial\\refine_s48_b01\\cutout\\crop-metadata.json"
+    ]
+  ]
+}

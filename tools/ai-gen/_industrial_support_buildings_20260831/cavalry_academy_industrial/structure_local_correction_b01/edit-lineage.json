@@ -1,0 +1,59 @@
+{
+  "sourceRaw": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b01/candidates/cavalry_academy_industrial/cavalry_academy_industrial_structure_v01_raw.png",
+  "geometryReference": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_model_approval_preview.png",
+  "editor": "built-in image_gen",
+  "edits": [
+    {
+      "output": "correction_01_original.png",
+      "change": "Open outward-swinging gate, restore three jumps and calm materials."
+    },
+    {
+      "input": "correction_01_original.png",
+      "output": "correction_02_original.png",
+      "change": "Six carbines, five sacks, two crates; retain three integrated bays."
+    },
+    {
+      "input": "correction_02_original.png",
+      "output": "correction_03_original.png",
+      "change": "Restore two harness stands; output inadvertently removed low care basins."
+    },
+    {
+      "input": "correction_03_original.png",
+      "output": "correction_04_original.png",
+      "change": "Restore two low care basins in the adjacent empty service strip while retaining harness stands."
+    }
+  ],
+  "acceptedCorrection": "correction_04_original.png",
+  "init": "corrected_init_1024.png",
+  "canvasPreparation": {
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "uniformResizedSize": [
+      974,
+      974
+    ],
+    "canvasSize": [
+      1024,
+      1024
+    ],
+    "offset": [
+      23,
+      58
+    ],
+    "purpose": "Fit full original foundation framing by uniform scaling and translation only; no perspective or anisotropic geometry warp."
+  },
+  "review": {
+    "allCorrectionImagesViewed": true,
+    "threeIntegratedOpenBays": true,
+    "openOutwardGate": true,
+    "sixCarbines": true,
+    "threeHurdles": true,
+    "fiveSacks": true,
+    "twoCrates": true,
+    "twoHarnessStands": true,
+    "twoCareBasins": true
+  },
+  "runtimeIntegrationActive": false
+}

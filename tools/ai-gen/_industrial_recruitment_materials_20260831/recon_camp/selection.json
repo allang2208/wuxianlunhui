@@ -1,0 +1,63 @@
+{
+  "recordedAt": "2026-08-31T05:51:11.031Z",
+  "userStatement": "可以用",
+  "acceptedSource": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_raw_green.png",
+  "selectedCandidate": 1,
+  "seed": 831761,
+  "selectionBasis": "User explicitly accepted the delivered shadow-softened transparent artwork.",
+  "scope": "Artwork finalization and source record update only; no runtime asset replacement.",
+  "stage": "accepted_shadow_softened_artwork",
+  "refinementManifest": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/manifest.json",
+  "runtimeIntegrationActive": false,
+  "previous12StepSelection": {
+    "recordedAt": "2026-08-31T12:27:29.905881+08:00",
+    "userStatement": "同意继续 48 步",
+    "acceptedSource": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/structure_s12_b01/candidates/recon_camp_industrial/recon_camp_industrial_structure_v03_raw.png",
+    "selectedCandidate": 3,
+    "seed": 831753,
+    "selectionBasis": "User agreed to continue with 48 steps immediately after the recommendation of V03 and its compass/color corrections.",
+    "scope": "Two standard 48-step raw candidates with a smaller subdued compass and calmer roof rust. No cutout or runtime replacement.",
+    "stage": "selected_12_step_source_for_refinement",
+    "refinementManifest": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/manifest.json",
+    "runtimeIntegrationActive": false
+  },
+  "selected48StepCandidate": 1,
+  "selected48StepSeed": 831761,
+  "selected48StepRaw": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/candidates/recon_camp_industrial/recon_camp_industrial_refine_v01_raw.png",
+  "editedDerivative": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_raw_green.png",
+  "editRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/edit-record.json",
+  "transparentDerivative": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+  "processingRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/production-record.json",
+  "derivativeUserApproved": true,
+  "shadowCorrectionCandidate": {
+    "recordedAt": "2026-08-31T05:48:56.538Z",
+    "userStatement": "阴影是否需要处理，比较明显",
+    "stage": "accepted_artwork",
+    "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/cutout/recon_camp_industrial_cutout.png",
+    "output": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+    "record": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/edit-record.json",
+    "derivativeUserApproved": true,
+    "runtimeIntegrationActive": false,
+    "approval": {
+      "recordedAt": "2026-08-31T05:51:11.031Z",
+      "userStatement": "可以用",
+      "acceptedArtifact": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+      "scope": "Artwork accepted as the current industrial recon-camp final; runtime installation and in-game calibration are not performed in this turn."
+    }
+  },
+  "previousCompassDerivative": {
+    "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/refine_s48_v03_b01/candidates/recon_camp_industrial/recon_camp_industrial_refine_v01_raw.png",
+    "editedDerivative": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/recon_camp_industrial_s48_v01_compass_fix.png",
+    "transparentDerivative": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/cutout/recon_camp_industrial_cutout.png",
+    "editRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/edit-record.json",
+    "processingRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/compass_fix_v01/cutout/cutout-record.json"
+  },
+  "acceptedTransparent": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+  "seedScope": "selected48StepRaw only; imagegen edits expose no seed",
+  "approval": {
+    "recordedAt": "2026-08-31T05:51:11.031Z",
+    "userStatement": "可以用",
+    "acceptedArtifact": "tools/ai-gen/_industrial_recruitment_materials_20260831/recon_camp/shadow_soften_v01/recon_camp_industrial_shadow_softened_transparent.png",
+    "scope": "Artwork accepted as the current industrial recon-camp final; runtime installation and in-game calibration are not performed in this turn."
+  }
+}

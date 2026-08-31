@@ -1,0 +1,817 @@
+{
+  "id": "artillery_workshop_industrial",
+  "name": "近代炮兵工坊",
+  "source": "tools/ai-gen/_engineer_branch_20260830/engineering_workshop/engineering_workshop_model.blend",
+  "sourcePreview": "tools/ai-gen/_engineer_branch_20260830/engineering_workshop/engineering_workshop_model_approval_preview.png",
+  "modernPreview": "tools/ai-gen/_engineer_branch_20260830/vehicle_factory/vehicle_factory_model_approval_preview.png",
+  "foundationObject": "EngineerLV2_Foundation_Base",
+  "foundationModelSize": [
+    400,
+    400,
+    14
+  ],
+  "materialBrief": "暖灰砖墙、灰蓝金属坡顶、暗钢吊架、克制黄铜齿轮。",
+  "designBrief": "沿用前开装配入口、可见侧墙齿轮、左吊架与右工具台；吊架强化为有翼缘的钢梁，坡顶增加两片贴合式采光窗，入口设短装配导轨。保留轮轴料件，不烘入火炮或工程师；不提前使用现代三级三组屋顶采光监控顶。",
+  "model": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_model.blend",
+  "approvalPreview": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_model_approval_preview.png",
+  "meshCount": 125,
+  "assignments": [
+    {
+      "object": "EngineerLV2_AxleStock_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_AxleStock_Wheel_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_AxleStock_Wheel_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Bay_Floor",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Bay_Header",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Bay_Jamb_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Bay_Jamb_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Bay_RecessWall",
+      "slot": 0,
+      "sourceMaterial": "EngineerLV2_MAT_interior",
+      "material": "IND_Interior_Dark"
+    },
+    {
+      "object": "EngineerLV2_ForgeVent_Band",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_ForgeVent_Cap",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_ForgeVent_Opening",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_ForgeVent_Shaft",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Foundation_Base",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_-1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_-1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_-1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_-1_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_-1_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_1_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeX_1_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_-1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_-1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_-1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_-1_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_-1_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_1_3",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Foundation_EdgeY_1_4",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Stone_Trim"
+    },
+    {
+      "object": "EngineerLV2_Frame_Column_-1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Frame_Column_-1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Frame_Column_-1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Frame_Column_1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Frame_Column_1_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Frame_Column_1_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Frame_FrontLintel",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Muted_Painted_Steel"
+    },
+    {
+      "object": "EngineerLV2_Hoist_Cable",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_Hoist_Crossbeam",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Hoist_Foot_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Hoist_Foot_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Hoist_HookRing",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_Hoist_Post_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Hoist_Post_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Hoist_Pulley",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Disk",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Hub",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchGear_Tooth_07",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_Hoist_WinchMotor",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Disk",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Hub",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_00",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_07",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_08",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_IdentityGear_Tooth_09",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Brass",
+      "material": "IND_Dull_Brass"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Leaf_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Band_+1_-35",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Band_+1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Band_+1_35",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Hinge_+1_-40",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Hinge_+1_40",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Ring_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Leaf_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Band_-1_-35",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Band_-1_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Band_-1_35",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Hinge_-1_-40",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Hinge_-1_40",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_OpenServiceDoors_Ring_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_07",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S+1_Row_08",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_02",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_03",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_04",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_05",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_06",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_07",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Courses_S-1_Row_08",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_Main",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Roof_Main",
+      "slot": 1,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_Roof_RidgeCap",
+      "slot": 0,
+      "sourceMaterial": "MAT_Aged_Roof",
+      "material": "IND_Painted_Metal_Roof"
+    },
+    {
+      "object": "EngineerLV2_SideWindow_0_FrameJamb_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_SideWindow_0_FrameJamb_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_SideWindow_0_FrameRail_+1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_SideWindow_0_FrameRail_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_SideWindow_0_Glass",
+      "slot": 0,
+      "sourceMaterial": "MAT_Warm_Glass",
+      "material": "IND_Muted_Window_Glass"
+    },
+    {
+      "object": "EngineerLV2_SideWindow_0_TrimMullionV_01",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Stone_CourseSide_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "EngineerLV2_Stone_CourseSide_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "EngineerLV2_Stone_CourseSide_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Fieldstone_Foundation",
+      "material": "IND_Quiet_Stone_Base"
+    },
+    {
+      "object": "EngineerLV2_ToolRack_Back",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_ToolRack_Tool_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_ToolRack_Tool_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_ToolRack_Tool_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_ToolRack_ToolHead_0",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_ToolRack_ToolHead_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_ToolRack_ToolHead_2",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_Wall_Back",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Wall_FrontPier_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Wall_FrontPier_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Wall_Side_-1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Wall_Side_1",
+      "slot": 0,
+      "sourceMaterial": "MAT_Weathered_Stone",
+      "material": "IND_Industrial_Brick"
+    },
+    {
+      "object": "EngineerLV2_Workbench_Leg_+1_B",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Workbench_Leg_+1_F",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Workbench_Leg_-1_B",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Workbench_Leg_-1_F",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Workbench_Top",
+      "slot": 0,
+      "sourceMaterial": "MAT_Dark_Oak",
+      "material": "IND_Worn_Timber"
+    },
+    {
+      "object": "EngineerLV2_Workbench_ViceBase",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    },
+    {
+      "object": "EngineerLV2_Workbench_ViceJaw",
+      "slot": 0,
+      "sourceMaterial": "MAT_Blackened_Iron",
+      "material": "IND_Blackened_Iron"
+    }
+  ],
+  "geometryChanged": true,
+  "foundationChanged": false,
+  "cameraChanged": false,
+  "approved": false,
+  "runtimeIntegrated": false
+}

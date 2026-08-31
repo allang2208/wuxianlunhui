@@ -1,0 +1,35 @@
+{
+  "source": "barracks_structure_corrected_raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "output": "barracks_structure_corrected_init_1024.png",
+  "outputSize": [
+    1024,
+    1024
+  ],
+  "operation": "Uniform framing fit to original Depth canvas; no local warp, crop of the building, Alpha masking or color correction.",
+  "reference12Step": "../structure_s12_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_structure_v03_raw.png",
+  "sourceFoundation": {
+    "leftX": 51,
+    "rightX": 1198,
+    "bottomY": 1129
+  },
+  "targetFoundation": {
+    "leftX": 65,
+    "rightX": 953,
+    "bottomY": 921
+  },
+  "scale": 0.7741935483870968,
+  "translation": [
+    25.516129032258064,
+    46.9354838709678
+  ],
+  "backgroundFillRgb": [
+    12,
+    230,
+    19
+  ],
+  "reason": "The existing Comfy VAEEncode uses native init dimensions; a prepared 1024-square source is required for the standard 1024-square batch."
+}

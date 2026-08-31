@@ -1,0 +1,145 @@
+{
+  "label": "蒸汽军工厂 · 48步01",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/refine_s48_b01/candidates/steam_arsenal_industrial/steam_arsenal_industrial_refine_v01_raw.png",
+  "softInner": 75,
+  "softOuter": 120,
+  "edgeDistance": 5,
+  "edgeGreenMargin": 14,
+  "materialSamples": {
+    "roof": [
+      630,
+      380,
+      660,
+      400
+    ],
+    "brick": [
+      284,
+      471,
+      304,
+      489
+    ],
+    "window": [
+      309,
+      548,
+      324,
+      566
+    ],
+    "dark_door": [
+      525,
+      678,
+      544,
+      705
+    ],
+    "flywheel": [
+      168,
+      650,
+      180,
+      666
+    ],
+    "cylinder": [
+      248,
+      722,
+      267,
+      734
+    ],
+    "press": [
+      817,
+      468,
+      828,
+      488
+    ],
+    "material_box": [
+      658,
+      736,
+      683,
+      747
+    ],
+    "furnace": [
+      699,
+      654,
+      710,
+      665
+    ],
+    "machine": [
+      770,
+      700,
+      781,
+      714
+    ],
+    "foundation": [
+      468,
+      891,
+      483,
+      899
+    ]
+  },
+  "clearExteriorPolygons": [
+    [
+      [
+        445,
+        937
+      ],
+      [
+        470,
+        923
+      ],
+      [
+        500,
+        908
+      ],
+      [
+        550,
+        884
+      ],
+      [
+        600,
+        857
+      ],
+      [
+        650,
+        833
+      ],
+      [
+        700,
+        809
+      ],
+      [
+        750,
+        784
+      ],
+      [
+        800,
+        759
+      ],
+      [
+        850,
+        734
+      ],
+      [
+        900,
+        709
+      ],
+      [
+        938,
+        693
+      ],
+      [
+        953,
+        680
+      ],
+      [
+        1023,
+        680
+      ],
+      [
+        1023,
+        1023
+      ],
+      [
+        445,
+        1023
+      ]
+    ]
+  ],
+  "shadowCleanupReason": "Only remove the observed southeast exterior shadow below a traced stone-edge envelope, with 2-4px safe margin. All material colors inside the footing remain governed by measured key distance, not broad HSV removal."
+}

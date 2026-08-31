@@ -1,0 +1,19 @@
+{
+  "label": "近代军营 V2 · 48步01",
+  "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/refine_s48_b02/candidates/industrial_barracks_tent_v2/industrial_barracks_tent_v2_refine_v01_raw.png",
+  "softInner": 60,
+  "softOuter": 130,
+  "edgeDistance": 6,
+  "edgeGreenMargin": 10,
+  "localSpillRects": [[484, 302, 499, 337], [571, 432, 584, 443], [668, 464, 701, 485]],
+  "materialSamples": {
+    "tent_canvas": [260, 690, 300, 720],
+    "tent_roof": [403, 548, 440, 574],
+    "tower_roof": [625, 239, 660, 261],
+    "sandbags": [325, 775, 345, 786],
+    "concrete_ground": [557, 794, 585, 812],
+    "olive_can": [730, 700, 738, 715]
+  },
+  "stage": "selected_48_step_candidate_transparent_delivery",
+  "runtimeIntegrationActive": false
+}

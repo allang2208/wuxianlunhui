@@ -1,0 +1,99 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "steps": 12,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "stage": "structure",
+  "batchId": "industrial-city-hall-s12-b01",
+  "structureSeedBase": 831710,
+  "outputRoot": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/candidates",
+  "status": "v02_flag_balance_accepted_for_48_step_refinement",
+  "review": {
+    "allRawCandidatesViewed": true,
+    "generatedCandidates": 3,
+    "recommendedRevisionBase": 3,
+    "userSelected": true,
+    "selectedRevisionBase": 2,
+    "userStatement": "V2好点，调整旗子颜色，做一些平衡",
+    "approvedForRefinement": [
+      "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/v02_flag_balance/city_hall_industrial_v02_flag_balance.png"
+    ],
+    "summary": "User accepted the V2 flag-balance image and approved 48-step refinement. The selected image, not V3 or the unedited V2, is the refinement ancestor. No runtime replacement is approved.",
+    "colorEditRecord": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/v02_flag_balance/edit-record.json",
+    "contactSheet": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/city_hall_industrial_s12_candidates.png",
+    "notes": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/REVIEW.md",
+    "refinementApproval": {
+      "recordedAt": "2026-08-31T11:02:46.804390+08:00",
+      "userStatement": "可用，同意进入48步",
+      "acceptedSource": "tools/ai-gen/_industrial_city_hall_20260831/structure_s12_b01/v02_flag_balance/city_hall_industrial_v02_flag_balance.png",
+      "scope": "Accept the V2 flag-balance image and generate two standard 48-step refinement candidates. No runtime replacement."
+    },
+    "refinementManifest": "tools/ai-gen/_industrial_city_hall_20260831/refine_s48_v02_b01/manifest.json"
+  },
+  "networkAuthorization": {
+    "status": "explicitly_approved_by_user",
+    "date": "2026-08-31",
+    "userReply": "同意",
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the industrial city-hall Depth PNG and prepared prompt with generation parameters for three 12-step candidates.",
+    "excluded": "Blender models, source code, saves, other images, other destinations, 48-step refinement and runtime replacement."
+  },
+  "networkBlock": {
+    "resolvedBy": "User explicitly approved the exact destination and payload in the following reply: 同意",
+    "stage": "Rejected before process launch; no generation or upload occurred",
+    "destination": "http://192.168.3.142:8188",
+    "reason": "Auto-review requires explicit user authorization to send this Depth image and prepared prompt to the specified LAN destination.",
+    "requestedPermission": "Only the approved industrial city-hall Depth PNG and prepared prompt for three 12-step candidates; excludes model files, source code, saves and other images."
+  },
+  "runtimeIntegrationActive": false,
+  "modelApproval": {
+    "recordedAt": "2026-08-31T10:43:46.168690+08:00",
+    "userStatement": "同意，接下来开始逐步12步生图",
+    "scope": "Accept this city-hall model and begin three standard 12-step structure candidates; no 48-step refinement or runtime replacement.",
+    "model": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model.blend",
+    "preview": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model_approval_preview.png"
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only the approved industrial city-hall Depth PNG and prepared text prompt, plus generation parameters.",
+    "excluded": "Blender models, source code, saves, other images and other destinations.",
+    "userRequest": "同意，接下来开始逐步12步生图",
+    "generatedCandidates": 3,
+    "submitted": true,
+    "startedAt": "2026-08-31T10:46:19.264947+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T10:51:24.436660+08:00"
+  },
+  "assets": [
+    {
+      "id": "city_hall_industrial",
+      "label": "近代市政大厅",
+      "assetClass": "civic_building",
+      "assetType": "World-122 near-modern industrial-era municipal town hall",
+      "footprintCells": 4,
+      "footprintMode": "authored",
+      "foundationStyle": "rubble_stone",
+      "foundationRoutingNote": "The approved fieldstone model uses the generator equivalent rubble_stone; geometry remains unchanged.",
+      "model": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_model_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_industrial_city_hall_20260831/city_hall_industrial_depth.png",
+      "primaryRequest": "Render the supplied near-modern municipal hall. Keep TWO occupied storeys and ONE compact clock housing with two clock faces at the SAME height, capped by ONE small pyramidal copper roof. Preserve the full-width FLAT second-floor balcony with open iron rails along its front and both sides, central glazed balcony doors, small civic medallion on the front rail, four ground-floor arcade arches and the central public entrance. Each upper front wing has one arched window and one outer muted-green banner; the visible side has FOUR glazed upper windows and FOUR lower windows. Keep the complete low stone base and steps. The continuous main roof is standing-seam gray-green copper, not roof tiles; metal window frames and two rainwater downpipes remain attached.",
+      "paletteConstraint": "warm gray masonry, pale dressed-stone trim, dull gray-green copper roofs, dark green-gray metal frames, subdued blue-green glazing, dark iron rails, small aged-brass civic details",
+      "negativeRequest": "No extra storey, stacked clock housing, third clock, added side-wall banner, missing balcony door, balcony canopy, solar panels, machinery, factory chimney, vehicles, large gold ornament or readable lettering.",
+      "removeAllGreen": false
+    }
+  ]
+}

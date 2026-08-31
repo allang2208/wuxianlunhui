@@ -1,0 +1,53 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\keyed.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\refine_s48_b02\\cutout\\spatial.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": false,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    0,
+    0,
+    1024,
+    1024
+  ],
+  "fileSize": [
+    1024,
+    1024
+  ],
+  "alphaBBox": [
+    64,
+    185,
+    952,
+    921
+  ],
+  "displayW": 1024,
+  "displayH": 1024,
+  "footOffsetY": 409,
+  "scaleX": 1.0,
+  "scaleY": 1.0
+}

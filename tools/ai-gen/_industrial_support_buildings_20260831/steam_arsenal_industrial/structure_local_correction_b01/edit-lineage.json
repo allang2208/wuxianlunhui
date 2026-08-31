@@ -1,0 +1,36 @@
+{
+  "sourceRaw": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/structure_s12_b01/candidates/steam_arsenal_industrial/steam_arsenal_industrial_structure_v03_raw.png",
+  "geometryReference": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_model_approval_preview.png",
+  "editor": "built-in image_gen",
+  "edits": [
+    {
+      "output": "correction_01_original.png",
+      "change": "Restore one attached flywheel/base-cylinder assembly, vertical forging press, low processing machine, broad four-pane window, inward-folded open door, restrained internal furnace light. Keep material boxes and hand tools; no table."
+    }
+  ],
+  "acceptedCorrection": "correction_01_original.png",
+  "init": "corrected_init_1024.png",
+  "canvasPreparation": {
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "operation": "Uniform full-canvas resize only; no crop, warp or object relocation during preparation."
+  },
+  "review": {
+    "fullImageViewed": true,
+    "openLoadingDoor": true,
+    "noOutdoorTable": true,
+    "materialBoxesAndTools": true,
+    "verticalPress": true,
+    "smallProcessingMachine": true,
+    "oneAttachedFlywheelCylinder": true,
+    "fourPaneWindow": true,
+    "restrainedFurnaceGlow": true
+  },
+  "runtimeIntegrationActive": false
+}

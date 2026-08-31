@@ -1,0 +1,38 @@
+{
+  "fullSize": [
+    1254,
+    1254
+  ],
+  "cutoutSize": [
+    1089,
+    903
+  ],
+  "cropBox": [
+    84,
+    220,
+    1173,
+    1123
+  ],
+  "finalAlphaChangedByCrop": 0,
+  "transparentPixelsWithDirtyRgb": 0,
+  "componentsAbove16": [
+    {
+      "area": 504765,
+      "bbox": [
+        88,
+        224,
+        1169,
+        1119
+      ]
+    },
+    {
+      "area": 1,
+      "bbox": [
+        298,
+        721,
+        299,
+        722
+      ]
+    }
+  ]
+}

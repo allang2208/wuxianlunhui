@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-08-31T14:51:48.955816+08:00",
+  "status": "assistant_selected_candidate_complete_not_user_accepted_or_installed",
+  "selectionAuthority": "继续，做完以后下一个",
+  "selectedBy": "assistant",
+  "userExplicitlySelectedThisImage": false,
+  "structureBatch": 3,
+  "structureCandidate": 3,
+  "refineBatch": 3,
+  "refineCandidate": 1,
+  "source12": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b03/candidates/rifle_range_industrial/rifle_range_industrial_structure_v03_raw.png",
+  "raw48": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/candidates/rifle_range_industrial/rifle_range_industrial_refine_v01_raw.png",
+  "transparent": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/cutout/transparent.png",
+  "productionRecord": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/refine_s48_b03/cutout/production-record.json",
+  "runtimeIntegrationActive": false,
+  "disclosedDifference": "Rougher left fieldstone footing edge than the plain authored model."
+}

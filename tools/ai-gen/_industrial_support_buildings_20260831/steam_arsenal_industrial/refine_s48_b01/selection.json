@@ -1,0 +1,11 @@
+{
+  "stage": "refine",
+  "selectedCandidate": 1,
+  "selectedBy": "assistant",
+  "userExplicitlySelectedThisImage": false,
+  "allFullRawsViewed": true,
+  "reason": "01 retains the wedge-shaped gear-and-hammer emblem and restrained furnace glow most clearly. 02 changes the hammer head into a round disk and increases the glow. 01 preserves the open loading doorway, broad window, single flywheel/base cylinder, vertical forging press, compact processing machine, material boxes and hand tools without restoring the removed table.",
+  "source": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/refine_s48_b01/candidates/steam_arsenal_industrial/steam_arsenal_industrial_refine_v01_raw.png",
+  "runtimeIntegrationActive": false,
+  "deliveredArtworkAcceptanceRecord": "tools/ai-gen/_industrial_support_buildings_20260831/art-acceptance.json"
+}
