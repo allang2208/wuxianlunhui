@@ -10,6 +10,11 @@ export function isGoldItem(item) {
 
 export function getItemMaxStack(item, fallback = 1) {
     if (isGoldItem(item)) return UNLIMITED_ITEM_STACK;
+    // 两种强化材料统一上限；兼容缺少 id 或携带旧 maxStack 的已有实例。
+    if (item?.id === 'enhancement_stone' || item?.id === 'reforge_ticket'
+        || (!item?.id && (item?.name === '强化石' || item?.name === '改造券'))) {
+        return 9999;
+    }
     const configured = Math.floor(Number(item?.maxStack));
     if (Number.isFinite(configured) && configured > 0) return configured;
     return Math.max(1, Math.floor(Number(fallback) || 1));

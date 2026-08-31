@@ -71,7 +71,7 @@ import { WarehouseSystem } from './ui/warehouse-system.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
-import { isGoldItem } from './items/item-stack-rules.js';
+import { getItemMaxStack, isGoldItem } from './items/item-stack-rules.js';
 import { NPC } from './entities/npc.js';
 import { ShopSystem } from './ui/shop-system.js';
 import { EnhanceSystem } from './ui/enhance-system.js';
@@ -1215,11 +1215,12 @@ export const Game = {
                     // 可堆叠物品（金币/强化石/改造券等）：即使背包格子已满，只要现有堆叠未满就可以拾取
                     let canStack = false;
                     const bp = EquipManager.backpackItems || [];
+                    const maxStack = getItemMaxStack(itemData);
                     if (isGoldItem(itemData)) {
                         canStack = bp.some(isGoldItem);
-                    } else if (itemData && itemData.maxStack && itemData.maxStack > 1) {
+                    } else if (maxStack > 1) {
                         for (const existing of bp) {
-                            if (existing.name === itemData.name && (existing.stack || 1) < itemData.maxStack) {
+                            if (existing.name === itemData.name && (existing.stack || 1) < maxStack) {
                                 canStack = true;
                                 break;
                             }

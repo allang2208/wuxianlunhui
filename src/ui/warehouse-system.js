@@ -609,8 +609,9 @@ export const WarehouseSystem = {
             return;
         }
         // 不同物品：交换（仓库原物回背包该格，背包物品进目标格）
-        const bpFreeSlots = EquipManager.maxBackpackSlots - bp.length;
-        if (this._stackSpaceIn(bp, existing, bpFreeSlots) < (existing.stack || 1)) {
+        const remainingBackpack = bp.filter(entry => entry !== item);
+        const bpFreeSlots = EquipManager.maxBackpackSlots - remainingBackpack.length;
+        if (this._stackSpaceIn(remainingBackpack, existing, bpFreeSlots) < (existing.stack || 1)) {
             this._notifyFull('背包已满');
             return;
         }
@@ -668,8 +669,9 @@ export const WarehouseSystem = {
             return;
         }
         // 不同物品：交换（背包原物进仓库原格，仓库物品进目标格）
-        const freeSlots = this.capacity - this.items.length;
-        if (this._stackSpaceIn(this.items, existing, freeSlots) < (existing.stack || 1)) {
+        const remainingWarehouse = this.items.filter(entry => entry !== item);
+        const freeSlots = this.capacity - remainingWarehouse.length;
+        if (this._stackSpaceIn(remainingWarehouse, existing, freeSlots) < (existing.stack || 1)) {
             this._notifyFull('仓库已满');
             return;
         }
