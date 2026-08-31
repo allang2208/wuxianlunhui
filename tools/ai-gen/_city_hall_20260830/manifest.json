@@ -1,0 +1,436 @@
+{
+  "status": "final_assets_archive_runtime_wiring_local_only",
+  "family": "city_hall",
+  "builder": "tools/ai-gen/city-hall-building-blender.py",
+  "localRuntimeIntegrationActive": true,
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "logicalFootprint": {
+    "widthCells": 4,
+    "depthCells": 4,
+    "worldProjection": [
+      512,
+      256
+    ]
+  },
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 920,
+    "topMargin": 38,
+    "widthMargin": 0.88
+  },
+  "palette": {
+    "foundation": [
+      0.3,
+      0.29,
+      0.26,
+      1
+    ],
+    "stone": [
+      0.54,
+      0.52,
+      0.46,
+      1
+    ],
+    "plaster": [
+      0.66,
+      0.62,
+      0.53,
+      1
+    ],
+    "timber": [
+      0.17,
+      0.115,
+      0.075,
+      1
+    ],
+    "roof": [
+      0.29,
+      0.17,
+      0.12,
+      1
+    ],
+    "thatch": [
+      0.4,
+      0.31,
+      0.19,
+      1
+    ],
+    "iron": [
+      0.08,
+      0.09,
+      0.09,
+      1
+    ],
+    "brass": [
+      0.38,
+      0.29,
+      0.14,
+      1
+    ],
+    "glass": [
+      0.17,
+      0.24,
+      0.26,
+      1
+    ],
+    "glow": [
+      0.6,
+      0.37,
+      0.17,
+      1
+    ],
+    "straw": [
+      0.45,
+      0.34,
+      0.21,
+      1
+    ],
+    "concrete": [
+      0.55,
+      0.56,
+      0.53,
+      1
+    ],
+    "steel": [
+      0.2,
+      0.25,
+      0.27,
+      1
+    ],
+    "banner": [
+      0.15,
+      0.24,
+      0.29,
+      1
+    ],
+    "interior": [
+      0.07,
+      0.075,
+      0.07,
+      1
+    ],
+    "foliage": [
+      0.2,
+      0.25,
+      0.17,
+      1
+    ]
+  },
+  "buildings": {
+    "city_hall_lv1": {
+      "assetId": "city_hall_lv1",
+      "name": "古典议事厅",
+      "level": 1,
+      "era": "古典时代",
+      "foundationStyle": "fieldstone",
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "floorRise": 15,
+        "body": [
+          282,
+          206,
+          116
+        ],
+        "bodyCenterY": 32,
+        "roof": [
+          306,
+          228,
+          53
+        ],
+        "portico": [
+          236,
+          77
+        ],
+        "porticoFrontY": -139,
+        "stairs": [
+          206,
+          38,
+          3
+        ]
+      },
+      "materialFinishes": {
+        "foundation": {
+          "roughness": 0.95,
+          "bump": 0.025
+        },
+        "stone": {
+          "roughness": 0.88,
+          "bump": 0.025
+        },
+        "plaster": {
+          "roughness": 0.91,
+          "bump": 0.015
+        },
+        "timber": {
+          "roughness": 0.83,
+          "bump": 0.02
+        },
+        "roof": {
+          "roughness": 0.88,
+          "bump": 0.02
+        },
+        "brass": {
+          "roughness": 0.62,
+          "metallic": 0.45
+        },
+        "banner": {
+          "roughness": 0.94
+        },
+        "interior": {
+          "roughness": 1
+        },
+        "glass": {
+          "roughness": 0.45
+        }
+      },
+      "bodyDepthExclude": [
+        "CityHallLV1_Foundation_4x4",
+        "CityHallLV1_Foundation_Inset"
+      ],
+      "identity": "宽阔议事厅、六柱门廊、低坡瓦顶、市政三柱徽记、档案石板；无宗教雕像、钟楼或军事设施"
+    },
+    "city_hall_lv2": {
+      "assetId": "city_hall_lv2",
+      "name": "自治市政厅",
+      "level": 2,
+      "era": "中世纪",
+      "foundationStyle": "fieldstone",
+      "paletteOverrides": {
+        "roof": [
+          0.16,
+          0.22,
+          0.25,
+          1
+        ],
+        "plaster": [
+          0.62,
+          0.57,
+          0.46,
+          1
+        ],
+        "stone": [
+          0.46,
+          0.44,
+          0.39,
+          1
+        ]
+      },
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "floorRise": 15,
+        "body": [
+          300,
+          222,
+          179
+        ],
+        "bodyCenterY": 31,
+        "storeyHeights": [
+          90,
+          89
+        ],
+        "roof": [
+          324,
+          244,
+          64
+        ],
+        "portico": [
+          288,
+          72
+        ],
+        "porticoFrontY": -139,
+        "stairs": [
+          206,
+          38,
+          3
+        ],
+        "tower": [
+          74,
+          79,
+          270
+        ],
+        "towerCenterY": -94,
+        "towerRoofHeight": 44
+      },
+      "materialFinishes": {
+        "foundation": {
+          "roughness": 0.95,
+          "bump": 0.025
+        },
+        "stone": {
+          "roughness": 0.88,
+          "bump": 0.025
+        },
+        "plaster": {
+          "roughness": 0.91,
+          "bump": 0.015
+        },
+        "timber": {
+          "roughness": 0.83,
+          "bump": 0.02
+        },
+        "roof": {
+          "roughness": 0.88,
+          "bump": 0.02
+        },
+        "brass": {
+          "roughness": 0.62,
+          "metallic": 0.45
+        },
+        "banner": {
+          "roughness": 0.94
+        },
+        "interior": {
+          "roughness": 1
+        },
+        "glass": {
+          "roughness": 0.45
+        }
+      },
+      "bodyDepthExclude": [
+        "CityHallLV2_Foundation_4x4",
+        "CityHallLV2_Foundation_Inset"
+      ],
+      "identity": "两层议事楼、四跨公共拱廊、唯一中央时钟塔、灰蓝瓦顶、市政徽记与两幅无字城旗；无城墙或城堡角塔"
+    },
+    "city_hall_lv3": {
+      "assetId": "city_hall_lv3",
+      "name": "现代市政中心",
+      "level": 3,
+      "era": "现代",
+      "foundationStyle": "weathered_concrete",
+      "paletteOverrides": {
+        "stone": [
+          0.64,
+          0.65,
+          0.61,
+          1
+        ],
+        "glass": [
+          0.12,
+          0.23,
+          0.29,
+          1
+        ]
+      },
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "floorRise": 15,
+        "body": [
+          308,
+          226,
+          171
+        ],
+        "bodyCenterY": 28,
+        "storeyHeights": [
+          57,
+          57,
+          57
+        ],
+        "portico": [
+          174,
+          60
+        ],
+        "porticoFrontY": -139,
+        "stairs": [
+          206,
+          38,
+          3
+        ],
+        "roofPavilion": [
+          133,
+          114,
+          38
+        ]
+      },
+      "materialFinishes": {
+        "concrete": {
+          "roughness": 0.91,
+          "bump": 0.018
+        },
+        "stone": {
+          "roughness": 0.86,
+          "bump": 0.018
+        },
+        "steel": {
+          "roughness": 0.56,
+          "metallic": 0.4
+        },
+        "iron": {
+          "roughness": 0.7,
+          "metallic": 0.35
+        },
+        "glass": {
+          "roughness": 0.32,
+          "metallic": 0.15
+        },
+        "brass": {
+          "roughness": 0.62,
+          "metallic": 0.45
+        },
+        "banner": {
+          "roughness": 0.82
+        },
+        "foliage": {
+          "roughness": 0.95
+        }
+      },
+      "bodyDepthExclude": [
+        "CityHallLV3_Foundation_4x4",
+        "CityHallLV3_Foundation_Inset"
+      ],
+      "identity": "三层行政楼、玻璃中庭和公共门厅、低矮屋顶议事厅、水平窗带、屋顶附着光伏与通风机；无摩天塔、军事天线或科幻漂浮构件"
+    }
+  },
+  "modelApproval": {
+    "date": "2026-08-30",
+    "userRequest": "没问题，继续12步生图",
+    "scope": "All three previously presented city-hall models; three structure candidates per era."
+  },
+  "historicalCandidateManifest": "tools/ai-gen/_city_hall_20260830/candidate-manifest.json",
+  "activeModelRevisions": {
+    "city_hall_lv2": "tools/ai-gen/_city_hall_20260830/lv2-balcony/revision.json"
+  },
+  "historicalSourceNote": "Base dimensions/models and original approval below remain historical generation sources. Consult activeModelRevisions for the latest LV2 model adjustment.",
+  "historicalCandidateManifests": {
+    "city_hall_lv2": "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/manifest.json"
+  },
+  "runtimeMetadata": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_runtime_metadata.json",
+  "runtimeTested": false,
+  "latestUserRequest": "使用LV1默认，随着科技推进逐步升级LV2、LV3",
+  "runtimeTierAssets": {
+    "1": "assets/terrain/city_hall_lv1.png",
+    "2": "assets/terrain/city_hall.png",
+    "3": "assets/terrain/city_hall_lv3.png"
+  },
+  "runtimeTierMetadata": {
+    "1": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_lv1_runtime_metadata.json",
+    "2": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_runtime_metadata.json",
+    "3": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_lv3_runtime_metadata.json"
+  },
+  "runtimeProgression": {
+    "defaultLevel": 1,
+    "level2Technology": "housing_optimization",
+    "level3Technology": "modern_residential_systems"
+  },
+  "cleanup": {
+    "index": "cleanup-20260831.json",
+    "activeSources": "selection.json",
+    "historyOnly": "Older candidate batch records may refer to removed or locally retained, unpublished files. Only selection.json is active."
+  }
+}

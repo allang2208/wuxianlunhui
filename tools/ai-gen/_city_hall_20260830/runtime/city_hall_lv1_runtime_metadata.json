@@ -1,0 +1,92 @@
+{
+  "source": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_lv1_body.png",
+  "output": "assets/terrain/city_hall_lv1.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 3,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    74,
+    316,
+    949,
+    919
+  ],
+  "fileSize": [
+    875,
+    603
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    871,
+    599
+  ],
+  "displayW": 517.321016,
+  "displayH": 354.868966,
+  "footOffsetY": 174.491954,
+  "scaleX": 0.5912240184757506,
+  "scaleY": 0.5885057471264368,
+  "acceptedRaw": "tools/ai-gen/_city_hall_20260830/candidates_dev_s12_v1/city_hall_lv1/city_hall_lv1_structure_v02_raw.png",
+  "visual": {
+    "tex": "city_hall_lv1",
+    "assetPath": "assets/terrain/city_hall_lv1.png",
+    "displayW": 517.321016,
+    "displayH": 354.868966,
+    "footOffsetY": 174.491954,
+    "visualFootprint": {
+      "centerXRatio": 0.499428571,
+      "centerYRatio": 0.631011609,
+      "widthRatio": 0.989714286,
+      "depthRatio": 0.721393035,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "44334405AE7A21F44A88E71183B065CB56601BE40962158A3264B539CE364DB1"
+  },
+  "groundLandmarks": {
+    "left": [
+      78,
+      696
+    ],
+    "right": [
+      944,
+      697
+    ],
+    "front": [
+      511,
+      914
+    ]
+  },
+  "alphaMaskDepth": null,
+  "logicalFootprint": [
+    4,
+    4
+  ],
+  "userRequest": "使用LV1默认，随着科技推进逐步升级LV2、LV3",
+  "level": 1,
+  "selectionBasis": "Assistant selected B/v02 under the user's explicit three-era integration instruction; no new generation.",
+  "runtimeTested": false
+}

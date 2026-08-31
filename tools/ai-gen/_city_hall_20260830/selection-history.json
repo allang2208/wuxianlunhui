@@ -1,0 +1,100 @@
+{
+  "date": "2026-08-30",
+  "userRequest": "继续调整，LV2整体结构OK，就是2楼窗户、旗子需要调整对称布局。我觉得LV3得02反而可以用",
+  "runtimeIntegrationActive": true,
+  "levels": {
+    "city_hall_lv1": {
+      "status": "installed_as_default_level_1",
+      "variant": 2,
+      "raw": "tools/ai-gen/_city_hall_20260830/candidates_dev_s12_v1/city_hall_lv1/city_hall_lv1_structure_v02_raw.png",
+      "userSelectedVariant": false,
+      "selectionBasis": "Assistant selected B/v02 under explicit user instruction to integrate LV1 as default.",
+      "userAuthorizedRuntimeUse": "使用LV1默认，随着科技推进逐步升级LV2、LV3",
+      "runtimeAsset": "assets/terrain/city_hall_lv1.png",
+      "runtimeMetadata": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_lv1_runtime_metadata.json",
+      "runtimeTested": false
+    },
+    "city_hall_lv2": {
+      "status": "accepted_and_installed_as_level_2",
+      "baseRaw": "tools/ai-gen/_city_hall_20260830/candidates_dev_s12_v1/city_hall_lv2/city_hall_lv2_structure_v01_raw.png",
+      "baseChoice": "A/v01 chosen by assistant as the adjustment base; user approved LV2 overall structure without naming a variant.",
+      "allowedChange": "Add a central upper doorway, balcony paving and three-sided railing to the tower-setback model. Move the civic crest from the door location to the center front railing.",
+      "preserve": "Keep tower center Y=-58.5, hall, roof, symmetric windows/banners, first-floor entry/arcade, 4x4 footprint and camera. LV1 and user-selected LV3/02 remain unchanged.",
+      "intermediateOnly": "tools/ai-gen/_city_hall_20260830/lv2-symmetry/review-s02/city_hall_lv2_local_v02.png",
+      "finalCandidateSelected": true,
+      "latestUserFeedback": "使用LV1默认，随着科技推进逐步升级LV2、LV3",
+      "sillAlignmentBase": "tools/ai-gen/_city_hall_20260830/lv2-symmetry/final-review/city_hall_lv2_symmetric_v02.png",
+      "previousSymmetryCandidates": [
+        "tools/ai-gen/_city_hall_20260830/lv2-symmetry/final-review/city_hall_lv2_symmetric_v01.png",
+        "tools/ai-gen/_city_hall_20260830/lv2-symmetry/final-review/city_hall_lv2_symmetric_v02.png"
+      ],
+      "recommendedRevision": "lv2_balcony_refine_r01_v02",
+      "previousSillAlignmentRecommendedRawComposite": "tools/ai-gen/_city_hall_20260830/lv2-symmetry/sill-alignment/delivery/city_hall_lv2_sill_aligned.png",
+      "previousSillAlignmentRevisionCandidates": [
+        "tools/ai-gen/_city_hall_20260830/lv2-symmetry/sill-alignment/delivery/city_hall_lv2_sill_aligned.png"
+      ],
+      "previousSillAlignmentRevisionProvenance": "tools/ai-gen/_city_hall_20260830/lv2-symmetry/sill-alignment/delivery/provenance.json",
+      "recommendedModel": "tools/ai-gen/_city_hall_20260830/lv2-balcony/city_hall_lv2_model.blend",
+      "recommendedModelPreview": "tools/ai-gen/_city_hall_20260830/lv2-balcony/city_hall_lv2_model_preview.png",
+      "modelRevision": "tools/ai-gen/_city_hall_20260830/lv2-balcony/revision.json",
+      "modelRevisionHistory": [
+        "tools/ai-gen/_city_hall_20260830/lv2-tower-setback/revision.json"
+      ],
+      "modelApprovedForGeneration": true,
+      "candidateManifest": "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/manifest.json",
+      "generationControlModel": "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b01/control-model.blend",
+      "candidateReview": "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/review/review.json",
+      "currentCandidates": [
+        "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/candidates/city_hall_lv2/city_hall_lv2_refine_v01_raw.png",
+        "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png"
+      ],
+      "recommendedCandidate": 2,
+      "previousCandidateReview": "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b01/review/review.json",
+      "recommendedRawComposite": "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png",
+      "selectedStructure": {
+        "raw": "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b02/candidates/city_hall_lv2/city_hall_lv2_structure_v03_raw.png",
+        "variant": 3,
+        "seed": 831203,
+        "userSelected": true,
+        "userReply": "可用，继续、",
+        "recordedAt": "2026-08-30T23:51:23.234702+08:00",
+        "scope": "Two standard 48-step refinements of B02/03. No runtime replacement or other era changes."
+      },
+      "refineManifest": "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/manifest.json",
+      "selectedStructureCandidates": [
+        "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b02/candidates/city_hall_lv2/city_hall_lv2_structure_v01_raw.png",
+        "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b02/candidates/city_hall_lv2/city_hall_lv2_structure_v02_raw.png",
+        "tools/ai-gen/_city_hall_20260830/lv2-balcony/generation-b02/candidates/city_hall_lv2/city_hall_lv2_structure_v03_raw.png"
+      ],
+      "currentStage": "refine",
+      "recommendedRaw": "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png",
+      "runtimeAsset": "assets/terrain/city_hall.png",
+      "runtimeMetadata": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_runtime_metadata.json",
+      "runtimeConfig": "data/producer-buildings.json#city_hall",
+      "runtimeTested": false,
+      "technologyId": "housing_optimization"
+    },
+    "city_hall_lv3": {
+      "status": "user_selected_v02_installed_as_level_3",
+      "variant": 2,
+      "raw": "tools/ai-gen/_city_hall_20260830/candidates_dev_s12_v1/city_hall_lv3/city_hall_lv3_structure_v02_raw.png",
+      "userSelected": true,
+      "preserve": "The selected 02 image, including its roof configuration and planting, supersedes the previous assistant rejection. No new LV3 generation in this revision.",
+      "userAuthorizedRuntimeUse": "使用LV1默认，随着科技推进逐步升级LV2、LV3",
+      "technologyId": "modern_residential_systems",
+      "runtimeAsset": "assets/terrain/city_hall_lv3.png",
+      "runtimeMetadata": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_lv3_runtime_metadata.json",
+      "runtimeTested": false
+    }
+  },
+  "latestUserRequest": "使用LV1默认，随着科技推进逐步升级LV2、LV3",
+  "technologyProgression": {
+    "defaultLevel": 1,
+    "level2Technology": "housing_optimization",
+    "level3Technology": "modern_residential_systems",
+    "extraUpgradeCost": 0,
+    "runtimeTested": false
+  },
+  "historyOnly": true,
+  "removedFilesIndex": "cleanup-20260831.json"
+}

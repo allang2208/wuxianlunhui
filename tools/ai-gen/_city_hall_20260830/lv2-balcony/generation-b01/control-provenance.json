@@ -1,0 +1,16 @@
+{
+  "sourceModel": "tools/ai-gen/_city_hall_20260830/lv2-balcony/city_hall_lv2_model.blend",
+  "userAuthorization": "同意继续生图",
+  "retained": "Approved balcony doorway, full-width balcony, three-sided railing, civic crest, tower setback, main hall, main roof, window/banner layout, foundation and exact camera",
+  "detailSynchronization": {
+    "cap": "Previously accepted pyramidal cap, same 93x98 footprint, height 44 and base position",
+    "visibleSideClock": "Attached copy of the front clock, scaled to fit the exposed side wall without roof intersection",
+    "sideClockCenter": [
+      -42.0,
+      -75.87999725341797,
+      254.0
+    ],
+    "sideClockScale": 0.82
+  },
+  "runtimeIntegrationActive": false
+}

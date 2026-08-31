@@ -1,0 +1,596 @@
+{
+  "date": "2026-08-31",
+  "status": "completed",
+  "scope": "tools/ai-gen/_city_hall_20260830",
+  "preservedRaw": [
+    "candidates_dev_s12_v1/city_hall_lv1/city_hall_lv1_structure_v02_raw.png",
+    "candidates_dev_s12_v1/city_hall_lv3/city_hall_lv3_structure_v02_raw.png",
+    "lv2-balcony/generation-b02/candidates/city_hall_lv2/city_hall_lv2_structure_v03_raw.png",
+    "lv2-balcony/refine-r01/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png"
+  ],
+  "preserve": "All editable source models, required model previews and Depth controls, selected generation metadata and prompts, runtime assets and final three-era previews.",
+  "files": [
+    {
+      "path": "generation-b01-city_hall_lv1.log",
+      "bytes": 9480,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "generation-b01-city_hall_lv2.log",
+      "bytes": 9480,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "generation-b01-city_hall_lv3.log",
+      "bytes": 9479,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "candidate-review/city_hall_all_candidates.png",
+      "bytes": 2789082,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "candidate-review/city_hall_lv1_candidates.png",
+      "bytes": 895170,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "candidate-review/city_hall_lv2_candidates.png",
+      "bytes": 982068,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "candidate-review/city_hall_lv3_candidates.png",
+      "bytes": 879554,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "candidates_dev_s12_v1/city_hall_lv1/city_hall_lv1_structure_v01_raw.png",
+      "bytes": 1191718,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "candidates_dev_s12_v1/city_hall_lv1/city_hall_lv1_structure_v03_raw.png",
+      "bytes": 1289505,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "candidates_dev_s12_v1/city_hall_lv2/city_hall_lv2_structure_v01_raw.png",
+      "bytes": 1243674,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "candidates_dev_s12_v1/city_hall_lv2/city_hall_lv2_structure_v02_raw.png",
+      "bytes": 1367037,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "candidates_dev_s12_v1/city_hall_lv2/city_hall_lv2_structure_v03_raw.png",
+      "bytes": 1376019,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "candidates_dev_s12_v1/city_hall_lv3/city_hall_lv3_structure_v01_raw.png",
+      "bytes": 1207587,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "candidates_dev_s12_v1/city_hall_lv3/city_hall_lv3_structure_v03_raw.png",
+      "bytes": 1192450,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "city_hall_lv1/city_hall_lv1_model_approval_preview.png",
+      "bytes": 800140,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "city_hall_lv1/city_hall_lv1_model.blend1",
+      "bytes": 180790,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "city_hall_lv1/render.log",
+      "bytes": 2592,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "city_hall_lv2/city_hall_lv2_model_approval_preview.png",
+      "bytes": 872264,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "city_hall_lv2/city_hall_lv2_model.blend1",
+      "bytes": 209653,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "city_hall_lv2/render.log",
+      "bytes": 2592,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "city_hall_lv3/city_hall_lv3_model_approval_preview.png",
+      "bytes": 902327,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "city_hall_lv3/render.log",
+      "bytes": 2592,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-balcony/before-after.png",
+      "bytes": 458371,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/city_hall_lv2_model_approval_preview.png",
+      "bytes": 885065,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/preview.png",
+      "bytes": 422534,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/render.log",
+      "bytes": 2110,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/control-model-preview_approval_preview.png",
+      "bytes": 886791,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/generation.log",
+      "bytes": 4386,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/render-control.log",
+      "bytes": 1085,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/candidates/city_hall_lv2/city_hall_lv2_structure_v01_raw.png",
+      "bytes": 1293164,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/candidates/city_hall_lv2/city_hall_lv2_structure_v02_raw.png",
+      "bytes": 1368527,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/candidates/city_hall_lv2/city_hall_lv2_structure_v03_raw.png",
+      "bytes": 1317097,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/review/balcony-details.png",
+      "bytes": 1726373,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/generation-b01/review/city_hall_lv2_balcony_candidates.png",
+      "bytes": 1643274,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/generation-b02/generation.log",
+      "bytes": 4386,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-balcony/generation-b02/candidates/city_hall_lv2/city_hall_lv2_structure_v01_raw.png",
+      "bytes": 1304699,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-balcony/generation-b02/candidates/city_hall_lv2/city_hall_lv2_structure_v02_raw.png",
+      "bytes": 1338157,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-balcony/generation-b02/review/balcony-details.png",
+      "bytes": 1745642,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/generation-b02/review/city_hall_lv2_balcony_candidates.png",
+      "bytes": 1613362,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-balcony/refine-r01/generation.log",
+      "bytes": 3617,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-balcony/refine-r01/candidates/city_hall_lv2/city_hall_lv2_refine_v01_raw.png",
+      "bytes": 1324727,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-balcony/refine-r01/review/city_hall_lv2_refinement_comparison.png",
+      "bytes": 1605916,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-symmetry/edit-regions-preview.png",
+      "bytes": 1377530,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/generation-s02.log",
+      "bytes": 3918,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-symmetry/generation.log",
+      "bytes": 3782,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-symmetry/model-preview_approval_preview.png",
+      "bytes": 868883,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/render.log",
+      "bytes": 1309,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-symmetry/repair-mask.png",
+      "bytes": 4028,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/revision-status-preview.png",
+      "bytes": 1122120,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/candidates/city_hall_lv2/city_hall_lv2_refine_depth.png",
+      "bytes": 69069,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/candidates/city_hall_lv2/city_hall_lv2_refine_edge.png",
+      "bytes": 16349,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/candidates/city_hall_lv2/city_hall_lv2_refine_v01_raw.png",
+      "bytes": 1154214,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png",
+      "bytes": 1170913,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/candidates-structural/city_hall_lv2/city_hall_lv2_refine_depth.png",
+      "bytes": 69069,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/candidates-structural/city_hall_lv2/city_hall_lv2_refine_edge.png",
+      "bytes": 16349,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/candidates-structural/city_hall_lv2/city_hall_lv2_refine_v01_raw.png",
+      "bytes": 1159444,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/candidates-structural/city_hall_lv2/city_hall_lv2_refine_v02_raw.png",
+      "bytes": 1152445,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/final-review/city_hall_lv2_symmetric_v01.png",
+      "bytes": 1206347,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/final-review/city_hall_lv2_symmetric_v02.png",
+      "bytes": 1206539,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/final-review/lv2_symmetry_comparison.png",
+      "bytes": 912026,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/review/city_hall_lv2_local_v01.png",
+      "bytes": 1206959,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/review/city_hall_lv2_local_v02.png",
+      "bytes": 1207018,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/review/lv2_symmetry_comparison.png",
+      "bytes": 756332,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/review-s02/city_hall_lv2_local_v01.png",
+      "bytes": 1208156,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/review-s02/city_hall_lv2_local_v02.png",
+      "bytes": 1207322,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/review-s02/lv2_symmetry_comparison.png",
+      "bytes": 759244,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/aligned-init.png",
+      "bytes": 1202925,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/current-upper-facade-detail.png",
+      "bytes": 1900346,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/depth.png",
+      "bytes": 41797,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/first-result-detail.png",
+      "bytes": 1216545,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/first-result-elevation.png",
+      "bytes": 695424,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/generation.log",
+      "bytes": 4551,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/geometry-edit-mask.png",
+      "bytes": 2222,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/measurement-detail.png",
+      "bytes": 1377194,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/rectified-facades-measurement.png",
+      "bytes": 2075170,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/sill-datum-preview.png",
+      "bytes": 1203516,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/source-texture-aligned.png",
+      "bytes": 1206138,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/source-texture-detail.png",
+      "bytes": 1222812,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/source-texture-edit-mask.png",
+      "bytes": 2281,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/source-texture-elevation.png",
+      "bytes": 702349,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/tone-matched-detail.png",
+      "bytes": 1211547,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/tone-matched-v01-preview.png",
+      "bytes": 1204172,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/wall-repair-mask.png",
+      "bytes": 1954,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/candidates/city_hall_lv2/city_hall_lv2_refine_depth.png",
+      "bytes": 41797,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/candidates/city_hall_lv2/city_hall_lv2_refine_edge.png",
+      "bytes": 16349,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/candidates/city_hall_lv2/city_hall_lv2_refine_v01_raw.png",
+      "bytes": 1163683,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/delivery/before-after.png",
+      "bytes": 1059764,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/delivery/city_hall_lv2_sill_aligned.png",
+      "bytes": 1206148,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/delivery/edit-mask.png",
+      "bytes": 3782,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/sill-alignment/delivery/sill-datum-comparison.png",
+      "bytes": 1512526,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/depth.png",
+      "bytes": 31113,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/full-removal-mask.png",
+      "bytes": 2136,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/generation.log",
+      "bytes": 3890,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/init.png",
+      "bytes": 952801,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/mask.png",
+      "bytes": 16896,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/repair-region-preview.png",
+      "bytes": 1206180,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/candidates/city_hall_lv2/city_hall_lv2_refine_depth.png",
+      "bytes": 31113,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/candidates/city_hall_lv2/city_hall_lv2_refine_edge.png",
+      "bytes": 3129,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/candidates/city_hall_lv2/city_hall_lv2_refine_v01_raw.png",
+      "bytes": 1015420,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/wall-infill-s04/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png",
+      "bytes": 1021940,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/depth.png",
+      "bytes": 31113,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/full-removal-mask.png",
+      "bytes": 2057,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/generation.log",
+      "bytes": 3867,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/init.png",
+      "bytes": 952801,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/mask.png",
+      "bytes": 15002,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/removal-region.png",
+      "bytes": 1383214,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/candidates/city_hall_lv2/city_hall_lv2_refine_depth.png",
+      "bytes": 31113,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/candidates/city_hall_lv2/city_hall_lv2_refine_edge.png",
+      "bytes": 3129,
+      "reason": "superseded_texture_revision_not_in_final_source_chain"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/candidates/city_hall_lv2/city_hall_lv2_refine_v01_raw.png",
+      "bytes": 1041868,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-symmetry/window-removal/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png",
+      "bytes": 1024770,
+      "reason": "unselected_or_superseded_raw"
+    },
+    {
+      "path": "lv2-tower-setback/before-after.png",
+      "bytes": 469340,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-tower-setback/city_hall_lv2_model_approval_preview.png",
+      "bytes": 869016,
+      "reason": "superseded_or_duplicate_review_image"
+    },
+    {
+      "path": "lv2-tower-setback/render.log",
+      "bytes": 2048,
+      "reason": "backup_or_rebuildable_cache"
+    },
+    {
+      "path": "runtime/city_hall_body.png",
+      "bytes": 981249,
+      "reason": "rebuildable_keyed_intermediate"
+    },
+    {
+      "path": "runtime/city_hall_lv1_body.png",
+      "bytes": 803630,
+      "reason": "rebuildable_keyed_intermediate"
+    },
+    {
+      "path": "runtime/city_hall_lv3_body.png",
+      "bytes": 790482,
+      "reason": "rebuildable_keyed_intermediate"
+    }
+  ],
+  "count": 116,
+  "bytes": 87188210.0
+}

@@ -1,0 +1,90 @@
+{
+  "source": "tools/ai-gen/_city_hall_20260830/runtime/city_hall_body.png",
+  "output": "assets/terrain/city_hall.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    72,
+    207,
+    948,
+    918
+  ],
+  "fileSize": [
+    876,
+    711
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    872,
+    707
+  ],
+  "displayW": 517.314879,
+  "displayH": 414.615034,
+  "footOffsetY": 204.974943,
+  "scaleX": 0.5905420991926182,
+  "scaleY": 0.5831435079726651,
+  "acceptedRaw": "tools/ai-gen/_city_hall_20260830/lv2-balcony/refine-r01/candidates/city_hall_lv2/city_hall_lv2_refine_v02_raw.png",
+  "visual": {
+    "tex": "city_hall",
+    "assetPath": "assets/terrain/city_hall.png",
+    "displayW": 517.314879,
+    "displayH": 414.615034,
+    "footOffsetY": 204.974943,
+    "visualFootprint": {
+      "centerXRatio": 0.500570776,
+      "centerYRatio": 0.685654008,
+      "widthRatio": 0.989726027,
+      "depthRatio": 0.617440225,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "094A7CA00B6AEC7E5B3F67D6CB31B7F0199C3B87C4ACFD397FB5034EA9006FA2"
+  },
+  "groundLandmarks": {
+    "left": [
+      77,
+      699
+    ],
+    "right": [
+      944,
+      690
+    ],
+    "front": [
+      511,
+      914
+    ]
+  },
+  "alphaMaskDepth": null,
+  "logicalFootprint": [
+    4,
+    4
+  ],
+  "userRequest": "接入游戏，作为玩家基地。接入位面时在传送门附近生成",
+  "runtimeTested": false
+}
