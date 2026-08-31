@@ -5,8 +5,21 @@
  * - 预制结构: { "<key>": { name, pieces: [{tex,x,y,scaleX,scaleY,flipX,flipY,depth}] } }
  */
 
-const PREFAB_URL = '/data/wall-prefabs.json';
 const PREFAB_REL = 'data/wall-prefabs.json';
+
+// 与保存使用同一通道；固定 EXE 优先读取 userData 的编辑覆盖项。
+async function loadEditorJson(rel) {
+    if (globalThis.window?.electronAPI?.loadJson) {
+        try {
+            return await window.electronAPI.loadJson(rel);
+        } catch (error) {
+            console.warn('[EditorData] 覆盖配置读取失败，回退包内默认值:', rel, error);
+        }
+    }
+    const response = await fetch(`/${rel}?ts=${Date.now()}`);
+    if (!response.ok) throw new Error(`配置读取失败: ${rel} (${response.status})`);
+    return response.json();
+}
 
 let _library = null;
 let _loadingPromise = null; // 进行中的加载 Promise（并发去重 + 供"等加载完成"await）
@@ -17,8 +30,7 @@ export async function loadWallPrefabs() {
     if (_loadingPromise) return _loadingPromise;
     _loadingPromise = (async () => {
         try {
-            const r = await fetch(`${PREFAB_URL}?ts=${Date.now()}`);
-            _library = r.ok ? await r.json() : {};
+            _library = await loadEditorJson(PREFAB_REL);
         } catch {
             _library = {};
         } finally {
@@ -89,7 +101,6 @@ export async function saveWallPrefabs(lib) {
 // ==================== 障碍物布局（data/obstacle-layout.json，2026-07-30） ====================
 // 主神空间摆放的障碍物清单：[{tex,x,y,scaleX,scaleY,flipX,flipY,rotation,depth}]
 // 保存管道与预制库同规格；_setupMainHubTerrain 每次回城按布局重建
-const OBSTACLE_URL = '/data/obstacle-layout.json';
 const OBSTACLE_REL = 'data/obstacle-layout.json';
 
 let _obstacleLayout = null;
@@ -98,8 +109,7 @@ let _obstacleLayout = null;
 export async function loadObstacleLayout() {
     if (_obstacleLayout) return _obstacleLayout;
     try {
-        const r = await fetch(`${OBSTACLE_URL}?ts=${Date.now()}`);
-        const data = r.ok ? await r.json() : [];
+        const data = await loadEditorJson(OBSTACLE_REL);
         _obstacleLayout = Array.isArray(data) ? data : [];
     } catch {
         _obstacleLayout = [];
@@ -122,7 +132,6 @@ export async function saveObstacleLayout(list) {
 // ISO_WALL_GEO 在 src 源码里，JSON 保存管道只能写 data/*.json——碰撞体积编辑器对
 // 墙(face/halfThick)/门(states 门洞)/障碍物(foot) 的按类型修改写此文件；
 // 启动时 BootScene 预载，WallSystem.applyGeoOverrides 合并进 ISO_WALL_GEO 后重建碰撞生效
-const GEO_OVR_URL = '/data/wall-geo-overrides.json';
 const GEO_OVR_REL = 'data/wall-geo-overrides.json';
 
 let _geoOverrides = null;
@@ -131,8 +140,7 @@ let _geoOverrides = null;
 export async function loadWallGeoOverrides() {
     if (_geoOverrides) return _geoOverrides;
     try {
-        const r = await fetch(`${GEO_OVR_URL}?ts=${Date.now()}`);
-        const data = r.ok ? await r.json() : {};
+        const data = await loadEditorJson(GEO_OVR_REL);
         _geoOverrides = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
     } catch {
         _geoOverrides = {};
@@ -160,7 +168,6 @@ export async function saveWallGeoOverrides(ov) {
 // 结构：{ "<geoKey>": { scaleX, scaleY, rotation, flipX, flipY } }（geoKey = ISO_WALL_GEO 键，如 barrel/pillar/candle）
 // 语义：障碍物编辑器「保存」把选中件的变换记为**该类型的默认状态**——
 // 之后摆墙拖新件 / 地牢地板装饰生成同类障碍物时套用；「重置」也回到这里记录的变换
-const OBSTACLE_DEF_URL = '/data/obstacle-defaults.json';
 const OBSTACLE_DEF_REL = 'data/obstacle-defaults.json';
 
 let _obstacleDefaults = null;
@@ -169,8 +176,7 @@ let _obstacleDefaults = null;
 export async function loadObstacleDefaults() {
     if (_obstacleDefaults) return _obstacleDefaults;
     try {
-        const r = await fetch(`${OBSTACLE_DEF_URL}?ts=${Date.now()}`);
-        const data = r.ok ? await r.json() : {};
+        const data = await loadEditorJson(OBSTACLE_DEF_REL);
         _obstacleDefaults = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
     } catch {
         _obstacleDefaults = {};

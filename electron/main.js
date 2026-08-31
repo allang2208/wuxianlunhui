@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, ipcMain, globalShortcut, dialog, protocol, net } = require('electron');
+const { app, BrowserWindow, screen, ipcMain, dialog, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { configureFixedTest } = require('./fixed-test');
@@ -79,6 +79,15 @@ function createWindow() {
     // 窗口关闭时清理引用
     mainWindow.on('closed', () => {
         mainWindow = null;
+    });
+
+    // 只转发本窗口的 ESC，不占用系统全局按键，也不与渲染层 keydown 重复处理。
+    mainWindow.webContents.on('before-input-event', (event, input) => {
+        if (input.key !== 'Escape') return;
+        event.preventDefault();
+        if (input.type === 'keyDown' && !input.isAutoRepeat) {
+            mainWindow.webContents.send('esc-pressed');
+        }
     });
 
     // 渲染进程崩溃/加载失败恢复：崩溃后状态本已丢失，弹窗提示并重载回首页
@@ -315,15 +324,6 @@ app.whenReady().then(() => {
     }
     createWindow();
 
-    // 注册 ESC 全局快捷键：转发给渲染进程由游戏菜单统一处理
-    // （原实现"全屏退全屏/窗口直接退游戏"误触即退，且拦截导致渲染进程收不到 ESC；
-    //  全屏切换改由设置界面按钮触发，见 toggle-fullscreen IPC）
-    globalShortcut.register('Escape', () => {
-        if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isFocused()) {
-            mainWindow.webContents.send('esc-pressed');
-        }
-    });
-
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
@@ -344,11 +344,6 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
-});
-
-app.on('will-quit', () => {
-    // 退出前注销全局快捷键
-    globalShortcut.unregisterAll();
 });
 
 // 导出供 preload 使用
