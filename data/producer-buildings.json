@@ -114,11 +114,13 @@
     "unitTypes": [
       { "key": "warrior", "name": "仓鼠战士", "roleLabel": "双手剑士 · 输出", "spawnFoodCost": 125 },
       { "key": "champion", "name": "仓鼠冠军", "roleLabel": "板甲冠军 · 重装输出", "spawnIntervalMs": 48000, "spawnFoodCost": 190 },
+      { "key": "trench_assault", "name": "战壕突击兵", "roleLabel": "A10霰弹枪 · 近距扇压", "spawnIntervalMs": 62000, "spawnFoodCost": 210 },
       { "key": "special_forces", "name": "仓鼠特战", "roleLabel": "泵动霰弹枪 · 近距爆发", "spawnIntervalMs": 65000, "spawnFoodCost": 260 },
       { "key": "guard", "name": "仓鼠盾卫", "roleLabel": "防御", "spawnFoodCost": 150 },
       { "key": "phalanx", "name": "仓鼠方阵", "roleLabel": "军团盾阵 · 重装防御", "spawnIntervalMs": 50000, "spawnFoodCost": 210 },
       { "key": "riot_special", "name": "仓鼠防暴队", "roleLabel": "防暴盾枪 · 近距扇压", "spawnIntervalMs": 60000, "spawnFoodCost": 260 }
     ],
+    "supplementalUnitUnlocks": ["trench_assault"],
     "recruitmentTiers": [
       { "id": "hamster_barracks_level_1", "level": 1, "name": "军营一级编制", "baseline": true, "lines": [
         { "slot": "greatsword", "role": "双手剑士", "unitKey": "warrior", "unitName": "仓鼠战士", "profile": "中等耐久、中等抗性、中等伤害，后续包含AOE升级" },
@@ -128,9 +130,13 @@
         { "slot": "greatsword", "role": "双手剑士", "fromUnitName": "仓鼠战士", "unitKey": "champion", "unitName": "仓鼠冠军", "profile": "晚期中世纪精良全身板甲、封闭式头盔与长柄双手剑；中高耐久、高单次伤害、较慢攻速" },
         { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠盾卫", "unitKey": "phalanx", "unitName": "仓鼠方阵", "profile": "军团大盾与双刃斧重装步兵；高耐久、稳步推进、低机动" }
       ] },
-      { "id": "hamster_barracks_level_3", "level": 3, "name": "现代步兵军营", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "hamster_barracks_lv3", "assetPath": "assets/terrain/hamster_barracks_lv3.png", "displayW": 300, "displayH": 270, "footOffsetY": 133 }, "lines": [
-        { "slot": "greatsword", "role": "突击输出", "fromUnitName": "仓鼠冠军", "unitKey": "special_forces", "unitName": "仓鼠特战", "profile": "现代沙色战术步兵；泵动霰弹枪窄角近距爆发，不继承盾系自动防御" },
-        { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠方阵", "unitKey": "riot_special", "unitName": "仓鼠防暴队", "profile": "防暴盾与霰弹枪重装压制；正前方45°、最大300px低伤害扇区，无弹道与爆炸" }
+      { "id": "hamster_barracks_industrial", "level": 3, "name": "近代步兵军营", "plannedEffectiveResearchCost": 1950, "visual": { "tex": "hamster_barracks_industrial", "assetPath": "assets/terrain/hamster_barracks_industrial.png", "displayW": 258.306306, "displayH": 214.004494, "footOffsetY": 105.851685, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.695564516, "widthRatio": 0.991071429, "depthRatio": 0.59811828, "scaleMode": "strict" }, "assetCutoutHash": "2386F58ED9DD0DE67FE2ADD7376D4005F77219ABF7E96C82BD694793B6AFB47F" }, "note": "近代建筑随科研换形；战壕突击兵可由独立科技补充招募，钢盾路线完成前仍保留最近一档完整编制。", "lines": [
+        { "slot": "greatsword", "role": "突击输出", "fromUnitName": "仓鼠冠军", "unitKey": "trench_assault", "unitName": "战壕突击兵", "profile": "红星钢盔与钢胸甲近代突击兵；A10泵动霰弹枪在250px内进行26°近距扇压" },
+        { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠方阵", "unitKey": "steel_shield_assault", "unitName": "钢盾突击兵", "profile": "钢盾与短枪的幻想近代前排；尚未开发", "placeholder": true }
+      ] },
+      { "id": "hamster_barracks_level_3", "level": 4, "name": "现代步兵军营", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "hamster_barracks_lv3", "assetPath": "assets/terrain/hamster_barracks_lv3.png", "displayW": 300, "displayH": 270, "footOffsetY": 133 }, "lines": [
+        { "slot": "greatsword", "role": "突击输出", "fromUnitName": "战壕突击兵", "unitKey": "special_forces", "unitName": "仓鼠特战", "profile": "现代沙色战术步兵；泵动霰弹枪窄角近距爆发，不继承盾系自动防御" },
+        { "slot": "shield", "role": "盾卫", "fromUnitName": "钢盾突击兵", "unitKey": "riot_special", "unitName": "仓鼠防暴队", "profile": "防暴盾与霰弹枪重装压制；正前方45°、最大300px低伤害扇区，无弹道与爆炸" }
       ] }
     ],
     "upgradeProject": "barracks_defense"

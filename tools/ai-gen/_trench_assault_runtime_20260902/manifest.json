@@ -1,0 +1,596 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "unitKey": "trench_assault",
+  "status": "runtime_integrated_static_only",
+  "sourceTask": "tools/ai-gen/_industrial_infantry_mothers_20260831",
+  "approval": "User approved the corrected death view and instructed runtime integration.",
+  "cleanup": "animation/cleanup-20260902.json",
+  "formalVideos": [
+    "animation/videos/idle-doubao-v01.mp4",
+    "animation/videos/running-doubao-v05-reference-only.mp4",
+    "animation/videos/attacking-doubao-v04-reference-only.mp4",
+    "animation/videos/dying-h3-v04-first-last-right.mp4"
+  ],
+  "archiveFiles": [
+    {
+      "path": "animation/analyze-attacking-v04.py",
+      "bytes": 2400,
+      "sha256": "F03279101CD2467D8033DC8438F64CBCAE076B26924E3D5C9F3B9D1DFC4114B0"
+    },
+    {
+      "path": "animation/analyze-running-loop-v05.py",
+      "bytes": 6453,
+      "sha256": "6D86AEDB75FCB3616A503F22DE75603B6665ACE69035E73157ED7C41B03379A0"
+    },
+    {
+      "path": "animation/apply-approved-attacking-rife.py",
+      "bytes": 1457,
+      "sha256": "33C2933E85F02C7927C1B1AD3C890DADF9825CDCF7A22D5DA218452DEEB7551E"
+    },
+    {
+      "path": "animation/apply-approved-death-rife.py",
+      "bytes": 1522,
+      "sha256": "05522DE9AC9A3DF1A54306C4AD4A2CCCCB7ED059CC52C2FCFA2BF8D2562E6626"
+    },
+    {
+      "path": "animation/apply-approved-idle-rife.py",
+      "bytes": 1475,
+      "sha256": "BE44BD6A26C4BA26BDBC637A0DF21E25A2AF25A2BE9FD435CB2EEC42F8DFE282"
+    },
+    {
+      "path": "animation/apply-approved-running-rife.py",
+      "bytes": 1459,
+      "sha256": "E8CC9C3BF5AA4524C183C884251270D983C995A7977371D19156B792049B7A44"
+    },
+    {
+      "path": "animation/build-approved-attacking-source-sheet.py",
+      "bytes": 10278,
+      "sha256": "AD7FEBB1F15BF6D4572FEB4AB1E8B49295373A9979A21EF5A8AC80EC2256EC2D"
+    },
+    {
+      "path": "animation/build-approved-death-runtime-sheet.py",
+      "bytes": 4983,
+      "sha256": "88C9FB7149C84F30958D1886EBFEB1E05F45D42E2A9EFD7934D106D16DBD9EFE"
+    },
+    {
+      "path": "animation/build-approved-death-source-sheet.py",
+      "bytes": 5448,
+      "sha256": "AF0997B4139531F293681AF7464400C4F378BF2BAFD195A323D3D185FDA340E1"
+    },
+    {
+      "path": "animation/build-approved-idle-source-sheet.py",
+      "bytes": 5936,
+      "sha256": "3F1FBACE27ED67AEE77CCC6C2FC5D82C53F3D340CE1819ECFDFB8DB7F3776E87"
+    },
+    {
+      "path": "animation/build-approved-running-source-sheet.py",
+      "bytes": 7136,
+      "sha256": "D2EE86ACD5FBD42AF01187DC03037E49D75D66D574B720F118A988166AC29F15"
+    },
+    {
+      "path": "animation/build-complete-manifest.py",
+      "bytes": 6947,
+      "sha256": "5DDBAF21781E67133D024A2F48A7CF91A920FE047BF1EBDB49DFC687B3DE2150"
+    },
+    {
+      "path": "animation/build-death-v04-direction-review.py",
+      "bytes": 1697,
+      "sha256": "708CDA7F04827265972708536AD57C917622780DBCDFB6CBA72F372FD87F8ABF"
+    },
+    {
+      "path": "animation/build-direction-references.py",
+      "bytes": 2191,
+      "sha256": "0D2C0C1EFF18A43438E52D0F5E21B474EDDD2D1A51A748B6660D8F4CD379EF8E"
+    },
+    {
+      "path": "animation/build-formal-runtime-sheets.py",
+      "bytes": 6681,
+      "sha256": "42898C7338385F816227315B17F09EA553ACE03B6532B1FC7DDCF24761C0B99C"
+    },
+    {
+      "path": "animation/build-runtime-icon.py",
+      "bytes": 915,
+      "sha256": "DF3E6D7911925086936BFE80A32756C8B6E74966C863CE14FE0C1AF88283FC4C"
+    },
+    {
+      "path": "animation/build-source-reviews.py",
+      "bytes": 5213,
+      "sha256": "240AE9569D117D831DB56CFC4DBCBF6E6879B0AF51C12EBEF3CCBC5A447912D3"
+    },
+    {
+      "path": "animation/cleanup-20260902.json",
+      "bytes": 11014,
+      "sha256": "8EB16FCDE9E678FAF286F8761F45C861542598CDD875205ADEB649D4B89E27B5"
+    },
+    {
+      "path": "animation/direction-review.md",
+      "bytes": 12265,
+      "sha256": "7FE60182F6D1C02F4807EF155BFC2A59B5A6FB786D4AD7B4E1D8E217A7A44FA4"
+    },
+    {
+      "path": "animation/extract-approved-attack-audio.py",
+      "bytes": 2663,
+      "sha256": "370B6C46DA2B9B4016E15995DB5EF8EC49C5A347DA398A232281EF6AB145890E"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-attacking-interpolated-contact.png",
+      "bytes": 136030,
+      "sha256": "5FA8BB2420EC219238FC21536BE9F6523178CFB9717441743634C77533443B16"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-attacking-interpolated.gif",
+      "bytes": 519591,
+      "sha256": "B93B647345C0874CA2FA0190A92E1314AECD30ABC5810D8AA1F0BCF719F9CCCD"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-dying-interpolated-contact.png",
+      "bytes": 162166,
+      "sha256": "F72D76066E73AF24201E4BA6D0ACE2D227630A5DFCE435E6B4136BB30642F2CA"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-dying-interpolated.gif",
+      "bytes": 700955,
+      "sha256": "F88D2F9167515611B0E0A7C5FD1B81C933D67E9C9534486AC6B7D41ED64A1F53"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-idle-interpolated-contact.png",
+      "bytes": 86395,
+      "sha256": "3A953E699014055E56ACA84A4A0C018707088BA0B249D81A90A01460BE0FBC79"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-idle-interpolated.gif",
+      "bytes": 370282,
+      "sha256": "8ABCA4E773104AC2C3F8726222DE7EABC1022395CFE3642140B5045A4CBB7D31"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-running-interpolated-contact.png",
+      "bytes": 121869,
+      "sha256": "4DBB46528DBA02BC05EC53DF3DDA182131C5A65245E42D00B9B141BCE4981EB6"
+    },
+    {
+      "path": "animation/final-gifs/trench-assault-running-interpolated.gif",
+      "bytes": 509396,
+      "sha256": "78F9294DA792304E0EE945C7A7DA868E2DD958F7C62445CFCB84A2E5F27B3A9F"
+    },
+    {
+      "path": "animation/h3-dying-redraw-v04.json",
+      "bytes": 2547,
+      "sha256": "D75CEC2E710B89B5CB7684F2F6AC3B27BD8D733703A035CAB0BE90B980D7315D"
+    },
+    {
+      "path": "animation/h3-redraw-request-v04.json",
+      "bytes": 1530,
+      "sha256": "FA65E1C804026E30967FC001F631297B496E673EA2C3C5C0CCBB5DCDCC88ED7D"
+    },
+    {
+      "path": "animation/h3-upload-request.json",
+      "bytes": 3282,
+      "sha256": "5B330B561CAD3859FAC8F9EE4EA947C96B6F13BCAF010146A9B36926943C83DA"
+    },
+    {
+      "path": "animation/keyframes/attacking-keyframe-v01.png",
+      "bytes": 1436351,
+      "sha256": "C7D0F24EA288BCDD4F9EC0EA24BEC0C2F16540092733E8904C2EF23D00E14DD0"
+    },
+    {
+      "path": "animation/keyframes/dying-end-keyframe-v02-reclined-rejected.png",
+      "bytes": 1225087,
+      "sha256": "973CB319FA86B87B8493CD0E06CE1C29DF2AD559A251841086B876B4E1F83838"
+    },
+    {
+      "path": "animation/keyframes/dying-end-keyframe-v03-right-side.png",
+      "bytes": 1223162,
+      "sha256": "1C62A7C32F72D2E2887F0500878D067ACA54BC5089AC423491C3026C18E56CFF"
+    },
+    {
+      "path": "animation/keyframes/dying-start-keyframe-v02-right.png",
+      "bytes": 1630484,
+      "sha256": "06A4F4948D8A21D03D131BD5AF5B8EDDF4C3607282BC77FB4588FEA4517789E9"
+    },
+    {
+      "path": "animation/keyframes/running-keyframe-v01.png",
+      "bytes": 1281652,
+      "sha256": "A88EA444AB1F7FA2ED502681A026BD421004FC66210A4B2F2E3A4549771C7321"
+    },
+    {
+      "path": "animation/prepare-video-references.py",
+      "bytes": 1541,
+      "sha256": "6C66A6D1954808D6C56B181075000A54CD1744C27A96C45CD00D84D991B4C00E"
+    },
+    {
+      "path": "animation/previews/dying-v04-direction-review.png",
+      "bytes": 747261,
+      "sha256": "66B198FAD157638D21C9080D09972D4DA2BA88736EE6DF8E0483A788AD63A7DC"
+    },
+    {
+      "path": "animation/prompts/attacking-doubao-v01.txt",
+      "bytes": 1825,
+      "sha256": "AB33E0B1B87A0D77F7E973F52183CF14EDA34B037DC8E64AE021894FF21D4CB7"
+    },
+    {
+      "path": "animation/prompts/attacking-doubao-v02-mother-tail-concealed.txt",
+      "bytes": 2013,
+      "sha256": "54A2BE40E5F0A8DD2E11B6C95A90229A00CBE18FB6FE48A66D8C7DCCD43610A4"
+    },
+    {
+      "path": "animation/prompts/attacking-doubao-v03-closed-uniform.txt",
+      "bytes": 1601,
+      "sha256": "8EA7ED9FBE730A170E03B745EDEF2A100ABA39E40B3CE44B7C67F7B6953F102D"
+    },
+    {
+      "path": "animation/prompts/attacking-doubao-v04-reference-only.txt",
+      "bytes": 1828,
+      "sha256": "517B8610892E740F54E8BF0C0DBCC629F634124B5EAAEBFF235181F89B63F69B"
+    },
+    {
+      "path": "animation/prompts/attacking-h3-v03-motion-transfer.txt",
+      "bytes": 1983,
+      "sha256": "08F78749941B6674DBF6D4AAAE1F1FADDF103A8601786FFDE7B77B5E2B550830"
+    },
+    {
+      "path": "animation/prompts/attacking-h3-v04-keyframe-only.txt",
+      "bytes": 1586,
+      "sha256": "3D00F0B69DB7BE30D8F8584C57AAD65E5DEA6682345CBB8499DA67E88CEED30B"
+    },
+    {
+      "path": "animation/prompts/dying-doubao-v01.txt",
+      "bytes": 1733,
+      "sha256": "66C1E538D6916385AF765A14BC000FED6FE16EC41D2A8A8710EE167BA832BC81"
+    },
+    {
+      "path": "animation/prompts/dying-doubao-v02-grip-retained.txt",
+      "bytes": 1997,
+      "sha256": "45F9633D9E8122CD4D29B3819752B87AA9A31D9E1B8E26F1115B58D68C36115A"
+    },
+    {
+      "path": "animation/prompts/dying-h3-v03-motion-transfer.txt",
+      "bytes": 2174,
+      "sha256": "B266A55F9017FEC103BC1B1D7C479507E65CDC112DF6CB36B3635981B7BB200D"
+    },
+    {
+      "path": "animation/prompts/dying-h3-v04-first-last-right.txt",
+      "bytes": 1873,
+      "sha256": "4C733E7833683B5C150EB07F704CAE5CEC0EB8A40C8485F6F4AA61B869EA20CF"
+    },
+    {
+      "path": "animation/prompts/idle-doubao-v01.txt",
+      "bytes": 1455,
+      "sha256": "168C758096C7A439E1D6D67C8A84443EEFC2FE7A8B6060EED8A394CC7B69B73E"
+    },
+    {
+      "path": "animation/prompts/running-doubao-v01.txt",
+      "bytes": 1592,
+      "sha256": "07A8CB8CCB01BB55292EC8FCE71E3F858671344FACD4388441126F3227256FB7"
+    },
+    {
+      "path": "animation/prompts/running-doubao-v02-no-tail.txt",
+      "bytes": 1909,
+      "sha256": "C3FD2304B703C8AFABE9003E95EF7AA858685409C3F1EB2D60E8D05DE87B6CA0"
+    },
+    {
+      "path": "animation/prompts/running-doubao-v03-closed-uniform.txt",
+      "bytes": 1451,
+      "sha256": "6D1B67C0C91CB3B0F3EF073C000E602F4508D7583B80CD8610D60F9DFBA01690"
+    },
+    {
+      "path": "animation/prompts/running-doubao-v04-movement-only.txt",
+      "bytes": 1915,
+      "sha256": "5B9D23564440D22CD0A36F15D5BC828C6378F05E6F161FCDCAEFB366CBE8A79F"
+    },
+    {
+      "path": "animation/prompts/running-doubao-v05-reference-only.txt",
+      "bytes": 1864,
+      "sha256": "1DC144B4D1E1E90A33D0BF97661707B520AD04F81B3AD5CB4830CAEC21D25DBE"
+    },
+    {
+      "path": "animation/prompts/running-h3-v03-motion-transfer.txt",
+      "bytes": 2050,
+      "sha256": "9607154D1D5203F4632A611013EEC656CFD013203DCF88477AD3DB8C1600E283"
+    },
+    {
+      "path": "animation/prompts/running-h3-v04-image-only.txt",
+      "bytes": 1562,
+      "sha256": "4CE876CC6A170D8E8C7E81EDD9E6A0539B6D150097F927FD51D6FAF9AF9261B8"
+    },
+    {
+      "path": "animation/references/special-forces-attack-direction-contact.png",
+      "bytes": 112749,
+      "sha256": "0DC0E8CC2DEFED8B179F4191E72712FD4EBA95C68093F5779056C5A12D99A495"
+    },
+    {
+      "path": "animation/references/special-forces-attack-f00.png",
+      "bytes": 24642,
+      "sha256": "F1BA4698A956D089F2E838E10CF20230884943404A69EC4445EF49FBD456297A"
+    },
+    {
+      "path": "animation/references/special-forces-attack-f08.png",
+      "bytes": 25545,
+      "sha256": "9D57F7683FEE7B9A821A61F75950BB4CCA9BB94C5ACAA378689B5EE4FA324F14"
+    },
+    {
+      "path": "animation/references/special-forces-attack-f17.png",
+      "bytes": 24230,
+      "sha256": "A58C47B30B4E1D6E9E82366E00CD2433E4D98277E7BB3F8DA151F2A2EB94B89F"
+    },
+    {
+      "path": "animation/references/special-forces-attack-f25.png",
+      "bytes": 24231,
+      "sha256": "A1C656CD49647126F90D31D914E592A995AA0232BEB242E2E2F25358942801A8"
+    },
+    {
+      "path": "animation/references/special-forces-attack-f40.png",
+      "bytes": 25149,
+      "sha256": "295DEBA9CB010A056C5FF9E39EC3AEADDF995A8BC558FB0DE7A04BC2ABD81FA4"
+    },
+    {
+      "path": "animation/references/special-forces-recon_walk-direction-contact.png",
+      "bytes": 113122,
+      "sha256": "0D2A61DCA5C27E659F756CCB174C59B831CB382A29129AA4095E1A5155469F9F"
+    },
+    {
+      "path": "animation/references/special-forces-recon_walk-f00.png",
+      "bytes": 25545,
+      "sha256": "8FD1B109A9BBF05E6AB39CFA918AE968D84B97A9D897C6F5708F683C0C0D1FDB"
+    },
+    {
+      "path": "animation/references/special-forces-recon_walk-f08.png",
+      "bytes": 25738,
+      "sha256": "D428A9490A0AB274AA3312125FB14F5A1D1C1F62503CE3204930F0CF17653118"
+    },
+    {
+      "path": "animation/references/special-forces-recon_walk-f17.png",
+      "bytes": 23861,
+      "sha256": "F66A5CA9800271B2407AEB3ED550A371D7CEE41B5E3D8DE165470605DBC9306F"
+    },
+    {
+      "path": "animation/references/special-forces-recon_walk-f25.png",
+      "bytes": 26051,
+      "sha256": "6BA5947EDAEC3D0B1607E35F6E8230E5FFBEE009240DB216753CBD37315FDC59"
+    },
+    {
+      "path": "animation/references/special-forces-recon_walk-f33.png",
+      "bytes": 24291,
+      "sha256": "CB5B743A410636FA9F50CCE8D0A14F1AE60B8AA422ADFB75A707E18EE67DEC2D"
+    },
+    {
+      "path": "animation/references/special-forces-walk-direction-contact.png",
+      "bytes": 87630,
+      "sha256": "E286F9D40067F445D5C0C95110083889CCBB87355AAAF87935ED77E017FFCB81"
+    },
+    {
+      "path": "animation/references/special-forces-walk-f00.png",
+      "bytes": 24587,
+      "sha256": "508144D14CB415913AB393DF502680D36372DB6F77AB24269B6A1D1780FE281E"
+    },
+    {
+      "path": "animation/references/special-forces-walk-f09.png",
+      "bytes": 22784,
+      "sha256": "EA0D211799A5DE2C1CD09A8F5F15FD3AF67556082967716DC38D19969EFE50E0"
+    },
+    {
+      "path": "animation/references/special-forces-walk-f18.png",
+      "bytes": 24961,
+      "sha256": "A5DA79F9320DE86D502C78F96695B3FB451EDD177D53E5998416779139621F0D"
+    },
+    {
+      "path": "animation/references/special-forces-walk-f27.png",
+      "bytes": 21825,
+      "sha256": "C6C37D8A79CD67D22AD95149E4BB0F15AC157A988E8D0B368992DF316EEBBF0B"
+    },
+    {
+      "path": "animation/references/trench-assault-attacking-keyframe-video-safe-16x9.png",
+      "bytes": 718742,
+      "sha256": "2CC8E2D3B30953A7E11392BED3FEBBCED7828E38E95899F580ADC82282F6A637"
+    },
+    {
+      "path": "animation/references/trench-assault-dying-end-v03-right-side-video-safe-16x9.png",
+      "bytes": 486835,
+      "sha256": "4168FD9575ABE65581516A2B9B04C912A21B68BFA01277AD9D4A6CFC4FFF50A4"
+    },
+    {
+      "path": "animation/references/trench-assault-dying-start-v02-right-video-safe-16x9.png",
+      "bytes": 633483,
+      "sha256": "C4336E04206EDAF31E031B33D1A6310309C96C9BAEAB6EBFD005ABFF66279317"
+    },
+    {
+      "path": "animation/references/trench-assault-mother-video-safe-16x9.png",
+      "bytes": 840161,
+      "sha256": "5670FD6A0D4870CB0B07FB3D059481E6E0DF1A39515B224278569F7AA233D321"
+    },
+    {
+      "path": "animation/references/trench-assault-running-keyframe-video-safe-16x9.png",
+      "bytes": 508798,
+      "sha256": "BF3628B59EF4C35E0286A64EAB20A6997078C0372ECE9BB00CCD637CC9A0A675"
+    },
+    {
+      "path": "animation/rife-reports/attacking.json",
+      "bytes": 2571,
+      "sha256": "FC00831DF1141F5289B7849E47FCAD5FCFC0CBFD5FF96CDA124B0730A8594BEF"
+    },
+    {
+      "path": "animation/rife-reports/dying.json",
+      "bytes": 2920,
+      "sha256": "551B0B43B56953FA92D1A50BAB38A08DA8DA750F5C4CA63DD63DEF6BB9B5B1E7"
+    },
+    {
+      "path": "animation/rife-reports/idle.json",
+      "bytes": 2395,
+      "sha256": "EE843764FFCBD955972C5A3262C5FAE4905BA9D34C6913963A9733735FED711B"
+    },
+    {
+      "path": "animation/rife-reports/running.json",
+      "bytes": 2638,
+      "sha256": "8A2F9BFCAAFBAD7A125A01EF3A7493F2B6BA7288E9F04D619A385F8A92707640"
+    },
+    {
+      "path": "animation/runtime-death-sheet-report.json",
+      "bytes": 1087,
+      "sha256": "2FE95E6EA63DF0248A99EFF37AC2716433990E5A22209863B122B8BFCDB5CFE1"
+    },
+    {
+      "path": "animation/runtime-sheet-report.json",
+      "bytes": 4077,
+      "sha256": "8BEB9516E6490095B88DE17F5D2233E20C023328D336B3499164F600D3C81A63"
+    },
+    {
+      "path": "animation/source-review.json",
+      "bytes": 6648,
+      "sha256": "9FA301BF2DFDFD944B559F857A4E97D176AAD46935D03EF1AC68D8CAB2111398"
+    },
+    {
+      "path": "animation/source-sheets-pre-rife/attacking.png",
+      "bytes": 525239,
+      "sha256": "5C9215929DF6A26D33955F799B00EE10EC20FCE90906366968285F654329E150"
+    },
+    {
+      "path": "animation/source-sheets-pre-rife/dying.png",
+      "bytes": 588034,
+      "sha256": "2242BA84648BB7561A314777436CDAD68C4E03D6440690827A29A8B81FAB454D"
+    },
+    {
+      "path": "animation/source-sheets-pre-rife/idle.png",
+      "bytes": 310808,
+      "sha256": "93A07524D69F92DA058A7430615E3DBD7258FD5AEFEB338C466012646F78081A"
+    },
+    {
+      "path": "animation/source-sheets-pre-rife/running.png",
+      "bytes": 432127,
+      "sha256": "3C0F329FF5083AAC282A5DE13ECA49884478FD27A6C706A345058FCD6D0500CE"
+    },
+    {
+      "path": "animation/videos/attacking-doubao-v04-reference-only.mp4",
+      "bytes": 870748,
+      "sha256": "33645EE3A040DF1B31832F5A2C1D36059B1A8EB3C83A6B3B7C149F797AD4FDB1"
+    },
+    {
+      "path": "animation/videos/attacking-doubao-v04-reference-only.mp4.json",
+      "bytes": 846,
+      "sha256": "4CDDC9575ED75A994441CC071F213832EFA2666B06ED35CD6C8503435BA66108"
+    },
+    {
+      "path": "animation/videos/dying-h3-v04-first-last-right.mp4",
+      "bytes": 858888,
+      "sha256": "316DF6BA1DFD068E1BAABF881CEF45C58B89413C58FFBD35B32B6755C0F1234E"
+    },
+    {
+      "path": "animation/videos/dying-h3-v04-first-last-right.mp4.json",
+      "bytes": 9344,
+      "sha256": "8C02F63C9A618D3447D3FFEA094BF8961048E8372345CDC6F6B4B2BF3E2685D3"
+    },
+    {
+      "path": "animation/videos/idle-doubao-v01.mp4",
+      "bytes": 645397,
+      "sha256": "49DB97F425AA41C3F61C910646D6E14A0C0299938BC9998EA08995C6B941ABD3"
+    },
+    {
+      "path": "animation/videos/idle-doubao-v01.mp4.json",
+      "bytes": 814,
+      "sha256": "8C17B3B00A78C5F610AA181FE3ADADD887B7FC1B437796AEE37513DDB5F7FDD5"
+    },
+    {
+      "path": "animation/videos/running-doubao-v05-reference-only.mp4",
+      "bytes": 1162328,
+      "sha256": "2DB6BB35508F33ADF9233B5814634C24029BBF834B136387CA577D898AD612FB"
+    },
+    {
+      "path": "animation/videos/running-doubao-v05-reference-only.mp4.json",
+      "bytes": 842,
+      "sha256": "DC45871F8D6775AD2844C0ADE0B189452EA6D808E065775B296036ACA2454BD2"
+    },
+    {
+      "path": "mother-prompts/trench_assault-v01.txt",
+      "bytes": 3397,
+      "sha256": "5F0F2562F6364EE4070C4287A0B7061C281805DCE7BE4CE8D24B6CE909242B92"
+    },
+    {
+      "path": "mother-prompts/trench_assault-v02-a10.txt",
+      "bytes": 3288,
+      "sha256": "1E975E5D1A6732BBB7208D19717F2B5CD4B8E0FBD80EF2AF6BB19F45D3B6529C"
+    },
+    {
+      "path": "mother-prompts/trench_assault-v03-a10-receiver.txt",
+      "bytes": 1346,
+      "sha256": "B69375880ECE2AE33E1CE80AB283FB029FA009161FF0A000E581C9553AD02A7B"
+    },
+    {
+      "path": "mother-references/acceptedSovietIII.png",
+      "bytes": 1418148,
+      "sha256": "06FB6CF34089781540A89AC50B67C75AA54266299E1047B2D62E625F7C26CE1B"
+    },
+    {
+      "path": "mother-references/championII.png",
+      "bytes": 1193924,
+      "sha256": "CC9BFAB51E638CCB1D4C44338A60B800328CE3E0FD8AA95C355549A09DE82FA1"
+    },
+    {
+      "path": "mother-references/specialForcesIV.png",
+      "bytes": 2324563,
+      "sha256": "DA69D22703E58DEDAD3A070B78627C8A0621A98A4CA87496F92690219C77E0DA"
+    },
+    {
+      "path": "mother/trench_assault-mother-v01.png",
+      "bytes": 1474502,
+      "sha256": "D46CB9A1E866F9EE6014D8A07D4183A5D386BF67CFB429FBED46972089AAB129"
+    },
+    {
+      "path": "mother/trench_assault-mother-v02-a10.png",
+      "bytes": 1883742,
+      "sha256": "2FD70AF2C3CDE7FFD581596646822FC93B51E3EFCE6B56AB5E35AFAE0A5F5B62"
+    },
+    {
+      "path": "mother/trench_assault-mother-v03-a10.png",
+      "bytes": 1867115,
+      "sha256": "5427B62D39A176EF535F86BA32C068F4666941D8897AE3B16774F7A7EB908E1A"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1489,
+      "sha256": "922D633A95FA5DA65082E0A4986FE0DA835BF911504ABC1FBD0D40A02B0F7273"
+    }
+  ],
+  "runtimeFiles": [
+    {
+      "path": "assets/companions/trench_assault/idle.png",
+      "bytes": 571988,
+      "sha256": "97AFE6C3BB7A4BAD7F7A9B379781BC689B801F7F2F2A93511F4906B5301D87DC"
+    },
+    {
+      "path": "assets/companions/trench_assault/running.png",
+      "bytes": 768276,
+      "sha256": "CD966FC171BCA95EBDBA3402384283394541D417A443B433CBEBAF6014390146"
+    },
+    {
+      "path": "assets/companions/trench_assault/attacking.png",
+      "bytes": 934899,
+      "sha256": "D04D1D418F67F90001C471CFA42D055A0D4DA81178C4BFD0DF1F3E76A3CA4E85"
+    },
+    {
+      "path": "assets/companions/trench_assault/dying.png",
+      "bytes": 1048247,
+      "sha256": "03348723259D198805DC71C84B92A204B922FE0197E60F2E754F4761A809F131"
+    },
+    {
+      "path": "assets/sounds/friendly/trench_assault_attack_video.wav",
+      "bytes": 153512,
+      "sha256": "E476B7B562FE7355C8AF8D6637E3FBAFE6D03C93DBA982B5FF894EDD55BD7DDC"
+    },
+    {
+      "path": "assets/ui/unit-icons/hamster-trench-assault.png",
+      "bytes": 24803,
+      "sha256": "FEB4DC867B53E60199EA3CFC430082EC009BCF3094C6578B83C70B0E4DF0967F"
+    },
+    {
+      "path": "data/hamster-trench-assault-config.json",
+      "bytes": 2869,
+      "sha256": "9953FEB562E1F5DF03250E7BB6AD2BAB3C0313C7E78942B5E77AA547A354CB3E"
+    },
+    {
+      "path": "public/data/hamster-trench-assault-config.json",
+      "bytes": 2869,
+      "sha256": "9953FEB562E1F5DF03250E7BB6AD2BAB3C0313C7E78942B5E77AA547A354CB3E"
+    }
+  ],
+  "testsRun": false,
+  "runtimeValidation": "not_run_by_project_contract"
+}

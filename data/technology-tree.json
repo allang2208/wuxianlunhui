@@ -1,5 +1,5 @@
 {
-  "version": 44,
+  "version": 45,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -217,9 +217,21 @@
       ]
     },
     {
-      "id": "hamster_barracks_level_3", "name": "现代步兵军营", "icon": "⛺", "iconPath": "assets/ui/technology-icons/hamster_barracks_level_3.png", "branch": "军事指挥", "subBranch": "军营", "column": 5, "lane": 1, "researchCost": 920, "recruitmentTierId": "hamster_barracks_level_3",
-      "prerequisites": ["hamster_barracks_level_2", "gunpowder"], "description": "完成二级军营编制与黑火药时代门槛后，军营升级为现代步兵军营，两条生产槽分别由仓鼠冠军、仓鼠方阵换代为仓鼠特战与仓鼠防暴队；已经出兵的旧单位不变。", "unlocks": [
-        { "type": "recruitmentTier", "id": "hamster_barracks_level_3", "label": "仓鼠军营三级编制" },
+      "id": "hamster_barracks_industrial", "name": "近代步兵编制", "icon": "⛺", "iconPath": "assets/terrain/hamster_barracks_industrial.png", "branch": "军事指挥", "subBranch": "军营", "column": 4, "lane": 1, "researchCost": 650, "recruitmentTierId": "hamster_barracks_industrial",
+      "prerequisites": ["hamster_barracks_level_2", "gunpowder", "steam_industry_standardization"], "description": "进入近代工业阶段，建筑升级为近代步兵军营，并为战壕突击训练提供前置。钢盾路线完成前继续使用最近一档完整编制，科研仍可继续推进现代。", "unlocks": [
+        { "type": "recruitmentTier", "id": "hamster_barracks_industrial", "label": "近代步兵军营 · III级建筑形态" }
+      ]
+    },
+    {
+      "id": "trench_assault_training", "name": "战壕突击训练", "icon": "🪖", "iconPath": "assets/ui/unit-icons/hamster-trench-assault.png", "branch": "军事指挥", "subBranch": "军营", "column": 5, "lane": 1, "researchCost": 260,
+      "prerequisites": ["hamster_barracks_industrial"], "description": "训练穿钢胸甲、使用A10泵动堑壕霰弹枪的近代突击兵。钢盾路线完成前，本单位作为补充选项加入军营，不替换现有完整编制。", "unlocks": [
+        { "type": "unit", "id": "trench_assault", "label": "战壕突击兵" }
+      ]
+    },
+    {
+      "id": "hamster_barracks_level_3", "name": "现代步兵军营", "icon": "⛺", "iconPath": "assets/ui/technology-icons/hamster_barracks_level_3.png", "branch": "军事指挥", "subBranch": "军营", "column": 6, "lane": 1, "researchCost": 920, "recruitmentTierId": "hamster_barracks_level_3",
+      "prerequisites": ["hamster_barracks_level_2", "gunpowder", "hamster_barracks_industrial"], "description": "近代步兵编制之后进入现代四级，升级为现代步兵军营，两条生产槽换代为仓鼠特战与仓鼠防暴队；已经出兵的旧单位不变。", "unlocks": [
+        { "type": "recruitmentTier", "id": "hamster_barracks_level_3", "label": "现代步兵军营 · IV级编制" },
         { "type": "unit", "id": "special_forces", "label": "仓鼠特战" },
         { "type": "unit", "id": "riot_special", "label": "仓鼠防暴队" }
       ]

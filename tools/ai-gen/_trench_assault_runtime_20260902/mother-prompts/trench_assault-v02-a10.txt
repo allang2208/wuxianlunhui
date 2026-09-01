@@ -1,0 +1,20 @@
+Use case: precise-object-edit
+Asset type: single edited mother frame for World-122 trench assault hamster.
+Edit target: the provided existing trench assault hamster mother v01.
+
+User request: change ONLY the held weapon from a PPS-style submachine gun to an A10 trench shotgun, understood as the Remington Model 10-A / Model 10 trench pump-action shotgun aesthetic. Keep the soldier and all other design choices unchanged.
+
+HARD PRESERVATION: exactly the same individual golden hamster face, short white muzzle, pink nose, round dark eyes, rounded ears, expression, head angle, red-star olive helmet, two-part scuffed steel breastplate, quilted khaki jacket and trousers, backpack/rolled blanket, belt, canvas pouches, puttees and boots. Preserve original body proportions, body height and position in canvas, exact planted foot positions, slightly elevated three-quarter facing-right camera, white background and soft lighting. Do not redesign clothing, accessories or face. No new ammunition strips, grenades, bayonet, badges or character changes.
+
+WEAPON REPLACEMENT: completely remove the old metal folding stock, perforated submachine gun cooling shroud and detachable curved box magazine. Replace the entire gun with ONE clearly recognizable A10 / Remington Model 10 trench-style PUMP-ACTION SHOTGUN:
+- a solid reddish walnut shoulder buttstock with conventional rounded wrist integrated into the wood, not a folding stock or modern pistol grip;
+- a simple elongated smooth dark blued-steel enclosed receiver;
+- a dark single shotgun barrel with the characteristic warm-brown wooden upper heat guard of the Model 10 trench variant, rather than a perforated all-metal SMG jacket;
+- a separate parallel tubular magazine UNDER the barrel (the lower tube is NOT a second barrel);
+- a compact ribbed brown wooden sliding pump fore-end held by the forward supporting paw;
+- a simple period front sight and modest metal muzzle fitting; no mounted bayonet.
+The upper tube is the single barrel, the lower tube ends before the muzzle. The gun must read as an early wooden-stock trench pump shotgun, not a double-barrel shotgun, automatic rifle, submachine gun, modern tactical shotgun, Winchester exposed-hammer gun or generic bolt-action rifle. No drum/box magazine, scope, modern rails, flashlight, laser, suppressor or pistol-grip conversion.
+
+HOLDING: keep the same low-ready gun pose across the lower chest pointing screen right. The rear paw grips the wooden stock wrist by the trigger guard; the supporting paw rests naturally on the wooden pump fore-end. Make ONLY the small local paw/finger and forearm changes necessary for the new grip. Keep the shotgun in realistic proportion to the same small hamster, fully inside the image with safe white clearance at butt and muzzle. Steel breastplate remains visible above and below the gun, no body clipping, extra fingers or detached paws. Not firing, pumping or reloading: this is an idle identity image.
+
+Preserve original 1536x1024 landscape framing and high-detail realistic PBR game render: golden fur, woven fabric, worn leather, subtly aged wood and blued steel. Uniform pure white #FFFFFF background with no ground/contact shadow, no floor, horizon, environment, panels, text or watermark. Output exactly one edited mother image.

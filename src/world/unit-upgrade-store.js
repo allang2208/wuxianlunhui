@@ -13,6 +13,7 @@ import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
 import specialForcesCfg from '../../data/hamster-special-forces-config.json';
+import trenchAssaultCfg from '../../data/hamster-trench-assault-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
@@ -83,6 +84,7 @@ export const UNIT_KIND_CFG = {
     phalanx: phalanxCfg,
     riot_special: riotSquadCfg,
     special_forces: specialForcesCfg,
+    trench_assault: trenchAssaultCfg,
     halberd: halberdierCfg,
     scout: scoutCfg,
     ranger: rangerCfg,
@@ -140,7 +142,8 @@ export function getUnitKind(unit) {
     if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
     if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';
-    // 特战、防暴队、突击兵与重机枪手都继承火枪实体，必须先于 _isHamsterMusketeer 判断。
+    // 战壕突击、特战、防暴队、突击兵与重机枪手都继承火枪实体，必须先于 _isHamsterMusketeer 判断。
+    if (unit._isHamsterTrenchAssault) return 'trench_assault';
     if (unit._isHamsterSpecialForces) return 'special_forces';
     if (unit._isHamsterRiotSquad) return 'riot_special';
     if (unit._isHamsterAssault) return 'assault';

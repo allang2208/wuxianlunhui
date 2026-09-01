@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "task": "trench_assault",
+  "policy": "Retain approved mothers, formal source videos, provider metadata, prompts, current source sheets, final GIF previews, reports and exact parameters; remove only rejected binaries and recreatable duplicate caches.",
+  "removedBytes": 67865333,
+  "removed": [
+    {
+      "path": "videos/running-doubao-v01.mp4",
+      "bytes": 1025826,
+      "reason": "rejected source video binary; provider metadata retained"
+    },
+    {
+      "path": "previews/running-doubao-v01-contact-32.png",
+      "bytes": 1418509,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/running-doubao-v01-source.gif",
+      "bytes": 3066446,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/running-doubao-v02-no-tail.mp4",
+      "bytes": 1093867,
+      "reason": "rejected source video binary; provider metadata retained"
+    },
+    {
+      "path": "previews/running-doubao-v02-no-tail-contact-32.png",
+      "bytes": 1243360,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/running-doubao-v02-no-tail-source.gif",
+      "bytes": 2991500,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/running-doubao-v03-closed-uniform.mp4",
+      "bytes": 1120519,
+      "reason": "rejected source video binary; provider metadata retained"
+    },
+    {
+      "path": "previews/running-doubao-v03-closed-uniform-contact-32.png",
+      "bytes": 1421993,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/running-doubao-v03-closed-uniform-source.gif",
+      "bytes": 3424751,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/running-doubao-v04-movement-only.mp4",
+      "bytes": 1099247,
+      "reason": "rejected source video binary; provider metadata retained"
+    },
+    {
+      "path": "previews/running-doubao-v04-movement-only-contact-32.png",
+      "bytes": 1353078,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/running-doubao-v04-movement-only-source.gif",
+      "bytes": 3176357,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/attacking-doubao-v01.mp4",
+      "bytes": 761243,
+      "reason": "rejected source video binary; provider metadata retained"
+    },
+    {
+      "path": "previews/attacking-doubao-v01-contact-32.png",
+      "bytes": 1562035,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/attacking-doubao-v01-source.gif",
+      "bytes": 3459624,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/attacking-doubao-v02-mother-tail-concealed.mp4",
+      "bytes": 762252,
+      "reason": "rejected source video binary; provider metadata retained"
+    },
+    {
+      "path": "previews/attacking-doubao-v02-mother-tail-concealed-contact-32.png",
+      "bytes": 1458721,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/attacking-doubao-v02-mother-tail-concealed-source.gif",
+      "bytes": 3275315,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/dying-doubao-v01.mp4",
+      "bytes": 807495,
+      "reason": "rejected source video binary; provider metadata retained"
+    },
+    {
+      "path": "previews/dying-doubao-v01-contact-32.png",
+      "bytes": 1394474,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/dying-doubao-v01-source.gif",
+      "bytes": 2988844,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/running-h3-v03-motion-transfer.mp4",
+      "bytes": 1058115,
+      "reason": "rejected source video binary; task JSON retained"
+    },
+    {
+      "path": "videos/running-h3-v03-motion-transfer_contact.png",
+      "bytes": 1058844,
+      "reason": "rejected generator contact image"
+    },
+    {
+      "path": "previews/running-h3-v03-motion-transfer-contact-32.png",
+      "bytes": 1545527,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/running-h3-v03-motion-transfer-source.gif",
+      "bytes": 2740266,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/attacking-h3-v03-motion-transfer.mp4",
+      "bytes": 832716,
+      "reason": "rejected source video binary; task JSON retained"
+    },
+    {
+      "path": "videos/attacking-h3-v03-motion-transfer_contact.png",
+      "bytes": 1068261,
+      "reason": "rejected generator contact image"
+    },
+    {
+      "path": "previews/attacking-h3-v03-motion-transfer-contact-32.png",
+      "bytes": 1535123,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/attacking-h3-v03-motion-transfer-source.gif",
+      "bytes": 2988976,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "videos/dying-h3-v03-motion-transfer.mp4",
+      "bytes": 856786,
+      "reason": "rejected source video binary; task JSON retained"
+    },
+    {
+      "path": "videos/dying-h3-v03-motion-transfer_contact.png",
+      "bytes": 1086316,
+      "reason": "rejected generator contact image"
+    },
+    {
+      "path": "previews/dying-h3-v03-motion-transfer-contact-32.png",
+      "bytes": 1578438,
+      "reason": "duplicate rejected contact preview"
+    },
+    {
+      "path": "previews/dying-h3-v03-motion-transfer-source.gif",
+      "bytes": 2903773,
+      "reason": "duplicate rejected source preview"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-f000.png",
+      "bytes": 337369,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-f024.png",
+      "bytes": 367394,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-f044.png",
+      "bytes": 386834,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-f060.png",
+      "bytes": 380936,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-f083.png",
+      "bytes": 386305,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-f107.png",
+      "bytes": 387041,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-f123.png",
+      "bytes": 376768,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/attacking-h3-v03-motion-transfer-transparent-contact.png",
+      "bytes": 430466,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-f000.png",
+      "bytes": 291174,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-f020.png",
+      "bytes": 307951,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-f040.png",
+      "bytes": 303175,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-f060.png",
+      "bytes": 304909,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-f080.png",
+      "bytes": 284559,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-f100.png",
+      "bytes": 299518,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-f120.png",
+      "bytes": 303240,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-doubao-v04-movement-only-transparent-contact.png",
+      "bytes": 342025,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-f000.png",
+      "bytes": 489733,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-f020.png",
+      "bytes": 507905,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-f040.png",
+      "bytes": 529938,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-f060.png",
+      "bytes": 519138,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-f080.png",
+      "bytes": 505884,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-f100.png",
+      "bytes": 534662,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-f123.png",
+      "bytes": 528026,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "previews/tail-salvage/running-h3-v03-motion-transfer-transparent-contact.png",
+      "bytes": 579297,
+      "reason": "rejected tail-salvage analysis cache"
+    },
+    {
+      "path": "__pycache__/build-source-reviews.cpython-311.pyc",
+      "bytes": 12265,
+      "reason": "recreatable Python bytecode cache"
+    },
+    {
+      "path": "__pycache__/build-source-reviews.cpython-312.pyc",
+      "bytes": 10224,
+      "reason": "recreatable Python bytecode cache"
+    }
+  ],
+  "retainedFormalVideos": [
+    "videos/idle-doubao-v01.mp4",
+    "videos/running-doubao-v05-reference-only.mp4",
+    "videos/attacking-doubao-v04-reference-only.mp4",
+    "videos/dying-h3-v04-first-last-right.mp4"
+  ],
+  "retainedRebuildChain": [
+    "prompts/",
+    "keyframes/",
+    "references/",
+    "postprocess/source-sheets-pre-rife/",
+    "postprocess/previews/rife/",
+    "postprocess/rife-reports/",
+    "formal-asset-manifest.json",
+    "direction-review.md"
+  ],
+  "metadataPreserved": "All rejected .mp4.json provider metadata and documented rejection reasons are retained.",
+  "testsRun": false
+}

@@ -6,7 +6,8 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 44;
+const VERSION = 45;
+const INDUSTRIAL_BARRACKS_VERSION = 45;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
 const V41_CAVALRY_SCOUT_RIFLE_ID = 'cavalry_scout_rifle';
@@ -936,6 +937,15 @@ export const TechnologySystem = {
             && nodesById.has('wall_battlement_engineering')
             && !completed.includes('wall_battlement_engineering')) {
             completed.push('wall_battlement_engineering');
+        }
+        // v45 inserts the industrial barracks before the stable modern tier ID.
+        // Saves that already completed the modern tier inherit its new mandatory ancestor;
+        // unfinished routes keep their progress and research the inserted era normally.
+        if (savedVersion < INDUSTRIAL_BARRACKS_VERSION
+            && completed.includes('hamster_barracks_level_3')
+            && nodesById.has('hamster_barracks_industrial')
+            && !completed.includes('hamster_barracks_industrial')) {
+            completed.push('hamster_barracks_industrial');
         }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {

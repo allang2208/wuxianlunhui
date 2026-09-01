@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\references\\trench-assault-running-keyframe-video-safe-16x9.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\prompts\\running-doubao-v05-reference-only.txt",
+  "promptChars": 751,
+  "promptSha256": "ba5f63f2afecec902e89eb498a573e83f667b518f004742dbfc514cf729feb00",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T15:05:28.945Z",
+  "sourceUrlScheme": "https"
+}

@@ -37,6 +37,7 @@ import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
 import specialForcesCfg from '../../data/hamster-special-forces-config.json';
+import trenchAssaultCfg from '../../data/hamster-trench-assault-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
@@ -93,7 +94,7 @@ export const WORLD122_SIM = {
 
 const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
-    guard: guardCfg, phalanx: phalanxCfg, special_forces: specialForcesCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, longbow: longbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
+    guard: guardCfg, phalanx: phalanxCfg, trench_assault: trenchAssaultCfg, special_forces: specialForcesCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, longbow: longbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
     cavalry: cavalryCfg, winged_hussar: wingedHussarCfg,
     powered_eod_explosive_lancer: poweredEodExplosiveLancerCfg,
@@ -792,11 +793,19 @@ function _unitDps(kind, levelOverrides = null) {
                 * 1000 / Math.max(1000, charge.cooldown ?? 15000);
         }
     }
-    if (kind === 'warrior' || kind === 'jaguar_warrior') {
+    if (kind === 'warrior' || kind === 'special_forces' || kind === 'trench_assault'
+        || kind === 'jaguar_warrior') {
         const ability = getBuildingUpgradeAbility('sweep_aoe');
         const level = _levelOf('sweep_aoe', levelOverrides);
-        if (ability && level > 0) {
-            dps += dps * getAbilityValue(ability, level) * WORLD122_SIM.sweepExpectedExtraTargets;
+        const baseAoeMul = Math.max(0, Number(cfg.ai.baseAoeDamageMultiplier) || 0);
+        const upgradeAoeBonus = ability && level > 0 ? getAbilityValue(ability, level) : 0;
+        const expectedExtraTargets = Math.max(0,
+            Number(cfg.ai.expectedExtraTargets) || WORLD122_SIM.sweepExpectedExtraTargets);
+        if (baseAoeMul > 0) {
+            dps += dps * baseAoeMul * (1 + upgradeAoeBonus) * expectedExtraTargets;
+        } else if (ability && level > 0) {
+            // 旧战士/美洲虎合同没有固有倍率，继续只计算已研究横扫的额外目标。
+            dps += dps * upgradeAoeBonus * WORLD122_SIM.sweepExpectedExtraTargets;
         }
     }
     return dps;

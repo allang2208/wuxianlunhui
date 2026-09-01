@@ -6,6 +6,7 @@ import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterPhalanxConfig from '../../../data/hamster-phalanx-config.json';
 import hamsterRiotSquadConfig from '../../../data/hamster-riot-squad-config.json';
 import hamsterSpecialForcesConfig from '../../../data/hamster-special-forces-config.json';
+import hamsterTrenchAssaultConfig from '../../../data/hamster-trench-assault-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
 import hamsterHalberdierConfig from '../../../data/hamster-halberdier-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
@@ -42,6 +43,7 @@ export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterPhalanxConfig,
     hamsterRiotSquadConfig,
     hamsterSpecialForcesConfig,
+    hamsterTrenchAssaultConfig,
     hamsterMilitiaConfig,
     hamsterHalberdierConfig,
     hamsterScoutConfig,

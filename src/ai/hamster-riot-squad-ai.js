@@ -7,10 +7,12 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { HamsterRiotShotgunEffect } from '../effects/hamster-riot-shotgun-effect.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
+import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 
 /**
- * 防暴队专属近距压制：沿用火枪 AI 的寻敌、RTS、站定与攻击时间轴，
- * 释放帧改为无弹道的地面扇区一次性结算。
+ * 近距霰弹扇区：沿用火枪 AI 的寻敌、RTS、站定与攻击时间轴，
+ * 防暴队、现代特战和战壕突击兵按各自配置在释放帧即时结算地面扇区。
  */
 export class HamsterRiotSquadAI extends HamsterMusketeerAI {
     constructor(unit) {
@@ -79,7 +81,7 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
         }
     }
 
-    /** 防暴队没有飞行弹体；热重载时也主动清除旧式火枪曳光弹。 */
+    /** 霰弹单位没有飞行弹体；热重载时也主动清除旧式火枪曳光弹。 */
     _updateProjectile() {
         this.m._basic = null;
     }
@@ -105,14 +107,44 @@ export class HamsterRiotSquadAI extends HamsterMusketeerAI {
             surfaceEffectFromEntity(m)
         );
 
+        const targets = [];
         for (const entity of queryNearbyEntities(this._entities, m, range + 96)) {
             if (!entity || entity === m || !entity.active || entity.hp <= 0
                 || entity._faction !== 'enemy' || entity._isEnergyNode) continue;
             if (!sector.intersectsEntity(entity)) continue;
             // 无弹道不等于穿墙；扇区内每个目标仍单独执行现有远程 LOS 门禁。
             if (!hasRangedLineOfSight(m, entity)) continue;
+            targets.push(entity);
+        }
+
+        targets.sort((a, b) => {
+            if (a === m.target) return -1;
+            if (b === m.target) return 1;
+            return Math.hypot(a.x - originX, a.y - originY)
+                - Math.hypot(b.x - originX, b.y - originY);
+        });
+        const configuredMaxTargets = Math.floor(Number(this.cfg.attackMaxTargets));
+        const maxTargets = Number.isFinite(configuredMaxTargets) && configuredMaxTargets > 0
+            ? configuredMaxTargets
+            : Number.POSITIVE_INFINITY;
+        const baseAoeDamageMultiplier = Math.max(0,
+            Number(this.cfg.baseAoeDamageMultiplier) || 0);
+        const sweepAbility = (m._isHamsterSpecialForces || m._isHamsterTrenchAssault)
+            ? getBuildingUpgradeAbility('sweep_aoe')
+            : null;
+        const sweepLevel = sweepAbility ? getAbilityLevel('sweep_aoe') : 0;
+        const aoeUpgradeBonus = sweepLevel > 0
+            ? getAbilityValue(sweepAbility, sweepLevel)
+            : 0;
+
+        for (const entity of targets.slice(0, maxTargets)) {
+            // 锁定主目标只吃一次完整普攻；额外目标按单位配置的扇区倍率结算。
+            // 防暴队没有该倍率，保持既有扇区内每目标完整伤害合同。
+            const configuredDamage = entity === m.target || baseAoeDamageMultiplier <= 0
+                ? this._attackDamage
+                : this._attackDamage * baseAoeDamageMultiplier * (1 + aoeUpgradeBonus);
             entity.takeDamage?.(
-                m.getPhysicalAttackDamage(this._attackDamage, entity),
+                m.getPhysicalAttackDamage(configuredDamage, entity),
                 m,
                 'physical',
                 false

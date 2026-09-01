@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "authorized_and_completed",
+  "destination": "http://192.168.3.142:8188",
+  "purpose": "MiniMax H3战壕突击兵移动、攻击、死亡三个动画候选",
+  "reason": "豆包明确显示近7天额度用完；按WORKFLOW 3.6切H3，但建筑上传授权不覆盖角色素材，自动安全审查拒绝。",
+  "uploads": [
+    {"action": "running", "role": "identity_image", "path": "keyframes/running-keyframe-v01.png", "bytes": 1281652, "sha256": "a88ea444ab1f7fa2ed502681a026bd421004fc66210a4b2f2e3a4549771c7321"},
+    {"action": "running", "role": "motion_only_video", "path": "videos/running-doubao-v02-no-tail.mp4", "bytes": 1093867, "sha256": "a2567f41cca730c0535f14f876c02bfc23d2f2a9199f5329989a1a6159475b10"},
+    {"action": "attacking", "role": "identity_image", "path": "../../mother/trench_assault-mother-v03-a10.png", "bytes": 1867115, "sha256": "5427b62d39a176ef535f86ba32c068f4666941d8897ae3b16774f7a7eb908e1a"},
+    {"action": "attacking", "role": "motion_only_video", "path": "videos/attacking-doubao-v02-mother-tail-concealed.mp4", "bytes": 762252, "sha256": "41aa029ee53e7019c995a4acbf898d2a518bfa53989519f101793ad3b5afcc03"},
+    {"action": "dying", "role": "identity_image", "path": "../../mother/trench_assault-mother-v03-a10.png", "bytes": 1867115, "sha256": "5427b62d39a176ef535f86ba32c068f4666941d8897ae3b16774f7a7eb908e1a"},
+    {"action": "dying", "role": "motion_only_video", "path": "../../../_industrial_recon_mothers_20260831/animations/industrial_recon_rifleman/videos/dying-doubao-v03-sling-retained.mp4", "bytes": 795311, "sha256": "23b1d5c73d518422659091608c5b8dd7fac1d0a3d1776e75441ed2b8ebfd735b"}
+  ],
+  "promptFiles": [
+    "prompts/running-h3-v03-motion-transfer.txt",
+    "prompts/attacking-h3-v03-motion-transfer.txt",
+    "prompts/dying-h3-v03-motion-transfer.txt"
+  ],
+  "parameters": {
+    "model": "MiniMax H3 ref2va",
+    "durationSeconds": 5.17,
+    "size": "1344x768",
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "refSize": "max",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "authorization": {
+    "received": true,
+    "userReply": "继续",
+    "interpretation": "承接助手紧前对本清单的精确授权请求",
+    "submittedCandidates": 3,
+    "additionalCandidatesSubmitted": 0
+  },
+  "outputs": [
+    {"action": "running", "path": "videos/running-h3-v03-motion-transfer.mp4", "bytes": 1058115, "sha256": "80585727df0eab3e706c94c455d3f74f7f59c64a520a8f46771a04794d7f16d5", "result": "rejected_visible_long_tail"},
+    {"action": "attacking", "path": "videos/attacking-h3-v03-motion-transfer.mp4", "bytes": 832716, "sha256": "619b970032a381ed4c82ca40d67c89167458354254cb772544dee29834a641b3", "result": "rejected_tail_rat_hind_leg_frontal_body_dark_ground"},
+    {"action": "dying", "path": "videos/dying-h3-v03-motion-transfer.mp4", "bytes": 856786, "sha256": "2af28323cb72a23611d473faa370b1c3c7c26c39e0015f619c7c8fb601d12a9b", "result": "assistant_offline_passed_pending_user_review"}
+  ],
+  "explicitExclusions": [
+    "不上传游戏代码、配置、存档、凭据或无关文件",
+    "不清空或抢占共享队列",
+    "不确认豆包付费额度",
+    "不自动无限重抽",
+    "不接入运行时"
+  ]
+}

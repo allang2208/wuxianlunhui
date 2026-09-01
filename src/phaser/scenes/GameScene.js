@@ -1968,6 +1968,15 @@ export class GameScene extends Scene {
         return sources;
     }
 
+    _companionFrameFootCorrection(member, sprite, scale) {
+        const frameH = sprite.frame?.height || 512;
+        const calibratedFootY = member.getAnimationFootY?.(sprite.texture?.key);
+        if (Number.isFinite(calibratedFootY)) {
+            return (frameH / 2 - calibratedFootY) * scale - (member.spriteOffsetY || 0);
+        }
+        return -(frameH - 512) * 0.4375 * scale;
+    }
+
     /** 侍从跟随渲染：有动作素材的队员（露娜等）跟随玩家，按移动/冲刺/施法播 walk/run/spell */
     _syncCompanionSprites(_game, dt) {
         const player = _game && _game.player;
@@ -2041,7 +2050,7 @@ export class GameScene extends Scene {
                 const normS = size / 512;
                 const frameW = sprite.frame?.width || 512;
                 const frameH = sprite.frame?.height || 512;
-                const feetCorr = -(frameH - 512) * 0.4375 * normS;
+                const feetCorr = this._companionFrameFootCorrection(member, sprite, normS);
                 sprite.setDisplaySize(frameW * normS, frameH * normS);
                 sprite.setPosition(
                     member.x,
@@ -2612,7 +2621,7 @@ export class GameScene extends Scene {
                 ? Math.sin((this.time.now / idleSwayPeriodMs) * Math.PI * 2 + idlePhase) * idleSwayX
                 : 0;
             sprite.setDisplaySize(frameW * normS * breatheW, frameH * normS * breatheH);
-            const feetCorr = -(frameH - 512) * 0.4375 * normS
+            const feetCorr = this._companionFrameFootCorrection(member, sprite, normS)
                 - frameH * normS * (breatheH - 1) / 2;
             if (aiMode) {
                 sprite.setPosition(member.x + idleOffsetX, member.y + spriteOffY - elevationZ + feetCorr);

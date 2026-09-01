@@ -45,6 +45,7 @@
       "assets/sounds/enemies/time_agent_shield/gunshot.mp3",
       "assets/companions/hamster_musketeer/fire.mp3",
       "assets/sounds/friendly/hamster_anti_vehicle_attack.mp3",
+      "assets/sounds/friendly/trench_assault_attack_video.wav",
       "assets/sounds/friendly/hamster_bounty_hunter_attack.mp3"
     ],
     "cachedPathLimit": 64,

@@ -15,6 +15,7 @@ import { HamsterGuard } from '../entities/hamster-guard.js';
 import { HamsterPhalanx } from '../entities/hamster-phalanx.js';
 import { HamsterRiotSquad } from '../entities/hamster-riot-squad.js';
 import { HamsterSpecialForces } from '../entities/hamster-special-forces.js';
+import { HamsterTrenchAssault } from '../entities/hamster-trench-assault.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterHalberdier } from '../entities/hamster-halberdier.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
@@ -78,6 +79,7 @@ import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
 import specialForcesCfg from '../../data/hamster-special-forces-config.json';
+import trenchAssaultCfg from '../../data/hamster-trench-assault-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
@@ -120,7 +122,8 @@ import {
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
 import {
     DEFAULT_BUILDING_UPGRADE_TIME_MS, buildingContinuousTargetMatches,
-    getBuildingContinuousCategory, getBuildingModuleUpgradeCost, getUpgradeModulesForUnitKind,
+    getBuildingContinuousCategory, getBuildingModuleUpgradeCost, getBuildingUpgradeAbility,
+    getUpgradeModulesForUnitKind,
     isBuildingContinuousUpgradeOccupied, isBuildingUpgradeProgressOccupied,
     normalizeBuildingContinuousTarget, resolveBuildingUpgradeProject,
 } from './building-upgrade-projects.js';
@@ -186,6 +189,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     phalanx: '仓鼠方阵',
     riot_special: '仓鼠防暴队',
     special_forces: '仓鼠特战',
+    trench_assault: '战壕突击兵',
     militia: '仓鼠民兵',
     halberd: '仓鼠长戟',
     scout: '仓鼠斥候',
@@ -298,6 +302,7 @@ const PRODUCER_UNIT_CFG = {
     phalanx: phalanxCfg,
     riot_special: riotSquadCfg,
     special_forces: specialForcesCfg,
+    trench_assault: trenchAssaultCfg,
     militia: militiaCfg,
     halberd: halberdierCfg,
     scout: scoutCfg,
@@ -335,6 +340,7 @@ const PRODUCER_UNIT_CLASS = {
     phalanx: HamsterPhalanx,
     riot_special: HamsterRiotSquad,
     special_forces: HamsterSpecialForces,
+    trench_assault: HamsterTrenchAssault,
     militia: HamsterMilitia,
     halberd: HamsterHalberdier,
     scout: HamsterScout,
@@ -386,6 +392,7 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     phalanx: 'data/hamster-phalanx-config.json',
     riot_special: 'data/hamster-riot-squad-config.json',
     special_forces: 'data/hamster-special-forces-config.json',
+    trench_assault: 'data/hamster-trench-assault-config.json',
     militia: 'data/hamster-militia-config.json',
     halberd: 'data/hamster-halberdier-config.json',
     scout: 'data/hamster-scout-config.json',
@@ -474,6 +481,14 @@ export function getMilitaryUnitProfile(kind) {
         const rocketDamage = (Number(base.ai?.rocketDamage) || 0)
             * Math.max(0, Number(patch.attackDamageMult) || 1);
         dps += rocketDamage * 1000 / Math.max(1000, Number(base.ai?.rocketCooldownMs) || 8000);
+    }
+    if (kind === 'special_forces' || kind === 'trench_assault') {
+        const ability = getBuildingUpgradeAbility('sweep_aoe');
+        const level = getAbilityLevel('sweep_aoe');
+        const baseAoeMul = Math.max(0, Number(base.ai?.baseAoeDamageMultiplier) || 0);
+        const upgradeAoeBonus = ability && level > 0 ? getAbilityValue(ability, level) : 0;
+        const expectedExtraTargets = Math.max(0, Number(base.ai?.expectedExtraTargets) || 0);
+        dps += dps * baseAoeMul * (1 + upgradeAoeBonus) * expectedExtraTargets;
     }
     return {
         maxHp: Math.max(1, Number(patch.baseMaxHp ?? base.baseMaxHp) || 1),
