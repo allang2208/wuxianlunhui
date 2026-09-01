@@ -1769,6 +1769,143 @@ function createBrownBear(x, y, overrides = {}) {
 }
 
 /**
+ * 雪原普通动物：沿用四足近战、命中时钟和死亡保尸契约；普通移动与追击
+ * 共用同一套右向 running 循环，左右朝向仅由运行时水平镜像处理。
+ */
+class SnowManeLynxEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.snowManeLynx,
+            ...config,
+        });
+    }
+
+    _getSnowManeLynxVisualState(state = this._animState) {
+        return state === 'run' || state === 'walk' ? 'running' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getSnowManeLynxVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_snow_mane_lynx_${this._getSnowManeLynxVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getSnowManeLynxVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_snow_mane_lynx_${visualState}_v1`;
+        return options;
+    }
+}
+
+/**
+ * 雪原普通动物重装位：沿用四足近战、原始攻击时钟和死亡保尸契约。
+ * 普通移动与追击共用向右 running 循环，左向仅由运行时水平镜像生成。
+ */
+class FrostbackMuskOxEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.frostbackMuskOx,
+            ...config,
+        });
+    }
+
+    _getFrostbackMuskOxVisualState(state = this._animState) {
+        return state === 'run' || state === 'walk' ? 'running' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getFrostbackMuskOxVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_frostback_musk_ox_${this._getFrostbackMuskOxVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getFrostbackMuskOxVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_frostback_musk_ox_${visualState}_v1`;
+        return options;
+    }
+}
+
+/**
+ * 雪原普通深渊异兽：沿用四足近战、原始攻击时钟和死亡保尸契约。
+ * 普通移动与追击共用向右 running 循环，左向仅由运行时水平镜像生成。
+ */
+class AbyssRimeBeastEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.abyssRimeBeast,
+            ...config,
+        });
+    }
+
+    _getAbyssRimeBeastVisualState(state = this._animState) {
+        return state === 'run' || state === 'walk' ? 'running' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getAbyssRimeBeastVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_abyss_rime_beast_${this._getAbyssRimeBeastVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getAbyssRimeBeastVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_abyss_rime_beast_${visualState}_v1`;
+        return options;
+    }
+}
+
+/**
+ * 雪原普通类人矛兵：沿用近战命中时钟和死亡保尸契约，武器已经烘焙在图集内。
+ * 普通移动与追击共用向右 running 循环，左向仅由运行时水平镜像生成。
+ */
+class FrostboundSpearmanEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.frostboundSpearman,
+            ...config,
+        });
+    }
+
+    _getFrostboundSpearmanVisualState(state = this._animState) {
+        return state === 'run' || state === 'walk' ? 'running' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getFrostboundSpearmanVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_frostbound_spearman_${this._getFrostboundSpearmanVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getFrostboundSpearmanVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_frostbound_spearman_${visualState}_v1`;
+        return options;
+    }
+}
+
+
+/**
  * 普通邪恶树精：复用四动作普通近战和死亡保尸时序。逻辑 run 与 walk
  * 共用同一套沉重步行动画，死亡终帧保留碎裂后的木材堆。
  */
@@ -4158,4 +4295,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

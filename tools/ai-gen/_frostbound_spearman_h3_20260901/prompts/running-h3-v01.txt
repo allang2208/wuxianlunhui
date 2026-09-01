@@ -1,0 +1,9 @@
+The supplied first frame is the exact approved Frostbound Spearman identity and a valid screen-right mid-run phase. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.
+
+0.0-0.8 seconds: he continues smoothly out of the supplied screen-right stride. The forward boot completes its reach and the rear boot drives back along one constant ground line while the torso stays aligned with the rightward motion axis.
+
+0.8-4.4 seconds: he performs several grounded running cycles in place on an invisible treadmill. Exactly two legs alternate cleanly at hips and knees; both boots lift, swing, contact, and push without skating. Both hands remain attached and grip the same horizontal spear at waist height, with the spearhead pointing screen right and the shaft staying clear of both legs. The hood, coat hem, shoulders, chest, pelvis, knees, boot toes, and root motion all remain screen right.
+
+4.4-5.17 seconds: the stride naturally closes into the exact supplied leg phase, hand positions, spear alignment, body scale, and root point for a seamless loop.
+
+The camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with no net horizontal travel. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid turn toward viewer, left-facing reversal, sprinting leap, attack, thrust, weapon duplication, hand detachment, limb duplication or fusion, coat-to-leg fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects.

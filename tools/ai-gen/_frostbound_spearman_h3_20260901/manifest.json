@@ -1,0 +1,134 @@
+{
+  "task": "frostbound-spearman-h3-four-action-v01",
+  "date": "2026-09-01",
+  "stage": "formal-four-action-runtime-integrated-static-only",
+  "provider": "minimax-h3-local",
+  "userAuthorizedVideo": true,
+  "runtimeIntegrationActive": true,
+  "identitySource": "tools/ai-gen/_frozen_normal_mothers_20260901/mother/04-frostbound-spearman-v02-right-facing.png",
+  "imagegenKeyframes": {
+    "mode": "built-in-imagegen-identity-preserve-edit",
+    "running": {
+      "sourceGeneration": "exec-3154ff5a-00d2-4a1e-a5ff-f20fbf42e3af.png",
+      "output": "references/frostbound-spearman-running-keyframe-v01-source.png"
+    },
+    "attack": {
+      "sourceGeneration": "exec-0a75b50a-99ec-4689-bb30-6a483aa36c29.png",
+      "output": "references/frostbound-spearman-attacking-keyframe-v01-source.png"
+    }
+  },
+  "structureContract": {
+    "arms": 2,
+    "hands": 2,
+    "legs": 2,
+    "boots": 2,
+    "spears": 1,
+    "spearheads": 1,
+    "review": "running and attack keyframes show one coherent humanoid body and both attached hands gripping one spear"
+  },
+  "directionContract": {
+    "facing": "screen-right",
+    "camera": "slightly elevated, side-dominant low-three-quarter, orthographic-like",
+    "bodyAxis": "hooded head, chest, pelvis, knees, boot toes, spear and root motion remain screen-right",
+    "runtimeMirror": "horizontal mirror supplies screen-left; no second atlas"
+  },
+  "referenceReview": {
+    "humanoidWalking": [
+      "assets/enemies/shroud_thrall/walk.png",
+      "assets/enemies/coffin_ward/walk.png"
+    ],
+    "conclusion": "use low-three-quarter view and prove body direction independently of weapon direction"
+  },
+  "h3Parameters": {
+    "size": "1024x576",
+    "durationSeconds": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "actions": {
+    "idle": {
+      "mode": "loop",
+      "seed": 181424997,
+      "sourceVideo": "videos/frostbound-spearman-idle-h3-v01.mp4",
+      "formalFrames": 16,
+      "durationMs": 5170
+    },
+    "running": {
+      "mode": "loop",
+      "seed": 610392447,
+      "sourceVideo": "videos/frostbound-spearman-running-h3-v01.mp4",
+      "sourceWindow": [61, 92],
+      "formalFrames": 32,
+      "durationMs": 1292
+    },
+    "attack": {
+      "mode": "recover",
+      "seed": 1410078523,
+      "semantic": "one direct spear thrust only",
+      "sourceVideo": "videos/frostbound-spearman-attacking-h3-v01.mp4",
+      "sourceWindow": [14, 74],
+      "excludedRepeatedStrikeRanges": [[80, 123]],
+      "formalFrames": 41,
+      "sourceWallClockMs": 2500,
+      "durationMs": 1500,
+      "runtimeDurationMs": 1500,
+      "runtimeTimeScale": 0.6,
+      "anchorX": 104,
+      "contactFrame": 10,
+      "activeFrames": [10, 22]
+    },
+    "death": {
+      "mode": "one-way",
+      "seed": 822761309,
+      "sourceVideo": "videos/frostbound-spearman-dying-h3-v01.mp4",
+      "sourceWindow": [28, 72],
+      "formalFrames": 45,
+      "durationMs": 1833,
+      "settledFromSourceFrame": 72
+    }
+  },
+  "spriteSheetManifest": "sprite-sheet-manifest.json",
+  "spriteBudgetManifest": "sprite-budget-manifest.json",
+  "runtimeAssets": "assets/enemies/frostbound_spearman",
+  "runtimeConfigId": "frostboundSpearman",
+  "offlineValidation": {
+    "facing": "passed",
+    "twoArmsTwoHandsTwoLegsTwoBoots": "passed",
+    "singleCompleteSpear": "passed",
+    "singleAttack": "passed; second thrust range excluded",
+    "singleDeath": "passed; first stable corpse endpoint retained",
+    "interpolationPasses": 1,
+    "decodedRgbaMiB": 29.1738,
+    "crowdBudgetTargetMiB": 32
+  },
+  "alignmentAudit": {
+    "runtimePixelScale": 0.6640625,
+    "stateDisplayContract": "idle/running/attack use 170x138.125 display cells; death uses 191.25x138.125 only because its cell is wider, with the same pixel scale",
+    "scaleResult": "no per-state runtime zoom, non-uniform scale, or per-frame fit",
+    "verticalRoot": "idle/running/attack alpha support line stays at source y187-188 against footY188; death keeps its authored natural collapse",
+    "horizontalRoot": {
+      "attackAnchorX": 104,
+      "supportMidpointSourceSpan": [101.25, 105.75],
+      "residualWorldSpan": 2.9883,
+      "method": "constant whole-frame runtime anchor; no per-frame translation"
+    },
+    "attackCalibration": {
+      "visualTipMaxSourceX": 225,
+      "visualTipReachWorld": 80.3516,
+      "approachReach": 82,
+      "impactReach": 82,
+      "width": 32,
+      "durationMs": 1500,
+      "contactFrame": 10,
+      "contactMs": 365.8537,
+      "activeFrames": [10, 22],
+      "activeWindowMs": [365.8537, 841.4634],
+      "resolver": "directed single-target basic melee enabled"
+    }
+  },
+  "validationBoundary": "source videos, formal spritesheets, budget and static integration reviewed offline; no game, browser, build or runtime validation was run"
+}

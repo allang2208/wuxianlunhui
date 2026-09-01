@@ -1,0 +1,11 @@
+The supplied first frame is the exact approved Snow-Mane Lynx identity in a neutral standing pose. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, thick pale neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.
+
+0.0-0.8 seconds: the lynx receives an unseen fatal impact without blood or a visible attacker. Its front legs buckle, the head drops, and the body loses strength while still facing screen right.
+
+0.8-2.8 seconds: the animal collapses in one physically plausible continuous motion onto its right-facing side. The shoulders and chest reach the ground first, followed by the haunches; the four legs fold naturally without duplication, twisting, or detaching. The body stays near the original root instead of sliding across the canvas.
+
+2.8-4.2 seconds: the torso and paws make a small final settling motion. The short bobtail and ear tufts settle with the fur. The final silhouette is a clearly defeated ordinary lynx lying on its side, fully visible and still facing screen right.
+
+4.2-5.17 seconds: hold the completed collapsed pose motionless for a readable death endpoint. Do not stand up, recover, loop, dissolve, disappear, or transform.
+
+The camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Preserve exactly four anatomically correct legs and four distinct paws throughout. Keep identity, scale, and screen position stable with no camera motion, zoom, left-facing turn, or net travel. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid blood, gore, wounds, attacker, prey, particles, text, added objects, limb duplication or fusion, a long tail, melting, shattering, smoke, or disappearance.

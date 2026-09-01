@@ -1,0 +1,108 @@
+{
+  "task": "abyss-rime-beast-h3-four-action-v01",
+  "date": "2026-09-01",
+  "stage": "formal-four-action-runtime-integrated-static-only",
+  "provider": "minimax-h3-local",
+  "userAuthorizedVideo": true,
+  "runtimeIntegrationActive": true,
+  "identitySource": "tools/ai-gen/_frozen_normal_mothers_20260901/mother/03-abyss-rime-beast-v02-six-spines.png",
+  "imagegenKeyframes": {
+    "mode": "built-in-imagegen-identity-preserve-edit",
+    "runningRejected": {
+      "sourceGeneration": "exec-2dce050f-d11f-47f9-ad66-02e99b5cbd56.png",
+      "reason": "only five dorsal spines remained visible"
+    },
+    "running": {
+      "sourceGeneration": "exec-c8e69136-313d-426d-9c39-3a7cc347b1f0.png",
+      "output": "references/abyss-rime-beast-running-keyframe-v01-source.png"
+    },
+    "attack": {
+      "sourceGeneration": "exec-e540262d-5ed3-460a-83a6-28656c250645.png",
+      "output": "references/abyss-rime-beast-attacking-keyframe-v01-source.png"
+    }
+  },
+  "structureContract": {
+    "dorsalSpines": 6,
+    "count": "five back spines plus one smaller shoulder spine",
+    "limbs": 4,
+    "review": "identity, running and attack keyframes show four coherent legs and exactly six countable spines"
+  },
+  "directionContract": {
+    "facing": "screen-right",
+    "camera": "slightly elevated, side-dominant, orthographic-like",
+    "bodyAxis": "skull, jaw, chest, pelvis, knees, toes and motion axis remain screen-right",
+    "runtimeMirror": "horizontal mirror supplies screen-left; no second atlas"
+  },
+  "h3Parameters": {
+    "size": "1024x576",
+    "durationSeconds": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "actions": {
+    "idle": {
+      "mode": "loop",
+      "seed": 170399821,
+      "sourceVideo": "videos/abyss-rime-beast-idle-h3-v01.mp4",
+      "formalFrames": 16,
+      "durationMs": 5170
+    },
+    "running": {
+      "mode": "loop",
+      "seed": 938416205,
+      "sourceVideo": "videos/abyss-rime-beast-running-h3-v01.mp4",
+      "sourceWindow": [84, 114],
+      "formalFrames": 30,
+      "durationMs": 1250
+    },
+    "attack": {
+      "mode": "recover",
+      "seed": 1468250091,
+      "semantic": "one in-place snap-bite only",
+      "sourceVideo": "videos/abyss-rime-beast-attacking-h3-v01.mp4",
+      "sourceWindow": [68, 96],
+      "excludedRepeatedStrikeRanges": [[98, 123]],
+      "formalFrames": 29,
+      "durationMs": 1167,
+      "contactFrame": 22,
+      "activeFrames": [18, 25],
+      "recoveryRootCorrection": "f26-f28 translated -4/-9/-15 atlas pixels; whole-frame integer shifts only"
+    },
+    "death": {
+      "mode": "one-way",
+      "seed": 751904663,
+      "sourceVideo": "videos/abyss-rime-beast-dying-h3-v01.mp4",
+      "sourceWindow": [0, 32],
+      "formalFrames": 33,
+      "durationMs": 1333,
+      "settledFromSourceFrame": 32
+    }
+  },
+  "spriteSheetManifest": "sprite-sheet-manifest.json",
+  "spriteBudgetManifest": "sprite-budget-manifest.json",
+  "runtimeAssets": "assets/enemies/abyss_rime_beast",
+  "runtimeConfigId": "abyssRimeBeast",
+  "combatStateMachine": {
+    "resolver": "directed-basic-melee",
+    "approachReach": 98,
+    "impactReach": 94,
+    "durationMs": 1167,
+    "contactFrame": 22,
+    "activeFrames": [18, 25]
+  },
+  "offlineValidation": {
+    "facing": "passed",
+    "sixDorsalSpines": "passed",
+    "fourLimbs": "passed",
+    "singleAttack": "passed; second mouth-opening range excluded",
+    "singleDeath": "passed; first stable corpse endpoint retained",
+    "interpolationPasses": 1,
+    "decodedRgbaMiB": 25.3516,
+    "crowdBudgetTargetMiB": 32
+  },
+  "validationBoundary": "source videos, formal spritesheets, budget and static integration reviewed offline; no game, browser, build or runtime validation was run"
+}

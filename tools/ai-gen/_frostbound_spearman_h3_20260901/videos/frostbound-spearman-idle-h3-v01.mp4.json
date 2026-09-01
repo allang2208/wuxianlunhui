@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T14:20:50.572671+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-idle-h3-v01.mp4",
+    "bytes": 419304,
+    "sha256": "9e5ca36c507df0d74c54cd8e612d19b853a2ab3fd1950995e1393069345a1669"
+  },
+  "promptId": "92ed9da3-856b-4238-967f-00cd700fbcbe",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 181424997,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-4.4 seconds: he performs a restrained combat idle in place. Weight shifts subtly between both planted boots, chest breathes under the coat, hood and coat hem move minimally, and both hands maintain a secure grip on the same spear held horizontally at waist height. Head, chest, pelvis, knees, boot toes, spearhead, and attention remain screen right.\n\n4.4-5.17 seconds: the breathing and weight shift close naturally back into the exact supplied pose, scale, foot placement, and screen-right silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with stable scale and root point. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid walking, attack, thrust, turn toward viewer, left-facing reversal, hand sliding, weapon duplication, limb duplication or fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-4.4 seconds: he performs a restrained combat idle in place. Weight shifts subtly between both planted boots, chest breathes under the coat, hood and coat hem move minimally, and both hands maintain a secure grip on the same spear held horizontally at waist height. Head, chest, pelvis, knees, boot toes, spearhead, and attention remain screen right.\n\n4.4-5.17 seconds: the breathing and weight shift close naturally back into the exact supplied pose, scale, foot placement, and screen-right silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with stable scale and root point. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid walking, attack, thrust, turn toward viewer, left-facing reversal, hand sliding, weapon duplication, limb duplication or fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-4.4 seconds: he performs a restrained combat idle in place. Weight shifts subtly between both planted boots, chest breathes under the coat, hood and coat hem move minimally, and both hands maintain a secure grip on the same spear held horizontally at waist height. Head, chest, pelvis, knees, boot toes, spearhead, and attention remain screen right.\n\n4.4-5.17 seconds: the breathing and weight shift close naturally back into the exact supplied pose, scale, foot placement, and screen-right silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with stable scale and root point. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid walking, attack, thrust, turn toward viewer, left-facing reversal, hand sliding, weapon duplication, limb duplication or fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "c111c6a89098cd68baac85a7c065137386cd27610db6301b5af2ac6d6e34fd64",
+  "effectivePromptSha256": "c111c6a89098cd68baac85a7c065137386cd27610db6301b5af2ac6d6e34fd64",
+  "finalPromptSha256": "49aa73a17973863fd5ee6070728bc17d7fe56de0192e6220df0d9b34f18a4b88",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\prompts\\idle-h3-v01.txt",
+      "bytes": 1517,
+      "sha256": "9f9584e9cd24d6bfc79f5a7fb144cbb10bb232f1623e39964f1bff9ff4b345b9"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\references\\frostbound-spearman-idle-keyframe-v01-1024x576.png",
+      "bytes": 371524,
+      "sha256": "a26b34f0b4487d07690fffb946cc5ed90d5cb33382f4de51614a904612b6b2c2"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\references\\frostbound-spearman-idle-keyframe-v01-1024x576.png",
+      "bytes": 371524,
+      "sha256": "a26b34f0b4487d07690fffb946cc5ed90d5cb33382f4de51614a904612b6b2c2"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-idle-h3-v01_contact.png",
+    "bytes": 282530,
+    "sha256": "08a5136f0b5278814edfa561c7580f5fc2390054429659193e07a5a3750bc90e"
+  },
+  "elapsedSeconds": 455.591
+}

@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T13:55:52.536072+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\videos\\abyss-rime-beast-dying-h3-v01.mp4",
+    "bytes": 612120,
+    "sha256": "5f14690295828eda8fe846d078519d26afdda2c56ff16e4310a039ee078948a2"
+  },
+  "promptId": "c2fa013b-3d7d-4fa8-93aa-7fa78968e454",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 751904663,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body initially facing screen right. Preserve the supplied elongated armored skull, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate dorsal spines total, five along the back plus one smaller shoulder spine. Perform one irreversible death only: legs weaken, body drops heavily onto its near side, head and jaw settle on the ground, tail relaxes, then the corpse remains completely still. No recovery, no standing up, no second collapse, no looping, no attack and no dismemberment. The six spines remain attached and readable; do not add, remove, merge, split or hide them unnaturally. Keep the entire body, tail, claws, skull and all spines inside the canvas. Uniform white background and soft contact shadow only; no blood, snow, VFX, text, UI, camera motion, zoom, crop or blur.",
+  "effectivePrompt": "One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body initially facing screen right. Preserve the supplied elongated armored skull, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate dorsal spines total, five along the back plus one smaller shoulder spine. Perform one irreversible death only: legs weaken, body drops heavily onto its near side, head and jaw settle on the ground, tail relaxes, then the corpse remains completely still. No recovery, no standing up, no second collapse, no looping, no attack and no dismemberment. The six spines remain attached and readable; do not add, remove, merge, split or hide them unnaturally. Keep the entire body, tail, claws, skull and all spines inside the canvas. Uniform white background and soft contact shadow only; no blood, snow, VFX, text, UI, camera motion, zoom, crop or blur.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body initially facing screen right. Preserve the supplied elongated armored skull, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate dorsal spines total, five along the back plus one smaller shoulder spine. Perform one irreversible death only: legs weaken, body drops heavily onto its near side, head and jaw settle on the ground, tail relaxes, then the corpse remains completely still. No recovery, no standing up, no second collapse, no looping, no attack and no dismemberment. The six spines remain attached and readable; do not add, remove, merge, split or hide them unnaturally. Keep the entire body, tail, claws, skull and all spines inside the canvas. Uniform white background and soft contact shadow only; no blood, snow, VFX, text, UI, camera motion, zoom, crop or blur. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "50bc6cc4c40005d1ad11015e7c558d85ff264a3fa3f330d3d55c6ee31c751937",
+  "effectivePromptSha256": "50bc6cc4c40005d1ad11015e7c558d85ff264a3fa3f330d3d55c6ee31c751937",
+  "finalPromptSha256": "5e0fbc435f2c9dee23f8edc8ef7e82b3095b8317ddde52f5f55ed137ee0979c7",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\prompts\\dying-h3-v01.txt",
+      "bytes": 983,
+      "sha256": "c89f4f0f4fc5697238dad731f140989f1c99fadb59b5a1c2a23255b342b243ae"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\references\\abyss-rime-beast-idle-keyframe-v01-1024x576.png",
+      "bytes": 518185,
+      "sha256": "78610fbaf9c9448dc63dce58948a97ef1b04260377375862f5db12921d4d26a1"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\videos\\abyss-rime-beast-dying-h3-v01_contact.png",
+    "bytes": 496143,
+    "sha256": "b1a4b16dd6d86539976702b9b18961d000859894b5fc9256417148b7bc6d41fc"
+  },
+  "elapsedSeconds": 425.617
+}

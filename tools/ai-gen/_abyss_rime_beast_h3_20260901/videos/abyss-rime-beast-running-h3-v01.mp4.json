@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T13:39:15.066076+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\videos\\abyss-rime-beast-running-h3-v01.mp4",
+    "bytes": 1221807,
+    "sha256": "bd443df212e3363e1da1b8f5cf2e3d431c2a74918146918d10997b852b2a2fa0"
+  },
+  "promptId": "77e3217b-99b5-4c6f-89d2-f60419a6001b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 938416205,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body and movement axis facing screen right. Preserve the supplied identity in every frame: elongated armored skull, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate visible dorsal spines total, five along the back plus one smaller shoulder spine. Perform a heavy grounded in-place run with clear diagonal leg alternation and planted push-off, no skating and no travel across the canvas. Head, chest, pelvis, knees, toes and stride remain right-facing. Root stays centered. Exact seamless natural gait loop back to the supplied pose and position; no freeze at seam. Never turn, add a limb, merge feet, or hide, merge, split, add or remove a spine. Keep tail, claws, snout and all six spines inside margins. Uniform white background, contact shadow only, no scenery, snow, VFX, text, UI, camera motion, crop or blur.",
+  "effectivePrompt": "One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body and movement axis facing screen right. Preserve the supplied identity in every frame: elongated armored skull, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate visible dorsal spines total, five along the back plus one smaller shoulder spine. Perform a heavy grounded in-place run with clear diagonal leg alternation and planted push-off, no skating and no travel across the canvas. Head, chest, pelvis, knees, toes and stride remain right-facing. Root stays centered. Exact seamless natural gait loop back to the supplied pose and position; no freeze at seam. Never turn, add a limb, merge feet, or hide, merge, split, add or remove a spine. Keep tail, claws, snout and all six spines inside margins. Uniform white background, contact shadow only, no scenery, snow, VFX, text, UI, camera motion, crop or blur.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body and movement axis facing screen right. Preserve the supplied identity in every frame: elongated armored skull, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate visible dorsal spines total, five along the back plus one smaller shoulder spine. Perform a heavy grounded in-place run with clear diagonal leg alternation and planted push-off, no skating and no travel across the canvas. Head, chest, pelvis, knees, toes and stride remain right-facing. Root stays centered. Exact seamless natural gait loop back to the supplied pose and position; no freeze at seam. Never turn, add a limb, merge feet, or hide, merge, split, add or remove a spine. Keep tail, claws, snout and all six spines inside margins. Uniform white background, contact shadow only, no scenery, snow, VFX, text, UI, camera motion, crop or blur. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "8bb89ff9adcfdc89a33915af2506ae76fcfa3631890269487d1e6c97ace9250a",
+  "effectivePromptSha256": "8bb89ff9adcfdc89a33915af2506ae76fcfa3631890269487d1e6c97ace9250a",
+  "finalPromptSha256": "2e097e1321b03a03dae96050a85fb49be475c07ae7415d0b77e3ced1de6b97fe",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\prompts\\running-h3-v01.txt",
+      "bytes": 1019,
+      "sha256": "234e79fe27ceb445826bc455dae6dc3649ba1e664aa4ad2ac879e8d041914b97"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\references\\abyss-rime-beast-running-keyframe-v01-1024x576.png",
+      "bytes": 463975,
+      "sha256": "791ed386e6b9aad2ca3e1a3c9bd52cbf99c94587dbcca86f89f3f046236869c8"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\references\\abyss-rime-beast-running-keyframe-v01-1024x576.png",
+      "bytes": 463975,
+      "sha256": "791ed386e6b9aad2ca3e1a3c9bd52cbf99c94587dbcca86f89f3f046236869c8"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\videos\\abyss-rime-beast-running-h3-v01_contact.png",
+    "bytes": 554010,
+    "sha256": "90737592b397c43d1e3dce1edb095b13b5b5ec6f6783f0109d90c71149d4cc5b"
+  },
+  "elapsedSeconds": 450.641
+}

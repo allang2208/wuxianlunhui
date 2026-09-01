@@ -1,0 +1,134 @@
+{
+  "task": "frozen-normal-monster-mother-candidates",
+  "date": "2026-09-01",
+  "stage": "first_four_runtime_integrated_fifth_deferred",
+  "generator": "OpenAI imagegen",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "approvalScope": {
+    "runtimeIntegrated": ["snowManeLynx", "frostbackMuskOx", "abyssRimeBeast", "frostboundSpearman"],
+    "motherOnlyDeferred": ["polarNightCantor"],
+    "polarNightCantorAnimationAuthorized": false
+  },
+  "sharedVisualContract": {
+    "style": "realistic low-saturation cold PBR, ordinary-enemy complexity",
+    "camera": "orthographic-like, slightly elevated low three-quarter or side-dominant game view",
+    "facing": "screen-right",
+    "background": "pure white studio background with subtle contact shadow",
+    "forbidden": [
+      "boss-scale ornament",
+      "environment scene",
+      "text or UI",
+      "heavy magic aura",
+      "cropped feet, tail, weapon, or silhouette"
+    ]
+  },
+  "orientationReferences": [
+    {
+      "path": "assets/enemies/black_wolf_walk.png",
+      "frames": [0, 5, 10, 15],
+      "use": "animal right-facing horizontal gait axis"
+    },
+    {
+      "path": "assets/enemies/brown_bear/walking.png",
+      "frames": [0, 7, 14, 21],
+      "use": "large quadruped right-facing side silhouette"
+    },
+    {
+      "path": "assets/enemies/shroud_thrall/walk.png",
+      "frames": [0, 20, 40, 59],
+      "use": "humanoid low-three-quarter walking direction"
+    },
+    {
+      "path": "assets/enemies/ossuary_caster/walk.png",
+      "frames": [0, 13, 26, 39],
+      "use": "humanoid robe silhouette and right-facing body axis"
+    },
+    {
+      "path": "assets/enemies/coffin_ward/walk.png",
+      "frames": [0, 15, 30, 45],
+      "use": "armored humanoid right-facing gait"
+    }
+  ],
+  "identityReferences": [
+    "tools/ai-gen/_horror_normal_mothers_20260830/mother/01-shroud-thrall-v01.png",
+    "tools/ai-gen/_horror_normal_mothers_20260830/mother/03-ossuary-caster-v02.png",
+    "tools/ai-gen/_deep_vein_mother_20260830/deep-vein-mother-v03-asymmetric-mine-fusion.png",
+    "assets/scenes/loading/snowfield-1.png"
+  ],
+  "candidates": [
+    {
+      "id": "snowManeLynx",
+      "name": "雪鬃猞猁",
+      "taxonomy": ["animal"],
+      "file": "mother/01-snow-mane-lynx-v01.png",
+      "prompt": "prompts/01-snow-mane-lynx-v01.txt",
+      "sourceGeneration": "exec-36564508-d125-435d-a22c-4d7ff2ef6780.png",
+      "selection": "runtime-integrated",
+      "animationAuthorized": true,
+      "runtimeIntegrated": true,
+      "animationTask": "tools/ai-gen/_snow_mane_lynx_h3_20260901/manifest.json"
+    },
+    {
+      "id": "frostbackMuskOx",
+      "name": "霜背麝牛",
+      "taxonomy": ["animal"],
+      "file": "mother/02-frostback-musk-ox-v01.png",
+      "prompt": "prompts/02-frostback-musk-ox-v01.txt",
+      "sourceGeneration": "exec-7bee2c65-f88f-4ff4-99a8-f3d354b96305.png",
+      "selection": "runtime-integrated",
+      "animationAuthorized": true,
+      "runtimeIntegrated": true,
+      "animationTask": "tools/ai-gen/_frostback_musk_ox_h3_20260901/manifest.json"
+    },
+    {
+      "id": "abyssRimeBeast",
+      "name": "寒渊棘兽",
+      "taxonomy": ["abyss", "beast"],
+      "file": "mother/03-abyss-rime-beast-v02-six-spines.png",
+      "prompt": "prompts/03-abyss-rime-beast-v02-six-spines-edit.txt",
+      "sourceGeneration": "exec-1f2f83c4-3c7c-4e57-b99b-88a97e30ad03.png",
+      "derivedFrom": "exec-42d06aa8-7e39-4ecc-830a-5a508fac1fbc.png",
+      "selection": "runtime-integrated",
+      "revisionReason": "reduced excessive dorsal spines to exactly six",
+      "animationAuthorized": true,
+      "runtimeIntegrated": true,
+      "animationTask": "tools/ai-gen/_abyss_rime_beast_h3_20260901/manifest.json"
+    },
+    {
+      "id": "frostboundSpearman",
+      "name": "霜缚矛卒",
+      "taxonomy": ["humanoid"],
+      "file": "mother/04-frostbound-spearman-v02-right-facing.png",
+      "prompt": "prompts/04-frostbound-spearman-v02-right-facing-edit.txt",
+      "sourceGeneration": "exec-1529361f-4756-476c-925e-77970e0cc198.png",
+      "derivedFrom": "exec-72a437b7-3ee6-4f7c-b7ea-2f5e0b605e95.png",
+      "selection": "runtime-integrated",
+      "revisionReason": "strengthened screen-right head, feet, spear, and body direction",
+      "animationDirectionRisk": "resolved by approved running and attack keyframes with screen-right head, chest, pelvis, knees, boot toes and root axis",
+      "animationAuthorized": true,
+      "runtimeIntegrated": true,
+      "animationTask": "tools/ai-gen/_frostbound_spearman_h3_20260901/manifest.json"
+    },
+    {
+      "id": "polarNightCantor",
+      "name": "极夜祷徒",
+      "taxonomy": ["humanoid", "abyss"],
+      "file": "mother/05-polar-night-cantor-v03-structure-fixed.png",
+      "prompt": "prompts/05-polar-night-cantor-v03-structure-fixed-edit.txt",
+      "sourceGeneration": "exec-a0982151-b99b-45b7-8f3c-f76ffe111a05.png",
+      "derivedFrom": "exec-087ab84e-81f0-41da-a19b-d0575887ff8b.png",
+      "selection": "deferred-mother-only",
+      "revisionReason": "regenerated from scratch to restore the missing handbell, separate the hand and prop roles, and clarify robe, legs, boots, and center of gravity; then strengthened the screen-right body axis",
+      "supersedes": "mother/05-polar-night-cantor-v02-right-facing.png",
+      "animationDirectionRisk": "mother remains three-quarter; action keyframes must independently prove right-facing body axis"
+    }
+  ],
+  "offlineReview": {
+    "motherImagesInspected": true,
+    "referenceSheetsInspected": true,
+    "runtimeTested": false,
+    "gameIntegrated": true,
+    "conclusion": "the first four monsters are statically integrated; polarNightCantor retains only its structure-fixed mother frame and is recorded in TODO.md"
+  }
+}

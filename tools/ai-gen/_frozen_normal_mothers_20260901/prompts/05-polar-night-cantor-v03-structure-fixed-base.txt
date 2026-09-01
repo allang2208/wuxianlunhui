@@ -1,0 +1,15 @@
+Use case: stylized-concept
+Asset type: full-body identity mother image for a normal enemy in a realistic isometric action game
+Primary request: Regenerate the snowfield humanoid abyss enemy "Polar-Night Cantor" from scratch with anatomically and mechanically correct structure.
+
+Scene/backdrop: pure white studio background, only a faint neutral contact shadow.
+Subject: exactly one gaunt adult human cult cantor. Exactly one head, one torso, two arms, two hands, two legs and two boots. The right hand clearly holds one small cracked iron handbell by its handle, with the bell hanging freely below the fist. The left hand clearly holds one simple short bone-and-weathered-wood ritual staff; the staff is independent from the hand, body and clothing. Both hands and all fingers are readable, with no fused objects. Both legs are visibly separate beneath a front-split layered robe, each boot planted naturally and supporting a believable center of gravity.
+
+Costume and identity: practical layered black-gray wool robes; a short asymmetrical frost-crusted shoulder mantle; a plain stitched cloth veil fitted closely over a correctly proportioned human head, with one narrow horizontal shadowed eye slit; wrapped forearms; simple weathered boots. Subtle polar abyss corruption only: thin black-blue veins on exposed fingers and tiny dim cyan frost seams on the iron bell. Common support enemy, restrained and functional.
+
+Style/medium: realistic low-saturation cold PBR game-character concept, matching grounded dark-fantasy monster assets; rough cloth, old iron, weathered bone and leather; ordinary-enemy detail budget, not ceremonial luxury.
+Composition/framing: complete full body centered with generous margins. Strong screen-right side-dominant low three-quarter game view from a slightly elevated orthographic-like camera. The veil slit, nose direction beneath the veil, shoulders, chest, pelvis, both knees and both boot toes all align toward screen-right. Retain only enough three-quarter angle to show both arms, both hands and both legs. Neutral ready stance, not casting.
+Color palette: charcoal, dirty gray, faint midnight blue, tiny restrained cyan accents.
+
+Constraints: anatomically correct human proportions and joints; exactly two arms, two hands, two legs; right hand = handbell only; left hand = ritual staff only; both props fully visible and separated from the body; robe panels follow the hips and legs naturally; full head, staff, bell, hands and boots inside canvas; readable silhouette at small game scale.
+Avoid: missing bell, fused staff or fingers, ambiguous hands, duplicated props, extra limbs, hidden legs, merged boots, floating clothing, impossible shoulder anatomy, oversized helmet, long featureless tube-shaped head, front-facing portrait, left-facing pose, attack or casting gesture, boss crown, halo, antlers, ornate armor, giant pauldrons, broad magical aura, particles, environment, snow landscape, text, UI, frame, watermark.

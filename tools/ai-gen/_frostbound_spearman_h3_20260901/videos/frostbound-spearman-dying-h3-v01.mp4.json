@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T14:45:40.195581+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-dying-h3-v01.mp4",
+    "bytes": 406655,
+    "sha256": "83791d2b442404a89c346a3b894ba45e41c06e49817e5d421708fcbac822cf1e"
+  },
+  "promptId": "683056a8-c09b-4f5a-8441-921215956081",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 822761309,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and exactly one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.6 seconds: a single fatal impact causes the shoulders and knees to slacken. He remains screen right and begins losing balance at the supplied root point.\n\n0.6-2.5 seconds: he collapses exactly once: both knees buckle, the torso lowers and rolls onto one side while the one spear descends with him. The spear may slip from one hand but remains complete, visible, and alongside the body; it never duplicates, breaks, vanishes, or passes through the torso.\n\n2.5-5.17 seconds: body, coat, hood, both boots, both hands, and the single spear settle into one stable corpse pose and remain still through the final frame. No recovery, twitch loop, second fall, rise, or return to the starting pose.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete body and weapon inside frame at stable scale. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid recovery, replay, repeated collapse, weapon duplication, broken spear, limb duplication or fusion, turn toward viewer, left-facing reversal before collapse, gore, dismemberment, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and exactly one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.6 seconds: a single fatal impact causes the shoulders and knees to slacken. He remains screen right and begins losing balance at the supplied root point.\n\n0.6-2.5 seconds: he collapses exactly once: both knees buckle, the torso lowers and rolls onto one side while the one spear descends with him. The spear may slip from one hand but remains complete, visible, and alongside the body; it never duplicates, breaks, vanishes, or passes through the torso.\n\n2.5-5.17 seconds: body, coat, hood, both boots, both hands, and the single spear settle into one stable corpse pose and remain still through the final frame. No recovery, twitch loop, second fall, rise, or return to the starting pose.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete body and weapon inside frame at stable scale. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid recovery, replay, repeated collapse, weapon duplication, broken spear, limb duplication or fusion, turn toward viewer, left-facing reversal before collapse, gore, dismemberment, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and exactly one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.6 seconds: a single fatal impact causes the shoulders and knees to slacken. He remains screen right and begins losing balance at the supplied root point.\n\n0.6-2.5 seconds: he collapses exactly once: both knees buckle, the torso lowers and rolls onto one side while the one spear descends with him. The spear may slip from one hand but remains complete, visible, and alongside the body; it never duplicates, breaks, vanishes, or passes through the torso.\n\n2.5-5.17 seconds: body, coat, hood, both boots, both hands, and the single spear settle into one stable corpse pose and remain still through the final frame. No recovery, twitch loop, second fall, rise, or return to the starting pose.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete body and weapon inside frame at stable scale. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid recovery, replay, repeated collapse, weapon duplication, broken spear, limb duplication or fusion, turn toward viewer, left-facing reversal before collapse, gore, dismemberment, magic, particles, text, camera motion, zoom, cast shadows, or added objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b31a4b516b963eb7eec3d279d728d36b825c5e80cf15adb923b2e73d566b6c91",
+  "effectivePromptSha256": "b31a4b516b963eb7eec3d279d728d36b825c5e80cf15adb923b2e73d566b6c91",
+  "finalPromptSha256": "c0e85fe84fedfcfac63ec92f48bed40a63e7c8aa275ff05fd62beaa1903c28ef",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\prompts\\dying-h3-v01.txt",
+      "bytes": 1704,
+      "sha256": "9e1726fb79729f84035fcc73c57ecd56a505f35d053c6a9e1ec0044ce8b8a946"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\references\\frostbound-spearman-idle-keyframe-v01-1024x576.png",
+      "bytes": 371524,
+      "sha256": "a26b34f0b4487d07690fffb946cc5ed90d5cb33382f4de51614a904612b6b2c2"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-dying-h3-v01_contact.png",
+    "bytes": 239921,
+    "sha256": "f6299bc607efa10e54fe105a4aa7cd453fcdc29682f0ded1c192c541e4c5efd7"
+  },
+  "elapsedSeconds": 430.816
+}

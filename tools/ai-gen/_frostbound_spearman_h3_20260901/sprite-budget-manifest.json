@@ -1,0 +1,52 @@
+{
+  "id": "frostbound-spearman",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_frostbound_spearman_idle",
+      "path": "assets/enemies/frostbound_spearman/idle.png",
+      "kind": "spritesheet",
+      "frameWidth": 256,
+      "frameHeight": 208,
+      "frameCount": 16,
+      "endFrame": 15,
+      "footX": 104,
+      "anchorX": 104,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_frostbound_spearman_running",
+      "path": "assets/enemies/frostbound_spearman/running.png",
+      "kind": "spritesheet",
+      "frameWidth": 256,
+      "frameHeight": 208,
+      "frameCount": 32,
+      "endFrame": 31,
+      "footX": 128,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_frostbound_spearman_attack",
+      "path": "assets/enemies/frostbound_spearman/attacking.png",
+      "kind": "spritesheet",
+      "frameWidth": 256,
+      "frameHeight": 208,
+      "frameCount": 41,
+      "endFrame": 40,
+      "footX": 128,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_frostbound_spearman_death",
+      "path": "assets/enemies/frostbound_spearman/dying.png",
+      "kind": "spritesheet",
+      "frameWidth": 288,
+      "frameHeight": 208,
+      "frameCount": 45,
+      "endFrame": 44,
+      "footX": 144,
+      "footY": 188
+    }
+  ],
+  "dependencies": []
+}

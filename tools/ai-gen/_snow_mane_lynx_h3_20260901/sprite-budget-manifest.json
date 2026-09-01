@@ -1,0 +1,51 @@
+{
+  "id": "snow-mane-lynx",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_snow_mane_lynx_idle",
+      "path": "assets/enemies/snow_mane_lynx/idle.png",
+      "kind": "spritesheet",
+      "frameWidth": 320,
+      "frameHeight": 240,
+      "frameCount": 16,
+      "endFrame": 15,
+      "footX": 160,
+      "footY": 216
+    },
+    {
+      "textureKey": "enemy_snow_mane_lynx_running",
+      "path": "assets/enemies/snow_mane_lynx/running.png",
+      "kind": "spritesheet",
+      "frameWidth": 384,
+      "frameHeight": 240,
+      "frameCount": 30,
+      "endFrame": 29,
+      "footX": 192,
+      "footY": 216
+    },
+    {
+      "textureKey": "enemy_snow_mane_lynx_attack",
+      "path": "assets/enemies/snow_mane_lynx/attacking.png",
+      "kind": "spritesheet",
+      "frameWidth": 640,
+      "frameHeight": 224,
+      "frameCount": 17,
+      "endFrame": 16,
+      "footX": 320,
+      "footY": 208
+    },
+    {
+      "textureKey": "enemy_snow_mane_lynx_death",
+      "path": "assets/enemies/snow_mane_lynx/dying.png",
+      "kind": "spritesheet",
+      "frameWidth": 448,
+      "frameHeight": 240,
+      "frameCount": 17,
+      "endFrame": 16,
+      "footX": 224,
+      "footY": 216
+    }
+  ],
+  "dependencies": []
+}

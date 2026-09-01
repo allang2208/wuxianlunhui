@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T14:28:53.439916+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-running-h3-v01.mp4",
+    "bytes": 670847,
+    "sha256": "3d40e913113df5483825c048342f7d102344878f0c58572ba0f3c2222b1c5d20"
+  },
+  "promptId": "8e868bef-006d-44e2-b754-073dcb784d5b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 610392447,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and a valid screen-right mid-run phase. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.8 seconds: he continues smoothly out of the supplied screen-right stride. The forward boot completes its reach and the rear boot drives back along one constant ground line while the torso stays aligned with the rightward motion axis.\n\n0.8-4.4 seconds: he performs several grounded running cycles in place on an invisible treadmill. Exactly two legs alternate cleanly at hips and knees; both boots lift, swing, contact, and push without skating. Both hands remain attached and grip the same horizontal spear at waist height, with the spearhead pointing screen right and the shaft staying clear of both legs. The hood, coat hem, shoulders, chest, pelvis, knees, boot toes, and root motion all remain screen right.\n\n4.4-5.17 seconds: the stride naturally closes into the exact supplied leg phase, hand positions, spear alignment, body scale, and root point for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with no net horizontal travel. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid turn toward viewer, left-facing reversal, sprinting leap, attack, thrust, weapon duplication, hand detachment, limb duplication or fusion, coat-to-leg fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and a valid screen-right mid-run phase. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.8 seconds: he continues smoothly out of the supplied screen-right stride. The forward boot completes its reach and the rear boot drives back along one constant ground line while the torso stays aligned with the rightward motion axis.\n\n0.8-4.4 seconds: he performs several grounded running cycles in place on an invisible treadmill. Exactly two legs alternate cleanly at hips and knees; both boots lift, swing, contact, and push without skating. Both hands remain attached and grip the same horizontal spear at waist height, with the spearhead pointing screen right and the shaft staying clear of both legs. The hood, coat hem, shoulders, chest, pelvis, knees, boot toes, and root motion all remain screen right.\n\n4.4-5.17 seconds: the stride naturally closes into the exact supplied leg phase, hand positions, spear alignment, body scale, and root point for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with no net horizontal travel. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid turn toward viewer, left-facing reversal, sprinting leap, attack, thrust, weapon duplication, hand detachment, limb duplication or fusion, coat-to-leg fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Frostbound Spearman identity and a valid screen-right mid-run phase. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.8 seconds: he continues smoothly out of the supplied screen-right stride. The forward boot completes its reach and the rear boot drives back along one constant ground line while the torso stays aligned with the rightward motion axis.\n\n0.8-4.4 seconds: he performs several grounded running cycles in place on an invisible treadmill. Exactly two legs alternate cleanly at hips and knees; both boots lift, swing, contact, and push without skating. Both hands remain attached and grip the same horizontal spear at waist height, with the spearhead pointing screen right and the shaft staying clear of both legs. The hood, coat hem, shoulders, chest, pelvis, knees, boot toes, and root motion all remain screen right.\n\n4.4-5.17 seconds: the stride naturally closes into the exact supplied leg phase, hand positions, spear alignment, body scale, and root point for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with no net horizontal travel. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid turn toward viewer, left-facing reversal, sprinting leap, attack, thrust, weapon duplication, hand detachment, limb duplication or fusion, coat-to-leg fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "bec2b0db036dcfa2afe4d2c395986f3c4539524b0c23a4134729537a67bb8281",
+  "effectivePromptSha256": "bec2b0db036dcfa2afe4d2c395986f3c4539524b0c23a4134729537a67bb8281",
+  "finalPromptSha256": "750ca2455339428374caed767d708415a449c94deefa5c15ade44ef821cdda81",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\prompts\\running-h3-v01.txt",
+      "bytes": 1900,
+      "sha256": "a496cd7169e11d7d0ad8074a451d421685efccbdf7cbac614800e55d35b85a00"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\references\\frostbound-spearman-running-keyframe-v01-1024x576.png",
+      "bytes": 319265,
+      "sha256": "8b71fdfa20ab3c78e8e6fd2c407e8a9d67d4d248759995619536a61240a937ff"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\references\\frostbound-spearman-running-keyframe-v01-1024x576.png",
+      "bytes": 319265,
+      "sha256": "8b71fdfa20ab3c78e8e6fd2c407e8a9d67d4d248759995619536a61240a937ff"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-running-h3-v01_contact.png",
+    "bytes": 333368,
+    "sha256": "bbfd80c9353c5eaba509d4992d90c1dc1bb353497dcf08a1b9dbfcdb234109d5"
+  },
+  "elapsedSeconds": 460.807
+}

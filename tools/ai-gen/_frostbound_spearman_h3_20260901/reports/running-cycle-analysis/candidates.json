@@ -1,0 +1,198 @@
+{
+  "sourceVideo": "videos/frostbound-spearman-running-h3-v01.mp4",
+  "fps": 24.0,
+  "sourceFrameCount": 124,
+  "searchWindow": {
+    "start": [
+      8,
+      95
+    ],
+    "periodFrames": [
+      16,
+      44
+    ]
+  },
+  "candidates": [
+    {
+      "start": 61,
+      "end": 92,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9664573441568387,
+      "bodyIou": 0.9710948030552643,
+      "score": 0.9672920867585553
+    },
+    {
+      "start": 46,
+      "end": 76,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9620138131588514,
+      "bodyIou": 0.9753564658369736,
+      "score": 0.9644154906409133
+    },
+    {
+      "start": 75,
+      "end": 105,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9579412329556366,
+      "bodyIou": 0.968949311849614,
+      "score": 0.9599226871565525
+    },
+    {
+      "start": 67,
+      "end": 98,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9538346984363366,
+      "bodyIou": 0.9668635170603674,
+      "score": 0.9561798857886621
+    },
+    {
+      "start": 54,
+      "end": 85,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9512795275590551,
+      "bodyIou": 0.9679558011049724,
+      "score": 0.9542812567973201
+    },
+    {
+      "start": 70,
+      "end": 100,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9525754481506694,
+      "bodyIou": 0.9606539705353935,
+      "score": 0.9540295821799197
+    },
+    {
+      "start": 64,
+      "end": 95,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9497223935842073,
+      "bodyIou": 0.9598499061913696,
+      "score": 0.9515453458534965
+    },
+    {
+      "start": 77,
+      "end": 108,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9480260775081493,
+      "bodyIou": 0.9626681982277651,
+      "score": 0.9506616592376801
+    },
+    {
+      "start": 32,
+      "end": 63,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9427969290982989,
+      "bodyIou": 0.9638204421945954,
+      "score": 0.9465811614556323
+    },
+    {
+      "start": 49,
+      "end": 79,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9349384304355817,
+      "bodyIou": 0.9612972437695989,
+      "score": 0.9396830168357047
+    },
+    {
+      "start": 80,
+      "end": 111,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9273946360153257,
+      "bodyIou": 0.9444398167430237,
+      "score": 0.9304627685463113
+    },
+    {
+      "start": 15,
+      "end": 46,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9244675138714874,
+      "bodyIou": 0.9517983851235625,
+      "score": 0.9293870706968609
+    },
+    {
+      "start": 58,
+      "end": 89,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9202127659574468,
+      "bodyIou": 0.9459396751740139,
+      "score": 0.9248436096164288
+    },
+    {
+      "start": 38,
+      "end": 69,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9175800087680842,
+      "bodyIou": 0.9533439772928863,
+      "score": 0.9240175231025486
+    },
+    {
+      "start": 42,
+      "end": 73,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.911652243912256,
+      "bodyIou": 0.9470568045306332,
+      "score": 0.9180250648235638
+    },
+    {
+      "start": 18,
+      "end": 50,
+      "periodFrames": 32,
+      "periodMs": 1333.333,
+      "legIou": 0.9123911835525097,
+      "bodyIou": 0.9436666117608302,
+      "score": 0.9180207606300074
+    },
+    {
+      "start": 21,
+      "end": 52,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9050213169114164,
+      "bodyIou": 0.9485797789752489,
+      "score": 0.9128618400829063
+    },
+    {
+      "start": 35,
+      "end": 66,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.905462872096827,
+      "bodyIou": 0.9372830363341819,
+      "score": 0.9111905016595508
+    },
+    {
+      "start": 25,
+      "end": 56,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.8974153476257263,
+      "bodyIou": 0.9475785896346643,
+      "score": 0.906444731187335
+    },
+    {
+      "start": 9,
+      "end": 40,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.8950338600451467,
+      "bodyIou": 0.934856937196329,
+      "score": 0.9022020139323595
+    }
+  ],
+  "selectionStatus": "requires-contact-and-loop-preview-review"
+}

@@ -1,0 +1,10 @@
+Use case: identity-preserve
+Asset type: full-body game enemy identity mother image
+Primary request: Preserve this exact Polar-Night Cantor character, anatomy, costume, handbell, staff, materials, lighting and white background. Make one targeted correction only: rotate the complete standing pose farther toward screen-right into a clear side-dominant low three-quarter isometric game view.
+
+Structural invariants: exactly two anatomically correct arms and hands; the character's right hand on the viewer-left side continues to hold exactly one hanging iron handbell by its ring handle; the character's left hand on the viewer-right side continues to hold exactly one separate ritual staff. Keep both props and both hands clearly visible and unfused. Keep exactly two separate legs and two planted boots, with the front-split robe following the hips and legs naturally.
+
+Direction requirement: the veil eye slit, hidden nose direction, shoulders, sternum, pelvis, both knees and both boot toes must all align toward screen-right. Reduce the current frontal presentation by roughly thirty degrees while retaining enough three-quarter view to see the far arm and far leg. Maintain believable center of gravity and neutral ready stance.
+
+Keep: realistic low-saturation cold PBR style, ordinary-enemy detail budget, short frost-crusted mantle, stitched veil, charcoal palette, tiny cyan seams on the bell, full-body framing and generous margins.
+Avoid: changing identity or costume, losing or swapping props, extra or missing fingers or limbs, fused hands, crossed legs, merged boots, floating cloth, front-facing pose, left-facing pose, casting action, boss ornament, aura, particles, environment, text, border or watermark.

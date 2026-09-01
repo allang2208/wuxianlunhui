@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T10:59:57.581500+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\videos\\snow-mane-lynx-attacking-h3-v01.mp4",
+    "bytes": 662235,
+    "sha256": "86805a588883b4e7cb297ace41625552d46e3732f9965396ed5618ae9baa19c4"
+  },
+  "promptId": "f9f01a14-da9a-4258-98f1-1252776ab8bd",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1729645037,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Snow-Mane Lynx identity and safe attack-anticipation pose. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, thick pale neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-1.0 seconds: the lynx compresses its shoulders and haunches slightly while keeping both rear paws anchored at the supplied root point. Its head stays aimed screen right and the near front paw begins to lift.\n\n1.0-2.3 seconds: it executes one compact, forceful melee combination toward screen right: a short near-forepaw slash followed immediately by one forward bite. The claws and muzzle reach into the clear right-side space, with a readable single impact peak around 1.8 seconds. The attack is in place; the rear paws do not translate and the torso does not cross the canvas.\n\n2.3-4.2 seconds: the lynx withdraws the paw and head, closes its mouth, and settles its shoulders back without a second strike, leap, or extra flourish.\n\n4.2-5.17 seconds: all four paws, head, ears, torso, tail, body scale, and screen position return naturally to the exact supplied anticipation pose for a clean recover seam.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Preserve exactly four anatomically correct legs and four distinct paws. Keep body, chest, pelvis, knees, toes, muzzle, and attack direction facing screen right. No net root travel, camera motion, zoom, turn toward the viewer, or left-facing reversal. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, blood, gore, prey, particles, text, added objects, exaggerated leap, cast shadows, or repeated attacks.",
+  "effectivePrompt": "The supplied first frame is the exact approved Snow-Mane Lynx identity and safe attack-anticipation pose. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, thick pale neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-1.0 seconds: the lynx compresses its shoulders and haunches slightly while keeping both rear paws anchored at the supplied root point. Its head stays aimed screen right and the near front paw begins to lift.\n\n1.0-2.3 seconds: it executes one compact, forceful melee combination toward screen right: a short near-forepaw slash followed immediately by one forward bite. The claws and muzzle reach into the clear right-side space, with a readable single impact peak around 1.8 seconds. The attack is in place; the rear paws do not translate and the torso does not cross the canvas.\n\n2.3-4.2 seconds: the lynx withdraws the paw and head, closes its mouth, and settles its shoulders back without a second strike, leap, or extra flourish.\n\n4.2-5.17 seconds: all four paws, head, ears, torso, tail, body scale, and screen position return naturally to the exact supplied anticipation pose for a clean recover seam.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Preserve exactly four anatomically correct legs and four distinct paws. Keep body, chest, pelvis, knees, toes, muzzle, and attack direction facing screen right. No net root travel, camera motion, zoom, turn toward the viewer, or left-facing reversal. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, blood, gore, prey, particles, text, added objects, exaggerated leap, cast shadows, or repeated attacks.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Snow-Mane Lynx identity and safe attack-anticipation pose. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, thick pale neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-1.0 seconds: the lynx compresses its shoulders and haunches slightly while keeping both rear paws anchored at the supplied root point. Its head stays aimed screen right and the near front paw begins to lift.\n\n1.0-2.3 seconds: it executes one compact, forceful melee combination toward screen right: a short near-forepaw slash followed immediately by one forward bite. The claws and muzzle reach into the clear right-side space, with a readable single impact peak around 1.8 seconds. The attack is in place; the rear paws do not translate and the torso does not cross the canvas.\n\n2.3-4.2 seconds: the lynx withdraws the paw and head, closes its mouth, and settles its shoulders back without a second strike, leap, or extra flourish.\n\n4.2-5.17 seconds: all four paws, head, ears, torso, tail, body scale, and screen position return naturally to the exact supplied anticipation pose for a clean recover seam.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Preserve exactly four anatomically correct legs and four distinct paws. Keep body, chest, pelvis, knees, toes, muzzle, and attack direction facing screen right. No net root travel, camera motion, zoom, turn toward the viewer, or left-facing reversal. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, blood, gore, prey, particles, text, added objects, exaggerated leap, cast shadows, or repeated attacks. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "ca14f922501c24dcc66756fe628b42c0ebb09cb37dcc54912a34dcf687d34a1b",
+  "effectivePromptSha256": "7d07743de47c4d0874436ec5a2f8565b4abbcf5aec3ff74c26391352304030db",
+  "finalPromptSha256": "0535d7d874cd3269142771d16210f82649bd8384920818ad895e03fb133d07a0",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\prompts\\attacking-h3-v01.txt",
+      "bytes": 1851,
+      "sha256": "bc9543ffd21867efdaa54c46115f11aca2fbe13f2f82803e376abab461761ab3"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\references\\snow-mane-lynx-attacking-keyframe-v01-1024x576.png",
+      "bytes": 572658,
+      "sha256": "9dc88735b943ae4c754984f47e757ee12653ba2d29f2a763e261ae84374ca2d2"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\references\\snow-mane-lynx-attacking-keyframe-v01-1024x576.png",
+      "bytes": 572658,
+      "sha256": "9dc88735b943ae4c754984f47e757ee12653ba2d29f2a763e261ae84374ca2d2"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\videos\\snow-mane-lynx-attacking-h3-v01_contact.png",
+    "bytes": 500930,
+    "sha256": "7167d675926e12482870a6e20b609d58d279b33fc48601ef02dadcf57ffda33a"
+  },
+  "elapsedSeconds": 460.851
+}

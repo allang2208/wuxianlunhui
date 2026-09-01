@@ -640,6 +640,61 @@ export class BootScene extends Scene {
         loadBrownBearSheet('attack', 'enemy_brown_bear_attack', 'assets/enemies/brown_bear/attacking.png');
         loadBrownBearSheet('death', 'enemy_brown_bear_death', 'assets/enemies/brown_bear/dying.png');
 
+        // 雪鬃猞猁四动作：普通移动与追击共用 running，攻击和死亡均为单次动作。
+        const snowManeLynxTextures = enemyConfigData.snowManeLynx?.textures || {};
+        const snowManeLynxLayouts = snowManeLynxTextures.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = snowManeLynxLayouts[state] || {};
+            const path = snowManeLynxTextures[state];
+            if (!path) continue;
+            this.load.spritesheet(`enemy_snow_mane_lynx_${state}`, path, {
+                frameWidth: layout.frameWidth || 320,
+                frameHeight: layout.frameHeight || 240,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        }
+
+        // 霜背麝牛四动作：沉重 running 循环，攻击和死亡均为按源视频时钟的一次性动作。
+        const frostbackMuskOxTextures = enemyConfigData.frostbackMuskOx?.textures || {};
+        const frostbackMuskOxLayouts = frostbackMuskOxTextures.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = frostbackMuskOxLayouts[state] || {};
+            const path = frostbackMuskOxTextures[state];
+            if (!path) continue;
+            this.load.spritesheet(`enemy_frostback_musk_ox_${state}`, path, {
+                frameWidth: layout.frameWidth || 320,
+                frameHeight: layout.frameHeight || 208,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        }
+
+        // 寒渊棘兽四动作：四足 running 循环，攻击只含一次咬击，死亡只含一次倒地。
+        const abyssRimeBeastTextures = enemyConfigData.abyssRimeBeast?.textures || {};
+        const abyssRimeBeastLayouts = abyssRimeBeastTextures.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = abyssRimeBeastLayouts[state] || {};
+            const path = abyssRimeBeastTextures[state];
+            if (!path) continue;
+            this.load.spritesheet(`enemy_abyss_rime_beast_${state}`, path, {
+                frameWidth: layout.frameWidth || 320,
+                frameHeight: layout.frameHeight || 176,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        }
+
+        // 霜缚矛卒四动作：持矛 running 循环，攻击只含一次直刺，死亡只含一次倒地。
+        const frostboundSpearmanTextures = enemyConfigData.frostboundSpearman?.textures || {};
+        const frostboundSpearmanLayouts = frostboundSpearmanTextures.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = frostboundSpearmanLayouts[state] || {};
+            const path = frostboundSpearmanTextures[state];
+            if (!path) continue;
+            this.load.spritesheet(`enemy_frostbound_spearman_${state}`, path, {
+                frameWidth: layout.frameWidth || 256,
+                frameHeight: layout.frameHeight || 208,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        }
         // 邪恶树精四动作母版：walking 同时承担逻辑 walk/run，死亡终帧为木材碎片堆。
         const evilTreantTextures = enemyConfigData.evilTreant?.textures || {};
         const evilTreantLayouts = evilTreantTextures.frameLayouts || {};
@@ -1401,6 +1456,77 @@ export class BootScene extends Scene {
         createBrownBearAnim('attack', 'enemy_brown_bear_attack');
         createBrownBearAnim('death', 'enemy_brown_bear_death');
 
+        // 雪鬃猞猁动画：idle/running 循环，attack/death 播放一次并停在末帧。
+        const snowManeLynxLayouts = enemyConfigData.snowManeLynx?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = snowManeLynxLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_snow_mane_lynx_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_snow_mane_lynx_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'running' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        }
+
+        // 霜背麝牛动画：idle/running 循环，attack/death 只播放一次并停在末帧。
+        const frostbackMuskOxLayouts = enemyConfigData.frostbackMuskOx?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = frostbackMuskOxLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_frostback_musk_ox_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_frostback_musk_ox_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'running' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        }
+
+        // 寒渊棘兽动画：idle/running 循环，attack/death 播放一次并停在末帧。
+        const abyssRimeBeastLayouts = enemyConfigData.abyssRimeBeast?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = abyssRimeBeastLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_abyss_rime_beast_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_abyss_rime_beast_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'running' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        }
+
+        // 霜缚矛卒动画：idle/running 循环，attack/death 播放一次并停在末帧。
+        const frostboundSpearmanLayouts = enemyConfigData.frostboundSpearman?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = frostboundSpearmanLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_frostbound_spearman_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_frostbound_spearman_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'running' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        }
         // 狼人王动画：待机/奔跑循环，攻击、飞扑、嚎叫与死亡均播放一次。
         const werewolfKingLayouts = enemyConfigData.werewolfKing?.textures?.frameLayouts || {};
         for (const state of ['idle', 'running', 'attack', 'pounce', 'howl', 'dying']) {

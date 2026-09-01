@@ -1,0 +1,198 @@
+{
+  "sourceVideo": "videos/abyss-rime-beast-running-h3-v01.mp4",
+  "fps": 24.0,
+  "sourceFrameCount": 124,
+  "searchWindow": {
+    "start": [
+      8,
+      95
+    ],
+    "periodFrames": [
+      16,
+      44
+    ]
+  },
+  "candidates": [
+    {
+      "start": 84,
+      "end": 114,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9596961112541849,
+      "bodyIou": 0.9783043245088001,
+      "score": 0.9630455896400156
+    },
+    {
+      "start": 38,
+      "end": 69,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9525132914451426,
+      "bodyIou": 0.9745754534928599,
+      "score": 0.9564844806137317
+    },
+    {
+      "start": 63,
+      "end": 93,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.945929070929071,
+      "bodyIou": 0.9742230436262828,
+      "score": 0.9510219860145691
+    },
+    {
+      "start": 69,
+      "end": 99,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9394121175764847,
+      "bodyIou": 0.969589067462227,
+      "score": 0.9448439685559182
+    },
+    {
+      "start": 24,
+      "end": 55,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9351839896707553,
+      "bodyIou": 0.9653198982586578,
+      "score": 0.9406084532165777
+    },
+    {
+      "start": 77,
+      "end": 107,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9342734225621415,
+      "bodyIou": 0.9669708620929263,
+      "score": 0.9401589616776828
+    },
+    {
+      "start": 32,
+      "end": 63,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9328312137300901,
+      "bodyIou": 0.9656141030608292,
+      "score": 0.9387321338096231
+    },
+    {
+      "start": 8,
+      "end": 38,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9317720157724937,
+      "bodyIou": 0.9679110940055807,
+      "score": 0.9382770498544494
+    },
+    {
+      "start": 18,
+      "end": 48,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9299856870229007,
+      "bodyIou": 0.9638426417008716,
+      "score": 0.9360799388649355
+    },
+    {
+      "start": 42,
+      "end": 73,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9296331651438702,
+      "bodyIou": 0.9654266958424508,
+      "score": 0.9360760006696147
+    },
+    {
+      "start": 54,
+      "end": 85,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9292307692307692,
+      "bodyIou": 0.9665819816298612,
+      "score": 0.9359539874626057
+    },
+    {
+      "start": 48,
+      "end": 79,
+      "periodFrames": 31,
+      "periodMs": 1291.667,
+      "legIou": 0.9286656276225872,
+      "bodyIou": 0.9661940608691636,
+      "score": 0.935420745606971
+    },
+    {
+      "start": 12,
+      "end": 42,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9276208582292232,
+      "bodyIou": 0.9690610970134687,
+      "score": 0.9350801012103873
+    },
+    {
+      "start": 58,
+      "end": 88,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9226152470948793,
+      "bodyIou": 0.961964747815048,
+      "score": 0.9296981572245095
+    },
+    {
+      "start": 51,
+      "end": 81,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9220928745042856,
+      "bodyIou": 0.9601162679881826,
+      "score": 0.928937085331387
+    },
+    {
+      "start": 72,
+      "end": 102,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9208494208494209,
+      "bodyIou": 0.9614095566408121,
+      "score": 0.9281502452918713
+    },
+    {
+      "start": 80,
+      "end": 110,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9199603518770908,
+      "bodyIou": 0.9569827183559084,
+      "score": 0.9266243778432779
+    },
+    {
+      "start": 21,
+      "end": 51,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9157786622159456,
+      "bodyIou": 0.9622442623736285,
+      "score": 0.9241424702443284
+    },
+    {
+      "start": 66,
+      "end": 96,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9077114427860696,
+      "bodyIou": 0.9554183151597028,
+      "score": 0.9162986798133235
+    },
+    {
+      "start": 15,
+      "end": 45,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9023403994608504,
+      "bodyIou": 0.9559037388000188,
+      "score": 0.9119818005419007
+    }
+  ],
+  "selectionStatus": "requires-contact-and-loop-preview-review"
+}

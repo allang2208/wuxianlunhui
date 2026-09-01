@@ -1,0 +1,11 @@
+The supplied first frame is the exact approved Frostbound Spearman identity and safe screen-right spear-thrust anticipation. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.
+
+0.0-0.7 seconds: he compresses into the supplied stance, rear boot braced and front boot planted toward screen right. Both attached hands keep their spacing on the same spear shaft.
+
+0.7-1.8 seconds: he executes exactly one direct waist-height spear thrust toward screen right. Hips and shoulders drive the weapon along one horizontal axis; the single readable impact peak occurs around 1.35 seconds. The spear remains straight, the spearhead remains attached, and neither boot slides across the ground.
+
+1.8-3.7 seconds: he withdraws the same spear in one continuous recovery, restoring the original hand spacing and stance without a second jab, feint, spin, flourish, or backswing strike.
+
+3.7-5.17 seconds: body, hands, spear, boots, scale, and root point return naturally to the exact supplied anticipation pose for a clean recover seam.
+
+The camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Head, chest, pelvis, knees, boot toes, spearhead, and attack axis remain screen right. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid repeated attacks, second thrust, weapon duplication, bent or broken spear, shaft-through-body, hand detachment, limb duplication or fusion, turn toward viewer, left-facing reversal, leap, shield, blood, gore, target, magic, particles, text, camera motion, zoom, cast shadows, or added objects.

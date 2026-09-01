@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T10:02:47.916217+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\videos\\snow-mane-lynx-running-h3-v01.mp4",
+    "bytes": 960827,
+    "sha256": "ead9c207bf7887a83ab4f1128825b7a9a40a3253ba3b437e8991480e7b2f8730"
+  },
+  "promptId": "6a5a652f-4ed1-49d1-af09-61d5fc7a8532",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1575805680,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Snow-Mane Lynx identity and a valid mid-stride running phase. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, backward-swept thick neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-0.8 seconds: the lynx continues smoothly out of the supplied stride while facing screen right. Its near front paw completes contact, the opposite front leg swings forward, and the hindquarters begin the matching alternating push without pausing.\n\n0.8-4.4 seconds: it performs several fast, grounded feline running cycles in place on an invisible treadmill. The four legs alternate with clear shoulder and hip mechanics; each paw lifts, swings, contacts one constant ground line, and pushes back without sliding. The spine compresses and extends subtly, the head stays intent and level, and the short bobtail makes small balancing motions. The nose, rib cage, pelvis, knees, and paw travel remain aligned on the horizontal screen-right axis.\n\n4.4-5.17 seconds: the stride naturally closes back into the exact supplied leg phase, body scale, screen position, and right-facing silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Keep the lynx centered at stable scale with no net horizontal travel, zoom, or turn toward the viewer. Preserve exactly four anatomically correct legs and four distinct paws; preserve the short bobtail and feline identity. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, a leap, an attack, a left-facing turn, cast shadows, particles, text, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Snow-Mane Lynx identity and a valid mid-stride running phase. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, backward-swept thick neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-0.8 seconds: the lynx continues smoothly out of the supplied stride while facing screen right. Its near front paw completes contact, the opposite front leg swings forward, and the hindquarters begin the matching alternating push without pausing.\n\n0.8-4.4 seconds: it performs several fast, grounded feline running cycles in place on an invisible treadmill. The four legs alternate with clear shoulder and hip mechanics; each paw lifts, swings, contacts one constant ground line, and pushes back without sliding. The spine compresses and extends subtly, the head stays intent and level, and the short bobtail makes small balancing motions. The nose, rib cage, pelvis, knees, and paw travel remain aligned on the horizontal screen-right axis.\n\n4.4-5.17 seconds: the stride naturally closes back into the exact supplied leg phase, body scale, screen position, and right-facing silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Keep the lynx centered at stable scale with no net horizontal travel, zoom, or turn toward the viewer. Preserve exactly four anatomically correct legs and four distinct paws; preserve the short bobtail and feline identity. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, a leap, an attack, a left-facing turn, cast shadows, particles, text, or added objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Snow-Mane Lynx identity and a valid mid-stride running phase. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, backward-swept thick neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-0.8 seconds: the lynx continues smoothly out of the supplied stride while facing screen right. Its near front paw completes contact, the opposite front leg swings forward, and the hindquarters begin the matching alternating push without pausing.\n\n0.8-4.4 seconds: it performs several fast, grounded feline running cycles in place on an invisible treadmill. The four legs alternate with clear shoulder and hip mechanics; each paw lifts, swings, contacts one constant ground line, and pushes back without sliding. The spine compresses and extends subtly, the head stays intent and level, and the short bobtail makes small balancing motions. The nose, rib cage, pelvis, knees, and paw travel remain aligned on the horizontal screen-right axis.\n\n4.4-5.17 seconds: the stride naturally closes back into the exact supplied leg phase, body scale, screen position, and right-facing silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Keep the lynx centered at stable scale with no net horizontal travel, zoom, or turn toward the viewer. Preserve exactly four anatomically correct legs and four distinct paws; preserve the short bobtail and feline identity. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, a leap, an attack, a left-facing turn, cast shadows, particles, text, or added objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "5b1694dfcbbad6ea40694882734f8af4cb9c137ee620b0f84b4ae59a617ac89e",
+  "effectivePromptSha256": "ac11f9ff23ce02708e223a8f440a378ac602ef719b54bdba7592d53513c95464",
+  "finalPromptSha256": "602579a70e2e6b216afaf0b99351fc00b3c2c4b511688995277acf3d6a6e85da",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\prompts\\running-h3-v01.txt",
+      "bytes": 1819,
+      "sha256": "f1092b682707c68c5d261080150575195100dfa3119fe7b8790be8b8745aac34"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\references\\snow-mane-lynx-running-keyframe-v01-1024x576.png",
+      "bytes": 533035,
+      "sha256": "2c9fdd966c99cc9b21713c90890557e485b5c149207f2f1a0b1cefbf03ff513d"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\references\\snow-mane-lynx-running-keyframe-v01-1024x576.png",
+      "bytes": 533035,
+      "sha256": "2c9fdd966c99cc9b21713c90890557e485b5c149207f2f1a0b1cefbf03ff513d"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 490.931
+}

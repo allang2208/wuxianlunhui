@@ -526,7 +526,11 @@
     "combatWaves": 3,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "snowManeLynx",
+     "frostbackMuskOx",
+     "abyssRimeBeast",
+     "frostboundSpearman"
     ],
     "tierWeights": {
      "normal": 1,
@@ -538,7 +542,11 @@
     "combatWaves": 1,
     "monstersPerWave": 6,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "snowManeLynx",
+     "frostbackMuskOx",
+     "abyssRimeBeast",
+     "frostboundSpearman"
     ],
     "monsterComposition": {
      "elite": 1,
@@ -571,7 +579,11 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "poolKeys": [
-    "blackWolf"
+    "blackWolf",
+    "snowManeLynx",
+    "frostbackMuskOx",
+    "abyssRimeBeast",
+    "frostboundSpearman"
    ],
    "monsterComposition": {
     "elite": 1,
@@ -640,7 +652,11 @@
     "combatWaves": 5,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "snowManeLynx",
+     "frostbackMuskOx",
+     "abyssRimeBeast",
+     "frostboundSpearman"
     ],
     "tierWeights": {
      "normal": 1,
@@ -652,7 +668,11 @@
     "combatWaves": 5,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "snowManeLynx",
+     "frostbackMuskOx",
+     "abyssRimeBeast",
+     "frostboundSpearman"
     ],
     "monsterComposition": {
      "elite": 1,
@@ -686,7 +706,11 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "poolKeys": [
-    "blackWolf"
+    "blackWolf",
+    "snowManeLynx",
+    "frostbackMuskOx",
+    "abyssRimeBeast",
+    "frostboundSpearman"
    ],
    "monsterComposition": {
     "elite": 1,
@@ -743,7 +767,11 @@
     "combatWaves": 5,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "snowManeLynx",
+     "frostbackMuskOx",
+     "abyssRimeBeast",
+     "frostboundSpearman"
     ],
     "tierWeights": {
      "normal": 1,
@@ -755,7 +783,11 @@
     "combatWaves": 5,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "snowManeLynx",
+     "frostbackMuskOx",
+     "abyssRimeBeast",
+     "frostboundSpearman"
     ],
     "monsterComposition": {
      "elite": 1,
@@ -789,7 +821,11 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "poolKeys": [
-    "blackWolf"
+    "blackWolf",
+    "snowManeLynx",
+    "frostbackMuskOx",
+    "abyssRimeBeast",
+    "frostboundSpearman"
    ],
    "monsterComposition": {
     "elite": 1,

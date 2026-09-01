@@ -1,0 +1,9 @@
+The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and exactly one long wooden spear with one metal spearhead throughout the clip.
+
+0.0-0.6 seconds: a single fatal impact causes the shoulders and knees to slacken. He remains screen right and begins losing balance at the supplied root point.
+
+0.6-2.5 seconds: he collapses exactly once: both knees buckle, the torso lowers and rolls onto one side while the one spear descends with him. The spear may slip from one hand but remains complete, visible, and alongside the body; it never duplicates, breaks, vanishes, or passes through the torso.
+
+2.5-5.17 seconds: body, coat, hood, both boots, both hands, and the single spear settle into one stable corpse pose and remain still through the final frame. No recovery, twitch loop, second fall, rise, or return to the starting pose.
+
+The camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete body and weapon inside frame at stable scale. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid recovery, replay, repeated collapse, weapon duplication, broken spear, limb duplication or fusion, turn toward viewer, left-facing reversal before collapse, gore, dismemberment, magic, particles, text, camera motion, zoom, cast shadows, or added objects.

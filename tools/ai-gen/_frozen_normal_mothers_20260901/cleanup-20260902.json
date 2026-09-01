@@ -1,0 +1,43 @@
+{
+  "task": "frozen-normal-monsters-final-cleanup",
+  "date": "2026-09-02",
+  "scope": [
+    "tools/ai-gen/_snow_mane_lynx_h3_20260901",
+    "tools/ai-gen/_frostback_musk_ox_h3_20260901",
+    "tools/ai-gen/_abyss_rime_beast_h3_20260901",
+    "tools/ai-gen/_frostbound_spearman_h3_20260901"
+  ],
+  "removed": [
+    {
+      "kind": "duplicate-rife-tool-previews",
+      "pattern": "previews/sprites/formal-final/*/rife-tool/*",
+      "fileCount": 32,
+      "bytes": 18412550,
+      "reason": "rebuildable tool previews duplicated the retained final GIF and contact sheet"
+    },
+    {
+      "kind": "rejected-running-cycle-gifs",
+      "pattern": "reports/running-cycle-analysis/candidate-0[1-5]-*.gif",
+      "fileCount": 15,
+      "bytes": 55946430,
+      "reason": "rejected loop previews; numeric candidates.json and the retained selected source window preserve the decision"
+    },
+    {
+      "kind": "superseded-snow-lynx-running-final",
+      "pattern": "the pre-formal running PNG, GIF, contact sheet and RIFE report",
+      "fileCount": 4,
+      "bytes": 4875108,
+      "reason": "superseded by spritesheets/formal-final/running.png and its retained formal report and previews"
+    }
+  ],
+  "totalRemovedFiles": 51,
+  "totalRemovedBytes": 79234088,
+  "retained": [
+    "approved mother frames and their direct edit ancestors",
+    "prompts, provider metadata and task manifests",
+    "accepted source MP4 files and direct preview GIFs",
+    "selected pre-RIFE source sheets and reports",
+    "formal RIFE sheets, reports, final GIFs and contact sheets",
+    "runtime PNG files and reconstruction scripts"
+  ]
+}

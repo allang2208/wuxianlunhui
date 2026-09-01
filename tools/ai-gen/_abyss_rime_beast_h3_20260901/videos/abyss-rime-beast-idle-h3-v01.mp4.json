@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T13:30:54.074509+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\videos\\abyss-rime-beast-idle-h3-v01.mp4",
+    "bytes": 728056,
+    "sha256": "102839b7f9f2bf71f877a06a1598a108dffd0ccb617646db4647bcd3c195d161"
+  },
+  "promptId": "bbf11713-312f-440d-bd46-82135da29662",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 170399821,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body facing screen right. Preserve the supplied identity and anatomy in every frame: elongated armored skull and jaw, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate visible dorsal spines total, five along the back plus one smaller shoulder spine. Perform only restrained idle breathing, tiny jaw tension and slight tail-tip motion while all feet remain planted. Root stays fixed. No walking, no attack, no turn, no extra limb, no hidden, merged, split, added or removed spine. Exact seamless loop back to the supplied first-frame pose and position. Keep the whole tail, claws and all six spines inside generous margins. White background stays uniform; soft contact shadow only; no scenery, snow, VFX, text, UI, camera motion, zoom, crop or blur.",
+  "effectivePrompt": "One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body facing screen right. Preserve the supplied identity and anatomy in every frame: elongated armored skull and jaw, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate visible dorsal spines total, five along the back plus one smaller shoulder spine. Perform only restrained idle breathing, tiny jaw tension and slight tail-tip motion while all feet remain planted. Root stays fixed. No walking, no attack, no turn, no extra limb, no hidden, merged, split, added or removed spine. Exact seamless loop back to the supplied first-frame pose and position. Keep the whole tail, claws and all six spines inside generous margins. White background stays uniform; soft contact shadow only; no scenery, snow, VFX, text, UI, camera motion, zoom, crop or blur.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] One exact ordinary abyss-rime beast on a pure white studio plate, slightly elevated side-dominant near-orthographic game-sprite camera, full body facing screen right. Preserve the supplied identity and anatomy in every frame: elongated armored skull and jaw, dark bluish-black plated hide, thick tail, exactly four coherent legs and clawed feet, and EXACTLY SIX separate visible dorsal spines total, five along the back plus one smaller shoulder spine. Perform only restrained idle breathing, tiny jaw tension and slight tail-tip motion while all feet remain planted. Root stays fixed. No walking, no attack, no turn, no extra limb, no hidden, merged, split, added or removed spine. Exact seamless loop back to the supplied first-frame pose and position. Keep the whole tail, claws and all six spines inside generous margins. White background stays uniform; soft contact shadow only; no scenery, snow, VFX, text, UI, camera motion, zoom, crop or blur. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "8309ff7957f41c74bcc8e7eb61582e61595f02717c3310c4f3dcfcd8daf2ec63",
+  "effectivePromptSha256": "8309ff7957f41c74bcc8e7eb61582e61595f02717c3310c4f3dcfcd8daf2ec63",
+  "finalPromptSha256": "838a116298b23bff38b742d5ec116db472d1f06c952e78cd949c8b6855e1d7b2",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\prompts\\idle-h3-v01.txt",
+      "bytes": 952,
+      "sha256": "bf206fdb2ad6bafd150ca50015c33f6a5ed6232d07e1ec108ded0aa7cf1937ed"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\references\\abyss-rime-beast-idle-keyframe-v01-1024x576.png",
+      "bytes": 518185,
+      "sha256": "78610fbaf9c9448dc63dce58948a97ef1b04260377375862f5db12921d4d26a1"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\references\\abyss-rime-beast-idle-keyframe-v01-1024x576.png",
+      "bytes": 518185,
+      "sha256": "78610fbaf9c9448dc63dce58948a97ef1b04260377375862f5db12921d4d26a1"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abyss_rime_beast_h3_20260901\\videos\\abyss-rime-beast-idle-h3-v01_contact.png",
+    "bytes": 624194,
+    "sha256": "4ef70de6668a1442e80fbc81fbdb083f0361debda54e52ff094e1e5d95618b75"
+  },
+  "elapsedSeconds": 450.69
+}

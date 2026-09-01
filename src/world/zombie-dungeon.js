@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { DeepVeinMother } from '../entities/enemy-types/deep-vein-mother.js';
 import { UIState } from '../ui/ui-state.js';
 import { CoreDrillLarva, OreShardling } from '../entities/enemy-types/mine-small-monsters.js';
@@ -74,6 +74,36 @@ function createBrownBear(x, y) {
     return createBrownBearBase(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
     });
+}
+
+function createFrozenNormalEnemy(EnemyType, configKey, x, y) {
+    const cfg = enemyConfigData[configKey] || {};
+    return new EnemyType(x, y, {
+        ...cfg,
+        showWeapon: false,
+        ai: {
+            ...(cfg.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
+function createSnowManeLynx(x, y) {
+    return createFrozenNormalEnemy(SnowManeLynxEnemy, 'snowManeLynx', x, y);
+}
+
+function createFrostbackMuskOx(x, y) {
+    return createFrozenNormalEnemy(FrostbackMuskOxEnemy, 'frostbackMuskOx', x, y);
+}
+
+function createAbyssRimeBeast(x, y) {
+    return createFrozenNormalEnemy(AbyssRimeBeastEnemy, 'abyssRimeBeast', x, y);
+}
+
+function createFrostboundSpearman(x, y) {
+    return createFrozenNormalEnemy(FrostboundSpearmanEnemy, 'frostboundSpearman', x, y);
 }
 
 function createEvilTreant(x, y) {
@@ -544,6 +574,10 @@ export const ZOMBIE_FACTORY_MAP = {
     blackWolf: createBlackWolf,
     redWolfKing: createRedWolfKing,
     brownBear: createBrownBear,
+    snowManeLynx: createSnowManeLynx,
+    frostbackMuskOx: createFrostbackMuskOx,
+    abyssRimeBeast: createAbyssRimeBeast,
+    frostboundSpearman: createFrostboundSpearman,
     evilTreant: createEvilTreant,
     purpleBlightAncient: createPurpleBlightAncient,
     carnivorousPitcher: createCarnivorousPitcher,

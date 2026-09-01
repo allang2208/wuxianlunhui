@@ -1,0 +1,51 @@
+{
+  "id": "abyss-rime-beast",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_abyss_rime_beast_idle",
+      "path": "assets/enemies/abyss_rime_beast/idle.png",
+      "kind": "spritesheet",
+      "frameWidth": 320,
+      "frameHeight": 176,
+      "frameCount": 16,
+      "endFrame": 15,
+      "footX": 160,
+      "footY": 160
+    },
+    {
+      "textureKey": "enemy_abyss_rime_beast_running",
+      "path": "assets/enemies/abyss_rime_beast/running.png",
+      "kind": "spritesheet",
+      "frameWidth": 352,
+      "frameHeight": 176,
+      "frameCount": 30,
+      "endFrame": 29,
+      "footX": 176,
+      "footY": 160
+    },
+    {
+      "textureKey": "enemy_abyss_rime_beast_attack",
+      "path": "assets/enemies/abyss_rime_beast/attacking.png",
+      "kind": "spritesheet",
+      "frameWidth": 384,
+      "frameHeight": 176,
+      "frameCount": 29,
+      "endFrame": 28,
+      "footX": 192,
+      "footY": 160
+    },
+    {
+      "textureKey": "enemy_abyss_rime_beast_death",
+      "path": "assets/enemies/abyss_rime_beast/dying.png",
+      "kind": "spritesheet",
+      "frameWidth": 320,
+      "frameHeight": 176,
+      "frameCount": 33,
+      "endFrame": 32,
+      "footX": 160,
+      "footY": 160
+    }
+  ],
+  "dependencies": []
+}

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T12:41:31.909883+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostback_musk_ox_h3_20260901\\videos\\frostback-musk-ox-running-h3-v01.mp4",
+    "bytes": 691076,
+    "sha256": "f04c1b91d921807e01a5d6b062a4eed01181ac761b36a9fb129d20272ebb8712"
+  },
+  "promptId": "e0ed475f-848c-4f7a-a0f8-134a03131369",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 834507621,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Frostback Musk Ox identity and a valid mid-stride heavy trot phase. One full-body adult musk ox keeps the same stocky heavy anatomy, long dark charcoal shaggy coat, muted gray-white frost saddle, low broad forehead, compact curved horns, brown eye, short sturdy legs, and four dark cloven hooves throughout the clip.\n\n0.0-0.8 seconds: the musk ox continues smoothly out of the supplied screen-right stride. The extended near front hoof completes contact while the opposite front leg advances and the hindquarters begin the matching alternating push.\n\n0.8-4.4 seconds: it performs several grounded heavy trot cycles in place on an invisible treadmill. Exactly four legs alternate with believable shoulder and hip mechanics; every hoof lifts, swings, contacts one constant ground line, and pushes back without sliding. The torso and dense coat have restrained weighty vertical motion, while the head and compact horns remain stable and aimed screen right. Muzzle, chest, pelvis, knees, hooves, and motion axis all remain horizontal toward screen right.\n\n4.4-5.17 seconds: the stride naturally closes back into the exact supplied leg phase, body scale, screen position, and right-facing silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated side-dominant orthographic-like game view. Keep the musk ox centered at stable scale with no net horizontal travel, zoom, or turn toward the viewer. Preserve exactly four anatomically correct legs, four distinct hooves, two compact horns, and the ordinary natural-animal identity. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, galloping leap, attack, lowered charge, left-facing turn, armor, harness, magic, cast shadows, particles, text, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Frostback Musk Ox identity and a valid mid-stride heavy trot phase. One full-body adult musk ox keeps the same stocky heavy anatomy, long dark charcoal shaggy coat, muted gray-white frost saddle, low broad forehead, compact curved horns, brown eye, short sturdy legs, and four dark cloven hooves throughout the clip.\n\n0.0-0.8 seconds: the musk ox continues smoothly out of the supplied screen-right stride. The extended near front hoof completes contact while the opposite front leg advances and the hindquarters begin the matching alternating push.\n\n0.8-4.4 seconds: it performs several grounded heavy trot cycles in place on an invisible treadmill. Exactly four legs alternate with believable shoulder and hip mechanics; every hoof lifts, swings, contacts one constant ground line, and pushes back without sliding. The torso and dense coat have restrained weighty vertical motion, while the head and compact horns remain stable and aimed screen right. Muzzle, chest, pelvis, knees, hooves, and motion axis all remain horizontal toward screen right.\n\n4.4-5.17 seconds: the stride naturally closes back into the exact supplied leg phase, body scale, screen position, and right-facing silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated side-dominant orthographic-like game view. Keep the musk ox centered at stable scale with no net horizontal travel, zoom, or turn toward the viewer. Preserve exactly four anatomically correct legs, four distinct hooves, two compact horns, and the ordinary natural-animal identity. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, galloping leap, attack, lowered charge, left-facing turn, armor, harness, magic, cast shadows, particles, text, or added objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Frostback Musk Ox identity and a valid mid-stride heavy trot phase. One full-body adult musk ox keeps the same stocky heavy anatomy, long dark charcoal shaggy coat, muted gray-white frost saddle, low broad forehead, compact curved horns, brown eye, short sturdy legs, and four dark cloven hooves throughout the clip.\n\n0.0-0.8 seconds: the musk ox continues smoothly out of the supplied screen-right stride. The extended near front hoof completes contact while the opposite front leg advances and the hindquarters begin the matching alternating push.\n\n0.8-4.4 seconds: it performs several grounded heavy trot cycles in place on an invisible treadmill. Exactly four legs alternate with believable shoulder and hip mechanics; every hoof lifts, swings, contacts one constant ground line, and pushes back without sliding. The torso and dense coat have restrained weighty vertical motion, while the head and compact horns remain stable and aimed screen right. Muzzle, chest, pelvis, knees, hooves, and motion axis all remain horizontal toward screen right.\n\n4.4-5.17 seconds: the stride naturally closes back into the exact supplied leg phase, body scale, screen position, and right-facing silhouette for a seamless loop.\n\nThe camera remains locked in the supplied slightly elevated side-dominant orthographic-like game view. Keep the musk ox centered at stable scale with no net horizontal travel, zoom, or turn toward the viewer. Preserve exactly four anatomically correct legs, four distinct hooves, two compact horns, and the ordinary natural-animal identity. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, galloping leap, attack, lowered charge, left-facing turn, armor, harness, magic, cast shadows, particles, text, or added objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "119cfba937e444c6afecc54ed029387e01af7969fe2ebfe061bbfeab6150c769",
+  "effectivePromptSha256": "119cfba937e444c6afecc54ed029387e01af7969fe2ebfe061bbfeab6150c769",
+  "finalPromptSha256": "34a3eef33e06bcbf2deeb50650efef26fad721d158935540193cd8d4a0fb36ef",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostback_musk_ox_h3_20260901\\prompts\\running-h3-v01.txt",
+      "bytes": 1863,
+      "sha256": "bb53babdd5e3ee2f954c0e4bb1113f5001349f3f90d4ded9c3630f69866cae76"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostback_musk_ox_h3_20260901\\references\\frostback-musk-ox-running-keyframe-v01-1024x576.png",
+      "bytes": 522186,
+      "sha256": "44a9fe4020d01c11b2add6eed5aa305de24a095c8220c245c206df1263fc2052"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostback_musk_ox_h3_20260901\\references\\frostback-musk-ox-running-keyframe-v01-1024x576.png",
+      "bytes": 522186,
+      "sha256": "44a9fe4020d01c11b2add6eed5aa305de24a095c8220c245c206df1263fc2052"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostback_musk_ox_h3_20260901\\videos\\frostback-musk-ox-running-h3-v01_contact.png",
+    "bytes": 560474,
+    "sha256": "8c813e89e364cd14220dd1d0209f26120781da38014436c113aa807370d1acbb"
+  },
+  "elapsedSeconds": 455.863
+}

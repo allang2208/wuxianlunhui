@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T14:37:19.469775+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-attacking-h3-v01.mp4",
+    "bytes": 473941,
+    "sha256": "ca3458470a6e38ec3456e845c80dbb954eabf6f4c7a14e606b0b0808b939c9cb"
+  },
+  "promptId": "e9208954-fd76-4695-af98-55f7417d725d",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1410078523,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and safe screen-right spear-thrust anticipation. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.7 seconds: he compresses into the supplied stance, rear boot braced and front boot planted toward screen right. Both attached hands keep their spacing on the same spear shaft.\n\n0.7-1.8 seconds: he executes exactly one direct waist-height spear thrust toward screen right. Hips and shoulders drive the weapon along one horizontal axis; the single readable impact peak occurs around 1.35 seconds. The spear remains straight, the spearhead remains attached, and neither boot slides across the ground.\n\n1.8-3.7 seconds: he withdraws the same spear in one continuous recovery, restoring the original hand spacing and stance without a second jab, feint, spin, flourish, or backswing strike.\n\n3.7-5.17 seconds: body, hands, spear, boots, scale, and root point return naturally to the exact supplied anticipation pose for a clean recover seam.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Head, chest, pelvis, knees, boot toes, spearhead, and attack axis remain screen right. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid repeated attacks, second thrust, weapon duplication, bent or broken spear, shaft-through-body, hand detachment, limb duplication or fusion, turn toward viewer, left-facing reversal, leap, shield, blood, gore, target, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Frostbound Spearman identity and safe screen-right spear-thrust anticipation. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.7 seconds: he compresses into the supplied stance, rear boot braced and front boot planted toward screen right. Both attached hands keep their spacing on the same spear shaft.\n\n0.7-1.8 seconds: he executes exactly one direct waist-height spear thrust toward screen right. Hips and shoulders drive the weapon along one horizontal axis; the single readable impact peak occurs around 1.35 seconds. The spear remains straight, the spearhead remains attached, and neither boot slides across the ground.\n\n1.8-3.7 seconds: he withdraws the same spear in one continuous recovery, restoring the original hand spacing and stance without a second jab, feint, spin, flourish, or backswing strike.\n\n3.7-5.17 seconds: body, hands, spear, boots, scale, and root point return naturally to the exact supplied anticipation pose for a clean recover seam.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Head, chest, pelvis, knees, boot toes, spearhead, and attack axis remain screen right. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid repeated attacks, second thrust, weapon duplication, bent or broken spear, shaft-through-body, hand detachment, limb duplication or fusion, turn toward viewer, left-facing reversal, leap, shield, blood, gore, target, magic, particles, text, camera motion, zoom, cast shadows, or added objects.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Frostbound Spearman identity and safe screen-right spear-thrust anticipation. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.\n\n0.0-0.7 seconds: he compresses into the supplied stance, rear boot braced and front boot planted toward screen right. Both attached hands keep their spacing on the same spear shaft.\n\n0.7-1.8 seconds: he executes exactly one direct waist-height spear thrust toward screen right. Hips and shoulders drive the weapon along one horizontal axis; the single readable impact peak occurs around 1.35 seconds. The spear remains straight, the spearhead remains attached, and neither boot slides across the ground.\n\n1.8-3.7 seconds: he withdraws the same spear in one continuous recovery, restoring the original hand spacing and stance without a second jab, feint, spin, flourish, or backswing strike.\n\n3.7-5.17 seconds: body, hands, spear, boots, scale, and root point return naturally to the exact supplied anticipation pose for a clean recover seam.\n\nThe camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Head, chest, pelvis, knees, boot toes, spearhead, and attack axis remain screen right. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid repeated attacks, second thrust, weapon duplication, bent or broken spear, shaft-through-body, hand detachment, limb duplication or fusion, turn toward viewer, left-facing reversal, leap, shield, blood, gore, target, magic, particles, text, camera motion, zoom, cast shadows, or added objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "cd74eeb556f8fbac8ca07f10d45c981802daabcda47e48eb6773f7ef3a459cfd",
+  "effectivePromptSha256": "cd74eeb556f8fbac8ca07f10d45c981802daabcda47e48eb6773f7ef3a459cfd",
+  "finalPromptSha256": "fcac1cfa21a15ecba733ee66c87c95af788dbaed56590af8e36c7d6844a1eaf7",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\prompts\\attacking-h3-v01.txt",
+      "bytes": 1933,
+      "sha256": "352d964027e63904288a14e2d9e522e7cc80e39af0024b3d36982fcbc42f7be0"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\references\\frostbound-spearman-attacking-keyframe-v01-1024x576.png",
+      "bytes": 312534,
+      "sha256": "95e85b0070c4f0a9896d55c50c4f99896b3d7e2aeb3fbbd1f060479b7609dc7e"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frostbound_spearman_h3_20260901\\videos\\frostbound-spearman-attacking-h3-v01_contact.png",
+    "bytes": 294823,
+    "sha256": "9a4cf657db889650dfe7e3335ce96b6badefe2ffce31fb707144d9c19db57594"
+  },
+  "elapsedSeconds": 425.77
+}

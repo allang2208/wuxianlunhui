@@ -1,0 +1,9 @@
+The supplied first frame is the exact approved Frostback Musk Ox identity and neutral idle pose. One full-body adult musk ox keeps the same stocky heavy anatomy, long dark charcoal shaggy coat, muted gray-white frost saddle across the shoulders and spine, low broad forehead, compact curved horns, brown eye, short sturdy legs, and four dark cloven hooves throughout the clip.
+
+0.0-1.0 seconds: the musk ox remains planted on the exact supplied ground line while breathing slowly. The rib cage and shoulder coat move only slightly.
+
+1.0-3.9 seconds: it performs one restrained alert idle cycle facing screen right. One ear twitches, the head makes a small forward-right adjustment, the nostrils move subtly, and weight shifts gently between the front hooves without walking or lifting the root.
+
+3.9-5.17 seconds: the head, horns, torso, hanging coat, all four hooves, body scale, and screen position return naturally to the exact supplied neutral pose for a seamless loop. Do not freeze or slow unnaturally at the seam.
+
+The camera remains locked in the supplied slightly elevated side-dominant orthographic-like game view. Preserve exactly four anatomically correct legs, four distinct hooves, and two compact horns. Keep the animal facing screen right with no walking, turning, charge, attack, net travel, zoom, or camera motion. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, giant horns, long tail, armor, harness, magic, glow, cast shadows, particles, text, or added objects.

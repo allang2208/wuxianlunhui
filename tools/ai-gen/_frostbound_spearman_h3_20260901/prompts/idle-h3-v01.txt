@@ -1,0 +1,7 @@
+The supplied first frame is the exact approved Frostbound Spearman identity and right-facing guard pose. One full-body human-sized winter infantryman keeps the same dark quilted coat, layered metal shoulder armor, fur-edged hood, wrapped face, gloves, wrapped boots, muted cold-gray materials, and one long wooden spear with one metal spearhead throughout the clip.
+
+0.0-4.4 seconds: he performs a restrained combat idle in place. Weight shifts subtly between both planted boots, chest breathes under the coat, hood and coat hem move minimally, and both hands maintain a secure grip on the same spear held horizontally at waist height. Head, chest, pelvis, knees, boot toes, spearhead, and attention remain screen right.
+
+4.4-5.17 seconds: the breathing and weight shift close naturally back into the exact supplied pose, scale, foot placement, and screen-right silhouette for a seamless loop.
+
+The camera remains locked in the supplied slightly elevated, side-dominant low-three-quarter orthographic-like game view. Preserve exactly two arms, two attached hands, two legs, two boots, one spear shaft, and one spearhead. Keep the complete spear and body inside frame with stable scale and root point. Uniform pure white background, flat neutral studio lighting, no visible floor decoration. Avoid walking, attack, thrust, turn toward viewer, left-facing reversal, hand sliding, weapon duplication, limb duplication or fusion, shield, cape, magic, particles, text, camera motion, zoom, cast shadows, or added objects.

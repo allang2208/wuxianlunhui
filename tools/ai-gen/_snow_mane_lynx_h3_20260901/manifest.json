@@ -1,0 +1,133 @@
+{
+  "task": "snow-mane-lynx-h3-four-action-runtime-v01",
+  "date": "2026-09-01",
+  "stage": "formal-four-action-runtime-integrated",
+  "provider": "minimax-h3-local",
+  "userAuthorizedVideo": true,
+  "runtimeIntegrationActive": true,
+  "identitySource": "tools/ai-gen/_frozen_normal_mothers_20260901/mother/01-snow-mane-lynx-v01.png",
+  "orientationReferences": [
+    {
+      "asset": "assets/enemies/black_wolf_walk.png",
+      "frames": [0, 5, 10, 15],
+      "role": "screen-right quadruped body axis and gait"
+    },
+    {
+      "asset": "assets/enemies/brown_bear/walking.png",
+      "frames": [0, 7, 14, 21],
+      "role": "four-leg phase separation and horizontal root motion"
+    }
+  ],
+  "directionContract": {
+    "facing": "screen-right",
+    "camera": "slightly elevated, side-dominant low three-quarter, orthographic-like",
+    "bodyAxis": "nose, chest, pelvis, knees, paws and locomotion axis remain screen-right",
+    "runtimeMirror": "horizontal mirror supplies screen-left; no second atlas",
+    "review": "all four original videos and final contact sheets passed offline facing and limb-topology review"
+  },
+  "h3Parameters": {
+    "size": "1024x576",
+    "durationSeconds": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "videos": {
+    "idle": {
+      "motionMode": "loop",
+      "seed": 1677342101,
+      "output": "videos/snow-mane-lynx-idle-h3-v01.mp4",
+      "provenance": "videos/snow-mane-lynx-idle-h3-v01.mp4.json",
+      "contactSheet": "videos/snow-mane-lynx-idle-h3-v01_contact.png",
+      "previewGif": "videos/snow-mane-lynx-idle-h3-v01_preview.gif"
+    },
+    "running": {
+      "motionMode": "loop",
+      "seed": 1575805680,
+      "output": "videos/snow-mane-lynx-running-h3-v01.mp4",
+      "provenance": "videos/snow-mane-lynx-running-h3-v01.mp4.json",
+      "contactSheet": "videos/snow-mane-lynx-running-h3-v01_contact.png",
+      "previewGif": "videos/snow-mane-lynx-running-h3-v01_preview.gif",
+      "selectedNaturalCycle": "source f21 through f49; duplicate endpoint f50 excluded"
+    },
+    "attack": {
+      "motionMode": "recover",
+      "seed": 1729645037,
+      "output": "videos/snow-mane-lynx-attacking-h3-v01.mp4",
+      "provenance": "videos/snow-mane-lynx-attacking-h3-v01.mp4.json",
+      "contactSheet": "videos/snow-mane-lynx-attacking-h3-v01_contact.png",
+      "previewGif": "videos/snow-mane-lynx-attacking-h3-v01_preview.gif",
+      "detailedContactSheet": "videos/snow-mane-lynx-attacking-h3-v01_contact_f14-f80-every-frame.png",
+      "selectedSingleStrike": "source f18 through f42 at native 24fps wall clock; repeated strikes f43-f53 and f62-f70 excluded"
+    },
+    "death": {
+      "motionMode": "one-way",
+      "seed": 1816204973,
+      "output": "videos/snow-mane-lynx-dying-h3-v01.mp4",
+      "provenance": "videos/snow-mane-lynx-dying-h3-v01.mp4.json",
+      "contactSheet": "videos/snow-mane-lynx-dying-h3-v01_contact.png",
+      "previewGif": "videos/snow-mane-lynx-dying-h3-v01_preview.gif"
+    }
+  },
+  "spriteProduction": {
+    "cutout": "BiRefNet-general largest subject",
+    "normalization": "one fixed identity scale across actions, action-wide fixed crop, horizontal root lock; recovery alignment uses whole-frame integer X translations only, with no scale or warp",
+    "rife": "v4.6 RGBA 2x exactly once; loop wrap for idle/running, N-to-2N-minus-1 for attack/death",
+    "assetSpecificRepair": "attack fast-strike generated frames f5/f7/f9/f11/f13 use unique native H3 half-step poses from source f26/f29/f32/f35/f38; death f9 uses unique native H3 source f40; no adjacent held duplicates remain",
+    "manifest": "sprite-sheet-manifest.json",
+    "budgetManifest": "sprite-budget-manifest.json",
+    "actions": {
+      "idle": {"sheet": "assets/enemies/snow_mane_lynx/idle.png", "cell": "320x240", "layout": "4x4", "frameCount": 16, "durationMs": 5170, "repeat": -1},
+      "running": {"sheet": "assets/enemies/snow_mane_lynx/running.png", "cell": "384x240", "layout": "6x5", "frameCount": 30, "frameRate": 24, "durationMs": 1250, "repeat": -1},
+      "attack": {"sheet": "assets/enemies/snow_mane_lynx/attacking.png", "cell": "640x224", "layout": "1x17", "frameCount": 17, "durationMs": 1000, "contactFrame": 10, "activeFrames": [9, 11], "repeat": 0},
+      "death": {"sheet": "assets/enemies/snow_mane_lynx/dying.png", "cell": "448x240", "layout": "6x3", "frameCount": 17, "durationMs": 1800, "repeat": 0}
+    },
+    "offlineValidation": {
+      "emptyFrames": 0,
+      "touchingFrames": 0,
+      "transparentRgbNonzero": 0,
+      "originalKeyFramesPreservedAtEvenIndices": true,
+      "runtimeTextureClosureMiB": 31.914,
+      "budgetProfile": "crowd",
+      "budgetTargetMiB": 32,
+      "budgetHardStopMiB": 64,
+      "budgetPassed": true,
+      "previewAspectCorrection": "removed fixed 384x240 resize; each preview now uses its native runtime cell aspect",
+      "attackScaleCorrection": "restored the 75.5%-sized safety-frame source by one action-wide 278/210 uniform scale; no per-frame or non-uniform stretch",
+      "attackTimingCorrection": "replaced the nonuniform f0-f101 sample compressed into 1000ms with the first continuous f18-f42 strike at its original 24fps 1000ms wall clock",
+      "attackRecoveryRootCorrection": "f12-f16 translated -11/-22/-35/-50/-65 atlas pixels after the active window; whole-frame integer shifts only",
+      "deathRootCorrection": "all death frames translated -36 atlas pixels; f9 replaced by native source f40",
+      "attackExactDuplicateFramePairs": [],
+      "deathExactDuplicateFramePairs": []
+    }
+  },
+  "runtimeIntegration": {
+    "class": "SnowManeLynxEnemy",
+    "configKey": "snowManeLynx",
+    "type": "普通",
+    "family": "动物",
+    "families": ["动物", "自然"],
+    "skills": [],
+    "combatStateMachine": {
+      "resolver": "directed-basic-melee",
+      "approachReach": 145,
+      "impactReach": 141,
+      "durationMs": 1000,
+      "contactFrame": 10,
+      "activeFrames": [9, 11]
+    },
+    "pools": "frozen beginner/mid/final normal, elite and boss poolKeys",
+    "files": [
+      "src/entities/enemy-types.js",
+      "src/phaser/scenes/BootScene.js",
+      "data/enemy-config.json",
+      "public/data/enemy-config.json",
+      "data/dungeon-config.json",
+      "public/data/dungeon-config.json"
+    ]
+  },
+  "validationBoundary": "offline image, atlas, manifest and JSON checks only; no build, game launch, browser probe or runtime acceptance"
+}

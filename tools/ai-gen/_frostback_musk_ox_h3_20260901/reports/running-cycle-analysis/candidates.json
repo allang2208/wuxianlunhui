@@ -1,0 +1,198 @@
+{
+  "sourceVideo": "videos/frostback-musk-ox-running-h3-v01.mp4",
+  "fps": 24.0,
+  "sourceFrameCount": 124,
+  "searchWindow": {
+    "start": [
+      8,
+      95
+    ],
+    "periodFrames": [
+      16,
+      44
+    ]
+  },
+  "candidates": [
+    {
+      "start": 26,
+      "end": 60,
+      "periodFrames": 34,
+      "periodMs": 1416.667,
+      "legIou": 0.9445327845851651,
+      "bodyIou": 0.9714597098290307,
+      "score": 0.9493796311290609
+    },
+    {
+      "start": 30,
+      "end": 65,
+      "periodFrames": 35,
+      "periodMs": 1458.333,
+      "legIou": 0.9342579250720461,
+      "bodyIou": 0.9701639790433422,
+      "score": 0.9407210147868794
+    },
+    {
+      "start": 29,
+      "end": 62,
+      "periodFrames": 33,
+      "periodMs": 1375.0,
+      "legIou": 0.9315846403461331,
+      "bodyIou": 0.9708899456521739,
+      "score": 0.9386595953012203
+    },
+    {
+      "start": 48,
+      "end": 65,
+      "periodFrames": 17,
+      "periodMs": 708.333,
+      "legIou": 0.9313531945441493,
+      "bodyIou": 0.9663425579655947,
+      "score": 0.9376512799600094
+    },
+    {
+      "start": 65,
+      "end": 97,
+      "periodFrames": 32,
+      "periodMs": 1333.333,
+      "legIou": 0.9308624376336422,
+      "bodyIou": 0.9665211062590975,
+      "score": 0.9372809979862241
+    },
+    {
+      "start": 20,
+      "end": 55,
+      "periodFrames": 35,
+      "periodMs": 1458.333,
+      "legIou": 0.929323438039351,
+      "bodyIou": 0.967246915666723,
+      "score": 0.936149664012278
+    },
+    {
+      "start": 44,
+      "end": 60,
+      "periodFrames": 16,
+      "periodMs": 666.667,
+      "legIou": 0.9203259393390675,
+      "bodyIou": 0.9663118178143107,
+      "score": 0.9286033974646112
+    },
+    {
+      "start": 33,
+      "end": 67,
+      "periodFrames": 34,
+      "periodMs": 1416.667,
+      "legIou": 0.9189165420807317,
+      "bodyIou": 0.9589115831827326,
+      "score": 0.9261156494790919
+    },
+    {
+      "start": 39,
+      "end": 71,
+      "periodFrames": 32,
+      "periodMs": 1333.333,
+      "legIou": 0.9155003042684517,
+      "bodyIou": 0.9582298717643457,
+      "score": 0.9231916264177127
+    },
+    {
+      "start": 77,
+      "end": 110,
+      "periodFrames": 33,
+      "periodMs": 1375.0,
+      "legIou": 0.9147647471910112,
+      "bodyIou": 0.9553288662199553,
+      "score": 0.9220662886162211
+    },
+    {
+      "start": 15,
+      "end": 51,
+      "periodFrames": 36,
+      "periodMs": 1500.0,
+      "legIou": 0.9126342892657374,
+      "bodyIou": 0.9617747903724072,
+      "score": 0.921479579464938
+    },
+    {
+      "start": 49,
+      "end": 79,
+      "periodFrames": 30,
+      "periodMs": 1250.0,
+      "legIou": 0.9124030332084023,
+      "bodyIou": 0.955409967576963,
+      "score": 0.9201442813947431
+    },
+    {
+      "start": 79,
+      "end": 97,
+      "periodFrames": 18,
+      "periodMs": 750.0,
+      "legIou": 0.9119099177132958,
+      "bodyIou": 0.9566884502534009,
+      "score": 0.9199700535705146
+    },
+    {
+      "start": 78,
+      "end": 113,
+      "periodFrames": 35,
+      "periodMs": 1458.333,
+      "legIou": 0.9109177903436276,
+      "bodyIou": 0.9517875587245527,
+      "score": 0.918274348652194
+    },
+    {
+      "start": 11,
+      "end": 46,
+      "periodFrames": 35,
+      "periodMs": 1458.333,
+      "legIou": 0.9085965820818229,
+      "bodyIou": 0.9582709891936825,
+      "score": 0.9175379753619576
+    },
+    {
+      "start": 73,
+      "end": 89,
+      "periodFrames": 16,
+      "periodMs": 666.667,
+      "legIou": 0.9109713005257261,
+      "bodyIou": 0.9459853048255775,
+      "score": 0.9172738212996993
+    },
+    {
+      "start": 36,
+      "end": 71,
+      "periodFrames": 35,
+      "periodMs": 1458.333,
+      "legIou": 0.9060309768971186,
+      "bodyIou": 0.9531047645013974,
+      "score": 0.9145042586658887
+    },
+    {
+      "start": 8,
+      "end": 44,
+      "periodFrames": 36,
+      "periodMs": 1500.0,
+      "legIou": 0.9057030909882455,
+      "bodyIou": 0.9514047076689446,
+      "score": 0.9139293819907713
+    },
+    {
+      "start": 60,
+      "end": 93,
+      "periodFrames": 33,
+      "periodMs": 1375.0,
+      "legIou": 0.9047872812860822,
+      "bodyIou": 0.9537541528239203,
+      "score": 0.913601318162893
+    },
+    {
+      "start": 58,
+      "end": 74,
+      "periodFrames": 16,
+      "periodMs": 666.667,
+      "legIou": 0.9037208504801097,
+      "bodyIou": 0.9553840115138035,
+      "score": 0.9130202194661745
+    }
+  ],
+  "selectionStatus": "requires-contact-and-loop-preview-review"
+}

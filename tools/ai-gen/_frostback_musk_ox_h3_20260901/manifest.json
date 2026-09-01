@@ -1,0 +1,61 @@
+{
+  "task": "frostback-musk-ox-h3-four-action-v01",
+  "date": "2026-09-01",
+  "stage": "runtime-integrated-four-action-complete",
+  "provider": "minimax-h3-local",
+  "userAuthorizedVideo": true,
+  "runtimeIntegrationActive": true,
+  "identitySource": "tools/ai-gen/_frozen_normal_mothers_20260901/mother/02-frostback-musk-ox-v01.png",
+  "imagegenKeyframes": {
+    "mode": "built-in-imagegen-identity-preserve-edit",
+    "running": {
+      "sourceGeneration": "exec-1af9e8e4-caab-47fa-908c-f71cb04083f7.png",
+      "output": "references/frostback-musk-ox-running-keyframe-v01-source.png"
+    },
+    "attack": {
+      "sourceGeneration": "exec-6792a3b5-3999-49f6-972a-f1077f172c3b.png",
+      "output": "references/frostback-musk-ox-attacking-keyframe-v01-source.png"
+    }
+  },
+  "directionContract": {
+    "facing": "screen-right",
+    "camera": "slightly elevated, side-dominant, orthographic-like",
+    "bodyAxis": "muzzle, horns, chest, pelvis, knees, hooves and motion axis remain screen-right",
+    "runtimeMirror": "horizontal mirror supplies screen-left; no second atlas",
+    "review": "identity mother, movement keyframe and attack anticipation keyframe passed offline direction, anatomy and safety-margin review"
+  },
+  "h3Parameters": {
+    "size": "1024x576",
+    "durationSeconds": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "actions": {
+    "idle": {"mode": "loop", "seed": 146201973, "sourceVideo": "videos/frostback-musk-ox-idle-h3-v01.mp4", "runtimeSheet": "assets/enemies/frostback_musk_ox/idle.png"},
+    "running": {"mode": "loop", "seed": 834507621, "sourceVideo": "videos/frostback-musk-ox-running-h3-v01.mp4", "sourceWindow": "[26,60)", "sourceWallClockMs": 1416.667, "runtimeSheet": "assets/enemies/frostback_musk_ox/running.png"},
+    "attack": {"mode": "recover", "seed": 1904285376, "semantic": "one in-place headbutt only", "sourceVideo": "videos/frostback-musk-ox-attacking-h3-v01.mp4", "sourceWindow": [10, 49], "sourceWallClockMs": 1625, "excludedRepeatedStrikeRange": [75, 101], "contactFrame": 10, "activeFrames": [8, 12], "runtimeSheet": "assets/enemies/frostback_musk_ox/attacking.png"},
+    "death": {"mode": "one-way", "seed": 1209437862, "sourceVideo": "videos/frostback-musk-ox-dying-h3-v01.mp4", "sourceWindow": [0, 51], "sourceWallClockMs": 2125, "runtimeSheet": "assets/enemies/frostback_musk_ox/dying.png"}
+  },
+  "spriteManifest": "sprite-sheet-manifest.json",
+  "spriteBudgetManifest": "sprite-budget-manifest.json",
+  "decodedRgbaMiB": 29.8086,
+  "runtime": {
+    "enemyId": "frostbackMuskOx",
+    "entityClass": "FrostbackMuskOxEnemy",
+    "dungeonPools": ["frozenDungeonBeginner", "frozenDungeonMid", "frozenDungeon"],
+    "dataPublicConfigParity": true,
+    "combatStateMachine": {
+      "resolver": "directed-basic-melee",
+      "approachReach": 108,
+      "impactReach": 104,
+      "durationMs": 1625,
+      "contactFrame": 10,
+      "activeFrames": [8, 12]
+    }
+  },
+  "validationBoundary": "source videos, formal spritesheets, budget and static integration reviewed offline; no game, browser, build or runtime validation was run"
+}

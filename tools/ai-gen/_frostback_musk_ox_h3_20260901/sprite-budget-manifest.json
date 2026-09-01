@@ -1,0 +1,51 @@
+{
+  "id": "frostback-musk-ox",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "enemy_frostback_musk_ox_idle",
+      "path": "assets/enemies/frostback_musk_ox/idle.png",
+      "kind": "spritesheet",
+      "frameWidth": 320,
+      "frameHeight": 208,
+      "frameCount": 16,
+      "endFrame": 15,
+      "footX": 160,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_frostback_musk_ox_running",
+      "path": "assets/enemies/frostback_musk_ox/running.png",
+      "kind": "spritesheet",
+      "frameWidth": 320,
+      "frameHeight": 208,
+      "frameCount": 34,
+      "endFrame": 33,
+      "footX": 160,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_frostback_musk_ox_attack",
+      "path": "assets/enemies/frostback_musk_ox/attacking.png",
+      "kind": "spritesheet",
+      "frameWidth": 384,
+      "frameHeight": 208,
+      "frameCount": 27,
+      "endFrame": 26,
+      "footX": 192,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_frostback_musk_ox_death",
+      "path": "assets/enemies/frostback_musk_ox/dying.png",
+      "kind": "spritesheet",
+      "frameWidth": 320,
+      "frameHeight": 208,
+      "frameCount": 35,
+      "endFrame": 34,
+      "footX": 160,
+      "footY": 188
+    }
+  ],
+  "dependencies": []
+}

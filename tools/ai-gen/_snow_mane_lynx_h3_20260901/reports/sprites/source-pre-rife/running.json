@@ -1,0 +1,161 @@
+{
+  "sourceVideo": "tools/ai-gen/_snow_mane_lynx_h3_20260901/videos/snow-mane-lynx-running-h3-v01.mp4",
+  "sourceVideoFrameRate": 24.0,
+  "sourceVideoFrameCount": 124,
+  "cycleStart": 21,
+  "duplicateEndpoint": 50,
+  "selectedSourceFrames": [
+    21,
+    23,
+    25,
+    27,
+    29,
+    31,
+    33,
+    35,
+    37,
+    39,
+    41,
+    43,
+    45,
+    47,
+    49
+  ],
+  "frameCount": 15,
+  "frameRate": 12.0,
+  "frameWidth": 576,
+  "frameHeight": 384,
+  "columns": 5,
+  "rows": 3,
+  "fixedScale": 0.6405867970660146,
+  "targetHeight": 262,
+  "horizontalAnchor": "torso",
+  "footY": 345,
+  "referenceCell": 576,
+  "normalization": "BiRefNet-general largest subject; one fixed scale; torso-root horizontal lock; one action-wide fixed crop",
+  "cycleValidation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "feetMin": 473,
+    "feetMax": 473,
+    "torsoOffsetMin": -1.0,
+    "torsoOffsetMax": 1.0,
+    "torsoOffsetSpan": 2.0,
+    "lowerBodyOffsetMin": -39.0,
+    "lowerBodyOffsetMax": 30.0,
+    "lowerBodyOffsetSpan": 69.0,
+    "firstEndpointFullIoU": 0.9743636574958076,
+    "firstEndpointLegIoU": 0.9752977801840823,
+    "adjacentDeltaMedian": 49.323869705200195,
+    "adjacentDeltaMin": 40.69122314453125,
+    "adjacentDeltaMax": 55.04014587402344,
+    "seamDelta": 43.368003845214844,
+    "seamRatio": 0.8792498257824766
+  },
+  "trimValidation": {
+    "fixedCrop": [
+      0,
+      128,
+      576,
+      512
+    ],
+    "alphaBBoxes": [
+      [
+        45,
+        84,
+        515,
+        345
+      ],
+      [
+        22,
+        99,
+        532,
+        345
+      ],
+      [
+        55,
+        107,
+        503,
+        345
+      ],
+      [
+        73,
+        108,
+        492,
+        345
+      ],
+      [
+        71,
+        97,
+        484,
+        345
+      ],
+      [
+        80,
+        88,
+        492,
+        345
+      ],
+      [
+        87,
+        85,
+        501,
+        345
+      ],
+      [
+        56,
+        83,
+        513,
+        345
+      ],
+      [
+        20,
+        93,
+        524,
+        345
+      ],
+      [
+        45,
+        106,
+        522,
+        345
+      ],
+      [
+        59,
+        110,
+        495,
+        345
+      ],
+      [
+        73,
+        99,
+        486,
+        345
+      ],
+      [
+        75,
+        89,
+        485,
+        345
+      ],
+      [
+        86,
+        85,
+        498,
+        345
+      ],
+      [
+        74,
+        86,
+        510,
+        345
+      ]
+    ],
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "nonzeroRgbInTransparentPixels": 0,
+    "alphaBottomMin": 345,
+    "alphaBottomMax": 345
+  },
+  "output": "spritesheets/source-pre-rife/running.png"
+}

@@ -496,6 +496,492 @@
       }
     }
   },
+  "snowManeLynx": {
+    "entityClass": "SnowManeLynxEnemy",
+    "id": "snowManeLynx",
+    "name": "雪鬃猞猁",
+    "hp": 210,
+    "maxHp": 210,
+    "size": 14,
+    "collisionRadius": 34,
+    "speed": 340,
+    "level": 5,
+    "color": "#8f989f",
+    "highlightColor": "rgba(190, 210, 222, 0.3)",
+    "str": 25,
+    "dex": 38,
+    "con": 24,
+    "int": 7,
+    "wis": 9,
+    "luck": 12,
+    "rank": "normal",
+    "basicMeleeResolver": true,
+    "attackRange": 145,
+    "attackDistance": 145,
+    "basicMelee": {
+      "approachReach": 145,
+      "impactReach": 141,
+      "width": 28,
+      "timeline": {
+        "durationMs": 1000,
+        "frameCount": 17,
+        "contactFrame": 10,
+        "activeFrames": [9, 11]
+      }
+    },
+    "aiInterval": 1200,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 190,
+      "loseTimeout": 2200
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1050,
+      "dynamicRange": 141,
+      "width": 28,
+      "knockback": 14
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "动物",
+    "families": ["动物", "自然"],
+    "description": "栖息在雪原与寒林边缘的普通伏猎动物。它比黑狼更善于短距追击，以低姿扑爪接撕咬完成一次近战攻击。",
+    "skills": [],
+    "attackType": "扑爪撕咬",
+    "render": {
+      "spriteSize": 165,
+      "collisionWidth": 125,
+      "collisionHeight": 70,
+      "footOffsetY": 44,
+      "projectileHitbox": {
+        "width": 125,
+        "height": 70,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetY": -8
+    },
+    "height": 79,
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/snow_mane_lynx/idle.png",
+      "running": "assets/enemies/snow_mane_lynx/running.png",
+      "attack": "assets/enemies/snow_mane_lynx/attacking.png",
+      "death": "assets/enemies/snow_mane_lynx/dying.png",
+      "referenceCell": 360,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 320,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "footY": 216,
+          "duration": 5170,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 6,
+          "rows": 5,
+          "frameWidth": 384,
+          "frameHeight": 240,
+          "frameCount": 30,
+          "footY": 216,
+          "frameRate": 24,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 1,
+          "rows": 17,
+          "frameWidth": 640,
+          "frameHeight": 224,
+          "frameCount": 17,
+          "footY": 208,
+          "duration": 1000,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 448,
+          "frameHeight": 240,
+          "frameCount": 17,
+          "footY": 216,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "frostbackMuskOx": {
+    "entityClass": "FrostbackMuskOxEnemy",
+    "id": "frostbackMuskOx",
+    "name": "霜背麝牛",
+    "hp": 340,
+    "maxHp": 340,
+    "size": 17,
+    "collisionRadius": 48,
+    "speed": 230,
+    "level": 5,
+    "color": "#4f5151",
+    "highlightColor": "rgba(181, 198, 207, 0.28)",
+    "str": 38,
+    "dex": 18,
+    "con": 40,
+    "int": 3,
+    "wis": 6,
+    "luck": 8,
+    "rank": "normal",
+    "basicMeleeResolver": true,
+    "attackRange": 108,
+    "attackDistance": 108,
+    "basicMelee": {
+      "approachReach": 108,
+      "impactReach": 104,
+      "width": 48,
+      "timeline": {
+        "durationMs": 1625,
+        "frameCount": 27,
+        "contactFrame": 10,
+        "activeFrames": [8, 12]
+      }
+    },
+    "aiInterval": 1500,
+    "ai": {
+      "aggroRange": 2500,
+      "pacingRange": 210,
+      "loseTimeout": 2600
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1750,
+      "dynamicRange": 104,
+      "width": 46,
+      "knockback": 28
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "动物",
+    "families": ["动物", "自然"],
+    "description": "雪原上的普通群居草食动物，厚重长毛覆盖肩背。受惊后会压低头颈，以一次短促而沉重的正面顶撞驱退靠近者。",
+    "skills": [],
+    "attackType": "低头顶撞",
+    "render": {
+      "spriteSize": 185,
+      "collisionWidth": 145,
+      "collisionHeight": 88,
+      "footOffsetY": 48,
+      "projectileHitbox": {
+        "width": 145,
+        "height": 88,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetY": -8
+    },
+    "height": 92,
+    "deathAnim": {
+      "duration": 2125,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/frostback_musk_ox/idle.png",
+      "running": "assets/enemies/frostback_musk_ox/running.png",
+      "attack": "assets/enemies/frostback_musk_ox/attacking.png",
+      "death": "assets/enemies/frostback_musk_ox/dying.png",
+      "referenceCell": 320,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 320,
+          "frameHeight": 208,
+          "frameCount": 16,
+          "footY": 188,
+          "duration": 5170,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 2,
+          "rows": 17,
+          "frameWidth": 320,
+          "frameHeight": 208,
+          "frameCount": 34,
+          "footY": 188,
+          "duration": 1417,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 3,
+          "rows": 9,
+          "frameWidth": 384,
+          "frameHeight": 208,
+          "frameCount": 27,
+          "footY": 188,
+          "duration": 1625,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 7,
+          "frameWidth": 320,
+          "frameHeight": 208,
+          "frameCount": 35,
+          "footY": 188,
+          "duration": 2125,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "abyssRimeBeast": {
+    "entityClass": "AbyssRimeBeastEnemy",
+    "id": "abyssRimeBeast",
+    "name": "寒渊棘兽",
+    "hp": 280,
+    "maxHp": 280,
+    "size": 16,
+    "collisionRadius": 40,
+    "speed": 275,
+    "level": 5,
+    "color": "#333846",
+    "highlightColor": "rgba(139, 151, 181, 0.3)",
+    "str": 33,
+    "dex": 27,
+    "con": 31,
+    "int": 4,
+    "wis": 7,
+    "luck": 8,
+    "rank": "normal",
+    "basicMeleeResolver": true,
+    "attackRange": 98,
+    "attackDistance": 98,
+    "basicMelee": {
+      "approachReach": 98,
+      "impactReach": 94,
+      "width": 34,
+      "timeline": {
+        "durationMs": 1167,
+        "frameCount": 29,
+        "contactFrame": 22,
+        "activeFrames": [18, 25]
+      }
+    },
+    "aiInterval": 1350,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 195,
+      "loseTimeout": 2400
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1350,
+      "dynamicRange": 94,
+      "width": 34,
+      "knockback": 18
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "深渊",
+    "families": ["深渊", "异兽"],
+    "description": "寒潮裂隙附近徘徊的普通深渊异兽，背部固定生有六根霜棘。它伏低四肢逼近目标，以一次短促咬合完成近战攻击。",
+    "skills": [],
+    "attackType": "短距咬合",
+    "render": {
+      "spriteSize": 175,
+      "collisionWidth": 132,
+      "collisionHeight": 72,
+      "footOffsetY": 42,
+      "projectileHitbox": {
+        "width": 132,
+        "height": 72,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetY": -8
+    },
+    "height": 82,
+    "deathAnim": {
+      "duration": 1333,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/abyss_rime_beast/idle.png",
+      "running": "assets/enemies/abyss_rime_beast/running.png",
+      "attack": "assets/enemies/abyss_rime_beast/attacking.png",
+      "death": "assets/enemies/abyss_rime_beast/dying.png",
+      "referenceCell": 320,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 320,
+          "frameHeight": 176,
+          "frameCount": 16,
+          "footY": 160,
+          "duration": 5170,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 3,
+          "rows": 10,
+          "frameWidth": 352,
+          "frameHeight": 176,
+          "frameCount": 30,
+          "footY": 160,
+          "duration": 1250,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 3,
+          "rows": 10,
+          "frameWidth": 384,
+          "frameHeight": 176,
+          "frameCount": 29,
+          "footY": 160,
+          "duration": 1167,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 3,
+          "rows": 11,
+          "frameWidth": 320,
+          "frameHeight": 176,
+          "frameCount": 33,
+          "footY": 160,
+          "duration": 1333,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "frostboundSpearman": {
+    "entityClass": "FrostboundSpearmanEnemy",
+    "id": "frostboundSpearman",
+    "name": "霜缚矛卒",
+    "hp": 260,
+    "maxHp": 260,
+    "size": 15,
+    "collisionRadius": 34,
+    "speed": 235,
+    "level": 5,
+    "color": "#3f4650",
+    "highlightColor": "rgba(168, 184, 199, 0.28)",
+    "str": 31,
+    "dex": 24,
+    "con": 29,
+    "int": 8,
+    "wis": 10,
+    "luck": 9,
+    "rank": "normal",
+    "basicMeleeResolver": true,
+    "attackRange": 82,
+    "attackDistance": 82,
+    "basicMelee": {
+      "approachReach": 82,
+      "impactReach": 82,
+      "width": 32,
+      "timeline": {
+        "durationMs": 1500,
+        "frameCount": 41,
+        "contactFrame": 10,
+        "activeFrames": [10, 22]
+      }
+    },
+    "aiInterval": 1450,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 230,
+      "loseTimeout": 2500
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2700,
+      "dynamicRange": 82,
+      "width": 32,
+      "knockback": 18
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "类人形",
+    "families": ["类人形"],
+    "description": "披覆旧式冬装与层叠肩甲的普通雪原矛兵。它维持低姿逼近，以双手长矛完成一次正面直刺，不携带额外法术或特殊能力。",
+    "skills": [],
+    "attackType": "长矛直刺",
+    "render": {
+      "spriteSize": 170,
+      "collisionWidth": 80,
+      "collisionHeight": 110,
+      "footOffsetY": 54,
+      "projectileHitbox": {
+        "width": 76,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": -12
+      },
+      "colliderOffsetY": -10
+    },
+    "height": 115,
+    "deathAnim": {
+      "duration": 1833,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/frostbound_spearman/idle.png",
+      "running": "assets/enemies/frostbound_spearman/running.png",
+      "attack": "assets/enemies/frostbound_spearman/attacking.png",
+      "death": "assets/enemies/frostbound_spearman/dying.png",
+      "referenceCell": 256,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 256,
+          "frameHeight": 208,
+          "frameCount": 16,
+          "footY": 188,
+          "duration": 5170,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 4,
+          "rows": 8,
+          "frameWidth": 256,
+          "frameHeight": 208,
+          "frameCount": 32,
+          "footY": 188,
+          "duration": 1292,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 9,
+          "frameWidth": 256,
+          "frameHeight": 208,
+          "frameCount": 41,
+          "anchorX": 104,
+          "footY": 188,
+          "duration": 1500,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 9,
+          "frameWidth": 288,
+          "frameHeight": 208,
+          "frameCount": 45,
+          "footY": 188,
+          "duration": 1833,
+          "repeat": 0
+        }
+      }
+    }
+  },
+
   "brownBear": {
     "id": "brownBear",
     "name": "棕熊",

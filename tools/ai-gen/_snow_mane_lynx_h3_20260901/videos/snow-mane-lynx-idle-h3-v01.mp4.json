@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T10:51:43.533076+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\videos\\snow-mane-lynx-idle-h3-v01.mp4",
+    "bytes": 662397,
+    "sha256": "3bb07885bf3f2ccdbdcb2cc85dd1afcd6bddff580f30cb13582074018657e097"
+  },
+  "promptId": "75316cad-f858-46a2-acb5-52e46144e9f0",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1677342101,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame is the exact approved Snow-Mane Lynx identity and neutral idle pose. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, thick pale neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-1.0 seconds: the lynx remains planted on the exact supplied ground line while breathing softly. The rib cage expands only slightly, the shoulder fur settles, and both ears make a small independent listening twitch.\n\n1.0-3.8 seconds: it performs a restrained alert idle cycle facing screen right. The head makes one subtle forward-right scenting adjustment, the amber eyes remain attentive, the short bobtail flicks once, and weight shifts gently between the front paws without either paw leaving the root position.\n\n3.8-5.17 seconds: the head, ears, rib cage, tail, all four paws, body scale, and screen position return naturally to the exact supplied neutral pose for a seamless loop. Do not freeze or slow unnaturally at the seam.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Preserve exactly four anatomically correct legs and four distinct paws. Keep the animal facing screen right with no walking, turning, crouching, attack, net travel, zoom, or camera motion. Uniform pure white background, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, open-mouth snarling, cast shadows, particles, text, or added objects.",
+  "effectivePrompt": "The supplied first frame is the exact approved Snow-Mane Lynx identity and neutral idle pose. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, thick pale neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-1.0 seconds: the lynx remains planted on the exact supplied ground line while breathing softly. The rib cage expands only slightly, the shoulder fur settles, and both ears make a small independent listening twitch.\n\n1.0-3.8 seconds: it performs a restrained alert idle cycle facing screen right. The head makes one subtle forward-right scenting adjustment, the amber eyes remain attentive, the short bobtail flicks once, and weight shifts gently between the front paws without either paw leaving the root position.\n\n3.8-5.17 seconds: the head, ears, rib cage, tail, all four paws, body scale, and screen position return naturally to the exact supplied neutral pose for a seamless loop. Do not freeze or slow unnaturally at the seam.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Preserve exactly four anatomically correct legs and four distinct paws. Keep the animal facing screen right with no walking, turning, crouching, attack, net travel, zoom, or camera motion. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, open-mouth snarling, cast shadows, particles, text, or added objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame is the exact approved Snow-Mane Lynx identity and neutral idle pose. One full-body adult arctic lynx keeps the same ash-gray and cold-white winter fur, thick pale neck ruff, black ear tufts, broad snowshoe paws, facial markings, muscular proportions, and short dark-tipped bobtail throughout the clip.\n\n0.0-1.0 seconds: the lynx remains planted on the exact supplied ground line while breathing softly. The rib cage expands only slightly, the shoulder fur settles, and both ears make a small independent listening twitch.\n\n1.0-3.8 seconds: it performs a restrained alert idle cycle facing screen right. The head makes one subtle forward-right scenting adjustment, the amber eyes remain attentive, the short bobtail flicks once, and weight shifts gently between the front paws without either paw leaving the root position.\n\n3.8-5.17 seconds: the head, ears, rib cage, tail, all four paws, body scale, and screen position return naturally to the exact supplied neutral pose for a seamless loop. Do not freeze or slow unnaturally at the seam.\n\nThe camera remains locked in the supplied slightly elevated side-dominant low-three-quarter game view. Preserve exactly four anatomically correct legs and four distinct paws. Keep the animal facing screen right with no walking, turning, crouching, attack, net travel, zoom, or camera motion. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, flat neutral studio lighting, and no visible floor decoration. Avoid limb duplication or fusion, a long tail, open-mouth snarling, cast shadows, particles, text, or added objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "5fd0552115ea617d18998ff95b76d883ef8d5a3bf334073525f627405043ec10",
+  "effectivePromptSha256": "3f4c31c011f9e0e287764a738dfaf7f0776b56283779e136606b8697a392cb96",
+  "finalPromptSha256": "9682d78d6f0d4d4dcb0073f65aad31a95ea25d0bf65291bd4cff636f0acbee6d",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\prompts\\idle-h3-v01.txt",
+      "bytes": 1569,
+      "sha256": "ef9b62757827c7fe07cbef42ae4897a50b0413a20ca6781e6b31c7dcbd9cb83b"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\references\\snow-mane-lynx-idle-keyframe-v01-1024x576.png",
+      "bytes": 591113,
+      "sha256": "eb586b869aabb216b6a3c2ff56d72a22fd1fa70253e88418f5bf767e010aec72"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\references\\snow-mane-lynx-idle-keyframe-v01-1024x576.png",
+      "bytes": 591113,
+      "sha256": "eb586b869aabb216b6a3c2ff56d72a22fd1fa70253e88418f5bf767e010aec72"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_snow_mane_lynx_h3_20260901\\videos\\snow-mane-lynx-idle-h3-v01_contact.png",
+    "bytes": 532931,
+    "sha256": "ef81e6fbbcb47aa69d6e8d5103db7c1091d3b2c17fd8d9018170c6e46445e4f2"
+  },
+  "elapsedSeconds": 460.766
+}
