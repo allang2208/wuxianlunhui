@@ -222,6 +222,7 @@ function _economyModuleValue(structure, economyType, moduleId) {
     if (!module) return 0;
     const savedModules = {
         research: structure?.researchModules,
+        advanced_research: structure?.advancedResearchModules,
         windmill: structure?.windmillModules,
         royal_mint: structure?.mintModules,
         bank: structure?.bankModules,
@@ -245,6 +246,14 @@ function _economyModuleValue(structure, economyType, moduleId) {
         Math.floor(Number(savedModules?.[moduleId]) || 0)
     ));
     return (Number(module.base) || 0) + (Number(module.per) || 0) * level;
+}
+
+function _economyEffectValue(structure, economyType, effect, fallback = 0) {
+    const buildingCfg = producerBuildingsJson[structure?.cfgKey] || {};
+    const project = buildingUpgradesJson[buildingCfg.upgradeProject];
+    const entry = Object.entries(project?.modules || {})
+        .find(([, module]) => module?.effect === effect);
+    return entry ? _economyModuleValue(structure, economyType, entry[0]) : fallback;
 }
 
 function _workshopModuleValue(structure, moduleId) {
@@ -340,8 +349,11 @@ function _researchFacilityType(structure) {
 
 function _snapshotResearchClusterMultiplier(target, economyStructures) {
     const cfg = populationEconomyConfig.researchCluster || {};
-    const radius = Math.max(0, Number(cfg.radius) || 0);
-    const bonusPerType = Math.max(0, Number(cfg.bonusPerDistinctFacilityType) || 0);
+    const targetEconomyType = producerBuildingsJson[target?.cfgKey]?.economyType;
+    const radius = Math.max(0, _economyEffectValue(target, targetEconomyType,
+        'advancedResearchClusterRadius', Number(cfg.radius) || 0));
+    const bonusPerType = Math.max(0, _economyEffectValue(target, targetEconomyType,
+        'advancedResearchClusterBonusPerType', Number(cfg.bonusPerDistinctFacilityType) || 0));
     const maxBonus = Math.max(0, Number(cfg.maxBonus) || 0);
     const selfType = _researchFacilityType(target);
     if (!selfType || radius <= 0 || bonusPerType <= 0) return 1;
@@ -644,14 +656,17 @@ export function getWorld122ResearchSummary(snapshot) {
             count += 1;
             const facility = producerBuildingsJson[structure.cfgKey]?.researchFacility || {};
             const baseRate = Math.max(0,
-                Number(facility.baseResearchPointsPerSecond) || 0);
+                _economyEffectValue(structure, economyType, 'advancedResearchBasePoints',
+                    Number(facility.baseResearchPointsPerSecond) || 0));
             const slots = _economyWorkerSlots(structure, economyType);
             const staffed = Math.min(
                 slots,
                 Math.max(0, Math.floor(Number(structure.assignedWorkers) || 0))
             );
             const workerShare = Math.max(0,
-                Number(facility.workerEfficiencyShare) || (slots > 0 ? 1 / slots : 0));
+                _economyEffectValue(structure, economyType,
+                    'advancedResearchWorkerEfficiencyShare',
+                    Number(facility.workerEfficiencyShare) || (slots > 0 ? 1 / slots : 0)));
             const staffFactor = Math.max(0, Math.min(1, staffed * workerShare));
             rate += baseRate * staffFactor * laborEfficiency
                 * _workshopEfficiencyMultiplier(structure, economyStructures)
@@ -956,6 +971,7 @@ const LOCAL_MODULE_UPGRADES = [
     ['candle', 'candle_sanctuary'],
     ['workshop', 'economic_workshop'],
     ['research', 'research_standard'],
+    ['advancedResearch', 'high_energy_laboratory_economy'],
     ['windmill', 'wheat_windmill_economy'],
     ['mint', 'royal_mint_economy'],
     ['armory', 'armory_economy'],

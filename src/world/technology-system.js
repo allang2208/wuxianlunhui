@@ -6,7 +6,7 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 44;
+const VERSION = 45;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
 const V41_CAVALRY_SCOUT_RIFLE_ID = 'cavalry_scout_rifle';

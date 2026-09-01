@@ -283,12 +283,28 @@ export const PopulationEconomySystem = {
             } : null;
             building._mintGoldRemainder = Math.max(0, Number(saved.mintGoldRemainder) || 0);
         }
+        if (building._economyType === 'advanced_research') {
+            building.modules = { ...(saved.advancedResearchModules || saved.modules || {}) };
+            for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
+                building.modules[moduleId] = clamp(
+                    Math.floor(Number(building.modules[moduleId]) || 0),
+                    0,
+                    Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+                );
+            }
+            building._advancedResearchUpgrade = saved.advancedResearchUpgrade ? {
+                moduleId: saved.advancedResearchUpgrade.moduleId,
+                totalMs: Math.max(1, Number(saved.advancedResearchUpgrade.totalMs) || 1),
+                remainMs: Math.max(0, Number(saved.advancedResearchUpgrade.remainMs) || 0),
+            } : null;
+        }
         if (building._economyType === 'housing') this.applyHouseLevel(building, building._economyLevel);
         if (building._economyType === 'warehouse') this.applyWarehouseLevel(building, building._economyLevel);
         if (building._economyType === 'research') this.applyResearchLevel(building, building._economyLevel);
         const workerCfg = workforceConfig(building);
         const slots = workforceSlots(building, workerCfg,
-            saved.researchModules || saved.windmillModules || saved.mintModules || saved.bankModules
+            saved.researchModules || saved.advancedResearchModules
+                || saved.windmillModules || saved.mintModules || saved.bankModules
                 || saved.grandMallModules
                 || saved.workshopModules || saved.armoryModules
                 || saved.resonatorModules || saved.windPowerModules || saved.solarPowerModules
@@ -651,6 +667,67 @@ export const PopulationEconomySystem = {
         building._researchUpgrade = null;
     },
 
+    getAdvancedResearchModuleLevel(building, moduleId) {
+        return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
+    },
+
+    getAdvancedResearchUpgradeCost(building, moduleId) {
+        return getBuildingModuleUpgradeCost(
+            building?._cfg,
+            moduleId,
+            this.getAdvancedResearchModuleLevel(building, moduleId)
+        );
+    },
+
+    startAdvancedResearchUpgrade(building, moduleId) {
+        if (building?._cfg?.upgradeProject !== 'high_energy_laboratory_economy'
+            || building?._economyType !== 'advanced_research') {
+            return { ok: false, reason: '该建筑不是高能实验室' };
+        }
+        const module = building._cfg.modules?.[moduleId];
+        if (!module) return { ok: false, reason: '未知升级项目' };
+        if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+            return { ok: false, reason: `需要先完成科技：${technologyName || moduleId}` };
+        }
+        const level = this.getAdvancedResearchModuleLevel(building, moduleId);
+        if (level >= (Number(module.maxLevel) || 0)) {
+            return { ok: false, reason: '升级项目已满级' };
+        }
+        if (building._advancedResearchUpgrade) {
+            return { ok: false, reason: '已有高能实验项目正在升级' };
+        }
+        const cost = this.getAdvancedResearchUpgradeCost(building, moduleId);
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
+        building._advancedResearchUpgrade = {
+            moduleId,
+            totalMs: Math.max(1, Number(cost.timeMs) || 1),
+            remainMs: Math.max(1, Number(cost.timeMs) || 1),
+        };
+        return { ok: true, cost, moduleId };
+    },
+
+    _updateAdvancedResearchUpgrade(building, dt) {
+        const upgrade = building?._advancedResearchUpgrade;
+        if (!upgrade) return;
+        upgrade.remainMs -= Math.max(0, Number(dt) || 0);
+        if (upgrade.remainMs > 0) return;
+        const module = building._cfg.modules?.[upgrade.moduleId];
+        if (module) {
+            building.modules[upgrade.moduleId] = clamp(
+                this.getAdvancedResearchModuleLevel(building, upgrade.moduleId) + 1,
+                0,
+                Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+            );
+        }
+        building._advancedResearchUpgrade = null;
+    },
+
+    getAdvancedResearchUpgrade(building) {
+        return building?._advancedResearchUpgrade || null;
+    },
+
     getResearchSnapshot(building) {
         const cfg = populationEconomyConfig.research || {};
         const levelCfg = researchLevel(building?._economyLevel || 1) || {};
@@ -730,14 +807,16 @@ export const PopulationEconomySystem = {
     getAdvancedResearchSnapshot(building) {
         const facility = building?._cfg?.researchFacility || {};
         const configuredResearchPointsPerSecond = Math.max(0,
-            Number(facility.baseResearchPointsPerSecond) || 0);
+            economyEffectValue(building, 'advancedResearchBasePoints',
+                Number(facility.baseResearchPointsPerSecond) || 0));
         const staffCapacity = workforceSlots(building, facility);
         const staffedCount = Math.min(
             staffCapacity,
             Math.max(0, Math.floor(Number(building?._assignedWorkers) || 0))
         );
         const workerEfficiencyShare = Math.max(0,
-            Number(facility.workerEfficiencyShare) || (staffCapacity > 0 ? 1 / staffCapacity : 0));
+            economyEffectValue(building, 'advancedResearchWorkerEfficiencyShare',
+                Number(facility.workerEfficiencyShare) || (staffCapacity > 0 ? 1 / staffCapacity : 0)));
         const staffFactor = clamp(staffedCount * workerEfficiencyShare, 0, 1);
         const laborEfficiency = this.getLaborEfficiency();
         const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
@@ -754,6 +833,9 @@ export const PopulationEconomySystem = {
             tavernMultiplier,
             clusterMultiplier: cluster.multiplier,
             clusterBonus: cluster.bonus,
+            clusterRadius: cluster.radius,
+            clusterBonusPerType: cluster.bonusPerType,
+            clusterMaxBonus: cluster.maxBonus,
             clusterFacilityTypes: cluster.facilityTypes,
             actualResearchPointsPerSecond: configuredResearchPointsPerSecond
                 * staffFactor * laborEfficiency * workshopMultiplier * tavernMultiplier
@@ -763,8 +845,10 @@ export const PopulationEconomySystem = {
 
     getResearchClusterSnapshot(building) {
         const cfg = populationEconomyConfig.researchCluster || {};
-        const radius = Math.max(0, Number(cfg.radius) || 0);
-        const bonusPerType = Math.max(0, Number(cfg.bonusPerDistinctFacilityType) || 0);
+        const radius = Math.max(0, economyEffectValue(building,
+            'advancedResearchClusterRadius', Number(cfg.radius) || 0));
+        const bonusPerType = Math.max(0, economyEffectValue(building,
+            'advancedResearchClusterBonusPerType', Number(cfg.bonusPerDistinctFacilityType) || 0));
         const maxBonus = Math.max(0, Number(cfg.maxBonus) || 0);
         const selfType = researchFacilityType(building);
         const facilityTypes = new Set();
@@ -782,6 +866,8 @@ export const PopulationEconomySystem = {
         const bonus = Math.min(maxBonus, facilityTypes.size * bonusPerType);
         return {
             radius,
+            bonusPerType,
+            maxBonus,
             bonus,
             multiplier: 1 + bonus,
             facilityTypes: [...facilityTypes],
@@ -1769,7 +1855,10 @@ export const PopulationEconomySystem = {
             this._updateResearchModuleUpgrade(building, elapsedDt);
             return;
         }
-        if (building._economyType === 'advanced_research') return;
+        if (building._economyType === 'advanced_research') {
+            this._updateAdvancedResearchUpgrade(building, elapsedDt);
+            return;
+        }
         if (building._economyType === 'weather_forecast') return;
         if (building._economyType === 'wind_power_plant'
             || building._economyType === 'solar_power_plant') {

@@ -139,6 +139,20 @@
       "research_base_points": { "name": "精密研究设备", "icon": "🔭", "iconImage": "assets/ui/building-upgrades/research-equipment.png", "effect": "researchBasePoints", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "desc": "本栋研究所基础科研点 +{value}/秒（每级 +0.05）" }
     }
   },
+  "high_energy_laboratory_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [2000, 2700, 3600, 4800, 6300, 8200, 10600, 13600, 17400, 22200],
+      "energyByLevel": [3200, 4300, 5700, 7500, 9800, 12700, 16400, 21100, 27100, 34700],
+      "timeBaseMs": 90000,
+      "timeGrowthMs": 9000
+    },
+    "modules": {
+      "high_energy_magnetic_confinement": { "name": "磁约束增幅", "icon": "⚛️", "iconImage": "assets/ui/building-upgrades/high-energy-magnetic-confinement.png", "effect": "advancedResearchBasePoints", "mode": "add", "base": 2.5, "per": 0.1, "maxLevel": 10, "desc": "满员基础科研由2.50提升至3.50点/秒，每级增加0.10点/秒。" },
+      "high_energy_experiment_automation": { "name": "自动化实验台", "icon": "🦾", "iconImage": "assets/ui/building-upgrades/high-energy-experiment-automation.png", "effect": "advancedResearchWorkerEfficiencyShare", "mode": "add", "base": 0.125, "per": 0.0125, "maxLevel": 4, "goldByLevel": [9000, 13000, 18500, 26000], "energyByLevel": [11000, 16000, 23000, 33000], "timeByLevel": [120000, 150000, 180000, 240000], "desc": "每名高能实验员发挥率由12.5%提升至17.5%，实际岗位效率仍封顶100%，岗位容量保持8名。" },
+      "high_energy_detector_network": { "name": "探测器网络", "icon": "📡", "iconImage": "assets/ui/building-upgrades/high-energy-detector-network.png", "effect": "advancedResearchClusterRadius", "mode": "add", "base": 640, "per": 48, "maxLevel": 10, "desc": "本栋科研集群识别半径由640px提升至1120px，每级增加48px。" },
+      "high_energy_data_calibration": { "name": "数据标定链", "icon": "🔬", "iconImage": "assets/ui/building-upgrades/high-energy-data-calibration.png", "effect": "advancedResearchClusterBonusPerType", "mode": "add", "base": 0.03, "per": 0.002, "maxLevel": 10, "desc": "每种不同科研设施的集群增效由3%提升至5%，总集群增效仍封顶12%。" }
+    }
+  },
   "weather_forecast_analysis": {
     "moduleUpgrade": {
       "goldByLevel": [400, 650, 950],
