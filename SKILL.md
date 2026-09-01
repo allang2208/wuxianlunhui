@@ -27,6 +27,7 @@
 | `skill/12-pitfalls-debug.md` | 12. 常见陷阱与调试手册 |
 | `skill/13-history-appendix.md` | 13. 历史记录与变更日志（附录） |
 | `skill/14-performance-optimization.md` | 14. 性能优化与采样 |
+| `skill/16b-animation-alignment-and-timing.md` | 动画开工朝向、抽象单位结构锁、时钟与定稿清理合同 |
 
 ## 维护规则（防膨胀）
 
