@@ -1,0 +1,37 @@
+{
+  "date": "2026-09-01",
+  "status": "delivered_awaiting_user_selection",
+  "recommendedCandidate": 1,
+  "recommendationSource": "Assistant visual preference, not user approval",
+  "summary": [
+    "用户已确认02异形招牌版；本批由该完整图进入标准48步，原三层办公楼、单层货仓、宽面货仓门、两只货箱和弧形雨棚均保留。",
+    "两张AI raw都重画了异形字：01出现环形笔画，02出现汉字式方块笔画。因此展示候选仅通过原牌面蒙版恢复用户确认的四组虚构字形；两张未修改AI raw独立保留。",
+    "建议精修01：雨棚金属高光较柔和、货箱颜色较克制，整体更沉稳。精修02更暖，门廊反光与货箱棕色更醒目。",
+    "两张仍保留较密的屋面细纹与石缝，没有宣称完全消除微纹理；没有新增悬空楼梯，台阶与门廊落在实体地台内。",
+    "完整1024绿底候选尚未抠透明；四周没有明显大面积外投影，但绿幕仍不是精确纯色，最终选稿后的抠图必须依据所选实际轮廓，不能以旧Depth掩盖结构偏差。",
+    "本批未变更模型、正式assets、科技或玩法，燃油厂与罐头厂定稿不变。未运行测试或运行时验证，按约定由用户测试。"
+  ],
+  "candidates": [
+    {
+      "variant": 1,
+      "seed": 133251,
+      "output": "trading_company/trading_company_refine_v01_sign_preserved.png",
+      "generatedRaw": "trading_company/trading_company_refine_v01_raw.png",
+      "finding": "整体略暗，雨棚亮部较收敛，木箱保持低饱和；牌面恢复后与确认源的四组字形一致。",
+      "remainingLimits": "屋瓦细纹和石缝仍密；尚未实机查看。",
+      "userApproved": false
+    },
+    {
+      "variant": 2,
+      "seed": 133252,
+      "output": "trading_company/trading_company_refine_v02_sign_preserved.png",
+      "generatedRaw": "trading_company/trading_company_refine_v02_raw.png",
+      "finding": "墙面和木箱更暖，雨棚高光更亮；牌面已恢复，未采用raw中的汉字式笔画。",
+      "remainingLimits": "金属亮斑较醒目，屋面细纹仍在；尚未实机查看。",
+      "userApproved": false
+    }
+  ],
+  "finalArtApproved": false,
+  "transparentFinishingPerformed": false,
+  "runtimeInstalled": false
+}

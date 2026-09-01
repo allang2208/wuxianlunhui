@@ -1,0 +1,64 @@
+{
+  "status": "user_preferred02_alien_sign_edit_delivered",
+  "date": "2026-09-01",
+  "assetId": "trading_company",
+  "outputCount": 3,
+  "visualReview": "Viewed the complete v01 model approval preview and full Depth, then all three complete1024 raw outputs with native vision. No alpha mask, color change or source crop was applied.",
+  "metadataObservation": "All three generation records use12 steps, Depth0.78, CFG3.5, Euler/simple, flux2-dev-depth, world122-building-v5, rubble_stone, no init or mask, rawOnly=true and nonstandardOverride=false.",
+  "recommendedCandidate": 1,
+  "recommendationPurpose": "correction_reference_only",
+  "userSelectedCandidate": 2,
+  "selectionUserReply": "102 更好。把门口上的招牌换成异形文字。",
+  "selectionInterpretation": "02; disclosed to user before editing",
+  "latestUserDirection": "User preference02 supersedes assistant recommendation01. Keep02 warehouse entrance, canopy and all other details; only change the sign face to alien script. Findings below are historical observations, not authorization to repair unrelated parts.",
+  "currentSignEditManifest": "../trading_sign_alien_20260901/manifest.json",
+  "approvedForRefinement": false,
+  "finalArtApproved": false,
+  "runtimeInstalled": false,
+  "sourceGeometryClarification": {
+    "builder": "tools/ai-gen/_industrial_economy_buildings_20260831/build-models.py",
+    "mainAndWarehouseRoofs": "gabled_prism, not hipped roofs",
+    "porticoColumnCount": 4,
+    "porticoObservation": "Two front columns dominate the source view; two rear columns stand against the entrance wall.",
+    "promptIssue": "This batch's authored prompt mistakenly called the roofs hipped and the canopy two-column. Actual prompt/metadata are retained unchanged as provenance. Next correction must use gabled roofs and the four modeled columns; do not repeat those phrases or claim exact component-count fidelity."
+  },
+  "summary": [
+    "建议以01为局部修正基础：货仓入口仍在靠办公楼的窄端，平门廊与原模型更接近；02/03将货仓门移到画面左侧长立面，不能当作同结构直接晋级。",
+    "三张均保住三层对齐办公楼、单层货仓、两只落地货箱、货箱外运箭头标识和完整地台，无新增楼层。",
+    "三张都缺原货仓侧窗，门廊铜色偏亮，屋顶/墙面细纹仍较密；01另有明显地台外投影。保留原始偏差供选稿，不通过抠图或整图48步掩盖。",
+    "本批提示误把双坡屋顶写成四坡、把前面两根显眼门柱写成总共两柱；模型源实际为双坡屋顶和四柱门廊，已记录更正，实际使用过的提示不改写。候选只作选稿与修正参考，未自动批准48步。"
+  ],
+  "candidates": [
+    {
+      "variant": 1,
+      "seed": 133231,
+      "reportedSecondsIncludingQueue": 452.7,
+      "raw": "trading_company/trading_company_structure_v01_raw.png",
+      "recommended": true,
+      "findings": "三层主体和单层货仓稳定；货仓窄端开口、两侧货箱及平顶门廊最接近白模。办公门扇可见、货箱箭头标识可辨；货仓侧窗缺失并变成连续竖向板墙，屋檐下新增少量分格装饰，门廊偏亮且左侧外投影明显。",
+      "needsLocalCorrection": true,
+      "approvedForRefinement": false
+    },
+    {
+      "variant": 2,
+      "seed": 133232,
+      "reportedSecondsIncludingQueue": 58.4,
+      "raw": "trading_company/trading_company_structure_v02_raw.png",
+      "recommended": false,
+      "findings": "三层/货仓/两只货箱保留，墙面更亮；货仓入口移到左侧长立面、原窄端封闭，侧窗缺失；办公入口趋于关闭，原平门廊变为弧面铜色雨棚，底层增加较厚毛石包覆。",
+      "needsLocalCorrection": true,
+      "approvedForRefinement": false
+    },
+    {
+      "variant": 3,
+      "seed": 133233,
+      "reportedSecondsIncludingQueue": 58.2,
+      "raw": "trading_company/trading_company_structure_v03_raw.png",
+      "recommended": false,
+      "findings": "三层和门廊形状较稳定，货箱箭头大且清楚；货仓入口仍移至左侧长立面，侧窗缺失，货箱并排靠办公楼；办公底层新增明显毛石包覆，门廊金属和细纹仍偏强。",
+      "needsLocalCorrection": true,
+      "approvedForRefinement": false
+    }
+  ],
+  "testsAndRuntimeVerification": "Not run; offline image production and source/diff inspection only. User performs runtime testing per project agreement."
+}

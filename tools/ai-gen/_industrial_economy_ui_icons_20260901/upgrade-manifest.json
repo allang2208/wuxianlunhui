@@ -1,0 +1,283 @@
+{
+  "date": "2026-09-01",
+  "generator": "Codex built-in image_gen",
+  "promptSet": "tools/ai-gen/_industrial_economy_ui_icons_20260901/prompts.md",
+  "styleReferences": [
+    "assets/ui/building-upgrades/steam-high-pressure-boiler.png",
+    "assets/ui/building-upgrades/grand-mall-showcase.png",
+    "assets/ui/building-upgrades/solar-maintenance-staff.png"
+  ],
+  "subjectReferences": [
+    "assets/terrain/oil_power_plant.png",
+    "assets/terrain/cannery.png",
+    "assets/terrain/trading_company.png"
+  ],
+  "operation": "Resize to 256px and apply the existing upgrade-card alpha silhouette; no subject repaint",
+  "runtimeTested": false,
+  "entries": [
+    {
+      "id": "oil-combustion-control",
+      "name": "燃烧调度",
+      "generatedFile": "exec-b7f974c3-bc3d-44c4-b07d-a4d3ccb7af0e.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/oil-combustion-control_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/oil-combustion-control.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "oil-generator-output",
+      "name": "重型发电机组",
+      "generatedFile": "exec-bad5d46f-1bd7-498c-a645-c977b7913beb.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/oil-generator-output_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/oil-generator-output.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "oil-fuel-efficiency",
+      "name": "燃油雾化",
+      "generatedFile": "exec-1ffc8039-5acb-4740-baa8-add7b736622d.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/oil-fuel-efficiency_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/oil-fuel-efficiency.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "oil-maintenance-staff",
+      "name": "机组编制",
+      "generatedFile": "exec-555a8b95-970b-4b22-84c0-0ec2c9ab382c.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/oil-maintenance-staff_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/oil-maintenance-staff.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "cannery-assembly-line",
+      "name": "连续罐装线",
+      "generatedFile": "exec-3a77ccb6-92ae-454f-ab89-b252f03817bf.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/cannery-assembly-line_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/cannery-assembly-line.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "cannery-food-output",
+      "name": "高温杀菌",
+      "generatedFile": "exec-64b53081-5d01-4dee-8cc1-f9259b6e2237.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/cannery-food-output_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/cannery-food-output.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "cannery-energy-efficiency",
+      "name": "余热回收",
+      "generatedFile": "exec-1142fc6a-5b81-4388-89f8-14fa9cda23ac.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/cannery-energy-efficiency_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/cannery-energy-efficiency.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "cannery-shift-staff",
+      "name": "轮班扩编",
+      "generatedFile": "exec-fef78b3f-11f8-44e4-8a41-7f840f0f2ed2.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/cannery-shift-staff_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/cannery-shift-staff.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "trading-contract-cycle",
+      "name": "合同周转",
+      "generatedFile": "exec-638d73b9-44c2-4e43-b88a-2f38305b4fe6.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/trading-contract-cycle_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/trading-contract-cycle.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "trading-gold-output",
+      "name": "海外订单",
+      "generatedFile": "exec-8da40648-f55e-463a-a637-746ba1ed91f6.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/trading-gold-output_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/trading-gold-output.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "trading-food-efficiency",
+      "name": "保鲜装运",
+      "generatedFile": "exec-b98bd32d-86cd-4439-9a20-ddd1e7f1f5f1.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/trading-food-efficiency_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/trading-food-efficiency.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    },
+    {
+      "id": "trading-staff",
+      "name": "贸易编制",
+      "generatedFile": "exec-0863bb44-9351-4689-a5f0-eb19ff59e1a6.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/trading-staff_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "runtimePath": "assets/ui/building-upgrades/trading-staff.png",
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        2,
+        0,
+        253,
+        246
+      ]
+    }
+  ]
+}

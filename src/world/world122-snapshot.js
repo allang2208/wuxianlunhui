@@ -687,6 +687,27 @@ export function captureWorld(sceneId = 'scene8') {
                 })) : undefined,
             steamOutputRemainder: p._economyType === 'steam_power_plant'
                 ? Math.max(0, Number(p._steamOutputRemainder) || 0) : undefined,
+            oilPowerModules: p._economyType === 'oil_power_plant'
+                ? { ...(p.modules || {}) } : undefined,
+            oilPowerUpgrade: p._oilPowerUpgrade ? {
+                moduleId: p._oilPowerUpgrade.moduleId,
+                totalMs: p._oilPowerUpgrade.totalMs,
+                remainMs: p._oilPowerUpgrade.remainMs,
+            } : null,
+            canneryModules: p._economyType === 'cannery'
+                ? { ...(p.modules || {}) } : undefined,
+            canneryUpgrade: p._canneryUpgrade ? {
+                moduleId: p._canneryUpgrade.moduleId,
+                totalMs: p._canneryUpgrade.totalMs,
+                remainMs: p._canneryUpgrade.remainMs,
+            } : null,
+            tradingModules: p._economyType === 'trading_company'
+                ? { ...(p.modules || {}) } : undefined,
+            tradingUpgrade: p._tradingUpgrade ? {
+                moduleId: p._tradingUpgrade.moduleId,
+                totalMs: p._tradingUpgrade.totalMs,
+                remainMs: p._tradingUpgrade.remainMs,
+            } : null,
             windPowerModules: p._economyType === 'wind_power_plant'
                 ? { ...(p.modules || {}) } : undefined,
             windPowerUpgrade: p._windPowerUpgrade ? {
@@ -969,6 +990,7 @@ export function previewWorld122Report() {
         isRecruitmentTierUnlocked: (id) =>
             TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
         isUnitUnlocked: (id) => TechnologySystem?.isUnlocked?.('unit', id) === true,
+        getPlayerTotalGold: () => PopulationEconomySystem?.getPlayerTotalGold?.() || 0,
     });
 }
 
@@ -1216,6 +1238,12 @@ function _restoreProducer(s, sceneId) {
         steamUpgrade: s.steamUpgrade,
         steamJobs: s.steamJobs,
         steamOutputRemainder: s.steamOutputRemainder,
+        oilPowerModules: s.oilPowerModules,
+        oilPowerUpgrade: s.oilPowerUpgrade,
+        canneryModules: s.canneryModules,
+        canneryUpgrade: s.canneryUpgrade,
+        tradingModules: s.tradingModules,
+        tradingUpgrade: s.tradingUpgrade,
         windPowerModules: s.windPowerModules,
         windPowerUpgrade: s.windPowerUpgrade,
         tavernModules: s.tavernModules,
@@ -1413,6 +1441,9 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             isRecruitmentTierUnlocked: (id) =>
                 TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
             isUnitUnlocked: (id) => TechnologySystem?.isUnlocked?.('unit', id) === true,
+            getPlayerTotalGold: () => PopulationEconomySystem?.getPlayerTotalGold?.() || 0,
+            spendPlayerGold: (amount) =>
+                PopulationEconomySystem?.deductPlayerGold?.(amount) === true,
             grant: (reward) => {
                 // 银行金币依次进入背包、主人空间仓库；溢出量由结算记在对应银行，回场后落地。
                 if (reward.gold && PopulationEconomySystem?.routeProducedGold) {

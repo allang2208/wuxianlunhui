@@ -1,0 +1,61 @@
+{
+  "status": "selected_oil02_cannery01_transparent_artwork_delivered",
+  "date": "2026-09-01",
+  "stage": "refine",
+  "steps": 48,
+  "denoise": 0.3,
+  "depthStrength": 0.75,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "outputCount": 4,
+  "acceptedInputs": {"oil_power_plant": "corrected C", "cannery": "corrected B"},
+  "inputAcceptanceUserReply": "可用继续",
+  "recommendedCandidates": {"oil_power_plant": 2, "cannery": 1},
+  "recommendationPurpose": "48_step_candidate_selection_before_transparent_finishing",
+  "userSelected48Candidates": {"oil_power_plant": 2, "cannery": 1},
+  "selectionUserReply": "按你建议继续",
+  "selectionDate": "2026-09-01",
+  "finalArtApproved": true,
+  "approvalMeaning": "Selected48 raw artwork accepted; transparent derivatives delivered, not runtime integration",
+  "transparentManifest": "../transparent_final_20260901/manifest.json",
+  "historicalReviewNote": "Visual findings below describe the complete48 raw candidates before selection. Latest user selection supersedes pending-selection wording; selected raws remain unchanged.",
+  "runtimeInstalled": false,
+  "visualReview": "Opened both accepted raw inputs and full Depths, then all four complete 1024 raw outputs with native vision. No alpha processing, recoloring, cropping of source raws or Depth-mask hiding of discrepancies.",
+  "metadataObservation": "All four generation metadata files record steps48, denoise0.30, Depth0.75, stylev5, no mask, nonstandardOverride=false and the correct accepted C/B init paths.",
+  "summary": [
+    "推荐燃油02：两层、敞口烟囱、正面贴墙爬梯和双油罐保留；旧楼上徽记残痕比01干净，门口油滴闪电标可辨。",
+    "推荐罐头01：拱顶、原料塔、立体罐头门标、卧式杀菌釜和输送线仍清楚；原料塔标签没有02新增的明显白色伪字。",
+    "四张均沿用用户确认的布局，未新增楼层或把爬梯移回绿幕边缘；细节有生成式变化，不宣称逐像素或所有小件完全一致。",
+    "推荐图仍有地台外投影、细颗粒及少量小标签纹样，油罐仍较亮；未当作已经透明定稿或正式接入。48步候选需用户选定后再进行抠图收口。"
+  ],
+  "assets": {
+    "oil_power_plant": [
+      {
+        "variant": 1, "seed": 133201, "reportedSeconds": 56.3,
+        "raw": "oil_power_plant/oil_power_plant_refine_v01_raw.png",
+        "findings": "保住敞口、正面爬梯、两层、双油罐和入口；油罐色调较柔和，但楼上原徽记位置变成一处黑色小斑，墙面细颗粒仍明显，外部投影残留。",
+        "recommended": false, "runtimeReady": false
+      },
+      {
+        "variant": 2, "seed": 133202, "reportedSeconds": 70.3,
+        "raw": "oil_power_plant/oil_power_plant_refine_v02_raw.png",
+        "findings": "楼上旧徽记区域较干净，门标油滴与闪电清楚；烟囱顶口开放，爬梯沿实体正面且止于筒口下方。油罐仍偏亮，表面细纹和地台外投影需要后续收口。",
+        "recommended": true, "stairGreenOverlapPreserved": true, "runtimeReady": false
+      }
+    ],
+    "cannery": [
+      {
+        "variant": 1, "seed": 133211, "reportedSeconds": 58.3,
+        "raw": "cannery/cannery_refine_v01_raw.png",
+        "findings": "立体罐头门标未退回平面牌，原料塔卷边、红标与番茄图案清楚；杀菌釜前端锁紧件/手轮仍可辨。输送带罐头与细小标签有所重绘，仍有细纹和外部投影。",
+        "recommended": true, "threeDimensionalTinSignPreserved": true, "runtimeReady": false
+      },
+      {
+        "variant": 2, "seed": 133212, "reportedSeconds": 70.4,
+        "raw": "cannery/cannery_refine_v02_raw.png",
+        "findings": "保持主要轮廓和立体门标，但原料塔左侧红标新增明显白色伪字；杀菌釜前端手轮简化、设备小铭牌增加，故不优先推荐。",
+        "recommended": false, "runtimeReady": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,539 @@
+{
+  "outputRoot": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureSeedBase": 133110,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "authorization": {
+    "modelApprovalUserReply": "可用，进行12步生图",
+    "approvedModelRevision": "v02",
+    "assets": [
+      "oil_power_plant",
+      "cannery"
+    ],
+    "destination": "http://192.168.3.142:8188",
+    "destinationUploadAuthorized": true,
+    "standingAuthorizationRecord": "AGENTS.md#建筑管线局域网上传授权（2026-08-31）",
+    "scope": "Two selected 01 images: bounded masked 12-step correction; oil chimney ladder relocation explicitly requested",
+    "generationSubmitted": true,
+    "generationCompleted": true,
+    "refinementRequested": false,
+    "runtimeInstallationRequested": false,
+    "generatedCount": 4,
+    "selectionUserReply": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+    "inputs": [
+      "two original selected 01 raw images",
+      "oil ladder-corrected full Depth",
+      "cannery original full Depth",
+      "local edit masks",
+      "prompts and parameters"
+    ],
+    "refineRequested": false
+  },
+  "assets": [
+    {
+      "id": "oil_power_plant",
+      "label": "燃油发电厂 v02",
+      "assetClass": "industrial_economy",
+      "assetType": "World-122 industrial-era oil-fired power plant",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 4,
+      "controlImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_body_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_body_depth.png",
+      "primaryRequest": "industrial-era oil-fired power plant with a two-storey engine hall and one tall open smokestack",
+      "structureRequest": "industrial-era oil-fired power plant: exactly two aligned engine-hall storeys under one continuous pitched roof; one tall tapered chimney on the screen-left with a visibly hollow open top, ladder and connecting flue; two horizontal fuel tanks along the lower left yard. Preserve both rows of factory windows, the open double entrance and the small oil-drop plus lightning emblem",
+      "detailRequest": "Correct only the masked parts of this same two-storey fuel-oil power station. The tall cylindrical smokestack stays truly hollow with the existing dark open mouth. Move its single straight iron access ladder from the right silhouette edge to the middle of the visible chimney face, as in the updated Depth. Every ladder rung and both rails have solid chimney masonry behind them; keep the ladder top below the chimney rim, with no rail or rung against green. Erase the old right-edge ladder completely. The stack is smooth muted gray masonry, not dense speckled grit. Remove the oil-drop disc from the upper side wall, restoring matching plain wall there. Replace the round lightning disc above the front entrance with one small wide dark iron plaque containing exactly two simple raised symbols side by side: an ochre oil droplet and a dull bronze lightning bolt; no letters. Both existing horizontal tanks are matte desaturated ochre painted steel, with dark iron bands and narrow soft highlights, never gold or polished brass. Remove the tiny extra ladder on the foreground fuel tank. Roof planes retain their exact shapes but use broad smooth charcoal slate courses with very little grain. Keep the same open dark entrance, all unmasked windows, two aligned storeys, pipes, framing, camera and complete stone plinth. All green background is one perfectly flat #00FF00 field, absolutely no cast shadow of any kind, no green-screen shadow gradient. No extra object.",
+      "paletteConstraint": "cool gray masonry and warm-gray stone bands, dark blue-gray slate roof, muted ochre fuel tanks, blackened iron flue and ladder, dark blue-green glazing; small dark tarnished brass emblem",
+      "negativeRequest": "no capped chimney, sealed exhaust mouth, extra chimney or tank, smoke cloud, cooling tower, solar panel, dense brick joints or miniature roof-tile noise",
+      "modelApproval": "Original v02 approved; user explicitly requested this narrow ladder correction while continuing selected01 correction. Hall, mouth and foundation unchanged.",
+      "modelSource": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_model.blend",
+      "reviewStatus": "user_accepted_corrected_candidate_standard48_candidates_delivered",
+      "approvedForRefinement": true,
+      "runtimeInstalled": false,
+      "recommendedCorrectionCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/oil_power_plant/oil_power_plant_structure_v01_raw.png",
+      "recommendationPurpose": "correction_reference_only",
+      "reviewFile": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/review.json",
+      "selectedStructureCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/oil_power_plant/oil_power_plant_structure_v01_raw.png",
+      "selectionPurpose": "correction_reference_only",
+      "selectionUserReply": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+      "maskedRefineRequest": "Correct only the masked parts of this same two-storey fuel-oil power station. The tall cylindrical smokestack stays truly hollow with the existing dark open mouth. Move its single straight iron access ladder from the right silhouette edge to the middle of the visible chimney face, as in the updated Depth. Every ladder rung and both rails have solid chimney masonry behind them; keep the ladder top below the chimney rim, with no rail or rung against green. Erase the old right-edge ladder completely. The stack is smooth muted gray masonry, not dense speckled grit. Remove the oil-drop disc from the upper side wall, restoring matching plain wall there. Replace the round lightning disc above the front entrance with one small wide dark iron plaque containing exactly two simple raised symbols side by side: an ochre oil droplet and a dull bronze lightning bolt; no letters. Both existing horizontal tanks are matte desaturated ochre painted steel, with dark iron bands and narrow soft highlights, never gold or polished brass. Remove the tiny extra ladder on the foreground fuel tank. Roof planes retain their exact shapes but use broad smooth charcoal slate courses with very little grain. Keep the same open dark entrance, all unmasked windows, two aligned storeys, pipes, framing, camera and complete stone plinth. All green background is one perfectly flat #00FF00 field, absolutely no cast shadow of any kind, no green-screen shadow gradient. No extra object.",
+      "maskImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_power_plant/source01_edit_mask.png",
+      "maskRegions": [
+        [
+          "chimney_and_relocated_ladder",
+          255,
+          [
+            [
+              173,
+              237
+            ],
+            [
+              291,
+              237
+            ],
+            [
+              301,
+              643
+            ],
+            [
+              287,
+              734
+            ],
+            [
+              170,
+              708
+            ]
+          ]
+        ],
+        [
+          "quiet_roof",
+          160,
+          [
+            [
+              287,
+              378
+            ],
+            [
+              477,
+              263
+            ],
+            [
+              646,
+              257
+            ],
+            [
+              823,
+              411
+            ],
+            [
+              554,
+              552
+            ]
+          ]
+        ],
+        [
+          "remove_upper_oil_badge",
+          255,
+          [
+            [
+              375,
+              424
+            ],
+            [
+              411,
+              423
+            ],
+            [
+              420,
+              476
+            ],
+            [
+              382,
+              491
+            ]
+          ]
+        ],
+        [
+          "combined_front_badge",
+          255,
+          [
+            [
+              650,
+              585
+            ],
+            [
+              721,
+              552
+            ],
+            [
+              735,
+              612
+            ],
+            [
+              652,
+              648
+            ]
+          ]
+        ],
+        [
+          "painted_fuel_tanks",
+          225,
+          [
+            [
+              294,
+              635
+            ],
+            [
+              379,
+              627
+            ],
+            [
+              397,
+              660
+            ],
+            [
+              452,
+              692
+            ],
+            [
+              489,
+              685
+            ],
+            [
+              536,
+              724
+            ],
+            [
+              570,
+              760
+            ],
+            [
+              561,
+              840
+            ],
+            [
+              513,
+              866
+            ],
+            [
+              381,
+              792
+            ],
+            [
+              297,
+              751
+            ],
+            [
+              280,
+              696
+            ]
+          ]
+        ]
+      ],
+      "sceneBackdropRequest": "Flat uniform chroma green #00FF00 immediately outside the full foundation; absolutely no cast shadow of any kind, ground shadow or green-screen shadow gradient.",
+      "acceptedCorrectedCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/ladder_fix/oil_power_plant/oil_power_plant_refine_v01_raw.png"
+    },
+    {
+      "id": "cannery",
+      "label": "罐头加工厂 v02",
+      "assetClass": "industrial_economy",
+      "assetType": "World-122 industrial-era food-canning factory",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 4,
+      "controlImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_body_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_body_depth.png",
+      "primaryRequest": "distinctive industrial-era cannery with a barrel-vault processing hall and tin-shaped ingredient tower",
+      "structureRequest": "industrial-era cannery with one curved barrel-roof processing hall, broad factory glazing and an open front packing doorway. The attached screen-left ingredient tank resembles a large sealed tin with rolled rims and an embossed tomato-and-leaf badge; it is equipment, not a second building. Preserve the horizontal locking-door sterilizing retort, exposed front can conveyor and sealing press, one large tin-shaped facade sign, and the modeled produce and finished-can crates",
+      "detailRequest": "Correct only the masked parts of this same cannery. Preserve its one-storey barrel-vault factory, attached tall tin-shaped ingredient tower, horizontal silver pressure retort, open entrance, front can conveyor, crates and complete stone plinth. Replace the flat rectangular tomato poster above the front entrance with the Depth-modeled three-dimensional upright cylindrical food-tin emblem: visible elliptical silver top, rolled silver rim, rounded projecting cylindrical side, dull red paper band, one simple small tomato-and-leaf picture and no lettering. It is a physical tin-can sign mounted to the arched end wall, not a flat poster, picture frame or signboard. The large ingredient tower has subdued silver-gray steel ends and rolled rims, never gold or brass. Its food picture and label are muted oxide red with dark dusty olive leaves. Roof is quiet low-saturation gray-green sheet metal with broad smooth panels and sparse seams. Front hood and masonry piers are subdued dark terracotta; remove vivid orange and glossy red. All cans on the existing conveyor and finished-goods crate remain real closed cylindrical food cans with plain muted red bands and silver lids, absolutely no words or fake writing. Keep machinery, unmasked glazing, retort, door opening, foundations, camera and framing unchanged. No new ladders or open stair frames; any small existing supports stay entirely in front of solid building or plinth. Backdrop is uniform #00FF00 with absolutely no cast shadow of any kind, no ground shadow and no green-screen shadow gradient.",
+      "paletteConstraint": "warm cream-gray plaster with subdued terracotta piers, dark desaturated green-gray metal vault roof, matte gray tinplate tanks and cans, dark iron rollers, muted brick-red can labels and awning, tiny dull olive produce leaves; windows are dark neutral blue-green",
+      "negativeRequest": "no chimney or smoke, extra storey, sawtooth roof, brewery barrels, silo cluster, giant loose food, brand lettering or advertising text; no glossy chrome, candy-red labels or dense surface grain",
+      "modelApproval": "User accepted this exact v02 model and requested 12-step generation; geometry and Depth are frozen",
+      "modelSource": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_model.blend",
+      "reviewStatus": "user_accepted_corrected_candidate_standard48_candidates_delivered",
+      "approvedForRefinement": true,
+      "runtimeInstalled": false,
+      "recommendedCorrectionCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/cannery/cannery_structure_v01_raw.png",
+      "recommendationPurpose": "correction_reference_only",
+      "reviewFile": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/review.json",
+      "selectedStructureCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/cannery/cannery_structure_v01_raw.png",
+      "selectionPurpose": "correction_reference_only",
+      "selectionUserReply": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+      "maskedRefineRequest": "Correct only the masked parts of this same cannery. Preserve its one-storey barrel-vault factory, attached tall tin-shaped ingredient tower, horizontal silver pressure retort, open entrance, front can conveyor, crates and complete stone plinth. Replace the flat rectangular tomato poster above the front entrance with the Depth-modeled three-dimensional upright cylindrical food-tin emblem: visible elliptical silver top, rolled silver rim, rounded projecting cylindrical side, dull red paper band, one simple small tomato-and-leaf picture and no lettering. It is a physical tin-can sign mounted to the arched end wall, not a flat poster, picture frame or signboard. The large ingredient tower has subdued silver-gray steel ends and rolled rims, never gold or brass. Its food picture and label are muted oxide red with dark dusty olive leaves. Roof is quiet low-saturation gray-green sheet metal with broad smooth panels and sparse seams. Front hood and masonry piers are subdued dark terracotta; remove vivid orange and glossy red. All cans on the existing conveyor and finished-goods crate remain real closed cylindrical food cans with plain muted red bands and silver lids, absolutely no words or fake writing. Keep machinery, unmasked glazing, retort, door opening, foundations, camera and framing unchanged. No new ladders or open stair frames; any small existing supports stay entirely in front of solid building or plinth. Backdrop is uniform #00FF00 with absolutely no cast shadow of any kind, no ground shadow and no green-screen shadow gradient.",
+      "maskImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/cannery/source01_edit_mask.png",
+      "maskRegions": [
+        [
+          "quiet_vault_roof",
+          128,
+          [
+            [
+              320,
+              426
+            ],
+            [
+              455,
+              325
+            ],
+            [
+              514,
+              314
+            ],
+            [
+              711,
+              403
+            ],
+            [
+              805,
+              474
+            ],
+            [
+              586,
+              552
+            ],
+            [
+              504,
+              616
+            ],
+            [
+              342,
+              525
+            ]
+          ]
+        ],
+        [
+          "steel_ingredient_tower",
+          200,
+          [
+            [
+              172,
+              409
+            ],
+            [
+              299,
+              404
+            ],
+            [
+              333,
+              433
+            ],
+            [
+              330,
+              678
+            ],
+            [
+              310,
+              704
+            ],
+            [
+              205,
+              719
+            ],
+            [
+              177,
+              680
+            ]
+          ]
+        ],
+        [
+          "three_dimensional_tin_sign",
+          255,
+          [
+            [
+              597,
+              478
+            ],
+            [
+              716,
+              446
+            ],
+            [
+              737,
+              547
+            ],
+            [
+              633,
+              602
+            ],
+            [
+              594,
+              557
+            ]
+          ]
+        ],
+        [
+          "muted_entry_hood",
+          160,
+          [
+            [
+              582,
+              589
+            ],
+            [
+              704,
+              532
+            ],
+            [
+              738,
+              551
+            ],
+            [
+              610,
+              624
+            ]
+          ]
+        ],
+        [
+          "muted_left_brick_pier",
+          140,
+          [
+            [
+              501,
+              599
+            ],
+            [
+              531,
+              611
+            ],
+            [
+              533,
+              746
+            ],
+            [
+              503,
+              731
+            ]
+          ]
+        ],
+        [
+          "muted_side_brick_pier",
+          140,
+          [
+            [
+              330,
+              526
+            ],
+            [
+              356,
+              542
+            ],
+            [
+              356,
+              647
+            ],
+            [
+              332,
+              625
+            ]
+          ]
+        ],
+        [
+          "muted_right_brick_pier",
+          140,
+          [
+            [
+              779,
+              490
+            ],
+            [
+              802,
+              480
+            ],
+            [
+              802,
+              627
+            ],
+            [
+              779,
+              637
+            ]
+          ]
+        ],
+        [
+          "unlettered_conveyor_cans",
+          180,
+          [
+            [
+              631,
+              630
+            ],
+            [
+              650,
+              619
+            ],
+            [
+              767,
+              686
+            ],
+            [
+              757,
+              731
+            ],
+            [
+              641,
+              679
+            ]
+          ]
+        ],
+        [
+          "unlettered_packed_cans",
+          180,
+          [
+            [
+              770,
+              619
+            ],
+            [
+              817,
+              609
+            ],
+            [
+              837,
+              669
+            ],
+            [
+              784,
+              684
+            ]
+          ]
+        ]
+      ],
+      "sceneBackdropRequest": "Flat uniform chroma green #00FF00 immediately outside the full foundation; absolutely no cast shadow of any kind, ground shadow or green-screen shadow gradient.",
+      "acceptedCorrectedCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/cannery/cannery_refine_v02_raw.png"
+    }
+  ],
+  "correctionRun": {
+    "purpose": "User accepted recommendation to correct oil01 and cannery01; avoid green behind stairs/ladders",
+    "stepsOverride": 12,
+    "denoiseOverride": 0.65,
+    "depthStrength": 0.75,
+    "variantsPerAsset": 2,
+    "seedBases": {
+      "oil_power_plant": 133141,
+      "cannery": 133151
+    },
+    "allowNonstandard": true,
+    "rawOnly": true,
+    "reason": "Bounded masked corrective experiment before standard48; not final refinement approval",
+    "status": "completed_reviewed",
+    "runtimeInstalled": false,
+    "reviewFile": "review.json"
+  },
+  "additionalCorrections": [
+    {
+      "manifest": "ladder_fix/manifest.json",
+      "purpose": "One chimney-only correction from oilB after A/B failed ladder relocation",
+      "steps": 12,
+      "denoise": 0.95,
+      "depthStrength": 0.95,
+      "maximumImages": 1,
+      "status": "completed_ladder_relocation_resolved"
+    }
+  ],
+  "totalCorrectedRawCount": 5,
+  "recommendedCandidates": {
+    "oil_power_plant": "C",
+    "cannery": "B"
+  },
+  "currentStatus": "oilC_canneryB_user_accepted_standard48_candidates_delivered",
+  "acceptedCorrectedCandidates": {
+    "oil_power_plant": "C",
+    "cannery": "B"
+  },
+  "acceptanceUserReply": "可用继续",
+  "acceptanceDate": "2026-09-01",
+  "nextStageManifest": "../refinement_dev_s48_20260901/manifest.json"
+}

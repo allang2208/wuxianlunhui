@@ -230,6 +230,9 @@ function _economyModuleValue(structure, economyType, moduleId) {
         chain_restaurant: structure?.chainRestaurantModules,
         cheese_farm: structure?.cheeseFarmModules,
         steam_power_plant: structure?.steamModules,
+        oil_power_plant: structure?.oilPowerModules,
+        cannery: structure?.canneryModules,
+        trading_company: structure?.tradingModules,
         wind_power_plant: structure?.windPowerModules,
         solar_power_plant: structure?.solarPowerModules,
         computing_center: structure?.computingCenterModules,
@@ -246,6 +249,21 @@ function _economyModuleValue(structure, economyType, moduleId) {
     ));
     return (Number(module.base) || 0) + (Number(module.per) || 0) * level;
 }
+
+const INDUSTRIAL_SIM_DEFINITIONS = {
+    oil_power_plant: {
+        cycleModule: 'oil_combustion_control', outputModule: 'oil_generator_output',
+        inputModule: 'oil_fuel_efficiency', inputResource: 'gold', outputResource: 'energy',
+    },
+    cannery: {
+        cycleModule: 'cannery_assembly_line', outputModule: 'cannery_food_output',
+        inputModule: 'cannery_energy_efficiency', inputResource: 'energy', outputResource: 'food',
+    },
+    trading_company: {
+        cycleModule: 'trading_contract_cycle', outputModule: 'trading_gold_output',
+        inputModule: 'trading_food_efficiency', inputResource: 'food', outputResource: 'gold',
+    },
+};
 
 function _workshopModuleValue(structure, moduleId) {
     return _economyModuleValue(structure, 'workshop', moduleId);
@@ -381,7 +399,8 @@ function _workshopEfficiencyMultiplier(target, economyStructures) {
 
 const TAVERN_OUTPUT_TARGETS = new Set([
     'windmill', 'bakery', 'chain_restaurant', 'cheese_farm',
-    'miner_camp', 'deep_drill', 'steam_power_plant', 'wind_power_plant', 'solar_power_plant', 'planar_resonator',
+    'miner_camp', 'deep_drill', 'steam_power_plant', 'oil_power_plant', 'wind_power_plant', 'solar_power_plant', 'planar_resonator',
+    'cannery', 'trading_company',
     'bank', 'royal_mint', 'grand_mall',
     'research', 'weather_forecast', 'advanced_research',
 ]);
@@ -966,6 +985,9 @@ const LOCAL_MODULE_UPGRADES = [
     ['chainRestaurant', 'chain_restaurant_economy'],
     ['cheeseFarm', 'cheese_farm_economy'],
     ['steam', 'steam_power_plant_economy'],
+    ['oilPower', 'oil_power_plant_economy'],
+    ['cannery', 'cannery_economy'],
+    ['trading', 'trading_company_economy'],
     ['tavern', 'tavern_economy'],
     ['resonator', 'planar_resonator_economy'],
     ['windPower', 'wind_power_plant_economy'],
@@ -1033,9 +1055,10 @@ function _createSettlementReport(elapsedMs) {
     return {
         elapsedMs, wavesCleared: [], victory: false, defeated: false,
         energyMined: 0, deepDrillEnergyMined: 0, passiveEnergy: 0, titheEnergy: 0, resonatorEnergyProduced: 0,
-        windEnergyProduced: 0, solarEnergyProduced: 0,
+        oilEnergyProduced: 0, windEnergyProduced: 0, solarEnergyProduced: 0,
         steamEnergyProduced: 0,
         goldProduced: 0, foodProduced: 0, unitsProduced: 0,
+        goldSpentOnOil: 0, energySpentOnCannery: 0, foodSpentOnTrading: 0,
         energySpentOnMiners: 0, energySpentOnMinting: 0, energySpentOnGrandMall: 0,
         energySpentOnStockExchange: 0, energySpentOnComputing: 0,
         foodSpentOnMinting: 0, foodSpentOnSteam: 0, foodSpentOnTavern: 0,
@@ -1478,6 +1501,119 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             const stored = _depositFoodToWarehouses(warehouses, produced);
             structure.workProductionRemainder += Math.max(0, produced - stored);
             report.foodProduced += stored;
+        } else if (INDUSTRIAL_SIM_DEFINITIONS[economyType]) {
+            const definition = INDUSTRIAL_SIM_DEFINITIONS[economyType];
+            const industrialCfg = populationEconomyConfig[economyType] || {};
+            const pendingWhole = Math.floor(Math.max(0,
+                Number(structure.workProductionRemainder) || 0));
+            if (pendingWhole > 0 && definition.outputResource !== 'gold') {
+                const storedPending = definition.outputResource === 'energy'
+                    ? _depositToWarehouses(warehouses, pendingWhole)
+                    : _depositFoodToWarehouses(warehouses, pendingWhole);
+                structure.workProductionRemainder = Math.max(0,
+                    Number(structure.workProductionRemainder) || 0) - storedPending;
+                if (definition.outputResource === 'energy') {
+                    report.oilEnergyProduced += storedPending;
+                } else {
+                    report.foodProduced += storedPending;
+                }
+            }
+            const configuredCycleMs = Math.max(100,
+                _economyModuleValue(structure, economyType, definition.cycleModule)
+                    || 10000);
+            const outputPerCycle = Math.max(0,
+                _economyModuleValue(structure, economyType, definition.outputModule));
+            const inputPerCycle = Math.max(0, Math.floor(
+                _economyModuleValue(structure, economyType, definition.inputModule)));
+            const staffedCount = Math.min(
+                _economyWorkerSlots(structure, economyType),
+                Math.max(0, Math.floor(assigned))
+            );
+            const workerShare = Math.max(0,
+                Number(industrialCfg.workerEfficiencyShare) || 0.25);
+            const staffFactor = Math.max(0, Math.min(1, staffedCount * workerShare));
+            // 与前台一致：产能增益缩短周期，投入结算频率同步提高，单轮转化率不变。
+            const throughputMultiplier = Math.max(0.01,
+                _workshopEfficiencyMultiplier(structure, economyStructures)
+                    * tavernWeightedMultiplier * getProductionResourceMul());
+            const cycleMs = Math.max(100, configuredCycleMs / throughputMultiplier);
+            const effectiveOutputPerCycle = outputPerCycle * staffFactor * laborEfficiency;
+            const tickTotal = effectiveOutputPerCycle > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
+                : 0;
+            const readyCycles = Math.floor(tickTotal / cycleMs);
+            let availableInput = definition.inputResource === 'gold'
+                ? Math.max(0, Number(opts.getPlayerTotalGold?.()) || 0)
+                : definition.inputResource === 'energy'
+                    ? _energyInWarehouses(warehouses)
+                    : _foodInWarehouses(warehouses);
+            if (!commit && definition.inputResource === 'gold') {
+                availableInput = Math.max(0, availableInput
+                    - Math.max(0, Number(simulation.previewOilGoldSpent) || 0));
+            }
+            const affordableCycles = inputPerCycle > 0
+                ? Math.floor(availableInput / inputPerCycle) : readyCycles;
+            let cycles = Math.min(readyCycles, affordableCycles);
+            if (definition.outputResource !== 'gold') {
+                const storable = definition.outputResource === 'energy'
+                    ? _energyStorableInWarehouses(warehouses)
+                    : _foodStorableInWarehouses(warehouses);
+                const storageCycles = storable > 0 && effectiveOutputPerCycle > 0
+                    ? Math.max(1, Math.ceil(storable / effectiveOutputPerCycle)) : 0;
+                cycles = Math.min(cycles, storageCycles);
+            }
+            const inputCost = cycles * inputPerCycle;
+            if (cycles > 0 && inputCost > 0) {
+                let paid = false;
+                if (definition.inputResource === 'gold') {
+                    paid = commit
+                        ? !!opts.spendPlayerGold?.(inputCost)
+                        : true;
+                    if (!commit && paid) {
+                        simulation.previewOilGoldSpent = Math.max(0,
+                            Number(simulation.previewOilGoldSpent) || 0) + inputCost;
+                    }
+                } else if (definition.inputResource === 'energy') {
+                    paid = _deductFromWarehouses(warehouses, inputCost);
+                } else {
+                    paid = _deductFoodFromWarehouses(warehouses, inputCost);
+                }
+                if (!paid) cycles = 0;
+            }
+            structure.economyTickMs = cycles > 0
+                ? tickTotal - cycles * cycleMs
+                : Math.min(tickTotal, cycleMs);
+            if (cycles < readyCycles) {
+                structure.economyTickMs = Math.min(structure.economyTickMs, cycleMs);
+            }
+            if (cycles <= 0) continue;
+            const paidInput = cycles * inputPerCycle;
+            if (definition.inputResource === 'gold') report.goldSpentOnOil += paidInput;
+            else if (definition.inputResource === 'energy') report.energySpentOnCannery += paidInput;
+            else report.foodSpentOnTrading += paidInput;
+            const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
+                + effectiveOutputPerCycle * cycles;
+            const produced = Math.floor(total);
+            structure.workProductionRemainder = total - produced;
+            if (definition.outputResource === 'energy') {
+                const stored = _depositToWarehouses(warehouses, produced);
+                structure.workProductionRemainder += Math.max(0, produced - stored);
+                report.oilEnergyProduced += stored;
+            } else if (definition.outputResource === 'food') {
+                const stored = _depositFoodToWarehouses(warehouses, produced);
+                structure.workProductionRemainder += Math.max(0, produced - stored);
+                report.foodProduced += stored;
+            } else {
+                report.goldProduced += produced;
+                if (commit && produced > 0 && typeof opts.grant === 'function') {
+                    const routed = opts.grant({ gold: produced, x: structure.x, y: structure.y }) || {};
+                    const overflow = Math.max(0, Math.floor(Number(routed.remaining) || 0));
+                    if (overflow > 0) {
+                        structure.pendingGoldDrop = Math.max(0,
+                            Number(structure.pendingGoldDrop) || 0) + overflow;
+                    }
+                }
+            }
         } else if (economyType === 'wind_power_plant'
             || economyType === 'solar_power_plant') {
             const isSolar = economyType === 'solar_power_plant';

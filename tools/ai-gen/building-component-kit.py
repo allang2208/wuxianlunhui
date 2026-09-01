@@ -888,6 +888,195 @@ def post_and_rail_enclosure(collection, parent, name, width, front_y, back_y,
                 rotation=(0, -28 * side, 0), bevel_width=1)
 
 
+def open_tapered_tube(collection, parent, name, location, height,
+                      bottom_radius, top_radius, wall_thickness, outer_mat,
+                      inner_mat, *, segments=48):
+    """Vertical hollow tube with real inner walls and annular, uncapped ends.
+
+    Location is the bottom center. Both inner and outer surfaces taper; the
+    bore stays open through the full height instead of using a dark top disk.
+    """
+    vertices = []
+    for radius, z in ((bottom_radius, 0), (top_radius, height),
+                      (bottom_radius - wall_thickness, 0),
+                      (top_radius - wall_thickness, height)):
+        for index in range(segments):
+            angle = 2 * math.pi * index / segments
+            vertices.append((radius * math.cos(angle), radius * math.sin(angle), z))
+    faces, material_indices = [], []
+    for index in range(segments):
+        nxt = (index + 1) % segments
+        faces.extend(((index, nxt, segments + nxt, segments + index),
+                      (2 * segments + nxt, 2 * segments + index, 3 * segments + index, 3 * segments + nxt),
+                      (segments + index, segments + nxt, 3 * segments + nxt, 3 * segments + index),
+                      (nxt, index, 2 * segments + index, 2 * segments + nxt)))
+        material_indices.extend((0, 1, 0, 1))
+    mesh = bpy.data.meshes.new(name + "_Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.materials.append(outer_mat)
+    mesh.materials.append(inner_mat)
+    for index, polygon in enumerate(mesh.polygons):
+        polygon.material_index = material_indices[index]
+        polygon.use_smooth = index % 4 in (0, 1)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(obj)
+    obj.parent = parent
+    obj.location = location
+    bevel(obj, .7, 2)
+    return obj
+
+
+def roller_conveyor(collection, parent, name, location, width, length, height,
+                    frame_mat, roller_mat, *, roller_count=14):
+    """Open roller conveyor along Y; location is ground-level center.
+
+    Rails, legs and each X-axis roller stay independently editable.
+    Returns the top Z for cargo placement.
+    """
+    x, y, z = location
+    for side in (-1, 1):
+        box(collection, parent, f"{name}_Rail_{side}", (9, length, 16),
+            (x + side * width / 2, y, z + height - 8), frame_mat)
+        for end in (-1, 1):
+            box(collection, parent, f"{name}_Leg_{side}_{end}", (10, 12, height),
+                (x + side * width / 2, y + end * (length / 2 - 24), z + height / 2), frame_mat)
+    radius = min(6, length / roller_count * .3)
+    for index in range(roller_count):
+        yy = y - length / 2 + (index + .5) * length / roller_count
+        cylinder(collection, parent, f"{name}_Roller_{index:02d}", radius,
+            width - 8, (x, yy, z + height - radius), roller_mat,
+            rotation=(0, 90, 0), vertices=20, bevel_width=.4)
+    return z + height
+
+
+def masonry_plinth(collection, parent, name, size, core_mat, edge_mat,
+                   *, border=28.0, blocks_per_edge=10):
+    """Low stone foundation, with editable sparse perimeter masonry."""
+    width, depth, height = size
+    box(collection, parent, name + "_Core", (width - 8, depth - 8, height - 3),
+        (0, 0, height / 2), core_mat, bevel_width=5)
+    for axis, length in ((0, width), (1, depth)):
+        for side in (-1, 1):
+            for index in range(blocks_per_edge):
+                along = -length / 2 + (index + .5) * length / blocks_per_edge
+                block_size = (length / blocks_per_edge - 2, border, height) if axis == 0 else (border, length / blocks_per_edge - 2, height)
+                location = (along, side * (depth / 2 - border / 2), height / 2) if axis == 0 else (side * (width / 2 - border / 2), along, height / 2)
+                box(collection, parent, f"{name}_Edge_{axis}_{side}_{index}",
+                    block_size, location, edge_mat if index % 4 == 1 else core_mat,
+                    bevel_width=3)
+
+
+def entry_bearing_shell(collection, parent, name, size, location, wall_mat,
+                        trim_mat, door_mat, iron_mat, interior_mat, *,
+                        door_size=(110, 140), wall_thickness=18,
+                        door_open_angle=60, recess_depth=70):
+    """Hollow bearing shell with a real -Y entrance and jamb-pivoted double doors.
+
+    Location is the bottom-center. Walls, inset floor, lintel and door leaves
+    remain separate. The returned facade anchors are in parent-local space.
+    """
+    width, depth, height = size
+    x, y, z = location
+    door_w, door_h = door_size
+    front, back = y - depth / 2, y + depth / 2
+    left, right = x - width / 2, x + width / 2
+    for side, sx in (("Left", left), ("Right", right)):
+        box(collection, parent, name + "_" + side + "Wall",
+            (wall_thickness, depth, height), (sx, y, z + height / 2), wall_mat, bevel_width=2)
+    box(collection, parent, name + "_BackWall", (width, wall_thickness, height),
+        (x, back, z + height / 2), wall_mat, bevel_width=2)
+    pier_w = (width - door_w) / 2
+    for side in (-1, 1):
+        box(collection, parent, f"{name}_FrontPier_{side}",
+            (pier_w, wall_thickness, height),
+            (x + side * (door_w + pier_w) / 2, front, z + height / 2), wall_mat, bevel_width=2)
+        box(collection, parent, f"{name}_DoorJamb_{side}", (14, 26, door_h + 12),
+            (x + side * (door_w / 2 + 7), front - 6, z + (door_h + 12) / 2), trim_mat)
+    box(collection, parent, name + "_LintelWall", (door_w, wall_thickness, height - door_h),
+        (x, front, z + door_h + (height - door_h) / 2), wall_mat)
+    box(collection, parent, name + "_DoorLintel", (door_w + 38, 27, 16),
+        (x, front - 6, z + door_h + 8), trim_mat)
+    box(collection, parent, name + "_InteriorBack", (door_w, 6, door_h),
+        (x, front + recess_depth, z + door_h / 2), interior_mat, bevel_width=0)
+    box(collection, parent, name + "_InteriorFloor", (door_w, recess_depth, 4),
+        (x, front + recess_depth / 2, z + 2), door_mat)
+    double_doors(collection, parent, name + "_Door", (x, front - 12, z + 3),
+                 door_w, door_h - 5, door_mat, iron_mat, open_angle=door_open_angle)
+    # The legacy door primitive rotates around leaf centers. Correct only these
+    # new leaves to the fixed jamb pivots, without changing existing buildings.
+    leaf_width = door_w / 2 - 3
+    for side in (-1, 1):
+        leaf = bpy.data.objects[f"{name}_Door_Leaf_{side:+d}"]
+        hinge = mathutils.Vector((x + side * (door_w / 2 - 3), front - 12, z + 3 + (door_h - 5) / 2))
+        leaf.location = hinge + leaf.rotation_euler.to_matrix() @ mathutils.Vector((-side * leaf_width / 2, 0, 0))
+    return {"front": front, "back": back, "left": left, "right": right,
+            "base": z, "top": z + height, "x": x, "y": y}
+
+
+def banded_storage_tank(collection, parent, name, location, radius, length,
+                        tank_mat, band_mat, *, axis="Y", band_positions=(-.3, .3)):
+    """Closed industrial vessel with separate rounded end caps and retaining rings."""
+    pivot = bpy.data.objects.new(name + "_Assembly", None)
+    collection.objects.link(pivot)
+    pivot.parent = parent
+    pivot.location = location
+    pivot.rotation_euler = {"X": (0, math.pi / 2, 0),
+                            "Y": (math.pi / 2, 0, 0), "Z": (0, 0, 0)}[axis]
+    body = cylinder(collection, pivot, name + "_Body", radius, length, (0, 0, 0),
+                    tank_mat, vertices=40, bevel_width=1.4)
+    for polygon in body.data.polygons:
+        polygon.use_smooth = True
+    for side in (-1, 1):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=12, radius=radius)
+        cap = bpy.context.object
+        cap.name = f"{name}_RoundedEnd_{side}"
+        cap.parent = pivot
+        cap.location = (0, 0, side * length / 2)
+        cap.scale = (1, 1, .23)
+        cap.data.materials.append(tank_mat)
+        for polygon in cap.data.polygons:
+            polygon.use_smooth = True
+        move_to_collection(cap, collection)
+    for index, position in enumerate(band_positions):
+        torus_ring(collection, pivot, f"{name}_Band_{index}", radius + .8, 3.5,
+                   (0, 0, length * position), band_mat, major_segments=40, minor_segments=8)
+    return pivot
+
+
+def industrial_pipe_path(collection, parent, name, points, radius, mat):
+    """Connected pipe run with closed sections and independent rounded joints."""
+    for index, (start, end) in enumerate(zip(points, points[1:])):
+        a, b = mathutils.Vector(start), mathutils.Vector(end)
+        obj = cylinder(collection, parent, f"{name}_Run_{index}", radius,
+                       (b - a).length, (a + b) / 2, mat, vertices=20, bevel_width=.4)
+        obj.rotation_euler = (b - a).to_track_quat("Z", "Y").to_euler()
+    for index, point in enumerate(points[1:-1]):
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=20, ring_count=10, radius=radius)
+        joint = bpy.context.object
+        joint.name = f"{name}_Joint_{index}"
+        joint.parent = parent
+        joint.location = point
+        joint.data.materials.append(mat)
+        for polygon in joint.data.polygons:
+            polygon.use_smooth = True
+        move_to_collection(joint, collection)
+
+
+def freight_crate(collection, parent, name, size, location, wood_mat, strap_mat):
+    """Editable cargo crate with broad wood faces and two restrained metal straps."""
+    width, depth, height = size
+    x, y, z = location
+    box(collection, parent, name + "_Body", size, location, wood_mat, bevel_width=2)
+    for side in (-1, 1):
+        sx = x + side * width * .3
+        box(collection, parent, f"{name}_StrapTop_{side}", (5, depth + 2, 3),
+            (sx, y, z + height / 2 + .5), strap_mat, bevel_width=.5)
+        for face in (-1, 1):
+            box(collection, parent, f"{name}_StrapFace_{side}_{face}", (5, 3, height),
+                (sx, y + face * depth / 2, z), strap_mat, bevel_width=.5)
+
+
 def setup_scene(spec, preview_path):
     scene = bpy.context.scene
     try:

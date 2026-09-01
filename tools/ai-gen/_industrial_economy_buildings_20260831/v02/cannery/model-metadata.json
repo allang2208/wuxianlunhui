@@ -1,0 +1,42 @@
+{
+  "assetId": "cannery",
+  "name": "罐头加工厂",
+  "revision": "v02",
+  "status": "model_approved_structure_candidates_delivered",
+  "revisionReason": "User rejected the generic sawtooth factory and requested a distinctive redesign",
+  "model": "cannery_model.blend",
+  "preview": "cannery_model_approval_preview.png",
+  "bodyDepth": "cannery_body_depth.png",
+  "bodyDepthIncludesFoundation": true,
+  "proposedFootprintCells": 4,
+  "foundationCornersPx": [
+    [
+      510.429,
+      935.28
+    ],
+    [
+      962.122,
+      711.005
+    ],
+    [
+      513.571,
+      485.159
+    ],
+    [
+      61.878,
+      709.434
+    ]
+  ],
+  "mainStoreys": 1,
+  "cameraElevation": 30,
+  "rootRotationZ": 44.8,
+  "objectCount": 386,
+  "runtimeInstalled": false,
+  "aiGenerationStarted": true,
+  "userApproved": true,
+  "builder": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/build-models.py",
+  "baseBuilder": "tools/ai-gen/_industrial_economy_buildings_20260831/build-models.py",
+  "componentSource": "tools/ai-gen/building-component-kit.py",
+  "priorModel": "../../cannery/cannery_model.blend",
+  "approvalUserReply": "可用，进行12步生图"
+}

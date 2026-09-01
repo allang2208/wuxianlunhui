@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T03:59:48.595594+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-idle-h3-v01.mp4",
+    "bytes": 316156,
+    "sha256": "10a58148c1a7e41550bd91198bd85f7acab1e8b1fe5148168531b93ee3f00acd"
+  },
+  "promptId": "1e1d1fee-17e9-49f2-b7d2-41acf1b6a3e9",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901717,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second seamless idle loop of the exact trade company clerk in the first and last image. Preserve the golden-brown hamster, dark teal flat cap and cropped jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather cross-body document satchel, bound ledger, fountain pen and small shipping paper. Keep the slightly elevated three-quarter camera and right-facing identity pose.\n\nBegin in the shown planted stance. The clerk breathes gently, blinks once, glances briefly down at the shipping paper and returns attention toward screen-right. The ledger stays held against the torso, the pen and paper remain controlled in the forward paw, and the satchel stays against the hip. The body root and both boots remain fixed. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform pure white background. Keep the complete cap, boots, satchel and documents inside frame. Preserve clothing seams, face markings, fur and all prop topology. No walking, broad gestures, camera motion, coins, cargo, scenery, captions or additional objects.",
+  "effectivePrompt": "A 5.17-second seamless idle loop of the exact trade company clerk in the first and last image. Preserve the golden-brown hamster, dark teal flat cap and cropped jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather cross-body document satchel, bound ledger, fountain pen and small shipping paper. Keep the slightly elevated three-quarter camera and right-facing identity pose.\n\nBegin in the shown planted stance. The clerk breathes gently, blinks once, glances briefly down at the shipping paper and returns attention toward screen-right. The ledger stays held against the torso, the pen and paper remain controlled in the forward paw, and the satchel stays against the hip. The body root and both boots remain fixed. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete cap, boots, satchel and documents inside frame. Preserve clothing seams, face markings, fur and all prop topology. No walking, broad gestures, camera motion, coins, cargo, scenery, captions or additional objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second seamless idle loop of the exact trade company clerk in the first and last image. Preserve the golden-brown hamster, dark teal flat cap and cropped jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather cross-body document satchel, bound ledger, fountain pen and small shipping paper. Keep the slightly elevated three-quarter camera and right-facing identity pose.\n\nBegin in the shown planted stance. The clerk breathes gently, blinks once, glances briefly down at the shipping paper and returns attention toward screen-right. The ledger stays held against the torso, the pen and paper remain controlled in the forward paw, and the satchel stays against the hip. The body root and both boots remain fixed. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete cap, boots, satchel and documents inside frame. Preserve clothing seams, face markings, fur and all prop topology. No walking, broad gestures, camera motion, coins, cargo, scenery, captions or additional objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "553572b25d3032a90b590239fa0efc6a1c435d8aac0e041811fc366198164755",
+  "effectivePromptSha256": "10cf5d9abf167e490b24dc56643c055af7088766a1cd2935c225c5aad13b84b7",
+  "finalPromptSha256": "25ab7362fc30716ebb7a64bd17bb4ba8ac6ef9f0ad24648c0936a72fdf3aa88b",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\trade-clerk-idle-h3-v01.txt",
+      "bytes": 1133,
+      "sha256": "77f672e771677184525393f4d3ccdc0b547c0b977aa7f51bdc0c323e19a5bffa"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\trade-clerk-idle-h3-ref-v01.png",
+      "bytes": 221128,
+      "sha256": "5fa0ee31136fc6c53e5ada894ae23a26b3e4263c9a79a3b0af54d63cbdb87c42"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\trade-clerk-idle-h3-ref-v01.png",
+      "bytes": 221128,
+      "sha256": "5fa0ee31136fc6c53e5ada894ae23a26b3e4263c9a79a3b0af54d63cbdb87c42"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-idle-h3-v01_contact.png",
+    "bytes": 315048,
+    "sha256": "af07633b79f10383ec3209f8d3722f2b2d66b46c7fb516f9f8b6f7a76f700057"
+  },
+  "elapsedSeconds": 455.835
+}

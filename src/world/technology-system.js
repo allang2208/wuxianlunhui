@@ -6,9 +6,15 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 44;
+const VERSION = 45;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
+const ECONOMY_INDUSTRIAL_VERSION = 45;
+const ECONOMY_INDUSTRIAL_TECH_IDS = new Set([
+    'industrial_energy_engineering', 'oil_power_standardization',
+    'industrial_food_processing', 'cannery_standardization',
+    'industrial_commerce', 'trading_standardization',
+]);
 const V41_CAVALRY_SCOUT_RIFLE_ID = 'cavalry_scout_rifle';
 const V42_CAVALRY_TIER_3_ID = 'cavalry_school_level_3';
 const V41_CAVALRY_SCOUT_RIFLE_COST = 2100;
@@ -936,6 +942,27 @@ export const TechnologySystem = {
             && nodesById.has('wall_battlement_engineering')
             && !completed.includes('wall_battlement_engineering')) {
             completed.push('wall_battlement_engineering');
+        }
+        // v45 在三条既有经济纵列中插入建筑解锁与本栋标准化科技。
+        // 旧档若已完成后继科技，只补齐这六个必经节点，避免已有建筑权限被回锁。
+        if (savedVersion < ECONOMY_INDUSTRIAL_VERSION) {
+            const completedSet = new Set(completed);
+            const visited = new Set();
+            const includeEconomyTransitions = (id) => {
+                if (visited.has(id)) return;
+                visited.add(id);
+                for (const requiredId of this.getNode(id)?.prerequisites || []) {
+                    const required = this.getNode(requiredId);
+                    if (!required || required.placeholder === true) continue;
+                    if (ECONOMY_INDUSTRIAL_TECH_IDS.has(requiredId)
+                        && !completedSet.has(requiredId)) {
+                        completedSet.add(requiredId);
+                        completed.push(requiredId);
+                    }
+                    includeEconomyTransitions(requiredId);
+                }
+            };
+            for (const id of [...completed]) includeEconomyTransitions(id);
         }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {

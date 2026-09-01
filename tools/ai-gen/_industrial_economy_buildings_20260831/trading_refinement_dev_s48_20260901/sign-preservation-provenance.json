@@ -1,0 +1,56 @@
+{
+  "acceptedSignSource": "../trading_sign_alien_20260901/trading_company_alien_sign_raw.png",
+  "signMask": "../trading_sign_alien_20260901/sign-mask.png",
+  "acceptedSourceProvenance": "../trading_sign_alien_20260901/provenance.json",
+  "reason": "Both full-image48 outputs can redraw fictional glyphs despite the prompt; protect the user-approved sign without rerolling or changing the building",
+  "operation": "PIL.Image.composite accepted source sign onto each48 raw through the existing antialiased sign-face mask; all raw pixels outside the mask stay unchanged",
+  "outputsAreCompositedDerivatives": true,
+  "records": [
+    {
+      "variant": 1,
+      "generatedRaw": "trading_company/trading_company_refine_v01_raw.png",
+      "generationMetadata": "trading_company/trading_company_refine_v01_generation.json",
+      "output": "trading_company/trading_company_refine_v01_sign_preserved.png",
+      "changedPixelCount": 2397,
+      "changedBBox": [
+        720,
+        591,
+        787,
+        657
+      ],
+      "outsideSignMaskChangedPixels": 0,
+      "opaqueSignMaskPixelsDifferentFromAcceptedSource": 0,
+      "size": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "generatedRawOverwritten": false,
+      "transparentFinishingPerformed": false,
+      "runtimeInstalled": false
+    },
+    {
+      "variant": 2,
+      "generatedRaw": "trading_company/trading_company_refine_v02_raw.png",
+      "generationMetadata": "trading_company/trading_company_refine_v02_generation.json",
+      "output": "trading_company/trading_company_refine_v02_sign_preserved.png",
+      "changedPixelCount": 2436,
+      "changedBBox": [
+        720,
+        591,
+        789,
+        659
+      ],
+      "outsideSignMaskChangedPixels": 0,
+      "opaqueSignMaskPixelsDifferentFromAcceptedSource": 0,
+      "size": [
+        1024,
+        1024
+      ],
+      "mode": "RGB",
+      "generatedRawOverwritten": false,
+      "transparentFinishingPerformed": false,
+      "runtimeInstalled": false
+    }
+  ]
+}

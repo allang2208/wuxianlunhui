@@ -1,0 +1,187 @@
+{
+  "date": "2026-09-01",
+  "generator": "Codex built-in image_gen",
+  "promptSet": "tools/ai-gen/_industrial_economy_ui_icons_20260901/prompts.md",
+  "styleReferences": [
+    "assets/ui/technology-icons/steam_industry_standardization.png",
+    "assets/ui/technology-icons/bakery_craft.png",
+    "assets/ui/technology-icons/mall_standardization.png"
+  ],
+  "subjectReferences": [
+    "assets/terrain/oil_power_plant.png",
+    "assets/terrain/cannery.png",
+    "assets/terrain/trading_company.png"
+  ],
+  "operation": "Shared geometric hex mask and 1024px normalization; no subject repaint",
+  "runtimeTested": false,
+  "entries": [
+    {
+      "id": "industrial_energy_engineering",
+      "name": "燃油动力",
+      "generatedFile": "exec-bc18b8c9-6d7d-4bee-965f-df265628f531.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/industrial_energy_engineering_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "hexBounds": [
+        110,
+        5,
+        1146,
+        1251
+      ],
+      "runtimePath": "assets/ui/technology-icons/industrial_energy_engineering.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        96,
+        12,
+        928,
+        1012
+      ]
+    },
+    {
+      "id": "oil_power_standardization",
+      "name": "燃油机组标准化",
+      "generatedFile": "exec-8788a527-5179-4ba9-bb6f-ba942eca31e8.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/oil_power_standardization_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "hexBounds": [
+        110,
+        9,
+        1142,
+        1251
+      ],
+      "runtimePath": "assets/ui/technology-icons/oil_power_standardization.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        96,
+        12,
+        927,
+        1012
+      ]
+    },
+    {
+      "id": "industrial_food_processing",
+      "name": "食品罐藏",
+      "generatedFile": "exec-fcee4053-9861-4f9e-a11b-de038f7ab65a.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/industrial_food_processing_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "hexBounds": [
+        112,
+        14,
+        1141,
+        1214
+      ],
+      "runtimePath": "assets/ui/technology-icons/industrial_food_processing.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        83,
+        12,
+        941,
+        1012
+      ]
+    },
+    {
+      "id": "cannery_standardization",
+      "name": "罐装生产标准化",
+      "generatedFile": "exec-618125ec-1c11-4ad6-94ce-07b08bea4e44.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/cannery_standardization_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "hexBounds": [
+        113,
+        14,
+        1141,
+        1233
+      ],
+      "runtimePath": "assets/ui/technology-icons/cannery_standardization.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        90,
+        12,
+        934,
+        1012
+      ]
+    },
+    {
+      "id": "industrial_commerce",
+      "name": "近代商贸",
+      "generatedFile": "exec-d3bffda8-4f85-4f4a-8a63-a844ae3ca931.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/industrial_commerce_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "hexBounds": [
+        103,
+        2,
+        1155,
+        1252
+      ],
+      "runtimePath": "assets/ui/technology-icons/industrial_commerce.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        91,
+        12,
+        933,
+        1012
+      ]
+    },
+    {
+      "id": "trading_standardization",
+      "name": "贸易标准化",
+      "generatedFile": "exec-3df07732-07c2-41da-8032-018823cea9dc.png",
+      "rawPath": "tools/ai-gen/_industrial_economy_ui_icons_20260901/raw/trading_standardization_raw.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "hexBounds": [
+        102,
+        3,
+        1153,
+        1244
+      ],
+      "runtimePath": "assets/ui/technology-icons/trading_standardization.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "runtimeMode": "RGBA",
+      "alphaBounds": [
+        88,
+        12,
+        935,
+        1012
+      ]
+    }
+  ]
+}

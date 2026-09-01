@@ -1,0 +1,125 @@
+{
+  "outputRoot": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/ladder_fix",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureSeedBase": 133110,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.95,
+  "authorization": {
+    "modelApprovalUserReply": "可用，进行12步生图",
+    "approvedModelRevision": "v02",
+    "assets": [
+      "oil_power_plant",
+      "cannery"
+    ],
+    "destination": "http://192.168.3.142:8188",
+    "destinationUploadAuthorized": true,
+    "standingAuthorizationRecord": "AGENTS.md#建筑管线局域网上传授权（2026-08-31）",
+    "scope": "One additional chimney-only 12-step correction after A/B did not move the ladder; same user-requested scope",
+    "generationSubmitted": true,
+    "generationCompleted": true,
+    "refinementRequested": false,
+    "runtimeInstallationRequested": false,
+    "generatedCount": 1,
+    "selectionUserReply": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+    "inputs": [
+      "two original selected 01 raw images",
+      "oil ladder-corrected full Depth",
+      "cannery original full Depth",
+      "local edit masks",
+      "prompts and parameters"
+    ],
+    "refineRequested": false
+  },
+  "assets": [
+    {
+      "id": "oil_power_plant",
+      "label": "燃油发电厂 v02",
+      "assetClass": "industrial_economy",
+      "assetType": "World-122 industrial-era oil-fired power plant",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 4,
+      "controlImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_body_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_body_depth.png",
+      "primaryRequest": "industrial-era oil-fired power plant with a two-storey engine hall and one tall open smokestack",
+      "structureRequest": "industrial-era oil-fired power plant: exactly two aligned engine-hall storeys under one continuous pitched roof; one tall tapered chimney on the screen-left with a visibly hollow open top, ladder and connecting flue; two horizontal fuel tanks along the lower left yard. Preserve both rows of factory windows, the open double entrance and the small oil-drop plus lightning emblem",
+      "detailRequest": "Correct only the masked parts of this same two-storey fuel-oil power station. The tall cylindrical smokestack stays truly hollow with the existing dark open mouth. Move its single straight iron access ladder from the right silhouette edge to the middle of the visible chimney face, as in the updated Depth. Every ladder rung and both rails have solid chimney masonry behind them; keep the ladder top below the chimney rim, with no rail or rung against green. Erase the old right-edge ladder completely. The stack is smooth muted gray masonry, not dense speckled grit. Remove the oil-drop disc from the upper side wall, restoring matching plain wall there. Replace the round lightning disc above the front entrance with one small wide dark iron plaque containing exactly two simple raised symbols side by side: an ochre oil droplet and a dull bronze lightning bolt; no letters. Both existing horizontal tanks are matte desaturated ochre painted steel, with dark iron bands and narrow soft highlights, never gold or polished brass. Remove the tiny extra ladder on the foreground fuel tank. Roof planes retain their exact shapes but use broad smooth charcoal slate courses with very little grain. Keep the same open dark entrance, all unmasked windows, two aligned storeys, pipes, framing, camera and complete stone plinth. All green background is one perfectly flat #00FF00 field, absolutely no cast shadow of any kind, no green-screen shadow gradient. No extra object.",
+      "paletteConstraint": "cool gray masonry and warm-gray stone bands, dark blue-gray slate roof, muted ochre fuel tanks, blackened iron flue and ladder, dark blue-green glazing; small dark tarnished brass emblem",
+      "negativeRequest": "no capped chimney, sealed exhaust mouth, extra chimney or tank, smoke cloud, cooling tower, solar panel, dense brick joints or miniature roof-tile noise",
+      "modelApproval": "Original v02 approved; user explicitly requested this narrow ladder correction while continuing selected01 correction. Hall, mouth and foundation unchanged.",
+      "modelSource": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_model.blend",
+      "reviewStatus": "selected_01_masked_correction_prepared",
+      "approvedForRefinement": false,
+      "runtimeInstalled": false,
+      "recommendedCorrectionCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/oil_power_plant/oil_power_plant_structure_v01_raw.png",
+      "recommendationPurpose": "correction_reference_only",
+      "reviewFile": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/review.json",
+      "selectedStructureCandidate": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/oil_power_plant/oil_power_plant_structure_v01_raw.png",
+      "selectionPurpose": "correction_reference_only",
+      "selectionUserReply": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+      "maskedRefineRequest": "two-storey fuel-oil power station matching the supplied image, with only its tall smokestack corrected. The smokestack is an OPEN HOLLOW cylinder with a thick ring rim and a clearly visible dark bore. One narrow dark iron maintenance ladder runs vertically down the CENTER of the visible front chimney wall, midway between the chimney's left and right outlines, exactly following the new Depth. The ladder's rails and every rung have solid gray masonry directly behind them. The ladder begins well BELOW the rim and has no hook or rail above the mouth. The chimney's right outline is bare continuous gray masonry with absolutely no ladder there and no protruding rung. Keep the same chimney height, open mouth, gray masonry and horizontal bands. No second ladder. No green anywhere between rungs. Outside this chimney mask preserve the source exactly, including both aligned storeys, the roof, all windows, open doorway, oil-drop/lightning plaque, two tanks and complete foundation. The small background portions inside the mask are uniform green with no shadow.",
+      "maskImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/ladder_fix/chimney_ladder_mask.png",
+      "maskRegions": [
+        {
+          "name": "chimney_only",
+          "strength": 255,
+          "polygon": [
+            [
+              172,
+              236
+            ],
+            [
+              288,
+              236
+            ],
+            [
+              296,
+              650
+            ],
+            [
+              291,
+              735
+            ],
+            [
+              172,
+              719
+            ]
+          ]
+        }
+      ],
+      "sceneBackdropRequest": "Flat uniform chroma green #00FF00 immediately outside the full foundation; absolutely no cast shadow of any kind, ground shadow or green-screen shadow gradient.",
+      "directCorrectionSource": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_power_plant/oil_power_plant_refine_v02_raw.png"
+    }
+  ],
+  "correctionRun": {
+    "purpose": "Fix failed ladder relocation, not a whole-building redraw",
+    "stepsOverride": 12,
+    "denoiseOverride": 0.95,
+    "depthStrength": 0.95,
+    "variantsPerAsset": 1,
+    "seedBases": {
+      "oil_power_plant": 133161
+    },
+    "allowNonstandard": true,
+    "rawOnly": true,
+    "reason": "A/B retained original edge ladder; one bounded chimney-only stronger structural correction",
+    "status": "completed_reviewed",
+    "runtimeInstalled": false,
+    "sourceImage": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_power_plant/oil_power_plant_refine_v02_raw.png",
+    "maximumAdditionalImages": 1
+  }
+}

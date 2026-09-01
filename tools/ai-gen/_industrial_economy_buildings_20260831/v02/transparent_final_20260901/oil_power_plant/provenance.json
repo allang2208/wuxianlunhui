@@ -1,0 +1,137 @@
+{
+  "id": "oil_power_plant",
+  "label": "燃油发电厂",
+  "selected48Variant": 2,
+  "seed": 133202,
+  "sourceRaw": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/oil_power_plant/oil_power_plant_refine_v02_raw.png",
+  "sourceGenerationMetadata": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/oil_power_plant/oil_power_plant_refine_v02_generation.json",
+  "source48Manifest": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/manifest.json",
+  "previousAcceptedInput": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/ladder_fix/oil_power_plant/oil_power_plant_refine_v01_raw.png",
+  "sourceModel": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_model.blend",
+  "sourceDepth": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_body_depth.png",
+  "measuredKeyRGB": [
+    61.0,
+    228.0,
+    30.0
+  ],
+  "edgeConnectedKeyThreshold": 120,
+  "removeAllGreen": false,
+  "removeEnclosedKey": false,
+  "depthAlphaPolicy": "Full Depth viewed for structure reference only. Selected raw has accepted roof, plinth and equipment contour differences; no Depth mask, dilation or alpha restoration.",
+  "shadowCleanup": "Edge-connected RGB key removed exterior backdrop and cast shadow; no broad HSV, outside polygon or alpha-hole filling needed.",
+  "edgeRepair": {
+    "maxEdgeDistance": 2,
+    "minGreen": 90,
+    "greenMargin": 35,
+    "additionalFoundationPass": {
+      "rect": [
+        504,
+        708,
+        961,
+        934
+      ],
+      "maxEdgeDistance": 4,
+      "minGreen": 20,
+      "greenMargin": 15
+    },
+    "changedRGBPixels": 2045,
+    "changedAlphaPixels": 0
+  },
+  "final": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/oil_power_plant.png",
+  "fullCanvasAlphaMaster": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/edge-clean.png",
+  "metadata": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/export-metadata.json",
+  "cropBox": [
+    64,
+    236,
+    964,
+    934
+  ],
+  "fileSize": [
+    900,
+    698
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    896,
+    694
+  ],
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "transparentRGBNonzeroPixels": 0,
+  "exportChangedAlphaPixels": 0,
+  "nominalDisplay": {
+    "width": 512,
+    "height": 397,
+    "footOffsetY": 196,
+    "referenceOnly": true,
+    "runtimeCalibrationPerformed": false,
+    "pngResized": false
+  },
+  "commands": [
+    {
+      "tool": "tools/ai-gen/key-world122-building-body.py",
+      "args": [
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/oil_power_plant/oil_power_plant_refine_v02_raw.png",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/keyed.png",
+        "--threshold",
+        "120"
+      ],
+      "stdout": "key=(61.0, 228.0, 30.0) transparent=65.1% global_removed=0 protected_pixels=0 -> tools\\ai-gen\\_industrial_economy_buildings_20260831\\v02\\transparent_final_20260901\\oil_power_plant\\keyed.png",
+      "stderr": ""
+    },
+    {
+      "tool": "tools/ai-gen/repair-local-green-spill.py",
+      "args": [
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/keyed.png",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/edge-clean-initial.png",
+        "--rect",
+        "0,0,1024,1024",
+        "--max-edge-distance",
+        "2",
+        "--min-green",
+        "90",
+        "--green-margin",
+        "35"
+      ],
+      "stdout": "repaired_pixels=1189 bbox=(69,240)-(959,929) alpha_preserved=true -> tools\\ai-gen\\_industrial_economy_buildings_20260831\\v02\\transparent_final_20260901\\oil_power_plant\\edge-clean-initial.png",
+      "stderr": ""
+    },
+    {
+      "tool": "tools/ai-gen/repair-local-green-spill.py",
+      "args": [
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/edge-clean-initial.png",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/edge-clean.png",
+        "--rect",
+        "504,708,961,934",
+        "--max-edge-distance",
+        "4",
+        "--min-green",
+        "20",
+        "--green-margin",
+        "15"
+      ],
+      "stdout": "repaired_pixels=1729 bbox=(505,708)-(958,929) alpha_preserved=true -> tools\\ai-gen\\_industrial_economy_buildings_20260831\\v02\\transparent_final_20260901\\oil_power_plant\\edge-clean.png",
+      "stderr": ""
+    },
+    {
+      "tool": "tools/ai-gen/finalize-building-runtime.py",
+      "args": [
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/edge-clean.png",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/oil_power_plant.png",
+        "--display-width",
+        "512",
+        "--padding",
+        "4",
+        "--preserve-alpha-exact",
+        "--nearest-opaque-edge-rgb",
+        "--metadata",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/export-metadata.json"
+      ],
+      "stdout": "{\n  \"source\": \"tools\\\\ai-gen\\\\_industrial_economy_buildings_20260831\\\\v02\\\\transparent_final_20260901\\\\oil_power_plant\\\\edge-clean.png\",\n  \"output\": \"tools\\\\ai-gen\\\\_industrial_economy_buildings_20260831\\\\v02\\\\transparent_final_20260901\\\\oil_power_plant\\\\oil_power_plant.png\",\n  \"sourceMode\": \"RGBA\",\n  \"background\": null,\n  \"matteColor\": null,\n  \"matteEdgeWidth\": null,\n  \"matteTolerance\": null,\n  \"nearestOpaqueEdgeRgb\": true,\n  \"nearestOpaqueAlpha\": 0.98,\n  \"defringeInnerPixels\": 0,\n  \"minComponentPixels\": 0,\n  \"removedComponents\": 0,\n  \"removedComponentPixels\": 0,\n  \"preserveAlphaExact\": true,\n  \"maskImage\": null,\n  \"maskDilate\": null,\n  \"fillAlphaHoles\": false,\n  \"fillHoleMatteDistance\": null,\n  \"removeEnclosedMatte\": false,\n  \"enclosedMatteChromaDistance\": null,\n  \"maskAddRects\": [],\n  \"restoreAlphaRects\": [],\n  \"removeMatteRects\": [],\n  \"clearMatteOutsidePolygons\": [],\n  \"clearGreenRects\": [],\n  \"clearAlphaRects\": [],\n  \"clearAlphaPolygons\": [],\n  \"greenHueRange\": null,\n  \"greenSaturationMin\": null,\n  \"greenValueMin\": null,\n  \"cropBox\": [\n    64,\n    236,\n    964,\n    934\n  ],\n  \"fileSize\": [\n    900,\n    698\n  ],\n  \"alphaBBox\": [\n    4,\n    4,\n    896,\n    694\n  ],\n  \"displayW\": 512,\n  \"displayH\": 397,\n  \"footOffsetY\": 196,\n  \"scaleX\": 0.5688888888888889,\n  \"scaleY\": 0.5687679083094556\n}",
+      "stderr": ""
+    }
+  ]
+}

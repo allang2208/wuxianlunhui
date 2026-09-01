@@ -1,0 +1,363 @@
+{
+  "status": "three_modern_economy_buildings_runtime_integrated",
+  "activeModelRevisions": {
+    "oil_power_plant": "v02-ladder-front",
+    "cannery": "v02",
+    "trading_company": "v01"
+  },
+  "revisionNote": "Original geometry below is a retained ancestor; cannery uses v02; oil uses the v02 ladder-front correction recorded in currentOilModelCorrection",
+  "scope": "Editable model ancestry, selected48 transparent artwork, strict 4x4 runtime footprints, environment lighting maps and economy integration",
+  "runtimeIntegration": {
+    "date": "2026-09-01",
+    "assets": ["oil_power_plant", "cannery", "trading_company"],
+    "lightingMaps": ["silhouette", "projection", "height", "normal"],
+    "logicalFootprintCells": 4,
+    "economyConversions": ["gold_to_energy", "energy_to_food", "food_to_gold"],
+    "runtimeVerified": false
+  },
+  "builder": "tools/ai-gen/_industrial_economy_buildings_20260831/build-models.py",
+  "componentSource": "tools/ai-gen/building-component-kit.py",
+  "renderSource": "tools/ai-gen/settlement-building-pack-blender.py",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 935,
+    "topMargin": 44,
+    "widthMargin": 0.9
+  },
+  "palette": {
+    "foundation": [
+      0.27,
+      0.28,
+      0.275,
+      1
+    ],
+    "stone": [
+      0.49,
+      0.48,
+      0.425,
+      1
+    ],
+    "plaster": [
+      0.37,
+      0.385,
+      0.36,
+      1
+    ],
+    "timber": [
+      0.23,
+      0.165,
+      0.105,
+      1
+    ],
+    "roof": [
+      0.105,
+      0.145,
+      0.155,
+      1
+    ],
+    "thatch": [
+      0.37,
+      0.3,
+      0.2,
+      1
+    ],
+    "iron": [
+      0.075,
+      0.09,
+      0.095,
+      1
+    ],
+    "brass": [
+      0.39,
+      0.29,
+      0.145,
+      1
+    ],
+    "steel": [
+      0.4,
+      0.44,
+      0.43,
+      1
+    ],
+    "glass": [
+      0.18,
+      0.255,
+      0.25,
+      1
+    ],
+    "glow": [
+      0.4,
+      0.28,
+      0.14,
+      1
+    ],
+    "straw": [
+      0.43,
+      0.34,
+      0.2,
+      1
+    ],
+    "interior": [
+      0.07,
+      0.048,
+      0.03,
+      1
+    ],
+    "brick": [
+      0.34,
+      0.19,
+      0.135,
+      1
+    ],
+    "accent": [
+      0.4,
+      0.315,
+      0.15,
+      1
+    ]
+  },
+  "buildings": {
+    "oil_power_plant": {
+      "name": "燃油发电厂",
+      "era": "industrial",
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "runtimeIntegrationActive": false,
+      "plannedTechnologies": [
+        "燃油动力",
+        "燃油机组标准化"
+      ],
+      "paletteOverrides": {
+        "brick": [
+          0.3,
+          0.34,
+          0.35,
+          1
+        ],
+        "accent": [
+          0.39,
+          0.31,
+          0.15,
+          1
+        ]
+      },
+      "dimensions": {
+        "foundation": [
+          800,
+          800,
+          28
+        ],
+        "hallCenter": [
+          110,
+          65
+        ],
+        "hallBody": [
+          470,
+          540,
+          220
+        ],
+        "door": [
+          124,
+          146
+        ],
+        "roofRise": 65,
+        "tankCenters": [
+          [
+            -270,
+            -140,
+            125
+          ],
+          [
+            -270,
+            150,
+            125
+          ]
+        ],
+        "tankRadius": 73,
+        "tankLength": 180,
+        "exhaustCenters": [
+          [
+            245,
+            220
+          ],
+          [
+            315,
+            220
+          ]
+        ],
+        "exhaustHeight": 400
+      },
+      "identity": [
+        "single low engine hall",
+        "two horizontal fuel tanks",
+        "paired attached exhausts",
+        "open maintenance doors",
+        "non-text fuel droplet badge"
+      ]
+    },
+    "cannery": {
+      "name": "罐头加工厂",
+      "era": "industrial",
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "runtimeIntegrationActive": false,
+      "plannedTechnologies": [
+        "食品罐藏",
+        "罐装生产标准化"
+      ],
+      "paletteOverrides": {
+        "brick": [
+          0.39,
+          0.2,
+          0.145,
+          1
+        ],
+        "roof": [
+          0.18,
+          0.245,
+          0.225,
+          1
+        ]
+      },
+      "dimensions": {
+        "foundation": [
+          800,
+          800,
+          28
+        ],
+        "hallCenter": [
+          35,
+          15
+        ],
+        "hallBody": [
+          600,
+          550,
+          230
+        ],
+        "door": [
+          155,
+          156
+        ],
+        "roofTeeth": 3,
+        "roofRise": 80,
+        "retortCenters": [
+          [
+            -330,
+            20,
+            112
+          ],
+          [
+            -330,
+            180,
+            112
+          ]
+        ],
+        "retortRadius": 43,
+        "retortLength": 118,
+        "dockSize": [
+          390,
+          120,
+          18
+        ]
+      },
+      "identity": [
+        "red brick factory",
+        "three real sawtooth roof bays",
+        "clerestory glazing",
+        "two attached canning retorts",
+        "loading dock and tin-can badge"
+      ]
+    },
+    "trading_company": {
+      "name": "贸易公司",
+      "era": "industrial",
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "runtimeIntegrationActive": false,
+      "plannedTechnologies": [
+        "近代商贸",
+        "贸易标准化"
+      ],
+      "paletteOverrides": {
+        "brick": [
+          0.3,
+          0.315,
+          0.3,
+          1
+        ],
+        "stone": [
+          0.56,
+          0.52,
+          0.42,
+          1
+        ],
+        "roof": [
+          0.12,
+          0.16,
+          0.18,
+          1
+        ]
+      },
+      "dimensions": {
+        "foundation": [
+          800,
+          800,
+          28
+        ],
+        "hallCenter": [
+          95,
+          40
+        ],
+        "hallBody": [
+          480,
+          530
+        ],
+        "floors": [
+          165,
+          145,
+          145
+        ],
+        "door": [
+          122,
+          136
+        ],
+        "roofRise": 58,
+        "annexCenter": [
+          -265,
+          55
+        ],
+        "annexBody": [
+          240,
+          440,
+          150
+        ],
+        "annexRoofRise": 48,
+        "porticoSize": [
+          230,
+          116,
+          16
+        ]
+      },
+      "identity": [
+        "exactly three aligned office storeys",
+        "one attached single-storey freight wing",
+        "bronze entry canopy",
+        "stone floor bands",
+        "cargo crate and outbound arrow emblem"
+      ]
+    }
+  },
+  "currentCorrectionManifest": "v02/corrections_01_dev_s12/correction-manifest.json",
+  "currentOilModelCorrection": "v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_model.blend",
+  "currentRefinementManifest": "v02/refinement_dev_s48_20260901/manifest.json",
+  "currentTransparentManifest": "v02/transparent_final_20260901/manifest.json",
+  "currentTradingCandidateManifest": "trading_candidates_dev_s12_20260901/manifest.json",
+  "currentTradingSignEditManifest": "trading_sign_alien_20260901/manifest.json",
+  "currentTradingRefinementManifest": "trading_refinement_dev_s48_20260901/manifest.json",
+  "currentTradingTransparentManifest": "trading_transparent_final_20260901/manifest.json"
+}

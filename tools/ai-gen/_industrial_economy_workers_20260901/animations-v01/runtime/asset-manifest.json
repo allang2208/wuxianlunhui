@@ -1,0 +1,305 @@
+{
+  "pipeline": "MiniMax H3 -> reviewed source indices -> BiRefNet -> fixed worker scale/action root -> RIFE 2x",
+  "cell": 240,
+  "feetY": 221,
+  "perFrameAlignment": false,
+  "workers": {
+    "oil-technician": {
+      "fixedScale": 0.45535714285714285,
+      "actionRoots": {
+        "idle": [
+          519.0,
+          511.0
+        ],
+        "walking": [
+          520.0,
+          491.0
+        ],
+        "maintaining": [
+          494.5,
+          500.0
+        ]
+      }
+    },
+    "cannery-worker": {
+      "fixedScale": 0.4604966139954853,
+      "actionRoots": {
+        "idle": [
+          496.0,
+          511.0
+        ],
+        "walking": [
+          498.5,
+          489.0
+        ],
+        "inspecting": [
+          489.0,
+          506.0
+        ]
+      }
+    },
+    "trade-clerk": {
+      "fixedScale": 0.4594594594594595,
+      "actionRoots": {
+        "idle": [
+          521.0,
+          513.0
+        ],
+        "walking": [
+          515.5,
+          494.5
+        ],
+        "negotiating": [
+          505.0,
+          491.0
+        ]
+      }
+    }
+  },
+  "actions": {
+    "oil-technician/idle": {
+      "source": "videos/oil-technician-idle-h3-v01.mp4",
+      "sourceIndices": [
+        79,
+        82,
+        85,
+        88,
+        91,
+        94
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 12,
+      "frames": [
+        0,
+        11
+      ],
+      "frameRate": 16.0,
+      "repeat": -1,
+      "cols": 3,
+      "rows": 4,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/oil-technician/idle.png"
+    },
+    "oil-technician/walking": {
+      "source": "videos/oil-technician-walking-h3-v01.mp4",
+      "sourceIndices": [
+        18,
+        22,
+        26,
+        30,
+        34,
+        38,
+        42,
+        46
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 16,
+      "frames": [
+        0,
+        15
+      ],
+      "frameRate": 12.0,
+      "repeat": -1,
+      "cols": 4,
+      "rows": 4,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/oil-technician/walking.png"
+    },
+    "oil-technician/maintaining": {
+      "source": "videos/oil-technician-maintaining-h3-v01.mp4",
+      "sourceIndices": [
+        62,
+        65,
+        68,
+        71,
+        74,
+        77
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 12,
+      "frames": [
+        0,
+        11
+      ],
+      "frameRate": 16.0,
+      "repeat": -1,
+      "cols": 3,
+      "rows": 4,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/oil-technician/maintaining.png"
+    },
+    "cannery-worker/idle": {
+      "source": "videos/cannery-worker-idle-h3-v01.mp4",
+      "sourceIndices": [
+        33,
+        37,
+        41,
+        45,
+        49,
+        53,
+        57,
+        61,
+        65
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 18,
+      "frames": [
+        0,
+        17
+      ],
+      "frameRate": 12.0,
+      "repeat": -1,
+      "cols": 3,
+      "rows": 6,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/cannery-worker/idle.png"
+    },
+    "cannery-worker/walking": {
+      "source": "videos/cannery-worker-walking-h3-v01.mp4",
+      "sourceIndices": [
+        18,
+        22,
+        26,
+        30,
+        34,
+        38,
+        42,
+        46,
+        50,
+        54
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 20,
+      "frames": [
+        0,
+        19
+      ],
+      "frameRate": 12.0,
+      "repeat": -1,
+      "cols": 4,
+      "rows": 5,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/cannery-worker/walking.png"
+    },
+    "cannery-worker/inspecting": {
+      "source": "videos/cannery-worker-inspecting-h3-v01.mp4",
+      "sourceIndices": [
+        56,
+        59,
+        62,
+        65,
+        68,
+        71
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 12,
+      "frames": [
+        0,
+        11
+      ],
+      "frameRate": 16.0,
+      "repeat": -1,
+      "cols": 3,
+      "rows": 4,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/cannery-worker/inspecting.png"
+    },
+    "trade-clerk/idle": {
+      "source": "videos/trade-clerk-idle-h3-v01.mp4",
+      "sourceIndices": [
+        30,
+        34,
+        38,
+        42,
+        46,
+        50
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 12,
+      "frames": [
+        0,
+        11
+      ],
+      "frameRate": 12.0,
+      "repeat": -1,
+      "cols": 3,
+      "rows": 4,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/trade-clerk/idle.png"
+    },
+    "trade-clerk/walking": {
+      "source": "videos/trade-clerk-walking-h3-v01.mp4",
+      "sourceIndices": [
+        48,
+        52,
+        56,
+        60,
+        64,
+        68,
+        72,
+        76,
+        80,
+        84
+      ],
+      "mode": "loop",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 20,
+      "frames": [
+        0,
+        19
+      ],
+      "frameRate": 12.0,
+      "repeat": -1,
+      "cols": 4,
+      "rows": 5,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/trade-clerk/walking.png"
+    },
+    "trade-clerk/negotiating": {
+      "source": "videos/trade-clerk-negotiating-h3-v02.mp4",
+      "sourceIndices": [
+        75,
+        80,
+        86,
+        91,
+        96,
+        102,
+        107,
+        112,
+        118,
+        123
+      ],
+      "mode": "one-shot",
+      "frameWidth": 240,
+      "frameHeight": 240,
+      "frameCount": 19,
+      "frames": [
+        0,
+        18
+      ],
+      "frameRate": 16.0,
+      "repeat": 0,
+      "cols": 4,
+      "rows": 5,
+      "footRatio": 0.9208333333333333,
+      "candidate": "runtime/formal-candidates/trade-clerk/negotiating.png"
+    }
+  },
+  "decodedBytes": 32716800,
+  "decodedMiB": 31.201171875
+}

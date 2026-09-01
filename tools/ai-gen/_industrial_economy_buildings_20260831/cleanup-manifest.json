@@ -1,0 +1,409 @@
+{
+  "date": "2026-09-01",
+  "scope": "industrial economy buildings and task-local backups",
+  "policy": "Retain accepted 12-step to local edit to selected 48-step to transparent/runtime ancestry; remove rejected siblings and rebuildable review/cache artifacts.",
+  "deletedFileCount": 80,
+  "deletedBytes": 44872636,
+  "entries": [
+    {
+      "path": "tmp/industrial-era-staged.patch",
+      "bytes": 867540,
+      "reason": "superseded task backup or stale staging patch"
+    },
+    {
+      "path": "tmp/industrial-icons-before/technology-tree.json",
+      "bytes": 79809,
+      "reason": "superseded task backup or stale staging patch"
+    },
+    {
+      "path": "tmp/industrial-tech-v63-before/producer-buildings.json",
+      "bytes": 80913,
+      "reason": "superseded task backup or stale staging patch"
+    },
+    {
+      "path": "tmp/industrial-tech-v63-before/technology-system.js",
+      "bytes": 54802,
+      "reason": "superseded task backup or stale staging patch"
+    },
+    {
+      "path": "tmp/industrial-tech-v63-before/technology-tree.json",
+      "bytes": 71623,
+      "reason": "superseded task backup or stale staging patch"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/__pycache__/build-models.cpython-313.pyc",
+      "bytes": 27859,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/cannery/cannery_model_preview.png",
+      "bytes": 823610,
+      "reason": "byte-identical duplicate of retained approval preview"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/cannery/render.log",
+      "bytes": 1452,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/oil_power_plant/oil_power_plant_model_preview.png",
+      "bytes": 798674,
+      "reason": "byte-identical duplicate of retained approval preview"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/oil_power_plant/render.log",
+      "bytes": 1584,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_candidates_dev_s12_20260901/comparison.html",
+      "bytes": 3301,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_candidates_dev_s12_20260901/comparison.png",
+      "bytes": 969823,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_candidates_dev_s12_20260901/generation.log",
+      "bytes": 4930,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_candidates_dev_s12_20260901/trading_company/trading_company_structure_v01_raw.png",
+      "bytes": 1341614,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_candidates_dev_s12_20260901/trading_company/trading_company_structure_v03_raw.png",
+      "bytes": 1283406,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/render.log",
+      "bytes": 1589,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/trading_company_model_preview.png",
+      "bytes": 890491,
+      "reason": "byte-identical duplicate of retained approval preview"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/comparison.html",
+      "bytes": 3733,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/comparison.png",
+      "bytes": 1112031,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/generation.log",
+      "bytes": 3899,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/raw-comparison.html",
+      "bytes": 3614,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/raw-comparison.png",
+      "bytes": 1126334,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/raw-sign-detail-00.png",
+      "bytes": 47625,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/raw-sign-detail-01.png",
+      "bytes": 46557,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/raw-sign-detail-02.png",
+      "bytes": 46630,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/sign-detail-00.png",
+      "bytes": 47625,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/sign-detail-01.png",
+      "bytes": 46635,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/sign-detail-02.png",
+      "bytes": 46228,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/trading_company/trading_company_refine_v02_raw.png",
+      "bytes": 1331426,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/trading_company/trading_company_refine_v02_sign_preserved.png",
+      "bytes": 1291638,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/comparison.png",
+      "bytes": 1035452,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/edited-sign-detail.png",
+      "bytes": 355658,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/generation.log",
+      "bytes": 2574,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/mask-detail.png",
+      "bytes": 299229,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/mask-preview.png",
+      "bytes": 1296867,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/source-sign-detail.png",
+      "bytes": 309293,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/keyed-100.png",
+      "bytes": 981746,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/keyed-120.png",
+      "bytes": 979366,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/keyed-60.png",
+      "bytes": 985506,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/keyed-80.png",
+      "bytes": 983856,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/preview-100.png",
+      "bytes": 843511,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/preview-120.png",
+      "bytes": 841348,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/preview-60.png",
+      "bytes": 846978,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/threshold-review/preview-80.png",
+      "bytes": 845237,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/__pycache__/build-models.cpython-313.pyc",
+      "bytes": 26216,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/cannery/cannery_structure_v02_raw.png",
+      "bytes": 1188532,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/cannery/cannery_structure_v03_raw.png",
+      "bytes": 1174362,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/comparison.html",
+      "bytes": 3176,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/generation.log",
+      "bytes": 8952,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/oil_power_plant/oil_power_plant_structure_v02_raw.png",
+      "bytes": 1291610,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/candidates_dev_s12/oil_power_plant/oil_power_plant_structure_v03_raw.png",
+      "bytes": 1295615,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_model_preview.png",
+      "bytes": 844665,
+      "reason": "byte-identical duplicate of retained approval preview"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/render.log",
+      "bytes": 1481,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/cannery_comparison.png",
+      "bytes": 863999,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/cannery/cannery_refine_v01_raw.png",
+      "bytes": 1126897,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/cannery/generation.log",
+      "bytes": 3910,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/cannery/source01_mask_preview.png",
+      "bytes": 1023294,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/comparison.html",
+      "bytes": 4780,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/ladder_fix/chimney_ladder_mask_preview.png",
+      "bytes": 1223333,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/ladder_fix/generation.log",
+      "bytes": 2704,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model-render.log",
+      "bytes": 3616,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/model/oil_power_plant/oil_power_plant_model_preview.png",
+      "bytes": 894834,
+      "reason": "byte-identical duplicate of retained approval preview"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_ladder_detail.png",
+      "bytes": 334201,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_power_plant_comparison.png",
+      "bytes": 982094,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_power_plant/generation.log",
+      "bytes": 4251,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_power_plant/oil_power_plant_refine_v01_raw.png",
+      "bytes": 1265336,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/oil_power_plant/source01_mask_preview.png",
+      "bytes": 1170286,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/oil_power_plant_model_preview.png",
+      "bytes": 892338,
+      "reason": "byte-identical duplicate of retained approval preview"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/render.log",
+      "bytes": 1686,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/cannery_comparison.png",
+      "bytes": 861561,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/cannery-generation.log",
+      "bytes": 3581,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/cannery/cannery_refine_v02_raw.png",
+      "bytes": 1108502,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/comparison.html",
+      "bytes": 4149,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/oil_power_plant_comparison.png",
+      "bytes": 976851,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/oil_power_plant-generation.log",
+      "bytes": 3936,
+      "reason": "rebuildable log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/oil_power_plant/oil_power_plant_refine_v01_raw.png",
+      "bytes": 1273608,
+      "reason": "unselected visual candidate outside accepted ancestry"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/background-preview.png",
+      "bytes": 246053,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/keyed-preview.png",
+      "bytes": 643028,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/background-preview.png",
+      "bytes": 283094,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/oil_power_plant/keyed-preview.png",
+      "bytes": 772489,
+      "reason": "rebuildable comparison, mask preview, or threshold review artifact"
+    }
+  ]
+}

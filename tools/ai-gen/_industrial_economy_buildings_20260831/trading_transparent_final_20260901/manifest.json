@@ -1,0 +1,137 @@
+{
+  "status": "selected48_runtime_integrated",
+  "date": "2026-09-01",
+  "userReply": "继续",
+  "selected48Candidate": 1,
+  "approvalMeaning": "User accepted the immediately preceding recommendation refine01 and requested continuation to transparent finishing.",
+  "selected48ArtApproved": true,
+  "transparentPreviewUserReviewed": false,
+  "regenerated": false,
+  "runtimeInstalled": true,
+  "gameplayChanged": true,
+  "fullSourceAncestryRetained": true,
+  "runtimeFootprintCalibrated": true,
+  "delivery": {
+    "id": "trading_company",
+    "label": "贸易公司",
+    "selected48Variant": 1,
+    "seed": 133251,
+    "source": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/trading_company/trading_company_refine_v01_sign_preserved.png",
+    "sourceIsSignPreservedDerivative": true,
+    "sourceSignPreservationProvenance": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/sign-preservation-provenance.json",
+    "source48Raw": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/trading_company/trading_company_refine_v01_raw.png",
+    "sourceGenerationMetadata": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/trading_company/trading_company_refine_v01_generation.json",
+    "source48Manifest": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/manifest.json",
+    "sourceModel": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/trading_company_model.blend",
+    "sourceDepth": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_company/trading_company_body_depth.png",
+    "measuredKeyRGB": [
+      56.0,
+      198.0,
+      39.0
+    ],
+    "edgeConnectedKeyThreshold": 100,
+    "thresholdReviewRemovedAfterSelection": true,
+    "selectedThreshold": 100,
+    "removeAllGreen": false,
+    "removeEnclosedKey": false,
+    "depthAlphaPolicy": "The original full Depth has the obsolete narrow-end warehouse doorway and old sign icon. It was viewed only to reject it as an Alpha mask; it did not clip, restore or dilate the accepted source.",
+    "shadowCleanup": "No separate external cast shadow was found. Only the canvas-edge-connected RGB key was removed; the warehouse interior and dark office doorway remain opaque authored pixels.",
+    "edgeRepair": {
+      "maxEdgeDistance": 2,
+      "minGreen": 80,
+      "greenMargin": 30,
+      "changedRGBPixels": 90,
+      "changedAlphaPixels": 0
+    },
+    "fullCanvasAlphaMaster": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/edge-clean.png",
+    "final": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/trading_company.png",
+    "metadata": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/export-metadata.json",
+    "cropBox": [
+      65,
+      184,
+      958,
+      939
+    ],
+    "fileSize": [
+      893,
+      755
+    ],
+    "alphaBBox": [
+      4,
+      4,
+      889,
+      751
+    ],
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "alphaComponentCountAt16": 1,
+    "alphaComponentPixelsAt16Descending": [
+      392984
+    ],
+    "transparentRGBNonzeroPixels": 0,
+    "exportChangedAlphaPixels": 0,
+    "nominalDisplay": {
+      "width": 512,
+      "height": 433,
+      "footOffsetY": 214,
+      "referenceOnly": true,
+      "runtimeCalibrationPerformed": false,
+      "pngResized": false
+    },
+    "commands": [
+      {
+        "tool": "tools/ai-gen/key-world122-building-body.py",
+        "args": [
+          "tools/ai-gen/_industrial_economy_buildings_20260831/trading_refinement_dev_s48_20260901/trading_company/trading_company_refine_v01_sign_preserved.png",
+          "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/keyed.png",
+          "--threshold",
+          "100"
+        ],
+        "stdout": "key=(56.0, 198.0, 39.0) transparent=62.5% global_removed=0 protected_pixels=0 -> tools\\ai-gen\\_industrial_economy_buildings_20260831\\trading_transparent_final_20260901\\trading_company\\keyed.png",
+        "stderr": ""
+      },
+      {
+        "tool": "tools/ai-gen/repair-local-green-spill.py",
+        "args": [
+          "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/keyed.png",
+          "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/edge-clean.png",
+          "--rect",
+          "0,0,1024,1024",
+          "--max-edge-distance",
+          "2",
+          "--min-green",
+          "80",
+          "--green-margin",
+          "30"
+        ],
+        "stdout": "repaired_pixels=90 bbox=(69,349)-(937,925) alpha_preserved=true -> tools\\ai-gen\\_industrial_economy_buildings_20260831\\trading_transparent_final_20260901\\trading_company\\edge-clean.png",
+        "stderr": ""
+      },
+      {
+        "tool": "tools/ai-gen/finalize-building-runtime.py",
+        "args": [
+          "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/edge-clean.png",
+          "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/trading_company.png",
+          "--display-width",
+          "512",
+          "--padding",
+          "4",
+          "--preserve-alpha-exact",
+          "--nearest-opaque-edge-rgb",
+          "--metadata",
+          "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/trading_company/export-metadata.json"
+        ],
+        "stdout": "{\n  \"source\": \"tools\\\\ai-gen\\\\_industrial_economy_buildings_20260831\\\\trading_transparent_final_20260901\\\\trading_company\\\\edge-clean.png\",\n  \"output\": \"tools\\\\ai-gen\\\\_industrial_economy_buildings_20260831\\\\trading_transparent_final_20260901\\\\trading_company\\\\trading_company.png\",\n  \"sourceMode\": \"RGBA\",\n  \"background\": null,\n  \"matteColor\": null,\n  \"matteEdgeWidth\": null,\n  \"matteTolerance\": null,\n  \"nearestOpaqueEdgeRgb\": true,\n  \"nearestOpaqueAlpha\": 0.98,\n  \"defringeInnerPixels\": 0,\n  \"minComponentPixels\": 0,\n  \"removedComponents\": 0,\n  \"removedComponentPixels\": 0,\n  \"preserveAlphaExact\": true,\n  \"maskImage\": null,\n  \"maskDilate\": null,\n  \"fillAlphaHoles\": false,\n  \"fillHoleMatteDistance\": null,\n  \"removeEnclosedMatte\": false,\n  \"enclosedMatteChromaDistance\": null,\n  \"maskAddRects\": [],\n  \"restoreAlphaRects\": [],\n  \"removeMatteRects\": [],\n  \"clearMatteOutsidePolygons\": [],\n  \"clearGreenRects\": [],\n  \"clearAlphaRects\": [],\n  \"clearAlphaPolygons\": [],\n  \"greenHueRange\": null,\n  \"greenSaturationMin\": null,\n  \"greenValueMin\": null,\n  \"cropBox\": [\n    65,\n    184,\n    958,\n    939\n  ],\n  \"fileSize\": [\n    893,\n    755\n  ],\n  \"alphaBBox\": [\n    4,\n    4,\n    889,\n    751\n  ],\n  \"displayW\": 512,\n  \"displayH\": 433,\n  \"footOffsetY\": 214,\n  \"scaleX\": 0.5733482642777156,\n  \"scaleY\": 0.5735099337748344\n}",
+        "stderr": ""
+      }
+    ],
+    "runtimeInstalled": true
+  },
+  "previews": [
+    "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/preview.png",
+    "tools/ai-gen/_industrial_economy_buildings_20260831/trading_transparent_final_20260901/details-preview.png"
+  ],
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement. Offline asset production only."
+}

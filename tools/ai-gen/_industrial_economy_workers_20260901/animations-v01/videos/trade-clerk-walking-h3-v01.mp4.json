@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T04:07:25.853779+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-walking-h3-v01.mp4",
+    "bytes": 442840,
+    "sha256": "f5add59d44e380b60191912937f5962a21fbeb40592baed282e8ae634763d5d8"
+  },
+  "promptId": "92a1eee6-482d-4c41-b780-044b34da7b44",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901718,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second seamless ordinary walking loop in place of the exact trade company clerk in the first and last image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, bound ledger, fountain pen and small shipping paper. Match the reference's side-dominant right-facing body and slightly elevated three-quarter camera. Nose, chest, pelvis, knees and boot toes keep pointing screen-right together.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants to the right, weight rolls over it, and the rear boot lifts and swings forward along the screen-horizontal axis. Alternate legs through steady ordinary walking cycles with modest stride and gentle torso bob. The ledger remains tucked under one arm, the paper and pen stay controlled in the other paw, and the satchel moves only slightly against the hip. The body root stays at the same screen location. Continue stepping through the final moment and return to the exact first moving phase without stopping.\n\nFixed camera, zoom, scale and pure white background. Keep the whole character and documents inside frame. Preserve identity and equipment throughout. No turn toward camera, running, hopping, canvas travel, coins, cargo, scenery, captions, extra anatomy or extra props.",
+  "effectivePrompt": "A 5.17-second seamless ordinary walking loop in place of the exact trade company clerk in the first and last image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, bound ledger, fountain pen and small shipping paper. Match the reference's side-dominant right-facing body and slightly elevated three-quarter camera. Nose, chest, pelvis, knees and boot toes keep pointing screen-right together.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants to the right, weight rolls over it, and the rear boot lifts and swings forward along the screen-horizontal axis. Alternate legs through steady ordinary walking cycles with modest stride and gentle torso bob. The ledger remains tucked under one arm, the paper and pen stay controlled in the other paw, and the satchel moves only slightly against the hip. The body root stays at the same screen location. Continue stepping through the final moment and return to the exact first moving phase without stopping.\n\nFixed camera, zoom, scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the whole character and documents inside frame. Preserve identity and equipment throughout. No turn toward camera, running, hopping, canvas travel, coins, cargo, scenery, captions, extra anatomy or extra props.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second seamless ordinary walking loop in place of the exact trade company clerk in the first and last image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, bound ledger, fountain pen and small shipping paper. Match the reference's side-dominant right-facing body and slightly elevated three-quarter camera. Nose, chest, pelvis, knees and boot toes keep pointing screen-right together.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants to the right, weight rolls over it, and the rear boot lifts and swings forward along the screen-horizontal axis. Alternate legs through steady ordinary walking cycles with modest stride and gentle torso bob. The ledger remains tucked under one arm, the paper and pen stay controlled in the other paw, and the satchel moves only slightly against the hip. The body root stays at the same screen location. Continue stepping through the final moment and return to the exact first moving phase without stopping.\n\nFixed camera, zoom, scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the whole character and documents inside frame. Preserve identity and equipment throughout. No turn toward camera, running, hopping, canvas travel, coins, cargo, scenery, captions, extra anatomy or extra props. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "07cc7c5e22edc8c90e8785a289739e3a4d5057d35fabfc8d9116f8873e61dd73",
+  "effectivePromptSha256": "710995eb5c6ec30ea0571458423f68588c53dc6584455923ed8dede91fde272f",
+  "finalPromptSha256": "08d8ed7a7e198ccceee3a3af3e7195ee2f1212831ce9f3f2f688ad2171595c3f",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\trade-clerk-walking-h3-v01.txt",
+      "bytes": 1359,
+      "sha256": "d4cb935399d291f1b5d33e64829dda1d33784c5b29fe0e1a7061801815bc0a9a"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\trade-clerk-walking-h3-ref-v01.png",
+      "bytes": 237465,
+      "sha256": "980c3e556d6da4768a52bee0ddd14d19d53d6c41b42301a4fdba5b9ea1784b0a"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\trade-clerk-walking-h3-ref-v01.png",
+      "bytes": 237465,
+      "sha256": "980c3e556d6da4768a52bee0ddd14d19d53d6c41b42301a4fdba5b9ea1784b0a"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-walking-h3-v01_contact.png",
+    "bytes": 278080,
+    "sha256": "e6b5eaf750552452efe7a1b7337cc9ad6d15929b627961183a659c2e9d799f1c"
+  },
+  "elapsedSeconds": 455.719
+}

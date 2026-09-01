@@ -1,0 +1,95 @@
+{
+  "status": "user_accepted_oilC_canneryB_for_standard48",
+  "outputCount": 5,
+  "recommendedCandidates": {
+    "oil_power_plant": "C",
+    "cannery": "B"
+  },
+  "recommendationPurpose": "best_corrected_references_only_not_48_step_approval",
+  "stage": "12_step_masked_correction_not_standard48",
+  "userReply": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+  "originalReferences": {
+    "oil_power_plant": 1,
+    "cannery": 1
+  },
+  "ladderGeometryChanged": "Only the oil chimney ladder moved to the camera-facing wall; approved hall, chimney mouth, camera and foundation unchanged",
+  "runtimeInstalled": false,
+  "approvedForRefinement": true,
+  "userSelectedCorrectedCandidates": {
+    "oil_power_plant": "C",
+    "cannery": "B"
+  },
+  "visualReviewMethod": "Native vision on complete 1024 raw images; presentation only scales or explicitly labels crops, with no source recoloring or Alpha manipulation",
+  "summary": [
+    "推荐燃油C：在B基础上仅返修烟囱，爬梯已移至可见正面，全部横档后有实体烟囱壁，梯顶不再越出筒口。两层、敞口与完整地台保留。",
+    "推荐罐头B：门标恢复为带椭圆顶盖和圆柱侧面的立体罐头，原料塔标签更明确，拱顶、杀菌釜、入口与输送线保持。",
+    "燃油C油罐仍偏亮、楼上旧徽记有浅痕；两栋仍有细颗粒、少量小标签纹样及地台外投影，尚未直接通过48步准入。",
+    "本轮共5张12步raw：油A/B、罐头A/B和油C；原图未后期抠图、改色或用Depth裁偏差。推荐仅用于用户选定下一步方向，未正式接入。"
+  ],
+  "assets": {
+    "oil_power_plant": [
+      {
+        "label": "A",
+        "seed": 133141,
+        "raw": "oil_power_plant/oil_power_plant_refine_v01_raw.png",
+        "findings": "梯顶降到筒口下方，但梯子仍在右侧轮廓；油滴闪电仍分布到上下两处，材质和投影未解决。",
+        "eligibleForDirectRefinement": false
+      },
+      {
+        "label": "B",
+        "seed": 133142,
+        "raw": "oil_power_plant/oil_power_plant_refine_v02_raw.png",
+        "findings": "组合门标更接近模型；爬梯仍在边缘且新增越过筒口的弯钩，存在绿幕缝隙。原楼上徽记有残痕。",
+        "selectedAsDirectInputFor": "ladder_fix",
+        "eligibleForDirectRefinement": false
+      },
+      {
+        "label": "C",
+        "seed": 133161,
+        "raw": "ladder_fix/oil_power_plant/oil_power_plant_refine_v01_raw.png",
+        "directInput": "oil_power_plant/oil_power_plant_refine_v02_raw.png",
+        "findings": "梯子转到烟囱可见正面，横档后有完整灰砖实体，顶端在筒口下方，无轮廓外弯钩或绿幕缝隙；烟囱改成规则灰砖。其余布局保留，油罐亮度、徽记浅痕和背景投影仍待收口。",
+        "stairGreenOverlapResolvedVisually": true,
+        "recommended": true,
+        "eligibleForDirectRefinement": false,
+        "userApprovedForRefinement": true,
+        "acceptanceUserReply": "可用继续"
+      }
+    ],
+    "cannery": [
+      {
+        "label": "A",
+        "seed": 133151,
+        "raw": "cannery/cannery_refine_v01_raw.png",
+        "findings": "大招牌去字但未成立体罐头；拱顶、设备、门洞、输送线保留。塔顶灰一些但仍有金色，部分小罐文字与地台外投影尚在。",
+        "eligibleForDirectRefinement": false
+      },
+      {
+        "label": "B",
+        "seed": 133152,
+        "raw": "cannery/cannery_refine_v02_raw.png",
+        "findings": "恢复凸出的圆柱罐头门标，银灰顶盖可辨；原料塔改为更完整红标带，整体设备与入口不变。少量金色、细颗粒、小罐标签图纹及背景投影仍在，未自动进入48步。",
+        "threeDimensionalTinSignRestored": true,
+        "recommended": true,
+        "eligibleForDirectRefinement": false,
+        "userApprovedForRefinement": true,
+        "acceptanceUserReply": "可用继续"
+      }
+    ]
+  },
+  "additionalCorrections": [
+    {
+      "manifest": "ladder_fix/manifest.json",
+      "purpose": "One chimney-only correction from oilB after A/B failed ladder relocation",
+      "steps": 12,
+      "denoise": 0.95,
+      "depthStrength": 0.95,
+      "maximumImages": 1,
+      "status": "completed_ladder_relocation_resolved"
+    }
+  ],
+  "acceptanceUserReply": "可用继续",
+  "acceptanceDate": "2026-09-01",
+  "acceptanceNote": "User accepted the displayed C/B after reviewing the disclosed remaining issues; earlier visual findings are retained as history",
+  "nextStageManifest": "../refinement_dev_s48_20260901/manifest.json"
+}
