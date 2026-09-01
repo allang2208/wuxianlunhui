@@ -296,6 +296,8 @@ python tools\ai-gen\generate-world122-building-candidates.py `
 
 **地台与接地要求**：未来中型功能建筑白模必须包含一个完整、低矮、位于已登记可视占格内部的等距地台，并让门槛、墙脚、柱脚和扶壁与其真实相交；地台与主体一同进入Body Depth，不再依赖运行时另叠通用覆盖层。非现代建筑使用`rubble_stone`：2.5D等距毛石地台/中世纪不规则毛石干垒基底，表面是不规则毛石切型、随机磨损倒角、天然填缝和风化毛石手工拼贴做旧，外缘统一斜切。现代城市建筑使用`fair_faced_concrete`：清水混凝土现浇拼缝、细气孔、平整收光、轻雨蚀与局部返碱；工业/末世使用`worn_concrete`增加克制磕碰、浅裂、浮尘污渍；近未来使用`precast_concrete`增加精确预制拼缝、克制金属包边、预埋槽和非镜面轻抛光。`natural_structure/surface_deposit/prop/agricultural_compound`默认`foundationStyle:none`，其他未分类建筑默认`rubble_stone`；manifest可显式覆盖但不得静默漏掉建筑地台。候选后处理默认保留地台，只有显式`removePseudoPlinth:true`才允许调用旧伪地台清理器。地台是主体纯视觉结构，不得改变逻辑占格、碰撞、寻路、遮挡AABB或`visualFootprint`。
 
+**建筑阴影语义代理合同（2026-09-01）**：标准 `settlement-building-pack-blender.py` 保存模型后必须自动导出同目录 `*_shadow_proxy.json`。模型对象使用 `shadow_role=ground/body/part/ignore`；`building-component-kit.py:set_shadow_role()` 是统一标注入口，地基/铺装标 `ground`，辅助体标 `ignore`，需要独立高度簇的构件可标 `part`，其余未标记网格（包括后续新增立柱）默认按 `body` 接入。导出器按高度带与 XY 邻接聚类，生成归一化 `contactPolygon + parts[]`，并记录源 `.blend` SHA-256 和地基排除证据；缺少可证明的地基语义时必须失败，禁止重新用最终 PNG 猜地基。正式 `assets/terrain` 入库由 `finalize-building-runtime.py` 触发 `tools/generate-building-shadow-casters.mjs --write --write-if-source`，只替换与该正式源对应的已登记目标条目，保留其他会话的清单内容且不重写全局审计报告；需要重做完整清单/审计时才显式运行无 `--write-if-source` 的 `--write`。未命中可靠模型代理的旧建筑可读取已确认 Body Depth，仍不可靠则保守回退现有 `visualFootprint`。该链只派生视觉阴影，不改逻辑占格、碰撞、寻路或原建筑贴图。
+
 ##### World-122 建筑接地角验收：只测 Alpha 最外轮廓（2026-08-21）
 - **提示词、深度图和边缘图不是验收证据**：ImageGen 仍可能重建透视、改变多塔脚位置，或把“透明背景”画成不透明棋盘格；最终必须检查实际 PNG 像素。
 - **透明先看通道，不看观感**：若整图 alpha 都是 255，棋盘格只是被画进 RGB 的假透明，必须从原 RGB 重新走 BiRefNet/项目抠图器生成 alpha，禁止直接入库。棋盘背景不是恒定白色，边缘去污染应按邻近真实背景色反推前景，再用最近的不透明主体颜色修复软边；只把 alpha 清零会留下亮灰描边。

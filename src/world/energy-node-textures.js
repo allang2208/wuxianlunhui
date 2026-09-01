@@ -213,21 +213,6 @@ function drawGroundMound(ctx, form, pal, rand, depleted) {
     const back = [cx, baseY - halfD * 2];
     const rock = pal.ground;
 
-    // 接触阴影（烘焙进贴图，实体本身 _noShadow）
-    const shadowR = halfW * 1.55;
-    ctx.save();
-    ctx.translate(cx, baseY + 4);
-    ctx.scale(1, 0.3);
-    const sh = ctx.createRadialGradient(0, 0, 2, 0, 0, shadowR);
-    sh.addColorStop(0, 'rgba(0,0,0,0.42)');
-    sh.addColorStop(0.55, 'rgba(0,0,0,0.2)');
-    sh.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = sh;
-    ctx.beginPath();
-    ctx.arc(0, 0, shadowR, 0, TAU);
-    ctx.fill();
-    ctx.restore();
-
     // 顶面（背光面）：left-back-right
     const topGrad = ctx.createLinearGradient(0, back[1], 0, baseY);
     topGrad.addColorStop(0, shade(rock[1], 0.82));

@@ -93,6 +93,7 @@ const simplifyMonotoneEnvelope = (points, tolerance, opposite = null) => {
 
 export const EnvironmentLightingSystem = {
     _config: { ...DEFAULTS },
+    _configListeners: new Set(),
     _elapsedMs: 0,
     _sun: {
         phase: 0,
@@ -107,11 +108,22 @@ export const EnvironmentLightingSystem = {
     },
 
     configure(options = {}) {
+        const changedKeys = Object.keys(options).filter((key) => this._config[key] !== options[key]);
         this._config = { ...this._config, ...options };
         if (Number.isFinite(options.startPhase)) {
             this._elapsedMs = 0;
         }
         this._refreshSun();
+        if (changedKeys.length > 0) {
+            const snapshot = this.getConfig();
+            for (const listener of this._configListeners) {
+                try {
+                    listener(snapshot, changedKeys);
+                } catch (error) {
+                    console.error('[EnvironmentLighting] 设置监听器执行失败:', error);
+                }
+            }
+        }
     },
 
     update(deltaMs = 0) {
@@ -135,6 +147,17 @@ export const EnvironmentLightingSystem = {
 
     getConfig() {
         return { ...this._config };
+    },
+
+    subscribeConfig(listener) {
+        if (typeof listener !== 'function') return () => {};
+        this._configListeners.add(listener);
+        return () => this._configListeners.delete(listener);
+    },
+
+    /** “启用阴影”主开关的唯一读取入口；贴图接地层和地牢地板也必须复用。 */
+    isShadowEnabled() {
+        return this._config.enabled !== false;
     },
 
     getShadowQuality() {

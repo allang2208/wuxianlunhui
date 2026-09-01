@@ -792,6 +792,12 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `autoFootprint:true` 异形建筑或显示配置不完整的临时素材才回退主体 alpha 接地区。
   独立道路/地面铺装、碰撞与建造占格不参与阴影采样。个别美术需要独立阴影根部时，在建筑配置写
   `shadowCaster.contactPolygon` 覆盖，不要修改 collision footprint 补视觉阴影。
+- **阴影总开关必须覆盖所有阴影形态（2026-09-01）**：设置中的 `enabled=false` 不只让
+  `getDynamicShadow/getStaticShadow` 返回空，还必须立即隐藏已创建的单位影、共享结构影、树/墙/门/楼梯影、
+  宝箱房独立墙脚遮罩以及标记为 `shadowControlled` 的 `groundContact`。设置面板会暂停 Phaser update，
+  因此场景必须订阅 `EnvironmentLightingSystem.subscribeConfig()`，不能只等下一帧轮询；雾/地图可见性同步后
+  再执行帧末收口，防止把影子恢复。烘焙进非分块地牢地板的墙脚影必须登记
+  `Renderer.terrainRebuild`，开关变化时确定性重烘焙；场景切换、回滚与分块地板必须清空该回调。
 - **基地投影只取底座**：`defense_base` 是立方体+顶盖+扁平底座；完整 alpha 旋转后会把主体
   投成大块错误阴影。`build-lighting-maps.py` 的 `PROJECTION_BOTTOM_BANDS["defense_base"]=0.20`
   只取贴图底部 20% alpha 生成 `defense_base_projection.png`。大型建筑出现“影子像整个模型/
@@ -800,8 +806,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 #### 静态投影算法（2026-08-21：建筑 shadow caster 与建造 footprint 解耦）
 
 > **当前建筑契约（2026-08-23 更新）**：普通建筑不再读取 manifest 剪影，也不把独立道路/地面铺装
-> 当阴影真源。`resolveStructureShadowCaster` 优先读取显式 `shadowCaster`，否则复用实体已经采用的
-> `visualFootprint` 拟合结果；缺省标定由显示尺寸和脚线确定性派生。只有异形或配置不完整的素材才扫描
+> 当阴影真源。`resolveStructureShadowCaster` 优先读取显式 `shadowCaster`，其次读取
+> `data/structure-shadow-casters.json` 中与贴图键及当前等级显示规格匹配的模型/Body Depth 主体代理，
+> 否则复用实体已经采用的 `visualFootprint` 拟合结果；缺省标定由显示尺寸和脚线确定性派生。只有异形或配置不完整的素材才扫描
 > 主体 Sprite 当前 alpha，所有视觉拟合都不可用时才回退 placement footprint；建造与碰撞逻辑完全不改。
 > 散布障碍物继续凸包∪manifest 剪影；掩体墙、门、楼梯继续各自的专用纯几何链。
 
@@ -819,7 +826,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   **上层截面只能信任 alpha 的左右边界**：不能再按截面宽度猜对称 iso 菱形纵深，否则
   人造的前/后顶点会生成额外斜边，把左侧或右侧影角拉歪。自动部件统一使用实测 left/right
   加最小稳定 Y 厚度的薄横截面；接地纵深仍只由 0~24% 的真实 contact polygon 提供。
-- **覆盖优先级**：配置了 `shadowCaster.parts[]` 就完全使用显式部件，每层写 `polygon`
+- **覆盖优先级**：实体显式配置 > 与贴图/等级尺寸匹配的主体代理清单 > `visualFootprint`/alpha/placement 回退。
+  配置了非空 `shadowCaster.parts[]` 就完全使用显式部件；配置克隆器物化出的空数组不得吞掉已验证清单部件。每层写 `polygon`
   （或 `footprint:'contact'`）与 `baseZ/topZ`；默认是单体平行扫掠，只有显式
   `shadowCaster.autoParts:true` 才启用自动分层造型。`getLayeredShadowPolygon` 负责把自动或
   显式部件分层挤出后合成单一边界。
@@ -885,7 +893,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   偏移大，剪影实体四边形会比 footprint 宽近一倍且沿墙斜向歪轴。
 - **墙壁/门/楼梯**： obstacle_block、wall_stair_*、cover_gate_A~D 已入光照清单
   （spritesheet 走 FRAME_CROPS 帧 0 裁剪）；结构阴影过滤器不再排除掩体，
-  能源矿（发光体）仍排除。
+  能源矿（发光体）仍排除静态长投影，但其接触影必须是可由总开关控制的独立 `entity_shadow` 图层，
+  禁止继续烘焙进主体贴图。
 - **性能口径（2026-08-24 结构修复）**：多边形按 epsilon 脏检查缓存复用
   （0.11°/0.5px/顶点签名），共享层干净帧复用预三角化命令。`getUnionOfPolygons()` 扫描阶段仍以
   2px 补样并纳入全部输入顶点行，输出左右 v 单调包络再做 RDP 压缩；high/medium 的世界像素误差
@@ -895,10 +904,10 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `max(currentLength,maxOffset)+8px` 做保守粗裁；这是为了跳过离屏 caster 的并集和 Earcut，不能只在
   精确轮廓生成后裁。接触胶囊按屏幕直径使用 8/12/16 段。质量档位 high 保持 8px/5 步，
   medium 封顶 6px/2 步，low 关闭结构长投影并把接触影羽化降到 4px/1 步；均不得改变模拟。
-  性能报告必须暴露 visibleJobs、viewportCulled、preGeometryCulled、postGeometryCulled、
+  性能报告必须暴露 totalCasters、visibleJobs/drawnCasters、layerVisible、viewportCulled、preGeometryCulled、postGeometryCulled、
   viewportPaddingPx、rawContourVertices、
   contourVertices、contourReductionPercent、clusters、featherPaths、triangles、commandBufferLength、
-  rebuilds 与 lastRebuildMs；场景重启复位层脏检查状态。
+  rebuilds、lastRebuildMs、rebuildTotalMs 与 rebuildPeakMs；场景重启复位层脏检查状态。
 - **死链纪律**：派生 projection/silhouette PNG 运行时不加载（剪影数据走 manifest
   shadowSilhouette 列）；manifest 只留 alphaBBox/shadowSilhouette/路径字段
   （anchorMode 为贴图回归测试契约占位保留，别删）。
@@ -926,8 +935,11 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    PNG 仅磁盘留档，不再预加载）；散布障碍物的 hull+剪影门也直接看 manifest
    有没有剪影列（2026-08-19 唯一性审计：曾用 `textures.exists(key+'_projection')`
    当门，预加载清理后该门永假、仙人掌/雪松静默退化成椭圆——已改 manifest 门复活）。
-   普通建筑阴影根部自动复用最终 `visualFootprint` 接触面，不含独立道路/地面铺装；仅异形或
-   配置不完整素材回退主体当前 alpha，确需独立阴影低模时才写
+   标准组件化新建筑还会自动导出 `*_shadow_proxy.json`：地基/铺装按 `ground` 排除，未标记新柱与主体
+   默认纳入，高度带+XY聚类生成 `parts[]`。正式贴图入库时自动刷新
+   `data/structure-shadow-casters.json`；旧建筑可运行
+   `node tools/generate-building-shadow-casters.mjs --write` 批量审计。无可靠代理时普通建筑继续复用最终
+   `visualFootprint` 接触面，不含独立道路/地面铺装；仅异形或特殊造型才写显式
    `shadowCaster.contactPolygon`/`parts` 覆盖。
 3. 检查 `data/environment-lighting-assets.json`：`base.centerX/width` 已自动生成；
    `shadow.anchorMode/anchorInsetX/Y` 仅对沿用预投影贴图的散布障碍物有意义，建筑不需要。
@@ -935,7 +947,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 4. 进入世界-122，至少在正午与晨昏观察（或用 `tools/cdp-sun-shadow-verify.mjs` 冻结三时相）：
    影子根部贴建筑底座四边形、长度不过门/墙、建筑本体不被影子盖住；
    换贴图后必须重启 Vite，确保新增静态资源被加载。
-5. 普通建筑只需提交原贴图及显式 `shadowCaster` 配置（如有）；只有散布障碍物改图时才同时提交
+5. 普通建筑提交正式贴图、对应 `*_shadow_proxy.json`/Body Depth（如存在）、生成后的
+   `data/structure-shadow-casters.json` 及显式 `shadowCaster` 配置（如有）；只有散布障碍物改图时才同时提交
    `assets/terrain/lighting/` 派生图与 manifest 改动，不得只提交障碍物原图。
    换贴图后必须重启 Vite，确保新增静态资源被加载。
 

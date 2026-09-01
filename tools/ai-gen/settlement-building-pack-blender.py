@@ -25,6 +25,17 @@ def load_kit():
 kit = load_kit()
 
 
+def load_shadow_proxy_exporter():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "building-shadow-proxy.py")
+    spec = importlib.util.spec_from_file_location("world122_shadow_proxy_exporter", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+shadow_proxy_exporter = load_shadow_proxy_exporter()
+
+
 def publish_approval_preview(building_id, preview_path):
     """Publish a stable Codex-facing copy and its paste-ready Markdown path."""
     preview_path = os.path.abspath(preview_path)
@@ -9351,6 +9362,19 @@ def main():
     bpy.context.scene.camera = camera
     os.makedirs(os.path.dirname(blend_path), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
+    shadow_proxy_path = os.path.join(
+        os.path.dirname(blend_path), f"{building_id}_shadow_proxy.json")
+    try:
+        shadow_proxy_exporter.export_shadow_proxy(
+            root,
+            spec,
+            building_id,
+            shadow_proxy_path,
+            source_manifest=manifest_path,
+        )
+    except ValueError as error:
+        raise SystemExit(
+            f"semantic shadow proxy export failed for {building_id}: {error}") from error
     bpy.ops.render.render(write_still=True)
     approval_preview_path = publish_approval_preview(building_id, preview_path)
     kit.render_depth(bpy.context.scene, root, camera, depth_path, building_id)
@@ -9360,6 +9384,7 @@ def main():
             depth_path, body_depth_path)
     print("building id ->", building_id)
     print("model ->", blend_path)
+    print("shadow proxy ->", shadow_proxy_path)
     print("preview ->", preview_path)
     print("approval preview ->", approval_preview_path)
     print("depth ->", depth_path)

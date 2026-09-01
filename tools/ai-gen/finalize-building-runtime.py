@@ -8,6 +8,7 @@ not from an alpha bounding box still sitting inside a square source image.
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -410,6 +411,23 @@ def main():
     }
     if args.metadata:
         Path(args.metadata).write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
+        repo_root = Path(__file__).resolve().parents[2]
+        destination = Path(args.dst).resolve()
+        formal_terrain_root = (repo_root / "assets" / "terrain").resolve()
+        # 候选图、中间清理和非建筑素材即使写 metadata，也不能改写阴影清单。
+        # 只有正式 terrain 根目录中的已登记建筑贴图才触发目标级条目刷新。
+        if destination.parent == formal_terrain_root:
+            subprocess.run(
+                [
+                    "node",
+                    str(repo_root / "tools" / "generate-building-shadow-casters.mjs"),
+                    "--write",
+                    "--write-if-source",
+                    str(destination),
+                ],
+                cwd=repo_root,
+                check=True,
+            )
     print(json.dumps(metadata, ensure_ascii=False, indent=2))
 
 

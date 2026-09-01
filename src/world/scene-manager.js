@@ -524,6 +524,7 @@ export const SceneManager = {
 
             // 分块惰性地板只属于世界-122：离场统一清空，避免残留块覆盖其他场景
             Renderer.terrainChunks = null;
+            Renderer.terrainRebuild = null;
 
             // 场景切换立即清理无人机视野与标记；冷却只由成功部署写入，切场景不重复刷新。
             if (player && player.droneSystem && player.droneSystem.active) {
@@ -745,6 +746,7 @@ export const SceneManager = {
             EffectManager.clearPools?.();
         }
         Renderer.terrainChunks = null;
+        Renderer.terrainRebuild = null;
     },
 
     _restoreRollbackReferences(player) {

@@ -63,6 +63,17 @@ def bevel(obj, width=1.5, segments=2):
     return obj
 
 
+def set_shadow_role(obj, role, group=None):
+    """Attach model-space semantics used by the automatic shadow proxy exporter."""
+    normalized = str(role).strip().lower()
+    if normalized not in {"ground", "body", "part", "ignore"}:
+        raise ValueError(f"invalid shadow role: {role}")
+    obj["shadow_role"] = normalized
+    if group is not None:
+        obj["shadow_group"] = str(group)
+    return obj
+
+
 def box(collection, parent, name, size, location, mat, rotation=(0, 0, 0), bevel_width=1.2):
     bpy.ops.mesh.primitive_cube_add(size=1)
     obj = bpy.context.object

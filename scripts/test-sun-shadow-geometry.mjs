@@ -375,6 +375,26 @@ check('透明度：深夜静态/动态分别保留基础强度的 40%',
 check('透明度：地牢固定为基础强度的 55%，不受午夜时间二次衰减',
     Math.abs(staticDungeon - 0.1925 * 0.55) < 1e-9
     && Math.abs(dynamicDungeon - 0.30078125 * 0.55) < 1e-9);
+
+// 设置中的阴影总开关必须覆盖动态影、静态影，并同步通知暂停中的场景。
+let changedKeysSeen = [];
+const unsubscribeLighting = EnvironmentLightingSystem.subscribeConfig((_config, changedKeys) => {
+    changedKeysSeen = changedKeys;
+});
+EnvironmentLightingSystem.configure({ enabled: false });
+check('总开关：关闭后动态与静态阴影都返回 null',
+    !EnvironmentLightingSystem.isShadowEnabled()
+    && EnvironmentLightingSystem.getDynamicShadow({}, 10) === null
+    && EnvironmentLightingSystem.getStaticShadow({ height: 100 }) === null);
+check('总开关：配置监听器收到 enabled 变更', changedKeysSeen.includes('enabled'));
+EnvironmentLightingSystem.configure({ enabled: true });
+check('总开关：重新开启后动态与静态阴影恢复',
+    EnvironmentLightingSystem.isShadowEnabled()
+    && EnvironmentLightingSystem.getDynamicShadow({}, 10) !== null
+    && EnvironmentLightingSystem.getStaticShadow({ height: 100 }) !== null);
+check('静态注册：单体 enabled=false 可独立禁用',
+    EnvironmentLightingSystem.getStaticShadow({ enabled: false, height: 100 }) === null);
+unsubscribeLighting();
 EnvironmentLightingSystem.configure({ animateSun: true, startPhase: 0.25 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

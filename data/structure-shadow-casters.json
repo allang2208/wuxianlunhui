@@ -1,0 +1,729 @@
+{
+  "algorithmVersion": 2,
+  "generatedBy": "tools/generate-building-shadow-casters.mjs",
+  "entries": [
+    {
+      "id": "hamster_barracks",
+      "textureKey": "barracks",
+      "displayWidth": 275,
+      "displayHeight": 247,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/barracks.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks/hamster_barracks_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks/hamster_barracks_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:hamster_barracks",
+      "foundationRingCoverage": 0.4214,
+      "bodyAreaRatio": 0.8432,
+      "contactPolygon": [
+        [
+          -52.5,
+          -154.5
+        ],
+        [
+          75.5,
+          -90
+        ],
+        [
+          65.5,
+          -71.5
+        ],
+        [
+          35.5,
+          -50
+        ],
+        [
+          5.5,
+          -37
+        ],
+        [
+          -11.5,
+          -33
+        ],
+        [
+          -26.5,
+          -39
+        ],
+        [
+          -53.5,
+          -26.5
+        ],
+        [
+          -85,
+          -43
+        ],
+        [
+          -88.5,
+          -70
+        ],
+        [
+          -90.5,
+          -135
+        ],
+        [
+          -100,
+          -137.5
+        ]
+      ]
+    },
+    {
+      "id": "cavalry_school_level_2",
+      "textureKey": "cavalry_school_lv2",
+      "displayWidth": 512,
+      "displayHeight": 322,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/cavalry_school_lv2.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv2/cavalry_school_lv2_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_cavalry_school_tiers_20260828/accepted_48step_20260828/cavalry_school_lv2_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:cavalry_school_lv2",
+      "foundationRingCoverage": 0.4131,
+      "bodyAreaRatio": 0.3069,
+      "contactPolygon": [
+        [
+          -57.5,
+          -210.5
+        ],
+        [
+          53,
+          -60.5
+        ],
+        [
+          44,
+          -56
+        ],
+        [
+          42,
+          -44.5
+        ],
+        [
+          35.5,
+          -52
+        ],
+        [
+          -23,
+          -23
+        ],
+        [
+          -25,
+          -11.5
+        ],
+        [
+          -31.5,
+          -21.5
+        ],
+        [
+          -58.5,
+          -35.5
+        ],
+        [
+          -67,
+          -39.5
+        ],
+        [
+          -164,
+          -89
+        ],
+        [
+          -167.5,
+          -81.5
+        ]
+      ]
+    },
+    {
+      "id": "cavalry_school_level_3",
+      "textureKey": "cavalry_school_lv3",
+      "displayWidth": 512,
+      "displayHeight": 294,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/cavalry_school_lv3.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv3/cavalry_school_lv3_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_cavalry_school_tiers_20260828/accepted_48step_20260828/cavalry_school_lv3_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:cavalry_school_lv3",
+      "foundationRingCoverage": 0.453,
+      "bodyAreaRatio": 0.3269,
+      "contactPolygon": [
+        [
+          -61,
+          -214
+        ],
+        [
+          54,
+          -62.5
+        ],
+        [
+          42,
+          -56.5
+        ],
+        [
+          33.5,
+          -52.5
+        ],
+        [
+          -28,
+          -21.5
+        ],
+        [
+          -34.5,
+          -10.5
+        ],
+        [
+          -36.5,
+          -21.5
+        ],
+        [
+          -135,
+          -71.5
+        ],
+        [
+          -141.5,
+          -64
+        ],
+        [
+          -143.5,
+          -75.5
+        ],
+        [
+          -170.5,
+          -89
+        ],
+        [
+          -176,
+          -82
+        ]
+      ]
+    },
+    {
+      "id": "chain_restaurant",
+      "textureKey": "chain_restaurant",
+      "displayWidth": 300,
+      "displayHeight": 319,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/chain_restaurant.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/chain_restaurant_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/chain_restaurant_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:chain_restaurant",
+      "foundationRingCoverage": 0.4364,
+      "bodyAreaRatio": 0.768,
+      "contactPolygon": [
+        [
+          1.5,
+          -136.5
+        ],
+        [
+          110.5,
+          -82
+        ],
+        [
+          67.5,
+          -60.5
+        ],
+        [
+          60.5,
+          -61
+        ],
+        [
+          50,
+          -56
+        ],
+        [
+          48.5,
+          -45
+        ],
+        [
+          29,
+          -35.5
+        ],
+        [
+          22,
+          -32
+        ],
+        [
+          11,
+          -27
+        ],
+        [
+          -1,
+          -30.5
+        ],
+        [
+          -14.5,
+          -23.5
+        ],
+        [
+          -107.5,
+          -69
+        ]
+      ]
+    },
+    {
+      "id": "deep_drill",
+      "textureKey": "deep_drill",
+      "displayWidth": 300,
+      "displayHeight": 333,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/deep_drill.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/deep_drill/deep_drill_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/deep_drill/deep_drill_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:deep_drill",
+      "foundationRingCoverage": 0.4202,
+      "bodyAreaRatio": 0.8627,
+      "contactPolygon": [
+        [
+          -3.5,
+          -144.5
+        ],
+        [
+          118,
+          -83.5
+        ],
+        [
+          95,
+          -72.5
+        ],
+        [
+          82,
+          -78.5
+        ],
+        [
+          77,
+          -66
+        ],
+        [
+          52.5,
+          -67.5
+        ],
+        [
+          48,
+          -51.5
+        ],
+        [
+          33,
+          -58.5
+        ],
+        [
+          30,
+          -39.5
+        ],
+        [
+          5,
+          -27
+        ],
+        [
+          -24,
+          -32.5
+        ],
+        [
+          -125.5,
+          -83.5
+        ]
+      ]
+    },
+    {
+      "id": "hamster_barracks_level_3",
+      "textureKey": "hamster_barracks_lv3",
+      "displayWidth": 300,
+      "displayHeight": 270,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/hamster_barracks_lv3.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:hamster_barracks_lv3",
+      "foundationRingCoverage": 0.4463,
+      "bodyAreaRatio": 0.5466,
+      "contactPolygon": [
+        [
+          -5.5,
+          -117
+        ],
+        [
+          101,
+          -64
+        ],
+        [
+          73.5,
+          -48
+        ],
+        [
+          57,
+          -63.5
+        ],
+        [
+          36.5,
+          -53
+        ],
+        [
+          28,
+          -56.5
+        ],
+        [
+          1,
+          -45
+        ],
+        [
+          -2,
+          -33.5
+        ],
+        [
+          -40,
+          -15.5
+        ],
+        [
+          -47.5,
+          -27
+        ],
+        [
+          -91.5,
+          -48
+        ],
+        [
+          -111.5,
+          -44.5
+        ]
+      ]
+    },
+    {
+      "id": "interplane_research_hub",
+      "textureKey": "interplane_research_hub",
+      "displayWidth": 512,
+      "displayHeight": 543,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/interplane_research_hub.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/stock_exchange/stock_exchange_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/stock_exchange/stock_exchange_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:stock_exchange",
+      "foundationRingCoverage": 0.5186,
+      "bodyAreaRatio": 0.5574,
+      "contactPolygon": [
+        [
+          -18,
+          -232
+        ],
+        [
+          162.5,
+          -127.5
+        ],
+        [
+          -37,
+          -28.5
+        ],
+        [
+          -198.5,
+          -109.5
+        ]
+      ]
+    },
+    {
+      "id": "royal_mint",
+      "textureKey": "royal_mint",
+      "displayWidth": 300,
+      "displayHeight": 303,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/royal_mint.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/royal_mint/royal_mint_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/royal_mint/royal_mint_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:royal_mint",
+      "foundationRingCoverage": 0.8116,
+      "bodyAreaRatio": 0.7844,
+      "contactPolygon": [
+        [
+          23.5,
+          -103.5
+        ],
+        [
+          128.5,
+          -51
+        ],
+        [
+          81.5,
+          -28
+        ],
+        [
+          48.5,
+          -7.5
+        ],
+        [
+          23,
+          1.5
+        ],
+        [
+          10.5,
+          1.5
+        ],
+        [
+          -8.5,
+          -8
+        ],
+        [
+          -28.5,
+          -7
+        ],
+        [
+          -41.5,
+          -2
+        ],
+        [
+          -74.5,
+          -18.5
+        ],
+        [
+          -78,
+          -50
+        ],
+        [
+          -82,
+          -51
+        ]
+      ]
+    },
+    {
+      "id": "solar_power_plant",
+      "textureKey": "solar_power_plant",
+      "displayWidth": 512,
+      "displayHeight": 410,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/solar_power_plant.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/solar_power_plant_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/solar_power_plant/solar_power_plant_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:solar_power_plant",
+      "foundationRingCoverage": 0.6645,
+      "bodyAreaRatio": 0.5959,
+      "contactPolygon": [
+        [
+          2.5,
+          -267.5
+        ],
+        [
+          166,
+          -91.5
+        ],
+        [
+          162,
+          -106
+        ],
+        [
+          72,
+          -63.5
+        ],
+        [
+          11.5,
+          -30.5
+        ],
+        [
+          -19.5,
+          -17
+        ],
+        [
+          -50.5,
+          -41.5
+        ],
+        [
+          -61,
+          -38
+        ],
+        [
+          -89.5,
+          -61.5
+        ],
+        [
+          -103,
+          -59.5
+        ],
+        [
+          -130,
+          -81
+        ],
+        [
+          -161,
+          -93.5
+        ]
+      ]
+    },
+    {
+      "id": "stock_exchange",
+      "textureKey": "stock_exchange",
+      "displayWidth": 512,
+      "displayHeight": 543,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/stock_exchange.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/stock_exchange/stock_exchange_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/stock_exchange/stock_exchange_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:stock_exchange",
+      "foundationRingCoverage": 0.5186,
+      "bodyAreaRatio": 0.5574,
+      "contactPolygon": [
+        [
+          -18,
+          -232
+        ],
+        [
+          162.5,
+          -127.5
+        ],
+        [
+          -37,
+          -28.5
+        ],
+        [
+          -198.5,
+          -109.5
+        ]
+      ]
+    },
+    {
+      "id": "thatch_hut_level_2",
+      "textureKey": "thatch_hut_lv2",
+      "displayWidth": 256,
+      "displayHeight": 187,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/thatch_hut_lv2.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/thatch_hut_lv2_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/thatch_hut_lv2_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:thatch_hut_lv2",
+      "foundationRingCoverage": 0.5244,
+      "bodyAreaRatio": 0.6635,
+      "contactPolygon": [
+        [
+          -24,
+          -134.5
+        ],
+        [
+          63.5,
+          -86.5
+        ],
+        [
+          57,
+          -47
+        ],
+        [
+          46.5,
+          -48.5
+        ],
+        [
+          38,
+          -35.5
+        ],
+        [
+          31,
+          -45.5
+        ],
+        [
+          -6,
+          -27.5
+        ],
+        [
+          -14.5,
+          -27
+        ],
+        [
+          -69,
+          -54
+        ],
+        [
+          -93.5,
+          -53.5
+        ],
+        [
+          -95,
+          -67.5
+        ],
+        [
+          -111,
+          -75
+        ]
+      ]
+    },
+    {
+      "id": "high_energy_laboratory",
+      "textureKey": "university",
+      "displayWidth": 512,
+      "displayHeight": 353,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/university.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/university/university_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/university/university_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:university",
+      "foundationRingCoverage": 0.8103,
+      "bodyAreaRatio": 0.6809,
+      "contactPolygon": [
+        [
+          -29.5,
+          -210.5
+        ],
+        [
+          181,
+          -105
+        ],
+        [
+          143,
+          -86.5
+        ],
+        [
+          118,
+          -64
+        ],
+        [
+          98,
+          -61
+        ],
+        [
+          86.5,
+          -55
+        ],
+        [
+          78,
+          -58.5
+        ],
+        [
+          76.5,
+          -53.5
+        ],
+        [
+          -19.5,
+          -6
+        ],
+        [
+          -32,
+          2
+        ],
+        [
+          -43,
+          -6.5
+        ],
+        [
+          -240,
+          -105
+        ]
+      ]
+    },
+    {
+      "id": "weather_forecast_tower",
+      "textureKey": "weather_forecast_tower",
+      "displayWidth": 256,
+      "displayHeight": 303,
+      "sourceKind": "body_depth_v1",
+      "sourcePath": "assets/terrain/weather_forecast_tower.png",
+      "bodyDepthPath": "tools/ai-gen/_settlement_building_pack_20260821/weather_forecast_tower/weather_forecast_tower_body_depth.png",
+      "runtimeMetadataPath": "tools/ai-gen/_settlement_building_pack_20260821/weather_forecast_tower/weather_forecast_tower_runtime_metadata.json",
+      "foundationExclusion": "settlement-manifest:weather_forecast_tower",
+      "foundationRingCoverage": 0.8223,
+      "bodyAreaRatio": 0.6586,
+      "contactPolygon": [
+        [
+          -7,
+          -105
+        ],
+        [
+          95.5,
+          -53.5
+        ],
+        [
+          -12,
+          0
+        ],
+        [
+          -110,
+          -48.5
+        ]
+      ]
+    }
+  ]
+}

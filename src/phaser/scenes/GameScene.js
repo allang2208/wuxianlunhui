@@ -123,7 +123,10 @@ import { PopulationEconomySystem } from '../../world/population-economy-system.j
 import { BakeryEconomySystem } from '../../world/bakery-economy-system.js';
 import { CheeseFarmSystem } from '../../world/cheese-farm-system.js';
 import { SteamPowerPlantSystem } from '../../world/steam-power-plant-system.js';
-import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
+import {
+    isStructureShadowEnabled,
+    resolveStructureShadowCaster,
+} from '../../world/structure-shadow-caster.js';
 import { WORLD_RENDER_LAYERS } from '../../world/world-render-layers.js';
 import { resolveUnitGroundFootprint } from '../../world/unit-ground-footprint.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
@@ -399,6 +402,9 @@ export class GameScene extends Scene {
             commandBufferLength: 0,
             rebuilds: 0,
             lastRebuildMs: 0,
+            rebuildTotalMs: 0,
+            rebuildPeakMs: 0,
+            layerVisible: false,
         };
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
         this._installShadowConsoleTools();
@@ -421,6 +427,14 @@ export class GameScene extends Scene {
         // 可移动实体脚底阴影：按 groundRadius 绘制黑色圆影
         this._shadowSprites = new Map();
         this._ensureShadowTexture();
+        this._environmentLightingUnsubscribe?.();
+        this._environmentLightingUnsubscribe = EnvironmentLightingSystem.subscribeConfig(
+            (config, changedKeys) => this._onEnvironmentLightingConfigChanged(config, changedKeys)
+        );
+        this.events.once('shutdown', () => {
+            this._environmentLightingUnsubscribe?.();
+            this._environmentLightingUnsubscribe = null;
+        });
 
         // 小地图静态层（背景/边界/墙壁），只在墙壁或世界尺寸变化时重绘
         this._minimapStaticGraphics = this.add.graphics();
@@ -869,6 +883,9 @@ export class GameScene extends Scene {
         FlatViewSystem.sync(this, _game, WallSystem);
         if (!isMapMode) this._applyViewportEntityVisibility(_game);
         this._applyFogEntityVisibility(_game);
+        // 地图/雾同步会按自身可见性恢复 Sprite；总开关必须在其后重新收口，
+        // 避免已关闭的接触影或共享结构影被同帧重新显示。
+        this._enforceDisabledShadowVisibility();
         // 雾可见性同步可能恢复此前隐藏的对象；压平态最后统一关闭建筑装饰层
         // （风车旋转层及后续共用 overlay/workingEffect 的建筑特效）。
         FlatViewSystem.suppressBuildingEffects(this, _game);
@@ -1189,10 +1206,15 @@ export class GameScene extends Scene {
         );
         const shadowStats = this._structureShadowRenderStats || {};
         PerformanceMonitor.setCounter('shadow.staticCasters', this._staticSunShadows?.size || 0);
+        PerformanceMonitor.setCounter('shadow.totalCasters', this._staticSunShadows?.size || 0);
         PerformanceMonitor.setCounter('shadow.structureCasters', this._structureSunShadows?.size || 0);
         PerformanceMonitor.setCounter('shadow.drawJobs', this._structureShadowJobs?.length || 0);
         PerformanceMonitor.setCounter('shadow.quality', EnvironmentLightingSystem.getShadowQuality());
         PerformanceMonitor.setCounter('shadow.visibleJobs', Number(shadowStats.visibleJobs) || 0);
+        PerformanceMonitor.setCounter('shadow.drawnCasters', shadowStats.layerVisible
+            ? (Number(shadowStats.visibleJobs) || 0)
+            : 0);
+        PerformanceMonitor.setCounter('shadow.layerVisible', shadowStats.layerVisible ? 1 : 0);
         PerformanceMonitor.setCounter('shadow.viewportCulled', Number(shadowStats.viewportCulled) || 0);
         PerformanceMonitor.setCounter('shadow.preGeometryCulled', Number(shadowStats.preGeometryCulled) || 0);
         PerformanceMonitor.setCounter('shadow.postGeometryCulled', Number(shadowStats.postGeometryCulled) || 0);
@@ -1209,6 +1231,8 @@ export class GameScene extends Scene {
         PerformanceMonitor.setCounter('shadow.commandBufferLength', Number(shadowStats.commandBufferLength) || 0);
         PerformanceMonitor.setCounter('shadow.rebuilds', Number(shadowStats.rebuilds) || 0);
         PerformanceMonitor.setCounter('shadow.lastRebuildMs', Number(shadowStats.lastRebuildMs) || 0);
+        PerformanceMonitor.setCounter('shadow.rebuildTotalMs', Number(shadowStats.rebuildTotalMs) || 0);
+        PerformanceMonitor.setCounter('shadow.rebuildPeakMs', Number(shadowStats.rebuildPeakMs) || 0);
         PerformanceMonitor.setCounter('fog.enabled', fogGrid?.active ? 1 : 0);
         PerformanceMonitor.setCounter('fog.revision', Number(fogGrid?.revision) || 0);
         PerformanceMonitor.setCounter('fog.maskRenderMs', this._fogMaskRenderer?.lastRenderMs || 0);
@@ -4227,6 +4251,67 @@ export class GameScene extends Scene {
                 this._shadowSprites.delete(key);
             }
         }
+    }
+
+    _syncShadowControlledGroundContacts(enabled) {
+        for (const [entity, data] of this._neutralSprites || []) {
+            const groundContact = data?.groundContactSprite;
+            if (!groundContact?.active || data?.sprCfg?.groundContact?.shadowControlled !== true) continue;
+            if (!enabled) {
+                groundContact.setVisible(false);
+                continue;
+            }
+            const fogHidden = FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity);
+            groundContact.setVisible(
+                !this._mapModeActive
+                && !fogHidden
+                && data.sprite?.visible !== false
+            );
+        }
+    }
+
+    /** 设置菜单会暂停 Phaser；配置监听必须直接收口现存图层，不能等待下一帧。 */
+    _onEnvironmentLightingConfigChanged(config, changedKeys = []) {
+        const changed = new Set(changedKeys);
+        if (![...changed].some((key) => key === 'enabled' || key === 'staticEnabled' || key === 'quality')) return;
+
+        const enabled = config?.enabled !== false;
+        ChestRoomSystem.syncShadowVisibility(enabled);
+        this._syncShadowControlledGroundContacts(enabled);
+        this._sunShadowSyncTimer = 80;
+
+        if (changed.has('enabled') && typeof Renderer.terrainRebuild === 'function') {
+            Renderer.terrainRebuild();
+        }
+
+        if (!enabled) {
+            for (const shadow of this._shadowSprites?.values() || []) {
+                if (shadow?.active) shadow.setVisible(false);
+            }
+            if (this._structureShadowLayer?.active) this._structureShadowLayer.setVisible(false);
+            if (this._structureShadowRenderStats) this._structureShadowRenderStats.layerVisible = false;
+            return;
+        }
+
+        // 重新开启时也在暂停菜单背后立即恢复；各同步函数仍负责地图、迷雾和视口过滤。
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        if (!game?.isRunning) return;
+        if (changed.has('enabled')) this._syncEntityShadows(game);
+        this._syncStructureSunShadows(game);
+        this._syncStaticSunShadows();
+    }
+
+    /** FogVisualAdapter 可能恢复旧 visible；主开关关闭时在帧末再次强制隐藏阴影专属视觉。 */
+    _enforceDisabledShadowVisibility() {
+        if (EnvironmentLightingSystem.isShadowEnabled()) return;
+        for (const shadow of this._shadowSprites?.values() || []) {
+            if (shadow?.active && shadow.visible) shadow.setVisible(false);
+        }
+        if (this._structureShadowLayer?.active && this._structureShadowLayer.visible) {
+            this._structureShadowLayer.setVisible(false);
+        }
+        this._syncShadowControlledGroundContacts(false);
+        ChestRoomSystem.syncShadowVisibility(false);
     }
 
     // ---- 相机系统 ----
@@ -10424,6 +10509,7 @@ export class GameScene extends Scene {
                 height: Math.max(0, options.height || 0),
                 maxOffset: options.maxOffset,
                 opacity: options.opacity,
+                enabled: options.enabled !== false,
                 depth: options.depth ?? 0,
                 visible: options.visible !== false,
                 fogHidden: !!options.fogHidden,
@@ -10448,6 +10534,7 @@ export class GameScene extends Scene {
             height: Math.max(0, options.height || radius * 3),
             maxOffset: options.maxOffset,
             opacity: options.opacity,
+            enabled: options.enabled !== false,
             depth: options.depth ?? 0,
             visible: options.visible !== false,
             fogHidden: !!options.fogHidden,
@@ -10612,7 +10699,10 @@ export class GameScene extends Scene {
         let postGeometryCulled = 0;
         const renderCulling = performanceConfig.renderCulling || {};
         const cameraView = this.cameras?.main?.worldView;
-        const shadowViewportPadding = Math.max(0, Number(renderCulling.shadowPaddingPx) || 64);
+        const configuredShadowPadding = Number(renderCulling.shadowPaddingPx);
+        const shadowViewportPadding = Number.isFinite(configuredShadowPadding)
+            ? Math.max(0, configuredShadowPadding)
+            : 64;
         const shadowViewport = renderCulling.enabled !== false && cameraView
             ? {
                 left: cameraView.x - shadowViewportPadding,
@@ -10871,9 +10961,17 @@ export class GameScene extends Scene {
                 renderStats.sourceVertices = sourceVertices;
                 renderStats.commandBufferLength = layer.commandBuffer?.length || 0;
                 renderStats.rebuilds += 1;
-                renderStats.lastRebuildMs = Math.max(0, PerformanceMonitor.begin() - rebuildStartedAt);
+                const rebuildMs = Math.max(0, PerformanceMonitor.begin() - rebuildStartedAt);
+                renderStats.lastRebuildMs = rebuildMs;
+                renderStats.rebuildTotalMs = (Number(renderStats.rebuildTotalMs) || 0) + rebuildMs;
+                renderStats.rebuildPeakMs = Math.max(
+                    Number(renderStats.rebuildPeakMs) || 0,
+                    rebuildMs
+                );
             }
-            layer.setVisible(!isMapMode && layerOpacity > 0.001);
+            const layerVisible = !isMapMode && layerOpacity > 0.001;
+            layer.setVisible(layerVisible);
+            renderStats.layerVisible = layerVisible;
         }
     }
 
@@ -10999,6 +11097,7 @@ export class GameScene extends Scene {
      * 剪影取 cover_gate_<grade> 帧 0 列、沿实体 `_faceLine`（世界面线真源）映射。
      */
     _ensureGateSunShadow(entity, active) {
+        if (!isStructureShadowEnabled(entity)) return;
         const gateTex = entity._cfg?.tex;
         const silMeta = lightingAssets.assets?.[gateTex]?.shadowSilhouette || null;
         const verts = entity.collisionShape === 'iso_rect' ? isoFootprintVertices(entity) : null;
@@ -11065,6 +11164,7 @@ export class GameScene extends Scene {
      * measuredHeight（墙/楼梯影长修复不回退），`_silCache` 置 null 走纯凸包。
      */
     _ensureStairSunShadows(entity, active) {
+        if (!isStructureShadowEnabled(entity)) return;
         const neutral = this._neutralSprites && this._neutralSprites.get(entity);
         const segSprites = neutral?.segmentSprites || [];
         const segments = Array.isArray(entity.segments) ? entity.segments : [];
@@ -11143,7 +11243,7 @@ export class GameScene extends Scene {
         }
 
         const ensure = (entity, sprite) => {
-            if (!sprite || !sprite.active) return;
+            if (!sprite || !sprite.active || !isStructureShadowEnabled(entity)) return;
             const footprint = this._getGroundShadowFootprint(entity, entity.collisionRadius || 10, {
                 x: sprite.x,
                 y: sprite.y + this._getFootOffsetY(entity, sprite),
@@ -12243,7 +12343,11 @@ export class GameScene extends Scene {
                 label.setColor(color);
             }
             sprite.setVisible(true);
-            if (groundContactSprite?.active) groundContactSprite.setVisible(true);
+            if (groundContactSprite?.active) {
+                const shadowControlled = sprCfg?.groundContact?.shadowControlled === true;
+                groundContactSprite.setVisible(
+                    !shadowControlled || EnvironmentLightingSystem.isShadowEnabled());
+            }
             if (overlaySprite?.active) overlaySprite.setVisible(true);
             if (foregroundSprite?.active) foregroundSprite.setVisible(true);
             if (data.workingEffectGraphics?.active) {

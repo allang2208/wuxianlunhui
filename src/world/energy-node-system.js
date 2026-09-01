@@ -142,6 +142,15 @@ class EnergyNode extends DamageableEntity {
             sizeH: displayH,
             footOffsetY: displayH / 2,
             frame: directionalPair ? 0 : undefined,
+            groundContact: {
+                textureKey: 'entity_shadow',
+                frame: null,
+                displayW: Math.max(34, Math.round(displayW * 1.2)),
+                displayH: Math.max(12, Math.round(displayW * 0.3)),
+                footOffsetY: 0,
+                depthMode: 'ground',
+                shadowControlled: true,
+            },
         };
         this.footOffsetY = displayH / 2;
         // 统一遮挡锚线（能源矿也参与遮挡仲裁：单位在其后被盖、在前/同线盖过矿点）
