@@ -1,0 +1,287 @@
+{
+  "version": 1,
+  "runtimeInstalled": true,
+  "path": "assets/ui/world-map/mountain-relief.png",
+  "width": 1024,
+  "height": 812,
+  "pixelsPerWorldUnit": 123.07692307692307,
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 55.0,
+    "elevationReference": "above XY ground plane; 90 degrees is top-down",
+    "azimuthDegrees": 0,
+    "azimuthReference": "from -Y toward +X; camera on -Y looking toward +Y",
+    "rollDegrees": 0,
+    "worldUp": "+Z",
+    "source": "data/world-map-layout.json",
+    "orthoScale": 2.6,
+    "resolution": [
+      512,
+      512
+    ],
+    "anchorPx": [
+      256.0,
+      280.8489074707031
+    ],
+    "pixelsPerWorldUnit": 196.9230769230769,
+    "lighting": "shared hex soft key (-3,-4,7), cool fill (4,1,5)"
+  },
+  "source": "tools/ai-gen/_world_map_relief_20260901/world-map-relief.blend",
+  "mountainProfile": {
+    "heightScaleByKind": {
+      "ridge": 1.35,
+      "massif": 1.42,
+      "pass": 1.28
+    },
+    "horizontalFootprint": "unchanged",
+    "passClearance": "unchanged"
+  },
+  "selection": {
+    "mountain": "stable ridge/massif by cell coordinate",
+    "mountainPass": "pass"
+  },
+  "frames": {
+    "desert_pass": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 205,
+        "height": 221
+      },
+      "anchorPx": [
+        103.0,
+        136.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "forest_pass": {
+      "rect": {
+        "x": 207,
+        "y": 0,
+        "width": 204,
+        "height": 217
+      },
+      "anchorPx": [
+        102.0,
+        136.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "mine_pass": {
+      "rect": {
+        "x": 413,
+        "y": 0,
+        "width": 204,
+        "height": 217
+      },
+      "anchorPx": [
+        102.0,
+        136.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "ruins_pass": {
+      "rect": {
+        "x": 619,
+        "y": 0,
+        "width": 204,
+        "height": 217
+      },
+      "anchorPx": [
+        102.0,
+        136.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "snow_pass": {
+      "rect": {
+        "x": 0,
+        "y": 223,
+        "width": 204,
+        "height": 216
+      },
+      "anchorPx": [
+        102.0,
+        136.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "desert_massif": {
+      "rect": {
+        "x": 206,
+        "y": 223,
+        "width": 202,
+        "height": 193
+      },
+      "anchorPx": [
+        101.0,
+        122.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "mine_massif": {
+      "rect": {
+        "x": 410,
+        "y": 223,
+        "width": 203,
+        "height": 193
+      },
+      "anchorPx": [
+        104.0,
+        122.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "snow_massif": {
+      "rect": {
+        "x": 615,
+        "y": 223,
+        "width": 196,
+        "height": 193
+      },
+      "anchorPx": [
+        92.0,
+        122.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "ruins_massif": {
+      "rect": {
+        "x": 813,
+        "y": 223,
+        "width": 206,
+        "height": 192
+      },
+      "anchorPx": [
+        103.0,
+        122.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "forest_ridge": {
+      "rect": {
+        "x": 0,
+        "y": 441,
+        "width": 208,
+        "height": 187
+      },
+      "anchorPx": [
+        106.0,
+        114.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "snow_ridge": {
+      "rect": {
+        "x": 210,
+        "y": 441,
+        "width": 208,
+        "height": 187
+      },
+      "anchorPx": [
+        107.0,
+        114.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "mine_ridge": {
+      "rect": {
+        "x": 420,
+        "y": 441,
+        "width": 209,
+        "height": 185
+      },
+      "anchorPx": [
+        105.0,
+        114.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "ruins_ridge": {
+      "rect": {
+        "x": 631,
+        "y": 441,
+        "width": 212,
+        "height": 184
+      },
+      "anchorPx": [
+        108.0,
+        114.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "forest_massif": {
+      "rect": {
+        "x": 0,
+        "y": 630,
+        "width": 206,
+        "height": 181
+      },
+      "anchorPx": [
+        103.0,
+        122.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    },
+    "desert_ridge": {
+      "rect": {
+        "x": 208,
+        "y": 630,
+        "width": 211,
+        "height": 158
+      },
+      "anchorPx": [
+        107.0,
+        114.53056716918945
+      ],
+      "sourceSize": [
+        320,
+        320
+      ]
+    }
+  },
+  "rgbaBaseMiB": 3.171875,
+  "frameCount": 15
+}
