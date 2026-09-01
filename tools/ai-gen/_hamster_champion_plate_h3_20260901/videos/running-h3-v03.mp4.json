@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T06:43:35.495379+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\running-h3-v03.mp4",
+    "bytes": 967555,
+    "sha256": "99909bd7927f250a52fb0bc792da1dd15640fef6e2f50da1ec686592b6cebd6f"
+  },
+  "promptId": "4c6ae0e7-ed03-41dc-9df3-c893a4959c24",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901732,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied image as the exact first frame and identity reference. Create one seamless in-place running loop for this fully armored hamster champion, facing screen-right in the same slightly elevated side-dominant three-quarter view. Preserve the closed helmet, refined full plate, short hamster tail, compact proportions, and exactly one complete two-handed greatsword held by both gauntlets.\n\nThe run is brisk and controlled with alternating legs striding along screen X. Keep the armored spine nearly vertical throughout the entire cycle, chest lifted and open, shoulders high, helmet centered above the pelvis, and hips high enough to avoid a crouched silhouette. Use moderate natural knee lift and clear heel-to-toe changes without turning toward the camera. The sword stays controlled across the lower chest and waist on a stable forward diagonal; it may have a small natural counter-bob but must not pull the torso downward. Keep the in-place root fixed and make the last frame return smoothly to the first pose.\n\nDo not hunch, stoop, crouch-sprint, fold the chest toward the ground, thrust the helmet far ahead of the pelvis, lean onto the sword, drag the sword, change camera angle, zoom, crop the sword or boots, open the helmet, expose a human face, lengthen the tail, add weapons, duplicate limbs, deform armor, or add ground shadows. Keep the background uniformly solid chroma blue #2060E0 with no gradient, texture, particles, text, or scenery.",
+  "effectivePrompt": "Use the supplied image as the exact first frame and identity reference. Create one seamless in-place running loop for this fully armored hamster champion, facing screen-right in the same slightly elevated side-dominant three-quarter view. Preserve the closed helmet, refined full plate, short hamster tail, compact proportions, and exactly one complete two-handed greatsword held by both gauntlets.\n\nThe run is brisk and controlled with alternating legs striding along screen X. Keep the armored spine nearly vertical throughout the entire cycle, chest lifted and open, shoulders high, helmet centered above the pelvis, and hips high enough to avoid a crouched silhouette. Use moderate natural knee lift and clear heel-to-toe changes without turning toward the camera. The sword stays controlled across the lower chest and waist on a stable forward diagonal; it may have a small natural counter-bob but must not pull the torso downward. Keep the in-place root fixed and make the last frame return smoothly to the first pose.\n\nDo not hunch, stoop, crouch-sprint, fold the chest toward the ground, thrust the helmet far ahead of the pelvis, lean onto the sword, drag the sword, change camera angle, zoom, crop the sword or boots, open the helmet, expose a human face, lengthen the tail, add weapons, duplicate limbs, deform armor, or add ground shadows. Keep the background uniformly solid chroma blue #2060E0 with no gradient, texture, particles, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied image as the exact first frame and identity reference. Create one seamless in-place running loop for this fully armored hamster champion, facing screen-right in the same slightly elevated side-dominant three-quarter view. Preserve the closed helmet, refined full plate, short hamster tail, compact proportions, and exactly one complete two-handed greatsword held by both gauntlets.\n\nThe run is brisk and controlled with alternating legs striding along screen X. Keep the armored spine nearly vertical throughout the entire cycle, chest lifted and open, shoulders high, helmet centered above the pelvis, and hips high enough to avoid a crouched silhouette. Use moderate natural knee lift and clear heel-to-toe changes without turning toward the camera. The sword stays controlled across the lower chest and waist on a stable forward diagonal; it may have a small natural counter-bob but must not pull the torso downward. Keep the in-place root fixed and make the last frame return smoothly to the first pose.\n\nDo not hunch, stoop, crouch-sprint, fold the chest toward the ground, thrust the helmet far ahead of the pelvis, lean onto the sword, drag the sword, change camera angle, zoom, crop the sword or boots, open the helmet, expose a human face, lengthen the tail, add weapons, duplicate limbs, deform armor, or add ground shadows. Keep the background uniformly solid chroma blue #2060E0 with no gradient, texture, particles, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "a2db023894c9f06ae6c103e09222cc0d6ba1998c75041792ea63c8afa39284a7",
+  "effectivePromptSha256": "6b34f8ee18853ab438519c6920fe606f9bfab204847f2c85659c49d1fa288fd6",
+  "finalPromptSha256": "934d0e0374a462e3264a1824c42f6825d7d4a64769cf4c49531a0de3b460544d",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\prompts\\running-h3-v03.txt",
+      "bytes": 1464,
+      "sha256": "7431fd7d455374c5c0912bca92a1055d1d0cadb16bb1e1ad4603245a72f01538"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\running-keyframe-v03-upright-chroma.png",
+      "bytes": 466273,
+      "sha256": "d8aa5fd639699354233d908b78af8265b4b23bf32fba12d5e1bdad8463fcf8f6"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\running-keyframe-v03-upright-chroma.png",
+      "bytes": 466273,
+      "sha256": "d8aa5fd639699354233d908b78af8265b4b23bf32fba12d5e1bdad8463fcf8f6"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\running-h3-v03_contact.png",
+    "bytes": 434951,
+    "sha256": "64814c9308089366146bc74ea2fb861480bb661ecb109d0aba8cea871045433a"
+  },
+  "elapsedSeconds": 861.632
+}

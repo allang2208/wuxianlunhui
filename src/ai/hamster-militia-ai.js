@@ -25,14 +25,25 @@ export class HamsterMilitiaAI {
         this._engageRange = this.cfg.engageRange ?? RTS_DEFAULT_ACQUIRE_RANGE;
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
-        // 攻击动画第 N 帧伤害判定（用户口径）：整段 15 帧 @12fps = 1.25s，
-        // 插帧后第 15 帧（索引 14）→ 伤害延迟 = (15-1)/24 × 1000 = 583ms
+        // 攻击动画第 N 帧伤害判定；存在逐帧时长时，命中与动作锁共用该时钟。
         const animCfg = (militia.animations && militia.animations.attack) || {};
         const fps = this.cfg.attackAnimFps ?? animCfg.frameRate ?? 12;
         const damageFrame = this.cfg.attackDamageFrame ?? 15;
         const frameCount = animCfg.frameCount || 29;
-        this._damageDelayMs = Math.max(0, (damageFrame - 1) / fps * 1000);
-        this._swingAnimMs = frameCount / fps * 1000 + 60; // +60ms 余量：动画播完再切 idle，防攻击动画被打断
+        const frameDurations = Array.isArray(animCfg.frameDurations)
+            && animCfg.frameDurations.length === frameCount
+            && animCfg.frameDurations.every((duration) => Number.isFinite(duration) && duration > 0)
+            ? animCfg.frameDurations
+            : null;
+        const damageFrameIndex = Math.min(frameCount - 1, Math.max(0, damageFrame - 1));
+        this._damageDelayMs = frameDurations
+            ? frameDurations.slice(0, damageFrameIndex).reduce((sum, duration) => sum + duration, 0)
+            : damageFrameIndex / fps * 1000;
+        const baseSwingMs = frameDurations
+            ? frameDurations.reduce((sum, duration) => sum + duration, 0)
+            : (Number.isFinite(animCfg.durationMs) ? animCfg.durationMs : frameCount / fps * 1000);
+        const tailHoldMs = Number.isFinite(animCfg.tailHoldMs) ? animCfg.tailHoldMs : 60;
+        this._swingAnimMs = baseSwingMs + tailHoldMs;
         // 挥击状态：_swingActive=true 期间站定播攻击动画（单次），到伤害延迟出伤，动画播完回 idle
         this._swingActive = false;
         this._swingTimer = 0;

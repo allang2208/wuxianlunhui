@@ -1,0 +1,19 @@
+{
+  "version": 4,
+  "createdOn": "2026-09-01",
+  "generator": "OpenAI ImageGen edit",
+  "source": "../../_hamster_champion_20260826/mother/hamster-champion-mother-v03-closed-helmet.png",
+  "workspaceOutput": "attacking-keyframe-v04.png",
+  "preservedOriginal": "C:/Users/allan/.codex/generated_images/01a05b12-d41c-77e0-a5fb-54751d2e4171/exec-96e1364c-2563-4ae0-bae6-f96bc2f50303.png",
+  "sha256": "189DC6540ADF8ED1780BBB539F451E7BAAE5378EFCE25E95C5D52EE60D01FAFD",
+  "review": {
+    "status": "accepted_as_low_slash_h3_keyframe",
+    "swordPath": "horizontal at waist-to-lower-chest height and below helmet crown",
+    "identityLocks": [
+      "fully enclosed close helmet",
+      "complete greaves and metal sabatons",
+      "short tail",
+      "two gauntlets on one complete greatsword"
+    ]
+  }
+}

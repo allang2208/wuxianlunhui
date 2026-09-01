@@ -41,10 +41,10 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 214.088398,
-  "spriteOffsetY": -41.395999,
+  "displaySize": 210,
+  "spriteOffsetY": -40.605469,
   "render": {
-    "footOffsetY": 41.395999,
+    "footOffsetY": 40.605469,
     "hudOffsetY": 119,
     "collisionWidth": 40,
     "collisionHeight": 100
@@ -55,13 +55,13 @@
       "frameWidth": 512,
       "frameHeight": 512,
       "cols": 8,
-      "rows": 4,
-      "frameCount": 1,
+      "rows": 6,
+      "frameCount": 48,
       "frames": [
         0,
-        0
+        47
       ],
-      "frameRate": 1,
+      "frameRate": 16,
       "repeat": -1
     },
     "walk": {
@@ -69,47 +69,47 @@
       "frameWidth": 512,
       "frameHeight": 512,
       "cols": 8,
-      "rows": 4,
-      "frameCount": 30,
+      "rows": 5,
+      "frameCount": 40,
       "frames": [
         0,
-        29
+        39
       ],
-      "frameRate": 24.0,
+      "frameRate": 24,
       "repeat": -1
     },
     "attack": {
       "src": "assets/companions/hamster_warrior/attacking.png",
-      "frameWidth": 512,
+      "frameWidth": 768,
       "frameHeight": 512,
       "cols": 8,
       "rows": 6,
-      "frameCount": 48,
+      "frameCount": 47,
       "startFrames": [
         0,
         46
       ],
-      "startFrameRate": 24.0,
+      "startFrameRate": 24,
       "startRepeat": 0,
       "loopFrames": [
-        10,
-        47
+        0,
+        46
       ],
-      "frameRate": 19.0,
+      "frameRate": 24,
       "repeat": -1
     },
     "dying": {
       "src": "assets/companions/hamster_warrior/dying.png",
-      "frameWidth": 512,
+      "frameWidth": 640,
       "frameHeight": 512,
       "cols": 8,
-      "rows": 3,
-      "frameCount": 23,
+      "rows": 4,
+      "frameCount": 31,
       "frames": [
         0,
-        22
+        30
       ],
-      "frameRate": 24.0,
+      "frameRate": 24,
       "repeat": 0
     }
   }

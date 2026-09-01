@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "createdOn": "2026-09-01",
+  "generator": "OpenAI ImageGen edit",
+  "source": "../../_hamster_champion_20260826/mother/hamster-champion-mother-v03-closed-helmet.png",
+  "workspaceOutput": "dying-keyframe-v03.png",
+  "preservedOriginal": "C:/Users/allan/.codex/generated_images/01a05b12-d41c-77e0-a5fb-54751d2e4171/exec-a06b1c95-7bbd-4cff-bb12-3184e61880db.png",
+  "sha256": "4CB6C2DCA6F699D5D74C28D9571D46A672C9E70B82E8E685236572560D9B3719",
+  "review": {
+    "status": "accepted_as_no-visible-tail_dying_keyframe",
+    "subjectScale": 0.72,
+    "identityLocks": [
+      "fully enclosed close helmet",
+      "complete greaves and metal sabatons",
+      "tail fully tucked behind rear armor",
+      "two gauntlets on one complete greatsword"
+    ]
+  }
+}

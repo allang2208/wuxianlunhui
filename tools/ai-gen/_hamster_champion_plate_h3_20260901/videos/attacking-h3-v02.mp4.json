@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T05:37:56.177899+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\attacking-h3-v02.mp4",
+    "bytes": 792018,
+    "sha256": "7b02e6c5b66f0b48dfcfff204bd12937145ea619019aad11a9176a9e43c9e931"
+  },
+  "promptId": "50319688-ecc8-4030-94c7-8ace46174cc5",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901723,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The first frame is the exact identity, equipment, compact squat proportions, camera, scale, and guarded opening pose of one hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, rigid torso plate, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one continuous greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view. The champion faces screen right in the same slightly elevated, side-dominant three-quarter orientation and performs one complete heavy two-handed sword attack in place. From 0.0 to 1.0 seconds both hands draw the sword back and the knees brace. From 1.0 to 3.8 seconds the hips and shoulders drive one forceful diagonal cut toward screen right with a small planted forward step and one clear peak contact pose; the blade follows one continuous rigid arc. From 3.8 to 5.17 seconds momentum decelerates and the champion recovers to the exact guarded opening stance without a second strike.\n\nKeep the complete helmet, body, both armored feet, short tail, and entire moving sword inside the frame with generous action margins and constant scale. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No spin, repeated combo, open visor, visible face, bare leg, bare foot, missing greave, long rat tail, dropped sword, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery.",
+  "effectivePrompt": "The first frame is the exact identity, equipment, compact squat proportions, camera, scale, and guarded opening pose of one hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, rigid torso plate, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one continuous greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view. The champion faces screen right in the same slightly elevated, side-dominant three-quarter orientation and performs one complete heavy two-handed sword attack in place. From 0.0 to 1.0 seconds both hands draw the sword back and the knees brace. From 1.0 to 3.8 seconds the hips and shoulders drive one forceful diagonal cut toward screen right with a small planted forward step and one clear peak contact pose; the blade follows one continuous rigid arc. From 3.8 to 5.17 seconds momentum decelerates and the champion recovers to the exact guarded opening stance without a second strike.\n\nKeep the complete helmet, body, both armored feet, short tail, and entire moving sword inside the frame with generous action margins and constant scale. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No spin, repeated combo, open visor, visible face, bare leg, bare foot, missing greave, long rat tail, dropped sword, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The first frame is the exact identity, equipment, compact squat proportions, camera, scale, and guarded opening pose of one hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, rigid torso plate, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one continuous greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view. The champion faces screen right in the same slightly elevated, side-dominant three-quarter orientation and performs one complete heavy two-handed sword attack in place. From 0.0 to 1.0 seconds both hands draw the sword back and the knees brace. From 1.0 to 3.8 seconds the hips and shoulders drive one forceful diagonal cut toward screen right with a small planted forward step and one clear peak contact pose; the blade follows one continuous rigid arc. From 3.8 to 5.17 seconds momentum decelerates and the champion recovers to the exact guarded opening stance without a second strike.\n\nKeep the complete helmet, body, both armored feet, short tail, and entire moving sword inside the frame with generous action margins and constant scale. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No spin, repeated combo, open visor, visible face, bare leg, bare foot, missing greave, long rat tail, dropped sword, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "767aa2860b2a0a423bb58ce3780681583029635f6cae3c5e4394590ea48a8ac4",
+  "effectivePromptSha256": "9bcf45bbd9e3edf9d4feadd1a829b6c03bf5266155c83007b0712e42cb884ce0",
+  "finalPromptSha256": "e02014e21b478ce4e9f0bdc31b8d0efb8da805e203fe3884dccf9b0c35515989",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\prompts\\attacking-h3-v02.txt",
+      "bytes": 1589,
+      "sha256": "deb162a8fb71dad7ff340cefe894b36ef28409339f3900142da161ce3144ca9a"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\idle-keyframe-v02-chroma.png",
+      "bytes": 491486,
+      "sha256": "ce1d723dccc68346714717aad8113e63b056625ad560113d3228a455f6519f68"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\attacking-h3-v02_contact.png",
+    "bytes": 456810,
+    "sha256": "e0347461777d34a7e9bc081e75c46e5fef0099e3e04edac1dcdc34a92ea7b161"
+  },
+  "elapsedSeconds": 430.711
+}

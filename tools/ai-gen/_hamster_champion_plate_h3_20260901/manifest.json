@@ -1,0 +1,279 @@
+{
+  "version": 10,
+  "task": "Hamster Champion refined plate and closed-helmet four-action H3 delivery",
+  "status": "runtime_integrated_and_repository_cleanup_complete",
+  "provider": "MiniMax H3, explicitly requested by user",
+  "scope": "Generate, rebuild, and integrate the approved idle, upright running, two-handed greatsword attack, and dying sprites; preserve the published main-branch unit values except for the user-authorized 1850ms attack interval",
+  "identity": {
+    "source": "../_hamster_champion_20260826/mother/hamster-champion-mother-v03-closed-helmet.png",
+    "directEditAncestor": "../_hamster_champion_20260826/mother/hamster-champion-mother-v02-two-handed-plate.png",
+    "description": "Tan-and-white anthropomorphic hamster champion in refined late-medieval full plate, fully enclosed close helm, one long two-handed greatsword"
+  },
+  "eraSwapIsolation": {
+    "status": "integrated_with_unit_owned_paths",
+    "rule": "Each unit owns its runtime texture paths; no warrior texture key points at a mutable champion path",
+    "warriorRomanSheets": {
+      "source": "Git HEAD versions of the previously accepted Roman champion runtime sheets",
+      "sourceBlobIds": {
+        "idle": "bafb4fbac800464c39430b9001c9a1f821e44a98",
+        "running": "475fcb99b0c1e839af43b940f5c1bfd1195676d9",
+        "attacking": "dd799697771da3373c268f942cc9750bbe35a112",
+        "dying": "03dc27d77613bfa27fcfad4c27a3e943a1612a1b"
+      },
+      "installedRoot": "assets/companions/hamster_warrior",
+      "config": "data/hamster-warrior-config.json"
+    },
+    "icons": {
+      "warrior": "assets/ui/unit-icons/hamster-warrior.png stores the former Roman champion icon",
+      "champion": "assets/ui/unit-icons/hamster-champion.png is derived from approved plate idle frame 0"
+    }
+  },
+  "orientationCheck": {
+    "status": "checked_by_assistant_before_video_submission",
+    "checkedOn": "2026-09-01",
+    "workflow": "skill/16b-animation-alignment-and-timing.md#1.1",
+    "identityAndMotionReferencesSeparated": true,
+    "primaryMotionReference": {
+      "asset": "../_hamster_champion_20260826/source-sheets-pre-interpolation/running.png",
+      "preview": "tools/ai-gen/_hamster_champion_20260826/previews/interpolated/running-interpolated-contact.png",
+      "frameIndices": [0, 5, 10, 15],
+      "frameSize": [512, 512],
+      "frameCount": 20,
+      "note": "Previously user-confirmed natural running loop; used for camera, body direction, stride axis, and cadence only"
+    },
+    "camera": "Slightly elevated, side-dominant three-quarter view facing screen-right with a limited amount of the front chest visible; qualitative comparison only",
+    "bodyDirection": "Helmet visor, chest plate, pelvis, knees and armored toes remain oriented broadly toward screen-right",
+    "motionAxis": "Alternating leg stride along screen X with natural shallow depth; no frontal walking toward the camera",
+    "rootMotion": "In-place action root; future entity movement controls world position",
+    "weaponRule": "Both gauntlets remain on the same two-handed greatsword; blade direction does not replace the body-direction check",
+    "conclusion": "Approved reference motion is suitable for H3 submission; raw H3 outputs must still pass 24-point direction and equipment-topology review"
+  },
+  "motionReferences": {
+    "usage": "Offline comparison only in v2; these videos are not uploaded to H3",
+    "idle": "../_hamster_champion_20260826/videos/idle-doubao.mp4",
+    "running": "../_hamster_champion_20260826/videos/running-doubao-v02.mp4",
+    "attacking": "../_hamster_champion_20260826/videos/attacking-doubao-v03.mp4",
+    "dying": "../_hamster_champion_20260826/videos/dying-doubao.mp4"
+  },
+  "generation": {
+    "referenceMode": "first-frame with identity-locked endpoint for loop actions",
+    "v1Rejected": {
+      "removedBinary": "videos/idle-h3-v01.mp4",
+      "seed": 901711,
+      "reason": "Ref2VA inherited the old motion subject's bare lower legs and feet, degraded plate topology, and long tail; only the closed helmet and single sword stayed stable",
+      "decision": "Do not submit legacy action videos as H3 references for v2"
+    },
+    "attackingV2Rejected": {
+      "removedBinary": "videos/attacking-h3-v02.mp4",
+      "seed": 901723,
+      "reason": "The complete sword leaves the top edge during the wind-up and peak attack around frames 16-27, with another cropped high arc near frame 64",
+      "decision": "Regenerate v3 from a 72 percent scale attack reference with broader action margins"
+    },
+    "attackingV3Rejected": {
+      "removedBinary": "videos/attacking-h3-v03.mp4",
+      "seed": 901733,
+      "reason": "The smaller subject improved margins but H3 still chose an overhead wind-up and cropped the sword tip around frames 16-21",
+      "decision": "Regenerate v4 from a purpose-authored low backswing keyframe and keep the slash below helmet height"
+    },
+    "dyingV2Rejected": {
+      "removedBinary": "videos/dying-h3-v02.mp4",
+      "seed": 901724,
+      "reason": "The collapse and final still pose were usable, but the hidden short tail stretched into a long pointed rat tail from about frame 59 onward",
+      "decision": "Regenerate v3 from a no-visible-tail guard reference"
+    },
+    "runningV2Rejected": {
+      "removedBinary": "videos/running-h3-v02.mp4",
+      "seed": 901722,
+      "reason": "User rejected the posture: the torso leans and folds too far forward, reading as a hunched crouch-sprint rather than an upright armored run",
+      "decision": "Regenerate v3 from a purpose-authored upright keyframe with the helmet centered above the pelvis and the chest lifted throughout"
+    },
+    "v2References": {
+      "idleAndNonLoop": "references/idle-keyframe-v02-chroma.png",
+      "running": "references/running-keyframe-v02-chroma.png",
+      "runningSource": "references/running-keyframe-v02.png",
+      "uprightRunning": "references/running-keyframe-v03-upright-chroma.png",
+      "uprightRunningSource": "references/running-keyframe-v03-upright.png",
+      "attacking": "references/attacking-keyframe-v03-chroma.png",
+      "attackingLowSlash": "references/attacking-keyframe-v04-chroma.png",
+      "dying": "references/attacking-keyframe-v03-chroma.png",
+      "dyingNoTail": "references/dying-keyframe-v03-chroma.png",
+      "background": "uniform chroma blue #2060E0 composited with BiRefNet for the approved idle/run references and border-connected white matte for the approved attack/death references"
+    },
+    "width": 1024,
+    "height": 576,
+    "requestedDurationSeconds": 5.17,
+    "sourceFrames": 124,
+    "sourceFps": 24,
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "refSize": "max",
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset",
+    "background": "uniform chroma blue #2060E0"
+  },
+  "actions": [
+    {
+      "action": "idle",
+      "seed": 901721,
+      "intendedMode": "loop with first and last frame locked to the same plate-armored identity reference",
+      "prompt": "prompts/idle-h3-v02.txt",
+      "output": "videos/idle-h3-v02.mp4",
+      "formalPreview": "previews/runtime-clock-exact/idle.gif",
+      "status": "accepted_source_video",
+      "review": "Closed helmet, complete leg and foot plate, one connected greatsword, fixed root, and stable right-facing identity across all 24 sampled frames"
+    },
+    {
+      "action": "running",
+      "seed": 901722,
+      "intendedMode": "loop from an identity-locked short-legged mid-stride keyframe",
+      "prompt": "prompts/running-h3-v02.txt",
+      "removedBinary": "videos/running-h3-v02.mp4",
+      "status": "rejected_by_user_posture_review",
+      "review": "Rejected after user review because the generated cycle reads as a hunched crouch-sprint",
+      "supersededBy": "videos/running-h3-v03.mp4"
+    },
+    {
+      "action": "running",
+      "version": "v03",
+      "seed": 901732,
+      "intendedMode": "seamless upright in-place screen-right run with the chest lifted and helmet centered above the pelvis",
+      "prompt": "prompts/running-h3-v03.txt",
+      "reference": "references/running-keyframe-v03-upright-chroma.png",
+      "output": "videos/running-h3-v03.mp4",
+      "formalPreview": "previews/runtime-clock-exact/running.gif",
+      "loopSeamContact": "previews/runtime-clock-exact/running-loop-seam-contact.png",
+      "sourceFrameCount": 124,
+      "sourceDurationMs": 5170,
+      "status": "accepted_source_video",
+      "review": "Passed the 24-point and enlarged 8-point offline review: chest remains lifted, helmet stays above the pelvis, no hunched crouch-sprint returns during support-leg changes, and the closed helmet, full plate, both gauntlets, short tail, and single complete greatsword stay stable"
+    },
+    {
+      "action": "attacking",
+      "seed": 901743,
+      "intendedMode": "v4 single low horizontal two-handed slash with no overhead wind-up",
+      "prompt": "prompts/attacking-h3-v04.txt",
+      "output": "videos/attacking-h3-v04.mp4",
+      "formalPreview": "previews/runtime-clock-exact/attacking.gif",
+      "damageContact": "previews/runtime-clock-exact/attacking-damage-contact-frame25.png",
+      "status": "accepted_source_video",
+      "review": "One low two-handed slash and recovery; the full sword stays inside the frame, with connected motion-blurred blade and stable plate identity"
+    },
+    {
+      "action": "dying",
+      "seed": 901734,
+      "intendedMode": "v3 one-way collapse from a 72 percent scale no-visible-tail guard reference, ending in a still final pose",
+      "prompt": "prompts/dying-h3-v03.txt",
+      "output": "videos/dying-h3-v03.mp4",
+      "formalPreview": "previews/runtime-clock-exact/dying.gif",
+      "status": "accepted_source_video",
+      "review": "Continuous irreversible collapse, stable prone ending, full sword in frame, complete plate, and only a short tail segment visible after the fall"
+    }
+  ],
+  "runtimeTimingContract": {
+    "status": "integrated",
+    "action": "attacking",
+    "acceptedSource": "videos/attacking-h3-v04.mp4",
+    "sourceDurationMs": 5170,
+    "targetTotalDurationMs": 500,
+    "approximateSpeedMultiplier": 10.34,
+    "additionalSpeedMultiplierFromPrevious650msClock": 1.3,
+    "runtimeFrameCount": 41,
+    "runtimeFrameRate": 82,
+    "runtimeDurationMs": 500,
+    "sourceSampling": "native H3 f0,f3,...,f120; 41 real source poses",
+    "interpolationMode": "native-source fallback; no synthetic RIFE attack frames",
+    "repairReason": "RIFE changed the connected sword/arms and its alpha-bottom alignment mistook the low blade tip for a foot, shifting synthetic middle frames by 8/18/2 px",
+    "rootStability": "locked 544x288 integrated layout, fixed source anchor 541/511, footY 228, stable armored-body bottom y227..229",
+    "blueEdgeCleanup": "Neutralize blue/cyan RGB only inside the source 4px and placed 2px silhouette bands at the same luminance; preserve alpha exactly; remaining detected blue-edge spill is zero across all 41 frames",
+    "damageFrameOneBased": 25,
+    "frameDurationsMs": [5, 5, 5, 5, 5, 5, 5, 5, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 28],
+    "timingShape": "frames 0-7 total 40ms, frames 8-23 total 160ms, damage frame 25 enters at 200ms, frames 24-40 recover over 300ms",
+    "damageDelayMs": 200,
+    "aiLockDurationMs": 500,
+    "tailHoldMs": 0,
+    "attackIntervalMs": 1850,
+    "attackIntervalSemantics": "start of one attack to start of the next attack",
+    "cooldownRemainingAfterAnimationLockMs": 1350,
+    "baseDamagePerAttack": 70,
+    "baseDpsAtConfiguredInterval": 37.83783783783784,
+    "implementationRule": "The attack animation, damage contact, sound start, recovery, and AI animation lock use the existing unified friendly-attack clock",
+    "balanceRule": "User explicitly authorized attackInterval=1850ms; preserve damage and every other unit value"
+  },
+  "runningTimingContract": {
+    "status": "integrated",
+    "action": "running",
+    "acceptedSource": "videos/running-h3-v03.mp4",
+    "fullSourceFrameCount": 124,
+    "sourceFrameRate": 24,
+    "cycleStartFrame": 41,
+    "cycleDuplicateEndpointFrame": 61,
+    "includedSourceFrames": [41, 60],
+    "sourceCycleFrameCount": 20,
+    "sourceCycleDurationMs": 833.3333333333334,
+    "runtimeFrameCount": 40,
+    "runtimeFrameRate": 48,
+    "runtimeDurationMs": 833.3333333333334,
+    "speedMultiplier": 1,
+    "loopAnalysis": "previews/running-loop-analysis-v03/same-leg-candidates.json",
+    "implementationRule": "Use one complete same-leg native H3 cycle [f41,f61), exclude the duplicate endpoint, interpolate each adjacent frame and the f60-to-f41 seam once, and preserve the source 24 fps wall-clock motion at 48 fps after 2x RIFE",
+    "balanceRule": "Preserve the entity movement speed and all other unit values"
+  },
+  "repositoryCleanup": {
+    "status": "complete",
+    "report": "cleanup-report.json",
+    "removedFileCount": 198,
+    "removedBytes": 74671960,
+    "remainingTaskBytes": 26275676,
+    "policy": "Retain approved mothers, accepted H3 source videos, prompts/provider JSON, final references, pre-RIFE source sheets, exact runtime previews, reports and rebuild scripts; remove rejected video binaries, extracted-frame caches, candidate RIFE sheets and duplicate or superseded previews",
+    "activePreviewRoot": "previews/runtime-clock-exact"
+  },
+  "runtimeIntegration": {
+    "integratedOn": "2026-09-01",
+    "assetRoot": "assets/companions/hamster_champion",
+    "config": "data/hamster-champion-config.json",
+    "entityFootAnchor": "src/entities/hamster-champion.js#getAnimationFootY",
+    "pipeline": "approved H3 video -> BiRefNet-general -> fixed action transform and effective-body normalization -> RIFE v4.6 2x by default, with native H3 source-frame fallback when RIFE changes equipment topology -> per-action compact sheet",
+    "actions": {
+      "idle": {"frames": 24, "frameSize": [416, 224], "fps": 12, "footY": 204, "blueEdgeCleanup": "source 4px + placed 2px same-luminance RGB neutralization; alpha unchanged; source keys remaining 0"},
+      "walk": {"frames": 40, "frameSize": [416, 224], "fps": 48, "footY": 200, "blueEdgeCleanup": "source full-chroma despill + 4px edge and placed 2px same-luminance RGB neutralization; alpha unchanged; source keys remaining 0"},
+      "attack": {"frames": 41, "frameSize": [544, 288], "fps": 82, "durationMs": 500, "damageAtMs": 200, "tailHoldMs": 0, "timing": "non-uniform frameDurations", "footY": 228, "sourceFrames": "H3 f0..f120 step 3", "interpolation": "native-source", "blueEdgeCleanup": "source 4px + placed 2px RGB-only neutralization; alpha unchanged; remaining 0"},
+      "dying": {"frames": 25, "frameSize": [608, 256], "fps": 15, "footY": 199, "blueEdgeCleanup": "source 4px + placed 2px same-luminance RGB neutralization; alpha unchanged; source keys remaining 0"}
+    },
+    "decodedSpriteMiB": 62.09765625,
+    "crowdBudgetMiB": 64,
+    "withinCrowdBudget": true,
+    "crowdTargetMiB": 32,
+    "aboveCrowdTarget": true,
+    "budgetReason": "Retain the approved source-scale plate and greatsword silhouette with per-action tight cells; no global budget increase and no duplicate warrior texture keys",
+    "exactRuntimePreviews": {
+      "idle": "previews/runtime-clock-exact/idle.gif",
+      "running": "previews/runtime-clock-exact/running.gif",
+      "attacking": "previews/runtime-clock-exact/attacking.gif",
+      "dying": "previews/runtime-clock-exact/dying.gif",
+      "damageContact": "previews/runtime-clock-exact/attacking-damage-contact-frame25.png"
+    },
+    "attackGifContract": {
+      "runtimeFrameCount": 41,
+      "previewFrameCount": 25,
+      "durationMs": 500,
+      "frameDurationsMs": [20, 20],
+      "loopMode": "once",
+      "reason": "25 temporally sampled preview frames keep every GIF delay at 20ms, avoiding Chromium's 10ms-to-100ms clamp"
+    },
+    "balanceChangesInThisSynchronization": true,
+    "balanceChangeSummary": "Change only attackInterval from the published 2300ms baseline to the user-authorized 1850ms start-to-start interval; preserve every other published gameplay value",
+    "preservedCurrentValues": ["baseMaxHp", "stats", "movement speed", "attackDamage", "ranges", "collision", "sounds"]
+  },
+  "postGenerationGate": {
+    "reviewedOn": "2026-09-01",
+    "result": "Running v03 remains the accepted native same-leg [f41,f61) loop. Attack v04 uses 41 native H3 f0..f120 step-3 frames on the locked runtime layout. All four runtime actions apply narrow-band same-luminance blue-edge cleanup with alpha unchanged. The unified attack animation is 500ms with a non-uniform clock, damage contact is frame 25 at 200ms, there is no extra tail hold, and the user-authorized attack interval is 1850ms start-to-start; every other published gameplay value remains unchanged.",
+    "required": [
+      "Inspect each raw 24-point contact sheet before background removal or RIFE",
+      "Confirm right-facing chest and pelvis direction across the full running gait",
+      "Confirm closed helmet, plate topology, two hands and one connected greatsword remain stable",
+      "Reject direction drift, open visor, weapon duplication, limb topology errors, camera zoom, or frame cropping"
+    ],
+    "notRun": ["game, browser, build, or EXE testing"]
+  }
+}

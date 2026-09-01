@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T05:47:47.569798+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\attacking-h3-v03.mp4",
+    "bytes": 577001,
+    "sha256": "e309a374ab0b47d4a215ed58403fab0e6c85732bf869db00d3912c899f238524"
+  },
+  "promptId": "2b822906-a6e8-4130-a294-695a5a3b61dd",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901733,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The first frame is the exact identity, equipment, compact squat proportions, deliberately small on-screen scale, camera, and guarded opening pose of one hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, rigid torso plate, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one continuous greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view with unusually generous empty space on every side for the moving greatsword. The champion faces screen right in the same slightly elevated, side-dominant three-quarter orientation and performs one complete heavy two-handed sword attack in place. From 0.0 to 1.0 seconds both hands draw the sword back while keeping the entire blade below the top margin. From 1.0 to 3.8 seconds the hips and shoulders drive one forceful diagonal cut toward screen right with a small planted forward step and one clear peak contact pose; the blade follows one continuous rigid arc entirely inside the canvas. From 3.8 to 5.17 seconds momentum decelerates and the champion recovers to the guarded opening stance without a second strike.\n\nKeep the deliberately small screen scale constant. The complete helmet, body, both armored feet, short tail, crossguard, and sword tip must remain visible with a broad blue margin at the top, left, right, and bottom in every frame. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No zoom-in, no upward camera shift, no sword crossing any frame edge, no spin, repeated combo, open visor, visible face, bare leg, bare foot, missing greave, long rat tail, dropped sword, extra weapon, duplicated limb, camera motion, text, or scenery.",
+  "effectivePrompt": "The first frame is the exact identity, equipment, compact squat proportions, deliberately small on-screen scale, camera, and guarded opening pose of one hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, rigid torso plate, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one continuous greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view with unusually generous empty space on every side for the moving greatsword. The champion faces screen right in the same slightly elevated, side-dominant three-quarter orientation and performs one complete heavy two-handed sword attack in place. From 0.0 to 1.0 seconds both hands draw the sword back while keeping the entire blade below the top margin. From 1.0 to 3.8 seconds the hips and shoulders drive one forceful diagonal cut toward screen right with a small planted forward step and one clear peak contact pose; the blade follows one continuous rigid arc entirely inside the canvas. From 3.8 to 5.17 seconds momentum decelerates and the champion recovers to the guarded opening stance without a second strike.\n\nKeep the deliberately small screen scale constant. The complete helmet, body, both armored feet, short tail, crossguard, and sword tip must remain visible with a broad blue margin at the top, left, right, and bottom in every frame. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No zoom-in, no upward camera shift, no sword crossing any frame edge, no spin, repeated combo, open visor, visible face, bare leg, bare foot, missing greave, long rat tail, dropped sword, extra weapon, duplicated limb, camera motion, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The first frame is the exact identity, equipment, compact squat proportions, deliberately small on-screen scale, camera, and guarded opening pose of one hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, rigid torso plate, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one continuous greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view with unusually generous empty space on every side for the moving greatsword. The champion faces screen right in the same slightly elevated, side-dominant three-quarter orientation and performs one complete heavy two-handed sword attack in place. From 0.0 to 1.0 seconds both hands draw the sword back while keeping the entire blade below the top margin. From 1.0 to 3.8 seconds the hips and shoulders drive one forceful diagonal cut toward screen right with a small planted forward step and one clear peak contact pose; the blade follows one continuous rigid arc entirely inside the canvas. From 3.8 to 5.17 seconds momentum decelerates and the champion recovers to the guarded opening stance without a second strike.\n\nKeep the deliberately small screen scale constant. The complete helmet, body, both armored feet, short tail, crossguard, and sword tip must remain visible with a broad blue margin at the top, left, right, and bottom in every frame. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No zoom-in, no upward camera shift, no sword crossing any frame edge, no spin, repeated combo, open visor, visible face, bare leg, bare foot, missing greave, long rat tail, dropped sword, extra weapon, duplicated limb, camera motion, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "f8ede17becfb0083f18ad4163b6d92c53c5d593024e908be57bc1ac781c4368f",
+  "effectivePromptSha256": "23af1735ca88cf62fa6b0f8d448c135004092aff7e491931774d9d40d79a3d5d",
+  "finalPromptSha256": "d7f24128e906aca0e983b931ef4a90fe72e053a8cd0da4c872b3e419b4d037b8",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\prompts\\attacking-h3-v03.txt",
+      "bytes": 1884,
+      "sha256": "d4af6f1fc113683fc034d3a4b34d2f0949eeecfd557d3835da4a18e06f46095e"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\attacking-keyframe-v03-chroma.png",
+      "bytes": 279562,
+      "sha256": "75c48ec0e4f2ddfc5c56f48b5b40ce93f8f76ef3b803c6c8e2f9cb29fd3b0a8b"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\attacking-h3-v03_contact.png",
+    "bytes": 278801,
+    "sha256": "cdba13e7bf74b286388d7cb1d7434218f526e2e651687e9e3b434345ff94c323"
+  },
+  "elapsedSeconds": 445.866
+}

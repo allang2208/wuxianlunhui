@@ -1,0 +1,26 @@
+{
+  "source": "assets/companions/hamster_champion/idle.png",
+  "sourceFrame": 0,
+  "sourceFrameSize": [
+    416,
+    224
+  ],
+  "sourceAlphaBbox": [
+    141,
+    12,
+    393,
+    204
+  ],
+  "cropWithPadding": [
+    125,
+    0,
+    409,
+    220
+  ],
+  "output": "assets/ui/unit-icons/hamster-champion.png",
+  "outputSize": [
+    512,
+    512
+  ],
+  "identity": "approved refined full plate and closed-helmet champion"
+}

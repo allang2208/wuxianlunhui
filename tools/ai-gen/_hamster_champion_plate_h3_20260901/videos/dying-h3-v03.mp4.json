@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T06:17:16.295306+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\dying-h3-v03.mp4",
+    "bytes": 547660,
+    "sha256": "7fee18ebc04a658383b5b89da33be52efe87a21850469b910e0c451edbe31479"
+  },
+  "promptId": "d392cb20-28ca-451c-ab58-eeaa7c665c99",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901734,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The first frame is the exact hamster champion identity, equipment, compact proportions, deliberately small screen scale, and guarded pose. Preserve the fully enclosed close helmet, complete refined plate armor, both metal sabatons, two gauntlets, and one continuous two-handed greatsword. The tiny hamster tail is fully tucked behind the rear armor and remains completely invisible for the entire video.\n\nPerform one continuous irreversible death collapse while facing screen right. From 0.0 to 1.0 seconds the body recoils and both knees weaken as the sword lowers. From 1.0 to 3.8 seconds the champion sinks to one knee and falls onto the ground, with the sword remaining connected to the hands or settling directly beside the body. From 3.8 to 5.17 seconds the body reaches a clear fully prone pose and remains completely still without rising.\n\nKeep the small screen scale constant and keep the complete helmet, body, both armored feet, and entire sword inside broad blue margins after the body becomes horizontal. Static camera, uniform chroma blue background #2060E0, flat lighting, no ground and no shadow. No visible tail or rear appendage, no recovery, open visor, bare leg, bare foot, missing greave, dismemberment, blood, extra weapon, duplicated limb, zoom, crop, text, or scenery.",
+  "effectivePrompt": "The first frame is the exact hamster champion identity, equipment, compact proportions, deliberately small screen scale, and guarded pose. Preserve the fully enclosed close helmet, complete refined plate armor, both metal sabatons, two gauntlets, and one continuous two-handed greatsword. The tiny hamster tail is fully tucked behind the rear armor and remains completely invisible for the entire video.\n\nPerform one continuous irreversible death collapse while facing screen right. From 0.0 to 1.0 seconds the body recoils and both knees weaken as the sword lowers. From 1.0 to 3.8 seconds the champion sinks to one knee and falls onto the ground, with the sword remaining connected to the hands or settling directly beside the body. From 3.8 to 5.17 seconds the body reaches a clear fully prone pose and remains completely still without rising.\n\nKeep the small screen scale constant and keep the complete helmet, body, both armored feet, and entire sword inside broad blue margins after the body becomes horizontal. Static camera, uniform chroma blue background #2060E0, flat lighting, no ground and no shadow. No visible tail or rear appendage, no recovery, open visor, bare leg, bare foot, missing greave, dismemberment, blood, extra weapon, duplicated limb, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The first frame is the exact hamster champion identity, equipment, compact proportions, deliberately small screen scale, and guarded pose. Preserve the fully enclosed close helmet, complete refined plate armor, both metal sabatons, two gauntlets, and one continuous two-handed greatsword. The tiny hamster tail is fully tucked behind the rear armor and remains completely invisible for the entire video.\n\nPerform one continuous irreversible death collapse while facing screen right. From 0.0 to 1.0 seconds the body recoils and both knees weaken as the sword lowers. From 1.0 to 3.8 seconds the champion sinks to one knee and falls onto the ground, with the sword remaining connected to the hands or settling directly beside the body. From 3.8 to 5.17 seconds the body reaches a clear fully prone pose and remains completely still without rising.\n\nKeep the small screen scale constant and keep the complete helmet, body, both armored feet, and entire sword inside broad blue margins after the body becomes horizontal. Static camera, uniform chroma blue background #2060E0, flat lighting, no ground and no shadow. No visible tail or rear appendage, no recovery, open visor, bare leg, bare foot, missing greave, dismemberment, blood, extra weapon, duplicated limb, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "f755a865dff1ed0046539a8b4b33d99f87c898088f070ae839f4b0825d3c6fd6",
+  "effectivePromptSha256": "3e37de5b849eeef181a370a0c1b181d3f6e14c2f5838d5aa63d8c85231c358ee",
+  "finalPromptSha256": "85b8ed550c4703386cde96bb462b2a726c965ba46958a9069398b74b743d1818",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\prompts\\dying-h3-v03.txt",
+      "bytes": 1293,
+      "sha256": "d0a3472fda82649b02cfba119286ba395a187397718478b24e166ae2bd9137ea"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\dying-keyframe-v03-chroma.png",
+      "bytes": 275858,
+      "sha256": "96635cf0e7fb2d88cffde1a78b856f974e37cc53413443e9582d07ba14f31199"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\dying-h3-v03_contact.png",
+    "bytes": 265627,
+    "sha256": "b5f1b084ff153ce035e6280584b99c490ae9ec29d834cdd59e671ca218f3b429"
+  },
+  "elapsedSeconds": 430.872
+}

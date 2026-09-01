@@ -113,7 +113,7 @@
     "defaultUnitType": "warrior",
     "unitTypes": [
       { "key": "warrior", "name": "仓鼠战士", "roleLabel": "双手剑士 · 输出", "spawnFoodCost": 125 },
-      { "key": "champion", "name": "仓鼠冠军", "roleLabel": "军团冠军 · 重装输出", "spawnIntervalMs": 48000, "spawnFoodCost": 190 },
+      { "key": "champion", "name": "仓鼠冠军", "roleLabel": "板甲冠军 · 重装输出", "spawnIntervalMs": 48000, "spawnFoodCost": 190 },
       { "key": "special_forces", "name": "仓鼠特战", "roleLabel": "泵动霰弹枪 · 近距爆发", "spawnIntervalMs": 65000, "spawnFoodCost": 260 },
       { "key": "guard", "name": "仓鼠盾卫", "roleLabel": "防御", "spawnFoodCost": 150 },
       { "key": "phalanx", "name": "仓鼠方阵", "roleLabel": "军团盾阵 · 重装防御", "spawnIntervalMs": 50000, "spawnFoodCost": 210 },
@@ -125,7 +125,7 @@
         { "slot": "shield", "role": "盾卫", "unitKey": "guard", "unitName": "仓鼠盾卫", "profile": "低伤害、高耐久、高抗性" }
       ] },
       { "id": "hamster_barracks_level_2", "level": 2, "name": "军营二级编制", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "hamster_barracks_lv2", "assetPath": "assets/terrain/hamster_barracks_lv2.png", "displayW": 290, "displayH": 306, "footOffsetY": 151 }, "lines": [
-        { "slot": "greatsword", "role": "双手剑士", "fromUnitName": "仓鼠战士", "unitKey": "champion", "unitName": "仓鼠冠军", "profile": "罗马军团重甲与苏格兰高地双手剑；中高耐久、高单次伤害、较慢攻速" },
+        { "slot": "greatsword", "role": "双手剑士", "fromUnitName": "仓鼠战士", "unitKey": "champion", "unitName": "仓鼠冠军", "profile": "晚期中世纪精良全身板甲、封闭式头盔与长柄双手剑；中高耐久、高单次伤害、较慢攻速" },
         { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠盾卫", "unitKey": "phalanx", "unitName": "仓鼠方阵", "profile": "军团大盾与双刃斧重装步兵；高耐久、稳步推进、低机动" }
       ] },
       { "id": "hamster_barracks_level_3", "level": 3, "name": "现代步兵军营", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "hamster_barracks_lv3", "assetPath": "assets/terrain/hamster_barracks_lv3.png", "displayW": 300, "displayH": 270, "footOffsetY": 133 }, "lines": [

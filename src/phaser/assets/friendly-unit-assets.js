@@ -115,6 +115,14 @@ export function queueFriendlyUnitAssets(scene, ids) {
 }
 
 export function registerFriendlyUnitAnimations(scene, ids) {
+    const applyFrameDurations = (frames, durations, sourceStart = 0) => {
+        if (!Array.isArray(durations) || durations.length === 0) return frames;
+        frames.forEach((frame, index) => {
+            const duration = durations[sourceStart + index];
+            if (Number.isFinite(duration) && duration > 0) frame.duration = duration;
+        });
+        return frames;
+    };
     for (const id of getKnownFriendlyUnitIds(ids)) {
         const config = CONFIG_BY_ID.get(id);
         for (const [animKey, def] of Object.entries(config.animations || {})) {
@@ -126,13 +134,21 @@ export function registerFriendlyUnitAnimations(scene, ids) {
                 const [loopStart, loopEnd] = def.loopFrames;
                 scene.anims.create({
                     key: `${textureKey}_start`,
-                    frames: scene.anims.generateFrameNumbers(textureKey, { start: startStart, end: startEnd }),
+                    frames: applyFrameDurations(
+                        scene.anims.generateFrameNumbers(textureKey, { start: startStart, end: startEnd }),
+                        def.frameDurations,
+                        startStart,
+                    ),
                     frameRate: def.startFrameRate || def.frameRate || 12,
                     repeat: def.startRepeat !== undefined ? def.startRepeat : 0,
                 });
                 scene.anims.create({
                     key: textureKey,
-                    frames: scene.anims.generateFrameNumbers(textureKey, { start: loopStart, end: loopEnd }),
+                    frames: applyFrameDurations(
+                        scene.anims.generateFrameNumbers(textureKey, { start: loopStart, end: loopEnd }),
+                        def.frameDurations,
+                        loopStart,
+                    ),
                     frameRate: def.frameRate || 12,
                     repeat: def.repeat !== undefined ? def.repeat : -1,
                 });
@@ -140,7 +156,11 @@ export function registerFriendlyUnitAnimations(scene, ids) {
                 const [start, end] = def.frames || [0, Math.max(0, (def.frameCount || 1) - 1)];
                 scene.anims.create({
                     key: textureKey,
-                    frames: scene.anims.generateFrameNumbers(textureKey, { start, end }),
+                    frames: applyFrameDurations(
+                        scene.anims.generateFrameNumbers(textureKey, { start, end }),
+                        def.frameDurations,
+                        start,
+                    ),
                     frameRate: def.frameRate || 12,
                     repeat: def.repeat !== undefined ? def.repeat : -1,
                 });

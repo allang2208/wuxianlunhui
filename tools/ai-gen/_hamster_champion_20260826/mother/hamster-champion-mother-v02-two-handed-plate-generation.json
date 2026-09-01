@@ -1,0 +1,20 @@
+{
+  "provider": "Codex built-in ImageGen",
+  "generatedAt": "2026-09-01",
+  "mode": "precise-object-edit",
+  "status": "candidate",
+  "output": "mother/hamster-champion-mother-v02-two-handed-plate.png",
+  "prompt": "mother/hamster-champion-mother-v02-two-handed-plate-prompt.txt",
+  "references": [
+    "mother/hamster-champion-mother-v01.png"
+  ],
+  "referenceRoles": [
+    "edit target and identity, pose, camera, and composition anchor"
+  ],
+  "changes": [
+    "replace Roman segmented armor with refined late-medieval full plate",
+    "retain one correctly gripped two-handed greatsword",
+    "preserve hamster identity, right-facing three-quarter view, full-body framing, and white background"
+  ],
+  "integration": "not integrated; candidate mother image only"
+}

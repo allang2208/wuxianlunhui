@@ -1,0 +1,20 @@
+{
+  "provider": "Codex built-in ImageGen",
+  "generatedAt": "2026-09-01",
+  "mode": "precise-object-edit",
+  "status": "candidate",
+  "output": "mother/hamster-champion-mother-v03-closed-helmet.png",
+  "prompt": "mother/hamster-champion-mother-v03-closed-helmet-prompt.txt",
+  "references": [
+    "mother/hamster-champion-mother-v02-two-handed-plate.png"
+  ],
+  "referenceRoles": [
+    "edit target; preserve sword, armor, pose, camera, and composition"
+  ],
+  "changes": [
+    "replace open helmet with a fully enclosed late-medieval close helm",
+    "add closed visor, narrow eye slit, breathing perforations, neck seal, hinges, and locking hardware",
+    "keep the two-handed greatsword and all armor below the neck unchanged"
+  ],
+  "integration": "not integrated; candidate mother image only"
+}

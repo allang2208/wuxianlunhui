@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T05:21:41.577971+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\idle-h3-v02.mp4",
+    "bytes": 867961,
+    "sha256": "44e7644bdd19d154d0965197465e776286fe102c943b77f6cc3c6e43c8aa4430"
+  },
+  "promptId": "bd100ffe-e066-4231-964a-3b17cfca1ba7",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901721,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The first frame is the exact identity, equipment, proportions, camera, scale, and opening pose of one compact hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, articulated shoulder and arm plate, enclosed gauntlets, breastplate and faulds, both poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one long two-handed greatsword held by both gauntlets.\n\nWide full-body game-sprite view. The champion remains planted in place facing screen right in the same slightly elevated, side-dominant three-quarter orientation. Perform only restrained armored breathing, a small weight transfer, and a minor grip adjustment. The helmet visor, chest, pelvis, knees, and armored toes remain broadly directed right. Both feet stay planted, the root stays fixed, and both hands continuously grip the same hilt. Return exactly to the supplied opening pose at the end for a seamless loop.\n\nKeep the complete helmet, body, feet, short tail, and full sword tip inside the frame with generous margins and constant scale. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No walking, attack, open visor, visible face, bare leg, bare foot, leather boot replacing plate, long rat tail, extra tail, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery.",
+  "effectivePrompt": "The first frame is the exact identity, equipment, proportions, camera, scale, and opening pose of one compact hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, articulated shoulder and arm plate, enclosed gauntlets, breastplate and faulds, both poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one long two-handed greatsword held by both gauntlets.\n\nWide full-body game-sprite view. The champion remains planted in place facing screen right in the same slightly elevated, side-dominant three-quarter orientation. Perform only restrained armored breathing, a small weight transfer, and a minor grip adjustment. The helmet visor, chest, pelvis, knees, and armored toes remain broadly directed right. Both feet stay planted, the root stays fixed, and both hands continuously grip the same hilt. Return exactly to the supplied opening pose at the end for a seamless loop.\n\nKeep the complete helmet, body, feet, short tail, and full sword tip inside the frame with generous margins and constant scale. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No walking, attack, open visor, visible face, bare leg, bare foot, leather boot replacing plate, long rat tail, extra tail, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The first frame is the exact identity, equipment, proportions, camera, scale, and opening pose of one compact hamster champion. Preserve the refined late-medieval full plate exactly: fully enclosed close helmet with narrow dark eye slit and breathing holes, articulated shoulder and arm plate, enclosed gauntlets, breastplate and faulds, both poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one long two-handed greatsword held by both gauntlets.\n\nWide full-body game-sprite view. The champion remains planted in place facing screen right in the same slightly elevated, side-dominant three-quarter orientation. Perform only restrained armored breathing, a small weight transfer, and a minor grip adjustment. The helmet visor, chest, pelvis, knees, and armored toes remain broadly directed right. Both feet stay planted, the root stays fixed, and both hands continuously grip the same hilt. Return exactly to the supplied opening pose at the end for a seamless loop.\n\nKeep the complete helmet, body, feet, short tail, and full sword tip inside the frame with generous margins and constant scale. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No walking, attack, open visor, visible face, bare leg, bare foot, leather boot replacing plate, long rat tail, extra tail, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "deafb8a32fbd28b1d91ff59a5a9662d5ad34a68b4af4423bac1f5d451a1a52a5",
+  "effectivePromptSha256": "b9fb48bdfa102c412bb7e4ba5ff6fa29601ee274e4b46895c8f10e1d20e1010c",
+  "finalPromptSha256": "1f79ae09ccf32844b87613b3c74b305c484288e3f8e6bb0159cf778c3be99110",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\prompts\\idle-h3-v02.txt",
+      "bytes": 1490,
+      "sha256": "d20fd997c209ee8e750af43b49d57b4a832e7e06ea9ab4ea428db0175f72ac01"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\idle-keyframe-v02-chroma.png",
+      "bytes": 491486,
+      "sha256": "ce1d723dccc68346714717aad8113e63b056625ad560113d3228a455f6519f68"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\idle-keyframe-v02-chroma.png",
+      "bytes": 491486,
+      "sha256": "ce1d723dccc68346714717aad8113e63b056625ad560113d3228a455f6519f68"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\idle-h3-v02_contact.png",
+    "bytes": 480757,
+    "sha256": "40ffbc7ccb0cd09266b566beae267142dee70dd2162ca8142b2099a189963028"
+  },
+  "elapsedSeconds": 455.834
+}

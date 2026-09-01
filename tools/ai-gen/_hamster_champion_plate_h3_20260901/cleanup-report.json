@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "task": "hamster-champion-plate-h3-20260901",
+  "cleanedOn": "2026-09-01",
+  "authorization": "User requested final cleanup before Git publication",
+  "before": {
+    "fileCount": 277,
+    "bytes": 100945299
+  },
+  "removed": {
+    "fileCount": 198,
+    "bytes": 74671960,
+    "categories": [
+      "Python bytecode cache (__pycache__)",
+      "137 rebuildable per-frame runtime cutouts",
+      "running RIFE comparison candidates and their duplicate previews",
+      "superseded H3 contact sheets and source-speed preview GIFs",
+      "superseded runtime-clock and runtime-source previews",
+      "rejected synthetic RIFE attack previews",
+      "rejected H3 source-video binaries"
+    ],
+    "rejectedVideoBinaries": [
+      {
+        "path": "videos/idle-h3-v01.mp4",
+        "bytes": 456425,
+        "reasonKey": "generation.v1Rejected"
+      },
+      {
+        "path": "videos/running-h3-v02.mp4",
+        "bytes": 960124,
+        "reasonKey": "generation.runningV2Rejected"
+      },
+      {
+        "path": "videos/attacking-h3-v02.mp4",
+        "bytes": 792018,
+        "reasonKey": "generation.attackingV2Rejected"
+      },
+      {
+        "path": "videos/attacking-h3-v03.mp4",
+        "bytes": 577001,
+        "reasonKey": "generation.attackingV3Rejected"
+      },
+      {
+        "path": "videos/dying-h3-v02.mp4",
+        "bytes": 412646,
+        "reasonKey": "generation.dyingV2Rejected"
+      }
+    ]
+  },
+  "retained": {
+    "acceptedVideos": [
+      "videos/idle-h3-v02.mp4",
+      "videos/running-h3-v03.mp4",
+      "videos/attacking-h3-v04.mp4",
+      "videos/dying-h3-v03.mp4"
+    ],
+    "formalPreviewRoot": "previews/runtime-clock-exact",
+    "preRifeSourceRoot": "runtime-source-sheets-pre-rife",
+    "provenance": "All prompts, provider JSON/task metadata, accepted references, reports and rebuild scripts remain in the task directory"
+  },
+  "after": {
+    "fileCount": 80,
+    "bytes": 26275676,
+    "note": "Includes this cleanup report and the version-10 manifest update"
+  }
+}

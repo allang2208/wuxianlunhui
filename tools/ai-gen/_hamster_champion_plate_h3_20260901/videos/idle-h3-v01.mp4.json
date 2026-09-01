@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T05:06:06.287595+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\idle-h3-v01.mp4",
+    "bytes": 456425,
+    "sha256": "38768b0e35e51de0c7feae60cb9e62cb653b32fd318c694306984f23875ee84c"
+  },
+  "promptId": "75c8b42c-014b-4d9c-b785-2c425e5ec725",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901711,
+  "mode": "ref2va",
+  "actionMode": "free",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> defines the exact identity and rendering style of one hamster champion: tan-and-white fur, compact anthropomorphic proportions, refined darkened late-medieval full plate, a fully enclosed close helm with one narrow eye slit and breathing perforations, and one long two-handed greatsword. <Video 1> supplies only the subtle idle timing and body mechanics; preserve the identity and equipment from Picture 1.\n\nWide full-body game-sprite view. The champion stands in place facing screen right in the same slightly elevated, side-dominant three-quarter orientation. Both armored hands continuously grip the same sword, held diagonally forward in a guarded ready position. From 0.0 to 1.0 seconds the planted stance settles; from 1.0 to 3.8 seconds there is restrained armored breathing, a small weight transfer and a minor grip adjustment; from 3.8 to 5.17 seconds the champion returns close to the opening ready pose for later loop extraction. Both feet remain planted and the root stays fixed.\n\nKeep the full helmet, body, feet, tail and complete sword tip inside the frame with generous margins and constant scale. Static orthographic camera, even shadowless studio lighting, flat uniform chroma blue background #2060E0. Preserve the closed visor, connected plate segments, two gauntlets on one hilt and a single rigid blade. No walking, attack, open visor, extra weapon, ground plane, cast shadow, text or camera motion.",
+  "effectivePrompt": "<Picture 1> defines the exact identity and rendering style of one hamster champion: tan-and-white fur, compact anthropomorphic proportions, refined darkened late-medieval full plate, a fully enclosed close helm with one narrow eye slit and breathing perforations, and one long two-handed greatsword. <Video 1> supplies only the subtle idle timing and body mechanics; preserve the identity and equipment from Picture 1.\n\nWide full-body game-sprite view. The champion stands in place facing screen right in the same slightly elevated, side-dominant three-quarter orientation. Both armored hands continuously grip the same sword, held diagonally forward in a guarded ready position. From 0.0 to 1.0 seconds the planted stance settles; from 1.0 to 3.8 seconds there is restrained armored breathing, a small weight transfer and a minor grip adjustment; from 3.8 to 5.17 seconds the champion returns close to the opening ready pose for later loop extraction. Both feet remain planted and the root stays fixed.\n\nKeep the full helmet, body, feet, tail and complete sword tip inside the frame with generous margins and constant scale. Static orthographic camera, even shadowless studio lighting, flat uniform chroma blue background #2060E0. Preserve the closed visor, connected plate segments, two gauntlets on one hilt and a single rigid blade. No walking, attack, open visor, extra weapon, ground plane, cast shadow, text or camera motion.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] <Picture 1> defines the exact identity and rendering style of one hamster champion: tan-and-white fur, compact anthropomorphic proportions, refined darkened late-medieval full plate, a fully enclosed close helm with one narrow eye slit and breathing perforations, and one long two-handed greatsword. <Video 1> supplies only the subtle idle timing and body mechanics; preserve the identity and equipment from Picture 1.\n\nWide full-body game-sprite view. The champion stands in place facing screen right in the same slightly elevated, side-dominant three-quarter orientation. Both armored hands continuously grip the same sword, held diagonally forward in a guarded ready position. From 0.0 to 1.0 seconds the planted stance settles; from 1.0 to 3.8 seconds there is restrained armored breathing, a small weight transfer and a minor grip adjustment; from 3.8 to 5.17 seconds the champion returns close to the opening ready pose for later loop extraction. Both feet remain planted and the root stays fixed.\n\nKeep the full helmet, body, feet, tail and complete sword tip inside the frame with generous margins and constant scale. Static orthographic camera, even shadowless studio lighting, flat uniform chroma blue background #2060E0. Preserve the closed visor, connected plate segments, two gauntlets on one hilt and a single rigid blade. No walking, attack, open visor, extra weapon, ground plane, cast shadow, text or camera motion. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Follow the authored temporal order exactly and keep every transition visually readable.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "2621054545e40c16d17d5074c69faacfc1d8ac0f9276a808388064206caed339",
+  "effectivePromptSha256": "2621054545e40c16d17d5074c69faacfc1d8ac0f9276a808388064206caed339",
+  "finalPromptSha256": "c5f188eb56cb6b36481142bae57546178bc2a8f59c5b6a3585db7d44a92483b5",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\prompts\\idle-h3-v01.txt",
+      "bytes": 1433,
+      "sha256": "37a65add41269aabfff79ccf716b29b3d15aca954fc76c565deca7def0ae707b"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_20260826\\mother\\hamster-champion-mother-v03-closed-helmet.png",
+        "bytes": 1552610,
+        "sha256": "8dc27f92fdf3f617032cf56307400f655c78e6be6177fd1f902e0ff629692a2e"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_20260826\\videos\\idle-doubao.mp4",
+        "bytes": 615551,
+        "sha256": "08565b47780cd85ecb6de7d7e2d9e1dfb2dcfca19dbffa37685deaa381da61c4"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\idle-h3-v01_contact.png",
+    "bytes": 509750,
+    "sha256": "c1e204a1f6124bea4b475e53c6fe052fad4a8302afec58d51ccbc1cd47ad9d05"
+  },
+  "elapsedSeconds": 696.084
+}

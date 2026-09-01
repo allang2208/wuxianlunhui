@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "createdOn": "2026-09-01",
+  "generator": "OpenAI ImageGen edit",
+  "source": "../../_hamster_champion_20260826/mother/hamster-champion-mother-v03-closed-helmet.png",
+  "workspaceOutput": "running-keyframe-v02.png",
+  "preservedOriginal": "C:/Users/allan/.codex/generated_images/01a05b12-d41c-77e0-a5fb-54751d2e4171/exec-e4272b91-8455-4bc5-b39c-7cdb351a8e3c.png",
+  "sha256": "FAC66FA132FB3A646EEAB80D4B3513921589D059067952F5346418387E244F88",
+  "review": {
+    "status": "accepted_as_h3_running_keyframe",
+    "camera": "slightly elevated side-dominant three-quarter view",
+    "direction": "screen-right with screen-X stride",
+    "identityLocks": [
+      "squat compact source proportions",
+      "fully enclosed close helmet",
+      "full greaves and closed sabatons",
+      "one short hamster tail",
+      "two hands on one complete greatsword"
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T05:29:52.312790+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\running-h3-v02.mp4",
+    "bytes": 960124,
+    "sha256": "2af451ed401498919684a7cc0ec0c475b482273ea6e96ad96b728171242950f3"
+  },
+  "promptId": "54f312a3-6379-4c87-a45b-dce1288ae653",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901722,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The first frame is the exact identity, equipment, compact squat proportions, camera, scale, and one running phase of the hamster champion. Preserve the refined full plate exactly, especially the fully enclosed close helmet, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one long greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view. Continue a brisk short-legged running-in-place cycle toward screen right from the supplied mid-stride pose. The helmet visor, chest plate, pelvis, knees, and armored toes remain directed broadly right while the legs alternate along the horizontal screen-X axis with shallow depth. Keep the body compact and low; this is a stocky hamster bound, never a tall human sprint. Both hands keep the same two-handed grip and carry the single sword diagonally forward without striking. The root remains centered, the scale remains constant, and the final frame returns exactly to the supplied running phase for a seamless loop.\n\nKeep the complete helmet, body, both armored feet, short tail, and full sword inside the frame with generous margins. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No turn toward camera, attack, humanized tall anatomy, long limbs, open visor, bare leg, bare foot, leather boot replacing plate, long rat tail, extra tail, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery.",
+  "effectivePrompt": "The first frame is the exact identity, equipment, compact squat proportions, camera, scale, and one running phase of the hamster champion. Preserve the refined full plate exactly, especially the fully enclosed close helmet, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one long greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view. Continue a brisk short-legged running-in-place cycle toward screen right from the supplied mid-stride pose. The helmet visor, chest plate, pelvis, knees, and armored toes remain directed broadly right while the legs alternate along the horizontal screen-X axis with shallow depth. Keep the body compact and low; this is a stocky hamster bound, never a tall human sprint. Both hands keep the same two-handed grip and carry the single sword diagonally forward without striking. The root remains centered, the scale remains constant, and the final frame returns exactly to the supplied running phase for a seamless loop.\n\nKeep the complete helmet, body, both armored feet, short tail, and full sword inside the frame with generous margins. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No turn toward camera, attack, humanized tall anatomy, long limbs, open visor, bare leg, bare foot, leather boot replacing plate, long rat tail, extra tail, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The first frame is the exact identity, equipment, compact squat proportions, camera, scale, and one running phase of the hamster champion. Preserve the refined full plate exactly, especially the fully enclosed close helmet, both articulated poleyns, complete greaves, ankle plates, and closed metal sabatons. Preserve one tiny short hamster tail and one long greatsword held by both gauntlets on the same hilt.\n\nWide full-body game-sprite view. Continue a brisk short-legged running-in-place cycle toward screen right from the supplied mid-stride pose. The helmet visor, chest plate, pelvis, knees, and armored toes remain directed broadly right while the legs alternate along the horizontal screen-X axis with shallow depth. Keep the body compact and low; this is a stocky hamster bound, never a tall human sprint. Both hands keep the same two-handed grip and carry the single sword diagonally forward without striking. The root remains centered, the scale remains constant, and the final frame returns exactly to the supplied running phase for a seamless loop.\n\nKeep the complete helmet, body, both armored feet, short tail, and full sword inside the frame with generous margins. Static orthographic camera, even flat lighting, perfectly uniform solid chroma blue background #2060E0, no ground plane and no shadow. No turn toward camera, attack, humanized tall anatomy, long limbs, open visor, bare leg, bare foot, leather boot replacing plate, long rat tail, extra tail, extra weapon, duplicated limb, camera motion, zoom, crop, text, or scenery, isolated on a perfectly uniform solid pure blue background (#2060E0), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "0088aa5af5dc1e30a9667f6e51cc5aa44d1a3f83ec4d9086acb7c2b1b55a8727",
+  "effectivePromptSha256": "061f824f413c7d2c844f11bdb70b34ce8d3eb3bb2dd4dc4d8d65461dd47a7461",
+  "finalPromptSha256": "c788ffd3f8ca127ac51bbf975f43a51bf4dca283abd7b4bd033841d9ccdbc051",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\prompts\\running-h3-v02.txt",
+      "bytes": 1550,
+      "sha256": "a7ea6d8e6466af16439fb1ce71498121fc104aa2b913e23a4ac98e7d5091cc0f"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\running-keyframe-v02-chroma.png",
+      "bytes": 474517,
+      "sha256": "f8f00501a1b4a3ce1ee69740e35bb3d0a70e8f18ad430e277c12bf6b092f8ad7"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\references\\running-keyframe-v02-chroma.png",
+      "bytes": 474517,
+      "sha256": "f8f00501a1b4a3ce1ee69740e35bb3d0a70e8f18ad430e277c12bf6b092f8ad7"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_champion_plate_h3_20260901\\videos\\running-h3-v02_contact.png",
+    "bytes": 439266,
+    "sha256": "ba3ce7e44051f03a5013bfc455f8988de60560fde88745bad2a1bfc9ac126458"
+  },
+  "elapsedSeconds": 460.85
+}
