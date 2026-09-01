@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-01",
+  "scope": "university_standardization_icons",
+  "retained": [
+    "five selected generated raw icon sources",
+    "complete prompt summary and generation manifest",
+    "normalization script and runtime metadata",
+    "formal 256px upgrade icons, 128px mirrors and 1024px technology icon"
+  ],
+  "removed": [
+    {
+      "category": "rebuildable contact sheet",
+      "reason": "the one-off university icon preview is not a runtime asset or generation source"
+    }
+  ]
+}

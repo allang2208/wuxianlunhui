@@ -1,0 +1,6 @@
+Use case: precise-object-edit
+Asset type: corrected green-screen source for a World-122 isometric building cutout
+Input images: Image 1 is the exact green-screen lighting-corrected Interplane Research Hub candidate.
+Primary request: fix only the framing/canvas safety margin. Uniformly scale the entire existing building down by about 8 percent around its current center so the complete front/bottom foundation diamond, stair tips, left and right foundation corners, and the full roof crown all fit inside the canvas with at least 24 pixels of uninterrupted solid green margin on every side.
+Strict invariants: preserve the current building exactly: same isometric camera, geometry, proportions, floor counts, foundation shape, windows, roof devices, softened lighting, colors and textures. Do not crop any part. Do not redesign, redraw, relight, add, remove, move or reshape components. Do not extend or invent additional foundation; reveal the complete existing perimeter. Keep one perfectly flat solid chroma-key green background RGB (0,255,0), including every open hole. No checkerboard, gradient, noise, floor, exterior shadow, halo, text, watermark or extra object.
+Output: one image only, same square canvas, opaque RGB image, full building centered with safe green margin around the complete silhouette.

@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-01",
+  "kept": [
+    "interplane_research_hub_before_shadow.png",
+    "interplane_research_hub_shadow_tone_strong.png",
+    "tone-shadow.py",
+    "tone-shadow-report.json",
+    "imagegen-edit-prompt.txt",
+    "imagegen-green-background-prompt.txt",
+    "imagegen-safe-margin-prompt.txt",
+    "README.md"
+  ],
+  "removed": {
+    "imagegenIntermediates": [
+      "interplane_research_hub_shadow_softened_checker.png",
+      "interplane_research_hub_shadow_softened_raw_green.png",
+      "interplane_research_hub_shadow_softened_keyed.png",
+      "interplane_research_hub_shadow_softened_edge.png",
+      "interplane_research_hub_shadow_softened_raw_green_safe.png",
+      "interplane_research_hub_shadow_softened_safe_keyed.png",
+      "interplane_research_hub_shadow_softened_safe_edge.png",
+      "interplane_research_hub_shadow_softened_transparent.png",
+      "crop-metadata.json"
+    ],
+    "unselectedDeterministicCandidates": [
+      "interplane_research_hub_shadow_tone_light.png",
+      "interplane_research_hub_shadow_tone_medium.png"
+    ],
+    "rebuildableComparison": [
+      "shadow_tone_candidates.png"
+    ]
+  },
+  "reason": "Imagegen reference changed the approved 2:1 foundation projection and was not integrated. Keying layers and unselected tone strengths are reproducible; the alpha-locked 14 percent result is the only formal shadow-corrected source."
+}

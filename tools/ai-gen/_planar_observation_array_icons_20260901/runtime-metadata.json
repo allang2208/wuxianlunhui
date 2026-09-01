@@ -1,0 +1,112 @@
+[
+  {
+    "id": "planar_aperture_synthesis",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-f42cc420-a0cf-43e1-899f-da157e1cd35b.png",
+    "raw": "raw/planar-aperture-synthesis-raw.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/planar-aperture-synthesis.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      9,
+      6,
+      246,
+      250
+    ]
+  },
+  {
+    "id": "planar_multispectral_automation",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-442c61a9-9dbe-4607-bf35-dd4e72ffcf4e.png",
+    "raw": "raw/planar-multispectral-automation-raw.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/planar-multispectral-automation.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      6,
+      250,
+      250
+    ]
+  },
+  {
+    "id": "planar_baseline_extension",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-de6d6720-bc3b-48c0-9644-80fe3b1bd31b.png",
+    "raw": "raw/planar-baseline-extension-raw.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/planar-baseline-extension.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      7,
+      6,
+      249,
+      250
+    ]
+  },
+  {
+    "id": "planar_warning_resolution",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-0369b544-69c5-4ca8-87a7-4d903f90c389.png",
+    "raw": "raw/planar-warning-resolution-raw.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/planar-warning-resolution.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      8,
+      250,
+      248
+    ]
+  },
+  {
+    "id": "planar_observation_standardization",
+    "kind": "technology",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-fb59fc11-5797-4db8-99b4-d8e1f6bee134.png",
+    "raw": "raw/planar-observation-standardization-raw.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1199,
+      1312
+    ],
+    "runtime": "assets/ui/technology-icons/planar_observation_standardization.png",
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "alphaBBox": [
+      99,
+      12,
+      924,
+      1012
+    ]
+  }
+]

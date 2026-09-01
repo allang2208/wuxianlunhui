@@ -1,0 +1,34 @@
+{
+  "date": "2026-09-01",
+  "scope": "interplane_research_hub",
+  "retained": [
+    "approved editable V2 blend, previews and matching full/body Depth",
+    "selected 12-step structure v03 raw, prompt and generation record",
+    "selected 48-step refine v02 raw, prompt, generation record and direct Alpha source",
+    "alpha-locked final shadow source, before source, prompts, script and report",
+    "formal runtime building, thumbnail, lighting derivatives and runtime metadata",
+    "upgrade and technology icon raw sources, prompts, normalizer and metadata"
+  ],
+  "removed": [
+    {
+      "category": "rejected model",
+      "reason": "the first model was superseded by the user-approved taller V2 model with two extra floors and detailed roof machinery"
+    },
+    {
+      "category": "unselected candidates",
+      "reason": "structure v01/v02 and refine v01 were not selected"
+    },
+    {
+      "category": "reproducible candidate derivatives",
+      "reason": "keyed, cleaned, anchored, body and preview layers are rebuildable from retained raws, Depth and manifests"
+    },
+    {
+      "category": "rebuildable comparison",
+      "reason": "the shadow contact sheet is reproducible from the retained before source and tone script"
+    },
+    {
+      "category": "render log",
+      "reason": "the Blender console log is transient output and is not required to rebuild the approved model"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-09-01",
+  "styleReferences": [
+    "assets/ui/building-upgrades/planar-aperture-synthesis.png",
+    "assets/ui/technology-icons/planar_observation_standardization.png"
+  ],
+  "icons": [
+    {
+      "id": "interplane_topic_convergence",
+      "label": "课题汇流核心",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-e6f1d48c-407b-4fc0-8e90-477a91b24caa.png",
+      "raw": "raw/interplane-topic-convergence-raw.png",
+      "runtime": "assets/ui/building-upgrades/interplane-topic-convergence.png"
+    },
+    {
+      "id": "interplane_coordination_automation",
+      "label": "协调代理网络",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-8928dec6-c8f9-4b0d-9910-8e5a23311d3a.png",
+      "raw": "raw/interplane-coordination-automation-raw.png",
+      "runtime": "assets/ui/building-upgrades/interplane-coordination-automation.png"
+    },
+    {
+      "id": "interplane_archive_backbone",
+      "label": "档案总线延展",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-5f3b32f3-285f-44b7-b005-81e5be08e40c.png",
+      "raw": "raw/interplane-archive-backbone-raw.png",
+      "runtime": "assets/ui/building-upgrades/interplane-archive-backbone.png"
+    },
+    {
+      "id": "interplane_protocol_orchestration",
+      "label": "协议编排矩阵",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-7d4781ba-1368-43d7-bba3-9b990634279e.png",
+      "raw": "raw/interplane-protocol-orchestration-raw.png",
+      "runtime": "assets/ui/building-upgrades/interplane-protocol-orchestration.png"
+    },
+    {
+      "id": "interplane_hub_standardization",
+      "label": "中枢标准化",
+      "kind": "technology",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-30f732c1-799f-47f6-9e2f-5165187f5914.png",
+      "raw": "raw/interplane-hub-standardization-raw.png",
+      "runtime": "assets/ui/technology-icons/interplane_hub_standardization.png"
+    }
+  ]
+}

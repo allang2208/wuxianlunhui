@@ -1,0 +1,60 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-09-01",
+  "references": [
+    "assets/ui/building-upgrades/computing-cluster-output.png",
+    "assets/ui/technology-icons/planar_observation_science.png"
+  ],
+  "icons": [
+    {
+      "id": "planar_aperture_synthesis",
+      "label": "孔径合成阵列",
+      "shortLabel": "孔径合成",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-f42cc420-a0cf-43e1-899f-da157e1cd35b.png",
+      "raw": "raw/planar-aperture-synthesis-raw.png",
+      "runtime": "assets/ui/building-upgrades/planar-aperture-synthesis.png",
+      "background": "black"
+    },
+    {
+      "id": "planar_multispectral_automation",
+      "label": "多谱段自动观测",
+      "shortLabel": "自动观测",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-442c61a9-9dbe-4607-bf35-dd4e72ffcf4e.png",
+      "raw": "raw/planar-multispectral-automation-raw.png",
+      "runtime": "assets/ui/building-upgrades/planar-multispectral-automation.png",
+      "background": "black"
+    },
+    {
+      "id": "planar_baseline_extension",
+      "label": "阵列基线延展",
+      "shortLabel": "基线延展",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-de6d6720-bc3b-48c0-9644-80fe3b1bd31b.png",
+      "raw": "raw/planar-baseline-extension-raw.png",
+      "runtime": "assets/ui/building-upgrades/planar-baseline-extension.png",
+      "background": "black"
+    },
+    {
+      "id": "planar_warning_resolution",
+      "label": "预警解析链",
+      "shortLabel": "预警解析",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-0369b544-69c5-4ca8-87a7-4d903f90c389.png",
+      "raw": "raw/planar-warning-resolution-raw.png",
+      "runtime": "assets/ui/building-upgrades/planar-warning-resolution.png",
+      "background": "black"
+    },
+    {
+      "id": "planar_observation_standardization",
+      "label": "位面观测标准化",
+      "shortLabel": "观测标准化",
+      "kind": "technology",
+      "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-fb59fc11-5797-4db8-99b4-d8e1f6bee134.png",
+      "raw": "raw/planar-observation-standardization-raw.png",
+      "runtime": "assets/ui/technology-icons/planar_observation_standardization.png",
+      "background": "checker"
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+[
+  {
+    "id": "university_curriculum_reform",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-15ce47bc-aa5c-4f93-8599-72eacf56ce45.png",
+    "raw": "raw/university-curriculum-reform-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/university-curriculum-reform.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/university-curriculum-reform.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      7,
+      250,
+      249
+    ]
+  },
+  {
+    "id": "university_teaching_automation",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-6261638b-96ac-49c3-a4b5-07acf1b744f7.png",
+    "raw": "raw/university-teaching-automation-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/university-teaching-automation.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/university-teaching-automation.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      8,
+      250,
+      248
+    ]
+  },
+  {
+    "id": "university_interdisciplinary_network",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-693f37fe-a911-4b90-b9d4-ee7d24085f4b.png",
+    "raw": "raw/university-interdisciplinary-network-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/university-interdisciplinary-network.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/university-interdisciplinary-network.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      9,
+      250,
+      247
+    ]
+  },
+  {
+    "id": "university_peer_review",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-e9e4928a-e323-46c2-b920-6bf5dd8caed9.png",
+    "raw": "raw/university-peer-review-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/university-peer-review.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/university-peer-review.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      6,
+      250,
+      250
+    ]
+  },
+  {
+    "id": "university_standardization",
+    "kind": "technology",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-19ba5bc6-6dea-49a0-90aa-6ae45715346f.png",
+    "raw": "raw/university-standardization-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/technology-icons/university_standardization.png",
+    "runtimeLightweight": null,
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "alphaBBox": [
+      78,
+      12,
+      946,
+      1012
+    ]
+  }
+]

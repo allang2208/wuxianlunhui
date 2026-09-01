@@ -1,0 +1,19 @@
+{
+  "algorithmVersion": 1,
+  "assetId": "interplane_research_hub",
+  "sourceBlend": "tools/ai-gen/_interplane_research_hub_20260901/model_v2/interplane_research_hub_model.blend",
+  "output": "tools/ai-gen/_interplane_research_hub_20260901/model_v2/interplane_research_hub_body_depth.png",
+  "bodyDepthIncludesFoundation": false,
+  "foundationExclusionMode": "exact-authored-building-foundation-prefix",
+  "foundationObjectPrefix": "InterplaneResearchHub_Foundation",
+  "excludedObjects": [
+    "InterplaneResearchHub_Foundation_Base",
+    "InterplaneResearchHub_Foundation_CurbFrontBack_-1",
+    "InterplaneResearchHub_Foundation_CurbFrontBack_1",
+    "InterplaneResearchHub_Foundation_CurbLeftRight_-1",
+    "InterplaneResearchHub_Foundation_CurbLeftRight_1",
+    "InterplaneResearchHub_Foundation_InsetPad"
+  ],
+  "cameraName": "World122_Ortho_Camera_30deg",
+  "generator": "tools/ai-gen/render-foundation-free-building-depth.py"
+}

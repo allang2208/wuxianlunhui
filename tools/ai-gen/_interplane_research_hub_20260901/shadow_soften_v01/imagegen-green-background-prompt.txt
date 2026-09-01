@@ -1,0 +1,6 @@
+Use case: precise-object-edit
+Asset type: intermediate green-screen source for a World-122 building cutout
+Input images: Image 1 is the exact lighting-corrected Interplane Research Hub candidate.
+Primary request: replace only the checkerboard background with one perfectly flat, solid chroma-key green background RGB (0,255,0), extending to every canvas edge and through all genuinely open holes around railings and braces. Keep the building itself pixel-faithful in geometry, framing, scale, materials, brightness, softened shadows and all details.
+Strict invariants: do not redraw, relight, sharpen, blur, crop, resize, move, add, remove or reshape any part of the building, foundation, stairs, roof crown, windows or devices. Keep the full original foundation perimeter. Do not add ground, external shadow, halo, text, watermark or any object. No checkerboard, gradients, texture, noise, shadow or color variation in the green background.
+Output: one image only, same canvas aspect ratio and composition, opaque RGB image with a uniform pure green background suitable for deterministic chroma keying.

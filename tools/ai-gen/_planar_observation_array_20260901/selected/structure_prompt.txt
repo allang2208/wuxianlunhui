@@ -1,0 +1,36 @@
+Use case: stylized-concept
+Asset type: World-122 connected 4x4 modern planar observation and reconnaissance research facility, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: exactly one preserve the exact Blender massing and full 4x4 foundation: one three-storey central hall, exactly two equal attached two-storey wings, one centered glass entrance with backed stairs, one cylindrical roof rotunda, one physically supported three-ring interferometer containing one luminous lens, and exactly two equal shallow dishes mounted on the wing roofs; all equipment remains connected and the entrance stays on the authored front axis
+Generation stage: structural massing draft only
+Structure contract: create closed, continuous, solid architecture; preserve the exact count and placement of the main hall, roof masses and towers from the supplied controls; every tower wall must intersect the supporting roof or hall; all tower corners, roof faces and lower walls must be complete; windows are shallow closed recesses, never open holes
+Detail budget: omit telescopes, armillary spheres, books, signs, pipes, furniture and small ornaments; use plain readable stone, timber and roof materials so structural completeness can be judged
+Palette lock: low-saturation cool pale mineral panels and weathered precast concrete, charcoal structural steel, subdued blue-green observation glass, naturally aged bronze rings and dish rims, restrained cyan only inside the central planar lens and feed sensors. No pure white, mirror chrome, glossy black glass, saturated neon, red, orange or bright gold.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: precast_concrete
+Foundation contract — precast concrete joining plinth:
+Use one low integrated near-future precast concrete base, fully visible and completely contained inside the authored footprint. Preserve precise panel joints, fine concrete pores, a lightly polished but non-mirror finish, restrained metal edge protection and a few recessed utility channels already supported by the authored geometry. Keep the perimeter uniformly chamfered for clean isometric-grid joining; no medieval rubble paving, neon seams, floating slab, detached platform or terrain patch.
+
+Asset-specific style scope: apply the shared World-122 weathered PBR, readable bevel and soft upper-left isometric lighting language to one prestigious modern academic observatory; it must clearly inherit the high-energy laboratory family while reading as an observation array rather than an industrial factory, power plant or office tower
+
+Composition/framing: strictly follow the supplied depth-control silhouette and its orthographic 2.5D isometric view; centered; architecture ends exactly at the supplied ground line; all walls remain vertical; no perspective convergence
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: no plumbing, pipes, water tubes, steam pipes, laboratory tubing, modern utilities, contemporary fixtures, industrial conduits, antennas, satellite dishes, exposed machinery or futuristic parts unless explicitly authored for this asset; no flat rooftop terrace, elevated deck, raised square platform, roof plaza or detached upper block; the upper tower must sit directly on the supplied roof mass; one building and exactly one routed low foundation plinth only; no second slab, oversized podium, detached platform, terrain patch, grass, trees, stairs, fence, props outside the architecture, people, animals, flags, text or watermark; the required foundation must stay completely inside the supplied footprint with transparent pixels outside it, and must not become white marble, a pale decorative skirt, a floor tile beyond the footprint or a cast shadow
+Asset-specific absolute exclusions: do not add or remove floors, move the wings, duplicate or remove a dish, turn the central instrument into a portal or occupied tower, or add standalone antenna masts, satellite clusters, smokestacks, pipes, wind turbines, propellers, industrial tanks, detached annexes, vehicles, roads, people, readable text, logos, exterior cast shadows or scenery
