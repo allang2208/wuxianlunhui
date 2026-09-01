@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>两款优质盾牌 · 素材预览</title>
+<style>
+:root{color-scheme:dark;--bg:#101518;--panel:#182025;--line:#35434a;--text:#e2e9e9;--muted:#a3b3b8;--green:#79b58b;--stage:#222c31}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.65 system-ui,"Microsoft YaHei",sans-serif}
+main{max-width:1180px;margin:auto;padding:42px 24px 60px}h1{font-size:30px;line-height:1.2;margin:8px 0 16px}h2{font-size:21px;margin:0}h3{font-size:16px;margin:0 0 12px}p{margin:8px 0}small,.muted{color:var(--muted)}a{color:#acccdf;text-underline-offset:4px}.eyebrow{letter-spacing:.18em;color:var(--green);font-size:12px}.note{border-left:3px solid #c0a268;padding:10px 16px;background:#242626;color:#d9cfb9}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:24px 0}button{border:1px solid var(--line);border-radius:5px;padding:8px 14px;background:var(--panel);color:var(--text);cursor:pointer}button[aria-pressed=true]{border-color:var(--green);background:#263a2d}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #d4b376;outline-offset:4px}.toolbar label{margin-left:auto}.cards{display:grid;grid-template-columns:1fr 1fr;gap:22px}.card,.comparison{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:22px}.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.badge{color:var(--green);border:1px solid #476c54;border-radius:20px;padding:2px 10px;white-space:nowrap;font-size:12px}
+.views{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}figure{margin:0}figcaption{padding:8px 0;color:var(--muted);font-size:13px}.stage{background:var(--stage);border-radius:6px;border:1px solid #ffffff0c;position:relative;overflow:hidden}.large{aspect-ratio:180/235}.large>.fitted{position:absolute;inset:0;width:100%!important;height:100%!important}.fitted{position:relative;margin:auto;width:100%;height:100%}.fitted img,.size-item img{position:absolute;max-width:none;object-fit:contain;pointer-events:none}
+body[data-background=light]{--stage:#e8e6df}body[data-background=checker] .stage{background:repeating-conic-gradient(#334047 0% 25%,#263138 0% 50%) 0 0/20px 20px}
+.marker{position:absolute;width:12px;height:12px;border:1px solid #ffce5c;border-radius:50%;transform:translate(-50%,-50%);display:none;pointer-events:none;box-shadow:0 0 0 1px #161d21}.marker:before,.marker:after{content:"";position:absolute;background:#ffce5c}.marker:before{width:18px;height:1px;left:-4px;top:5px}.marker:after{width:1px;height:18px;left:5px;top:-4px}body[data-markers=true] .marker{display:block}
+.slot-row{display:flex;gap:28px;align-items:flex-end;margin:16px 0}.slot-group{display:flex;gap:12px;align-items:center}.slot{position:relative;background:linear-gradient(145deg,#263329,#161f1a);border:1px solid #668773;border-radius:4px}.slot .fitted{overflow:hidden}.slot-caption{font-size:12px;color:var(--muted);line-height:1.5}.links{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}.description{min-height:50px;color:var(--muted)}.comparison{margin-top:24px}.size-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}.size-item .stage{height:168px}.palm-guide{position:absolute;top:64px;left:50%;width:9px;height:9px;border:1px solid #d2ab57;border-radius:50%;transform:translate(-50%,-50%)}.palm-guide:after{content:"手掌候选点";position:absolute;left:16px;top:-9px;width:90px;font-size:11px;color:#d2ab57}.meta{padding-top:12px;margin-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}.footer{margin-top:26px;color:var(--muted);font-size:13px}
+@media(max-width:760px){main{padding:24px 14px}.cards{grid-template-columns:1fr}.toolbar label{margin-left:0}.card{padding:16px}.size-grid{grid-template-columns:1fr}.description{min-height:0}}
+</style>
+</head>
+<body data-background="dark" data-markers="false">
+<main>
+<div class="eyebrow">UNCOMMON SHIELDS / ASSET PREVIEW</div>
+<h1>锻钢拳盾 & 橡木卫戍盾</h1>
+<p class="muted">偏写实的中世纪材质 · 两种轮廓 · 独立手持视角 · 正面图供背包与装备栏共用</p>
+<p class="note"><strong>这是素材与栏位设计预览，不是游戏截图。</strong>图片已保存真实透明PNG；装备尚未注册进游戏，握点仍待游戏内校准。</p>
+<div class="toolbar" aria-label="预览设置">
+<span>贴图背景</span>
+<button type="button" data-bg="dark" aria-pressed="true">深色</button>
+<button type="button" data-bg="light" aria-pressed="false">浅色</button>
+<button type="button" data-bg="checker" aria-pressed="false">棋盘格</button>
+<label><input type="checkbox" id="grip-toggle"> 显示握点候选</label>
+</div>
+<div class="cards" id="cards"></div>
+<section class="comparison">
+<h2>同一手掌位置下的尺寸提案</h2>
+<p class="muted">按角色参考身高144px展示，均为1×尺寸。大小变化仅用于画面；不会自动扩大碰撞或格挡角度。</p>
+<div class="size-grid" id="sizes"></div>
+<p class="muted">黄圈只标图内握点的投影候选。尚未加载玩家动画，也未验证待机、右键举盾、翻转或遮挡。</p>
+</section>
+<div class="footer">
+<p>正面PNG保留原始分辨率。背包格44px / 装备槽64px是此页的显示规格，不是PNG像素规格。品质绿框只存在于UI，不写入贴图。</p>
+<p>素材均由内置 image_gen 生成及抠图。没有脚本重绘、拉伸盾体或更改配色；不修改现有小圆盾。</p>
+<p><a href="asset-package.json">尺寸与握点元数据</a> · <a href="production.json">提示词及素材来源</a> · <a href="README.md">交付说明</a></p>
+</div>
+</main>
+<script>
+const manifest = {"version":1,"date":"2026-08-31","status":"transparent_art_package_not_installed","provenance":"production.json","preview":"preview.html","note":"PNG保留内置image_gen原始尺寸和Alpha。背包、装备槽共用同一正面图，使用不同显示尺寸；不将品质边框烘焙进贴图。未写入游戏资源注册。握点为人工图内候选，未完成游戏内绑定验收。","boundsConvention":"[left,top,rightExclusive,bottomExclusive], alpha >= 128, source pixels","previewProfiles":{"backpack":{"cellSizePx":44,"visibleLongestEdgePx":38},"equipment":{"cellSizePx":64,"visibleLongestEdgePx":56},"referenceBodyHeightPx":144,"referenceWoodShieldVisibleHeightPx":60.48},"futureExports":{"status":"not_exported","iconCanvasPx":128,"equipCanvasPx":512,"note":"本包保留高分辨率透明母图；128/512资源压缩版在正式接入时生成，不能把预览显示尺寸当成PNG像素尺寸。"},"items":[{"key":"forged_duelist_buckler","name":"锻钢拳盾","rarity":"uncommon","icon":{"path":"forged-duelist-buckler-icon.png","size":[1295,1214],"mode":"RGBA","bounds":[68,3,1199,1166],"usage":["backpack","equipment_slot"]},"equip":{"path":"forged-duelist-buckler-equip.png","size":[1023,1538],"mode":"RGBA","bounds":[5,5,1020,1521],"gripCandidatePixels":[669,795],"gripCandidateNormalized":[0.6539589442815249,0.5169050715214565],"gripBasis":"中央盾脐后方短握柄的投影候选；非骨骼自动检测结果","gripStatus":"requires_ingame_calibration","bodyHeightRatio":0.34,"visibleHeightPxAtReference":48.96,"faceDirection":"screen_right","thicknessEdge":"screen_left"}},{"key":"oak_garrison_shield","name":"橡木卫戍盾","rarity":"uncommon","icon":{"path":"oak-garrison-shield-icon.png","size":[1254,1254],"mode":"RGBA","bounds":[250,38,1017,1217],"usage":["backpack","equipment_slot"]},"equip":{"path":"oak-garrison-shield-equip.png","size":[1024,1536],"mode":"RGBA","bounds":[232,7,764,1517],"gripCandidatePixels":[286,352],"gripCandidateNormalized":[0.279296875,0.22916666666666666],"gripBasis":"背面上侧承带内握持位置的投影候选；非骨骼自动检测结果","gripStatus":"requires_ingame_calibration","bodyHeightRatio":0.57,"visibleHeightPxAtReference":82.08,"faceDirection":"screen_right","thicknessEdge":"screen_left"}}],"runtime":{"installed":false,"weaponIdsAssigned":false,"statsChanged":false,"craftDataChanged":false,"gameScreenshotsCaptured":false,"runtimeVerified":false}};
+const descriptions = {
+ forged_duelist_buckler:"紧凑圆形、冷灰锻钢与中央盾脐。提案定位：省体力、偏重近战弹反控制。",
+ oak_garrison_shield:"赭红橡木长盾、米白折线与加固盾尖。提案定位：较高物防与持续防护。"
+};
+function imageNode(asset, width, height, longestEdge, showGrip) {
+ const box=document.createElement('div');box.className='fitted';box.style.width=width+'px';box.style.height=height+'px';
+ const [x0,y0,x1,y1]=asset.bounds;
+ const s=longestEdge/Math.max(x1-x0,y1-y0);
+ const ox=(width-(x1-x0)*s)/2-x0*s, oy=(height-(y1-y0)*s)/2-y0*s;
+ const img=document.createElement('img');img.src=asset.path;img.alt=showGrip?'手持侧视透明图':'背包及装备栏正面透明图';
+ Object.assign(img.style,{width:asset.size[0]*s/width*100+'%',height:asset.size[1]*s/height*100+'%',left:ox/width*100+'%',top:oy/height*100+'%'});
+ box.append(img);
+ if(showGrip){const dot=document.createElement('span');dot.className='marker';dot.title='握点候选，尚未游戏内校准';dot.style.left=(ox+asset.gripCandidatePixels[0]*s)/width*100+'%';dot.style.top=(oy+asset.gripCandidatePixels[1]*s)/height*100+'%';box.append(dot)}
+ return box;
+}
+for(const item of manifest.items){
+ const card=document.createElement('article');card.className='card';
+ card.innerHTML='<div class="card-head"><h2>'+item.name+'</h2><span class="badge">优质 · uncommon</span></div><p class="description">'+descriptions[item.key]+'</p><div class="views"></div><div class="slot-row"></div><p class="links"><a download href="'+item.icon.path+'">下载正面PNG</a><a download href="'+item.equip.path+'">下载手持PNG</a></p><p class="meta">正面 '+item.icon.size.join(' × ')+' · 手持 '+item.equip.size.join(' × ')+' · RGBA透明母图</p>';
+ const views=card.querySelector('.views');
+ for(const [asset,label,grip] of [[item.icon,'正面：背包 / 装备栏',false],[item.equip,'侧面：手持装备',true]]){
+  const figure=document.createElement('figure');const stage=document.createElement('div');stage.className='stage large';
+  stage.append(imageNode(asset,180,235,155,grip));figure.append(stage);
+  const cap=document.createElement('figcaption');cap.textContent=label;figure.append(cap);views.append(figure)
+ }
+ const row=card.querySelector('.slot-row');
+ for(const [label,profile] of [['背包',manifest.previewProfiles.backpack],['装备栏',manifest.previewProfiles.equipment]]){
+  const group=document.createElement('div');group.className='slot-group';const slot=document.createElement('div');slot.className='slot';
+  slot.style.width=profile.cellSizePx+'px';slot.style.height=profile.cellSizePx+'px';
+  slot.append(imageNode(item.icon,profile.cellSizePx-2,profile.cellSizePx-2,profile.visibleLongestEdgePx,false));
+  const caption=document.createElement('span');caption.className='slot-caption';caption.innerHTML=label+'<br>'+profile.cellSizePx+' × '+profile.cellSizePx;
+  group.append(slot,caption);row.append(group)
+ }
+ document.querySelector('#cards').append(card)
+}
+const wood={name:'现有小圆盾（参照）',path:'../../../../../assets/weapons/woodshied-equip.png',size:[1024,1024],bounds:[365,112,695,872],gripCandidatePixels:[578,497],visibleHeightPxAtReference:60.48};
+const sizeItems=[{name:manifest.items[0].name,...manifest.items[0].equip},wood,{name:manifest.items[1].name,...manifest.items[1].equip}];
+for(const asset of sizeItems){
+ const figure=document.createElement('figure');figure.className='size-item';
+ const stage=document.createElement('div');stage.className='stage';
+ const scale=asset.visibleHeightPxAtReference/(asset.bounds[3]-asset.bounds[1]);
+ const img=document.createElement('img');img.src=asset.path;img.alt=asset.name+'尺寸提案';
+ img.style.width=asset.size[0]*scale+'px';img.style.height=asset.size[1]*scale+'px';
+ img.style.left='calc(50% - '+asset.gripCandidatePixels[0]*scale+'px)';img.style.top=64-asset.gripCandidatePixels[1]*scale+'px';
+ const guide=document.createElement('span');guide.className='palm-guide';stage.append(img,guide);figure.append(stage);
+ const caption=document.createElement('figcaption');caption.textContent=asset.name+' · 可见高约'+asset.visibleHeightPxAtReference.toFixed(1)+'px';figure.append(caption);
+ document.querySelector('#sizes').append(figure)
+}
+document.querySelectorAll('[data-bg]').forEach(button=>button.addEventListener('click',()=>{
+ document.body.dataset.background=button.dataset.bg;
+ document.querySelectorAll('[data-bg]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)))
+}));
+document.querySelector('#grip-toggle').addEventListener('change',event=>document.body.dataset.markers=String(event.target.checked));
+</script>
+</body>
+</html>

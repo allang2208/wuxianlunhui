@@ -1,0 +1,38 @@
+{
+  "sourceSize":512,
+  "displayScale":1.0956,
+  "offhandCorrections":{"attack_sword_3":{"14":[336,245,-2,false],"15":[309,259,-7,false]}},
+  "note":"Native closed main palms, measured from each source image. Never infer the main hand from the previous weapon trajectory. Last two thrust frames retain the large near-side palm; the small far-side palm belongs to the shield.",
+  "stages":{
+    "attack":{
+      "anim":"attack_sword",
+      "palms":[[226,240],[196,164],[175,111],[176,84],[184,71],[214,66],[232,62],[269,53],[359,49],[431,83],[383,297],[334,269]],
+      "angles":[105,45,0,-35,-45,-48,-25,12,78,110,145,148],
+      "blur":[0,0,0,0,0,0,0.5,1,3,3,2,0]
+    },
+    "attack2":{
+      "anim":"attack_sword_2",
+      "palms":[[335,266],[397,174],[230,24],[178,60],[184,70],[182,66],[200,61],[217,55],[443,271],[436,281],[437,280],[441,277]],
+      "angles":[148,92,25,-20,-35,-40,-22,18,85,92,98,100],
+      "blur":[0,0.5,1,0,0,0,0.5,1,3,2,0.5,0]
+    },
+    "attack3":{
+      "anim":"attack_sword_3",
+      "palms":[[450,279],[435,277],[383,268],[292,253],[323,219],[332,164],[375,156],[423,180],[435,203],[500,185],[498,181],[487,184],[416,199],[328,239],[280,250],[226,259]],
+      "angles":[100,100,98,95,92,90,88,88,90,90,94,98,108,118,120,110],
+      "blur":[0,0,0,0,0,0,0.5,1,2,3,1,0.5,0,0,0,0]
+    }
+  },
+  "recover":{
+    "anim":"recover",
+    "palms":[[227,259],[210,263],[191,265],[185,266],[177,265],[177,266],[182,265],[200,269],[202,269],[206,268],[209,270],[213,272],[210,270]],
+    "fistSource":"tools/animation/player-sword-walk-grip-20260831/gripping-hand.png",
+    "handAngle":-4,
+    "note":"The existing approved fist is placed at each original recover palm. No arm, shoulder or leg motion is generated."
+  },
+  "recoverTracks":{
+    "attack":[["attack_sword",11,148],["attack_sword_2",0,148],["attack_sword_3",13,130],["attack_sword_3",14,120],["attack_sword_3",15,110],["recover",0,108],["recover",2,106],["recover",4,105],["recover",6,105],["recover",8,105],["recover",10,105],["recover",11,105],["recover",12,105]],
+    "attack2":[["attack_sword_2",11,100],["attack_sword_3",1,100],["attack_sword_3",2,102],["attack_sword_3",3,106],["attack_sword_3",14,110],["attack_sword_3",15,110],["recover",1,108],["recover",3,106],["recover",5,105],["recover",7,105],["recover",9,105],["recover",11,105],["recover",12,105]],
+    "attack3":[["recover",0,110],["recover",1,109],["recover",2,108],["recover",3,107],["recover",4,106],["recover",5,105],["recover",6,105],["recover",7,105],["recover",8,105],["recover",9,105],["recover",10,105],["recover",11,105],["recover",12,105]]
+  }
+}

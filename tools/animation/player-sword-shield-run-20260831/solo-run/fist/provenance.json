@@ -1,0 +1,20 @@
+{
+  "date": "2026-08-31",
+  "status": "installed-for-user-review",
+  "generator": "built-in image_gen",
+  "intent": "Change only the free hand to a relaxed closed fist in the single-sword running variant.",
+  "editInputs": ["../../parts/offHand.png", "../../parts/offForearm.png"],
+  "rawImage": "generated-fist.png",
+  "promptFile": "prompt.txt",
+  "generatedOutput": "C:/Users/allan/.codex/generated_images/01a05656-165e-7970-bef0-0768b1ba7784/exec-9803430a-bd62-46b9-bfd7-2d71237d5ddb.png",
+  "registrationScript": "prepare_part.py",
+  "part": "offForearm-fist.png",
+  "notes": [
+    "Raw output contains extra long bones; these are excluded by the recorded fist crop.",
+    "Generated alpha is retained. No background-removal service or whole-arm redraw is used.",
+    "The source offForearm.png stays unchanged; its original rows 0-75 are copied onto the registered part.",
+    "The new part is consumed only by export_solo_runtime.py through solo-run/rig.json.",
+    "Only the empty palm center is updated in joint metadata. Wrist, elbow, shoulder and arm angles are unchanged.",
+    "Offline source-pixel composites were inspected; no game, browser, tests or runtime validation were run."
+  ]
+}
