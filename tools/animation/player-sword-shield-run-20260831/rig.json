@@ -1,0 +1,82 @@
+{
+  "status": "candidate-not-in-runtime",
+  "method": "existing-pixel-cutout-and-2d-joints",
+  "frameSize": [512, 512],
+  "fps": 10,
+  "preserveSourceBelowY": 256,
+  "sourceFrames": [0, 1, 2, 3, 4, 5, 6, 7],
+  "sources": {
+    "body": "assets/character/running.png",
+    "arms": "assets/player/idle.png",
+    "shield": "assets/weapons/woodshied-equip.png"
+  },
+  "parts": {
+    "mainUpper": {
+      "pivot": [217, 105],
+      "end": [201, 184],
+      "polygon": [[209,96],[226,96],[220,140],[210,188],[195,193],[192,180],[205,129]]
+    },
+    "mainForearm": {
+      "pivot": [201, 184],
+      "wrist": [203, 252],
+      "end": [210, 269],
+      "polygon": [[193,176],[211,176],[212,240],[226,267],[225,289],[195,289],[191,254],[193,214]],
+      "handPolygon": [[195,251],[210,245],[226,267],[225,289],[196,289]]
+    },
+    "offUpper": {
+      "pivot": [301, 106],
+      "end": [310, 185],
+      "polygon": [[290,97],[314,97],[320,184],[300,184],[293,139]]
+    },
+    "offForearm": {
+      "pivot": [310, 185],
+      "wrist": [325, 249],
+      "end": [327, 268],
+      "polygon": [[300,178],[320,178],[340,244],[340,290],[310,290],[307,239],[300,195]],
+      "handPolygon": [[312,249],[333,247],[340,263],[340,289],[313,289]]
+    }
+  },
+  "bodyMasks": [
+    [[257,0],[332,0],[332,87],[296,97],[303,126],[305,173],[288,193],[270,195],[257,218],[273,231],[287,258],[275,275],[512,280],[512,512],[0,512],[0,280],[217,275],[212,238],[225,221],[247,219],[253,190],[235,170],[235,138],[244,112],[260,94]],
+    [[254,0],[330,0],[330,89],[300,104],[306,138],[306,174],[291,198],[269,202],[260,223],[275,238],[282,264],[272,276],[512,280],[512,512],[0,512],[0,280],[214,275],[210,239],[228,222],[247,222],[252,197],[234,175],[234,144],[243,115],[258,99]],
+    [[256,0],[329,0],[329,91],[300,110],[306,145],[305,185],[288,207],[266,206],[256,226],[273,240],[280,265],[272,277],[512,280],[512,512],[0,512],[0,280],[213,278],[211,243],[226,225],[246,225],[250,206],[232,180],[233,150],[244,120],[262,108]],
+    [[257,0],[333,0],[333,95],[300,112],[306,146],[305,185],[288,210],[265,209],[256,229],[272,245],[276,268],[268,279],[512,280],[512,512],[0,512],[0,280],[211,278],[210,245],[225,228],[245,227],[250,209],[233,183],[234,152],[244,124],[263,111]],
+    [[252,0],[333,0],[333,96],[307,112],[313,146],[312,183],[294,211],[263,212],[253,234],[270,248],[278,270],[270,279],[512,280],[512,512],[0,512],[0,280],[211,279],[208,247],[224,231],[244,229],[249,208],[235,190],[233,157],[242,125],[259,106]],
+    [[250,0],[331,0],[331,87],[319,103],[323,151],[318,182],[302,198],[275,191],[258,224],[273,238],[280,266],[273,278],[512,280],[512,512],[0,512],[0,280],[211,275],[211,239],[227,222],[246,221],[254,192],[238,174],[236,139],[246,110],[255,93]],
+    [[251,0],[334,0],[334,85],[319,102],[324,150],[318,180],[302,196],[276,190],[260,222],[274,238],[283,262],[274,277],[512,280],[512,512],[0,512],[0,280],[210,275],[210,238],[227,221],[248,220],[256,190],[239,171],[238,138],[246,108],[255,91]],
+    [[251,0],[335,0],[335,85],[320,102],[326,151],[320,181],[303,197],[277,191],[261,223],[275,239],[284,263],[276,278],[512,280],[512,512],[0,512],[0,280],[211,276],[211,239],[228,222],[249,221],[257,191],[240,172],[239,139],[247,109],[256,92]]
+  ],
+  "bodyPatches": [
+    {"frame":0,"donor":6,"offset":[4,-3],"polygon":[[216,203],[256,204],[265,223],[248,237],[220,230]],"reason":"main palm over upper pelvis"},
+    {"frame":1,"donor":6,"offset":[0,3],"polygon":[[239,197],[286,199],[286,237],[243,233]],"reason":"main forearm and palm over waist"},
+    {"frame":2,"donor":6,"offset":[0,6],"polygon":[[238,194],[304,198],[312,239],[244,236]],"reason":"crossed forearms over lower ribs and spine"},
+    {"frame":3,"donor":6,"offset":[-1,9],"polygon":[[235,197],[306,200],[317,250],[241,241]],"reason":"crossed forearms over waist"},
+    {"frame":4,"donor":6,"offset":[-1,11],"polygon":[[212,210],[267,209],[276,249],[219,255]],"reason":"main palm over pelvis"}
+  ],
+  "poses": [
+    {"mainShoulder":[269,103],"offShoulder":[296,109],"mainUpper":18,"mainForearm":0,"offUpper":10,"offForearm":-60,"swordAngle":122,"shieldAngle":-7},
+    {"mainShoulder":[270,110],"offShoulder":[299,115],"mainUpper":22,"mainForearm":-3,"offUpper":8,"offForearm":-62,"swordAngle":120,"shieldAngle":-5},
+    {"mainShoulder":[271,119],"offShoulder":[299,123],"mainUpper":25,"mainForearm":-7,"offUpper":6,"offForearm":-64,"swordAngle":118,"shieldAngle":-3},
+    {"mainShoulder":[273,123],"offShoulder":[300,125],"mainUpper":23,"mainForearm":-10,"offUpper":8,"offForearm":-62,"swordAngle":120,"shieldAngle":-5},
+    {"mainShoulder":[263,116],"offShoulder":[304,122],"mainUpper":18,"mainForearm":-7,"offUpper":10,"offForearm":-60,"swordAngle":122,"shieldAngle":-7},
+    {"mainShoulder":[254,99],"offShoulder":[312,111],"mainUpper":14,"mainForearm":-3,"offUpper":12,"offForearm":-58,"swordAngle":124,"shieldAngle":-9},
+    {"mainShoulder":[252,97],"offShoulder":[313,108],"mainUpper":12,"mainForearm":0,"offUpper":14,"offForearm":-56,"swordAngle":126,"shieldAngle":-11},
+    {"mainShoulder":[253,98],"offShoulder":[314,109],"mainUpper":14,"mainForearm":2,"offUpper":12,"offForearm":-58,"swordAngle":124,"shieldAngle":-9}
+  ],
+  "equipment": {
+    "playerDisplaySize":144,
+    "weaponBaseSize":126,
+    "meleeScale":0.75,
+    "swordScale":1.5,
+    "swordWidthRatio":0.63,
+    "shieldOrigin":[0.564453125,0.4853515625],
+    "shieldVisibleHeightRatio":0.7421875,
+    "shieldBodyHeightRatio":0.42,
+    "swords":[
+      {"id":"rusty","name":"生锈长剑","key":"weapon_rusty_sword","path":"assets/weapons/1-rusty_sword_euip.png"},
+      {"id":"knights","name":"骑士长剑","key":"weapon_knights_sword","path":"assets/weapons/knights_sword_ingame_v2.png"},
+      {"id":"rune","name":"符文剑","key":"weapon_rune_sword","path":"assets/weapons/rune_sword_ingame_v2.png"},
+      {"id":"night-flame","name":"夜与火之剑","key":"weapon_night_flame","path":"assets/weapons/night_flame_sword_ingame_v2.png"}
+    ]
+  }
+}

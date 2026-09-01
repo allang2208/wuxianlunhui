@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "date": "2026-08-31",
+  "status": "concept_candidates_not_installed",
+  "tool": "built-in image_gen",
+  "references": [
+    "assets/icons/woodshied.png",
+    "assets/weapons/woodshied-equip.png"
+  ],
+  "generationReference": "assets/icons/woodshied.png",
+  "scope": "Two uncommon-quality medieval shield concepts and twelve craft options. No runtime, loot, shop, or existing small-shield changes.",
+  "images": [
+    {
+      "key": "forged_duelist_buckler",
+      "name": "锻钢拳盾",
+      "path": "forged-duelist-buckler-v01.png",
+      "source": "C:/Users/allan/.codex/generated_images/01a05656-165e-7970-bef0-0768b1ba7784/exec-92610a1d-e222-4234-be0c-1e3583e3ceee.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "alpha": false
+    },
+    {
+      "key": "oak_garrison_shield",
+      "name": "橡木卫戍盾",
+      "path": "oak-garrison-shield-v01.png",
+      "source": "C:/Users/allan/.codex/generated_images/01a05656-165e-7970-bef0-0768b1ba7784/exec-4839bacf-774a-4fdb-8f1d-986f9a89f8d0.png",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB",
+      "alpha": false
+    }
+  ],
+  "note": "Generated checkerboard is baked into RGB. These are appearance concepts only; do not import as transparent sprites. Accepted designs still need isolated equip, inventory and drop views with real alpha and independent grip metadata.",
+  "prompts": [
+    {
+      "key": "forged_buckler",
+      "prompt": "Create a new alternate shield design by redesigning the supplied small wooden round shield reference. Reference role: existing game's material, lighting, and readable equipment-art standard, not an object to duplicate. Deliver ONE isolated shield only, a premium 3D PBR game equipment concept on a genuinely transparent RGBA background, square canvas, entire object within an 8% safe margin. Design: a compact practical medieval forged-steel parrying buckler called Forged Duelist Buckler (do NOT render any text). Circular outline, approximately 40 cm diameter in implied real scale. Replace the exposed timber face with cool matte tempered steel, a prominent rounded darkened steel central fist-protecting boss, four broad shallow structural ribs radiating into a smooth dish, a narrow rolled steel rim and a small number of functional rivets. Restrained broad hammer marks, worn edge highlights, clean readable continuous metal surfaces with sparse medium-scale wear, no fine noisy scratches. One small brown leather-wrapped center handle may be subtly glimpsed behind the near rim but no visible human hands. Common workmanship upgraded to good quality, practical and believable, not royal treasure. Predominantly frontal view with a mild three-quarter turn showing some rim thickness, upright stable orientation, large clear circular silhouette. Match the reference's soft upper-left light and grounded realistic game rendering, but make the material unmistakably steel. No gold, jewels, spikes, magical glow, runes, cartoon outlines, text, labels, frame, pedestal, floor, environment, cast shadow, or fake checkerboard. The shield must be a physically coherent single object, centered, not a collage."
+    },
+    {
+      "key": "oak_garrison_heater",
+      "prompt": "Create a new alternate shield design by redesigning the supplied small wooden round shield reference. Reference role: existing game's material, lighting, and readable equipment-art standard. Deliver ONE isolated shield only, a premium realistic 3D PBR medieval game equipment concept on a genuinely transparent RGBA background, square canvas, full object contained in 8% safe margin. Design: an Oak Garrison Shield, a sturdy medium-sized medieval heater shield, distinct from any circular buckler. Broad almost straight upper edge with gently rounded shoulders, broad convex face tapering to ONE clean pointed lower tip. Implied real size about 68 cm tall by 49 cm wide, shield itself visibly taller than wide. Laminated oak core, visibly thick timber edge, stitched dark oxblood-red leather or linen covering across the front, simple worn off-white broad downward chevron painted on the face, a restrained riveted dark iron rim and reinforced lower tip. No round central metal boss. At a slightly turned near edge allow a small glimpse of rear dark leather forearm straps fixed by plain iron brackets, consistent with a single-handed shield. Strong structural silhouette and broad clean material regions, sparing natural chips exposing warm oak near the lower tip, subtle hammer finish on rim, no clutter or excessive damage. Good-quality military equipment, not heroic or royal fantasy. Predominantly frontal view, mild three-quarter yaw just enough to show depth, upright, same soft upper-left lighting and realistic game asset presentation as the reference. No gold, gems, magical effects, spikes, runes, lettering, logos, decorative border, extra objects, separate parts, human limbs, pedestal, floor, environment, cast shadow, or fake transparency checkerboard. A physically coherent single shield, centered."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>剑盾奔跑与冲刺衔接候选</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#14191e;color:#e2e3df;font:14px/1.65 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1240px;margin:auto;padding:24px}h1{font-size:25px;margin:0 0 6px}p{color:#b2bdc6;margin:0 0 18px}.tag{color:#e5b15b;font-size:12px;letter-spacing:.12em}.panel{border:1px solid #47535f;border-radius:7px;background:#1d2228;overflow:hidden}.bar{padding:14px;display:flex;flex-wrap:wrap;gap:15px;align-items:center;border-top:1px solid #47535f}.bar:first-child{border:0}button,select{font:inherit;color:inherit;background:#303b45;border:1px solid #647583;border-radius:4px;padding:6px 12px}button{cursor:pointer}button:hover{background:#465663}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #e5b15b;outline-offset:3px}input{accent-color:#e5b15b}canvas{display:block;width:100%;height:auto;background:radial-gradient(ellipse at 50% 60%,#2f3b45,#1d2228 75%)}.seek{display:flex;gap:12px;align-items:center;flex:1;min-width:260px}.seek input{flex:1;min-width:80px}.timing{color:#65c9c4;font-variant-numeric:tabular-nums}.notes{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px}.notes b{color:#e5b15b}.status{padding:10px 14px;color:#bcc8d1;min-height:44px;font-size:12px}.links{display:flex;gap:20px;flex-wrap:wrap;margin-top:18px}a{color:#e5b15b}.notice{color:#c0adb0;font-size:12px;margin-top:18px}@media(max-width:760px){main{padding:12px}.notes{grid-template-columns:1fr;gap:10px}.seek{min-width:100%}}
+</style>
+<main>
+<div class="tag">SOURCE PIXELS / SEPARATE ARMS / TRANSITION CANDIDATE</div>
+<h1>低持奔跑 → 冲刺 → 收势回跑</h1>
+<p>已确认的普通冲刺可从8个跑步帧进入。突击V3使用独立预览与来源包；此页面不连接游戏、碰撞或伤害系统。</p>
+<section class="panel">
+  <div class="bar">
+    <label>动作 <select id="branch"><option value="slash">普通冲刺攻击 · 生锈长剑</option></select></label>
+    <label>点击时跑帧 <select id="origin"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></label>
+    <label><input type="checkbox" id="both" checked>左右并排</label>
+    <label><input type="checkbox" id="mirror">单独朝左</label>
+    <label><input type="checkbox" id="bones">关节点</label>
+  </div>
+  <canvas id="stage" width="1152" height="440" aria-label="完整衔接动画候选"></canvas>
+  <div class="bar">
+    <button type="button" id="play">暂停</button>
+    <label>速度 <select id="speed"><option value="1">原时长</option><option value="0.5">半速</option><option value="0.25">四分之一速</option></select></label>
+    <div class="seek"><label for="seek">时间</label><input id="seek" type="range" min="0" max="3400" step="1" value="0"><output id="clock" class="timing"></output></div>
+  </div>
+  <div class="bar">
+    <button type="button" data-jump="attackAtMs">跳到触发</button><button type="button" data-jump="recoverAtMs">跳到收势</button><button type="button" data-jump="returnAtMs">跳到回跑</button>
+    <button type="button" id="export">导出当前衔接数据</button>
+  </div>
+  <div id="status" class="status" role="status">正在读取候选素材…</div>
+</section>
+<div class="notes">
+  <p><b>普通冲刺</b><br>前120ms在原起手内衔接。原800ms攻击、500ms定格、500ms收势保持；最后160ms收势向合适的跑步姿态交接，运行时动作锁定时间未改。</p>
+  <p><b>冲刺突击V3</b><br>稳定体量与剑盾跟手版本已独立归档；从下方链接查看待机/回跑两种出口，避免本页继续携带已淘汰的早期突击数据。</p>
+</div>
+<div class="links"><a href="slash-transition-both-directions.gif">普通冲刺GIF</a><a href="power-v3/preview.html">突击V3预览</a><a href="../preview.html">原奔跑姿态编辑</a><a href="README.md">来源、限制与后续接入</a></div>
+<p class="notice">未运行浏览器/游戏验证。躯干与腿部过渡使用源像素网格变形，双臂使用独立切片，不做全身透明叠化。重点看腰髋变形、手臂接缝与原帧交接。剑尺寸已纠正为源码中的0.75近战倍率。</p>
+</main>
+<script src="transition-data.js"></script><script src="preview.js"></script>
+</html>
