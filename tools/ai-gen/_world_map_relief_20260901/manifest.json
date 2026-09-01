@@ -1,0 +1,725 @@
+{
+  "version": 1,
+  "stage": "formal-mountain-atlas-with-river-candidates",
+  "runtimeInstalled": false,
+  "publicationScope": "formal mountain resources and reproducible source; runtime wiring remains local until the strategic-map base is published",
+  "seed": 122901,
+  "generation": {
+    "method": "Native Blender geometry / shared strategic PBR / Cycles 48 samples",
+    "aiGeneration": false,
+    "externalTransmission": false
+  },
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 55.0,
+    "elevationReference": "above XY ground plane; 90 degrees is top-down",
+    "azimuthDegrees": 0,
+    "azimuthReference": "from -Y toward +X; camera on -Y looking toward +Y",
+    "rollDegrees": 0,
+    "worldUp": "+Z",
+    "source": "data/world-map-layout.json",
+    "orthoScale": 2.6,
+    "resolution": [
+      512,
+      512
+    ],
+    "anchorPx": [
+      256.0,
+      280.8489074707031
+    ],
+    "pixelsPerWorldUnit": 196.9230769230769,
+    "lighting": "shared hex soft key (-3,-4,7), cool fill (4,1,5)"
+  },
+  "sourceModel": "world-map-relief.blend",
+  "sourceScript": "build-terrain-features.py",
+  "helperSource": "../_world_hex_map_20260830/build-hex-models.py",
+  "materialLibrary": {
+    "library": "tools/ai-gen/environment-prop-materials.py",
+    "version": "environment-prop-pbr-v1"
+  },
+  "mountainProfile": {
+    "heightScaleByKind": {
+      "ridge": 1.35,
+      "massif": 1.42,
+      "pass": 1.28
+    },
+    "horizontalFootprint": "unchanged",
+    "passClearance": "unchanged"
+  },
+  "connections": {
+    "grid": "pointy-top hex radius 1; rivers run on shared edges, not across tile centers",
+    "hexEdgeLength": 1,
+    "edgeHalfLength": 0.28,
+    "junctionRadius": 0.22,
+    "crossSection": [
+      {
+        "halfWidth": 0.066,
+        "z": 0.018
+      },
+      {
+        "halfWidth": 0.083,
+        "z": 0.012
+      },
+      {
+        "halfWidth": 0.111,
+        "z": 0.03
+      },
+      {
+        "halfWidth": 0.14,
+        "z": 0
+      }
+    ],
+    "rotationOfRenderedImagesAllowed": false
+  },
+  "retiredCandidates": {
+    "keys": [
+      "bridge_000",
+      "bridge_060",
+      "bridge_120"
+    ],
+    "reason": "2026-09-01 user removed bridges; direct river crossings have a movement cost."
+  },
+  "plannedAtlas": {
+    "frameSize": 320,
+    "frameCount": 32,
+    "columns": 8,
+    "rows": 4
+  },
+  "assets": [
+    {
+      "key": "desert_ridge",
+      "render": "renders/desert_ridge.png",
+      "sourceCollection": "desert_ridge",
+      "category": "mountain",
+      "biome": "desert",
+      "kind": "ridge",
+      "label": "连峰山脊",
+      "heightScale": 1.35,
+      "ports": []
+    },
+    {
+      "key": "desert_massif",
+      "render": "renders/desert_massif.png",
+      "sourceCollection": "desert_massif",
+      "category": "mountain",
+      "biome": "desert",
+      "kind": "massif",
+      "label": "雄峰山体",
+      "heightScale": 1.42,
+      "ports": []
+    },
+    {
+      "key": "desert_pass",
+      "render": "renders/desert_pass.png",
+      "sourceCollection": "desert_pass",
+      "category": "mountain",
+      "biome": "desert",
+      "kind": "pass",
+      "label": "开阔山口",
+      "heightScale": 1.28,
+      "ports": []
+    },
+    {
+      "key": "snow_ridge",
+      "render": "renders/snow_ridge.png",
+      "sourceCollection": "snow_ridge",
+      "category": "mountain",
+      "biome": "snow",
+      "kind": "ridge",
+      "label": "连峰山脊",
+      "heightScale": 1.35,
+      "ports": []
+    },
+    {
+      "key": "snow_massif",
+      "render": "renders/snow_massif.png",
+      "sourceCollection": "snow_massif",
+      "category": "mountain",
+      "biome": "snow",
+      "kind": "massif",
+      "label": "雄峰山体",
+      "heightScale": 1.42,
+      "ports": []
+    },
+    {
+      "key": "snow_pass",
+      "render": "renders/snow_pass.png",
+      "sourceCollection": "snow_pass",
+      "category": "mountain",
+      "biome": "snow",
+      "kind": "pass",
+      "label": "开阔山口",
+      "heightScale": 1.28,
+      "ports": []
+    },
+    {
+      "key": "forest_ridge",
+      "render": "renders/forest_ridge.png",
+      "sourceCollection": "forest_ridge",
+      "category": "mountain",
+      "biome": "forest",
+      "kind": "ridge",
+      "label": "连峰山脊",
+      "heightScale": 1.35,
+      "ports": []
+    },
+    {
+      "key": "forest_massif",
+      "render": "renders/forest_massif.png",
+      "sourceCollection": "forest_massif",
+      "category": "mountain",
+      "biome": "forest",
+      "kind": "massif",
+      "label": "雄峰山体",
+      "heightScale": 1.42,
+      "ports": []
+    },
+    {
+      "key": "forest_pass",
+      "render": "renders/forest_pass.png",
+      "sourceCollection": "forest_pass",
+      "category": "mountain",
+      "biome": "forest",
+      "kind": "pass",
+      "label": "开阔山口",
+      "heightScale": 1.28,
+      "ports": []
+    },
+    {
+      "key": "ruins_ridge",
+      "render": "renders/ruins_ridge.png",
+      "sourceCollection": "ruins_ridge",
+      "category": "mountain",
+      "biome": "ruins",
+      "kind": "ridge",
+      "label": "连峰山脊",
+      "heightScale": 1.35,
+      "ports": []
+    },
+    {
+      "key": "ruins_massif",
+      "render": "renders/ruins_massif.png",
+      "sourceCollection": "ruins_massif",
+      "category": "mountain",
+      "biome": "ruins",
+      "kind": "massif",
+      "label": "雄峰山体",
+      "heightScale": 1.42,
+      "ports": []
+    },
+    {
+      "key": "ruins_pass",
+      "render": "renders/ruins_pass.png",
+      "sourceCollection": "ruins_pass",
+      "category": "mountain",
+      "biome": "ruins",
+      "kind": "pass",
+      "label": "开阔山口",
+      "heightScale": 1.28,
+      "ports": []
+    },
+    {
+      "key": "mine_ridge",
+      "render": "renders/mine_ridge.png",
+      "sourceCollection": "mine_ridge",
+      "category": "mountain",
+      "biome": "mine",
+      "kind": "ridge",
+      "label": "连峰山脊",
+      "heightScale": 1.35,
+      "ports": []
+    },
+    {
+      "key": "mine_massif",
+      "render": "renders/mine_massif.png",
+      "sourceCollection": "mine_massif",
+      "category": "mountain",
+      "biome": "mine",
+      "kind": "massif",
+      "label": "雄峰山体",
+      "heightScale": 1.42,
+      "ports": []
+    },
+    {
+      "key": "mine_pass",
+      "render": "renders/mine_pass.png",
+      "sourceCollection": "mine_pass",
+      "category": "mountain",
+      "biome": "mine",
+      "kind": "pass",
+      "label": "开阔山口",
+      "heightScale": 1.28,
+      "ports": []
+    },
+    {
+      "key": "river_edge_030",
+      "render": "renders/river_edge_030.png",
+      "sourceCollection": "river_edge_030",
+      "category": "river",
+      "kind": "edge",
+      "ports": [
+        {
+          "angleDegrees": 30,
+          "position": [
+            0.24248711305964285,
+            0.13999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 210,
+          "position": [
+            -0.24248711305964282,
+            -0.14000000000000004,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_edge_090",
+      "render": "renders/river_edge_090.png",
+      "sourceCollection": "river_edge_090",
+      "category": "river",
+      "kind": "edge",
+      "ports": [
+        {
+          "angleDegrees": 90,
+          "position": [
+            1.7145055188062947e-17,
+            0.28,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 270,
+          "position": [
+            -5.143516556418884e-17,
+            -0.28,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_edge_150",
+      "render": "renders/river_edge_150.png",
+      "sourceCollection": "river_edge_150",
+      "category": "river",
+      "kind": "edge",
+      "ports": [
+        {
+          "angleDegrees": 150,
+          "position": [
+            -0.24248711305964285,
+            0.13999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 330,
+          "position": [
+            0.24248711305964277,
+            -0.14000000000000012,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_a_03",
+      "render": "renders/river_joint_a_03.png",
+      "sourceCollection": "river_joint_a_03",
+      "category": "river",
+      "kind": "bend",
+      "ports": [
+        {
+          "angleDegrees": 30,
+          "position": [
+            0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 150,
+          "position": [
+            -0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_a_05",
+      "render": "renders/river_joint_a_05.png",
+      "sourceCollection": "river_joint_a_05",
+      "category": "river",
+      "kind": "bend",
+      "ports": [
+        {
+          "angleDegrees": 30,
+          "position": [
+            0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 270,
+          "position": [
+            -4.041334437186265e-17,
+            -0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_a_06",
+      "render": "renders/river_joint_a_06.png",
+      "sourceCollection": "river_joint_a_06",
+      "category": "river",
+      "kind": "bend",
+      "ports": [
+        {
+          "angleDegrees": 150,
+          "position": [
+            -0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 270,
+          "position": [
+            -4.041334437186265e-17,
+            -0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_a_07",
+      "render": "renders/river_joint_a_07.png",
+      "sourceCollection": "river_joint_a_07",
+      "category": "river",
+      "kind": "junction",
+      "ports": [
+        {
+          "angleDegrees": 30,
+          "position": [
+            0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 150,
+          "position": [
+            -0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 270,
+          "position": [
+            -4.041334437186265e-17,
+            -0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_end_030",
+      "render": "renders/river_end_030.png",
+      "sourceCollection": "river_end_030",
+      "category": "river",
+      "kind": "end",
+      "ports": [
+        {
+          "angleDegrees": 30,
+          "position": [
+            0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_end_150",
+      "render": "renders/river_end_150.png",
+      "sourceCollection": "river_end_150",
+      "category": "river",
+      "kind": "end",
+      "ports": [
+        {
+          "angleDegrees": 150,
+          "position": [
+            -0.1905255888325765,
+            0.10999999999999999,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_end_270",
+      "render": "renders/river_end_270.png",
+      "sourceCollection": "river_end_270",
+      "category": "river",
+      "kind": "end",
+      "ports": [
+        {
+          "angleDegrees": 270,
+          "position": [
+            -4.041334437186265e-17,
+            -0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_b_03",
+      "render": "renders/river_joint_b_03.png",
+      "sourceCollection": "river_joint_b_03",
+      "category": "river",
+      "kind": "bend",
+      "ports": [
+        {
+          "angleDegrees": 90,
+          "position": [
+            1.3471114790620885e-17,
+            0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 210,
+          "position": [
+            -0.1905255888325765,
+            -0.11000000000000003,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_b_05",
+      "render": "renders/river_joint_b_05.png",
+      "sourceCollection": "river_joint_b_05",
+      "category": "river",
+      "kind": "bend",
+      "ports": [
+        {
+          "angleDegrees": 90,
+          "position": [
+            1.3471114790620885e-17,
+            0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 330,
+          "position": [
+            0.19052558883257645,
+            -0.1100000000000001,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_b_06",
+      "render": "renders/river_joint_b_06.png",
+      "sourceCollection": "river_joint_b_06",
+      "category": "river",
+      "kind": "bend",
+      "ports": [
+        {
+          "angleDegrees": 210,
+          "position": [
+            -0.1905255888325765,
+            -0.11000000000000003,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 330,
+          "position": [
+            0.19052558883257645,
+            -0.1100000000000001,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_joint_b_07",
+      "render": "renders/river_joint_b_07.png",
+      "sourceCollection": "river_joint_b_07",
+      "category": "river",
+      "kind": "junction",
+      "ports": [
+        {
+          "angleDegrees": 90,
+          "position": [
+            1.3471114790620885e-17,
+            0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 210,
+          "position": [
+            -0.1905255888325765,
+            -0.11000000000000003,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        },
+        {
+          "angleDegrees": 330,
+          "position": [
+            0.19052558883257645,
+            -0.1100000000000001,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_end_090",
+      "render": "renders/river_end_090.png",
+      "sourceCollection": "river_end_090",
+      "category": "river",
+      "kind": "end",
+      "ports": [
+        {
+          "angleDegrees": 90,
+          "position": [
+            1.3471114790620885e-17,
+            0.22,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_end_210",
+      "render": "renders/river_end_210.png",
+      "sourceCollection": "river_end_210",
+      "category": "river",
+      "kind": "end",
+      "ports": [
+        {
+          "angleDegrees": 210,
+          "position": [
+            -0.1905255888325765,
+            -0.11000000000000003,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    },
+    {
+      "key": "river_end_330",
+      "render": "renders/river_end_330.png",
+      "sourceCollection": "river_end_330",
+      "category": "river",
+      "kind": "end",
+      "ports": [
+        {
+          "angleDegrees": 330,
+          "position": [
+            0.19052558883257645,
+            -0.1100000000000001,
+            0
+          ],
+          "waterWidth": 0.132,
+          "bankWidth": 0.28
+        }
+      ]
+    }
+  ],
+  "candidateAtlas": {
+    "path": "terrain-features-candidate.png",
+    "width": 1024,
+    "height": 872,
+    "pixelsPerWorldUnit": 123.07692307692307,
+    "rgbaBaseMiB": 3.40625,
+    "frameCount": 32
+  },
+  "previewNote": "Offline authored sprite compositions, not game screenshots or runtime acceptance.",
+  "runtimeMountainAtlas": {
+    "path": "assets/ui/world-map/mountain-relief.png",
+    "width": 1024,
+    "height": 812,
+    "pixelsPerWorldUnit": 123.07692307692307,
+    "rgbaBaseMiB": 3.171875,
+    "frameCount": 15
+  }
+}
