@@ -1,0 +1,343 @@
+{
+  "date": "2026-08-31",
+  "scope": "Both horror elites have formal sprites and runtime integration; offline animation review complete; user game acceptance pending.",
+  "status": "both_elites_installed_pending_user_runtime_test",
+  "generationOrder": "Complete stitchface-headsman idle/walking/attacking/dying sources and previews first; only then resume waxface-mourner. Keep original job indices for provenance.",
+  "priorityOrder": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "activeAsset": "waxface-mourner",
+  "activeAssetOverviewDelivered": true,
+  "orderInstruction": "先把刽子手全部做完再做下一个。",
+  "orderGate": "Complete headsman source, formal sprites and integration before starting the next elite.",
+  "jobs": [
+    {
+      "index": 0,
+      "asset": "stitchface-headsman",
+      "state": "attacking",
+      "loop": false,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/stitchface-headsman-video-safe.png",
+      "promptFile": "stitchface-headsman/prompts/attacking-doubao-v01.txt",
+      "video": "stitchface-headsman/videos/attacking-doubao-v01.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "stitchface-headsman/sprite-build-v01/previews/final/attacking.gif",
+      "contactSheet": "stitchface-headsman/previews/attacking-doubao-v01-contact.png",
+      "provenance": "stitchface-headsman/videos/attacking-doubao-v01.mp4.json",
+      "spriteManifest": "stitchface-headsman/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "index": 1,
+      "asset": "waxface-mourner",
+      "state": "attacking",
+      "loop": false,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/waxface-mourner-video-safe.png",
+      "promptFile": "waxface-mourner/prompts/attacking-doubao-v01.txt",
+      "video": "waxface-mourner/videos/attacking-doubao-v01.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "waxface-mourner/sprite-build-v01/previews/final/attacking.gif",
+      "contactSheet": "waxface-mourner/previews/attacking-doubao-v01-contact.png",
+      "provenance": "waxface-mourner/videos/attacking-doubao-v01.mp4.json",
+      "spriteManifest": "waxface-mourner/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true,
+      "sourceReview": "Agent reviewed all final frames after user authorized next elite; smoke separated, fixed-camera calibration retained."
+    },
+    {
+      "index": 2,
+      "asset": "stitchface-headsman",
+      "state": "idle",
+      "loop": true,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/stitchface-headsman-video-safe.png",
+      "promptFile": "stitchface-headsman/prompts/idle-doubao-v01.txt",
+      "video": "stitchface-headsman/videos/idle-doubao-v01.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "previousAttempt": "Prior login returned explicit rolling-quota denial with no video. On user continuation, current Doubao login/history differs and composer has no pending task; one new attempt is authorized within requested work.",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "stitchface-headsman/sprite-build-v01/previews/final/idle.gif",
+      "contactSheet": "stitchface-headsman/previews/idle-doubao-v01-contact.png",
+      "provenance": "stitchface-headsman/videos/idle-doubao-v01.mp4.json",
+      "spriteManifest": "stitchface-headsman/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "index": 3,
+      "asset": "stitchface-headsman",
+      "state": "walking",
+      "loop": true,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/stitchface-headsman-walking-right-v06-safe.png",
+      "promptFile": "stitchface-headsman/prompts/walking-doubao-v06.txt",
+      "video": "stitchface-headsman/videos/walking-doubao-v06.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "previousCandidates": [
+        {
+          "video": "stitchface-headsman/videos/walking-doubao-v01.mp4",
+          "status": "rejected_for_heading_drift",
+          "reason": "First candidate repeatedly rotates torso/head toward the camera during the stride. Do not use as fixed-heading walking animation."
+        },
+        {
+          "video": "stitchface-headsman/videos/walking-doubao-v02.mp4",
+          "status": "superseded_after_user_heading_feedback",
+          "reason": "User requested unchanged camera and slightly more screen-right heading; v02 still swings toward the camera."
+        },
+        {
+          "video": "stitchface-headsman/videos/walking-doubao-v03.mp4",
+          "status": "rejected_heading_and_reframing",
+          "reason": "v03 again rotates the torso toward the camera, enlarges composition, adds strong floor shadow and brings feet too close to the frame edge."
+        },
+        {
+          "video": "stitchface-headsman/videos/walking-doubao-v04.mp4",
+          "status": "rejected_after_humanoid_heading_comparison",
+          "reason": "Source frames 31 and 68 turn the chest toward a nearly frontal view."
+        },
+        {
+          "video": "stitchface-headsman/videos/walking-doubao-v05.mp4",
+          "status": "rejected_heading_and_reframing",
+          "reason": "Body periodically turns toward the viewer; subject enlarged from padded input."
+        }
+      ],
+      "revisionInstruction": "对照人形怪物移动后继续抽；已切换账号，重新推。",
+      "retryAuthorization": "User explicitly said 继续，换号了. Current account/history differs; composer empty, zero video elements, old conversation contains a dated prior denial. One new attempt authorized; decide from its actual response.",
+      "visualReviewStatus": "candidate_user_review_pending",
+      "detailPreview": "stitchface-headsman/previews/walking-doubao-v06-detail.gif",
+      "currentGenerationEvidence": "stitchface-headsman/videos/walking-doubao-v06-submission-retry2.json",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "stitchface-headsman/sprite-build-v01/previews/final/walking.gif",
+      "contactSheet": "stitchface-headsman/previews/walking-doubao-v06-contact.png",
+      "provenance": "stitchface-headsman/videos/walking-doubao-v06.mp4.json",
+      "spriteManifest": "stitchface-headsman/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "index": 4,
+      "asset": "stitchface-headsman",
+      "state": "dying",
+      "loop": false,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/stitchface-headsman-video-safe.png",
+      "promptFile": "stitchface-headsman/prompts/dying-doubao-v01.txt",
+      "video": "stitchface-headsman/videos/dying-doubao-v01.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "stitchface-headsman/sprite-build-v01/previews/final/dying.gif",
+      "contactSheet": "stitchface-headsman/previews/dying-doubao-v01-contact.png",
+      "provenance": "stitchface-headsman/videos/dying-doubao-v01.mp4.json",
+      "spriteManifest": "stitchface-headsman/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "index": 5,
+      "asset": "waxface-mourner",
+      "state": "idle",
+      "loop": true,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/waxface-mourner-video-safe.png",
+      "promptFile": "waxface-mourner/prompts/idle-doubao-v01.txt",
+      "video": "waxface-mourner/videos/idle-doubao-v01.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "waxface-mourner/sprite-build-v01/previews/final/idle.gif",
+      "contactSheet": "waxface-mourner/previews/idle-doubao-v01-contact.png",
+      "provenance": "waxface-mourner/videos/idle-doubao-v01.mp4.json",
+      "spriteManifest": "waxface-mourner/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true,
+      "sourceReview": "Agent reviewed all final frames after user authorized next elite; smoke separated, fixed-camera calibration retained."
+    },
+    {
+      "index": 6,
+      "asset": "waxface-mourner",
+      "state": "walking",
+      "loop": true,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/waxface-mourner-video-safe.png",
+      "promptFile": "waxface-mourner/prompts/walking-doubao-v01.txt",
+      "video": "waxface-mourner/videos/walking-doubao-v01.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "waxface-mourner/sprite-build-v01/previews/final/walking.gif",
+      "contactSheet": "waxface-mourner/previews/walking-doubao-v01-contact.png",
+      "provenance": "waxface-mourner/videos/walking-doubao-v01.mp4.json",
+      "spriteManifest": "waxface-mourner/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true,
+      "sourceReview": "Agent reviewed all final frames after user authorized next elite; smoke separated, fixed-camera calibration retained."
+    },
+    {
+      "index": 7,
+      "asset": "waxface-mourner",
+      "state": "dying",
+      "loop": false,
+      "provider": "doubao",
+      "model": "Seedance 2.0 Mini",
+      "durationSeconds": 5,
+      "size": "1280x720",
+      "mother": "references/waxface-mourner-video-safe.png",
+      "promptFile": "waxface-mourner/prompts/dying-doubao-v01.txt",
+      "video": "waxface-mourner/videos/dying-doubao-v01.mp4",
+      "status": "source_used_in_formal_sprites_installed",
+      "sourceMetadata": {
+        "size": [
+          1280,
+          720
+        ],
+        "frameCount": 121,
+        "fps": 24.0,
+        "durationSeconds": 5.041666666666667
+      },
+      "preview": "waxface-mourner/sprite-build-v01/previews/final/dying.gif",
+      "contactSheet": "waxface-mourner/previews/dying-doubao-v01-contact.png",
+      "provenance": "waxface-mourner/videos/dying-doubao-v01.mp4.json",
+      "spriteManifest": "waxface-mourner/sprite-build-v01/manifest.json",
+      "runtimeIntegrationActive": true,
+      "sourceReview": "Agent reviewed all final frames after user authorized next elite; smoke separated, fixed-camera calibration retained."
+    }
+  ],
+  "completedSourceCount": 8,
+  "runtimeIntegrated": true,
+  "testsOrRuntimeValidationPerformed": false,
+  "quotaHistory": "doubao-quota-blocker-walking-v06-retry.json",
+  "assetProgress": {
+    "stitchface-headsman": {
+      "completedSources": 4,
+      "totalSources": 4,
+      "deliveredStates": [
+        "attacking",
+        "idle",
+        "walking",
+        "dying"
+      ],
+      "remainingStates": [],
+      "overview": "stitchface-headsman/previews/four-actions-overview.gif",
+      "status": "installed_pending_user_runtime_test",
+      "sourceApproval": "可用继续",
+      "walkingVersion": "v06",
+      "formalSpriteCount": 4,
+      "runtimeIntegrationActive": true,
+      "runtimeVerified": false,
+      "formalOverview": "stitchface-headsman/sprite-build-v01/previews/final/four-actions-overview.gif",
+      "delivery": "stitchface-headsman/SPRITE_DELIVERY.md",
+      "offlineReviewPassed": true,
+      "review": "stitchface-headsman/sprite-build-v01/review-20260831/asset-review.json",
+      "rgbaMiB": 49.4019775390625
+    },
+    "waxface-mourner": {
+      "completedSources": 4,
+      "totalSources": 4,
+      "deliveredStates": [
+        "attacking",
+        "idle",
+        "walking",
+        "dying"
+      ],
+      "remainingStates": [],
+      "overview": "waxface-mourner/previews/four-actions-overview.gif",
+      "status": "installed_pending_user_runtime_test",
+      "formalSpriteCount": 4,
+      "runtimeIntegrationActive": true,
+      "runtimeVerified": false,
+      "formalOverview": "waxface-mourner/sprite-build-v01/previews/final/four-actions-overview.gif",
+      "delivery": "waxface-mourner/SPRITE_DELIVERY.md",
+      "offlineReviewPassed": true,
+      "review": "waxface-mourner/sprite-build-v01/review-20260831/asset-review.json",
+      "rgbaMiB": 44.23095703125,
+      "visualAcceptance": {
+        "status": "accepted",
+        "date": "2026-08-31",
+        "userMessage": "可用",
+        "scope": "waxface-mourner final four-action animation preview; game runtime acceptance recorded separately"
+      }
+    }
+  },
+  "completedAssetOrder": [
+    "stitchface-headsman",
+    "waxface-mourner"
+  ],
+  "completionBoundary": "Headsman workflow reviewed and repaired before mourner production/integration. Offline asset checks only; no game tests or runtime verification.",
+  "publication": "Source/asset archive on remote; integration status describes local development checkout only."
+}

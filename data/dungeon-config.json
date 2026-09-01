@@ -1,9 +1,9 @@
 {
  "dungeonList": {
   "zombie": {
-   "name": "☠ 僵尸地牢-高级",
+   "name": "☠ 恐怖地牢-高级",
    "series": "zombie",
-   "seriesName": "僵尸地牢",
+   "seriesName": "恐怖地牢",
    "seriesIcon": "☠",
    "seriesOrder": 10,
    "tier": "高级",
@@ -12,24 +12,26 @@
    "nodeCount": "45~50",
    "battleRatio": "50%",
    "level": "1级",
-   "reward": "1500金币",
-   "grade": "D",
-   "recLevel": "25~40级"
+   "reward": "20000金币",
+   "grade": "A",
+   "recLevel": "70~85级",
+   "monsterStatProfile": "horror"
   },
   "zombieBeginner": {
-   "name": "☠ 僵尸地牢-初级",
+   "name": "☠ 恐怖地牢-初级",
    "series": "zombie",
-   "seriesName": "僵尸地牢",
+   "seriesName": "恐怖地牢",
    "seriesIcon": "☠",
    "seriesOrder": 10,
    "tier": "初级",
    "tierOrder": 1,
-   "nodeCount": "22",
-   "battleRatio": "40%",
+   "nodeCount": "22~27",
+   "battleRatio": "50%",
    "level": "1级",
-   "reward": "800金币",
-   "grade": "F",
-   "recLevel": "1~10级"
+   "reward": "8000金币",
+   "grade": "C",
+   "recLevel": "40~55级",
+   "monsterStatProfile": "horror"
   },
   "frozenBeginner": {
    "name": "❄ 冰封世界-初级",
@@ -79,20 +81,21 @@
    "recLevel": "70~85级"
   },
   "zombieMid": {
-   "name": "☠ 僵尸地牢-中级",
+   "name": "☠ 恐怖地牢-中级",
    "series": "zombie",
-   "seriesName": "僵尸地牢",
+   "seriesName": "恐怖地牢",
    "seriesIcon": "☠",
    "seriesOrder": 10,
    "tier": "中级",
    "tierOrder": 2,
    "unlockAfter": "zombieBeginner",
-   "nodeCount": "30",
+   "nodeCount": "30~35",
    "battleRatio": "50%",
    "level": "1级",
-   "reward": "1200金币",
-   "grade": "E",
-   "recLevel": "10~25级"
+   "reward": "13000金币",
+   "grade": "B",
+   "recLevel": "55~70级",
+   "monsterStatProfile": "horror"
   },
   "swamp": {
    "name": "☠ 沼泽地牢-高级",
@@ -106,7 +109,7 @@
    "nodeCount": "55~60",
    "battleRatio": "50%",
    "level": "1级",
-   "reward": "2000金币",
+   "reward": "8000金币",
    "grade": "C",
    "recLevel": "40~55级"
   },
@@ -121,7 +124,7 @@
    "nodeCount": "30~35",
    "battleRatio": "50%",
    "level": "1级",
-   "reward": "1200金币",
+   "reward": "3000金币",
    "grade": "E",
    "recLevel": "10~25级"
   },
@@ -137,7 +140,7 @@
    "nodeCount": "45~50",
    "battleRatio": "50%",
    "level": "1级",
-   "reward": "1500金币",
+   "reward": "5000金币",
    "grade": "D",
    "recLevel": "25~40级"
   },
@@ -159,12 +162,47 @@
  },
  "zombieDungeon": {
   "combatRoom": {
-   "normalSize": 1152,
-   "eliteSize": 1664,
-   "bossSize": 2048,
+   "normalSize": 1280,
+   "eliteSize": 1920,
+   "bossSize": 2304,
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
-   "passageCells": 8
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 40,
+    "sizeJitterCells": 2,
+    "branchChance": 0.32,
+    "maxBranchPassages": 1,
+    "loopChance": 0.22,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.32,
+    "maxRoomGraphBranches": 1,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   }
   },
   "combatArena": {
    "enabled": true,
@@ -185,7 +223,7 @@
    "combat": 0.5,
    "event": 0.5
   },
-  "eliteCombatChance": 0.35,
+  "eliteCombatChance": 0.45,
   "encounters": {
    "normal": {
     "combatWaves": 3,
@@ -195,6 +233,24 @@
      "elite": 0
     },
     "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
     "waveComposition": [
      {
       "normal": 5
@@ -203,33 +259,63 @@
       "normal": 5
      },
      {
-      "normal": 4,
-      "elite": 1
+      "elite": 1,
+      "normal": 4
      }
     ]
    },
    "elite": {
-    "combatWaves": 3,
+    "combatWaves": 5,
     "monstersPerWave": 5,
     "monsterComposition": {
      "elite": 1,
-     "normal": 5
+     "normal": 4
     },
     "tierWeights": {
      "normal": 0,
      "elite": 1
     },
     "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand",
+     "pleatDevourer",
+     "hollowOvum"
+    ],
+    "matchPoolRanks": true,
     "waveComposition": [
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 4,
-      "lord": 1
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
      }
     ]
    }
@@ -270,25 +356,61 @@
    "hitFrame": 6
   },
   "family": "zombie",
-  "wallStyle": "zombie"
+  "wallStyle": "zombie",
+  "arenaLastWaveNormals": 10
  },
  "zombieDungeonBeginner": {
   "combatRoom": {
-   "normalSize": 896,
-   "eliteSize": 1280,
-   "bossSize": 1536,
+   "normalSize": 1152,
+   "eliteSize": 1664,
+   "bossSize": 2048,
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
-   "passageCells": 8
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 40,
+    "sizeJitterCells": 1,
+    "branchChance": 0.22,
+    "maxBranchPassages": 1,
+    "loopChance": 0.12,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.22,
+    "maxRoomGraphBranches": 1,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   }
   },
   "combatArena": {
    "enabled": true,
-   "normalRoomCount": 1,
-   "eliteRoomCount": 1,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
    "maze": {
-    "enabled": false,
-    "roomCount": 1,
-    "rows": 1
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
    }
   },
   "nodeCount": {
@@ -298,10 +420,10 @@
   "shortestCombatPath": 4,
   "mainRowMinCombat": 3,
   "typeRatios": {
-   "combat": 0.4,
-   "event": 0.6
+   "combat": 0.5,
+   "event": 0.5
   },
-  "eliteCombatChance": 0,
+  "eliteCombatChance": 0.35,
   "encounters": {
    "normal": {
     "combatWaves": 3,
@@ -310,20 +432,92 @@
      "normal": 1,
      "elite": 0
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     }
+    ]
    },
    "elite": {
-    "combatWaves": 1,
-    "monstersPerWave": 6,
+    "combatWaves": 5,
+    "monstersPerWave": 5,
     "monsterComposition": {
      "elite": 1,
-     "normal": 5
+     "normal": 4
     },
     "tierWeights": {
      "normal": 0,
      "elite": 1
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand",
+     "pleatDevourer",
+     "hollowOvum"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
+     }
+    ]
    }
   },
   "grid": {
@@ -345,9 +539,29 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "monsterComposition": {
-    "elite": 1,
-    "normal": 5
+    "lord": 1,
+    "normal": 4
    },
+   "poolKeys": [
+    "zombieDog",
+    "fatZombie",
+    "coffinWard",
+    "shroudThrall",
+    "ossuaryCaster",
+    "knellAttendant",
+    "stitchfaceHeadsman",
+    "waxfaceMourner",
+    "flySwarm",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand",
+    "pleatDevourer",
+    "hollowOvum"
+   ],
+   "matchPoolRanks": true,
    "waveComposition": [
     {
      "normal": 5
@@ -356,8 +570,8 @@
      "normal": 5
     },
     {
-     "normal": 4,
-     "elite": 1
+     "lord": 1,
+     "normal": 4
     }
    ]
   },
@@ -370,7 +584,8 @@
    "terrainProfile": "zombieDungeonStone"
   },
   "family": "zombie",
-  "wallStyle": "zombie"
+  "wallStyle": "zombie",
+  "arenaLastWaveNormals": 10
  },
  "frozenDungeonBeginner": {
   "combatRoom": {
@@ -721,21 +936,56 @@
  },
  "zombieDungeonMid": {
   "combatRoom": {
-   "normalSize": 1024,
-   "eliteSize": 1536,
-   "bossSize": 1792,
+   "normalSize": 1280,
+   "eliteSize": 1792,
+   "bossSize": 2176,
    "wallConstruction": "worldBlock1x1",
    "gateCells": 6,
-   "passageCells": 8
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 40,
+    "sizeJitterCells": 2,
+    "branchChance": 0.28,
+    "maxBranchPassages": 1,
+    "loopChance": 0.18,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.28,
+    "maxRoomGraphBranches": 1,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   }
   },
   "combatArena": {
    "enabled": true,
-   "normalRoomCount": 1,
-   "eliteRoomCount": 3,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
    "maze": {
-    "enabled": false,
-    "roomCount": 3,
-    "rows": 1
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
    }
   },
   "nodeCount": {
@@ -756,20 +1006,92 @@
      "normal": 1,
      "elite": 0
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     }
+    ]
    },
    "elite": {
-    "combatWaves": 1,
-    "monstersPerWave": 6,
+    "combatWaves": 5,
+    "monstersPerWave": 5,
     "monsterComposition": {
      "elite": 1,
-     "normal": 5
+     "normal": 4
     },
     "tierWeights": {
      "normal": 0,
      "elite": 1
     },
-    "guaranteeAtLeastOneElite": false
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand",
+     "pleatDevourer",
+     "hollowOvum"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
+     }
+    ]
    }
   },
   "grid": {
@@ -791,9 +1113,29 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "monsterComposition": {
-    "lord": 1
+    "lord": 1,
+    "normal": 4
    },
-   "poolFamily": "僵尸",
+   "poolKeys": [
+    "zombieDog",
+    "fatZombie",
+    "coffinWard",
+    "shroudThrall",
+    "ossuaryCaster",
+    "knellAttendant",
+    "stitchfaceHeadsman",
+    "waxfaceMourner",
+    "flySwarm",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand",
+    "pleatDevourer",
+    "hollowOvum"
+   ],
+   "matchPoolRanks": true,
    "waveComposition": [
     {
      "normal": 5
@@ -802,8 +1144,8 @@
      "normal": 5
     },
     {
-     "normal": 4,
-     "lord": 1
+     "lord": 1,
+     "normal": 4
     }
    ]
   },
@@ -816,11 +1158,15 @@
    "terrainProfile": "zombieDungeonStone"
   },
   "family": "zombie",
-  "wallStyle": "zombie"
+  "wallStyle": "zombie",
+  "arenaLastWaveNormals": 10
  },
  "swampDungeon": {
   "combatRoom": {
-   "bossSize": 1024
+   "bossSize": 1024,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
   },
   "nodeCount": {
    "min": 55,
@@ -868,7 +1214,7 @@
     ]
    },
    "elite": {
-    "combatWaves": 3,
+    "combatWaves": 5,
     "monstersPerWave": 5,
     "poolKeys": [
      "blackWolf",
@@ -885,7 +1231,7 @@
     "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
-     "normal": 5
+     "normal": 4
     },
     "tierWeights": {
      "normal": 0,
@@ -894,14 +1240,24 @@
     "guaranteeAtLeastOneElite": false,
     "waveComposition": [
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 4,
-      "lord": 1
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
      }
     ]
    }
@@ -911,15 +1267,12 @@
    "monstersPerWave": 5,
    "poolKeys": [
     "blackWolf",
-    "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "blackKingCobra",
+    "medusa"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -959,17 +1312,22 @@
   "floor": {
    "terrainProfile": "swampDungeonWetland"
   },
-  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
   "family": "zombie",
   "eventScope": "swamp",
   "wallStyle": "swamp",
   "combatArena": {
-   "enabled": true
-  }
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5
+  },
+  "arenaLastWaveNormals": 10
  },
  "swampDungeonBeginner": {
   "combatRoom": {
-   "bossSize": 1024
+   "bossSize": 1024,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
   },
   "nodeCount": {
    "min": 30,
@@ -992,10 +1350,7 @@
      "evilTreant",
      "carnivorousPitcher",
      "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+     "blackKingCobra"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -1026,15 +1381,12 @@
      "evilTreant",
      "carnivorousPitcher",
      "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+     "blackKingCobra"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
-     "normal": 5
+     "normal": 4
     },
     "tierWeights": {
      "normal": 0,
@@ -1043,14 +1395,16 @@
     "guaranteeAtLeastOneElite": false,
     "waveComposition": [
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 4,
-      "lord": 1
+      "elite": 1,
+      "normal": 4
      }
     ]
    }
@@ -1075,15 +1429,12 @@
    "monstersPerWave": 5,
    "poolKeys": [
     "blackWolf",
+    "brownBear",
+    "evilTreant",
+    "brownSnake",
     "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "carnivorousPitcher",
+    "blackKingCobra"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -1094,8 +1445,8 @@
      "normal": 5
     },
     {
-     "normal": 4,
-     "boss": 1
+     "elite": 1,
+     "normal": 4
     }
    ]
   },
@@ -1107,17 +1458,22 @@
   "floor": {
    "terrainProfile": "swampDungeonWetland"
   },
-  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
   "family": "zombie",
   "eventScope": "swamp",
   "wallStyle": "swamp",
   "combatArena": {
-   "enabled": true
-  }
+   "enabled": true,
+   "normalRoomCount": 1,
+   "eliteRoomCount": 3
+  },
+  "arenaLastWaveNormals": 10
  },
  "swampDungeonMid": {
   "combatRoom": {
-   "bossSize": 1024
+   "bossSize": 1024,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
   },
   "nodeCount": {
    "min": 45,
@@ -1142,8 +1498,7 @@
      "brownSnake",
      "blackKingCobra",
      "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+     "blackBear"
     ],
     "matchPoolRanks": true,
     "tierWeights": {
@@ -1165,7 +1520,7 @@
     ]
    },
    "elite": {
-    "combatWaves": 3,
+    "combatWaves": 5,
     "monstersPerWave": 5,
     "poolKeys": [
      "blackWolf",
@@ -1176,13 +1531,12 @@
      "brownSnake",
      "blackKingCobra",
      "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+     "blackBear"
     ],
     "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
-     "normal": 5
+     "normal": 4
     },
     "tierWeights": {
      "normal": 0,
@@ -1191,14 +1545,24 @@
     "guaranteeAtLeastOneElite": false,
     "waveComposition": [
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 5
+      "elite": 1,
+      "normal": 4
      },
      {
-      "normal": 4,
-      "lord": 1
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
      }
     ]
    }
@@ -1224,15 +1588,11 @@
    "monstersPerWave": 5,
    "poolKeys": [
     "blackWolf",
-    "redWolfKing",
-     "brownBear",
-     "evilTreant",
-     "carnivorousPitcher",
-     "brownSnake",
-     "blackKingCobra",
-     "medusa",
-     "blackBear",
-     "purpleBlightAncient"
+    "brownBear",
+    "evilTreant",
+    "brownSnake",
+    "medusa",
+    "blackBear"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -1243,8 +1603,8 @@
      "normal": 5
     },
     {
-     "normal": 4,
-     "boss": 1
+     "lord": 1,
+     "normal": 4
     }
    ]
   },
@@ -1256,13 +1616,15 @@
   "floor": {
    "terrainProfile": "swampDungeonWetland"
   },
-  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
   "family": "zombie",
   "eventScope": "swamp",
   "wallStyle": "swamp",
   "combatArena": {
-   "enabled": true
-  }
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5
+  },
+  "arenaLastWaveNormals": 10
  },
  "combatRoom": {
   "normalSize": 1024,
@@ -1630,5 +1992,52 @@
   },
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie"
+ },
+ "monsterStatProfiles": {
+  "horror": {
+   "comment": "恐怖C/B/A专属出生倍率，通用等级成长后仅应用一次；白名单含事件怪和召唤物，不影响低级矿洞、其他位面或时空特工。六维/暴击/移速/控制时钟不变。",
+   "enemyKeys": [
+    "zombieDog",
+    "fatZombie",
+    "coffinWard",
+    "shroudThrall",
+    "ossuaryCaster",
+    "knellAttendant",
+    "flySwarm",
+    "stitchfaceHeadsman",
+    "waxfaceMourner",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand",
+    "amalgamZombie",
+    "armoredKnight",
+    "zombie",
+    "spitterZombie",
+    "tombstone",
+    "cauldron",
+    "pleatDevourer",
+    "hollowOvum"
+   ],
+   "byGrade": {
+    "C": {
+     "hp": 1.5,
+     "attack": 1.25,
+     "defense": 1.1
+    },
+    "B": {
+     "hp": 1.7,
+     "attack": 1.4,
+     "defense": 1.15
+    },
+    "A": {
+     "hp": 2,
+     "attack": 1.55,
+     "defense": 1.2
+    }
+   }
+  }
  }
 }

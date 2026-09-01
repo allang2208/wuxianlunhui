@@ -1053,5 +1053,42 @@
     "demonPrayer": {
       "atkPercent": 30
     }
+  },
+  "dungeonRewardProfiles": {
+    "comment": "按dungeonList.series选用的系列奖励覆盖；经验比较锚点独立于战斗属性成长，未配置系列保持旧奖励。",
+    "swamp": {
+      "E": {
+        "experienceAnchor": 13,
+        "weaponRarities": ["uncommon"],
+        "completionCards": { "scrollGrade": "common", "dust": 200, "stone": 2, "ticket": 1, "gold": 800 }
+      },
+      "D": {
+        "experienceAnchor": 28,
+        "weaponRarities": ["rare"],
+        "completionCards": { "scrollGrade": "uncommon", "dust": 350, "stone": 3, "ticket": 2, "gold": 1400 }
+      },
+      "C": {
+        "experienceAnchor": 43,
+        "weaponRarities": ["epic"],
+        "completionCards": { "scrollGrade": "uncommon", "dust": 600, "stone": 4, "ticket": 3, "gold": 2400 }
+      }
+    },
+    "zombie": {
+      "C": {
+        "experienceAnchor": 43,
+        "weaponRarities": ["epic"],
+        "completionCards": { "scrollGrade": "uncommon", "dust": 600, "stone": 4, "ticket": 3, "gold": 2400 }
+      },
+      "B": {
+        "experienceAnchor": 58,
+        "weaponRarities": ["mythic"],
+        "completionCards": { "scrollGrade": "rare", "dust": 1000, "stone": 6, "ticket": 5, "gold": 4000 }
+      },
+      "A": {
+        "experienceAnchor": 73,
+        "weaponRarities": ["legendary"],
+        "completionCards": { "scrollGrade": "rare", "dust": 1600, "stone": 8, "ticket": 7, "gold": 6500 }
+      }
+    }
   }
 }

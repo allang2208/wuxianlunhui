@@ -1,0 +1,453 @@
+{
+  "createdDate": "2026-08-31",
+  "unitKey": "pleat_devourer",
+  "name": "百褶噬团",
+  "stage": "runtime_integrated_pending_user_validation",
+  "userRequest": "注意看一下其他怪物的朝向视角，先把母图调整到动画标准工作流，接下来进入视频环节",
+  "mother": {
+    "path": "../mother/pleat-devourer-mother-v03-animation-right.png",
+    "prompt": "../prompts/pleat-devourer-mother-v03-animation-camera.txt",
+    "directEditSource": "../mother/pleat-devourer-mother-v02-dungeon-family-white.png",
+    "sourceSize": [
+      1672,
+      941
+    ],
+    "sourceMode": "RGB",
+    "foregroundBoundsApprox": [
+      254,
+      284,
+      1405,
+      728
+    ],
+    "boundsMethod": "luminance distance from white >28; framing estimate only",
+    "sourceResizeApplied": false,
+    "sourceCutoutApplied": false,
+    "sourceUniformScale": 1,
+    "identityContinuationAuthorized": true,
+    "finalMotherApproval": false,
+    "visualReview": "对照已查看的僵尸犬v04和刽子手右向v06，当前身体沿左右展开、前端朝右、轻俯视；非从成图反解的精确摄像机参数。"
+  },
+  "cameraReferences": [
+    {
+      "path": "../references/camera-zombie-dog-v04.png",
+      "role": "primary_camera_and_rightward_heading",
+      "source": "../../_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v04-wolf-camera-white.png"
+    },
+    {
+      "path": "../references/camera-headsman-right-v06.png",
+      "role": "supporting_screen_heading_and_animation_framing",
+      "source": "../../_horror_elite_mothers_20260831/animations/references/stitchface-headsman-walking-right-v06-safe.png"
+    }
+  ],
+  "videoRequest": {
+    "entrypoint": "tools/ai-gen/ai-asset.py video generate",
+    "provider": "doubao",
+    "requestedModel": "Seedance 2.0 Mini",
+    "actualModel": "Seedance 2.0 Mini",
+    "modelSelection": "explicit UI model selection reported by current standard helper",
+    "requestedDurationSeconds": 5,
+    "requestedSize": "1280x720",
+    "requestedRatio": "16:9",
+    "candidatesPerAction": 1,
+    "paidQuotaAuthorized": false
+  },
+  "submission": {
+    "uploaded": true,
+    "submitted": true,
+    "generatedVideos": 7,
+    "blockingSystem": null,
+    "reason": "视频生成记录保留；攻击v04已接受，四动作图集已于2026-09-01按后续用户请求接入游戏。",
+    "neededAuthorization": null,
+    "rerouteAttempted": false,
+    "authorization": {
+      "explicit": true,
+      "userReply": "允许",
+      "scope": "将百褶噬团v03动画母图和四份动作提示词上传豆包，仅使用免费额度生成四条5秒视频。",
+      "paidQuotaAuthorized": false
+    },
+    "reviewableCandidates": 4,
+    "rejectedCandidates": 2,
+    "stoppedAfterProviderRejection": false,
+    "revisionAuthorization": {
+      "explicit": true,
+      "userReply": "还是不行，你得调整提示词了",
+      "scope": "保留v03母图，将动作改为无攻击和受伤表现的柔性材料收拢，另存提示词后仅用免费额度提交一次。",
+      "originalPromptRetrySubmittedThisTurn": false,
+      "paidQuotaAuthorized": false
+    },
+    "currentTurnGeneration": {
+      "userReply": "攻击继续重出",
+      "submitted": 2,
+      "downloaded": 2,
+      "paidQuotaAuthorized": false,
+      "paidConfirmationUsed": false,
+      "currentActions": [
+        "attack-v03",
+        "attack-v04"
+      ],
+      "providerRejections": 0,
+      "latestCandidate": "attack-v04"
+    },
+    "attackV03Authorization": {
+      "explicit": true,
+      "userReply": "攻击继续重出",
+      "scope": "同一v03母图，攻击v03单次免费生成，约束闭合厚褶贴地前压和后部固定，不改其他动作。",
+      "paidQuotaAuthorized": false
+    },
+    "attackRegenerationScope": {
+      "userReply": "攻击继续重出",
+      "candidates": [
+        "attack-v03",
+        "attack-v04"
+      ],
+      "reasonForV04": "v03成片仍掀开前端，按同一攻击返工要求改为闭合前块平移结构继续纠偏。",
+      "paidQuotaAuthorized": false
+    },
+    "supersededCandidates": 1,
+    "priorGenerationRounds": [
+      {
+        "submitted": 2,
+        "downloaded": 2,
+        "paidQuotaAuthorized": false,
+        "paidConfirmationUsed": false,
+        "currentActions": [
+          "dying-v02-fold-settle",
+          "attack-v02"
+        ],
+        "originalPromptRetrySubmitted": false,
+        "providerRejections": 0
+      }
+    ]
+  },
+  "preflight": {
+    "performed": true,
+    "action": "idle",
+    "uploadPerformed": false,
+    "submissionPerformed": false,
+    "promptChars": 495,
+    "promptSha256": "3f06547eaf6cf54e97d54f661799ca9d3ce4b201fba785eebbb8e577c09b2e40",
+    "textReadback": "Tiptap state verified by standard helper",
+    "modelSelection": "explicit",
+    "parameterSelection": "explicit",
+    "log": "logs/idle-v01-authorized-preflight.log"
+  },
+  "automationClient": {
+    "launchedByThisTaskThisTurn": false,
+    "attachedExistingClient": true,
+    "closed": false,
+    "cleanupPolicy": "本轮连接到已存在的9333自动化客户端，不关闭并非本轮启动的客户端。此前本轮历史中自启动的实例已关闭。"
+  },
+  "productionContract": {
+    "usageTier": "specialist",
+    "targetDecodedMiB": 64,
+    "pauseAboveMiB": 128,
+    "rootMotion": "locomotion moves Collider; attack fixes Collider movement and preserves authored internal motion",
+    "sourceRoot": "源视频固定支撑点(612.5,556)；统一0.35缩放后各动作按固定裁框换算footX/footY。",
+    "noPerFrameResizing": true,
+    "mirrorAxis": "与逻辑腹面根点一致，视频固定右向。",
+    "attackMotionTargetMs": 5041.666667,
+    "attackContactFrame": 26,
+    "death": "保留完整塌伏和末帧；运行时留尸1600ms后淡出600ms，不反放。",
+    "plannedInterpolation": "已完成RIFE v4.6 2x，循环回绕，单次不回绕；原关键帧在偶数帧保留。",
+    "worldScale": 1,
+    "normalAndMaxZoomPixels": [
+      124,
+      127.72
+    ],
+    "collider": {
+      "radius": 90,
+      "height": 130,
+      "offsetX": 0,
+      "offsetY": 0,
+      "projectileHitbox": {
+        "width": 300,
+        "height": 130,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "frameLayouts": {
+      "manifest": "sprite-production-v01/sprite-manifest.json",
+      "parameters": "sprite-production-v01/animation-parameters.json",
+      "runtimeRegistered": true
+    },
+    "runtimeKeys": {
+      "idle": {
+        "state": "idle",
+        "textureKey": "enemy_pleat_devourer_idle",
+        "texture": "assets/enemies/pleat_devourer/idle.png"
+      },
+      "crawling": {
+        "state": "walk",
+        "textureKey": "enemy_pleat_devourer_walk",
+        "texture": "assets/enemies/pleat_devourer/walk.png"
+      },
+      "attack": {
+        "state": "attack",
+        "textureKey": "enemy_pleat_devourer_attack",
+        "texture": "assets/enemies/pleat_devourer/attack.png"
+      },
+      "dying": {
+        "state": "death",
+        "textureKey": "enemy_pleat_devourer_death",
+        "texture": "assets/enemies/pleat_devourer/death.png"
+      }
+    },
+    "unresolvedNote": "已按用户请求接入；尚未运行测试/实机验收，保留源片蠕行张合、接缝和轻塌伏的观感限制。"
+  },
+  "actions": {
+    "idle": {
+      "prompt": "prompts/idle-v01.txt",
+      "motionMode": "loop",
+      "description": "待机：微弱呼吸与褶片收缩",
+      "plannedVideo": "videos/idle-v01.mp4",
+      "status": "generated-candidate-awaiting-user-review",
+      "video": "videos/idle-v01.mp4",
+      "provenance": "videos/idle-v01.mp4.json",
+      "gif": null,
+      "contact": null,
+      "sourceReview": "已查看24点联系图：保持右向和外形身份，可见缓慢囊体鼓缩；源片仍有背景灰度变化和平台角标，未抠图或判为无缝循环。",
+      "submittedPromptChars": 496,
+      "submittedPromptSha256": "3f06547eaf6cf54e97d54f661799ca9d3ce4b201fba785eebbb8e577c09b2e40",
+      "requestedModel": "Seedance 2.0 Mini",
+      "spriteCandidate": {
+        "sheet": "sprite-production-v01/final/idle.png",
+        "gif": "sprite-production-v01/previews/idle.gif",
+        "frames": 60,
+        "durationMs": 3750,
+        "approved": true,
+        "approvalBasis": "2026-09-01 user requested runtime import"
+      },
+      "runtimeIntegration": {
+        "state": "idle",
+        "textureKey": "enemy_pleat_devourer_idle",
+        "texture": "assets/enemies/pleat_devourer/idle.png"
+      },
+      "gifRemovedDuringCleanup": null,
+      "contactRemovedDuringCleanup": null,
+      "gifRemovedDuringCleanupRemovedDuringCleanup": "previews/idle-v01.gif",
+      "contactRemovedDuringCleanupRemovedDuringCleanup": "previews/idle-v01-contact.png"
+    },
+    "crawling": {
+      "prompt": "prompts/crawling-v01.txt",
+      "motionMode": "loop",
+      "description": "蠕行：腹面推进姿态，画布中心锁定",
+      "plannedVideo": "videos/crawling-v01.mp4",
+      "status": "generated-candidate-awaiting-user-review",
+      "video": "videos/crawling-v01.mp4",
+      "provenance": "videos/crawling-v01.mp4.json",
+      "preflightPromptChars": 567,
+      "preflightPromptSha256": "dff32c7da1423c4d37b7a629d2a9997cd00f99de74e6d936b43da9873a98be5f",
+      "gif": null,
+      "contact": null,
+      "sourceReview": "已查看24点联系图：持续右向、腹面收缩与前端伸缩；前端张合较明显，是否符合蠕行气质需用户选定。存在源片投影/平台角标，尚未选自然循环。",
+      "submittedPromptChars": 568,
+      "submittedPromptSha256": "dff32c7da1423c4d37b7a629d2a9997cd00f99de74e6d936b43da9873a98be5f",
+      "requestedModel": "Seedance 2.0 Mini",
+      "spriteCandidate": {
+        "sheet": "sprite-production-v01/final/crawling.png",
+        "gif": "sprite-production-v01/previews/crawling.gif",
+        "frames": 52,
+        "durationMs": 2166.666667,
+        "approved": true,
+        "approvalBasis": "2026-09-01 user requested runtime import"
+      },
+      "runtimeIntegration": {
+        "state": "walk",
+        "textureKey": "enemy_pleat_devourer_walk",
+        "texture": "assets/enemies/pleat_devourer/walk.png"
+      },
+      "gifRemovedDuringCleanup": null,
+      "contactRemovedDuringCleanup": null,
+      "gifRemovedDuringCleanupRemovedDuringCleanup": "previews/crawling-v01.gif",
+      "contactRemovedDuringCleanupRemovedDuringCleanup": "previews/crawling-v01-contact.png"
+    },
+    "attack": {
+      "prompt": "prompts/attack-v04-closed-front-slide.txt",
+      "motionMode": "recover",
+      "description": "攻击v04：闭合前端整块推移，中段伸缩后复位",
+      "plannedVideo": "videos/attack-v04.mp4",
+      "status": "source_approved_for_sprite_production",
+      "video": "videos/attack-v04.mp4",
+      "provenance": "videos/attack-v04.mp4.json",
+      "gif": null,
+      "contact": null,
+      "sourceReview": "已查看v04的24点联系图：前端保持闭合推压，未见v02/v03那样明显掀开前端或后部上抬；主体持续朝右，末尾恢复近母图姿态。仍有后部轻微收缩，主要推进约1.3至2.2秒、回收延续到约4秒，未严格遵循1.5秒时序。作为最新候选，节奏和后部形变待用户选择；未裁段、调速或定稿。源片灰底、投影及平台角标仍保留。",
+      "correction": {
+        "prompt": "prompts/attack-v04-closed-front-slide.txt",
+        "plannedVideo": "videos/attack-v04.mp4",
+        "status": "generated_candidate_with_timing_concerns",
+        "scope": "前端整块闭合水平推移，由中段风箱式伸缩吸收位移，后部静止。",
+        "runtimeGameplayChanged": false,
+        "paidQuotaAuthorized": false,
+        "preflightPromptChars": 455,
+        "preflightPromptSha256": "ce4ed5ea1d1ac358db7af3eb30cd438c4ab01214464b0a032c8e21c8e8558286",
+        "preflightModelSelection": "managed fallback reported; actual submit log subsequently explicit Seedance 2.0 Mini",
+        "generationLog": "logs/attack-v04.log",
+        "preflightLog": "logs/attack-v04-preflight.log"
+      },
+      "requestedModel": "Seedance 2.0 Mini",
+      "previousCandidates": [
+        {
+          "prompt": "prompts/attack-v01.txt",
+          "video": null,
+          "provenance": "videos/attack-v01.mp4.json",
+          "gif": null,
+          "contact": null,
+          "status": "rejected_anatomy_drift",
+          "sourceReview": "24点联系图显示约1.9-2.6秒变成大张兽口并增生牙齿，与非人形折瓣身份和提示词不符；不作为可用攻击候选。",
+          "submittedPromptChars": 593,
+          "submittedPromptSha256": "08c443b43ec75e0d3619f5e5619b3ea5d7f1e77dcf5b921becd11da426a79765",
+          "videoRemovedDuringCleanup": null,
+          "gifRemovedDuringCleanup": null,
+          "contactRemovedDuringCleanup": null,
+          "videoRemovedDuringCleanupRemovedDuringCleanup": "videos/attack-v01.mp4",
+          "gifRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v01.gif",
+          "contactRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v01-contact.png"
+        },
+        {
+          "prompt": "prompts/attack-v02-closed-fold-press.txt",
+          "video": null,
+          "provenance": "videos/attack-v02.mp4.json",
+          "gif": null,
+          "contact": null,
+          "status": "generated-candidate-with-motion-deviation-awaiting-user-review",
+          "sourceReview": "已查看新版24点联系图：未见首版的牙齿增生，最终恢复近母图姿态；但约2.8秒前端折缝仍张开，后部明显抬起，主要前压发生在约2.8至3.5秒，没有完全满足闭缝、后部锁根和提示词时序。作为有动作偏差的候选供用户判断，不定稿、不继续自动重抽。源片仍有灰底、投影和平台角标。",
+          "preflightPromptChars": 557,
+          "preflightPromptSha256": "c99e078f0a99cb5bbaf15aaa30eab6181932bed34237eb2c97f35f1ac17af498",
+          "submittedPromptChars": 560,
+          "submittedPromptSha256": "c99e078f0a99cb5bbaf15aaa30eab6181932bed34237eb2c97f35f1ac17af498",
+          "generationLog": "logs/attack-v02.log",
+          "preflightLog": "logs/attack-v02-preflight.log",
+          "videoRemovedDuringCleanup": null,
+          "gifRemovedDuringCleanup": null,
+          "contactRemovedDuringCleanup": null,
+          "videoRemovedDuringCleanupRemovedDuringCleanup": "videos/attack-v02.mp4",
+          "gifRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v02.gif",
+          "contactRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v02-contact.png"
+        },
+        {
+          "prompt": "prompts/attack-v03-grounded-fold-press.txt",
+          "video": null,
+          "provenance": "videos/attack-v03.mp4.json",
+          "gif": null,
+          "contact": null,
+          "status": "rejected_motion_deviation",
+          "sourceReview": "v03约1.9秒仍明显掀开前端，后部未完全锁定，未达到闭合贴地前压要求，不定稿；继续制作闭合前块平移v04。",
+          "preflightPromptChars": 436,
+          "preflightPromptSha256": "52791224ab1bd1138ab180548d763a16c2ce04dcbe21d2cc4a892468eeb2f346",
+          "submittedPromptChars": 438,
+          "submittedPromptSha256": "52791224ab1bd1138ab180548d763a16c2ce04dcbe21d2cc4a892468eeb2f346",
+          "generationLog": "logs/attack-v03.log",
+          "preflightLog": "logs/attack-v03-preflight.log",
+          "videoRemovedDuringCleanup": null,
+          "gifRemovedDuringCleanup": null,
+          "contactRemovedDuringCleanup": null,
+          "videoRemovedDuringCleanupRemovedDuringCleanup": "videos/attack-v03.mp4",
+          "gifRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v03.gif",
+          "contactRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v03-contact.png"
+        }
+      ],
+      "preflightPromptChars": 455,
+      "preflightPromptSha256": "ce4ed5ea1d1ac358db7af3eb30cd438c4ab01214464b0a032c8e21c8e8558286",
+      "generationLog": "logs/attack-v04.log",
+      "preflightLog": "logs/attack-v04-preflight.log",
+      "submittedPromptChars": 458,
+      "submittedPromptSha256": "ce4ed5ea1d1ac358db7af3eb30cd438c4ab01214464b0a032c8e21c8e8558286",
+      "approval": {
+        "userReply": "可以，继续",
+        "acceptedVideo": "videos/attack-v04.mp4",
+        "date": "2026-09-01",
+        "runtimeApproval": false
+      },
+      "spriteCandidate": {
+        "sheet": "sprite-production-v01/final/attack.png",
+        "gif": "sprite-production-v01/previews/attack.gif",
+        "frames": 81,
+        "durationMs": 5041.666667,
+        "approved": true,
+        "approvalBasis": "2026-09-01 user requested runtime import"
+      },
+      "runtimeIntegration": {
+        "state": "attack",
+        "textureKey": "enemy_pleat_devourer_attack",
+        "texture": "assets/enemies/pleat_devourer/attack.png"
+      },
+      "gifRemovedDuringCleanup": null,
+      "contactRemovedDuringCleanup": null,
+      "gifRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v04.gif",
+      "contactRemovedDuringCleanupRemovedDuringCleanup": "previews/attack-v04-contact.png"
+    },
+    "dying": {
+      "prompt": "prompts/dying-v02-fold-settle.txt",
+      "motionMode": "one-way",
+      "description": "收拢静置：无受伤表现的柔性褶团自然降低，末尾保持完整静止造型",
+      "plannedVideo": "videos/dying-v02-fold-settle.mp4",
+      "status": "generated-candidate-awaiting-user-review",
+      "video": "videos/dying-v02-fold-settle.mp4",
+      "provenance": "videos/dying-v02-fold-settle.mp4.json",
+      "sourceReview": "已查看新版24点联系图：固定右向、保持主体完整，前端折缝未展开为兽口；左侧隆起与褶片缓慢降低，但整体收拢幅度偏轻，末段接近静止，仍需用户判断是否适合结束姿态。源片有灰底、投影和平台角标，未处理。",
+      "previousAttempts": [
+        {
+          "prompt": "prompts/dying-v01.txt",
+          "plannedVideo": "videos/dying-v01.mp4",
+          "status": "provider_content_rejected_no_video",
+          "video": null,
+          "quotaDeducted": false,
+          "rejectionEvidence": "logs/dying-v01-status.txt",
+          "preflightPromptSha256": "4e1b1b7348aad0174560c305c27af1f8f5098d713103d8ed8a89509307ec0c14"
+        }
+      ],
+      "preflightPromptChars": 444,
+      "preflightPromptSha256": "8793e7cb6ddfc3156dedb466097c0a3301ee92667c2e8b2c49f04983f11abd88",
+      "generationLog": "logs/dying-v02-fold-settle.log",
+      "preflightLog": "logs/dying-v02-fold-settle-preflight.log",
+      "gif": null,
+      "contact": null,
+      "submittedPromptChars": 446,
+      "submittedPromptSha256": "8793e7cb6ddfc3156dedb466097c0a3301ee92667c2e8b2c49f04983f11abd88",
+      "requestedModel": "Seedance 2.0 Mini",
+      "spriteCandidate": {
+        "sheet": "sprite-production-v01/final/dying.png",
+        "gif": "sprite-production-v01/previews/dying.gif",
+        "frames": 81,
+        "durationMs": 5041.666667,
+        "approved": true,
+        "approvalBasis": "2026-09-01 user requested runtime import"
+      },
+      "runtimeIntegration": {
+        "state": "death",
+        "textureKey": "enemy_pleat_devourer_death",
+        "texture": "assets/enemies/pleat_devourer/death.png"
+      },
+      "gifRemovedDuringCleanup": null,
+      "contactRemovedDuringCleanup": null,
+      "gifRemovedDuringCleanupRemovedDuringCleanup": "previews/dying-v02-fold-settle.gif",
+      "contactRemovedDuringCleanupRemovedDuringCleanup": "previews/dying-v02-fold-settle-contact.png"
+    }
+  },
+  "runtimeIntegrationActive": true,
+  "spriteSheetsProduced": true,
+  "testsRun": false,
+  "runtimeValidationRun": false,
+  "verificationBoundary": "正式图集、实体、双份配置、Boot登记和恐怖地牢候选池已接入；只做静态差异与离线素材检查，未运行测试、构建、浏览器或游戏验证。",
+  "previewDocument": "preview.md",
+  "previewReport": null,
+  "spriteProduction": {
+    "path": "sprite-production-v01",
+    "status": "runtime_integrated_pending_user_validation",
+    "sourceSelection": "sprite-production-v01/selection.json",
+    "runtimeIntegrated": true,
+    "newVideoGeneration": false,
+    "manifest": "sprite-production-v01/sprite-manifest.json",
+    "preview": "sprite-production-v01/preview.md",
+    "totalDecodedMiB": 58.21951675415039,
+    "sourceScale": 0.35,
+    "attackTimingPolicy": "保留已认可源片约5.041667秒时钟；未自动加速为1.5秒。",
+    "runtimeIntegrationActive": true
+  },
+  "runtimeIntegration": "sprite-production-v01/runtime-integration.json",
+  "previewReportRemovedDuringCleanup": "previews/preview-report.json",
+  "cleanupManifest": "../cleanup-manifest-20260901.json",
+  "previewReportRemovedDuringCleanupRemovedDuringCleanup": "previews/preview-report.json"
+}

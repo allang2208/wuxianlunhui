@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "id": "waxfaceMourner",
+  "profile": "specialist",
+  "sheets": [
+    {
+      "textureKey": "enemy_waxface_mourner_idle",
+      "path": "assets/enemies/waxface_mourner/idle.png",
+      "frameWidth": 108,
+      "frameHeight": 231,
+      "frameCount": 40,
+      "endFrame": 39,
+      "footX": 54.0,
+      "footY": 219.4444444444444
+    },
+    {
+      "textureKey": "enemy_waxface_mourner_walk",
+      "path": "assets/enemies/waxface_mourner/walk.png",
+      "frameWidth": 132,
+      "frameHeight": 240,
+      "frameCount": 50,
+      "endFrame": 49,
+      "footX": 66.0,
+      "footY": 221.71396895787137
+    },
+    {
+      "textureKey": "enemy_waxface_mourner_attack",
+      "path": "assets/enemies/waxface_mourner/attack.png",
+      "frameWidth": 174,
+      "frameHeight": 231,
+      "frameCount": 79,
+      "endFrame": 78,
+      "footX": 87.0,
+      "footY": 218.5990783410138
+    },
+    {
+      "textureKey": "enemy_waxface_mourner_death",
+      "path": "assets/enemies/waxface_mourner/death.png",
+      "frameWidth": 270,
+      "frameHeight": 244,
+      "frameCount": 85,
+      "endFrame": 84,
+      "footX": 135.0,
+      "footY": 217.76470588235293
+    }
+  ],
+  "dependencies": []
+}

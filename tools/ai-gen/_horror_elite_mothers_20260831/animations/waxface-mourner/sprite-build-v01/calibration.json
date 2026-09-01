@@ -1,0 +1,12 @@
+{
+  "preparedBodyHeightPx": 208,
+  "runtimeBodyHeightPx": 139.515234375,
+  "reference": "minerZombie body height 274 * 260.7 / 512; same scale as headsman and existing horror humanoids",
+  "measurement": "Frame 0 head-to-boot height; attached candles do not exceed the head. Pelvis/stance center and ground remain fixed per video.",
+  "actions": {
+    "idle": { "bodyHeightPx": 432, "rootX": 579, "groundY": 597 },
+    "walking": { "bodyHeightPx": 451, "rootX": 622, "groundY": 613 },
+    "attacking": { "bodyHeightPx": 434, "rootX": 579, "groundY": 598 },
+    "dying": { "bodyHeightPx": 442, "rootX": 586, "groundY": 603 }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "task": "恐怖地牢两个抽象领主母图",
+  "createdDate": "2026-08-31",
+  "status": "both_runtime_integrated_pending_user_validation",
+  "generator": {
+    "tool": "image_gen.imagegen",
+    "mode": "built-in",
+    "model": null,
+    "seed": null
+  },
+  "generationNote": "百褶噬团与空腔之卵均已完成正式透明图集、状态机、数值、Boot与恐怖地牢候选池接入。空腔之卵移动和壳脉冲沿用结构安全派生版；判退视频与重复缓存已按清理清单移除，提示词、供应方JSON、逐帧统计和判退原因保留。未运行测试或游戏验证。",
+  "approved": true,
+  "approvedDate": "2026-09-01",
+  "acceptedPreview": "animations-hollow-v01-20260901/sprite-production-v01/previews/all-actions-fixed-root.png",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "intendedCamera": "略俯视三分之四单体视角；母图用于后续人工确认，不作为精确摄像机标定。",
+  "presentation": "两只抽象领主已接入恐怖地牢，等待用户游戏验收。",
+  "plannedSpriteUsageTier": "specialist",
+  "assets": [
+    {
+      "unitKey": "pleat_devourer",
+      "name": "百褶噬团",
+      "status": "runtime_integrated_pending_user_validation",
+      "approved": true,
+      "output": "mother/pleat-devourer-mother-v03-animation-right.png",
+      "prompt": "prompts/pleat-devourer-mother-v03-animation-camera.txt",
+      "sourceOutput": "mother/pleat-devourer-mother-v02-dungeon-family-white.png",
+      "sourcePrompt": "prompts/pleat-devourer-mother-v02-dungeon-family.txt",
+      "generationId": "exec-51f7d0dc-bb24-4119-b224-027aa7fed444",
+      "sourceGenerationId": "exec-a5b3b3a2-5d85-4545-8797-94cf5c4bd1e9",
+      "revisionRequest": "导入游戏设计状态机和数值。按照动画标准工作流处理，看看相关skill部分",
+      "design": "非人形匍匐噬囊；灰褐干皮与脏白殓布融合、粗缝线和稀疏锈铁固定件、非对称大折瓣和前右方内陷暗缝。去除原黑亮胶质和红色湿膜，仍无头部、眼睛或四肢。",
+      "referenceScope": "保留v02身份与材质；僵尸犬v04作镜头/横向身体参考，刽子手右向v06作动画方向与留白参考；不借用参考生物解剖。",
+      "inputReferences": [
+        {
+          "order": 1,
+          "role": "edit_target",
+          "path": "mother/pleat-devourer-mother-v02-dungeon-family-white.png",
+          "prompt": "prompts/pleat-devourer-mother-v02-dungeon-family.txt"
+        },
+        {
+          "order": 2,
+          "role": "primary_camera_reference",
+          "path": "references/camera-zombie-dog-v04.png",
+          "sourcePath": "../_horror_flyswarm_zombie_dog_20260831/mother/zombie-dog-mother-v04-wolf-camera-white.png"
+        },
+        {
+          "order": 3,
+          "role": "rightward_animation_heading_reference",
+          "path": "references/camera-headsman-right-v06.png",
+          "sourcePath": "../_horror_elite_mothers_20260831/animations/references/stitchface-headsman-walking-right-v06-safe.png"
+        }
+      ],
+      "runtimeIntegrationActive": true,
+      "sourceProvenance": "mother/pleat-devourer-mother-v02-provenance.json",
+      "animationManifest": "animations-pleat-v03-20260831/manifest.json",
+      "identityContinuationAuthorized": true,
+      "acceptedAttackVideo": "animations-pleat-v03-20260831/videos/attack-v04.mp4",
+      "spriteManifest": "animations-pleat-v03-20260831/sprite-production-v01/sprite-manifest.json",
+      "spritePreview": "animations-pleat-v03-20260831/sprite-production-v01/preview.md",
+      "runtimeIntegration": "animations-pleat-v03-20260831/sprite-production-v01/runtime-integration.json"
+    },
+    {
+      "unitKey": "hollow_ovum",
+      "name": "空腔之卵",
+      "status": "runtime_integrated_pending_user_validation",
+      "approved": true,
+      "output": "mother/hollow-ovum-mother-v02-white.png",
+      "prompt": "prompts/hollow-ovum-mother-v02-white-edit.txt",
+      "sourceOutput": "references/hollow-ovum-mother-v01-generated.png",
+      "sourcePrompt": "prompts/hollow-ovum-mother-v01.txt",
+      "generationId": "exec-46d7332d-b6f8-4e1a-853c-5055cdf8973a",
+      "sourceGenerationId": "exec-e3bbd2a3-486d-4b4a-8ef1-7ae11f2d1ea2",
+      "design": "非人形、低空悬浮、灰白钙化壳片与黑膜、中央贯穿空洞。空腔内没有眼球或核心。",
+      "identityContinuationAuthorized": true,
+      "animationManifest": "animations-hollow-v01-20260901/manifest.json",
+      "animationPreview": "animations-hollow-v01-20260901/preview.md",
+      "acceptedAnimationCandidateCount": 5,
+      "needsRevisionAnimationActionCount": 0,
+      "rejectedAnimationCandidateCount": 4,
+      "reviewedVideoCandidates": [
+        "animations-hollow-v01-20260901/videos/hollow-ovum-idle-v01.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-hover-motion-adjusted-v03.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-vacuum-draw-v02.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-shell-pulse-adjusted-v02.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-collapse-v01.mp4"
+      ],
+      "readyVideoCandidates": [
+        "animations-hollow-v01-20260901/videos/hollow-ovum-idle-v01.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-hover-motion-adjusted-v03.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-vacuum-draw-v02.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-shell-pulse-adjusted-v02.mp4",
+        "animations-hollow-v01-20260901/videos/hollow-ovum-collapse-v01.mp4"
+      ],
+      "rejectedVideoCandidates": [],
+      "needsRevisionVideoCandidates": [],
+      "adjustmentProvenance": "animations-hollow-v01-20260901/videos/structure-safe-derived-videos.json",
+      "orientationSizeDeformationAudit": "animations-hollow-v01-20260901/audit/report.md",
+      "runtimeIntegrationActive": true,
+      "spriteManifest": "animations-hollow-v01-20260901/sprite-production-v01/sprite-manifest.json",
+      "spritePreview": "animations-hollow-v01-20260901/sprite-production-v01/previews/all-actions-fixed-root.png",
+      "runtimeIntegration": "animations-hollow-v01-20260901/sprite-production-v01/runtime-integration.json"
+    }
+  ],
+  "constraints": [
+    "两只领主只加入恐怖地牢指定领主候选和horror数值白名单，不进入其他地牢或随机来袭。",
+    "运行时保留各自单一手动动画时钟、同层与墙体遮挡复查；不修改既有波次数量和A级最终Boss。",
+    "未运行测试、构建或游戏运行时验证；按约定由用户测试。",
+    "来源记录不代表第三方权利审核。"
+  ],
+  "acceptedPreviews": [
+    "animations-pleat-v03-20260831/sprite-production-v01/previews/all-actions-fixed-root.png",
+    "animations-hollow-v01-20260901/sprite-production-v01/previews/all-actions-fixed-root.png"
+  ],
+  "cleanupManifest": "cleanup-manifest-20260901.json"
+}

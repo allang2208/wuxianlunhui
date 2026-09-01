@@ -1,0 +1,58 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T02:08:42.716502+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\videos\\hollow-ovum-collapse-v01.mp4",
+    "bytes": 548105,
+    "sha256": "2359a3997f161df8b1ac6ddceed332233ac294e82c19a185c7d48b06ff233cdc"
+  },
+  "promptId": "782a5ff8-cb53-4359-9176-c18a60000c26",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 902105,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied Hollow Ovum as the exact opening identity. The camera remains locked in the same slightly elevated three-quarter view at a stable game-sprite scale. Create one irreversible shutdown and grounded collapse without gore or external effects.\n\n0.0-1.0 seconds: the hovering body loses its steady suspension and makes one uneven tilt. The upper plates lag while the lower plates descend toward the existing soft shadow.\n1.0-3.6 seconds: membrane tension fails progressively from top to bottom. The connected shell plates sag inward and downward, folding around the hollow center as the whole organism descends. The large aperture tilts and becomes lower but remains a broad empty opening with the white background visibly passing through it. The black membranes stay on its perimeter and never cover the center. All parts stay connected.\n3.6-5.17 seconds: the organism settles into one low, inert final pose close to the ground. The empty white through-hole remains visible in the collapsed silhouette. A small final weight shift ends cleanly, with no recovery toward the opening hover pose.\n\nPreserve the original calcified materials, black membranes, plate count, and recognizable identity. No eye, core, face, mouth, added anatomy, blood, liquid, rupture spray, particles, smoke, detached fragments, shattering, disappearance, camera movement, zoom, or return to standing hover.",
+  "effectivePrompt": "Use the supplied Hollow Ovum as the exact opening identity. The camera remains locked in the same slightly elevated three-quarter view at a stable game-sprite scale. Create one irreversible shutdown and grounded collapse without gore or external effects.\n\n0.0-1.0 seconds: the hovering body loses its steady suspension and makes one uneven tilt. The upper plates lag while the lower plates descend toward the existing soft shadow.\n1.0-3.6 seconds: membrane tension fails progressively from top to bottom. The connected shell plates sag inward and downward, folding around the hollow center as the whole organism descends. The large aperture tilts and becomes lower but remains a broad empty opening with thesolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow visibly passing through it. The black membranes stay on its perimeter and never cover the center. All parts stay connected.\n3.6-5.17 seconds: the organism settles into one low, inert final pose close to the ground. The empty white through-hole remains visible in the collapsed silhouette. A small final weight shift ends cleanly, with no recovery toward the opening hover pose.\n\nPreserve the original calcified materials, black membranes, plate count, and recognizable identity. No eye, core, face, mouth, added anatomy, blood, liquid, rupture spray, particles, smoke, detached fragments, shattering, disappearance, camera movement, zoom, or return to standing hover.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied Hollow Ovum as the exact opening identity. The camera remains locked in the same slightly elevated three-quarter view at a stable game-sprite scale. Create one irreversible shutdown and grounded collapse without gore or external effects.\n\n0.0-1.0 seconds: the hovering body loses its steady suspension and makes one uneven tilt. The upper plates lag while the lower plates descend toward the existing soft shadow.\n1.0-3.6 seconds: membrane tension fails progressively from top to bottom. The connected shell plates sag inward and downward, folding around the hollow center as the whole organism descends. The large aperture tilts and becomes lower but remains a broad empty opening with thesolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow visibly passing through it. The black membranes stay on its perimeter and never cover the center. All parts stay connected.\n3.6-5.17 seconds: the organism settles into one low, inert final pose close to the ground. The empty white through-hole remains visible in the collapsed silhouette. A small final weight shift ends cleanly, with no recovery toward the opening hover pose.\n\nPreserve the original calcified materials, black membranes, plate count, and recognizable identity. No eye, core, face, mouth, added anatomy, blood, liquid, rupture spray, particles, smoke, detached fragments, shattering, disappearance, camera movement, zoom, or return to standing hover. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "5cb533300d898485a2069d5a04c403108eb70372d051933f27197ff5d293f4e0",
+  "effectivePromptSha256": "26d1214ccb35c64288758938ca9553eeba011d1868f564a78a6c37fe6f1a7bb7",
+  "finalPromptSha256": "a48011cb22bb6b796f49bb52456e55179604d073d37b7b4688815c99b7c41ee8",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\prompts\\collapse-one-way.txt",
+      "bytes": 1393,
+      "sha256": "ccfb058a9c27095ed5ec7a06c217b78e41f440ad4723a28eeaf47f1536adaafe"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 425.847
+}

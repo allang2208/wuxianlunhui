@@ -33,6 +33,14 @@ import {
     hasRangedLineOfSight,
     rangedLineOfSightCacheToken,
 } from '../combat/ranged-line-of-sight.js';
+export { CoffinWard } from './enemy-types/coffin-ward.js';
+export { ShroudThrall } from './enemy-types/shroud-thrall.js';
+export { OssuaryCaster } from './enemy-types/ossuary-caster.js';
+export { KnellAttendant } from './enemy-types/knell-attendant.js';
+export { StitchfaceHeadsman } from './enemy-types/stitchface-headsman.js';
+export { WaxfaceMourner } from './enemy-types/waxface-mourner.js';
+export { PleatDevourer } from './enemy-types/pleat-devourer.js';
+export { HollowOvum } from './enemy-types/hollow-ovum.js';
 
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';

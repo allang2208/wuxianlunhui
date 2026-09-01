@@ -1,0 +1,70 @@
+{
+  "idle": [
+    {
+      "start": 19,
+      "endExclusive": 109,
+      "period": 90,
+      "score": 0.006311848759651184,
+      "poseDelta": 0.0050065102986991405,
+      "excursion": 0.03121853619813919
+    },
+    {
+      "start": 38,
+      "endExclusive": 84,
+      "period": 46,
+      "score": 0.006796874920837581,
+      "poseDelta": 0.005309244617819786,
+      "excursion": 0.01422851625829935
+    },
+    {
+      "start": 22,
+      "endExclusive": 105,
+      "period": 83,
+      "score": 0.006930338800884783,
+      "poseDelta": 0.0053884549997746944,
+      "excursion": 0.02846137434244156
+    },
+    {
+      "start": 35,
+      "endExclusive": 87,
+      "period": 52,
+      "score": 0.007234701071865857,
+      "poseDelta": 0.005718316417187452,
+      "excursion": 0.016978081315755844
+    }
+  ],
+  "crawling": [
+    {
+      "start": 55,
+      "endExclusive": 107,
+      "period": 52,
+      "score": 0.028918186202645302,
+      "poseDelta": 0.024013672024011612,
+      "excursion": 0.0563422292470932
+    },
+    {
+      "start": 61,
+      "endExclusive": 114,
+      "period": 53,
+      "score": 0.02971896855160594,
+      "poseDelta": 0.026181641966104507,
+      "excursion": 0.053865015506744385
+    },
+    {
+      "start": 43,
+      "endExclusive": 95,
+      "period": 52,
+      "score": 0.035959741566330194,
+      "poseDelta": 0.03071180358529091,
+      "excursion": 0.06891601532697678
+    },
+    {
+      "start": 58,
+      "endExclusive": 103,
+      "period": 45,
+      "score": 0.037833118345588446,
+      "poseDelta": 0.03007270209491253,
+      "excursion": 0.05653103068470955
+    }
+  ]
+}

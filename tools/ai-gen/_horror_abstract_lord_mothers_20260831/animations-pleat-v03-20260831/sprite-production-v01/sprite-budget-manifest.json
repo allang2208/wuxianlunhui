@@ -1,0 +1,53 @@
+{
+  "unitKey": "pleat_devourer",
+  "usageTier": "specialist",
+  "targetMiB": 64,
+  "admissionMiB": 128,
+  "decodedMiB": 58.21951675415039,
+  "registered": true,
+  "pathsRelativeTo": "sprite-production-v01",
+  "resources": [
+    {
+      "action": "idle",
+      "path": "final/idle.png",
+      "proposedTextureKey": "enemy_pleat_devourer_idle",
+      "width": 1695,
+      "height": 1788,
+      "decodedBytes": 12122640,
+      "runtimeTextureKey": "enemy_pleat_devourer_idle",
+      "runtimePath": "assets/enemies/pleat_devourer/idle.png"
+    },
+    {
+      "action": "crawling",
+      "path": "final/crawling.png",
+      "proposedTextureKey": "enemy_pleat_devourer_crawling",
+      "width": 1716,
+      "height": 1976,
+      "decodedBytes": 13563264,
+      "runtimeTextureKey": "enemy_pleat_devourer_walk",
+      "runtimePath": "assets/enemies/pleat_devourer/walk.png"
+    },
+    {
+      "action": "attack",
+      "path": "final/attack.png",
+      "proposedTextureKey": "enemy_pleat_devourer_attack",
+      "width": 1299,
+      "height": 3834,
+      "decodedBytes": 19921464,
+      "runtimeTextureKey": "enemy_pleat_devourer_attack",
+      "runtimePath": "assets/enemies/pleat_devourer/attack.png"
+    },
+    {
+      "action": "dying",
+      "path": "final/dying.png",
+      "proposedTextureKey": "enemy_pleat_devourer_dying",
+      "width": 3177,
+      "height": 1215,
+      "decodedBytes": 15440220,
+      "runtimeTextureKey": "enemy_pleat_devourer_death",
+      "runtimePath": "assets/enemies/pleat_devourer/death.png"
+    }
+  ],
+  "dependencyNote": "Four unique animation textures, 58.21951675415039 MiB. No extra summons, projectiles or custom VFX textures; common telegraph reuses the body texture. Not a scene-performance measurement.",
+  "runtimeIntegration": "runtime-integration.json"
+}

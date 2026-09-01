@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron, CoffinWard, ShroudThrall, OssuaryCaster, KnellAttendant, StitchfaceHeadsman, WaxfaceMourner, PleatDevourer, HollowOvum } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -482,6 +482,14 @@ export const ZOMBIE_FACTORY_MAP = {
     shounao: createShounao,
     flySwarm: createFlySwarm,
     flyHand: createFlyHand,
+    coffinWard: (x, y) => new CoffinWard(x, y),
+    shroudThrall: (x, y) => new ShroudThrall(x, y),
+    ossuaryCaster: (x, y) => new OssuaryCaster(x, y),
+    knellAttendant: (x, y) => new KnellAttendant(x, y),
+    stitchfaceHeadsman: (x, y) => new StitchfaceHeadsman(x, y),
+    waxfaceMourner: (x, y) => new WaxfaceMourner(x, y),
+    pleatDevourer: (x, y) => new PleatDevourer(x, y),
+    hollowOvum: (x, y) => new HollowOvum(x, y),
     timeAgentAssault: createTimeAgentAssault,
     timeAgentShield: createTimeAgentShield
 };
@@ -498,12 +506,12 @@ const ZOMBIE_DUNGEON_CONFIG = {
     monsterPool: {
         get normal() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && !cfg.poolWhitelistOnly && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         get elite() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && !cfg.poolWhitelistOnly && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         // lord 领主池：僵尸 family 限定（2026-07-29 修复——此前跨 family 按 rank 抽取，
@@ -511,7 +519,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
         // 特工只走 AgentInvasionSystem 入侵机制，不进怪物池）
         get lord() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && !cfg.poolWhitelistOnly && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         }
     },
@@ -1017,7 +1025,6 @@ export class ZombieDungeonCombat {
                 [classes[i], classes[j]] = [classes[j], classes[i]];
             }
         } else {
-            const guaranteeAtLeastOneElite = this._encounter.guaranteeAtLeastOneElite;
             for (let i = 0; i < drawTarget; i++) {
                 const tier = this._rollTier();
                 const pool = getPool(tier);
@@ -1025,29 +1032,29 @@ export class ZombieDungeonCombat {
                 classes.push({ MonsterClass, tier });
             }
 
-            // 确保至少一个精英
-            if (guaranteeAtLeastOneElite && !classes.some(c => c.tier === 'elite')) {
-                const idx = Math.floor(Math.random() * classes.length);
-                const pool = monsterPool.elite || monsterPool.normal;
-                classes[idx] = { MonsterClass: pool[Math.floor(Math.random() * pool.length)], tier: 'elite' };
-            }
         }
 
         // 事件强制怪物（如诅咒铠甲必刷铠甲骑士）：默认首波插入，竞技场压轴波插入（forceArenaWaves）；不参与怪物池随机
         if (this._currentWave === this._forceMonstersWave && Array.isArray(this._forceMonsters) && this._forceMonsters.length > 0) {
             for (const key of this._forceMonsters) {
                 const Forced = ZOMBIE_FACTORY_MAP[key];
-                if (Forced) classes.unshift({ MonsterClass: Forced, tier: 'forced' });
+                if (Forced) classes.unshift({ MonsterClass: Forced, tier: 'forced', rank: enemyConfigData[key]?.rank });
             }
         }
 
-        // 防御性兜底：精英战斗波次必须至少包含一只精英怪物，防止配置/池异常导致无精英
-        if (this._isElite && !classes.some(c => c.tier === 'elite')) {
-            const pool = monsterPool.elite || monsterPool.normal;
+        // 配比或强制生成的领主/首领已经承担强敌名额，不能再被“缺精英”兜底替换。
+        const hasStrongEnemy = classes.some(entry => ['elite', 'lord', 'boss'].includes(entry.tier)
+            || (entry.tier === 'forced' && ['elite', 'lord', 'boss'].includes(entry.rank)));
+        const needsElite = this._isElite || (!composition && this._encounter.guaranteeAtLeastOneElite);
+        if (needsElite && !hasStrongEnemy) {
+            const pool = getPool('elite');
             const eliteClass = pool[Math.floor(Math.random() * pool.length)];
             if (classes.length > 0) {
-                const idx = Math.floor(Math.random() * classes.length);
-                classes[idx] = { MonsterClass: eliteClass, tier: 'elite' };
+                const replaceable = classes.map((entry, index) => entry.tier === 'forced' ? -1 : index)
+                    .filter(index => index >= 0);
+                const idx = replaceable[Math.floor(Math.random() * replaceable.length)];
+                if (idx === undefined) classes.push({ MonsterClass: eliteClass, tier: 'elite' });
+                else classes[idx] = { MonsterClass: eliteClass, tier: 'elite' };
             } else {
                 classes.push({ MonsterClass: eliteClass, tier: 'elite' });
             }

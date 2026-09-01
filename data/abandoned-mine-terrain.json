@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "base": {
+    "key": "floor_abandoned_mine_seamless",
+    "src": "assets/terrain/floor_abandoned_mine_seamless.png",
+    "continuous": true,
+    "backgroundColor": "#0b0a09",
+    "textureScaleY": 0.5774
+  },
+  "detailLayer": null,
+  "profiles": {
+    "plane": { "cellSize": 264, "density": 0.48, "sizeScale": 1 },
+    "dungeon": { "cellSize": 232, "density": 0.42, "sizeScale": 0.8 }
+  },
+  "deco": {
+    "placementMode": "world-grid",
+    "allowFlipX": false,
+    "cellSize": 232,
+    "density": 0.5,
+    "jitterMin": 0.18,
+    "jitterMax": 0.82,
+    "scaleJitter": 0.12,
+    "edgeInset": 104,
+    "seedSalt": 82283,
+    "assets": [
+      {"key": "abandoned_mine_prop_slate_rubble", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_slate_rubble.png", "weight": 0.9, "size": 238.933, "originY": 0.875},
+      {"key": "abandoned_mine_prop_coal_chunks", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_coal_chunks.png", "weight": 0.85, "size": 244.87, "originY": 0.875},
+      {"key": "abandoned_mine_prop_ore_fragments", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_ore_fragments.png", "weight": 0.8, "size": 269.474, "originY": 0.875},
+      {"key": "abandoned_mine_prop_broken_sleepers", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_broken_sleepers.png", "weight": 0.85, "size": 289.811, "originY": 0.875},
+      {"key": "abandoned_mine_prop_broken_rail", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_broken_rail.png", "weight": 0.72, "size": 287.03, "originY": 0.875},
+      {"key": "abandoned_mine_prop_rope_coil", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_rope_coil.png", "weight": 0.38, "size": 197.614, "originY": 0.875},
+      {"key": "abandoned_mine_prop_pickaxe", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_pickaxe.png", "weight": 0.45, "size": 282.483, "originY": 0.875},
+      {"key": "abandoned_mine_prop_shovel", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_shovel.png", "weight": 0.35, "size": 248.242, "originY": 0.875},
+      {"key": "abandoned_mine_prop_floor_lantern", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_floor_lantern.png", "weight": 0.32, "size": 261.953, "originY": 0.875},
+      {"key": "abandoned_mine_prop_helmet", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_helmet.png", "weight": 0.32, "size": 231.619, "originY": 0.875},
+      {"key": "abandoned_mine_prop_minecart_wheel", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_minecart_wheel.png", "weight": 0.48, "size": 275.692, "originY": 0.875},
+      {"key": "abandoned_mine_prop_ore_sack", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_ore_sack.png", "weight": 0.42, "size": 327.111, "originY": 0.875}
+    ]
+  }
+}

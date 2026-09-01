@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T01:36:31.558069+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\videos\\hollow-ovum-hover-motion-v01.mp4",
+    "bytes": 634578,
+    "sha256": "c862a22f73e726516eded14112cda9e4e2a999852828f4020b097e3cbc5ad265"
+  },
+  "promptId": "04cd1664-d2eb-4fd6-aa8a-b4e7216537b3",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 902102,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. This is an in-place hovering travel cycle for a game sprite: gameplay will move the collider, so the organism remains near the same screen position and does not choose a left or right heading.\n\n0.0-1.0 seconds: the lower half lifts with a restrained upward impulse while the top shell plates trail behind by a few pixels; the whole ovoid tilts about three degrees.\n1.0-3.9 seconds: the body completes one smooth buoyant travel rhythm, drifting slightly down and back up. Opposing shell plates make small delayed counter-motions and the taut black membranes flex without stretching across the cavity. The motion feels deliberate and heavier than the idle cycle.\n3.9-5.17 seconds: the tilt and vertical offset ease back to the exact opening pose and screen position without a hold or frozen seam.\n\nKeep the large through-hole empty and continuously visible. Preserve the asymmetric plate topology and stable scale. No walking anatomy, wings, tentacles, eye, core, mouth, detached shell, full spin, lateral screen travel, particles, aura, motion trails, or camera movement.",
+  "effectivePrompt": "Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. This is an in-place hovering travel cycle for a game sprite: gameplay will move the collider, so the organism remains near the same screen position and does not choose a left or right heading.\n\n0.0-1.0 seconds: the lower half lifts with a restrained upward impulse while the top shell plates trail behind by a few pixels; the whole ovoid tilts about three degrees.\n1.0-3.9 seconds: the body completes one smooth buoyant travel rhythm, drifting slightly down and back up. Opposing shell plates make small delayed counter-motions and the taut black membranes flex without stretching across the cavity. The motion feels deliberate and heavier than the idle cycle.\n3.9-5.17 seconds: the tilt and vertical offset ease back to the exact opening pose and screen position without a hold or frozen seam.\n\nKeep the large through-hole empty and continuously visible. Preserve the asymmetric plate topology and stable scale. No walking anatomy, wings, tentacles, eye, core, mouth, detached shell, full spin, lateral screen travel, particles, aura, motion trails, or camera movement, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. This is an in-place hovering travel cycle for a game sprite: gameplay will move the collider, so the organism remains near the same screen position and does not choose a left or right heading.\n\n0.0-1.0 seconds: the lower half lifts with a restrained upward impulse while the top shell plates trail behind by a few pixels; the whole ovoid tilts about three degrees.\n1.0-3.9 seconds: the body completes one smooth buoyant travel rhythm, drifting slightly down and back up. Opposing shell plates make small delayed counter-motions and the taut black membranes flex without stretching across the cavity. The motion feels deliberate and heavier than the idle cycle.\n3.9-5.17 seconds: the tilt and vertical offset ease back to the exact opening pose and screen position without a hold or frozen seam.\n\nKeep the large through-hole empty and continuously visible. Preserve the asymmetric plate topology and stable scale. No walking anatomy, wings, tentacles, eye, core, mouth, detached shell, full spin, lateral screen travel, particles, aura, motion trails, or camera movement, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "6a63eb80b202db4fa799ea74fb293bcab2b7818d77bf6f3f9f1e19f57353a2b9",
+  "effectivePromptSha256": "d914a9d0746218a77d02c0e1a0f15e91c2762bea2c50ff42cb4c2693bd781e1e",
+  "finalPromptSha256": "822acd0db52b0a66ea1e5fdae1b66b1bdafc6947a280964f44d2290d682d1028",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\prompts\\hover-motion-loop.txt",
+      "bytes": 1228,
+      "sha256": "4b40069b494456b93424722de4a9a8a7d23bda3bffde0765a623e95842c57570"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 455.848
+}

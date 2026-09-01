@@ -1,4 +1,5 @@
 import { COMBAT_FORMULAS } from './combat-formulas.js';
+import dungeonConfigData from '../../data/dungeon-config.json';
 
 export const ENEMY_DIRECT_STAT_OVERRIDE_KEYS = Object.freeze(['atk', 'matk', 'mdef']);
 
@@ -26,6 +27,14 @@ const DEFAULT_FORMULAS = Object.freeze({
 });
 
 const ATTRIBUTE_KEYS = Object.freeze(['str', 'dex', 'con', 'int', 'wis', 'luck']);
+
+/** 地牢专属出生倍率；显式白名单避免共享怪物在其它地牢或位面被放大。 */
+export function getDungeonEnemyStatMultipliers(dungeonType, enemyKey) {
+    const dungeon = dungeonConfigData.dungeonList?.[dungeonType];
+    const profile = dungeonConfigData.monsterStatProfiles?.[dungeon?.monsterStatProfile];
+    if (!profile?.enemyKeys?.includes(enemyKey)) return null;
+    return profile.byGrade?.[dungeon.grade] || null;
+}
 
 function finiteNumber(value, fallback = 0) {
     const number = Number(value);

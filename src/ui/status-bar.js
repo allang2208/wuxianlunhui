@@ -11,6 +11,7 @@ export const StatusBar = {
         stun: { icon: '💫', name: '眩晕', color: '#9a7a5a', desc: '无法移动、攻击、使用技能与物品。' },
         poison: { icon: '☠️', name: '中毒', color: '#7a9a5a', desc: '每秒受到层数点毒素伤害。' },
         slow: { icon: '🐌', name: '减速', color: '#5a7a9a', desc: '移动速度降低 50%。' },
+        waxSealSlow: { icon: '🕯️', name: '封蜡减速', color: '#ba9272', desc: '移动速度降低20%，持续2秒；再次命中只刷新时间，不叠层。' },
         buff: { icon: '✨', name: '增益', color: '#9a9a5a', desc: '获得临时增益效果。' },
         shield: { icon: '🛡️', name: '护盾', color: '#5a8a9a', desc: '获得护盾，减免受到的伤害。' },
         bleed: { icon: '🩸', name: '流血', color: '#9a3a3a', desc: '持续流失生命值。' },

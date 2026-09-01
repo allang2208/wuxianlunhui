@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T03:06:31.824339+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\videos\\hollow-ovum-hover-motion-v02.mp4",
+    "bytes": 693519,
+    "sha256": "73252e58e219abb49c17b48c8dc8825f4f50f7effc8adf9199f9cc1938952b0a"
+  },
+  "promptId": "b7050369-619c-4dcb-a929-85d3d63074a5",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 902122,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied Hollow Ovum as the exact first-frame identity. Keep the locked orthographic-like, slightly elevated three-quarter camera and the same visible shell surfaces for the entire shot. This is an in-place travel loop for a game sprite: the complete connected organism moves vertically as one rigid suspended object while gameplay supplies world travel.\n\n0.0-1.2 seconds: the whole vertical egg-shaped body translates upward about ten screen pixels. Its long vertical axis, outer width, outer height, plate spacing, and empty white through-hole retain the opening proportions. All plates move together; only the black perimeter membranes show a tiny delayed tension change.\n1.2-3.9 seconds: the whole unchanged silhouette completes one smooth buoyant down-and-up rhythm around the starting height. The same front and right shell surfaces remain visible. The motion is a clean vertical translation, not a turn toward or away from the camera.\n3.9-5.17 seconds: the complete body returns to the exact opening screen position, upright long-axis silhouette, scale, shell layout, aperture shape, and membrane tension without slowing into a frozen seam.\n\nThe central white opening stays broad and unobstructed. Keep horizontal center fixed and keep both outer width and height visually constant. No pitch, yaw, roll, foreshortening, squash, stretch, shell rearrangement, lateral travel, added anatomy, detached parts, external effects, or camera motion.",
+  "effectivePrompt": "Use the supplied Hollow Ovum as the exact first-frame identity. Keep the locked orthographic-like, slightly elevated three-quarter camera and the same visible shell surfaces for the entire shot. This is an in-place travel loop for a game sprite: the complete connected organism moves vertically as one rigid suspended object while gameplay supplies world travel.\n\n0.0-1.2 seconds: the whole vertical egg-shaped body translates upward about ten screen pixels. Its long vertical axis, outer width, outer height, plate spacing, and empty white through-hole retain the opening proportions. All plates move together; only the black perimeter membranes show a tiny delayed tension change.\n1.2-3.9 seconds: the whole unchanged silhouette completes one smooth buoyant down-and-up rhythm around the starting height. The same front and right shell surfaces remain visible. The motion is a clean vertical translation, not a turn toward or away from the camera.\n3.9-5.17 seconds: the complete body returns to the exact opening screen position, upright long-axis silhouette, scale, shell layout, aperture shape, and membrane tension without slowing into a frozen seam.\n\nThe central white opening stays broad and unobstructed. Keep horizontal center fixed and keep both outer width and height visually constant. No pitch, yaw, roll, foreshortening, squash, stretch, shell rearrangement, lateral travel, added anatomy, detached parts, external effects, or camera motion, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied Hollow Ovum as the exact first-frame identity. Keep the locked orthographic-like, slightly elevated three-quarter camera and the same visible shell surfaces for the entire shot. This is an in-place travel loop for a game sprite: the complete connected organism moves vertically as one rigid suspended object while gameplay supplies world travel.\n\n0.0-1.2 seconds: the whole vertical egg-shaped body translates upward about ten screen pixels. Its long vertical axis, outer width, outer height, plate spacing, and empty white through-hole retain the opening proportions. All plates move together; only the black perimeter membranes show a tiny delayed tension change.\n1.2-3.9 seconds: the whole unchanged silhouette completes one smooth buoyant down-and-up rhythm around the starting height. The same front and right shell surfaces remain visible. The motion is a clean vertical translation, not a turn toward or away from the camera.\n3.9-5.17 seconds: the complete body returns to the exact opening screen position, upright long-axis silhouette, scale, shell layout, aperture shape, and membrane tension without slowing into a frozen seam.\n\nThe central white opening stays broad and unobstructed. Keep horizontal center fixed and keep both outer width and height visually constant. No pitch, yaw, roll, foreshortening, squash, stretch, shell rearrangement, lateral travel, added anatomy, detached parts, external effects, or camera motion, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "7fec62c2f1e57939352ae85b55151b7731005439d662486ba11b51083725a1ff",
+  "effectivePromptSha256": "59aa56184c4e04b2c0c59b29ac95228cf576482d401e3f0f9dc5da9d1a9c231f",
+  "finalPromptSha256": "cf9a3664d346e04d3fb7b42e8475958f51e065459800642904d4f720fa00b3a8",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\prompts\\hover-motion-loop-v02.txt",
+      "bytes": 1456,
+      "sha256": "b67a75dfadb1bd4ae10fe0945409da44d2d6aa59a2135eaf2f9a9b14b58091f7"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 455.666
+}

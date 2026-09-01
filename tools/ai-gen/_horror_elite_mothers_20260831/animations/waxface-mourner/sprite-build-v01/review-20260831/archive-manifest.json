@@ -1,0 +1,31 @@
+{
+  "date": "2026-08-31",
+  "deleted": false,
+  "entries": [
+    {
+      "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\waxface-mourner\\sprite-build-v01\\cutouts",
+      "destination": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\.trash-waxface-mourner-20260831\\sprite-build-v01\\cutouts",
+      "bytes": 13767469.0,
+      "reason": "Regenerable cutout/interpolation/debug cache; original source sheets and final assets retained"
+    },
+    {
+      "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\waxface-mourner\\sprite-build-v01\\previews\\rife",
+      "destination": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\.trash-waxface-mourner-20260831\\sprite-build-v01\\previews\\rife",
+      "bytes": 26391433.0,
+      "reason": "Regenerable cutout/interpolation/debug cache; original source sheets and final assets retained"
+    },
+    {
+      "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\waxface-mourner\\sprite-build-v01\\cutout-review.png",
+      "destination": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\.trash-waxface-mourner-20260831\\sprite-build-v01\\cutout-review.png",
+      "bytes": 430252,
+      "reason": "Regenerable cutout/interpolation/debug cache; original source sheets and final assets retained"
+    },
+    {
+      "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\waxface-mourner\\producer\\__pycache__",
+      "destination": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\.trash-waxface-mourner-20260831\\producer\\__pycache__",
+      "bytes": 5306.0,
+      "reason": "Regenerable cutout/interpolation/debug cache; original source sheets and final assets retained"
+    }
+  ],
+  "totalBytes": 40594460.0
+}

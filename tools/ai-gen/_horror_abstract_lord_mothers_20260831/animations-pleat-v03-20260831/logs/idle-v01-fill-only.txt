@@ -1,0 +1,12 @@
+[doubao] launching C:\Users\allan\AppData\Local\Doubao\Application\app\Doubao.exe with loopback CDP port 9333
+[doubao] opened a fresh conversation (chrome://doubao-chat/chat -> chrome://doubao-chat/chat)
+[doubao] model=Seedance 2.0 Mini ratio=16:9 duration=5s candidates=1
+[doubao] active video skill confirmed; backend model is managed by Doubao and not exposed in this UI (requested=Seedance 2.0 Mini)
+[doubao] prompt editor verified through Tiptap state: 495 chars sha256=3f06547eaf6cf54e97d54f661799ca9d3ce4b201fba785eebbb8e577c09b2e40
+[doubao] fill-only verification passed (managed/explicit); no file uploaded and no task submitted
+
+Next generation exec_command was rejected by auto_review before process creation because uploading this image and prompt to Doubao needed explicit destination authorization. No image upload or video submission occurred.
+
+Cleanup:
+[doubao] closed the attached automation client through CDP
+

@@ -11,7 +11,7 @@ import aiConfigData from '../../data/ai-config.json';
 import { getTributeMonsterMoveSlowMul } from '../config/tribute-effects.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { deriveEnemyBaseStats } from '../config/enemy-base-stats.js';
+import { deriveEnemyBaseStats, getDungeonEnemyStatMultipliers } from '../config/enemy-base-stats.js';
 import { getMonsterExp, getMonsterExpDetail, getMonsterEffectiveLevel, getCurrentDungeonType } from '../config/exp-system.js';
 import { Easing } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -138,6 +138,19 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
                     if (this.data.matk) this.data.matk = Math.round(this.data.matk * (1 + _atkCoef * _deltaL));
                     if (this.data.def) this.data.def = Math.round(this.data.def * (1 + _defCoef * _deltaL));
                     if (this.data.mdef) this.data.mdef = Math.round(this.data.mdef * (1 + _defCoef * _deltaL));
+                }
+                const dungeonStats = getDungeonEnemyStatMultipliers(getCurrentDungeonType(), this.id);
+                if (dungeonStats) {
+                    this.hp = Math.round(this.hp * (dungeonStats.hp ?? 1));
+                    this.maxHp = Math.round(this.maxHp * (dungeonStats.hp ?? 1));
+                    this.data.hp = this.hp;
+                    this.data.maxHp = this.maxHp;
+                    for (const key of ['atk', 'matk']) {
+                        this.data[key] = Math.round(this.data[key] * (dungeonStats.attack ?? 1));
+                    }
+                    for (const key of ['def', 'mdef']) {
+                        this.data[key] = Math.round(this.data[key] * (dungeonStats.defense ?? 1));
+                    }
                 }
                 this.weaponImage = loadImage('assets/weapons/1-rusty_sword_euip.png');
                 this.weaponAnim = { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
@@ -533,13 +546,22 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
                 // 默认空实现，子类可覆盖以实现自定义阶段特效
             }
 
+            /** 预警与自管攻击共用的强控判定；只读状态，不改动作生命周期。 */
+            isCombatActionBlocked() {
+                return !this.active || this._isDead || this._dashStunned
+                    || this.hasStatusEffect('stun') || this.hasStatusEffect('frozen')
+                    || this.hasStatusEffect('petrified') || this.hasStatusEffect('fear');
+            }
+
             // ===== 攻击预警系统（精英及以上：攻击前显示红色轮廓，跟随怪物移动）=====
             // 配置：data/combat-config.json → attackTelegraph（enabled/durationMs/ranks/color 等）
             _getAttackTelegraphConfig() {
                 const cfg = (COMBAT_CONFIG && COMBAT_CONFIG.attackTelegraph) || {};
+                const local = this.config?.attackTelegraph || {};
                 return {
                     enabled: cfg.enabled !== false,
-                    durationMs: cfg.durationMs ?? 500,
+                    durationMs: local.durationMs ?? cfg.durationMs ?? 500,
+                    overlapWindup: local.overlapWindup === true,
                     ranks: cfg.ranks || ['elite', 'lord', 'boss'],
                     color: cfg.color ?? 0xff2222,
                     outerStrength: cfg.outerStrength ?? 6,
@@ -557,12 +579,23 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
             /**
              * 攻击决策统一入口：精英及以上先进入预警（红色轮廓 durationMs），
              * 计时结束后才真正执行 fireFn；普通/次级立即执行。
+             * 已标定动画前摇的单位可让轮廓与前摇重叠，不额外等待一轮。
              * 预警进行中重复调用直接忽略（怪物已锁定本次出手）。
              */
             _tryAttackTelegraph(fireFn) {
                 if (!this._isAttackTelegraphEligible()) { fireFn(); return; }
                 if (this._attackTelegraphTimer > 0) return;
-                this._attackTelegraphTimer = this._getAttackTelegraphConfig().durationMs;
+                const cfg = this._getAttackTelegraphConfig();
+                if (cfg.overlapWindup) {
+                    const started = fireFn();
+                    if (started === false || this.isCombatActionBlocked()
+                        || !(this._attackAnimTimer > 0 || this._pendingThrust?.active || this._frozenForCast)) return;
+                    this._attackTelegraphFire = null;
+                    this._attackTelegraphTimer = Math.min(cfg.durationMs, this._attackAnimTimer || cfg.durationMs);
+                    this._setAttackTelegraphFx(true);
+                    return;
+                }
+                this._attackTelegraphTimer = cfg.durationMs;
                 this._attackTelegraphFire = fireFn;
                 this._setAttackTelegraphFx(true);
             }
@@ -570,7 +603,7 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
             /** 预警计时推进（基类 update 每帧调用）：死亡/眩晕立即取消，计时归零后执行攻击 */
             _updateAttackTelegraph(dt) {
                 if (!(this._attackTelegraphTimer > 0)) return;
-                if (this._isDead || !this.active || (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('petrified')))) {
+                if (this.isCombatActionBlocked()) {
                     this._clearAttackTelegraph();
                     return;
                 }

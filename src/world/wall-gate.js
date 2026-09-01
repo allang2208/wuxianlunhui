@@ -9,6 +9,7 @@
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from './wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
+import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites, finishGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
 
 const FRAMES = 16;
 const ANIM_MS = 900; // 16 帧总时长
@@ -43,6 +44,16 @@ export const WallGate = {
         return ISO_WALL_GEO[key] || ISO_WALL_GEO.gate;
     },
 
+    /** 完整门叶升起后不保留顶部残影；下落前再整体显现。 */
+    _setVisualVisible(visible) {
+        setGateSpritesVisible(this.sprites, visible);
+        if (!visible) {
+            for (const glow of this.glowSprites || []) {
+                if (glow && glow.active) glow.setVisible(false);
+            }
+        }
+    },
+
     /** 贴图内坐标 → 世界（origin 中心 + scale + flipX） */
     _tex2world(tx, ty) {
         const g = this._geo();
@@ -72,28 +83,38 @@ export const WallGate = {
         // 僵尸素材恰好自洽（此尺度 == 旧线段反推值），行为不变
         const s = ISO_WALL_HEIGHT / g.wallH;
         const fitSpan = options.fitSpan === true;
-        const sx = fitSpan
-            ? Math.abs(B.x - A.x) / Math.max(1, Math.abs(g.base[1][0] - g.base[0][0]))
-            : s;
-        const sy = fitSpan
-            ? Math.abs(B.y - A.y) / Math.max(1, Math.abs(g.base[1][1] - g.base[0][1]))
-            : s * slopeFixOf(g);
-        let x0, y0;
-        if (!flip) {
-            x0 = A.x - p0[0] * sx;
-            y0 = A.y - p0[1] * sy;
+        let start = { x: A.x, y: A.y };
+        let end = { x: B.x, y: B.y };
+        if (fitSpan) {
+            const piece = WallSystem._buildGateSpanPiece(start, end, geoKey, depth);
+            if (!piece) return false;
+            start = piece._gateSpan.a;
+            end = piece._gateSpan.b;
+            flip = piece._gateSpan.flip;
+            this._flip = !!piece.flipX;
+            this._scale = { sx: piece.scaleX, sy: piece.scaleY };
+            this._cx = piece.x;
+            this._cy = piece.y;
         } else {
-            // flip（"/" 方向）：flipX 为 quad 内镜像，p0→A、p1→B
-            x0 = A.x - (g.w - p0[0]) * sx;
-            y0 = A.y - p0[1] * sy;
+            const sx = s;
+            const sy = s * slopeFixOf(g);
+            let x0, y0;
+            if (!flip) {
+                x0 = start.x - p0[0] * sx;
+                y0 = start.y - p0[1] * sy;
+            } else {
+                // flip（"/" 方向）：flipX 为 quad 内镜像，p0→A、p1→B
+                x0 = start.x - (g.w - p0[0]) * sx;
+                y0 = start.y - p0[1] * sy;
+            }
+            this._flip = !!flip;
+            this._scale = { sx: Math.abs(sx), sy };
+            this._cx = x0 + g.w * Math.abs(sx) / 2;
+            this._cy = y0 + g.h * sy / 2;
         }
-        this._flip = !!flip;
-        this._scale = { sx: Math.abs(sx), sy };
-        this._cx = x0 + g.w * Math.abs(sx) / 2;
-        this._cy = y0 + g.h * sy / 2;
-        this._seg = [{ x: A.x, y: A.y }, { x: B.x, y: B.y }];
+        this._seg = [start, end];
         // 归属深度（门洞中心规则，见下方 _gateCenter 计算后修正）
-        this._homeDepth = depth ?? Math.max(A.y, B.y);
+        this._homeDepth = depth ?? Math.max(start.y, end.y);
 
         for (const oldSprite of new Set([...(this.sprites || []), this.sprite].filter(Boolean))) {
             oldSprite.destroy();
@@ -126,16 +147,8 @@ export const WallGate = {
             gateSprite.setScale(this._scale.sx, this._scale.sy);
             gateSprite.setFlipX(this._flip);
             gateSprite.setDepth(spriteDepth);
-            if (crop && typeof gateSprite.setCrop === 'function') {
-                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
-                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
-                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
-                    const result = originalSetFrame(frame, updateSize, updateOrigin);
-                    applyCrop();
-                    return result;
-                };
-                applyCrop();
-            }
+            bindGateSourceCrop(gateSprite, crop, g.h);
+            bindGateLeafMotion(gateSprite, g, this._frame);
             this.sprites.push(gateSprite);
             return gateSprite;
         };
@@ -166,6 +179,7 @@ export const WallGate = {
         }
         this.setPassable(this.state === 'open' || this.state === 'opening');
         this._buildGlow();
+        this._setVisualVisible(!(g.hideWhenOpen && this.state === 'open'));
         return true;
     },
 
@@ -196,6 +210,8 @@ export const WallGate = {
         this.state = 'closing';
         this._onDone = onDone || null;
         this.setPassable(false);
+        // 完整门叶先在顶部淡入，再沿原轨迹落下。
+        this._setVisualVisible(true);
         if (SoundManager && typeof SoundManager.playWorld === 'function') {
             // 世界音效（2026-08-11 距离衰减）：关门声按门闸位置衰减
             SoundManager.playWorld(this._gateSound(), this._cx, this._cy);
@@ -210,6 +226,7 @@ export const WallGate = {
         this.state = 'opening';
         this._onDone = onDone || null;
         this.setPassable(true);
+        this._setVisualVisible(true);
         if (SoundManager && typeof SoundManager.playWorld === 'function') {
             // 世界音效（2026-08-11 距离衰减）：开门声按门闸位置衰减
             SoundManager.playWorld(this._gateSound(), this._cx, this._cy);
@@ -222,23 +239,37 @@ export const WallGate = {
     /** 帧动画（Phaser tween 计数器驱动，不依赖手动 update tick） */
     _playAnim(from, to) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        for (const sprite of this.sprites || []) if (sprite && sprite.active) sprite.setFrame(from);
-        for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(from);
-        if (!scene) { this._frame = to; this.state = to === 0 ? 'closed' : 'open'; return; }
+        const fullLeaf = !!this._geo().leafMotion;
+        if (fullLeaf) from = this.sprite?._gateVisualFrame ?? from;
+        updateGateSprites(this.sprites, from);
+        updateGateSprites(this.glowSprites, from);
+        if (!scene) {
+            this._frame = to;
+            this.state = to === 0 ? 'closed' : 'open';
+            finishGateSprites(this.sprites, to, to !== 0, !!this._geo().hideWhenOpen);
+            updateGateSprites(this.glowSprites, to);
+            if (to !== 0 && this._geo().hideWhenOpen) this._setVisualVisible(false);
+            const cb = this._onDone;
+            this._onDone = null;
+            if (cb) cb();
+            return;
+        }
         if (this._animCounter) this._animCounter.stop();
         this._animCounter = scene.tweens.addCounter({
             from,
             to,
-            duration: ANIM_MS,
+            duration: fullLeaf ? ANIM_MS * Math.abs(to - from) / (FRAMES - 1) : ANIM_MS,
             ease: 'Linear',
             onUpdate: (tw) => {
-                const f = Math.round(tw.getValue());
-                for (const sprite of this.sprites || []) if (sprite && sprite.active) sprite.setFrame(f);
-                for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(f);
+                updateGateSprites(this.sprites, tw.getValue());
+                updateGateSprites(this.glowSprites, tw.getValue());
             },
             onComplete: () => {
                 this._frame = to;
                 this.state = to === 0 ? 'closed' : 'open';
+                finishGateSprites(this.sprites, to, to !== 0, !!this._geo().hideWhenOpen);
+                updateGateSprites(this.glowSprites, to);
+                if (to !== 0 && this._geo().hideWhenOpen) this._setVisualVisible(false);
                 const cb = this._onDone;
                 this._onDone = null;
                 if (cb) cb();
@@ -249,7 +280,7 @@ export const WallGate = {
     /** 帧推进（CombatRoomSystem.update 驱动） */
     /** 帧推进已改 tween 驱动（_playAnim）；update 仅同步发光帧 */
     update(_dt) {
-        const frame = this.sprite?.frame?.name;
+        const frame = this.sprite?._gateVisualFrame ?? this.sprite?.frame?.name;
         if (frame != null) {
             for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setFrame(frame);
         }
@@ -313,18 +344,10 @@ export const WallGate = {
             glow.setOrigin(0.5, 0.5);
             glow.setScale(this._scale.sx, this._scale.sy);
             glow.setFlipX(this._flip);
-            glow.setDepth(descriptor.depth + 0.5);
-            if (descriptor.crop && typeof glow.setCrop === 'function') {
-                const crop = descriptor.crop;
-                const applyCrop = () => glow.setCrop(crop.x, 0, crop.w, g.h);
-                const originalSetFrame = glow.setFrame.bind(glow);
-                glow.setFrame = (frame, updateSize, updateOrigin) => {
-                    const result = originalSetFrame(frame, updateSize, updateOrigin);
-                    applyCrop();
-                    return result;
-                };
-                applyCrop();
-            }
+            // 端片只比端墙低0.1；高亮不能用旧+0.5又翻到墙前。
+            glow.setDepth(descriptor.depth + (g.tuckEndSlices ? 0.05 : 0.5));
+            bindGateSourceCrop(glow, descriptor.crop, g.h);
+            bindGateLeafMotion(glow, g, this._frame);
             glow.setVisible(false);
             this.glowSprites.push(glow);
         }
@@ -332,7 +355,10 @@ export const WallGate = {
     },
 
     setHighlight(on) {
-        for (const sprite of this.glowSprites || []) if (sprite && sprite.active) sprite.setVisible(!!on);
+        const openAndHidden = this._geo().hideWhenOpen && this.state === 'open';
+        for (const sprite of this.glowSprites || []) {
+            if (sprite && sprite.active) sprite.setVisible(!!on && !openAndHidden);
+        }
     },
 
     destroy() {

@@ -1,0 +1,20 @@
+{
+  "date": "2026-08-31",
+  "userInstruction": "继续，换号了",
+  "asset": "stitchface-headsman",
+  "state": "walking",
+  "candidate": "v06",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "conversationUrl": "chrome://doubao-chat/chat/38439588022573570",
+  "statusAtCapture": "video_generation_submitted_using_daily_free_quota",
+  "pageConfirmation": "视频生成已提交；本次使用 Seedance 2.0 Mini；本次生成将消耗每日免费额度。",
+  "reference": "../../references/stitchface-headsman-walking-right-v06-safe.png",
+  "prompt": "../prompts/walking-doubao-v06.txt",
+  "promptChars": 562,
+  "promptSha256": "c6ddf9569f7a0ba2c112101f9d7fd0a2bc54f49c0a6b11104d61a7239854d1b8",
+  "output": "walking-doubao-v06.mp4",
+  "priorAttemptsProducedVideo": false,
+  "paidQuotaPurchased": false,
+  "note": "Submission acknowledgement only. Final video and visual review remain required."
+}

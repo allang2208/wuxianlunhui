@@ -1,0 +1,105 @@
+{
+  "status": "both_elites_implemented_pending_user_runtime_test",
+  "approvedMotherMessage": "可用，设置攻击方式，豆包管线生成视频",
+  "profile": "specialist",
+  "sizeContract": "Both elites use minerZombie standing body 139.515234375px; exclude weapons/candles; preserve authored action trajectory.",
+  "attacks": [
+    {
+      "id": "stitchface-headsman",
+      "name": "缝面刽子手",
+      "attackName": "蓄力斩骨",
+      "contract": "single_target_melee",
+      "implementationTarget": "melee-attack-resolver.js plus one self-managed contact event",
+      "motion": "Single downward cleaver chop, anticipation -> contact -> recovery. Candidate v01 contains a small step and knee/torso follow-through; preserve the accepted authored trajectory and do not add an independent code dash.",
+      "targeting": "Lock primary target and direction at action start; rebase origin only, no retargeting or turn tracking.",
+      "damageProposal": {
+        "type": "physical",
+        "multiplier": 2
+      },
+      "timingProposal": {
+        "finalActionDurationMs": 1500,
+        "startToStartCooldownMs": 3000,
+        "contactFrame": 40,
+        "activeFrames": [
+          40,
+          41
+        ],
+        "note": "Implemented from approved source f56 and fixed video camera calibration; output frame timing is authoritative in enemy-config textures.frameLayouts.attack.",
+        "contactMs": 833.3333333333334
+      },
+      "range": {
+        "approachReach": 70,
+        "impactReach": 70,
+        "width": 36,
+        "status": "implemented_from_source_blade_tip_at_runtime_body_scale"
+      },
+      "counterplay": "Visible windup, rear/side dodge, leave contact rectangle or break line of sight; one target and one damage event.",
+      "noExtras": [
+        "No area cleave",
+        "No homing",
+        "No second hit",
+        "No forced dash",
+        "No chain weapon"
+      ],
+      "animationStates": [
+        "idle",
+        "walking",
+        "attacking",
+        "dying"
+      ],
+      "runtimeType": "stitchfaceHeadsman",
+      "runtimeIntegrationActive": true
+    },
+    {
+      "id": "waxface-mourner",
+      "name": "蜡面哀祷者",
+      "attackName": "封蜡诅咒",
+      "contract": "telegraphed_ground_spell",
+      "implementationTarget": "independent release event and one ground-circle effect, not basic melee range",
+      "motion": "Lift supported wax bowl, gather casting hand, extend palm once, recover; no baked spell effect in character video.",
+      "targeting": "Lock target/direction at start; at the observed release frame snapshot its valid ground position, then show a fixed warning circle with no subsequent tracking.",
+      "damageProposal": {
+        "type": "magic",
+        "multiplier": 1.4
+      },
+      "timingProposal": {
+        "finalActionDurationMs": 1500,
+        "startToStartCooldownMs": 4200,
+        "releaseFrame": 34,
+        "warningDurationMs": 900,
+        "releaseMs": 725,
+        "detonationMsFromActionStart": 1625
+      },
+      "rangeProposal": {
+        "maxCastGroundReach": 420,
+        "groundRadius": 72,
+        "note": "Implemented in ground units; fixed warning ellipse rx72/ry36 uses the same hit shape plus target Collider overlap; user runtime tuning pending."
+      },
+      "onHitProposal": {
+        "slowPercent": 20,
+        "slowDurationMs": 2000,
+        "stacking": "refresh only; no stacking"
+      },
+      "counterplay": "Step out of the marked circle during 900ms warning; walls and different ground surfaces gate cast and impact.",
+      "lifecycle": "Interrupt/death cancels any unreleased cast. A released wax seal has its own lifetime and at most one detonation.",
+      "noExtras": [
+        "No persistent damage field",
+        "No passive fear aura",
+        "No projectile homing",
+        "No summons",
+        "No spell particles baked into body"
+      ],
+      "animationStates": [
+        "idle",
+        "walking",
+        "attacking",
+        "dying"
+      ],
+      "runtimeType": "waxfaceMourner",
+      "runtimeIntegrationActive": true
+    }
+  ],
+  "scope": "Both elites implemented; authoritative final clocks and layouts are in their sprite manifests and matching data/public enemy configs.",
+  "sourceToRuntime": "Final sprite frame durations are authoritative. Source MP4/GIF retain original timing; final GIF uses the game action timeline.",
+  "validation": "No tests, game, browser game checks or builds."
+}

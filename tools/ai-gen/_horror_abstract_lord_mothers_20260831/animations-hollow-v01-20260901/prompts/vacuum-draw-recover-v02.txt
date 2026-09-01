@@ -1,0 +1,7 @@
+Use the supplied Hollow Ovum as the exact opening identity. The camera stays locked in the same slightly elevated three-quarter view and stable game-sprite scale. The organism remains centered. The attack is shown as the existing empty opening expanding into a stronger hollow intake; the white background must remain plainly visible through the center at every moment.
+
+0.0-0.9 seconds: the hovering body lowers slightly and the neighboring shell plates tense around the already open cavity. Every black membrane bridge stays attached only along the cavity perimeter.
+0.9-3.2 seconds: the side and upper calcified plates hinge outward and slightly backward in a slow connected sequence. The inner shell walls flare apart, making the empty white through-hole visibly wider and taller than at the opening pose. The perimeter membranes stretch only between neighboring shell edges and frame the enlarged white opening without crossing its center. The outward opening reaches one clear sustained peak near 3.2 seconds.
+3.2-5.17 seconds: the connected plates ease inward in reverse order until the original wide empty cavity, plate spacing, hover height, and ready pose return naturally. Do not repeat the action.
+
+The central white window never becomes narrower than its opening size and is never covered by black tissue. Preserve every original plate and the asymmetric egg silhouette. No eye, core, face, mouth, added anatomy, membrane sheet across the hole, vortex, smoke, debris, beams, projectiles, detached pieces, camera movement, or lateral translation.

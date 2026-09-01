@@ -1,0 +1,52 @@
+{
+  "standardVersion": 1,
+  "id": "stitchfaceHeadsman",
+  "profile": "specialist",
+  "textureCount": 4,
+  "closureMiB": 49.402,
+  "limits": {
+    "targetMiB": 64,
+    "reviewLimitMiB": 128
+  },
+  "manifests": [
+    {
+      "id": "stitchfaceHeadsman",
+      "profile": "specialist",
+      "directMiB": 49.402
+    }
+  ],
+  "textures": [
+    {
+      "textureKey": "enemy_stitchface_headsman_idle",
+      "path": "assets/enemies/stitchface_headsman/idle.png",
+      "width": 896,
+      "height": 928,
+      "MiB": 3.172
+    },
+    {
+      "textureKey": "enemy_stitchface_headsman_walk",
+      "path": "assets/enemies/stitchface_headsman/walk.png",
+      "width": 1660,
+      "height": 1428,
+      "MiB": 9.043
+    },
+    {
+      "textureKey": "enemy_stitchface_headsman_attack",
+      "path": "assets/enemies/stitchface_headsman/attack.png",
+      "width": 2618,
+      "height": 1848,
+      "MiB": 18.456
+    },
+    {
+      "textureKey": "enemy_stitchface_headsman_death",
+      "path": "assets/enemies/stitchface_headsman/death.png",
+      "width": 3720,
+      "height": 1320,
+      "MiB": 18.732
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "budgetPassed": true,
+  "scope": "PNG headers, declared frame layout and unique texture bytes only; no alpha, motion or runtime validation"
+}

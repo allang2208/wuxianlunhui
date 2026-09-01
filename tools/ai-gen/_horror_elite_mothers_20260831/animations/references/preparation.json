@@ -1,0 +1,64 @@
+[
+  {
+    "source": "tools\\ai-gen\\_horror_elite_mothers_20260831\\mother\\01-stitchface-headsman-v01-white.png",
+    "output": "tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\references\\stitchface-headsman-video-safe.png",
+    "sourceBbox": [
+      313,
+      41,
+      843,
+      1215
+    ],
+    "sourceCanvas": [
+      1254,
+      1254
+    ],
+    "canvas": [
+      1280,
+      720
+    ],
+    "outputBbox": [
+      478,
+      166,
+      673,
+      598
+    ],
+    "subjectWidthRatio": 0.15234375,
+    "margins": {
+      "left": 478,
+      "right": 607,
+      "top": 166,
+      "bottom": 122
+    }
+  },
+  {
+    "source": "tools\\ai-gen\\_horror_elite_mothers_20260831\\mother\\02-waxface-mourner-v01-white.png",
+    "output": "tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\references\\waxface-mourner-video-safe.png",
+    "sourceBbox": [
+      402,
+      47,
+      849,
+      1216
+    ],
+    "sourceCanvas": [
+      1254,
+      1254
+    ],
+    "canvas": [
+      1280,
+      720
+    ],
+    "outputBbox": [
+      494,
+      166,
+      659,
+      598
+    ],
+    "subjectWidthRatio": 0.12890625,
+    "margins": {
+      "left": 494,
+      "right": 621,
+      "top": 166,
+      "bottom": 122
+    }
+  }
+]

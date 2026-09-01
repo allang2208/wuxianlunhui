@@ -14,6 +14,7 @@
 import combatFormulasData from '../../data/combat-formulas.json';
 import dungeonConfigData from '../../data/dungeon-config.json';
 import invasionConfig from '../../data/agent-invasion.json';
+import { getDungeonRewardProfile } from './dungeon-rewards.js';
 
 const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A'];
 
@@ -58,18 +59,23 @@ export function getBandCost(grade) {
 }
 
 /** 单场遭遇的 tier 构成统计：优先 waveComposition 逐波求和，缺省 combatWaves × monsterComposition（无 comp 视为全普通） */
-function _fightCounts(enc, defaultPerWave = 5) {
+function _fightCounts(enc, defaultPerWave = 5, arenaLastWaveNormals = null) {
     const counts = { normal: 0, elite: 0, lord: 0, boss: 0 };
     if (!enc) return counts;
     if (Array.isArray(enc.waveComposition)) {
         for (const comp of enc.waveComposition) {
             for (const [tier, n] of Object.entries(comp || {})) counts[tier] = (counts[tier] || 0) + n;
         }
+        if (arenaLastWaveNormals !== null && enc.waveComposition.length) {
+            const last = enc.waveComposition[enc.waveComposition.length - 1];
+            counts.normal += arenaLastWaveNormals - (last?.normal || 0);
+        }
         return counts;
     }
     const waves = enc.combatWaves ?? 1;
     const comp = enc.monsterComposition || { normal: enc.monstersPerWave ?? defaultPerWave };
     for (const [tier, n] of Object.entries(comp)) counts[tier] = (counts[tier] || 0) + n * waves;
+    if (arenaLastWaveNormals !== null && waves > 0) counts.normal += arenaLastWaveNormals - (comp.normal || 0);
     return counts;
 }
 
@@ -81,6 +87,7 @@ function _analyzeDungeon(dungeonType) {
     const cfg = dungeonConfigData[DUNGEON_BLOCK_KEY[dungeonType]] || dungeonConfigData.zombieDungeonBeginner;
     const grade = getGradeForDungeon(dungeonType);
     const gradeIdx = Math.max(0, GRADE_ORDER.indexOf(grade));
+    const rewardProfile = getDungeonRewardProfile(dungeonType);
 
     // nodeCount 口径含宝箱岔路（见 zombie-dungeon.js generate）——先减岔路预算再算网格战斗节点，
     // 否则岔路节点被网格/岔路两边重复计入
@@ -94,8 +101,15 @@ function _analyzeDungeon(dungeonType) {
     const eliteChance = cfg.eliteCombatChance ?? 0;
 
     // 单场战斗构成（支持 waveComposition 逐波配比：普通战尾波定刷精英、精英战尾波定刷领主）
-    const normFight = _fightCounts(cfg.encounters?.normal);
-    const eliteFight = _fightCounts(cfg.encounters?.elite);
+    const arenaNormalsFor = (isElite) => {
+        if (!rewardProfile || cfg.combatArena?.enabled === false) return null;
+        const kind = isElite ? 'elite' : 'normal';
+        const roomCount = cfg.combatArena?.[`${kind}RoomCount`]
+            ?? dungeonConfigData.combatArena?.roomCountByGrade?.[grade]?.[kind] ?? 1;
+        return Number(roomCount) > 1 ? (cfg.arenaLastWaveNormals ?? 10) : null;
+    };
+    const normFight = _fightCounts(cfg.encounters?.normal, 5, arenaNormalsFor(false));
+    const eliteFight = _fightCounts(cfg.encounters?.elite, 5, arenaNormalsFor(true));
 
     let N = 0, E = 0, L = 0, B = 0;
     const normFights = combatNodes * (1 - eliteChance);
@@ -249,7 +263,10 @@ export function getMonsterExpDetail(monster, playerLevel, dungeonType) {
     const rank = monster?.rank || 'normal';
     const rankMul = (_cfg().rankMul && _cfg().rankMul[rank]) ?? 1;
     const base = getDungeonExpBase(dungeonType);
-    const effLevel = getMonsterEffectiveLevel(monster, dungeonType);
+    const experienceAnchor = getDungeonRewardProfile(dungeonType)?.experienceAnchor;
+    const effLevel = Number.isFinite(experienceAnchor)
+        ? experienceAnchor + ((monster?.level ?? monster?.data?.level ?? 3) - 3)
+        : getMonsterEffectiveLevel(monster, dungeonType);
     const mult = getExpLevelMultiplier(playerLevel, effLevel, rank);
     return {
         exp: Math.max(1, Math.floor(base * rankMul * mult)),

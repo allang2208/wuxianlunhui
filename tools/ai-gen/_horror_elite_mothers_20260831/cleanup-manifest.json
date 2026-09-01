@@ -1,0 +1,134 @@
+{
+  "date": "2026-08-31",
+  "status": "moved_recoverable",
+  "fileCount": 21,
+  "totalBytes": 45746559,
+  "files": [
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/attacking-doubao-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/attacking-doubao-v01-source.gif",
+      "bytes": 3474207,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/dying-doubao-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/dying-doubao-v01-source.gif",
+      "bytes": 2430125,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/four-actions-overview.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/four-actions-overview.gif",
+      "bytes": 7519379,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/idle-doubao-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/idle-doubao-v01-source.gif",
+      "bytes": 2617543,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/walking-doubao-v06-detail.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/walking-doubao-v06-detail.gif",
+      "bytes": 9287540,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/walking-doubao-v06-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/previews/walking-doubao-v06-source.gif",
+      "bytes": 2589997,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/attacking-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/attacking-rife.log",
+      "bytes": 7305,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/dying-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/dying-rife.log",
+      "bytes": 7151,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/idle-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/idle-rife.log",
+      "bytes": 3742,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/walking-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/reports/walking-rife.log",
+      "bytes": 5941,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/review-20260831/chroma-filter-candidate.png",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/review-20260831/chroma-filter-candidate.png",
+      "bytes": 174421,
+      "reason": "未采用的滤色实验；正式源像素和复查报告保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/review-20260831/source-chroma.png",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/stitchface-headsman/sprite-build-v01/review-20260831/source-chroma.png",
+      "bytes": 445591,
+      "reason": "未采用的滤色实验；正式源像素和复查报告保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/attacking-doubao-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/attacking-doubao-v01-source.gif",
+      "bytes": 2701565,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/dying-doubao-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/dying-doubao-v01-source.gif",
+      "bytes": 2244548,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/four-actions-overview.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/four-actions-overview.gif",
+      "bytes": 7013246,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/idle-doubao-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/idle-doubao-v01-source.gif",
+      "bytes": 2751236,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/walking-doubao-v01-source.gif",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/previews/walking-doubao-v01-source.gif",
+      "bytes": 2447790,
+      "reason": "源视频重复GIF；原MP4、接触图和正式运行时时钟GIF保留"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/attacking-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/attacking-rife.log",
+      "bytes": 7439,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/dying-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/dying-rife.log",
+      "bytes": 7841,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/idle-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/idle-rife.log",
+      "bytes": 4608,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    },
+    {
+      "source": "tools/ai-gen/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/walking-rife.log",
+      "destination": "tools/.trash-animation-publication-20260831/_horror_elite_mothers_20260831/animations/waxface-mourner/sprite-build-v01/reports/walking-rife.log",
+      "bytes": 5344,
+      "reason": "可再生解释器缓存或已有JSON报告的运行日志"
+    }
+  ]
+}

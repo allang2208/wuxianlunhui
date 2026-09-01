@@ -1,0 +1,52 @@
+{
+  "standardVersion": 1,
+  "id": "waxfaceMourner",
+  "profile": "specialist",
+  "textureCount": 4,
+  "closureMiB": 44.231,
+  "limits": {
+    "targetMiB": 64,
+    "reviewLimitMiB": 128
+  },
+  "manifests": [
+    {
+      "id": "waxfaceMourner",
+      "profile": "specialist",
+      "directMiB": 44.231
+    }
+  ],
+  "textures": [
+    {
+      "textureKey": "enemy_waxface_mourner_idle",
+      "path": "assets/enemies/waxface_mourner/idle.png",
+      "width": 1080,
+      "height": 924,
+      "MiB": 3.807
+    },
+    {
+      "textureKey": "enemy_waxface_mourner_walk",
+      "path": "assets/enemies/waxface_mourner/walk.png",
+      "width": 1320,
+      "height": 1200,
+      "MiB": 6.042
+    },
+    {
+      "textureKey": "enemy_waxface_mourner_attack",
+      "path": "assets/enemies/waxface_mourner/attack.png",
+      "width": 1740,
+      "height": 1848,
+      "MiB": 12.266
+    },
+    {
+      "textureKey": "enemy_waxface_mourner_death",
+      "path": "assets/enemies/waxface_mourner/death.png",
+      "width": 2160,
+      "height": 2684,
+      "MiB": 22.115
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "budgetPassed": true,
+  "scope": "PNG headers, declared frame layout and unique texture bytes only; no alpha, motion or runtime validation"
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\mother\\pleat-devourer-mother-v03-animation-right.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-pleat-v03-20260831\\prompts\\idle-v01.txt",
+  "promptChars": 496,
+  "promptSha256": "3f06547eaf6cf54e97d54f661799ca9d3ce4b201fba785eebbb8e577c09b2e40",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-31T15:12:25.903Z",
+  "sourceUrlScheme": "https"
+}

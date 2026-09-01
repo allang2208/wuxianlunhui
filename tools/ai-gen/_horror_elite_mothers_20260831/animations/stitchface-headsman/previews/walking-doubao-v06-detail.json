@@ -1,0 +1,18 @@
+{
+  "source": "../videos/walking-doubao-v06.mp4",
+  "fixedCrop": [
+    390,
+    110,
+    810,
+    640
+  ],
+  "sourceFrames": [
+    0,
+    120
+  ],
+  "fps": 24.0,
+  "gifFrames": 121,
+  "gifDurationMs": 5040,
+  "perFrameNormalization": false,
+  "note": "All source frames, original timing. One fixed viewing window only; no source modification or sprite alignment."
+}

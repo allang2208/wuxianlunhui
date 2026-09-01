@@ -44,8 +44,10 @@ import {
     pointInRoomShape,
 } from './frozen-random-room-layout.js';
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
+import { DungeonWallTorchSystem } from './dungeon-wall-torch-system.js';
 import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
-import { finishGateSprites, prepareGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
+import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites,
+    finishGateSprites, prepareGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
 import {
     buildFrozenArenaTerrain,
     findFrozenTerrainSafePoint,
@@ -264,6 +266,11 @@ export const CombatRoomSystem = {
         });
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+        DungeonWallTorchSystem.spawn({
+            rooms: [this._roomBounds],
+            gates: WallGate._seg ? [WallGate._seg] : [],
+            avoidPoints: obstacleAvoid,
+        });
 
         return {
             size: roomSize,
@@ -1144,6 +1151,7 @@ export const CombatRoomSystem = {
     /** 每帧驱动：门闸动画推进 + 悬停金色轮廓（dungeon-map-system.updateCombat 调用） */
     update(dt) {
         WallGate.update(dt);
+        DungeonWallTorchSystem.update();
         this._recoverFrozenTerrainOccupants();
         // 陷阱：占用判定/延迟/动画/倒放/冷却
         if (typeof TrapSystem !== 'undefined') TrapSystem.update(dt);
@@ -1192,6 +1200,7 @@ export const CombatRoomSystem = {
 
     /** 清理门闸与白区（cleanupRoom 调用） */
     cleanupGate() {
+        DungeonWallTorchSystem.clear();
         WallGate.destroy();
         GateLight.destroy();
         // 竞技场通道门（三房间串联）：拆门 sprite/碰撞段，墙件随场景恢复还原
@@ -1351,6 +1360,7 @@ export const CombatRoomSystem = {
     },
 
     _restoreSceneState() {
+        DungeonWallTorchSystem.clear();
         // 恢复墙壁
         if (WallSystem) {
             WallSystem.walls = [...this._backupWalls];
@@ -1457,7 +1467,7 @@ export const CombatRoomSystem = {
         if (worldBlockArena) {
             const sizes = [];
             for (let i = 0; i < roomCount; i++) sizes.push(i === roomCount - 1 ? eliteSize : normalSize);
-            if (options.dungeonType === 'frozenBeginner' && roomProfile.randomRooms?.enabled === true) {
+            if (roomProfile.randomRooms?.enabled === true) {
                 try {
                     layout = computeFrozenRandomRoomLayout({
                         sizes,
@@ -1484,8 +1494,7 @@ export const CombatRoomSystem = {
                 cellW: ONE_CELL_BUILDING_FOOT.w,
                 cellD: ONE_CELL_BUILDING_FOOT.d,
                 entryEdge: this._resolveWorldBlockEntryEdge(roomProfile)?.name || 'LT',
-                passageGateAxis: options.dungeonType === 'frozenBeginner'
-                    ? roomProfile.randomRooms?.passageGateAxis : null,
+                passageGateAxis: roomProfile.randomRooms?.passageGateAxis || null,
             });
         } else if (roomCount <= 3 || !analysisV2) {
             // 三房直线串联（历史行为）：房间 1/2 normal、房间 3 elite
@@ -1613,7 +1622,6 @@ export const CombatRoomSystem = {
 
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
-
         // 6. 竞技场状态（_diamond 固定指向最后一房：出口门/白区/离场判定都以其为准；
         //    _roomBounds 指向当前战斗房间，随 stage 切换——刷怪/墓碑共用现有逻辑）
         const rLast = layout.rooms[layout.rooms.length - 1];
@@ -1740,6 +1748,18 @@ export const CombatRoomSystem = {
         });
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+        DungeonWallTorchSystem.spawn({
+            rooms: layout.rooms,
+            gates: [
+                ...passageRecs.flatMap((rec) => rec.gates.map((gate) => [gate.baseA, gate.baseB])),
+                ...(entryGate ? [[entryGate.baseA, entryGate.baseB]] : []),
+                ...(WallGate._seg ? [WallGate._seg] : []),
+            ],
+            avoidPoints: [
+                { x: spawnX, y: spawnY, r: 150 },
+                ...(exitInfo?.center ? [{ x: exitInfo.center.x, y: exitInfo.center.y, r: 220 }] : []),
+            ],
+        });
 
         // 9. 玩家生成：房间 1 中心偏上（防嵌墙兜底）
         player.x = spawnX;
@@ -2203,17 +2223,8 @@ export const CombatRoomSystem = {
             gateSprite.setFlipX(!!piece.flipX);
             gateSprite.setFlipY(!!piece.flipY);
             gateSprite.setDepth(depth);
-            if (crop && typeof gateSprite.setCrop === 'function') {
-                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
-                // Phaser 4 切 spritesheet 帧后仍保留上一帧 crop UV，必须按新帧重算。
-                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
-                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
-                    const result = originalSetFrame(frame, updateSize, updateOrigin);
-                    applyCrop();
-                    return result;
-                };
-                applyCrop();
-            }
+            bindGateSourceCrop(gateSprite, crop, g.h);
+            bindGateLeafMotion(gateSprite, g, frames - 1);
             sprites.push(gateSprite);
             return gateSprite;
         };
@@ -2257,7 +2268,7 @@ export const CombatRoomSystem = {
         return {
             sprite, sprites, depthSegments,
             wallSegs, gateSeg, center, baseA: gA, baseB: gB,
-            open: true, frames, _animCounter: null,
+            open: true, frames, hideWhenOpen: !!g.hideWhenOpen, _animCounter: null,
         };
     },
 
@@ -2648,23 +2659,22 @@ export const CombatRoomSystem = {
             SoundManager.playFile((style && style.gateSound) || 'assets/sounds/environment/gate.mp3');
         }
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        const from = open ? 0 : inst.frames - 1, to = open ? inst.frames - 1 : 0;
+        const fullLeaf = !!inst.sprite?._gateLeafMotion;
+        const from = fullLeaf ? inst.sprite._gateVisualFrame : (open ? 0 : inst.frames - 1);
+        const to = open ? inst.frames - 1 : 0;
         const sprites = inst.sprites || [inst.sprite];
+        prepareGateSprites(sprites, from);
         if (!scene) {
-            for (const gateSprite of sprites) {
-                if (gateSprite && gateSprite.active) gateSprite.setFrame(to);
-            }
+            finishGateSprites(sprites, to, open, inst.hideWhenOpen);
             return;
         }
         if (inst._animCounter) inst._animCounter.stop();
         inst._animCounter = scene.tweens.addCounter({
-            from, to, duration: 900, ease: 'Linear',
+            from, to, duration: fullLeaf ? 900 * Math.abs(to - from) / (inst.frames - 1) : 900, ease: 'Linear',
             onUpdate: (tw) => {
-                const frame = Math.round(tw.getValue());
-                for (const gateSprite of sprites) {
-                    if (gateSprite && gateSprite.active) gateSprite.setFrame(frame);
-                }
+                updateGateSprites(sprites, tw.getValue());
             },
+            onComplete: () => finishGateSprites(sprites, to, open, inst.hideWhenOpen),
         });
     },
 
@@ -2853,6 +2863,7 @@ export const CombatRoomSystem = {
             flipY: false,
             depth: baseDepth + 4,
             _gridBlockWall: true,
+            _gridBlockVariant: style?.block || 'frozen_block',
             _baseSegments: baseSegments,
             ...extra,
         };

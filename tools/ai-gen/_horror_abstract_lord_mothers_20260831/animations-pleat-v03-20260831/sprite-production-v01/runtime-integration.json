@@ -1,0 +1,133 @@
+{
+  "date": "2026-09-01",
+  "unitKey": "pleatDevourer",
+  "status": "integrated_pending_user_validation",
+  "authorization": {
+    "userRequest": "导入游戏设计状态机和数值。按照动画标准工作流处理，看看相关skill部分",
+    "scope": "百褶噬团四动作入库、状态机、数值、恐怖地牢领主池；不包括空腔之卵、来袭、测试或EXE发布"
+  },
+  "entity": "src/entities/enemy-types/pleat-devourer.js",
+  "config": "data/enemy-config.json#pleatDevourer",
+  "scale": {
+    "sourceScale": 0.35,
+    "runtimeScale": 1,
+    "sourceToWorldScale": 0.35,
+    "referenceCell": 448,
+    "sourceNeutralBodyHeight": 354.28571428571433,
+    "normalZoom": 1,
+    "maximumZoom": 1.03,
+    "normalZoomBodyPixels": 124,
+    "maximumZoomBodyPixels": 127.72,
+    "neutralBodyWidth": 310,
+    "neutralBodyHeight": 124,
+    "basis": "idle f0 alpha>=64；不含透明画布。身体无细长武器。所有动作固定倍率，不按每帧Alpha重缩放。",
+    "cameraSource": "GameScene sceneBaseZoom=1 for dungeons; GunFeel.ZOOM_MAX=0.03"
+  },
+  "collider": {
+    "radius": 90,
+    "height": 130,
+    "offsetX": 0,
+    "offsetY": 0,
+    "projectileHitbox": {
+      "width": 300,
+      "height": 130,
+      "offsetX": 0,
+      "bottom": 0
+    }
+  },
+  "actions": {
+    "idle": {
+      "state": "idle",
+      "textureKey": "enemy_pleat_devourer_idle",
+      "texture": "assets/enemies/pleat_devourer/idle.png"
+    },
+    "crawling": {
+      "state": "walk",
+      "textureKey": "enemy_pleat_devourer_walk",
+      "texture": "assets/enemies/pleat_devourer/walk.png"
+    },
+    "attack": {
+      "state": "attack",
+      "textureKey": "enemy_pleat_devourer_attack",
+      "texture": "assets/enemies/pleat_devourer/attack.png"
+    },
+    "dying": {
+      "state": "death",
+      "textureKey": "enemy_pleat_devourer_death",
+      "texture": "assets/enemies/pleat_devourer/death.png"
+    }
+  },
+  "attack": {
+    "sourceFrame": 39,
+    "contactFrame": 26,
+    "contactMs": 1625,
+    "activeFrames": [
+      26,
+      27
+    ],
+    "exposedStartFrame": 28,
+    "exposedStartMs": 1750,
+    "durationMs": 5041.666667,
+    "reach": 200,
+    "width": 96,
+    "shape": "directedRect",
+    "damageMultiplier": 3,
+    "knockback": 70,
+    "cooldownMs": 5600,
+    "cooldownSemantics": "start-to-start; existing frequency modifier affects cooldown only",
+    "measuredFrontFromRoot": 208.625,
+    "earlierCandidate": "Frame34/2125ms was only a provisional hold pose; frames24..28 reveal forward peak at26.",
+    "rootMotion": "locomotion moves Collider; attack fixes Collider movement and preserves authored internal motion"
+  },
+  "cameraReview": {
+    "inheritedDirectionApproval": true,
+    "body": "前端朝右，后部隆起在左，整体轻俯视侧向；无头胸胯膝足，按前褶/中段/后囊记录，不虚构人体关节。",
+    "travelAxis": "屏幕左右，攻击锁定起手方向；上下/斜向共享左右源图，尚未实机验收。",
+    "identitySource": "mother/pleat-devourer-mother-v03-animation-right.png",
+    "actualAnimationReferences": [
+      {
+        "type": "zombieDog",
+        "config": "data/enemy-config.json#zombieDog.textures.frameLayouts.walk",
+        "path": "assets/enemies/zombie_dog/v3/running.png",
+        "frames": [
+          0,
+          9,
+          18
+        ]
+      },
+      {
+        "type": "stitchfaceHeadsman",
+        "config": "data/enemy-config.json#stitchfaceHeadsman.textures.frameLayouts.walk",
+        "path": "assets/enemies/stitchface_headsman/walk.png",
+        "frames": [
+          0,
+          19,
+          38
+        ]
+      },
+      {
+        "type": "pleatDevourer",
+        "path": "assets/enemies/pleat_devourer/walk.png",
+        "frames": [
+          0,
+          17,
+          34
+        ]
+      }
+    ],
+    "plate": "../../integration-20260901/direction-reference-plate.png",
+    "review": "已查看当前真实动作帧；延续获准横向朝右的身体轴和轻俯视感，没有重新生成或改变原片步态。"
+  },
+  "footprintPlate": "../../integration-20260901/attack-contact-plate.png",
+  "dependencyNote": "Four unique animation textures, 58.21951675415039 MiB. No extra summons, projectiles or custom VFX textures; common telegraph reuses the body texture. Not a scene-performance measurement.",
+  "userFinalRuntimeAcceptance": false,
+  "testsRun": false,
+  "runtimeValidationRun": false,
+  "pending": [
+    "贴脸/极限距离/侧移/后撤/隔墙/换层/长帧",
+    "左右及上下斜向命中观感",
+    "石化冻结/控制打断/死亡留尸淡出",
+    "蠕行循环接缝与前端张合",
+    "C/B/A同级战斗手感"
+  ]
+}

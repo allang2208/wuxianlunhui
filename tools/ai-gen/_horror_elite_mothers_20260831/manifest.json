@@ -1,0 +1,124 @@
+{
+  "date": "2026-08-31",
+  "status": "both_elites_formal_sprites_installed_pending_user_runtime_test",
+  "scope": "Both horror elites have formal sprites and runtime integration; offline animation review complete; user game acceptance pending.",
+  "generation": {
+    "tool": "image_gen.imagegen",
+    "mode": "built-in",
+    "modelVersion": null,
+    "seed": null,
+    "background": "white; not transparent runtime assets"
+  },
+  "reference": {
+    "source": "tools/ai-gen/_horror_normal_mothers_20260830/mother/02-coffin-ward-v02-head-wrap.png",
+    "copy": "references/coffin-ward-camera-material-reference.png",
+    "role": "Camera, orientation, PBR material and studio-light reference only; no copied creature identity"
+  },
+  "candidates": [
+    {
+      "id": "stitchface-headsman",
+      "name": "缝面刽子手",
+      "rankProposal": "精英",
+      "roleProposal": "近战蓄力压迫",
+      "mother": "mother/01-stitchface-headsman-v01-white.png",
+      "prompt": "prompts/01-stitchface-headsman-v01.txt",
+      "originalGenerationPath": "C:/Users/allan/.codex/generated_images/01a05563-10bb-7af0-8252-d19a91dbe2cc/exec-75637939-0ffc-4259-887d-b80bc6465c57.png",
+      "identityAnchors": [
+        "斜缝皮面罩与铁口罩",
+        "宽肩皮围裙",
+        "单侧铁护肩",
+        "一把厚重斩骨刀",
+        "短断链腕铐"
+      ]
+    },
+    {
+      "id": "waxface-mourner",
+      "name": "蜡面哀祷者",
+      "rankProposal": "精英",
+      "roleProposal": "远程预警诅咒与区域封锁",
+      "mother": "mother/02-waxface-mourner-v01-white.png",
+      "prompt": "prompts/02-waxface-mourner-v01.txt",
+      "originalGenerationPath": "C:/Users/allan/.codex/generated_images/01a05563-10bb-7af0-8252-d19a91dbe2cc/exec-548eabc9-2eda-45dc-b888-4c5dd4ac34fc.png",
+      "identityAnchors": [
+        "封口裂蜡面具",
+        "瘦高黑色丧服",
+        "三根肩背短烛",
+        "托蜡铜碗",
+        "清晰双足"
+      ]
+    }
+  ],
+  "futureProduction": {
+    "profileProposal": "specialist",
+    "bodyReference": "minerZombie; body height excludes cleaver/candles",
+    "targetFamilyRgbaMiB": 64,
+    "approvalLineRgbaMiB": 128,
+    "notes": "Production complete: headsman 49.40MiB, mourner 44.23MiB; same minerZombie standing-body baseline, each within specialist 64MiB target."
+  },
+  "runtimeFilesChanged": true,
+  "testsOrRuntimeValidationPerformed": false,
+  "visualReview": "Both sets reviewed offline including full frame contact sheets. Headsman workflow issues repaired; mourner source smoke separated. Runtime acceptance remains pending.",
+  "approval": {
+    "date": "2026-08-31",
+    "userMessage": "可用，设置攻击方式，豆包管线生成视频"
+  },
+  "animationManifest": "animations/task-index.json",
+  "attackDesign": "animations/attack-design.json",
+  "animationDelivery": "animations/DELIVERY.md",
+  "completedVideoSources": 8,
+  "animationAssetProgress": {
+    "stitchface-headsman": {
+      "completedSources": 4,
+      "totalSources": 4,
+      "deliveredStates": [
+        "attacking",
+        "idle",
+        "walking",
+        "dying"
+      ],
+      "remainingStates": [],
+      "overview": "stitchface-headsman/previews/four-actions-overview.gif",
+      "status": "installed_pending_user_runtime_test",
+      "sourceApproval": "可用继续",
+      "walkingVersion": "v06",
+      "formalSpriteCount": 4,
+      "runtimeIntegrationActive": true,
+      "runtimeVerified": false,
+      "formalOverview": "stitchface-headsman/sprite-build-v01/previews/final/four-actions-overview.gif",
+      "delivery": "stitchface-headsman/SPRITE_DELIVERY.md",
+      "offlineReviewPassed": true,
+      "review": "stitchface-headsman/sprite-build-v01/review-20260831/asset-review.json",
+      "rgbaMiB": 49.4019775390625
+    },
+    "waxface-mourner": {
+      "completedSources": 4,
+      "totalSources": 4,
+      "deliveredStates": [
+        "attacking",
+        "idle",
+        "walking",
+        "dying"
+      ],
+      "remainingStates": [],
+      "overview": "waxface-mourner/previews/four-actions-overview.gif",
+      "status": "installed_pending_user_runtime_test",
+      "formalSpriteCount": 4,
+      "runtimeIntegrationActive": true,
+      "runtimeVerified": false,
+      "formalOverview": "waxface-mourner/sprite-build-v01/previews/final/four-actions-overview.gif",
+      "delivery": "waxface-mourner/SPRITE_DELIVERY.md",
+      "offlineReviewPassed": true,
+      "review": "waxface-mourner/sprite-build-v01/review-20260831/asset-review.json",
+      "rgbaMiB": 44.23095703125,
+      "visualAcceptance": {
+        "status": "accepted",
+        "date": "2026-08-31",
+        "userMessage": "可用",
+        "scope": "waxface-mourner final four-action animation preview; game runtime acceptance recorded separately"
+      }
+    }
+  },
+  "generationOrder": "Complete stitchface-headsman idle/walking/attacking/dying sources and previews first; only then resume waxface-mourner. Keep original job indices for provenance.",
+  "headsmanDelivery": "animations/stitchface-headsman/SPRITE_DELIVERY.md",
+  "mournerDelivery": "animations/waxface-mourner/SPRITE_DELIVERY.md"
+}

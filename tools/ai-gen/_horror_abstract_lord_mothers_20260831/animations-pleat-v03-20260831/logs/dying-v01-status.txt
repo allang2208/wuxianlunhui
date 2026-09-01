@@ -1,0 +1,9 @@
+{
+  "action": "dying-v01",
+  "inspection": "standard doubao-seedance-gen.mjs --inspect, read-only",
+  "visibleMessage": "生成内容中疑似包含侵权 / 违规内容，无法返回该内容，换个主题再试试，生成额度未扣除。",
+  "quotaDeducted": false,
+  "videoReturned": false,
+  "retrySubmitted": false,
+  "note": "仅保留当前任务的拦截信息，移除只读检查中的无关侧栏会话标题。"
+}

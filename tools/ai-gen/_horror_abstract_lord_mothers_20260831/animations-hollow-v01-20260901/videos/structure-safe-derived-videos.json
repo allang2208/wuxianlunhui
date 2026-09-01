@@ -1,0 +1,33 @@
+{
+  "createdDate": "2026-09-01",
+  "method": "offline_structure_safe_derivation_from_accepted_h3_sources",
+  "fps": 24,
+  "frameCount": 124,
+  "resolution": [
+    1024,
+    576
+  ],
+  "outputs": {
+    "hollow-ovum-hover-motion-adjusted-v03.mp4": {
+      "source": "hollow-ovum-idle-v01.mp4",
+      "operation": "whole_frame_integer_vertical_translation",
+      "offsetPx": {
+        "min": -8,
+        "max": 0
+      },
+      "identityPolicy": "No pixel warp, scale, rotation, interpolation, or generative redraw was applied.",
+      "firstLastMaeBeforeEncode": 1.1456948739510995
+    },
+    "hollow-ovum-shell-pulse-adjusted-v02.mp4": {
+      "sources": [
+        "hollow-ovum-vacuum-draw-v02.mp4",
+        "hollow-ovum-idle-v01.mp4"
+      ],
+      "operation": "vacuum_frames_0_to_28_then_exact_reverse_27_to_0_then_idle_frames_1_to_67",
+      "peakSourceFrame": 28,
+      "identityPolicy": "Uses only decoded frames from accepted H3 videos; no geometry warp, scale, rotation, or generative redraw was applied.",
+      "recoveryJoinMaeBeforeEncode": 1.859643441659433,
+      "firstLastMaeBeforeEncode": 7.202101530852141
+    }
+  }
+}

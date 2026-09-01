@@ -1,0 +1,38 @@
+{
+  "source": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\references\\stitchface-headsman-walking-right-v05-raw.png",
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_elite_mothers_20260831\\animations\\references\\stitchface-headsman-walking-right-v05-safe.png",
+  "sourceBbox": [
+    388,
+    40,
+    803,
+    1215
+  ],
+  "sourceCanvas": [
+    1254,
+    1254
+  ],
+  "canvas": [
+    1280,
+    720
+  ],
+  "outputBbox": [
+    500,
+    165,
+    653,
+    598
+  ],
+  "subjectWidthRatio": 0.11953125,
+  "margins": {
+    "left": 500,
+    "right": 627,
+    "top": 165,
+    "bottom": 122
+  },
+  "tool": "image_gen.imagegen",
+  "generatedOriginal": "C:/Users/allan/.codex/generated_images/01a05563-10bb-7af0-8252-d19a91dbe2cc/exec-e8913450-b845-4778-bc1f-2ae7d39ed274.png",
+  "identityReference": "../../mother/01-stitchface-headsman-v01-white.png",
+  "headingReference": "foreman-walk-frame04-heading-reference.png",
+  "headingReferenceSource": "assets/enemies/foreman_zombie/walking.png frame 4, 512x512, 5 columns",
+  "editPrompt": "../stitchface-headsman/prompts/walking-reference-right-v05-imagegen.txt",
+  "scope": "Walking-only derivative. Preserve mother and other actions. No measured 3D angle claim."
+}

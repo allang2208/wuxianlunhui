@@ -1,0 +1,7 @@
+Use the supplied Hollow Ovum as the exact first-frame identity. Keep the locked orthographic-like, slightly elevated three-quarter camera and the same visible shell surfaces for the entire shot. This is an in-place travel loop for a game sprite: the complete connected organism moves vertically as one rigid suspended object while gameplay supplies world travel.
+
+0.0-1.2 seconds: the whole vertical egg-shaped body translates upward about ten screen pixels. Its long vertical axis, outer width, outer height, plate spacing, and empty white through-hole retain the opening proportions. All plates move together; only the black perimeter membranes show a tiny delayed tension change.
+1.2-3.9 seconds: the whole unchanged silhouette completes one smooth buoyant down-and-up rhythm around the starting height. The same front and right shell surfaces remain visible. The motion is a clean vertical translation, not a turn toward or away from the camera.
+3.9-5.17 seconds: the complete body returns to the exact opening screen position, upright long-axis silhouette, scale, shell layout, aperture shape, and membrane tension without slowing into a frozen seam.
+
+The central white opening stays broad and unobstructed. Keep horizontal center fixed and keep both outer width and height visually constant. No pitch, yaw, roll, foreshortening, squash, stretch, shell rearrangement, lateral travel, added anatomy, detached parts, external effects, or camera motion.

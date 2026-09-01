@@ -1,0 +1,7 @@
+Use the supplied Hollow Ovum as the exact opening identity. The locked camera retains the same slightly elevated three-quarter view and stable game-sprite scale. The organism remains centered. This is one short radial pressure-release attack expressed by the body alone.
+
+0.0-1.2 seconds: the outer shell plates draw closer around the perimeter and rotate slightly backward while the hovering body sinks. The black membranes gather tension only between neighboring shell edges. The white through-hole remains broad, plainly visible, and at least seventy percent of its opening width.
+1.2-2.4 seconds: the plates snap outward together in one strong radial release. The aperture widens, the organism recoils upward a short distance, and each connected plate stops at a coherent maximum extension. The silhouette change is broad and immediately readable but nothing detaches.
+2.4-5.17 seconds: a damped rebound passes through the connected plates and membranes, then the full body returns naturally to the original shell spacing, aperture shape, hover height, and ready pose. Do not perform a second release.
+
+Preserve plate count, asymmetric identity, and the empty central through-hole. The perimeter membranes never cross or cover the white center. No eye, core, face, mouth, limbs, liquid, explosion, shockwave graphic, glow, particles, debris, projectile, detached shell, camera motion, or lateral translation.

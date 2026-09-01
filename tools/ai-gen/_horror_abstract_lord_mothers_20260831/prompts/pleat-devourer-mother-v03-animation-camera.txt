@@ -1,0 +1,18 @@
+Edit image 1, the latest approved-for-continuation Pleat Devourer design, into an animation-source mother frame. CHANGE THE CAMERA, ORIENTATION AND FRAMING ONLY. Keep the same creature identity, body topology, leathery materials, colors, sewn linen patches, sutures, rusty fastenings and number of principal folds.
+
+Image roles:
+1: Pleat Devourer v02 is the sole identity target. It is a continuous limbless funerary organism, not a dog or humanoid.
+2: Zombie dog v04 is a CAMERA AND HEADING reference only. Match its predominantly side-on RIGHTWARD travel direction, restrained elevated view of the back and near side, and sense of one horizontal ground plane. Do not borrow dog anatomy.
+3: Headsman animation-safe rightward reference is a supporting SCREEN HEADING AND FRAMING reference. Its movement aims toward the right edge instead of toward the viewer. Do not borrow human anatomy, clothing, weapons or standing pose.
+
+Required camera correction:
+The current Pleat Devourer in image 1 points diagonally toward the lower-right viewer and exposes too much top surface. Re-render the same three-dimensional creature from a much more lateral viewpoint with only mild elevation, following image 2's actual camera. Its long rear-to-front axis should now read almost horizontal across the screen, rear mass on the LEFT and leading seam at the far RIGHT. The leading end must point toward the RIGHT BORDER, not at the viewer or lower-right corner. Show the near flank clearly and only a restrained strip of the upper surfaces. Preserve body volume: do not flatten, squash, stretch, mirror, or rotate the existing 2D picture. This requires a new view of the same solid creature.
+
+Identity lock:
+Heavy, low, eyeless, headless, limbless, ash-brown and gray desiccated hide fold-sac. Four to six large overlapping lobes; rear-left rounded stored mass, broad continuous ventral contact surface, front-right tapered contracting fold with the same narrow dark recessed lamellar seam. Preserve the bone-white coarse funerary linen grown into selected folds, coarse dark stitches and sparse small rusted iron rivets in their corresponding anatomical locations. Nothing becomes an eye, animal mouth, muzzle, head or limb. No added horns, tentacles, wings, spikes, tail, skeleton, face, feet or hands. No new accessories or redesigned patterns. Dark seam remains compact and nearly closed in a calm neutral idle pose. All lobes connected and supported by the same continuous underside.
+
+Animation framing:
+WIDE LANDSCAPE 16:9 canvas, not square. One complete creature only. Uniformly smaller subject in the center with large blank margins for later motion: creature width about 60-65 percent of canvas width, body centered horizontally, underside around 70-73 percent of canvas height, ample blank space above, below and ahead of the right-facing front. Do not crop anything. All four animation actions will use this fixed camera and framing. No ruler or guide lines.
+Background must be flat solid fully opaque pure white #FFFFFF, absolutely no visible horizon, floor texture, cast shadow, contact shadow, ambient-occlusion puddle, reflections, gradients, transparency or vignette.
+Keep the existing realistic PBR game-render material language, soft neutral diffuse light from upper left, readable moderate contrast and dry surface texture. No cinematic lighting, VFX, motion blur, text, labels, logo, watermarks, extra creatures, collage, reference animals or inset images.
+Priority: rightward animation camera and consistent identity first; extra detail is not needed.
