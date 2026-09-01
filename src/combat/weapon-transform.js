@@ -556,10 +556,36 @@ class WeaponTransform {
                 y: Math.max(0, Math.min(1, Number(configured.y))),
             };
         }
+        // 枪械等单配置单贴图武器直接使用顶层 grip；共享同一动画配置的多贴图武器
+        // （例如 shotgun）仍由上面的 textureGrips 优先覆盖。运行时、开发面板和
+        // ADS 解算必须经过同一入口，避免三处各自回退到贴图中心。
+        const baseGrip = wac.grip;
+        if (baseGrip && Number.isFinite(Number(baseGrip.x)) && Number.isFinite(Number(baseGrip.y))) {
+            return {
+                x: Math.max(0, Math.min(1, Number(baseGrip.x))),
+                y: Math.max(0, Math.min(1, Number(baseGrip.y))),
+            };
+        }
         const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
         return {
             x: 0.5,
             y: 0.5 + gripOffset / Math.max(1, displaySize?.height || 1),
+        };
+    }
+
+    /** 双手长枪的前手承托点（驱动独立托举臂接触；不可替代武器主握把轴心）。 */
+    static getTextureSupportGrip(weaponType, textureKey) {
+        const wac = WeaponAnimConfig[weaponType] || {};
+        const configured = textureKey && wac.textureSupportGrips?.[textureKey];
+        const supportGrip = configured || wac.supportGrip;
+        if (!supportGrip
+            || !Number.isFinite(Number(supportGrip.x))
+            || !Number.isFinite(Number(supportGrip.y))) {
+            return null;
+        }
+        return {
+            x: Math.max(0, Math.min(1, Number(supportGrip.x))),
+            y: Math.max(0, Math.min(1, Number(supportGrip.y))),
         };
     }
 
@@ -791,6 +817,40 @@ class WeaponTransform {
     }
 
     // ==================== 武器尺寸计算 ====================
+
+    // 普通剑连段的显示专用帧：身体当前源帧决定握点和刃向，不消费攻击墙钟。
+    // 与旧 attack/attack2/attack3 分离，避免改动法杖及夜与火之剑特殊技的引用。
+    static getSwordGripFramePose(frame, textureKey) {
+        if (!frame) return null;
+        const size = this.getWeaponSize('sword', frame.scale, 'attack');
+        const grip = this.getTextureGrip('sword', textureKey, size);
+        return {
+            x: frame.offsetX, y: frame.offsetY,
+            rotation: frame.rotation * Math.PI / 180,
+            width: size.width * (frame.stretchX ?? 1),
+            height: size.height * (frame.stretchY ?? 1),
+            gripX: grip.x, gripY: grip.y,
+            blurX: frame.blurX || 0, blurY: frame.blurY || 0,
+        };
+    }
+
+    // 仅供真实玩家剑类待机显示及其编辑预览调用；不改变通用idle中心、法杖或攻击变换。
+    static getSwordIdleGripPose(pose, textureKey, overrides = {}, spriteSize = 144) {
+        const cfg = this._getStateConfig('sword', 'idle', overrides);
+        const size = this.getWeaponSize('sword', cfg.idleScale, 'idle');
+        const grip = this.getTextureGrip('sword', textureKey, size);
+        return {
+            // 旧holdOffset仍可微调；以作者标定时的值为零增量，四剑各自的握柄origin独立。
+            x: (pose.main[0] / pose.sourceSize - 0.5) * spriteSize
+                + cfg.holdOffsetX - pose.referenceHoldOffset[0],
+            y: (pose.main[1] / pose.sourceSize - 0.5) * spriteSize
+                + cfg.holdOffsetY - pose.referenceHoldOffset[1],
+            rotation: this.getWeaponRotation(0, 'sword', 0, 'idle', true, overrides),
+            scale: cfg.idleScale,
+            width: size.width, height: size.height,
+            gripX: grip.x, gripY: grip.y,
+        };
+    }
 
     static getWeaponSize(weaponType, scaleOverride = null, animState = null) {
         // 武器尺寸基于 WEAPON_ANIM.size（126），不是 player.size（18）

@@ -1,0 +1,10 @@
+# 已否决的后手/托举手草案
+hand-poses-firing-grip-v3-*
+hand-poses-firing-grip-v4-*
+hand-poses-rifle-lmg-raw.png
+hand-poses-shotgun-raw.png
+
+# 已否决的“托举点反向驱动枪体”审计产物
+support-grip-geometry.json
+support-grips-*.png
+aim-composite-*.png

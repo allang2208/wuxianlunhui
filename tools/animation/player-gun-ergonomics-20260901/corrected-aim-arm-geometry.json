@@ -1,0 +1,830 @@
+{
+  "source": "tools/animation/player-gun-ergonomics-20260901/gun_aim_frames-original.png",
+  "outputs": {
+    "mainHandBearingSource": "assets/player/gun_aim_frames.png",
+    "mainRuntime": "assets/player/gun_aim_arm_frames.png",
+    "support": {
+      "rifleLmg": "assets/player/gun_aim_support_frames.png",
+      "shotgun": "assets/player/gun_aim_support_frames_shotgun.png"
+    },
+    "combinedPreviewSource": {
+      "rifleLmg": "tools/animation/player-gun-ergonomics-20260901/corrected-aim-combined-frames.png",
+      "shotgun": "tools/animation/player-gun-ergonomics-20260901/corrected-aim-combined-frames-shotgun.png"
+    }
+  },
+  "sourceRig": {
+    "shoulder": {
+      "x": 197.3,
+      "y": 93.4
+    },
+    "elbow": {
+      "x": 133.6,
+      "y": 167.8
+    },
+    "hand": {
+      "x": 240,
+      "y": 221
+    },
+    "upperLength": 97.9441167196887,
+    "foreLength": 118.95881640298883
+  },
+  "handArt": {
+    "rawSources": {
+      "rifleLmg": "tools/animation/player-gun-ergonomics-20260901/hand-poses-rifle-lmg-v2-raw.png",
+      "shotgun": "tools/animation/player-gun-ergonomics-20260901/hand-poses-shotgun-v2-raw.png"
+    },
+    "cleanedSources": {
+      "rifleLmg": "tools/animation/player-gun-ergonomics-20260901/hand-poses-rifle-lmg-clean.png",
+      "shotgun": "tools/animation/player-gun-ergonomics-20260901/hand-poses-shotgun-clean.png"
+    },
+    "wristCut": {
+      "x": 212.27275707900262,
+      "y": 207.13637853950132
+    },
+    "wristToGripReach": 31,
+    "replacedSourcePixels": 1187,
+    "poseMetrics": {
+      "rifleLmg": [
+        {
+          "index": 0,
+          "bbox": {
+            "minX": 43,
+            "minY": 274,
+            "maxX": 409,
+            "maxY": 440
+          },
+          "wrist": {
+            "x": 163.8056603773585,
+            "y": 378.677358490566
+          },
+          "grip": {
+            "x": 285.30339674403496,
+            "y": 363.25545969750567
+          },
+          "wristToGrip": 122.473
+        },
+        {
+          "index": 1,
+          "bbox": {
+            "minX": 470,
+            "minY": 261,
+            "maxX": 868,
+            "maxY": 456
+          },
+          "wrist": {
+            "x": 579.7692307692307,
+            "y": 387.37209302325584
+          },
+          "grip": {
+            "x": 715.1726648126943,
+            "y": 379.55934074922294
+          },
+          "wristToGrip": 135.629
+        },
+        {
+          "index": 2,
+          "bbox": {
+            "minX": 869,
+            "minY": 259,
+            "maxX": 1286,
+            "maxY": 456
+          },
+          "wrist": {
+            "x": 1056.3487972508592,
+            "y": 382.7182130584192
+          },
+          "grip": {
+            "x": 1174.7896703758136,
+            "y": 355.73222758765485
+          },
+          "wristToGrip": 121.476
+        },
+        {
+          "index": 3,
+          "bbox": {
+            "minX": 1366,
+            "minY": 308,
+            "maxX": 1733,
+            "maxY": 457
+          },
+          "wrist": {
+            "x": 1476.4089347079039,
+            "y": 386.21649484536084
+          },
+          "grip": {
+            "x": 1609.4508193437237,
+            "y": 385.2009695901278
+          },
+          "wristToGrip": 133.046
+        },
+        {
+          "index": 4,
+          "bbox": {
+            "minX": 1789,
+            "minY": 316,
+            "maxX": 2129,
+            "maxY": 453
+          },
+          "wrist": {
+            "x": 1885.1790235081373,
+            "y": 383.0994575045208
+          },
+          "grip": {
+            "x": 2007.6273958717288,
+            "y": 385.95793402137855
+          },
+          "wristToGrip": 122.482
+        }
+      ],
+      "shotgun": [
+        {
+          "index": 0,
+          "bbox": {
+            "minX": 29,
+            "minY": 291,
+            "maxX": 371,
+            "maxY": 443
+          },
+          "wrist": {
+            "x": 133.74751491053678,
+            "y": 389.98807157057655
+          },
+          "grip": {
+            "x": 249.0026466696074,
+            "y": 375.4519629466255
+          },
+          "wristToGrip": 116.168
+        },
+        {
+          "index": 1,
+          "bbox": {
+            "minX": 489,
+            "minY": 292,
+            "maxX": 847,
+            "maxY": 454
+          },
+          "wrist": {
+            "x": 586.0200445434299,
+            "y": 399.01781737193767
+          },
+          "grip": {
+            "x": 705.9365303244006,
+            "y": 392.0199717912553
+          },
+          "wristToGrip": 120.12
+        },
+        {
+          "index": 2,
+          "bbox": {
+            "minX": 937,
+            "minY": 308,
+            "maxX": 1302,
+            "maxY": 450
+          },
+          "wrist": {
+            "x": 1047.4098039215687,
+            "y": 358.5549019607843
+          },
+          "grip": {
+            "x": 1177.6778165938865,
+            "y": 397.77519650655023
+          },
+          "wristToGrip": 136.044
+        },
+        {
+          "index": 3,
+          "bbox": {
+            "minX": 1303,
+            "minY": 297,
+            "maxX": 1710,
+            "maxY": 443
+          },
+          "wrist": {
+            "x": 1466.5444444444445,
+            "y": 389.71333333333337
+          },
+          "grip": {
+            "x": 1598.6492518703242,
+            "y": 375.90604738154616
+          },
+          "wristToGrip": 132.824
+        },
+        {
+          "index": 4,
+          "bbox": {
+            "minX": 1783,
+            "minY": 305,
+            "maxX": 2134,
+            "maxY": 444
+          },
+          "wrist": {
+            "x": 1879.7488986784142,
+            "y": 391.09691629955944
+          },
+          "grip": {
+            "x": 2011.8834990749306,
+            "y": 378.79602220166515
+          },
+          "wristToGrip": 132.706
+        }
+      ]
+    }
+  },
+  "playerDisplaySize": 144,
+  "canonicalWorldDelta": {
+    "x": 32.548,
+    "y": -2.52
+  },
+  "canonicalTextureDelta": {
+    "x": 115.72622222222223,
+    "y": -9.030000000000008
+  },
+  "motionModel": "smooth shoulder endpoints + carry path tracking 35% of rear-hand drift",
+  "continuity": {
+    "maxShoulderStep": 1.1525,
+    "maxElbowStep": 19.848,
+    "maxPalmStep": 25.2892
+  },
+  "supportContactFrames": {
+    "rifleLmg": [
+      {
+        "x": 240,
+        "y": 221,
+        "alpha": 255,
+        "offsetX": 0,
+        "offsetY": 0
+      },
+      {
+        "x": 259,
+        "y": 220,
+        "alpha": 238,
+        "offsetX": -0.35,
+        "offsetY": 0.42
+      },
+      {
+        "x": 278,
+        "y": 218,
+        "alpha": 190,
+        "offsetX": -0.27,
+        "offsetY": 0.05
+      },
+      {
+        "x": 298,
+        "y": 213,
+        "alpha": 117,
+        "offsetX": 0.32,
+        "offsetY": 0.31
+      },
+      {
+        "x": 318,
+        "y": 207,
+        "alpha": 233,
+        "offsetX": 0.38,
+        "offsetY": 3.61
+      },
+      {
+        "x": 338,
+        "y": 191,
+        "alpha": 158,
+        "offsetX": 1.49,
+        "offsetY": 2.77
+      },
+      {
+        "x": 342,
+        "y": 169,
+        "alpha": 196,
+        "offsetX": -10.09,
+        "offsetY": 0.69
+      },
+      {
+        "x": 357,
+        "y": 153,
+        "alpha": 196,
+        "offsetX": -9.31,
+        "offsetY": 0.34
+      },
+      {
+        "x": 379,
+        "y": 139,
+        "alpha": 173,
+        "offsetX": 1.42,
+        "offsetY": 0.14
+      },
+      {
+        "x": 391,
+        "y": 129,
+        "alpha": 232,
+        "offsetX": 1.25,
+        "offsetY": 0.4
+      },
+      {
+        "x": 404,
+        "y": 121,
+        "alpha": 117,
+        "offsetX": -0.27,
+        "offsetY": 0.87
+      },
+      {
+        "x": 420,
+        "y": 114,
+        "alpha": 190,
+        "offsetX": 0.21,
+        "offsetY": 0.25
+      },
+      {
+        "x": 437,
+        "y": 108,
+        "alpha": 238,
+        "offsetX": 0.28,
+        "offsetY": 0.69
+      },
+      {
+        "x": 454,
+        "y": 101,
+        "alpha": 255,
+        "offsetX": -0.03,
+        "offsetY": 0.43
+      }
+    ],
+    "shotgun": [
+      {
+        "x": 240,
+        "y": 221,
+        "alpha": 255,
+        "offsetX": 0,
+        "offsetY": 0
+      },
+      {
+        "x": 259,
+        "y": 220,
+        "alpha": 238,
+        "offsetX": -0.35,
+        "offsetY": 0.42
+      },
+      {
+        "x": 278,
+        "y": 218,
+        "alpha": 190,
+        "offsetX": -0.27,
+        "offsetY": 0.05
+      },
+      {
+        "x": 298,
+        "y": 213,
+        "alpha": 117,
+        "offsetX": 0.32,
+        "offsetY": 0.31
+      },
+      {
+        "x": 317,
+        "y": 206,
+        "alpha": 96,
+        "offsetX": -0.62,
+        "offsetY": 2.61
+      },
+      {
+        "x": 337,
+        "y": 191,
+        "alpha": 142,
+        "offsetX": 0.49,
+        "offsetY": 2.77
+      },
+      {
+        "x": 355,
+        "y": 170,
+        "alpha": 140,
+        "offsetX": 2.91,
+        "offsetY": 1.69
+      },
+      {
+        "x": 369,
+        "y": 155,
+        "alpha": 196,
+        "offsetX": 2.69,
+        "offsetY": 2.34
+      },
+      {
+        "x": 381,
+        "y": 144,
+        "alpha": 113,
+        "offsetX": 3.42,
+        "offsetY": 5.14
+      },
+      {
+        "x": 391,
+        "y": 135,
+        "alpha": 120,
+        "offsetX": 1.25,
+        "offsetY": 6.4
+      },
+      {
+        "x": 407,
+        "y": 126,
+        "alpha": 161,
+        "offsetX": 2.73,
+        "offsetY": 5.87
+      },
+      {
+        "x": 421,
+        "y": 120,
+        "alpha": 129,
+        "offsetX": 1.21,
+        "offsetY": 6.25
+      },
+      {
+        "x": 440,
+        "y": 113,
+        "alpha": 239,
+        "offsetX": 3.28,
+        "offsetY": 5.69
+      },
+      {
+        "x": 454,
+        "y": 107,
+        "alpha": 144,
+        "offsetX": -0.03,
+        "offsetY": 6.43
+      }
+    ]
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "blend": 0,
+      "shoulder": {
+        "x": 197.3,
+        "y": 93.4
+      },
+      "carryTarget": {
+        "x": 240,
+        "y": 221
+      },
+      "elbow": {
+        "x": 133.6,
+        "y": 167.8
+      },
+      "target": {
+        "x": 240,
+        "y": 221
+      },
+      "finalTarget": {
+        "x": 481.73,
+        "y": 201.47
+      },
+      "linkScale": 1,
+      "handPose": 0,
+      "reachError": 0
+    },
+    {
+      "frame": 1,
+      "blend": 0.0769,
+      "shoulder": {
+        "x": 198.41,
+        "y": 93.71
+      },
+      "carryTarget": {
+        "x": 240.66,
+        "y": 221.07
+      },
+      "elbow": {
+        "x": 145.89,
+        "y": 178.16
+      },
+      "target": {
+        "x": 259.35,
+        "y": 219.58
+      },
+      "finalTarget": {
+        "x": 483.63,
+        "y": 201.67
+      },
+      "linkScale": 1.0154,
+      "handPose": 0.0674,
+      "reachError": 0
+    },
+    {
+      "frame": 2,
+      "blend": 0.1538,
+      "shoulder": {
+        "x": 199.52,
+        "y": 94.02
+      },
+      "carryTarget": {
+        "x": 240.84,
+        "y": 220.97
+      },
+      "elbow": {
+        "x": 159.68,
+        "y": 186.78
+      },
+      "target": {
+        "x": 278.27,
+        "y": 217.95
+      },
+      "finalTarget": {
+        "x": 484.13,
+        "y": 201.37
+      },
+      "linkScale": 1.0308,
+      "handPose": 0.2549,
+      "reachError": 0
+    },
+    {
+      "frame": 3,
+      "blend": 0.2308,
+      "shoulder": {
+        "x": 200.62,
+        "y": 94.32
+      },
+      "carryTarget": {
+        "x": 241.33,
+        "y": 218.34
+      },
+      "elbow": {
+        "x": 174.73,
+        "y": 193.46
+      },
+      "target": {
+        "x": 297.68,
+        "y": 212.69
+      },
+      "finalTarget": {
+        "x": 485.53,
+        "y": 193.87
+      },
+      "linkScale": 1.0462,
+      "handPose": 0.5407,
+      "reachError": 0
+    },
+    {
+      "frame": 4,
+      "blend": 0.3077,
+      "shoulder": {
+        "x": 201.73,
+        "y": 94.63
+      },
+      "carryTarget": {
+        "x": 242.06,
+        "y": 213.62
+      },
+      "elbow": {
+        "x": 191.45,
+        "y": 198.09
+      },
+      "target": {
+        "x": 317.62,
+        "y": 203.39
+      },
+      "finalTarget": {
+        "x": 487.63,
+        "y": 180.37
+      },
+      "linkScale": 1.0615,
+      "handPose": 0.903,
+      "reachError": 0
+    },
+    {
+      "frame": 5,
+      "blend": 0.3846,
+      "shoulder": {
+        "x": 202.84,
+        "y": 94.94
+      },
+      "carryTarget": {
+        "x": 242.06,
+        "y": 206.27
+      },
+      "elbow": {
+        "x": 208.97,
+        "y": 200.24
+      },
+      "target": {
+        "x": 336.51,
+        "y": 188.23
+      },
+      "finalTarget": {
+        "x": 487.63,
+        "y": 159.37
+      },
+      "linkScale": 1.0769,
+      "handPose": 1.32,
+      "reachError": 0
+    },
+    {
+      "frame": 6,
+      "blend": 0.4615,
+      "shoulder": {
+        "x": 203.95,
+        "y": 95.25
+      },
+      "carryTarget": {
+        "x": 240.28,
+        "y": 197.48
+      },
+      "elbow": {
+        "x": 226.05,
+        "y": 199.92
+      },
+      "target": {
+        "x": 352.09,
+        "y": 168.31
+      },
+      "finalTarget": {
+        "x": 482.53,
+        "y": 134.27
+      },
+      "linkScale": 1.0923,
+      "handPose": 1.7697,
+      "reachError": 0
+    },
+    {
+      "frame": 7,
+      "blend": 0.5385,
+      "shoulder": {
+        "x": 205.05,
+        "y": 95.55
+      },
+      "carryTarget": {
+        "x": 238.07,
+        "y": 192.09
+      },
+      "elbow": {
+        "x": 242.38,
+        "y": 197.42
+      },
+      "target": {
+        "x": 366.31,
+        "y": 152.66
+      },
+      "finalTarget": {
+        "x": 476.23,
+        "y": 118.87
+      },
+      "linkScale": 1.1077,
+      "handPose": 2.2303,
+      "reachError": 0
+    },
+    {
+      "frame": 8,
+      "blend": 0.6154,
+      "shoulder": {
+        "x": 206.16,
+        "y": 95.86
+      },
+      "carryTarget": {
+        "x": 234.78,
+        "y": 188.28
+      },
+      "elbow": {
+        "x": 255.88,
+        "y": 193.98
+      },
+      "target": {
+        "x": 377.58,
+        "y": 138.86
+      },
+      "finalTarget": {
+        "x": 466.83,
+        "y": 107.97
+      },
+      "linkScale": 1.1231,
+      "handPose": 2.68,
+      "reachError": 0
+    },
+    {
+      "frame": 9,
+      "blend": 0.6923,
+      "shoulder": {
+        "x": 207.27,
+        "y": 96.17
+      },
+      "carryTarget": {
+        "x": 232.3,
+        "y": 186.49
+      },
+      "elbow": {
+        "x": 268.66,
+        "y": 189.25
+      },
+      "target": {
+        "x": 389.75,
+        "y": 128.6
+      },
+      "finalTarget": {
+        "x": 459.73,
+        "y": 102.87
+      },
+      "linkScale": 1.1385,
+      "handPose": 3.097,
+      "reachError": 0
+    },
+    {
+      "frame": 10,
+      "blend": 0.7692,
+      "shoulder": {
+        "x": 208.38,
+        "y": 96.48
+      },
+      "carryTarget": {
+        "x": 231.07,
+        "y": 185.65
+      },
+      "elbow": {
+        "x": 281.9,
+        "y": 182.3
+      },
+      "target": {
+        "x": 404.27,
+        "y": 120.13
+      },
+      "finalTarget": {
+        "x": 456.23,
+        "y": 100.47
+      },
+      "linkScale": 1.1538,
+      "handPose": 3.4593,
+      "reachError": 0
+    },
+    {
+      "frame": 11,
+      "blend": 0.8462,
+      "shoulder": {
+        "x": 209.48,
+        "y": 96.78
+      },
+      "carryTarget": {
+        "x": 230.38,
+        "y": 185.72
+      },
+      "elbow": {
+        "x": 294.3,
+        "y": 173.74
+      },
+      "target": {
+        "x": 419.79,
+        "y": 113.75
+      },
+      "finalTarget": {
+        "x": 454.23,
+        "y": 100.67
+      },
+      "linkScale": 1.1692,
+      "handPose": 3.7451,
+      "reachError": 0
+    },
+    {
+      "frame": 12,
+      "blend": 0.9231,
+      "shoulder": {
+        "x": 210.59,
+        "y": 97.09
+      },
+      "carryTarget": {
+        "x": 230.27,
+        "y": 185.75
+      },
+      "elbow": {
+        "x": 306.82,
+        "y": 161.92
+      },
+      "target": {
+        "x": 436.72,
+        "y": 107.31
+      },
+      "finalTarget": {
+        "x": 453.93,
+        "y": 100.77
+      },
+      "linkScale": 1.1846,
+      "handPose": 3.9326,
+      "reachError": 0
+    },
+    {
+      "frame": 13,
+      "blend": 1,
+      "shoulder": {
+        "x": 211.7,
+        "y": 97.4
+      },
+      "carryTarget": {
+        "x": 230.31,
+        "y": 185.69
+      },
+      "elbow": {
+        "x": 318.7,
+        "y": 146.02
+      },
+      "target": {
+        "x": 454.03,
+        "y": 100.57
+      },
+      "finalTarget": {
+        "x": 454.03,
+        "y": 100.57
+      },
+      "linkScale": 1.2,
+      "handPose": 4,
+      "reachError": 0
+    }
+  ]
+}

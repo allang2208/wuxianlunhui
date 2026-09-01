@@ -12,9 +12,9 @@
       "pivotX": 217,
       "pivotY": 240,
       "maxAngle": 40,
-      "angleScale": 1.0,
+      "angleScale": 1,
       "walkLegs": {
-        "src": "assets/player/gun_walk_legs.png",
+        "src": "assets/player/gun_walk_legs_v2.png",
         "frameWidth": 512,
         "frameHeight": 516,
         "cols": 8,
@@ -83,7 +83,7 @@
       },
       "torsoShiftY": 3,
       "runLegs": {
-        "src": "assets/player/gun_run_legs.png",
+        "src": "assets/player/gun_run_legs_v2.png",
         "frameWidth": 512,
         "frameHeight": 512,
         "cols": 8,
@@ -110,7 +110,7 @@
           -11.8,
           -22.8,
           -15.4,
-          -3.0,
+          -3,
           13.1,
           17.5,
           13.4
@@ -123,7 +123,18 @@
         "transitionMs": 150
       },
       "aimFrames": {
-        "src": "assets/player/gun_aim_frames.png",
+        "src": "assets/player/gun_aim_arm_frames.png",
+        "firingHandSrc": "assets/player/gun_aim_firing_hand_frames.png",
+        "firingHandFrameWidth": 128,
+        "firingHandFrameHeight": 128,
+        "firingHandAnchor": {
+          "x": 64,
+          "y": 64
+        },
+        "supportSrc": "assets/player/gun_aim_support_frames.png",
+        "supportVariants": {
+          "shotgun": "assets/player/gun_aim_support_frames_shotgun.png"
+        },
         "frameWidth": 512,
         "frameHeight": 516,
         "frameCount": 14,
@@ -132,7 +143,7 @@
         "liftAdjustY": 9,
         "hands": [
           {
-            "x": 366.0,
+            "x": 366,
             "y": 210.5
           },
           {
@@ -165,10 +176,10 @@
           },
           {
             "x": 351.1,
-            "y": 117.0
+            "y": 117
           },
           {
-            "x": 344.0,
+            "x": 344,
             "y": 111.9
           },
           {
@@ -187,7 +198,241 @@
             "x": 338.3,
             "y": 109.6
           }
-        ]
+        ],
+        "supportShoulders": [
+          {
+            "x": 197.3,
+            "y": 93.4
+          },
+          {
+            "x": 198.41,
+            "y": 93.71
+          },
+          {
+            "x": 199.52,
+            "y": 94.02
+          },
+          {
+            "x": 200.62,
+            "y": 94.32
+          },
+          {
+            "x": 201.73,
+            "y": 94.63
+          },
+          {
+            "x": 202.84,
+            "y": 94.94
+          },
+          {
+            "x": 203.95,
+            "y": 95.25
+          },
+          {
+            "x": 205.05,
+            "y": 95.55
+          },
+          {
+            "x": 206.16,
+            "y": 95.86
+          },
+          {
+            "x": 207.27,
+            "y": 96.17
+          },
+          {
+            "x": 208.38,
+            "y": 96.48
+          },
+          {
+            "x": 209.48,
+            "y": 96.78
+          },
+          {
+            "x": 210.59,
+            "y": 97.09
+          },
+          {
+            "x": 211.7,
+            "y": 97.4
+          }
+        ],
+        "supportHands": [
+          {
+            "x": 240,
+            "y": 221
+          },
+          {
+            "x": 259.35,
+            "y": 219.58
+          },
+          {
+            "x": 278.27,
+            "y": 217.95
+          },
+          {
+            "x": 297.68,
+            "y": 212.69
+          },
+          {
+            "x": 317.62,
+            "y": 203.39
+          },
+          {
+            "x": 336.51,
+            "y": 188.23
+          },
+          {
+            "x": 352.09,
+            "y": 168.31
+          },
+          {
+            "x": 366.31,
+            "y": 152.66
+          },
+          {
+            "x": 377.58,
+            "y": 138.86
+          },
+          {
+            "x": 389.75,
+            "y": 128.6
+          },
+          {
+            "x": 404.27,
+            "y": 120.13
+          },
+          {
+            "x": 419.79,
+            "y": 113.75
+          },
+          {
+            "x": 436.72,
+            "y": 107.31
+          },
+          {
+            "x": 454.03,
+            "y": 100.57
+          }
+        ],
+        "supportContacts": [
+          {
+            "x": 240,
+            "y": 221
+          },
+          {
+            "x": 259,
+            "y": 220
+          },
+          {
+            "x": 278,
+            "y": 218
+          },
+          {
+            "x": 298,
+            "y": 213
+          },
+          {
+            "x": 318,
+            "y": 207
+          },
+          {
+            "x": 338,
+            "y": 191
+          },
+          {
+            "x": 342,
+            "y": 169
+          },
+          {
+            "x": 357,
+            "y": 153
+          },
+          {
+            "x": 379,
+            "y": 139
+          },
+          {
+            "x": 391,
+            "y": 129
+          },
+          {
+            "x": 404,
+            "y": 121
+          },
+          {
+            "x": 420,
+            "y": 114
+          },
+          {
+            "x": 437,
+            "y": 108
+          },
+          {
+            "x": 454,
+            "y": 101
+          }
+        ],
+        "supportContactVariants": {
+          "shotgun": [
+            {
+              "x": 240,
+              "y": 221
+            },
+            {
+              "x": 259,
+              "y": 220
+            },
+            {
+              "x": 278,
+              "y": 218
+            },
+            {
+              "x": 298,
+              "y": 213
+            },
+            {
+              "x": 317,
+              "y": 206
+            },
+            {
+              "x": 337,
+              "y": 191
+            },
+            {
+              "x": 355,
+              "y": 170
+            },
+            {
+              "x": 369,
+              "y": 155
+            },
+            {
+              "x": 381,
+              "y": 144
+            },
+            {
+              "x": 391,
+              "y": 135
+            },
+            {
+              "x": 407,
+              "y": 126
+            },
+            {
+              "x": 421,
+              "y": 120
+            },
+            {
+              "x": 440,
+              "y": 113
+            },
+            {
+              "x": 454,
+              "y": 107
+            }
+          ]
+        }
       },
       "aimSmoothRadius": 160,
       "aimSmoothTau": 120
@@ -415,16 +660,82 @@
       22
     ],
     "frameSequence": [
-      0, 1, 2, 3, 4,
-      5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-      5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-      19, 20, 21, 22
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
     ],
     "frameWeights": [
-      2, 2, 2, 2, 2,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      2, 2, 2, 2
+      2,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2
     ],
     "frameRate": 28.75,
     "repeat": 0,
@@ -476,7 +787,10 @@
     "cols": 5,
     "rows": 3,
     "frameCount": 13,
-    "frames": [0, 12],
+    "frames": [
+      0,
+      12
+    ],
     "frameRate": 25,
     "repeat": 0
   },
@@ -489,9 +803,9 @@
       "pivotX": 217,
       "pivotY": 240,
       "maxAngle": 40,
-      "angleScale": 1.0,
+      "angleScale": 1,
       "walkLegs": {
-        "src": "assets/player/gun_walk_legs.png",
+        "src": "assets/player/gun_walk_legs_v2.png",
         "frameWidth": 512,
         "frameHeight": 516,
         "cols": 8,
@@ -561,7 +875,7 @@
       },
       "torsoShiftY": 3,
       "runLegs": {
-        "src": "assets/player/gun_run_legs.png",
+        "src": "assets/player/gun_run_legs_v2.png",
         "frameWidth": 512,
         "frameHeight": 512,
         "cols": 8,
@@ -588,7 +902,7 @@
           -11.8,
           -22.8,
           -15.4,
-          -3.0,
+          -3,
           13.1,
           17.5,
           13.4
@@ -610,9 +924,9 @@
       "pivotX": 217,
       "pivotY": 240,
       "maxAngle": 40,
-      "angleScale": 1.0,
+      "angleScale": 1,
       "walkLegs": {
-        "src": "assets/player/gun_walk_legs.png",
+        "src": "assets/player/gun_walk_legs_v2.png",
         "frameWidth": 512,
         "frameHeight": 516,
         "cols": 8,
@@ -682,7 +996,7 @@
       },
       "torsoShiftY": 3,
       "runLegs": {
-        "src": "assets/player/gun_run_legs.png",
+        "src": "assets/player/gun_run_legs_v2.png",
         "frameWidth": 512,
         "frameHeight": 512,
         "cols": 8,
@@ -709,7 +1023,7 @@
           -11.8,
           -22.8,
           -15.4,
-          -3.0,
+          -3,
           13.1,
           17.5,
           13.4

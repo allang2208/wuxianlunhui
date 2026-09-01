@@ -1,0 +1,239 @@
+{
+  "direction": "right",
+  "weaponAxis": "muzzle points right",
+  "sourceAimFrames": "assets/player/gun_aim_frames.png",
+  "sourceHandReference": "tools/animation/player-gun-ergonomics-20260901/hand-poses-firing-grip-v5-raw.png",
+  "selectedPose": 2,
+  "selectedPoseMeaning": "closed firing-hand grasp; trigger finger separated toward muzzle",
+  "rearContact": "neon guide centroid is the runtime rear-grip origin",
+  "supportContact": "unchanged independent support-arm layer; per-texture supportGrip remains authoritative",
+  "frameSize": {
+    "width": 128,
+    "height": 128
+  },
+  "anchor": {
+    "x": 64,
+    "y": 64
+  },
+  "poseScale": 0.215134,
+  "sourceAnchor": {
+    "x": 896.89,
+    "y": 428.04
+  },
+  "sourceBounds": {
+    "minX": 732,
+    "minY": 340,
+    "maxX": 1091,
+    "maxY": 532
+  },
+  "wristCutReach": 27,
+  "wristBridgeHalfWidth": 7,
+  "wristBridgeEndReach": 3,
+  "wristBridgeByFrame": [
+    {
+      "start": {
+        "x": 340,
+        "y": 199
+      },
+      "end": {
+        "x": 366,
+        "y": 210.5
+      },
+      "length": 28.43,
+      "keptPixels": 302,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 341,
+        "y": 201
+      },
+      "end": {
+        "x": 367.9,
+        "y": 210.7
+      },
+      "length": 28.595,
+      "keptPixels": 327,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 342,
+        "y": 200
+      },
+      "end": {
+        "x": 368.4,
+        "y": 210.4
+      },
+      "length": 28.375,
+      "keptPixels": 337,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 344,
+        "y": 192
+      },
+      "end": {
+        "x": 369.8,
+        "y": 202.9
+      },
+      "length": 28.008,
+      "keptPixels": 316,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 345,
+        "y": 181
+      },
+      "end": {
+        "x": 371.9,
+        "y": 189.4
+      },
+      "length": 28.181,
+      "keptPixels": 305,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 344,
+        "y": 164
+      },
+      "end": {
+        "x": 371.9,
+        "y": 168.4
+      },
+      "length": 28.245,
+      "keptPixels": 343,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 337,
+        "y": 146
+      },
+      "end": {
+        "x": 366.8,
+        "y": 143.3
+      },
+      "length": 29.922,
+      "keptPixels": 339,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 330,
+        "y": 137
+      },
+      "end": {
+        "x": 360.5,
+        "y": 127.9
+      },
+      "length": 31.829,
+      "keptPixels": 357,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 321,
+        "y": 133
+      },
+      "end": {
+        "x": 351.1,
+        "y": 117
+      },
+      "length": 34.088,
+      "keptPixels": 361,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 314,
+        "y": 134
+      },
+      "end": {
+        "x": 344,
+        "y": 111.9
+      },
+      "length": 37.261,
+      "keptPixels": 394,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 310,
+        "y": 134
+      },
+      "end": {
+        "x": 340.5,
+        "y": 109.5
+      },
+      "length": 39.122,
+      "keptPixels": 382,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 308,
+        "y": 135
+      },
+      "end": {
+        "x": 338.5,
+        "y": 109.7
+      },
+      "length": 39.628,
+      "keptPixels": 365,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 308,
+        "y": 134
+      },
+      "end": {
+        "x": 338.2,
+        "y": 109.8
+      },
+      "length": 38.7,
+      "keptPixels": 366,
+      "gripOpaque": true
+    },
+    {
+      "start": {
+        "x": 308,
+        "y": 134
+      },
+      "end": {
+        "x": 338.3,
+        "y": 109.6
+      },
+      "length": 38.903,
+      "keptPixels": 352,
+      "gripOpaque": true
+    }
+  ],
+  "removedPixelsByFrame": [
+    783,
+    762,
+    796,
+    763,
+    748,
+    767,
+    730,
+    688,
+    657,
+    631,
+    563,
+    533,
+    547,
+    527
+  ],
+  "outputArm": "assets/player/gun_aim_arm_frames.png",
+  "outputHand": "assets/player/gun_aim_firing_hand_frames.png",
+  "referenceFrames": [
+    0,
+    6,
+    13
+  ]
+}

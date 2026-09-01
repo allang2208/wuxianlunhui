@@ -1,0 +1,584 @@
+{
+  "reference": "AKM screen placement plus per-texture opaque rear-grip and fore-end contacts",
+  "invariant": "rendered rear grip drives the firing hand; supportGrip drives the support palm",
+  "entries": [
+    {
+      "family": "rifles",
+      "config": "akm",
+      "texture": "weapon_akm",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.29,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.588,
+        "y": 0.52
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.548,
+      "configuredWorldDy": -2.52
+    },
+    {
+      "family": "rifles",
+      "config": "stg44",
+      "texture": "weapon_stg44",
+      "idleScale": 0.9979,
+      "rearGrip": {
+        "x": 0.33,
+        "y": 0.55
+      },
+      "supportGrip": {
+        "x": 0.625,
+        "y": 0.479
+      },
+      "maxFormulaError": 0.000083,
+      "configuredWorldDx": 37.092,
+      "configuredWorldDy": -8.927
+    },
+    {
+      "family": "rifles",
+      "config": "m416",
+      "texture": "weapon_m416",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.33,
+        "y": 0.55
+      },
+      "supportGrip": {
+        "x": 0.629,
+        "y": 0.496
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.674,
+      "configuredWorldDy": -6.804
+    },
+    {
+      "family": "rifles",
+      "config": "qbz95",
+      "texture": "weapon_qbz95",
+      "idleScale": 0.9979,
+      "rearGrip": {
+        "x": 0.44,
+        "y": 0.59
+      },
+      "supportGrip": {
+        "x": 0.738,
+        "y": 0.523
+      },
+      "maxFormulaError": 0.000083,
+      "configuredWorldDx": 37.469,
+      "configuredWorldDy": -8.424
+    },
+    {
+      "family": "rifles",
+      "config": "frontier_rifle",
+      "texture": "weapon_frontier_rifle",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.37,
+        "y": 0.6
+      },
+      "supportGrip": {
+        "x": 0.664,
+        "y": 0.537
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.044,
+      "configuredWorldDy": -7.938
+    },
+    {
+      "family": "rifles",
+      "config": "vengeance_rifle",
+      "texture": "weapon_vengeance_rifle",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.35,
+        "y": 0.59
+      },
+      "supportGrip": {
+        "x": 0.648,
+        "y": 0.561
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.548,
+      "configuredWorldDy": -3.654
+    },
+    {
+      "family": "rifles",
+      "config": "astral_tide_rifle",
+      "texture": "weapon_astral_tide_rifle",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.33,
+        "y": 0.59
+      },
+      "supportGrip": {
+        "x": 0.629,
+        "y": 0.537
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.674,
+      "configuredWorldDy": -6.678
+    },
+    {
+      "family": "rifles",
+      "config": "zero_point_rifle",
+      "texture": "weapon_zero_point_rifle",
+      "idleScale": 0.9957,
+      "rearGrip": {
+        "x": 0.31,
+        "y": 0.6
+      },
+      "supportGrip": {
+        "x": 0.6,
+        "y": 0.537
+      },
+      "maxFormulaError": 0.000274,
+      "configuredWorldDx": 36.383,
+      "configuredWorldDy": -7.904
+    },
+    {
+      "family": "rifles",
+      "config": "corona_cadence_rifle",
+      "texture": "weapon_corona_cadence_rifle",
+      "idleScale": 0.9936,
+      "rearGrip": {
+        "x": 0.33,
+        "y": 0.59
+      },
+      "supportGrip": {
+        "x": 0.631,
+        "y": 0.518
+      },
+      "maxFormulaError": 0.00036,
+      "configuredWorldDx": 37.683,
+      "configuredWorldDy": -9.014
+    },
+    {
+      "family": "rifles",
+      "config": "terminal_echo_rifle",
+      "texture": "weapon_terminal_echo_rifle",
+      "idleScale": 0.9936,
+      "rearGrip": {
+        "x": 0.37,
+        "y": 0.59
+      },
+      "supportGrip": {
+        "x": 0.682,
+        "y": 0.557
+      },
+      "maxFormulaError": 0.00036,
+      "configuredWorldDx": 39.06,
+      "configuredWorldDy": -4.131
+    },
+    {
+      "family": "rifles",
+      "config": "qbz191",
+      "texture": "weapon_qbz191",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.33,
+        "y": 0.48
+      },
+      "supportGrip": {
+        "x": 0.629,
+        "y": 0.406
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.674,
+      "configuredWorldDy": -9.324
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_super90",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.28,
+        "y": 0.56
+      },
+      "supportGrip": {
+        "x": 0.578,
+        "y": 0.564
+      },
+      "maxFormulaError": 0.000438,
+      "configuredWorldDx": 37.548,
+      "configuredWorldDy": 0.504
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_saiga12k",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.34,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.639,
+        "y": 0.518
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.674,
+      "configuredWorldDy": -2.772
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_s686",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.346,
+        "y": 0.539
+      },
+      "supportGrip": {
+        "x": 0.629,
+        "y": 0.521
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 35.658,
+      "configuredWorldDy": -2.268
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_m870_breacher",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.21,
+        "y": 0.55
+      },
+      "supportGrip": {
+        "x": 0.619,
+        "y": 0.549
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 51.534,
+      "configuredWorldDy": -0.126
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_ksg12",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.36,
+        "y": 0.55
+      },
+      "supportGrip": {
+        "x": 0.658,
+        "y": 0.555
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.548,
+      "configuredWorldDy": 0.63
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_spas12",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.29,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.588,
+        "y": 0.545
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.548,
+      "configuredWorldDy": 0.63
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_aa12",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.34,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.629,
+        "y": 0.52
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 36.414,
+      "configuredWorldDy": -2.52
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_winchester1887",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.34,
+        "y": 0.53
+      },
+      "supportGrip": {
+        "x": 0.639,
+        "y": 0.51
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.674,
+      "configuredWorldDy": -2.52
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_terminus_pendulum",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.34,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.639,
+        "y": 0.545
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.674,
+      "configuredWorldDy": 0.63
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_void_funeral_tide",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.307,
+        "y": 0.541
+      },
+      "supportGrip": {
+        "x": 0.607,
+        "y": 0.535
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.8,
+      "configuredWorldDy": -0.756
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_black_sun_verdict",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.3,
+        "y": 0.55
+      },
+      "supportGrip": {
+        "x": 0.598,
+        "y": 0.539
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.548,
+      "configuredWorldDy": -1.386
+    },
+    {
+      "family": "shotguns",
+      "config": "shotgun",
+      "texture": "weapon_royal_hunt_finale",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.34,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.639,
+        "y": 0.52
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.674,
+      "configuredWorldDy": -2.52
+    },
+    {
+      "family": "machine_guns",
+      "config": "pkm",
+      "texture": "weapon_pkm",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.29,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.619,
+        "y": 0.531
+      },
+      "maxFormulaError": 0.000427,
+      "configuredWorldDx": 41.454,
+      "configuredWorldDy": -1.134
+    },
+    {
+      "family": "machine_guns",
+      "config": "rpd",
+      "texture": "weapon_rpd",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.264,
+        "y": 0.574
+      },
+      "supportGrip": {
+        "x": 0.607,
+        "y": 0.521
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 43.218,
+      "configuredWorldDy": -6.678
+    },
+    {
+      "family": "machine_guns",
+      "config": "m249",
+      "texture": "weapon_m249",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.31,
+        "y": 0.57
+      },
+      "supportGrip": {
+        "x": 0.607,
+        "y": 0.574
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.422,
+      "configuredWorldDy": 0.504
+    },
+    {
+      "family": "machine_guns",
+      "config": "ultimax100",
+      "texture": "weapon_ultimax100",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.285,
+        "y": 0.551
+      },
+      "supportGrip": {
+        "x": 0.6,
+        "y": 0.564
+      },
+      "maxFormulaError": 0.000438,
+      "configuredWorldDx": 39.69,
+      "configuredWorldDy": 1.638
+    },
+    {
+      "family": "machine_guns",
+      "config": "mg42",
+      "texture": "weapon_mg42",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.29,
+        "y": 0.56
+      },
+      "supportGrip": {
+        "x": 0.586,
+        "y": 0.557
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 37.296,
+      "configuredWorldDy": -0.378
+    },
+    {
+      "family": "machine_guns",
+      "config": "fusion_core_lmg",
+      "texture": "weapon_fusion_core_lmg",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.32,
+        "y": 0.56
+      },
+      "supportGrip": {
+        "x": 0.66,
+        "y": 0.564
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 42.84,
+      "configuredWorldDy": 0.504
+    },
+    {
+      "family": "machine_guns",
+      "config": "singularity_loom_lmg",
+      "texture": "weapon_singularity_loom_lmg",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.32,
+        "y": 0.56
+      },
+      "supportGrip": {
+        "x": 0.648,
+        "y": 0.551
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 41.328,
+      "configuredWorldDy": -1.134
+    },
+    {
+      "family": "machine_guns",
+      "config": "celestial_cartographer_lmg",
+      "texture": "weapon_celestial_cartographer_lmg",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.31,
+        "y": 0.56
+      },
+      "supportGrip": {
+        "x": 0.641,
+        "y": 0.555
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 41.706,
+      "configuredWorldDy": -0.63
+    },
+    {
+      "family": "machine_guns",
+      "config": "grave_covenant_cantor_lmg",
+      "texture": "weapon_grave_covenant_cantor_lmg",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.307,
+        "y": 0.576
+      },
+      "supportGrip": {
+        "x": 0.641,
+        "y": 0.537
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 42.084,
+      "configuredWorldDy": -4.914
+    },
+    {
+      "family": "machine_guns",
+      "config": "qjb201",
+      "texture": "weapon_qjb201",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.29,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.678,
+        "y": 0.52
+      },
+      "maxFormulaError": 0.00043,
+      "configuredWorldDx": 48.888,
+      "configuredWorldDy": -2.52
+    },
+    {
+      "family": "machine_guns",
+      "config": "energy_lmg",
+      "texture": "weapon_energy_lmg",
+      "idleScale": 1,
+      "rearGrip": {
+        "x": 0.29,
+        "y": 0.54
+      },
+      "supportGrip": {
+        "x": 0.65,
+        "y": 0.545
+      },
+      "maxFormulaError": 0.000437,
+      "configuredWorldDx": 45.36,
+      "configuredWorldDy": 0.63
+    }
+  ]
+}

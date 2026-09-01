@@ -28,6 +28,7 @@
       "shakeIntensity": 1
     },
     "idleScale": 0.6,
+    "grip": { "x": 0.3, "y": 0.57 },
     "idle": {
       "holdOffsetX": 6,
       "idleScale": 0.6,
@@ -68,6 +69,7 @@
       "shakeIntensity": 1
     },
     "idleScale": 0.6,
+    "grip": { "x": 0.19, "y": 0.58 },
     "idle": {
       "holdOffsetX": 6,
       "idleScale": 0.6,
@@ -108,6 +110,7 @@
       "shakeIntensity": 1
     },
     "idleScale": 0.6,
+    "grip": { "x": 0.28, "y": 0.57 },
     "idle": {
       "holdOffsetX": 6,
       "idleScale": 0.6,
@@ -148,6 +151,7 @@
       "shakeIntensity": 1
     },
     "idleScale": 0.6,
+    "grip": { "x": 0.22, "y": 0.57 },
     "idle": {
       "holdOffsetX": 6,
       "idleScale": 0.6,
@@ -202,6 +206,7 @@
       "x": 0.29,
       "y": 0.54
     },
+    "supportGrip": { "x": 0.588, "y": 0.52 },
     "idleRotation": 0,
     "idleScale": 1,
     "aimSpriteOffsetX": -5,
@@ -242,9 +247,10 @@
       "idleScale": 1
     },
     "grip": {
-      "x": 0.29,
-      "y": 0.54
+      "x": 0.33,
+      "y": 0.55
     },
+    "supportGrip": { "x": 0.629, "y": 0.496 },
     "idleRotation": 0,
     "idleScale": 1,
     "aimAdjustY": 5,
@@ -271,22 +277,23 @@
       "shakeIntensity": 4
     },
     "idleRotation": 0,
-    "idleScale": 1.25,
+    "idleScale": 1,
     "grip": {
       "x": 0.29,
       "y": 0.54
     },
+    "supportGrip": { "x": 0.619, "y": 0.531 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1.25
+      "idleScale": 1
     },
     "walk": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1.25
+      "idleScale": 1
     },
     "muzzle": {
       "x": 0.95,
@@ -313,10 +320,12 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": 1,
     "grip": {
       "x": 0.32,
       "y": 0.56
     },
+    "supportGrip": { "x": 0.648, "y": 0.551 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -354,7 +363,9 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": 1,
     "grip": { "x": 0.31, "y": 0.56 },
+    "supportGrip": { "x": 0.641, "y": 0.555 },
     "idle": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
     "walk": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
     "muzzle": { "x": 0.958, "y": 0.5 }
@@ -379,7 +390,9 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
-    "grip": { "x": 0.3, "y": 0.57 },
+    "aimAdjustY": 3,
+    "grip": { "x": 0.307, "y": 0.576 },
+    "supportGrip": { "x": 0.641, "y": 0.537 },
     "idle": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
     "walk": { "holdOffsetX": -64, "holdOffsetY": -6, "idleRotation": 0, "idleScale": 1 },
     "muzzle": { "x": 0.956, "y": 0.51 }
@@ -405,9 +418,10 @@
     "idleRotation": 0,
     "idleScale": 1,
     "grip": {
-      "x": 0.29,
-      "y": 0.54
+      "x": 0.33,
+      "y": 0.48
     },
+    "supportGrip": { "x": 0.629, "y": 0.406 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -445,28 +459,30 @@
       "shakeIntensity": 4
     },
     "idleRotation": 0,
-    "idleScale": 0.9375,
+    "idleScale": 1,
     "grip": {
       "x": 0.29,
       "y": 0.54
     },
+    "supportGrip": { "x": 0.678, "y": 0.52 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 0.9375
+      "idleScale": 1
     },
     "walk": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 0.9375
+      "idleScale": 1
     },
     "muzzle": {
       "x": 0.96,
       "y": 0.52
     },
-    "aimAdjustX": -5
+    "aimAdjustX": -5,
+    "aimAdjustY": -2
   },
   "rpd": {
     "preciseAds": true,
@@ -488,10 +504,12 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": 3,
     "grip": {
-      "x": 0.24,
-      "y": 0.57
+      "x": 0.264,
+      "y": 0.574
     },
+    "supportGrip": { "x": 0.607, "y": 0.521 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -529,10 +547,12 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": 3,
     "grip": {
       "x": 0.31,
       "y": 0.57
     },
+    "supportGrip": { "x": 0.607, "y": 0.574 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -570,10 +590,12 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": 1,
     "grip": {
-      "x": 0.27,
-      "y": 0.56
+      "x": 0.285,
+      "y": 0.551
     },
+    "supportGrip": { "x": 0.6, "y": 0.564 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -611,10 +633,12 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": 1,
     "grip": {
       "x": 0.29,
       "y": 0.56
     },
+    "supportGrip": { "x": 0.586, "y": 0.557 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -652,10 +676,12 @@
     },
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": 1,
     "grip": {
       "x": 0.32,
       "y": 0.56
     },
+    "supportGrip": { "x": 0.66, "y": 0.564 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -681,6 +707,7 @@
     "recoilAmount": 0.1,
     "idleRotation": 0,
     "idleScale": 1,
+    "aimAdjustY": -1,
     "renderParams": {
       "gunLXOffset": 24,
       "gunLY": 0,
@@ -696,6 +723,7 @@
       "x": 0.29,
       "y": 0.54
     },
+    "supportGrip": { "x": 0.65, "y": 0.545 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
@@ -714,6 +742,9 @@
     }
   },
   "shotgun": {
+    "preciseAds": true,
+    "aimSpriteOffsetX": -5,
+    "aimAdjustY": 5,
     "holdOffsetX": -64,
     "holdOffsetY": -6,
     "timingMul": 0.5,
@@ -737,16 +768,32 @@
       "y": 0.54
     },
     "textureGrips": {
-      "weapon_s686": { "x": 0.32, "y": 0.51 },
-      "weapon_m870_breacher": { "x": 0.2, "y": 0.54 },
-      "weapon_ksg12": { "x": 0.35, "y": 0.55 },
-      "weapon_spas12": { "x": 0.27, "y": 0.55 },
-      "weapon_aa12": { "x": 0.3, "y": 0.56 },
-      "weapon_winchester1887": { "x": 0.31, "y": 0.53 },
-      "weapon_terminus_pendulum": { "x": 0.31, "y": 0.54 },
-      "weapon_void_funeral_tide": { "x": 0.32, "y": 0.55 },
-      "weapon_black_sun_verdict": { "x": 0.31, "y": 0.54 },
-      "weapon_royal_hunt_finale": { "x": 0.32, "y": 0.54 }
+      "weapon_super90": { "x": 0.28, "y": 0.56 },
+      "weapon_saiga12k": { "x": 0.34, "y": 0.54 },
+      "weapon_s686": { "x": 0.346, "y": 0.539 },
+      "weapon_m870_breacher": { "x": 0.21, "y": 0.55 },
+      "weapon_ksg12": { "x": 0.36, "y": 0.55 },
+      "weapon_spas12": { "x": 0.29, "y": 0.54 },
+      "weapon_aa12": { "x": 0.34, "y": 0.54 },
+      "weapon_winchester1887": { "x": 0.34, "y": 0.53 },
+      "weapon_terminus_pendulum": { "x": 0.34, "y": 0.54 },
+      "weapon_void_funeral_tide": { "x": 0.307, "y": 0.541 },
+      "weapon_black_sun_verdict": { "x": 0.3, "y": 0.55 },
+      "weapon_royal_hunt_finale": { "x": 0.34, "y": 0.54 }
+    },
+    "textureSupportGrips": {
+      "weapon_super90": { "x": 0.578, "y": 0.564 },
+      "weapon_saiga12k": { "x": 0.639, "y": 0.518 },
+      "weapon_s686": { "x": 0.629, "y": 0.521 },
+      "weapon_m870_breacher": { "x": 0.619, "y": 0.549 },
+      "weapon_ksg12": { "x": 0.658, "y": 0.555 },
+      "weapon_spas12": { "x": 0.588, "y": 0.545 },
+      "weapon_aa12": { "x": 0.629, "y": 0.52 },
+      "weapon_winchester1887": { "x": 0.639, "y": 0.51 },
+      "weapon_terminus_pendulum": { "x": 0.639, "y": 0.545 },
+      "weapon_void_funeral_tide": { "x": 0.607, "y": 0.535 },
+      "weapon_black_sun_verdict": { "x": 0.598, "y": 0.539 },
+      "weapon_royal_hunt_finale": { "x": 0.639, "y": 0.52 }
     },
     "idle": {
       "holdOffsetX": -64,
@@ -766,6 +813,600 @@
     }
   },
   "sword": {
+    "dashGrip": {
+      "type": "perFrame",
+      "anchor": "grip",
+      "frames": [
+        {
+          "offsetX": -49.5,
+          "offsetY": -47.7209,
+          "rotation": -90,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": -47.25,
+          "offsetY": -52.186,
+          "rotation": -84,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": -42.4688,
+          "offsetY": -56.6512,
+          "rotation": -76,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": -35.4375,
+          "offsetY": -55.814,
+          "rotation": -65,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": -36.2812,
+          "offsetY": -56.6512,
+          "rotation": -58,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": -32.625,
+          "offsetY": -57.2093,
+          "rotation": -51,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": -31.2188,
+          "offsetY": -61.9535,
+          "rotation": -44,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": -31.7812,
+          "offsetY": -63.907,
+          "rotation": -35,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0.5,
+          "blurY": 0.04
+        },
+        {
+          "offsetX": -35.4375,
+          "offsetY": -62.7907,
+          "rotation": -27,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 1,
+          "blurY": 0.08
+        },
+        {
+          "offsetX": -34.875,
+          "offsetY": -61.9535,
+          "rotation": -18,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 1,
+          "blurY": 0.08
+        },
+        {
+          "offsetX": -6.75,
+          "offsetY": -64.7442,
+          "rotation": -3,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 2,
+          "blurY": 0.16
+        },
+        {
+          "offsetX": 32.3438,
+          "offsetY": -51.6279,
+          "rotation": 28,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 3,
+          "blurY": 0.24
+        },
+        {
+          "offsetX": 57.375,
+          "offsetY": 12.8372,
+          "rotation": 69,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 3,
+          "blurY": 0.24
+        },
+        {
+          "offsetX": 41.0625,
+          "offsetY": 53.3023,
+          "rotation": 94,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 2,
+          "blurY": 0.16
+        },
+        {
+          "offsetX": 41.0625,
+          "offsetY": 54.9767,
+          "rotation": 98,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0.5,
+          "blurY": 0.04
+        },
+        {
+          "offsetX": 41.0625,
+          "offsetY": 54.9767,
+          "rotation": 97,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        },
+        {
+          "offsetX": 41.3438,
+          "offsetY": 55.2558,
+          "rotation": 96,
+          "scale": 1.5,
+          "stretchX": 1,
+          "stretchY": 1,
+          "blurX": 0,
+          "blurY": 0.0
+        }
+      ]
+    },
+    "attack3Grip": {
+      "type": "perFrame",
+      "anchor": "grip",
+      "frames": [
+        {
+          "offsetX": 59.7787,
+          "offsetY": 7.0872,
+          "rotation": 100,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.1566,
+          "offsetY": 6.4709,
+          "rotation": 100,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 39.1335,
+          "offsetY": 3.6976,
+          "rotation": 98,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 11.0929,
+          "offsetY": -0.9244,
+          "rotation": 95,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 20.6452,
+          "offsetY": -11.4011,
+          "rotation": 92,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 23.4184,
+          "offsetY": -28.3486,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 36.6684,
+          "offsetY": -30.8137,
+          "rotation": 88,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 0.04,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 51.459,
+          "offsetY": -23.4184,
+          "rotation": 88,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.08,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.1566,
+          "offsetY": -16.3313,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 0.16,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 75.1855,
+          "offsetY": -21.8778,
+          "rotation": 90,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 0.24,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 74.5693,
+          "offsetY": -23.1103,
+          "rotation": 94,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.08,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 71.1798,
+          "offsetY": -22.1859,
+          "rotation": 98,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 0.04,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 49.302,
+          "offsetY": -17.5638,
+          "rotation": 108,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 22.1859,
+          "offsetY": -5.2383,
+          "rotation": 118,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 7.3953,
+          "offsetY": -1.8488,
+          "rotation": 120,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -9.2441,
+          "offsetY": 0.9244,
+          "rotation": 110,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        }
+      ]
+    },
+    "attack2Grip": {
+      "type": "perFrame",
+      "anchor": "grip",
+      "frames": [
+        {
+          "offsetX": 24.3429,
+          "offsetY": 3.0814,
+          "rotation": 148,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 43.4474,
+          "offsetY": -25.2673,
+          "rotation": 92,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 0.04,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -8.0116,
+          "offsetY": -71.4879,
+          "rotation": 25,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.08,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -24.0347,
+          "offsetY": -60.3949,
+          "rotation": -20,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -22.1859,
+          "offsetY": -57.3136,
+          "rotation": -35,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -22.8022,
+          "offsetY": -58.5461,
+          "rotation": -40,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -17.2557,
+          "offsetY": -60.0868,
+          "rotation": -22,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 0.04,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -12.0174,
+          "offsetY": -61.9356,
+          "rotation": 18,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.08,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 57.6217,
+          "offsetY": 4.6221,
+          "rotation": 85,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 0.24,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.4647,
+          "offsetY": 7.7034,
+          "rotation": 92,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 0.16,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 55.7729,
+          "offsetY": 7.3953,
+          "rotation": 98,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 0.04,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 57.0054,
+          "offsetY": 6.4709,
+          "rotation": 100,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        }
+      ]
+    },
+    "attackGrip": {
+      "type": "perFrame",
+      "anchor": "grip",
+      "frames": [
+        {
+          "offsetX": -9.2441,
+          "offsetY": -4.9302,
+          "rotation": 105,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -18.4882,
+          "offsetY": -28.3486,
+          "rotation": 45,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -24.9591,
+          "offsetY": -44.6799,
+          "rotation": 0,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -24.651,
+          "offsetY": -52.9996,
+          "rotation": -35,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -22.1859,
+          "offsetY": -57.0054,
+          "rotation": -45,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -12.9418,
+          "offsetY": -58.5461,
+          "rotation": -48,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": -7.3953,
+          "offsetY": -59.7787,
+          "rotation": -25,
+          "scale": 1.5,
+          "blurX": 0.5,
+          "blurY": 0.04,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 4.0058,
+          "offsetY": -62.5519,
+          "rotation": 12,
+          "scale": 1.5,
+          "blurX": 1,
+          "blurY": 0.08,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 31.7382,
+          "offsetY": -63.7845,
+          "rotation": 78,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 0.24,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 53.9241,
+          "offsetY": -53.3078,
+          "rotation": 110,
+          "scale": 1.5,
+          "blurX": 3,
+          "blurY": 0.24,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 39.1335,
+          "offsetY": 12.6336,
+          "rotation": 145,
+          "scale": 1.5,
+          "blurX": 2,
+          "blurY": 0.16,
+          "stretchX": 1,
+          "stretchY": 1
+        },
+        {
+          "offsetX": 24.0347,
+          "offsetY": 4.0058,
+          "rotation": 148,
+          "scale": 1.5,
+          "blurX": 0,
+          "blurY": 0.0,
+          "stretchX": 1,
+          "stretchY": 1
+        }
+      ]
+    },
     "holdOffsetX": -35,
     "holdOffsetY": 4,
     "timingMul": 1,
@@ -2087,128 +2728,128 @@
       "anchor": "grip",
       "frames": [
         {
-          "offsetX": -28.1,
-          "offsetY": 3.6,
+          "offsetX": -15.8587,
+          "offsetY": 6.5405,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -26.1,
-          "offsetY": 3.8,
+          "offsetX": -12.6513,
+          "offsetY": 6.5184,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -22.4,
-          "offsetY": 3.4,
+          "offsetX": -11.5123,
+          "offsetY": 5.9107,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -20.4,
-          "offsetY": 3.3,
+          "offsetX": -9.5609,
+          "offsetY": 5.7577,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -18.2,
-          "offsetY": 2.7,
+          "offsetX": -6.8902,
+          "offsetY": 5.2364,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -14.2,
-          "offsetY": 2.3,
+          "offsetX": -3.9655,
+          "offsetY": 3.7377,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -13.9,
-          "offsetY": 2.5,
+          "offsetX": -1.6299,
+          "offsetY": 3.3929,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -12,
-          "offsetY": 2,
+          "offsetX": 0.1534,
+          "offsetY": 3.5248,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -12.8,
-          "offsetY": 3,
+          "offsetX": -0.1848,
+          "offsetY": 3.6959,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -14.7,
-          "offsetY": 2.4,
+          "offsetX": -1.2632,
+          "offsetY": 5.4033,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -20.7,
-          "offsetY": 2.5,
+          "offsetX": -3.64,
+          "offsetY": 3.9931,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -21.7,
-          "offsetY": 2.8,
+          "offsetX": -6.5266,
+          "offsetY": 5.2806,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -21.3,
-          "offsetY": 2.3,
+          "offsetX": -8.7908,
+          "offsetY": 4.5683,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -24.3,
-          "offsetY": 2.6,
+          "offsetX": -10.6205,
+          "offsetY": 3.6733,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -26.8,
-          "offsetY": 3.4,
+          "offsetX": -11.8638,
+          "offsetY": 3.2812,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -28,
-          "offsetY": 3.2,
+          "offsetX": -12.8493,
+          "offsetY": 2.2707,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -31.3,
-          "offsetY": 3,
+          "offsetX": -15.3673,
+          "offsetY": 1.9435,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -32.8,
-          "offsetY": 3.3,
+          "offsetX": -16.1399,
+          "offsetY": 3.3033,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -34.3,
-          "offsetY": 2.6,
+          "offsetX": -17.2368,
+          "offsetY": 3.9451,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -33.5,
-          "offsetY": 3.1,
+          "offsetX": -17.5329,
+          "offsetY": 6.2691,
           "rotation": 110,
           "scale": 1.5
         },
         {
-          "offsetX": -29.8,
-          "offsetY": 3.5,
+          "offsetX": -16.5485,
+          "offsetY": 6.5482,
           "rotation": 110,
           "scale": 1.5
         }
@@ -2512,6 +3153,7 @@
     },
     "idleRotation": 0,
     "idleScale": 0.6,
+    "grip": { "x": 0.18, "y": 0.57 },
     "idle": {
       "holdOffsetX": 6,
       "holdOffsetY": -52,
@@ -2539,6 +3181,7 @@
     "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.11,
     "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.03, "recoilSwing": 0.07, "recoilRecover": 0.03, "shakeIntensity": 2 },
     "idleRotation": 0, "idleScale": 0.6,
+    "grip": { "x": 0.22, "y": 0.57 },
     "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "rotOffset": -6, "dualOffsetX": 5,
@@ -2549,6 +3192,7 @@
     "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.08,
     "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.025, "recoilSwing": 0.06, "recoilRecover": 0.025, "shakeIntensity": 1.5 },
     "idleRotation": 0, "idleScale": 0.6,
+    "grip": { "x": 0.23, "y": 0.57 },
     "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "rotOffset": -6, "dualOffsetX": 5,
@@ -2559,6 +3203,7 @@
     "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.06,
     "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.02, "recoilSwing": 0.05, "recoilRecover": 0.02, "shakeIntensity": 1 },
     "idleRotation": 0, "idleScale": 0.6,
+    "grip": { "x": 0.23, "y": 0.57 },
     "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "rotOffset": -6, "dualOffsetX": 5,
@@ -2569,6 +3214,7 @@
     "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.14,
     "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.035, "recoilSwing": 0.085, "recoilRecover": 0.035, "shakeIntensity": 3 },
     "idleRotation": 0, "idleScale": 0.6,
+    "grip": { "x": 0.15, "y": 0.56 },
     "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "rotOffset": -6, "dualOffsetX": 5,
@@ -2579,6 +3225,7 @@
     "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.1,
     "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.025, "recoilSwing": 0.065, "recoilRecover": 0.025, "shakeIntensity": 2 },
     "idleRotation": 0, "idleScale": 0.6,
+    "grip": { "x": 0.24, "y": 0.56 },
     "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "rotOffset": -6, "dualOffsetX": 5,
@@ -2589,6 +3236,7 @@
     "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.13,
     "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.03, "recoilSwing": 0.08, "recoilRecover": 0.03, "shakeIntensity": 3 },
     "idleRotation": 0, "idleScale": 0.6,
+    "grip": { "x": 0.24, "y": 0.56 },
     "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "rotOffset": -6, "dualOffsetX": 5,
@@ -2599,6 +3247,7 @@
     "holdOffsetX": 6, "holdOffsetY": -52, "timingMul": 0.5, "animType": "recoil", "recoilAmount": 0.08,
     "renderParams": { "gunLXOffset": 20, "gunLY": 13, "offhandGunLY": -13, "muzzleOffset": 22, "flashOffset": 28, "shellCasingOffset": -8, "recoilWindup": 0.02, "recoilSwing": 0.05, "recoilRecover": 0.02, "shakeIntensity": 2 },
     "idleRotation": 0, "idleScale": 0.6,
+    "grip": { "x": 0.23, "y": 0.57 },
     "idle": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "walk": { "holdOffsetX": 6, "holdOffsetY": -52, "idleRotation": 0, "idleScale": 0.6 },
     "rotOffset": -6, "dualOffsetX": 5,
@@ -2627,20 +3276,21 @@
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9979
     },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9979
     },
     "grip": {
-      "x": 0.29,
+      "x": 0.33,
       "y": 0.55
     },
+    "supportGrip": { "x": 0.625, "y": 0.479 },
     "idleRotation": 0,
-    "idleScale": 1,
+    "idleScale": 0.9979,
     "aimAdjustY": 5,
     "muzzle": {
       "x": 0.96,
@@ -2666,22 +3316,23 @@
       "shakeIntensity": 4
     },
     "idleRotation": 0,
-    "idleScale": 1,
+    "idleScale": 0.9979,
     "grip": {
-      "x": 0.42,
-      "y": 0.58
+      "x": 0.44,
+      "y": 0.59
     },
+    "supportGrip": { "x": 0.738, "y": 0.523 },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9979
     },
     "walk": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9979
     },
     "muzzle": {
       "x": 0.96,
@@ -2721,9 +3372,10 @@
       "idleScale": 1
     },
     "grip": {
-      "x": 0.39,
-      "y": 0.62
+      "x": 0.37,
+      "y": 0.6
     },
+    "supportGrip": { "x": 0.664, "y": 0.537 },
     "idleRotation": 0,
     "idleScale": 1,
     "aimAdjustY": 5,
@@ -2763,9 +3415,10 @@
       "idleScale": 1
     },
     "grip": {
-      "x": 0.37,
-      "y": 0.63
+      "x": 0.35,
+      "y": 0.59
     },
+    "supportGrip": { "x": 0.648, "y": 0.561 },
     "idleRotation": 0,
     "idleScale": 1,
     "aimAdjustY": 5,
@@ -2805,9 +3458,10 @@
       "idleScale": 1
     },
     "grip": {
-      "x": 0.37,
-      "y": 0.64
+      "x": 0.33,
+      "y": 0.59
     },
+    "supportGrip": { "x": 0.629, "y": 0.537 },
     "idleRotation": 0,
     "idleScale": 1,
     "aimAdjustY": 5,
@@ -2838,20 +3492,21 @@
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9957
     },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9957
     },
     "grip": {
-      "x": 0.37,
-      "y": 0.64
+      "x": 0.31,
+      "y": 0.6
     },
+    "supportGrip": { "x": 0.6, "y": 0.537 },
     "idleRotation": 0,
-    "idleScale": 1,
+    "idleScale": 0.9957,
     "aimAdjustY": 5,
     "muzzle": {
       "x": 0.96,
@@ -2880,20 +3535,21 @@
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9936
     },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9936
     },
     "grip": {
-      "x": 0.37,
-      "y": 0.64
+      "x": 0.33,
+      "y": 0.59
     },
+    "supportGrip": { "x": 0.631, "y": 0.518 },
     "idleRotation": 0,
-    "idleScale": 1,
+    "idleScale": 0.9936,
     "aimAdjustY": 5,
     "muzzle": {
       "x": 0.96,
@@ -2922,20 +3578,21 @@
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9936
     },
     "idle": {
       "holdOffsetX": -64,
       "holdOffsetY": -6,
       "idleRotation": 0,
-      "idleScale": 1
+      "idleScale": 0.9936
     },
     "grip": {
       "x": 0.37,
-      "y": 0.64
+      "y": 0.59
     },
+    "supportGrip": { "x": 0.682, "y": 0.557 },
     "idleRotation": 0,
-    "idleScale": 1,
+    "idleScale": 0.9936,
     "aimAdjustY": 5,
     "muzzle": {
       "x": 0.96,

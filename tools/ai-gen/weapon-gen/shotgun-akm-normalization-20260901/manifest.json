@@ -1,0 +1,669 @@
+﻿{
+    "task":  "shotgun-akm-normalization-20260901",
+    "generatedAt":  "2026-09-01T13:29:19+08:00",
+    "reference":  {
+                      "textureKey":  "weapon_super90",
+                      "source":  "assets/icons/M4s90_icon.png",
+                      "canvas":  [
+                                     2048,
+                                     2048
+                                 ],
+                      "alphaThreshold":  60,
+                      "contentWidth":  1872,
+                      "contentCenter":  [
+                                            1024,
+                                            1112.5
+                                        ]
+                  },
+    "method":  "Preserve aspect ratio; map the alpha\u003e60 content width and center to the accepted Super90 square-canvas reference; retain a four-pixel source fringe for antialiasing.",
+    "entries":  [
+                    {
+                        "textureKey":  "weapon_super90",
+                        "source":  "assets/icons/M4s90_icon.png",
+                        "normalized":  false,
+                        "backup":  null,
+                        "original":  {
+                                         "width":  2048,
+                                         "height":  2048,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  88,
+                                                        "y":  951,
+                                                        "width":  1872,
+                                                        "height":  323,
+                                                        "centerX":  0.5,
+                                                        "centerY":  0.543213,
+                                                        "widthRatio":  0.914062
+                                                    },
+                                         "sha256":  "8ee403b6823f485d796aada83e49c79d742131f1fe7b9d36edc1632969cdaafc"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  951,
+                                                      "width":  1872,
+                                                      "height":  323,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.543213,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "8ee403b6823f485d796aada83e49c79d742131f1fe7b9d36edc1632969cdaafc"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/icons/M4s90_icon.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  238,
+                                                                       "width":  468,
+                                                                       "height":  81,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.543945,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "19b7f17683aeab5a32bd61126e7d27d36ca7252fa13495be81704cecbe594a68"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_saiga12k",
+                        "source":  "assets/icons/S12k-icon.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/S12k-icon.png",
+                        "original":  {
+                                         "width":  2048,
+                                         "height":  2048,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  87,
+                                                        "y":  499,
+                                                        "width":  1874,
+                                                        "height":  695,
+                                                        "centerX":  0.5,
+                                                        "centerY":  0.41333,
+                                                        "widthRatio":  0.915039
+                                                    },
+                                         "sha256":  "807af11c98a47011f36128db38d2f64a9bba14db38460917048d25b8fef7159a"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  765,
+                                                      "width":  1872,
+                                                      "height":  694,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.542969,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "05699bb8f6915035d70f4726b52eb30e9fc4743b9cde15a55b792fc15aadccd4"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/icons/S12k-icon.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  191,
+                                                                       "width":  468,
+                                                                       "height":  174,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.542969,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "ae22a2afe7d4f619a52e6fe268b66525e16776200fd94c5505d8a32a0b7980a6"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_s686",
+                        "source":  "assets/weapons/s686-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/s686-equip.png",
+                        "original":  {
+                                         "width":  1254,
+                                         "height":  1254,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  26,
+                                                        "y":  512,
+                                                        "width":  1201,
+                                                        "height":  241,
+                                                        "centerX":  0.499601,
+                                                        "centerY":  0.504386,
+                                                        "widthRatio":  0.957735
+                                                    },
+                                         "sha256":  "84219c2d3e73ed5110aeaa90ea5041a8350090f5b8951d21c524789943652cef"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  89,
+                                                      "y":  925,
+                                                      "width":  1871,
+                                                      "height":  375,
+                                                      "centerX":  0.500244,
+                                                      "centerY":  0.543213,
+                                                      "widthRatio":  0.913574
+                                                  },
+                                       "sha256":  "2c01ef43cd2b56e4e90a35a52538749e7c6a59c818d1cb4e97a5bf21aaffe79c"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/s686-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  231,
+                                                                       "width":  468,
+                                                                       "height":  94,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.542969,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "9d93ccb7064f7a4eca7b7501ccaf55cd1f0dc7a9842627a331d8e34f7d448abd"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_m870_breacher",
+                        "source":  "assets/weapons/m870-breacher-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/m870-breacher-equip.png",
+                        "original":  {
+                                         "width":  1254,
+                                         "height":  1254,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  25,
+                                                        "y":  467,
+                                                        "width":  1203,
+                                                        "height":  313,
+                                                        "centerX":  0.499601,
+                                                        "centerY":  0.497209,
+                                                        "widthRatio":  0.95933
+                                                    },
+                                         "sha256":  "7f679469c780c72450310623012bd01af9a7adf70b52d4f8ccc59bfab8141784"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  869,
+                                                      "width":  1872,
+                                                      "height":  488,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.543457,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "e781e72a0fa948e62379190bd598787d66c25739642156c7f50d42867d480351"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/m870-breacher-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  217,
+                                                                       "width":  468,
+                                                                       "height":  122,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.542969,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "b25397f67e22bc1983fbd1a0c74de82f34d8dab303030476d98f2753ae87265b"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_ksg12",
+                        "source":  "assets/weapons/ksg12-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/ksg12-equip.png",
+                        "original":  {
+                                         "width":  1254,
+                                         "height":  1254,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  14,
+                                                        "y":  368,
+                                                        "width":  1226,
+                                                        "height":  463,
+                                                        "centerX":  0.5,
+                                                        "centerY":  0.47807,
+                                                        "widthRatio":  0.977671
+                                                    },
+                                         "sha256":  "48e553d7d96501c0a77182b592bcd308aed37da8ad8386930c96c95de1d7a4d3"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  759,
+                                                      "width":  1873,
+                                                      "height":  707,
+                                                      "centerX":  0.500244,
+                                                      "centerY":  0.543213,
+                                                      "widthRatio":  0.914551
+                                                  },
+                                       "sha256":  "266e3edfa8e1019e0e6d7577e481e0c9286c2408328e5b109b56344afe9461fb"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/ksg12-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  190,
+                                                                       "width":  468,
+                                                                       "height":  177,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.543945,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "fe04723b862daa478eaaeb7e5d6fb62879ee49d6428d626c2b88427608a89cdf"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_spas12",
+                        "source":  "assets/weapons/spas12-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/spas12-equip.png",
+                        "original":  {
+                                         "width":  1254,
+                                         "height":  1254,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  21,
+                                                        "y":  472,
+                                                        "width":  1216,
+                                                        "height":  262,
+                                                        "centerX":  0.501595,
+                                                        "centerY":  0.480861,
+                                                        "widthRatio":  0.969697
+                                                    },
+                                         "sha256":  "3be11da028c1670b42a15ac9d3bbfd237c0b4b43651324a29636044ce141c2fe"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  89,
+                                                      "y":  911,
+                                                      "width":  1870,
+                                                      "height":  404,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.543457,
+                                                      "widthRatio":  0.913086
+                                                  },
+                                       "sha256":  "b1481b4c01f2b841c9adf34244ee3044554374caa3f2d5219f12b349487f9ed1"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/spas12-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  228,
+                                                                       "width":  468,
+                                                                       "height":  101,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.543945,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "5b772475e31cc4e7ba88681f1243c8c260ac32ead2c0954dbb0606407ef65d80"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_aa12",
+                        "source":  "assets/weapons/aa12-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/aa12-equip.png",
+                        "original":  {
+                                         "width":  1774,
+                                         "height":  887,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  16,
+                                                        "y":  115,
+                                                        "width":  1744,
+                                                        "height":  656,
+                                                        "centerX":  0.500564,
+                                                        "centerY":  0.499436,
+                                                        "widthRatio":  0.983089
+                                                    },
+                                         "sha256":  "e44b079b3dcaed3fa537178928d6803cbf38f2c1bb9519767ba26cac6dc60601"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  760,
+                                                      "width":  1872,
+                                                      "height":  705,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.543213,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "5c042e03e83b3f4236361d16cfe7f6a973772f3bd87084e4f9a308b22e568491"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/aa12-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  190,
+                                                                       "width":  468,
+                                                                       "height":  176,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.542969,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "9699fa75660a1ff6592649f4a4d47ccee1bb1be71cb77bcec874bd98125108af"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_winchester1887",
+                        "source":  "assets/weapons/winchester1887-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/winchester1887-equip.png",
+                        "original":  {
+                                         "width":  2008,
+                                         "height":  783,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  39,
+                                                        "y":  165,
+                                                        "width":  1937,
+                                                        "height":  440,
+                                                        "centerX":  0.501743,
+                                                        "centerY":  0.491699,
+                                                        "widthRatio":  0.964641
+                                                    },
+                                         "sha256":  "0f886beb32a0e203586d9b71de49de715bd5bbd806e603a03ab8d96a47f5dd91"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  900,
+                                                      "width":  1872,
+                                                      "height":  425,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.543213,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "d8b9efa2646dddadd9a16503144378ddcd64aab4464349e4da8723a8788904f1"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/winchester1887-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  225,
+                                                                       "width":  468,
+                                                                       "height":  107,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.543945,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "edfbec000dcf7a64d925d3f8b2fc2699fcf645b938f687aa96bab5fb4b35c9e1"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_terminus_pendulum",
+                        "source":  "assets/weapons/terminus-pendulum-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/terminus-pendulum-equip.png",
+                        "original":  {
+                                         "width":  2172,
+                                         "height":  724,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  21,
+                                                        "y":  116,
+                                                        "width":  2122,
+                                                        "height":  491,
+                                                        "centerX":  0.498158,
+                                                        "centerY":  0.499309,
+                                                        "widthRatio":  0.97698
+                                                    },
+                                         "sha256":  "870c10d5e6c2a9591c3e831e9c606c683189ededa2f77da9f36bf574e541cf66"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  896,
+                                                      "width":  1872,
+                                                      "height":  433,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.543213,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "70fc09d24de4fe81c8393d9bd2ed5e23dd1c269d5002bc263db4cc9d3c24f049"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/terminus-pendulum-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  224,
+                                                                       "width":  468,
+                                                                       "height":  108,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.542969,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "d3b9b0c72eac0c39cb65c5861e2d44dd8c23d2c79b2a992c4753d5b72c230c8f"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_void_funeral_tide",
+                        "source":  "assets/weapons/void-funeral-tide-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/void-funeral-tide-equip.png",
+                        "original":  {
+                                         "width":  2172,
+                                         "height":  724,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  23,
+                                                        "y":  141,
+                                                        "width":  2127,
+                                                        "height":  443,
+                                                        "centerX":  0.50023,
+                                                        "centerY":  0.500691,
+                                                        "widthRatio":  0.979282
+                                                    },
+                                         "sha256":  "0d5a91106f7797e245404d1909a9ea126d53ad8377220b778412b516c57ecb78"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  87,
+                                                      "y":  917,
+                                                      "width":  1873,
+                                                      "height":  391,
+                                                      "centerX":  0.499756,
+                                                      "centerY":  0.543213,
+                                                      "widthRatio":  0.914551
+                                                  },
+                                       "sha256":  "ec684dbd6e62c0248576e33da626f44266a8f94425427ec11430a66060c944bd"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/void-funeral-tide-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  229,
+                                                                       "width":  468,
+                                                                       "height":  98,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.542969,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "9c3876e106aff02ef7a2057af73a0b79307c9d9f71080fabff128a3323519a19"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_black_sun_verdict",
+                        "source":  "assets/weapons/black-sun-verdict-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/black-sun-verdict-equip.png",
+                        "original":  {
+                                         "width":  2048,
+                                         "height":  768,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  33,
+                                                        "y":  142,
+                                                        "width":  1984,
+                                                        "height":  507,
+                                                        "centerX":  0.500488,
+                                                        "centerY":  0.514974,
+                                                        "widthRatio":  0.96875
+                                                    },
+                                         "sha256":  "2637a6f79343a2a4c6ae60e8ef80d912338d3eee95e890e9f9439c261f7123e6"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  88,
+                                                      "y":  874,
+                                                      "width":  1872,
+                                                      "height":  478,
+                                                      "centerX":  0.5,
+                                                      "centerY":  0.543457,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "5410e306f29785e8089c640a8b53339ca2d2ef53fadf28621ff598d9f083d75a"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/black-sun-verdict-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  218,
+                                                                       "width":  468,
+                                                                       "height":  120,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.542969,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "dcd4c617dc2e75b8bd98d74db071fb0a0e45429d8c632769c77b85462140c942"
+                                                    }
+                                    }
+                    },
+                    {
+                        "textureKey":  "weapon_royal_hunt_finale",
+                        "source":  "assets/weapons/royal-hunt-finale-equip.png",
+                        "normalized":  true,
+                        "backup":  "tools/ai-gen/weapon-gen/shotgun-akm-normalization-20260901/source-originals/royal-hunt-finale-equip.png",
+                        "original":  {
+                                         "width":  2172,
+                                         "height":  724,
+                                         "alphaThreshold":  60,
+                                         "bounds":  {
+                                                        "x":  37,
+                                                        "y":  167,
+                                                        "width":  2095,
+                                                        "height":  426,
+                                                        "centerX":  0.499309,
+                                                        "centerY":  0.524862,
+                                                        "widthRatio":  0.964549
+                                                    },
+                                         "sha256":  "e04710a207b52a4a3be698c57fb8412079ad04831febffe1b8056ab4b3895df9"
+                                     },
+                        "output":  {
+                                       "width":  2048,
+                                       "height":  2048,
+                                       "alphaThreshold":  60,
+                                       "bounds":  {
+                                                      "x":  87,
+                                                      "y":  923,
+                                                      "width":  1872,
+                                                      "height":  380,
+                                                      "centerX":  0.499512,
+                                                      "centerY":  0.543457,
+                                                      "widthRatio":  0.914062
+                                                  },
+                                       "sha256":  "1ad58045fc35e241e051624f1370cbc725a4421f39aa86a388e4eb252810af17"
+                                   },
+                        "runtime":  {
+                                        "path":  "assets/weapons/runtime/weapons/royal-hunt-finale-equip.png",
+                                        "metrics":  {
+                                                        "width":  512,
+                                                        "height":  512,
+                                                        "alphaThreshold":  60,
+                                                        "bounds":  {
+                                                                       "x":  22,
+                                                                       "y":  231,
+                                                                       "width":  468,
+                                                                       "height":  95,
+                                                                       "centerX":  0.5,
+                                                                       "centerY":  0.543945,
+                                                                       "widthRatio":  0.914062
+                                                                   },
+                                                        "sha256":  "4b7ae514293f08fb6aa90873d87d9a37f7a71eb1c9b816706b690eb0f94a7dc3"
+                                                    }
+                                    }
+                    }
+                ]
+}
