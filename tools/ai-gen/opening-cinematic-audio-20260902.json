@@ -1,0 +1,64 @@
+{
+  "downloadedAt": "2026-09-02",
+  "provider": "Mixkit",
+  "licenseName": "Sound Effects Free License",
+  "licenseUrl": "https://mixkit.co/license/",
+  "usageSummaryUrl": "https://mixkit.co/free-sound-effects/",
+  "changes": "none; official full-length preview MP3 files copied byte-for-byte without local transcoding",
+  "assets": [
+    {
+      "itemId": 2390,
+      "title": "Rain and thunder storm",
+      "runtimePath": "assets/sounds/opening/grave_rain_thunder.mp3",
+      "sourcePage": "https://mixkit.co/free-sound-effects/rain/",
+      "downloadUrl": "https://assets.mixkit.co/active_storage/sfx/2390/2390-preview.mp3",
+      "bytes": 921953,
+      "sha256": "61CFDC72B97308C83D88DD3B8A0AE4BC61495218D72002CCB9AC48120A77C3BB"
+    },
+    {
+      "itemId": 1267,
+      "title": "Wind in the top of the mountain",
+      "runtimePath": "assets/sounds/opening/mountain_wind.mp3",
+      "sourcePage": "https://mixkit.co/free-sound-effects/mountain/",
+      "downloadUrl": "https://assets.mixkit.co/active_storage/sfx/1267/1267-preview.mp3",
+      "bytes": 995006,
+      "sha256": "EC45B068B72AE386641D1C32BCF0443379159FCCE0561AC48BE8D80020A304A3"
+    },
+    {
+      "itemId": 1272,
+      "title": "Small stone avalanche",
+      "runtimePath": "assets/sounds/opening/stone_avalanche.mp3",
+      "sourcePage": "https://mixkit.co/free-sound-effects/mountain/",
+      "downloadUrl": "https://assets.mixkit.co/active_storage/sfx/1272/1272-preview.mp3",
+      "bytes": 107736,
+      "sha256": "0BD966E137418FD0FA3D672E9955FA3BB5E4E483D3576C452B3A57750C580FE5"
+    },
+    {
+      "itemId": 868,
+      "title": "Fairy teleport",
+      "runtimePath": "assets/sounds/opening/fairy_teleport.mp3",
+      "sourcePage": "https://mixkit.co/free-sound-effects/magic/",
+      "downloadUrl": "https://assets.mixkit.co/active_storage/sfx/868/868-preview.mp3",
+      "bytes": 75888,
+      "sha256": "EF91D87A8B5E9F69BBE7EEE4E77C375152CBC83184D0F7222F89A19AFEDBFE04"
+    },
+    {
+      "itemId": 2589,
+      "title": "Shot light energy flowing",
+      "runtimePath": "assets/sounds/opening/energy_flow.mp3",
+      "sourcePage": "https://mixkit.co/free-sound-effects/magic/",
+      "downloadUrl": "https://assets.mixkit.co/active_storage/sfx/2589/2589-preview.mp3",
+      "bytes": 227673,
+      "sha256": "8A631BCA7DF8371FA0F4EEBECFB706066B78A906C9BFAD83B767F2E19C996039"
+    },
+    {
+      "itemId": 658,
+      "title": "Choir magic shine",
+      "runtimePath": "assets/sounds/opening/choir_magic_shine.mp3",
+      "sourcePage": "https://mixkit.co/free-sound-effects/magic/",
+      "downloadUrl": "https://assets.mixkit.co/active_storage/sfx/658/658-preview.mp3",
+      "bytes": 133244,
+      "sha256": "D74385E8F1E14947172CA5A5B36EF0F89571BE08B88F19F11E2145D8A43DDA34"
+    }
+  ]
+}

@@ -8617,3 +8617,565 @@ body.dungeon-route-split-mode .dungeon-route-controls button:focus-visible {
     .dxc-enter.bp-button { min-height: 42px; }
 }
 /* END dungeon-exploration-v10 */
+
+/* ===== First-run opening cinematic ===== */
+.opening-cinematic {
+    position: fixed;
+    inset: 0;
+    z-index: 140000;
+    overflow: hidden;
+    background: #000;
+    opacity: 0;
+    pointer-events: auto;
+    isolation: isolate;
+    transition: opacity 520ms ease;
+}
+
+.opening-cinematic.is-visible {
+    opacity: 1;
+}
+
+.opening-cinematic.is-exiting {
+    opacity: 0;
+    pointer-events: none;
+    transition-duration: 700ms;
+}
+
+.opening-cinematic.is-exiting.was-skipped {
+    transition-duration: 240ms;
+}
+
+.opening-cinematic-frame,
+.opening-cinematic-whiteout {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.opening-cinematic-frame {
+    z-index: 1;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0;
+    user-select: none;
+    pointer-events: none;
+    transform: scale(1.018);
+    will-change: opacity, transform;
+    transition: opacity 860ms ease;
+}
+
+.opening-cinematic-frame.is-active {
+    opacity: 1;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="grave-push"] {
+    animation: opening-camera-grave var(--opening-frame-duration, 3600ms) cubic-bezier(0.2, 0.58, 0.28, 1) both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="skull-breathe"] {
+    animation: opening-camera-skull var(--opening-frame-duration, 3500ms) ease-out both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="memory-drift"] {
+    animation: opening-camera-memory var(--opening-frame-duration, 3300ms) ease-out both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="memory-fall"] {
+    animation: opening-camera-fall var(--opening-frame-duration, 3300ms) cubic-bezier(0.18, 0.7, 0.3, 1) both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="recall-focus"] {
+    animation: opening-camera-recall var(--opening-frame-duration, 3100ms) ease-out both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="teleport-push"],
+.opening-cinematic-frame.is-motion-active[data-motion="body-forge"] {
+    animation: opening-camera-energy var(--opening-frame-duration, 3200ms) ease-in both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="teleport-peak"] {
+    animation: opening-camera-peak var(--opening-frame-duration, 2800ms) cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="empty-pull"] {
+    animation: opening-camera-empty var(--opening-frame-duration, 3100ms) ease-out both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="hub-rise"] {
+    animation: opening-camera-hub var(--opening-frame-duration, 3500ms) ease-out both;
+}
+
+.opening-cinematic-frame.is-motion-active[data-motion="standing-settle"] {
+    animation: opening-camera-settle var(--opening-frame-duration, 3500ms) ease-out both;
+}
+
+.opening-cinematic-atmosphere {
+    position: absolute;
+    inset: -8%;
+    z-index: 2;
+    overflow: hidden;
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 420ms ease;
+}
+
+.opening-cinematic-atmosphere::before,
+.opening-cinematic-atmosphere::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 420ms ease;
+}
+
+.opening-cinematic[data-effect="storm"] .opening-cinematic-atmosphere::before,
+.opening-cinematic[data-effect="storm-after"] .opening-cinematic-atmosphere::before {
+    background-image: repeating-linear-gradient(106deg,
+        transparent 0 24px,
+        rgba(190, 216, 230, 0.22) 25px 26px,
+        transparent 27px 47px);
+    background-size: 170px 220px;
+    opacity: 0.32;
+    animation: opening-rain-drift 560ms linear infinite;
+}
+
+.opening-cinematic[data-effect="storm"] .opening-cinematic-atmosphere::after {
+    background: radial-gradient(circle at 42% 8%, rgba(224, 242, 255, 0.78), transparent 48%);
+    mix-blend-mode: screen;
+    animation: opening-lightning-flash 2800ms steps(1, end) both;
+}
+
+.opening-cinematic[data-effect="storm-after"] .opening-cinematic-atmosphere::before {
+    opacity: 0.16;
+}
+
+.opening-cinematic[data-effect="grave-dust"] .opening-cinematic-atmosphere::before,
+.opening-cinematic[data-effect="hub"] .opening-cinematic-atmosphere::before,
+.opening-cinematic[data-effect="settle"] .opening-cinematic-atmosphere::before {
+    background-image:
+        radial-gradient(circle, rgba(220, 238, 248, 0.58) 0 1px, transparent 1.7px),
+        radial-gradient(circle, rgba(147, 186, 210, 0.38) 0 1px, transparent 1.8px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.28) 0 1px, transparent 1.5px);
+    background-size: 190px 170px, 270px 230px, 360px 310px;
+    background-position: 10% 80%, 70% 30%, 35% 55%;
+    opacity: 0.34;
+    animation: opening-motes-rise 6.8s linear infinite;
+}
+
+.opening-cinematic[data-effect="grave-dust"] .opening-cinematic-atmosphere::before {
+    opacity: 0.18;
+    filter: sepia(0.35);
+}
+
+.opening-cinematic[data-effect="memory"] .opening-cinematic-atmosphere::before,
+.opening-cinematic[data-effect="recall"] .opening-cinematic-atmosphere::before {
+    background: radial-gradient(ellipse at center,
+        rgba(205, 229, 246, 0.08) 0 38%,
+        rgba(15, 24, 31, 0.2) 66%,
+        rgba(0, 0, 0, 0.68) 100%);
+    opacity: 1;
+}
+
+.opening-cinematic[data-effect="recall"] .opening-cinematic-atmosphere::after {
+    background: radial-gradient(circle at 50% 54%, rgba(222, 242, 255, 0.18), transparent 34%);
+    opacity: 1;
+    animation: opening-recall-pulse 2.2s ease-out both;
+}
+
+.opening-cinematic[data-effect="fall"] .opening-cinematic-atmosphere::before {
+    background-image: repeating-linear-gradient(168deg,
+        transparent 0 32px,
+        rgba(216, 232, 242, 0.15) 33px 35px,
+        transparent 36px 70px);
+    opacity: 0.45;
+    transform: scale(1.16);
+    animation: opening-fall-streaks 520ms linear infinite;
+}
+
+.opening-cinematic[data-effect="teleport"] .opening-cinematic-atmosphere::before,
+.opening-cinematic[data-effect="teleport-peak"] .opening-cinematic-atmosphere::before,
+.opening-cinematic[data-effect="forge"] .opening-cinematic-atmosphere::before {
+    background: radial-gradient(circle at 50% 52%,
+        rgba(237, 249, 255, 0.72) 0,
+        rgba(123, 198, 234, 0.26) 18%,
+        transparent 54%);
+    opacity: 1;
+    mix-blend-mode: screen;
+    animation: opening-energy-bloom 1.7s ease-in-out infinite;
+}
+
+.opening-cinematic[data-effect="teleport"] .opening-cinematic-atmosphere::after,
+.opening-cinematic[data-effect="teleport-peak"] .opening-cinematic-atmosphere::after,
+.opening-cinematic[data-effect="forge"] .opening-cinematic-atmosphere::after {
+    inset: -28%;
+    background: repeating-conic-gradient(from 0deg at 50% 52%,
+        transparent 0 11deg,
+        rgba(197, 232, 251, 0.1) 12deg 13deg,
+        transparent 14deg 29deg);
+    opacity: 0.65;
+    mix-blend-mode: screen;
+    animation: opening-energy-turn 9s linear infinite;
+}
+
+.opening-cinematic[data-effect="teleport-peak"] .opening-cinematic-atmosphere::before {
+    opacity: 1;
+    filter: brightness(1.25);
+}
+
+.opening-cinematic[data-effect="forge"] .opening-cinematic-atmosphere::before {
+    background: linear-gradient(90deg, transparent 0 24%, rgba(130, 209, 247, 0.1) 47%,
+        rgba(236, 249, 255, 0.52) 50%, rgba(130, 209, 247, 0.1) 53%, transparent 76%);
+    transform-origin: center bottom;
+    animation: opening-forge-column 1.45s ease-in-out infinite;
+}
+
+.opening-cinematic.is-whiteout .opening-cinematic-atmosphere {
+    opacity: 0;
+}
+
+.opening-cinematic.is-fast-forward .opening-cinematic-frame,
+.opening-cinematic.is-fast-forward .opening-cinematic-whiteout {
+    transition-duration: 220ms;
+}
+
+.opening-cinematic-whiteout {
+    z-index: 3;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 900ms cubic-bezier(0.34, 0.05, 0.18, 1);
+}
+
+.opening-cinematic.is-whiteout .opening-cinematic-frame {
+    opacity: 0;
+}
+
+.opening-cinematic.is-whiteout .opening-cinematic-whiteout {
+    opacity: 1;
+}
+
+.opening-cinematic-skip {
+    position: absolute;
+    top: clamp(18px, 3vw, 38px);
+    right: clamp(20px, 3.4vw, 54px);
+    z-index: 4;
+    min-width: 118px;
+    min-height: 42px;
+    padding: 9px 18px 9px 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    overflow: hidden;
+    color: #dce8ed;
+    background: linear-gradient(180deg, rgba(25, 34, 40, 0.86), rgba(8, 13, 17, 0.9));
+    border: 1px solid rgba(196, 211, 218, 0.72);
+    border-radius: 4px;
+    box-shadow: inset 3px 0 rgba(142, 166, 178, 0.72), 0 8px 24px rgba(0, 0, 0, 0.48);
+    font: 700 13px/1 var(--bp-font-number);
+    letter-spacing: 0.18em;
+    cursor: var(--bp-cursor-pointer, pointer);
+    opacity: 0.82;
+    transition: opacity 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
+    animation: opening-skip-pulse 2.4s ease-in-out infinite;
+}
+
+.opening-cinematic-skip::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.16) 48%, transparent 66%);
+    transform: translateX(-125%);
+    animation: opening-skip-scan 2.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.opening-cinematic-skip:hover,
+.opening-cinematic-skip:focus-visible {
+    color: #fff;
+    border-color: #fff;
+    opacity: 1;
+    transform: translateX(-2px);
+}
+
+.opening-cinematic-skip:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+}
+
+.opening-cinematic-skip i {
+    width: 7px;
+    height: 7px;
+    border-top: 1px solid currentColor;
+    border-right: 1px solid currentColor;
+    transform: rotate(45deg);
+    animation: opening-skip-arrow 1.15s ease-in-out infinite;
+}
+
+.opening-cinematic-skip i + i {
+    margin-left: -4px;
+    animation-delay: 120ms;
+}
+
+.opening-cinematic.is-whiteout .opening-cinematic-skip {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes opening-skip-pulse {
+    0%, 100% { box-shadow: inset 3px 0 rgba(142, 166, 178, 0.62), 0 8px 24px rgba(0, 0, 0, 0.48); }
+    50% { box-shadow: inset 3px 0 rgba(196, 211, 218, 0.95), 0 8px 28px rgba(111, 152, 172, 0.28); }
+}
+
+@keyframes opening-skip-scan {
+    0%, 54% { transform: translateX(-125%); }
+    78%, 100% { transform: translateX(125%); }
+}
+
+@keyframes opening-skip-arrow {
+    0%, 100% { opacity: 0.38; transform: translateX(0) rotate(45deg); }
+    50% { opacity: 1; transform: translateX(3px) rotate(45deg); }
+}
+
+@keyframes opening-camera-grave {
+    from { transform: scale(1.035) translate3d(0, -0.8%, 0); }
+    to { transform: scale(1.075) translate3d(0, 0.7%, 0); }
+}
+
+@keyframes opening-camera-skull {
+    from { transform: scale(1.032) translate3d(-0.25%, 0.2%, 0); }
+    to { transform: scale(1.06) translate3d(0.35%, -0.15%, 0); }
+}
+
+@keyframes opening-camera-memory {
+    from { transform: scale(1.055) translate3d(1.1%, 0.4%, 0); filter: saturate(0.72); }
+    to { transform: scale(1.075) translate3d(-0.8%, -0.35%, 0); filter: saturate(0.62); }
+}
+
+@keyframes opening-camera-fall {
+    from { transform: scale(1.045) translate3d(0, -0.7%, 0); }
+    to { transform: scale(1.085) translate3d(-0.35%, 1.4%, 0); }
+}
+
+@keyframes opening-camera-recall {
+    from { transform: scale(1.075); filter: blur(1.5px) brightness(1.12); }
+    to { transform: scale(1.045); filter: blur(0) brightness(1); }
+}
+
+@keyframes opening-camera-energy {
+    from { transform: scale(1.035); }
+    to { transform: scale(1.075); }
+}
+
+@keyframes opening-camera-peak {
+    from { transform: scale(1.04); filter: brightness(0.95); }
+    to { transform: scale(1.09); filter: brightness(1.16); }
+}
+
+@keyframes opening-camera-empty {
+    from { transform: scale(1.07); }
+    to { transform: scale(1.035); }
+}
+
+@keyframes opening-camera-hub {
+    from { transform: scale(1.055) translate3d(0, 0.8%, 0); }
+    to { transform: scale(1.075) translate3d(0, -0.55%, 0); }
+}
+
+@keyframes opening-camera-settle {
+    from { transform: scale(1.055) translate3d(0, 0.15%, 0); }
+    to { transform: scale(1.035) translate3d(0, -0.15%, 0); }
+}
+
+@keyframes opening-rain-drift {
+    from { background-position: 0 -220px; }
+    to { background-position: -34px 0; }
+}
+
+@keyframes opening-lightning-flash {
+    0%, 8%, 15%, 100% { opacity: 0; }
+    9% { opacity: 0.82; }
+    11% { opacity: 0.18; }
+    13% { opacity: 0.54; }
+}
+
+@keyframes opening-motes-rise {
+    from { background-position: 10% 80%, 70% 30%, 35% 55%; }
+    to { background-position: 14% 22%, 66% -35%, 39% -10%; }
+}
+
+@keyframes opening-recall-pulse {
+    from { opacity: 0.8; transform: scale(0.84); }
+    to { opacity: 0; transform: scale(1.24); }
+}
+
+@keyframes opening-fall-streaks {
+    from { background-position: 0 -180px; }
+    to { background-position: 45px 180px; }
+}
+
+@keyframes opening-energy-bloom {
+    0%, 100% { transform: scale(0.96); opacity: 0.72; }
+    50% { transform: scale(1.04); opacity: 1; }
+}
+
+@keyframes opening-energy-turn {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes opening-forge-column {
+    0%, 100% { transform: scaleX(0.72); opacity: 0.5; }
+    50% { transform: scaleX(1.08); opacity: 0.94; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .opening-cinematic,
+    .opening-cinematic-frame,
+    .opening-cinematic-atmosphere,
+    .opening-cinematic-whiteout,
+    .opening-cinematic-skip {
+        transition-duration: 0.01ms !important;
+    }
+
+    .opening-cinematic-skip,
+    .opening-cinematic-skip::before,
+    .opening-cinematic-skip i,
+    .opening-cinematic-frame,
+    .opening-cinematic-atmosphere::before,
+    .opening-cinematic-atmosphere::after {
+        animation: none !important;
+    }
+
+    .opening-cinematic-frame {
+        transform: scale(1.025) !important;
+        filter: none !important;
+    }
+}
+
+
+#menuLayer .start-game-choice[hidden] {
+    display: none !important;
+}
+
+#menuLayer .start-game-choice {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(2, 5, 7, 0.76);
+    backdrop-filter: blur(8px) saturate(0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+}
+
+#menuLayer .start-game-choice.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#menuLayer .start-game-choice-panel {
+    position: relative;
+    width: min(430px, calc(100vw - 40px));
+    padding: 34px 32px 28px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-shell);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-top: 3px solid var(--bp-ui-accent);
+    border-radius: var(--bp-ui-radius);
+    box-shadow: var(--bp-ui-shadow-float), inset 4px 0 rgba(142, 166, 178, 0.38);
+    text-align: center;
+}
+
+#menuLayer .start-game-choice-panel::after {
+    content: "";
+    position: absolute;
+    top: -3px;
+    right: 24px;
+    width: 68px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--bp-ui-white));
+}
+
+#menuLayer .start-game-choice-eyebrow {
+    margin: 0 0 12px;
+    color: var(--bp-ui-accent);
+    font: 600 var(--bp-type-caption)/1.4 var(--bp-font-number);
+    letter-spacing: 0.14em;
+}
+
+#menuLayer .start-game-choice-panel h2 {
+    margin: 0;
+    color: var(--bp-ui-white);
+    font-size: 24px;
+    line-height: var(--bp-leading-tight);
+    letter-spacing: 0.1em;
+}
+
+#menuLayer .start-game-choice-description {
+    margin: 12px 0 0;
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-body);
+    line-height: var(--bp-leading-body);
+}
+
+#menuLayer .start-game-choice-actions {
+    margin-top: 24px;
+    display: grid;
+    gap: 10px;
+}
+
+#menuLayer .start-game-choice-primary {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+}
+
+#menuLayer .start-game-choice-primary:not(:disabled):hover {
+    color: #05080a !important;
+    background: linear-gradient(180deg, #fff, #c7d3da) !important;
+}
+
+#menuLayer .start-game-choice-back {
+    min-height: 42px;
+    color: var(--bp-ui-text-muted) !important;
+    background: var(--bp-ui-black-soft) !important;
+    border-color: var(--bp-ui-line) !important;
+    font-size: var(--bp-type-body);
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    #menuLayer .start-game-choice-panel {
+        padding: 30px 22px 22px;
+    }
+}
+
+#menuLayer .menu-btn:disabled {
+    color: var(--bp-ui-text-muted) !important;
+    background: var(--bp-ui-black-soft) !important;
+    border-color: var(--bp-ui-line) !important;
+    cursor: var(--bp-cursor-default, default);
+    box-shadow: none;
+    transform: none;
+}
+
+#menuLayer .load-btn:disabled {
+    border-style: dashed !important;
+}
+
+#menuLayer .menu-btn-caption {
+    display: block;
+    margin-top: 5px;
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    font-weight: 400;
+    line-height: var(--bp-leading-body);
+    letter-spacing: var(--bp-tracking-label);
+}

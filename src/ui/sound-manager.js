@@ -129,7 +129,7 @@
                         'button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"]'
                     );
                     if (!button || button.matches(':disabled, .disabled, [aria-disabled="true"], [data-disabled="true"]')
-                        || button.closest('[inert]')) return;
+                        || button.closest('[inert]') || button.dataset.uiClickSound === 'off') return;
                     const path = audioConfig.uiCues?.buttonClick;
                     if (path) this.playFile(path, 1, 'ui');
                 }, true);
@@ -275,12 +275,31 @@
                     this._fileLastPlayedAt.set(path, now);
                     audio.volume = finalVolume;
                     audio.play().catch((e) => {
+                        if (options?.controllable && audio._smPlayToken !== playToken) return;
                         if (audio._smBusy && audio._smPlayToken === playToken) {
                             audio._smBusy = false;
                             this._activeFileVoices = Math.max(0, this._activeFileVoices - 1);
                         }
                         console.warn('SoundManager.playFile failed:', path, e.message);
                     });
+                    // 可选的单次播放句柄：只停止本调用占用的池化声道，不误停同路径的新播放。
+                    if (options?.controllable) {
+                        const ownsVoice = () => audio._smBusy && audio._smPlayToken === playToken;
+                        return {
+                            get active() { return ownsVoice(); },
+                            stop: () => {
+                                if (!ownsVoice()) return;
+                                audio.pause();
+                                audio._smPlayToken++;
+                                audio._smBusy = false;
+                                this._activeFileVoices = Math.max(0, this._activeFileVoices - 1);
+                            },
+                            setVolume: (value) => {
+                                if (ownsVoice()) audio.volume = Math.max(0, Math.min(1,
+                                    value * this.masterVolume * (this.channelVolumes[channel] ?? 1)));
+                            },
+                        };
+                    }
                 } catch (e) {
                     console.warn('SoundManager.playFile error:', path, e);
                 }

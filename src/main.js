@@ -34,6 +34,8 @@ import { NpcPortraitTool } from './ui/npc-portrait-tool.js';
 import { GameUIManager } from './ui/game-ui-manager.js';
 import { EnchantSystem } from './ui/enchant-system.js';
 import { GameMenu } from './ui/game-menu.js';
+import { OpeningCinematic } from './ui/opening-cinematic.js';
+import { StartGameChoice } from './ui/start-game-choice.js';
 import DevTool from './ui/dev-tool.js';
 import { WorldSwitchPanel } from './ui/world-switch-panel.js';
 import { WorldSimDriver } from './world/world-sim-driver.js';
@@ -156,6 +158,10 @@ async function initModules() {
     }
     TechnologyTreePanel.init();
     GameMenu.init();
+    StartGameChoice.init({
+        // “新游戏”是显式重开入口，始终播放序章；观看标记仅供未来自动进入/继续游戏使用。
+        onNewGame: () => OpeningCinematic.play({ force: true, onComplete: () => Game.start() }),
+    });
     // 世界切换面板（多世界并行 M1）：侧边菜单按钮由 hud-panels-misc 静态构建，这里仅挂全局
     window.WorldSwitchPanel = WorldSwitchPanel;
     // 后台世界模拟驱动（M3）：1Hz 只推进全局科研，位面按事件/读取/保存/入场结算。
@@ -183,8 +189,6 @@ async function initModules() {
     window.PhaserGame = PhaserGame;
 
     // 绑定按钮事件
-    const startBtn = getElement('startGameBtn');
-    if (startBtn) startBtn.addEventListener('click', () => { startBtn.blur(); Game.start(); });
     const helpBtn = getElement('showHelpBtn');
     if (helpBtn) helpBtn.addEventListener('click', () => { helpBtn.blur(); GameUIManager.showHelp(); });
     const backBtn = getElement('backMenuBtn');

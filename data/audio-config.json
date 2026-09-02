@@ -12,6 +12,15 @@
     "rightSidebarPanel": "assets/sounds/ui/right_sidebar_panel.mp3",
     "buttonClick": "assets/sounds/ui/button_click.mp3"
   },
+  "openingCinematic": {
+    "comment": "新游戏序章逐幕音效；统一走 SoundManager 的 sfx 声道，控制器只引用配置键并持有可停止句柄",
+    "graveStorm": { "path": "assets/sounds/opening/grave_rain_thunder.mp3", "volume": 0.42 },
+    "mountainWind": { "path": "assets/sounds/opening/mountain_wind.mp3", "volume": 0.34 },
+    "stoneAvalanche": { "path": "assets/sounds/opening/stone_avalanche.mp3", "volume": 0.52 },
+    "teleport": { "path": "assets/sounds/opening/fairy_teleport.mp3", "volume": 0.52 },
+    "energyFlow": { "path": "assets/sounds/opening/energy_flow.mp3", "volume": 0.46 },
+    "choirShine": { "path": "assets/sounds/opening/choir_magic_shine.mp3", "volume": 0.42 }
+  },
   "performance": {
     "fileVoiceLimit": 24,
     "perPathVoiceLimit": 4,

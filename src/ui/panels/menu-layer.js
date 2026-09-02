@@ -87,5 +87,68 @@ export function createMenuLayer() {
 
     menuLayer.appendChild(menuContent);
 
+    // “开始游戏”只打开入口选择；新游戏仍回到 Game.start() 唯一启动链。
+    const startChoice = document.createElement('div');
+    startChoice.id = 'startGameChoice';
+    startChoice.className = 'start-game-choice';
+    startChoice.hidden = true;
+    startChoice.setAttribute('aria-hidden', 'true');
+
+    const choicePanel = document.createElement('section');
+    choicePanel.className = 'start-game-choice-panel';
+    choicePanel.setAttribute('role', 'dialog');
+    choicePanel.setAttribute('aria-modal', 'true');
+    choicePanel.setAttribute('aria-labelledby', 'startGameChoiceTitle');
+    choicePanel.setAttribute('aria-describedby', 'startGameChoiceDescription');
+    choicePanel.tabIndex = -1;
+
+    const choiceEyebrow = document.createElement('p');
+    choiceEyebrow.className = 'start-game-choice-eyebrow';
+    choiceEyebrow.textContent = '轮回档案 // 启动协议';
+
+    const choiceTitle = document.createElement('h2');
+    choiceTitle.id = 'startGameChoiceTitle';
+    choiceTitle.textContent = '选择进入方式';
+
+    const choiceDescription = document.createElement('p');
+    choiceDescription.id = 'startGameChoiceDescription';
+    choiceDescription.className = 'start-game-choice-description';
+    choiceDescription.textContent = '建立新的轮回，或从既有档案继续。';
+
+    const choiceActions = document.createElement('div');
+    choiceActions.className = 'start-game-choice-actions';
+
+    const newGameBtn = document.createElement('button');
+    newGameBtn.type = 'button';
+    newGameBtn.id = 'newGameChoiceBtn';
+    newGameBtn.className = 'menu-btn start-game-choice-primary';
+    newGameBtn.textContent = '新游戏';
+
+    const loadGameBtn = document.createElement('button');
+    loadGameBtn.type = 'button';
+    loadGameBtn.id = 'loadGameChoiceBtn';
+    loadGameBtn.className = 'menu-btn load-btn';
+    loadGameBtn.disabled = true;
+    loadGameBtn.setAttribute('aria-label', '读取游戏，暂未开放');
+    loadGameBtn.setAttribute('aria-describedby', 'startGameChoiceLoadHint');
+    const loadLabel = document.createElement('span');
+    loadLabel.textContent = '读取游戏';
+    const loadHint = document.createElement('span');
+    loadHint.id = 'startGameChoiceLoadHint';
+    loadHint.className = 'menu-btn-caption';
+    loadHint.textContent = '存档系统将在后续版本开放';
+    loadGameBtn.append(loadLabel, loadHint);
+
+    const closeChoiceBtn = document.createElement('button');
+    closeChoiceBtn.type = 'button';
+    closeChoiceBtn.id = 'closeStartGameChoiceBtn';
+    closeChoiceBtn.className = 'menu-btn start-game-choice-back';
+    closeChoiceBtn.textContent = '返回主界面';
+
+    choiceActions.append(newGameBtn, loadGameBtn, closeChoiceBtn);
+    choicePanel.append(choiceEyebrow, choiceTitle, choiceDescription, choiceActions);
+    startChoice.appendChild(choicePanel);
+    menuLayer.appendChild(startChoice);
+
     return menuLayer;
 }
