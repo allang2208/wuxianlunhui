@@ -267,7 +267,8 @@ function cloneProducerRuntimeConfig(cfg) {
         groundContact: cfg.groundContact ? { ...cfg.groundContact } : undefined,
         foregroundOverlay: cfg.foregroundOverlay ? { ...cfg.foregroundOverlay } : undefined,
         unitTypes: (cfg.unitTypes || []).map((unit) => ({ ...unit })),
-        supplementalUnitUnlocks: [...(cfg.supplementalUnitUnlocks || [])],
+        supplementalUnitUnlocks: (cfg.supplementalUnitUnlocks || []).map((entry) =>
+            (entry && typeof entry === 'object' ? { ...entry } : entry)),
         recruitmentTiers: (cfg.recruitmentTiers || []).map((tier) => ({
             ...tier,
             visual: tier.visual ? {
@@ -3386,7 +3387,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-weather-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>天气塔升级项目</span><span class="economy-panel-meta">需要科技“高级气象学”</span></div>
+                    <div class="economy-panel-heading"><span>天气塔升级项目</span><span class="economy-panel-meta">研究“天气预测”即解锁</span></div>
                     ${rows || '<div class="troop-panel-empty">天气塔升级配置缺失</div>'}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-weather-upgrade]').forEach((button) => {
@@ -3619,7 +3620,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-resonator-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>谐振塔升级项目</span><span class="economy-panel-meta">需要科技“谐振校准”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>谐振塔升级项目</span><span class="economy-panel-meta">研究“位面谐振”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-resonator-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeResonator(button.dataset.resonatorUpgrade));
@@ -3677,7 +3678,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-hospital-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>医院升级项目</span><span class="economy-panel-meta">需要科技“医疗标准化”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>医院升级项目</span><span class="economy-panel-meta">研究“战地医疗”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-hospital-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeHospital(button.dataset.hospitalUpgrade));
@@ -3733,7 +3734,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-armory-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>军械库升级项目</span><span class="economy-panel-meta">需要科技“军需标准化”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>军械库升级项目</span><span class="economy-panel-meta">研究“军械保障”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-armory-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeArmory(button.dataset.armoryUpgrade));
@@ -3766,7 +3767,9 @@ class ProducerBuildingPanel extends BasePanel {
                         : 0;
                     const actionsHtml = maxed
                         ? '<span class="troop-panel-caption">已满级</span>'
-                        : `<button class="troop-panel-upgrade-button" data-workshop-upgrade="${moduleId}" ${upgrade ? 'disabled' : ''}>升级</button>`;
+                        : `<button class="troop-panel-upgrade-button" data-workshop-upgrade="${moduleId}"
+                            data-technology-gate-type="upgrade" data-technology-gate-id="${moduleId}"
+                            ${upgrade ? 'disabled' : ''}>升级</button>`;
                     return renderBuildingUpgradeCard({
                         rowAttribute: 'data-workshop-row', projectId: moduleId,
                         icon: module.icon, iconImage: module.iconImage, name: module.name, level, maxLevel: module.maxLevel,
@@ -3779,7 +3782,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-workshop-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>工坊升级项目</span><span class="economy-panel-meta">持有 <span class="economy-unit-gold">${gold} 金</span> / <span class="economy-unit-energy">${energy} 能</span></span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>工坊升级项目</span><span class="economy-panel-meta">研究“经济工程”即解锁 · 持有 <span class="economy-unit-gold">${gold} 金</span> / <span class="economy-unit-energy">${energy} 能</span></span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-workshop-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeWorkshop(button.dataset.workshopUpgrade));
@@ -3789,6 +3792,7 @@ class ProducerBuildingPanel extends BasePanel {
                     row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
                     row.addEventListener('mouseleave', () => this._hideAbilityTip());
                 });
+                TechnologyGate.bindTree(modBox);
             } else if (cfg.economyType === 'housing') {
                 const current = populationEconomyConfig.house?.levels?.find((entry) => entry.level === b._economyLevel);
                 const next = PopulationEconomySystem.getHouseUpgrade(b);
@@ -3878,7 +3882,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-bakery-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>面包屋升级项目</span><span class="economy-panel-meta">需要科技“烘焙工艺”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>面包屋升级项目</span><span class="economy-panel-meta">研究“面包烘焙”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-bakery-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeBakery(button.dataset.bakeryUpgrade));
@@ -3938,7 +3942,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-restaurant-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>连锁餐馆升级项目</span><span class="economy-panel-meta">需要科技“中央厨房标准化”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>连锁餐馆升级项目</span><span class="economy-panel-meta">研究“连锁餐饮”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-restaurant-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeChainRestaurant(
@@ -4000,7 +4004,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-cheese-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>奶酪农场升级图表</span><span class="economy-panel-meta">需要科技“奶酪标准化”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>奶酪农场升级图表</span><span class="economy-panel-meta">研究“乳品畜牧”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-cheese-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeCheeseFarm(button.dataset.cheeseUpgrade));
@@ -4058,7 +4062,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-steam-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>蒸汽电站升级项目</span><span class="economy-panel-meta">需要科技“蒸汽工业标准化”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>蒸汽电站升级项目</span><span class="economy-panel-meta">研究“蒸汽动力”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-steam-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeSteamPlant(button.dataset.steamUpgrade));
@@ -4156,7 +4160,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-tavern-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>酒馆升级项目</span><span class="economy-panel-meta">需要科技“宴饮标准化”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>酒馆升级项目</span><span class="economy-panel-meta">研究“酒馆经营”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-tavern-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeTavern(button.dataset.tavernUpgrade));
@@ -4217,7 +4221,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-computing-upgrading="${inProgress}"`);
                 }).join('') : '<div class="troop-panel-empty">证券交易所采用固定岗位与固定公式，没有本栋升级项目。</div>';
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}${isComputing
-                    ? '<div class="economy-panel-heading"><span>算力重心升级项目</span><span class="economy-panel-meta">需要科技“算力标准化”</span></div>'
+                    ? '<div class="economy-panel-heading"><span>算力重心升级项目</span><span class="economy-panel-meta">研究“分布式算力”即解锁</span></div>'
                     : ''}${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-computing-upgrade]').forEach((button) => {
@@ -4277,7 +4281,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-mall-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>大商场升级项目</span><span class="economy-panel-meta">需要科技“商场标准化”</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>大商场升级项目</span><span class="economy-panel-meta">研究“综合商业”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-mall-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeGrandMall(button.dataset.mallUpgrade));
@@ -4340,7 +4344,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-mint-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>皇家铸币局升级项目</span><span class="economy-panel-meta">需要科技“铸币标准化”</span></div>
+                    <div class="economy-panel-heading"><span>皇家铸币局升级项目</span><span class="economy-panel-meta">研究“主权铸币”即解锁</span></div>
                     ${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-mint-upgrade]').forEach((button) => {
@@ -5201,7 +5205,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">${description}</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '高级气象学'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '天气预测'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5260,7 +5264,7 @@ class ProducerBuildingPanel extends BasePanel {
                 `class="building-upgrade-card" data-wind-power-upgrading="${inProgress}"`);
         }).join('');
         modBox.innerHTML = `${this._renderWorkforceControls(building)}
-            <div class="economy-panel-heading"><span>${energyLabel}电站升级项目</span><span class="economy-panel-meta">需要科技“${isSolar ? '光伏' : '风能'}标准化”</span></div>${rows}`;
+            <div class="economy-panel-heading"><span>${energyLabel}电站升级项目</span><span class="economy-panel-meta">研究“${isSolar ? '光伏发电' : '风力发电'}”即解锁</span></div>${rows}`;
         this._bindWorkforceControls(modBox);
         modBox.querySelectorAll('[data-wind-power-upgrade]').forEach((button) => {
             button.addEventListener('click', () => this._upgradeWindPower(button.dataset.windPowerUpgrade));
@@ -5315,7 +5319,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋${isSolar ? '光伏' : '风力'}电站独立升级；岗位效率与人口效率共同决定实际产出</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || (isSolar ? '光伏标准化' : '风能标准化')}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || (isSolar ? '光伏发电' : '风力发电')}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5350,7 +5354,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋算力重心独立升级；岗位与人口效率同时限制产出和能源消耗</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '算力标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '分布式算力'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5385,7 +5389,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋谐振塔独立升级；每名上岗技师发挥 20%，5 名满效</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '谐振校准'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '位面谐振'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5428,7 +5432,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋医院独立升级；每名上岗医护发挥 20%，同时接诊人数不超过医护与病床容量</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '医疗标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '战地医疗'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5463,7 +5467,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋军械库独立升级；每名上岗维护师发挥 20%，5 名满效</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '军需标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '军械保障'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5480,12 +5484,14 @@ class ProducerBuildingPanel extends BasePanel {
                 ? `${Math.round(value)} 名`
                 : `${(value * 100).toFixed(1)}%`);
         const cost = WorkshopEconomySystem.getUpgradeCost(this.building, moduleId);
+        const unlocked = TechnologySystem.isUnlocked('upgrade', moduleId);
+        const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
         showBuildingUpgradeTooltip(`
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋工坊独立升级；出售后不保留等级</div>
-            <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>
-            <div>${maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '经济工程'}`}</div>
+            <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
     _upgradeBakery(moduleId) {
@@ -5521,7 +5527,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋面包屋独立升级；出售或被毁后不保留等级</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '烘焙工艺'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '面包烘焙'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5560,7 +5566,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋连锁餐馆独立升级；出售或被毁后不保留等级</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '中央厨房标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '连锁餐饮'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5598,7 +5604,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋奶酪农场独立升级；出售或被毁后不保留等级</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '奶酪标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '乳品畜牧'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5636,7 +5642,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋蒸汽电站独立升级；出售或被毁后不保留等级</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '蒸汽工业标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '蒸汽动力'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5673,7 +5679,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋酒馆独立升级；出售或被毁后不保留等级</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '宴饮标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '酒馆经营'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
@@ -5716,7 +5722,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋大商场独立升级；出售或被毁后不保留等级</div>
-            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '商场标准化'}`}</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '综合商业'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 

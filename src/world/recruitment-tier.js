@@ -27,17 +27,31 @@ function mergeUniqueUnits(...groups) {
  * 一旦所属整级或更高整级正式启用，继续服从正常槽位换代，不永久保留旧兵种。
  */
 function getSupplementalUnlockedUnits(config, activeTier, isUnitUnlocked) {
-    const supplementalKeys = new Set(Array.isArray(config?.supplementalUnitUnlocks)
-        ? config.supplementalUnitUnlocks : []);
-    if (!supplementalKeys.size) return [];
+    const rawEntries = Array.isArray(config?.supplementalUnitUnlocks)
+        ? config.supplementalUnitUnlocks : [];
+    const supplementalEntries = [];
+    const seen = new Set();
+    for (const rawEntry of rawEntries) {
+        const unitKey = typeof rawEntry === 'string' ? rawEntry : rawEntry?.key;
+        if (!unitKey || seen.has(unitKey)) continue;
+        seen.add(unitKey);
+        supplementalEntries.push({
+            unitKey,
+            untilTierLevel: typeof rawEntry === 'object'
+                ? Math.max(0, Number(rawEntry.untilTierLevel) || 0)
+                : 0,
+        });
+    }
+    if (!supplementalEntries.length) return [];
     const tiers = sortedRecruitmentTiers(config);
     const units = configuredUnitByKey(config);
     const activeLevel = Math.max(0, Number(activeTier?.level) || 0);
-    return [...supplementalKeys].map((unitKey) => {
+    return supplementalEntries.map(({ unitKey, untilTierLevel }) => {
         if (!isUnitUnlocked(unitKey)) return null;
         const sourceTier = tiers.find((tier) => (tier.lines || [])
             .some((line) => line?.unitKey === unitKey));
-        if (!sourceTier || activeLevel >= Number(sourceTier.level)) return null;
+        const retirementLevel = untilTierLevel || Math.max(0, Number(sourceTier?.level) || 0);
+        if (!retirementLevel || activeLevel >= retirementLevel) return null;
         return units.get(unitKey) || null;
     }).filter(Boolean);
 }

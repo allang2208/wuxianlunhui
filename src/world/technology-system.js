@@ -6,7 +6,7 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 45;
+const VERSION = 46;
 const INDUSTRIAL_BARRACKS_VERSION = 45;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
@@ -165,10 +165,13 @@ const recruitmentTierPlansById = new Map(
 const producerUnitIds = producerConfigs.flatMap((config) => (config.unitTypes || [])
     .map((unit) => typeof unit === 'string' ? unit : unit?.key)
     .filter(Boolean));
-const upgradeIds = Object.values(buildingUpgrades || {}).flatMap((project) => [
-    ...Object.values(project?.abilities || {}).map((ability) => ability?.id).filter(Boolean),
-    ...Object.keys(project?.modules || {}),
-]);
+function projectUpgradeIds(project) {
+    return [
+        ...Object.values(project?.abilities || {}).map((ability) => ability?.id).filter(Boolean),
+        ...Object.keys(project?.modules || {}),
+    ];
+}
+const upgradeIds = Object.values(buildingUpgrades || {}).flatMap(projectUpgradeIds);
 const economyLevelUpgradeIds = Object.values(populationEconomy || {}).flatMap((config) =>
     (Array.isArray(config?.levels) ? config.levels : [])
         .map((level) => level?.technologyUnlockId)
@@ -322,6 +325,27 @@ function validateTechnologyTreeConfig(config) {
         for (const requiredId of node.prerequisites || []) {
             if (requiredId === node.id) errors.push(`${node.id} 不能依赖自身`);
             else if (!ids.has(requiredId)) errors.push(`${node.id} 引用了不存在的前置科技：${requiredId}`);
+        }
+    }
+
+    // 需要科技建造的经济建筑必须由同一科技直接拥有其本栋升级项目。
+    // 基础可建建筑没有 building 所有者，继续使用各自的基础行业/等级门禁。
+    for (const building of producerConfigs) {
+        if (!building.economyType || !building.upgradeProject) continue;
+        const buildingOwner = unlocks.get(`building:${building.id}`);
+        const project = buildingUpgrades?.[building.upgradeProject];
+        if (!project) {
+            errors.push(`${building.name} 引用了不存在的升级项目：${building.upgradeProject}`);
+            continue;
+        }
+        if (!buildingOwner) continue;
+        for (const upgradeId of projectUpgradeIds(project)) {
+            const upgradeOwner = unlocks.get(`upgrade:${upgradeId}`);
+            if (!upgradeOwner) {
+                errors.push(`${building.name} 的本栋升级未登记科技所有权：${upgradeId}`);
+            } else if (upgradeOwner !== buildingOwner) {
+                errors.push(`${building.name} 的本栋升级 ${upgradeId} 必须与建筑同由 ${buildingOwner} 解锁`);
+            }
         }
     }
 
@@ -946,6 +970,14 @@ export const TechnologySystem = {
             && nodesById.has('hamster_barracks_industrial')
             && !completed.includes('hamster_barracks_industrial')) {
             completed.push('hamster_barracks_industrial');
+        }
+        // v46 将长弓二级编制移动到黑火药之前。旧档已经完成黑火药时补齐
+        // 新增的必需祖先，保留原有火枪与后续近代军事科技权限。
+        if (savedVersion < 46
+            && completed.includes('gunpowder')
+            && nodesById.has('shooting_range_level_2')
+            && !completed.includes('shooting_range_level_2')) {
+            completed.push('shooting_range_level_2');
         }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {

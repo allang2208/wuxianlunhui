@@ -600,7 +600,7 @@
       { "key": "assault", "name": "仓鼠突击", "roleLabel": "突击步枪 · 高机动单发压制", "spawnIntervalMs": 65000, "spawnFoodCost": 220 },
       { "key": "heavy_machine_gunner", "name": "仓鼠重机枪", "roleLabel": "重机枪 · 三连击、贯穿与穿甲", "spawnIntervalMs": 80000, "spawnFoodCost": 280 }
     ],
-    "supplementalUnitUnlocks": ["musketeer"],
+    "supplementalUnitUnlocks": [{ "key": "musketeer", "untilTierLevel": 3 }],
     "recruitmentTiers": [
       { "id": "shooting_range_level_1", "level": 1, "name": "靶场一级编制", "baseline": true, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "unitKey": "shooter", "unitName": "仓鼠射手", "profile": "叠加毒液、相对重火力、高机动" },
@@ -608,7 +608,7 @@
       ] },
       { "id": "shooting_range_level_2", "level": 2, "name": "靶场二级编制", "plannedEffectiveResearchCost": 1560, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠射手", "unitKey": "longbow", "unitName": "仓鼠长弓", "profile": "英格兰长弓远射；高单发、长拉弓周期、900px基础射程" },
-        { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠弩手", "unitKey": "musketeer", "unitName": "仓鼠火枪" }
+        { "slot": "heavy_fire", "role": "重火力", "unitKey": "crossbow", "unitName": "仓鼠弩手", "profile": "二级继续保留弩手；仓鼠火枪由后续黑火药科技单独加入" }
       ] },
       { "id": "shooting_range_level_3", "level": 3, "name": "靶场三级编制", "plannedEffectiveResearchCost": 4140, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠长弓", "unitKey": "assault", "unitName": "仓鼠突击", "profile": "高机动突击步枪射手；稳定单发压制、720px 射程" },

@@ -3,6 +3,7 @@ import { Game } from '../game.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import { TechnologySystem } from './technology-system.js';
 import {
     applyCivilianAnimSize,
     fadeOutAndDestroyCivilian,
@@ -201,6 +202,10 @@ export const WorkshopEconomySystem = {
         if (building?._economyType !== 'workshop') return { ok: false, reason: '该建筑不是经济工坊' };
         const module = building._cfg.modules?.[moduleId];
         if (!module) return { ok: false, reason: '未知升级项目' };
+        if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+            return { ok: false, reason: `需要先完成科技：${technologyName || moduleId}` };
+        }
         const level = this.getModuleLevel(building, moduleId);
         if (level >= (module.maxLevel || 0)) return { ok: false, reason: '升级项目已满级' };
         if (building._workshopUpgrade) return { ok: false, reason: '已有工坊项目正在升级' };

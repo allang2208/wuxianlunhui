@@ -11,6 +11,7 @@ const CARD_W = 210;
 const CARD_H = 88;
 const COL_GAP = 80;
 const LANE_GAP = 22;
+const ROUTED_LANE_GAP = 44;
 const CARD_ORIGIN_X = 52;
 const CARD_ORIGIN_Y = 74;
 const BRANCHES = Object.freeze(['工程', '军事指挥', '经济与位面', '位面独特科技']);
@@ -21,7 +22,7 @@ const ECONOMY_CARD_ORIGIN_X = 180;
 const MILITARY_SUB_BRANCH_ROWS = Object.freeze([
     Object.freeze({ label: '草屋→特战', lane: 0, span: 1 }),
     Object.freeze({ label: '军营', lane: 1, span: 1 }),
-    Object.freeze({ label: '靶场', lane: 2, span: 1 }),
+    Object.freeze({ label: '黑火药→靶场', lane: 2, span: 1 }),
     Object.freeze({ label: '骑兵学院', lane: 3, span: 1 }),
     Object.freeze({ label: '教堂', lane: 4, span: 1 }),
     Object.freeze({ label: '指挥', lane: 5, span: 1 }),
@@ -31,7 +32,8 @@ const ECONOMY_SUB_BRANCH_ROWS = Object.freeze([
     Object.freeze({ label: '住房', lane: 0, span: 1 }),
     Object.freeze({ label: '农业', lane: 1, span: 2 }),
     Object.freeze({ label: '金币', lane: 3, span: 2 }),
-    Object.freeze({ label: '能源', lane: 5, span: 2 }),
+    Object.freeze({ label: '能源', lane: 5, span: 3 }),
+    Object.freeze({ label: '仓储', lane: 8, span: 1 }),
 ]);
 const PREREQUISITE_ROUTE_COLORS = Object.freeze([
     '#69d4dc',
@@ -61,8 +63,12 @@ function positionOf(node) {
     const originX = cardOriginX(node?.branch);
     return {
         x: originX + (Number(node.column) || 0) * (CARD_W + COL_GAP),
-        y: CARD_ORIGIN_Y + (Number(node.lane) || 0) * (CARD_H + LANE_GAP),
+        y: CARD_ORIGIN_Y + (Number(node.lane) || 0) * (CARD_H + laneGap(node?.branch)),
     };
+}
+
+function laneGap(branch) {
+    return branch === ECONOMY_BRANCH || branch === MILITARY_BRANCH ? ROUTED_LANE_GAP : LANE_GAP;
 }
 
 function escapeHtml(value) {
@@ -321,6 +327,7 @@ export const TechnologyTreePanel = {
                 <button class="technology-tree-close" type="button" aria-label="关闭科技树" title="关闭 (ESC)">×</button>
             </header>
             <nav class="technology-tree-branch-tabs" data-role="branches" aria-label="科技分支"></nav>
+            <div class="technology-prerequisite-legend" data-role="legend" aria-label="科技连线图例"></div>
             <div class="technology-tree-body">
                 <div class="technology-tree-viewport" aria-label="科技树画布，按住鼠标左键拖动查看" title="按住鼠标左键拖动查看完整科技树">
                     <div class="technology-tree-canvas" data-role="canvas"></div>
@@ -483,48 +490,204 @@ export const TechnologyTreePanel = {
         const maxLane = Math.max(0, ...nodes.map((node) => Number(node.lane) || 0));
         const originX = cardOriginX(this._selectedBranch);
         canvas.style.width = `${originX + (maxColumn + 1) * (CARD_W + COL_GAP) + 48}px`;
-        canvas.style.height = `${Math.max(420, CARD_ORIGIN_Y + (maxLane + 1) * (CARD_H + LANE_GAP) + 40)}px`;
+        const rowGap = laneGap(this._selectedBranch);
+        canvas.style.height = `${Math.max(420, CARD_ORIGIN_Y + (maxLane + 1) * (CARD_H + rowGap) + 40)}px`;
 
-        const lines = nodes.flatMap((node) => {
-            const prerequisites = node.prerequisites || [];
-            return prerequisites.map((requiredId, prerequisiteIndex) => {
-                if (!visibleIds.has(requiredId)) return '';
-                const from = TechnologySystem.getNode(requiredId);
-                if (!from) return '';
-                const a = positionOf(from);
-                const b = positionOf(node);
-                const prerequisiteSatisfied = TechnologySystem.isCompleted(requiredId);
-                const selected = selectedPath.has(requiredId) && selectedPath.has(node.id);
-                const multiPrerequisite = prerequisites.length > 1;
-                const routeColor = prerequisiteRouteColor(prerequisiteIndex, prerequisites.length);
-                const linkClass = `technology-link${multiPrerequisite ? ' multi-prerequisite' : ''}${prerequisiteSatisfied ? ' prerequisite-satisfied' : ''}${selected ? ' selected-path' : ''}`;
-                const linkStyle = routeColor ? ` style="--technology-link-color:${routeColor}"` : '';
-                let path = '';
-                let targetPort = null;
-                if ((Number(from.column) || 0) === (Number(node.column) || 0)) {
-                    const targetBelow = b.y >= a.y;
-                    const x1 = a.x + CARD_W / 2;
-                    const x2 = b.x + CARD_W * (prerequisiteIndex + 1) / (prerequisites.length + 1);
-                    const y1 = targetBelow ? a.y + CARD_H : a.y;
-                    const y2 = targetBelow ? b.y : b.y + CARD_H;
-                    const midY = (y1 + y2) / 2;
-                    path = `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`;
-                    targetPort = { x: x2, y: y2 + (targetBelow ? 5 : -5) };
-                } else {
-                    const x1 = a.x + CARD_W;
-                    const y1 = a.y + CARD_H / 2;
-                    const x2 = b.x;
-                    const y2 = b.y + CARD_H * (prerequisiteIndex + 1) / (prerequisites.length + 1);
-                    const mid = (x1 + x2) / 2;
-                    path = `M ${x1} ${y1} H ${mid} V ${y2} H ${x2}`;
-                    targetPort = { x: x2 - 5, y: y2 };
+        const pathFocusActive = selectedPath.size > 1;
+        const focusRoutes = [];
+        const focusJunctions = new Map();
+        const addFocusRoute = (path, marker = false) => focusRoutes.push({ path, marker });
+        const addFocusJunction = (x, y) => {
+            focusJunctions.set(`${x}:${y}`,
+                `<circle class="technology-link-focus-junction" cx="${x}" cy="${y}" r="4.5" />`);
+        };
+        const prerequisiteEntries = nodes.flatMap((node) => {
+            const prerequisites = TechnologySystem.getPrerequisiteStatus(node.id).requiredIds;
+            return prerequisites.map((requiredId, prerequisiteIndex) => ({
+                node,
+                prerequisites,
+                requiredId,
+                prerequisiteIndex,
+                from: TechnologySystem.getNode(requiredId),
+            })).filter((entry) => visibleIds.has(entry.requiredId) && entry.from);
+        });
+        const outgoingBySource = new Map();
+        for (const entry of prerequisiteEntries) {
+            if (!outgoingBySource.has(entry.requiredId)) outgoingBySource.set(entry.requiredId, []);
+            outgoingBySource.get(entry.requiredId).push(entry);
+        }
+        // 时代门槛同时通往三项以上右侧科技时使用共享总线，避免多根长线叠成一束。
+        const sharedBusSourceIds = new Set([...outgoingBySource.entries()]
+            .filter(([sourceId, entries]) => entries.filter((entry) =>
+                Number(entry.node.column) > Number(entry.from.column)).length >= 3
+                && (this._selectedBranch === ECONOMY_BRANCH
+                    || (this._selectedBranch === MILITARY_BRANCH && sourceId === 'gunpowder')))
+            .map(([sourceId]) => sourceId));
+        const isSharedBusEntry = (entry) => sharedBusSourceIds.has(entry.requiredId)
+            && Number(entry.node.column) > Number(entry.from.column);
+        const busSourcesByColumn = new Map();
+        for (const sourceId of sharedBusSourceIds) {
+            const column = Number(TechnologySystem.getNode(sourceId)?.column) || 0;
+            if (!busSourcesByColumn.has(column)) busSourcesByColumn.set(column, []);
+            busSourcesByColumn.get(column).push(sourceId);
+        }
+        for (const sourceIds of busSourcesByColumn.values()) {
+            sourceIds.sort((leftId, rightId) =>
+                (Number(TechnologySystem.getNode(leftId)?.lane) || 0)
+                - (Number(TechnologySystem.getNode(rightId)?.lane) || 0));
+        }
+        const sharedBusX = (sourceId) => {
+            const source = TechnologySystem.getNode(sourceId);
+            const ids = busSourcesByColumn.get(Number(source?.column) || 0) || [];
+            const index = Math.max(0, ids.indexOf(sourceId));
+            return positionOf(source).x + CARD_W + 8 + index * 10;
+        };
+        const gateTarget = (entry) => {
+            const b = positionOf(entry.node);
+            const count = entry.prerequisites.length;
+            if (count <= 1) {
+                if (Number(entry.node.column) === Number(entry.from.column)) {
+                    const targetBelow = b.y >= positionOf(entry.from).y;
+                    return {
+                        usesGate: false,
+                        x: b.x + CARD_W * (entry.prerequisiteIndex + 1) / (count + 1),
+                        y: targetBelow ? b.y : b.y + CARD_H,
+                    };
                 }
-                const port = multiPrerequisite
-                    ? `<circle class="technology-link-port${prerequisiteSatisfied ? ' prerequisite-satisfied' : ''}" cx="${targetPort.x}" cy="${targetPort.y}" r="4"${linkStyle} />`
-                    : '';
-                return `<path class="${linkClass}" d="${path}"${linkStyle} />${port}`;
+                return { usesGate: false, x: b.x, y: b.y + CARD_H / 2 };
+            }
+            const spacing = Math.min(12, 38 / Math.max(1, count - 1));
+            return {
+                usesGate: true,
+                x: b.x - 42,
+                y: b.y + CARD_H / 2
+                    + (entry.prerequisiteIndex - (count - 1) / 2) * spacing,
+            };
+        };
+        const edgeState = (entry, extraClass = '') => {
+            const satisfied = TechnologySystem.isCompleted(entry.requiredId);
+            const selected = selectedPath.has(entry.requiredId) && selectedPath.has(entry.node.id);
+            const muted = pathFocusActive && !selected;
+            const routeColor = prerequisiteRouteColor(
+                entry.prerequisiteIndex,
+                entry.prerequisites.length
+            );
+            return {
+                satisfied,
+                selected,
+                muted,
+                className: `technology-link${entry.prerequisites.length > 1 ? ' multi-prerequisite' : ''}${satisfied ? ' prerequisite-satisfied' : ''}${muted ? ' path-muted' : ''}${extraClass}`,
+                style: routeColor ? ` style="--technology-link-color:${routeColor}"` : '',
+            };
+        };
+        const routePath = (entry, target) => {
+            const a = positionOf(entry.from);
+            const b = positionOf(entry.node);
+            const columnDelta = Number(entry.node.column) - Number(entry.from.column);
+            if (columnDelta === 0) {
+                const targetBelow = b.y >= a.y;
+                const x1 = a.x + CARD_W / 2;
+                const y1 = targetBelow ? a.y + CARD_H : a.y;
+                const midY = (y1 + target.y) / 2;
+                return `M ${x1} ${y1} V ${midY} H ${target.x} V ${target.y}`;
+            }
+            const direction = Math.sign(columnDelta);
+            const x1 = a.x + (direction > 0 ? CARD_W : 0);
+            const y1 = a.y + CARD_H / 2;
+            if (Math.abs(columnDelta) > 1) {
+                const departX = x1 + direction * 18;
+                const arrivalX = target.x - direction * 12;
+                const gutterY = direction > 0 ? a.y + CARD_H + 12 : a.y - 12;
+                return `M ${x1} ${y1} H ${departX} V ${gutterY} H ${arrivalX} V ${target.y} H ${target.x}`;
+            }
+            const midX = (x1 + target.x) / 2;
+            return `M ${x1} ${y1} H ${midX} V ${target.y} H ${target.x}`;
+        };
+
+        const busMarkup = [];
+        const branchMarkup = [];
+        for (const sourceId of sharedBusSourceIds) {
+            const entries = (outgoingBySource.get(sourceId) || [])
+                .filter(isSharedBusEntry);
+            const source = TechnologySystem.getNode(sourceId);
+            const a = positionOf(source);
+            const sourceX = a.x + CARD_W;
+            const sourceY = a.y + CARD_H / 2;
+            const busX = sharedBusX(sourceId);
+            const routes = entries.map((entry) => {
+                const target = gateTarget(entry);
+                const b = positionOf(entry.node);
+                const trackY = Number(entry.node.column) - Number(source.column) > 1
+                    ? b.y - rowGap * (entry.prerequisiteIndex + 1)
+                        / (entry.prerequisites.length + 1)
+                    : target.y;
+                const arrivalX = target.x - 12;
+                const path = `M ${busX} ${trackY} H ${arrivalX} V ${target.y} H ${target.x}`;
+                return { entry, target, trackY, path };
             });
+            const busTop = Math.min(sourceY, ...routes.map((route) => route.trackY));
+            const busBottom = Math.max(sourceY, ...routes.map((route) => route.trackY));
+            const busSatisfied = TechnologySystem.isCompleted(sourceId);
+            const busClass = `technology-link technology-link-bus${busSatisfied ? ' prerequisite-satisfied' : ''}${pathFocusActive ? ' path-muted' : ''}`;
+            const junctionClass = `technology-link-junction${busSatisfied ? ' prerequisite-satisfied' : ''}${pathFocusActive ? ' path-muted' : ''}`;
+            busMarkup.push(`<path class="${busClass}" d="M ${sourceX} ${sourceY} H ${busX} M ${busX} ${busTop} V ${busBottom}" />
+                <circle class="${junctionClass}" cx="${busX}" cy="${sourceY}" r="3" />`);
+            for (const route of routes) {
+                const state = edgeState(route.entry, ' technology-link-branch');
+                const marker = route.target.usesGate ? '' : ' marker-end="url(#technology-arrow)"';
+                const port = route.target.usesGate
+                    ? `<circle class="technology-link-port${state.satisfied ? ' prerequisite-satisfied' : ''}${state.muted ? ' path-muted' : ''}" cx="${route.target.x}" cy="${route.target.y}" r="4"${state.style} />`
+                    : '';
+                branchMarkup.push(`<path class="${state.className}" d="${route.path}"${marker}${state.style} />${port}
+                    <circle class="technology-link-junction${state.satisfied ? ' prerequisite-satisfied' : ''}${state.muted ? ' path-muted' : ''}" cx="${busX}" cy="${route.trackY}" r="3" />`);
+                if (state.selected) {
+                    addFocusRoute(`M ${sourceX} ${sourceY} H ${busX} V ${route.trackY} ${route.path.slice(route.path.indexOf('H'))}`,
+                        !route.target.usesGate);
+                    addFocusJunction(busX, sourceY);
+                    addFocusJunction(busX, route.trackY);
+                    if (route.target.usesGate) addFocusJunction(route.target.x, route.target.y);
+                }
+            }
+        }
+
+        const routedMarkup = prerequisiteEntries
+            .filter((entry) => !isSharedBusEntry(entry))
+            .map((entry) => {
+                const target = gateTarget(entry);
+                const state = edgeState(entry);
+                const path = routePath(entry, target);
+                const marker = target.usesGate ? '' : ' marker-end="url(#technology-arrow)"';
+                const port = target.usesGate
+                    ? `<circle class="technology-link-port${state.satisfied ? ' prerequisite-satisfied' : ''}${state.muted ? ' path-muted' : ''}" cx="${target.x}" cy="${target.y}" r="4"${state.style} />`
+                    : '';
+                if (state.selected) {
+                    addFocusRoute(path, !target.usesGate);
+                    if (target.usesGate) addFocusJunction(target.x, target.y);
+                }
+                return `<path class="${state.className}" d="${path}"${marker}${state.style} />${port}`;
+            }).join('');
+
+        const gateMarkup = nodes.filter((node) =>
+            TechnologySystem.getPrerequisiteStatus(node.id).totalCount > 1).map((node) => {
+            const status = TechnologySystem.getPrerequisiteStatus(node.id);
+            const b = positionOf(node);
+            const x = b.x - 42;
+            const y = b.y + CARD_H / 2 - 12;
+            const satisfied = status.completedCount === status.totalCount;
+            const selected = selectedPath.has(node.id);
+            const muted = pathFocusActive && !selected;
+            const gateClass = `technology-convergence-gate${satisfied ? ' prerequisite-satisfied' : ''}${muted ? ' path-muted' : ''}`;
+            const outputClass = `technology-link technology-link-gate-output${satisfied ? ' prerequisite-satisfied' : ''}${muted ? ' path-muted' : ''}`;
+            const outputPath = `M ${x + 28} ${y + 12} H ${b.x}`;
+            if (pathFocusActive && selected) addFocusRoute(outputPath, true);
+            return `<g class="${gateClass}"><rect x="${x}" y="${y}" width="28" height="24" rx="5" /><text x="${x + 14}" y="${y + 15}" text-anchor="middle">AND</text></g>
+                <path class="${outputClass}" d="${outputPath}" marker-end="url(#technology-arrow)" />`;
         }).join('');
+        const focusHalos = focusRoutes.map(({ path }) =>
+            `<path class="technology-link-focus-halo" d="${path}" />`).join('');
+        const focusCores = focusRoutes.map(({ path, marker }) =>
+            `<path class="technology-link-focus" d="${path}"${marker ? ' marker-end="url(#technology-focus-arrow)"' : ''} />`).join('');
+        const focusJunctionMarkup = [...focusJunctions.values()].join('');
 
         const cards = nodes.map((node) => {
             const pos = positionOf(node);
@@ -558,10 +721,20 @@ export const TechnologyTreePanel = {
                 : '前置未满足';
             const pathClass = selectedPath.has(node.id) ? ' path-node' : '';
             const targetClass = TechnologySystem.state.targetTechId === node.id ? ' path-target' : '';
-            const crossPrerequisite = (node.prerequisites || []).some((id) => !visibleIds.has(id));
+            const crossPrerequisiteIds = (node.prerequisites || [])
+                .filter((id) => !visibleIds.has(id));
+            const crossPrerequisite = crossPrerequisiteIds.length > 0;
+            const crossPrerequisiteLabel = crossPrerequisiteIds.map((id) => {
+                const required = TechnologySystem.getNode(id);
+                const masked = required?.requiredWorldId
+                    && !TechnologySystem.isCompleted(id)
+                    && !TechnologySystem.isWorldRequirementMet(id);
+                return masked ? '未知位面科技' : required?.name || id;
+            }).join(' + ');
             return `<button type="button" class="technology-card ${stateClass}${convergenceTech ? ' convergence-tech' : ''}${node.militaryTrunk === true ? ' military-trunk' : ''}${worldMasked ? ' world-masked' : ''}${node.section === 'plane' ? ' plane-research' : ''}${crossPrerequisite ? ' cross-prerequisite' : ''}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
                 data-tech-id="${escapeHtml(node.id)}" style="left:${pos.x}px;top:${pos.y}px">
                 ${queuedAt ? `<span class="technology-card-queue-index">${queuedAt}</span>` : ''}
+                ${crossPrerequisite ? `<span class="technology-card-cross-prerequisite${selectedPath.has(node.id) ? ' selected-path' : ''}" title="跨分支前置：${escapeHtml(crossPrerequisiteLabel)}"><span>↗ ${escapeHtml(crossPrerequisiteLabel)}</span></span>` : ''}
                 ${convergenceTech ? `<span class="technology-card-prerequisite-gate" aria-label="全部前置完成后解锁，已完成 ${prerequisiteStatus.completedCount} 项，共 ${prerequisiteStatus.totalCount} 项"><b>AND</b>${prerequisiteStatus.completedCount}/${prerequisiteStatus.totalCount}</span>` : ''}
                 ${renderTechnologyIcon(node, 'technology-card-icon')}
                 <span class="technology-card-copy"><strong>${escapeHtml(node.name)}</strong><small data-live-role="card-state">${stateText}${placeholder || node.initiallyCompleted === true ? '' : ` · ${node.researchCost}`}</small></span>
@@ -576,15 +749,20 @@ export const TechnologyTreePanel = {
         const label = `<div class="technology-section-label${this._selectedBranch === '位面独特科技' ? ' plane' : ''}" style="top:${branchRows.length ? 8 : 28}px">${escapeHtml(sectionTitle)}</div>`;
         const subBranchLabels = branchRows.length
             ? branchRows.map((row) => {
-                const top = CARD_ORIGIN_Y + row.lane * (CARD_H + LANE_GAP);
-                const height = row.span * (CARD_H + LANE_GAP) - LANE_GAP;
+                const top = CARD_ORIGIN_Y + row.lane * (CARD_H + rowGap);
+                const height = row.span * (CARD_H + rowGap) - rowGap;
                 return `<div class="technology-subbranch-label row-label" style="left:28px;top:${top}px;width:${originX - 64}px;height:${height}px">${escapeHtml(row.label)}</div>`;
             }).join('')
             : '';
-        const prerequisiteLegend = nodes.some((node) => (node.prerequisites || []).length > 1)
-            ? `<div class="technology-prerequisite-legend"><b>AND 汇合</b><span><i></i>实线已完成</span><span><i class="pending"></i>虚线待研发</span>${this._selectedBranch === MILITARY_BRANCH ? '<span><i class="trunk"></i>纵向建筑骨架</span>' : ''}</div>`
-            : '';
-        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${lines}</svg>${label}${prerequisiteLegend}${subBranchLabels}${cards}`;
+        const legend = this._el.querySelector('[data-role="legend"]');
+        if (legend) {
+            legend.innerHTML = `<b>线路图例</b><span><i></i>已完成</span><span><i class="pending"></i>待研发</span><span><i class="focus"></i>当前选中路线</span><span><i class="bus"></i>共享时代总线</span>${this._selectedBranch === MILITARY_BRANCH ? '<span><i class="trunk"></i>纵向建筑骨架</span>' : ''}<span>AND = 前置全部完成</span><span>↗ = 跨分支前置</span>`;
+        }
+        const svgDefs = `<defs>
+            <marker id="technology-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 7 3.5 L 0 7 z" class="technology-arrow-head" /></marker>
+            <marker id="technology-focus-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 7 3.5 L 0 7 z" class="technology-focus-arrow-head" /></marker>
+        </defs>`;
+        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${svgDefs}${busMarkup.join('')}${branchMarkup.join('')}${routedMarkup}${gateMarkup}${focusHalos}${focusCores}${focusJunctionMarkup}</svg>${label}${subBranchLabels}${cards}`;
         canvas.querySelectorAll('[data-tech-id]').forEach((card) => {
             card.addEventListener('click', () => {
                 this._selectedId = card.dataset.techId;
