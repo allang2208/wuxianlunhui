@@ -695,6 +695,43 @@ export class BootScene extends Scene {
                 endFrame: Math.max(0, (layout.frameCount || 1) - 1),
             });
         }
+
+        // 极夜祷徒四动作：右向奔跑循环、一次短杖直刺与不可逆倒地。
+        const polarNightCantorTextures = enemyConfigData.polarNightCantor?.textures || {};
+        const polarNightCantorLayouts = polarNightCantorTextures.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = polarNightCantorLayouts[state] || {};
+            const path = polarNightCantorTextures[state];
+            if (!path) continue;
+            this.load.spritesheet(`enemy_polar_night_cantor_${state}`, path, {
+                frameWidth: layout.frameWidth || 256,
+                frameHeight: layout.frameHeight || 208,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        }
+
+        // 雪原五类精英：一对一复用普通原型的四态命名，运行时只按配置帧表注册。
+        const frozenEliteTextureRegistrations = [
+            ['iceCrownLynx', 'ice_crown_lynx'],
+            ['glacierbackWarOx', 'glacierback_war_ox'],
+            ['abyssCrystalRavager', 'abyss_crystal_ravager'],
+            ['frostboundCenturion', 'frostbound_centurion'],
+            ['polarNightHighPriest', 'polar_night_high_priest'],
+        ];
+        for (const [configKey, texturePrefix] of frozenEliteTextureRegistrations) {
+            const textures = enemyConfigData[configKey]?.textures || {};
+            const layouts = textures.frameLayouts || {};
+            for (const state of ['idle', 'running', 'attack', 'death']) {
+                const layout = layouts[state] || {};
+                const path = textures[state];
+                if (!path) continue;
+                this.load.spritesheet(`enemy_${texturePrefix}_${state}`, path, {
+                    frameWidth: layout.frameWidth || 256,
+                    frameHeight: layout.frameHeight || 256,
+                    endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+                });
+            }
+        }
         // 邪恶树精四动作母版：walking 同时承担逻辑 walk/run，死亡终帧为木材碎片堆。
         const evilTreantTextures = enemyConfigData.evilTreant?.textures || {};
         const evilTreantLayouts = evilTreantTextures.frameLayouts || {};
@@ -1526,6 +1563,51 @@ export class BootScene extends Scene {
             if (layout.duration) animation.duration = layout.duration;
             else animation.frameRate = layout.frameRate || 8;
             this.anims.create(animation);
+        }
+
+        // 极夜祷徒动画：idle/running 循环，attack/death 播放一次并停在末帧。
+        const polarNightCantorLayouts = enemyConfigData.polarNightCantor?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'running', 'attack', 'death']) {
+            const layout = polarNightCantorLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_polar_night_cantor_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_polar_night_cantor_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'running' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        }
+
+        // 雪原五类精英动画：循环态和一次性态均直接消费正式图集的配置时长。
+        const frozenEliteAnimationRegistrations = [
+            ['iceCrownLynx', 'ice_crown_lynx'],
+            ['glacierbackWarOx', 'glacierback_war_ox'],
+            ['abyssCrystalRavager', 'abyss_crystal_ravager'],
+            ['frostboundCenturion', 'frostbound_centurion'],
+            ['polarNightHighPriest', 'polar_night_high_priest'],
+        ];
+        for (const [configKey, texturePrefix] of frozenEliteAnimationRegistrations) {
+            const layouts = enemyConfigData[configKey]?.textures?.frameLayouts || {};
+            for (const state of ['idle', 'running', 'attack', 'death']) {
+                const layout = layouts[state] || {};
+                const frameCount = layout.frameCount || 1;
+                const animation = {
+                    key: `enemy_${texturePrefix}_${state}_v1`,
+                    frames: this.anims.generateFrameNumbers(`enemy_${texturePrefix}_${state}`, {
+                        start: 0,
+                        end: frameCount - 1,
+                    }),
+                    repeat: layout.repeat ?? (state === 'idle' || state === 'running' ? -1 : 0),
+                };
+                if (layout.duration) animation.duration = layout.duration;
+                else animation.frameRate = layout.frameRate || 8;
+                this.anims.create(animation);
+            }
         }
         // 狼人王动画：待机/奔跑循环，攻击、飞扑、嚎叫与死亡均播放一次。
         const werewolfKingLayouts = enemyConfigData.werewolfKing?.textures?.frameLayouts || {};

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_polar_night_cantor_doubao_20260902\\references\\polar-night-cantor-running-keyframe-v02-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_polar_night_cantor_doubao_20260902\\prompts\\running-doubao-v02-keyframe.txt",
+  "promptChars": 703,
+  "promptSha256": "e6d8fe4e4eb880ee96cf90eaf2da37f48776c16d3c3e9e9f68bbda13e70cf3fd",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T00:59:18.583Z",
+  "sourceUrlScheme": "https"
+}

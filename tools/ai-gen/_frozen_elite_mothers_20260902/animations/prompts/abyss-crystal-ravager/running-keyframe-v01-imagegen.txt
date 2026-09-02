@@ -1,0 +1,7 @@
+Use case: identity-preserve
+Asset type: game-monster running keyframe used as a Doubao video reference
+Primary request: Edit the exact approved Abyss Crystal Ravager into one low mid-stride in-place run keyframe toward screen-right.
+Identity invariants: preserve the exact wedge skull, sealed dark eyes, narrow toothed jaw, charcoal pebbled hide, asymmetric cheek/shoulder crystal scutes, one long unbranched tail and exactly six individually countable smoky-violet dorsal spikes.
+Structure invariants: exactly four coherent legs, one head, one tail and six main dorsal spikes.
+Pose/camera: side-dominant slightly elevated orthographic-like game view; skull, chest, pelvis, knees, claws and stride axis face right; one foreleg and opposite hind leg forward, body low; full tail, all feet and all six spikes visible on pure white.
+Avoid: attack, open jaw, extra legs, extra/missing spikes, split tail, dragon redesign, glow, crop, shadow, scenery, text or watermark.

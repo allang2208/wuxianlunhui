@@ -1905,6 +1905,379 @@ class FrostboundSpearmanEnemy extends ZombieDogEnemy {
 }
 
 
+class PolarNightCantorEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.polarNightCantor,
+            ...config,
+        });
+        this._spellCfg = this.config?.attackSkills?.spellcasting || {};
+        this._spellCycle = Array.isArray(this._spellCfg.cycle) && this._spellCfg.cycle.length
+            ? this._spellCfg.cycle.slice()
+            : ['iceSpike', 'fireball', 'lightningStrike'];
+        this._spellIndex = 0;
+        this._spellCooldown = Math.max(0, Number(this._spellCfg.initialCooldownMs) || 0);
+        this._castActive = false;
+        this._castTimer = 0;
+        this._castDuration = 0;
+        this._castReleased = false;
+        this._pendingSpell = null;
+        this._pendingSpellTarget = null;
+        this._castAngle = 0;
+
+        this._iceSpikeActive = false;
+        this._iceSpikeCooldown = 0;
+        this._iceSpikeTimer = 0;
+        this._iceSpikeSpikes = [];
+        this._iceSpikeImg = null;
+        this._fireballActive = false;
+        this._fireballCooldown = 0;
+        this._fireballTimer = 0;
+        this._fireballSpikes = [];
+        this._fireball = null;
+        this._fireballImg = null;
+        this._lightningStrikeCooldown = 0;
+
+        const configuredSkills = this.config?.attackSkills || {};
+        if (!this.skills || Array.isArray(this.skills)) this.skills = {};
+        const makeSkill = (id, name) => ({
+            id,
+            name,
+            level: 1,
+            getEffect: () => ({ ...(configuredSkills[id] || {}) }),
+        });
+        this.skills.iceSpike = makeSkill('iceSpike', '初级冰锥');
+        this.skills.fireball = makeSkill('fireball', '初级火球');
+        this.skills.lightningStrike = makeSkill('lightningStrike', '初级闪电');
+        this._iceSpikeSystem = new IceSpikeSystem(this);
+        this._fireballSystem = new FireballSystem(this);
+        this._lightningStrikeSystem = new LightningStrikeSystem(this);
+    }
+
+    _getPolarNightCantorVisualState(state = this._animState) {
+        return state === 'run' || state === 'walk' ? 'running' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getPolarNightCantorVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_polar_night_cantor_${this._getPolarNightCantorVisualState()}`;
+    }
+
+
+    update(dt, entities) {
+        if (!this.active) {
+            super.update(dt, entities);
+            return;
+        }
+
+        const attackDt = this.getAttackIntervalDelta(dt);
+        this._spellCooldown = Math.max(0, this._spellCooldown - attackDt);
+        this._iceSpikeCooldown = Math.max(0, this._iceSpikeCooldown - attackDt);
+        this._fireballCooldown = Math.max(0, this._fireballCooldown - attackDt);
+        this._iceSpikeSystem.update(dt, entities);
+        this._fireballSystem.update(dt, entities);
+        this._lightningStrikeSystem.update(attackDt);
+
+        if (this._castActive) this._updateCantorCast(dt, entities);
+        super.update(dt, entities);
+        if (!this.active || this._isDead) return;
+
+        if (!this._castActive && this._spellCooldown <= 0) {
+            this._startCantorCast(this.target);
+        }
+
+        if (this._castActive) {
+            this._frozenForCast = true;
+            this._animState = 'attack';
+            this._attackTimer = this._castTimer;
+            this._attackAnimTimer = this._castTimer;
+            this.rotation = this._castAngle;
+            this.vx = 0;
+            this.vy = 0;
+            this.isMoving = false;
+        }
+    }
+
+    _spellEffect(spell) {
+        return this.config?.attackSkills?.[spell] || {};
+    }
+
+    _isCantorSpellTargetValid(target, spell, { release = false } = {}) {
+        if (!target?.active || target._isDead || target.hittable === false
+            || target._faction === 'enemy' || !(target.hp > 0)) return false;
+        const effect = this._spellEffect(spell);
+        const castRange = Math.max(1, Number(effect.castRange) || 480);
+        const dx = (target.collider?.x ?? target.x) - (this.collider?.x ?? this.x);
+        const dy = (target.collider?.y ?? target.y) - (this.collider?.y ?? this.y);
+        if (Math.hypot(dx, dy) > castRange) return false;
+        if (!hasRangedLineOfSight(this, target)) return false;
+        if (release) {
+            const targetAngle = Math.atan2(dy, dx);
+            let angleDelta = targetAngle - this._castAngle;
+            while (angleDelta > Math.PI) angleDelta -= Math.PI * 2;
+            while (angleDelta < -Math.PI) angleDelta += Math.PI * 2;
+            const releaseArc = Math.max(1, Number(this._spellCfg.releaseArcDegrees) || 120)
+                * Math.PI / 180;
+            if (Math.abs(angleDelta) > releaseArc / 2) return false;
+        }
+        return true;
+    }
+
+    _selectNextCantorSpell(target) {
+        const cooldownFields = {
+            iceSpike: '_iceSpikeCooldown',
+            fireball: '_fireballCooldown',
+            lightningStrike: '_lightningStrikeCooldown',
+        };
+        const activeFields = {
+            iceSpike: '_iceSpikeActive',
+            fireball: '_fireballActive',
+        };
+        for (let offset = 0; offset < this._spellCycle.length; offset++) {
+            const index = (this._spellIndex + offset) % this._spellCycle.length;
+            const spell = this._spellCycle[index];
+            const cooldownField = cooldownFields[spell];
+            const activeField = activeFields[spell];
+            if (!cooldownField || (Number(this[cooldownField]) || 0) > 0) continue;
+            if (activeField && this[activeField]) continue;
+            if (!this._isCantorSpellTargetValid(target, spell)) continue;
+            this._spellIndex = (index + 1) % this._spellCycle.length;
+            return spell;
+        }
+        return null;
+    }
+
+    _startCantorCast(target) {
+        if (this._attackTimer > 0 || this._attackAnimTimer > 0
+            || this._pendingThrust?.active || this._attackTelegraphTimer > 0) return false;
+        const spell = this._selectNextCantorSpell(target);
+        if (!spell) return false;
+
+        const layout = this._getFrameLayout('attack');
+        const duration = Math.max(
+            100,
+            Number(this._spellCfg.castDurationMs) || Number(layout.duration) || 1500
+        );
+        const dx = (target.collider?.x ?? target.x) - (this.collider?.x ?? this.x);
+        const dy = (target.collider?.y ?? target.y) - (this.collider?.y ?? this.y);
+        this._castActive = true;
+        this._castTimer = duration;
+        this._castDuration = duration;
+        this._castReleased = false;
+        this._pendingSpell = spell;
+        this._pendingSpellTarget = target;
+        this._castAngle = Math.atan2(dy, dx);
+        this._spellCooldown = Math.max(0, Number(this._spellCfg.sharedCooldownMs) || 3500);
+        this._frozenForCast = true;
+        this._animState = 'attack';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._attackAnimTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.rotation = this._castAngle;
+        this._lastHorizontalFacing = Math.cos(this._castAngle) < 0 ? 'left' : 'right';
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.aiTimer = 0;
+        return true;
+    }
+
+    _updateCantorCast(dt, entities) {
+        this._castTimer = Math.max(0, this._castTimer - Math.max(0, Number(dt) || 0));
+        const layout = this._getFrameLayout('attack');
+        const frameCount = Math.max(1, Number(layout.frameCount) || 1);
+        const releaseFrame = Math.max(0, Math.min(
+            frameCount - 1,
+            Math.floor(Number(this._spellCfg.releaseFrame) || 0)
+        ));
+        const releaseAtMs = releaseFrame * this._castDuration / frameCount;
+        const elapsed = this._castDuration - this._castTimer;
+        if (!this._castReleased && elapsed >= releaseAtMs) {
+            this._castReleased = true;
+            this._releaseCantorSpell(entities);
+        }
+        if (!this._castActive) return;
+        this._frozenForCast = true;
+        this._animState = 'attack';
+        this.rotation = this._castAngle;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._castTimer <= 0) this._cancelCantorCast();
+    }
+
+    _releaseCantorSpell(_entities) {
+        const spell = this._pendingSpell;
+        const target = this._pendingSpellTarget;
+        // 释放帧重新检查存活、阵营、射程、遮挡与锁定方向；失败不生成投射物。
+        if (!this._isCantorSpellTargetValid(target, spell, { release: true })) return;
+        this.target = target;
+        if (spell === 'iceSpike') {
+            this._iceSpikeSystem.trigger();
+            this._iceSpikeSystem.trigger();
+        } else if (spell === 'fireball') {
+            this._fireballSystem.trigger();
+            this._fireballSystem.trigger();
+        } else if (spell === 'lightningStrike') {
+            this._lightningStrikeSystem.trigger();
+        }
+    }
+
+    _cancelCantorCast() {
+        this._castActive = false;
+        this._castTimer = 0;
+        this._castDuration = 0;
+        this._castReleased = false;
+        this._pendingSpell = null;
+        this._pendingSpellTarget = null;
+        this._frozenForCast = false;
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        if (!this.hasStatusEffect?.('petrified')) this._animState = 'idle';
+        this._animStateTimer = 0;
+        this.aiTimer = 0;
+    }
+
+    _clearCantorProjectiles() {
+        for (const projectile of [...this._iceSpikeSpikes, ...this._fireballSpikes]) {
+            projectile.active = false;
+            projectile.flyActive = false;
+        }
+        this._iceSpikeActive = false;
+        this._iceSpikeSpikes = [];
+        this._fireballActive = false;
+        this._fireballSpikes = [];
+        this._fireball = null;
+    }
+
+    onDeath(source) {
+        this._cancelCantorCast();
+        this._clearCantorProjectiles();
+        super.onDeath(source);
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getPolarNightCantorVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_polar_night_cantor_${visualState}_v1`;
+        return options;
+    }
+}
+
+/**
+ * 雪原五类精英沿用各自普通原型已经验证的逐帧时钟、脚点与左右镜像契约。
+ * 精英贴图只有 idle/running/attack/death 四态，不为稳定根点动作追加代码位移。
+ */
+class IceCrownLynxEnemy extends SnowManeLynxEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, { ...enemyConfigData.iceCrownLynx, ...config });
+    }
+
+    _getTextureKey() {
+        return `enemy_ice_crown_lynx_${this._getSnowManeLynxVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getSnowManeLynxVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_ice_crown_lynx_${visualState}_v1`;
+        return options;
+    }
+}
+
+class GlacierbackWarOxEnemy extends FrostbackMuskOxEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, { ...enemyConfigData.glacierbackWarOx, ...config });
+    }
+
+    _getTextureKey() {
+        return `enemy_glacierback_war_ox_${this._getFrostbackMuskOxVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getFrostbackMuskOxVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_glacierback_war_ox_${visualState}_v1`;
+        return options;
+    }
+}
+
+class AbyssCrystalRavagerEnemy extends AbyssRimeBeastEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, { ...enemyConfigData.abyssCrystalRavager, ...config });
+    }
+
+    _getTextureKey() {
+        return `enemy_abyss_crystal_ravager_${this._getAbyssRimeBeastVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getAbyssRimeBeastVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_abyss_crystal_ravager_${visualState}_v1`;
+        return options;
+    }
+
+    _onConfirmedHitEntity(target) {
+        if (!target?.active || target._isDead || !(target.hp > 0)
+            || typeof target.applyCorrosion !== 'function') return;
+        const corrosion = this.config?.attackSkills?.corrosionOnHit || {};
+        const stacks = Math.max(0, Math.floor(Number(corrosion.stacks) || 0));
+        if (stacks <= 0) return;
+        target.applyCorrosion(
+            stacks,
+            Math.max(1, Number(corrosion.durationMs) || 6000),
+            Math.max(0, Number(corrosion.defenseReductionPerStack) || 0.06)
+        );
+    }
+}
+
+class FrostboundCenturionEnemy extends FrostboundSpearmanEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, { ...enemyConfigData.frostboundCenturion, ...config });
+    }
+
+    _getTextureKey() {
+        return `enemy_frostbound_centurion_${this._getFrostboundSpearmanVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getFrostboundSpearmanVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_frostbound_centurion_${visualState}_v1`;
+        return options;
+    }
+}
+
+class PolarNightHighPriestEnemy extends PolarNightCantorEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, { ...enemyConfigData.polarNightHighPriest, ...config });
+    }
+
+    _getTextureKey() {
+        return `enemy_polar_night_high_priest_${this._getPolarNightCantorVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getPolarNightCantorVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_polar_night_high_priest_${visualState}_v1`;
+        return options;
+    }
+}
+
 /**
  * 普通邪恶树精：复用四动作普通近战和死亡保尸时序。逻辑 run 与 walk
  * 共用同一套沉重步行动画，死亡终帧保留碎裂后的木材堆。
@@ -4295,4 +4668,4 @@ function createBlackBear(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, PolarNightCantorEnemy, IceCrownLynxEnemy, GlacierbackWarOxEnemy, AbyssCrystalRavagerEnemy, FrostboundCenturionEnemy, PolarNightHighPriestEnemy, EvilTreantEnemy, createEvilTreant, PurpleBlightAncientEnemy, createPurpleBlightAncient, CarnivorousPitcherEnemy, createCarnivorousPitcher, BrownSnakeEnemy, createBrownSnake, SwampVampireMosquitoEnemy, createSwampVampireMosquito, BlackKingCobraEnemy, createBlackKingCobra, MedusaEnemy, createMedusa, WerewolfKingEnemy, createWerewolfKing, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

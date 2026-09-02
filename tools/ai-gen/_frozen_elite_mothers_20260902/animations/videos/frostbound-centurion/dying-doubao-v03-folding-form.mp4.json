@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\frostbound-centurion-idle-keyframe-v02-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\frostbound-centurion\\dying-doubao-v03-folding-form.txt",
+  "promptChars": 318,
+  "promptSha256": "f5b63593aa87f7a6a99a956291467bca7e4cd387f4a65c3f48e681e9ba723912",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T07:14:36.474Z",
+  "sourceUrlScheme": "https"
+}

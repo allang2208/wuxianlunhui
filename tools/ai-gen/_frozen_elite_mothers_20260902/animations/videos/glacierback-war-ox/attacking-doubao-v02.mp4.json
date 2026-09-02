@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\glacierback-war-ox-attacking-keyframe-v02-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\glacierback-war-ox\\attacking-doubao-v02-keyframe.txt",
+  "promptChars": 515,
+  "promptSha256": "a31791f3334e5b1971e78e0d1d1287550c8f75f3d1785e5fb64f0e1f7c78e92a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T04:45:28.700Z",
+  "sourceUrlScheme": "https"
+}

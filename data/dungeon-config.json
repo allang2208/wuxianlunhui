@@ -530,8 +530,15 @@
      "snowManeLynx",
      "frostbackMuskOx",
      "abyssRimeBeast",
-     "frostboundSpearman"
-    ],
+        "frostboundSpearman",
+        "polarNightCantor",
+        "iceCrownLynx",
+        "glacierbackWarOx",
+        "abyssCrystalRavager",
+        "frostboundCenturion",
+        "polarNightHighPriest"
+      ],
+      "matchPoolRanks": true,
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -546,8 +553,15 @@
      "snowManeLynx",
      "frostbackMuskOx",
      "abyssRimeBeast",
-     "frostboundSpearman"
-    ],
+        "frostboundSpearman",
+        "polarNightCantor",
+        "iceCrownLynx",
+        "glacierbackWarOx",
+        "abyssCrystalRavager",
+        "frostboundCenturion",
+        "polarNightHighPriest"
+      ],
+      "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
      "normal": 5
@@ -583,8 +597,15 @@
     "snowManeLynx",
     "frostbackMuskOx",
     "abyssRimeBeast",
-    "frostboundSpearman"
-   ],
+        "frostboundSpearman",
+        "polarNightCantor",
+        "iceCrownLynx",
+        "glacierbackWarOx",
+        "abyssCrystalRavager",
+        "frostboundCenturion",
+        "polarNightHighPriest"
+      ],
+      "matchPoolRanks": true,
    "monsterComposition": {
     "elite": 1,
     "normal": 5
@@ -656,8 +677,15 @@
      "snowManeLynx",
      "frostbackMuskOx",
      "abyssRimeBeast",
-     "frostboundSpearman"
-    ],
+        "frostboundSpearman",
+        "polarNightCantor",
+        "iceCrownLynx",
+        "glacierbackWarOx",
+        "abyssCrystalRavager",
+        "frostboundCenturion",
+        "polarNightHighPriest"
+      ],
+      "matchPoolRanks": true,
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -672,8 +700,15 @@
      "snowManeLynx",
      "frostbackMuskOx",
      "abyssRimeBeast",
-     "frostboundSpearman"
-    ],
+        "frostboundSpearman",
+        "polarNightCantor",
+        "iceCrownLynx",
+        "glacierbackWarOx",
+        "abyssCrystalRavager",
+        "frostboundCenturion",
+        "polarNightHighPriest"
+      ],
+      "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
      "normal": 4
@@ -710,8 +745,15 @@
     "snowManeLynx",
     "frostbackMuskOx",
     "abyssRimeBeast",
-    "frostboundSpearman"
-   ],
+        "frostboundSpearman",
+        "polarNightCantor",
+        "iceCrownLynx",
+        "glacierbackWarOx",
+        "abyssCrystalRavager",
+        "frostboundCenturion",
+        "polarNightHighPriest"
+      ],
+      "matchPoolRanks": true,
    "monsterComposition": {
     "elite": 1,
     "normal": 4
@@ -771,8 +813,15 @@
      "snowManeLynx",
      "frostbackMuskOx",
      "abyssRimeBeast",
-     "frostboundSpearman"
+      "frostboundSpearman",
+      "polarNightCantor",
+      "iceCrownLynx",
+      "glacierbackWarOx",
+      "abyssCrystalRavager",
+      "frostboundCenturion",
+      "polarNightHighPriest"
     ],
+    "matchPoolRanks": true,
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -787,8 +836,15 @@
      "snowManeLynx",
      "frostbackMuskOx",
      "abyssRimeBeast",
-     "frostboundSpearman"
+      "frostboundSpearman",
+      "polarNightCantor",
+      "iceCrownLynx",
+      "glacierbackWarOx",
+      "abyssCrystalRavager",
+      "frostboundCenturion",
+      "polarNightHighPriest"
     ],
+    "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
      "normal": 4
@@ -825,8 +881,15 @@
     "snowManeLynx",
     "frostbackMuskOx",
     "abyssRimeBeast",
-    "frostboundSpearman"
-   ],
+      "frostboundSpearman",
+      "polarNightCantor",
+      "iceCrownLynx",
+      "glacierbackWarOx",
+      "abyssCrystalRavager",
+      "frostboundCenturion",
+      "polarNightHighPriest"
+    ],
+    "matchPoolRanks": true,
    "monsterComposition": {
     "elite": 1,
     "normal": 4

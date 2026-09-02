@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, PolarNightCantorEnemy, IceCrownLynxEnemy, GlacierbackWarOxEnemy, AbyssCrystalRavagerEnemy, FrostboundCenturionEnemy, PolarNightHighPriestEnemy, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { DeepVeinMother } from '../entities/enemy-types/deep-vein-mother.js';
 import { UIState } from '../ui/ui-state.js';
 import { CoreDrillLarva, OreShardling } from '../entities/enemy-types/mine-small-monsters.js';
@@ -104,6 +104,30 @@ function createAbyssRimeBeast(x, y) {
 
 function createFrostboundSpearman(x, y) {
     return createFrozenNormalEnemy(FrostboundSpearmanEnemy, 'frostboundSpearman', x, y);
+}
+
+function createPolarNightCantor(x, y) {
+    return createFrozenNormalEnemy(PolarNightCantorEnemy, 'polarNightCantor', x, y);
+}
+
+function createIceCrownLynx(x, y) {
+    return createFrozenNormalEnemy(IceCrownLynxEnemy, 'iceCrownLynx', x, y);
+}
+
+function createGlacierbackWarOx(x, y) {
+    return createFrozenNormalEnemy(GlacierbackWarOxEnemy, 'glacierbackWarOx', x, y);
+}
+
+function createAbyssCrystalRavager(x, y) {
+    return createFrozenNormalEnemy(AbyssCrystalRavagerEnemy, 'abyssCrystalRavager', x, y);
+}
+
+function createFrostboundCenturion(x, y) {
+    return createFrozenNormalEnemy(FrostboundCenturionEnemy, 'frostboundCenturion', x, y);
+}
+
+function createPolarNightHighPriest(x, y) {
+    return createFrozenNormalEnemy(PolarNightHighPriestEnemy, 'polarNightHighPriest', x, y);
 }
 
 function createEvilTreant(x, y) {
@@ -578,6 +602,12 @@ export const ZOMBIE_FACTORY_MAP = {
     frostbackMuskOx: createFrostbackMuskOx,
     abyssRimeBeast: createAbyssRimeBeast,
     frostboundSpearman: createFrostboundSpearman,
+    polarNightCantor: createPolarNightCantor,
+    iceCrownLynx: createIceCrownLynx,
+    glacierbackWarOx: createGlacierbackWarOx,
+    abyssCrystalRavager: createAbyssCrystalRavager,
+    frostboundCenturion: createFrostboundCenturion,
+    polarNightHighPriest: createPolarNightHighPriest,
     evilTreant: createEvilTreant,
     purpleBlightAncient: createPurpleBlightAncient,
     carnivorousPitcher: createCarnivorousPitcher,

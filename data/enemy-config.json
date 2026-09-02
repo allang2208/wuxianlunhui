@@ -498,6 +498,17 @@
   },
   "snowManeLynx": {
     "entityClass": "SnowManeLynxEnemy",
+    "invasion": {
+      "series": "frozen_lynx_pride",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "melee",
+      "threatScale": 1,
+      "minDay": 10,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "poolWhitelistOnly": true,
     "id": "snowManeLynx",
     "name": "雪鬃猞猁",
     "hp": 210,
@@ -619,6 +630,17 @@
   },
   "frostbackMuskOx": {
     "entityClass": "FrostbackMuskOxEnemy",
+    "invasion": {
+      "series": "glacier_ox_herd",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "shield",
+      "threatScale": 1,
+      "minDay": 15,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "poolWhitelistOnly": true,
     "id": "frostbackMuskOx",
     "name": "霜背麝牛",
     "hp": 340,
@@ -740,6 +762,17 @@
   },
   "abyssRimeBeast": {
     "entityClass": "AbyssRimeBeastEnemy",
+    "invasion": {
+      "series": "abyss_crystal_pack",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "melee",
+      "threatScale": 1,
+      "minDay": 20,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "poolWhitelistOnly": true,
     "id": "abyssRimeBeast",
     "name": "寒渊棘兽",
     "hp": 280,
@@ -861,6 +894,17 @@
   },
   "frostboundSpearman": {
     "entityClass": "FrostboundSpearmanEnemy",
+    "invasion": {
+      "series": "frostbound_cohort",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "melee",
+      "threatScale": 1,
+      "minDay": 20,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "poolWhitelistOnly": true,
     "id": "frostboundSpearman",
     "name": "霜缚矛卒",
     "hp": 260,
@@ -976,6 +1020,1046 @@
           "frameCount": 45,
           "footY": 188,
           "duration": 1833,
+          "repeat": 0
+        }
+      }
+    }
+  },
+
+  "polarNightCantor": {
+    "entityClass": "PolarNightCantorEnemy",
+    "invasion": {
+      "series": "polar_night_coven",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "ranged",
+      "threatScale": 1.1,
+      "minDay": 25,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "poolWhitelistOnly": true,
+    "id": "polarNightCantor",
+    "name": "极夜祷徒",
+    "hp": 230,
+    "maxHp": 230,
+    "size": 15,
+    "collisionRadius": 32,
+    "speed": 215,
+    "level": 5,
+    "color": "#30343d",
+    "highlightColor": "rgba(136, 146, 166, 0.28)",
+    "str": 28,
+    "dex": 21,
+    "con": 27,
+    "int": 18,
+    "wis": 22,
+    "luck": 7,
+    "rank": "normal",
+    "basicMeleeResolver": true,
+    "attackRange": 78,
+    "attackDistance": 78,
+    "basicMelee": {
+      "approachReach": 78,
+      "impactReach": 78,
+      "width": 30,
+      "timeline": {
+        "durationMs": 1500,
+        "frameCount": 33,
+        "contactFrame": 2,
+        "activeFrames": [
+          2,
+          10
+        ]
+      }
+    },
+    "aiInterval": 1500,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 215,
+      "loseTimeout": 2500
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2800,
+      "dynamicRange": 78,
+      "width": 30,
+      "knockback": 16
+    },
+    "attackSkills": {
+      "spellcasting": {
+        "comment": "三种初级魔法统一复用33帧短杖攻击动作，在零基f2释放；近战距离保持独立。",
+        "cycle": [
+          "iceSpike",
+          "fireball",
+          "lightningStrike"
+        ],
+        "castDurationMs": 1500,
+        "releaseFrame": 2,
+        "releaseArcDegrees": 120,
+        "sharedCooldownMs": 3500,
+        "initialCooldownMs": 900
+      },
+      "iceSpike": {
+        "damageBase": 14,
+        "magicMul": 0.75,
+        "intMul": 0.35,
+        "cooldown": 7,
+        "mpCost": 0,
+        "spikeCount": 2,
+        "duration": 3,
+        "flySpeed": 1100,
+        "maxRange": 600,
+        "castRange": 520
+      },
+      "fireball": {
+        "damageBase": 32,
+        "magicMul": 1.1,
+        "intMul": 0.55,
+        "explosionRadius": 70,
+        "cooldown": 9,
+        "mpCost": 0,
+        "duration": 3,
+        "flySpeed": 1000,
+        "maxRange": 640,
+        "castRange": 560
+      },
+      "lightningStrike": {
+        "damageBase": 24,
+        "magicMul": 1,
+        "intMul": 0.45,
+        "cooldown": 10,
+        "mpCost": 0,
+        "aimRadius": 60,
+        "maxRange": 480,
+        "castRange": 480,
+        "chainRange": 160,
+        "chainTargets": 1,
+        "chainDecay": 0.15,
+        "stunMs": 350,
+        "duration": 0.4,
+        "fadeMs": 200,
+        "segments": 8,
+        "jitter": 0.08,
+        "electrifyStacks": 1,
+        "electrifyDurationMs": 2500
+      }
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "类人形",
+    "families": [
+      "类人形",
+      "深渊"
+    ],
+    "description": "披覆霜蚀罩袍的普通极夜祷徒，左手悬铃、右手持短仪式杖。它会以短杖直刺近身目标，并轮换施放初级冰锥、火球与闪电。",
+    "skills": [
+      {
+        "name": "初级冰锥",
+        "desc": "攻击动作零基f2发射2枚冰锥；单枚基础伤害14+0.75魔攻+0.35智力，520施法距离，7秒独立冷却。"
+      },
+      {
+        "name": "初级火球",
+        "desc": "攻击动作零基f2发射火球；基础伤害32+1.1魔攻+0.55智力，70爆炸半径，560施法距离，9秒独立冷却。"
+      },
+      {
+        "name": "初级闪电",
+        "desc": "攻击动作零基f2锁定单个目标；基础伤害24+1.0魔攻+0.45智力并眩晕0.35秒，480施法距离，10秒独立冷却。"
+      }
+    ],
+    "attackType": "短杖直刺 / 三系初级魔法",
+    "render": {
+      "spriteSize": 170,
+      "collisionWidth": 78,
+      "collisionHeight": 110,
+      "footOffsetY": 55.78125,
+      "projectileHitbox": {
+        "width": 74,
+        "height": 110,
+        "offsetX": 0,
+        "bottom": -12
+      },
+      "colliderOffsetY": -10
+    },
+    "height": 115,
+    "deathAnim": {
+      "duration": 2500,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/polar_night_cantor/idle.png",
+      "running": "assets/enemies/polar_night_cantor/running.png",
+      "attack": "assets/enemies/polar_night_cantor/attacking.png",
+      "death": "assets/enemies/polar_night_cantor/dying.png",
+      "referenceCell": 256,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 256,
+          "frameHeight": 208,
+          "frameCount": 16,
+          "anchorX": 128,
+          "footY": 188,
+          "duration": 5042,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 4,
+          "rows": 7,
+          "frameWidth": 256,
+          "frameHeight": 208,
+          "frameCount": 28,
+          "anchorX": 128,
+          "footY": 188,
+          "duration": 1167,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 7,
+          "frameWidth": 288,
+          "frameHeight": 208,
+          "frameCount": 33,
+          "anchorX": 144,
+          "footY": 188,
+          "duration": 1500,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 9,
+          "frameWidth": 352,
+          "frameHeight": 208,
+          "frameCount": 41,
+          "anchorX": 176,
+          "footY": 188,
+          "duration": 2500,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "iceCrownLynx": {
+    "entityClass": "IceCrownLynxEnemy",
+    "invasion": {
+      "series": "frozen_lynx_pride",
+      "role": "leader",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "control",
+      "threatScale": 1.15,
+      "minDay": 10,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "id": "iceCrownLynx",
+    "name": "冰冠猞猁",
+    "hp": 680,
+    "maxHp": 680,
+    "size": 16,
+    "collisionRadius": 38,
+    "speed": 390,
+    "level": 9,
+    "color": "#879aa6",
+    "highlightColor": "rgba(173, 218, 236, 0.34)",
+    "str": 50,
+    "dex": 52,
+    "con": 38,
+    "int": 10,
+    "wis": 14,
+    "luck": 18,
+    "rank": "elite",
+    "poolWhitelistOnly": true,
+    "basicMeleeResolver": true,
+    "attackRange": 93,
+    "attackDistance": 93,
+    "basicMelee": {
+      "approachReach": 93,
+      "impactReach": 89,
+      "width": 38,
+      "timeline": {
+        "durationMs": 1500,
+        "frameCount": 49,
+        "contactFrame": 34,
+        "activeFrames": [
+          32,
+          36
+        ]
+      }
+    },
+    "aiInterval": 1050,
+    "ai": {
+      "aggroRange": 2800,
+      "pacingRange": 205,
+      "loseTimeout": 2800
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1850,
+      "dynamicRange": 89,
+      "width": 38,
+      "knockback": 22,
+      "crippleDuration": 1800
+    },
+    "type": "精英",
+    "category": "monster",
+    "family": "动物",
+    "families": [
+      "动物",
+      "自然"
+    ],
+    "description": "雪鬃猞猁族群中的冰冠伏猎者。它依靠极高机动贴住落单目标，霜爪在攻击动作零基f34接触时命中，并使目标短暂致残。",
+    "skills": [
+      {
+        "name": "霜爪追猎",
+        "desc": "前爪动作零基f34命中，使用89有效距离和38宽度；确认命中后使目标致残1.8秒。"
+      }
+    ],
+    "attackType": "霜爪追猎",
+    "render": {
+      "spriteSize": 185,
+      "collisionWidth": 135,
+      "collisionHeight": 78,
+      "footOffsetY": 46,
+      "projectileHitbox": {
+        "width": 135,
+        "height": 78,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetY": -8
+    },
+    "height": 88,
+    "deathAnim": {
+      "duration": 3000,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/ice_crown_lynx/idle.png",
+      "running": "assets/enemies/ice_crown_lynx/running.png",
+      "attack": "assets/enemies/ice_crown_lynx/attacking.png",
+      "death": "assets/enemies/ice_crown_lynx/dying.png",
+      "referenceCell": 384,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 256,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "anchorX": 128,
+          "footY": 216,
+          "duration": 5042,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 5,
+          "rows": 9,
+          "frameWidth": 352,
+          "frameHeight": 240,
+          "frameCount": 44,
+          "anchorX": 176,
+          "footY": 216,
+          "duration": 1833,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 10,
+          "frameWidth": 448,
+          "frameHeight": 240,
+          "frameCount": 49,
+          "anchorX": 224,
+          "footY": 216,
+          "duration": 1500,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 10,
+          "frameWidth": 384,
+          "frameHeight": 240,
+          "frameCount": 49,
+          "anchorX": 192,
+          "footY": 216,
+          "duration": 3000,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "glacierbackWarOx": {
+    "entityClass": "GlacierbackWarOxEnemy",
+    "invasion": {
+      "series": "glacier_ox_herd",
+      "role": "leader",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "shield",
+      "threatScale": 1.2,
+      "minDay": 15,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "id": "glacierbackWarOx",
+    "name": "冰脊战牛",
+    "hp": 920,
+    "maxHp": 920,
+    "size": 19,
+    "collisionRadius": 52,
+    "speed": 255,
+    "level": 9,
+    "color": "#59666c",
+    "highlightColor": "rgba(178, 214, 226, 0.32)",
+    "str": 60,
+    "dex": 22,
+    "con": 52,
+    "int": 4,
+    "wis": 9,
+    "luck": 9,
+    "rank": "elite",
+    "poolWhitelistOnly": true,
+    "rangedDamageReduction": 0.35,
+    "basicMeleeResolver": true,
+    "attackRange": 155,
+    "attackDistance": 155,
+    "basicMelee": {
+      "approachReach": 155,
+      "impactReach": 151,
+      "width": 58,
+      "timeline": {
+        "durationMs": 1700,
+        "frameCount": 43,
+        "contactFrame": 28,
+        "activeFrames": [
+          26,
+          30
+        ]
+      }
+    },
+    "aiInterval": 1450,
+    "ai": {
+      "aggroRange": 2700,
+      "pacingRange": 225,
+      "loseTimeout": 3000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2700,
+      "dynamicRange": 151,
+      "width": 58,
+      "knockback": 58
+    },
+    "type": "精英",
+    "category": "monster",
+    "family": "动物",
+    "families": [
+      "动物",
+      "自然"
+    ],
+    "description": "披覆四片背部冰甲的雪原重装精英。它不依赖额外位移，而在角尖压到动作最远点时结算宽体重击，以高击退撕开正面队列。",
+    "skills": [
+      {
+        "name": "冰脊冲角",
+        "desc": "攻击动作零基f28命中，151有效距离、58宽度并造成58击退；动作期间不追加代码位移。"
+      },
+      {
+        "name": "冰甲承压",
+        "desc": "背部冰甲使受到的远程物理伤害减少35%。"
+      }
+    ],
+    "attackType": "冰脊冲角",
+    "render": {
+      "spriteSize": 205,
+      "collisionWidth": 160,
+      "collisionHeight": 100,
+      "footOffsetY": 54,
+      "projectileHitbox": {
+        "width": 160,
+        "height": 100,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetY": -8
+    },
+    "height": 104,
+    "deathAnim": {
+      "duration": 3200,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/glacierback_war_ox/idle.png",
+      "running": "assets/enemies/glacierback_war_ox/running.png",
+      "attack": "assets/enemies/glacierback_war_ox/attacking.png",
+      "death": "assets/enemies/glacierback_war_ox/dying.png",
+      "referenceCell": 320,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 384,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "anchorX": 192,
+          "footY": 216,
+          "duration": 5042,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 5,
+          "rows": 6,
+          "frameWidth": 384,
+          "frameHeight": 240,
+          "frameCount": 30,
+          "anchorX": 192,
+          "footY": 216,
+          "duration": 1250,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 9,
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 43,
+          "anchorX": 256,
+          "footY": 216,
+          "duration": 1700,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 10,
+          "frameWidth": 480,
+          "frameHeight": 240,
+          "frameCount": 49,
+          "anchorX": 240,
+          "footY": 216,
+          "duration": 3200,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "abyssCrystalRavager": {
+    "entityClass": "AbyssCrystalRavagerEnemy",
+    "invasion": {
+      "series": "abyss_crystal_pack",
+      "role": "leader",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "control",
+      "threatScale": 1.15,
+      "minDay": 20,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "id": "abyssCrystalRavager",
+    "name": "寒渊裂晶兽",
+    "hp": 780,
+    "maxHp": 780,
+    "size": 18,
+    "collisionRadius": 44,
+    "speed": 285,
+    "level": 9,
+    "color": "#343c51",
+    "highlightColor": "rgba(151, 176, 211, 0.34)",
+    "str": 56,
+    "dex": 34,
+    "con": 44,
+    "int": 7,
+    "wis": 12,
+    "luck": 10,
+    "rank": "elite",
+    "poolWhitelistOnly": true,
+    "basicMeleeResolver": true,
+    "attackRange": 141,
+    "attackDistance": 141,
+    "basicMelee": {
+      "approachReach": 141,
+      "impactReach": 137,
+      "width": 44,
+      "timeline": {
+        "durationMs": 1800,
+        "frameCount": 39,
+        "contactFrame": 18,
+        "activeFrames": [
+          16,
+          20
+        ]
+      }
+    },
+    "aiInterval": 1250,
+    "ai": {
+      "aggroRange": 2750,
+      "pacingRange": 205,
+      "loseTimeout": 2800
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2350,
+      "dynamicRange": 137,
+      "width": 44,
+      "knockback": 30
+    },
+    "attackSkills": {
+      "corrosionOnHit": {
+        "stacks": 2,
+        "durationMs": 6000,
+        "defenseReductionPerStack": 0.06
+      }
+    },
+    "type": "精英",
+    "category": "monster",
+    "family": "深渊",
+    "families": [
+      "深渊",
+      "异兽"
+    ],
+    "description": "六根主背棘完全裂晶化的寒渊精英。它在颚部张到攻击接触段时咬碎护甲，确认命中后叠加两层腐蚀。",
+    "skills": [
+      {
+        "name": "裂晶噬甲",
+        "desc": "攻击动作零基f18在137有效距离命中；确认命中后施加2层腐蚀，每层降低6%防御，持续6秒。"
+      }
+    ],
+    "attackType": "裂晶噬甲",
+    "render": {
+      "spriteSize": 195,
+      "collisionWidth": 150,
+      "collisionHeight": 84,
+      "footOffsetY": 48,
+      "projectileHitbox": {
+        "width": 150,
+        "height": 84,
+        "offsetX": 0,
+        "bottom": -8
+      },
+      "colliderOffsetY": -8
+    },
+    "height": 94,
+    "deathAnim": {
+      "duration": 3000,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/abyss_crystal_ravager/idle.png",
+      "running": "assets/enemies/abyss_crystal_ravager/running.png",
+      "attack": "assets/enemies/abyss_crystal_ravager/attacking.png",
+      "death": "assets/enemies/abyss_crystal_ravager/dying.png",
+      "referenceCell": 320,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "anchorX": 256,
+          "footY": 216,
+          "duration": 5042,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 4,
+          "rows": 8,
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 32,
+          "anchorX": 256,
+          "footY": 216,
+          "duration": 1333,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 8,
+          "frameWidth": 544,
+          "frameHeight": 240,
+          "frameCount": 39,
+          "anchorX": 272,
+          "footY": 216,
+          "duration": 1800,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 8,
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 39,
+          "anchorX": 256,
+          "footY": 216,
+          "duration": 3000,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "frostboundCenturion": {
+    "entityClass": "FrostboundCenturionEnemy",
+    "invasion": {
+      "series": "frostbound_cohort",
+      "role": "leader",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "control",
+      "threatScale": 1.15,
+      "minDay": 20,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "id": "frostboundCenturion",
+    "name": "霜缚百夫长",
+    "hp": 820,
+    "maxHp": 820,
+    "size": 17,
+    "collisionRadius": 38,
+    "speed": 245,
+    "level": 9,
+    "color": "#424d5d",
+    "highlightColor": "rgba(164, 195, 218, 0.32)",
+    "str": 58,
+    "dex": 35,
+    "con": 47,
+    "int": 10,
+    "wis": 18,
+    "luck": 11,
+    "rank": "elite",
+    "poolWhitelistOnly": true,
+    "rangedDamageReduction": 0.2,
+    "basicMeleeResolver": true,
+    "attackRange": 169,
+    "attackDistance": 169,
+    "basicMelee": {
+      "approachReach": 169,
+      "impactReach": 165,
+      "width": 40,
+      "timeline": {
+        "durationMs": 1600,
+        "frameCount": 49,
+        "contactFrame": 28,
+        "activeFrames": [
+          26,
+          30
+        ]
+      }
+    },
+    "aiInterval": 1300,
+    "ai": {
+      "aggroRange": 2800,
+      "pacingRange": 275,
+      "loseTimeout": 3000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2650,
+      "dynamicRange": 165,
+      "width": 40,
+      "knockback": 30,
+      "crippleDuration": 1200
+    },
+    "type": "精英",
+    "category": "monster",
+    "family": "类人形",
+    "families": [
+      "类人形"
+    ],
+    "description": "封闭面具下仍维持旧军阵纪律的雪原百夫长。重矛在动作最远延伸处结算，长距离窄正面负责封锁通道，并短暂拖慢被刺中的目标。",
+    "skills": [
+      {
+        "name": "寒枪封锁",
+        "desc": "攻击动作零基f28命中，165有效距离和40宽度；命中后使目标致残1.2秒。贴图根点固定，不追加代码突进。"
+      },
+      {
+        "name": "层甲列阵",
+        "desc": "层叠肩甲使受到的远程物理伤害减少20%。"
+      }
+    ],
+    "attackType": "寒枪封锁",
+    "render": {
+      "spriteSize": 190,
+      "collisionWidth": 88,
+      "collisionHeight": 122,
+      "footOffsetY": 64,
+      "projectileHitbox": {
+        "width": 84,
+        "height": 122,
+        "offsetX": 0,
+        "bottom": -12
+      },
+      "colliderOffsetY": -10
+    },
+    "height": 128,
+    "deathAnim": {
+      "duration": 3000,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/frostbound_centurion/idle.png",
+      "running": "assets/enemies/frostbound_centurion/running.png",
+      "attack": "assets/enemies/frostbound_centurion/attacking.png",
+      "death": "assets/enemies/frostbound_centurion/dying.png",
+      "referenceCell": 256,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 288,
+          "frameHeight": 272,
+          "frameCount": 16,
+          "anchorX": 144,
+          "footY": 248,
+          "duration": 5042,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 5,
+          "rows": 11,
+          "frameWidth": 320,
+          "frameHeight": 272,
+          "frameCount": 52,
+          "anchorX": 160,
+          "footY": 248,
+          "duration": 2167,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 10,
+          "frameWidth": 544,
+          "frameHeight": 272,
+          "frameCount": 49,
+          "anchorX": 272,
+          "footY": 248,
+          "duration": 1600,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 10,
+          "frameWidth": 416,
+          "frameHeight": 272,
+          "frameCount": 49,
+          "anchorX": 208,
+          "footY": 248,
+          "duration": 3000,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "polarNightHighPriest": {
+    "entityClass": "PolarNightHighPriestEnemy",
+    "invasion": {
+      "series": "polar_night_coven",
+      "role": "leader",
+      "mode": "assault",
+      "enabled": true,
+      "mechanics": "control",
+      "threatScale": 1.2,
+      "minDay": 25,
+      "weight": 1,
+      "assaultReady": true
+    },
+    "id": "polarNightHighPriest",
+    "name": "极夜大司祭",
+    "hp": 660,
+    "maxHp": 660,
+    "size": 17,
+    "collisionRadius": 36,
+    "speed": 210,
+    "level": 9,
+    "color": "#30394a",
+    "highlightColor": "rgba(145, 173, 212, 0.34)",
+    "str": 22,
+    "dex": 26,
+    "con": 38,
+    "int": 46,
+    "wis": 48,
+    "luck": 14,
+    "rank": "elite",
+    "poolWhitelistOnly": true,
+    "basicMeleeResolver": true,
+    "attackRange": 99,
+    "attackDistance": 99,
+    "basicMelee": {
+      "approachReach": 99,
+      "impactReach": 95,
+      "width": 34,
+      "timeline": {
+        "durationMs": 1500,
+        "frameCount": 47,
+        "contactFrame": 16,
+        "activeFrames": [
+          16,
+          18
+        ]
+      }
+    },
+    "aiInterval": 1350,
+    "ai": {
+      "aggroRange": 2800,
+      "pacingRange": 245,
+      "loseTimeout": 3000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 3000,
+      "dynamicRange": 95,
+      "width": 34,
+      "knockback": 18
+    },
+    "attackSkills": {
+      "spellcasting": {
+        "comment": "三种初级魔法统一复用47帧攻击动作，在零基f16释放；近战距离保持独立。",
+        "cycle": [
+          "iceSpike",
+          "fireball",
+          "lightningStrike"
+        ],
+        "castDurationMs": 1500,
+        "releaseFrame": 16,
+        "releaseArcDegrees": 120,
+        "sharedCooldownMs": 2800,
+        "initialCooldownMs": 800
+      },
+      "iceSpike": {
+        "damageBase": 18,
+        "magicMul": 0.9,
+        "intMul": 0.4,
+        "cooldown": 6.5,
+        "mpCost": 0,
+        "spikeCount": 2,
+        "duration": 3,
+        "flySpeed": 1150,
+        "maxRange": 660,
+        "castRange": 560
+      },
+      "fireball": {
+        "damageBase": 38,
+        "magicMul": 1.2,
+        "intMul": 0.6,
+        "explosionRadius": 80,
+        "cooldown": 8.5,
+        "mpCost": 0,
+        "duration": 3,
+        "flySpeed": 1050,
+        "maxRange": 700,
+        "castRange": 600
+      },
+      "lightningStrike": {
+        "damageBase": 28,
+        "magicMul": 1.05,
+        "intMul": 0.5,
+        "cooldown": 9.5,
+        "mpCost": 0,
+        "aimRadius": 68,
+        "maxRange": 540,
+        "castRange": 520,
+        "chainRange": 180,
+        "chainTargets": 2,
+        "chainDecay": 0.15,
+        "stunMs": 450,
+        "duration": 0.4,
+        "fadeMs": 200,
+        "segments": 8,
+        "jitter": 0.08,
+        "electrifyStacks": 1,
+        "electrifyDurationMs": 2800
+      }
+    },
+    "type": "精英",
+    "category": "monster",
+    "family": "类人形",
+    "families": [
+      "类人形",
+      "深渊"
+    ],
+    "description": "背负祭仪鳍冠的极夜精英施法者。它以同一套法杖前伸和手铃抬起动作轮换初级冰锥、火球与闪电，近战仍使用独立短杖距离。",
+    "skills": [
+      {
+        "name": "初级冰锥",
+        "desc": "攻击动作零基f16释放2枚冰锥；单枚基础伤害18+0.9魔攻+0.4智力，560施法距离，6.5秒独立冷却。"
+      },
+      {
+        "name": "初级火球",
+        "desc": "攻击动作零基f16释放火球；基础伤害38+1.2魔攻+0.6智力，80爆炸半径，600施法距离，8.5秒独立冷却。"
+      },
+      {
+        "name": "初级闪电",
+        "desc": "攻击动作零基f16释放闪电；基础伤害28+1.05魔攻+0.5智力，最多连锁2个目标并眩晕0.45秒，520施法距离，9.5秒独立冷却。"
+      }
+    ],
+    "attackType": "短杖直刺 / 三系初级魔法",
+    "render": {
+      "spriteSize": 190,
+      "collisionWidth": 86,
+      "collisionHeight": 124,
+      "footOffsetY": 70,
+      "projectileHitbox": {
+        "width": 82,
+        "height": 124,
+        "offsetX": 0,
+        "bottom": -12
+      },
+      "colliderOffsetY": -10
+    },
+    "height": 130,
+    "deathAnim": {
+      "duration": 3167,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/polar_night_high_priest/idle.png",
+      "running": "assets/enemies/polar_night_high_priest/running.png",
+      "attack": "assets/enemies/polar_night_high_priest/attacking.png",
+      "death": "assets/enemies/polar_night_high_priest/dying.png",
+      "referenceCell": 256,
+      "frameLayouts": {
+        "idle": {
+          "columns": 4,
+          "rows": 4,
+          "frameWidth": 256,
+          "frameHeight": 288,
+          "frameCount": 16,
+          "anchorX": 128,
+          "footY": 264,
+          "duration": 5042,
+          "repeat": -1
+        },
+        "running": {
+          "columns": 5,
+          "rows": 6,
+          "frameWidth": 256,
+          "frameHeight": 288,
+          "frameCount": 30,
+          "anchorX": 128,
+          "footY": 264,
+          "duration": 1250,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 5,
+          "rows": 10,
+          "frameWidth": 288,
+          "frameHeight": 288,
+          "frameCount": 47,
+          "anchorX": 144,
+          "footY": 264,
+          "duration": 1500,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 5,
+          "rows": 8,
+          "frameWidth": 256,
+          "frameHeight": 288,
+          "frameCount": 37,
+          "anchorX": 128,
+          "footY": 264,
+          "duration": 3167,
           "repeat": 0
         }
       }

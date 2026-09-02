@@ -1,0 +1,56 @@
+{
+  "id": "polar-night-cantor",
+  "profile": "crowd",
+  "decodedRgbaBytes": 30937088,
+  "decodedRgbaMiB": 29.5039,
+  "budgetTargetMiB": 32,
+  "budgetHardStopMiB": 64,
+  "budgetWithinTarget": true,
+  "sheets": [
+    {
+      "textureKey": "enemy_polar_night_cantor_idle",
+      "path": "assets/enemies/polar_night_cantor/idle.png",
+      "kind": "spritesheet",
+      "frameWidth": 256,
+      "frameHeight": 208,
+      "frameCount": 16,
+      "endFrame": 15,
+      "footX": 128,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_polar_night_cantor_running",
+      "path": "assets/enemies/polar_night_cantor/running.png",
+      "kind": "spritesheet",
+      "frameWidth": 256,
+      "frameHeight": 208,
+      "frameCount": 28,
+      "endFrame": 27,
+      "footX": 128,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_polar_night_cantor_attack",
+      "path": "assets/enemies/polar_night_cantor/attacking.png",
+      "kind": "spritesheet",
+      "frameWidth": 288,
+      "frameHeight": 208,
+      "frameCount": 33,
+      "endFrame": 32,
+      "footX": 144,
+      "footY": 188
+    },
+    {
+      "textureKey": "enemy_polar_night_cantor_death",
+      "path": "assets/enemies/polar_night_cantor/dying.png",
+      "kind": "spritesheet",
+      "frameWidth": 352,
+      "frameHeight": 208,
+      "frameCount": 41,
+      "endFrame": 40,
+      "footX": 176,
+      "footY": 188
+    }
+  ],
+  "dependencies": []
+}

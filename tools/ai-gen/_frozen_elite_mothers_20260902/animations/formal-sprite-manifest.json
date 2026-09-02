@@ -1,0 +1,283 @@
+{
+  "task": "frozen-dungeon-five-elite-formal-sprites",
+  "stage": "formal-assets-scale-normalized_and_runtime_integrated_static",
+  "budgetTier": "specialist-per-unit",
+  "interpolationPasses": 1,
+  "units": {
+    "frostbound-centurion": {
+      "manifest": "spritesheets/frostbound-centurion/manifest.json",
+      "decodedRgbaMiB": 72.8477,
+      "withinSpecialistTarget64MiB": false,
+      "actions": {
+        "idle": {
+          "frameWidth": 288,
+          "frameHeight": 272,
+          "frameCount": 16,
+          "endFrame": 15,
+          "durationMs": 5042,
+          "footX": 144,
+          "footY": 248,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "running": {
+          "frameWidth": 320,
+          "frameHeight": 272,
+          "frameCount": 52,
+          "endFrame": 51,
+          "durationMs": 2167,
+          "footX": 160,
+          "footY": 248,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "attack": {
+          "frameWidth": 544,
+          "frameHeight": 272,
+          "frameCount": 49,
+          "endFrame": 48,
+          "durationMs": 1600,
+          "footX": 272,
+          "footY": 248,
+          "fixedWholeActionScaleFactor": 0.87
+        },
+        "death": {
+          "frameWidth": 416,
+          "frameHeight": 272,
+          "frameCount": 49,
+          "endFrame": 48,
+          "durationMs": 3000,
+          "footX": 208,
+          "footY": 248,
+          "fixedWholeActionScaleFactor": 0.793
+        }
+      }
+    },
+    "polar-night-high-priest": {
+      "manifest": "spritesheets/polar-night-high-priest/manifest.json",
+      "decodedRgbaMiB": 40.0078,
+      "withinSpecialistTarget64MiB": true,
+      "actions": {
+        "idle": {
+          "frameWidth": 256,
+          "frameHeight": 288,
+          "frameCount": 16,
+          "endFrame": 15,
+          "durationMs": 5042,
+          "footX": 128,
+          "footY": 264,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "running": {
+          "frameWidth": 256,
+          "frameHeight": 288,
+          "frameCount": 30,
+          "endFrame": 29,
+          "durationMs": 1250,
+          "footX": 128,
+          "footY": 264,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "attack": {
+          "frameWidth": 288,
+          "frameHeight": 288,
+          "frameCount": 47,
+          "endFrame": 46,
+          "durationMs": 1500,
+          "footX": 144,
+          "footY": 264,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "death": {
+          "frameWidth": 256,
+          "frameHeight": 288,
+          "frameCount": 37,
+          "endFrame": 36,
+          "durationMs": 3167,
+          "footX": 128,
+          "footY": 264,
+          "fixedWholeActionScaleFactor": 1.28
+        }
+      }
+    },
+    "ice-crown-lynx": {
+      "manifest": "spritesheets/ice-crown-lynx/manifest.json",
+      "decodedRgbaMiB": 56.3379,
+      "withinSpecialistTarget64MiB": true,
+      "actions": {
+        "idle": {
+          "frameWidth": 256,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "endFrame": 15,
+          "durationMs": 5042,
+          "footX": 128,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "running": {
+          "frameWidth": 352,
+          "frameHeight": 240,
+          "frameCount": 44,
+          "endFrame": 43,
+          "durationMs": 1833,
+          "footX": 176,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 0.912
+        },
+        "attack": {
+          "frameWidth": 448,
+          "frameHeight": 240,
+          "frameCount": 49,
+          "endFrame": 48,
+          "durationMs": 1500,
+          "footX": 224,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 0.953
+        },
+        "death": {
+          "frameWidth": 384,
+          "frameHeight": 240,
+          "frameCount": 49,
+          "endFrame": 48,
+          "durationMs": 3000,
+          "footX": 192,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 1.0
+        }
+      }
+    },
+    "glacierback-war-ox": {
+      "manifest": "spritesheets/glacierback-war-ox/manifest.json",
+      "decodedRgbaMiB": 59.2383,
+      "withinSpecialistTarget64MiB": true,
+      "actions": {
+        "idle": {
+          "frameWidth": 384,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "endFrame": 15,
+          "durationMs": 5042,
+          "footX": 192,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "running": {
+          "frameWidth": 384,
+          "frameHeight": 240,
+          "frameCount": 30,
+          "endFrame": 29,
+          "durationMs": 1250,
+          "footX": 192,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 1.04
+        },
+        "attack": {
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 43,
+          "endFrame": 42,
+          "durationMs": 1700,
+          "footX": 256,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 1.148
+        },
+        "death": {
+          "frameWidth": 480,
+          "frameHeight": 240,
+          "frameCount": 49,
+          "endFrame": 48,
+          "durationMs": 3200,
+          "footX": 240,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 0.928
+        }
+      }
+    },
+    "abyss-crystal-ravager": {
+      "manifest": "spritesheets/abyss-crystal-ravager/manifest.json",
+      "decodedRgbaMiB": 61.1719,
+      "withinSpecialistTarget64MiB": true,
+      "actions": {
+        "idle": {
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "endFrame": 15,
+          "durationMs": 5042,
+          "footX": 256,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "running": {
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 32,
+          "endFrame": 31,
+          "durationMs": 1333,
+          "footX": 256,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 1.0
+        },
+        "attack": {
+          "frameWidth": 544,
+          "frameHeight": 240,
+          "frameCount": 39,
+          "endFrame": 38,
+          "durationMs": 1800,
+          "footX": 272,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 0.909
+        },
+        "death": {
+          "frameWidth": 512,
+          "frameHeight": 240,
+          "frameCount": 39,
+          "endFrame": 38,
+          "durationMs": 3000,
+          "footX": 256,
+          "footY": 216,
+          "fixedWholeActionScaleFactor": 0.96
+        }
+      }
+    }
+  },
+  "combinedDecodedRgbaMiB": 289.6036,
+  "runtimeTested": false,
+  "gameIntegrated": true,
+  "scaleNormalization": {
+    "baselineAction": "idle",
+    "mode": "one fixed uniform factor per whole action around footX/footY; no per-frame scale, warp, or added motion",
+    "factors": {
+      "ice-crown-lynx": {
+        "idle": 1.0,
+        "running": 0.912,
+        "attack": 0.953,
+        "death": 1.0
+      },
+      "glacierback-war-ox": {
+        "idle": 1.0,
+        "running": 1.04,
+        "attack": 1.148,
+        "death": 0.928
+      },
+      "abyss-crystal-ravager": {
+        "idle": 1.0,
+        "running": 1.0,
+        "attack": 0.909,
+        "death": 0.96
+      },
+      "frostbound-centurion": {
+        "idle": 1.0,
+        "running": 1.0,
+        "attack": 0.87,
+        "death": 0.793
+      },
+      "polar-night-high-priest": {
+        "idle": 1.0,
+        "running": 1.0,
+        "attack": 1.0,
+        "death": 1.28
+      }
+    }
+  },
+  "canvasNormalization": "blank rows trimmed to established compact heights; foot coordinates and visible pixels preserved"
+}

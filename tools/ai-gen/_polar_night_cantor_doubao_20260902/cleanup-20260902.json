@@ -1,0 +1,21 @@
+{
+  "task": "polar-night-cantor-final-cleanup",
+  "date": "2026-09-02",
+  "removed": [
+    {
+      "kind": "rejected-running-v01-and-derived-previews",
+      "candidate": "polar-night-cantor running v01",
+      "fileCount": 4,
+      "reason": "the short ritual staff was missing from the first frame onward; the prompt and rejection reason remain in manifest.json"
+    }
+  ],
+  "totalRemovedFilesAcrossFrozenEliteTask": 37,
+  "totalRemovedBytesAcrossFrozenEliteTask": 57773136,
+  "retained": [
+    "approved mother frame and direction references",
+    "prompts, provider metadata and task manifest",
+    "four accepted source videos and their direct previews",
+    "formal spritesheets, budget reports, GIFs and contact sheets",
+    "runtime PNG files and reconstruction scripts"
+  ]
+}

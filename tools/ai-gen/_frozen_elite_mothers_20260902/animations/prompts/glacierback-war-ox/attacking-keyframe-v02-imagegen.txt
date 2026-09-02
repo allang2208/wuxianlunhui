@@ -1,0 +1,7 @@
+Use case: identity-preserve, attack-contact correction
+Asset type: game-monster attack contact keyframe used as a Doubao video reference
+Primary request: Edit the exact approved Glacierback War Ox into the single peak-contact pose of one low but horizontal rightward horn headbutt. The horn tips point toward an invisible target at lower-chest height and remain clearly above the foot ground line; the muzzle and horn tips must not touch or scrape the floor.
+Identity invariants: preserve the exact musk-ox head, two forward horns, continuous frost forehead plate, dark long wool, pale dorsal mantle, exactly four large dorsal ice armor plates, body proportions and materials.
+Structure/pose: exactly four grounded bovine legs, two horns, four dorsal plates and one tail; head and shoulders lower slightly toward screen-right, neck compressed, horn tips form the only forward contact front, hindquarters braced; no running continuation and no second impact.
+Camera/framing: same side-dominant slightly elevated orthographic-like game view; full silhouette, all hooves and both horn tips visible on pure white with generous margins.
+Avoid: horn or muzzle touching floor, blood, wound, red liquid, dust, smoke, impact effect, extra horns, missing plate, extra limbs, rearing, magic, left/front/back view, crop, shadow, scenery, text or watermark.

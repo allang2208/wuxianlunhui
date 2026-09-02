@@ -1,0 +1,115 @@
+{
+  "task": "frozen-dungeon-elite-monster-mothers",
+  "date": "2026-09-02",
+  "stage": "five_elites_formal_sprites_and_runtime_integration_complete_static",
+  "generator": "OpenAI imagegen",
+  "acceptedPreview": null,
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "sharedVisualContract": {
+    "style": "realistic low-saturation cold PBR, elite complexity below boss complexity",
+    "camera": "orthographic-like slightly elevated side-dominant or low three-quarter game view",
+    "facing": "screen-right",
+    "background": "pure white studio background with at most faint contact occlusion",
+    "pose": "single complete subject in animation-friendly neutral idle"
+  },
+  "runtimeIntegration": {
+    "formalSpriteManifest": "animations/formal-sprite-manifest.json",
+    "runtimeAssetRoot": "../../../assets/enemies",
+    "actionsPerUnit": ["idle", "running", "attack", "death"],
+    "totalFormalActions": 20,
+    "elitePoolKeysAddedToFrozenDungeonTiers": ["frozenDungeonBeginner", "frozenDungeonMid", "frozenDungeon"],
+    "rankMatchingEnabled": true,
+    "units": {
+      "iceCrownLynx": "fast pursuit plus 1.8s cripple on confirmed claw hit",
+      "glacierbackWarOx": "wide heavy horn impact, 58 knockback and 35 percent ranged physical reduction",
+      "abyssCrystalRavager": "confirmed bite applies two 6 percent corrosion stacks for 6s",
+      "frostboundCenturion": "210 impact reach spear lane control plus 1.2s cripple and 20 percent ranged physical reduction",
+      "polarNightHighPriest": "three novice spells reuse the same attack sheet and release at zero-based frame 16"
+    }
+  },
+  "units": [
+    {
+      "unitKey": "iceCrownLynx",
+      "name": "冰冠猞猁",
+      "normalFamily": "snowManeLynx",
+      "reference": "../../../assets/enemies/snow_mane_lynx/idle.png",
+      "prompt": "prompts/01-ice-crown-lynx-v01.txt",
+      "output": "mother/01-ice-crown-lynx-v01.png",
+      "sourceGeneration": "exec-84cf39fd-c309-4b8e-b67c-1364670a896e.png",
+      "status": "mother_user_approved_animation_authorized",
+      "approved": true
+    },
+    {
+      "unitKey": "glacierbackWarOx",
+      "name": "冰脊战牛",
+      "normalFamily": "frostbackMuskOx",
+      "reference": "../../../assets/enemies/frostback_musk_ox/idle.png",
+      "prompt": "prompts/02-glacierback-war-ox-v01.txt",
+      "output": "mother/02-glacierback-war-ox-v01.png",
+      "sourceGeneration": "exec-51daa56f-ed1e-42ce-88f0-222a018c7757.png",
+      "status": "mother_user_approved_animation_authorized",
+      "approved": true
+    },
+    {
+      "unitKey": "abyssCrystalRavager",
+      "name": "寒渊裂晶兽",
+      "normalFamily": "abyssRimeBeast",
+      "reference": "../../../assets/enemies/abyss_rime_beast/idle.png",
+      "prompt": "prompts/03-abyss-crystal-ravager-v02-six-spines-edit.txt",
+      "output": "mother/03-abyss-crystal-ravager-v02-six-spines.png",
+      "sourceGeneration": "exec-bfe29301-627d-43b4-9540-036bf8cf676c.png",
+      "removedSourceOutput": "mother/03-abyss-crystal-ravager-v01-five-spines.png",
+      "sourcePrompt": "prompts/03-abyss-crystal-ravager-v01.txt",
+      "sourceOutputGeneration": "exec-bbab7999-652a-40ef-aa1c-3cb4089f0176.png",
+      "revisionReason": "first candidate had five primary dorsal spikes; corrected to the family identity lock of exactly six",
+      "status": "mother_user_approved_animation_authorized",
+      "approved": true
+    },
+    {
+      "unitKey": "frostboundCenturion",
+      "name": "霜缚百夫长",
+      "normalFamily": "frostboundSpearman",
+      "reference": "../../../assets/enemies/frostbound_spearman/idle.png",
+      "prompt": "prompts/04-frostbound-centurion-v01.txt",
+      "output": "mother/04-frostbound-centurion-v01.png",
+      "sourceGeneration": "exec-e236eda1-51f1-4b35-99ec-163d4b2ad85e.png",
+      "status": "mother_user_approved_animation_authorized",
+      "approved": true
+    },
+    {
+      "unitKey": "polarNightHighPriest",
+      "name": "极夜大司祭",
+      "normalFamily": "polarNightCantor",
+      "reference": "../_frozen_normal_mothers_20260901/mother/05-polar-night-cantor-v03-structure-fixed.png",
+      "prompt": "prompts/05-polar-night-high-priest-v04-project-humanoid-three-quarter-imagegen.txt",
+      "output": "mother/05-polar-night-high-priest-v04-project-three-quarter-candidate.png",
+      "sourceGeneration": "exec-5faea88f-f256-4b77-97d2-30c5f566e0cf.png",
+      "rejectedV04FirstGeneration": "exec-c5db8ce3-00fb-4a37-8b4b-777ed8be4817.png",
+      "removedOverSideOutput": "mother/05-polar-night-high-priest-v03-right-profile-candidate.png",
+      "previousOverSideGeneration": "exec-cd78f8ff-c100-42bd-9932-19773e231eea.png",
+      "rejectedAngleCorrectionGeneration": "exec-c1db7206-f8af-4865-9be7-5fceb05f4e92.png",
+      "removedRedesignOutput": "mother/05-polar-night-high-priest-v02-elite-crown-candidate.png",
+      "previousRedesignGeneration": "exec-6c8bd3f2-8fb8-4197-832a-2f56f7e82992.png",
+      "removedPreviousApprovedOutput": "mother/05-polar-night-high-priest-v01.png",
+      "previousSourceGeneration": "exec-3f556a1d-3275-4bc8-ad7a-d742fa3fc87a.png",
+      "revisionReason": "v02 was too frontal and v03 over-corrected to near pure profile; v04 matches the existing humanoid monsters' slightly elevated right-facing three-quarter presentation",
+      "status": "mother_user_approved_animation_authorized",
+      "approved": true
+    }
+  ],
+  "offlineReview": {
+    "motherImagesInspected": true,
+    "normalFamilyReferencesInspected": true,
+    "allFiveCompleteSingleSubjects": true,
+    "allFiveScreenRight": true,
+    "allFiveWhiteBackground": true,
+    "abyssCrystalRavagerPrimaryDorsalSpikes": 6,
+    "runtimeTested": false,
+    "runtimeIntegrated": true,
+    "userApproved": true,
+    "userApprovedCurrentMothers": 5,
+    "polarNightHighPriestV04PendingApproval": false,
+    "polarNightHighPriestV04OfflineHumanoidAnglePassed": true
+  }
+}

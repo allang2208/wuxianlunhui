@@ -1,0 +1,20 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser snow-dungeon elite monster animation pipeline
+
+Reference role: Image 1 is the approved normal Frostback Musk Ox family reference. Preserve its adult musk-ox species, screen-right identity, very long dark winter coat, pale frost saddle across the upper back, heavy forward head, curved horn family, camera elevation, restrained PBR rendering and production-asset clarity. Create a recognizable elite evolution of that same monster family, not a buffalo, yak or fantasy mount and not a mere recolor.
+
+Primary request: Create exactly one elite Glacierback War Ox, a living battering ram and formation breaker, holding a calm animation-friendly neutral standing pose.
+
+Elite design: an enormous low-slung musk ox with extremely powerful shoulders and forequarters; thick slate-black wool with a broad silver-white frozen dorsal mantle; the natural horn boss has grown into a heavy continuous frost-armored forehead plate, and the two horns sweep down then forward into broad chipped ivory points reinforced by opaque blue-gray rime ridges; three large natural slab-like ice plates are embedded along the shoulder and upper back beneath the fur, forming a compact armored spine without covering the flanks; scarred dark muzzle and small amber eyes. No saddle, reins, bags, metal armor, rider, banner or magic aura.
+
+Anatomy and material: physically plausible quadruped musk-ox anatomy, exactly four legs, two horns and one tail, correct bovine joints and cloven hooves, believable front-heavy weight, high-detail layered wool, worn horn keratin and rough opaque frost plates, restrained cold colors, no crystalline glass body and no plastic surface.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, low saturation, readable silhouette, physically believable fur, horn and ice; elite-scale but not a boss.
+
+Pose: strict screen-right body axis; head, chest, pelvis and hooves support rightward locomotion; calm braced neutral idle with all four hooves on one baseline, forelegs separate and readable, horns fully visible, head held slightly low as if ready to charge but not attacking.
+
+Composition and camera: side-dominant low three-quarter view matching Image 1, orthographic-style locked camera with slight elevation; complete single subject occupying about 72% canvas width and 58% height; centered with generous margins; full horn tips, coat, tail and hooves visible.
+
+Scene and lighting: flat pure white #FFFFFF studio background, no horizon or floor, soft flat diffuse light, at most a faint neutral contact occlusion beneath hooves, no cast shadow.
+
+Avoid: extra horns, third horn, ram spiral horns, buffalo anatomy, yak face, extra limbs, mount equipment, metallic armor, glowing eyes, transparent crystal body, scenery, snow particles, mist, aura, dramatic lighting, cropping, front view, text, logo, watermark, cartoon, anime, chibi, low-poly toy.

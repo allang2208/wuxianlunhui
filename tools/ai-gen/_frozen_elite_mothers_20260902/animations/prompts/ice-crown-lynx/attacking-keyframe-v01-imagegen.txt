@@ -1,0 +1,7 @@
+Use case: identity-preserve
+Asset type: game-monster attack contact keyframe used as a Doubao video reference
+Primary request: Edit the exact approved Ice-Crown Lynx into the single peak-contact pose of one short rightward foreclaw lunge.
+Identity invariants: preserve the exact adult lynx face, cyan eyes, black ear tufts, short black-tipped tail, gray rosette coat, pale jagged ice-crown mane, oversized forepaws, frost claws, body proportions, materials and colors.
+Structure/pose: exactly four coherent feline legs and one short tail; hind paws stay grounded, torso leans right, the nearer forepaw reaches once toward screen-right with claws visible, the other forepaw supports the body; mouth slightly open but the paw is the only contact front.
+Camera/framing: same side-dominant slightly elevated orthographic-like game view; complete body and mane inside a pure-white frame with generous margins.
+Avoid: second strike, airborne leap, bite as primary contact, magic, trail, impact effect, left/front/back view, extra limbs, missing mane, crop, shadow, scenery, text or watermark.
