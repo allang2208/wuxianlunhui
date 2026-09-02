@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "user_approved_source_formalized_candidate_review",
+  "unitKey": "steel_shield_assault",
+  "action": "idle",
+  "destination": "http://192.168.3.142:8188",
+  "pipelineAuthority": [
+    "SKILL.md 动画索引",
+    "skill/16b-animation-alignment-and-timing.md 1.1",
+    "tools/ai-gen/WORKFLOW.md 3.6"
+  ],
+  "directionAuthority": {
+    "upperConfig": "data/hamster-riot-squad-config.json",
+    "upperAsset": "assets/companions/hamster_riot_squad/idle.png",
+    "upperFramesZeroBased": [0, 8, 16, 23],
+    "lowerConfig": "data/hamster-phalanx-config.json",
+    "lowerActualWalkAsset": "assets/companions/hamster_guard/running_rife.png",
+    "lowerFramesZeroBased": [0, 8, 16, 25, 33],
+    "target": "略俯视三分之四右向；盾在画面右、手枪在画面左且枪口低位朝右"
+  },
+  "exactFirstAndLastFrame": {
+    "path": "references/steel-shield-assault-idle-keyframe-video-safe-16x9.png",
+    "bytes": 881920,
+    "sha256": "094ffb5dbfb8ae3b70f797daec091dbc67af3ac2bf0e89ae5c546a69527ffaa4"
+  },
+  "prompt": "prompts/idle-h3-v01-exact-loop.txt",
+  "parameters": {
+    "model": "MiniMax H3 I2V exact first and last frame",
+    "durationSeconds": 5.17,
+    "size": "1344x768",
+    "steps": 20,
+    "candidates": 1,
+    "actionMode": "loop",
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset",
+    "contactCount": 32
+  },
+  "authorization": "用户在被明确告知上传目的地、关键帧大小和单候选范围后回复：允许。",
+  "output": {
+    "path": "videos/idle-h3-v01-exact-loop.mp4",
+    "bytes": 1136022,
+    "sha256": "18dfd7e14d57e1d04c5a41a302e91b37afe54d0f78b8a162f35cf281153a357e",
+    "provenance": "videos/idle-h3-v01-exact-loop.mp4.json",
+    "contactSheet": "previews/idle-h3-v01-exact-loop-contact-32.png",
+    "detailReview": "previews/idle-h3-v01-exact-loop-detail-f00-f32-f63-f91-f123.png",
+    "preview": "previews/idle-h3-v01-exact-loop-source.gif",
+    "previewSha256": "a66cef55b37a3f173d4aab12ed9d142778ef8e8d4995f6f06b6171c05f7b0515",
+    "offlineResult": "passed_identity_direction_and_idle_action",
+    "userApproval": "用户查看待机v01后回复：可用，已切换豆包账号，使用豆包管线继续生成视频。"
+  },
+  "explicitExclusions": [
+    "不上传其他单位视频作为动作参考",
+    "不生成额外候选",
+    "不抠图或RIFE，直到原视频身份、朝向和待机循环核对通过",
+    "不接入运行时"
+  ]
+}

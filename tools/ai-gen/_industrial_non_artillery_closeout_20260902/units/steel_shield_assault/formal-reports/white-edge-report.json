@@ -1,0 +1,1792 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "steel_shield_assault",
+  "assetOnly": true,
+  "runtimeIntegration": false,
+  "screen": {
+    "alphaRangeExclusive": [
+      10,
+      245
+    ],
+    "whiteishRgbMinimumInclusive": 235,
+    "maximumAllowedRatio": 0.005
+  },
+  "sourceCutouts": {
+    "idle": {
+      "frames": {
+        "source-f000": {
+          "semiTransparentEdgePixels": 518,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f007": {
+          "semiTransparentEdgePixels": 630,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f015": {
+          "semiTransparentEdgePixels": 621,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f023": {
+          "semiTransparentEdgePixels": 618,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f030": {
+          "semiTransparentEdgePixels": 636,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f038": {
+          "semiTransparentEdgePixels": 549,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f046": {
+          "semiTransparentEdgePixels": 618,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f053": {
+          "semiTransparentEdgePixels": 571,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f061": {
+          "semiTransparentEdgePixels": 621,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f069": {
+          "semiTransparentEdgePixels": 695,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f076": {
+          "semiTransparentEdgePixels": 558,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f084": {
+          "semiTransparentEdgePixels": 564,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f092": {
+          "semiTransparentEdgePixels": 543,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f099": {
+          "semiTransparentEdgePixels": 457,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f107": {
+          "semiTransparentEdgePixels": 461,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f115": {
+          "semiTransparentEdgePixels": 480,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "passes": true
+    },
+    "running": {
+      "frames": {
+        "source-f040": {
+          "semiTransparentEdgePixels": 1960,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f041": {
+          "semiTransparentEdgePixels": 2628,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f042": {
+          "semiTransparentEdgePixels": 2951,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f043": {
+          "semiTransparentEdgePixels": 2842,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f044": {
+          "semiTransparentEdgePixels": 2991,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f045": {
+          "semiTransparentEdgePixels": 3205,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f046": {
+          "semiTransparentEdgePixels": 2819,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f047": {
+          "semiTransparentEdgePixels": 2657,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f048": {
+          "semiTransparentEdgePixels": 2349,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f049": {
+          "semiTransparentEdgePixels": 2454,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f050": {
+          "semiTransparentEdgePixels": 2471,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f051": {
+          "semiTransparentEdgePixels": 2317,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f052": {
+          "semiTransparentEdgePixels": 2340,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f053": {
+          "semiTransparentEdgePixels": 2915,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f054": {
+          "semiTransparentEdgePixels": 3249,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f055": {
+          "semiTransparentEdgePixels": 3349,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f056": {
+          "semiTransparentEdgePixels": 3462,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f057": {
+          "semiTransparentEdgePixels": 2846,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f058": {
+          "semiTransparentEdgePixels": 2578,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f059": {
+          "semiTransparentEdgePixels": 2614,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f060": {
+          "semiTransparentEdgePixels": 2574,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "passes": true
+    },
+    "attacking": {
+      "frames": {
+        "source-f000": {
+          "semiTransparentEdgePixels": 1739,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f006": {
+          "semiTransparentEdgePixels": 1776,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f012": {
+          "semiTransparentEdgePixels": 2059,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f018": {
+          "semiTransparentEdgePixels": 2043,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f024": {
+          "semiTransparentEdgePixels": 2142,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f030": {
+          "semiTransparentEdgePixels": 2085,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f036": {
+          "semiTransparentEdgePixels": 2128,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f042": {
+          "semiTransparentEdgePixels": 1959,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f046": {
+          "semiTransparentEdgePixels": 1933,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f048": {
+          "semiTransparentEdgePixels": 2177,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 1624
+        },
+        "source-f049": {
+          "semiTransparentEdgePixels": 2599,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 8490
+        },
+        "source-f050": {
+          "semiTransparentEdgePixels": 1947,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 34141
+        },
+        "source-f052": {
+          "semiTransparentEdgePixels": 1960,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 44409
+        },
+        "source-f054": {
+          "semiTransparentEdgePixels": 1943,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 58351
+        },
+        "source-f056": {
+          "semiTransparentEdgePixels": 2000,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 64825
+        },
+        "source-f058": {
+          "semiTransparentEdgePixels": 1968,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 70018
+        },
+        "source-f060": {
+          "semiTransparentEdgePixels": 1833,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 71885
+        },
+        "source-f062": {
+          "semiTransparentEdgePixels": 1984,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 69481
+        },
+        "source-f066": {
+          "semiTransparentEdgePixels": 2018,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f072": {
+          "semiTransparentEdgePixels": 1972,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f078": {
+          "semiTransparentEdgePixels": 1909,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f084": {
+          "semiTransparentEdgePixels": 2007,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f088": {
+          "semiTransparentEdgePixels": 1920,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f093": {
+          "semiTransparentEdgePixels": 1978,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f096": {
+          "semiTransparentEdgePixels": 1877,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "passes": true
+    },
+    "dying": {
+      "frames": {
+        "source-f000": {
+          "semiTransparentEdgePixels": 772,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f004": {
+          "semiTransparentEdgePixels": 970,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f008": {
+          "semiTransparentEdgePixels": 1691,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f012": {
+          "semiTransparentEdgePixels": 1714,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f016": {
+          "semiTransparentEdgePixels": 1589,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f020": {
+          "semiTransparentEdgePixels": 1524,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f024": {
+          "semiTransparentEdgePixels": 1445,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f028": {
+          "semiTransparentEdgePixels": 1521,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f032": {
+          "semiTransparentEdgePixels": 1555,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f036": {
+          "semiTransparentEdgePixels": 1651,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f040": {
+          "semiTransparentEdgePixels": 1647,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f044": {
+          "semiTransparentEdgePixels": 1631,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f048": {
+          "semiTransparentEdgePixels": 1626,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f052": {
+          "semiTransparentEdgePixels": 1731,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f056": {
+          "semiTransparentEdgePixels": 1501,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f060": {
+          "semiTransparentEdgePixels": 1607,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f064": {
+          "semiTransparentEdgePixels": 1786,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f068": {
+          "semiTransparentEdgePixels": 1813,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f072": {
+          "semiTransparentEdgePixels": 1479,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f076": {
+          "semiTransparentEdgePixels": 1422,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f080": {
+          "semiTransparentEdgePixels": 1317,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f084": {
+          "semiTransparentEdgePixels": 1311,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        },
+        "source-f088": {
+          "semiTransparentEdgePixels": 1449,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "passes": true
+    }
+  },
+  "formalRifeSheets": {
+    "idle": {
+      "frames": {
+        "0": {
+          "semiTransparentEdgePixels": 677,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "1": {
+          "semiTransparentEdgePixels": 862,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "2": {
+          "semiTransparentEdgePixels": 687,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "3": {
+          "semiTransparentEdgePixels": 920,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "4": {
+          "semiTransparentEdgePixels": 739,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "5": {
+          "semiTransparentEdgePixels": 941,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "6": {
+          "semiTransparentEdgePixels": 720,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "7": {
+          "semiTransparentEdgePixels": 966,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "8": {
+          "semiTransparentEdgePixels": 764,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "9": {
+          "semiTransparentEdgePixels": 934,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "10": {
+          "semiTransparentEdgePixels": 699,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "11": {
+          "semiTransparentEdgePixels": 891,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "12": {
+          "semiTransparentEdgePixels": 709,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "13": {
+          "semiTransparentEdgePixels": 851,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "14": {
+          "semiTransparentEdgePixels": 696,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "15": {
+          "semiTransparentEdgePixels": 946,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "16": {
+          "semiTransparentEdgePixels": 775,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "17": {
+          "semiTransparentEdgePixels": 881,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "18": {
+          "semiTransparentEdgePixels": 698,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "19": {
+          "semiTransparentEdgePixels": 893,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "20": {
+          "semiTransparentEdgePixels": 750,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "21": {
+          "semiTransparentEdgePixels": 935,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "22": {
+          "semiTransparentEdgePixels": 746,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "23": {
+          "semiTransparentEdgePixels": 933,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "24": {
+          "semiTransparentEdgePixels": 665,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "25": {
+          "semiTransparentEdgePixels": 799,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "26": {
+          "semiTransparentEdgePixels": 697,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "27": {
+          "semiTransparentEdgePixels": 708,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "28": {
+          "semiTransparentEdgePixels": 695,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "29": {
+          "semiTransparentEdgePixels": 713,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "30": {
+          "semiTransparentEdgePixels": 700,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "31": {
+          "semiTransparentEdgePixels": 716,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "strictScreenApplicable": true,
+      "neutralFootMattePixelsTotal": 0,
+      "neutralFootMattePixelsMaximumFrame": 0,
+      "neutralFootMatteStrictScreenApplicable": false,
+      "passes": true,
+      "checkerContact": "postprocess/previews/white-edge-review/idle-contact.png"
+    },
+    "running": {
+      "frames": {
+        "0": {
+          "semiTransparentEdgePixels": 515,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "1": {
+          "semiTransparentEdgePixels": 717,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "2": {
+          "semiTransparentEdgePixels": 510,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "3": {
+          "semiTransparentEdgePixels": 757,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "4": {
+          "semiTransparentEdgePixels": 516,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "5": {
+          "semiTransparentEdgePixels": 753,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "6": {
+          "semiTransparentEdgePixels": 530,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "7": {
+          "semiTransparentEdgePixels": 755,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "8": {
+          "semiTransparentEdgePixels": 542,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "9": {
+          "semiTransparentEdgePixels": 835,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "10": {
+          "semiTransparentEdgePixels": 519,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "11": {
+          "semiTransparentEdgePixels": 879,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "12": {
+          "semiTransparentEdgePixels": 524,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "13": {
+          "semiTransparentEdgePixels": 752,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "14": {
+          "semiTransparentEdgePixels": 528,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "15": {
+          "semiTransparentEdgePixels": 777,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "16": {
+          "semiTransparentEdgePixels": 558,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "17": {
+          "semiTransparentEdgePixels": 774,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "18": {
+          "semiTransparentEdgePixels": 485,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "19": {
+          "semiTransparentEdgePixels": 793,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "20": {
+          "semiTransparentEdgePixels": 533,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "21": {
+          "semiTransparentEdgePixels": 702,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "22": {
+          "semiTransparentEdgePixels": 529,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "23": {
+          "semiTransparentEdgePixels": 765,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "24": {
+          "semiTransparentEdgePixels": 549,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "25": {
+          "semiTransparentEdgePixels": 732,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "26": {
+          "semiTransparentEdgePixels": 499,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "27": {
+          "semiTransparentEdgePixels": 767,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "28": {
+          "semiTransparentEdgePixels": 514,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "29": {
+          "semiTransparentEdgePixels": 741,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "30": {
+          "semiTransparentEdgePixels": 510,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "31": {
+          "semiTransparentEdgePixels": 799,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "32": {
+          "semiTransparentEdgePixels": 538,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "33": {
+          "semiTransparentEdgePixels": 745,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "34": {
+          "semiTransparentEdgePixels": 496,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "35": {
+          "semiTransparentEdgePixels": 726,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "36": {
+          "semiTransparentEdgePixels": 531,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "37": {
+          "semiTransparentEdgePixels": 710,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "38": {
+          "semiTransparentEdgePixels": 548,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "39": {
+          "semiTransparentEdgePixels": 758,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "40": {
+          "semiTransparentEdgePixels": 559,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "41": {
+          "semiTransparentEdgePixels": 874,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "strictScreenApplicable": true,
+      "neutralFootMattePixelsTotal": 0,
+      "neutralFootMattePixelsMaximumFrame": 0,
+      "neutralFootMatteStrictScreenApplicable": true,
+      "passes": true,
+      "checkerContact": "postprocess/previews/white-edge-review/running-contact.png"
+    },
+    "attacking": {
+      "frames": {
+        "0": {
+          "semiTransparentEdgePixels": 638,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "1": {
+          "semiTransparentEdgePixels": 773,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "2": {
+          "semiTransparentEdgePixels": 626,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "3": {
+          "semiTransparentEdgePixels": 893,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "4": {
+          "semiTransparentEdgePixels": 630,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "5": {
+          "semiTransparentEdgePixels": 938,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "6": {
+          "semiTransparentEdgePixels": 634,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "7": {
+          "semiTransparentEdgePixels": 975,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "8": {
+          "semiTransparentEdgePixels": 603,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "9": {
+          "semiTransparentEdgePixels": 873,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "10": {
+          "semiTransparentEdgePixels": 624,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "11": {
+          "semiTransparentEdgePixels": 969,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "12": {
+          "semiTransparentEdgePixels": 623,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "13": {
+          "semiTransparentEdgePixels": 701,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "14": {
+          "semiTransparentEdgePixels": 644,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "15": {
+          "semiTransparentEdgePixels": 835,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "16": {
+          "semiTransparentEdgePixels": 618,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "17": {
+          "semiTransparentEdgePixels": 876,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 707,
+          "neutralFootMattePixels": 0
+        },
+        "18": {
+          "semiTransparentEdgePixels": 560,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 289,
+          "neutralFootMattePixels": 0
+        },
+        "19": {
+          "semiTransparentEdgePixels": 778,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 1542,
+          "neutralFootMattePixels": 0
+        },
+        "20": {
+          "semiTransparentEdgePixels": 618,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 577,
+          "neutralFootMattePixels": 0
+        },
+        "21": {
+          "semiTransparentEdgePixels": 844,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 2448,
+          "neutralFootMattePixels": 0
+        },
+        "22": {
+          "semiTransparentEdgePixels": 536,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 1877,
+          "neutralFootMattePixels": 0
+        },
+        "23": {
+          "semiTransparentEdgePixels": 677,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 3073,
+          "neutralFootMattePixels": 0
+        },
+        "24": {
+          "semiTransparentEdgePixels": 538,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 2394,
+          "neutralFootMattePixels": 0
+        },
+        "25": {
+          "semiTransparentEdgePixels": 712,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 3806,
+          "neutralFootMattePixels": 0
+        },
+        "26": {
+          "semiTransparentEdgePixels": 558,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 3046,
+          "neutralFootMattePixels": 0
+        },
+        "27": {
+          "semiTransparentEdgePixels": 653,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 4205,
+          "neutralFootMattePixels": 0
+        },
+        "28": {
+          "semiTransparentEdgePixels": 563,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 3380,
+          "neutralFootMattePixels": 0
+        },
+        "29": {
+          "semiTransparentEdgePixels": 643,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 4440,
+          "neutralFootMattePixels": 0
+        },
+        "30": {
+          "semiTransparentEdgePixels": 563,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 3629,
+          "neutralFootMattePixels": 0
+        },
+        "31": {
+          "semiTransparentEdgePixels": 633,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 4631,
+          "neutralFootMattePixels": 0
+        },
+        "32": {
+          "semiTransparentEdgePixels": 559,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 3729,
+          "neutralFootMattePixels": 0
+        },
+        "33": {
+          "semiTransparentEdgePixels": 611,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 4642,
+          "neutralFootMattePixels": 0
+        },
+        "34": {
+          "semiTransparentEdgePixels": 569,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 3575,
+          "neutralFootMattePixels": 0
+        },
+        "35": {
+          "semiTransparentEdgePixels": 638,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 4343,
+          "neutralFootMattePixels": 0
+        },
+        "36": {
+          "semiTransparentEdgePixels": 615,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "37": {
+          "semiTransparentEdgePixels": 700,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "38": {
+          "semiTransparentEdgePixels": 598,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "39": {
+          "semiTransparentEdgePixels": 872,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "40": {
+          "semiTransparentEdgePixels": 613,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "41": {
+          "semiTransparentEdgePixels": 925,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "42": {
+          "semiTransparentEdgePixels": 626,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "43": {
+          "semiTransparentEdgePixels": 926,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "44": {
+          "semiTransparentEdgePixels": 621,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "45": {
+          "semiTransparentEdgePixels": 953,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "46": {
+          "semiTransparentEdgePixels": 629,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "47": {
+          "semiTransparentEdgePixels": 720,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "48": {
+          "semiTransparentEdgePixels": 625,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "strictScreenApplicable": true,
+      "neutralFootMattePixelsTotal": 0,
+      "neutralFootMattePixelsMaximumFrame": 0,
+      "neutralFootMatteStrictScreenApplicable": true,
+      "passes": true,
+      "exemption": "approved pale muzzle flash and smoke excluded by the aligned formal effect mask",
+      "checkerContact": "postprocess/previews/white-edge-review/attacking-contact.png"
+    },
+    "dying": {
+      "frames": {
+        "0": {
+          "semiTransparentEdgePixels": 757,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "1": {
+          "semiTransparentEdgePixels": 856,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "2": {
+          "semiTransparentEdgePixels": 780,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "3": {
+          "semiTransparentEdgePixels": 1098,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "4": {
+          "semiTransparentEdgePixels": 810,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "5": {
+          "semiTransparentEdgePixels": 1094,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "6": {
+          "semiTransparentEdgePixels": 834,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "7": {
+          "semiTransparentEdgePixels": 1060,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "8": {
+          "semiTransparentEdgePixels": 819,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "9": {
+          "semiTransparentEdgePixels": 980,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "10": {
+          "semiTransparentEdgePixels": 813,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "11": {
+          "semiTransparentEdgePixels": 929,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "12": {
+          "semiTransparentEdgePixels": 809,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "13": {
+          "semiTransparentEdgePixels": 1053,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "14": {
+          "semiTransparentEdgePixels": 819,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "15": {
+          "semiTransparentEdgePixels": 992,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "16": {
+          "semiTransparentEdgePixels": 802,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "17": {
+          "semiTransparentEdgePixels": 961,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "18": {
+          "semiTransparentEdgePixels": 800,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "19": {
+          "semiTransparentEdgePixels": 958,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "20": {
+          "semiTransparentEdgePixels": 783,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "21": {
+          "semiTransparentEdgePixels": 982,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "22": {
+          "semiTransparentEdgePixels": 802,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "23": {
+          "semiTransparentEdgePixels": 992,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "24": {
+          "semiTransparentEdgePixels": 804,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "25": {
+          "semiTransparentEdgePixels": 1058,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "26": {
+          "semiTransparentEdgePixels": 845,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "27": {
+          "semiTransparentEdgePixels": 1062,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "28": {
+          "semiTransparentEdgePixels": 829,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "29": {
+          "semiTransparentEdgePixels": 1081,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "30": {
+          "semiTransparentEdgePixels": 805,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "31": {
+          "semiTransparentEdgePixels": 1102,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "32": {
+          "semiTransparentEdgePixels": 840,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "33": {
+          "semiTransparentEdgePixels": 1075,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "34": {
+          "semiTransparentEdgePixels": 843,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "35": {
+          "semiTransparentEdgePixels": 1070,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "36": {
+          "semiTransparentEdgePixels": 761,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "37": {
+          "semiTransparentEdgePixels": 967,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "38": {
+          "semiTransparentEdgePixels": 750,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "39": {
+          "semiTransparentEdgePixels": 899,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "40": {
+          "semiTransparentEdgePixels": 715,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "41": {
+          "semiTransparentEdgePixels": 865,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "42": {
+          "semiTransparentEdgePixels": 696,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "43": {
+          "semiTransparentEdgePixels": 823,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        },
+        "44": {
+          "semiTransparentEdgePixels": 702,
+          "whiteishSemiTransparentPixels": 0,
+          "whiteishRatio": 0.0,
+          "approvedEffectPixelsExcluded": 0,
+          "neutralFootMattePixels": 0
+        }
+      },
+      "totalWhiteishSemiTransparentPixels": 0,
+      "maximumFrameWhiteishRatio": 0.0,
+      "threshold": 0.005,
+      "strictScreenApplicable": true,
+      "neutralFootMattePixelsTotal": 0,
+      "neutralFootMattePixelsMaximumFrame": 0,
+      "neutralFootMatteStrictScreenApplicable": false,
+      "passes": true,
+      "checkerContact": "postprocess/previews/white-edge-review/dying-contact.png"
+    }
+  },
+  "failures": [],
+  "passes": true
+}

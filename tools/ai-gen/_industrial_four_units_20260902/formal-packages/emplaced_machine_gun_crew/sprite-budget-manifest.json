@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "id": "hamster_bar_automatic_rifleman",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "companion_hamster_bar_automatic_rifleman_idle",
+      "path": "assets/companions/hamster_bar_automatic_rifleman/idle.png",
+      "frameWidth": 224,
+      "frameHeight": 192,
+      "frameCount": 24,
+      "endFrame": 23,
+      "footX": 112,
+      "footY": 141
+    },
+    {
+      "textureKey": "companion_hamster_bar_automatic_rifleman_walk",
+      "path": "assets/companions/hamster_bar_automatic_rifleman/running.png",
+      "frameWidth": 224,
+      "frameHeight": 192,
+      "frameCount": 72,
+      "endFrame": 71,
+      "footX": 112,
+      "footY": 143
+    },
+    {
+      "textureKey": "companion_hamster_bar_automatic_rifleman_attack",
+      "path": "assets/companions/hamster_bar_automatic_rifleman/attacking.png",
+      "frameWidth": 224,
+      "frameHeight": 192,
+      "frameCount": 31,
+      "endFrame": 30,
+      "footX": 112,
+      "footY": 141
+    },
+    {
+      "textureKey": "companion_hamster_bar_automatic_rifleman_dying",
+      "path": "assets/companions/hamster_bar_automatic_rifleman/dying.png",
+      "frameWidth": 288,
+      "frameHeight": 192,
+      "frameCount": 31,
+      "endFrame": 30,
+      "footX": 144,
+      "footY": 141
+    }
+  ],
+  "dependencies": []
+}

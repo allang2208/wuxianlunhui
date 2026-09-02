@@ -7,6 +7,9 @@ import hamsterPhalanxConfig from '../../../data/hamster-phalanx-config.json';
 import hamsterRiotSquadConfig from '../../../data/hamster-riot-squad-config.json';
 import hamsterSpecialForcesConfig from '../../../data/hamster-special-forces-config.json';
 import hamsterTrenchAssaultConfig from '../../../data/hamster-trench-assault-config.json';
+import hamsterAntiTankRiflemanConfig from '../../../data/hamster-anti-tank-rifleman-config.json';
+import hamsterIndustrialReconRiflemanConfig from '../../../data/hamster-industrial-recon-rifleman-config.json';
+import hamsterSteelShieldAssaultConfig from '../../../data/hamster-steel-shield-assault-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
 import hamsterHalberdierConfig from '../../../data/hamster-halberdier-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
@@ -16,6 +19,8 @@ import hamsterLongbowConfig from '../../../data/hamster-longbow-config.json';
 import hamsterAssaultConfig from '../../../data/hamster-assault-config.json';
 import hamsterHeavyMachineGunnerConfig from '../../../data/hamster-heavy-machine-gunner-config.json';
 import hamsterSniperConfig from '../../../data/hamster-sniper-config.json';
+import hamsterServiceRiflemanConfig from '../../../data/hamster-service-rifleman-config.json';
+import hamsterBarAutomaticRiflemanConfig from '../../../data/hamster-bar-automatic-rifleman-config.json';
 import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json';
 import hamsterAntiVehicleConfig from '../../../data/hamster-anti-vehicle-config.json';
 import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
@@ -23,6 +28,8 @@ import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
 import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
 import hamsterCavalryConfig from '../../../data/hamster-cavalry-config.json';
 import hamsterWingedHussarConfig from '../../../data/hamster-winged-hussar-config.json';
+import hamsterIndustrialCarbineCavalryConfig from '../../../data/hamster-industrial-carbine-cavalry-config.json';
+import hamsterIndustrialHeavyLancerConfig from '../../../data/hamster-industrial-heavy-lancer-config.json';
 import hamsterScoutRifleSkirmisherConfig from '../../../data/hamster-scout-rifle-skirmisher-config.json';
 import hamsterPoweredEodExplosiveLancerConfig from '../../../data/hamster-powered-eod-explosive-lancer-config.json';
 import hamsterNinjaConfig from '../../../data/hamster-ninja-config.json';
@@ -44,6 +51,9 @@ export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterRiotSquadConfig,
     hamsterSpecialForcesConfig,
     hamsterTrenchAssaultConfig,
+    hamsterAntiTankRiflemanConfig,
+    hamsterIndustrialReconRiflemanConfig,
+    hamsterSteelShieldAssaultConfig,
     hamsterMilitiaConfig,
     hamsterHalberdierConfig,
     hamsterScoutConfig,
@@ -53,6 +63,8 @@ export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterAssaultConfig,
     hamsterHeavyMachineGunnerConfig,
     hamsterSniperConfig,
+    hamsterServiceRiflemanConfig,
+    hamsterBarAutomaticRiflemanConfig,
     hamsterMusketeerConfig,
     hamsterAntiVehicleConfig,
     hamsterPriestConfig,
@@ -60,6 +72,8 @@ export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterLightCavalryConfig,
     hamsterCavalryConfig,
     hamsterWingedHussarConfig,
+    hamsterIndustrialCarbineCavalryConfig,
+    hamsterIndustrialHeavyLancerConfig,
     hamsterScoutRifleSkirmisherConfig,
     hamsterPoweredEodExplosiveLancerConfig,
     hamsterNinjaConfig,

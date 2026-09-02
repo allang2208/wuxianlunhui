@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "scope": "tools/ai-gen/_industrial_four_units_20260902 and its referenced four-unit source directories",
+  "reason": "Remove task-owned caches, duplicate previews and rejected binaries after final GIF acceptance while preserving the formal reconstruction chain.",
+  "removed": {
+    "cutoutCacheDirectories": 4,
+    "cutoutCacheFiles": 692,
+    "duplicateOrObsoletePreviewFiles": 51,
+    "rejectedSourceVideoBinaries": 3,
+    "rejectedSourceContactSheets": 3,
+    "totalFiles": 749,
+    "totalBytes": 193727051
+  },
+  "retained": [
+    "approved mother images and direct editing ancestors",
+    "17 accepted source videos and provider JSON metadata",
+    "uninterpolated selected source sheets",
+    "17 formal runtime sprite sheets",
+    "17 final runtime-clock GIF previews and final contact sheets",
+    "prompts, task IDs, selection indices, timing and sprite-budget reports",
+    "rejection reasons and metadata for removed rejected binaries",
+    "rebuild and audit scripts used for this asset set"
+  ],
+  "recoverability": "Removed caches and rejected binaries were untracked task artifacts and are not recoverable from Git. They can only be regenerated from retained inputs, prompts, provider metadata and reports.",
+  "runtimeAssetsRemoved": false,
+  "acceptedSourcesRemoved": false
+}

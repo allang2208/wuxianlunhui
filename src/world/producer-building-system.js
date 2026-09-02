@@ -24,6 +24,8 @@ import { HamsterCrossbow } from '../entities/hamster-crossbow.js';
 import { HamsterLongbow } from '../entities/hamster-longbow.js';
 import { HamsterAssault } from '../entities/hamster-assault.js';
 import { HamsterHeavyMachineGunner } from '../entities/hamster-heavy-machine-gunner.js';
+import { HamsterServiceRifleman } from '../entities/hamster-service-rifleman.js';
+import { HamsterBarAutomaticRifleman } from '../entities/hamster-bar-automatic-rifleman.js';
 import { HamsterSniper } from '../entities/hamster-sniper.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
 import { HamsterAntiVehicle } from '../entities/hamster-anti-vehicle.js';
@@ -34,6 +36,11 @@ import { HamsterCavalry } from '../entities/hamster-cavalry.js';
 import { HamsterWingedHussar } from '../entities/hamster-winged-hussar.js';
 import { HamsterScoutRifleSkirmisher } from '../entities/hamster-scout-rifle-skirmisher.js';
 import { HamsterPoweredEodExplosiveLancer } from '../entities/hamster-powered-eod-explosive-lancer.js';
+import { HamsterIndustrialCarbineCavalry } from '../entities/hamster-industrial-carbine-cavalry.js';
+import { HamsterIndustrialHeavyLancer } from '../entities/hamster-industrial-heavy-lancer.js';
+import { HamsterAntiTankRifleman } from '../entities/hamster-anti-tank-rifleman.js';
+import { HamsterIndustrialReconRifleman } from '../entities/hamster-industrial-recon-rifleman.js';
+import { HamsterSteelShieldAssault } from '../entities/hamster-steel-shield-assault.js';
 import { HamsterNinja } from '../entities/hamster-ninja.js';
 import { HamsterSamurai } from '../entities/hamster-samurai.js';
 import { HamsterCamelCavalry } from '../entities/hamster-camel-cavalry.js';
@@ -88,6 +95,8 @@ import crossbowCfg from '../../data/hamster-crossbow-config.json';
 import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
+import serviceRiflemanCfg from '../../data/hamster-service-rifleman-config.json';
+import barAutomaticRiflemanCfg from '../../data/hamster-bar-automatic-rifleman-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
@@ -98,6 +107,11 @@ import cavalryCfg from '../../data/hamster-cavalry-config.json';
 import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
 import scoutRifleSkirmisherCfg from '../../data/hamster-scout-rifle-skirmisher-config.json';
 import poweredEodExplosiveLancerCfg from '../../data/hamster-powered-eod-explosive-lancer-config.json';
+import industrialCarbineCavalryCfg from '../../data/hamster-industrial-carbine-cavalry-config.json';
+import industrialHeavyLancerCfg from '../../data/hamster-industrial-heavy-lancer-config.json';
+import antiTankRiflemanCfg from '../../data/hamster-anti-tank-rifleman-config.json';
+import industrialReconRiflemanCfg from '../../data/hamster-industrial-recon-rifleman-config.json';
+import steelShieldAssaultCfg from '../../data/hamster-steel-shield-assault-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -198,6 +212,8 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     longbow: '仓鼠长弓',
     assault: '仓鼠突击',
     heavy_machine_gunner: '仓鼠重机枪',
+    service_rifleman: '仓鼠制式步枪兵',
+    emplaced_machine_gun_crew: '仓鼠BAR自动步枪兵',
     sniper: '仓鼠狙击手',
     musketeer: '仓鼠火枪',
     anti_vehicle: '仓鼠反载',
@@ -208,6 +224,11 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     winged_hussar: '仓鼠翼骑兵',
     scout_rifle_skirmisher: '仓鼠侦察游骑兵',
     powered_eod_explosive_lancer: '仓鼠动力爆矛重骑兵',
+    industrial_carbine_cavalry: '仓鼠近代骑枪兵',
+    gunpowder_explosive_lancer: '仓鼠传统长矛重骑兵',
+    anti_tank_rifleman: '仓鼠反坦克步枪兵',
+    industrial_recon_rifleman: '仓鼠近代侦察步枪兵',
+    steel_shield_assault: '仓鼠钢盾突击兵',
     ninja: '仓鼠忍者',
     samurai: '仓鼠武士',
     camel_cavalry: '骆驼骑兵',
@@ -312,6 +333,8 @@ const PRODUCER_UNIT_CFG = {
     longbow: longbowCfg,
     assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
+    service_rifleman: serviceRiflemanCfg,
+    emplaced_machine_gun_crew: barAutomaticRiflemanCfg,
     sniper: sniperCfg,
     musketeer: musketeerCfg,
     anti_vehicle: antiVehicleCfg,
@@ -322,6 +345,11 @@ const PRODUCER_UNIT_CFG = {
     winged_hussar: wingedHussarCfg,
     scout_rifle_skirmisher: scoutRifleSkirmisherCfg,
     powered_eod_explosive_lancer: poweredEodExplosiveLancerCfg,
+    industrial_carbine_cavalry: industrialCarbineCavalryCfg,
+    gunpowder_explosive_lancer: industrialHeavyLancerCfg,
+    anti_tank_rifleman: antiTankRiflemanCfg,
+    industrial_recon_rifleman: industrialReconRiflemanCfg,
+    steel_shield_assault: steelShieldAssaultCfg,
     ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
@@ -350,6 +378,8 @@ const PRODUCER_UNIT_CLASS = {
     longbow: HamsterLongbow,
     assault: HamsterAssault,
     heavy_machine_gunner: HamsterHeavyMachineGunner,
+    service_rifleman: HamsterServiceRifleman,
+    emplaced_machine_gun_crew: HamsterBarAutomaticRifleman,
     sniper: HamsterSniper,
     musketeer: HamsterMusketeer,
     anti_vehicle: HamsterAntiVehicle,
@@ -360,6 +390,11 @@ const PRODUCER_UNIT_CLASS = {
     winged_hussar: HamsterWingedHussar,
     scout_rifle_skirmisher: HamsterScoutRifleSkirmisher,
     powered_eod_explosive_lancer: HamsterPoweredEodExplosiveLancer,
+    industrial_carbine_cavalry: HamsterIndustrialCarbineCavalry,
+    gunpowder_explosive_lancer: HamsterIndustrialHeavyLancer,
+    anti_tank_rifleman: HamsterAntiTankRifleman,
+    industrial_recon_rifleman: HamsterIndustrialReconRifleman,
+    steel_shield_assault: HamsterSteelShieldAssault,
     ninja: HamsterNinja,
     samurai: HamsterSamurai,
     camel_cavalry: HamsterCamelCavalry,
@@ -402,6 +437,8 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     longbow: 'data/hamster-longbow-config.json',
     assault: 'data/hamster-assault-config.json',
     heavy_machine_gunner: 'data/hamster-heavy-machine-gunner-config.json',
+    service_rifleman: 'data/hamster-service-rifleman-config.json',
+    emplaced_machine_gun_crew: 'data/hamster-bar-automatic-rifleman-config.json',
     sniper: 'data/hamster-sniper-config.json',
     musketeer: 'data/hamster-musketeer-config.json',
     anti_vehicle: 'data/hamster-anti-vehicle-config.json',
@@ -412,6 +449,11 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     winged_hussar: 'data/hamster-winged-hussar-config.json',
     scout_rifle_skirmisher: 'data/hamster-scout-rifle-skirmisher-config.json',
     powered_eod_explosive_lancer: 'data/hamster-powered-eod-explosive-lancer-config.json',
+    industrial_carbine_cavalry: 'data/hamster-industrial-carbine-cavalry-config.json',
+    gunpowder_explosive_lancer: 'data/hamster-industrial-heavy-lancer-config.json',
+    anti_tank_rifleman: 'data/hamster-anti-tank-rifleman-config.json',
+    industrial_recon_rifleman: 'data/hamster-industrial-recon-rifleman-config.json',
+    steel_shield_assault: 'data/hamster-steel-shield-assault-config.json',
     ninja: 'data/hamster-ninja-config.json',
     samurai: 'data/hamster-samurai-config.json',
     camel_cavalry: 'data/hamster-camel-cavalry-config.json',

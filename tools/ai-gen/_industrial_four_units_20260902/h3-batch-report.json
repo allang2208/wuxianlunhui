@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "provider": "MiniMax H3 on user-owned RTX 5080",
+  "durationSeconds": 5.17,
+  "size": "1024x576",
+  "steps": 20,
+  "candidatesPerAction": 1,
+  "audioMode": "visual-only",
+  "visualProfile": "character-asset",
+  "results": [
+    {
+      "unitKey": "service_rifleman",
+      "action": "idle",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/idle-h3-v01.mp4"
+    },
+    {
+      "unitKey": "service_rifleman",
+      "action": "running",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/running-h3-v01.mp4"
+    },
+    {
+      "unitKey": "service_rifleman",
+      "action": "attacking",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/attacking-h3-v01.mp4"
+    },
+    {
+      "unitKey": "service_rifleman",
+      "action": "dying",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/dying-h3-v01.mp4"
+    },
+    {
+      "unitKey": "emplaced_machine_gun_crew",
+      "action": "idle",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/videos/idle-h3-v01.mp4"
+    },
+    {
+      "unitKey": "emplaced_machine_gun_crew",
+      "action": "running",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/videos/running-h3-v01.mp4"
+    },
+    {
+      "unitKey": "emplaced_machine_gun_crew",
+      "action": "attacking",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/videos/attacking-h3-v01.mp4"
+    },
+    {
+      "unitKey": "emplaced_machine_gun_crew",
+      "action": "dying",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/videos/dying-h3-v01.mp4"
+    },
+    {
+      "unitKey": "industrial_carbine_cavalry",
+      "action": "idle",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/videos/idle-h3-v01.mp4"
+    },
+    {
+      "unitKey": "industrial_carbine_cavalry",
+      "action": "running",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/videos/running-h3-v01.mp4"
+    },
+    {
+      "unitKey": "industrial_carbine_cavalry",
+      "action": "attacking",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/videos/attacking-h3-v01.mp4"
+    },
+    {
+      "unitKey": "industrial_carbine_cavalry",
+      "action": "dying",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/videos/dying-h3-v01.mp4"
+    },
+    {
+      "unitKey": "gunpowder_explosive_lancer",
+      "action": "idle",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/idle-h3-v01.mp4"
+    },
+    {
+      "unitKey": "gunpowder_explosive_lancer",
+      "action": "running",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/running-h3-v01.mp4"
+    },
+    {
+      "unitKey": "gunpowder_explosive_lancer",
+      "action": "attacking",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/attacking-h3-v01.mp4"
+    },
+    {
+      "unitKey": "gunpowder_explosive_lancer",
+      "action": "charging",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/charging-h3-v01.mp4"
+    },
+    {
+      "unitKey": "gunpowder_explosive_lancer",
+      "action": "charging",
+      "version": "v02",
+      "status": "redrawn_after_user_review",
+      "seed": 220912598,
+      "referenceMode": "exact-same-first-and-last-frame",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/charging-h3-v02.mp4",
+      "provenance": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/charging-h3-v02.mp4.json"
+    },
+    {
+      "unitKey": "gunpowder_explosive_lancer",
+      "action": "dying",
+      "status": "existing",
+      "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/dying-h3-v01.mp4"
+    }
+  ]
+}

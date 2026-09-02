@@ -1,0 +1,5 @@
+<Picture 1> is the sole identity and opening gait authority for the same traditional heavy lancer pair. Preserve the armor, red saddle cloth and complete traditional lance; no powered or explosive equipment.
+
+Create a strong screen-right canter loop. 0.0-1.0 seconds: continue the supplied gait. 1.0-3.8 seconds: two readable armored cat canter cycles with correct four-paw sequence; rider remains seated, reins coherent, and lance stays stable angled forward-right without bending. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.
+
+Locked root-centered camera, constant scale, full rider/cat/tail/paws/lance in frame, pure white shadowless background. No attack, wings, rockets, explosion, extra rider/cat/limb/weapon, camera motion, text or watermark.

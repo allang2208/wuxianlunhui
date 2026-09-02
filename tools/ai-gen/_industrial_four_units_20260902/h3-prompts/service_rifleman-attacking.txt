@@ -1,0 +1,5 @@
+<Picture 1> is the sole identity, equipment and opening-pose authority for the same service-rifle hamster. Preserve the exact helmet, uniform, pouches, pack and one complete SVT-40-style wooden rifle.
+
+Create one recoverable single-rifle attack. 0.0-1.1 seconds: hold the planted screen-right shoulder aim. 1.1-1.3 seconds: fire exactly one shot with a compact attached muzzle flash and restrained recoil. 1.3-2.4 seconds: flash vanishes and a trace of smoke fades; keep both paws on the rifle. 2.4-5.17 seconds: lower slightly and return to the exact opening aim. Both boots stay planted; head, chest and pelvis never yaw toward camera.
+
+Locked slightly elevated three-quarter-right camera, constant scale, full body and weapon in frame, pure white shadowless background. No second shot, reload, shell handling, tail, extra limb, weapon duplication, large smoke, camera motion, text or watermark.

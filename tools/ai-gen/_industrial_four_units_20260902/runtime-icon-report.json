@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "icons": {
+    "service_rifleman": {
+      "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/mother/service_rifleman-mother-v01.png",
+      "output": "assets/ui/unit-icons/hamster-service-rifleman.png",
+      "sourceAlphaBBox": [
+        355,
+        52,
+        1462,
+        959
+      ],
+      "placedBBox": [
+        26,
+        117,
+        486,
+        494
+      ]
+    },
+    "emplaced_machine_gun_crew": {
+      "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/mother/emplaced_machine_gun_crew-mother-v06-backpack.png",
+      "output": "assets/ui/unit-icons/hamster-bar-automatic-rifleman.png",
+      "sourceAlphaBBox": [
+        325,
+        40,
+        1238,
+        950
+      ],
+      "placedBBox": [
+        40,
+        64,
+        471,
+        494
+      ]
+    },
+    "industrial_carbine_cavalry": {
+      "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png",
+      "output": "assets/ui/unit-icons/hamster-industrial-carbine-cavalry.png",
+      "sourceAlphaBBox": [
+        51,
+        119,
+        1057,
+        1167
+      ],
+      "placedBBox": [
+        39,
+        42,
+        473,
+        494
+      ]
+    },
+    "gunpowder_explosive_lancer": {
+      "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png",
+      "output": "assets/ui/unit-icons/hamster-industrial-heavy-lancer.png",
+      "sourceAlphaBBox": [
+        35,
+        80,
+        1227,
+        1211
+      ],
+      "placedBBox": [
+        26,
+        58,
+        486,
+        494
+      ]
+    }
+  }
+}

@@ -1,0 +1,456 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "units": {
+    "service_rifleman": {
+      "idle": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/mother/service_rifleman-mother-v01.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/references/idle-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          357,
+          54,
+          1387,
+          958
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          236,
+          46,
+          551,
+          484
+        ],
+        "scale": 0.5352212389380531,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "running": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/keyframes/running-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/references/running-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          299,
+          82,
+          1413,
+          936
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          196,
+          46,
+          631,
+          484
+        ],
+        "scale": 0.5665573770491803,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "attacking": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/references/attacking-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          276,
+          89,
+          1321,
+          951
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          218,
+          46,
+          587,
+          484
+        ],
+        "scale": 0.5612993039443155,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "dying": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/references/dying-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          276,
+          89,
+          1321,
+          951
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          218,
+          46,
+          587,
+          484
+        ],
+        "scale": 0.5612993039443155,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      }
+    },
+    "emplaced_machine_gun_crew": {
+      "idle": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/mother/emplaced_machine_gun_crew-mother-v06-backpack.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/references/idle-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          329,
+          42,
+          1237,
+          948
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          269,
+          46,
+          485,
+          484
+        ],
+        "scale": 0.5340397350993378,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "running": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/keyframes/running-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/references/running-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          332,
+          66,
+          1251,
+          928
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          254,
+          46,
+          516,
+          484
+        ],
+        "scale": 0.5612993039443155,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "attacking": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/references/attacking-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          319,
+          74,
+          1260,
+          939
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          249,
+          46,
+          526,
+          484
+        ],
+        "scale": 0.5593526011560693,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "dying": {
+        "source": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/emplaced_machine_gun_crew/references/dying-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          319,
+          74,
+          1260,
+          939
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          249,
+          46,
+          526,
+          484
+        ],
+        "scale": 0.5593526011560693,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      }
+    },
+    "industrial_carbine_cavalry": {
+      "idle": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/references/idle-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1254,
+          1254
+        ],
+        "sourceVisibleBbox": [
+          51,
+          121,
+          1055,
+          1165
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          285,
+          52,
+          454,
+          472
+        ],
+        "scale": 0.45241379310344826,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "running": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/keyframes/running-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/references/running-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1254,
+          1254
+        ],
+        "sourceVisibleBbox": [
+          53,
+          130,
+          1225,
+          1008
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          197,
+          52,
+          630,
+          472
+        ],
+        "scale": 0.5379498861047836,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "attacking": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/references/attacking-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1254,
+          1254
+        ],
+        "sourceVisibleBbox": [
+          34,
+          107,
+          1073,
+          1166
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          280,
+          52,
+          463,
+          472
+        ],
+        "scale": 0.4460056657223796,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "dying": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/industrial_carbine_cavalry/references/dying-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1254,
+          1254
+        ],
+        "sourceVisibleBbox": [
+          34,
+          107,
+          1073,
+          1166
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          280,
+          52,
+          463,
+          472
+        ],
+        "scale": 0.4460056657223796,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      }
+    },
+    "gunpowder_explosive_lancer": {
+      "idle": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/references/idle-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1254,
+          1254
+        ],
+        "sourceVisibleBbox": [
+          35,
+          81,
+          1227,
+          1210
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          262,
+          52,
+          499,
+          472
+        ],
+        "scale": 0.41835252435783876,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "running": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/keyframes/running-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/references/running-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1254,
+          1254
+        ],
+        "sourceVisibleBbox": [
+          53,
+          122,
+          1218,
+          1046
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          214,
+          52,
+          596,
+          472
+        ],
+        "scale": 0.5111688311688312,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "attacking": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/references/attacking-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          39,
+          169,
+          1499,
+          898
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          46,
+          55,
+          932,
+          465
+        ],
+        "scale": 0.6382465753424658,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "dying": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/references/dying-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          39,
+          169,
+          1499,
+          898
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          46,
+          55,
+          932,
+          465
+        ],
+        "scale": 0.6382465753424658,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      },
+      "charging": {
+        "source": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/keyframes/attacking-keyframe-v01.png",
+        "output": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/references/charging-keyframe-video-safe-16x9.png",
+        "sourceCanvas": [
+          1536,
+          1024
+        ],
+        "sourceVisibleBbox": [
+          39,
+          169,
+          1499,
+          898
+        ],
+        "outputCanvas": [
+          1024,
+          576
+        ],
+        "outputPlacement": [
+          46,
+          55,
+          932,
+          465
+        ],
+        "scale": 0.6382465753424658,
+        "operation": "near-white visible bbox, uniform Lanczos scale, centered pure-white padding; no stretch or repaint"
+      }
+    }
+  }
+}

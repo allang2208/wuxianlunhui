@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-31",
+  "batch": 4,
+  "title": "近代骑兵学院 III级母图、H3动作与运行资产已完成",
+  "scope": "近代骑枪兵与传统长矛重骑兵母图于2026-08-31确认；2026-09-02已完成MiniMax H3动作、正式精灵包与运行接入。",
+  "userRequest": "通过继续骑兵的生图，可以参考经典游戏战地一的骑兵单位",
+  "status": "runtime_integrated_h3_complete",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "provider": "built-in image_gen",
+  "model": "not_exposed_by_tool",
+  "seed": null,
+  "requestedCanvas": {
+    "width": 1024,
+    "height": 1024
+  },
+  "actualCanvas": {
+    "width": 1254,
+    "height": 1254,
+    "colorMode": "RGB",
+    "bitDepth": 8
+  },
+  "background": "pure white; not transparent or a sprite sheet",
+  "camera": "Reference-guided mildly elevated orthographic-like three-quarter view facing screen right. Exact Euler angles are not measured.",
+  "acceptedPreview": "comparison.html",
+  "approvedAt": "2026-08-31",
+  "approvalQuote": "完成了，然后参考整个条线的士兵，先设计数值",
+  "approvalScope": "骑枪兵视角v02与重骑兵视角v03母图通过；数值另行设计，不代表动画或运行时验收。",
+  "approvedCameraPreview": "camera-comparison.html",
+  "pendingPreview": null,
+  "numericalDesign": {
+    "path": "../../../docs/industrial-unit-balance-design-2026-08-31.md",
+    "revision": 4,
+    "updatedAt": "2026-09-01",
+    "basis": "用户授权继续调整；回调16种I/II的战斗值与招募经济，两种炮兵沿用v3，IV不变。优先保证普通僵尸对抗底线，单兵基础生命/DPS逐代提高，不再强制每人口效率递增；本批四个III级非炮兵单位已按v4接入。",
+    "status": "four_non_artillery_tier3_runtime_applied",
+    "lowerEraRuntimeApplied": true,
+    "runtimeApplied": true
+  },
+  "previousBatch": {
+    "index": "../_industrial_shooting_mothers_20260831/task-index.json",
+    "approvedOutputs": [
+      "service_rifleman-mother-v01.png",
+      "emplaced_machine_gun_crew-mother-v06-backpack.png"
+    ],
+    "approvalDate": "2026-08-31",
+    "approvalScope": "当前射手与双肩包BAR母图通过；原IV级重机枪不变。"
+  },
+  "designSources": [
+    {
+      "title": "EA Battlefield 1 horse/cavalry overview",
+      "url": "https://www.ea.com/es-mx/games/battlefield/news/battlefield-1-horses-overview",
+      "use": "骑乘步枪、军刀与鞍包的近代骑兵概念；只作美术文字参考，不移植补给/治疗/反坦克玩法。"
+    },
+    {
+      "title": "EA Battlefield 1 Hussar cavalry",
+      "url": "https://www.ea.com/games/battlefield/news/ride-with-the-legendary-hussars-in-battlefield-1",
+      "use": "一战长矛骑兵方向；猫坐骑与武器工艺为本项目美术改绘。最新III级普通长矛不含爆炸装置，不声称是战地一原样装备。"
+    }
+  ],
+  "externalImageInputs": [],
+  "externalSourceBoundary": "未增加外部图片。当前轻骑v02输入其v01和既有轻骑单帧；重骑v03输入精致长矛v02、既有骑士单帧及本次轻骑v02。历史II/IV参考保留在直接编辑来源链中。",
+  "productionPlan": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "bodyReference": "现有轻骑兵坐骑+骑手有效身体尺度；不得套用步兵75.684px基准。",
+    "worldBodyReferencePixels": 179.765625,
+    "referenceBasis": "skill/09-monsters-npc.md 骑兵基准：有效身体236px × displaySize390 / frame512。后续新动作需按有效bodyH与footF重新标定，不直接复用390。",
+    "sourceSampling": "本轮是母图构图，不是运行时格子或已完成的身高标定；后续有效身体高度排除长枪、帽饰和附属装备。",
+    "runtimeBudgetMeasured": true,
+    "bodyScaleMeasured": true,
+    "testsRun": false
+  },
+  "units": [
+    {
+      "unitKey": "industrial_carbine_cavalry",
+      "name": "近代骑枪兵",
+      "slot": "light_cavalry",
+      "tier": 3,
+      "fromUnitKey": "cavalry",
+      "toUnitKey": "scout_rifle_skirmisher",
+      "sourceOutput": "mother/industrial_carbine_cavalry-mother-v01.png",
+      "sourcePrompt": "prompts/industrial_carbine_cavalry-v01.txt",
+      "referenceInputs": [
+        "mother/industrial_carbine_cavalry-mother-v01.png",
+        "references/light-cavalry-existing-camera.png"
+      ],
+      "identityAnchors": [
+        "轻骑线金棕白颊仓鼠与橘色虎斑猫，不替换为马",
+        "软军帽、卡其短军服、蓝绿围巾与鞍毯",
+        "木托骑枪、皮革子弹带、鞍包和卷毯；军刀收鞘"
+      ],
+      "plannedRole": "骑猫步枪侦察与游击；85/2.3秒、540射程、停步射击，详见v4四时代数值稿。",
+      "weaponInterpretation": "一战风格木托骑枪，仅为游戏外观；未指定或声称精确复刻某一真实枪型。",
+      "output": "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png",
+      "prompt": "prompts/industrial_carbine_cavalry-v02-cavalry-camera.txt",
+      "accepted": true,
+      "status": "runtime_integrated_h3_complete",
+      "approvedAt": "2026-08-31",
+      "acceptedPreview": "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png",
+      "pendingPreview": null,
+      "riderCount": 1,
+      "mountCount": 1,
+      "background": "pure_white",
+      "actualCanvas": {
+        "width": 1254,
+        "height": 1254,
+        "colorMode": "RGB",
+        "bitDepth": 8
+      },
+      "futurePlanOnly": false,
+      "runtimeIntegrationActive": true,
+      "formalPackage": "../_industrial_four_units_20260902/formal-packages/industrial_carbine_cavalry",
+      "runtimeConfig": "../../../data/hamster-industrial-carbine-cavalry-config.json",
+      "spriteBudgetMiB": 26.75,
+      "previousCandidates": [
+        {
+          "name": "近代骑枪兵",
+          "output": "mother/industrial_carbine_cavalry-mother-v01.png",
+          "prompt": "prompts/industrial_carbine_cavalry-v01.txt",
+          "sourceOutput": "references/lightII.png",
+          "sourcePrompt": "references/lightII-prompt.txt",
+          "referenceInputs": [
+            "references/lightII.png",
+            "references/lightIV.png"
+          ],
+          "revisionRequest": null,
+          "status": "superseded_direct_edit_source",
+          "reason": "用户要求参照现有骑兵视角/朝向校准；保留本图及其提示词作为直接编辑源，装备方案不变。"
+        }
+      ],
+      "cameraRevisionRequest": "看一下现在骑兵单位的视角，还有朝向，再做一下精准调",
+      "cameraCalibration": {
+        "mode": "reference_guided_visual_camera_and_facing_edit",
+        "sourceFacing": "screen_right",
+        "projection": "mildly elevated orthographic-like three-quarter",
+        "references": [
+          "references/light-cavalry-existing-camera.png"
+        ],
+        "numericallyMeasured": false,
+        "bodyScaleMeasured": false,
+        "equipmentChanged": false
+      },
+      "requestedCanvas": {
+        "width": 1254,
+        "height": 1254
+      }
+    },
+    {
+      "unitKey": "gunpowder_explosive_lancer",
+      "name": "近代重骑兵",
+      "slot": "heavy_cavalry",
+      "tier": 3,
+      "fromUnitKey": "winged_hussar",
+      "toUnitKey": "powered_eod_explosive_lancer",
+      "sourceOutput": "mother/gunpowder_explosive_lancer-mother-v02-refined-lance.png",
+      "sourcePrompt": "prompts/gunpowder_explosive_lancer-v02-refined-lance.txt",
+      "referenceInputs": [
+        "mother/gunpowder_explosive_lancer-mother-v02-refined-lance.png",
+        "references/knight-existing-camera.png",
+        "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png"
+      ],
+      "identityAnchors": [
+        "骑士线金棕白颊仓鼠与银灰虎斑猫",
+        "低脊钢盔、钢胸甲、护臂和暗红围巾/鞍毯",
+        "猫额甲与铆接护胸、精致传统长矛：刻纹钢矛尖、细铜箍、抛光木杆和皮革握段",
+        "不保留II级巨大羽翼架，不提前使用IV级动力助推或防爆服"
+      ],
+      "plannedRole": "普通长矛突刺与单体重骑冲锋；930生命、160/2.2秒，17秒冲锋384直击，详见v4四时代数值稿。III无爆炸和动力助推。",
+      "weaponInterpretation": "传统非爆炸长矛：细长钢制矛尖、中央脊线和基部刻纹、细铜箍/窄套筒、木杆与握段；无爆炸筒、黄色识别环或动力机构。",
+      "output": "mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png",
+      "prompt": "prompts/gunpowder_explosive_lancer-v03-cavalry-camera.txt",
+      "accepted": true,
+      "status": "runtime_integrated_h3_complete",
+      "approvedAt": "2026-08-31",
+      "acceptedPreview": "mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png",
+      "pendingPreview": null,
+      "riderCount": 1,
+      "mountCount": 1,
+      "background": "pure_white",
+      "actualCanvas": {
+        "width": 1254,
+        "height": 1254,
+        "colorMode": "RGB",
+        "bitDepth": 8
+      },
+      "futurePlanOnly": false,
+      "runtimeIntegrationActive": true,
+      "formalPackage": "../_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer",
+      "runtimeConfig": "../../../data/hamster-industrial-heavy-lancer-config.json",
+      "spriteBudgetMiB": 57.75,
+      "legacyPlanningName": "火药爆矛重骑兵",
+      "unitKeyNote": "保留既有占位unitKey以便来源对应，不表示仍有火药/爆炸功能；正式开发时同步显示名称和占位说明，本轮未改运行时键或配置。",
+      "weaponFeatures": {
+        "traditionalLance": true,
+        "explosiveCharge": false,
+        "poweredAssist": false
+      },
+      "revisionRequest": "重骑兵就不加入爆炸长矛了，帮我做一把精致的长矛即可",
+      "previousCandidates": [
+        {
+          "name": "近代重骑兵",
+          "output": "mother/gunpowder_explosive_lancer-mother-v02-refined-lance.png",
+          "prompt": "prompts/gunpowder_explosive_lancer-v02-refined-lance.txt",
+          "sourceOutput": "mother/gunpowder_explosive_lancer-mother-v01.png",
+          "sourcePrompt": "prompts/gunpowder_explosive_lancer-v01.txt",
+          "referenceInputs": [
+            "mother/gunpowder_explosive_lancer-mother-v01.png"
+          ],
+          "revisionRequest": "重骑兵就不加入爆炸长矛了，帮我做一把精致的长矛即可",
+          "status": "superseded_direct_edit_source",
+          "reason": "用户要求参照现有骑兵视角/朝向校准；保留本图及其提示词作为直接编辑源，装备方案不变。"
+        },
+        {
+          "name": "火药爆矛重骑兵",
+          "output": "mother/gunpowder_explosive_lancer-mother-v01.png",
+          "prompt": "prompts/gunpowder_explosive_lancer-v01.txt",
+          "sourceOutput": "references/heavyII.png",
+          "sourcePrompt": "references/heavyII-prompt.txt",
+          "referenceInputs": [
+            "references/heavyII.png",
+            "references/heavyIV.png"
+          ],
+          "weaponInterpretation": "虚构火药爆矛道具：钢矛尖后方为封闭短金属筒，黄色环作身份标记；不含外露引信、内部结构、工程设计或动力装置。",
+          "status": "superseded_direct_edit_source",
+          "reason": "用户取消III级爆炸长矛，改为精致传统长矛；保留v01作为v02唯一直接编辑源。"
+        }
+      ],
+      "cameraRevisionRequest": "看一下现在骑兵单位的视角，还有朝向，再做一下精准调",
+      "cameraCalibration": {
+        "mode": "reference_guided_visual_camera_and_facing_edit",
+        "sourceFacing": "screen_right",
+        "projection": "mildly elevated orthographic-like three-quarter",
+        "references": [
+          "references/knight-existing-camera.png",
+          "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png"
+        ],
+        "numericallyMeasured": false,
+        "bodyScaleMeasured": false,
+        "equipmentChanged": false
+      },
+      "requestedCanvas": {
+        "width": 1254,
+        "height": 1254
+      }
+    }
+  ],
+  "comparisonReferences": {
+    "light": [
+      "references/lightII.png",
+      "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png",
+      "references/lightIV.png"
+    ],
+    "heavy": [
+      "references/heavyII.png",
+      "mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png",
+      "references/heavyIV.png"
+    ],
+    "scaleCaveat": "原始构图与留白保留，只看升级血统/武器/装备时代，不代表实机等身高。"
+  },
+  "provenance": [
+    {
+      "path": "mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-06908023-b41b-4903-af25-730f2006d3ab.png",
+      "role": "accepted_mother",
+      "sourceOutput": "mother/gunpowder_explosive_lancer-mother-v02-refined-lance.png",
+      "sourcePrompt": "prompts/gunpowder_explosive_lancer-v02-refined-lance.txt",
+      "prompt": "prompts/gunpowder_explosive_lancer-v03-cavalry-camera.txt",
+      "editInputs": [
+        "mother/gunpowder_explosive_lancer-mother-v02-refined-lance.png",
+        "references/knight-existing-camera.png",
+        "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png"
+      ],
+      "operation": "imagegen_reference_guided_camera_and_facing_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-bce9dbd0-80ed-4fad-9336-1bf083580d7d.png",
+      "role": "accepted_mother",
+      "sourceOutput": "mother/industrial_carbine_cavalry-mother-v01.png",
+      "sourcePrompt": "prompts/industrial_carbine_cavalry-v01.txt",
+      "prompt": "prompts/industrial_carbine_cavalry-v02-cavalry-camera.txt",
+      "editInputs": [
+        "mother/industrial_carbine_cavalry-mother-v01.png",
+        "references/light-cavalry-existing-camera.png"
+      ],
+      "operation": "imagegen_reference_guided_camera_and_facing_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/gunpowder_explosive_lancer-mother-v02-refined-lance.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-51920387-9ecd-4045-879b-eb7dbe558666.png",
+      "role": "direct_edit_source",
+      "sourceOutput": "mother/gunpowder_explosive_lancer-mother-v01.png",
+      "sourcePrompt": "prompts/gunpowder_explosive_lancer-v01.txt",
+      "prompt": "prompts/gunpowder_explosive_lancer-v02-refined-lance.txt",
+      "editInputs": [
+        "mother/gunpowder_explosive_lancer-mother-v01.png"
+      ],
+      "operation": "imagegen_lance_only_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/industrial_carbine_cavalry-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-9411f790-bb9b-43c5-8a87-01a8c72257e0.png",
+      "role": "direct_edit_source",
+      "sourceOutput": "references/lightII.png",
+      "sourcePrompt": "references/lightII-prompt.txt",
+      "prompt": "prompts/industrial_carbine_cavalry-v01.txt",
+      "editInputs": [
+        "references/lightII.png",
+        "references/lightIV.png"
+      ],
+      "operation": "imagegen_identity_preserving_era_variant_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/gunpowder_explosive_lancer-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-e344e74c-3578-48a9-83d0-b3d1cddfdaab.png",
+      "role": "direct_edit_source",
+      "sourceOutput": "references/heavyII.png",
+      "sourcePrompt": "references/heavyII-prompt.txt",
+      "prompt": "prompts/gunpowder_explosive_lancer-v01.txt",
+      "editInputs": [
+        "references/heavyII.png",
+        "references/heavyIV.png"
+      ],
+      "operation": "imagegen_identity_preserving_era_variant_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "references/lightII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-cavalry-mother-v04-line-rider-white.png",
+      "role": "primary_lineage_edit_source",
+      "sourcePrompt": "references/lightII-prompt.txt",
+      "originalPrompt": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/prompts/cavalry-v04-line-rider.txt",
+      "originalTaskIndex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/task-index.json",
+      "operation": "copied_image_and_prompt_without_edits"
+    },
+    {
+      "path": "references/heavyII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-winged-hussar-mother-v04-line-rider-white.png",
+      "role": "primary_lineage_edit_source",
+      "sourcePrompt": "references/heavyII-prompt.txt",
+      "originalPrompt": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/prompts/winged-hussar-v04-line-rider.txt",
+      "originalTaskIndex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/task-index.json",
+      "operation": "copied_image_and_prompt_without_edits"
+    },
+    {
+      "path": "references/lightIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-scout-rifle-skirmisher-mother-v02-white.png",
+      "role": "future_lineage_reference",
+      "sourcePrompt": "references/lightIV-prompt.txt",
+      "originalPrompt": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/prompts/scout-rifle-skirmisher-v02.txt",
+      "originalTaskIndex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/task-index.json",
+      "operation": "copied_image_and_prompt_without_edits"
+    },
+    {
+      "path": "references/heavyIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-powered-eod-explosive-lancer-mother-v02-white.png",
+      "role": "future_lineage_reference",
+      "sourcePrompt": "references/heavyIV-prompt.txt",
+      "originalPrompt": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/prompts/powered-eod-explosive-lancer-v02.txt",
+      "originalTaskIndex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/task-index.json",
+      "operation": "copied_image_and_prompt_without_edits"
+    },
+    {
+      "path": "references/light-cavalry-existing-camera.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/references/hamster-light-cavalry-line-reference-enlarged.png",
+      "role": "existing_cavalry_camera_reference",
+      "identity": "既有仓鼠轻骑放大单帧",
+      "originalTaskIndex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/task-index.json",
+      "operation": "copied_without_pixel_edits",
+      "scope": "只作视角/朝向控制；不复制旧装备、低分辨率或绘制风格。"
+    },
+    {
+      "path": "references/knight-existing-camera.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/references/hamster-knight-line-reference-enlarged.png",
+      "role": "existing_cavalry_camera_reference",
+      "identity": "既有仓鼠骑士放大单帧",
+      "originalTaskIndex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/task-index.json",
+      "operation": "copied_without_pixel_edits",
+      "scope": "只作视角/朝向控制；不复制旧装备、低分辨率或绘制风格。"
+    }
+  ],
+  "reviewBoundary": "2026-09-02已逐动作查看H3源联系表和正式运行联系表，并通过PNG布局/解码预算静态门禁；未运行游戏、浏览器/CDP、测试或构建。",
+  "remainingMotherUnits": [
+    "近代炮兵组"
+  ],
+  "latestRevisionRequest": "看一下现在骑兵单位的视角，还有朝向，再做一下精准调",
+  "cameraCalibration": {
+    "request": "看一下现在骑兵单位的视角，还有朝向，再做一下精准调",
+    "comparison": "camera-comparison.html",
+    "previousAngleHint": {
+      "yawDegrees": 35,
+      "downwardDegrees": 8,
+      "status": "retired_unmeasured_prompt_hint_not_calibration_evidence"
+    },
+    "basis": "直接查看当前仓鼠轻骑/仓鼠骑兵/翼骑兵待机图集，并以已有轻骑、骑士放大单帧控制投影；重骑另参考本次轻骑校准稿统一镜头。",
+    "observations": [
+      "现有骑兵源图向右，采用略俯视三分之四构图。",
+      "修改前近代母图更接近平视展示；按现有单帧调整帽盔顶、肩背和鞍座可见面及头身朝向。",
+      "两张当前母图已获用户确认；没有通过单张图片反求相机角度，也没有完成游戏内等身高/脚点标定。"
+    ],
+    "targets": [
+      "原生朝向保持屏幕右侧，不镜像成左向",
+      "骑手与猫的头、躯干朝向保持一致，保留三分之四视角",
+      "帽盔、肩背、鞍座上表面适度可见；四足透视与遮挡一致",
+      "不替换武器或装备，不恢复爆炸装置"
+    ],
+    "reviewedExistingAssets": [
+      "assets/companions/hamster_light_cavalry/idle.png",
+      "assets/companions/hamster_cavalry/idle.png",
+      "assets/companions/hamster_winged_hussar/idle.png"
+    ],
+    "numericallyMeasured": false,
+    "runtimeCameraOrFlipChanged": false,
+    "runtimeFootOrCollisionChanged": false
+  },
+  "cameraComparisonReferences": {
+    "light": [
+      "references/light-cavalry-existing-camera.png",
+      "mother/industrial_carbine_cavalry-mother-v01.png",
+      "mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png"
+    ],
+    "heavy": [
+      "references/knight-existing-camera.png",
+      "mother/gunpowder_explosive_lancer-mother-v02-refined-lance.png",
+      "mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png"
+    ],
+    "scaleCaveat": "原图留白和武器长度影响图块占比；此页只看视角/朝向，不表示运行时等身高或已做相机数值求解。"
+  }
+}

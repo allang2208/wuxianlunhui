@@ -1,0 +1,352 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-31",
+  "batch": 3,
+  "title": "近代射击学校 III级母图、H3动作与运行资产已完成",
+  "scope": "制式步枪兵与单人BAR自动步枪兵母图于2026-08-31确认；2026-09-02已完成MiniMax H3动作、正式精灵包与运行接入。",
+  "status": "runtime_integrated_h3_complete",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "provider": "built-in image_gen",
+  "model": "not_exposed_by_tool",
+  "seed": null,
+  "requestedCanvas": {
+    "width": 1536,
+    "height": 1024
+  },
+  "background": "pure white; not a transparent spritesheet",
+  "camera": "slightly elevated orthographic-like three-quarter right-facing infantry view",
+  "styleAuthority": "references/acceptedSovietIII.png",
+  "styleAuthorityApproval": "2026-08-31 用户：可用，继续下两个士兵的生图。",
+  "acceptedPreview": "comparison.html",
+  "approvedAt": "2026-08-31",
+  "pendingPreview": null,
+  "productionPlan": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "bodyReference": "仓鼠牧师有效身体尺度；普通金橙毛仓鼠步兵血统",
+    "worldBodyReferencePixels": 75.684,
+    "sourceSampling": "后续按实际镜头登记；母图画布不是精灵格子或运行时身高。有效身体高度排除背包和武器，不直接按整图Alpha包围盒缩放人物。",
+    "runtimeBudgetMeasured": true,
+    "testsRun": false
+  },
+  "units": [
+    {
+      "unitKey": "service_rifleman",
+      "name": "制式步枪兵",
+      "slot": "mobile_ranged",
+      "tier": 3,
+      "fromUnitKey": "longbow",
+      "toUnitKey": "assault",
+      "output": "mother/service_rifleman-mother-v01.png",
+      "prompt": "prompts/service_rifleman-v01.txt",
+      "sourceOutput": null,
+      "sourcePrompt": null,
+      "referenceInputs": [
+        "references/acceptedSovietIII.png",
+        "references/longbowII.png",
+        "references/assaultIV.png"
+      ],
+      "accepted": true,
+      "status": "runtime_integrated_h3_complete",
+      "identityAnchors": [
+        "金橙毛、白颊短吻、粉鼻圆黑眼",
+        "普通步兵体型与右向略俯视镜头",
+        "红星钢盔、素色卡其军服、皮革弹药包",
+        "SVT-40风格木托制式步枪、短箱形弹匣与枪口制退器；无瞄准镜"
+      ],
+      "weaponReference": {
+        "visualInterpretation": "Tokarev SVT-40-style wooden service rifle",
+        "selection": "用户通过制式步枪兵v01，保留SVT-40游戏外观，不改成BAR。",
+        "sources": [
+          "https://royalarmouries.org/objects-and-stories/stories/gendering-the-armouries"
+        ],
+        "scope": "网页文字仅用于外观身份核对，没有下载或传入外部枪械照片，不作工程复刻。"
+      },
+      "plannedRole": "制式步枪单发、中远距离输出；70伤害/1.8秒、680射程、停步射击，无毒箭、标记或额外穿甲。",
+      "runtimeIntegrationActive": true,
+      "formalPackage": "../_industrial_four_units_20260902/formal-packages/service_rifleman",
+      "runtimeConfig": "../../../data/hamster-service-rifleman-config.json",
+      "spriteBudgetMiB": 21.0703125,
+      "approvedAt": "2026-08-31"
+    },
+    {
+      "unitKey": "emplaced_machine_gun_crew",
+      "name": "阵地机枪组",
+      "slot": "heavy_fire",
+      "tier": 3,
+      "fromUnitKey": "musketeer",
+      "toUnitKey": "heavy_machine_gunner",
+      "output": "mother/emplaced_machine_gun_crew-mother-v06-backpack.png",
+      "prompt": "prompts/emplaced_machine_gun_crew-v06-backpack.txt",
+      "sourceOutput": "mother/emplaced_machine_gun_crew-mother-v05-ammo.png",
+      "sourcePrompt": "prompts/emplaced_machine_gun_crew-v05-ammo.txt",
+      "referenceInputs": [
+        "mother/emplaced_machine_gun_crew-mother-v05-ammo.png"
+      ],
+      "accepted": true,
+      "status": "runtime_integrated_h3_complete",
+      "crewCount": 1,
+      "machineGunCount": 1,
+      "compositionBasis": "将背负金属箱软化为贴身帆布双肩弹药背包，继续用背包轮廓及弹链区别普通射手；不改变单人身份、枪型或身体尺度计划。",
+      "identityAnchors": [
+        "单人金橙毛苏式仓鼠，白颊短吻、红星钢盔与卡其军服",
+        "双手持BAR，保留普通步兵体型、站姿及右向镜头",
+        "帆布双肩弹药背包，翻盖、皮扣和侧袋；肩胸斜挎弹链保留",
+        "无硬质金属箱或通讯设备；原制式步枪兵和IV级重机枪不动"
+      ],
+      "weaponReference": {
+        "visualInterpretation": "Browning BAR M1918 family; prompt uses WWII M1918A2 as the appearance direction",
+        "selection": "用户通过单人BAR帆布双肩弹药背包＋携行弹链v06，射手和IV级重机枪均不变。",
+        "sources": [
+          "https://www.browning.com/news/articles/historical/inside-story-bar-john-m-browning-automatic-rifle.html"
+        ],
+        "scope": "BAR系列一战末投入使用，M1918A2属二战使用型号。本图为苏式服装搭配美制枪械的游戏设计，不是历史苏军制式装备证明；只查外观与时代，不提供操作/工程说明。工具生成细节不代表逐部件精确复刻，网页图片未传入生成。"
+      },
+      "plannedRole": "单兵BAR火力支援；28伤害三发点射、700射程、20%穿甲、最多贯穿两个目标且次目标50%伤害，无架设或供弹技能。",
+      "runtimeIntegrationActive": true,
+      "formalPackage": "../_industrial_four_units_20260902/formal-packages/emplaced_machine_gun_crew",
+      "runtimeConfig": "../../../data/hamster-bar-automatic-rifleman-config.json",
+      "spriteBudgetMiB": 19.875,
+      "revisionRequest": "错了，我的意思是级双人马克沁  替换成单人勃朗宁，原来计划开发的的射手不变",
+      "previousCandidates": [
+        {
+          "output": "mother/emplaced_machine_gun_crew-mother-v05-ammo.png",
+          "prompt": "prompts/emplaced_machine_gun_crew-v05-ammo.txt",
+          "sourceOutput": "mother/emplaced_machine_gun_crew-mother-v04-radio.png",
+          "sourcePrompt": "prompts/emplaced_machine_gun_crew-v04-radio.txt",
+          "referenceInputs": [
+            "mother/emplaced_machine_gun_crew-mother-v04-radio.png"
+          ],
+          "crewCount": 1,
+          "machineGunCount": 1,
+          "weapon": "Browning BAR",
+          "status": "superseded_direct_edit_source",
+          "reason": "用户要求将硬质弹药箱改为斜挎包或双肩包；本版选择帆布双肩背包，v05为直接编辑输入。"
+        },
+        {
+          "output": "mother/emplaced_machine_gun_crew-mother-v04-radio.png",
+          "prompt": "prompts/emplaced_machine_gun_crew-v04-radio.txt",
+          "sourceOutput": "mother/emplaced_machine_gun_crew-mother-v03-single-bar.png",
+          "sourcePrompt": "prompts/emplaced_machine_gun_crew-v03-single-bar.txt",
+          "referenceInputs": [
+            "mother/emplaced_machine_gun_crew-mother-v03-single-bar.png"
+          ],
+          "crewCount": 1,
+          "machineGunCount": 1,
+          "weapon": "Browning BAR",
+          "status": "superseded_direct_edit_source",
+          "reason": "用户认为电台不合适，改为弹药箱和弹链；电台v04保留为v05直接编辑输入。"
+        },
+        {
+          "output": "mother/emplaced_machine_gun_crew-mother-v03-single-bar.png",
+          "prompt": "prompts/emplaced_machine_gun_crew-v03-single-bar.txt",
+          "sourceOutput": "mother/emplaced_machine_gun_crew-mother-v02-browning-bar.png",
+          "sourcePrompt": "prompts/emplaced_machine_gun_crew-v02-browning-bar.txt",
+          "referenceInputs": [
+            "mother/emplaced_machine_gun_crew-mother-v02-browning-bar.png"
+          ],
+          "crewCount": 1,
+          "machineGunCount": 1,
+          "weapon": "Browning BAR",
+          "status": "superseded_direct_edit_source",
+          "reason": "用户要求增加装备区分度；该无电台版本为电台v04直接编辑源。"
+        },
+        {
+          "output": "mother/emplaced_machine_gun_crew-mother-v02-browning-bar.png",
+          "prompt": "prompts/emplaced_machine_gun_crew-v02-browning-bar.txt",
+          "sourceOutput": "mother/emplaced_machine_gun_crew-mother-v01.png",
+          "sourcePrompt": "prompts/emplaced_machine_gun_crew-v01.txt",
+          "referenceInputs": [
+            "mother/emplaced_machine_gun_crew-mother-v01.png",
+            "references/acceptedSovietIII.png"
+          ],
+          "crewCount": 1,
+          "machineGunCount": 1,
+          "weapon": "Browning BAR",
+          "status": "superseded_direct_edit_source"
+        },
+        {
+          "output": "mother/emplaced_machine_gun_crew-mother-v01.png",
+          "prompt": "prompts/emplaced_machine_gun_crew-v01.txt",
+          "sourceOutput": null,
+          "sourcePrompt": null,
+          "referenceInputs": [
+            "references/acceptedSovietIII.png",
+            "references/heavyMachineIV.png",
+            "references/twoCrewScale.png"
+          ],
+          "crewCount": 2,
+          "machineGunCount": 1,
+          "weapon": "Maxim M1910-style wheeled machine gun",
+          "status": "superseded_direct_edit_source",
+          "reason": "按用户明确要求替换为单人勃朗宁；保留原图作为v02直接编辑祖先。"
+        }
+      ],
+      "generationRequest": "弹药箱可以设置成斜挎背包或双肩背包吗",
+      "equipmentRevisionRequest": "弹药箱可以设置成斜挎背包或双肩背包吗",
+      "equipment": {
+        "canvasAmmunitionBackpack": 1,
+        "carryingStyle": "two_shoulder_straps",
+        "carriedAmmunitionBelt": 1,
+        "rigidAmmunitionBox": 0,
+        "removed": [
+          "rigidMetalCrate",
+          "backpackRadio",
+          "antenna",
+          "headset",
+          "microphone",
+          "radioCables"
+        ],
+        "scope": "帆布背包和弹链仅为携行外观，弹链不接BAR；不改供弹、弹药容量、人口或技能。"
+      },
+      "approvedAt": "2026-08-31"
+    }
+  ],
+  "comparisonReferences": {
+    "serviceRifleman": [
+      "references/longbowII.png",
+      "references/assaultIV.png"
+    ],
+    "machineGunCrew": [
+      "references/musketeerII-idle.png",
+      "references/heavyMachineIV.png"
+    ],
+    "musketeerFrame": {
+      "path": "references/musketeerII-idle.png",
+      "sourceConfig": "data/hamster-musketeer-config.json",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "displayFrame": 0,
+      "method": "HTML/CSS shows the first cell of the unchanged idle sheet; not an extracted or regenerated mother image.",
+      "usedForGeneration": false
+    },
+    "scaleCaveat": "对照仅展示兵种身份和时代承接，源图保留留白；不是游戏内等身高标定。"
+  },
+  "provenance": [
+    {
+      "path": "mother/emplaced_machine_gun_crew-mother-v06-backpack.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-16c2136c-1c24-4428-a308-536eaf1a6a2d.png",
+      "role": "accepted_mother",
+      "editInputs": [
+        "mother/emplaced_machine_gun_crew-mother-v05-ammo.png"
+      ],
+      "prompt": "prompts/emplaced_machine_gun_crew-v06-backpack.txt",
+      "operation": "imagegen_canvas_backpack_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/emplaced_machine_gun_crew-mother-v05-ammo.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-4ff219df-f265-4c9b-921a-d0f200c96dcb.png",
+      "role": "direct_edit_source",
+      "editInputs": [
+        "mother/emplaced_machine_gun_crew-mother-v04-radio.png"
+      ],
+      "prompt": "prompts/emplaced_machine_gun_crew-v05-ammo.txt",
+      "operation": "imagegen_ammunition_equipment_replacement_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/emplaced_machine_gun_crew-mother-v04-radio.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-07f8f270-aab2-4b86-a37a-454a9ae25a81.png",
+      "role": "direct_edit_source",
+      "editInputs": [
+        "mother/emplaced_machine_gun_crew-mother-v03-single-bar.png"
+      ],
+      "prompt": "prompts/emplaced_machine_gun_crew-v04-radio.txt",
+      "operation": "imagegen_radio_equipment_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/emplaced_machine_gun_crew-mother-v03-single-bar.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-39d1ac4f-cd7a-4ec5-ab32-c7f38a12604f.png",
+      "role": "direct_edit_source",
+      "editInputs": [
+        "mother/emplaced_machine_gun_crew-mother-v02-browning-bar.png"
+      ],
+      "prompt": "prompts/emplaced_machine_gun_crew-v03-single-bar.txt",
+      "operation": "imagegen_identity_preserving_revision_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/emplaced_machine_gun_crew-mother-v02-browning-bar.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-97f8c6fe-85a7-4321-9829-6748b80c40a0.png",
+      "role": "direct_edit_source",
+      "editInputs": [
+        "mother/emplaced_machine_gun_crew-mother-v01.png",
+        "references/acceptedSovietIII.png"
+      ],
+      "prompt": "prompts/emplaced_machine_gun_crew-v02-browning-bar.txt",
+      "operation": "imagegen_composition_and_weapon_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/service_rifleman-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-ffff2b5b-69d8-40a0-9202-63ca9f9b057a.png",
+      "role": "accepted_mother",
+      "prompt": "prompts/service_rifleman-v01.txt",
+      "operation": "imagegen_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/emplaced_machine_gun_crew-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-bb71fe3c-7771-4194-a74a-6f3a9e5fb135.png",
+      "role": "direct_edit_source_superseded_candidate",
+      "prompt": "prompts/emplaced_machine_gun_crew-v01.txt",
+      "operation": "imagegen_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "references/longbowII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_longbow_20260827/mother/hamster-longbow-mother-v04-infantry-view-candidate.png",
+      "role": "generation_reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/assaultIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-assault-mother-v03-compact-body-white.png",
+      "role": "generation_reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/heavyMachineIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_missing_mothers_20260826/mother/hamster-heavy-machine-gunner-mother-v02-unified-white.png",
+      "role": "generation_reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/acceptedSovietIII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_industrial_recon_mothers_20260831/mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+      "role": "generation_reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/twoCrewScale.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_engineering_mothers_20260830/mother/hamster_field_cannon_crew-mother-v07-infantry-camera-white.png",
+      "role": "generation_reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/musketeerII-idle.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/assets/companions/hamster_musketeer/idle.png",
+      "role": "comparison_only",
+      "operation": "copied_without_pixel_edits"
+    }
+  ],
+  "reviewBoundary": "2026-09-02已逐动作查看H3源联系表和正式运行联系表，并通过PNG布局/解码预算静态门禁；未运行游戏、浏览器/CDP、测试或构建。",
+  "remainingMotherUnits": [
+    "近代炮兵组"
+  ],
+  "correction": {
+    "date": "2026-08-31",
+    "userQuote": "错了，我的意思是级双人马克沁  替换成单人勃朗宁，原来计划开发的的射手不变",
+    "weaponReplacementTarget": "emplaced_machine_gun_crew",
+    "weaponReplacementTier": 3,
+    "activeOutput": "mother/emplaced_machine_gun_crew-mother-v06-backpack.png",
+    "unchangedUnitKeys": [
+      "service_rifleman",
+      "heavy_machine_gunner"
+    ],
+    "scope": "III级双人马克沁改用已生成的单人BAR；原计划射手不变，IV级重机枪恢复原母图展示；IV级BAR误改稿撤销且不再作为待开发项。",
+    "rejectedWrongTargetTask": "../_hamster_heavy_machine_gunner_bar_20260831/task-index.json"
+  },
+  "approvalQuote": "通过继续骑兵的生图，可以参考经典游戏战地一的骑兵单位",
+  "approvalScope": "用户通过当前第3批：原计划制式步枪兵v01及单人BAR双肩弹药背包v06；仅为母图通过，未授权本轮动画或运行时接入。",
+  "nextBatch": "../_industrial_cavalry_mothers_20260831/task-index.json"
+}

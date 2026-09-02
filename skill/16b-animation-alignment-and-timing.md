@@ -63,6 +63,7 @@
 6. **技能边界**：多段连击逐段登记窗口；位移攻击按实际扫掠；范围逐目标复查；持续接触保留自身间隔。眩晕/死亡/切状态后未发生的事件必须取消，尸体不得继续攻击。
 7. **确认配置被消费**：写入 `basicMelee.timeline` 只是声明，不代表派生怪物会走通用有向近战。使用 `Enemy` 派生类时必须显式设置 `basicMeleeResolver: true`，或由该类明确把 `_usesDirectedBasicMelee` 设为真；交付前沿 `MovementSystem → CombatSystem → Attack` 核对实际消费者，不能只看 JSON 字段存在。
 8. **目标体积只计一次**：`impactReach` 从攻击者实际根点量到武器/爪/口器的可见接触前沿，目标 collider/footprint 由形状相交阶段另行计入，不能再把目标半径加进 reach。`attackRange`、`attackDistance` 与 `approachReach` 同步，`impactReach/width` 则按接触帧独立收口。
+9. **特殊动作键必须真的驱动画面**：手榴弹、冲锋等自管动作若通过`actionAnimationKey/actionAnimationElapsedMs`声明，渲染器必须在通用`attacking/idle/running`分支之前消费该键，AI和事件判定也必须推进同一个累计`dt`时钟；只写动作键但仍被通用分支覆盖，不算动画接入。冲锋命中或越过有效窗口只结束位移/伤害资格，不等于动作立即结束；应保持独立`recovering`阶段播放到正式动作总时长，再回待机。命中窗口使用“上一时刻 < 阈值且当前时刻 >= 阈值”的跨阈值判定，避免长帧跳过，也不得在recover阶段二次伤害。
 
 释放/接触帧必须同时登记索引基准。源表与制作报告默认写0-based输出索引；若消费者按`(launchFrame - 1) / fps`计算延迟，则配置使用1-based值`releaseIndex + 1`。例如正式输出索引10对应`attackLaunchFrame:11`；不能把“第11帧”的自然语言直接抄成0-based 11，或在RIFE映射后继续沿用旧索引。
 

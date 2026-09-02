@@ -36,6 +36,45 @@ export function projectileSourceZ(source, heightFactor = 0.58) {
     return (Number(source?.z) || 0) + height * heightFactor;
 }
 
+/**
+ * 将攻击帧里的武器口归一化坐标换算为世界弹道起点。
+ * X 会随目标方向镜像；Y 同时考虑角色显示尺寸与脚线偏移。
+ */
+export function projectileMuzzleOrigin(source, target, options = {}) {
+    const render = source?.config?.render || {};
+    const anchor = options.anchor || render.projectileMuzzle;
+    const baseX = Number(source?.x) || 0;
+    const baseY = Number(source?.y) || 0;
+    const baseZ = Number(source?.z) || 0;
+    const faceSign = Number(target?.x) >= baseX ? 1 : -1;
+    const anchorX = Number(anchor?.x);
+    const anchorY = Number(anchor?.y);
+
+    if (Number.isFinite(anchorX) && Number.isFinite(anchorY)) {
+        const displaySize = Math.max(1,
+            Number(source?.displaySize) || Number(source?.size) || 64);
+        const muzzleOffsetX = Math.abs(anchorX - 0.5) * displaySize;
+        const screenOffsetY = (Number(source?.spriteOffsetY) || 0)
+            + (anchorY - 0.5) * displaySize;
+        return {
+            x: baseX + faceSign * muzzleOffsetX,
+            y: baseY + Math.max(0, screenOffsetY),
+            z: baseZ + Math.max(0, -screenOffsetY),
+        };
+    }
+
+    const legacyOffsetX = Number(options.offsetX);
+    const legacyOffsetY = Number(options.offsetY);
+    const legacyHeight = Number(options.height);
+    return {
+        x: baseX + faceSign * (Number.isFinite(legacyOffsetX) ? legacyOffsetX : 0),
+        y: baseY + (Number.isFinite(legacyOffsetY) ? legacyOffsetY : 0),
+        z: Number.isFinite(legacyHeight)
+            ? baseZ + legacyHeight
+            : projectileSourceZ(source, options.heightFactor),
+    };
+}
+
 export function projectileTargetZ(target, fallback = 24) {
     if (!target) return fallback;
     const centerZ = Number(target.collider?.centerZ);

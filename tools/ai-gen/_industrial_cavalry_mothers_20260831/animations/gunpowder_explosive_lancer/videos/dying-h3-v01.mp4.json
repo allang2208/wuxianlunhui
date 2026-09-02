@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T04:20:31.541502+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\dying-h3-v01.mp4",
+    "bytes": 862336,
+    "sha256": "0e27e695e720edd5cf797e6997bb265a69d3b2ea878b5f7c72a15389531be2de"
+  },
+  "promptId": "8ed362d1-9e7e-4b78-ac12-ba22a72788fc",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 272471459,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same traditional heavy lancer pair. Preserve the complete lance and all armor throughout.\n\nCreate one irreversible silent mounted death collapse. 0.0-0.7 seconds: cat and rider lose strength while still screen right and the lance remains held. 0.7-2.9 seconds: cat folds the right-side legs and falls toward screen-right side; rider and lance descend as one connected load without stabbing the cat. 2.9-4.1 seconds: armored shoulder/hip and cat body contact before the lance settles along the front of the corpse. 4.1-5.17 seconds: final pair and complete lance remain completely still, heads left and paws/boots/lance extending right.\n\nLocked camera, full rider/cat/tail/paws/lance in frame, pure white shadowless background. No explosion, fire, blood, recovery, wings, rockets, extra rider/cat/limb/weapon, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same traditional heavy lancer pair. Preserve the complete lance and all armor throughout.\n\nCreate one irreversible silent mounted death collapse. 0.0-0.7 seconds: cat and rider lose strength while still screen right and the lance remains held. 0.7-2.9 seconds: cat folds the right-side legs and falls toward screen-right side; rider and lance descend as one connected load without stabbing the cat. 2.9-4.1 seconds: armored shoulder/hip and cat body contact before the lance settles along the front of the corpse. 4.1-5.17 seconds: final pair and complete lance remain completely still, heads left and paws/boots/lance extending right.\n\nLocked camera, full rider/cat/tail/paws/lance in frame, pure white shadowless background. No explosion, fire, blood, recovery, wings, rockets, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same traditional heavy lancer pair. Preserve the complete lance and all armor throughout.\n\nCreate one irreversible silent mounted death collapse. 0.0-0.7 seconds: cat and rider lose strength while still screen right and the lance remains held. 0.7-2.9 seconds: cat folds the right-side legs and falls toward screen-right side; rider and lance descend as one connected load without stabbing the cat. 2.9-4.1 seconds: armored shoulder/hip and cat body contact before the lance settles along the front of the corpse. 4.1-5.17 seconds: final pair and complete lance remain completely still, heads left and paws/boots/lance extending right.\n\nLocked camera, full rider/cat/tail/paws/lance in frame, pure white shadowless background. No explosion, fire, blood, recovery, wings, rockets, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "82aa273df54e253f2f4c59e844deb95b2ffb93bed66c91fc2d2795e3e6c79bb2",
+  "effectivePromptSha256": "41fd3e20be01dd75ece02a43c34e6e169ad69720ead0282dfae5e716bb880c22",
+  "finalPromptSha256": "1bc1fa26ccb639b06982fc730f35afc554b22c600520b9cec6f860ba24a1ed86",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\heavy-cavalry-dying.txt",
+      "bytes": 940,
+      "sha256": "ecaae39d569e5fc4b3290db552accf113fcd46266195f637a9bfd1701e503c60"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\dying-keyframe-video-safe-16x9.png",
+      "bytes": 499563,
+      "sha256": "35e7867dbd161dd79e3c055a4de7bf82233339a2337cec0e3bfbe73eca3af429"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\dying-h3-v01_contact.png",
+    "bytes": 655706,
+    "sha256": "a8bf871e0824d4436cbee9965ff79498682737cb4d05d9585f94c0c31bee08d3"
+  },
+  "elapsedSeconds": 425.765
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "user_approved_source_formalized_candidate_review",
+  "unitKey": "steel_shield_assault",
+  "action": "running",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "userInstruction": "继续",
+  "previousCandidate": {
+    "path": "videos/moving-doubao-v01.mp4",
+    "result": "rejected_visible_generated_long_tail_from_first_frame",
+    "reuseAsMotionReference": false
+  },
+  "pipelineAuthority": [
+    "SKILL.md 动画索引",
+    "skill/16b-animation-alignment-and-timing.md 1.1",
+    "tools/ai-gen/WORKFLOW.md 3.6"
+  ],
+  "directionAuthority": {
+    "upperConfig": "data/hamster-riot-squad-config.json",
+    "upperAsset": "assets/companions/hamster_riot_squad/walking.png",
+    "upperFramesZeroBased": [0, 8, 16, 23],
+    "lowerConfig": "data/hamster-phalanx-config.json",
+    "lowerActualWalkAsset": "assets/companions/hamster_guard/running_rife.png",
+    "lowerFramesZeroBased": [0, 8, 16, 25, 33],
+    "target": "略俯视三分之四右向；头胸胯膝脚与步轴朝屏幕右侧；原地根点"
+  },
+  "keyframe": {
+    "path": "keyframes/moving-keyframe-v02-coat-covered.png",
+    "bytes": 1509649,
+    "sha256": "19d81187652ac8c2680e69324ea3a2daa2e7b6f7d373972add5ad5053777af6f",
+    "editSource": "keyframes/moving-keyframe-v01.png",
+    "editPrompt": "prompts/moving-keyframe-v02-coat-cover-edit.txt",
+    "operation": "built-in imagegen localized same-character coat-skirt edit; copied without further pixel edits",
+    "offlineResult": "passed_identity_camera_body_axis_step_axis_shield_side_pistol_side_and_tailless_coat_coverage"
+  },
+  "reference": {
+    "path": "references/steel-shield-assault-moving-keyframe-v02-video-safe-16x9.png",
+    "bytes": 478401,
+    "sha256": "66033e86cef0e1fa27af446c6524b95a2a530c9db026814929ef7b43aeef2234",
+    "operation": "proportional resize and white 1024x576 padding only"
+  },
+  "prompt": "prompts/moving-doubao-v02-coat-covered.txt",
+  "parameters": {
+    "durationSeconds": 5,
+    "size": "1024x576",
+    "candidates": 1,
+    "loopRequested": true,
+    "cdpPort": 9333,
+    "fillOnlyRequired": true
+  },
+  "fillOnly": {
+    "result": "passed_without_upload_or_submission",
+    "modelSelection": "explicit",
+    "parameterSelection": "explicit",
+    "verifiedModel": "Seedance 2.0 Mini",
+    "verifiedRatio": "16:9",
+    "verifiedDurationSeconds": 5,
+    "editorChars": 622,
+    "editorSha256": "fc000e71edb106127ac79bd948c3bff4e4184e89b0575846dc4c8797af2c323d"
+  },
+  "submission": {
+    "submittedOnce": true,
+    "conversationUrl": "chrome://doubao-chat/chat/38439639890116354",
+    "paidQuotaConfirmed": false,
+    "duplicateSubmissionAttempted": false,
+    "referencePreviewConfirmed": "steel-shield-assault-moving-keyframe-v02-video-safe-16x9.png 1024x576",
+    "promptEditorChars": 622,
+    "promptSha256": "fc000e71edb106127ac79bd948c3bff4e4184e89b0575846dc4c8797af2c323d"
+  },
+  "backendWait": {
+    "initialWaitSeconds": 1200,
+    "waitCurrentSeconds": 1200,
+    "finalVisibleState": "你的视频生成好了",
+    "completedCardFound": true,
+    "failureMessageFound": false,
+    "safeDownloadAvailable": true,
+    "completedCardTime": "2026-09-01 17:58 Asia/Shanghai"
+  },
+  "recoveryIntegrity": {
+    "initialDownloadLatestResult": "stale_v01_cache_rejected",
+    "staleSha256": "0db1cfda1eaa2fa4cb0a071e85acfaca29e5bf7953ac959f3a6a1a372db49ba8",
+    "correctRecovery": "scroll-latest plus play-latest completed-offset 0 plus download-latest",
+    "correctFileDistinctFromV01": true
+  },
+  "output": {
+    "path": "videos/moving-doubao-v02-coat-covered.mp4",
+    "bytes": 1053068,
+    "sha256": "5a3e2aef74d0adf9fab44e323516c44fb2c59ef4921cfa4dbe105aae95281239",
+    "provenance": "videos/moving-doubao-v02-coat-covered.mp4.json",
+    "provenanceSha256": "39cd5adf892f64a6ac3dba8f3c197649c4a6615284fd3f224f9a9053ee48d5cc",
+    "frameCount": 121,
+    "fps": 24,
+    "size": "1280x720",
+    "durationSeconds": 5.041666666666667,
+    "contactSheet": "previews/moving-doubao-v02-coat-covered-contact-32.png",
+    "contactSheetSha256": "98a58a4e5e9dea29a83561286d2eb371a3c7d955139c3e798754b3f9789ff1f7",
+    "preview": "previews/moving-doubao-v02-coat-covered-source.gif",
+    "previewSha256": "d177eaa464d169b6d6114fbe0ee8c4b2dc1d2a3edcef800d8313ee971a0d9edb",
+    "offlineResult": "direction_and_action_passed_with_generated_long_tail_user_accepted",
+    "userApproval": "用户查看v02预览后回复：长尾就保留吧，没事，继续。"
+  },
+  "assistantAssessmentBeforeUserDecision": "军大衣后摆、右向步轴、盾牌右侧和手枪左侧保持稳定；约f8开始生成明显长尾。用户随后明确接受保留长尾，因此该变化不再阻断本动作。",
+  "acceptedVariation": "moving animation retains the generated long tail",
+  "submissionPolicy": "run fill-only first, then submit exactly one candidate; quota/auth/risk stops without automatic retry",
+  "runtimeIntegrationActive": false,
+  "testsRun": false
+}

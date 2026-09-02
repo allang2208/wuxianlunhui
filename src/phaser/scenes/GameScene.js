@@ -1,4 +1,5 @@
 
+import { friendlyAttackFrame } from '../../combat/friendly-attack-timing.js';
 import { Game } from '../../game.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { PartySystem } from '../../systems/party-system.js';
@@ -2137,7 +2138,17 @@ export class GameScene extends Scene {
                         sprite.setData('knightChargeFinished', false);
                     }
                 }
-                if (st === 'dying' && anims.dying && this.textures.exists(dyingKey)) {
+                // 死亡不可被残留的特殊动作键覆盖；其余状态下特殊动作优先于通用攻击/待机分支。
+                const attackFrame = st === 'dying' ? null : friendlyAttackFrame(member);
+                if (attackFrame) {
+                    const key = `companion_${animId}_${attackFrame.key}`;
+                    if (this.textures.exists(key)) {
+                        sprite.anims.stop();
+                        if (sprite.texture.key !== key || sprite.frame.name !== attackFrame.frame) {
+                            sprite.setTexture(key, attackFrame.frame);
+                        }
+                    }
+                } else if (st === 'dying' && anims.dying && this.textures.exists(dyingKey)) {
                     // 死亡动画只播一次（repeat 0），播完停在最后一帧；防每帧重播
                     if (!sprite.getData('hamsterDying')) {
                         sprite.setData('hamsterDying', true);

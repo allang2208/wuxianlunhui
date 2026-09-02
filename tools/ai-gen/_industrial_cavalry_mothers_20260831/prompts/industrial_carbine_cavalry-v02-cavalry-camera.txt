@@ -1,0 +1,22 @@
+Use case: identity-preserve
+Asset type: camera and facing correction of an existing game-unit mother image
+Primary request: Precisely align this industrial hamster cavalry's view and facing with the project's existing cavalry sprite reference. Edit the CAMERA/PROJECTION and coherent facing only; preserve the selected character and equipment.
+
+Input images:
+Image 1 is the edit target: current industrial carbine cavalry, the complete authority for hamster and orange cat identities, clothing, weapon, materials, colors and equipment.
+Image 2 is an existing in-game light-cavalry single-frame enlargement: CAMERA AND FACING reference only. Do not copy its older weapon, cape, helmet, bare feet, outfit, low resolution or painted rendering.
+
+Required view:
+Match Image 2's modest elevated game-sprite three-quarter view toward screen RIGHT. Refine Image 1 away from a low, eye-level showcase view: the observer should look slightly down on the tops of the cap, shoulders, saddle and cat's back. Keep the coherent oblique rightward projection seen in Image 2, NOT a flat 90-degree side profile, NOT a head-on portrait, NOT an overhead view. Use an orthographic-like view without perspective exaggeration or camera roll. Do not interpret an arbitrary angle number as more authoritative than the reference's visible surfaces.
+The cat's torso, neck, muzzle and gaze should agree on one forward-right axis; align the hamster's pelvis, shoulders and head with that same forward-right direction. The far eye should be less dominant than the near eye; neither the hamster nor the cat turns its head back to look at the viewer. Preserve the same muzzle and body shapes in 3D, merely reproject them.
+Place the near-side and far-side paws on one coherent implied ground plane. Show four anatomically correct feline legs with subtle near/far depth separation and correct overlap; the rider sits securely in the same saddle, with one leg on each side. Do not change the anatomy or stretch the cat into a horse to achieve the view.
+Keep the weapon held with BOTH hands in the selected relaxed ready pose, its muzzle pointing FORWARD-RIGHT, angled a little upward and clear of the cat's face. It remains the SAME wooden-stock carbine with the same recognizable receiver, barrel, stock, iron sights and proportions. Do not replace it with a spear or sword from Image 2.
+
+Identity/equipment locks:
+Same golden-brown white-cheeked adult hamster, same orange tabby cat markings and compact feline anatomy. Same khaki peaked cap, dark teal scarf, wool cavalry uniform, leather bandolier, gloves, boots, brown saddle, teal saddlecloth, bags, blanket roll and sheathed saber. One rider, one cat, one held carbine. Preserve the rider-to-cat body scale and original detailed PBR fur/leather/wool/steel rendering; do not make a new character or change equipment.
+
+Composition:
+A single complete full-body mounted unit, square white canvas approximately 1254 by 1254, with comfortable margins around cap, tail, weapon muzzle and all four paws. Keep approximately the same body occupancy as Image 1, adjusting positions only as the corrected projection requires. The weapon must not force a smaller body.
+Soft neutral studio lighting, pure white background with no floor patch or cast shadow.
+
+Avoid: eyes aimed at viewer, mismatched rider/cat direction, frontal chest presented symmetrically, pure side silhouette, strong overhead/isometric camera, rolled horizon, mirrored left-facing image, new equipment, plume, shield, handheld lance, modern electronics, armor additions, extra limbs, missing paws, horse body, floating rider, firing, effects, text, logo, watermark.

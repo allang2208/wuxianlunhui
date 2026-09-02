@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T03:59:10.272930+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\running-h3-v01.mp4",
+    "bytes": 1048713,
+    "sha256": "35fbefee49a6b2d2ca29146080caa6bae8193dfc6d96d514974b2aeed756e579"
+  },
+  "promptId": "017a4768-b276-4e33-a902-de8e81c2a732",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 985699109,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity and opening gait authority for the same traditional heavy lancer pair. Preserve the armor, red saddle cloth and complete traditional lance; no powered or explosive equipment.\n\nCreate a strong screen-right canter loop. 0.0-1.0 seconds: continue the supplied gait. 1.0-3.8 seconds: two readable armored cat canter cycles with correct four-paw sequence; rider remains seated, reins coherent, and lance stays stable angled forward-right without bending. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.\n\nLocked root-centered camera, constant scale, full rider/cat/tail/paws/lance in frame, pure white shadowless background. No attack, wings, rockets, explosion, extra rider/cat/limb/weapon, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity and opening gait authority for the same traditional heavy lancer pair. Preserve the armor, red saddle cloth and complete traditional lance; no powered or explosive equipment.\n\nCreate a strong screen-right canter loop. 0.0-1.0 seconds: continue the supplied gait. 1.0-3.8 seconds: two readable armored cat canter cycles with correct four-paw sequence; rider remains seated, reins coherent, and lance stays stable angled forward-right without bending. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.\n\nLocked root-centered camera, constant scale, full rider/cat/tail/paws/lance in frame, pure white shadowless background. No attack, wings, rockets, explosion, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity and opening gait authority for the same traditional heavy lancer pair. Preserve the armor, red saddle cloth and complete traditional lance; no powered or explosive equipment.\n\nCreate a strong screen-right canter loop. 0.0-1.0 seconds: continue the supplied gait. 1.0-3.8 seconds: two readable armored cat canter cycles with correct four-paw sequence; rider remains seated, reins coherent, and lance stays stable angled forward-right without bending. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.\n\nLocked root-centered camera, constant scale, full rider/cat/tail/paws/lance in frame, pure white shadowless background. No attack, wings, rockets, explosion, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b1cbcc7a291f25ab1ce069141e6aa9e4c2895426021dd3c7f734688735f279a7",
+  "effectivePromptSha256": "36aeaedb492e105e6383f2bd6fba7346f5f585865410d7b7886924c53eacc963",
+  "finalPromptSha256": "6b76d52fbf9783401a04196c309f563adf0eab2487c7fa02fa4dcb8ea39feb30",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\heavy-cavalry-running.txt",
+      "bytes": 783,
+      "sha256": "3255324e8aac971c1eac923d28089475bd06edc652f60d68a985e39ed9da5073"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\running-keyframe-video-safe-16x9.png",
+      "bytes": 376514,
+      "sha256": "3c45fdf341e70a68fadec71fc04311d6fe02428e6179051a1443af962ee6fe0f"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\running-keyframe-video-safe-16x9.png",
+      "bytes": 376514,
+      "sha256": "3c45fdf341e70a68fadec71fc04311d6fe02428e6179051a1443af962ee6fe0f"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\running-h3-v01_contact.png",
+    "bytes": 599849,
+    "sha256": "73ef4a0b96d0c16e4ef9a90e96c2e5e1fdeef5c047f624a9f1e0de3128612ae3"
+  },
+  "elapsedSeconds": 455.836
+}

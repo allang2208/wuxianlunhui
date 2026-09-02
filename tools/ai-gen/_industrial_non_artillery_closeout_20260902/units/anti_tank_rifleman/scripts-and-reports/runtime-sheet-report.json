@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "unitKey": "anti_tank_rifleman",
+  "operation": "shared transparent-only crop and tighter packing; no resampling, redraw or per-frame recentering",
+  "sourceCell": [
+    512,
+    512
+  ],
+  "cropBox": [
+    152,
+    200,
+    408,
+    376
+  ],
+  "runtimeCell": [
+    256,
+    176
+  ],
+  "commonFootY": 152,
+  "actions": {
+    "idle": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/anti_tank_rifleman/postprocess/sheets-rife/idle.png",
+      "output": "assets/companions/hamster_anti_tank_rifleman/idle.png",
+      "frameWidth": 256,
+      "frameHeight": 176,
+      "frameCount": 38,
+      "endFrame": 37,
+      "cols": 8,
+      "rows": 5,
+      "frameRate": 24,
+      "repeat": -1,
+      "footYRange": [
+        150,
+        152
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 853190,
+      "sha256": "8ed61e60a60156aad0f54dc6a33234d910388a556d7c9a1b1eba92fcc87c9cf1",
+      "decodedBytes": 7208960
+    },
+    "running": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/anti_tank_rifleman/postprocess/sheets-rife/running.png",
+      "output": "assets/companions/hamster_anti_tank_rifleman/running.png",
+      "frameWidth": 256,
+      "frameHeight": 176,
+      "frameCount": 48,
+      "endFrame": 47,
+      "cols": 8,
+      "rows": 6,
+      "frameRate": 48,
+      "repeat": -1,
+      "footYRange": [
+        150,
+        152
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 1078604,
+      "sha256": "f3e7bee750d9251a284e95aeec3d00435425ad7b6a740cf6730e9763445e9f53",
+      "decodedBytes": 8650752
+    },
+    "attacking": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/anti_tank_rifleman/postprocess/sheets-rife/attacking.png",
+      "output": "assets/companions/hamster_anti_tank_rifleman/attacking.png",
+      "frameWidth": 256,
+      "frameHeight": 176,
+      "frameCount": 71,
+      "endFrame": 70,
+      "cols": 8,
+      "rows": 9,
+      "frameRate": 24,
+      "repeat": 0,
+      "footYRange": [
+        150,
+        152
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 1616636,
+      "sha256": "517d697444e18621b64745ceb9cc4108bde6e0fe16744bac7e1b4aac194c0cf9",
+      "decodedBytes": 12976128
+    },
+    "grenade_throw": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/anti_tank_rifleman/postprocess/sheets-rife/grenade_throw.png",
+      "output": "assets/companions/hamster_anti_tank_rifleman/grenade_throw.png",
+      "frameWidth": 256,
+      "frameHeight": 176,
+      "frameCount": 79,
+      "endFrame": 78,
+      "cols": 8,
+      "rows": 10,
+      "frameRate": 24,
+      "repeat": 0,
+      "footYRange": [
+        150,
+        152
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 1766354,
+      "sha256": "4b28497b541f76944b0e4ab3f008c7e1068c486c99d5d44c7ff93a03ca22d930",
+      "decodedBytes": 14417920
+    },
+    "dying": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/anti_tank_rifleman/postprocess/sheets-rife/dying.png",
+      "output": "assets/companions/hamster_anti_tank_rifleman/dying.png",
+      "frameWidth": 256,
+      "frameHeight": 176,
+      "frameCount": 47,
+      "endFrame": 46,
+      "cols": 8,
+      "rows": 6,
+      "frameRate": 24,
+      "repeat": 0,
+      "footYRange": [
+        148,
+        151
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 988500,
+      "sha256": "84325b79bc05b26aed7fe18726124cf1bf380e472184fc02ecddb7f5cd4babe8",
+      "decodedBytes": 8650752
+    }
+  },
+  "budget": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "decodedBytes": 51904512,
+    "decodedMiB": 49.5,
+    "admissionPassed": true,
+    "maximumTextureDimension": 2048
+  },
+  "runtimeIntegrationActive": true,
+  "testsRun": false
+}

@@ -1,0 +1,25 @@
+Use case: identity-preserve
+Asset type: camera and facing correction of an existing heavy-cavalry game-unit mother image
+Primary request: Align the existing industrial hamster heavy cavalry with the project's cavalry game-sprite viewing direction and the corrected light-cavalry candidate. Change only camera/projection and coherent facing. Preserve its selected finely crafted NON-EXPLOSIVE lance and all armor.
+
+Input images:
+Image 1 is the edit target, the current industrial heavy cavalry with the refined traditional lance. It controls the precise character, silver-gray cat, equipment, material style, colors and weapon identity.
+Image 2 is an existing in-game hamster knight single-frame enlargement. Use ONLY its established slightly elevated right-facing cavalry projection and rider/mount facing relationship, not its clothing, old weapon or low-resolution rendering.
+Image 3 is the new industrial light cavalry camera candidate. Match its camera elevation, coherent right-facing three-quarter projection and overall rider-to-mount presentation, but do NOT copy its orange cat, soft cap, gun, teal cloth or lighter equipment.
+
+Required projection:
+A modestly elevated orthographic-like THREE-QUARTER view toward screen RIGHT, with no camera roll and no strong perspective. Make the tops of the steel helmet, shoulders, saddle and cat's back more legible than Image 1, consistent with the game's cavalry view and Image 3. Retain a natural three-quarter view, not a head-on chest portrait, not a perfectly flat 90-degree side profile, not a steep overhead view.
+Align cat body, neck, muzzle and gaze along one forward-right axis. The hamster's pelvis, armored torso, head and gaze must agree with the mount's forward-right facing; neither looks back at the viewer. Preserve the existing anatomy and facial identity in 3D while reprojecting, without widening the face or bulking up the torso. Show the near eye clearly and the far eye less prominently. Do not mirror.
+All four paws belong to one level implied ground plane, with coherent near/far occlusion and subtle depth separation. Preserve four feline legs and one striped tail; the seated rider has one leg on each side of the same saddle. The cat must remain compact and feline, not a horse or a human-shaped body.
+
+Weapon hard lock:
+Keep precisely ONE ordinary refined long lance from Image 1: its narrow elegant engraved steel blade, raised central ridge, small brass fitting, dark polished straight wooden shaft and leather grip. Preserve its length relative to the rider/cat, engraving design and refined craftsmanship. No explosive cylinder, yellow marker, fuse, charge, engine or booster. The near hand grips the lance; the other hand holds the reins. The lance points forward and upward to screen RIGHT, remains one continuous straight shaft, clears the cat's head and is fully inside the image. Reproject it with the unit, do not bend or shorten it.
+
+Other identity/equipment hard locks:
+Same adult white-cheeked golden-brown hamster, same silver-gray tabby with white muzzle/chest/paws, steel crested open-face helmet, steel cuirass and forearm guards, khaki wool uniform, muted red scarf, brown boots, cat forehead guard, riveted steel breast armor, brown leather bridle/reins/harness/saddle/bags, dark red saddlecloth and blanket roll. Preserve all count, design and color differences from the light cavalry. Do not copy medieval plumes, feather wings, banners or heraldic blue cloth from Image 2. No new equipment or changes to the armor design.
+
+Presentation:
+Same high-quality detailed PBR fur, leather, wool and restrained metal finish. Square canvas approximately 1254 by 1254, full mounted body, comfortable margins around ears, tail, paws and lance tip. Retain rider-to-cat body scale; do not shrink the character to fit the lance. Keep natural planted idle pose.
+Pure solid white background WITHOUT shadows beneath any paws, no gray floor or horizon. Soft neutral studio light. No scene or platform.
+
+Avoid: explosive weapon, mirrored left-facing unit, independently twisted head, front-facing symmetric chest, overhead camera, flat profile, changed animal species, altered face, extra limbs or paws, duplicate weapon, old feather wings, radio, modern EOD suit, powered assists, fire, effects, text, logo, watermark.

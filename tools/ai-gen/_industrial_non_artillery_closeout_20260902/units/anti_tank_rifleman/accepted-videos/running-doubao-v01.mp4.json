@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\anti_tank_rifleman\\references\\anti_tank_rifleman-running-keyframe-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\anti_tank_rifleman\\prompts\\running-doubao-v01.txt",
+  "promptChars": 681,
+  "promptSha256": "eb4ac2776b381153d7e8c2319d32108174bb1f4c3e0a44af1237f6a998fbb06c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T01:22:52.218Z",
+  "sourceUrlScheme": "https"
+}

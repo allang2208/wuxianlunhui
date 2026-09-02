@@ -1,0 +1,890 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "scope": "offline sprite/config/attack-event audit; no game runtime",
+  "standards": {
+    "oneFixedScaleAndAnchorPerAction": true,
+    "single2xRifePass": true,
+    "loopRepairUsesOpeningPoseAfterEndpointComparison": true,
+    "noPerFrameFitOrRecenter": true,
+    "noFixedCoordinateBodyErase": true,
+    "checkerContactsReviewedOffline": true
+  },
+  "units": {
+    "service_rifleman": {
+      "label": "制式步枪兵",
+      "configParity": true,
+      "displaySize": 300.389209,
+      "targetEffectiveBodyHeight": 129.0,
+      "desiredWorldBodyHeight": 75.684,
+      "actions": {
+        "idle": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1024,
+            960
+          ],
+          "cellPixels": [
+            256,
+            192
+          ],
+          "grid": [
+            4,
+            5
+          ],
+          "frameCount": 20,
+          "frameRate": 8.0,
+          "repeat": -1,
+          "footY": 141,
+          "alphaBottomRange": [
+            140,
+            140
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.2670807453416149,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 389.0,
+            "y": 528.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "running": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1536,
+            1344
+          ],
+          "cellPixels": [
+            256,
+            192
+          ],
+          "grid": [
+            6,
+            7
+          ],
+          "frameCount": 42,
+          "frameRate": 48.0,
+          "repeat": -1,
+          "footY": 139,
+          "alphaBottomRange": [
+            138,
+            147
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.26326530612244897,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 416.0,
+            "y": 528.0
+          },
+          "fixedCoordinateEraseUsed": false,
+          "loop": {
+            "pass": true,
+            "sourceIntervalContiguous": true,
+            "sourceInterval": [
+              0,
+              20
+            ],
+            "reviewedEndpointRawFrame": 21,
+            "endpointUsedAsRifeInput": false,
+            "repairTargetRawFrame": 0,
+            "seamDelta": 5.698529243469238,
+            "adjacentDeltaMean": 15.866764344820162,
+            "adjacentDeltaMedian": 15.249834060668945,
+            "seamToAdjacentRatio": 0.3591487917528422,
+            "acceptanceLimit": 2.0,
+            "nearFrozenTransitionThreshold": 2.0,
+            "longestNearFrozenTransitionStreak": 2,
+            "maximumNearFrozenTransitionStreak": 2
+          }
+        },
+        "attacking": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            768,
+            1728
+          ],
+          "cellPixels": [
+            256,
+            192
+          ],
+          "grid": [
+            3,
+            9
+          ],
+          "frameCount": 27,
+          "frameRate": 16.0,
+          "repeat": 0,
+          "footY": 141,
+          "alphaBottomRange": [
+            140,
+            141
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.2665289256198347,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 373.5,
+            "y": 529.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "dying": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1280,
+            1536
+          ],
+          "cellPixels": [
+            320,
+            192
+          ],
+          "grid": [
+            4,
+            8
+          ],
+          "frameCount": 31,
+          "frameRate": 16.0,
+          "repeat": 0,
+          "footY": 141,
+          "alphaBottomRange": [
+            137,
+            142
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.2765273311897106,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 360.0,
+            "y": 529.0
+          },
+          "fixedCoordinateEraseUsed": false
+        }
+      },
+      "attackEvent": {
+        "kind": "ranged",
+        "pass": true,
+        "configReleaseFrames1Based": [
+          9
+        ],
+        "sourceMappedReleaseFrames1Based": [
+          9
+        ],
+        "releaseTimesMs": [
+          500.0
+        ],
+        "visibleMuzzlePixels": [
+          242.0,
+          48.0
+        ],
+        "configuredCanonicalOffsetPixels": [
+          114.17599999999999,
+          -93.1148409956098
+        ],
+        "visibleCanonicalOffsetPixels": [
+          114.0,
+          -93.0
+        ],
+        "configuredMinusVisiblePixels": [
+          0.17599999999998772,
+          -0.11484099560979644
+        ],
+        "recommendedProjectileMuzzle": {
+          "x": 0.72265625,
+          "y": 0.5212242988195503
+        }
+      }
+    },
+    "emplaced_machine_gun_crew": {
+      "label": "BAR 自动步枪兵",
+      "configParity": true,
+      "displaySize": 300.389209,
+      "targetEffectiveBodyHeight": 129.0,
+      "desiredWorldBodyHeight": 75.684,
+      "actions": {
+        "idle": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            896,
+            1152
+          ],
+          "cellPixels": [
+            224,
+            192
+          ],
+          "grid": [
+            4,
+            6
+          ],
+          "frameCount": 24,
+          "frameRate": 8.0,
+          "repeat": -1,
+          "footY": 141,
+          "alphaBottomRange": [
+            140,
+            140
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.2665289256198347,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 430.0,
+            "y": 529.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "running": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1792,
+            1728
+          ],
+          "cellPixels": [
+            224,
+            192
+          ],
+          "grid": [
+            8,
+            9
+          ],
+          "frameCount": 72,
+          "frameRate": 48.0,
+          "repeat": -1,
+          "footY": 143,
+          "alphaBottomRange": [
+            139,
+            145
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.26515930113052416,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 435.0,
+            "y": 538.0
+          },
+          "fixedCoordinateEraseUsed": false,
+          "loop": {
+            "pass": true,
+            "sourceIntervalContiguous": true,
+            "sourceInterval": [
+              0,
+              35
+            ],
+            "reviewedEndpointRawFrame": 36,
+            "endpointUsedAsRifeInput": false,
+            "repairTargetRawFrame": 0,
+            "seamDelta": 31.130155563354492,
+            "adjacentDeltaMean": 16.192809749657,
+            "adjacentDeltaMedian": 15.772571563720703,
+            "seamToAdjacentRatio": 1.9224678140872928,
+            "acceptanceLimit": 2.0,
+            "nearFrozenTransitionThreshold": 2.0,
+            "longestNearFrozenTransitionStreak": 0,
+            "maximumNearFrozenTransitionStreak": 2
+          }
+        },
+        "attacking": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            896,
+            1536
+          ],
+          "cellPixels": [
+            224,
+            192
+          ],
+          "grid": [
+            4,
+            8
+          ],
+          "frameCount": 31,
+          "frameRate": 13.333333,
+          "repeat": 0,
+          "footY": 141,
+          "alphaBottomRange": [
+            140,
+            140
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.2676348547717842,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 421.0,
+            "y": 528.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "dying": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1152,
+            1536
+          ],
+          "cellPixels": [
+            288,
+            192
+          ],
+          "grid": [
+            4,
+            8
+          ],
+          "frameCount": 31,
+          "frameRate": 16.0,
+          "repeat": 0,
+          "footY": 141,
+          "alphaBottomRange": [
+            140,
+            142
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.28859060402684567,
+          "calibratedBodyHeightPixels": 129.0,
+          "calibratedWorldBodyHeight": 75.68399992382813,
+          "worldBodyHeightError": 7.617187236519385e-08,
+          "fixedSourceAnchor": {
+            "x": 395.0,
+            "y": 528.0
+          },
+          "fixedCoordinateEraseUsed": false
+        }
+      },
+      "attackEvent": {
+        "kind": "burst",
+        "pass": true,
+        "configReleaseFrames1Based": [
+          9,
+          13,
+          17
+        ],
+        "sourceMappedReleaseFrames1Based": [
+          9,
+          13,
+          17
+        ],
+        "releaseTimesMs": [
+          600.0000150000004,
+          900.0000225000006,
+          1200.0000300000008
+        ],
+        "visibleMuzzlePixels": [
+          205.0,
+          46.0
+        ],
+        "configuredCanonicalOffsetPixels": [
+          93.18400000000003,
+          -95.1628409956098
+        ],
+        "visibleCanonicalOffsetPixels": [
+          93.0,
+          -95.0
+        ],
+        "configuredMinusVisiblePixels": [
+          0.18400000000002592,
+          -0.16284099560979826
+        ],
+        "recommendedProjectileMuzzle": {
+          "x": 0.681640625,
+          "y": 0.5173180488195503
+        }
+      }
+    },
+    "industrial_carbine_cavalry": {
+      "label": "近代骑枪兵",
+      "configParity": true,
+      "displaySize": 446.83534,
+      "targetEffectiveBodyHeight": 206.0,
+      "desiredWorldBodyHeight": 179.765,
+      "actions": {
+        "idle": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1024,
+            1024
+          ],
+          "cellPixels": [
+            256,
+            256
+          ],
+          "grid": [
+            4,
+            4
+          ],
+          "frameCount": 16,
+          "frameRate": 8.0,
+          "repeat": -1,
+          "footY": 218,
+          "alphaBottomRange": [
+            217,
+            218
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.43829787234042555,
+          "calibratedBodyHeightPixels": 206.0,
+          "calibratedWorldBodyHeight": 179.781406328125,
+          "worldBodyHeightError": 0.01640632812501508,
+          "fixedSourceAnchor": {
+            "x": 541.0,
+            "y": 523.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "running": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1280,
+            2048
+          ],
+          "cellPixels": [
+            320,
+            256
+          ],
+          "grid": [
+            4,
+            8
+          ],
+          "frameCount": 32,
+          "frameRate": 48.0,
+          "repeat": -1,
+          "footY": 223,
+          "alphaBottomRange": [
+            206,
+            223
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.39425837320574164,
+          "calibratedBodyHeightPixels": 206.0,
+          "calibratedWorldBodyHeight": 179.781406328125,
+          "worldBodyHeightError": 0.01640632812501508,
+          "fixedSourceAnchor": {
+            "x": 526.5,
+            "y": 565.0
+          },
+          "fixedCoordinateEraseUsed": false,
+          "loop": {
+            "pass": true,
+            "sourceIntervalContiguous": true,
+            "sourceInterval": [
+              0,
+              15
+            ],
+            "reviewedEndpointRawFrame": 16,
+            "endpointUsedAsRifeInput": false,
+            "repairTargetRawFrame": 0,
+            "seamDelta": 9.946712493896484,
+            "adjacentDeltaMean": 24.580041916139663,
+            "adjacentDeltaMedian": 23.41356086730957,
+            "seamToAdjacentRatio": 0.40466621366358646,
+            "acceptanceLimit": 2.0,
+            "nearFrozenTransitionThreshold": 2.3413560867309573,
+            "longestNearFrozenTransitionStreak": 0,
+            "maximumNearFrozenTransitionStreak": 2
+          }
+        },
+        "attacking": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            768,
+            2304
+          ],
+          "cellPixels": [
+            256,
+            256
+          ],
+          "grid": [
+            3,
+            9
+          ],
+          "frameCount": 27,
+          "frameRate": 12.1,
+          "repeat": 0,
+          "footY": 224,
+          "alphaBottomRange": [
+            223,
+            224
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.43736730360934184,
+          "calibratedBodyHeightPixels": 206.0,
+          "calibratedWorldBodyHeight": 179.781406328125,
+          "worldBodyHeightError": 0.01640632812501508,
+          "fixedSourceAnchor": {
+            "x": 528.0,
+            "y": 522.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "dying": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1408,
+            2048
+          ],
+          "cellPixels": [
+            352,
+            256
+          ],
+          "grid": [
+            4,
+            8
+          ],
+          "frameCount": 31,
+          "frameRate": 16.0,
+          "repeat": 0,
+          "footY": 220,
+          "alphaBottomRange": [
+            219,
+            226
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.4608501118568233,
+          "calibratedBodyHeightPixels": 206.0,
+          "calibratedWorldBodyHeight": 179.781406328125,
+          "worldBodyHeightError": 0.01640632812501508,
+          "fixedSourceAnchor": {
+            "x": 479.5,
+            "y": 522.0
+          },
+          "fixedCoordinateEraseUsed": false
+        }
+      },
+      "attackEvent": {
+        "kind": "ranged",
+        "pass": true,
+        "configReleaseFrames1Based": [
+          13
+        ],
+        "sourceMappedReleaseFrames1Based": [
+          13
+        ],
+        "releaseTimesMs": [
+          991.7355371900827
+        ],
+        "visibleMuzzlePixels": [
+          217.0,
+          97.0
+        ],
+        "configuredCanonicalOffsetPixels": [
+          89.08800000000002,
+          -126.9425670963268
+        ],
+        "visibleCanonicalOffsetPixels": [
+          89.0,
+          -127.0
+        ],
+        "configuredMinusVisiblePixels": [
+          0.08800000000002228,
+          0.05743290367320242
+        ],
+        "recommendedProjectileMuzzle": {
+          "x": 0.673828125,
+          "y": 0.4628878263600133
+        }
+      }
+    },
+    "gunpowder_explosive_lancer": {
+      "label": "传统长矛重骑兵",
+      "configParity": true,
+      "displaySize": 547.855238,
+      "targetEffectiveBodyHeight": 168.0,
+      "desiredWorldBodyHeight": 179.765,
+      "actions": {
+        "idle": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1024,
+            1120
+          ],
+          "cellPixels": [
+            256,
+            224
+          ],
+          "grid": [
+            4,
+            5
+          ],
+          "frameCount": 20,
+          "frameRate": 8.0,
+          "repeat": -1,
+          "footY": 193,
+          "alphaBottomRange": [
+            192,
+            193
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.38443935926773454,
+          "calibratedBodyHeightPixels": 168.0,
+          "calibratedWorldBodyHeight": 179.76499996875,
+          "worldBodyHeightError": 3.124998215753294e-08,
+          "fixedSourceAnchor": {
+            "x": 490.0,
+            "y": 522.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "running": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            576,
+            2912
+          ],
+          "cellPixels": [
+            288,
+            224
+          ],
+          "grid": [
+            2,
+            13
+          ],
+          "frameCount": 26,
+          "frameRate": 48.0,
+          "repeat": -1,
+          "footY": 182,
+          "alphaBottomRange": [
+            173,
+            183
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.35368421052631577,
+          "calibratedBodyHeightPixels": 168.0,
+          "calibratedWorldBodyHeight": 179.76499996875,
+          "worldBodyHeightError": 3.124998215753294e-08,
+          "fixedSourceAnchor": {
+            "x": 498.0,
+            "y": 544.0
+          },
+          "fixedCoordinateEraseUsed": false,
+          "loop": {
+            "pass": true,
+            "sourceIntervalContiguous": true,
+            "sourceInterval": [
+              50,
+              62
+            ],
+            "reviewedEndpointRawFrame": 63,
+            "endpointUsedAsRifeInput": true,
+            "repairTargetRawFrame": 63,
+            "seamDelta": 36.30067443847656,
+            "adjacentDeltaMean": 28.723899993896485,
+            "adjacentDeltaMedian": 26.588335037231445,
+            "seamToAdjacentRatio": 1.263779446599872,
+            "acceptanceLimit": 2.0,
+            "nearFrozenTransitionThreshold": 2.6588335037231445,
+            "longestNearFrozenTransitionStreak": 0,
+            "maximumNearFrozenTransitionStreak": 2
+          }
+        },
+        "attacking": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1488,
+            2080
+          ],
+          "cellPixels": [
+            496,
+            208
+          ],
+          "grid": [
+            3,
+            10
+          ],
+          "frameCount": 29,
+          "frameRate": 14.0,
+          "repeat": 0,
+          "footY": 180,
+          "alphaBottomRange": [
+            179,
+            180
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.3620689655172414,
+          "calibratedBodyHeightPixels": 168.0,
+          "calibratedWorldBodyHeight": 179.76499996875,
+          "worldBodyHeightError": 3.124998215753294e-08,
+          "fixedSourceAnchor": {
+            "x": 394.0,
+            "y": 519.0
+          },
+          "fixedCoordinateEraseUsed": false
+        },
+        "charging": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            1920,
+            2464
+          ],
+          "cellPixels": [
+            384,
+            224
+          ],
+          "grid": [
+            5,
+            11
+          ],
+          "frameCount": 55,
+          "frameRate": 22.916667,
+          "repeat": 0,
+          "footY": 193,
+          "alphaBottomRange": [
+            185,
+            194
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.3857634902411022,
+          "calibratedBodyHeightPixels": 168.0,
+          "calibratedWorldBodyHeight": 179.76499996875,
+          "worldBodyHeightError": 3.124998215753294e-08,
+          "fixedSourceAnchor": {
+            "x": 493.0,
+            "y": 522.0
+          },
+          "fixedCoordinateEraseUsed": false,
+          "phaseTiming": {
+            "pass": true,
+            "sourceVideo": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/charging-h3-v02.mp4",
+            "sequence": [
+              "raised-lance ready",
+              "lower and accelerate",
+              "fully extended impact",
+              "recoil and decelerate",
+              "raised-lance planted ready"
+            ],
+            "impactFrame1Based": 31,
+            "activeHitWindowFrames1Based": [
+              31,
+              35
+            ],
+            "recoveryFrames1Based": [
+              36,
+              55
+            ],
+            "postImpactFrameCount": 24,
+            "durationMs": 2399.9999650909094,
+            "configuredMaxDurationMs": 2400.0,
+            "completeAnimationAfterHit": true,
+            "closingPoseDelta": 15.656108856201172,
+            "adjacentDeltaMedian": 42.72190475463867,
+            "closingPoseToAdjacentRatio": 0.3664656092961599,
+            "closingPoseAcceptanceLimit": 0.75,
+            "finalFourTransitionsMedian": 7.428825378417969
+          }
+        },
+        "dying": {
+          "pass": true,
+          "layoutMatchesConfig": true,
+          "sheetPixels": [
+            2048,
+            1792
+          ],
+          "cellPixels": [
+            512,
+            224
+          ],
+          "grid": [
+            4,
+            8
+          ],
+          "frameCount": 31,
+          "frameRate": 16.0,
+          "repeat": 0,
+          "footY": 181,
+          "alphaBottomRange": [
+            179,
+            183
+          ],
+          "blankFrames": [],
+          "touchingFrames": [],
+          "nonzeroRgbInTransparentPixels": 0,
+          "fixedActionScale": 0.37374860956618466,
+          "calibratedBodyHeightPixels": 168.0,
+          "calibratedWorldBodyHeight": 179.76499996875,
+          "worldBodyHeightError": 3.124998215753294e-08,
+          "fixedSourceAnchor": {
+            "x": 380.5,
+            "y": 519.0
+          },
+          "fixedCoordinateEraseUsed": false
+        }
+      },
+      "attackEvent": {
+        "kind": "melee_charge",
+        "pass": true,
+        "attackDamageFrame1Based": 17,
+        "sourceMappedImpactFrame1Based": 17,
+        "impactTimeMs": 1142.857142857143,
+        "visibleLanceReachWorld": 242.89675591015623,
+        "attackApproachRange": 240.0,
+        "attackImpactRange": 255.0,
+        "chargeHitWindowFrames1Based": [
+          31,
+          35
+        ],
+        "chargeLoweredLanceFrame1Based": 31,
+        "chargeHitRangePlusTargetFootprint": true
+      }
+    }
+  },
+  "pass": true
+}

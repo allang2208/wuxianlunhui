@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T02:37:54.238232+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\running-h3-v01.mp4",
+    "bytes": 818705,
+    "sha256": "aa76c185e36ea1a9655b53cc07a73ecf14ee9fd007bbc2ae198fd2c08fae50dd"
+  },
+  "promptId": "50ffc0f8-b0e5-4304-a6ae-0215b742028f",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 556050840,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity and opening gait authority for the same service-rifle hamster. Preserve the golden-orange face, red-star helmet, khaki uniform, pouches, backpack roll and complete SVT-40-style wooden rifle.\n\nCreate a clean screen-right running loop. The hamster's rear silhouette must stay identical to Picture 1: it has no visible tail, no tail stump and no appendage behind the coat at any time. 0.0-1.0 seconds: continue from the supplied stride. 1.0-3.8 seconds: perform two compact military running cycles, alternating planted and forward boots while head, chest, pelvis, knees, toes and travel axis remain screen right; the rifle stays securely across the torso. 3.8-5.17 seconds: complete the gait and return exactly to the supplied stride without slowing.\n\nLocked camera and root-centered in-place motion, constant scale, full body and rifle in frame, pure white shadowless background. Absolutely no tail or any thin shape extending behind the body. No firing, foot sliding, frontal turn, extra limb, weapon deformation, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity and opening gait authority for the same service-rifle hamster. Preserve the golden-orange face, red-star helmet, khaki uniform, pouches, backpack roll and complete SVT-40-style wooden rifle.\n\nCreate a clean screen-right running loop. The hamster's rear silhouette must stay identical to Picture 1: it has no visible tail, no tail stump and no appendage behind the coat at any time. 0.0-1.0 seconds: continue from the supplied stride. 1.0-3.8 seconds: perform two compact military running cycles, alternating planted and forward boots while head, chest, pelvis, knees, toes and travel axis remain screen right; the rifle stays securely across the torso. 3.8-5.17 seconds: complete the gait and return exactly to the supplied stride without slowing.\n\nLocked camera and root-centered in-place motion, constant scale, full body and rifle in frame, pure white shadowless background. Absolutely no tail or any thin shape extending behind the body. No firing, foot sliding, frontal turn, extra limb, weapon deformation, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity and opening gait authority for the same service-rifle hamster. Preserve the golden-orange face, red-star helmet, khaki uniform, pouches, backpack roll and complete SVT-40-style wooden rifle.\n\nCreate a clean screen-right running loop. The hamster's rear silhouette must stay identical to Picture 1: it has no visible tail, no tail stump and no appendage behind the coat at any time. 0.0-1.0 seconds: continue from the supplied stride. 1.0-3.8 seconds: perform two compact military running cycles, alternating planted and forward boots while head, chest, pelvis, knees, toes and travel axis remain screen right; the rifle stays securely across the torso. 3.8-5.17 seconds: complete the gait and return exactly to the supplied stride without slowing.\n\nLocked camera and root-centered in-place motion, constant scale, full body and rifle in frame, pure white shadowless background. Absolutely no tail or any thin shape extending behind the body. No firing, foot sliding, frontal turn, extra limb, weapon deformation, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "d3274b14c1dba6e4ce442699e7320a5becbeb52ee9abcf995159ceb7083cfdef",
+  "effectivePromptSha256": "0faafd90009b5955eac1914b5326816421f86cd2fa1579daabe21ab17557a5a4",
+  "finalPromptSha256": "c87cc65c238a04e73f61c2ab8afb80f34138202fff6c13e7a0993539c1f8f8b3",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\service_rifleman-running.txt",
+      "bytes": 1080,
+      "sha256": "b0dfa215fdfb93ac05062c5df109036f6480837d45b633967f4641e043808696"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\references\\running-keyframe-video-safe-16x9.png",
+      "bytes": 337907,
+      "sha256": "39f8bbc4bf8359d36dacaedf48479c6d66468ec71e6bfa419a104c8f65c9c6ed"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\references\\running-keyframe-video-safe-16x9.png",
+      "bytes": 337907,
+      "sha256": "39f8bbc4bf8359d36dacaedf48479c6d66468ec71e6bfa419a104c8f65c9c6ed"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\running-h3-v01_contact.png",
+    "bytes": 569809,
+    "sha256": "f5529f509944e1e1ab93825075a01e0f4e6e3d123c66f0f72f11341209386806"
+  },
+  "elapsedSeconds": 1276.893
+}

@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T04:13:24.394762+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\charging-h3-v01.mp4",
+    "bytes": 1105744,
+    "sha256": "5e2e63eee1ea4686a91ac11411fafd4dcc2ecf8c63e999f8d77942b9fb51432f"
+  },
+  "promptId": "699cd201-0ed6-42d8-b26f-71d6a64fa331",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 237439754,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, equipment and opening-pose authority for the same traditional heavy lancer pair. Preserve all armor, red saddle cloth and one complete traditional straight lance; there is no powered or explosive device.\n\nCreate one recoverable rightward charge action. 0.0-0.8 seconds: rider lowers the lance and the armored cat gathers its legs. 0.8-3.2 seconds: cat accelerates through two powerful screen-right gallop strides while the rider leans forward and keeps the lance couched straight at chest height; head, chest, hips, knees, paws and travel axis remain right. 3.2-4.1 seconds: one peak charge stride, no impact. 4.1-5.17 seconds: decelerate and recover to the supplied couched pose.\n\nLocked root-centered camera, constant scale, full pair/tail/paws/entire lance in frame, pure white shadowless background. No explosion, fire, smoke, rockets, wings, target, collision, extra rider/cat/limb/weapon, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, equipment and opening-pose authority for the same traditional heavy lancer pair. Preserve all armor, red saddle cloth and one complete traditional straight lance; there is no powered or explosive device.\n\nCreate one recoverable rightward charge action. 0.0-0.8 seconds: rider lowers the lance and the armored cat gathers its legs. 0.8-3.2 seconds: cat accelerates through two powerful screen-right gallop strides while the rider leans forward and keeps the lance couched straight at chest height; head, chest, hips, knees, paws and travel axis remain right. 3.2-4.1 seconds: one peak charge stride, no impact. 4.1-5.17 seconds: decelerate and recover to the supplied couched pose.\n\nLocked root-centered camera, constant scale, full pair/tail/paws/entire lance in frame, pure white shadowless background. No explosion, fire, smoke, rockets, wings, target, collision, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, equipment and opening-pose authority for the same traditional heavy lancer pair. Preserve all armor, red saddle cloth and one complete traditional straight lance; there is no powered or explosive device.\n\nCreate one recoverable rightward charge action. 0.0-0.8 seconds: rider lowers the lance and the armored cat gathers its legs. 0.8-3.2 seconds: cat accelerates through two powerful screen-right gallop strides while the rider leans forward and keeps the lance couched straight at chest height; head, chest, hips, knees, paws and travel axis remain right. 3.2-4.1 seconds: one peak charge stride, no impact. 4.1-5.17 seconds: decelerate and recover to the supplied couched pose.\n\nLocked root-centered camera, constant scale, full pair/tail/paws/entire lance in frame, pure white shadowless background. No explosion, fire, smoke, rockets, wings, target, collision, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "e6b4c280d84a6cf03466382aa4e6689b95a8f723a27b5c8e90e2a910febe0037",
+  "effectivePromptSha256": "cba940637eaf012bc26dd461c8eec4719c798219b13529fa0cb54995ee1475c4",
+  "finalPromptSha256": "10ed3b5608f9eb66cfe1c1814c5074170b50ee90d444f049233c2d356a1f9504",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\heavy-cavalry-charging.txt",
+      "bytes": 964,
+      "sha256": "1ed101773d3ce003a421c4707519aea39a77d7d6234f7e72ec898ee9d2a86b9f"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\charging-keyframe-video-safe-16x9.png",
+      "bytes": 499563,
+      "sha256": "35e7867dbd161dd79e3c055a4de7bf82233339a2337cec0e3bfbe73eca3af429"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\charging-h3-v01_contact.png",
+    "bytes": 712796,
+    "sha256": "71105b3b00e1037f67844a8fde3cdbfd24872d4d082acdc63bfbba8d2092e391"
+  },
+  "elapsedSeconds": 425.678
+}

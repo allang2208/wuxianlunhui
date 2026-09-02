@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "industrial_recon_rifleman",
+  "operation": "shared transparent-only crop and tighter sheet packing; no resampling, redraw or per-frame recentering",
+  "sourceCell": [
+    512,
+    512
+  ],
+  "cropBox": [
+    88,
+    208,
+    424,
+    368
+  ],
+  "runtimeCell": [
+    336,
+    160
+  ],
+  "commonFootY": 143,
+  "actions": {
+    "idle": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/industrial_recon_rifleman/postprocess/sheets-rife/idle.png",
+      "output": "assets/companions/industrial_recon_rifleman/idle.png",
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 40,
+      "endFrame": 39,
+      "cols": 8,
+      "rows": 5,
+      "frameRate": 24,
+      "repeat": -1,
+      "footYRange": [
+        142,
+        144
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 875436,
+      "sha256": "58492448d2fa10ab6237e390aac43bff9915abe483b013ed6edb3ffb916aa3dd",
+      "decodedBytes": 8601600
+    },
+    "running": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/industrial_recon_rifleman/postprocess/sheets-rife/running.png",
+      "output": "assets/companions/industrial_recon_rifleman/running.png",
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 34,
+      "endFrame": 33,
+      "cols": 7,
+      "rows": 5,
+      "frameRate": 48,
+      "repeat": -1,
+      "footYRange": [
+        142,
+        144
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 744551,
+      "sha256": "e901ef41925ba9595bac8472e9eb136776360d0db20ca2ef7b069a5a27c67e2e",
+      "decodedBytes": 7526400
+    },
+    "attacking": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/industrial_recon_rifleman/postprocess/sheets-rife/attacking.png",
+      "output": "assets/companions/industrial_recon_rifleman/attacking.png",
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 77,
+      "endFrame": 76,
+      "cols": 11,
+      "rows": 7,
+      "frameRate": 24,
+      "repeat": 0,
+      "footYRange": [
+        142,
+        143
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 1854707,
+      "sha256": "8e60e545705b8584d8d2e033cc760e589cbab3782f9f198b2ddd4d0b37e2ac80",
+      "decodedBytes": 16558080
+    },
+    "dying": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/industrial_recon_rifleman/postprocess/sheets-rife/dying.png",
+      "output": "assets/companions/industrial_recon_rifleman/dying.png",
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 53,
+      "endFrame": 52,
+      "cols": 9,
+      "rows": 6,
+      "frameRate": 24,
+      "repeat": 0,
+      "footYRange": [
+        139,
+        143
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 1030533,
+      "sha256": "4f9a1c2a7acec892d90349ac287434c807e41a79abfcf62d71287c00caf06058",
+      "decodedBytes": 11612160
+    }
+  },
+  "budget": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "decodedBytes": 44298240,
+    "decodedMiB": 42.246,
+    "admissionPassed": true,
+    "maximumTextureDimension": 3696
+  },
+  "runtimeIntegrationActive": true,
+  "testsRun": false
+}

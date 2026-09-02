@@ -1,0 +1,14 @@
+Use case: precise-object-edit
+Asset type: game character mother-image revision; industrial-era hamster heavy cavalry
+Primary request: Edit ONLY the lance in the supplied image. The user rejects the explosive lance and wants a beautifully crafted traditional cavalry lance, with NO explosive component.
+Input image: The supplied existing mother image is the sole edit target and authority for everything except the lance.
+
+Change only the weapon:
+Replace the entire bulky cylindrical charge housing, its yellow identification band and the existing conical point with an elegant slender forged-steel spearhead. Give it a long refined symmetrical leaf/diamond-shaped blade, a clean raised central ridge, crisp beveled edges and a graceful taper to the tip. Add subtle engraved scrollwork near the blade's base and a small restrained aged-brass collar joining a slim steel socket to the dark polished wooden shaft. The socket must be narrow and clearly a normal spear fitting, not a capsule, bomb or canister. Refine the existing long straight wood shaft with fine wood grain and a neat understated leather grip where the hamster holds it. This is a functional-looking traditional lance with tasteful craftsmanship, not a magical staff, jeweled ceremonial weapon or fantasy oversized blade.
+Keep one single long lance on exactly the same diagonal line toward the upper right, with the same overall length, endpoint placement, hand contact and grip. Keep the blade fully inside the canvas. No pennant, tassel, ribbons or additional weapon.
+
+HARD LOCK everything else:
+Preserve the exact hamster face, round ears, muzzle, fur, adult body proportions and expression; steel helmet, cuirass, forearm guards, khaki uniform, red scarf, boots and every other equipment item. Preserve the silver-gray tabby cat's face, ears, striped fur, anatomy, all four legs and paws, tail, pose, saddle, cat armor, bridle, reins, saddlecloth, blanket and bags. Preserve both rider hands and seated pose; no extra limbs. Preserve the framing, perspective, right-facing camera, subject placement and scale. Do not redesign or repaint the rider or mount.
+Keep the same PBR render style, soft neutral studio lighting and pure white background without a floor shadow. Keep the image square, approximately the same 1254 by 1254 composition.
+
+Avoid: any explosive head, powder charge, cylindrical housing, yellow hazard ring, fuse, ammunition, mechanisms, rocket, boosters, nozzle, smoke, glow, electricity, sparks, effects, scene, text, logo, watermark or unrelated changes. The result must read immediately as an ordinary finely crafted spear/lance.

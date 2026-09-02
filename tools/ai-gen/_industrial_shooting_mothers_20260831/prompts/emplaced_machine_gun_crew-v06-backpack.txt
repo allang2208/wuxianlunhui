@@ -1,0 +1,17 @@
+Use case: precise-object-edit.
+Asset type: mother-image equipment refinement for the existing single Soviet-style hamster Browning BAR soldier.
+Primary request: replace the rigid metal ammunition box on the back with a comfortable period-style TWO-SHOULDER CANVAS AMMUNITION BACKPACK. Keep the existing carried ammunition belt. Edit only the backpack and its carrying straps.
+
+Input image 1 is the sole EDIT TARGET. Lock the same single hamster face, golden-orange and white fur, short muzzle, red-star olive steel helmet, khaki uniform, body proportions, standing posture, boots, BAR rifle, straight box magazine, two-paw grip, diagonal brass ammunition belt, camera, lighting and white background.
+
+Backpack replacement:
+- Completely remove the hard rectangular metal crate with its metal lid, hinges, corner guards and rigid edges.
+- In the same position behind the SCREEN-LEFT shoulder/flank, add ONE compact olive-khaki CANVAS RUCKSACK designed to carry ammunition. It must read immediately as a soft fabric double-strap backpack, NOT a metal box wrapped in fabric and NOT a suitcase.
+- Use a naturally rounded, slightly bulging cloth form with visible fabric folds and stitched seams, a large rounded top flap, two narrow brown leather flap straps with small buckles, and one modest soft side pocket. Worn canvas and restrained leather reinforcement at the base. No large metal face plates, lid handle, riveted metal corners or radio fittings.
+- Make it a little smaller and less protruding than the removed ammo crate. The bag hugs the back, from below shoulder level to around belt level, leaving the head, visible ear and body silhouette clear. It should look practical to carry while walking and using the rifle, not oversized baggage.
+- Exactly TWO broad shoulder straps support the backpack. Show a natural strap over each shoulder, continuing down the chest and around the torso; the near strap may sit under the existing carried ammo belt. No loose unsupported straps, no floating bag, no extra cross-body satchel. Keep the existing waist ammo pouches unchanged.
+- The preserved ammunition belt stays in its current diagonal shoulder/chest position and remains clearly visible. Do not attach it to the BAR: it is carried equipment. Do not add another belt, swap the gun or alter the BAR magazine.
+
+Preserve everything else. Both paws still hold the identical BAR in the identical low-ready pose. No radio, antenna, headset, microphone, extra soldier, extra weapon, rigid crate, ground prop, shield, wheels, modern MOLLE tactical backpack or scout binoculars.
+Appearance: period-inspired Soviet infantry cloth and leather, realistic PBR fur and fabrics, subtly worn buckles, restrained brass. Match the reference's warm olive/khaki palette, soft studio illumination and material detail. No new costume, no change in expression or body size.
+Output: one complete isolated full-body mother image, landscape 1536x1024, the same slightly elevated three-quarter view facing screen right, pure flat WHITE background, safe margins around helmet, new backpack, rifle tip and boots. No ground plane, cast/contact shadow, text, watermark or comparison panel. This is only a visual equipment change; not a technical diagram.

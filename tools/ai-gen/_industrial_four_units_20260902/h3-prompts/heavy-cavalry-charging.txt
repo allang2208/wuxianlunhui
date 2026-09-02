@@ -1,0 +1,5 @@
+<Picture 1> is the sole identity, equipment and opening-pose authority for the same traditional heavy lancer pair. Preserve all armor, red saddle cloth and one complete traditional straight lance; there is no powered or explosive device.
+
+Create one recoverable rightward charge action. 0.0-0.8 seconds: rider lowers the lance and the armored cat gathers its legs. 0.8-3.2 seconds: cat accelerates through two powerful screen-right gallop strides while the rider leans forward and keeps the lance couched straight at chest height; head, chest, hips, knees, paws and travel axis remain right. 3.2-4.1 seconds: one peak charge stride, no impact. 4.1-5.17 seconds: decelerate and recover to the supplied couched pose.
+
+Locked root-centered camera, constant scale, full pair/tail/paws/entire lance in frame, pure white shadowless background. No explosion, fire, smoke, rockets, wings, target, collision, extra rider/cat/limb/weapon, camera motion, text or watermark.

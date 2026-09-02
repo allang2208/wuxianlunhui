@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "id": "hamster_industrial_heavy_lancer",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "companion_hamster_industrial_heavy_lancer_idle",
+      "path": "assets/companions/hamster_industrial_heavy_lancer/idle.png",
+      "frameWidth": 256,
+      "frameHeight": 224,
+      "frameCount": 20,
+      "endFrame": 19,
+      "footX": 128,
+      "footY": 193
+    },
+    {
+      "textureKey": "companion_hamster_industrial_heavy_lancer_walk",
+      "path": "assets/companions/hamster_industrial_heavy_lancer/running.png",
+      "frameWidth": 288,
+      "frameHeight": 224,
+      "frameCount": 26,
+      "endFrame": 25,
+      "footX": 144,
+      "footY": 182
+    },
+    {
+      "textureKey": "companion_hamster_industrial_heavy_lancer_attack",
+      "path": "assets/companions/hamster_industrial_heavy_lancer/attacking.png",
+      "frameWidth": 496,
+      "frameHeight": 208,
+      "frameCount": 29,
+      "endFrame": 28,
+      "footX": 248,
+      "footY": 180
+    },
+    {
+      "textureKey": "companion_hamster_industrial_heavy_lancer_charge",
+      "path": "assets/companions/hamster_industrial_heavy_lancer/charging.png",
+      "frameWidth": 384,
+      "frameHeight": 224,
+      "frameCount": 55,
+      "endFrame": 54,
+      "footX": 192,
+      "footY": 193
+    },
+    {
+      "textureKey": "companion_hamster_industrial_heavy_lancer_dying",
+      "path": "assets/companions/hamster_industrial_heavy_lancer/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 224,
+      "frameCount": 31,
+      "endFrame": 30,
+      "footX": 256,
+      "footY": 181
+    }
+  ],
+  "dependencies": []
+}

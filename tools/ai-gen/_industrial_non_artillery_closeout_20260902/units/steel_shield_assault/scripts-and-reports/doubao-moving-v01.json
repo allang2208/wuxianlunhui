@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "rejected_original_video_visible_generated_long_tail",
+  "unitKey": "steel_shield_assault",
+  "action": "running",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "userInstruction": "可用，已切换豆包账号，使用豆包管线继续生成视频。",
+  "identitySource": "../../mother/steel_shield_assault-mother-v01.png",
+  "directionAuthority": {
+    "upperConfig": "data/hamster-riot-squad-config.json",
+    "upperAsset": "assets/companions/hamster_riot_squad/walking.png",
+    "upperFramesZeroBased": [0, 8, 16, 23],
+    "lowerConfig": "data/hamster-phalanx-config.json",
+    "lowerActualWalkAsset": "assets/companions/hamster_guard/running_rife.png",
+    "lowerFramesZeroBased": [0, 8, 16, 25, 33]
+  },
+  "keyframe": {
+    "path": "keyframes/moving-keyframe-v01.png",
+    "bytes": 1658370,
+    "sha256": "51e9214a27e13300381803c78b69805acefb8e1838b6dc26b39b701eb5b38df7",
+    "operation": "built-in imagegen same-character movement pose; copied without further pixel edits",
+    "offlineResult": "passed_camera_body_axis_step_axis_shield_side_and_pistol_side"
+  },
+  "reference": {
+    "path": "references/steel-shield-assault-moving-keyframe-video-safe-16x9.png",
+    "bytes": 510654,
+    "sha256": "df0de49a09c82acc0140399fc81c2cff1707ce9874425b4dce593df50f90dc88"
+  },
+  "prompt": "prompts/moving-doubao-v01.txt",
+  "parameters": {
+    "durationSeconds": 5,
+    "size": "1024x576",
+    "candidates": 1,
+    "loopRequested": true,
+    "cdpPort": 9333,
+    "fillOnlyRequired": true
+  },
+  "fillOnly": {
+    "result": "passed_without_upload_or_submission",
+    "modelSelection": "explicit",
+    "parameterSelection": "explicit",
+    "verifiedModel": "Seedance 2.0 Mini",
+    "verifiedRatio": "16:9",
+    "verifiedDurationSeconds": 5,
+    "editorChars": 596,
+    "editorSha256": "bbec439a798a2357cd69cef74bb7b2000e76305cda2b76029ec545a6b2957ad3"
+  },
+  "submission": {
+    "submittedOnce": true,
+    "paidQuotaConfirmed": false,
+    "duplicateSubmissionAttempted": false,
+    "promptCharsFromProvenance": 598,
+    "promptSha256": "bbec439a798a2357cd69cef74bb7b2000e76305cda2b76029ec545a6b2957ad3"
+  },
+  "output": {
+    "path": "videos/moving-doubao-v01.mp4",
+    "bytes": 1049548,
+    "sha256": "0db1cfda1eaa2fa4cb0a071e85acfaca29e5bf7953ac959f3a6a1a372db49ba8",
+    "provenance": "videos/moving-doubao-v01.mp4.json",
+    "frameCount": 121,
+    "fps": 24,
+    "size": "1280x720",
+    "durationSeconds": 5.041666666666667,
+    "contactSheet": "previews/moving-doubao-v01-contact-32.png",
+    "contactSheetSha256": "759af970dc05b380054f9bcb32d070ec528218f6a08695a1ef5805f3258a6935",
+    "preview": "previews/moving-doubao-v01-source.gif",
+    "previewSha256": "b95b71d7f139245d59079bcb811b997182d3b34a01feae4dfb312c663a4ce5d1",
+    "offlineResult": "rejected_visible_generated_long_tail_from_first_frame"
+  },
+  "rejection": "右向镜头、步轴、盾牌右侧和手枪左侧基本成立；但f0至f120持续出现参考图不存在的明显长尾，身份门槛失败。",
+  "submissionPolicy": "fill-only prompt and reference round-trip must pass before one submit; quota/auth/risk message stops without automatic retry",
+  "runtimeIntegrationActive": false,
+  "testsRun": false
+}

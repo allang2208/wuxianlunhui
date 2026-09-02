@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T03:43:55.919215+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\industrial_carbine_cavalry\\videos\\dying-h3-v01.mp4",
+    "bytes": 547269,
+    "sha256": "a1def730f2192e83d26ca81422e34264b791fd94a19f46c53c37a71ec92b4505"
+  },
+  "promptId": "e0aa6f59-758d-48a3-a859-094f9b2d285b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2145178532,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same industrial carbine cavalry pair.\n\nCreate one irreversible silent mounted death collapse. 0.0-0.7 seconds: the halted cat and rider lose strength while remaining screen right. 0.7-2.8 seconds: cat folds its right-side legs and falls toward screen-right side; rider loses the saddle with the carbine held against the torso. Keep saddle bags, blanket and sheathed saber attached. 2.8-4.1 seconds: cat and rider settle together, then the carbine rests beside the rider. 4.1-5.17 seconds: final pair remains completely still, extending horizontally with heads left and paws/boots/equipment right.\n\nLocked camera, full rider/cat/tail/paws/gear inside frame, pure white shadowless background. No firing, blood, recovery, extra rider/cat/limb, gear duplication, camera movement, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same industrial carbine cavalry pair.\n\nCreate one irreversible silent mounted death collapse. 0.0-0.7 seconds: the halted cat and rider lose strength while remaining screen right. 0.7-2.8 seconds: cat folds its right-side legs and falls toward screen-right side; rider loses the saddle with the carbine held against the torso. Keep saddle bags, blanket and sheathed saber attached. 2.8-4.1 seconds: cat and rider settle together, then the carbine rests beside the rider. 4.1-5.17 seconds: final pair remains completely still, extending horizontally with heads left and paws/boots/equipment right.\n\nLocked camera, full rider/cat/tail/paws/gear inside frame, pure white shadowless background. No firing, blood, recovery, extra rider/cat/limb, gear duplication, camera movement, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same industrial carbine cavalry pair.\n\nCreate one irreversible silent mounted death collapse. 0.0-0.7 seconds: the halted cat and rider lose strength while remaining screen right. 0.7-2.8 seconds: cat folds its right-side legs and falls toward screen-right side; rider loses the saddle with the carbine held against the torso. Keep saddle bags, blanket and sheathed saber attached. 2.8-4.1 seconds: cat and rider settle together, then the carbine rests beside the rider. 4.1-5.17 seconds: final pair remains completely still, extending horizontally with heads left and paws/boots/equipment right.\n\nLocked camera, full rider/cat/tail/paws/gear inside frame, pure white shadowless background. No firing, blood, recovery, extra rider/cat/limb, gear duplication, camera movement, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "87816cb995c5fe5398288ef61f226b24638707b38d3800d73aba3b5e44e7daa3",
+  "effectivePromptSha256": "18673e5052c5e8d2e4f89a83c568c463ce99ae3e345822e18ce03fbe049dc224",
+  "finalPromptSha256": "15d03c42c3fff95a3af2447fd3df26e587faa9bd8a611232fe5670d7ac58a133",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\light-cavalry-dying.txt",
+      "bytes": 892,
+      "sha256": "8366237dd8695b12bc8e7dc358cb77071fa94832667594b9e16a560d4834ccd9"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\industrial_carbine_cavalry\\references\\dying-keyframe-video-safe-16x9.png",
+      "bytes": 312416,
+      "sha256": "83e89cb789166a2d5ac0c5287b8992aae6cb2cbd3e466c083bc97fc0009a39d9"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\industrial_carbine_cavalry\\videos\\dying-h3-v01_contact.png",
+    "bytes": 452617,
+    "sha256": "2b92ae3b7b9fd64ec6c345cea3b18b13af60ac6d2f4a828ca6db0e6d849c040d"
+  },
+  "elapsedSeconds": 425.949
+}

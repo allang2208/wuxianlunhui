@@ -1,0 +1,19 @@
+Use case: precise-object-edit
+Asset type: tier-3 friendly-unit character mother image
+Input image: Image 1 is the edit target, the approved hamster ironwing explosive lancer v01.
+
+Primary request: Preserve the mounted hamster, silver-gray tabby cat, rocket-assisted explosive lance, riding pose and camera. Replace the rider's medieval plate armor with a Russian-designed heavy EOD bomb-disposal suit; replace the cat's metal plate barding with matching Kevlar/aramid ballistic armor containing visible hard ballistic inserts; remove both feather wing racks completely and replace them with a matched pair of powered charge-assist booster modules.
+
+Rider armor: a grounded Russian-style heavy bomb-disposal / EOD protective suit in muted olive drab, dark khaki and charcoal, with very thick layered aramid/Kevlar soft armor, broad padded shoulders, oversized blast-protection collar, reinforced torso, articulated forearm guards, groin flap, thigh panels, knee and shin protection, heavy gloves and riding-compatible armored boots. Include clearly readable rectangular hard ballistic plate inserts in modular carriers on the chest, upper back and shoulders, with black webbing and rugged fasteners. Use a bulky bomb-disposal helmet fitted around the hamster ears with a thick transparent ballistic face shield raised enough to keep the hamster's warm gray-brown face, cream muzzle and eyes fully visible. No flags, national emblems, Cyrillic text, logos or insignia.
+
+Cat armor: completely replace the ornate medieval steel barding with a matching olive-drab Kevlar/aramid protective system shaped for feline anatomy. Use thick flexible ballistic textile around the neck, chest, shoulders and flanks, black load-bearing webbing, trauma padding, and multiple obvious rectangular ceramic/steel ballistic inserts held inside external plate-carrier pockets. Include reinforced collar and articulated soft protection at the shoulders, but leave the cat's face, ears, whiskers, lower legs, rounded paws, striped tail and enough silver-gray tabby fur visible. No rigid horse barding and no metal caparison.
+
+Powered boosters: remove all feathers and both curved wing frames. Install exactly two compact symmetrical powered booster pods, one left and one right, rigidly mounted behind the rider to the saddle/back harness. Each booster has an olive/dark-gray armored housing, protected turbine/rocket nozzle pointing backward and slightly downward, intake vents, shock-isolated mount, compact power/propellant cell, guarded cabling and small red status lenses. They provide short charge assistance rather than sustained flight. Mother pose is fully powered off: no flame, exhaust, smoke, glow, sparks or motion blur. The two boosters must remain visually separate and must not resemble wings, feathers or a jet aircraft.
+
+Weapon invariant: preserve one long rocket-assisted explosive lance with its existing reinforced dark shaft, armor-piercing spear warhead, sealed explosive collar, vented assist module and red-white bands. Keep it inactive, held diagonally toward the upper screen-right, fully inside frame. Preserve the holstered sidearm.
+
+Other invariants: preserve the same warm gray-brown hamster identity and restrained face proportions. Preserve the same silver-gray tabby cat identity, eyes, face, body proportions, stance, four paws and tail. Preserve the saddle position, reins, orthographic three-quarter-front screen-right view, centered full-body composition, apparent scale and pure white background.
+
+Style: polished painterly-realistic 3D game-character render with crisp fur, woven aramid, ballistic nylon, ceramic plate, polymer, rubber and metal detail.
+
+Avoid: medieval plate armor, feather wings, feather racks, biological wings, active thruster fire, flying pose, tank, vehicle, wheels, tracks, horse anatomy, changing the lance, extra boosters, extra riders, extra animals, extra limbs, shadows, scenery, text, logo or watermark.

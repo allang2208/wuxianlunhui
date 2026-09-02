@@ -73,9 +73,11 @@
     "unitTypes": [
       { "key": "militia", "name": "仓鼠民兵", "roleLabel": "长枪兵 · 反骑兵", "spawnFoodCost": 50 },
       { "key": "halberd", "name": "仓鼠长戟", "roleLabel": "长戟卫士 · 反骑兵", "spawnFoodCost": 95 },
+      { "key": "anti_tank_rifleman", "name": "仓鼠反坦克步枪兵", "roleLabel": "冲锋枪点射 · 周期反坦克手榴弹", "spawnIntervalMs": 65000, "spawnFoodCost": 155 },
       { "key": "anti_vehicle", "name": "仓鼠反载", "roleLabel": "冲锋枪突击 · 周期反载火箭", "spawnFoodCost": 180 },
       { "key": "scout", "name": "仓鼠斥候", "roleLabel": "视野及增益", "spawnFoodCost": 75 },
       { "key": "ranger", "name": "仓鼠游侠", "roleLabel": "手弩游侠 · 远程输出", "spawnFoodCost": 110 },
+      { "key": "industrial_recon_rifleman", "name": "仓鼠近代侦察步枪兵", "roleLabel": "栓动步枪 · 高视野弱化标记", "spawnIntervalMs": 68000, "spawnFoodCost": 180 },
       { "key": "sniper", "name": "仓鼠狙击手", "roleLabel": "特战狙击 · 高伤高视野", "spawnIntervalMs": 25000, "spawnFoodCost": 210 }
     ],
     "recruitmentTiers": [
@@ -87,7 +89,11 @@
         { "slot": "spearman", "role": "长枪兵", "fromUnitName": "仓鼠民兵", "unitKey": "halberd", "unitName": "仓鼠长戟", "profile": "中等伤害、中高耐久、长柄攻击距离；反骑倍率待统一审计" },
         { "slot": "scout", "role": "斥候", "fromUnitName": "仓鼠斥候", "unitKey": "ranger", "unitName": "仓鼠游侠", "profile": "高机动、中高射程、稳定单体物理输出" }
       ] },
-      { "id": "thatch_hut_level_3", "level": 3, "name": "特战基地", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "thatch_hut_lv3", "assetPath": "assets/terrain/thatch_hut_lv3.png", "displayW": 256, "displayH": 179, "footOffsetY": 88 }, "lines": [
+      { "id": "thatch_hut_industrial", "level": 3, "name": "近代侦察营地", "plannedEffectiveResearchCost": 1950, "visual": { "tex": "thatch_hut_industrial", "assetPath": "assets/terrain/thatch_hut_industrial.png", "displayW": 257.911875, "displayH": 215.518072, "footOffsetY": 106.795181, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.698568873, "widthRatio": 0.992587102, "depthRatio": 0.59391771, "scaleMode": "strict" }, "assetCutoutHash": "D130B24BB62D0034F6D7429F1329169962452E6B1977E7835790F5B2F313ADBA" }, "lines": [
+        { "slot": "spearman", "role": "反装甲", "fromUnitName": "仓鼠长戟", "unitKey": "anti_tank_rifleman", "unitName": "仓鼠反坦克步枪兵", "profile": "波波沙冲锋枪短点射，并在近距离周期投掷反坦克手榴弹" },
+        { "slot": "scout", "role": "斥候", "fromUnitName": "仓鼠游侠", "unitKey": "industrial_recon_rifleman", "unitName": "仓鼠近代侦察步枪兵", "profile": "栓动步枪远距离单发，具备高视野与不覆盖强效果的弱化标记" }
+      ] },
+      { "id": "thatch_hut_level_3", "level": 4, "name": "特战基地", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "thatch_hut_lv3", "assetPath": "assets/terrain/thatch_hut_lv3.png", "displayW": 256, "displayH": 179, "footOffsetY": 88 }, "lines": [
         { "slot": "spearman", "role": "长枪兵", "fromUnitName": "仓鼠长戟", "unitKey": "anti_vehicle", "unitName": "仓鼠反载", "profile": "沙色迷彩突击队员；冲锋枪常规射击，周期性取出一次性火箭筒爆破载具" },
         { "slot": "scout", "role": "斥候", "fromUnitName": "仓鼠游侠", "unitKey": "sniper", "unitName": "仓鼠狙击手", "profile": "吉利服特战狙击手；低射速、高单发、超长射程、高视野并保留标记命中" }
       ] }
@@ -115,12 +121,12 @@
       { "key": "warrior", "name": "仓鼠战士", "roleLabel": "双手剑士 · 输出", "spawnFoodCost": 125 },
       { "key": "champion", "name": "仓鼠冠军", "roleLabel": "板甲冠军 · 重装输出", "spawnIntervalMs": 48000, "spawnFoodCost": 190 },
       { "key": "trench_assault", "name": "战壕突击兵", "roleLabel": "A10霰弹枪 · 近距扇压", "spawnIntervalMs": 62000, "spawnFoodCost": 210 },
+      { "key": "steel_shield_assault", "name": "仓鼠钢盾突击兵", "roleLabel": "钢盾短枪 · 重装防御", "spawnIntervalMs": 68000, "spawnFoodCost": 230 },
       { "key": "special_forces", "name": "仓鼠特战", "roleLabel": "泵动霰弹枪 · 近距爆发", "spawnIntervalMs": 65000, "spawnFoodCost": 260 },
       { "key": "guard", "name": "仓鼠盾卫", "roleLabel": "防御", "spawnFoodCost": 150 },
       { "key": "phalanx", "name": "仓鼠方阵", "roleLabel": "军团盾阵 · 重装防御", "spawnIntervalMs": 50000, "spawnFoodCost": 210 },
       { "key": "riot_special", "name": "仓鼠防暴队", "roleLabel": "防暴盾枪 · 近距扇压", "spawnIntervalMs": 60000, "spawnFoodCost": 260 }
     ],
-    "supplementalUnitUnlocks": ["trench_assault"],
     "recruitmentTiers": [
       { "id": "hamster_barracks_level_1", "level": 1, "name": "军营一级编制", "baseline": true, "lines": [
         { "slot": "greatsword", "role": "双手剑士", "unitKey": "warrior", "unitName": "仓鼠战士", "profile": "中等耐久、中等抗性、中等伤害，后续包含AOE升级" },
@@ -130,9 +136,9 @@
         { "slot": "greatsword", "role": "双手剑士", "fromUnitName": "仓鼠战士", "unitKey": "champion", "unitName": "仓鼠冠军", "profile": "晚期中世纪精良全身板甲、封闭式头盔与长柄双手剑；中高耐久、高单次伤害、较慢攻速" },
         { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠盾卫", "unitKey": "phalanx", "unitName": "仓鼠方阵", "profile": "军团大盾与双刃斧重装步兵；高耐久、稳步推进、低机动" }
       ] },
-      { "id": "hamster_barracks_industrial", "level": 3, "name": "近代步兵军营", "plannedEffectiveResearchCost": 1950, "visual": { "tex": "hamster_barracks_industrial", "assetPath": "assets/terrain/hamster_barracks_industrial.png", "displayW": 258.306306, "displayH": 214.004494, "footOffsetY": 105.851685, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.695564516, "widthRatio": 0.991071429, "depthRatio": 0.59811828, "scaleMode": "strict" }, "assetCutoutHash": "2386F58ED9DD0DE67FE2ADD7376D4005F77219ABF7E96C82BD694793B6AFB47F" }, "note": "近代建筑随科研换形；战壕突击兵可由独立科技补充招募，钢盾路线完成前仍保留最近一档完整编制。", "lines": [
+      { "id": "hamster_barracks_industrial", "level": 3, "name": "近代步兵军营", "plannedEffectiveResearchCost": 1950, "visual": { "tex": "hamster_barracks_industrial", "assetPath": "assets/terrain/hamster_barracks_industrial.png", "displayW": 258.306306, "displayH": 214.004494, "footOffsetY": 105.851685, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.695564516, "widthRatio": 0.991071429, "depthRatio": 0.59811828, "scaleMode": "strict" }, "assetCutoutHash": "2386F58ED9DD0DE67FE2ADD7376D4005F77219ABF7E96C82BD694793B6AFB47F" }, "lines": [
         { "slot": "greatsword", "role": "突击输出", "fromUnitName": "仓鼠冠军", "unitKey": "trench_assault", "unitName": "战壕突击兵", "profile": "红星钢盔与钢胸甲近代突击兵；A10泵动霰弹枪在250px内进行26°近距扇压" },
-        { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠方阵", "unitKey": "steel_shield_assault", "unitName": "钢盾突击兵", "profile": "钢盾与短枪的幻想近代前排；尚未开发", "placeholder": true }
+        { "slot": "shield", "role": "盾卫", "fromUnitName": "仓鼠方阵", "unitKey": "steel_shield_assault", "unitName": "仓鼠钢盾突击兵", "profile": "钢盾与短枪的幻想近代前排；高生命高防御，自动防御弱于现代防暴队" }
       ] },
       { "id": "hamster_barracks_level_3", "level": 4, "name": "现代步兵军营", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "hamster_barracks_lv3", "assetPath": "assets/terrain/hamster_barracks_lv3.png", "displayW": 300, "displayH": 270, "footOffsetY": 133 }, "lines": [
         { "slot": "greatsword", "role": "突击输出", "fromUnitName": "战壕突击兵", "unitKey": "special_forces", "unitName": "仓鼠特战", "profile": "现代沙色战术步兵；泵动霰弹枪窄角近距爆发，不继承盾系自动防御" },
@@ -597,6 +603,8 @@
       { "key": "musketeer", "name": "仓鼠火枪", "roleLabel": "远程", "spawnIntervalMs": 60000, "spawnFoodCost": 180 },
       { "key": "shooter", "name": "仓鼠射手", "roleLabel": "远程", "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
       { "key": "longbow", "name": "仓鼠长弓", "roleLabel": "长弓 · 远射高单发", "spawnIntervalMs": 65000, "spawnFoodCost": 200 },
+      { "key": "service_rifleman", "name": "仓鼠制式步枪兵", "roleLabel": "三级射手 · SVT制式步枪单发", "spawnIntervalMs": 65000, "spawnFoodCost": 185 },
+      { "key": "emplaced_machine_gun_crew", "name": "仓鼠BAR自动步枪兵", "roleLabel": "三级重火力 · 三发点射、贯穿与穿甲", "spawnIntervalMs": 78000, "spawnFoodCost": 235 },
       { "key": "assault", "name": "仓鼠突击", "roleLabel": "突击步枪 · 高机动单发压制", "spawnIntervalMs": 65000, "spawnFoodCost": 220 },
       { "key": "heavy_machine_gunner", "name": "仓鼠重机枪", "roleLabel": "重机枪 · 三连击、贯穿与穿甲", "spawnIntervalMs": 80000, "spawnFoodCost": 280 }
     ],
@@ -610,7 +618,11 @@
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠射手", "unitKey": "longbow", "unitName": "仓鼠长弓", "profile": "英格兰长弓远射；高单发、长拉弓周期、900px基础射程" },
         { "slot": "heavy_fire", "role": "重火力", "unitKey": "crossbow", "unitName": "仓鼠弩手", "profile": "二级继续保留弩手；仓鼠火枪由后续黑火药科技单独加入" }
       ] },
-      { "id": "shooting_range_level_3", "level": 3, "name": "靶场三级编制", "plannedEffectiveResearchCost": 4140, "lines": [
+      { "id": "shooting_range_industrial", "level": 3, "name": "近代射击学校", "plannedEffectiveResearchCost": 1950, "visual": { "tex": "shooting_range_industrial", "assetPath": "assets/terrain/shooting_range_industrial.png", "displayW": 258.32992, "displayH": 175.786667, "footOffsetY": 86.755556, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.635413289, "widthRatio": 0.991071429, "depthRatio": 0.717373846, "scaleMode": "strict" }, "assetCutoutHash": "5A54B5CF1A45E696B6935F2C58490163847227A2C44732680688772F42FA8F9B" }, "lines": [
+        { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠长弓", "unitKey": "service_rifleman", "unitName": "仓鼠制式步枪兵", "profile": "SVT-40风格制式步枪单发；680px射程、1.8秒间隔，不附带毒箭、标记或额外穿甲" },
+        { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠火枪", "unitKey": "emplaced_machine_gun_crew", "unitName": "仓鼠BAR自动步枪兵", "profile": "单人BAR三发点射；固定20%穿甲、最多贯穿两个目标，无架设和供弹技能" }
+      ] },
+      { "id": "shooting_range_level_3", "level": 4, "name": "现代靶场", "plannedEffectiveResearchCost": 4140, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠长弓", "unitKey": "assault", "unitName": "仓鼠突击", "profile": "高机动突击步枪射手；稳定单发压制、720px 射程" },
         { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠火枪", "unitKey": "heavy_machine_gunner", "unitName": "仓鼠重机枪", "profile": "弹链重机枪三连击；每发贯穿两个目标，固定 25% 物理护甲穿透" }
       ] }
@@ -642,6 +654,8 @@
       { "key": "light_cavalry", "name": "仓鼠轻骑", "roleLabel": "骑兵", "spawnIntervalMs": 60000, "spawnFoodCost": 220 },
       { "key": "cavalry", "name": "仓鼠骑兵", "roleLabel": "二级轻骑 · 高速长枪近战", "spawnIntervalMs": 70000, "spawnFoodCost": 260 },
       { "key": "winged_hussar", "name": "仓鼠翼骑兵", "roleLabel": "二级重骑 · 长枪冲锋", "spawnIntervalMs": 100000, "spawnFoodCost": 360 },
+      { "key": "industrial_carbine_cavalry", "name": "仓鼠近代骑枪兵", "roleLabel": "三级轻骑 · 高速停步单发", "spawnIntervalMs": 80000, "spawnFoodCost": 300 },
+      { "key": "gunpowder_explosive_lancer", "name": "仓鼠传统长矛重骑兵", "roleLabel": "三级重骑 · 传统长矛强化冲锋", "spawnIntervalMs": 115000, "spawnFoodCost": 420 },
       { "key": "scout_rifle_skirmisher", "name": "仓鼠侦察游骑兵", "roleLabel": "三级轻骑 · 移动单发步枪", "spawnIntervalMs": 75000, "spawnFoodCost": 300 },
       { "key": "powered_eod_explosive_lancer", "name": "仓鼠动力爆矛重骑兵", "roleLabel": "三级重骑 · 助推冲锋爆炸", "spawnIntervalMs": 120000, "spawnFoodCost": 440 }
     ],
@@ -654,7 +668,11 @@
         { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠轻骑", "unitKey": "cavalry", "unitName": "仓鼠骑兵", "profile": "245 移速的圆盾长枪骑兵；更高生命与近战伤害" },
         { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠骑士", "unitKey": "winged_hussar", "unitName": "仓鼠翼骑兵", "profile": "银甲翼架重骑；强化长枪普攻与冲锋" }
       ] },
-      { "id": "cavalry_school_level_3", "level": 3, "name": "骑兵学院三级编制", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "cavalry_school_lv3", "assetPath": "assets/terrain/cavalry_school_lv3.png", "displayW": 512, "displayH": 294, "footOffsetY": 142, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.547619, "widthRatio": 1, "depthRatio": 0.870748, "scaleMode": "strict" } }, "lines": [
+      { "id": "cavalry_school_industrial", "level": 3, "name": "近代骑兵学院", "plannedEffectiveResearchCost": 1950, "visual": { "tex": "cavalry_school_industrial", "assetPath": "assets/terrain/cavalry_school_industrial.png", "displayW": 516.659841, "displayH": 317.310924, "footOffsetY": 155.428571, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.586440678, "widthRatio": 0.990980834, "depthRatio": 0.806779661, "scaleMode": "strict" }, "assetCutoutHash": "BD5573BFEF3ED145CCCF2B1AF67C00B9295B97F203F43F1BDC79A63E411FFCF0" }, "lines": [
+        { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠骑兵", "unitKey": "industrial_carbine_cavalry", "unitName": "仓鼠近代骑枪兵", "profile": "250移速的骑猫木托骑枪手；540px中距离停步单发，无移动开火" },
+        { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠翼骑兵", "unitKey": "gunpowder_explosive_lancer", "unitName": "仓鼠传统长矛重骑兵", "profile": "披甲战猫与传统长矛重骑；高耐久、长攻击距离，并以完整冲刺—命中—收势动作完成冲锋" }
+      ] },
+      { "id": "cavalry_school_level_3", "level": 4, "name": "现代骑兵学院", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "cavalry_school_lv3", "assetPath": "assets/terrain/cavalry_school_lv3.png", "displayW": 512, "displayH": 294, "footOffsetY": 142, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.547619, "widthRatio": 1, "depthRatio": 0.870748, "scaleMode": "strict" } }, "lines": [
         { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠骑兵", "unitKey": "scout_rifle_skirmisher", "unitName": "仓鼠侦察游骑兵", "profile": "260 移速的骑猫侦察步枪手；中距离单发射击，移动命令不打断瞄准与攻击" },
         { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠翼骑兵", "unitKey": "powered_eod_explosive_lancer", "unitName": "仓鼠动力爆矛重骑兵", "profile": "双火箭助推的重装爆矛骑兵；普通长矛突刺，冲锋直击眩晕并在命中点造成非眩晕AOE伤害" }
       ] }

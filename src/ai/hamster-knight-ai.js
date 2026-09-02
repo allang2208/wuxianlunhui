@@ -9,7 +9,7 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
-import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
+import { clearRtsSurfaceRoute, finishRtsCommandAtHold, getRtsAcquireRange, resolveRtsMoveDestination } from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
@@ -22,7 +22,7 @@ export class HamsterKnightAI {
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 100;
         this._attackRange = this.cfg.attackRange ?? 55;
-        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
+        this._engageRange = getRtsAcquireRange(knight);
         this._followOffset = this.cfg.followOffset ?? 155;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
 
@@ -41,6 +41,7 @@ export class HamsterKnightAI {
         this._chargeElapsed = 0;
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
+        this._chargeRecovering = false;
         this._chargeRecoverLeft = 0;
         this._chargeDustTimer = 0;
         this._prevNoCollision = false;
@@ -279,6 +280,7 @@ export class HamsterKnightAI {
         this._chargeElapsed = 0;
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
+        this._chargeRecovering = false;
         this._chargeRecoverLeft = 0;
         this._chargeDustTimer = 0;
         this._prevNoCollision = !!m.noCollision;
@@ -297,7 +299,7 @@ export class HamsterKnightAI {
     _updateCharge(dt, entities) {
         const m = this.m;
         const cfg = this._chargeConfig();
-        if (this._chargeDamaged) {
+        if (this._chargeRecovering) {
             this._stopMotionOnly();
             this._chargeRecoverLeft -= dt;
             if (this._chargeRecoverLeft <= 0) this._endCharge();
@@ -306,6 +308,7 @@ export class HamsterKnightAI {
         const target = this._chargeTarget && this._chargeTarget.active
             ? this._chargeTarget
             : null;
+        const previousElapsed = this._chargeElapsed;
         this._chargeElapsed += dt;
         const accelProgress = Math.min(1, this._chargeElapsed / Math.max(1, cfg.accelDuration ?? 1500));
         const accelExponent = Math.max(0.1, Number(cfg.accelExponent) || 1);
@@ -347,18 +350,20 @@ export class HamsterKnightAI {
         const fps = cfg.frameRate ?? 24;
         const hitStart = ((cfg.hitStartFrame ?? 29) - 1) / fps * 1000;
         const hitEnd = (cfg.hitEndFrame ?? 44) / fps * 1000;
-        const inHitWindow = this._chargeElapsed >= hitStart && this._chargeElapsed <= hitEnd;
+        const inHitWindow = this._chargeElapsed >= hitStart && previousElapsed <= hitEnd;
         if (!this._chargeDamaged && inHitWindow && this._validEnemy(target) && this._inRange(target, cfg.hitRange ?? 60)) {
             this._chargeDamaged = true;
             this._dealChargeHit(target, entities);
             if (cfg.completeAnimationAfterHit) {
-                const animationMs = Math.max(0,
-                    (Number(cfg.frames) || 0) / Math.max(1, Number(cfg.frameRate) || 24) * 1000);
-                this._chargeRecoverLeft = Math.max(0, animationMs - this._chargeElapsed);
-                this._stopMotionOnly();
-                if (this._chargeRecoverLeft <= 0) this._endCharge();
+                this._beginChargeRecovery(cfg);
                 return;
             }
+        }
+
+        // 未命中也播完收势，保证待机→冲刺→攻击窗口→recover是完整单次动作。
+        if (!this._chargeDamaged && cfg.completeAnimationAfterHit && this._chargeElapsed > hitEnd) {
+            this._beginChargeRecovery(cfg);
+            return;
         }
 
         if (this._chargeDamaged
@@ -368,6 +373,15 @@ export class HamsterKnightAI {
             || (this._chargeElapsed > hitEnd && this._inRange(target, cfg.hitRange ?? 60))) {
             this._endCharge();
         }
+    }
+
+    _beginChargeRecovery(cfg) {
+        const animationMs = Math.max(0,
+            (Number(cfg.frames) || 0) / Math.max(1, Number(cfg.frameRate) || 24) * 1000);
+        this._chargeRecovering = true;
+        this._chargeRecoverLeft = Math.max(0, animationMs - this._chargeElapsed);
+        this._stopMotionOnly();
+        if (this._chargeRecoverLeft <= 0) this._endCharge();
     }
 
     _dealChargeHit(target, entities) {
@@ -404,6 +418,7 @@ export class HamsterKnightAI {
         this._chargeTarget = null;
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
+        this._chargeRecovering = false;
         this._chargeRecoverLeft = 0;
         m._parryImmune = this._baseParryImmune;
         m.noCollision = this._prevNoCollision;

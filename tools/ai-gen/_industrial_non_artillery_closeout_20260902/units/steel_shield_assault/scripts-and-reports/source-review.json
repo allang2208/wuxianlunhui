@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "steel_shield_assault",
+  "unitName": "钢盾突击兵",
+  "stage": "formal_asset_package_user_confirmed_complete_runtime_not_integrated",
+  "identitySource": "../../mother/steel_shield_assault-mother-v01.png",
+  "directionReview": "direction-review.md",
+  "directionReferenceReport": "references/direction-reference-report.json",
+  "sourceReviewReport": "previews/source-review-report.json",
+  "actions": {
+    "idle": {
+      "selectedTake": "videos/idle-h3-v01-exact-loop.mp4",
+      "status": "formal_32_frame_user_confirmed_complete",
+      "review": "124帧/24fps/1344x768；精确首尾使用同一获准同角色关键帧。双脚全程不换步，头胸胯和脚尖保持右向，盾在画面右侧且不透明完整，手枪在画面左侧持枪手且无开火/换手。中段为克制警戒承重和低戒备枪口微抬，随后自然回到首姿。用户查看预览后回复“可用”，原视频已获准；尚未抠图、插帧或接入运行时。",
+      "contactSheet": "previews/idle-h3-v01-exact-loop-contact-32.png",
+      "detailReview": "previews/idle-h3-v01-exact-loop-detail-f00-f32-f63-f91-f123.png",
+      "preview": "previews/idle-h3-v01-exact-loop-source.gif",
+      "generationManifest": "h3-idle-v01.json"
+    },
+    "running": {
+      "selectedTake": "videos/moving-doubao-v02-coat-covered.mp4",
+      "status": "formal_42_frame_user_confirmed_complete",
+      "review": "121帧/24fps/1280x720；军大衣后摆、右向步轴、盾牌画面右侧和手枪画面左侧保持稳定。约f8起出现明显长尾，用户明确回复“长尾就保留吧，没事，继续”，因此长尾作为本单位获准外观变化，不再阻断移动源；尚未抠图、RIFE或接入运行时。",
+      "rejected": [
+        {
+          "take": "videos/moving-doubao-v01.mp4",
+          "reason": "右向步轴、盾在画面右侧和手枪在画面左侧成立，但豆包从首帧起持续生成参考图不存在的明显长尾，违反无尾身份锁；不进入抠图、RIFE或运行时。"
+        }
+      ],
+      "contactSheet": "previews/moving-doubao-v02-coat-covered-contact-32.png",
+      "preview": "previews/moving-doubao-v02-coat-covered-source.gif",
+      "generationManifest": "doubao-moving-v02.json",
+      "latestAttempt": {
+        "keyframe": "keyframes/moving-keyframe-v02-coat-covered.png",
+        "prompt": "prompts/moving-doubao-v02-coat-covered.txt",
+        "manifest": "doubao-moving-v02.json",
+        "status": "formal_42_frame_user_confirmed_complete_long_tail_retained",
+        "conversationUrl": "chrome://doubao-chat/chat/38439639890116354"
+      }
+    },
+    "attacking": {
+      "selectedTake": "videos/attacking-doubao-v01.mp4",
+      "status": "formal_49_frame_1500ms_user_confirmed_complete",
+      "review": "121帧/24fps/1280x720/约5.04秒。角色持续略俯视三分之四右向，根点与双脚基本固定；盾牌始终在画面右侧且不透明，短手枪在画面左侧持枪手内。f48-f49仅出现一次枪口火光，f50-f62为同一枪的烟雾衰减，没有第二枪、换弹、盾击、装备复制或武器变形；约f93恢复低戒备。用户确认原视频可用，要求正式精灵图保留烟雾和音效，并将偏慢攻击压缩到约1.5秒；不重生视频。正式化时同步重算出膛、枪声和动作锁，不自动改变伤害、攻击间隔或AI平衡。",
+      "keyframe": "keyframes/attacking-keyframe-v02-right.png",
+      "reference": "references/steel-shield-assault-attacking-keyframe-v02-video-safe-16x9.png",
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "generationManifest": "doubao-attacking-v01.json",
+      "conversationUrl": "chrome://doubao-chat/chat/38439808179732226",
+      "contactSheet": "previews/attacking-doubao-v01-contact-32.png",
+      "fireWindowReview": "previews/attacking-doubao-v01-fire-window-f35-f66.png",
+      "preview": "previews/attacking-doubao-v01-source.gif",
+      "formalizationTiming": "约1500ms完整动作；目标出膛约550ms；保留f48-f49火光及f50-f62烟雾",
+      "audioInspection": "reports/attacking-audio-envelope.json"
+    },
+    "dying": {
+      "selectedTake": "videos/dying-doubao-v01.mp4",
+      "status": "formal_45_frame_user_confirmed_complete",
+      "review": "121帧/24fps/1280x720/约5.04秒。固定镜头与右向起姿成立，角色原地受力后控制性后仰倒地，最终形成头在画面左侧、腿和盾在画面右侧的完整尸体，并从约f88稳定保持到结尾；没有开枪、起身、循环、横向跑动或装备复制。盾牌全程保持画面右侧，但约f78以后不再清楚连接前臂；手枪最终落在画面左侧手边而非明确持续握持。用户查看预览并知悉该装备落地方式后回复“继续”，死亡v01获准进入正式化；尚未抠图、RIFE或接入运行时。",
+      "startKeyframe": "keyframes/attacking-keyframe-v02-right.png",
+      "reference": "references/steel-shield-assault-dying-start-v01-video-safe-16x9.png",
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "generationManifest": "doubao-dying-v01.json",
+      "conversationUrl": "chrome://doubao-chat/chat/38439744424540162",
+      "latestTake": "videos/dying-doubao-v01.mp4",
+      "contactSheet": "previews/dying-doubao-v01-contact-32.png",
+      "collapseReview": "previews/dying-doubao-v01-collapse-f00-f120.png",
+      "preview": "previews/dying-doubao-v01-source.gif"
+    }
+  },
+  "doubaoQuota": {
+    "status": "formal_asset_package_user_confirmed_complete_runtime_not_integrated",
+    "accountButtonText": "糕卷",
+    "paidQuotaConfirmed": false,
+    "duplicateSubmissionAttempted": false
+  },
+  "formalization": {
+    "manifest": "postprocess/formal-package-manifest.json",
+    "sourceReport": "postprocess/formal-source-report.json",
+    "rifeReport": "postprocess/formal-rife-report.json",
+    "previewReport": "postprocess/formal-preview-report.json",
+    "targetEffectiveBodyHeight": 129,
+    "decodedMiB": 29.1796875,
+    "within32MiBTarget": true,
+    "runtimeIntegrationActive": false
+  },
+  "h3Authorization": "用户明确允许把钢盾兵881920字节关键帧和提示词上传至192.168.3.142:8188并生成1个待机候选。",
+  "h3SubmissionAttempted": true,
+  "runtimeIntegrationActive": false,
+  "testsRun": false
+}

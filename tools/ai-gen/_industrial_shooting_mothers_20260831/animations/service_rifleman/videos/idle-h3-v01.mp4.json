@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T02:23:16.395004+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\idle-h3-v01.mp4",
+    "bytes": 479340,
+    "sha256": "9deb12e67b33ed97ef024d84fd882e5404b4a54aaa9fb001fb570dae96cbdd24"
+  },
+  "promptId": "fcea7656-ff17-489a-a53d-4fd4d8d57c49",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1667463587,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one golden-orange service-rifle hamster. Preserve the red-star helmet, khaki uniform, pouches, backpack roll and one complete SVT-40-style wooden rifle.\n\nCreate a restrained non-combat exact idle loop. The rifle must remain lowered at the identical low-ready angle for the entire video; the butt never rises to the shoulder, the muzzle never lifts, and the trigger paw never moves. 0.0-1.0 seconds: stable screen-right low-ready stance. 1.0-3.8 seconds: only one tiny chest-breath and body weight shift; paws keep their grips and both boots remain planted. 3.8-5.17 seconds: return exactly to the opening pose. Keep nose, chest, pelvis, knees, toes and rifle pointing screen right.\n\nLocked slightly elevated three-quarter-right game-sprite camera, constant scale, wide full-body framing, pure white background, even shadowless light. This is not an aiming or firing action: absolutely no shoulder aim, trigger pull, recoil, gun smoke, muzzle flash, projectile or lighting flash. No step, tail, extra limb, weapon duplication, turn, zoom, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one golden-orange service-rifle hamster. Preserve the red-star helmet, khaki uniform, pouches, backpack roll and one complete SVT-40-style wooden rifle.\n\nCreate a restrained non-combat exact idle loop. The rifle must remain lowered at the identical low-ready angle for the entire video; the butt never rises to the shoulder, the muzzle never lifts, and the trigger paw never moves. 0.0-1.0 seconds: stable screen-right low-ready stance. 1.0-3.8 seconds: only one tiny chest-breath and body weight shift; paws keep their grips and both boots remain planted. 3.8-5.17 seconds: return exactly to the opening pose. Keep nose, chest, pelvis, knees, toes and rifle pointing screen right.\n\nLocked slightly elevated three-quarter-right game-sprite camera, constant scale, wide full-body framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, even shadowless light. This is not an aiming or firing action: absolutely no shoulder aim, trigger pull, recoil, gun smoke, muzzle flash, projectile or lighting flash. No step, tail, extra limb, weapon duplication, turn, zoom, text or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one golden-orange service-rifle hamster. Preserve the red-star helmet, khaki uniform, pouches, backpack roll and one complete SVT-40-style wooden rifle.\n\nCreate a restrained non-combat exact idle loop. The rifle must remain lowered at the identical low-ready angle for the entire video; the butt never rises to the shoulder, the muzzle never lifts, and the trigger paw never moves. 0.0-1.0 seconds: stable screen-right low-ready stance. 1.0-3.8 seconds: only one tiny chest-breath and body weight shift; paws keep their grips and both boots remain planted. 3.8-5.17 seconds: return exactly to the opening pose. Keep nose, chest, pelvis, knees, toes and rifle pointing screen right.\n\nLocked slightly elevated three-quarter-right game-sprite camera, constant scale, wide full-body framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, even shadowless light. This is not an aiming or firing action: absolutely no shoulder aim, trigger pull, recoil, gun smoke, muzzle flash, projectile or lighting flash. No step, tail, extra limb, weapon duplication, turn, zoom, text or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "a0dadda16d6570244e5ecdccd360a37eba01f48d6323f0afaba929201a121977",
+  "effectivePromptSha256": "dca9bc000256fca684cc19dab56566a00ad68b4a6fc168627551c79d116798be",
+  "finalPromptSha256": "29137f01d9c4e865099c50f5a6b93f540453722295bcebe36ab00b24c5ace65e",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\service_rifleman-idle.txt",
+      "bytes": 1149,
+      "sha256": "d7e9db6101e68eadd30898bb5f61d900705af543978277c8067fc1031a3fc8a6"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 355629,
+      "sha256": "708d57d090ba1cbca8104755c03c343c745ac110b3cbe861b1ff29e37de8d7dc"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 355629,
+      "sha256": "708d57d090ba1cbca8104755c03c343c745ac110b3cbe861b1ff29e37de8d7dc"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\idle-h3-v01_contact.png",
+    "bytes": 436778,
+    "sha256": "5b8dc02e48147c4a6f0cd47629bf2cb141b65ccafe6b8ce87176af8f30b742f0"
+  },
+  "elapsedSeconds": 776.541
+}

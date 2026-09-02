@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "status": "minimal_formal_archive_runtime_integrated_static_only",
+  "scope": [
+    "anti_tank_rifleman",
+    "industrial_recon_rifleman",
+    "steel_shield_assault"
+  ],
+  "archivePolicy": {
+    "included": [
+      "approved mother and direct identity ancestors",
+      "actual direction references and action keyframes",
+      "approved source videos and provider metadata",
+      "prompts and source-review records",
+      "uninterpolated source sheets",
+      "final runtime-clock GIF previews and contact sheets",
+      "formal build, timing, alpha and budget reports",
+      "rebuild scripts used by the accepted assets"
+    ],
+    "excluded": [
+      "per-frame cutout caches",
+      "rejected video binaries",
+      "duplicate source and tool-clock previews",
+      "unselected mother candidates unrelated to the accepted identity chain"
+    ]
+  },
+  "units": {
+    "anti_tank_rifleman": {
+      "actions": ["idle", "running", "attacking", "grenade_throw", "dying"],
+      "sourceProvider": "Doubao Seedance 2.0 Mini",
+      "sourceReview": "units/anti_tank_rifleman/scripts-and-reports/source-review.json",
+      "runtimeReport": "units/anti_tank_rifleman/scripts-and-reports/runtime-sheet-report.json",
+      "finalPreviews": "units/anti_tank_rifleman/final-previews/",
+      "runtimeAsset": "assets/companions/hamster_anti_tank_rifleman/",
+      "runtimeIntegrationActive": true
+    },
+    "industrial_recon_rifleman": {
+      "actions": ["idle", "running", "attacking", "dying"],
+      "sourceProvider": "Doubao Seedance 2.0 Mini",
+      "sourceReview": "units/industrial_recon_rifleman/scripts-and-reports/source-review.json",
+      "runtimeReport": "units/industrial_recon_rifleman/scripts-and-reports/runtime-sheet-report.json",
+      "formalImport": "units/industrial_recon_rifleman/scripts-and-reports/formal-import.json",
+      "finalPreviews": "units/industrial_recon_rifleman/final-previews/",
+      "runtimeAsset": "assets/companions/industrial_recon_rifleman/",
+      "runtimeIntegrationActive": true
+    },
+    "steel_shield_assault": {
+      "actions": ["idle", "running", "attacking", "dying"],
+      "sourceProviders": ["Doubao Seedance", "MiniMax H3 idle redraw"],
+      "sourceReview": "units/steel_shield_assault/scripts-and-reports/source-review.json",
+      "formalReport": "units/steel_shield_assault/formal-reports/formal-package-manifest.json",
+      "finalPreviews": "units/steel_shield_assault/final-previews/",
+      "runtimeAsset": "assets/companions/hamster_steel_shield_assault/",
+      "runtimeIntegrationActive": true
+    }
+  },
+  "testsRun": false,
+  "runtimeVerificationRun": false
+}

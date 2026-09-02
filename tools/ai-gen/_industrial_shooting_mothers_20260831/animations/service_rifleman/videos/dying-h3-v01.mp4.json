@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T02:44:58.998134+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\dying-h3-v01.mp4",
+    "bytes": 510330,
+    "sha256": "1c5e625c586a71c93d5371c4eeef5c31aa7aa330a762ef6aae4c81a9f478cf00"
+  },
+  "promptId": "38b6c03d-76b8-47aa-be06-4de0e46d9313",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1681654515,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same service-rifle hamster. Preserve one complete SVT-40-style rifle and all clothing throughout.\n\nCreate one irreversible silent death collapse. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or thin appendage at any time. 0.0-0.7 seconds: lose strength in the planted right-facing stance. 0.7-2.5 seconds: knees buckle and the body falls toward screen-right side while the rifle stays connected to both paws and torso; nose, chest, pelvis, knees and boots do not yaw toward camera or screen left. 2.5-4.0 seconds: shoulder and hip reach the ground before the rifle settles beside the body. 4.0-5.17 seconds: final side-lying corpse remains completely still, head toward screen left and boots/rifle extending screen right.\n\nLocked camera, full body and rifle inside frame, pure white shadowless background. No firing, blood, recovery, looping, tail, extra limb, weapon duplication, camera movement, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same service-rifle hamster. Preserve one complete SVT-40-style rifle and all clothing throughout.\n\nCreate one irreversible silent death collapse. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or thin appendage at any time. 0.0-0.7 seconds: lose strength in the planted right-facing stance. 0.7-2.5 seconds: knees buckle and the body falls toward screen-right side while the rifle stays connected to both paws and torso; nose, chest, pelvis, knees and boots do not yaw toward camera or screen left. 2.5-4.0 seconds: shoulder and hip reach the ground before the rifle settles beside the body. 4.0-5.17 seconds: final side-lying corpse remains completely still, head toward screen left and boots/rifle extending screen right.\n\nLocked camera, full body and rifle inside frame, pure white shadowless background. No firing, blood, recovery, looping, tail, extra limb, weapon duplication, camera movement, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for the same service-rifle hamster. Preserve one complete SVT-40-style rifle and all clothing throughout.\n\nCreate one irreversible silent death collapse. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or thin appendage at any time. 0.0-0.7 seconds: lose strength in the planted right-facing stance. 0.7-2.5 seconds: knees buckle and the body falls toward screen-right side while the rifle stays connected to both paws and torso; nose, chest, pelvis, knees and boots do not yaw toward camera or screen left. 2.5-4.0 seconds: shoulder and hip reach the ground before the rifle settles beside the body. 4.0-5.17 seconds: final side-lying corpse remains completely still, head toward screen left and boots/rifle extending screen right.\n\nLocked camera, full body and rifle inside frame, pure white shadowless background. No firing, blood, recovery, looping, tail, extra limb, weapon duplication, camera movement, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "fa95b1ece9682adb2f21d750e0f74ae3ea7226d7390392d305883734310e7932",
+  "effectivePromptSha256": "7068f99c4bf0b1a499871670351637e8bde2c28926695067a9f21e92dcf2370f",
+  "finalPromptSha256": "b8645cc2789eff91c2afb32d25e167c937179423eeef75bc50200afc190b2d95",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\service_rifleman-dying.txt",
+      "bytes": 1060,
+      "sha256": "4dbc8031248fca8ae6f3e03ede43035de72abc6e463a17fe1942b4f777024bfa"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\references\\dying-keyframe-video-safe-16x9.png",
+      "bytes": 298077,
+      "sha256": "38a21ee40f43446d8d161155bab06f74f65e5195a1f488f043bb1074051be33a"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\dying-h3-v01_contact.png",
+    "bytes": 405082,
+    "sha256": "63a0eddf6252794a43b9818536e3c37d92850312c6c60a86bd579d3c9390d933"
+  },
+  "elapsedSeconds": 876.189
+}

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "title": "近代射击与骑兵四单位 MiniMax H3 正式开发",
+  "scope": {
+    "included": [
+      "service_rifleman",
+      "emplaced_machine_gun_crew",
+      "industrial_carbine_cavalry",
+      "gunpowder_explosive_lancer"
+    ],
+    "deferred": ["industrial_artillery_crew"],
+    "excludedAlreadyCompletedAnimationAssets": [
+      "anti_tank_rifleman",
+      "industrial_recon_rifleman",
+      "steel_shield_assault",
+      "trench_assault"
+    ]
+  },
+  "status": "complete_static_runtime_integrated",
+  "provider": "MiniMax H3 on user-owned RTX 5080",
+  "generationContract": {
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "referenceMode": "first-frame",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset",
+    "loopOnly": ["idle", "running"],
+    "oneWayOnly": ["dying"]
+  },
+  "workflowReads": [
+    "SKILL.md",
+    "skill/16b-animation-alignment-and-timing.md#1.1",
+    "tools/ai-gen/WORKFLOW.md#3.6",
+    "skill/16-character-sprite-production.md",
+    "skill/02-ai-asset-pipeline.md"
+  ],
+  "directionReferences": "direction-references/direction-reference-report.json",
+  "videoReferences": "video-reference-report.json",
+  "h3Prompts": "h3-prompts/",
+  "h3BatchReport": "h3-batch-report.json",
+  "sourceReviewReport": "source-reviews/source-review-report.json",
+  "formalBuildReport": "formal-build-report.json",
+  "cleanupManifest": "cleanup-20260902.json",
+  "runtimeBalanceSource": "docs/industrial-unit-balance-design-2026-08-31.md",
+  "units": {
+    "service_rifleman": {
+      "approvedMother": "tools/ai-gen/_industrial_shooting_mothers_20260831/mother/service_rifleman-mother-v01.png",
+      "actionKeyframes": ["running-keyframe-v01.png", "attacking-keyframe-v01.png"],
+      "targetDirection": "screen-right; head/chest/pelvis and gait axis agree",
+      "actions": ["idle", "running", "attacking", "dying"]
+    },
+    "emplaced_machine_gun_crew": {
+      "displayName": "仓鼠BAR自动步枪兵",
+      "approvedMother": "tools/ai-gen/_industrial_shooting_mothers_20260831/mother/emplaced_machine_gun_crew-mother-v06-backpack.png",
+      "legacyKeyOnly": true,
+      "actionKeyframes": ["running-keyframe-v01.png", "attacking-keyframe-v01.png"],
+      "targetDirection": "screen-right; single gunner and one BAR retained",
+      "actions": ["idle", "running", "attacking", "dying"]
+    },
+    "industrial_carbine_cavalry": {
+      "approvedMother": "tools/ai-gen/_industrial_cavalry_mothers_20260831/mother/industrial_carbine_cavalry-mother-v02-cavalry-camera.png",
+      "actionKeyframes": ["running-keyframe-v01.png", "attacking-keyframe-v01.png"],
+      "targetDirection": "screen-right mounted gait and firing axis",
+      "actions": ["idle", "running", "attacking", "dying"]
+    },
+    "gunpowder_explosive_lancer": {
+      "displayName": "仓鼠传统长矛重骑兵",
+      "approvedMother": "tools/ai-gen/_industrial_cavalry_mothers_20260831/mother/gunpowder_explosive_lancer-mother-v03-cavalry-camera.png",
+      "legacyKeyOnly": true,
+      "actionKeyframes": ["running-keyframe-v01.png", "attacking-keyframe-v01.png"],
+      "targetDirection": "screen-right mounted gait, thrust and charge axis",
+      "actions": ["idle", "running", "attacking", "charging", "dying"],
+      "chargeRedraw": {
+        "version": "v02",
+        "referenceMode": "approved idle keyframe as both exact endpoints",
+        "sourceReview": "source-reviews/heavy-cavalry-charging-redraw-v02.md",
+        "formalFrames": 55,
+        "formalFps": 22.916667,
+        "durationMs": 2400,
+        "impactFrame1Based": 31,
+        "activeHitWindowFrames1Based": [31, 35],
+        "recoveryFrames1Based": [36, 55]
+      },
+      "forbidden": ["explosion", "powered assist", "rocket", "wing"]
+    }
+  },
+  "runtimeBudget": {
+    "profile": "crowd",
+    "targetDecodedMiBPerUnit": 32,
+    "admissionDecodedMiBPerUnit": 64
+  },
+  "completion": {
+    "h3GeneratedVideoCount": 18,
+    "retainedAcceptedSourceVideoCount": 17,
+    "rejectedSourceVideoBinariesRemoved": 3,
+    "formalActionCount": 17,
+    "visualContactReviewPassed": true,
+    "formalAnimationAuditPassed": true,
+    "userGifAcceptance": "accepted",
+    "spriteBudgetGatePassed": true,
+    "runtimeIntegrationActive": true,
+    "remainingUnit": "industrial_artillery_crew",
+    "remainingUnitStatus": "deferred_by_user"
+  },
+  "testsRun": false,
+  "runtimeVerificationRun": false
+}

@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "id": "hamster_industrial_carbine_cavalry",
+  "profile": "crowd",
+  "sheets": [
+    {
+      "textureKey": "companion_hamster_industrial_carbine_cavalry_idle",
+      "path": "assets/companions/hamster_industrial_carbine_cavalry/idle.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 16,
+      "endFrame": 15,
+      "footX": 128,
+      "footY": 218
+    },
+    {
+      "textureKey": "companion_hamster_industrial_carbine_cavalry_walk",
+      "path": "assets/companions/hamster_industrial_carbine_cavalry/running.png",
+      "frameWidth": 320,
+      "frameHeight": 256,
+      "frameCount": 32,
+      "endFrame": 31,
+      "footX": 160,
+      "footY": 223
+    },
+    {
+      "textureKey": "companion_hamster_industrial_carbine_cavalry_attack",
+      "path": "assets/companions/hamster_industrial_carbine_cavalry/attacking.png",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frameCount": 27,
+      "endFrame": 26,
+      "footX": 128,
+      "footY": 224
+    },
+    {
+      "textureKey": "companion_hamster_industrial_carbine_cavalry_dying",
+      "path": "assets/companions/hamster_industrial_carbine_cavalry/dying.png",
+      "frameWidth": 352,
+      "frameHeight": 256,
+      "frameCount": 31,
+      "endFrame": 30,
+      "footX": 176,
+      "footY": 220
+    }
+  ],
+  "dependencies": []
+}

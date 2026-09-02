@@ -1,5 +1,5 @@
 {
-  "version": 46,
+  "version": 47,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -184,8 +184,16 @@
       ]
     },
     {
-      "id": "thatch_hut_level_3", "name": "特战基地", "icon": "🛖", "iconPath": "assets/ui/technology-icons/thatch_hut_level_3.png", "branch": "军事指挥", "subBranch": "草屋", "column": 5, "lane": 0, "researchCost": 920, "recruitmentTierId": "thatch_hut_level_3",
-      "prerequisites": ["thatch_hut_level_2", "gunpowder"], "description": "完成二级草屋编制与黑火药时代门槛后，斥候营地立即升级为特战基地，两条生产槽分别由仓鼠长戟、仓鼠游侠换代为仓鼠反载、仓鼠狙击手；已经出兵的旧单位不变。", "unlocks": [
+      "id": "thatch_hut_industrial", "name": "近代侦察编制", "icon": "🛖", "iconPath": "assets/terrain/thatch_hut_industrial.png", "branch": "军事指挥", "subBranch": "草屋", "column": 5, "lane": 0, "researchCost": 650, "recruitmentTierId": "thatch_hut_industrial",
+      "prerequisites": ["thatch_hut_level_2", "gunpowder", "steam_power"], "description": "完成二级草屋编制、黑火药与蒸汽动力后，斥候营地升级为近代侦察营地，两条生产槽换代为反坦克步枪兵与近代侦察步枪兵。", "unlocks": [
+        { "type": "recruitmentTier", "id": "thatch_hut_industrial", "label": "近代侦察营地 · III级编制" },
+        { "type": "unit", "id": "anti_tank_rifleman", "label": "仓鼠反坦克步枪兵" },
+        { "type": "unit", "id": "industrial_recon_rifleman", "label": "仓鼠近代侦察步枪兵" }
+      ]
+    },
+    {
+      "id": "thatch_hut_level_3", "name": "特战基地", "icon": "🛖", "iconPath": "assets/ui/technology-icons/thatch_hut_level_3.png", "branch": "军事指挥", "subBranch": "草屋", "column": 7, "lane": 0, "researchCost": 920, "recruitmentTierId": "thatch_hut_level_3",
+      "prerequisites": ["thatch_hut_industrial"], "description": "近代侦察编制之后进入现代四级，营地升级为特战基地，两条生产槽换代为仓鼠反载与仓鼠狙击手；已经出兵的旧单位不变。", "unlocks": [
         { "type": "recruitmentTier", "id": "thatch_hut_level_3", "label": "特战基地" },
         { "type": "unit", "id": "anti_vehicle", "label": "仓鼠反载" },
         { "type": "unit", "id": "sniper", "label": "仓鼠狙击手" }
@@ -206,14 +214,10 @@
     },
     {
       "id": "hamster_barracks_industrial", "name": "近代步兵编制", "icon": "⛺", "iconPath": "assets/terrain/hamster_barracks_industrial.png", "branch": "军事指挥", "subBranch": "军营", "column": 5, "lane": 1, "researchCost": 650, "recruitmentTierId": "hamster_barracks_industrial",
-      "prerequisites": ["hamster_barracks_level_2", "gunpowder", "steam_power"], "description": "完成军营二级编制、黑火药与蒸汽动力后进入近代工业阶段，建筑升级为近代步兵军营，并为战壕突击训练提供前置。钢盾路线完成前继续使用最近一档完整编制。", "unlocks": [
-        { "type": "recruitmentTier", "id": "hamster_barracks_industrial", "label": "近代步兵军营 · III级建筑形态" }
-      ]
-    },
-    {
-      "id": "trench_assault_training", "name": "战壕突击训练", "icon": "🪖", "iconPath": "assets/ui/unit-icons/hamster-trench-assault.png", "branch": "军事指挥", "subBranch": "军营", "column": 6, "lane": 1, "researchCost": 260,
-      "prerequisites": ["hamster_barracks_industrial"], "description": "训练穿钢胸甲、使用A10泵动堑壕霰弹枪的近代突击兵。钢盾路线完成前，本单位作为补充选项加入军营，不替换现有完整编制。", "unlocks": [
-        { "type": "unit", "id": "trench_assault", "label": "战壕突击兵" }
+      "prerequisites": ["hamster_barracks_level_2", "gunpowder", "steam_power"], "description": "完成军营二级编制、黑火药与蒸汽动力后，建筑与两条生产槽同步换代为近代步兵军营、战壕突击兵与钢盾突击兵。", "unlocks": [
+        { "type": "recruitmentTier", "id": "hamster_barracks_industrial", "label": "近代步兵军营 · III级编制" },
+        { "type": "unit", "id": "trench_assault", "label": "战壕突击兵" },
+        { "type": "unit", "id": "steel_shield_assault", "label": "仓鼠钢盾突击兵" }
       ]
     },
     {
@@ -243,8 +247,12 @@
       "prerequisites": ["emplacement_shooting"], "description": "完成一级阵地射击后，将机动射手换代为高单发远射的仓鼠长弓，并保留仓鼠弩手组成前近代靶场二级编制；仓鼠火枪随后由黑火药单独解锁，已经出兵的旧单位不变。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_2", "label": "靶场二级编制" }, { "type": "unit", "id": "longbow", "label": "仓鼠长弓" }]
     },
     {
-      "id": "shooting_range_level_3", "name": "靶场·III级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_3.png", "branch": "军事指挥", "subBranch": "靶场", "column": 5, "lane": 2, "researchCost": 920, "recruitmentTierId": "shooting_range_level_3",
-      "prerequisites": ["shooting_range_level_2", "gunpowder"], "description": "完成长弓整编与黑火药时代门槛后，研究三级热兵器编制，将射手与重火力生产槽替换为仓鼠突击与仓鼠重机枪；已经出兵的旧单位不变。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "靶场三级编制" }, { "type": "unit", "id": "assault", "label": "仓鼠突击" }, { "type": "unit", "id": "heavy_machine_gunner", "label": "仓鼠重机枪" }]
+      "id": "shooting_range_industrial", "name": "近代射击编制", "icon": "🏹", "iconPath": "assets/terrain/shooting_range_industrial.png", "branch": "军事指挥", "subBranch": "靶场", "column": 5, "lane": 2, "researchCost": 650, "recruitmentTierId": "shooting_range_industrial",
+      "prerequisites": ["shooting_range_level_2", "gunpowder", "steam_power"], "description": "完成长弓整编、黑火药与蒸汽动力后，靶场升级为近代射击学校，两条生产槽换代为制式步枪兵与BAR自动步枪兵。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_industrial", "label": "近代射击学校 · III级编制" }, { "type": "unit", "id": "service_rifleman", "label": "仓鼠制式步枪兵" }, { "type": "unit", "id": "emplaced_machine_gun_crew", "label": "仓鼠BAR自动步枪兵" }]
+    },
+    {
+      "id": "shooting_range_level_3", "name": "现代靶场", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_3.png", "branch": "军事指挥", "subBranch": "靶场", "column": 7, "lane": 2, "researchCost": 920, "recruitmentTierId": "shooting_range_level_3",
+      "prerequisites": ["shooting_range_industrial"], "description": "近代射击编制之后进入现代四级，射手与重火力生产槽换代为仓鼠突击与仓鼠重机枪；已经出兵的旧单位不变。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "现代靶场 · IV级编制" }, { "type": "unit", "id": "assault", "label": "仓鼠突击" }, { "type": "unit", "id": "heavy_machine_gunner", "label": "仓鼠重机枪" }]
     },
     {
       "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 0, "lane": 3, "researchCost": 140, "militaryTrunk": true,
@@ -264,8 +272,12 @@
       "prerequisites": ["heavy_cavalry"], "description": "二级编制完成后，轻骑与重骑生产槽自动替换为仓鼠骑兵与仓鼠翼骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_2", "label": "骑兵学院二级编制" }, { "type": "unit", "id": "cavalry", "label": "仓鼠骑兵" }, { "type": "unit", "id": "winged_hussar", "label": "仓鼠翼骑兵" }]
     },
     {
-      "id": "cavalry_school_level_3", "name": "骑兵学院·III级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 3, "researchCost": 920, "recruitmentTierId": "cavalry_school_level_3",
-      "prerequisites": ["cavalry_school_level_2", "gunpowder"], "description": "二级骑兵编制与黑火药时代门槛全部完成后，三级编制同时把轻骑槽换装为可移动单发射击的仓鼠侦察游骑兵，并把重骑槽升级为具有爆炸冲锋能力的仓鼠动力爆矛重骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_3", "label": "骑兵学院三级编制" }, { "type": "unit", "id": "scout_rifle_skirmisher", "label": "仓鼠侦察游骑兵" }, { "type": "unit", "id": "powered_eod_explosive_lancer", "label": "仓鼠动力爆矛重骑兵" }]
+      "id": "cavalry_school_industrial", "name": "近代骑兵编制", "icon": "🐎", "iconPath": "assets/terrain/cavalry_school_industrial.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 3, "researchCost": 650, "recruitmentTierId": "cavalry_school_industrial",
+      "prerequisites": ["cavalry_school_level_2", "gunpowder", "steam_power"], "description": "完成二级骑兵编制、黑火药与蒸汽动力后，骑兵学院升级为近代形态，两条生产槽换代为近代骑枪兵与传统长矛重骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_industrial", "label": "近代骑兵学院 · III级编制" }, { "type": "unit", "id": "industrial_carbine_cavalry", "label": "仓鼠近代骑枪兵" }, { "type": "unit", "id": "gunpowder_explosive_lancer", "label": "仓鼠传统长矛重骑兵" }]
+    },
+    {
+      "id": "cavalry_school_level_3", "name": "现代骑兵学院", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 7, "lane": 3, "researchCost": 920, "recruitmentTierId": "cavalry_school_level_3",
+      "prerequisites": ["cavalry_school_industrial"], "description": "近代骑兵编制之后进入现代四级，轻骑槽换代为仓鼠侦察游骑兵，重骑槽换代为仓鼠动力爆矛重骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_3", "label": "现代骑兵学院 · IV级编制" }, { "type": "unit", "id": "scout_rifle_skirmisher", "label": "仓鼠侦察游骑兵" }, { "type": "unit", "id": "powered_eod_explosive_lancer", "label": "仓鼠动力爆矛重骑兵" }]
     },
     {
       "id": "field_theology", "name": "战地神学", "icon": "⛪", "iconPath": "assets/ui/technology-icons/field_theology.png", "branch": "军事指挥", "subBranch": "教堂", "column": 0, "lane": 4, "researchCost": 140, "militaryTrunk": true,

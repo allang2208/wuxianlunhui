@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T03:51:33.111247+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\idle-h3-v01.mp4",
+    "bytes": 543896,
+    "sha256": "a16d47ea8e3a513dbd2b693a2a96cad87b9af8c40d5579353cea3c77d75126d3"
+  },
+  "promptId": "85eacbd7-bccf-47d6-9cd8-31f20f617c57",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1555376919,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one traditional heavy lancer pair: one armored hamster rider and one armored silver-gray tabby cat. Preserve the steel helmet/breastplate, cat armor, red saddle cloth and one complete traditional engraved steel-tipped wooden lance.\n\nCreate a restrained non-combat exact mounted idle loop. The lance must remain at the identical relaxed carry angle for the entire video; the rider never lowers it into a couched charge, never thrusts and never braces to attack. 0.0-1.0 seconds: stable screen-right halt with all four cat paws planted. 1.0-3.8 seconds: only tiny armored breathing, ear motion and rider weight shift; the lance and reins remain coherent and every paw stays planted. 3.8-5.17 seconds: return exactly to opening pose.\n\nLocked mildly elevated three-quarter-right camera, constant scale, full rider/cat/tail/paws/entire lance visible, pure white shadowless background. This is not a walking, thrusting or charging action: absolutely no step, attack, impact, recoil, flash or lighting change. No wings, rockets, explosives, fire, extra rider/cat/limb/weapon, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one traditional heavy lancer pair: one armored hamster rider and one armored silver-gray tabby cat. Preserve the steel helmet/breastplate, cat armor, red saddle cloth and one complete traditional engraved steel-tipped wooden lance.\n\nCreate a restrained non-combat exact mounted idle loop. The lance must remain at the identical relaxed carry angle for the entire video; the rider never lowers it into a couched charge, never thrusts and never braces to attack. 0.0-1.0 seconds: stable screen-right halt with all four cat paws planted. 1.0-3.8 seconds: only tiny armored breathing, ear motion and rider weight shift; the lance and reins remain coherent and every paw stays planted. 3.8-5.17 seconds: return exactly to opening pose.\n\nLocked mildly elevated three-quarter-right camera, constant scale, full rider/cat/tail/paws/entire lance visible, pure white shadowless background. This is not a walking, thrusting or charging action: absolutely no step, attack, impact, recoil, flash or lighting change. No wings, rockets, explosives, fire, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one traditional heavy lancer pair: one armored hamster rider and one armored silver-gray tabby cat. Preserve the steel helmet/breastplate, cat armor, red saddle cloth and one complete traditional engraved steel-tipped wooden lance.\n\nCreate a restrained non-combat exact mounted idle loop. The lance must remain at the identical relaxed carry angle for the entire video; the rider never lowers it into a couched charge, never thrusts and never braces to attack. 0.0-1.0 seconds: stable screen-right halt with all four cat paws planted. 1.0-3.8 seconds: only tiny armored breathing, ear motion and rider weight shift; the lance and reins remain coherent and every paw stays planted. 3.8-5.17 seconds: return exactly to opening pose.\n\nLocked mildly elevated three-quarter-right camera, constant scale, full rider/cat/tail/paws/entire lance visible, pure white shadowless background. This is not a walking, thrusting or charging action: absolutely no step, attack, impact, recoil, flash or lighting change. No wings, rockets, explosives, fire, extra rider/cat/limb/weapon, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b0c04fb012cb21c013eb1fc56a0454e960c66dfc034ac66f2267e381972d8a9b",
+  "effectivePromptSha256": "dc36fe64aba82e1f95d6af972ea8615b187ff154158d8133287205f9bdf518dd",
+  "finalPromptSha256": "a8f627c119e66e7f867451ace2a12de0fab129383a7ff991eea6dc62a173e217",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\heavy-cavalry-idle.txt",
+      "bytes": 1195,
+      "sha256": "0d16f88adba0a58ad69dd203f593b1fee8659115fd3ac8ed323a565ec95d4362"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 305254,
+      "sha256": "79f0bd6296ce5d326a34ac9d2334244ad5729804b64cf6001b16f51697b26c09"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 305254,
+      "sha256": "79f0bd6296ce5d326a34ac9d2334244ad5729804b64cf6001b16f51697b26c09"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\idle-h3-v01_contact.png",
+    "bytes": 464870,
+    "sha256": "9ebf8b037ce3507d6d72079ab4e00b0d795010e002a05a164f943b1117f36ea7"
+  },
+  "elapsedSeconds": 455.887
+}

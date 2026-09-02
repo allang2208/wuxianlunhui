@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "anti_tank_rifleman",
+  "unitName": "反坦克枪兵（波波沙）",
+  "stage": "approved_animation_bundle_postprocessed_asset_only",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "identitySource": "../../mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+  "directionReference": {
+    "config": "../../../../../data/hamster-anti-vehicle-config.json",
+    "atlas": "../../../../../assets/companions/hamster_anti_vehicle/running.png",
+    "inspectedFrameIndices0Based": [
+      0,
+      6,
+      12,
+      18
+    ],
+    "keyframe": "references/anti_tank_rifleman-running-keyframe-v01.png",
+    "target": "略俯视、面向屏幕右侧的三分之四步兵视角；鼻尖、视线、胸腔、骨盆、膝盖和脚尖同向。"
+  },
+  "candidates": [
+    {
+      "action": "idle",
+      "version": "v01",
+      "status": "rejected_before_postprocess",
+      "video": "videos/idle-doubao-v01.mp4",
+      "preview": "previews/idle-doubao-v01-source.gif",
+      "reason": "非战斗待机中周期出现枪口火焰。"
+    },
+    {
+      "action": "idle",
+      "version": "v02-no-fire",
+      "status": "user_approved_postprocessed_asset_only",
+      "video": "videos/idle-doubao-v02-no-fire.mp4",
+      "prompt": "prompts/idle-doubao-v02-no-fire.txt",
+      "contactSheet": "previews/idle-doubao-v02-no-fire-contact-32.png",
+      "preview": "previews/idle-doubao-v02-no-fire-source.gif",
+      "decodedFrames": 121,
+      "sourceSize": [
+        1280,
+        720
+      ],
+      "review": "双脚和骨盆稳定，轻微呼吸，无枪口火焰、烟雾或后坐；身体方向保持右侧三分之四。"
+    },
+    {
+      "action": "running",
+      "version": "v01",
+      "status": "user_approved_postprocessed_asset_only",
+      "video": "videos/running-doubao-v01.mp4",
+      "prompt": "prompts/running-doubao-v01.txt",
+      "contactSheet": "previews/running-doubao-v01-contact-32.png",
+      "preview": "previews/running-doubao-v01-source.gif",
+      "decodedFrames": 121,
+      "sourceSize": [
+        960,
+        720
+      ],
+      "review": "连续朝右原地跑步，前后腿交替清楚，无转正或转背；实际成片为960×720，未按请求的16:9输出。"
+    },
+    {
+      "action": "attacking",
+      "version": "v01",
+      "status": "user_approved_postprocessed_asset_only",
+      "video": "videos/attacking-doubao-v01.mp4",
+      "prompt": "prompts/attacking-doubao-v01.txt",
+      "contactSheet": "previews/attacking-doubao-v01-contact-32.png",
+      "preview": "previews/attacking-doubao-v01-source.gif",
+      "decodedFrames": 121,
+      "sourceSize": [
+        1280,
+        720
+      ],
+      "review": "抬枪后完成一次连续短点射并回到低戒备；人物根点和朝右方向稳定。豆包表现为数个采样枪口火焰，后续可按一次伤害包处理。"
+    },
+    {
+      "action": "grenade_throw",
+      "version": "v01",
+      "status": "user_approved_postprocessed_asset_only",
+      "video": "videos/grenade-throw-doubao-v01.mp4",
+      "prompt": "prompts/grenade-throw-doubao-v01.txt",
+      "contactSheet": "previews/grenade-throw-doubao-v01-contact-32.png",
+      "releaseReview": "previews/grenade-throw-doubao-v01-release-f68-f80.png",
+      "preview": "previews/grenade-throw-doubao-v01-source.gif",
+      "decodedFrames": 121,
+      "sourceSize": [
+        1280,
+        720
+      ],
+      "releaseFrame0Based": 72,
+      "releaseTimeSeconds": 3.0,
+      "finalRifeReleaseFrame0Based": 44,
+      "review": "由正常双手低戒备起手，右手跨到左髋取下一枚手榴弹，肩后蓄力并朝右过肩投掷，随后右手重新握枪并恢复低戒备。冲锋枪全程留在左手与胸前；原片第72帧手榴弹脱手，最终RIFE图集映射为第44帧，运行时应在最终图集第44帧生成独立弹体，后续飞行像素未进入人物图集。"
+    },
+    {
+      "action": "dying",
+      "version": "v01",
+      "status": "user_approved_postprocessed_asset_only",
+      "video": "videos/dying-doubao-v01.mp4",
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "contactSheet": "previews/dying-doubao-v01-contact-32.png",
+      "preview": "previews/dying-doubao-v01-source.gif",
+      "decodedFrames": 121,
+      "sourceSize": [
+        1280,
+        720
+      ],
+      "review": "单向跪倒并侧卧，无恢复；末段尸体姿势稳定，枪落在身侧。"
+    }
+  ],
+  "projectile": {
+    "status": "user_approved_cleaned_asset_only",
+    "manifest": "projectile/manifest.json",
+    "candidate": "projectile/anti-tank-grenade-projectile-v01.png",
+    "source": "projectile/anti-tank-grenade-source-v01.png",
+    "derivedAsset": "postprocess/projectile/anti-tank-grenade-clean-512x256.png",
+    "derivedReport": "postprocess/projectile/report.json",
+    "rotationPivotPixels": [
+      302,
+      131
+    ],
+    "review": "独立木柄筒状反坦克手榴弹已清理低Alpha残留并归一为512×256真实RGBA；弹头朝右、木柄朝左，主体Alpha边界完整，旋转枢轴登记为弹头/木柄接合处附近的(302,131)。最终人物图集第44帧释放后生成该独立投射物；运行时抛物线、翻滚与爆炸效果尚未实现。"
+  },
+  "sharedFindings": [
+    "五段待选源视频的身体方向均通过离线初筛，没有用武器朝向替代身体朝向判断。",
+    "豆包为角色添加了母图不存在的细长尾巴；后处理使用v02暖色种子与厚实身体核心保护规则清理外露尾巴，未删除裤腿或靴子，也未改变自然动作轨迹。",
+    "浅灰背景和地面阴影已由BiRefNet抠除；透明区RGB归零。",
+    "10%源边距审计均产生警告：待机上/下边距不足；移动下边缘由影子/脚步触达；攻击右边缘由枪口烟焰触达；投弹左/上/下不足且飞行弹体越过右边缘；死亡左/下边距不足。32点联系图未观察到角色身体被截断，正式裁窗仍须复查。"
+  ],
+  "postprocessStarted": true,
+  "postprocessComplete": true,
+  "postprocessManifest": "postprocess/manifest.json",
+  "finalActionSheets": {
+    "idle": "postprocess/sheets-rife/idle.png",
+    "running": "postprocess/sheets-rife/running.png",
+    "attacking": "postprocess/sheets-rife/attacking.png",
+    "grenade_throw": "postprocess/sheets-rife/grenade_throw.png",
+    "dying": "postprocess/sheets-rife/dying.png"
+  },
+  "userApprovedVideos": true,
+  "runtimeIntegrationActive": false,
+  "testsRun": false,
+  "approvalEvidence": "用户在查看五段动作与独立手榴弹候选后回复：没问题，下一个单位。"
+}

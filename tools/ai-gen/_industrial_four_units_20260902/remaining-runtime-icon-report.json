@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "icons": {
+    "anti_tank_rifleman": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+      "output": "assets/ui/unit-icons/hamster-anti-tank-rifleman.png",
+      "sourceAlphaBBox": [
+        348,
+        92,
+        1100,
+        941
+      ],
+      "placedBBox": [
+        65,
+        64,
+        446,
+        494
+      ]
+    },
+    "industrial_recon_rifleman": {
+      "source": "tools/ai-gen/_industrial_recon_mothers_20260831/mother/industrial_recon_rifleman-mother-v02-soviet-mosin.png",
+      "output": "assets/ui/unit-icons/hamster-industrial-recon-rifleman.png",
+      "sourceAlphaBBox": [
+        481,
+        45,
+        1424,
+        947
+      ],
+      "placedBBox": [
+        31,
+        64,
+        481,
+        494
+      ]
+    },
+    "steel_shield_assault": {
+      "source": "tools/ai-gen/_industrial_infantry_mothers_20260831/mother/steel_shield_assault-mother-v01.png",
+      "output": "assets/ui/unit-icons/hamster-steel-shield-assault.png",
+      "sourceAlphaBBox": [
+        400,
+        88,
+        1076,
+        965
+      ],
+      "placedBBox": [
+        90,
+        64,
+        421,
+        494
+      ]
+    }
+  }
+}

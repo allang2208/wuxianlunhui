@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "steel_shield_assault",
+  "clock": "exact formal frame rate with GIF 10 ms tick distribution; no review hold inserted",
+  "actions": {
+    "idle": {
+      "preview": "postprocess/previews/runtime-clock-exact/idle.gif",
+      "frameCount": 32,
+      "frameRate": 6.2439024390243905,
+      "nominalDurationMs": 5125.0,
+      "gifDurationMs": 5130,
+      "gifFrameDurationMsRange": [
+        160,
+        170
+      ],
+      "loopMode": "infinite"
+    },
+    "running": {
+      "preview": "postprocess/previews/runtime-clock-exact/running.gif",
+      "frameCount": 42,
+      "frameRate": 48.0,
+      "nominalDurationMs": 875.0,
+      "gifDurationMs": 880,
+      "gifFrameDurationMsRange": [
+        20,
+        30
+      ],
+      "loopMode": "infinite",
+      "loopSeamContact": "postprocess/previews/runtime-clock-exact/running-loop-seam-contact.png"
+    },
+    "attacking": {
+      "preview": "postprocess/previews/runtime-clock-exact/attacking.gif",
+      "frameCount": 49,
+      "frameRate": 32.666666666666664,
+      "nominalDurationMs": 1500.0,
+      "gifDurationMs": 1500,
+      "gifFrameDurationMsRange": [
+        30,
+        40
+      ],
+      "loopMode": "once_and_freeze_final",
+      "releaseOutputIndex": 18,
+      "releaseDelayMs": 551.0204081632654,
+      "releaseSmokeContact": "postprocess/previews/runtime-clock-exact/attacking-release-smoke-contact.png"
+    },
+    "dying": {
+      "preview": "postprocess/previews/runtime-clock-exact/dying.gif",
+      "frameCount": 45,
+      "frameRate": 12.272727272727273,
+      "nominalDurationMs": 3666.6666666666665,
+      "gifDurationMs": 3670,
+      "gifFrameDurationMsRange": [
+        80,
+        90
+      ],
+      "loopMode": "once_and_freeze_final",
+      "finalCorpseOutputIndex": 44,
+      "finalContact": "postprocess/previews/runtime-clock-exact/dying-final-contact.png"
+    }
+  }
+}

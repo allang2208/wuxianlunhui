@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T03:07:20.291675+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\videos\\attacking-h3-v01.mp4",
+    "bytes": 429676,
+    "sha256": "c3e958b109611fea2599ec37d91f6eb31672ec5b18425a4ace7cb019c9b0fa24"
+  },
+  "promptId": "5acbac3c-d70b-4c02-930f-3475c5962399",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1851062317,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, equipment and opening-pose authority for the same single BAR gunner. Preserve the exact helmet, uniform, canvas backpack, carried belt and one complete BAR-style rifle.\n\nCreate one recoverable three-shot burst. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or appendage at any time. 0.0-1.0 seconds: hold the planted screen-right shoulder aim. 1.0 seconds, 1.3 seconds and 1.6 seconds: fire exactly three distinct shots, each with a compact attached muzzle flash and restrained recoil; the stock remains seated and both paws keep correct grips. 1.7-2.5 seconds: flashes vanish and light smoke fades. 2.5-5.17 seconds: settle and return exactly to opening aim.\n\nLocked slightly elevated three-quarter-right camera, both boots planted, constant scale, full body and gear visible, pure white shadowless background. No fourth shot, reload, radio, tail, extra limb, weapon duplication, large smoke, camera movement, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, equipment and opening-pose authority for the same single BAR gunner. Preserve the exact helmet, uniform, canvas backpack, carried belt and one complete BAR-style rifle.\n\nCreate one recoverable three-shot burst. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or appendage at any time. 0.0-1.0 seconds: hold the planted screen-right shoulder aim. 1.0 seconds, 1.3 seconds and 1.6 seconds: fire exactly three distinct shots, each with a compact attached muzzle flash and restrained recoil; the stock remains seated and both paws keep correct grips. 1.7-2.5 seconds: flashes vanish and light smoke fades. 2.5-5.17 seconds: settle and return exactly to opening aim.\n\nLocked slightly elevated three-quarter-right camera, both boots planted, constant scale, full body and gear visible, pure white shadowless background. No fourth shot, reload, radio, tail, extra limb, weapon duplication, large smoke, camera movement, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, equipment and opening-pose authority for the same single BAR gunner. Preserve the exact helmet, uniform, canvas backpack, carried belt and one complete BAR-style rifle.\n\nCreate one recoverable three-shot burst. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or appendage at any time. 0.0-1.0 seconds: hold the planted screen-right shoulder aim. 1.0 seconds, 1.3 seconds and 1.6 seconds: fire exactly three distinct shots, each with a compact attached muzzle flash and restrained recoil; the stock remains seated and both paws keep correct grips. 1.7-2.5 seconds: flashes vanish and light smoke fades. 2.5-5.17 seconds: settle and return exactly to opening aim.\n\nLocked slightly elevated three-quarter-right camera, both boots planted, constant scale, full body and gear visible, pure white shadowless background. No fourth shot, reload, radio, tail, extra limb, weapon duplication, large smoke, camera movement, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "e76ac53ee026dcace4483ee6566dd8d3f1c2aaf4ebb0ae5288831ebd14621ea3",
+  "effectivePromptSha256": "ad946eb1c92fcc00448ccac85cc12df33b0159013c872149ad88bcf253a96733",
+  "finalPromptSha256": "24179db172f4b2bfd1f14b926cb6695750d7f14ddbc573c0ad681c6812b40ca8",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\bar-attacking.txt",
+      "bytes": 1010,
+      "sha256": "15ccd1056ce9919adbb6df3af57fedb9031672fe6a26b1a3b957b071d40d978b"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\references\\attacking-keyframe-video-safe-16x9.png",
+      "bytes": 345819,
+      "sha256": "901a2c35a0c92e00c0537702df4c7a280f32aa9a32a50ff3abe485d7bcb9e4b5"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\videos\\attacking-h3-v01_contact.png",
+    "bytes": 409665,
+    "sha256": "006044b496b7da6b89fa1df85ab5ddc195c9bfe7dab50eca213887ad6f52c267"
+  },
+  "elapsedSeconds": 425.847
+}

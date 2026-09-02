@@ -1,0 +1,761 @@
+{
+  "unitKey": "gunpowder_explosive_lancer",
+  "targetEffectiveBodyHeight": 168,
+  "desiredWorldBodyHeight": 179.765,
+  "runtimeAssetRoot": "assets/companions/hamster_industrial_heavy_lancer",
+  "actions": {
+    "idle": {
+      "configKey": "idle",
+      "sourceVideo": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/idle-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        88,
+        92,
+        96,
+        100,
+        104,
+        108,
+        112,
+        116,
+        120,
+        123
+      ],
+      "sourceFrameCount": 10,
+      "rifeInputFrameCount": 10,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 20,
+      "finalFrameCount": 20,
+      "frameWidth": 256,
+      "frameHeight": 224,
+      "cols": 4,
+      "rows": 5,
+      "frameRate": 8.0,
+      "repeat": -1,
+      "cellQuantum": 32,
+      "footY": 193,
+      "fixedSourceAnchor": {
+        "x": 490.0,
+        "y": 522.0
+      },
+      "fixedActionScale": 0.38443935926773454,
+      "sourceMedianUprightBodyHeight": 437.0,
+      "scaleCalibrationKeyCount": 4,
+      "activeFrameBytes": 4587520,
+      "activeFrameMiB": 4.375,
+      "decodedBytes": 4587520,
+      "decodedMiB": 4.375,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.0,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_industrial_heavy_lancer/idle.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/idle.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/idle-runtime-contact.png",
+      "preview": {
+        "frameRate": 8.0,
+        "runtimeFrameCount": 20,
+        "gifFrameCount": 60,
+        "gifDurationMs": 7500,
+        "gifFrameDurationMsRange": [
+          120,
+          130
+        ],
+        "loopMode": "infinite",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 14017,
+        "alphaPixelsMax": 14166,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 192,
+        "feetMax": 193,
+        "adjacentDeltaMean": 4.126387385945571,
+        "loopSeamDelta": 3.122846841812134,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "88": {
+            "removedLowConfidenceLightPixels": 1824,
+            "featheredLightEdgePixels": 3212
+          },
+          "92": {
+            "removedLowConfidenceLightPixels": 1841,
+            "featheredLightEdgePixels": 3110
+          },
+          "96": {
+            "removedLowConfidenceLightPixels": 1841,
+            "featheredLightEdgePixels": 3095
+          },
+          "100": {
+            "removedLowConfidenceLightPixels": 1825,
+            "featheredLightEdgePixels": 3110
+          },
+          "104": {
+            "removedLowConfidenceLightPixels": 1835,
+            "featheredLightEdgePixels": 3109
+          },
+          "108": {
+            "removedLowConfidenceLightPixels": 1833,
+            "featheredLightEdgePixels": 3115
+          },
+          "112": {
+            "removedLowConfidenceLightPixels": 1831,
+            "featheredLightEdgePixels": 3124
+          },
+          "116": {
+            "removedLowConfidenceLightPixels": 1829,
+            "featheredLightEdgePixels": 3125
+          },
+          "120": {
+            "removedLowConfidenceLightPixels": 1833,
+            "featheredLightEdgePixels": 3130
+          },
+          "123": {
+            "removedLowConfidenceLightPixels": 1828,
+            "featheredLightEdgePixels": 3117
+          }
+        }
+      }
+    },
+    "running": {
+      "configKey": "walk",
+      "sourceVideo": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/running-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "sourceFrameCount": 13,
+      "rifeInputFrameCount": 14,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 27,
+      "finalFrameCount": 26,
+      "frameWidth": 288,
+      "frameHeight": 224,
+      "cols": 2,
+      "rows": 13,
+      "frameRate": 48.0,
+      "repeat": -1,
+      "cellQuantum": 32,
+      "footY": 182,
+      "fixedSourceAnchor": {
+        "x": 498.0,
+        "y": 544.0
+      },
+      "fixedActionScale": 0.35368421052631577,
+      "sourceMedianUprightBodyHeight": 475.0,
+      "scaleCalibrationKeyCount": 4,
+      "activeFrameBytes": 6709248,
+      "activeFrameMiB": 6.3984375,
+      "decodedBytes": 6709248,
+      "decodedMiB": 6.3984375,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.0,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_industrial_heavy_lancer/running.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/running.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/running-runtime-contact.png",
+      "preview": {
+        "frameRate": 48.0,
+        "runtimeFrameCount": 26,
+        "gifFrameCount": 78,
+        "gifDurationMs": 1630,
+        "gifFrameDurationMsRange": [
+          20,
+          30
+        ],
+        "loopMode": "infinite",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 13631,
+        "alphaPixelsMax": 15000,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 173,
+        "feetMax": 183,
+        "adjacentDeltaMean": 28.723899993896485,
+        "loopSeamDelta": 36.30067443847656,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "50": {
+            "removedLowConfidenceLightPixels": 2454,
+            "featheredLightEdgePixels": 3965
+          },
+          "51": {
+            "removedLowConfidenceLightPixels": 2415,
+            "featheredLightEdgePixels": 3984
+          },
+          "52": {
+            "removedLowConfidenceLightPixels": 2195,
+            "featheredLightEdgePixels": 3723
+          },
+          "53": {
+            "removedLowConfidenceLightPixels": 2039,
+            "featheredLightEdgePixels": 3839
+          },
+          "54": {
+            "removedLowConfidenceLightPixels": 1966,
+            "featheredLightEdgePixels": 3752
+          },
+          "55": {
+            "removedLowConfidenceLightPixels": 1862,
+            "featheredLightEdgePixels": 3608
+          },
+          "56": {
+            "removedLowConfidenceLightPixels": 1694,
+            "featheredLightEdgePixels": 3519
+          },
+          "57": {
+            "removedLowConfidenceLightPixels": 1783,
+            "featheredLightEdgePixels": 3323
+          },
+          "58": {
+            "removedLowConfidenceLightPixels": 1789,
+            "featheredLightEdgePixels": 3650
+          },
+          "59": {
+            "removedLowConfidenceLightPixels": 2026,
+            "featheredLightEdgePixels": 3688
+          },
+          "60": {
+            "removedLowConfidenceLightPixels": 2109,
+            "featheredLightEdgePixels": 3671
+          },
+          "61": {
+            "removedLowConfidenceLightPixels": 2123,
+            "featheredLightEdgePixels": 3724
+          },
+          "62": {
+            "removedLowConfidenceLightPixels": 2145,
+            "featheredLightEdgePixels": 3689
+          },
+          "63": {
+            "removedLowConfidenceLightPixels": 2382,
+            "featheredLightEdgePixels": 3973
+          }
+        }
+      },
+      "loopEndpointRawFrame": 63,
+      "loopEndpointUsedAsRifeInput": true,
+      "loopRepairTargetRawFrame": 63,
+      "loopIntervalContract": "contiguous [start, reviewed endpoint); the matching endpoint is appended only as the one-shot RIFE target and excluded from the runtime cycle"
+    },
+    "attacking": {
+      "configKey": "attack",
+      "sourceVideo": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/attacking-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        0,
+        8,
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        59,
+        64,
+        72,
+        84,
+        100,
+        112,
+        123
+      ],
+      "sourceFrameCount": 15,
+      "rifeInputFrameCount": 15,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 29,
+      "finalFrameCount": 29,
+      "frameWidth": 496,
+      "frameHeight": 208,
+      "cols": 3,
+      "rows": 10,
+      "frameRate": 14.0,
+      "repeat": 0,
+      "cellQuantum": 16,
+      "footY": 180,
+      "fixedSourceAnchor": {
+        "x": 394.0,
+        "y": 519.0
+      },
+      "fixedActionScale": 0.3620689655172414,
+      "sourceMedianUprightBodyHeight": 464.0,
+      "scaleCalibrationKeyCount": 4,
+      "activeFrameBytes": 11967488,
+      "activeFrameMiB": 11.4130859375,
+      "decodedBytes": 12380160,
+      "decodedMiB": 11.806640625,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.03333333333333333,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_industrial_heavy_lancer/attacking.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/attacking.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/attacking-runtime-contact.png",
+      "preview": {
+        "frameRate": 14.0,
+        "runtimeFrameCount": 29,
+        "gifFrameCount": 29,
+        "gifDurationMs": 2070,
+        "gifFrameDurationMsRange": [
+          70,
+          80
+        ],
+        "loopMode": "once",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 18987,
+        "alphaPixelsMax": 19749,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 179,
+        "feetMax": 180,
+        "adjacentDeltaMean": 18.777787144695008,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "0": {
+            "removedLowConfidenceLightPixels": 2121,
+            "featheredLightEdgePixels": 3565
+          },
+          "8": {
+            "removedLowConfidenceLightPixels": 2109,
+            "featheredLightEdgePixels": 3616
+          },
+          "16": {
+            "removedLowConfidenceLightPixels": 2090,
+            "featheredLightEdgePixels": 3665
+          },
+          "24": {
+            "removedLowConfidenceLightPixels": 2281,
+            "featheredLightEdgePixels": 3842
+          },
+          "32": {
+            "removedLowConfidenceLightPixels": 2200,
+            "featheredLightEdgePixels": 3740
+          },
+          "40": {
+            "removedLowConfidenceLightPixels": 2150,
+            "featheredLightEdgePixels": 3663
+          },
+          "48": {
+            "removedLowConfidenceLightPixels": 2124,
+            "featheredLightEdgePixels": 3664
+          },
+          "56": {
+            "removedLowConfidenceLightPixels": 2347,
+            "featheredLightEdgePixels": 3701
+          },
+          "59": {
+            "removedLowConfidenceLightPixels": 2355,
+            "featheredLightEdgePixels": 3716
+          },
+          "64": {
+            "removedLowConfidenceLightPixels": 2069,
+            "featheredLightEdgePixels": 3623
+          },
+          "72": {
+            "removedLowConfidenceLightPixels": 1972,
+            "featheredLightEdgePixels": 3638
+          },
+          "84": {
+            "removedLowConfidenceLightPixels": 2070,
+            "featheredLightEdgePixels": 3730
+          },
+          "100": {
+            "removedLowConfidenceLightPixels": 2061,
+            "featheredLightEdgePixels": 3786
+          },
+          "112": {
+            "removedLowConfidenceLightPixels": 2131,
+            "featheredLightEdgePixels": 3830
+          },
+          "123": {
+            "removedLowConfidenceLightPixels": 2203,
+            "featheredLightEdgePixels": 3799
+          }
+        }
+      },
+      "impactFrame": 17
+    },
+    "charging": {
+      "configKey": "charge",
+      "sourceVideo": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/charging-h3-v02.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        0,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28,
+        32,
+        36,
+        40,
+        44,
+        48,
+        52,
+        56,
+        60,
+        64,
+        68,
+        72,
+        75,
+        78,
+        80,
+        82,
+        83,
+        84,
+        85,
+        86,
+        88,
+        89
+      ],
+      "sourceFrameCount": 28,
+      "rifeInputFrameCount": 28,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 55,
+      "finalFrameCount": 55,
+      "frameWidth": 384,
+      "frameHeight": 224,
+      "cols": 5,
+      "rows": 11,
+      "frameRate": 22.916667,
+      "repeat": 0,
+      "cellQuantum": 32,
+      "footY": 193,
+      "fixedSourceAnchor": {
+        "x": 493.0,
+        "y": 522.0
+      },
+      "fixedActionScale": 0.3857634902411022,
+      "sourceMedianUprightBodyHeight": 435.5,
+      "scaleCalibrationKeyCount": 4,
+      "activeFrameBytes": 18923520,
+      "activeFrameMiB": 18.046875,
+      "decodedBytes": 18923520,
+      "decodedMiB": 18.046875,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.0,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_industrial_heavy_lancer/charging.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/charging.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/charging-runtime-contact.png",
+      "preview": {
+        "frameRate": 22.916667,
+        "runtimeFrameCount": 55,
+        "gifFrameCount": 55,
+        "gifDurationMs": 2400,
+        "gifFrameDurationMsRange": [
+          40,
+          50
+        ],
+        "loopMode": "once",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 13157,
+        "alphaPixelsMax": 14700,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 185,
+        "feetMax": 194,
+        "adjacentDeltaMean": 35.35566759771771,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "0": {
+            "removedLowConfidenceLightPixels": 1750,
+            "featheredLightEdgePixels": 2899
+          },
+          "8": {
+            "removedLowConfidenceLightPixels": 1757,
+            "featheredLightEdgePixels": 2916
+          },
+          "12": {
+            "removedLowConfidenceLightPixels": 1846,
+            "featheredLightEdgePixels": 3181
+          },
+          "16": {
+            "removedLowConfidenceLightPixels": 1750,
+            "featheredLightEdgePixels": 3209
+          },
+          "20": {
+            "removedLowConfidenceLightPixels": 1589,
+            "featheredLightEdgePixels": 2594
+          },
+          "24": {
+            "removedLowConfidenceLightPixels": 1975,
+            "featheredLightEdgePixels": 2929
+          },
+          "28": {
+            "removedLowConfidenceLightPixels": 1679,
+            "featheredLightEdgePixels": 2795
+          },
+          "32": {
+            "removedLowConfidenceLightPixels": 1724,
+            "featheredLightEdgePixels": 2850
+          },
+          "36": {
+            "removedLowConfidenceLightPixels": 2084,
+            "featheredLightEdgePixels": 2986
+          },
+          "40": {
+            "removedLowConfidenceLightPixels": 1813,
+            "featheredLightEdgePixels": 2999
+          },
+          "44": {
+            "removedLowConfidenceLightPixels": 1632,
+            "featheredLightEdgePixels": 2538
+          },
+          "48": {
+            "removedLowConfidenceLightPixels": 1725,
+            "featheredLightEdgePixels": 2737
+          },
+          "52": {
+            "removedLowConfidenceLightPixels": 1917,
+            "featheredLightEdgePixels": 2827
+          },
+          "56": {
+            "removedLowConfidenceLightPixels": 1441,
+            "featheredLightEdgePixels": 2481
+          },
+          "60": {
+            "removedLowConfidenceLightPixels": 1736,
+            "featheredLightEdgePixels": 2811
+          },
+          "64": {
+            "removedLowConfidenceLightPixels": 1934,
+            "featheredLightEdgePixels": 2906
+          },
+          "68": {
+            "removedLowConfidenceLightPixels": 1593,
+            "featheredLightEdgePixels": 2767
+          },
+          "72": {
+            "removedLowConfidenceLightPixels": 1523,
+            "featheredLightEdgePixels": 2489
+          },
+          "75": {
+            "removedLowConfidenceLightPixels": 1808,
+            "featheredLightEdgePixels": 3117
+          },
+          "78": {
+            "removedLowConfidenceLightPixels": 1845,
+            "featheredLightEdgePixels": 3353
+          },
+          "80": {
+            "removedLowConfidenceLightPixels": 1788,
+            "featheredLightEdgePixels": 3306
+          },
+          "82": {
+            "removedLowConfidenceLightPixels": 1894,
+            "featheredLightEdgePixels": 3399
+          },
+          "83": {
+            "removedLowConfidenceLightPixels": 1873,
+            "featheredLightEdgePixels": 3333
+          },
+          "84": {
+            "removedLowConfidenceLightPixels": 1863,
+            "featheredLightEdgePixels": 3340
+          },
+          "85": {
+            "removedLowConfidenceLightPixels": 1849,
+            "featheredLightEdgePixels": 3264
+          },
+          "86": {
+            "removedLowConfidenceLightPixels": 1812,
+            "featheredLightEdgePixels": 3255
+          },
+          "88": {
+            "removedLowConfidenceLightPixels": 1773,
+            "featheredLightEdgePixels": 3217
+          },
+          "89": {
+            "removedLowConfidenceLightPixels": 1771,
+            "featheredLightEdgePixels": 3179
+          }
+        }
+      },
+      "impactFrame": 31,
+      "hitEndFrame": 35
+    },
+    "dying": {
+      "configKey": "dying",
+      "sourceVideo": "tools/ai-gen/_industrial_cavalry_mothers_20260831/animations/gunpowder_explosive_lancer/videos/dying-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        24,
+        32,
+        38,
+        42,
+        46,
+        50,
+        54,
+        58,
+        62,
+        66,
+        70,
+        76,
+        86,
+        98,
+        110,
+        123
+      ],
+      "sourceFrameCount": 16,
+      "rifeInputFrameCount": 16,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 31,
+      "finalFrameCount": 31,
+      "frameWidth": 512,
+      "frameHeight": 224,
+      "cols": 4,
+      "rows": 8,
+      "frameRate": 16.0,
+      "repeat": 0,
+      "cellQuantum": 32,
+      "footY": 181,
+      "fixedSourceAnchor": {
+        "x": 380.5,
+        "y": 519.0
+      },
+      "fixedActionScale": 0.37374860956618466,
+      "sourceMedianUprightBodyHeight": 449.5,
+      "scaleCalibrationKeyCount": 2,
+      "activeFrameBytes": 14221312,
+      "activeFrameMiB": 13.5625,
+      "decodedBytes": 14680064,
+      "decodedMiB": 14.0,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.03125,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_industrial_heavy_lancer/dying.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/dying.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/previews/dying-runtime-contact.png",
+      "preview": {
+        "frameRate": 16.0,
+        "runtimeFrameCount": 31,
+        "gifFrameCount": 31,
+        "gifDurationMs": 1940,
+        "gifFrameDurationMsRange": [
+          60,
+          70
+        ],
+        "loopMode": "once",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 17578,
+        "alphaPixelsMax": 20929,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 179,
+        "feetMax": 183,
+        "adjacentDeltaMean": 20.681013255318007,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "24": {
+            "removedLowConfidenceLightPixels": 2142,
+            "featheredLightEdgePixels": 3791
+          },
+          "32": {
+            "removedLowConfidenceLightPixels": 2224,
+            "featheredLightEdgePixels": 3702
+          },
+          "38": {
+            "removedLowConfidenceLightPixels": 2096,
+            "featheredLightEdgePixels": 3682
+          },
+          "42": {
+            "removedLowConfidenceLightPixels": 1866,
+            "featheredLightEdgePixels": 3448
+          },
+          "46": {
+            "removedLowConfidenceLightPixels": 1823,
+            "featheredLightEdgePixels": 3186
+          },
+          "50": {
+            "removedLowConfidenceLightPixels": 1787,
+            "featheredLightEdgePixels": 3090
+          },
+          "54": {
+            "removedLowConfidenceLightPixels": 1792,
+            "featheredLightEdgePixels": 3270
+          },
+          "58": {
+            "removedLowConfidenceLightPixels": 1899,
+            "featheredLightEdgePixels": 3206
+          },
+          "62": {
+            "removedLowConfidenceLightPixels": 1691,
+            "featheredLightEdgePixels": 3050
+          },
+          "66": {
+            "removedLowConfidenceLightPixels": 1544,
+            "featheredLightEdgePixels": 2935
+          },
+          "70": {
+            "removedLowConfidenceLightPixels": 1525,
+            "featheredLightEdgePixels": 2930
+          },
+          "76": {
+            "removedLowConfidenceLightPixels": 1515,
+            "featheredLightEdgePixels": 3007
+          },
+          "86": {
+            "removedLowConfidenceLightPixels": 1581,
+            "featheredLightEdgePixels": 2898
+          },
+          "98": {
+            "removedLowConfidenceLightPixels": 1574,
+            "featheredLightEdgePixels": 2924
+          },
+          "110": {
+            "removedLowConfidenceLightPixels": 1570,
+            "featheredLightEdgePixels": 2912
+          },
+          "123": {
+            "removedLowConfidenceLightPixels": 1559,
+            "featheredLightEdgePixels": 2908
+          }
+        }
+      }
+    }
+  },
+  "totalDecodedBytes": 57280512,
+  "totalDecodedMiB": 54.626953125,
+  "withinTargetBudget": false,
+  "withinAdmissionBudget": true,
+  "spriteBudgetManifest": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/gunpowder_explosive_lancer/sprite-budget-manifest.json"
+}

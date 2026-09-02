@@ -1,0 +1,5 @@
+<Picture 1> is the sole identity, equipment and opening-pose authority for the same single BAR gunner. Preserve the exact helmet, uniform, canvas backpack, carried belt and one complete BAR-style rifle.
+
+Create one recoverable three-shot burst. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or appendage at any time. 0.0-1.0 seconds: hold the planted screen-right shoulder aim. 1.0 seconds, 1.3 seconds and 1.6 seconds: fire exactly three distinct shots, each with a compact attached muzzle flash and restrained recoil; the stock remains seated and both paws keep correct grips. 1.7-2.5 seconds: flashes vanish and light smoke fades. 2.5-5.17 seconds: settle and return exactly to opening aim.
+
+Locked slightly elevated three-quarter-right camera, both boots planted, constant scale, full body and gear visible, pure white shadowless background. No fourth shot, reload, radio, tail, extra limb, weapon duplication, large smoke, camera movement, text or watermark.

@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "user_approved_source_formalized_candidate_review",
+  "unitKey": "steel_shield_assault",
+  "action": "attacking",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "userInstruction": "长尾就保留吧，没事，继续",
+  "pipelineAuthority": [
+    "SKILL.md 动画索引",
+    "skill/16b-animation-alignment-and-timing.md 1.1",
+    "tools/ai-gen/WORKFLOW.md 3.6"
+  ],
+  "directionAuthority": {
+    "upperConfig": "data/hamster-riot-squad-config.json",
+    "upperAsset": "assets/companions/hamster_riot_squad/attacking.png",
+    "upperFramesZeroBased": [0, 8, 17, 28, 40],
+    "lowerConfig": "data/hamster-phalanx-config.json",
+    "lowerActualAttackAsset": "assets/companions/hamster_guard/attacking_rife.png",
+    "lowerFramesZeroBased": [0, 5, 11, 19, 22],
+    "target": "略俯视三分之四右向；根点与双脚固定；盾在画面右侧；手枪在画面左侧举起、单发、克制后坐并回到低戒备"
+  },
+  "keyframe": {
+    "path": "keyframes/attacking-keyframe-v02-right.png",
+    "bytes": 1835283,
+    "sha256": "fd0c6788daefeaf8d4c9a5e55c3f661d618802a72f02c7db925a7dd23f0c1f0a",
+    "editSource": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-36d86f9d-a9b5-4b40-b5dc-3cb94f50d436.png",
+    "editPrompt": "prompts/attacking-keyframe-v02-direction-correction.txt",
+    "operation": "built-in imagegen same-character direction correction; copied without further pixel edits",
+    "offlineResult": "passed_identity_camera_head_chest_pelvis_planted_feet_shield_side_pistol_side_and_user_approved_long_tail"
+  },
+  "acceptedVariation": "long tail retained across the unit animation line per user decision",
+  "reference": {
+    "path": "references/steel-shield-assault-attacking-keyframe-v02-video-safe-16x9.png",
+    "bytes": 555288,
+    "sha256": "07108e9481207aab9f182dc629afb1a331a72da4e685d0b8cf36c9e25e52decf",
+    "operation": "proportional resize and white 1024x576 padding only"
+  },
+  "prompt": "prompts/attacking-doubao-v01.txt",
+  "promptBytes": 1427,
+  "promptSha256": "e545ddf5f3ee08c26a24bc74e7f4850094f4c1da6d50416e19cbdb61cfaa95c6",
+  "actionTiming": {
+    "motionMode": "recover",
+    "startLowReadySeconds": [0.0, 0.55],
+    "raiseAimSeconds": [0.55, 1.25],
+    "singleShotAroundSeconds": 1.45,
+    "settleLowerSeconds": [1.55, 2.6],
+    "restoredLowReadySeconds": [2.6, 5.0]
+  },
+  "parameters": {
+    "durationSeconds": 5,
+    "size": "1024x576",
+    "candidates": 1,
+    "loopRequested": false,
+    "cdpPort": 9333,
+    "fillOnlyRequired": true
+  },
+  "fillOnly": {
+    "result": "passed_without_upload_or_submission",
+    "modelSelection": "explicit",
+    "parameterSelection": "explicit",
+    "verifiedModel": "Seedance 2.0 Mini",
+    "verifiedRatio": "16:9",
+    "verifiedDurationSeconds": 5,
+    "editorChars": 498,
+    "editorSha256": "9a6c1af0afe38523cf11910ab6756b33afe7b45f3192118e0a789f1a9a2034ac"
+  },
+  "submission": {
+    "submittedOnce": true,
+    "conversationUrl": "chrome://doubao-chat/chat/38439808179732226",
+    "conversationTitle": "钢盾仓鼠士兵射击动画",
+    "paidQuotaConfirmed": false,
+    "duplicateSubmissionAttempted": false,
+    "referencePreviewConfirmed": "steel-shield-assault-attacking-keyframe-v02-video-safe-16x9.png 1024x576",
+    "promptEditorChars": 498,
+    "promptSha256": "9a6c1af0afe38523cf11910ab6756b33afe7b45f3192118e0a789f1a9a2034ac"
+  },
+  "backendWait": {
+    "initialWaitProcessResult": "non_standard_exit_after_submission_without_quota_auth_risk_or_generation_failure_message",
+    "waitCurrentAttempts": 2,
+    "waitCurrentSecondsEach": 1200,
+    "waitCurrentTotalSeconds": 2400,
+    "waitCurrentResult": "both_recovery_windows_timed_out_without_completion_or_failure",
+    "finalReadOnlyInspectState": "视频生成已提交",
+    "completedCardFound": false,
+    "failureMessageFound": false,
+    "quotaFailureFound": false,
+    "videoNodeCount": 1,
+    "completedCardDiagnosticsCount": 0,
+    "latestReadOnlyInspectAfterSecondWindow": {
+      "submittedTextFound": true,
+      "completedTextFound": false,
+      "failureTextFound": false,
+      "quotaFailureFound": false,
+      "videoNodeCount": 1,
+      "completedCardDiagnosticsCount": 0
+    },
+    "nextAction": "recover only from the newest completed card in the same conversation after it appears; never resubmit"
+  },
+  "completionRecovery": {
+    "userReportedGenerated": "好了，继续，我发现豆包在后台的时候不会主动提示生成完毕，你检查的时候要前置查看",
+    "backgroundBehavior": "background completion did not proactively refresh the prior submitted-only view",
+    "foregroundCheck": "scroll-latest plus play-latest completed-offset 0 plus inspect",
+    "completedCardsFound": 1,
+    "visibleForegroundVideoReadyState": 4,
+    "initialCombinedRecoveryResult": "stale_moving_v01_cache_rejected_by_exact_sha256_match",
+    "staleSha256": "0db1cfda1eaa2fa4cb0a071e85acfaca29e5bf7953ac959f3a6a1a372db49ba8",
+    "correctRecovery": "activate newest completed card, verify visible non-resource player, then run download-latest separately",
+    "correctFileDistinctFromAllExistingUnitVideos": true,
+    "pipelineUpdated": [
+      "tools/ai-gen/doubao-seedance-gen.mjs",
+      "tools/ai-gen/WORKFLOW.md 3.6"
+    ]
+  },
+  "output": {
+    "path": "videos/attacking-doubao-v01.mp4",
+    "bytes": 690803,
+    "sha256": "31da93955fa78923ccc3e5383392b4f1d12b58090d042e9c7b6a4dc21c2a4294",
+    "provenance": "videos/attacking-doubao-v01.mp4.json",
+    "provenanceSha256": "d8dc2060175e10ef74b198faac55e6f1a6bd84943caf2b9c7b198046bd5c4213",
+    "frameCount": 121,
+    "fps": 24,
+    "size": "1280x720",
+    "durationSeconds": 5.041666666666667,
+    "singleMuzzleFlashFramesZeroBased": [48, 49],
+    "singleMuzzleFlashTimeSeconds": [2.0, 2.0416666666666665],
+    "smokeDecayFramesZeroBased": [50, 62],
+    "restoredLowReadyByFrameZeroBased": 93,
+    "contactSheet": "previews/attacking-doubao-v01-contact-32.png",
+    "contactSheetSha256": "8b37a71e2b4de488e2b8111e51b6a4842be63516d005ec6e7b78ce519f113489",
+    "fireWindowReview": "previews/attacking-doubao-v01-fire-window-f35-f66.png",
+    "fireWindowReviewSha256": "dd76879bfcbf87816b24b1aaa7de03c3ca37c223b279ebf613e9902f5aa51b95",
+    "preview": "previews/attacking-doubao-v01-source.gif",
+    "previewSha256": "9ea2e45fe85e028a718915eafc5d0a427e6d424e80be8cafc05c56a5e0c3c256",
+    "offlineResult": "passed_single_shot_right_facing_planted_root_shield_side_pistol_side_long_tail_and_full_recovery",
+    "timingVariation": "shot occurs around 2.0s in the approved source; formal sprite timing will accelerate the ordinary attack without altering the source MP4"
+  },
+  "userApproval": {
+    "quote": "可用开枪后的烟雾效果你都可以保留，音效也没问题，同时你要加快一下它开火的速度，他动作有点慢了，参考一下skill中沉淀的部分。到时候截取成精灵图的时候进行优化",
+    "approvedSourceVideo": true,
+    "retainMuzzleFlash": true,
+    "retainPostShotSmoke": true,
+    "retainSourceGunshotAudio": true,
+    "speedAdjustmentStage": "approved video to sprite-sheet formalization",
+    "regenerateVideoForSpeed": false
+  },
+  "formalizationTimingPlan": {
+    "authority": [
+      "skill/16b-animation-alignment-and-timing.md sections 4-7",
+      "skill/16-character-sprite-production.md sections 16.2-16.6",
+      "skill/11-audio.md approved video audio workflow"
+    ],
+    "sourceDurationMs": 5041.666666666667,
+    "targetOrdinaryAttackDurationMs": 1500,
+    "targetReleaseTimeMs": 550,
+    "targetRecoveryCompleteMs": 1500,
+    "sourceMuzzleFlashFramesZeroBased": [48, 49],
+    "sourceSmokeFramesZeroBased": [50, 62],
+    "sourceRecoveredLowReadyFrameZeroBased": 93,
+    "rules": [
+      "retain approved source MP4 unchanged",
+      "remove redundant initial and tail holds through explicit source-frame selection",
+      "preserve both muzzle-flash keys and the full readable smoke decay",
+      "apply one fixed character scale and fixed action crop before a single 2x RIFE pass",
+      "remap release, sound, animation lock and recovery to the final sprite clock",
+      "do not alter damage, configured attack interval or AI balance without separate authorization"
+    ],
+    "executionStatus": "completed_candidate_pending_user_review",
+    "formalSheet": "postprocess/sheets-rife/attacking.png",
+    "formalPreview": "postprocess/previews/runtime-clock-exact/attacking.gif",
+    "finalFrameCount": 49,
+    "finalFrameRate": 32.666666666666664,
+    "finalReleaseFrameZeroBased": 18,
+    "finalReleaseDelayMs": 551.0204081632654
+  },
+  "audioPlan": {
+    "inspection": "reports/attacking-audio-envelope.json",
+    "sourceCodec": "aac",
+    "sourceSampleRate": 44100,
+    "sourceChannels": 2,
+    "isolatedPeakWindowSeconds": [2.0, 2.3],
+    "plannedTrimWindowSeconds": [1.98, 2.85],
+    "plannedOutput": "audio/steel-shield-assault-attack.mp3",
+    "plannedRuntimeTrigger": "play once at the final projectile release threshold",
+    "executionStatus": "extracted_task_local_candidate_pending_user_review",
+    "output": "audio/steel-shield-assault-attack.mp3",
+    "outputManifest": "audio/steel-shield-assault-attack.json"
+  },
+  "submissionPolicy": "run fill-only first, then submit exactly one candidate; quota/auth/risk stops without automatic retry",
+  "runtimeIntegrationActive": false,
+  "testsRun": false
+}

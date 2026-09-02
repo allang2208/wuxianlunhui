@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T03:14:27.444697+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\videos\\dying-h3-v01.mp4",
+    "bytes": 529271,
+    "sha256": "3bedf1f054a23e4f893f18df78d5b103a87e1512a63e533a5a3e59c9977a1146"
+  },
+  "promptId": "31ca87d3-3012-41d6-8ae1-88431863c836",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2143636600,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, equipment, camera and scale authority for the same single BAR gunner. Preserve the canvas backpack, carried shoulder/chest belt and one complete BAR; the belt does not feed the weapon.\n\nCreate one irreversible silent death collapse. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or appendage at any time. 0.0-0.7 seconds: lose strength in the planted right-facing stance. 0.7-2.6 seconds: knees buckle and the heavily equipped body falls toward screen-right side, backpack and straps staying attached; both paws and torso carry the BAR down together. 2.6-4.0 seconds: shoulder and hip contact first, then the rifle settles beside the body. 4.0-5.17 seconds: final corpse remains still with head left and boots/weapon right.\n\nLocked camera, full body and equipment in frame, pure white shadowless background. No firing, blood, recovery, radio, tail, extra limb, gear duplication, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, equipment, camera and scale authority for the same single BAR gunner. Preserve the canvas backpack, carried shoulder/chest belt and one complete BAR; the belt does not feed the weapon.\n\nCreate one irreversible silent death collapse. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or appendage at any time. 0.0-0.7 seconds: lose strength in the planted right-facing stance. 0.7-2.6 seconds: knees buckle and the heavily equipped body falls toward screen-right side, backpack and straps staying attached; both paws and torso carry the BAR down together. 2.6-4.0 seconds: shoulder and hip contact first, then the rifle settles beside the body. 4.0-5.17 seconds: final corpse remains still with head left and boots/weapon right.\n\nLocked camera, full body and equipment in frame, pure white shadowless background. No firing, blood, recovery, radio, tail, extra limb, gear duplication, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, equipment, camera and scale authority for the same single BAR gunner. Preserve the canvas backpack, carried shoulder/chest belt and one complete BAR; the belt does not feed the weapon.\n\nCreate one irreversible silent death collapse. The hamster's rear silhouette stays identical to Picture 1 with no visible tail, tail stump or appendage at any time. 0.0-0.7 seconds: lose strength in the planted right-facing stance. 0.7-2.6 seconds: knees buckle and the heavily equipped body falls toward screen-right side, backpack and straps staying attached; both paws and torso carry the BAR down together. 2.6-4.0 seconds: shoulder and hip contact first, then the rifle settles beside the body. 4.0-5.17 seconds: final corpse remains still with head left and boots/weapon right.\n\nLocked camera, full body and equipment in frame, pure white shadowless background. No firing, blood, recovery, radio, tail, extra limb, gear duplication, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b4f7e3e466a78df6d8aa7764c0fd533302ebfe69f7cefb32dda77afb8176eb01",
+  "effectivePromptSha256": "cb93d46f8997b1b70aab8e2288ef3bf155ab1e1f57f9465f9b6bb93a9a50bc9b",
+  "finalPromptSha256": "58cb835ee5624bba192756460dfd2c5248be6611740f0a7f652e52b0b6de634b",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\bar-dying.txt",
+      "bytes": 993,
+      "sha256": "5989e9a970057a36bae9a1b0a4eb062171ec618ee7f445dee230d342f672e28e"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\references\\dying-keyframe-video-safe-16x9.png",
+      "bytes": 345819,
+      "sha256": "901a2c35a0c92e00c0537702df4c7a280f32aa9a32a50ff3abe485d7bcb9e4b5"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\videos\\dying-h3-v01_contact.png",
+    "bytes": 402260,
+    "sha256": "46d6acd36f59f50c1c619fb79506ef0c91260d3156674f103a725ecdebef9192"
+  },
+  "elapsedSeconds": 425.874
+}

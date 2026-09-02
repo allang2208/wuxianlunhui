@@ -1,0 +1,5 @@
+<Picture 1> is the sole identity and opening gait authority for the same service-rifle hamster. Preserve the golden-orange face, red-star helmet, khaki uniform, pouches, backpack roll and complete SVT-40-style wooden rifle.
+
+Create a clean screen-right running loop. The hamster's rear silhouette must stay identical to Picture 1: it has no visible tail, no tail stump and no appendage behind the coat at any time. 0.0-1.0 seconds: continue from the supplied stride. 1.0-3.8 seconds: perform two compact military running cycles, alternating planted and forward boots while head, chest, pelvis, knees, toes and travel axis remain screen right; the rifle stays securely across the torso. 3.8-5.17 seconds: complete the gait and return exactly to the supplied stride without slowing.
+
+Locked camera and root-centered in-place motion, constant scale, full body and rifle in frame, pure white shadowless background. Absolutely no tail or any thin shape extending behind the body. No firing, foot sliding, frontal turn, extra limb, weapon deformation, camera motion, text or watermark.

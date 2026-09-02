@@ -21,6 +21,8 @@ import crossbowCfg from '../../data/hamster-crossbow-config.json';
 import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
+import serviceRiflemanCfg from '../../data/hamster-service-rifleman-config.json';
+import barAutomaticRiflemanCfg from '../../data/hamster-bar-automatic-rifleman-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
@@ -31,6 +33,11 @@ import cavalryCfg from '../../data/hamster-cavalry-config.json';
 import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
 import scoutRifleSkirmisherCfg from '../../data/hamster-scout-rifle-skirmisher-config.json';
 import poweredEodExplosiveLancerCfg from '../../data/hamster-powered-eod-explosive-lancer-config.json';
+import industrialCarbineCavalryCfg from '../../data/hamster-industrial-carbine-cavalry-config.json';
+import industrialHeavyLancerCfg from '../../data/hamster-industrial-heavy-lancer-config.json';
+import antiTankRiflemanCfg from '../../data/hamster-anti-tank-rifleman-config.json';
+import industrialReconRiflemanCfg from '../../data/hamster-industrial-recon-rifleman-config.json';
+import steelShieldAssaultCfg from '../../data/hamster-steel-shield-assault-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -92,6 +99,8 @@ export const UNIT_KIND_CFG = {
     longbow: longbowCfg,
     assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
+    service_rifleman: serviceRiflemanCfg,
+    emplaced_machine_gun_crew: barAutomaticRiflemanCfg,
     sniper: sniperCfg,
     musketeer: musketeerCfg,
     anti_vehicle: antiVehicleCfg,
@@ -102,6 +111,11 @@ export const UNIT_KIND_CFG = {
     winged_hussar: wingedHussarCfg,
     scout_rifle_skirmisher: scoutRifleSkirmisherCfg,
     powered_eod_explosive_lancer: poweredEodExplosiveLancerCfg,
+    industrial_carbine_cavalry: industrialCarbineCavalryCfg,
+    gunpowder_explosive_lancer: industrialHeavyLancerCfg,
+    anti_tank_rifleman: antiTankRiflemanCfg,
+    industrial_recon_rifleman: industrialReconRiflemanCfg,
+    steel_shield_assault: steelShieldAssaultCfg,
     ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
@@ -139,6 +153,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterRanger) return 'ranger';
     if (unit._isHamsterCrossbow) return 'crossbow';
     if (unit._isHamsterLongbow) return 'longbow';
+    if (unit._isHamsterIndustrialReconRifleman) return 'industrial_recon_rifleman';
     if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
     if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';
@@ -146,13 +161,19 @@ export function getUnitKind(unit) {
     if (unit._isHamsterTrenchAssault) return 'trench_assault';
     if (unit._isHamsterSpecialForces) return 'special_forces';
     if (unit._isHamsterRiotSquad) return 'riot_special';
+    if (unit._isHamsterServiceRifleman) return 'service_rifleman';
+    if (unit._isHamsterBarAutomaticRifleman) return 'emplaced_machine_gun_crew';
     if (unit._isHamsterAssault) return 'assault';
     if (unit._isHamsterHeavyMachineGunner) return 'heavy_machine_gunner';
+    if (unit._isHamsterAntiTankRifleman) return 'anti_tank_rifleman';
+    if (unit._isHamsterSteelShieldAssault) return 'steel_shield_assault';
+    if (unit._isHamsterIndustrialCarbineCavalry) return 'industrial_carbine_cavalry';
     if (unit._isHamsterScoutRifleSkirmisher) return 'scout_rifle_skirmisher';
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
     // 二级骑兵继承一级实体，必须先于基础骑士/轻骑判断。
     if (unit._isHamsterPoweredEodExplosiveLancer) return 'powered_eod_explosive_lancer';
+    if (unit._isHamsterIndustrialHeavyLancer) return 'gunpowder_explosive_lancer';
     if (unit._isHamsterWingedHussar) return 'winged_hussar';
     if (unit._isHamsterCavalry) return 'cavalry';
     if (unit._isHamsterKnight) return 'knight';

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T02:52:36.057602+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\videos\\idle-h3-v01.mp4",
+    "bytes": 369618,
+    "sha256": "50ee410a48125217411118d87792dddb233d7af53b1405fcdbc8d16341491ae3"
+  },
+  "promptId": "333e8d78-d46e-4dd9-abb8-f6ca444485c2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 308291417,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one single BAR automatic rifle hamster. Preserve the red-star helmet, khaki uniform, canvas two-shoulder ammunition backpack, carried shoulder/chest ammunition belt that does not feed the gun, and one complete BAR-style rifle.\n\nCreate a restrained non-combat exact idle loop. The BAR must remain lowered at the identical low-ready angle for the entire video; the butt never rises to the shoulder, the muzzle never lifts and the trigger paw never moves. 0.0-1.0 seconds: heavy screen-right low-ready stance. 1.0-3.8 seconds: only one tiny chest-breath and load-bearing weight shift; both boots stay planted, straps and the carried belt move subtly with the torso. 3.8-5.17 seconds: return exactly to opening pose.\n\nLocked slightly elevated three-quarter-right camera, constant scale, full body and gear in frame, pure white shadowless background. This is not an aiming or firing action: absolutely no shoulder aim, trigger pull, recoil, gun smoke, muzzle flash, projectile or lighting flash. No radio, antenna, rigid box, tail, extra limb, equipment duplication, frontal turn, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one single BAR automatic rifle hamster. Preserve the red-star helmet, khaki uniform, canvas two-shoulder ammunition backpack, carried shoulder/chest ammunition belt that does not feed the gun, and one complete BAR-style rifle.\n\nCreate a restrained non-combat exact idle loop. The BAR must remain lowered at the identical low-ready angle for the entire video; the butt never rises to the shoulder, the muzzle never lifts and the trigger paw never moves. 0.0-1.0 seconds: heavy screen-right low-ready stance. 1.0-3.8 seconds: only one tiny chest-breath and load-bearing weight shift; both boots stay planted, straps and the carried belt move subtly with the torso. 3.8-5.17 seconds: return exactly to opening pose.\n\nLocked slightly elevated three-quarter-right camera, constant scale, full body and gear in frame, pure white shadowless background. This is not an aiming or firing action: absolutely no shoulder aim, trigger pull, recoil, gun smoke, muzzle flash, projectile or lighting flash. No radio, antenna, rigid box, tail, extra limb, equipment duplication, frontal turn, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one single BAR automatic rifle hamster. Preserve the red-star helmet, khaki uniform, canvas two-shoulder ammunition backpack, carried shoulder/chest ammunition belt that does not feed the gun, and one complete BAR-style rifle.\n\nCreate a restrained non-combat exact idle loop. The BAR must remain lowered at the identical low-ready angle for the entire video; the butt never rises to the shoulder, the muzzle never lifts and the trigger paw never moves. 0.0-1.0 seconds: heavy screen-right low-ready stance. 1.0-3.8 seconds: only one tiny chest-breath and load-bearing weight shift; both boots stay planted, straps and the carried belt move subtly with the torso. 3.8-5.17 seconds: return exactly to opening pose.\n\nLocked slightly elevated three-quarter-right camera, constant scale, full body and gear in frame, pure white shadowless background. This is not an aiming or firing action: absolutely no shoulder aim, trigger pull, recoil, gun smoke, muzzle flash, projectile or lighting flash. No radio, antenna, rigid box, tail, extra limb, equipment duplication, frontal turn, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "5514c0698fa35ee4fc6b68a9b8d38d9ec21cc86e44811856b021d93edf06bf42",
+  "effectivePromptSha256": "1c74bdd90364f3af8608e6e88e09d6e9e4b20aa18763506c9ad1117e396ef20b",
+  "finalPromptSha256": "8bf6dfaecb3c61f89ac94fe87577838b5800d3e6247a1ea638a6bb1c387e1ef0",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\bar-idle.txt",
+      "bytes": 1202,
+      "sha256": "5cfe1ee74d8854357ea2ff6c5b9653740ec6ab5e9def77d078d727cb2b5c4f4f"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 302385,
+      "sha256": "cd8df592fbe656b754200ff6072d24ed8367e59cc3eb8b7d689807dfb0f8cc0f"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 302385,
+      "sha256": "cd8df592fbe656b754200ff6072d24ed8367e59cc3eb8b7d689807dfb0f8cc0f"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\emplaced_machine_gun_crew\\videos\\idle-h3-v01_contact.png",
+    "bytes": 382251,
+    "sha256": "369989a346b75403e8887a7d0a99a7bfda37d6471d779517675c683e1b5b19b6"
+  },
+  "elapsedSeconds": 455.76
+}

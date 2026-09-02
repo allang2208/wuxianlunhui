@@ -1,0 +1,15 @@
+Use case: precise-object-edit
+Asset type: friendly-unit character mother image
+Input images: Image 1 is the edit target, the current high-tier cavalry on an orange tabby cat. Image 2 is the established light-cavalry branch reference and defines the rider's species identity, face shape, body proportions, helmet lineage, clothing lineage, and overall silhouette.
+
+Primary request: Redesign only the hamster rider in Image 1 so it is clearly the upgraded evolution of the light-cavalry hamster rider in Image 2, rather than a generic round orange hamster.
+
+Rider identity and proportions: use the same warm gray-brown / tawny hamster fur family as Image 2, with a cream-white muzzle, lower cheeks, chin and throat. Give the rider Image 2's narrower tapered face, modest cheek volume, smaller proportional head, compact lean torso, alert dark eyes, and mature cavalry-scout expression. The rider must remain recognizably a hamster, but not have an oversized spherical head, inflated cheeks, or a bulky pear-shaped body.
+
+Upgrade-line equipment: evolve Image 2's brown quilted leather cavalry armor, dark navy scarf/cape, low cavalry helmet and blue plume into a more advanced version. Retain the target's protective lamellar/metal reinforcement and teal accents, but make the brown leather foundation, navy cloth and blue plume lineage immediately readable. Preserve the exact riding pose, hand placement, gloves, boots, round teal-and-ivory shield, long lance, spearhead and teal-and-ivory pennant from Image 1.
+
+Absolute invariants: do not change the orange tabby cat mount at all—same cat face, ears, eyes, muzzle, stripes, body proportions, legs, paws, tail, stance and expression. Preserve the cat harness, reins, saddle, saddle blanket, bags, bedroll and all fittings. Preserve the orthographic three-quarter-front camera, screen-right direction, full composition, object placement and pure white background. Keep the lance tip, cat tail and all paws inside frame.
+
+Style: polished painterly-realistic 3D game-character render with crisp fur, leather, cloth and metal detail, matching Image 1.
+
+Avoid: horse anatomy, changing the mount, changing the weapon, changing the shield, changing the camera, extra limbs, extra riders, duplicated equipment, cropped elements, shadows, floor, scenery, text, logo or watermark.

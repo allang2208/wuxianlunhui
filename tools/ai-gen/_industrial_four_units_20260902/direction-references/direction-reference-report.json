@@ -1,0 +1,274 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "units": {
+    "service_rifleman": {
+      "config": "data/hamster-assault-config.json",
+      "nativeFacing": "screen-right",
+      "actions": {
+        "idle": {
+          "source": "assets/companions/hamster_assault/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 24,
+          "reviewedFrames": [
+            0,
+            6,
+            12,
+            18,
+            23
+          ],
+          "contact": "direction-references/service_rifleman-idle-contact.png"
+        },
+        "walk": {
+          "source": "assets/companions/hamster_assault/running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 20,
+          "reviewedFrames": [
+            0,
+            5,
+            10,
+            15,
+            19
+          ],
+          "contact": "direction-references/service_rifleman-walk-contact.png"
+        },
+        "attack": {
+          "source": "assets/companions/hamster_assault/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 41,
+          "reviewedFrames": [
+            0,
+            10,
+            22,
+            30,
+            40
+          ],
+          "contact": "direction-references/service_rifleman-attack-contact.png"
+        },
+        "dying": {
+          "source": "assets/companions/hamster_assault/dying.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 31,
+          "reviewedFrames": [
+            0,
+            8,
+            15,
+            23,
+            30
+          ],
+          "contact": "direction-references/service_rifleman-dying-contact.png"
+        }
+      },
+      "overview": "direction-references/service_rifleman-all-actions-contact.png"
+    },
+    "emplaced_machine_gun_crew": {
+      "config": "data/hamster-heavy-machine-gunner-config.json",
+      "nativeFacing": "screen-right",
+      "actions": {
+        "idle": {
+          "source": "assets/companions/hamster_heavy_machine_gunner/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 26,
+          "reviewedFrames": [
+            0,
+            6,
+            12,
+            18,
+            25
+          ],
+          "contact": "direction-references/emplaced_machine_gun_crew-idle-contact.png"
+        },
+        "walk": {
+          "source": "assets/companions/hamster_heavy_machine_gunner/running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 22,
+          "reviewedFrames": [
+            0,
+            5,
+            11,
+            16,
+            21
+          ],
+          "contact": "direction-references/emplaced_machine_gun_crew-walk-contact.png"
+        },
+        "attack": {
+          "source": "assets/companions/hamster_heavy_machine_gunner/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 61,
+          "reviewedFrames": [
+            0,
+            15,
+            23,
+            39,
+            60
+          ],
+          "contact": "direction-references/emplaced_machine_gun_crew-attack-contact.png"
+        },
+        "dying": {
+          "source": "assets/companions/hamster_heavy_machine_gunner/dying.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 35,
+          "reviewedFrames": [
+            0,
+            9,
+            17,
+            26,
+            34
+          ],
+          "contact": "direction-references/emplaced_machine_gun_crew-dying-contact.png"
+        }
+      },
+      "overview": "direction-references/emplaced_machine_gun_crew-all-actions-contact.png"
+    },
+    "industrial_carbine_cavalry": {
+      "config": "data/hamster-scout-rifle-skirmisher-config.json",
+      "nativeFacing": "screen-right",
+      "actions": {
+        "idle": {
+          "source": "assets/companions/hamster_scout_rifle_skirmisher/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 26,
+          "reviewedFrames": [
+            0,
+            6,
+            13,
+            19,
+            25
+          ],
+          "contact": "direction-references/industrial_carbine_cavalry-idle-contact.png"
+        },
+        "walk": {
+          "source": "assets/companions/hamster_scout_rifle_skirmisher/running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 20,
+          "reviewedFrames": [
+            0,
+            5,
+            10,
+            15,
+            19
+          ],
+          "contact": "direction-references/industrial_carbine_cavalry-walk-contact.png"
+        },
+        "attack": {
+          "source": "assets/companions/hamster_scout_rifle_skirmisher/attacking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 29,
+          "reviewedFrames": [
+            0,
+            7,
+            14,
+            21,
+            28
+          ],
+          "contact": "direction-references/industrial_carbine_cavalry-attack-contact.png"
+        },
+        "dying": {
+          "source": "assets/companions/hamster_scout_rifle_skirmisher/dying.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 49,
+          "reviewedFrames": [
+            0,
+            12,
+            24,
+            36,
+            48
+          ],
+          "contact": "direction-references/industrial_carbine_cavalry-dying-contact.png"
+        }
+      },
+      "overview": "direction-references/industrial_carbine_cavalry-all-actions-contact.png"
+    },
+    "gunpowder_explosive_lancer": {
+      "config": "data/hamster-winged-hussar-config.json",
+      "nativeFacing": "screen-right",
+      "actions": {
+        "idle": {
+          "source": "assets/companions/hamster_winged_hussar/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 48,
+          "reviewedFrames": [
+            0,
+            12,
+            24,
+            36,
+            47
+          ],
+          "contact": "direction-references/gunpowder_explosive_lancer-idle-contact.png"
+        },
+        "walk": {
+          "source": "assets/companions/hamster_winged_hussar/running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 18,
+          "reviewedFrames": [
+            0,
+            4,
+            9,
+            13,
+            17
+          ],
+          "contact": "direction-references/gunpowder_explosive_lancer-walk-contact.png"
+        },
+        "attack": {
+          "source": "assets/companions/hamster_winged_hussar/attacking.png",
+          "frameWidth": 1024,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "reviewedFrames": [
+            0,
+            10,
+            21,
+            30,
+            38
+          ],
+          "contact": "direction-references/gunpowder_explosive_lancer-attack-contact.png"
+        },
+        "dying": {
+          "source": "assets/companions/hamster_winged_hussar/dying.png",
+          "frameWidth": 896,
+          "frameHeight": 512,
+          "cols": 8,
+          "frameCount": 39,
+          "reviewedFrames": [
+            0,
+            10,
+            20,
+            30,
+            38
+          ],
+          "contact": "direction-references/gunpowder_explosive_lancer-dying-contact.png"
+        }
+      },
+      "overview": "direction-references/gunpowder_explosive_lancer-all-actions-contact.png"
+    }
+  }
+}

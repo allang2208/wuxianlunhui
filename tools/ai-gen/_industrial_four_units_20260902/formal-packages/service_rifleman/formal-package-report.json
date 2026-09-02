@@ -1,0 +1,587 @@
+{
+  "unitKey": "service_rifleman",
+  "targetEffectiveBodyHeight": 129,
+  "desiredWorldBodyHeight": 75.684,
+  "runtimeAssetRoot": "assets/companions/hamster_service_rifleman",
+  "actions": {
+    "idle": {
+      "configKey": "idle",
+      "sourceVideo": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/idle-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        96,
+        99,
+        102,
+        105,
+        108,
+        111,
+        114,
+        117,
+        120,
+        123
+      ],
+      "sourceFrameCount": 10,
+      "rifeInputFrameCount": 10,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 20,
+      "finalFrameCount": 20,
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "cols": 4,
+      "rows": 5,
+      "frameRate": 8.0,
+      "repeat": -1,
+      "cellQuantum": 32,
+      "footY": 141,
+      "fixedSourceAnchor": {
+        "x": 389.0,
+        "y": 528.0
+      },
+      "fixedActionScale": 0.2670807453416149,
+      "sourceMedianUprightBodyHeight": 483.0,
+      "scaleCalibrationKeyCount": 4,
+      "activeFrameBytes": 3932160,
+      "activeFrameMiB": 3.75,
+      "decodedBytes": 3932160,
+      "decodedMiB": 3.75,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.0,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_service_rifleman/idle.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/idle.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/idle-runtime-contact.png",
+      "preview": {
+        "frameRate": 8.0,
+        "runtimeFrameCount": 20,
+        "gifFrameCount": 60,
+        "gifDurationMs": 7500,
+        "gifFrameDurationMsRange": [
+          120,
+          130
+        ],
+        "loopMode": "infinite",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 6871,
+        "alphaPixelsMax": 6884,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 140,
+        "feetMax": 140,
+        "adjacentDeltaMean": 0.5525694262040289,
+        "loopSeamDelta": 1.9262187480926514,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "96": {
+            "removedLowConfidenceLightPixels": 1221,
+            "featheredLightEdgePixels": 2829
+          },
+          "99": {
+            "removedLowConfidenceLightPixels": 1262,
+            "featheredLightEdgePixels": 2821
+          },
+          "102": {
+            "removedLowConfidenceLightPixels": 1242,
+            "featheredLightEdgePixels": 2798
+          },
+          "105": {
+            "removedLowConfidenceLightPixels": 1235,
+            "featheredLightEdgePixels": 2814
+          },
+          "108": {
+            "removedLowConfidenceLightPixels": 1219,
+            "featheredLightEdgePixels": 2807
+          },
+          "111": {
+            "removedLowConfidenceLightPixels": 1196,
+            "featheredLightEdgePixels": 2805
+          },
+          "114": {
+            "removedLowConfidenceLightPixels": 1194,
+            "featheredLightEdgePixels": 2800
+          },
+          "117": {
+            "removedLowConfidenceLightPixels": 1199,
+            "featheredLightEdgePixels": 2797
+          },
+          "120": {
+            "removedLowConfidenceLightPixels": 1198,
+            "featheredLightEdgePixels": 2803
+          },
+          "123": {
+            "removedLowConfidenceLightPixels": 1189,
+            "featheredLightEdgePixels": 2805
+          }
+        }
+      }
+    },
+    "running": {
+      "configKey": "walk",
+      "sourceVideo": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/running-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "sourceFrameCount": 21,
+      "rifeInputFrameCount": 21,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 42,
+      "finalFrameCount": 42,
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "cols": 6,
+      "rows": 7,
+      "frameRate": 48.0,
+      "repeat": -1,
+      "cellQuantum": 32,
+      "footY": 139,
+      "fixedSourceAnchor": {
+        "x": 416.0,
+        "y": 528.0
+      },
+      "fixedActionScale": 0.26326530612244897,
+      "sourceMedianUprightBodyHeight": 490.0,
+      "scaleCalibrationKeyCount": 4,
+      "activeFrameBytes": 8257536,
+      "activeFrameMiB": 7.875,
+      "decodedBytes": 8257536,
+      "decodedMiB": 7.875,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.0,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_service_rifleman/running.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/running.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/running-runtime-contact.png",
+      "preview": {
+        "frameRate": 48.0,
+        "runtimeFrameCount": 42,
+        "gifFrameCount": 126,
+        "gifDurationMs": 2630,
+        "gifFrameDurationMsRange": [
+          20,
+          30
+        ],
+        "loopMode": "infinite",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 6832,
+        "alphaPixelsMax": 7875,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 138,
+        "feetMax": 147,
+        "adjacentDeltaMean": 15.866764344820162,
+        "loopSeamDelta": 5.698529243469238,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "0": {
+            "removedLowConfidenceLightPixels": 1202,
+            "featheredLightEdgePixels": 3103
+          },
+          "1": {
+            "removedLowConfidenceLightPixels": 1184,
+            "featheredLightEdgePixels": 3265
+          },
+          "2": {
+            "removedLowConfidenceLightPixels": 1246,
+            "featheredLightEdgePixels": 3211
+          },
+          "3": {
+            "removedLowConfidenceLightPixels": 1115,
+            "featheredLightEdgePixels": 3007
+          },
+          "4": {
+            "removedLowConfidenceLightPixels": 1054,
+            "featheredLightEdgePixels": 2878
+          },
+          "5": {
+            "removedLowConfidenceLightPixels": 1089,
+            "featheredLightEdgePixels": 2772
+          },
+          "6": {
+            "removedLowConfidenceLightPixels": 1135,
+            "featheredLightEdgePixels": 2884
+          },
+          "7": {
+            "removedLowConfidenceLightPixels": 1170,
+            "featheredLightEdgePixels": 2853
+          },
+          "8": {
+            "removedLowConfidenceLightPixels": 1248,
+            "featheredLightEdgePixels": 3115
+          },
+          "9": {
+            "removedLowConfidenceLightPixels": 1432,
+            "featheredLightEdgePixels": 3265
+          },
+          "10": {
+            "removedLowConfidenceLightPixels": 1474,
+            "featheredLightEdgePixels": 3355
+          },
+          "11": {
+            "removedLowConfidenceLightPixels": 1555,
+            "featheredLightEdgePixels": 3391
+          },
+          "12": {
+            "removedLowConfidenceLightPixels": 1409,
+            "featheredLightEdgePixels": 3357
+          },
+          "13": {
+            "removedLowConfidenceLightPixels": 1414,
+            "featheredLightEdgePixels": 3215
+          },
+          "14": {
+            "removedLowConfidenceLightPixels": 1400,
+            "featheredLightEdgePixels": 3056
+          },
+          "15": {
+            "removedLowConfidenceLightPixels": 1400,
+            "featheredLightEdgePixels": 3015
+          },
+          "16": {
+            "removedLowConfidenceLightPixels": 1274,
+            "featheredLightEdgePixels": 2920
+          },
+          "17": {
+            "removedLowConfidenceLightPixels": 1391,
+            "featheredLightEdgePixels": 3162
+          },
+          "18": {
+            "removedLowConfidenceLightPixels": 1662,
+            "featheredLightEdgePixels": 3391
+          },
+          "19": {
+            "removedLowConfidenceLightPixels": 1486,
+            "featheredLightEdgePixels": 3361
+          },
+          "20": {
+            "removedLowConfidenceLightPixels": 1569,
+            "featheredLightEdgePixels": 3485
+          }
+        }
+      },
+      "loopEndpointRawFrame": 21,
+      "loopEndpointUsedAsRifeInput": false,
+      "loopRepairTargetRawFrame": 0,
+      "loopIntervalContract": "contiguous [start, reviewed endpoint); one 2x wrap RIFE pass targets the opening frame because the generated endpoint drifted"
+    },
+    "attacking": {
+      "configKey": "attack",
+      "sourceVideo": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/attacking-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        0,
+        6,
+        10,
+        12,
+        14,
+        28,
+        34,
+        43,
+        53,
+        64,
+        76,
+        92,
+        108,
+        123
+      ],
+      "sourceFrameCount": 14,
+      "rifeInputFrameCount": 14,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 27,
+      "finalFrameCount": 27,
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "cols": 3,
+      "rows": 9,
+      "frameRate": 16.0,
+      "repeat": 0,
+      "cellQuantum": 32,
+      "footY": 141,
+      "fixedSourceAnchor": {
+        "x": 373.5,
+        "y": 529.0
+      },
+      "fixedActionScale": 0.2665289256198347,
+      "sourceMedianUprightBodyHeight": 484.0,
+      "scaleCalibrationKeyCount": 4,
+      "activeFrameBytes": 5308416,
+      "activeFrameMiB": 5.0625,
+      "decodedBytes": 5308416,
+      "decodedMiB": 5.0625,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.0,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_service_rifleman/attacking.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/attacking.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/attacking-runtime-contact.png",
+      "preview": {
+        "frameRate": 16.0,
+        "runtimeFrameCount": 27,
+        "gifFrameCount": 27,
+        "gifDurationMs": 1690,
+        "gifFrameDurationMsRange": [
+          60,
+          70
+        ],
+        "loopMode": "once",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 6826,
+        "alphaPixelsMax": 7079,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 140,
+        "feetMax": 141,
+        "adjacentDeltaMean": 8.38028078755507,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "0": {
+            "removedLowConfidenceLightPixels": 1238,
+            "featheredLightEdgePixels": 2689
+          },
+          "6": {
+            "removedLowConfidenceLightPixels": 1172,
+            "featheredLightEdgePixels": 2744
+          },
+          "10": {
+            "removedLowConfidenceLightPixels": 1159,
+            "featheredLightEdgePixels": 2753
+          },
+          "12": {
+            "removedLowConfidenceLightPixels": 1164,
+            "featheredLightEdgePixels": 2741
+          },
+          "14": {
+            "removedLowConfidenceLightPixels": 1133,
+            "featheredLightEdgePixels": 2860
+          },
+          "28": {
+            "removedLowConfidenceLightPixels": 1215,
+            "featheredLightEdgePixels": 2946
+          },
+          "34": {
+            "removedLowConfidenceLightPixels": 1192,
+            "featheredLightEdgePixels": 2921
+          },
+          "43": {
+            "removedLowConfidenceLightPixels": 1266,
+            "featheredLightEdgePixels": 2847
+          },
+          "53": {
+            "removedLowConfidenceLightPixels": 1241,
+            "featheredLightEdgePixels": 2862
+          },
+          "64": {
+            "removedLowConfidenceLightPixels": 1180,
+            "featheredLightEdgePixels": 2926
+          },
+          "76": {
+            "removedLowConfidenceLightPixels": 1228,
+            "featheredLightEdgePixels": 2982
+          },
+          "92": {
+            "removedLowConfidenceLightPixels": 1212,
+            "featheredLightEdgePixels": 2956
+          },
+          "108": {
+            "removedLowConfidenceLightPixels": 1215,
+            "featheredLightEdgePixels": 2964
+          },
+          "123": {
+            "removedLowConfidenceLightPixels": 1287,
+            "featheredLightEdgePixels": 2933
+          }
+        }
+      },
+      "releaseFrames": [
+        9
+      ]
+    },
+    "dying": {
+      "configKey": "dying",
+      "sourceVideo": "tools/ai-gen/_industrial_shooting_mothers_20260831/animations/service_rifleman/videos/dying-h3-v01.mp4",
+      "sourceVideoFrameCount": 124,
+      "sourceVideoFrameRate": 24.0,
+      "sourceIndices": [
+        52,
+        56,
+        60,
+        62,
+        64,
+        66,
+        68,
+        70,
+        72,
+        74,
+        76,
+        78,
+        82,
+        90,
+        104,
+        123
+      ],
+      "sourceFrameCount": 16,
+      "rifeInputFrameCount": 16,
+      "rifeOutputFrameCountBeforeEndpointExclusion": 31,
+      "finalFrameCount": 31,
+      "frameWidth": 320,
+      "frameHeight": 192,
+      "cols": 4,
+      "rows": 8,
+      "frameRate": 16.0,
+      "repeat": 0,
+      "cellQuantum": 32,
+      "footY": 141,
+      "fixedSourceAnchor": {
+        "x": 360.0,
+        "y": 529.0
+      },
+      "fixedActionScale": 0.2765273311897106,
+      "sourceMedianUprightBodyHeight": 466.5,
+      "scaleCalibrationKeyCount": 2,
+      "activeFrameBytes": 7618560,
+      "activeFrameMiB": 7.265625,
+      "decodedBytes": 7864320,
+      "decodedMiB": 7.5,
+      "budgetBasis": "full decoded texture including padded cells",
+      "unusedCellFraction": 0.03125,
+      "maxTextureSide": 4096,
+      "runtimeSheet": "assets/companions/hamster_service_rifleman/dying.png",
+      "runtimeGif": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/dying.gif",
+      "runtimeContact": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/previews/dying-runtime-contact.png",
+      "preview": {
+        "frameRate": 16.0,
+        "runtimeFrameCount": 31,
+        "gifFrameCount": 31,
+        "gifDurationMs": 1940,
+        "gifFrameDurationMsRange": [
+          60,
+          70
+        ],
+        "loopMode": "once",
+        "browserSafeMinimumFrameDurationMs": 20
+      },
+      "validation": {
+        "alphaPixelsMin": 6581,
+        "alphaPixelsMax": 7409,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 137,
+        "feetMax": 142,
+        "adjacentDeltaMean": 21.65351186990738,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "alphaCleanup": {
+        "method": "BiRefNet semantic matte plus border-connected low-confidence light-stage removal",
+        "fixedCoordinateEraseUsed": false,
+        "bySourceFrame": {
+          "52": {
+            "removedLowConfidenceLightPixels": 1225,
+            "featheredLightEdgePixels": 2883
+          },
+          "56": {
+            "removedLowConfidenceLightPixels": 1225,
+            "featheredLightEdgePixels": 2879
+          },
+          "60": {
+            "removedLowConfidenceLightPixels": 1113,
+            "featheredLightEdgePixels": 2864
+          },
+          "62": {
+            "removedLowConfidenceLightPixels": 1148,
+            "featheredLightEdgePixels": 2825
+          },
+          "64": {
+            "removedLowConfidenceLightPixels": 1124,
+            "featheredLightEdgePixels": 2780
+          },
+          "66": {
+            "removedLowConfidenceLightPixels": 1166,
+            "featheredLightEdgePixels": 2744
+          },
+          "68": {
+            "removedLowConfidenceLightPixels": 1070,
+            "featheredLightEdgePixels": 2733
+          },
+          "70": {
+            "removedLowConfidenceLightPixels": 818,
+            "featheredLightEdgePixels": 2418
+          },
+          "72": {
+            "removedLowConfidenceLightPixels": 806,
+            "featheredLightEdgePixels": 2727
+          },
+          "74": {
+            "removedLowConfidenceLightPixels": 853,
+            "featheredLightEdgePixels": 2442
+          },
+          "76": {
+            "removedLowConfidenceLightPixels": 808,
+            "featheredLightEdgePixels": 2041
+          },
+          "78": {
+            "removedLowConfidenceLightPixels": 667,
+            "featheredLightEdgePixels": 1718
+          },
+          "82": {
+            "removedLowConfidenceLightPixels": 602,
+            "featheredLightEdgePixels": 1726
+          },
+          "90": {
+            "removedLowConfidenceLightPixels": 629,
+            "featheredLightEdgePixels": 1583
+          },
+          "104": {
+            "removedLowConfidenceLightPixels": 633,
+            "featheredLightEdgePixels": 1568
+          },
+          "123": {
+            "removedLowConfidenceLightPixels": 635,
+            "featheredLightEdgePixels": 1570
+          }
+        }
+      }
+    }
+  },
+  "totalDecodedBytes": 25362432,
+  "totalDecodedMiB": 24.1875,
+  "withinTargetBudget": true,
+  "withinAdmissionBudget": true,
+  "spriteBudgetManifest": "tools/ai-gen/_industrial_four_units_20260902/formal-packages/service_rifleman/sprite-budget-manifest.json"
+}

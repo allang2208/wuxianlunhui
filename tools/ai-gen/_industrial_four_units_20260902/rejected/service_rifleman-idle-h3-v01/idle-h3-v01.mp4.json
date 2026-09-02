@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T02:08:16.615053+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\idle-h3-v01.mp4",
+    "bytes": 560088,
+    "sha256": "0a551e89fb2c360e958af60236d609487a71302d572512b48143c7e818a12662"
+  },
+  "promptId": "1489598b-08b2-4544-a110-2e6bc1db00b4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 289011372,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one golden-orange service-rifle hamster. Preserve the red-star helmet, khaki uniform, pouches, backpack roll and one complete SVT-40-style wooden rifle.\n\nCreate a restrained exact idle loop. 0.0-1.0 seconds: stable screen-right low-ready stance. 1.0-3.8 seconds: one small breathing and weight-shift cycle; paws keep their grips and both boots remain planted. 3.8-5.17 seconds: return exactly to the opening pose. Keep nose, chest, pelvis, knees, toes and rifle pointing screen right.\n\nLocked slightly elevated three-quarter-right game-sprite camera, constant scale, wide full-body framing, pure white background, even shadowless light. No step, firing, muzzle flash, tail, extra limb, weapon duplication, turn, zoom, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one golden-orange service-rifle hamster. Preserve the red-star helmet, khaki uniform, pouches, backpack roll and one complete SVT-40-style wooden rifle.\n\nCreate a restrained exact idle loop. 0.0-1.0 seconds: stable screen-right low-ready stance. 1.0-3.8 seconds: one small breathing and weight-shift cycle; paws keep their grips and both boots remain planted. 3.8-5.17 seconds: return exactly to the opening pose. Keep nose, chest, pelvis, knees, toes and rifle pointing screen right.\n\nLocked slightly elevated three-quarter-right game-sprite camera, constant scale, wide full-body framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, even shadowless light. No step, firing, muzzle flash, tail, extra limb, weapon duplication, turn, zoom, text or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, camera and scale authority for one golden-orange service-rifle hamster. Preserve the red-star helmet, khaki uniform, pouches, backpack roll and one complete SVT-40-style wooden rifle.\n\nCreate a restrained exact idle loop. 0.0-1.0 seconds: stable screen-right low-ready stance. 1.0-3.8 seconds: one small breathing and weight-shift cycle; paws keep their grips and both boots remain planted. 3.8-5.17 seconds: return exactly to the opening pose. Keep nose, chest, pelvis, knees, toes and rifle pointing screen right.\n\nLocked slightly elevated three-quarter-right game-sprite camera, constant scale, wide full-body framing, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, even shadowless light. No step, firing, muzzle flash, tail, extra limb, weapon duplication, turn, zoom, text or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "4892237cf5cc78b31c02d911a9f65668fb338b5b48dfdbf2e1a255864f02c408",
+  "effectivePromptSha256": "ad39f56c295278e7c67cc8061cd31d93b155425d6eaebdddb7cad8abd9a32ff1",
+  "finalPromptSha256": "0b6f633b18e70a74fa3243479ac1df88816d38dbbd1149cd560cd83e3112265a",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\service_rifleman-idle.txt",
+      "bytes": 830,
+      "sha256": "f558040e7c4cdf1ecaca0f36c16d5fca289c90de2a9fe2a7fbe8ee49c7975aca"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 355629,
+      "sha256": "708d57d090ba1cbca8104755c03c343c745ac110b3cbe861b1ff29e37de8d7dc"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 355629,
+      "sha256": "708d57d090ba1cbca8104755c03c343c745ac110b3cbe861b1ff29e37de8d7dc"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_shooting_mothers_20260831\\animations\\service_rifleman\\videos\\idle-h3-v01_contact.png",
+    "bytes": 424415,
+    "sha256": "8bab4526f340f8aa37af5aeabe3116d13087d49492b16b4d7e028438fff62fea"
+  },
+  "elapsedSeconds": 455.883
+}

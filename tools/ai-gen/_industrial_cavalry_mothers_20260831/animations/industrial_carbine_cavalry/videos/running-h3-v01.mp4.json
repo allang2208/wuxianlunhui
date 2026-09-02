@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T03:29:41.518796+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\industrial_carbine_cavalry\\videos\\running-h3-v01.mp4",
+    "bytes": 981013,
+    "sha256": "3d9b8f97e46da95b5b5c74c76dcc7f26d1efaa9681c62f8d0385eadc3610b068"
+  },
+  "promptId": "4f742220-5779-4135-ae3a-2d99d5b25906",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 935965002,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity and opening gait authority for the same industrial carbine cavalry pair. Preserve the orange tabby cat, golden rider, wooden carbine, bandolier, saddle bags, blanket and sheathed saber.\n\nCreate a clean screen-right gallop loop. 0.0-1.0 seconds: continue the supplied extended gait. 1.0-3.8 seconds: two readable cat gallop cycles with correct four-paw sequence; cat head, torso, hips, knees, paws and travel axis remain screen right while the rider stays balanced and the secured carbine does not fire. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.\n\nLocked root-centered camera, constant scale, full rider/cat/tail/paws/gear in frame, pure white shadowless background. No move-shooting, foot sliding, extra rider/cat/limb, equipment deformation, camera motion, text or watermark.",
+  "effectivePrompt": "<Picture 1> is the sole identity and opening gait authority for the same industrial carbine cavalry pair. Preserve the orange tabby cat, golden rider, wooden carbine, bandolier, saddle bags, blanket and sheathed saber.\n\nCreate a clean screen-right gallop loop. 0.0-1.0 seconds: continue the supplied extended gait. 1.0-3.8 seconds: two readable cat gallop cycles with correct four-paw sequence; cat head, torso, hips, knees, paws and travel axis remain screen right while the rider stays balanced and the secured carbine does not fire. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.\n\nLocked root-centered camera, constant scale, full rider/cat/tail/paws/gear in frame, pure white shadowless background. No move-shooting, foot sliding, extra rider/cat/limb, equipment deformation, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] <Picture 1> is the sole identity and opening gait authority for the same industrial carbine cavalry pair. Preserve the orange tabby cat, golden rider, wooden carbine, bandolier, saddle bags, blanket and sheathed saber.\n\nCreate a clean screen-right gallop loop. 0.0-1.0 seconds: continue the supplied extended gait. 1.0-3.8 seconds: two readable cat gallop cycles with correct four-paw sequence; cat head, torso, hips, knees, paws and travel axis remain screen right while the rider stays balanced and the secured carbine does not fire. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.\n\nLocked root-centered camera, constant scale, full rider/cat/tail/paws/gear in frame, pure white shadowless background. No move-shooting, foot sliding, extra rider/cat/limb, equipment deformation, camera motion, text or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "ee6ea515a8439bc68c31f1576723cb8e7137190150e3e8775bb0592750de25f3",
+  "effectivePromptSha256": "d2128fe14365e8ee247a792dcef934638666f9ad7799d9e67d4a957b6f5a8a27",
+  "finalPromptSha256": "c61b298041e036e551589796a9874f56fde225e1f4a8e9cd29d06534e88b166a",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\light-cavalry-running.txt",
+      "bytes": 845,
+      "sha256": "2d0ff1bc57e2c3887678c4a6198f5c5ad0adab91a7bfdbade4662e36adc20c1a"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\industrial_carbine_cavalry\\references\\running-keyframe-video-safe-16x9.png",
+      "bytes": 388310,
+      "sha256": "b08bbb0657f71b56bc3ecd9dfe57a4a1f4c5fd8495e500b59ba1d814d503e21f"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\industrial_carbine_cavalry\\references\\running-keyframe-video-safe-16x9.png",
+      "bytes": 388310,
+      "sha256": "b08bbb0657f71b56bc3ecd9dfe57a4a1f4c5fd8495e500b59ba1d814d503e21f"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\industrial_carbine_cavalry\\videos\\running-h3-v01_contact.png",
+    "bytes": 644860,
+    "sha256": "7c54126ccae5f4fee00a428b32a8ac67f82bd4a4a4c2acc91c28e9e76054e14d"
+  },
+  "elapsedSeconds": 455.746
+}

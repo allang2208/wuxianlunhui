@@ -1,7 +1,7 @@
 {
   "_comment": "世界-122 建筑升级项目库。建筑通过 producer-buildings.json 或独立经济建筑配置的 upgradeProject 引用本文件；出兵模块未声明 unitKinds 时覆盖引用建筑的全部兵种，声明后只覆盖列出的特殊兵种；模块 effect 决定通用属性补丁，避免在建筑或 AI 中按模块名硬编码。",
   "combat_standard": {
-    "unitKinds": ["militia", "halberd", "scout", "ranger"],
+    "unitKinds": ["militia", "halberd", "anti_tank_rifleman", "scout", "ranger", "industrial_recon_rifleman"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -21,13 +21,13 @@
     }
   },
   "cavalry_charge": {
-    "unitKinds": ["knight", "light_cavalry", "cavalry", "winged_hussar", "scout_rifle_skirmisher", "powered_eod_explosive_lancer"],
+    "unitKinds": ["knight", "light_cavalry", "cavalry", "winged_hussar", "industrial_carbine_cavalry", "gunpowder_explosive_lancer", "scout_rifle_skirmisher", "powered_eod_explosive_lancer"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/charge-damage.png", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "unitKinds": ["knight", "winged_hussar", "powered_eod_explosive_lancer"], "desc": "冲锋伤害 +{pct}%" },
-      "moveSpd": { "name": "轻骑机动", "icon": "🐎", "iconImage": "assets/ui/building-upgrades/light-cavalry-mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "unitKinds": ["light_cavalry", "cavalry", "scout_rifle_skirmisher"], "desc": "移动速度 +{pct}%" },
+      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/charge-damage.png", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "unitKinds": ["knight", "winged_hussar", "gunpowder_explosive_lancer", "powered_eod_explosive_lancer"], "desc": "冲锋伤害 +{pct}%" },
+      "moveSpd": { "name": "轻骑机动", "icon": "🐎", "iconImage": "assets/ui/building-upgrades/light-cavalry-mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "unitKinds": ["light_cavalry", "cavalry", "industrial_carbine_cavalry", "scout_rifle_skirmisher"], "desc": "移动速度 +{pct}%" },
       "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
@@ -43,7 +43,7 @@
     }
   },
   "shooting_range_special": {
-    "unitKinds": ["crossbow", "musketeer", "shooter", "longbow", "assault", "heavy_machine_gunner"],
+    "unitKinds": ["crossbow", "musketeer", "shooter", "longbow", "service_rifleman", "emplaced_machine_gun_crew", "assault", "heavy_machine_gunner"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -53,7 +53,7 @@
     }
   },
   "barracks_defense": {
-    "unitKinds": ["warrior", "champion", "trench_assault", "special_forces", "guard", "phalanx", "riot_special"],
+    "unitKinds": ["warrior", "champion", "trench_assault", "special_forces", "guard", "phalanx", "steel_shield_assault", "riot_special"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -105,11 +105,11 @@
     },
     "abilities": {
       "poison_arrow": { "id": "poison_arrow", "name": "毒箭", "icon": "☠️", "iconImage": "assets/ui/building-upgrades/poison-arrow.png", "target": "shooter", "unitKinds": ["shooter"], "base": 0.2, "per": 0.05, "maxLevel": 10, "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）" },
-      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "仓鼠盾卫、仓鼠方阵、仓鼠防暴队", "unitKinds": ["guard", "phalanx", "riot_special"], "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "盾卫路线单位受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
+      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "仓鼠盾卫、仓鼠方阵、仓鼠钢盾突击兵、仓鼠防暴队", "unitKinds": ["guard", "phalanx", "steel_shield_assault", "riot_special"], "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "盾卫路线单位受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
       "sweep_aoe": { "id": "sweep_aoe", "name": "横扫", "icon": "💥", "iconImage": "assets/ui/building-upgrades/sweep-aoe.png", "target": "仓鼠战士、战壕突击兵、仓鼠特战", "unitKinds": ["warrior", "trench_assault", "special_forces"], "firstLevel": 0.25, "per": 0.05, "maxLevel": 10, "rangeBonus": 30, "arcDegrees": 120, "expectedExtraTargets": 1, "desc": "仓鼠战士、战壕突击兵与仓鼠特战的固有扇形 AOE 伤害强化 {dmg}；Lv.1 为 +25%，之后每级 +5%；主目标不叠加 AOE" },
-      "mark_arrow": { "id": "mark_arrow", "name": "标记", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/mark-arrow.png", "target": "仓鼠斥候、仓鼠赏金猎人", "unitKinds": ["scout", "bounty_hunter"], "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候与赏金猎人命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
+      "mark_arrow": { "id": "mark_arrow", "name": "标记", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/mark-arrow.png", "target": "仓鼠斥候、仓鼠近代侦察步枪兵、仓鼠赏金猎人", "unitKinds": ["scout", "industrial_recon_rifleman", "bounty_hunter"], "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候、仓鼠近代侦察步枪兵与赏金猎人命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
       "armor_piercing_round": { "id": "armor_piercing_round", "name": "穿甲弹", "icon": "🔩", "iconImage": "assets/ui/building-upgrades/armor-piercing-round.png", "target": "仓鼠火枪、仓鼠赏金猎人", "unitKinds": ["musketeer", "bounty_hunter"], "firstLevel": 0.25, "per": 0.025, "maxLevel": 10, "desc": "仓鼠火枪与赏金猎人获得 {pct} 护甲穿透（Lv.1 为 25%，之后每级 +2.5%）" },
-      "giant_slayer": { "id": "giant_slayer", "name": "巨人杀手", "icon": "🗡️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "target": "仓鼠民兵、仓鼠长戟、仓鼠反载", "unitKinds": ["militia", "halberd", "anti_vehicle"], "targetFamilies": ["骑兵", "大型"], "firstLevel": 0.25, "per": 0.05, "maxLevel": 10, "desc": "对带有“骑兵”或“大型”词条的怪物造成伤害 +{pct}（Lv.1 为 25%，之后每级 +5%）" },
+      "giant_slayer": { "id": "giant_slayer", "name": "巨人杀手", "icon": "🗡️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "target": "仓鼠民兵、仓鼠长戟、仓鼠反坦克步枪兵、仓鼠反载", "unitKinds": ["militia", "halberd", "anti_tank_rifleman", "anti_vehicle"], "targetFamilies": ["骑兵", "大型"], "firstLevel": 0.25, "per": 0.05, "maxLevel": 10, "desc": "对带有“骑兵”或“大型”词条的怪物造成伤害 +{pct}（Lv.1 为 25%，之后每级 +5%）" },
       "inspire_magic": { "id": "inspire_magic", "name": "激励魔法", "icon": "📣", "iconImage": "assets/ui/building-upgrades/inspire-magic.png", "target": "priest", "unitKinds": ["priest"], "firstLevel": 10000, "per": 1111.111111111111, "displayMode": "seconds", "maxLevel": 10, "radius": 300, "cooldownMs": 30000, "speedMul": 1.33, "atkMul": 1.5, "desc": "仓鼠牧师每 {cooldown}s 为 {radius}px 内友军施加激励：移速 +33%、物攻 +50%，持续 {value}" }
     }
   },

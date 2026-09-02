@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>近代射击学校 · 第3批母图已确认</title>
+<style>
+:root{font-family:"Microsoft YaHei",system-ui,sans-serif;color:#272b30;background:#edf0f2;color-scheme:light}body{max-width:1460px;margin:auto;padding:28px}h1{font-size:25px}h2{font-size:19px;margin-top:28px}h3{font-size:17px;margin:8px 0}p{line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}article{background:#fff;border:1px solid #cbd1d7;border-radius:12px;overflow:hidden}article.candidate{border:2px solid #8d7440}header{padding:16px 18px 0}article img{display:block;width:100%;height:340px;object-fit:contain;background:white}article p{padding:0 18px 14px;font-size:14px;color:#545e67}small{color:#6c7279}a{color:#765823}a:focus-visible{outline:3px solid #946c15;outline-offset:4px}.note,footer{font-size:14px;color:#545e67}footer{border-top:1px solid #cbd1d7;margin-top:26px;padding-top:12px}.frame{display:flex;align-items:center;justify-content:center;height:340px}.sprite{width:min(100%,340px);aspect-ratio:1;background:white url('references/musketeerII-idle.png') no-repeat left top;background-size:800% 300%}@media(max-width:850px){body{padding:16px}.grid{grid-template-columns:1fr}article img{height:390px}}
+</style>
+<h1>近代射击学校 · 第3批母图已确认</h1>
+<p>2026-08-31 · 本批：原制式步枪兵保持不变；双人马克沁改为单人勃朗宁BAR。IV级重机枪不变。点击图片打开原图。</p>
+<p class="note">上一批<a href="../_industrial_infantry_mothers_20260831/comparison.html">A10战壕突击兵v03、钢盾兵v01</a>已通过。本批制式步枪兵v01与双肩包BAR v06也已获用户通过，尚未制作动画或接入游戏。继续查看<a href="../_industrial_cavalry_mothers_20260831/comparison.html">第4批骑兵候选</a>。各源图保留构图和留白，用于装备与时代对照，不是游戏内等身高标定。</p>
+<h2>机动射击线 · 长弓 → 制式步枪兵 → 仓鼠突击</h2>
+<div class="grid">
+<article><header><small>II · 现有参考</small><h3>仓鼠长弓</h3></header><a href="references/longbowII.png"><img src="references/longbowII.png" alt="仓鼠长弓母图参考"></a><p>承接普通远程步兵血统，不沿用弓箭、兜帽或中世纪装束。</p></article>
+<article class="candidate"><header><small>III · 已通过 v01</small><h3>制式步枪兵</h3></header><a href="mother/service_rifleman-mother-v01.png"><img src="mother/service_rifleman-mother-v01.png" alt="已确认苏式制式步枪兵，持SVT-40风格木托步枪"></a><p>红星钢盔、素色卡其军服、木托制式步枪，区别莫辛纳甘侦察兵。 <a href="prompts/service_rifleman-v01.txt">实际提示词</a></p></article>
+<article><header><small>IV · 现有参考</small><h3>仓鼠突击</h3></header><a href="references/assaultIV.png"><img src="references/assaultIV.png" alt="现代仓鼠突击母图参考"></a><p>现代护甲与突击步枪为升级线终点；不是上一批的仓鼠特战。</p></article>
+</div>
+<h2>重火力线 · 火枪 → 单人BAR（原阵地机枪槽位） → 重机枪手</h2>
+<div class="grid">
+<article><header><small>II · 现有待机第0帧</small><h3>仓鼠火枪</h3></header><a class="frame" href="references/musketeerII-idle.png" aria-label="打开火枪兵原始idle图集"><div class="sprite" role="img" aria-label="现有火枪兵待机第0帧，保留原帧留白"></div></a><p>原始idle整表的第0帧，512×512、8列3行；仅CSS显示单格，不是独立母图，不用于生成输入。</p></article>
+<article class="candidate"><header><small>III · 已通过 v06</small><h3>勃朗宁BAR机枪兵 · 双肩背包与弹链</h3></header><a href="mother/emplaced_machine_gun_crew-mother-v06-backpack.png"><img src="mother/emplaced_machine_gun_crew-mother-v06-backpack.png" alt="已确认III级苏式BAR仓鼠，背帆布弹药背包并斜挎弹链"></a><p>硬质金属箱改为帆布双肩弹药背包，翻盖、皮扣和侧袋；肩胸弹链保留且不接BAR。上方原计划射手不变。 <a href="prompts/emplaced_machine_gun_crew-v06-backpack.txt">实际提示词</a></p></article>
+<article><header><small>IV · 原图保持不变</small><h3>仓鼠重机枪</h3></header><a href="references/heavyMachineIV.png"><img src="references/heavyMachineIV.png" alt="原IV级现代重机枪兵，弹链机枪和装备保持不变"></a><p>保留原现代弹链机枪与护甲。撤销此前误改的IV级BAR稿；此单位不在本次替换范围，原动画与运行时一直未改。</p></article>
+</div>
+<footer><a href="README.md">说明与枪型来源</a> · <a href="task-index.json">活动索引与原图来源</a><p>当前III级：原制式步枪兵v01不变，双人马克沁改为单人BAR双肩包版v06。IV级重机枪保持原图。本轮只将硬质弹药箱改为帆布双肩包，保留弹链，动画与运行时未改。未运行测试或运行时验证，按约定由用户测试。</p></footer></html>

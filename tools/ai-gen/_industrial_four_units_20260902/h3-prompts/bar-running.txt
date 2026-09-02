@@ -1,0 +1,5 @@
+<Picture 1> is the sole identity and opening gait authority for the same single BAR gunner. Preserve the canvas two-shoulder backpack, shoulder/chest carried ammunition belt and complete BAR; the belt never connects to the weapon.
+
+Create a heavy screen-right running loop. The hamster's rear silhouette must stay identical to Picture 1 with no visible tail, tail stump or appendage behind the coat at any time. 0.0-1.0 seconds: continue the supplied stride. 1.0-3.8 seconds: two compact load-bearing run cycles with alternating boots; head, chest, pelvis, knees, toes and travel axis remain screen right. Backpack, straps and carried belt follow naturally without detaching, and the BAR remains secure across the torso. 3.8-5.17 seconds: return exactly to the supplied stride without slowing.
+
+Locked root-centered camera, constant scale, full body and gear visible, pure white shadowless background. Absolutely no tail or any thin shape extending behind the body. No firing, radio, rigid crate, extra limb, belt-to-gun connection, equipment duplication, camera motion, text or watermark.

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-02T07:16:05.473667+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\charging-h3-v02.mp4",
+    "bytes": 740991,
+    "sha256": "4863fce558ba12603b840893ff80fabf98ce3ce9d7d19ca16f381697bf975611"
+  },
+  "promptId": "ea16b809-434a-4837-bd2c-2653fe75ec9f",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 220912598,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first and final frame are the exact identity, equipment, camera and ready-pose authority for the same traditional heavy lancer pair. Preserve the armored orange-white hamster rider, armored silver-gray tabby cat, brown-red saddle kit and one complete straight traditional lance.\n\nCreate one complete in-place screen-right charge attack with a readable beginning, impact and recovery. 0.0-0.65 seconds: hold the planted ready stance with the lance diagonally raised. 0.65-1.45 seconds: the rider leans forward and lowers the lance while the cat gathers its legs and begins accelerating. 1.45-3.15 seconds: the cat performs two powerful screen-right gallop strides; nose, chest, hips, knees, paws and stride axis all remain right while the rider keeps the lance couched. 3.15-3.55 seconds: perform one decisive attack peak, with the lance fully horizontal and extended and the cat's forelegs reaching forward. 3.55-4.45 seconds: visibly recoil from the thrust, shorten the stride, decelerate and raise the lance. 4.45-5.17 seconds: settle with four paws planted and the diagonally raised lance, arriving naturally at the supplied final ready pose.\n\nUse a locked root-centered camera and constant subject scale. Keep the full cat, tail, paws, rider and entire lance inside frame. The motion is performed in place for a game sprite; the gameplay system supplies world translation. No target or collision appears. Preserve one rider, one cat, one intact lance and coherent reins throughout.",
+  "effectivePrompt": "The supplied first and final frame are the exact identity, equipment, camera and ready-pose authority for the same traditional heavy lancer pair. Preserve the armored orange-white hamster rider, armored silver-gray tabby cat, brown-red saddle kit and one complete straight traditional lance.\n\nCreate one complete in-place screen-right charge attack with a readable beginning, impact and recovery. 0.0-0.65 seconds: hold the planted ready stance with the lance diagonally raised. 0.65-1.45 seconds: the rider leans forward and lowers the lance while the cat gathers its legs and begins accelerating. 1.45-3.15 seconds: the cat performs two powerful screen-right gallop strides; nose, chest, hips, knees, paws and stride axis all remain right while the rider keeps the lance couched. 3.15-3.55 seconds: perform one decisive attack peak, with the lance fully horizontal and extended and the cat's forelegs reaching forward. 3.55-4.45 seconds: visibly recoil from the thrust, shorten the stride, decelerate and raise the lance. 4.45-5.17 seconds: settle with four paws planted and the diagonally raised lance, arriving naturally at the supplied final ready pose.\n\nUse a locked root-centered camera and constant subject scale. Keep the full cat, tail, paws, rider and entire lance inside frame. The motion is performed in place for a game sprite; the gameplay system supplies world translation. No target or collision appears. Preserve one rider, one cat, one intact lance and coherent reins throughout, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first and final frame are the exact identity, equipment, camera and ready-pose authority for the same traditional heavy lancer pair. Preserve the armored orange-white hamster rider, armored silver-gray tabby cat, brown-red saddle kit and one complete straight traditional lance.\n\nCreate one complete in-place screen-right charge attack with a readable beginning, impact and recovery. 0.0-0.65 seconds: hold the planted ready stance with the lance diagonally raised. 0.65-1.45 seconds: the rider leans forward and lowers the lance while the cat gathers its legs and begins accelerating. 1.45-3.15 seconds: the cat performs two powerful screen-right gallop strides; nose, chest, hips, knees, paws and stride axis all remain right while the rider keeps the lance couched. 3.15-3.55 seconds: perform one decisive attack peak, with the lance fully horizontal and extended and the cat's forelegs reaching forward. 3.55-4.45 seconds: visibly recoil from the thrust, shorten the stride, decelerate and raise the lance. 4.45-5.17 seconds: settle with four paws planted and the diagonally raised lance, arriving naturally at the supplied final ready pose.\n\nUse a locked root-centered camera and constant subject scale. Keep the full cat, tail, paws, rider and entire lance inside frame. The motion is performed in place for a game sprite; the gameplay system supplies world translation. No target or collision appears. Preserve one rider, one cat, one intact lance and coherent reins throughout, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "804d1882d8047e2edaf51f0701fdc28f68bc9392cd0f0747fda53b508960b4f0",
+  "effectivePromptSha256": "aea7041f0b30c02821ac5d1035163d7d4663f08479e12965f76fff03bab672a8",
+  "finalPromptSha256": "876e7e54265e43b9900c8ceefad187f90a78496124887bdb4e19e3a6a1911412",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_four_units_20260902\\h3-prompts\\heavy-cavalry-charging-v02.txt",
+      "bytes": 1499,
+      "sha256": "9f3b29c280a12fbe79856a06d245db2aede2a2bdeab8cff2579855fdf626aafb"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 305254,
+      "sha256": "79f0bd6296ce5d326a34ac9d2334244ad5729804b64cf6001b16f51697b26c09"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\references\\idle-keyframe-video-safe-16x9.png",
+      "bytes": 305254,
+      "sha256": "79f0bd6296ce5d326a34ac9d2334244ad5729804b64cf6001b16f51697b26c09"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_cavalry_mothers_20260831\\animations\\gunpowder_explosive_lancer\\videos\\charging-h3-v02_contact.png",
+    "bytes": 471751,
+    "sha256": "b2a9bcc91437f640bc59d8a43e61971683548e58e8243ec2b41656fa78165dc0"
+  },
+  "elapsedSeconds": 460.82
+}

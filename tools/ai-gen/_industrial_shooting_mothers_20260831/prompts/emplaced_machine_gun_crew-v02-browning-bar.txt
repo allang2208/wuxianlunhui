@@ -1,0 +1,21 @@
+Use case: precise-object-edit.
+Asset type: revised white-background mother image for the existing tier-III industrial machine gun unit, emplaced_machine_gun_crew.
+Primary request: replace the two-hamster Maxim team with ONE Soviet-style hamster carrying a Browning BAR M1918A2-style light automatic rifle. The user requests an individual-carried WWI/WWII Browning weapon rather than a wheel-mounted crew gun. Single operator, with a natural TWO-PAW grip; not a one-handed pistol pose.
+
+Input images in order:
+1. Edit target: the current two-hamster Soviet Maxim crew. Retain the main gunner's golden-orange hamster identity, white cheek fur, short muzzle, round black eyes, olive red-star steel helmet and khaki uniform material. Change its composition as requested below.
+2. Supporting approved Soviet ordinary infantry mother: match this full-body adult infantry scale, standing low-ready pose family, camera, soft lighting and detailed PBR appearance. Do NOT copy its PPSh, drum magazine or grenades.
+
+Required composition replacement:
+- Remove the assistant/loader completely. Exactly ONE adult hamster remains, exactly one head, two arms and two legs.
+- Remove the entire Maxim, its water jacket, wheel mount, shield, trail, belt and ground ammunition box.
+- Repose the remaining gunner into a natural stable STANDING infantry idle stance, facing screen right in mild elevated three-quarter view, both boots fully visible, same stocky adult body proportions as reference 2.
+- Put a Browning BAR M1918A2-style automatic rifle in the hamster's TWO paws at low ready, wooden stock near the torso, barrel points slightly downward toward screen right. One paw holds the wooden stock wrist behind the trigger guard; the other supports the short wooden fore-end. Fingers coherent, finger resting alongside guard. No arm or firearm intersections.
+
+Weapon visual identity:
+Clearly recognizable WWII military Browning BAR, NOT a modern sporting Browning BAR and NOT an SVT/Mosin rifle. Long dark rectangular steel receiver, chunky walnut buttstock with curved shoulder profile, short broad walnut fore-end, large rectangular 20-round-style box magazine projecting below receiver, long exposed dark barrel and narrow gas tube below it; simple military iron sights, slim muzzle device, compact metal bipod folded rearward along the underside near the front. Distinct muscular receiver and box magazine silhouette, less wooden barrel coverage than an SVT-40. No scope, no rails, no pistol grip, no curved AK magazine, no drum, no ammunition belt, no shield or wheeled mount. Visual game interpretation, no diagram or technical construction.
+
+Clothing: keep olive Soviet-style steel helmet with muted small red star, plain khaki field tunic and trousers, brown boots and puttees. Add a modest pair of deeper canvas BAR magazine pouches on the belt to identify support infantry, a simple cloth shoulder strap is acceptable but must not cross the muzzle or obscure hands. No chest armor, no additional sidearm, no American flag, no scouting cape or binoculars. This is the game's Soviet-costume / American-weapon mix, not a claim of standard historical Soviet issue.
+
+Preserve: realistic golden-orange and cream-white fur, short pink muzzle, friendly alert adult face; PBR woven cloth, worn leather, wood grain, matte blued steel; softly shaded forms, neutral color balance, camera facing right, plain pure white background. Do not preserve the previous kneeling pose or two-person arrangement.
+Composition: landscape 1536 by 1024, centered complete isolated character with generous safe margin around helmet, boots, rifle muzzle and buttstock. No cropping, no extra character, no ground plane, no cast/contact shadow, no scenery, no text, watermark or comparison grid. One complete mother-image candidate, not an animation or spritesheet.

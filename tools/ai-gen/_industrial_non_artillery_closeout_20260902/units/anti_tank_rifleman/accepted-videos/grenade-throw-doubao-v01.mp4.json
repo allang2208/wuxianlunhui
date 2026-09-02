@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\mother\\anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\anti_tank_rifleman\\prompts\\grenade-throw-doubao-v01.txt",
+  "promptChars": 776,
+  "promptSha256": "b6e7f45fed09014f239c83234130e9c0f81fc95d876f3985f5d8291b7ccd6fcb",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T01:48:23.391Z",
+  "sourceUrlScheme": "https"
+}

@@ -1,0 +1,5 @@
+<Picture 1> is the sole identity and opening gait authority for the same industrial carbine cavalry pair. Preserve the orange tabby cat, golden rider, wooden carbine, bandolier, saddle bags, blanket and sheathed saber.
+
+Create a clean screen-right gallop loop. 0.0-1.0 seconds: continue the supplied extended gait. 1.0-3.8 seconds: two readable cat gallop cycles with correct four-paw sequence; cat head, torso, hips, knees, paws and travel axis remain screen right while the rider stays balanced and the secured carbine does not fire. 3.8-5.17 seconds: return exactly to the supplied gait phase without slowing.
+
+Locked root-centered camera, constant scale, full rider/cat/tail/paws/gear in frame, pure white shadowless background. No move-shooting, foot sliding, extra rider/cat/limb, equipment deformation, camera motion, text or watermark.

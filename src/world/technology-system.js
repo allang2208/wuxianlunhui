@@ -6,8 +6,14 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { wallBattlementTextureKey } from './wall-battlement.js';
 
-const VERSION = 46;
+const VERSION = 47;
 const INDUSTRIAL_BARRACKS_VERSION = 45;
+const INDUSTRIAL_MILITARY_TIERS_VERSION = 47;
+const INDUSTRIAL_MILITARY_TIER_ANCESTORS = Object.freeze({
+    thatch_hut_level_3: 'thatch_hut_industrial',
+    shooting_range_level_3: 'shooting_range_industrial',
+    cavalry_school_level_3: 'cavalry_school_industrial',
+});
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 35;
 const V41_CAVALRY_SCOUT_RIFLE_ID = 'cavalry_scout_rifle';
@@ -978,6 +984,19 @@ export const TechnologySystem = {
             && nodesById.has('shooting_range_level_2')
             && !completed.includes('shooting_range_level_2')) {
             completed.push('shooting_range_level_2');
+        }
+        // v47 在三条稳定现代编制 ID 前插入完整近代 III 级。
+        // 已完成现代编制的旧档只补齐对应必需祖先，不免费开放其他兵种路线。
+        if (savedVersion < INDUSTRIAL_MILITARY_TIERS_VERSION) {
+            for (const [modernId, industrialId] of Object.entries(
+                INDUSTRIAL_MILITARY_TIER_ANCESTORS
+            )) {
+                if (completed.includes(modernId)
+                    && nodesById.has(industrialId)
+                    && !completed.includes(industrialId)) {
+                    completed.push(industrialId);
+                }
+            }
         }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {
