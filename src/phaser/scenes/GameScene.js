@@ -52,7 +52,7 @@ import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../
 import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, isPlayerRunVisual, nowMs,
     MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageRecoverMs } from '../../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { PLAYER_SHIELD_VISUAL } from '../../config/shield-config.js';
+import { getPlayerShieldVisual, PLAYER_SHIELD_ARM } from '../../config/shield-config.js';
 import { PlayerShieldRig } from '../player-shield-rig.js';
 import { PlayerSwordShieldMotion } from '../player-sword-shield-motion.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
@@ -3523,7 +3523,7 @@ export class GameScene extends Scene {
             const shieldPoseOffset = this._playerShieldRig?.shieldBehindBody ? -0.01 : shieldOff;
             setVisualDepthIfChanged(this.shieldSprite, playerDepth + shieldPoseOffset, depthStats);
         }
-        this._playerShieldRig?.syncDepth(playerDepth);
+        this._playerShieldRig?.syncDepth(playerDepth, weaponOff);
         this._swordShieldMotion?.syncDepth(playerDepth, weaponOff);
         // 手部分层：恒在武器之上（身体 + 常规偏移之上再 +1）
         if (this.playerHandSprite && this.playerHandSprite.active) {
@@ -4495,6 +4495,7 @@ export class GameScene extends Scene {
                 syncAux('weaponClone', this.weaponSprite, 2.2);
                 syncAux('offhandClone', this.offhandWeaponSprite, 2.15);
                 syncAux('shieldClone', this.shieldSprite, this._playerShieldRig?.shieldBehindBody ? 1.99 : 2.1);
+                syncAux('shieldMainArmClone', this._playerShieldRig?.mainArmSprite, 2.02);
                 syncAux('shieldUpperClone', this._playerShieldRig?.upperSprite, 2.03);
                 syncAux('shieldForearmClone', this._playerShieldRig?.forearmSprite, 2.04);
                 syncAux('swordShieldHandClone', this._swordShieldMotion?.handSprite, 2.21);
@@ -5753,14 +5754,17 @@ export class GameScene extends Scene {
         const gunPose = channel === AnimChannel.GUN_POSE ? animCtx.gunPose : null; // 谓词已解析，复用 ctx 结果（值与 resolveGunPose(player) 相同）
 
 
-        // 长按格挡移动：逻辑层已把 sprint 关掉并把速度降为步行档；表现层固定 idle
-        // 上身交给 PlayerShieldRig 举盾，只让其独立腿层消费现有 walk_body 循环。
+        // 长按格挡移动：玩家主 Sprite 直接播放去摆臂后的原生 walking 连续躯干；
+        // PlayerShieldRig 只把初版双臂挂到该帧肩点，不再做上下半身跨素材拼接。
         // 手枪+盾继续走既有 gunPose 躯干/腿分层，不重复建立第二套上身。
         const shieldWalking = !gunPose && player.shieldSystem?.defending && player.isMoving;
         if (shieldWalking) {
-            if (this._lastPlayerAnimKey !== 'shield_walk' || this.playerSprite.texture.key !== playerTextureKey('idle')) {
-                this.setPlayerAnimation('idle');
+            const shieldWalkKey = PLAYER_SHIELD_ARM.walk.animationKey;
+            if (this.playerSprite.anims.currentAnim?.key !== shieldWalkKey
+                || !this.playerSprite.anims.isPlaying) {
+                this._playGunLegAnimation(shieldWalkKey, this._getGunLegCyclePhase());
             }
+            if (this.playerHandSprite) this.playerHandSprite.setVisible(false);
             this.playerSprite.setFlipX(!this._getVisualFacingRight(player));
             this._lastPlayerAnimKey = 'shield_walk';
             this._playerAnimIdleStart = 0;
@@ -5816,7 +5820,14 @@ export class GameScene extends Scene {
         // 即使动画状态未变，也同步朝向翻转（与武器/锚点同一中轴滞回界限）
         this.playerSprite.setFlipX(!this._getVisualFacingRight(player));
         if (this._lastPlayerAnimKey === key) return;
+        const shieldWalkPhase = key === 'walk' && this._lastPlayerAnimKey === 'shield_walk'
+            ? this._getGunLegCyclePhase() : null;
         this.setPlayerAnimation(key);
+        // 松开格挡仍在移动时，把21帧分层腿的相位交回原生walk；不从f0硬切，
+        // 避免脚步/骨盆在同一移动周期内突然换腿。
+        if (shieldWalkPhase !== null && this.playerSprite.anims?.isPlaying) {
+            this.playerSprite.anims.setProgress(shieldWalkPhase);
+        }
         } // end case GUN_POSE / LOCOMOTION（共用尾部）
         } // end switch (channel)
     }
@@ -5833,7 +5844,7 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 读取当前持枪腿层的循环相位。walk/run 帧数和帧率不同，切换时不能从 0 重播。
+     * 读取当前分层腿或原生walk的循环相位。walk/run 帧数和帧率不同，切换时不能从 0 重播。
      * Phaser 帧序号为 1-based；把当前帧内 accumulator 也折进 0~1 相位，减少临界帧跳步。
      */
     _getGunLegCyclePhase() {
@@ -5841,7 +5852,9 @@ export class GameScene extends Scene {
         const currentAnim = animState?.currentAnim;
         const currentFrame = animState?.currentFrame;
         const key = currentAnim?.key || '';
-        if ((!key.endsWith('_walklegs') && !key.endsWith('_runlegs')) || !currentFrame) return null;
+        const nativeWalk = key === playerTextureKey('walk') || key === `${playerTextureKey('walk')}_body`
+            || key === PLAYER_SHIELD_ARM.walk.animationKey;
+        if ((!key.endsWith('_walklegs') && !key.endsWith('_runlegs') && !nativeWalk) || !currentFrame) return null;
         const frameCount = currentAnim.frames?.length || 0;
         if (frameCount <= 0) return null;
         const frameIndex = Math.max(0, Math.min(frameCount - 1, currentFrame.index - 1));
@@ -7236,7 +7249,7 @@ export class GameScene extends Scene {
             this.shieldSprite.setTexture(texture);
         }
         
-        const visual = PLAYER_SHIELD_VISUAL;
+        const visual = getPlayerShieldVisual(offhandItem);
         const defending = !!player.shieldSystem?.defending;
         if (!this._playerShieldRig) {
             const rig = new PlayerShieldRig(this);
@@ -7252,6 +7265,7 @@ export class GameScene extends Scene {
             this._playerShieldRig.shieldBehindBody = this._swordShieldMotion.shieldBehindBody;
         }
         const binding = motionBinding || this._playerShieldRig.sync(player, deltaMs);
+        if (binding?.mainGrip) this._swordShieldMotion?.syncDetachedGrip(player, binding);
         const anchor = visual.fallbackAnchor;
         const facingRight = binding ? binding.facingRight : !body.flipX;
         const mirror = facingRight ? 1 : -1;
@@ -7261,12 +7275,21 @@ export class GameScene extends Scene {
         const frame = this.shieldSprite.frame;
         const displayW = displayH * frame.width / frame.height;
         const rot = binding ? binding.rotation : (defending ? visual.guardTilt : visual.restTilt) * mirror;
+        const defenseBlend = Number.isFinite(binding?.defenseBlend)
+            ? Math.max(0, Math.min(1, binding.defenseBlend))
+            : (defending ? 1 : 0);
+        const originX = visual.originX + (visual.defenseOriginX - visual.originX) * defenseBlend;
+        const originY = visual.originY + (visual.defenseOriginY - visual.originY) * defenseBlend;
+        // rotation 只负责盾面在屏幕平面内的倾斜；持盾视角由水平透视收缩单独表达。
+        // 与 defenseBlend 同步插值，确保举盾/收盾过程中不瞬间变窄或恢复正面。
+        const perspectiveScaleX = 1
+            + (visual.defensePerspectiveScaleX - 1) * defenseBlend;
         
         this.shieldSprite.setPosition(worldX, worldY);
-        this.shieldSprite.setOrigin(facingRight ? visual.originX : 1 - visual.originX, visual.originY);
+        this.shieldSprite.setOrigin(facingRight ? originX : 1 - originX, originY);
         this.shieldSprite.setFlipX(!facingRight);
         this.shieldSprite.setRotation(rot);
-        this.shieldSprite.setDisplaySize(displayW, displayH);
+        this.shieldSprite.setDisplaySize(displayW * perspectiveScaleX, displayH);
         this.shieldSprite.setAlpha(body.alpha);
         this.shieldSprite.setVisible(true);
         
@@ -8554,6 +8577,7 @@ export class GameScene extends Scene {
             this.shieldSprite,
             this._playerShieldRig?.upperSprite,
             this._playerShieldRig?.forearmSprite,
+            this._playerShieldRig?.mainArmSprite,
             this._swordShieldMotion?.handSprite,
         ]);
         _game.entities?.forEach?.(entity => process(entity, [entity?._phaserSprite]));

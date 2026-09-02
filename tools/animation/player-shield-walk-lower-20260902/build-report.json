@@ -1,0 +1,330 @@
+{
+  "source": "tools/animation/player-shield-walk-lower-20260902/source-original-walk-lower.png",
+  "runtimeBody": "assets/player/shield_walk_body.png",
+  "upperSource": "native walking head, rib cage and lumbar from the same frame",
+  "armSource": "assets/player/idle.png at initial proportions, attached to per-frame walking shoulders",
+  "shieldVisual": {
+    "weaponId": "weapon17",
+    "originX": 0.564453125,
+    "originY": 0.4853515625,
+    "defenseOriginX": 0.564453125,
+    "defenseOriginY": 0.47216796875,
+    "visibleHeightRatio": 0.7421875,
+    "bodyHeightRatio": 0.42,
+    "defensePerspectiveScaleX": 0.74
+  },
+  "allShieldMidGripVisuals": [
+    {
+      "weaponId": "weapon17",
+      "originX": 0.564453125,
+      "originY": 0.4853515625,
+      "defenseOriginX": 0.564453125,
+      "defenseOriginY": 0.47216796875,
+      "visibleHeightRatio": 0.7421875,
+      "bodyHeightRatio": 0.42,
+      "defensePerspectiveScaleX": 0.74
+    },
+    {
+      "weaponId": "weapon56",
+      "originX": 0.6539589442815249,
+      "originY": 0.5169050715214565,
+      "defenseOriginX": 0.6539589442815249,
+      "defenseOriginY": 0.494140625,
+      "visibleHeightRatio": 0.985695708712614,
+      "bodyHeightRatio": 0.34,
+      "defensePerspectiveScaleX": 0.74
+    },
+    {
+      "weaponId": "weapon57",
+      "originX": 0.279296875,
+      "originY": 0.22916666666666666,
+      "defenseOriginX": 0.42,
+      "defenseOriginY": 0.4931640625,
+      "visibleHeightRatio": 0.983072916666667,
+      "bodyHeightRatio": 0.57,
+      "defensePerspectiveScaleX": 1.0
+    },
+    {
+      "weaponId": "weapon58",
+      "originX": 0.59,
+      "originY": 0.43,
+      "defenseOriginX": 0.59,
+      "defenseOriginY": 0.5,
+      "visibleHeightRatio": 0.90625,
+      "bodyHeightRatio": 0.42,
+      "defensePerspectiveScaleX": 1.0
+    },
+    {
+      "weaponId": "weapon59",
+      "originX": 0.59,
+      "originY": 0.44,
+      "defenseOriginX": 0.59,
+      "defenseOriginY": 0.5,
+      "visibleHeightRatio": 0.90625,
+      "bodyHeightRatio": 0.63,
+      "defensePerspectiveScaleX": 1.0
+    },
+    {
+      "weaponId": "weapon60",
+      "originX": 0.59,
+      "originY": 0.5,
+      "defenseOriginX": 0.59,
+      "defenseOriginY": 0.5,
+      "visibleHeightRatio": 0.90625,
+      "bodyHeightRatio": 0.66,
+      "defensePerspectiveScaleX": 1.0
+    },
+    {
+      "weaponId": "weapon61",
+      "originX": 0.59,
+      "originY": 0.5,
+      "defenseOriginX": 0.59,
+      "defenseOriginY": 0.5,
+      "visibleHeightRatio": 0.90625,
+      "bodyHeightRatio": 0.58,
+      "defensePerspectiveScaleX": 1.0
+    }
+  ],
+  "walkGuardTiltRadians": -0.14,
+  "standGuardArmDegrees": {
+    "upper": 8,
+    "forearm": -132
+  },
+  "walkGuardArmDegrees": {
+    "upper": 8,
+    "forearm": -132
+  },
+  "baselineGuardArmDegrees": {
+    "upper": -12,
+    "forearm": -110
+  },
+  "previousGuardArmDegrees": {
+    "upper": 6,
+    "forearm": -122
+  },
+  "fullGuardGripDeltaFromBaselinePixels": [
+    -49.185,
+    -19.728
+  ],
+  "fullGuardGripDeltaFromPreviousPixels": [
+    -13.849,
+    -9.795
+  ],
+  "previewFrame": [
+    768,
+    640
+  ],
+  "previewOutput": [
+    384,
+    320
+  ],
+  "previewPolicy": "wide fixed canvas keeps the complete detached shield visible without changing runtime placement",
+  "perspectivePolicy": "weapon17 is the moderate guard-view baseline at scaleX=0.74; weapon57-61 use authored oblique guard images at scaleX=1.0",
+  "horizontalGripPolicy": "defenseOriginX is independent from the ordinary originX; weapon57 uses 0.42 to hide the palm behind the shield face while preserving its non-defense grip",
+  "shieldHeadShoulderOverlapPixelsByFrame": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "shieldHeadShoulderOverlapMax": 0,
+  "oakGarrisonHeadShoulderOverlapPixelsByFrame": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "oakGarrisonHeadShoulderOverlapMax": 0,
+  "oakGarrisonVisiblePalmPixelsByFrame": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "oakGarrisonVisiblePalmPixelsMax": 0,
+  "lowerSource": "native walking pelvis, thighs, knees, shins and feet; no arm pixels",
+  "frameWidth": 512,
+  "frameHeight": 516,
+  "frameCount": 21,
+  "frameRate": 24,
+  "alphaBboxes": [
+    [
+      192,
+      16,
+      336,
+      500
+    ],
+    [
+      212,
+      14,
+      328,
+      499
+    ],
+    [
+      225,
+      12,
+      334,
+      499
+    ],
+    [
+      224,
+      13,
+      341,
+      500
+    ],
+    [
+      217,
+      13,
+      349,
+      497
+    ],
+    [
+      197,
+      13,
+      362,
+      495
+    ],
+    [
+      186,
+      15,
+      387,
+      495
+    ],
+    [
+      173,
+      19,
+      402,
+      495
+    ],
+    [
+      159,
+      20,
+      399,
+      491
+    ],
+    [
+      156,
+      24,
+      390,
+      495
+    ],
+    [
+      187,
+      19,
+      346,
+      495
+    ],
+    [
+      191,
+      20,
+      353,
+      494
+    ],
+    [
+      188,
+      19,
+      342,
+      494
+    ],
+    [
+      201,
+      17,
+      324,
+      489
+    ],
+    [
+      218,
+      17,
+      319,
+      490
+    ],
+    [
+      227,
+      13,
+      319,
+      488
+    ],
+    [
+      173,
+      13,
+      334,
+      485
+    ],
+    [
+      217,
+      18,
+      358,
+      486
+    ],
+    [
+      205,
+      20,
+      375,
+      490
+    ],
+    [
+      182,
+      22,
+      360,
+      500
+    ],
+    [
+      187,
+      18,
+      343,
+      500
+    ]
+  ],
+  "runtimeTested": false
+}

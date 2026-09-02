@@ -1,6 +1,5 @@
 import { PLAYER_SHIELD_ARM as ARM, PLAYER_SHIELD_VISUAL as VISUAL } from '../config/shield-config.js';
 import { PLAYER_SHIELD_POSES } from '../config/player-shield-poses.js';
-import { playerTextureKey } from '../config/player-anim.js';
 
 const RAD = Math.PI / 180;
 const smoothStep = value => {
@@ -22,6 +21,14 @@ function polygonPath(ctx, polygon) {
     ctx.closePath();
 }
 
+function polygonsPath(ctx, polygons) {
+    ctx.beginPath();
+    for (const polygon of polygons) {
+        polygon.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        ctx.closePath();
+    }
+}
+
 /** 待机/手枪的独立副手与近战源帧挂点。只写显示，不写动作或战斗状态。 */
 export class PlayerShieldRig {
     constructor(scene) {
@@ -29,27 +36,31 @@ export class PlayerShieldRig {
         this.progress = 0;
         this.replacements = [];
         this.textureKeys = [];
+        this.mainArmSprite = null;
         this.upperSprite = null;
         this.forearmSprite = null;
-        this.walkLowerSprite = null;
         this.mode = null;
         this.shieldBehindBody = false;
     }
 
     // 动画仲裁前归还原图，避免衍生纹理进入动作识别、脚点计算或下一动作。
     beginFrame() {
-        for (const { sprite, original, replacement } of this.replacements) {
-            if (sprite?.scene && sprite.texture?.key === replacement) sprite.setTexture(original);
+        for (const saved of this.replacements) {
+            const { sprite, original, originalFrame, replacement } = saved;
+            if (sprite?.scene && sprite.texture?.key === replacement) {
+                sprite.setTexture(original, originalFrame)
+                    .setOrigin(saved.originX, saved.originY)
+                    .setDisplaySize(saved.displayWidth, saved.displayHeight);
+            }
         }
         this.replacements.length = 0;
+        this.mainArmSprite?.setVisible(false);
         this.upperSprite?.setVisible(false);
         this.forearmSprite?.setVisible(false);
-        this.walkLowerSprite?.setVisible(false);
     }
 
     clear() {
         this.beginFrame();
-        this.walkLowerSprite?.anims.stop();
         this.progress = 0;
         this.mode = null;
         this.shieldBehindBody = false;
@@ -74,7 +85,7 @@ export class PlayerShieldRig {
                 ctx.fill();
             }
         } else {
-            polygonPath(ctx, polygons[0]);
+            polygonsPath(ctx, polygons);
             ctx.clip();
             ctx.drawImage(source, 0, 0);
         }
@@ -91,53 +102,13 @@ export class PlayerShieldRig {
         // 标定只对当前源图有效；未来换图不能静默套用旧轮廓。
         if (source.width !== ARM.width || source.height !== ARM.height) return false;
         this.bodyKey = this._makeTexture('idle_body', ARM.source, [ARM.upperPolygon, ARM.forearmPolygon], true);
-        const lowerBodyPolygon = [
-            [0, ARM.walkSplit.upperCutY],
-            [ARM.width, ARM.walkSplit.upperCutY],
-            [ARM.width, ARM.height],
-            [0, ARM.height],
-        ];
-        this.walkUpperKey = this._makeTexture(
-            'walk_upper', ARM.source,
-            [ARM.upperPolygon, ARM.forearmPolygon, lowerBodyPolygon], true
-        );
+        const mainKey = this._makeTexture('main_arm', ARM.source,
+            [ARM.main.upperPolygon, ARM.main.forearmPolygon, ARM.main.handPolygon]);
         const upperKey = this._makeTexture('upper', ARM.source, [ARM.upperPolygon]);
         const forearmKey = this._makeTexture('forearm', ARM.source, [ARM.forearmPolygon]);
+        this.mainArmSprite = this.scene.add.sprite(0, 0, mainKey).setVisible(false);
         this.upperSprite = this.scene.add.sprite(0, 0, upperKey).setVisible(false);
         this.forearmSprite = this.scene.add.sprite(0, 0, forearmKey).setVisible(false);
-        return true;
-    }
-
-    _ensureWalkLower() {
-        if (this.walkLowerSprite) return true;
-        const baseKey = playerTextureKey(ARM.walkSplit.animKey);
-        const textureKey = `${baseKey}_body`;
-        if (!this.scene.textures.exists(textureKey) || !this.scene.anims.exists(textureKey)) return false;
-        this.walkLowerSprite = this.scene.add.sprite(0, 0, textureKey).setVisible(false);
-        return true;
-    }
-
-    _syncWalkLower(body) {
-        if (!this._ensureWalkLower()) return false;
-        const split = ARM.walkSplit;
-        const key = `${playerTextureKey(split.animKey)}_body`;
-        const lower = this.walkLowerSprite;
-        if (lower.texture.key !== key) lower.setTexture(key);
-        if (lower.anims.currentAnim?.key !== key || !lower.anims.isPlaying) lower.play(key, true);
-        lower.setCrop(0, split.lowerCropY, split.frameWidth, split.frameHeight - split.lowerCropY);
-        lower.setOrigin(body.originX, body.originY);
-        lower.setPosition(body.x, body.y);
-        lower.setDisplaySize(body.displayWidth, body.displayHeight);
-        lower.setFlipX(body.flipX);
-        lower.setRotation(body.rotation);
-        lower.setAlpha(body.alpha);
-        if (body.isTinted) {
-            lower.setTint(body.tintTopLeft, body.tintTopRight, body.tintBottomLeft, body.tintBottomRight);
-            lower.setTintMode(body.tintMode);
-        } else {
-            lower.clearTint();
-        }
-        lower.setVisible(true);
         return true;
     }
 
@@ -154,9 +125,21 @@ export class PlayerShieldRig {
     }
 
     _replaceTexture(sprite, replacement) {
-        this.replacements.push({ sprite, original: sprite.texture.key, replacement });
-        // 派生图与原图同尺寸，同 origin / scale / rotation；不重设主手变换。
-        sprite.setTexture(replacement);
+        const saved = {
+            sprite,
+            original: sprite.texture.key,
+            originalFrame: sprite.frame?.name,
+            replacement,
+            originX: sprite.originX,
+            originY: sprite.originY,
+            displayWidth: sprite.displayWidth,
+            displayHeight: sprite.displayHeight,
+        };
+        this.replacements.push(saved);
+        // 临时透明帧只负责隐藏原副手摆臂；保持显示尺寸与根点，不改动画时钟。
+        sprite.setTexture(replacement)
+            .setOrigin(saved.originX, saved.originY)
+            .setDisplaySize(saved.displayWidth, saved.displayHeight);
     }
 
     _placePart(sprite, pivot, root, scaleX, scaleY, rotation, mirror, body) {
@@ -202,13 +185,12 @@ export class PlayerShieldRig {
         const pistol = scene._twistTexKey === 'player_gun_idle_pistol'
             && scene._twistState && scene.playerTorsoSprite?.visible && scene.playerArmSprite?.visible;
         const idle = body.texture.key === ARM.source;
-        if ((!idle && !pistol) || !this._ensureParts() || (pistol && !this._ensurePistol())) {
+        const walking = !pistol && body.texture.key === ARM.walk.textureKey
+            && player.shieldSystem.defending && player.isMoving;
+        if ((!idle && !pistol && !walking) || !this._ensureParts() || (pistol && !this._ensurePistol())) {
             this.clear();
             return null;
         }
-        const walking = !pistol && idle && player.shieldSystem.defending && player.isMoving
-            && this._ensureWalkLower();
-        if (!walking && this.walkLowerSprite?.anims.isPlaying) this.walkLowerSprite.anims.stop();
         this.mode = pistol ? 'pistol' : (walking ? 'walk' : 'idle');
         this.shieldBehindBody = false;
         const target = player.shieldSystem.defending ? 1 : 0;
@@ -226,6 +208,7 @@ export class PlayerShieldRig {
         const scaleY = body.displayHeight / ARM.height;
         let baseRotation = body.rotation;
         let shoulder;
+        let mainGrip = null;
         if (pistol) {
             const torso = scene.playerTorsoSprite;
             baseRotation = torso.rotation;
@@ -239,22 +222,48 @@ export class PlayerShieldRig {
                 torso.displayWidth / ARM.pistol.width, torso.displayHeight / ARM.pistol.height, baseRotation, torsoMirror);
             const flippedSource = scene.playerArmSprite.texture.key.endsWith('_flip');
             this._replaceTexture(scene.playerArmSprite, this.pistolKeys[flippedSource ? 1 : 0]);
+        } else if (walking) {
+            const frameIndex = Math.max(0, Math.min(ARM.walk.frameCount - 1,
+                Number.isInteger(Number(body.frame?.name)) ? Number(body.frame.name) : 0));
+            const [mainX, mainY] = ARM.walk.mainShoulders[frameIndex];
+            const [offX, offY] = ARM.walk.offShoulders[frameIndex];
+            const walkPivot = {
+                x: body.originX * ARM.walk.frameWidth,
+                y: body.originY * ARM.walk.frameHeight,
+            };
+            const walkScaleX = body.displayWidth / ARM.walk.frameWidth;
+            const walkScaleY = body.displayHeight / ARM.walk.frameHeight;
+            const mainShoulder = transformPoint({ x: mainX, y: mainY }, walkPivot, body,
+                walkScaleX, walkScaleY, baseRotation, mirror);
+            shoulder = transformPoint({ x: offX, y: offY }, walkPivot, body,
+                walkScaleX, walkScaleY, baseRotation, mirror);
+            this._placePart(this.mainArmSprite, ARM.main.shoulder, mainShoulder,
+                scaleX, scaleY, baseRotation, mirror, body);
+            mainGrip = transformPoint(ARM.main.grip, ARM.main.shoulder, mainShoulder,
+                scaleX, scaleY, baseRotation, mirror);
         } else {
             shoulder = transformPoint(ARM.shoulder, { x: body.originX * ARM.width, y: body.originY * ARM.height },
                 body, scaleX, scaleY, baseRotation, mirror);
             // 放下后使用完整原图，原始待机像素完全保留。
             if (this.progress === 0) {
                 const grip = transformPoint(ARM.grip, ARM.shoulder, shoulder, scaleX, scaleY, baseRotation, mirror);
-                return { ...grip, facingRight, rotation: baseRotation + VISUAL.restTilt * mirror };
+                return {
+                    ...grip,
+                    facingRight,
+                    rotation: baseRotation + VISUAL.restTilt * mirror,
+                    defenseBlend: 0,
+                };
             }
-            this._replaceTexture(body, walking ? this.walkUpperKey : this.bodyKey);
-            if (walking) this._syncWalkLower(body);
+            this._replaceTexture(body, this.bodyKey);
         }
 
+        const guardPose = walking ? ARM.walk : (pistol ? ARM : ARM.stand);
+        const guardUpperDegrees = guardPose.guardUpperDegrees;
+        const guardForearmDegrees = guardPose.guardForearmDegrees;
         const upperDegrees = ARM.reachUpperDegrees * reach
-            + (ARM.guardUpperDegrees - ARM.reachUpperDegrees) * lift;
+            + (guardUpperDegrees - ARM.reachUpperDegrees) * lift;
         const forearmDegrees = ARM.reachForearmDegrees * reach
-            + (ARM.guardForearmDegrees - ARM.reachForearmDegrees) * lift;
+            + (guardForearmDegrees - ARM.reachForearmDegrees) * lift;
         const upperRotation = baseRotation + upperDegrees * RAD * mirror;
         const forearmRotation = baseRotation + forearmDegrees * RAD * mirror;
         const elbow = transformPoint(ARM.elbow, ARM.shoulder, shoulder, scaleX, scaleY, upperRotation, mirror);
@@ -262,12 +271,19 @@ export class PlayerShieldRig {
         this._placePart(this.forearmSprite, ARM.elbow, elbow, scaleX, scaleY, forearmRotation, mirror, body);
         // 关键合同：盾牌与显示出来的手掌使用完全相同的前臂变换，没有独立 world 偏移。
         const grip = transformPoint(ARM.grip, ARM.elbow, elbow, scaleX, scaleY, forearmRotation, mirror);
-        return { ...grip, facingRight, rotation: baseRotation + (VISUAL.restTilt + (VISUAL.guardTilt - VISUAL.restTilt) * lift) * mirror };
+        return {
+            ...grip,
+            facingRight,
+            rotation: baseRotation + (VISUAL.restTilt + (VISUAL.guardTilt - VISUAL.restTilt) * lift) * mirror,
+            defenseBlend: lift,
+            mainGrip,
+            mainRotation: baseRotation,
+        };
     }
 
     syncDepth(playerDepth) {
-        // 腿层在静态上身后方，16px 重叠区由上身覆盖，膝上线不会随帧开缝。
-        this.walkLowerSprite?.setDepth(playerDepth - 0.005);
+        // 连续 walking 躯干由玩家主 Sprite 绘制；独立主手和盾手覆盖在躯干前方。
+        this.mainArmSprite?.setDepth(playerDepth + 0.018);
         // 始终小于城墙塔最紧凑的 shieldOff=0.04；手枪主臂保留在副手骨链之前。
         this.upperSprite?.setDepth(playerDepth + (this.mode === 'pistol' ? 0.005 : 0.025));
         this.forearmSprite?.setDepth(playerDepth + (this.mode === 'pistol' ? 0.015 : 0.03));
@@ -275,14 +291,14 @@ export class PlayerShieldRig {
 
     destroy() {
         this.clear();
+        this.mainArmSprite?.destroy();
         this.upperSprite?.destroy();
         this.forearmSprite?.destroy();
-        this.walkLowerSprite?.destroy();
         for (const key of this.textureKeys) this.scene.textures.remove(key);
         this.textureKeys.length = 0;
+        this.mainArmSprite = null;
         this.upperSprite = null;
         this.forearmSprite = null;
-        this.walkLowerSprite = null;
         this.pistolKeys = null;
     }
 }
