@@ -29,8 +29,10 @@ function farmCanvasPoint(building, point) {
     const displayH = Math.max(1, Number(building?._cfg?.displayH) || 293);
     const spriteCenterY = (Number(building?.y) || 0)
         - (Number(building?._cfg?.footOffsetY) || 0);
+    const mirrorX = building?._facingLeft ? -1 : 1;
     return {
-        x: (Number(building?.x) || 0) + (Number(point[0]) / Number(source.width) - 0.5) * displayW,
+        x: (Number(building?.x) || 0)
+            + (Number(point[0]) / Number(source.width) - 0.5) * displayW * mirrorX,
         y: spriteCenterY + (Number(point[1]) / Number(source.height) - 0.5) * displayH,
     };
 }
@@ -228,16 +230,22 @@ export const CheeseFarmSystem = {
     },
 
     getRoadState(building) {
-        const warehouses = EnergyManager.getWarehouses();
+        const warehouses = EnergyManager.getWarehouses()
+            .filter((warehouse) => warehouse && warehouse.active !== false);
         const roadInfo = BuildingRoadSystem.getBuildingRoadInfo(building);
-        const warehouseSignature = warehouses.map((warehouse) => warehouse.id || `${warehouse.x},${warehouse.y}`)
+        const warehouseSignature = warehouses.map((warehouse) => [
+            warehouse.id || '',
+            Math.round(Number(warehouse.x) || 0),
+            Math.round(Number(warehouse.y) || 0),
+            warehouse._facingLeft ? 1 : 0,
+            BuildingRoadSystem.getBuildingRoadAccessKeys(warehouse).join(','),
+        ].join('@'))
             .sort().join('|');
-        const signature = `${roadInfo.topologyRevision}:${roadInfo.wallRevision}:${warehouseSignature}`;
+        const signature = `${roadInfo.signature}:${building?._facingLeft ? 1 : 0}:${roadInfo.accessKeys.join(',')}:${warehouseSignature}`;
         if (building?._cheeseFarmRoadCache?.signature === signature) return building._cheeseFarmRoadCache;
         const reachable = [];
         if (roadInfo.connected) {
             for (const warehouse of warehouses) {
-                if (!warehouse || warehouse.active === false) continue;
                 const route = this._buildDoorRoadRoute(building, warehouse, roadInfo);
                 if (!route?.length) continue;
                 reachable.push({
@@ -279,8 +287,24 @@ export const CheeseFarmSystem = {
         const baseCowCount = Math.max(1, Number(farmConfig().baseCowCount) || 2);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('cheese_farm');
         const weatherEffect = getFoodProductionWeatherEffect();
+        const workforce = PopulationEconomySystem.getWorkerSnapshot(building);
+        const labor = PopulationEconomySystem.getLaborEfficiency();
+        const freeFoodCapacity = roadState.reachable.reduce((sum, { building: warehouse }) =>
+            sum + Math.floor(EnergyManager.getWarehouseFreeCapacity(warehouse)
+                / EnergyManager.getWarehouseFoodFactor(warehouse)), 0);
+        const blockReason = !roadState.roadConnected ? 'road_disconnected'
+            : !(workforce?.assigned > 0) ? 'no_workers'
+                : !(labor > 0) ? 'no_labor'
+                    : job.phase === 'waiting_deposit' && freeFoodCapacity <= 0
+                        ? 'warehouse_full' : '';
+        const blockedStatus = {
+            road_disconnected: '需要道路连接仓库',
+            no_workers: `未安排${workforce?.label || '牛倌'} · 任务暂停`,
+            no_labor: '劳动效率为零 · 任务暂停',
+            warehouse_full: '仓库已满 · 成品保留',
+        };
         return {
-            status: roadState.roadConnected ? phaseText : '需要道路连接',
+            status: blockedStatus[blockReason] || phaseText,
             phase: job.phase,
             progress,
             processTimeMs: this.getProcessTimeMs(building),
@@ -296,7 +320,7 @@ export const CheeseFarmSystem = {
             roadConnected: roadState.roadConnected,
             connectedWarehouseCount: roadState.connectedWarehouseCount,
             roadDistance: roadState.roadDistance,
-            blockReason: roadState.roadConnected ? '' : 'road_disconnected',
+            blockReason,
         };
     },
 

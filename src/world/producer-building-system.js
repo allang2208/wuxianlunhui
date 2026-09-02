@@ -561,6 +561,11 @@ export class ProducerBuilding extends DamageableEntity {
         this.cfgKey = config.cfgKey;
         this._cfg = cfg;
         this.id = config.id || `${cfg.id}_${Math.random().toString(36).slice(2, 8)}`;
+        // 门点、岗位和物流任务会在构造期间初始化，必须先拿到最终朝向。
+        // 新建/读档若在构造完成后才补 flipX，会让可见正门与任务入口分居两侧。
+        this._facingLeft = config.mirror !== undefined
+            ? !!config.mirror
+            : cfg.defaultMirror === true;
         this._isProducerBuilding = true;
         this._wallTowerWalk = cfg.wallTowerWalk ? { ...cfg.wallTowerWalk } : null;
         this._wallTowerTopVision = cfg.wallTowerTopVision

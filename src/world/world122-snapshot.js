@@ -1163,6 +1163,7 @@ function _restoreProducer(s, sceneId) {
     const producer = new ProducerBuilding(s.x, s.y, {
         id: s.id || `built_${s.cfgKey}_r${++_seq}`,
         cfgKey: s.cfgKey,
+        mirror: s.mirror,
         economyLevel: s.economyLevel,
         economyTickMs: s.economyTickMs,
         economyUpgrade: s.economyUpgrade,

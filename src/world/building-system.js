@@ -5001,7 +5001,7 @@ export const BuildingSystem = {
                 placedEntity = hut;
             } else if (item.kind === 'producer') {
                 const producer = this._markBuiltEntity(
-                    new ProducerBuilding(x, y, { id, cfgKey: item.id }),
+                    new ProducerBuilding(x, y, { id, cfgKey: item.id, mirror }),
                     item,
                     buildCost
                 );
