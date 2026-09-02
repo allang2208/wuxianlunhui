@@ -1,0 +1,105 @@
+{
+  "task": "mythic-shields-20260902",
+  "generatedAt": "2026-09-02",
+  "backend": "Codex built-in image_gen",
+  "status": "runtimeIntegrationActive",
+  "runtimeIntegrated": true,
+  "identityConcepts": [
+    {
+      "shieldId": "heaven_pillar_returning_bulwark",
+      "weaponId": "weapon62",
+      "path": "concept/heaven-pillar-returning-bulwark-concept-v01.png"
+    },
+    {
+      "shieldId": "abyss_return_star_devouring_mirror",
+      "weaponId": "weapon63",
+      "path": "concept/abyss-return-star-devouring-mirror-concept-v01.png"
+    }
+  ],
+  "viewSets": [
+    {
+      "shieldId": "heaven_pillar_returning_bulwark",
+      "weaponId": "weapon62",
+      "guardSource": "source/heaven-pillar-returning-bulwark-guard-raw.png",
+      "frontSource": "source/heaven-pillar-returning-bulwark-front-raw.png",
+      "backSource": "source/heaven-pillar-returning-bulwark-back-raw.png",
+      "runtimeGuard": "assets/weapons/runtime/weapons/guards/heaven-pillar-returning-bulwark-guard.png",
+      "runtimeEquip": "assets/weapons/runtime/weapons/heaven-pillar-returning-bulwark-equip.png",
+      "inventoryIcon": "assets/icons/shields/heaven-pillar-returning-bulwark.png",
+      "guardAlphaBounds": [355, 88, 667, 935],
+      "visibleHeightRatio": 0.828125,
+      "origin": [0.60, 0.515],
+      "defenseOrigin": [0.60, 0.50],
+      "defensePerspectiveScaleX": 1
+    },
+    {
+      "shieldId": "abyss_return_star_devouring_mirror",
+      "weaponId": "weapon63",
+      "guardSource": "source/abyss-return-star-devouring-mirror-guard-raw.png",
+      "frontSource": "source/abyss-return-star-devouring-mirror-front-raw.png",
+      "backSource": "source/abyss-return-star-devouring-mirror-back-raw.png",
+      "runtimeGuard": "assets/weapons/runtime/weapons/guards/abyss-return-star-devouring-mirror-guard.png",
+      "runtimeEquip": "assets/weapons/runtime/weapons/abyss-return-star-devouring-mirror-equip.png",
+      "inventoryIcon": "assets/icons/shields/abyss-return-star-devouring-mirror.png",
+      "guardAlphaBounds": [265, 88, 757, 935],
+      "visibleHeightRatio": 0.828125,
+      "origin": [0.60, 0.34],
+      "defenseOrigin": [0.60, 0.50],
+      "defensePerspectiveScaleX": 1
+    }
+  ],
+  "craftIconSheets": [
+    {
+      "shieldId": "heaven_pillar_returning_bulwark",
+      "path": "icons/heaven-pillar-craft-icons-sheet.png",
+      "order": [
+        "heavenpillar_layered_bulwark_plate",
+        "heavenpillar_dissipation_lamella",
+        "heavenpillar_fast_return_rune",
+        "heavenpillar_long_return_ring",
+        "heavenpillar_reverse_time_ring",
+        "heavenpillar_mountain_ram_spine",
+        "heavenpillar_hydraulic_breath_grip",
+        "heavenpillar_marching_suspension",
+        "heavenpillar_reset_winch"
+      ]
+    },
+    {
+      "shieldId": "abyss_return_star_devouring_mirror",
+      "path": "icons/abyss-return-craft-icons-sheet.png",
+      "order": [
+        "abyssmirror_singularity_armor_petal",
+        "abyssmirror_star_devouring_membrane",
+        "abyssmirror_absolute_zero_coating",
+        "abyssmirror_expanded_horizon_ring",
+        "abyssmirror_fast_collapse_ring",
+        "abyssmirror_deep_well_reservoir",
+        "abyssmirror_phase_support_strap",
+        "abyssmirror_antimass_grip",
+        "abyssmirror_observation_reset_ratchet"
+      ]
+    }
+  ],
+  "processing": {
+    "script": "prepare-assets.ps1",
+    "checkerboardCutout": "tools/ai-gen/_mouse_blacksmith_standing_20260829/strip-checkerboard-alpha-fill-holes.py",
+    "formalSize": 1024,
+    "formalMargin": 88,
+    "runtimeGuardSize": 512,
+    "inventoryIconSize": 128,
+    "craftIconSize": 128,
+    "contactSheet": "formal/view-contact-sheet.png"
+  },
+  "archiveContract": {
+    "kept": ["identity concepts", "raw guard-front-back views", "craft icon sheets", "prompts", "prepare-assets.ps1", "manifest", "final contact sheet"],
+    "rebuildableNotArchived": ["clean-1024", "back-reference copies", "inventory-master copies", "icon-cells-512", "icons-128 checks"]
+  },
+  "runtimeContract": {
+    "guardUsesExteriorOnly": true,
+    "backReferenceBoundAtRuntime": false,
+    "leftRimIsNearRim": true,
+    "rightRimIsFarRim": true,
+    "horizontalYawDegreesApprox": 42
+  },
+  "verificationBoundary": "offline asset inspection and static integration only; no game runtime, tests, build, browser probe or EXE publication"
+}

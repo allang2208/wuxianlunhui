@@ -1,0 +1,28 @@
+Create a polished 3x3 atlas of nine separate game crafting modification icons for the Forged Duelist Buckler from the reference image.
+
+Use image 1 only for the buckler's material identity: dark forged steel, compact duelist equipment, subtle cool-blue highlight. Use image 2 as the exact UI icon style reference: square cold-steel crafting icon frame, dark charcoal circular inset, beveled silver-steel rim, four small corner bolts, restrained blue edge light, transparent outer corners.
+
+Canvas and layout:
+- Exactly 3 equal columns by 3 equal rows, perfectly aligned, no missing or extra cells.
+- Every cell is a self-contained square icon with the same frame and scale.
+- Leave clean crop-safe separation between cells.
+- Transparent background outside the nine framed icons.
+- No text, letters, numbers, labels, arrows, badges, logos, or watermark.
+
+Show exactly ONE isolated physical shield component centered in each cell; never show a complete shield, character, hand, weapon, workshop, or detached secondary parts.
+
+Cell contents, left to right:
+Top row:
+1. a curved tempered forged-steel face plate, one compact arched plate sample;
+2. a layered impact-buffer shield-face insert, visibly laminated metal and dark padding as one bonded component;
+3. a single radial shock-distribution rib assembly, four forged ribs joined at a small center collar as one component.
+Middle row:
+4. a flared deflection shield boss with outward-curved lip;
+5. a dense solid impact shield boss, heavier and thicker;
+6. an offset forged counterweight ring, asymmetric mass clearly readable.
+Bottom row:
+7. a cork-wrapped close-palm metal grip, one complete grip component;
+8. a hooked reinforced leather hand strap with one integrated metal hook;
+9. an angled reinforced projectile-catching wrist strap, diagonal layered strap construction.
+
+Art direction: premium isometric inventory icon, painterly realistic metal and leather, crisp silhouettes, high contrast at 128px, cool steel palette with limited brown leather/cork, consistent overhead three-quarter camera, diffuse studio lighting, no cast shadow beyond the inner circular plate.

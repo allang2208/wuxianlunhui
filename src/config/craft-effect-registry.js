@@ -1016,6 +1016,212 @@ export const CRAFT_EFFECT_REGISTRY = {
         category: 'special', applyMode: 'override',
         display: (v) => `散射伤害倍率${v.toFixed(2)}`, tooltip: '设置未标记敌人受到的散射回响倍率',
     },
+    // ========== 盾牌改造 ==========
+    shieldDefenseFlat: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `盾牌物防${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '只改变当前配对盾牌提供的物理防御',
+    },
+    shieldBlockReductionBonus: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `主动格挡减伤${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变主动格挡的减伤百分点，最终承伤仍受5%下限约束',
+    },
+    shieldStaminaCostDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `格挡体力${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '改变普通主动格挡每次受击消耗的体力',
+    },
+    shieldDefenseMoveSpeedDelta: {
+        category: 'mobility', applyMode: 'add',
+        display: (v) => `防御移速${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变举盾防御时的移动速度倍率，最终限制在35%至75%',
+    },
+    shieldParryWindowDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `弹反窗口${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变本次举盾开始后的弹反判定时窗',
+    },
+    shieldParryStunDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `近战弹反眩晕${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变近战弹反对非免疫攻击者施加的眩晕时间',
+    },
+    shieldParryReflectRatioDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `弹反返伤比例${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变荆棘誓返盾按本次近战承伤返还的物理伤害比例',
+    },
+    shieldParryReflectCapRatioDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `弹反返伤上限${v >= 0 ? '+' : ''}${Math.round(v * 100)}%最大生命`,
+        tooltip: '改变荆棘誓返盾单次返伤相对玩家最大生命的上限',
+    },
+    shieldParryReflectCooldownDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `弹反返伤冷却${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变荆棘誓返盾返伤效果的内部冷却',
+    },
+    shieldMagicBlockReductionBonus: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `魔法格挡减伤${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变具有独立魔法格挡口径的盾牌对魔法与电系伤害的减伤百分点',
+    },
+    shieldArcaneRetortBaseDamageDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `秘法反噬基础伤害${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '改变星噬秘镜盾魔法弹反反噬的基础伤害',
+    },
+    shieldArcaneRetortMatkRatioDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `秘法反噬魔攻系数${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '改变星噬秘镜盾魔法弹反反噬的魔攻加成系数',
+    },
+    shieldArcaneRetortPreventedRatioDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `秘法反噬吸收系数${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变星噬秘镜盾按本次被弹反伤害计入反噬的比例',
+    },
+    shieldArcaneRetortMdefShredDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `魔抗削减${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变秘法反噬命中后施加的魔法抗性削减比例',
+    },
+    shieldArcaneRetortDurationDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `魔抗削减持续${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变秘法反噬魔抗削减的持续时间',
+    },
+    shieldArcaneRetortCooldownDelta: {
+        category: 'damage', applyMode: 'add',
+        display: (v) => `秘法反噬冷却${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变星噬秘镜盾秘法反噬的内部冷却',
+    },
+    shieldReturnGuardRequiredStacksDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `回天蓄势需求${v >= 0 ? '+' : ''}${v}层`,
+        tooltip: '改变天柱回天壁把普通格挡转成回天预备态所需的承势层数',
+    },
+    shieldReturnGuardWindowPerStackDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `每层回天弹反窗${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变天柱回天壁每层承势为下一次防御追加的弹反窗口',
+    },
+    shieldReturnGuardStaminaRefundPerStackDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `每层回天返还体力${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '改变回天强化弹反成功时每层承势返还的体力',
+    },
+    shieldReturnGuardReadyDurationDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `回天预备持续${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变天柱回天壁松开防御后回天预备态的保留时间',
+    },
+    shieldReturnGuardCooldownDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `回天机构冷却${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变天柱回天壁回天机构完成、失效或强制中断后的冷却',
+    },
+    shieldNullFieldTriggerStaminaDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `事件视界触发体力${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '改变归墟吞星镜吞没首发敌方投射物所需的独立体力',
+    },
+    shieldNullFieldDurationDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `事件视界持续${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变事件视界短场拦截后续敌方投射物的持续时间',
+    },
+    shieldNullFieldRemainingDamageRatioDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `视界内承伤${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变事件视界内后续合格投射物的剩余承伤比例；负值代表更强减伤',
+    },
+    shieldNullFieldCooldownDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `事件视界冷却${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变事件视界结束或提前收盾后的内部冷却',
+    },
+    shieldNullFieldParryCooldownRefundDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `弹反返还视界冷却${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变归墟吞星镜成功弹反时返还的事件视界冷却时间',
+    },
+    shieldCausalDebtSplitRatioDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `劫债延迟比例${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变成功普通主动格挡后转为延迟偿还劫债的最终承伤比例',
+    },
+    shieldCausalDebtCapRatioDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `劫债上限${v >= 0 ? '+' : ''}${Math.round(v * 100)}%最大生命`,
+        tooltip: '改变未偿劫债相对最大生命的容量；超出部分立即承受',
+    },
+    shieldCausalDebtGraceDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `劫债宽限${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变新劫债开始连续偿还前的宽限时间',
+    },
+    shieldCausalDebtRepayDurationDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `劫债偿还历时${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变单笔劫债从开始偿还到结清的持续时间',
+    },
+    shieldCausalDebtEraseRatioDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `弹反抹债${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变逆命劫轮盾成功弹反时抹除现存未偿劫债的比例',
+    },
+    shieldOathReserveConversionDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `誓约储备转化${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变普通主动格挡实际阻止伤害转为誓约储备的比例',
+    },
+    shieldOathReserveCapRatioDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `誓约储备上限${v >= 0 ? '+' : ''}${Math.round(v * 100)}%最大生命`,
+        tooltip: '改变誓约储备相对持盾者最大生命的容量',
+    },
+    shieldOathReserveDecayDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `储备消散等待${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变停止合格格挡后誓约储备开始消散的等待时间',
+    },
+    shieldOathSanctifyDurationDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `圣化收盾窗口${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变成功弹反后允许主动收盾展开庇护域的时间',
+    },
+    shieldOathWardDurationDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `终誓庇护持续${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变终誓庇护域存在时间',
+    },
+    shieldOathWardRadiusDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `终誓庇护半径${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '改变终誓庇护域对玩家与友方单位生效的世界范围',
+    },
+    shieldOathWardReductionDelta: {
+        category: 'defense', applyMode: 'add',
+        display: (v) => `终誓庇护减伤${v >= 0 ? '+' : ''}${Math.round(v * 100)}个百分点`,
+        tooltip: '改变庇护域消耗共享储备抵消合格直击的比例',
+    },
+    shieldAfterBlockGuard: {
+        category: 'defense', applyMode: 'override',
+        display: (v) => `格挡余势：下一击减伤${Math.round((v?.reductionPercent || 0) * 100)}%（${((v?.durationMs || 0) / 1000).toFixed(1)}秒）`,
+        tooltip: '普通主动格挡成功后，为下一次合格直击提供一次减伤；触发或过期后进入冷却',
+    },
+    shieldPassiveMeleeBlock: {
+        category: 'defense', applyMode: 'override',
+        display: (v) => `近战被动格挡：${Math.round((v?.chance || 0) * 100)}%几率减伤${Math.round((v?.reductionPercent || 0) * 100)}%`,
+        tooltip: '未主动防御时对近战直击判定；不耗体力、不弹反、不产生格挡余势',
+    },
+    shieldPassiveProjectileBlock: {
+        category: 'defense', applyMode: 'override',
+        display: (v) => `投射物被动格挡：${Math.round((v?.chance || 0) * 100)}%几率减伤${Math.round((v?.reductionPercent || 0) * 100)}%`,
+        tooltip: '未主动防御时仅对显式投射物直击判定；不把范围或持续伤害视为投射物',
+    },
     magicDamagePercent: {
         category: 'damage',
         applyMode: 'multiply',

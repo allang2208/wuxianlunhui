@@ -431,6 +431,62 @@ html.item-drag-active * {
     text-shadow: none;
 }
 
+/* ===== Equipment modification connectors ===== */
+.craft-connector-line {
+    fill: none;
+    stroke: var(--bp-ui-line-strong);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.9;
+}
+
+.craft-connector-line.is-back {
+    stroke: var(--bp-ui-accent);
+    stroke-dasharray: 2 4;
+}
+
+.craft-connector-target {
+    fill: var(--bp-ui-black-soft);
+    stroke: var(--bp-ui-accent-bright);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.craft-connector-target.is-back {
+    fill: var(--bp-ui-graphite);
+    stroke: var(--bp-ui-accent);
+}
+
+.craft-connector-label {
+    fill: var(--bp-ui-accent-bright);
+    stroke: var(--bp-ui-black-soft);
+    stroke-width: 3px;
+    paint-order: stroke fill;
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-caption);
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.craft-edit-anchor {
+    fill: var(--bp-ui-accent-muted);
+    stroke: var(--bp-ui-accent-bright);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+
+.craft-alignment-guide {
+    stroke: var(--bp-ui-accent-bright);
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
 /* ===== Neutral controls ===== */
 :is(
     .craft-edit-btn,

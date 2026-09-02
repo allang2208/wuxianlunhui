@@ -144,6 +144,7 @@ class Projectile {
                             + projectileRadius;
                         this._hitContext = {
                             ...(this._hitContext || {}),
+                            isProjectile: true,
                             directionalProjectile: {
                                 originX: Number(projectileOrigin?.x ?? this.source?.x ?? prevX),
                                 originY: Number(projectileOrigin?.y ?? this.source?.y ?? prevY),

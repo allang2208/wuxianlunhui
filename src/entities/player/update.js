@@ -320,8 +320,10 @@ update(dt, entities) {
                     if (this.hasStatusEffect && this.hasStatusEffect('slow')) targetSpeed *= 0.5;
                     // 束缚状态：无法移动
                     if (this.hasStatusEffect && this.hasStatusEffect('bind')) targetSpeed = 0;
-                    // 防御状态：移动速度减慢 50%
-                    if (this.shieldSystem && this.shieldSystem.defending) targetSpeed *= 0.5;
+                    // 防御状态：基础50%移速，盾牌改造可在35%至75%之间调整。
+                    if (this.shieldSystem && this.shieldSystem.defending) {
+                        targetSpeed *= this.shieldSystem.getDefenseValues().defenseMoveSpeedMultiplier;
+                    }
                     const currentEquip = this.equipments[this.weaponMode];
                     const isPkmEquipped = currentEquip && isMachineGun(currentEquip.weaponType);
                     const isPistolEquipped = currentEquip && (currentEquip.weaponType === 'pistol' || currentEquip.rangedType === 'pistol');

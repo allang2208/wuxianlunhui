@@ -1,6 +1,7 @@
 // ============================================================
 
 import { isTwoHanded } from '../../config/gun-ammo.js';
+import { getShieldDefenseValues } from '../../config/shield-config.js';
 // 共享装备规则（2026-08-12）
 // 玩家与侍从共用同一套装备判定/加成口径——队员装备不再各写一套。
 // canEquipSlot：从 drag-drop-manager 抽出（主手武器/副手支援物/双手互斥/按 equipSlot）。
@@ -50,7 +51,9 @@ export function getEquipmentBonuses(equipments) {
             totals[k] += (bs[k] || 0) + (pe[k] || 0) * el;
         }
         if (it.defense) {
-            totals.defense += Math.floor((it.defense.base || 0) + (it.defense.perEnhance || 0) * el);
+            totals.defense += it.weaponType === 'shield'
+                ? getShieldDefenseValues(it).defense
+                : Math.floor((it.defense.base || 0) + (it.defense.perEnhance || 0) * el);
         }
     }
     return totals;

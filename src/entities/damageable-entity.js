@@ -29,6 +29,7 @@ import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { applyOutgoingDamageModifiers } from '../combat/outgoing-damage-modifiers.js';
 import { resolveDirectionalWallBattlementCover } from '../world/wall-battlement.js';
+import { applyLegendaryShieldWard } from '../combat/legendary-shield-ward.js';
 
 // 友方阵营组：玩家与友军互相免疫伤害（防御塔/基地/掩体/伙伴等，2026-08-14）
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
@@ -108,6 +109,8 @@ export function isFriendlyFire(source, target) {
                         // 魔法伤害：使用传入的 damage 作为 atk（已包含技能公式计算），fallback 到 matk
                         atk = (damage > 0) ? damage : (source.data.matk || 0);
                         def = this.data.mdef || 0;
+                        const magicShred = this.getMagicResistanceShredRatio?.() || 0;
+                        if (magicShred > 0) def = Math.floor(def * (1 - magicShred));
                         // 应用改造魔法防御穿透效果
                         if (hitContext && Number.isFinite(hitContext.magicPenetrationPercent)) {
                             def = Math.floor(def * (1 - hitContext.magicPenetrationPercent));
@@ -293,6 +296,9 @@ export function isFriendlyFire(source, target) {
                     baseDamage -= redirected;
                     battlement.takeRedirectedBattlementDamage?.(redirected, source);
                 }
+                baseDamage = applyLegendaryShieldWard(
+                    this, baseDamage, source, isMelee, hitContext
+                ).damage;
                 // 扣血
                 this.hp -= baseDamage;
                 // 血藤缠杖「血藤寄生」（2026-08-22 工艺品祭品）：全体友方单位
@@ -504,6 +510,7 @@ export function isFriendlyFire(source, target) {
                     corrosion: { icon: '🧪', name: '腐蚀', color: '#9ab84f' },
                     inspire: { icon: '📣', name: '激励', color: '#ffb347' },
                     magicVulnerability: { icon: '🔮', name: '魔力易伤', color: '#8a5a9a' },
+                    magicResistanceShred: { icon: '✦', name: '魔抗蚀刻', color: '#9f7cff' },
                     droneVulnerability: { icon: '🛸', name: '无人机易伤', color: '#5a7a9a' },
                     fear: { icon: '😱', name: '恐惧', color: '#7a5ac8' },
                     statusImmune: { icon: '🔰', name: '状态免疫', color: '#5ac8c8' },
@@ -558,6 +565,32 @@ export function isFriendlyFire(source, target) {
              */
             hasStatusEffect(type) {
                 return this.statusEffects.some(e => e.type === type && e.remaining > 0);
+            }
+
+            /** 星噬秘镜盾：降低目标魔法抗性，重复触发取较高比例并刷新时限。 */
+            applyMagicResistanceShred(ratio, duration, source = null) {
+                const value = Math.max(0, Math.min(0.95, Number(ratio) || 0));
+                const durationMs = Math.max(0, Number(duration) || 0);
+                const currentHp = Number(this.data?.hp ?? this.hp);
+                if (!(value > 0) || !(durationMs > 0) || this._isDead
+                    || (Number.isFinite(currentHp) && currentHp <= 0)
+                    || this.hasStatusEffect('statusImmune')) return null;
+                const existing = this.statusEffects.find(
+                    entry => entry.type === 'magicResistanceShred' && entry.remaining > 0
+                );
+                const previousValue = Number(existing?.value) || 0;
+                const effect = this.addStatusEffect('magicResistanceShred', durationMs, { value });
+                if (!effect) return null;
+                effect.value = Math.max(previousValue, value);
+                if (source) effect.source = source;
+                return effect;
+            }
+
+            getMagicResistanceShredRatio() {
+                const effect = this.statusEffects.find(
+                    entry => entry.type === 'magicResistanceShred' && entry.remaining > 0
+                );
+                return Math.max(0, Math.min(0.95, Number(effect?.value) || 0));
             }
 
             /** 石化为独立强控：不重置动作，表现层会停在当前帧并黑白化。 */

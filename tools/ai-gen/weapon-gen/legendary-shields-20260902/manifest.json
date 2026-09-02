@@ -1,0 +1,69 @@
+{
+  "task": "legendary-shields-20260902",
+  "generatedAt": "2026-09-02",
+  "backend": "Codex built-in imagegen",
+  "status": "runtimeIntegrationActive",
+  "runtimeIntegrated": true,
+  "runtimeVerified": false,
+  "designDocument": "docs/designs/legendary-shields-2026-09-02.md",
+  "workflow": "docs/shield-development-workflow.md",
+  "shields": [
+    {
+      "shieldId": "reverse_fate_doomwheel_shield",
+      "weaponId": "weapon64",
+      "name": "逆命劫轮盾",
+      "views": {
+        "guardRaw": "source/reverse-fate-doomwheel-shield-guard-raw.png",
+        "frontRaw": "source/reverse-fate-doomwheel-shield-front-raw.png",
+        "backRaw": "source/reverse-fate-doomwheel-shield-back-raw.png",
+        "guard": "assets/weapons/guards/reverse-fate-doomwheel-shield-guard.png",
+        "equip": "assets/weapons/reverse-fate-doomwheel-shield-equip.png",
+        "inventory": "assets/icons/shields/reverse-fate-doomwheel-shield.png"
+      },
+      "craftIconSheet": "icons/reverse-fate-craft-icons-sheet.png",
+      "craftIconPrefix": "doomwheel_",
+      "craftIconCount": 9
+    },
+    {
+      "shieldId": "last_oath_sanctum_gate_shield",
+      "weaponId": "weapon65",
+      "name": "圣城终誓门",
+      "views": {
+        "guardRaw": "source/last-oath-sanctum-gate-shield-guard-raw.png",
+        "frontRaw": "source/last-oath-sanctum-gate-shield-front-raw.png",
+        "backRaw": "source/last-oath-sanctum-gate-shield-back-raw.png",
+        "guard": "assets/weapons/guards/last-oath-sanctum-gate-shield-guard.png",
+        "equip": "assets/weapons/last-oath-sanctum-gate-shield-equip.png",
+        "inventory": "assets/icons/shields/last-oath-sanctum-gate-shield.png"
+      },
+      "craftIconSheet": "icons/last-oath-craft-icons-sheet.png",
+      "craftIconPrefix": "oathgate_",
+      "craftIconCount": 9
+    }
+  ],
+  "viewContract": {
+    "guardYawDegreesApprox": 42,
+    "wielderSide": "image-left",
+    "nearRim": "left",
+    "farRim": "right",
+    "guardExteriorFaceOnly": true,
+    "frontPurpose": "equipment-and-craft-display",
+    "backPurpose": "harness-structure-reference",
+    "safetyMarginPixels": 88,
+    "formalSize": 1024,
+    "runtimeSize": 512,
+    "inventorySize": 128
+  },
+  "offlineInspection": {
+    "contactSheet": "formal/view-contact-sheet.png",
+    "report": "formal/asset-report.json",
+    "reverseFateVisibleHeightRatio": 0.828125,
+    "lastOathVisibleHeightRatio": 0.828125,
+    "identityAndOrientationAccepted": true
+  },
+  "archiveContract": {
+    "kept": ["approved raw views", "craft icon sheets", "prompts", "prepare-assets.ps1", "manifest", "final contact sheet", "alpha report"],
+    "rebuildableNotArchived": ["prepared cutouts", "clean-1024", "back-reference copies", "icon-cells-512", "icons-128 checks", "inventory-master copies", "obsolete prepare-mothers.ps1"]
+  },
+  "verificationBoundary": "formal views, icons and static runtime integration completed; no tests, build, browser probe, game runtime validation or EXE publication"
+}

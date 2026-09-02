@@ -1,0 +1,91 @@
+{
+  "method": "ImageGen identity-preserving oblique rerender, then edge-connected checkerboard extraction",
+  "reference": "assets/weapons/woodshied-equip.png",
+  "camera": "wielder on image-left; near left rim thick, far right rim narrow",
+  "assets": [
+    {
+      "id": "moonsilver-deflection-shield-guard",
+      "raw": "tools/ai-gen/weapon-gen/shield-guard-perspective-20260902/raw/moonsilver-deflection-shield-guard-raw.png",
+      "source": "assets/weapons/guards/moonsilver-deflection-shield-guard.png",
+      "runtime": "assets/weapons/runtime/weapons/guards/moonsilver-deflection-shield-guard.png",
+      "sourceSize": [
+        1024,
+        1024
+      ],
+      "runtimeSize": [
+        512,
+        512
+      ],
+      "alphaBBox": [
+        252,
+        48,
+        772,
+        976
+      ],
+      "visibleHeightRatio": 0.90625
+    },
+    {
+      "id": "blackiron-citadel-shield-guard",
+      "raw": "tools/ai-gen/weapon-gen/shield-guard-perspective-20260902/raw/blackiron-citadel-shield-guard-raw.png",
+      "source": "assets/weapons/guards/blackiron-citadel-shield-guard.png",
+      "runtime": "assets/weapons/runtime/weapons/guards/blackiron-citadel-shield-guard.png",
+      "sourceSize": [
+        1024,
+        1024
+      ],
+      "runtimeSize": [
+        512,
+        512
+      ],
+      "alphaBBox": [
+        285,
+        48,
+        739,
+        976
+      ],
+      "visibleHeightRatio": 0.90625
+    },
+    {
+      "id": "thorn-oath-reprisal-shield-guard",
+      "raw": "tools/ai-gen/weapon-gen/shield-guard-perspective-20260902/raw/thorn-oath-reprisal-shield-guard-raw.png",
+      "source": "assets/weapons/guards/thorn-oath-reprisal-shield-guard.png",
+      "runtime": "assets/weapons/runtime/weapons/guards/thorn-oath-reprisal-shield-guard.png",
+      "sourceSize": [
+        1024,
+        1024
+      ],
+      "runtimeSize": [
+        512,
+        512
+      ],
+      "alphaBBox": [
+        313,
+        48,
+        710,
+        976
+      ],
+      "visibleHeightRatio": 0.90625
+    },
+    {
+      "id": "star-eater-arcane-mirror-shield-guard",
+      "raw": "tools/ai-gen/weapon-gen/shield-guard-perspective-20260902/raw/star-eater-arcane-mirror-shield-guard-raw.png",
+      "source": "assets/weapons/guards/star-eater-arcane-mirror-shield-guard.png",
+      "runtime": "assets/weapons/runtime/weapons/guards/star-eater-arcane-mirror-shield-guard.png",
+      "sourceSize": [
+        1024,
+        1024
+      ],
+      "runtimeSize": [
+        512,
+        512
+      ],
+      "alphaBBox": [
+        288,
+        48,
+        736,
+        976
+      ],
+      "visibleHeightRatio": 0.90625
+    }
+  ]
+}
