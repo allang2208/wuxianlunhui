@@ -1,0 +1,264 @@
+{
+  "date": "2026-08-31",
+  "generator": "Codex built-in image_gen",
+  "promptSet": "prompts.json",
+  "sourceRecords": "sources.json",
+  "exporter": "tools/ai-gen/_technology_tree_gap_icons_20260826/finalize_icons.py",
+  "operation": "Existing hexagonal alpha mask and 1024px normalization; no subject repaint",
+  "installed": true,
+  "runtimeTested": false,
+  "rankMarkers": "Three generated crystals in each industrial tier III badge; existing modern icons unchanged",
+  "publication": {
+    "publishedAssetIds": [
+      "thatch_hut_industrial",
+      "hamster_barracks_industrial",
+      "shooting_range_industrial",
+      "cavalry_school_industrial",
+      "engineer_camp_industrial",
+      "blacksmith_industrial",
+      "industrial_civic_administration"
+    ],
+    "integratedNodeIds": [
+      "thatch_hut_industrial",
+      "hamster_barracks_industrial",
+      "shooting_range_industrial",
+      "cavalry_school_industrial"
+    ],
+    "deferredNodeIds": [
+      "engineer_camp_industrial",
+      "blacksmith_industrial",
+      "industrial_civic_administration"
+    ]
+  },
+  "entries": [
+    {
+      "id": "thatch_hut_industrial",
+      "name": "近代侦察编制",
+      "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-930592a8-5780-4a27-8dab-ddbc45c775ce.png",
+      "sourceRaw": "raw/thatch_hut_industrial.png",
+      "finalPath": "final/thatch_hut_industrial.png",
+      "runtimePath": "assets/ui/technology-icons/thatch_hut_industrial.png",
+      "backgroundMode": "black",
+      "previousIconPath": "assets/terrain/thatch_hut_industrial.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "rawMode": "RGB",
+      "hexBounds": [
+        107,
+        16,
+        1145,
+        1237
+      ],
+      "finalSize": [
+        1024,
+        1024
+      ],
+      "finalMode": "RGBA",
+      "alphaBounds": [
+        87,
+        12,
+        937,
+        1012
+      ]
+    },
+    {
+      "id": "hamster_barracks_industrial",
+      "name": "近代步兵编制",
+      "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-9e7614ac-e359-448d-a5e3-c6e584b0270b.png",
+      "sourceRaw": "raw/hamster_barracks_industrial.png",
+      "finalPath": "final/hamster_barracks_industrial.png",
+      "runtimePath": "assets/ui/technology-icons/hamster_barracks_industrial.png",
+      "backgroundMode": "checker",
+      "previousIconPath": "assets/terrain/hamster_barracks_industrial.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "rawMode": "RGB",
+      "hexBounds": [
+        89,
+        6,
+        1161,
+        1249
+      ],
+      "finalSize": [
+        1024,
+        1024
+      ],
+      "finalMode": "RGBA",
+      "alphaBounds": [
+        80,
+        12,
+        943,
+        1012
+      ]
+    },
+    {
+      "id": "shooting_range_industrial",
+      "name": "近代射击训练",
+      "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-d7685332-c895-48bf-9fdf-63bd9b1f1f2d.png",
+      "sourceRaw": "raw/shooting_range_industrial_v2.png",
+      "finalPath": "final/shooting_range_industrial.png",
+      "runtimePath": "assets/ui/technology-icons/shooting_range_industrial.png",
+      "backgroundMode": "checker",
+      "previousIconPath": "assets/terrain/shooting_range_industrial.png",
+      "previousSource": {
+        "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-38d6676a-c42c-4ba7-bba4-5a882a58af0d.png",
+        "sourceRaw": "raw/shooting_range_industrial.png",
+        "reason": "Right wall overlapped steel frame; v2 reduces the diorama inside the frame."
+      },
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "rawMode": "RGB",
+      "hexBounds": [
+        118,
+        54,
+        1137,
+        1241
+      ],
+      "finalSize": [
+        1024,
+        1024
+      ],
+      "finalMode": "RGBA",
+      "alphaBounds": [
+        82,
+        12,
+        941,
+        1012
+      ]
+    },
+    {
+      "id": "cavalry_school_industrial",
+      "name": "近代骑兵编制",
+      "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-24f55c2d-4af6-4d16-933e-6347309ac3cd.png",
+      "sourceRaw": "raw/cavalry_school_industrial.png",
+      "finalPath": "final/cavalry_school_industrial.png",
+      "runtimePath": "assets/ui/technology-icons/cavalry_school_industrial.png",
+      "backgroundMode": "checker",
+      "previousIconPath": "assets/terrain/cavalry_school_industrial.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "rawMode": "RGB",
+      "hexBounds": [
+        104,
+        13,
+        1145,
+        1247
+      ],
+      "finalSize": [
+        1024,
+        1024
+      ],
+      "finalMode": "RGBA",
+      "alphaBounds": [
+        90,
+        12,
+        934,
+        1012
+      ]
+    },
+    {
+      "id": "engineer_camp_industrial",
+      "name": "近代炮兵制造",
+      "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-44c7c6fd-d6e5-4905-9986-cd6c1f3eb12e.png",
+      "sourceRaw": "raw/engineer_camp_industrial.png",
+      "finalPath": "final/engineer_camp_industrial.png",
+      "runtimePath": "assets/ui/technology-icons/engineer_camp_industrial.png",
+      "backgroundMode": "checker",
+      "previousIconPath": "assets/terrain/engineer_camp_industrial.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "rawMode": "RGB",
+      "hexBounds": [
+        107,
+        20,
+        1144,
+        1239
+      ],
+      "finalSize": [
+        1024,
+        1024
+      ],
+      "finalMode": "RGBA",
+      "alphaBounds": [
+        86,
+        12,
+        937,
+        1012
+      ]
+    },
+    {
+      "id": "blacksmith_industrial",
+      "name": "近代军工制造",
+      "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-8c537ced-d6c2-4339-907c-90b006f87dc3.png",
+      "sourceRaw": "raw/blacksmith_industrial.png",
+      "finalPath": "final/blacksmith_industrial.png",
+      "runtimePath": "assets/ui/technology-icons/blacksmith_industrial.png",
+      "backgroundMode": "checker",
+      "previousIconPath": "assets/terrain/blacksmith_industrial.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "rawMode": "RGB",
+      "hexBounds": [
+        107,
+        27,
+        1147,
+        1230
+      ],
+      "finalSize": [
+        1024,
+        1024
+      ],
+      "finalMode": "RGBA",
+      "alphaBounds": [
+        79,
+        12,
+        944,
+        1012
+      ]
+    },
+    {
+      "id": "industrial_civic_administration",
+      "name": "近代市政治理",
+      "sourceGenerated": "C:\\Users\\allan\\.codex\\generated_images\\01a05565-4644-7f91-b42a-c42c9aa544a4\\exec-a911a874-7a44-4525-891a-e42412d87498.png",
+      "sourceRaw": "raw/industrial_civic_administration.png",
+      "finalPath": "final/industrial_civic_administration.png",
+      "runtimePath": "assets/ui/technology-icons/industrial_civic_administration.png",
+      "backgroundMode": "checker",
+      "previousIconPath": "assets/terrain/city_hall_industrial.png",
+      "rawSize": [
+        1254,
+        1254
+      ],
+      "rawMode": "RGB",
+      "hexBounds": [
+        107,
+        21,
+        1149,
+        1237
+      ],
+      "finalSize": [
+        1024,
+        1024
+      ],
+      "finalMode": "RGBA",
+      "alphaBounds": [
+        83,
+        12,
+        940,
+        1012
+      ]
+    }
+  ]
+}
