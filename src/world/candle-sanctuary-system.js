@@ -1,6 +1,7 @@
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
+import { WorldInstanceSystem } from './world-instance-system.js';
 
 export const WORLD125_CANDLE_BUILDING_ID = 'dungeon_candle';
 export const WORLD125_CANDLE_RANGE_MODULE_ID = 'candle_light_range';
@@ -114,7 +115,8 @@ export const CandleSanctuarySystem = {
     },
 
     getShelterAt(entity, sceneId = TARGET_SCENE_ID) {
-        if (sceneId !== TARGET_SCENE_ID || !entity || entity.active === false) {
+        if (WorldInstanceSystem.resolveRuntimeSceneId(sceneId) !== TARGET_SCENE_ID
+            || !entity || entity.active === false) {
             return { sheltered: false, building: null, range: 0, distance: Infinity };
         }
         let nearest = null;

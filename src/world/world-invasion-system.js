@@ -72,7 +72,7 @@ function buildWaves(cycle, day) {
 }
 
 function worldName(sceneId) {
-    return worldSystemConfig.worlds?.[sceneId]?.name || sceneId;
+    return WorldProgressionSystem.getWorldConfig(sceneId)?.name || sceneId;
 }
 
 function portalWarningForRatio(ratio) {
@@ -509,7 +509,7 @@ export const WorldInvasionSystem = {
             const portalHpRatio = Math.max(0, Math.min(1, portalHp / maxHp));
             const warning = portalWarningForRatio(portalHpRatio);
             const currentScene = typeof window !== 'undefined'
-                ? window.SceneManager?.currentScene : null;
+                ? (window.SceneManager?.getCurrentWorldId?.() || window.SceneManager?.currentScene) : null;
             const dungeonRunActive = typeof window !== 'undefined'
                 && !!window.SceneManager?.isDungeonRunActive?.();
             return {
@@ -590,7 +590,11 @@ export const WorldInvasionSystem = {
             Number(EnvironmentLightingSystem.serializeTime().elapsedMs) || 0);
         const candidates = this._getInvasionCandidates(nowGameTimeMs);
         const candidateIds = new Set(candidates.map((world) => world.sceneId));
-        const worlds = WorldProgressionSystem.getWorldIds().map((sceneId) => {
+        const worlds = [
+            ...WorldProgressionSystem.getWorldIds().filter((sceneId) =>
+                !WorldProgressionSystem.getWorldConfig(sceneId)?.templatePreviewOnly),
+            ...WorldProgressionSystem.getWorldInstanceIds(),
+        ].map((sceneId) => {
             const worldCfg = WorldProgressionSystem.getWorldConfig(sceneId) || {};
             const portal = WorldProgressionSystem.getPortalState(sceneId);
             const protection = WorldProgressionSystem.getPortalProtection(sceneId, nowGameTimeMs);
@@ -641,7 +645,7 @@ export const WorldInvasionSystem = {
     },
 
     debugAdvanceDays(days, currentScene = (typeof window !== 'undefined'
-        ? window.SceneManager?.currentScene : null)) {
+        ? (window.SceneManager?.getCurrentWorldId?.() || window.SceneManager?.currentScene) : null)) {
         const safeDays = Math.max(0, Math.min(30, Number(days) || 0));
         const advancedMs = safeDays * dayDurationMs();
         EnvironmentLightingSystem.advanceTime(advancedMs);

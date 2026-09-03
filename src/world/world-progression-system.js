@@ -1,5 +1,6 @@
 // 世界位面进度：地牢完成记录、传送门建造资格、传送网络与重建成本的唯一真源。
 import worldSystemConfig from '../../data/world-system.json';
+import { WorldInstanceSystem } from './world-instance-system.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { ensureWorldBaseSnapshot, resetWorldSnapshot } from './world122-snapshot.js';
@@ -17,11 +18,33 @@ export const WORLD_LIFECYCLE_STATUS = Object.freeze({
 });
 
 const VALID_STATUS = new Set(Object.values(WORLD_LIFECYCLE_STATUS));
-const VERSION = 4;
+const VERSION = 5;
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-function requirementsMetFor(sceneId, completedDungeons) {
-    const cfg = worldSystemConfig.worlds?.[sceneId];
+function resolveWorldConfig(worldId) {
+    const instance = WorldInstanceSystem.getInstance(worldId);
+    const runtimeSceneId = instance?.runtimeSceneId || worldId;
+    const base = worldSystemConfig.worlds?.[runtimeSceneId] || null;
+    const template = WorldInstanceSystem.getTemplateForWorld(worldId);
+    if (!base && !template) return null;
+    return {
+        ...(template || {}),
+        ...(base || {}),
+        templateId: instance?.templateId || base?.templateId || template?.id || null,
+        runtimeSceneId,
+        instanceId: instance?.instanceId || null,
+        instanceKind: instance?.kind || null,
+        persistentInstance: instance?.persistent === true,
+        templatePreviewOnly: instance ? false : base?.templatePreviewOnly === true,
+        name: instance ? WorldInstanceSystem.getDisplayName(worldId) : (base?.name || template?.name),
+        initialPortal: instance ? true : base?.initialPortal,
+        constructionEnabled: instance ? template?.constructionEnabled !== false : base?.constructionEnabled,
+        requirements: instance ? (template?.requirements || {}) : base?.requirements,
+    };
+}
+
+function requirementsMetFor(worldId, completedDungeons) {
+    const cfg = resolveWorldConfig(worldId);
     if (!cfg) return false;
     const required = cfg.requirements?.completedDungeons || [];
     return required.every((dungeonType) => (completedDungeons[dungeonType] || 0) > 0);
@@ -68,8 +91,9 @@ function setPortalProtection(portal, sceneId) {
 }
 
 function initialPortalState(sceneId, cfg, completedDungeons) {
-    const initial = cfg.initialPortal === true;
-    const available = cfg.constructionEnabled !== false
+    const previewOnly = cfg.templatePreviewOnly === true;
+    const initial = !previewOnly && cfg.initialPortal === true;
+    const available = !previewOnly && cfg.constructionEnabled !== false
         && requirementsMetFor(sceneId, completedDungeons);
     const portal = setPortalStatus({
         status: initial
@@ -99,8 +123,8 @@ function initialPortalState(sceneId, cfg, completedDungeons) {
 function initialState() {
     const completedDungeons = {};
     const portals = {};
-    for (const [sceneId, cfg] of Object.entries(worldSystemConfig.worlds || {})) {
-        portals[sceneId] = initialPortalState(sceneId, cfg, completedDungeons);
+    for (const [worldId, cfg] of Object.entries(worldSystemConfig.worlds || {})) {
+        portals[worldId] = initialPortalState(worldId, cfg, completedDungeons);
     }
     return {
         version: VERSION,
@@ -112,25 +136,27 @@ function initialState() {
 
 let state = initialState();
 
-function portalState(sceneId) {
-    if (!state.portals[sceneId]) {
-        state.portals[sceneId] = setPortalStatus({
-            status: WORLD_LIFECYCLE_STATUS.LOCKED,
-            worldEpoch: 0,
-            everConstructed: false,
-            constructed: false,
+function portalState(worldId) {
+    if (!state.portals[worldId]) {
+        const instance = WorldInstanceSystem.getInstance(worldId);
+        const generation = instance ? createWorldGenerationContext(worldId, 1) : null;
+        state.portals[worldId] = setPortalStatus({
+            status: instance ? WORLD_LIFECYCLE_STATUS.ACTIVE : WORLD_LIFECYCLE_STATUS.LOCKED,
+            worldEpoch: instance ? 1 : 0,
+            everConstructed: !!instance,
+            constructed: !!instance,
             destroyed: false,
-            hp: 0,
-            generationVersion: 0,
-            generationSeed: 0,
-            generationSeedStrategy: null,
-            resourceRule: null,
-            baseTemplate: null,
-            resetPolicyVersion: 0,
+            hp: instance ? (worldSystemConfig.portal?.maxHp ?? 5000) : 0,
+            generationVersion: generation?.generationVersion || 0,
+            generationSeed: generation?.seed || 0,
+            generationSeedStrategy: generation?.seedStrategy || null,
+            resourceRule: generation?.resourceRule || null,
+            baseTemplate: generation?.baseTemplate || null,
+            resetPolicyVersion: generation?.policyVersion || 0,
             protectedUntilGameTimeMs: 0,
-        }, WORLD_LIFECYCLE_STATUS.LOCKED);
+        }, instance ? WORLD_LIFECYCLE_STATUS.ACTIVE : WORLD_LIFECYCLE_STATUS.LOCKED);
     }
-    return state.portals[sceneId];
+    return state.portals[worldId];
 }
 
 function requirementsMet(sceneId) {
@@ -139,10 +165,18 @@ function requirementsMet(sceneId) {
 
 function refreshAvailability(sceneId) {
     const portal = portalState(sceneId);
+    const cfg = resolveWorldConfig(sceneId);
+    if (cfg?.templatePreviewOnly) {
+        portal.everConstructed = false;
+        portal.constructed = false;
+        portal.destroyed = false;
+        portal.hp = 0;
+        setPortalStatus(portal, WORLD_LIFECYCLE_STATUS.LOCKED);
+        return portal;
+    }
     if (portal.everConstructed || portal.status === WORLD_LIFECYCLE_STATUS.ACTIVE
         || portal.status === WORLD_LIFECYCLE_STATUS.DESTROYED
         || portal.status === WORLD_LIFECYCLE_STATUS.REBUILDING) return portal;
-    const cfg = worldSystemConfig.worlds?.[sceneId];
     const next = cfg?.constructionEnabled !== false && requirementsMet(sceneId)
         ? WORLD_LIFECYCLE_STATUS.AVAILABLE
         : WORLD_LIFECYCLE_STATUS.LOCKED;
@@ -199,6 +233,7 @@ export const WorldProgressionSystem = {
     config: worldSystemConfig,
 
     reset() {
+        WorldInstanceSystem.reset();
         state = initialState();
         for (const sceneId of Object.keys(state.portals)) resetWorldSnapshot(sceneId);
         this.ensureConstructedWorldSnapshots();
@@ -206,7 +241,15 @@ export const WorldProgressionSystem = {
 
     serialize() {
         for (const portal of Object.values(state.portals)) setPortalStatus(portal, portal.status);
-        return clone(state);
+        const serialized = clone(state);
+        for (const worldId of Object.keys(serialized.portals || {})) {
+            if (resolveWorldConfig(worldId)?.templatePreviewOnly
+                || (WorldInstanceSystem.isInstanceId(worldId)
+                    && !WorldInstanceSystem.isPersistentInstance(worldId))) {
+                delete serialized.portals[worldId];
+            }
+        }
+        return serialized;
     },
 
     restore(data) {
@@ -214,15 +257,22 @@ export const WorldProgressionSystem = {
         if (data && typeof data === 'object') {
             next.completedDungeons = { ...(data.completedDungeons || {}) };
             next.dungeonRuns = clone(data.dungeonRuns || {});
+            for (const instance of WorldInstanceSystem.listInstances({ persistentOnly: true })) {
+                const cfg = resolveWorldConfig(instance.instanceId);
+                if (cfg) next.portals[instance.instanceId] = initialPortalState(
+                    instance.instanceId, cfg, next.completedDungeons
+                );
+            }
             for (const sceneId of Object.keys(next.portals)) {
+                if (resolveWorldConfig(sceneId)?.templatePreviewOnly) continue;
                 const incoming = data.portals?.[sceneId];
                 if (!incoming) continue;
                 next.portals[sceneId] = migratePortal(sceneId, incoming, next.portals[sceneId]);
             }
         }
-        // 起始世界永远保留主神空间的应急进入链；传送门本体仍可被摧毁并在世界内重建。
+        // 仅兼容仍把 scene8 配成正式锚点的旧数据；模板预览模式不创建应急固定入口。
         const anchor = next.portals.scene8;
-        if (anchor && !anchor.everConstructed) {
+        if (anchor && !resolveWorldConfig('scene8')?.templatePreviewOnly && !anchor.everConstructed) {
             anchor.everConstructed = true;
             anchor.worldEpoch = Math.max(1, anchor.worldEpoch || 0);
             setPortalGeneration(anchor, createWorldGenerationContext('scene8', anchor.worldEpoch));
@@ -236,7 +286,7 @@ export const WorldProgressionSystem = {
     /** 已建传送门必须始终拥有后台可结算的基础或完整快照。 */
     ensureConstructedWorldSnapshots() {
         for (const [sceneId, portal] of Object.entries(state.portals)) {
-            if (portal.constructed && !portal.destroyed) {
+            if (portal.constructed && !portal.destroyed && this.canPersistWorld(sceneId)) {
                 const worldConfig = this.getWorldConfig(sceneId);
                 ensureWorldBaseSnapshot(sceneId, {
                     portalHp: portal.hp,
@@ -252,7 +302,15 @@ export const WorldProgressionSystem = {
     },
 
     getWorldConfig(sceneId) {
-        return worldSystemConfig.worlds?.[sceneId] || null;
+        return resolveWorldConfig(sceneId);
+    },
+
+    getRuntimeSceneId(worldId) {
+        return WorldInstanceSystem.resolveRuntimeSceneId(worldId);
+    },
+
+    getWorldTemplate(worldId) {
+        return WorldInstanceSystem.getTemplateForWorld(worldId);
     },
 
     getWorldResetPolicy(sceneId) {
@@ -303,6 +361,66 @@ export const WorldProgressionSystem = {
 
     getWorldIds() {
         return Object.keys(worldSystemConfig.worlds || {});
+    },
+
+    getWorldInstanceIds({ persistentOnly = false } = {}) {
+        return WorldInstanceSystem.listInstances({ persistentOnly })
+            .map((instance) => instance.instanceId);
+    },
+
+    createStoryWorldInstance(options = {}) {
+        const result = WorldInstanceSystem.createStoryInstance(options);
+        if (!result.ok) return result;
+        const worldId = result.instance.instanceId;
+        const portal = portalState(worldId);
+        setPortalProtection(portal, worldId);
+        ensureWorldBaseSnapshot(worldId, {
+            portalHp: portal.hp,
+            worldEpoch: portal.worldEpoch,
+            generation: this.getWorldGenerationContext(worldId),
+            replace: true,
+            includeInitialFeatureBuilding: !!this.getWorldConfig(worldId)?.featureBuilding,
+        });
+        return {
+            ...result,
+            worldId,
+            portal: this.getPortalState(worldId),
+        };
+    },
+
+    createRandomStoryWorldInstance(options = {}) {
+        const result = WorldInstanceSystem.createRandomStoryInstance(options);
+        if (!result.ok) return result;
+        const worldId = result.instance.instanceId;
+        const portal = portalState(worldId);
+        setPortalProtection(portal, worldId);
+        ensureWorldBaseSnapshot(worldId, {
+            portalHp: portal.hp,
+            worldEpoch: portal.worldEpoch,
+            generation: this.getWorldGenerationContext(worldId),
+            replace: true,
+            includeInitialFeatureBuilding: !!this.getWorldConfig(worldId)?.featureBuilding,
+        });
+        return {
+            ...result,
+            worldId,
+            portal: this.getPortalState(worldId),
+        };
+    },
+
+    canPersistWorld(worldId) {
+        if (WorldInstanceSystem.isInstanceId(worldId)) {
+            return WorldInstanceSystem.isPersistentInstance(worldId)
+                && this.isPortalConstructed(worldId);
+        }
+        return this.isPortalConstructed(worldId);
+    },
+
+    disposeWorldInstance(worldId) {
+        if (!WorldInstanceSystem.isInstanceId(worldId)) return false;
+        resetWorldSnapshot(worldId);
+        delete state.portals[worldId];
+        return WorldInstanceSystem.removeInstance(worldId);
     },
 
     recordDungeonRun(dungeonType, outcome) {
@@ -368,16 +486,25 @@ export const WorldProgressionSystem = {
     },
 
     getConstructableWorlds() {
-        const worlds = worldSystemConfig.worlds || {};
-        return Object.entries(worlds)
-            .filter(([sceneId, cfg]) => {
+        const worldIds = [
+            ...Object.entries(worldSystemConfig.worlds || {})
+                .filter(([, cfg]) => !cfg.templatePreviewOnly)
+                .map(([sceneId]) => sceneId),
+            ...this.getWorldInstanceIds({ persistentOnly: true }),
+        ];
+        return worldIds
+            .filter((sceneId, index) => worldIds.indexOf(sceneId) === index)
+            .filter((sceneId) => {
+                const cfg = this.getWorldConfig(sceneId);
+                if (!cfg || cfg.templatePreviewOnly) return false;
                 const portal = portalState(sceneId);
                 return (cfg.constructionEnabled !== false || portal.everConstructed)
                     && requirementsMet(sceneId)
                     && (portal.status === WORLD_LIFECYCLE_STATUS.AVAILABLE
                         || portal.status === WORLD_LIFECYCLE_STATUS.DESTROYED);
             })
-            .map(([sceneId, cfg]) => {
+            .map((sceneId) => {
+                const cfg = this.getWorldConfig(sceneId);
                 const portal = portalState(sceneId);
                 return {
                     sceneId,
@@ -392,17 +519,28 @@ export const WorldProgressionSystem = {
     },
 
     getTravelWorlds({ includeDestroyed = false } = {}) {
-        return Object.entries(worldSystemConfig.worlds || {})
-            .filter(([sceneId]) => {
+        const worldIds = [
+            ...Object.entries(worldSystemConfig.worlds || {})
+                .filter(([, cfg]) => !cfg.templatePreviewOnly)
+                .map(([sceneId]) => sceneId),
+            ...this.getWorldInstanceIds({ persistentOnly: true }),
+        ];
+        return worldIds
+            .filter((sceneId, index) => worldIds.indexOf(sceneId) === index)
+            .filter((sceneId) => {
                 const portal = portalState(sceneId);
                 return portal.status === WORLD_LIFECYCLE_STATUS.ACTIVE
                     || (includeDestroyed && portal.status === WORLD_LIFECYCLE_STATUS.DESTROYED);
             })
-            .map(([sceneId, cfg]) => ({ sceneId, ...cfg, portal: this.getPortalState(sceneId) }));
+            .map((sceneId) => ({
+                sceneId,
+                ...this.getWorldConfig(sceneId),
+                portal: this.getPortalState(sceneId),
+            }));
     },
 
     constructPortal(sceneId) {
-        const cfg = worldSystemConfig.worlds?.[sceneId];
+        const cfg = this.getWorldConfig(sceneId);
         if (!cfg) return { ok: false, reason: '未知世界位面' };
         const portal = portalState(sceneId);
         if (cfg.constructionEnabled === false && !portal.everConstructed) {
@@ -487,7 +625,7 @@ export const WorldProgressionSystem = {
         entity.hittable = true;
         entity._portalDestroyed = false;
         entity._worldEpoch = portal.worldEpoch;
-        entity.name = `${worldSystemConfig.worlds?.[sceneId]?.name || sceneId}传送门`;
+        entity.name = `${this.getWorldConfig(sceneId)?.name || sceneId}传送门`;
         return true;
     },
 };

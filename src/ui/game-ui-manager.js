@@ -506,9 +506,11 @@ export const GameUIManager = {
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
         World122TributeSystem.restore(data.world122?.tributeBuffs);
+        window.WorldInstanceSystem?.restore?.(data.worlds?.instances);
+        window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
         if (data.worlds?.scenes) restoreWorldScenes(data.worlds.scenes);
         else restoreWorld122Scene(data.world122?.scene);
-        window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
+        window.WorldProgressionSystem?.ensureConstructedWorldSnapshots?.();
         TroopLineSystem.restore(data.worlds?.troopLines);
         window.WorldInvasionSystem?.restore?.(data.worlds?.invasion);
         window.WorldDestructionChallengeSystem?.restore?.(data.worlds?.destructionChallenges);
@@ -595,6 +597,7 @@ export const GameUIManager = {
                 scene: serializeWorld122Scene(),
             },
             worlds: {
+                instances: window.WorldInstanceSystem?.serialize?.() || null,
                 progression: window.WorldProgressionSystem?.serialize?.() || null,
                 troopLines: TroopLineSystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,

@@ -1298,7 +1298,7 @@ export const Game = {
             ProducerBuildingSystem.update(dt);
         }
         // 全局兵线：同位面到点待命、跨位面抵达传送门后转入增援队列。
-        TroopLineSystem.update(SceneManager.currentScene);
+        TroopLineSystem.update(SceneManager.getCurrentWorldId());
     },
     update(dt) {
         // 位置音效：按与玩家距离逐帧刷新音量（蝇群等声源；无位置音效时是廉价空转）
@@ -1545,7 +1545,11 @@ if (Input.mouse.leftPressed) {
             MovementSystem.beginFrame();
         }
         // 高层 RTS 命令先翻译为各单位已支持的 move/attack，AI 随后按原战斗真源消费。
-        RtsTacticalOrderSystem.update(this.entities, PartySystem?.members, SceneManager.currentScene);
+        RtsTacticalOrderSystem.update(
+            this.entities,
+            PartySystem?.members,
+            SceneManager.getCurrentWorldId()
+        );
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
             const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0 || e._fadeTimer > 0);
@@ -1725,7 +1729,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
 
             // 传送门检测
             if (portalReady && entity.targetScene) {
-                if (['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene)
+                if (window.WorldProgressionSystem?.getWorldConfig?.(entity.targetScene)
                     && !window.WorldProgressionSystem?.isPortalConstructed?.(entity.targetScene)) {
                     continue;
                 }
@@ -1755,9 +1759,9 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                                     this._questReturnPending = false;
                                 });
                             } else {
-                                SceneManager.switchScene(entity.targetScene, this.player, undefined, {
+                                SceneManager.switchWorld(entity.targetScene, this.player, undefined, {
                                     portalTravel: entity.targetScene === 'main'
-                                        || ['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene),
+                                        || !!window.WorldProgressionSystem?.getWorldConfig?.(entity.targetScene),
                                 });
                             }
                         }

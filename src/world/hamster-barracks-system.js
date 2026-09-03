@@ -258,7 +258,7 @@ export class HamsterBarracks extends DamageableEntity {
             unitRadius: 24,
             entities: Game?.entities,
             wallSystem: WallSystem,
-            preferredTarget: TroopLineSystem.getSpawnDirectionTarget(SceneManager.currentScene, this),
+            preferredTarget: TroopLineSystem.getSpawnDirectionTarget(SceneManager.getCurrentWorldId(), this),
         });
     }
 
@@ -301,7 +301,7 @@ export class HamsterBarracks extends DamageableEntity {
         TroopLineSystem.onUnitProduced(
             unit,
             this,
-            options.sourceSceneId || SceneManager.currentScene,
+            options.sourceSceneId || SceneManager.getCurrentWorldId(),
             options
         );
         return unit;
@@ -666,7 +666,7 @@ class HamsterBarracksPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.barracks) return;
         const b = this.barracks;
-        refreshProducerRallySection(el, b, SceneManager.currentScene);
+        refreshProducerRallySection(el, b, SceneManager.getCurrentWorldId());
         const spawnMs = b.recruitIntervalMs();
         const recruitMode = normalizeRecruitMode(b._recruitMode);
         const paused = recruitMode === RECRUIT_MODE.PAUSED;
@@ -719,7 +719,7 @@ class HamsterBarracksPanel extends BasePanel {
         const food = CrossPlaneResourceSystem.getAvailable('food');
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const cfg = BARRACKS_CONFIG;
-        refreshProducerRallySection(el, b, SceneManager.currentScene);
+        refreshProducerRallySection(el, b, SceneManager.getCurrentWorldId());
         el.querySelector('#hbTitle').textContent = '建筑详情';
         const detail = el.querySelector('#hbBuildingDetail');
         if (detail) {

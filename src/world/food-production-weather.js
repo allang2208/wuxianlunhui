@@ -11,7 +11,9 @@ const RAIN_LABELS = Object.freeze({
 
 function currentSceneId() {
     return typeof globalThis !== 'undefined'
-        ? globalThis.SceneManager?.currentScene || null
+        ? (globalThis.SceneManager?.getCurrentWorldId?.()
+            || globalThis.SceneManager?.currentScene
+            || null)
         : null;
 }
 

@@ -10,6 +10,7 @@ import { Game } from '../game.js';
 import { RTSCommand } from './rts-command.js';
 import { getWorldSnapshot, previewWorld122Report } from '../world/world122-snapshot.js';
 import { WorldProgressionSystem } from '../world/world-progression-system.js';
+import { WorldInstanceSystem } from '../world/world-instance-system.js';
 import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 import { EventBus } from '../core/event-bus.js';
 
@@ -87,8 +88,9 @@ export const WorldSwitchPanel = {
      *  目标 ≠ 本体所在世界 → 观察模式（该世界不生成玩家）+ 自动进入指挥模式；
      *  目标 = 本体所在世界 → 返回本体（正常生成玩家 + 世界坐标记忆原位恢复）。 */
     async _travel(target) {
-        if (!target || target === SceneManager.currentScene) return true;
-        if (!SceneManager.scenes?.[target]) {
+        if (!target || target === SceneManager.getCurrentWorldId()) return true;
+        const runtimeSceneId = WorldProgressionSystem.getRuntimeSceneId(target);
+        if (!SceneManager.scenes?.[runtimeSceneId]) {
             SceneManager.showTopNotification('目标世界不存在，无法切换', { color: '#ff7766' });
             return false;
         }
@@ -102,11 +104,11 @@ export const WorldSwitchPanel = {
             return false;
         }
         this.close();
-        const home = Game._observerMode ? Game._observerHomeScene : SceneManager.currentScene;
+        const home = Game._observerMode ? Game._observerHomeScene : SceneManager.getCurrentWorldId();
         const observer = target !== home;
         try {
-            const switched = await SceneManager.switchScene(target, Game.player, undefined, { observer });
-            if (!switched || SceneManager.currentScene !== target) {
+            const switched = await SceneManager.switchWorld(target, Game.player, undefined, { observer });
+            if (!switched || SceneManager.getCurrentWorldId() !== target) {
                 SceneManager.showTopNotification('世界切换未完成，请重试', { color: '#ff7766' });
                 return false;
             }
@@ -127,13 +129,13 @@ export const WorldSwitchPanel = {
         }
         const active = window.WorldInvasionSystem?.getState?.().active;
         const target = active?.targetWorld;
-        if (!target || target === SceneManager.currentScene) return false;
+        if (!target || target === SceneManager.getCurrentWorldId()) return false;
         if (!WorldProgressionSystem.isPortalConstructed(target)) return false;
         if (SceneManager.isLoading) return false;
         this.close();
         try {
-            const switched = await SceneManager.switchScene(target, Game.player, undefined, { observer: false });
-            if (!switched || SceneManager.currentScene !== target) return false;
+            const switched = await SceneManager.switchWorld(target, Game.player, undefined, { observer: false });
+            if (!switched || SceneManager.getCurrentWorldId() !== target) return false;
             RTSCommand.setEnabled(false);
             return true;
         } catch (_err) {
@@ -165,7 +167,9 @@ export const WorldSwitchPanel = {
         if (id === 'scene7' && window.DungeonMapSystem?.active) {
             return window.DungeonMapSystem.dungeonName || SceneManager.scenes?.scene7?.name || id;
         }
-        return SceneManager.scenes?.[id]?.name || id;
+        return WorldInstanceSystem.getDisplayName(id)
+            || SceneManager.scenes?.[WorldProgressionSystem.getRuntimeSceneId(id)]?.name
+            || id;
     },
 
     /** 常驻世界状态文案（当前/快照实况/传送门状态）。 */
@@ -231,11 +235,21 @@ export const WorldSwitchPanel = {
         const el = this._panel && this._panel.el;
         if (!el) return;
         const list = el.querySelector('#wsList');
-        const current = SceneManager.currentScene;
+        const current = SceneManager.getCurrentWorldId();
         const home = Game._observerMode ? Game._observerHomeScene : current;
+        const instanceWorlds = WorldInstanceSystem.listInstances({ persistentOnly: true })
+            .map((instance) => {
+                const template = WorldInstanceSystem.getTemplate(instance.templateId);
+                return {
+                    id: instance.instanceId,
+                    icon: template?.icon || '🌀',
+                    desc: template?.description || `${template?.name || instance.templateId}实例`,
+                };
+            });
+        const baseCandidates = [...WORLDS, ...instanceWorlds];
         const candidates = SceneManager.isDungeonRunActive()
-            ? [{ id: 'scene7', icon: '🗺️', desc: '当前地牢探险' }, ...WORLDS]
-            : WORLDS;
+            ? [{ id: 'scene7', icon: '🗺️', desc: '当前地牢探险' }, ...baseCandidates]
+            : baseCandidates;
         const visibleWorlds = candidates.filter((w) => w.id === 'scene7' || w.id === 'main'
             || w.id === current
             || WorldProgressionSystem.isPortalConstructed(w.id));

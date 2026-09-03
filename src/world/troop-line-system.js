@@ -32,6 +32,10 @@ const MATERIALIZE_BUDGET_PER_PASS = 24;
 const game = () => (typeof window !== 'undefined' ? window.Game : null);
 const sceneManager = () => (typeof window !== 'undefined' ? window.SceneManager : null);
 const clone = (value) => JSON.parse(JSON.stringify(value));
+const currentWorldId = () => sceneManager()?.getCurrentWorldId?.() || sceneManager()?.currentScene || null;
+const isPersistentWorld = (sceneId) => PERSISTENT_WORLDS.has(
+    WorldProgressionSystem.getRuntimeSceneId(sceneId)
+);
 
 function aliveMilitaryUnit(unit) {
     return !!(unit && unit.active !== false && !unit._dying && unit.data?.hp > 0 && getUnitKind(unit)
@@ -49,7 +53,7 @@ function recordCount(record) {
 }
 
 function currentEpoch(sceneId) {
-    return PERSISTENT_WORLDS.has(sceneId) ? WorldProgressionSystem.getWorldEpoch(sceneId) : 0;
+    return isPersistentWorld(sceneId) ? WorldProgressionSystem.getWorldEpoch(sceneId) : 0;
 }
 
 function aliveLocalCount(producer, kind = null) {
@@ -167,10 +171,10 @@ export const TroopLineSystem = {
     /** 集结点的只读门禁；鼠标反馈与正式提交必须共用，避免悬停显示可用但点击后拒绝。 */
     canSetRally(sceneId, point) {
         if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return false;
-        const currentSceneId = sceneManager()?.currentScene;
+        const currentSceneId = currentWorldId();
         if (currentSceneId && sceneId !== currentSceneId
             && !TechnologySystem.isUnlocked('mechanic', 'cross_world_reinforcement')) return false;
-        if (!PERSISTENT_WORLDS.has(sceneId) || !point
+        if (!isPersistentWorld(sceneId) || !point
             || !Number.isFinite(point.x) || !Number.isFinite(point.y)
             || !WorldProgressionSystem.isPortalConstructed(sceneId)) return false;
         const worldEpoch = currentEpoch(sceneId);
@@ -194,7 +198,7 @@ export const TroopLineSystem = {
     canSetProducerRally(producer, sceneId, point) {
         if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return false;
         if (!this.isTroopProducer(producer) || producer.active === false || !producer.id
-            || !PERSISTENT_WORLDS.has(sceneId) || !point
+            || !isPersistentWorld(sceneId) || !point
             || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
         const worldEpoch = currentEpoch(sceneId);
         if (!(worldEpoch > 0)) return false;
@@ -226,7 +230,7 @@ export const TroopLineSystem = {
 
     getProducerRally(producer, sourceSceneId = null) {
         if (!this.isTroopProducer(producer) || !producer.id) return null;
-        const sceneId = sourceSceneId || sceneManager()?.currentScene;
+        const sceneId = sourceSceneId || currentWorldId();
         if (!sceneId) return null;
         return this.getProducerRallyForOrigin(producer.id, sceneId, currentEpoch(sceneId));
     },
@@ -250,7 +254,7 @@ export const TroopLineSystem = {
 
     clearProducerRally(producer, sourceSceneId = null) {
         if (!producer?.id) return false;
-        const sceneId = sourceSceneId || sceneManager()?.currentScene;
+        const sceneId = sourceSceneId || currentWorldId();
         if (!sceneId) return false;
         const removed = this._producerRallies.delete(
             producerRallyKey(producer.id, sceneId, currentEpoch(sceneId))
@@ -304,7 +308,7 @@ export const TroopLineSystem = {
 
     countAssignedToProducer(producer, kind = null) {
         if (!producer?.id) return aliveLocalCount(producer, kind);
-        const originSceneId = sceneManager()?.currentScene || null;
+        const originSceneId = currentWorldId();
         return aliveLocalCount(producer, kind) + this.countDeployedForProducer(
             producer.id,
             originSceneId,
@@ -360,7 +364,7 @@ export const TroopLineSystem = {
 
     onUnitProduced(unit, producer, sourceSceneId, { restoring = false } = {}) {
         if (!unit || !this.isTroopProducer(producer)) return;
-        const sceneId = sourceSceneId || sceneManager()?.currentScene;
+        const sceneId = sourceSceneId || currentWorldId();
         unit._troopProducer = true;
         unit._troopLineOriginProducerId = producer.id || null;
         unit._troopLineOriginSceneId = sceneId || null;
@@ -749,7 +753,7 @@ export const TroopLineSystem = {
         const inQuestInstance = manager?.isQuestInstance?.(manager.currentScene) === true;
         const residencyScene = g?._observerMode
             ? g._observerHomeScene
-            : manager?.currentScene;
+            : currentWorldId();
         if (!inQuestInstance) {
             for (const member of g?.PartySystem?.members || []) {
                 if (member?.active !== false) this._storeCompanionResidency(member, residencyScene);
@@ -814,7 +818,7 @@ export const TroopLineSystem = {
         this.validateProducerRallies();
         this._revision++;
         const manager = sceneManager();
-        const currentScene = manager?.currentScene;
+        const currentScene = currentWorldId();
         // 瞬态任务实例不消费永久世界的待入场兵线；正式世界加载时再物化。
         if (currentScene && !manager?.isQuestInstance?.(currentScene)) this.onSceneEntered(currentScene);
     },
@@ -839,7 +843,7 @@ export const TroopLineSystem = {
 
     _isTargetCurrent(target) {
         if (!target?.sceneId) return false;
-        if (!PERSISTENT_WORLDS.has(target.sceneId)) return true;
+        if (!isPersistentWorld(target.sceneId)) return true;
         return WorldProgressionSystem.isPortalConstructed(target.sceneId)
             && WorldProgressionSystem.isWorldEpochCurrent(target.sceneId, target.worldEpoch);
     },
@@ -847,7 +851,7 @@ export const TroopLineSystem = {
     _isProducerRallyCurrent(record) {
         if (!record?.producerId || !record.originSceneId || !record.target) return false;
         if (record.target.sceneId !== record.originSceneId) return false;
-        if (!PERSISTENT_WORLDS.has(record.originSceneId)) return this._isTargetCurrent(record.target);
+        if (!isPersistentWorld(record.originSceneId)) return this._isTargetCurrent(record.target);
         return WorldProgressionSystem.isPortalConstructed(record.originSceneId)
             && WorldProgressionSystem.isWorldEpochCurrent(
                 record.originSceneId,
@@ -858,7 +862,7 @@ export const TroopLineSystem = {
 
     _recordBelongsToWorld(record, sceneId, worldEpoch) {
         if (record?.target?.sceneId !== sceneId) return false;
-        return !PERSISTENT_WORLDS.has(sceneId) || Number(record.target.worldEpoch) === Number(worldEpoch);
+        return !isPersistentWorld(sceneId) || Number(record.target.worldEpoch) === Number(worldEpoch);
     },
 
     _recordUnit(unit, target, state = 'garrisoned') {
@@ -874,18 +878,18 @@ export const TroopLineSystem = {
             command: { mode: unit._command?.mode || 'hold' },
             target: target ? { ...target } : null,
             sourceSceneId: unit._troopLineTransit?.sourceSceneId
-                || unit._troopLineWorldId || sceneManager()?.currentScene || null,
+                || unit._troopLineWorldId || currentWorldId(),
             originProducerId: unit._troopLineOriginProducerId || unit._barracks?.id || null,
             originSceneId: unit._troopLineOriginSceneId || unit._troopLineTransit?.sourceSceneId
-                || sceneManager()?.currentScene || null,
+                || currentWorldId(),
             originWorldEpoch: unit._troopLineOriginWorldEpoch
-                || currentEpoch(unit._troopLineOriginSceneId || sceneManager()?.currentScene),
-        }, target?.sceneId || sceneManager()?.currentScene);
+                || currentEpoch(unit._troopLineOriginSceneId || currentWorldId()),
+        }, target?.sceneId || currentWorldId());
     },
 
     _normalizeRecord(record, sceneId) {
         if (!record || !MILITARY_KINDS.has(record.kind)) return null;
-        const fallback = PERSISTENT_WORLDS.has(sceneId) ? this._sourcePortalPoint(sceneId) : null;
+        const fallback = isPersistentWorld(sceneId) ? this._sourcePortalPoint(sceneId) : null;
         const target = normalizeTarget(record.target) || (record.state !== 'travel' && fallback ? normalizeTarget({
             sceneId, worldEpoch: currentEpoch(sceneId), ...fallback,
         }) : null);
@@ -964,7 +968,7 @@ export const TroopLineSystem = {
 
     _flushIfLive(sceneId, force = false) {
         const manager = sceneManager();
-        if (!force && manager?.currentScene !== sceneId) return 0;
+        if (!force && currentWorldId() !== sceneId) return 0;
         const records = this._pendingByWorld[sceneId];
         if (!records?.length) return 0;
         const valid = records.filter((record) => !record.target || this._isTargetCurrent(record.target));
@@ -1142,7 +1146,7 @@ export const TroopLineSystem = {
     },
 
     _syncCompanionResidencyForScene(sceneId) {
-        if (sceneId !== 'main' && !PERSISTENT_WORLDS.has(sceneId)) return;
+        if (sceneId !== 'main' && !isPersistentWorld(sceneId)) return;
         const g = game();
         const party = g?.PartySystem;
         if (!party?.members) return;
@@ -1151,7 +1155,7 @@ export const TroopLineSystem = {
             if (!member?.id) continue;
             if (!this._companionResidency[member.id]) this._storeCompanionResidency(member, inferredHome);
             const residence = this._companionResidency[member.id];
-            const epochValid = !PERSISTENT_WORLDS.has(residence.sceneId)
+            const epochValid = !isPersistentWorld(residence.sceneId)
                 || WorldProgressionSystem.isWorldEpochCurrent(residence.sceneId, residence.worldEpoch);
             const present = epochValid && residence.sceneId === sceneId;
             member.active = present;

@@ -108,7 +108,8 @@ function portalSupportsChallenge(sceneId, worldEpoch = null) {
 }
 
 function rightCornerSpawnPoints(sceneId) {
-    const scene = GAME_CONFIG.scenes?.[sceneId] || {};
+    const runtimeSceneId = WorldProgressionSystem.getRuntimeSceneId(sceneId) || sceneId;
+    const scene = GAME_CONFIG.scenes?.[runtimeSceneId] || {};
     const width = Math.max(1, Number(scene.width) || 12288);
     const height = Math.max(1, Number(scene.height) || 8192);
     const originX = Number(scene.origin?.x);
@@ -375,15 +376,24 @@ export const WorldDestructionChallengeSystem = {
     },
 
     getDebugModel() {
+        const worldIds = [
+            ...WorldProgressionSystem.getWorldIds().filter((sceneId) =>
+                !WorldProgressionSystem.getWorldConfig(sceneId)?.templatePreviewOnly),
+            ...WorldProgressionSystem.getWorldInstanceIds(),
+        ];
         return {
             version: VERSION,
-            worlds: WorldProgressionSystem.getWorldIds().map((sceneId) => this.getWorldModel(sceneId)),
+            worlds: worldIds.map((sceneId) => this.getWorldModel(sceneId)),
         };
     },
 
     serialize() {
         const snapshot = clone(state);
-        for (const record of Object.values(snapshot.worlds || {})) {
+        for (const [sceneId, record] of Object.entries(snapshot.worlds || {})) {
+            if (!WorldProgressionSystem.canPersistWorld(sceneId)) {
+                delete snapshot.worlds[sceneId];
+                continue;
+            }
             // 单帧分批队列是当前场景的物化细节；读档从下一完整批继续，避免保存半批坐标。
             delete record.pendingSpawns;
             delete record.pendingSpawnKind;
@@ -399,7 +409,12 @@ export const WorldDestructionChallengeSystem = {
         this.reset();
         if (!data || typeof data !== 'object' || !data.worlds || typeof data.worlds !== 'object') return;
         const now = currentGameTimeMs();
-        for (const sceneId of WorldProgressionSystem.getWorldIds()) {
+        const worldIds = [
+            ...WorldProgressionSystem.getWorldIds().filter((sceneId) =>
+                !WorldProgressionSystem.getWorldConfig(sceneId)?.templatePreviewOnly),
+            ...WorldProgressionSystem.getWorldInstanceIds(),
+        ];
+        for (const sceneId of worldIds) {
             const incoming = data.worlds[sceneId];
             if (!incoming?.active) continue;
             const worldEpoch = Math.max(0, Math.floor(Number(incoming.worldEpoch) || 0));

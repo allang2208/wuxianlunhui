@@ -18,6 +18,7 @@ import { BuildingRoadSystem } from './building-road-system.js';
 import { getUnitKind } from './unit-upgrade-store.js';
 import { normalizeRecruitMode } from './recruit-mode.js';
 import worldSystemConfig from '../../data/world-system.json';
+import { WorldInstanceSystem } from './world-instance-system.js';
 import producerBuildingsConfig from '../../data/producer-buildings.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
@@ -88,6 +89,14 @@ setCrossPlaneSnapshotProvider(() => _storedByWorld);
 
 const _clone = (o) => JSON.parse(JSON.stringify(o));
 const LOCAL_RESEARCH_MODULE_IDS = new Set(['research_staff', 'research_base_points']);
+
+function _resolveSnapshotWorldConfig(worldId) {
+    const runtimeSceneId = WorldInstanceSystem.resolveRuntimeSceneId(worldId);
+    const base = worldSystemConfig.worlds?.[runtimeSceneId] || null;
+    const template = WorldInstanceSystem.getTemplateForWorld(worldId);
+    if (!base && !template) return null;
+    return { ...(template || {}), ...(base || {}), runtimeSceneId };
+}
 
 function _migrateResearchBuildingUpgrades(snapshot, legacyLevels = {}) {
     if (!snapshot || !Array.isArray(snapshot.structures)) return snapshot;
@@ -194,7 +203,8 @@ function _initialFeatureStructure(spawn, feature) {
 }
 
 function _ensureInitialFeatureBuilding(snapshot, sceneId, includeInitialFeatureBuilding) {
-    const feature = worldSystemConfig.worlds?.[sceneId]?.featureBuilding;
+    const worldCfg = _resolveSnapshotWorldConfig(sceneId);
+    const feature = worldCfg?.featureBuilding;
     const migrationId = feature?.migrationId;
     if (!includeInitialFeatureBuilding || !feature?.cfgKey || !migrationId || !snapshot) return snapshot;
     if (!snapshot.featureBuildingMigrations || typeof snapshot.featureBuildingMigrations !== 'object') {
@@ -203,7 +213,7 @@ function _ensureInitialFeatureBuilding(snapshot, sceneId, includeInitialFeatureB
     if (snapshot.featureBuildingMigrations[migrationId]) return snapshot;
     if (!Array.isArray(snapshot.structures)) snapshot.structures = [];
     if (!snapshot.structures.some((structure) => structure?.cfgKey === feature.cfgKey)) {
-        const spawn = worldSystemConfig.worlds?.[sceneId]?.portalSpawn || { x: 0, y: 0 };
+        const spawn = worldCfg?.portalSpawn || { x: 0, y: 0 };
         const structure = _initialFeatureStructure(spawn, feature);
         if (structure) {
             snapshot.structures.push(structure);
@@ -226,7 +236,7 @@ function _portalOnlyBaseTemplate({ sceneId, spawn, hp, maxHp, includeInitialFeat
         buildCost: 0,
         buildCurrency: 'energy',
     }];
-    const feature = worldSystemConfig.worlds?.[sceneId]?.featureBuilding;
+    const feature = _resolveSnapshotWorldConfig(sceneId)?.featureBuilding;
     if (includeInitialFeatureBuilding && feature?.cfgKey) {
         const structure = _initialFeatureStructure(spawn, feature);
         if (structure) structures.push(structure);
@@ -254,7 +264,7 @@ export function ensureWorldBaseSnapshot(sceneId, {
     portalHp, worldEpoch, generation = null, replace = false,
     includeInitialFeatureBuilding = false,
 } = {}) {
-    const worldCfg = worldSystemConfig.worlds?.[sceneId];
+    const worldCfg = _resolveSnapshotWorldConfig(sceneId);
     if (!worldCfg) return null;
     const epoch = Math.max(0, Math.floor(Number(worldEpoch) || 0));
     const lifecycle = _snapshotLifecycle(sceneId, epoch, generation);
@@ -901,7 +911,7 @@ export function resetWorldSnapshot(sceneId) {
 export function resetWorld122Snapshot() {
     for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
     if (Game) Game._starterWarehouseGrantClaimedByScene = {};
-    for (const sceneId of FogOfWarSystem.config.enabledScenes || []) FogOfWarSystem.resetScene(sceneId);
+    FogOfWarSystem.resetAll();
 }
 
 export const resetWorldSnapshots = resetWorld122Snapshot;
@@ -939,6 +949,10 @@ export function restoreWorld122Scene(data) {
     if (Game?._starterWarehouseGrantClaimedByScene) {
         delete Game._starterWarehouseGrantClaimedByScene.scene8;
     }
+    if (canPersistWorld && !canPersistWorld('scene8')) {
+        delete _storedByWorld.scene8;
+        return;
+    }
     const legacyLevels = takeLegacyLocalResearchLevels();
     if (data && data.version === SNAPSHOT_VERSION) {
         _storedByWorld.scene8 = _migrateResearchBuildingUpgrades(_clone(data), legacyLevels);
@@ -950,7 +964,7 @@ export function restoreWorldScenes(data) {
     const legacyLevels = takeLegacyLocalResearchLevels();
     for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
     if (Game) Game._starterWarehouseGrantClaimedByScene = {};
-    for (const sceneId of FogOfWarSystem.config.enabledScenes || []) FogOfWarSystem.resetScene(sceneId);
+    FogOfWarSystem.resetAll();
     if (!data || typeof data !== 'object') return;
     // 兼容旧档直接保存单个 scene8 快照。
     if (data.version === SNAPSHOT_VERSION && Array.isArray(data.structures)) {
@@ -958,7 +972,8 @@ export function restoreWorldScenes(data) {
         return;
     }
     for (const [sceneId, snap] of Object.entries(data)) {
-        if (snap && snap.version === SNAPSHOT_VERSION) {
+        if (snap && snap.version === SNAPSHOT_VERSION
+            && (!canPersistWorld || canPersistWorld(sceneId))) {
             _storedByWorld[sceneId] = _migrateResearchBuildingUpgrades(_clone(snap), legacyLevels);
         }
     }

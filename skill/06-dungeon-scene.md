@@ -18,9 +18,18 @@
 - `_collisionEditorTest`只表示交互开发工具生成来源，实际在场的活士兵仍可出征；冻结展示体`_collisionPreview`、死亡、外派和其他位面单位排除。经济工人与队友不混入士兵名单，队友走单独列表。选择容量只限制已选数量，不截断完整候选列表。
 - 打开面板不迁移单位，确认时重新取候选并复核；失效选择要停下提示，不能静默少带兵。确认后的打包、外派人口、失败回滚与返回继续使用唯一携军账本，不在UI另造实体副本。
 
-### ⭐ 生成世界标准工作流（2026-08-19 定稿，新增世界一律按此开展）
+### ⭐ 位面模板与动态实例（2026-09-03）
 
-> 适用于世界-123/124/125这类大地图世界。顺序固定为：
+- `scene8~scene12`是地貌模板的运行时加载器和开发预览入口，不再作为正式剧情中的唯一世界身份；模板登记在双份`world-system.json.templates`，固定世界项必须标`templatePreviewOnly:true`，不得进入正常传送或建门候选。
+- 正式剧情推进通过`WorldProgressionSystem.createStoryWorldInstance()`或`createRandomStoryWorldInstance()`创建持久实例。实例至少持有`instanceId/templateId/runtimeSceneId/seed/kind/strategicCellId`；随机选择只能取`storyEnabled:true`且已有运行场景的模板。
+- 运行时场景ID决定加载器、尺寸、美术、BGM和模板专属效果；逻辑世界ID决定传送门、快照、迷雾、兵线、天气、入侵、建筑和玩家位置。业务系统读取当前世界必须用`SceneManager.getCurrentWorldId()`，需要加载器身份时才用`currentScene/getCurrentRuntimeSceneId()`。
+- 开发工具通过`WorldInstanceSystem.createDevPreviewInstance()`生成一次性实例，可指定seed复现布局；它不写主存档、不参与后台结算/入侵，离开后立即释放。禁止直接修改`SceneManager.currentScene`假装生成了新位面。
+- 模板加载器内所有随机流都必须从逻辑世界ID派生；正式实例首世代直接使用实例seed，重建世代再由`instanceId + seed + epoch`派生。持久状态、实体ID和缓存键不得只用`sceneN`，否则多个同模板位面会串档。
+- 新模板仍按下方“生成世界标准工作流”完成地板、边界、环境和加载器，但正常入口改为创建实例；尚未合入运行场景的模板必须在开发工具禁用，并设`storyEnabled:false`，不得进入正式随机池。
+
+### ⭐ 生成世界标准工作流（2026-08-19 定稿，2026-09-03实例化修订）
+
+> 适用于世界-123/124/125这类大地图模板。顺序固定为：
 > **定义世界 → 选地板 → 注册场景 → 构建边界 → 生成环境 → 接入入口 → 镜头 → 验收**。
 > 禁止只加 `_loadSceneN` 而遗漏配置、传送入口、清理链或回归测试。
 
@@ -81,17 +90,17 @@
 - 全部候选确定后只调用一次 `rebuildIsoCollision()` 和一次 `_syncWallsToPhaser()`；
   禁止每放一件就全量重建。
 
-#### 5. 接入所有传送入口
+#### 5. 接入模板与实例入口
 
-新增世界必须同时登记：
+新增模板必须登记运行时资源入口；正式玩法只登记动态实例，不再把固定预览scene作为剧情目的地：
 
-1. `src/ui/world-switch-panel.js` 的 `WORLDS`；
-2. `data/game-config.json.portals.mainHub.entries`（并同步 public）；
-3. `data/producer-buildings.json.portal.destinations`；
-4. `data/audio-config.json.bgm[sceneN]`（无音乐显式写 `null`）。
+1. 双份`world-system.json.templates`与模板scene的`templatePreviewOnly`；
+2. `data/game-config.json`与public副本中的场景加载配置；
+3. `data/audio-config.json.bgm[sceneN]`（无音乐显式写`null`）；
+4. 开发工具模板选择器会读取模板注册表，不再手写一份目的地列表；正式世界面板读取持久实例。
 
-按钮必须调用 `SceneManager.switchScene`；世界切换面板继续走观察模式 `_travel`，
-建筑传送门走正常人物传送，禁止直接改 `currentScene`。
+实例按钮必须调用`SceneManager.switchWorld/enterWorldInstance`；世界切换面板继续走观察模式`_travel`，
+建筑传送门走正常人物传送，禁止直接改`currentScene`。
 
 #### 6. 决定世界玩法与持久化
 

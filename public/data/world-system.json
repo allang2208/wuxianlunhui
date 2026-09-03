@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "resetPolicyDefaults": {
     "policyVersion": 1,
     "baseTemplate": "portal_only_v1",
@@ -25,8 +25,57 @@
     ],
     "rebuildProtectionDays": 1
   },
+  "templates": {
+    "desert": {
+      "name": "沙漠位面",
+      "icon": "🏜️",
+      "biome": "desert",
+      "runtimeSceneId": "scene8",
+      "previewSceneId": "scene8",
+      "defaultSeed": 122008,
+      "storyEnabled": true
+    },
+    "snowfield": {
+      "name": "雪原位面",
+      "icon": "❄️",
+      "biome": "snowfield",
+      "runtimeSceneId": "scene9",
+      "previewSceneId": "scene9",
+      "defaultSeed": 123009,
+      "storyEnabled": true
+    },
+    "forest": {
+      "name": "林地位面",
+      "icon": "🌲",
+      "biome": "forest",
+      "runtimeSceneId": "scene10",
+      "previewSceneId": "scene10",
+      "defaultSeed": 124010,
+      "storyEnabled": true
+    },
+    "ruins": {
+      "name": "地牢遗迹位面",
+      "icon": "🕯️",
+      "biome": "ruins",
+      "runtimeSceneId": "scene11",
+      "previewSceneId": "scene11",
+      "defaultSeed": 125011,
+      "storyEnabled": true
+    },
+    "mine": {
+      "name": "矿洞位面",
+      "icon": "⛏️",
+      "biome": "mine",
+      "runtimeSceneId": "scene12",
+      "previewSceneId": "scene12",
+      "defaultSeed": 126012,
+      "storyEnabled": false
+    }
+  },
   "worlds": {
     "scene8": {
+      "templateId": "desert",
+      "templatePreviewOnly": true,
       "name": "世界-122-沙漠",
       "icon": "🏜️",
       "description": "荒漠防线",
@@ -37,21 +86,19 @@
       "resetPolicy": { "baseSeed": 122008 }
     },
     "scene9": {
+      "templateId": "snowfield",
+      "templatePreviewOnly": true,
       "name": "世界-123·雪原",
       "icon": "❄️",
       "description": "雪原位面",
       "constructionEnabled": true,
       "requirements": { "completedDungeons": ["frozenBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
-      "featureBuilding": {
-        "cfgKey": "snow_castle",
-        "offsetX": -330,
-        "offsetY": 180,
-        "migrationId": "scene9_snow_castle_initial_v1"
-      },
       "resetPolicy": { "baseSeed": 123009 }
     },
     "scene10": {
+      "templateId": "forest",
+      "templatePreviewOnly": true,
       "name": "世界-124·林地",
       "icon": "🌲",
       "description": "林地位面",
@@ -62,6 +109,8 @@
       "resetPolicy": { "baseSeed": 124010 }
     },
     "scene11": {
+      "templateId": "ruins",
+      "templatePreviewOnly": true,
       "name": "世界-125·地牢遗迹",
       "icon": "🕯️",
       "description": "僵尸地牢位面",

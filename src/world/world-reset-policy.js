@@ -1,5 +1,6 @@
 // 世界位面重置策略：配置归一化、世代生成描述与确定性随机流。
 import worldSystemConfig from '../../data/world-system.json';
+import { WorldInstanceSystem } from './world-instance-system.js';
 
 const SAFE_DEFAULTS = Object.freeze({
     policyVersion: 1,
@@ -31,16 +32,24 @@ function hash32(value) {
     return hash >>> 0;
 }
 
-export function getWorldResetPolicy(sceneId) {
+export function getWorldResetPolicy(worldId) {
+    const instance = WorldInstanceSystem.getInstance(worldId);
+    const runtimeSceneId = instance?.runtimeSceneId || worldId;
+    const template = WorldInstanceSystem.getTemplateForWorld(worldId);
     const defaults = worldSystemConfig.resetPolicyDefaults || {};
-    const override = worldSystemConfig.worlds?.[sceneId]?.resetPolicy || {};
-    const merged = { ...SAFE_DEFAULTS, ...defaults, ...override };
+    const override = worldSystemConfig.worlds?.[runtimeSceneId]?.resetPolicy || {};
+    const templateOverride = template?.resetPolicy || {};
+    const merged = { ...SAFE_DEFAULTS, ...defaults, ...override, ...templateOverride };
     return {
         policyVersion: Math.max(1, Math.floor(Number(merged.policyVersion) || 1)),
         baseTemplate: String(merged.baseTemplate || SAFE_DEFAULTS.baseTemplate),
         generationVersion: Math.max(1, Math.floor(Number(merged.generationVersion) || 1)),
-        seedStrategy: merged.seedStrategy === 'fixed' ? 'fixed' : 'per_world_epoch',
-        baseSeed: Number.isFinite(Number(merged.baseSeed)) ? (Number(merged.baseSeed) >>> 0) : 0,
+        seedStrategy: instance
+            ? 'instance_seed'
+            : (merged.seedStrategy === 'fixed' ? 'fixed' : 'per_world_epoch'),
+        baseSeed: instance
+            ? (instance.seed >>> 0)
+            : (Number.isFinite(Number(merged.baseSeed)) ? (Number(merged.baseSeed) >>> 0) : 0),
         resourceRule: String(merged.resourceRule || SAFE_DEFAULTS.resourceRule),
         preserveOnDestroy: cloneList(merged.preserveOnDestroy, SAFE_DEFAULTS.preserveOnDestroy),
         clearOnDestroy: cloneList(merged.clearOnDestroy, SAFE_DEFAULTS.clearOnDestroy),
@@ -49,12 +58,14 @@ export function getWorldResetPolicy(sceneId) {
     };
 }
 
-export function createWorldGenerationContext(sceneId, worldEpoch) {
-    const policy = getWorldResetPolicy(sceneId);
+export function createWorldGenerationContext(worldId, worldEpoch) {
+    const policy = getWorldResetPolicy(worldId);
     const epoch = Math.max(0, Math.floor(Number(worldEpoch) || 0));
     const seed = policy.seedStrategy === 'fixed'
         ? policy.baseSeed
-        : hash32(`${sceneId}|${policy.baseSeed}|${policy.generationVersion}|${epoch}`);
+        : (policy.seedStrategy === 'instance_seed' && epoch <= 1
+            ? policy.baseSeed
+            : hash32(`${worldId}|${policy.baseSeed}|${policy.generationVersion}|${epoch}`));
     return {
         generationVersion: policy.generationVersion,
         seedStrategy: policy.seedStrategy,
@@ -80,10 +91,10 @@ export function createSeededRandom(seed, salt = '') {
     };
 }
 
-export function shouldClearWorldScope(sceneId, scope) {
-    return getWorldResetPolicy(sceneId).clearOnDestroy.includes(scope);
+export function shouldClearWorldScope(worldId, scope) {
+    return getWorldResetPolicy(worldId).clearOnDestroy.includes(scope);
 }
 
-export function shouldPreserveWorldScope(sceneId, scope) {
-    return getWorldResetPolicy(sceneId).preserveOnDestroy.includes(scope);
+export function shouldPreserveWorldScope(worldId, scope) {
+    return getWorldResetPolicy(worldId).preserveOnDestroy.includes(scope);
 }

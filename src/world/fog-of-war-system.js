@@ -1,6 +1,7 @@
 import fogConfig from '../../data/fog-of-war.json';
 import { VisionSourceRegistry } from './vision-source-registry.js';
 import { FogOcclusionGrid } from './fog-occlusion-grid.js';
+import { WorldInstanceSystem } from './world-instance-system.js';
 
 export const FOG_VISIBILITY = Object.freeze({
     UNEXPLORED: 0,
@@ -245,12 +246,15 @@ export const FogOfWarSystem = {
     config: fogConfig,
     _states: new Map(),
 
-    isEnabled(sceneId) {
-        return ENABLED_SCENES.has(sceneId);
+    isEnabled(sceneId, templateSceneId = null) {
+        const runtimeSceneId = templateSceneId
+            || WorldInstanceSystem.resolveRuntimeSceneId(sceneId);
+        return ENABLED_SCENES.has(sceneId)
+            || (!!runtimeSceneId && ENABLED_SCENES.has(runtimeSceneId));
     },
 
     enterScene(sceneId, options = {}) {
-        if (!this.isEnabled(sceneId)) return null;
+        if (!this.isEnabled(sceneId, options.templateSceneId)) return null;
         const width = positiveNumber(options.width, DEFAULT_WORLD_WIDTH);
         const height = positiveNumber(options.height, DEFAULT_WORLD_HEIGHT);
         const cellSize = positiveNumber(options.cellSize, positiveNumber(fogConfig.cellSize, 128));
@@ -296,6 +300,14 @@ export const FogOfWarSystem = {
     resetScene(sceneId) {
         this._states.delete(sceneId);
         FogOcclusionGrid.resetScene(sceneId);
+    },
+
+    resetAll() {
+        const sceneIds = new Set([
+            ...this._states.keys(),
+            ...(this.config.enabledScenes || []),
+        ]);
+        for (const sceneId of sceneIds) this.resetScene(sceneId);
     },
 
     update(sceneId, game, nowMs = Date.now(), options = {}) {

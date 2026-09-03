@@ -44,6 +44,7 @@ import * as World122SnapshotModule from './world/world122-snapshot.js';
 import * as World122Sim from './world/world122-sim.js';
 import { EnvironmentLightingSystem } from './world/environment-lighting-system.js';
 import { WorldProgressionSystem } from './world/world-progression-system.js';
+import { WorldInstanceSystem } from './world/world-instance-system.js';
 import { WorldInvasionSystem } from './world/world-invasion-system.js';
 import { World122SandstormSystem } from './world/world122-sandstorm-system.js';
 import { World122DroughtSystem } from './world/world122-drought-system.js';
@@ -171,6 +172,7 @@ async function initModules() {
     window.World122Snapshot = World122SnapshotModule;
     window.World122Sim = World122Sim;
     window.WorldProgressionSystem = WorldProgressionSystem;
+    window.WorldInstanceSystem = WorldInstanceSystem;
     window.WorldInvasionSystem = WorldInvasionSystem;
     window.World122SandstormSystem = World122SandstormSystem;
     window.World122DroughtSystem = World122DroughtSystem;

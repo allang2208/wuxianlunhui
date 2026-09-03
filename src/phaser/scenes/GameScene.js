@@ -116,6 +116,7 @@ import { World122SandstormSystem } from '../../world/world122-sandstorm-system.j
 import { World122DroughtSystem } from '../../world/world122-drought-system.js';
 import { DroughtHeatSystem } from '../../world/drought-heat-system.js';
 import { WorldWeatherSystem } from '../../world/world-weather-system.js';
+import { WorldProgressionSystem } from '../../world/world-progression-system.js';
 import { RoadsideDecorationSystem } from '../../world/roadside-decoration-system.js';
 import { WorldDestructionChallengeSystem } from '../../world/world-destruction-challenge-system.js';
 import { World125AtmosphereSystem } from '../../world/world125-atmosphere-system.js';
@@ -520,14 +521,15 @@ export class GameScene extends Scene {
         EnvironmentLightingSystem.update(worldDelta);
         const worldTimeAfter = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const invasionDelta = Math.max(0, worldTimeAfter - worldTimeBefore);
+        const currentWorldId = SceneManager.getCurrentWorldId();
         World122SandstormSystem.update(worldTimeAfter);
         World122DroughtSystem.update(worldTimeAfter);
-        World125FogTideSystem.syncScene(SceneManager.currentScene);
+        World125FogTideSystem.syncScene(currentWorldId);
         World125FogTideSystem.update(worldTimeAfter);
         WorldWeatherSystem.update(worldTimeAfter);
-        const rainState = WorldWeatherSystem.getVisualState(SceneManager.currentScene, worldTimeAfter);
+        const rainState = WorldWeatherSystem.getVisualState(currentWorldId, worldTimeAfter);
         const droughtActive = !rainState.active
-            && World122DroughtSystem.isActive(SceneManager.currentScene, worldTimeAfter);
+            && World122DroughtSystem.isActive(currentWorldId, worldTimeAfter);
         this._weatherVisualState = rainState;
         this._droughtVisualActive = droughtActive;
         RoadsideDecorationSystem.updateDynamic({
@@ -535,8 +537,8 @@ export class GameScene extends Scene {
             rainState,
             worldTimeMs: worldTimeAfter,
         });
-        window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
-        WorldDestructionChallengeSystem.update(worldTimeAfter, SceneManager.currentScene);
+        window.WorldInvasionSystem?.update?.(invasionDelta, currentWorldId);
+        WorldDestructionChallengeSystem.update(worldTimeAfter, currentWorldId);
         PerformanceMonitor.end('phaserWorldSystems', performancePhaseStartedAt);
         performancePhaseStartedAt = PerformanceMonitor.begin();
 
@@ -555,7 +557,7 @@ export class GameScene extends Scene {
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
         this._refreshRenderViewport();
-        FogOfWarSystem.update(SceneManager.currentScene, _game, Date.now());
+        FogOfWarSystem.update(SceneManager.getCurrentWorldId(), _game, Date.now());
         this._syncFogOfWar(_delta);
         PerformanceMonitor.end('phaserTerrainFog', performancePhaseStartedAt);
         performancePhaseStartedAt = PerformanceMonitor.begin();
@@ -719,7 +721,7 @@ export class GameScene extends Scene {
             // GameScene 跨逻辑场景常驻，位面迷雾小地图 Image 也会保留上一场景纹理。
             // 返回无迷雾的主神空间后，不能仅按 HUD 状态重新点亮该旧 Image；否则它会在
             // 每帧 HUD 恢复与 100ms 小地图同步隐藏之间反复显隐，形成黑图频闪。
-            const _fogGridActive = !!FogOfWarSystem.getGrid(SceneManager.currentScene)?.active;
+            const _fogGridActive = !!FogOfWarSystem.getGrid(SceneManager.getCurrentWorldId())?.active;
             this._fogMinimapLayer?.setVisible(!_dialogueOpen && _fogGridActive);
             if (this.minimapTitle) this.minimapTitle.setVisible(!_dialogueOpen);
             this._syncHud(_game);
@@ -930,7 +932,7 @@ export class GameScene extends Scene {
     }
 
     _syncFogOfWar(deltaMs = 16.67) {
-        const sceneId = SceneManager.currentScene;
+        const sceneId = SceneManager.getCurrentWorldId();
         const grid = FogOfWarSystem.getGrid(sceneId);
         this._fogMaskRenderer.update(sceneId, grid, deltaMs);
         if (!grid?.active) this._fogMinimapLayer.setVisible(false);
@@ -938,16 +940,17 @@ export class GameScene extends Scene {
 
     syncFogVisualEffect(effect, descriptor = null) {
         FogVisualAdapter.register(effect, descriptor);
-        return FogVisualAdapter.syncEffect(effect, SceneManager.currentScene, FogOfWarSystem);
+        return FogVisualAdapter.syncEffect(effect, SceneManager.getCurrentWorldId(), FogOfWarSystem);
     }
 
     isFogPointVisible(x, y) {
-        const sceneId = SceneManager.currentScene;
+        const sceneId = SceneManager.getCurrentWorldId();
         return !FogOfWarSystem.isEnabled(sceneId) || FogOfWarSystem.isPointVisible(sceneId, x, y);
     }
 
     getWorld125AtmosphereDebugModel() {
-        const sceneId = SceneManager.currentScene;
+        const sceneId = SceneManager.getCurrentWorldId();
+        const runtimeSceneId = SceneManager.currentScene;
         const sceneConfig = GAME_CONFIG.scenes?.scene11 || SceneManager.scenes?.scene11;
         const atmosphereConfig = sceneConfig?.environmentEffects?.dungeonAtmosphere;
         const gameplayModel = World125FogTideSystem.getDebugModel(sceneId);
@@ -960,7 +963,7 @@ export class GameScene extends Scene {
         return {
             ...gameplayModel,
             visualModeActive: visualModel.visualModeActive,
-            available: sceneId === 'scene11' && !SceneManager.isLoading,
+            available: runtimeSceneId === 'scene11' && !SceneManager.isLoading,
             currentSceneId: sceneId,
         };
     }
@@ -970,16 +973,17 @@ export class GameScene extends Scene {
         if (!current.available) {
             return { ok: false, reason: '请先进入世界-125·地牢遗迹', model: current };
         }
-        const result = World125FogTideSystem.debugToggle(SceneManager.currentScene);
+        const result = World125FogTideSystem.debugToggle(SceneManager.getCurrentWorldId());
         return { ...result, model: this.getWorld125AtmosphereDebugModel() };
     }
 
-    getRainWeatherDebugModel(sceneId = SceneManager.currentScene) {
-        const sceneConfig = GAME_CONFIG.scenes?.[sceneId]
-            || SceneManager.scenes?.[sceneId]
+    getRainWeatherDebugModel(sceneId = SceneManager.getCurrentWorldId()) {
+        const runtimeSceneId = WorldProgressionSystem.getRuntimeSceneId(sceneId);
+        const sceneConfig = GAME_CONFIG.scenes?.[runtimeSceneId]
+            || SceneManager.scenes?.[runtimeSceneId]
             || null;
         const visual = this._rainWeather?.getDebugModel(
-            sceneId,
+            runtimeSceneId,
             SceneManager.currentScene,
             SceneManager.isLoading,
             GAME_CONFIG.weatherEffects?.rain,
@@ -993,13 +997,17 @@ export class GameScene extends Scene {
         };
         return {
             ...visual,
-            ...WorldWeatherSystem.getDebugModel(sceneId, SceneManager.currentScene, SceneManager.isLoading),
+            ...WorldWeatherSystem.getDebugModel(
+                sceneId,
+                SceneManager.getCurrentWorldId(),
+                SceneManager.isLoading
+            ),
         };
     }
 
-    toggleRainWeather(sceneId = SceneManager.currentScene, intensityId = null) {
+    toggleRainWeather(sceneId = SceneManager.getCurrentWorldId(), intensityId = null) {
         return WorldWeatherSystem.debugToggle(sceneId, intensityId, {
-            currentSceneId: SceneManager.currentScene,
+            currentSceneId: SceneManager.getCurrentWorldId(),
             loading: SceneManager.isLoading,
         });
     }
@@ -1013,7 +1021,7 @@ export class GameScene extends Scene {
     }
 
     getFogDebugModel() {
-        const sceneId = SceneManager.currentScene;
+        const sceneId = SceneManager.getCurrentWorldId();
         const model = FogOfWarSystem.getDebugModel(sceneId);
         if (!model) return null;
         return {
@@ -1069,7 +1077,7 @@ export class GameScene extends Scene {
         const runtime = this._getPerformanceRuntimeProfile();
         const rain = this._rainWeather;
         const sand = this._windblownSand;
-        const fogGrid = FogOfWarSystem.getGrid(sceneId);
+        const fogGrid = FogOfWarSystem.getGrid(SceneManager.getCurrentWorldId());
         const fogEffectStats = FogVisualAdapter.getDebugModel();
         const countAlive = (emitter) => Number(emitter?.getAliveParticleCount?.()) || 0;
         // 低频采样点顺便收敛已死亡/已淘汰兵种的资源引用；只看逻辑实体与生产 pin，
@@ -1241,7 +1249,7 @@ export class GameScene extends Scene {
 
     _syncFogDebug() {
         if (!this._fogDebugOverlay?.options?.enabled) return;
-        const sceneId = SceneManager.currentScene;
+        const sceneId = SceneManager.getCurrentWorldId();
         this._fogDebugOverlay.update(
             FogOfWarSystem.getGrid(sceneId),
             this.getFogDebugModel()
@@ -1250,7 +1258,7 @@ export class GameScene extends Scene {
 
     /** 只裁切视觉对象；实体 active、AI、物理、碰撞与寻路状态保持原样。 */
     _applyFogEntityVisibility(_game) {
-        const sceneId = SceneManager.currentScene;
+        const sceneId = SceneManager.getCurrentWorldId();
         this._fogVisibilityController.sync(sceneId, _game, Date.now());
         this._fogVisibilityController.enforceHidden();
     }
@@ -4372,7 +4380,7 @@ export class GameScene extends Scene {
                 return;
             }
             this._setViewportVisualRecordHidden(cur0, false);
-            if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, e)) {
+            if (FogOfWarSystem.shouldHideEntity(SceneManager.getCurrentWorldId(), e)) {
                 if (cur0) {
                     for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
                         if (cur0[k]) cur0[k].setVisible(false);
@@ -8994,7 +9002,7 @@ export class GameScene extends Scene {
         if (!this._bossHpBarTarget) return;
         const boss = this._bossHpBarTarget;
         // Boss 死亡/离场立即隐藏
-        if (!boss.active || FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, boss)) {
+        if (!boss.active || FogOfWarSystem.shouldHideEntity(SceneManager.getCurrentWorldId(), boss)) {
             this._hideBossHpBar();
             return;
         }
@@ -9257,7 +9265,7 @@ export class GameScene extends Scene {
             for (const entity of _game?.entities?.values?.() || []) {
                 if (!entity?.active || entity.hp <= 0 || entity._faction !== 'enemy') continue;
                 if (!entity.hasStatusEffect?.('droneVulnerability')) continue;
-                if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity)) continue;
+                if (FogOfWarSystem.shouldHideEntity(SceneManager.getCurrentWorldId(), entity)) continue;
                 active.add(entity);
                 let lock = this._droneTargetLocks.get(entity);
                 if (!lock) {
@@ -9364,10 +9372,11 @@ export class GameScene extends Scene {
             const faction = entity._faction || entity.faction;
             const requiresLiveSight = faction === 'enemy' || faction === 'agent'
                 || !!entity.itemData || !!entity._fogRequiresVisibility;
-            const hiddenByFog = FogOfWarSystem.isEnabled(SceneManager.currentScene) && (
+            const worldId = SceneManager.getCurrentWorldId();
+            const hiddenByFog = FogOfWarSystem.isEnabled(worldId) && (
                 requiresLiveSight
-                    ? FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity)
-                    : !FogOfWarSystem.isPointVisible(SceneManager.currentScene, entity.x, entity.y)
+                    ? FogOfWarSystem.shouldHideEntity(worldId, entity)
+                    : !FogOfWarSystem.isPointVisible(worldId, entity.x, entity.y)
             );
             if (hiddenByFog) {
                 this._entityHudTexts.get(entity)?.forEach((text) => text.setVisible(false));
@@ -9425,7 +9434,7 @@ export class GameScene extends Scene {
         const drawnEntities = new Set();
         const drawEntity = (entity) => {
             if (!entity || !entity.active || drawnEntities.has(entity)) return;
-            if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity)) return;
+            if (FogOfWarSystem.shouldHideEntity(SceneManager.getCurrentWorldId(), entity)) return;
             // 仓库/祭坛等保留 NPC 交互身份的格网建筑只在下方建筑分支绘制 iso 棱柱；
             // 这里若继续画单位圆柱，会让调试界面误报为两套碰撞同时生效。
             if (usesBuildingFootprintVolume(entity)) return;
@@ -10657,7 +10666,7 @@ export class GameScene extends Scene {
             // 共享 Graphics 无法直接隐藏单一建筑；绘制前读取战争迷雾真源，避免新注册
             // 建筑等待帧末 FogVisibilityController 回调时短暂泄漏一帧阴影。
             if (data.entity) {
-                const fogHidden = FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, data.entity);
+                const fogHidden = FogOfWarSystem.shouldHideEntity(SceneManager.getCurrentWorldId(), data.entity);
                 if (data.fogHidden !== fogHidden) {
                     data.fogHidden = fogHidden;
                     this._structureShadowVisibilityRevision = (this._structureShadowVisibilityRevision || 0) + 1;
@@ -11338,7 +11347,7 @@ export class GameScene extends Scene {
         }
 
         // 主画面与小地图共享同一张低分辨率 CanvasTexture，避免逐格提交 Graphics 指令。
-        const fog = FogOfWarSystem.getGrid(SceneManager.currentScene);
+        const fog = FogOfWarSystem.getGrid(SceneManager.getCurrentWorldId());
         this._syncMinimapFog(fog, minimapLayout, invZ);
 
         // 相机视野框（与框求交集，超框部分不画）。
@@ -11378,7 +11387,7 @@ export class GameScene extends Scene {
             game.entities.forEach(e => {
                 if (!e || e === game.player || !e.active) return;
                 if (typeof e.x !== 'number' || typeof e.y !== 'number' || isNaN(e.x) || isNaN(e.y)) return;
-                if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, e)) return;
+                if (FogOfWarSystem.shouldHideEntity(SceneManager.getCurrentWorldId(), e)) return;
                 const ex = mx + offX + e.x * scale;
                 const ey = my + offY + e.y * scale;
                 if (!inBox(ex, ey)) return; // 框外实体不画

@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { WorldInstanceSystem } from './world-instance-system.js';
 
 const VERSION = 1;
 const TARGET_SCENE_ID = 'scene8';
@@ -32,6 +33,16 @@ function dayDurationMs() {
 
 function currentGameTimeMs() {
     return Math.max(0, Number(EnvironmentLightingSystem.serializeTime()?.elapsedMs) || 0);
+}
+
+function isTargetWorld(worldId) {
+    return WorldInstanceSystem.resolveRuntimeSceneId(worldId) === TARGET_SCENE_ID;
+}
+
+function worldName(worldId) {
+    return WorldInstanceSystem.getDisplayName(worldId)
+        || GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name
+        || '世界122';
 }
 
 function initialState() {
@@ -160,7 +171,7 @@ export const World122DroughtSystem = {
 
     isActive(sceneId = TARGET_SCENE_ID, gameTimeMs = null) {
         if (hasFiniteTime(gameTimeMs)) this.update(Number(gameTimeMs), { notifyPlayer: false });
-        return sceneId === TARGET_SCENE_ID
+        return isTargetWorld(sceneId)
             && droughtConfig().enabled !== false
             && state.phase === 'active';
     },
@@ -181,7 +192,7 @@ export const World122DroughtSystem = {
         horizonEndGameTimeMs = Number.POSITIVE_INFINITY,
         showDuration = false,
     } = {}) {
-        if (sceneId !== TARGET_SCENE_ID || droughtConfig().enabled === false) return [];
+        if (!isTargetWorld(sceneId) || droughtConfig().enabled === false) return [];
         const now = Math.max(0, Number(nowGameTimeMs) || 0);
         this.update(now, { notifyPlayer: false });
         const active = state.phase === 'active';
@@ -193,13 +204,13 @@ export const World122DroughtSystem = {
             ? state.activeUntilGameTimeMs
             : Number(startsAtGameTimeMs) + durationDays * dayDurationMs();
         return [{
-            id: `drought:${TARGET_SCENE_ID}:${Math.floor(Number(startsAtGameTimeMs))}`,
-            sceneId: TARGET_SCENE_ID,
-            worldName: GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界122',
+            id: `drought:${sceneId}:${Math.floor(Number(startsAtGameTimeMs))}`,
+            sceneId,
+            worldName: worldName(sceneId),
             weatherKind: 'special',
             specialWeatherId: 'drought',
             icon: '☀',
-            label: `${GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界122'} · 干旱`,
+            label: `${worldName(sceneId)} · 干旱`,
             intensityId: 'severe',
             intensityName: '干旱高温',
             startsAtGameTimeMs: Number(startsAtGameTimeMs),

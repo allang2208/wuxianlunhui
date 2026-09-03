@@ -2,6 +2,7 @@ import { GAME_CONFIG } from '../config/game-config.js';
 import { hasEnemyFamily } from '../config/enemy-family.js';
 import { CandleSanctuarySystem } from './candle-sanctuary-system.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { WorldInstanceSystem } from './world-instance-system.js';
 
 const VERSION = 2;
 const TARGET_SCENE_ID = 'scene11';
@@ -31,9 +32,16 @@ function clone(value) {
 }
 
 function resolvedSceneId(sceneId) {
-    if (sceneId) return sceneId;
-    const runtimeSceneId = typeof window !== 'undefined' ? window.SceneManager?.currentScene : null;
-    return runtimeSceneId || currentSceneId;
+    const worldId = sceneId || (typeof window !== 'undefined'
+        ? (window.SceneManager?.getCurrentWorldId?.() || window.SceneManager?.currentScene)
+        : null) || currentSceneId;
+    return WorldInstanceSystem.resolveRuntimeSceneId(worldId);
+}
+
+function worldName(worldId) {
+    return WorldInstanceSystem.getDisplayName(worldId)
+        || GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name
+        || '世界125';
 }
 
 function fogTideConfig() {
@@ -132,7 +140,7 @@ function beginFogTide(startAtGameTimeMs, { notifyPlayer = true } = {}) {
     state.startedAtGameTimeMs = startAt;
     state.activeUntilGameTimeMs = startAt + durationDays * dayDurationMs();
     clearTrackedPlayer();
-    if (notifyPlayer && currentSceneId === TARGET_SCENE_ID) {
+    if (notifyPlayer && resolvedSceneId(currentSceneId) === TARGET_SCENE_ID) {
         notify('☠ 死寂雾潮涌入：视野受限，亡者进入猎场状态', {
             color: '#a9c2b3',
             duration: 3600,
@@ -141,7 +149,7 @@ function beginFogTide(startAtGameTimeMs, { notifyPlayer = true } = {}) {
 }
 
 function endFogTide(endedAtGameTimeMs, notifyPlayer = true) {
-    if (notifyPlayer && currentSceneId === TARGET_SCENE_ID) {
+    if (notifyPlayer && resolvedSceneId(currentSceneId) === TARGET_SCENE_ID) {
         notify('死寂雾潮已经消散', { color: '#d7c99b' });
     }
     clearTrackedPlayer();
@@ -194,7 +202,7 @@ export const World125FogTideSystem = {
 
     syncScene(sceneId) {
         currentSceneId = sceneId || null;
-        if (currentSceneId !== TARGET_SCENE_ID) clearTrackedPlayer();
+        if (resolvedSceneId(currentSceneId) !== TARGET_SCENE_ID) clearTrackedPlayer();
         return this.isActive(currentSceneId);
     },
 
@@ -206,7 +214,7 @@ export const World125FogTideSystem = {
     },
 
     setActive(nextActive, sceneId = TARGET_SCENE_ID) {
-        if (sceneId !== TARGET_SCENE_ID) {
+        if (resolvedSceneId(sceneId) !== TARGET_SCENE_ID) {
             return { ok: false, reason: '死寂雾潮只能在世界-125触发', model: this.getDebugModel(sceneId) };
         }
         if (fogTideConfig().enabled === false) {
@@ -328,7 +336,7 @@ export const World125FogTideSystem = {
         horizonEndGameTimeMs = Number.POSITIVE_INFINITY,
         showDuration = false,
     } = {}) {
-        if (sceneId !== TARGET_SCENE_ID || fogTideConfig().enabled === false) return [];
+        if (resolvedSceneId(sceneId) !== TARGET_SCENE_ID || fogTideConfig().enabled === false) return [];
         const now = Math.max(0, Number(nowGameTimeMs) || 0);
         this.update(now, { notifyPlayer: false });
         const active = state.phase === 'active';
@@ -341,13 +349,13 @@ export const World125FogTideSystem = {
             ? state.activeUntilGameTimeMs
             : Number(startsAtGameTimeMs) + durationDays * dayDurationMs();
         return [{
-            id: `fog-tide:${TARGET_SCENE_ID}:${Math.floor(Number(startsAtGameTimeMs))}`,
-            sceneId: TARGET_SCENE_ID,
-            worldName: GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界125',
+            id: `fog-tide:${sceneId}:${Math.floor(Number(startsAtGameTimeMs))}`,
+            sceneId,
+            worldName: worldName(sceneId),
             weatherKind: 'special',
             specialWeatherId: 'fog_tide',
             icon: '☣',
-            label: `${GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界125'} · 死寂雾潮`,
+            label: `${worldName(sceneId)} · 死寂雾潮`,
             intensityId: 'disaster',
             intensityName: '死寂雾潮',
             startsAtGameTimeMs: Number(startsAtGameTimeMs),

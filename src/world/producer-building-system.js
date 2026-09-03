@@ -1050,7 +1050,7 @@ export class ProducerBuilding extends DamageableEntity {
 
     /** 固定出口槽位：墙体、建筑 footprint、动态单位与出口预约全部通过才返回。 */
     _findUnitSpawn() {
-        const sourceSceneId = SceneManager.currentScene;
+        const sourceSceneId = SceneManager.getCurrentWorldId();
         return SpawnPlacement.findAndReserve(this, {
             unitRadius: 24,
             entities: Game?.entities,
@@ -1134,7 +1134,7 @@ export class ProducerBuilding extends DamageableEntity {
         TroopLineSystem.onUnitProduced(
             unit,
             this,
-            options.sourceSceneId || SceneManager.currentScene,
+            options.sourceSceneId || SceneManager.getCurrentWorldId(),
             options
         );
         // 双身翡翠神像「双身」（2026-08-22 工艺品祭品）：每次出兵数量 ×N，额外单位不再收取食物
@@ -1944,7 +1944,7 @@ class ProducerBuildingPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.building) return;
         const b = this.building;
-        refreshProducerRallySection(el, b, SceneManager.currentScene);
+        refreshProducerRallySection(el, b, SceneManager.getCurrentWorldId());
         if (b._isTroopProducer) {
             const military = PopulationEconomySystem.getMilitaryPopulationSnapshot();
             const militaryEl = el.querySelector('#pbMilitaryPopulation');
@@ -2022,7 +2022,7 @@ class ProducerBuildingPanel extends BasePanel {
                 const operational = WeatherForecastTowerSystem.isOperational(b);
                 const forecastEvents = operational && typeof window !== 'undefined'
                     ? (window.WorldWeatherSystem?.getForecastEvents?.() || [])
-                        .filter((event) => event.sceneId === SceneManager.currentScene)
+                        .filter((event) => event.sceneId === SceneManager.getCurrentWorldId())
                     : [];
                 const forecastSignature = forecastEvents
                     .map((event) => `${event.id}:${event.status}:${event.endsAtGameTimeMs || ''}`)
@@ -2931,7 +2931,7 @@ class ProducerBuildingPanel extends BasePanel {
             && !isWarehouse && !isPassive && !isCandle && !isEconomy;
         el.classList.toggle('is-troop-producer', !!b._isTroopProducer);
         el.classList.toggle('is-economy-building', isEconomy || isWarehouse);
-        refreshProducerRallySection(el, b, SceneManager.currentScene);
+        refreshProducerRallySection(el, b, SceneManager.getCurrentWorldId());
         const applicableModules = isEconomy ? [] : Object.entries(cfg.modules || {})
             .filter(([moduleId, module]) => b._isTroopProducer
                 ? b.moduleUnitTypes(moduleId).length > 0
@@ -3372,7 +3372,7 @@ class ProducerBuildingPanel extends BasePanel {
                 const operational = WeatherForecastTowerSystem.isOperational(b);
                 const forecastEvents = operational && typeof window !== 'undefined'
                     ? (window.WorldWeatherSystem?.getForecastEvents?.() || [])
-                        .filter((event) => event.sceneId === SceneManager.currentScene)
+                        .filter((event) => event.sceneId === SceneManager.getCurrentWorldId())
                     : [];
                 const nextEvent = forecastEvents[0] || null;
                 this._weatherForecastSignature = forecastEvents
@@ -3396,7 +3396,7 @@ class ProducerBuildingPanel extends BasePanel {
                 st.innerHTML = `
                     <div class="economy-panel-heading"><span>🌦 气象观测档案</span><span class="economy-panel-badge ${operational ? '' : 'is-blocked'}" id="pbWeatherStatus">${operational ? '正在监测本位面' : '等待气象员上岗'}</span></div>
                     <div class="economy-stat-grid">
-                        <div><span>当前位面</span><b>${SceneManager.scenes?.[SceneManager.currentScene]?.name || SceneManager.currentScene}</b></div>
+                        <div><span>当前位面</span><b>${SceneManager.getCurrentWorldName()}</b></div>
                         <div><span>气象员岗位</span><b id="pbWeatherStaffed">${research.staffedCount}/${research.staffCapacity}</b></div>
                         <div><span>监测时间范围</span><b>${profile.horizonDays.toFixed(0)} 天</b></div>
                         <div><span>范围内天气</span><b>${forecastEvents.length} 项</b></div>
@@ -4669,7 +4669,7 @@ class ProducerBuildingPanel extends BasePanel {
         }
         if (isPortal) {
             if (sellBtn && (b._isWorldPortalCore || b._isMainHubPortalBuilding)) sellBtn.style.display = 'none';
-            const currentScene = SceneManager.currentScene;
+            const currentScene = SceneManager.getCurrentWorldId();
             const sourceOperational = !b._portalDestroyed && b.hp > 0;
             const travelWorlds = WorldProgressionSystem.getTravelWorlds()
                 .filter((entry) => entry.sceneId !== currentScene);
@@ -6100,12 +6100,12 @@ class ProducerBuildingPanel extends BasePanel {
             this._notify('目标世界尚未接入传送网络', '#ff5555');
             return;
         }
-        if (SceneManager.currentScene === sceneId) {
+        if (SceneManager.getCurrentWorldId() === sceneId) {
             this._notify('已经在该世界中', '#ffd700');
             return;
         }
         this.close();
-        return SceneManager.switchScene(sceneId, player, undefined, { portalTravel: true }).catch((err) => {
+        return SceneManager.switchWorld(sceneId, player, undefined, { portalTravel: true }).catch((err) => {
             console.error('[portal building] switchScene error:', err);
             this._notify('传送失败，请稍后重试', '#ff5555');
         });
@@ -6117,7 +6117,7 @@ class ProducerBuildingPanel extends BasePanel {
             this._notify(result.reason || '传送门构造失败', '#ff5555');
             return;
         }
-        if (sceneId === SceneManager.currentScene && this.building?._isWorldPortalCore) {
+        if (sceneId === SceneManager.getCurrentWorldId() && this.building?._isWorldPortalCore) {
             WorldProgressionSystem.revivePortalEntity(sceneId, this.building);
         }
         const world = WorldProgressionSystem.getWorldConfig(sceneId);

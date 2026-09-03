@@ -805,8 +805,18 @@ export function createDevToolPanel() {
     worldWrap.className = 'collision-tab-wrap';
     worldWrap.innerHTML = `
         <div class="collision-tab-desc">
-            <p>🌐 位面生命周期调试：查看状态、世代、快照和真实入侵候选池。</p>
+            <p>🌐 位面模板测试与生命周期调试：按模板和种子生成一次性地图实例，实例地图状态不写入正式存档。</p>
             <p style="color:#d8a26a;">打通位面会按正式成功结算补齐地牢前置；推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务；每个位面均可触发不会主动停止的毁灭挑战。</p>
+        </div>
+        <div style="padding:8px;margin:8px 0;border:1px solid #49647a;border-radius:6px;background:rgba(21,34,46,.78);">
+            <div style="font-size:13px;font-weight:700;color:#b8d8ff;margin-bottom:6px;">快速生成模板地图</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <select id="devWorldTemplateSelect" style="min-width:170px;padding:4px;background:#1c1c1c;color:#d4c5a9;border:1px solid #49647a;"></select>
+                <input id="devWorldTemplateSeed" type="number" min="1" step="1" placeholder="留空则随机 seed"
+                    style="width:150px;padding:4px;background:#1c1c1c;color:#d4c5a9;border:1px solid #49647a;">
+                <button id="devWorldTemplateEnter" class="dev-tool-menu-btn" style="border-color:#5684a6;color:#c8e8ff;">生成并进入</button>
+            </div>
+            <div id="devWorldTemplateStatus" style="font-size:11px;color:#8fc2d2;margin-top:6px;">测试实例地图与正式位面存档隔离；相同 seed 可复现同一地块布局。</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
             <button id="devWorldRefresh" class="dev-tool-menu-btn">刷新</button>
@@ -826,6 +836,30 @@ export function createDevToolPanel() {
         const summary = root.querySelector('#devWorldSummary');
         const rows = root.querySelector('#devWorldRows');
         const select = root.querySelector('#devWorldSelect');
+        const templateSelect = root.querySelector('#devWorldTemplateSelect');
+        const templateStatus = root.querySelector('#devWorldTemplateStatus');
+        if (templateSelect) {
+            const currentTemplate = templateSelect.value;
+            const templates = window.WorldInstanceSystem?.listTemplates?.() || [];
+            templateSelect.innerHTML = templates.map((template) => {
+                const available = window.SceneManager?.canLoadWorldTemplate?.(template.id) === true;
+                return `<option value="${template.id}" ${available ? '' : 'disabled'}>${template.icon || '🌀'} ${template.name}`
+                    + `${available ? '' : '（运行场景待合入）'}</option>`;
+            }).join('');
+            if (templates.some((template) => template.id === currentTemplate
+                && window.SceneManager?.canLoadWorldTemplate?.(template.id))) {
+                templateSelect.value = currentTemplate;
+            }
+        }
+        const activeInstance = window.WorldInstanceSystem?.getActiveInstance?.();
+        if (templateStatus) {
+            if (activeInstance) {
+                const template = window.WorldInstanceSystem?.getTemplate?.(activeInstance.templateId);
+                templateStatus.textContent = `当前：${template?.name || activeInstance.templateId} · seed ${activeInstance.seed} · ${activeInstance.instanceId}`;
+            } else {
+                templateStatus.textContent = '测试实例地图与正式位面存档隔离；相同 seed 可复现同一地块布局。';
+            }
+        }
         if (!system?.getDebugModel || !summary || !rows || !select) {
             if (summary) summary.textContent = '位面系统尚未初始化';
             return;
@@ -958,6 +992,50 @@ export function createDevToolPanel() {
     };
 
     root.querySelector('#devWorldRefresh').addEventListener('click', renderWorldDebug);
+    root.querySelector('#devWorldTemplateEnter').addEventListener('click', async () => {
+        const templateId = root.querySelector('#devWorldTemplateSelect')?.value;
+        const seedText = root.querySelector('#devWorldTemplateSeed')?.value?.trim?.() || '';
+        const seed = seedText === '' ? null : Number(seedText);
+        if (!templateId || (seedText !== '' && (!Number.isFinite(seed) || seed < 1))) {
+            DevTool?._showToast?.('✕ seed 必须是大于 0 的整数，或留空随机');
+            return;
+        }
+        if (window.SceneManager?.isDungeonRunActive?.()) {
+            DevTool?._showToast?.('✕ 地牢出征进行中，不能切入位面模板测试');
+            return;
+        }
+        if (!window.SceneManager?.canLoadWorldTemplate?.(templateId)) {
+            DevTool?._showToast?.('✕ 该模板的运行场景尚未合入当前版本');
+            return;
+        }
+        const created = window.WorldInstanceSystem?.createDevPreviewInstance?.({ templateId, seed });
+        if (!created?.ok) {
+            DevTool?._showToast?.(`✕ ${created?.reason || '测试位面实例创建失败'}`);
+            return;
+        }
+        const button = root.querySelector('#devWorldTemplateEnter');
+        if (button) button.disabled = true;
+        try {
+            const switched = await window.SceneManager?.enterWorldInstance?.(
+                created.instance.instanceId,
+                window.Game?.player,
+                { observer: false }
+            );
+            if (!switched) {
+                window.WorldProgressionSystem?.disposeWorldInstance?.(created.instance.instanceId);
+                DevTool?._showToast?.('✕ 测试位面加载未完成');
+                return;
+            }
+            DevTool?._showToast?.(`✓ 已生成 ${created.template.name} · seed ${created.instance.seed}`);
+        } catch (error) {
+            window.WorldProgressionSystem?.disposeWorldInstance?.(created.instance.instanceId);
+            console.error('[dev world template] enter failed:', error);
+            DevTool?._showToast?.('✕ 测试位面加载失败，已恢复原场景');
+        } finally {
+            if (button) button.disabled = false;
+            renderWorldDebug();
+        }
+    });
     root.querySelector('#devWorldRows').addEventListener('click', (event) => {
         const button = event.target?.closest?.('[data-dev-world-action]');
         if (!button) return;

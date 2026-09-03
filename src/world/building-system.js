@@ -734,7 +734,7 @@ export const BuildingSystem = {
                 && Number(building?.hp ?? building?.data?.hp ?? 1) > 0
                 && building?.cfgKey === item.id).length;
             for (const [sceneId, snapshot] of Object.entries(getWorldSnapshots() || {})) {
-                if (sceneId === SceneManager.currentScene
+                if (sceneId === SceneManager.getCurrentWorldId()
                     || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
                 globalCount += (snapshot?.structures || []).filter((structure) =>
                     structure?.kind === 'producer'
@@ -935,7 +935,7 @@ export const BuildingSystem = {
         const energy = CrossPlaneResourceSystem.getAvailable('energy');
         const resourceLabel = resourceContext.remote ? '跨位面可用' : '本位面';
         el.innerHTML = `
-            <div class="we-title"><span id="bpTitleText">建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）</span> <span class="we-close" id="bpClose">×</span></div>
+            <div class="we-title"><span id="bpTitleText">建筑面板（${SceneManager.getCurrentWorldName()}）</span> <span class="we-close" id="bpClose">×</span></div>
             <div class="we-hotkeys" id="bpHotkeys" style="font-size:12px;color:#ffd700;background:rgba(90,70,20,0.25);border:1px solid #6a5a2a;border-radius:4px;padding:4px 8px;margin-bottom:8px;">
                 压平视图 <b>Space</b>｜镜像翻转 <b>F</b>（<span id="bpMirrorState">关</span>）｜辅助吸附 <b>G</b>（<span id="bpSnapState">开</span>）｜墙吸附 <b>H</b>（<span id="bpWallSnap">外部</span>）
             </div>
@@ -3668,7 +3668,7 @@ export const BuildingSystem = {
             this._resetFogPlacementVisibilityCache();
             return null;
         }
-        const sceneId = SceneManager.currentScene;
+        const sceneId = SceneManager.getCurrentWorldId();
         const revision = Number(grid.revision) || 0;
         const cache = this._fogPlacementVisibilityCache;
         if (cache.sceneId !== sceneId || cache.grid !== grid || cache.revision !== revision) {
@@ -3691,26 +3691,26 @@ export const BuildingSystem = {
         return `${points.length}:${points.join(';')}`;
     },
 
-    _isFogPolygonBuildable(vertices, grid = FogOfWarSystem.getGrid(SceneManager.currentScene)) {
+    _isFogPolygonBuildable(vertices, grid = FogOfWarSystem.getGrid(SceneManager.getCurrentWorldId())) {
         const values = this._syncFogPlacementVisibilityCache(grid);
         if (!values) return true;
         const key = this._fogPolygonVisibilityKey(vertices);
         if (values.has(key)) return values.get(key);
-        const buildable = FogOfWarSystem.isPolygonFullyExplored(SceneManager.currentScene, vertices);
+        const buildable = FogOfWarSystem.isPolygonFullyExplored(SceneManager.getCurrentWorldId(), vertices);
         if (values.size >= FOG_PLACEMENT_VISIBILITY_CACHE_LIMIT) values.clear();
         values.set(key, buildable);
         return buildable;
     },
 
     /** 完整菱形占地必须避开战争黑雾；VISIBLE 与 EXPLORED 均可建造。 */
-    _isFogProbeBuildable(probe, grid = FogOfWarSystem.getGrid(SceneManager.currentScene)) {
+    _isFogProbeBuildable(probe, grid = FogOfWarSystem.getGrid(SceneManager.getCurrentWorldId())) {
         if (!probe) return true;
         return this._isFogPolygonBuildable(isoFootprintVertices(probe), grid);
     },
 
     /** 各建造类型复用真实占地；建筑自带的外围道路/田地也不能伸进未探索黑雾。 */
     _isPlacementFogBuildable(item, x, y, { dir = null, snap = null } = {}) {
-        const grid = FogOfWarSystem.getGrid(SceneManager.currentScene);
+        const grid = FogOfWarSystem.getGrid(SceneManager.getCurrentWorldId());
         if (!grid?.active || !item) return true;
         const probeBuildable = (probe) => this._isFogProbeBuildable(probe, grid);
 
@@ -4971,7 +4971,7 @@ export const BuildingSystem = {
         const buildCost = staircaseSnap?.cost ?? this._baseBuildCost(item);
         const producerCfg = item.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
         const starterGrantClaimed = !!Game?._starterWarehouseGrantClaimedByScene?.[
-            SceneManager.currentScene
+            SceneManager.getCurrentWorldId()
         ];
         const firstWarehouseGrant = producerCfg?.workshopType === 'warehouse'
             && (EnergyManager?.getWarehouseCount?.() || 0) === 0
@@ -5103,7 +5103,7 @@ export const BuildingSystem = {
             if (!Game._starterWarehouseGrantClaimedByScene) {
                 Game._starterWarehouseGrantClaimedByScene = {};
             }
-            Game._starterWarehouseGrantClaimedByScene[SceneManager.currentScene] = true;
+            Game._starterWarehouseGrantClaimedByScene[SceneManager.getCurrentWorldId()] = true;
             grantedWarehouseEnergy = EnergyManager.depositEnergyToWarehouse(
                 placedEntity,
                 firstWarehouseGrant.energy

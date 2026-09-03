@@ -39,6 +39,7 @@ import { EnergyManager } from '../systems/energy-manager.js';
 import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
+import { WorldInstanceSystem } from './world-instance-system.js';
 import desertTerrainConfig from '../../data/desert-terrain.json';
 import { TechnologySystem } from './technology-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
@@ -51,6 +52,7 @@ import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 
 export const SceneManager = {
     currentScene: null,
+    currentWorldInstanceId: null,
     scenes: {},
     isLoading: false,
     loadProgress: 0,
@@ -64,10 +66,16 @@ export const SceneManager = {
     _loadingImageCache: [],
     _activeQuestInstance: null,
     _rollbackActiveQuestInstance: null,
+    _loadingWorldId: null,
+    _materializingWorldId: null,
 
     init() {
         this._worldDestructionTransactions.clear();
         this._activeQuestInstance = null;
+        this.currentWorldInstanceId = null;
+        this._loadingWorldId = null;
+        this._materializingWorldId = null;
+        WorldInstanceSystem.setActiveInstance(null);
         this._dungeonParkedFriendlyUnits = null;
         this._dungeonObservationState = null;
         TroopLineSystem.configure({
@@ -100,7 +108,7 @@ export const SceneManager = {
             GoldManager,
             PopulationEconomySystem,
             getWorldEpoch: (sceneId) => WorldProgressionSystem.getWorldEpoch(sceneId),
-            canPersistWorld: (sceneId) => WorldProgressionSystem.isPortalConstructed(sceneId),
+            canPersistWorld: (sceneId) => WorldProgressionSystem.canPersistWorld(sceneId),
             getWorldGenerationContext: (sceneId) => WorldProgressionSystem.getWorldGenerationContext(sceneId),
         });
         // 新游戏初始传送门也必须在五日入侵开始前拥有基础位面快照。
@@ -351,8 +359,69 @@ export const SceneManager = {
         if (text) text.textContent = Math.floor(this.loadProgress) + '%';
     },
 
+    /** 当前逻辑世界键：固定预览场景返回 sceneN，动态位面返回独立 instanceId。 */
+    getCurrentWorldId() {
+        return this._materializingWorldId || this.currentWorldInstanceId || this.currentScene;
+    },
+
+    getCurrentRuntimeSceneId() {
+        return this.currentScene;
+    },
+
+    getCurrentWorldName() {
+        return this.currentWorldInstanceId
+            ? WorldInstanceSystem.getDisplayName(this.currentWorldInstanceId)
+            : (this.scenes?.[this.currentScene]?.name || this.currentScene || '当前世界');
+    },
+
+    /** 加载器执行期间 currentScene 尚未提交，必须从目标上下文取得状态键。 */
+    _worldIdForLoader(runtimeSceneId) {
+        if (this._loadingWorldId
+            && WorldProgressionSystem.getRuntimeSceneId(this._loadingWorldId) === runtimeSceneId) {
+            return this._loadingWorldId;
+        }
+        if (this.currentWorldInstanceId
+            && WorldProgressionSystem.getRuntimeSceneId(this.currentWorldInstanceId) === runtimeSceneId) {
+            return this.currentWorldInstanceId;
+        }
+        return runtimeSceneId;
+    },
+
+    canLoadWorldTemplate(templateId) {
+        const template = WorldInstanceSystem.getTemplate(templateId);
+        return !!(template && this.scenes?.[template.runtimeSceneId]);
+    },
+
+    /** worldId 可以是旧 sceneN，也可以是动态位面 instanceId。 */
+    async switchWorld(worldId, player, mode, opts = {}) {
+        const instance = WorldInstanceSystem.getInstance(worldId);
+        if (!instance) return this.switchScene(worldId, player, mode, opts);
+        if (!this.scenes?.[instance.runtimeSceneId]) {
+            this.showTopNotification('该位面模板的运行场景尚未接入当前版本', { color: '#ff7766' });
+            return false;
+        }
+        return this.switchScene(instance.runtimeSceneId, player, mode, {
+            ...opts,
+            worldInstanceId: instance.instanceId,
+            forceReload: this.currentScene === instance.runtimeSceneId,
+        });
+    },
+
+    enterWorldInstance(instanceId, player, opts = {}) {
+        return this.switchWorld(instanceId, player, 'explore', opts);
+    },
+
     async switchScene(sceneId, player, mode, opts = {}) {
         if (this.isLoading) return false;
+        const targetInstance = opts.worldInstanceId
+            ? WorldInstanceSystem.getInstance(opts.worldInstanceId)
+            : null;
+        if (opts.worldInstanceId
+            && (!targetInstance || targetInstance.runtimeSceneId !== sceneId)) {
+            this.showTopNotification('位面实例与运行场景不匹配', { color: '#ff7766' });
+            return false;
+        }
+        const targetWorldId = targetInstance?.instanceId || sceneId;
         const questDefinition = opts.questTravel ? QuestRegistry.get(opts.questId) : null;
         const questInstanceEntry = !!questDefinition
             && mode === 'quest'
@@ -362,13 +431,15 @@ export const SceneManager = {
             this.showTopNotification('任务通行状态无效，无法进入目标世界', { color: '#ff7766' });
             return false;
         }
-        if (this.currentScene === sceneId && !opts.forceReload) {
+        if (this.currentScene === sceneId
+            && this.getCurrentWorldId() === targetWorldId
+            && !opts.forceReload) {
             const alreadyInRequestedQuest = questInstanceEntry
                 && this._activeQuestInstance?.questId === questDefinition.id;
             if (!opts.questTravel || alreadyInRequestedQuest) return true;
         }
         if (this._isPersistentWorld(sceneId)
-            && !WorldProgressionSystem.isPortalConstructed(sceneId)
+            && !WorldProgressionSystem.isPortalConstructed(targetWorldId)
             && !questInstanceEntry) {
             this.showTopNotification('该世界位面尚未搭建传送门', { color: '#ff7766' });
             return false;
@@ -380,6 +451,7 @@ export const SceneManager = {
             return false;
         }
         const departingSceneId = this.currentScene;
+        const departingWorldId = this.getCurrentWorldId();
         const departingQuestInstance = this._activeQuestInstance?.sceneId === departingSceneId;
         const suspendingDungeonView = departingSceneId === 'scene7' && !!opts.observer
             && this._captureDungeonObservationState();
@@ -389,9 +461,10 @@ export const SceneManager = {
         const resumingDungeonView = sceneId === 'scene7' && !!this._dungeonObservationState
             && this.isDungeonRunActive();
         const physicalPortalTravel = opts.portalTravel && !departingQuestInstance && !Game._observerMode
+            && !WorldInstanceSystem.isDevPreview(departingWorldId)
             && !!player && Game.entities?.get?.('player') === player;
         const portalTravel = physicalPortalTravel
-            ? TroopLineSystem.preparePortalTravel(departingSceneId, sceneId)
+            ? TroopLineSystem.preparePortalTravel(departingWorldId, targetWorldId)
             : null;
         // 位面毁灭强制回城不能保留旧位面实体作为回滚候选；普通切换则必须在任何状态写入前存档。
         if (opts.worldDestructionTx) this._clearRollbackState();
@@ -403,15 +476,15 @@ export const SceneManager = {
         if (g) {
             if (!g._worldPlayerPos) g._worldPlayerPos = {};
             const departingWorldDestroyed = this._isPersistentWorld(this.currentScene)
-                && WorldProgressionSystem.getPortalState(this.currentScene).destroyed;
+                && WorldProgressionSystem.getPortalState(departingWorldId).destroyed;
             if (departingWorldDestroyed) {
-                delete g._worldPlayerPos[this.currentScene];
+                delete g._worldPlayerPos[departingWorldId];
             } else if (!departingQuestInstance
                 && player && g.entities && g.entities.get('player') === player && this.currentScene) {
-                g._worldPlayerPos[this.currentScene] = { x: player.x, y: player.y };
+                g._worldPlayerPos[departingWorldId] = { x: player.x, y: player.y };
             }
             if (opts.observer) {
-                if (!g._observerMode) g._observerHomeScene = this.currentScene;
+                if (!g._observerMode) g._observerHomeScene = departingWorldId;
                 g._observerMode = true;
             } else {
                 g._observerMode = false;
@@ -421,6 +494,7 @@ export const SceneManager = {
         let teardownStarted = false;
         let visualLoadGenerationBefore = RuntimeAssetManager.getLoadGeneration();
         try {
+            this._loadingWorldId = targetWorldId;
             const loadingDungeonType = sceneId === 'scene7'
                 ? (opts.dungeonType
                     || (resumingDungeonView ? window.DungeonMapSystem?.dungeonType : null)
@@ -444,7 +518,7 @@ export const SceneManager = {
 
             // 不隶属当地建筑的跨位面增援由兵线系统独立收纳，避免被场景 teardown 丢失。
             if (!departingQuestInstance && !questInstanceEntry) {
-                TroopLineSystem.onSceneLeaving(departingSceneId);
+                TroopLineSystem.onSceneLeaving(departingWorldId);
             }
 
             // 清理当前场景
@@ -458,18 +532,20 @@ export const SceneManager = {
             // 世界-122 防守地图：离场统一拆除（关面板/停波次；实体由下方 clear 统一清理）
             // 世界-122 快照：离场先捕获再拆除（M0：重进恢复建筑/波次/矿点，不归零）
             if (this._isPersistentWorld(this.currentScene) && DefenseSystem && DefenseSystem.active) {
-                window.WorldInvasionSystem?.onWorldLeaving?.(this.currentScene);
-                if (WorldProgressionSystem.getPortalState(this.currentScene).destroyed) {
-                    if (WorldProgressionSystem.shouldClearWorldScope(this.currentScene, 'snapshot')) {
-                        resetWorldSnapshot(this.currentScene);
+                if (!WorldInstanceSystem.isDevPreview(departingWorldId)) {
+                    window.WorldInvasionSystem?.onWorldLeaving?.(departingWorldId);
+                }
+                if (WorldProgressionSystem.getPortalState(departingWorldId).destroyed) {
+                    if (WorldProgressionSystem.shouldClearWorldScope(departingWorldId, 'snapshot')) {
+                        resetWorldSnapshot(departingWorldId);
                     }
                 } else {
-                    captureAndStoreWorld(this.currentScene);
+                    captureAndStoreWorld(departingWorldId);
                 }
                 DefenseSystem.teardown();
             }
             if (this._isPersistentWorld(this.currentScene)) {
-                FogOfWarSystem.deactivateScene(this.currentScene);
+                FogOfWarSystem.deactivateScene(departingWorldId);
             }
             if (this.currentScene === 'scene8' || this.currentScene === 'scene9'
                 || this.currentScene === 'scene10' || this.currentScene === 'scene11') clearDecoClearZones();
@@ -536,6 +612,7 @@ export const SceneManager = {
             await this.delay(0);
 
             // 加载新场景
+            this._materializingWorldId = targetWorldId;
             if (sceneId === 'scene7') {
                 if (!resumingDungeonView || !this._restoreDungeonObservationState()) {
                     this._loadScene7(player, 'zombie');
@@ -568,6 +645,9 @@ export const SceneManager = {
             });
 
             this.currentScene = sceneId;
+            this.currentWorldInstanceId = targetInstance?.instanceId || null;
+            this._materializingWorldId = null;
+            WorldInstanceSystem.setActiveInstance(this.currentWorldInstanceId);
             this._activeQuestInstance = questInstanceEntry
                 ? { questId: questDefinition.id, sceneId }
                 : null;
@@ -575,8 +655,8 @@ export const SceneManager = {
             if (sceneId === 'scene7' && resumingDungeonView) {
                 window.DungeonMapSystem?.setWorldObservationSuspended?.(false);
             }
-            if (!questInstanceEntry) TroopLineSystem.onSceneEntered(sceneId);
-            if (portalTravel) TroopLineSystem.completePortalTravel(portalTravel, sceneId, player);
+            if (!questInstanceEntry) TroopLineSystem.onSceneEntered(targetWorldId);
+            if (portalTravel) TroopLineSystem.completePortalTravel(portalTravel, targetWorldId, player);
             await RuntimeAssetManager.ensureEnemyEntities(Game.entities?.values?.() || [], {
                 onProgress: (ratio) => this.setProgress(90 + ratio * 3),
             });
@@ -606,27 +686,40 @@ export const SceneManager = {
             window.__phaserScene?.refreshMinimapForSceneTransition?.();
             this.hideLoadingScreen();
             // 显示场景名称
-            this._showSceneLabel(scene.name);
+            this._showSceneLabel(targetInstance
+                ? WorldInstanceSystem.getDisplayName(targetWorldId)
+                : scene.name);
             // BGM 场景切换（data/audio-config.json bgm 映射；无配置场景自动停止）
             if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
                 SoundManager.playBgmForScene(sceneId);
             }
+            if (departingWorldId !== targetWorldId
+                && WorldInstanceSystem.isDevPreview(departingWorldId)) {
+                TroopLineSystem.invalidateWorld(departingWorldId);
+                window.WorldDestructionChallengeSystem?.onWorldDestroyed?.(departingWorldId);
+                window.WorldWeatherSystem?.removeWorld?.(departingWorldId);
+                if (Game?._worldPlayerPos) delete Game._worldPlayerPos[departingWorldId];
+                WorldProgressionSystem.disposeWorldInstance(departingWorldId);
+            }
             if (!opts.worldDestructionTx) this._clearRollbackState();
+            this._loadingWorldId = null;
             return true;
         } catch (err) {
             console.error('[switchScene] ERROR:', err);
+            this._materializingWorldId = null;
             if (opts.worldDestructionTx) this._handleWorldDestructionSwitchFailure(opts.worldDestructionTx);
             else {
-                await this._rollback(player, sceneId, teardownStarted);
+                await this._rollback(player, targetWorldId, teardownStarted);
                 if (portalTravel) TroopLineSystem.rollbackPortalTravel(portalTravel);
                 if (!departingQuestInstance && !questInstanceEntry) {
-                    TroopLineSystem.onSceneEntered(departingSceneId);
+                    TroopLineSystem.onSceneEntered(departingWorldId);
                 }
                 if (suspendingDungeonView) {
                     this._restoreDungeonObservationState();
                     window.DungeonMapSystem?.setWorldObservationSuspended?.(false);
                 }
             }
+            this._loadingWorldId = null;
             throw err;
         }
     },
@@ -638,6 +731,7 @@ export const SceneManager = {
         this._rollbackWorldState = null;
         this._rollbackCamera = null;
         this._rollbackCurrentScene = null;
+        this._rollbackWorldInstanceId = null;
         this._rollbackPlayerPos = null;
         this._rollbackObserverMode = null;
         this._rollbackObserverHomeScene = null;
@@ -674,6 +768,10 @@ export const SceneManager = {
         }
         SoundManager?.stopAllLoops?.();
         this.currentScene = null;
+        this.currentWorldInstanceId = null;
+        WorldInstanceSystem.setActiveInstance(null);
+        this._loadingWorldId = null;
+        this._materializingWorldId = null;
         this._inMainHub = false;
         this._clearRollbackState();
         const stored = this._worldDestructionTransactions.get(tx?.sceneId);
@@ -710,6 +808,7 @@ export const SceneManager = {
             follow: Camera.follow,
         };
         this._rollbackCurrentScene = this.currentScene;
+        this._rollbackWorldInstanceId = this.currentWorldInstanceId;
         this._rollbackPlayerPos = player ? { x: player.x, y: player.y } : null;
         this._rollbackObserverMode = !!Game._observerMode;
         this._rollbackObserverHomeScene = Game._observerHomeScene || null;
@@ -731,7 +830,8 @@ export const SceneManager = {
         HamsterHutSystem?.teardown?.();
         ProducerBuildingSystem?.teardown?.();
         BuildingRoadSystem?.reset?.();
-        if (this._isPersistentWorld(failedSceneId)) FogOfWarSystem.deactivateScene(failedSceneId);
+        const failedRuntimeSceneId = WorldProgressionSystem.getRuntimeSceneId(failedSceneId);
+        if (this._isPersistentWorld(failedRuntimeSceneId)) FogOfWarSystem.deactivateScene(failedSceneId);
         clearDecoClearZones();
         RiftSystem?.clear?.();
         Game.entities?.clear?.();
@@ -785,12 +885,16 @@ export const SceneManager = {
     async _rollback(player, failedSceneId = null, teardownStarted = true) {
         this.isLoading = false;
         this.hideLoadingScreen();
+        this._materializingWorldId = null;
         const rollbackSceneId = this._rollbackCurrentScene;
         const rollbackObserverMode = !!this._rollbackObserverMode;
         Game._observerMode = rollbackObserverMode;
         Game._observerHomeScene = this._rollbackObserverHomeScene || null;
         Game._worldPlayerPos = { ...(this._rollbackWorldPlayerPos || {}) };
         this.currentScene = rollbackSceneId;
+        this.currentWorldInstanceId = this._rollbackWorldInstanceId || null;
+        const rollbackWorldId = this.getCurrentWorldId();
+        WorldInstanceSystem.setActiveInstance(this.currentWorldInstanceId);
         this._activeQuestInstance = this._rollbackActiveQuestInstance
             ? { ...this._rollbackActiveQuestInstance }
             : null;
@@ -801,7 +905,10 @@ export const SceneManager = {
             try {
                 this._clearFailedSceneRuntime(failedSceneId);
                 if (this._isPersistentWorld(rollbackSceneId) && !this._activeQuestInstance) {
+                    this._loadingWorldId = rollbackWorldId;
+                    this._materializingWorldId = rollbackWorldId;
                     await this._reloadRollbackPersistentWorld(player, rollbackSceneId);
+                    this._materializingWorldId = null;
                 } else {
                     this._restoreRollbackReferences(player);
                 }
@@ -829,6 +936,7 @@ export const SceneManager = {
         }
         window.__phaserScene?.refreshMinimapForSceneTransition?.();
         SoundManager?.playBgmForScene?.(rollbackSceneId);
+        this._loadingWorldId = null;
         this._clearRollbackState();
     },
 
@@ -1063,6 +1171,7 @@ export const SceneManager = {
     /** 世界-122（场景八）：12288×8192 全图泥地无缝纹理 + 菱形地块 + 可移动边界 */
     _loadScene8(player) {
         clearDecoClearZones();
+        const worldId = this._worldIdForLoader('scene8');
         // 重置相机状态，避免从其他场景带入偏移
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;
@@ -1082,7 +1191,7 @@ export const SceneManager = {
         // 菱形地块（2026-08-16 v2）：区外全黑，菱形内继续泥地无缝纹理铺贴；
         // 边斜率 0.5（26.57°），与掩体墙/基地房/建筑视角平行（见 _scene8Diamond）
         const diamond = this._scene8Diamond(scene);
-        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene8', 'floor_deco');
+        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed(worldId, 'floor_deco');
         // 沙漠地貌v3：全域连续沙材质负责无缝底色；道路同源的128×64格网只叠加透明碎石，
         // 旧风纹/裂缝/冲蚀线已从图集删除，世界坐标小件层只散布18种模型化地表杂物。
         // 三层都由稳定格坐标和位面世代seed派生，不创建碰撞、占格、寻路或快照实体。
@@ -1129,7 +1238,7 @@ export const SceneManager = {
         // 观察模式（2026-08-19）：观察世界不生成玩家（本体留在原世界），相机落基地中心自由平移；
         // 正常进入时按世界坐标记忆原位恢复（无记忆用默认出生点）
         if (player && !Game._observerMode) {
-            const savedPos = Game._worldPlayerPos && Game._worldPlayerPos.scene8;
+            const savedPos = Game._worldPlayerPos?.[worldId];
             player.x = (savedPos && Number.isFinite(savedPos.x)) ? savedPos.x : DEFENSE_CONFIG.base.x + 228;
             player.y = (savedPos && Number.isFinite(savedPos.y)) ? savedPos.y : DEFENSE_CONFIG.base.y;
             Game.entities.set('player', player);
@@ -1146,9 +1255,9 @@ export const SceneManager = {
         // 仙人掌随机散布（2026-08-16，替代已删除的树木散布）：必须在 DefenseSystem.setup
         // 之前——rebuildIsoCollision 只保留门闸 isoSegments，掩体墙段在 setup 时才注册（两不相扰）；
         // 基地房矩形/玩家出生点/能源点/刷怪点按排除带规避。配置：scenes.scene8.cactusScatter
-        this._scatterCactiScene8(player, WorldProgressionSystem.createWorldRandom('scene8', 'obstacles'));
+        this._scatterCactiScene8(player, WorldProgressionSystem.createWorldRandom(worldId, 'obstacles'));
 
-        this._setupPersistentWorld('scene8', player, diamond);
+        this._setupPersistentWorld(worldId, player, diamond);
 
     },
 
@@ -1308,6 +1417,7 @@ export const SceneManager = {
     _loadScene9(player, mode = 'explore', questDefinition = null) {
         clearDecoClearZones();
         const isQuestInstance = mode === 'quest' && questDefinition?.scene === 'scene9';
+        const worldId = isQuestInstance ? 'scene9' : this._worldIdForLoader('scene9');
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;
         Camera.shakeX = 0;
@@ -1324,7 +1434,7 @@ export const SceneManager = {
 
         // 连续无缝主雪层 + 两层确定性软边补丁。渲染器统一按 0.5774 做30°等距纵向压缩。
         const diamond = this._scene8Diamond(scene);
-        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene9', 'floor_deco');
+        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed(worldId, 'floor_deco');
         setDungeonFloorProfile({
             tiles: ['floor_snow_fresh_seamless'],
             continuous: true,
@@ -1357,9 +1467,9 @@ export const SceneManager = {
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
         if (player && !Game._observerMode) {
-            const entry = WorldProgressionSystem.getWorldConfig('scene9')?.portalSpawn
+            const entry = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn
                 || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
-            const savedPos = isQuestInstance ? null : Game._worldPlayerPos?.scene9;
+            const savedPos = isQuestInstance ? null : Game._worldPlayerPos?.[worldId];
             player.x = Number.isFinite(savedPos?.x) ? savedPos.x : entry.x + 228;
             player.y = Number.isFinite(savedPos?.y) ? savedPos.y : entry.y;
             Game.entities.set('player', player);
@@ -1367,12 +1477,12 @@ export const SceneManager = {
             QuickBar.refreshSpecialAttack(player);
         } else if (Game._observerMode) {
             // 观察模式（2026-08-19）：不生成玩家，相机落世界中心自由平移
-            const entry = WorldProgressionSystem.getWorldConfig('scene9')?.portalSpawn;
+            const entry = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn;
             Camera.x = entry?.x ?? (diamond ? diamond.cx : w / 2);
             Camera.y = entry?.y ?? (diamond ? diamond.cy : h / 2);
         }
         this._scatterSnowPinesScene9(
-            player, diamond, WorldProgressionSystem.createWorldRandom('scene9', 'obstacles')
+            player, diamond, WorldProgressionSystem.createWorldRandom(worldId, 'obstacles'), worldId
         );
         if (isQuestInstance) {
             const runtime = questDefinition.runtime || {};
@@ -1403,12 +1513,12 @@ export const SceneManager = {
             Game._questSpawnTimer = 0;
             Game._questFirstSpawnDelay = null;
         } else {
-            this._setupPersistentWorld('scene9', player, diamond);
+            this._setupPersistentWorld(worldId, player, diamond);
         }
     },
 
     /** 世界-123高瘦雪松散布：五个姿态等概率取样，只落在雪原菱形内。 */
-    _scatterSnowPinesScene9(player, diamond, random = Math.random) {
+    _scatterSnowPinesScene9(player, diamond, random = Math.random, worldId = 'scene9') {
         const scene = this.scenes.scene9;
         const cfg = scene.snowPineScatter || {};
         if (cfg.enabled === false || !diamond) return;
@@ -1418,7 +1528,7 @@ export const SceneManager = {
         const playerExclusion = cfg.playerExclusion ?? 440;
         const portalExclusion = cfg.portalExclusion ?? 340;
         const variants = ['01', '02', '03', '04', '05'];
-        const portalSpawn = WorldProgressionSystem.getWorldConfig('scene9')?.portalSpawn
+        const portalSpawn = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn
             || { x: diamond.cx, y: diamond.cy };
         const pieces = [];
         let guard = 0;
@@ -1449,6 +1559,7 @@ export const SceneManager = {
     /** 世界-124（场景十）：草地无缝地板 + 林地树木的纯探索场。 */
     _loadScene10(player) {
         clearDecoClearZones();
+        const worldId = this._worldIdForLoader('scene10');
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;
         Camera.shakeX = 0;
@@ -1463,7 +1574,7 @@ export const SceneManager = {
         CONFIG.WORLD_WIDTH = w;
         CONFIG.WORLD_HEIGHT = h;
         const diamond = this._scene8Diamond(scene);
-        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene10', 'floor_deco');
+        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed(worldId, 'floor_deco');
         setDungeonFloorProfile({
             tiles: ['floor_grass_forest_seamless'],
             continuous: true,
@@ -1490,9 +1601,9 @@ export const SceneManager = {
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
         if (player && !Game._observerMode) {
-            const entry = WorldProgressionSystem.getWorldConfig('scene10')?.portalSpawn
+            const entry = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn
                 || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
-            const savedPos = Game._worldPlayerPos?.scene10;
+            const savedPos = Game._worldPlayerPos?.[worldId];
             player.x = Number.isFinite(savedPos?.x) ? savedPos.x : entry.x + 228;
             player.y = Number.isFinite(savedPos?.y) ? savedPos.y : entry.y;
             Game.entities.set('player', player);
@@ -1500,18 +1611,18 @@ export const SceneManager = {
             QuickBar.refreshSpecialAttack(player);
         } else if (Game._observerMode) {
             // 观察模式（2026-08-19）：不生成玩家，相机落世界中心自由平移
-            const entry = WorldProgressionSystem.getWorldConfig('scene10')?.portalSpawn;
+            const entry = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn;
             Camera.x = entry?.x ?? (diamond ? diamond.cx : w / 2);
             Camera.y = entry?.y ?? (diamond ? diamond.cy : h / 2);
         }
         this._scatterForestPinesScene10(
-            player, diamond, WorldProgressionSystem.createWorldRandom('scene10', 'obstacles')
+            player, diamond, WorldProgressionSystem.createWorldRandom(worldId, 'obstacles'), worldId
         );
-        this._setupPersistentWorld('scene10', player, diamond);
+        this._setupPersistentWorld(worldId, player, diamond);
     },
 
     /** 世界-124林地树木散布：五种正式针叶树随机取样，避开出生点与返回门。 */
-    _scatterForestPinesScene10(player, diamond, random = Math.random) {
+    _scatterForestPinesScene10(player, diamond, random = Math.random, worldId = 'scene10') {
         const scene = this.scenes.scene10;
         const cfg = scene.forestTreeScatter || {};
         if (cfg.enabled === false || !diamond) return;
@@ -1521,7 +1632,7 @@ export const SceneManager = {
         const playerExclusion = cfg.playerExclusion ?? 440;
         const portalExclusion = cfg.portalExclusion ?? 340;
         const variants = ['01', '02', '03', '04', '05'];
-        const portalSpawn = WorldProgressionSystem.getWorldConfig('scene10')?.portalSpawn
+        const portalSpawn = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn
             || { x: diamond.cx, y: diamond.cy };
         const pieces = [];
         let guard = 0;
@@ -1552,6 +1663,7 @@ export const SceneManager = {
     /** 世界-125（场景十一）：僵尸地牢石砖地面 + 地牢障碍预制组合的开放探索场。 */
     async _loadScene11(player) {
         clearDecoClearZones();
+        const worldId = this._worldIdForLoader('scene11');
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;
         Camera.shakeX = 0;
@@ -1586,16 +1698,16 @@ export const SceneManager = {
         WallSystem._syncWallsToPhaser?.();
 
         if (player && !Game._observerMode) {
-            const entry = WorldProgressionSystem.getWorldConfig('scene11')?.portalSpawn
+            const entry = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn
                 || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
-            const savedPos = Game._worldPlayerPos?.scene11;
+            const savedPos = Game._worldPlayerPos?.[worldId];
             player.x = Number.isFinite(savedPos?.x) ? savedPos.x : entry.x + 228;
             player.y = Number.isFinite(savedPos?.y) ? savedPos.y : entry.y;
             Game.entities.set('player', player);
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
         } else if (Game._observerMode) {
-            const entry = WorldProgressionSystem.getWorldConfig('scene11')?.portalSpawn;
+            const entry = WorldProgressionSystem.getWorldConfig(worldId)?.portalSpawn;
             Camera.x = entry?.x ?? (diamond ? diamond.cx : w / 2);
             Camera.y = entry?.y ?? (diamond ? diamond.cy : h / 2);
         }
@@ -1603,10 +1715,10 @@ export const SceneManager = {
         // BootScene 是异步预载；这里显式等待预制库和障碍默认状态，保证首次进入也有组合。
         await Promise.all([loadWallPrefabs(), loadObstacleDefaults()]);
         scatterWorld125Environment(scene, diamond, Game._observerMode ? null : player, {
-            random: WorldProgressionSystem.createWorldRandom('scene11', 'obstacles'),
+            random: WorldProgressionSystem.createWorldRandom(worldId, 'obstacles'),
         });
 
-        this._setupPersistentWorld('scene11', player, diamond);
+        this._setupPersistentWorld(worldId, player, diamond);
     },
 
     _isPersistentWorld(sceneId) {
@@ -1619,13 +1731,17 @@ export const SceneManager = {
 
     /** scene8~scene11 共用的建筑、资源、快照与入侵运行时。 */
     _setupPersistentWorld(sceneId, player, diamond) {
+        const runtimeSceneId = WorldProgressionSystem.getRuntimeSceneId(sceneId);
+        const isDevPreview = WorldInstanceSystem.isDevPreview(sceneId);
         // 目标仍是后台账本时，先结算经济/出兵，再补齐不足一个入侵阶段窗；
         // 随后才 setup 运行时，保证入侵读取的是最新军力摘要且不会在物化后改旧快照。
-        window.WorldSimDriver?.flushWorld?.(sceneId, {
-            notify: false,
-            reason: 'materialize',
-        });
-        window.WorldInvasionSystem?.settleBackgroundNow?.(sceneId);
+        if (!isDevPreview) {
+            window.WorldSimDriver?.flushWorld?.(sceneId, {
+                notify: false,
+                reason: 'materialize',
+            });
+            window.WorldInvasionSystem?.settleBackgroundNow?.(sceneId);
+        }
         DefenseSystem.setup(player, { managedExternally: true, worldId: sceneId });
         const generation = WorldProgressionSystem.getWorldGenerationContext(sceneId);
         if (generation.resourceRule === 'none') EnergyNodeSystem.teardown();
@@ -1647,8 +1763,9 @@ export const SceneManager = {
         if (snapshot) result = applyWorldSnapshot(sceneId);
         const portal = this._ensureWorldPortalEntity(sceneId, diamond);
         DefenseSystem.base = portal;
-        const scene = this.scenes[sceneId] || {};
+        const scene = this.scenes[runtimeSceneId] || {};
         FogOfWarSystem.enterScene(sceneId, {
+            templateSceneId: runtimeSceneId,
             worldEpoch: WorldProgressionSystem.getWorldEpoch(sceneId),
             width: scene.width,
             height: scene.height,
@@ -1657,7 +1774,7 @@ export const SceneManager = {
             legacyExplored: !!snapshot && !snapshot.initializedByPortal && !snapshot.fogOfWar,
         });
         FogOfWarSystem.update(sceneId, Game, Date.now(), { force: true });
-        window.WorldInvasionSystem?.onWorldLoaded?.(sceneId, portal, diamond);
+        if (!isDevPreview) window.WorldInvasionSystem?.onWorldLoaded?.(sceneId, portal, diamond);
         this._announceWorld122Report(player, result);
     },
 
@@ -1822,7 +1939,8 @@ export const SceneManager = {
         // 后台位面失守时玩家可能正在主城：立即撤掉已断线的主城入口，
         // 不等下一次切场景才刷新传送网络。
         if (this.currentScene === 'main') Game.syncMainHubWorldPortals?.();
-        const occupied = (this.currentScene === sceneId && !this.isQuestInstance(sceneId))
+        const occupied = (this.getCurrentWorldId() === sceneId
+                && !this.isQuestInstance(this.currentScene))
             || (Game?._observerMode && Game._observerHomeScene === sceneId);
         if (!occupied) {
             this._finishWorldDestructionTransactions(tx);

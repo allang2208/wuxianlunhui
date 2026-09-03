@@ -8,6 +8,7 @@ import {
     WEATHER_FORECAST_TOWER_ID,
 } from './weather-forecast-tower-system.js';
 import { WorldSpecialWeatherRegistry } from './world-special-weather-registry.js';
+import { WorldInstanceSystem } from './world-instance-system.js';
 
 const VERSION = 2;
 const FORECAST_TECH_ID = 'weather_forecasting';
@@ -61,8 +62,25 @@ function targetSceneIds() {
         .map(([sceneId]) => sceneId);
 }
 
+function runtimeSceneId(worldId) {
+    return WorldInstanceSystem.resolveRuntimeSceneId(worldId);
+}
+
+function isRainTarget(worldId) {
+    return targetSceneIds().includes(runtimeSceneId(worldId));
+}
+
+function targetWorldIds() {
+    const fixed = targetSceneIds().filter((sceneId) =>
+        WorldInstanceSystem.config.worlds?.[sceneId]?.templatePreviewOnly !== true);
+    const instances = WorldInstanceSystem.listInstances({ persistentOnly: true })
+        .filter((instance) => fixed.includes(instance.runtimeSceneId))
+        .map((instance) => instance.instanceId);
+    return [...fixed, ...instances];
+}
+
 function forcedIntensityId(sceneId) {
-    const id = scheduleConfig().forcedIntensityBySceneId?.[sceneId];
+    const id = scheduleConfig().forcedIntensityBySceneId?.[runtimeSceneId(sceneId)];
     return rainConfig().intensities?.[id] ? id : null;
 }
 
@@ -170,7 +188,8 @@ function ensureSchedule(sceneId, nowGameTimeMs) {
 }
 
 function isLiveScene(sceneId) {
-    return typeof window !== 'undefined' && window.SceneManager?.currentScene === sceneId;
+    return typeof window !== 'undefined'
+        && (window.SceneManager?.getCurrentWorldId?.() || window.SceneManager?.currentScene) === sceneId;
 }
 
 function forecastProfileRank(profile) {
@@ -232,7 +251,9 @@ function intensityName(intensityId) {
 }
 
 function worldName(sceneId) {
-    return gameConfig.scenes?.[sceneId]?.name || sceneId;
+    return WorldInstanceSystem.getDisplayName(sceneId)
+        || gameConfig.scenes?.[runtimeSceneId(sceneId)]?.name
+        || sceneId;
 }
 
 function iconForIntensity(intensityId) {
@@ -266,15 +287,30 @@ export const WorldWeatherSystem = {
         debugOverrides.clear();
     },
 
+    removeWorld(worldId) {
+        if (!worldId) return false;
+        const existed = !!state.worlds?.[worldId] || debugOverrides.has(worldId);
+        if (state.worlds) delete state.worlds[worldId];
+        debugOverrides.delete(worldId);
+        return existed;
+    },
+
     serialize() {
-        return clone(state);
+        const serialized = clone(state);
+        for (const worldId of Object.keys(serialized.worlds || {})) {
+            if (WorldInstanceSystem.isInstanceId(worldId)
+                && !WorldInstanceSystem.isPersistentInstance(worldId)) {
+                delete serialized.worlds[worldId];
+            }
+        }
+        return serialized;
     },
 
     restore(data) {
         state = { version: VERSION, worlds: {} };
         debugOverrides.clear();
         if (!data || typeof data !== 'object') return;
-        for (const sceneId of targetSceneIds()) {
+        for (const sceneId of targetWorldIds()) {
             const source = data.worlds?.[sceneId];
             const entry = normalizeScheduleEntry(sceneId, source);
             if (!entry) continue;
@@ -287,11 +323,11 @@ export const WorldWeatherSystem = {
 
     update(nowGameTimeMs = EnvironmentLightingSystem.serializeTime().elapsedMs || 0) {
         const now = Math.max(0, Number(nowGameTimeMs) || 0);
-        for (const sceneId of targetSceneIds()) ensureSchedule(sceneId, now);
+        for (const sceneId of targetWorldIds()) ensureSchedule(sceneId, now);
     },
 
     getVisualState(sceneId, nowGameTimeMs = EnvironmentLightingSystem.serializeTime().elapsedMs || 0) {
-        if (!targetSceneIds().includes(sceneId)) return { active: false, intensityId: null, source: null };
+        if (!isRainTarget(sceneId)) return { active: false, intensityId: null, source: null };
         const now = Math.max(0, Number(nowGameTimeMs) || 0);
         const entry = ensureSchedule(sceneId, now);
         let override = debugOverrides.get(sceneId);
@@ -318,10 +354,17 @@ export const WorldWeatherSystem = {
         const now = Math.max(0, Number(nowGameTimeMs) || 0);
         this.update(now);
         const events = [];
-        const rainSceneIds = new Set(targetSceneIds());
+        const rainSceneIds = new Set(targetWorldIds());
+        const specialRuntimeSceneIds = new Set(WorldSpecialWeatherRegistry.getSceneIds());
+        const specialSceneIds = [...specialRuntimeSceneIds].filter((sceneId) =>
+            WorldInstanceSystem.config.worlds?.[sceneId]?.templatePreviewOnly !== true);
+        const specialInstanceIds = WorldInstanceSystem.listInstances({ persistentOnly: true })
+            .filter((instance) => specialRuntimeSceneIds.has(instance.runtimeSceneId))
+            .map((instance) => instance.instanceId);
         const forecastSceneIds = new Set([
             ...rainSceneIds,
-            ...WorldSpecialWeatherRegistry.getSceneIds(),
+            ...specialSceneIds,
+            ...specialInstanceIds,
         ]);
         for (const sceneId of forecastSceneIds) {
             const profile = getForecastTowerProfile(sceneId);
@@ -375,7 +418,7 @@ export const WorldWeatherSystem = {
     },
 
     debugToggle(sceneId, intensityId = null, { currentSceneId = sceneId, loading = false } = {}) {
-        if (!targetSceneIds().includes(sceneId)) return { ok: false, reason: '该位面未启用降雨天气' };
+        if (!isRainTarget(sceneId)) return { ok: false, reason: '该位面未启用降雨天气' };
         if (loading || sceneId !== currentSceneId) return { ok: false, reason: '请先进入目标位面' };
         const resolvedId = resolveSceneIntensityId(sceneId, intensityId);
         const current = this.getVisualState(sceneId);
@@ -400,7 +443,7 @@ export const WorldWeatherSystem = {
 
     getDebugModel(sceneId, currentSceneId = sceneId, loading = false) {
         const now = Math.max(0, Number(EnvironmentLightingSystem.serializeTime().elapsedMs) || 0);
-        const enabled = targetSceneIds().includes(sceneId);
+        const enabled = isRainTarget(sceneId);
         const entry = enabled ? ensureSchedule(sceneId, now) : null;
         const visual = enabled ? this.getVisualState(sceneId, now) : { active: false, intensityId: null, source: null };
         const shownIntensity = visual.intensityId || entry?.intensityId || rainConfig().defaultIntensity || 'light';
