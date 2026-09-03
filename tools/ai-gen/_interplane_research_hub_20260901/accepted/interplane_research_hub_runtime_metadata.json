@@ -1,0 +1,29 @@
+{
+  "assetId": "interplane_research_hub",
+  "source": "tools/ai-gen/_interplane_research_hub_20260901/shadow_soften_v01/interplane_research_hub_shadow_tone_strong.png",
+  "output": "assets/terrain/interplane_research_hub.png",
+  "cropBox": [56, 26, 944, 940],
+  "fileSize": [888, 914],
+  "displayW": 517,
+  "displayH": 510,
+  "footOffsetY": 253,
+  "visualFootprint": {
+    "centerXRatio": 0.499437,
+    "centerYRatio": 0.74453,
+    "widthRatio": 0.989865,
+    "depthRatio": 0.502188,
+    "scaleMode": "strict"
+  },
+  "bodyDepth": "tools/ai-gen/_interplane_research_hub_20260901/model_v2/interplane_research_hub_body_depth.png",
+  "bodyDepthIncludesFoundation": false,
+  "foundationExclusionSource": "tools/ai-gen/_interplane_research_hub_20260901/manifest.json#buildings.interplane_research_hub.bodyDepthExclude",
+  "assetCutoutHash": "520F93151D54E6A3584FBA036BEA8236D4F32320F1B8B0771B245F1471E97AC5",
+  "shadowCorrection": {
+    "source": "tools/ai-gen/_interplane_research_hub_20260901/selected/refine_v02_body.png",
+    "method": "alpha-locked low-frequency luma lift",
+    "amount": 0.14,
+    "alphaExact": true,
+    "imagegenReferenceIntegrated": false
+  },
+  "runtimeTested": false
+}

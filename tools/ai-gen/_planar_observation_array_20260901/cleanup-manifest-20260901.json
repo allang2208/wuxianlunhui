@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-01",
+  "scope": "planar_observation_array",
+  "retained": [
+    "editable approved Blender model and matching full/body Depth renders",
+    "selected 12-step v02 raw, prompt and generation record",
+    "selected 48-step v01 raw, prompt and generation record",
+    "direct final Alpha source, runtime metadata and runtime preview",
+    "formal runtime building, thumbnail and four lighting derivatives",
+    "candidate and workflow manifests plus the task-local Blender builder"
+  ],
+  "removed": [
+    {
+      "category": "unselected candidates",
+      "reason": "structure v01/v03 and refine v02 were not selected"
+    },
+    {
+      "category": "reproducible derivatives",
+      "reason": "keyed, cleaned, anchored, body and candidate preview outputs are rebuildable from the retained raw, Depth and manifest"
+    },
+    {
+      "category": "superseded finalization drafts",
+      "reason": "intermediate green-edge repairs, duplicate crops and obsolete metadata were replaced by the retained final Alpha source"
+    },
+    {
+      "category": "Blender backup",
+      "reason": ".blend1 was redundant after the approved editable .blend was retained"
+    }
+  ]
+}

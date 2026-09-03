@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "status": "runtime_assets_and_gameplay_integrated_static_only",
+  "date": "2026-09-01",
+  "assetId": "interplane_research_hub",
+  "purpose": "Preserve the editable Tier-5 model and record the selected standard-pipeline runtime asset and gameplay integration.",
+  "builder": "tools/ai-gen/_interplane_research_hub_20260901/interplane-research-hub-blender.py",
+  "sourceBuildings": [
+    "high_energy_research_laboratory",
+    "planar_observation_array"
+  ],
+  "direction": {
+    "camera": "World-122 orthographic 2.5D, elevation 30 degrees, model root rotation Z 44.8 degrees",
+    "entrance": "local -Y, visible toward the lower-right/front side after the standard model rotation",
+    "visualProgression": "Tier 3 academic laboratory -> Tier 4 planar observatory -> Tier 5 unique interplane coordination hub",
+    "identity": "six-storey coordination core, two attached five-storey data wings, roof-integrated decagonal chamber and one detailed physically supported five-node crown",
+    "forbidden": "old six-storey office block, portal arch, observation dishes, three-ring interferometer, antenna tower, detached annex, floating machinery, road, vehicle, person, readable text or neon"
+  },
+  "styleVersion": "world122-building-v5",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 938,
+    "topMargin": 20,
+    "widthMargin": 0.94
+  },
+  "palette": {
+    "foundation": [0.39, 0.41, 0.41, 1],
+    "stone": [0.60, 0.59, 0.54, 1],
+    "plaster": [0.70, 0.69, 0.64, 1],
+    "timber": [0.12, 0.10, 0.08, 1],
+    "roof": [0.13, 0.18, 0.20, 1],
+    "thatch": [0.35, 0.30, 0.22, 1],
+    "iron": [0.045, 0.06, 0.065, 1],
+    "brass": [0.48, 0.32, 0.16, 1],
+    "glass": [0.035, 0.22, 0.29, 1],
+    "glow": [0.25, 0.55, 0.78, 1],
+    "straw": [0.36, 0.31, 0.22, 1],
+    "concrete": [0.50, 0.51, 0.50, 1],
+    "brick": [0.48, 0.45, 0.39, 1],
+    "ceramic": [0.72, 0.70, 0.65, 1],
+    "conductor": [0.44, 0.23, 0.10, 1],
+    "machine": [0.10, 0.14, 0.16, 1],
+    "interior": [0.018, 0.027, 0.038, 1]
+  },
+  "model": {
+    "editableBlend": "model_v2/interplane_research_hub_model.blend",
+    "preview": "model_v2/interplane_research_hub_model_preview.png",
+    "approvalPreview": "model_v2/interplane_research_hub_model_approval_preview.png",
+    "fullDepth": "model_v2/interplane_research_hub_depth.png",
+    "bodyDepth": "model_v2/interplane_research_hub_body_depth.png"
+  },
+  "generation": {
+    "manifest": "candidate-manifest.json",
+    "selectedStructure": "selected/structure_v03_raw.png",
+    "selectedRefine": "selected/refine_v02_raw.png",
+    "shadowCorrection": "shadow_soften_v01/interplane_research_hub_shadow_tone_strong.png",
+    "runtime": "accepted/interplane_research_hub.png",
+    "runtimeMetadata": "accepted/runtime-metadata.json",
+    "selection": "selection.md"
+  },
+  "integration": {
+    "runtimeReplacement": true,
+    "thumbnail": "assets/ui/building-thumbnails/interplane_research_hub.png",
+    "lightingMaps": true,
+    "shadowCaster": "data/structure-shadow-casters.json#interplane_research_hub",
+    "technologyVersion": 68,
+    "upgradeProject": "interplane_research_hub_economy",
+    "runtimeTested": false
+  },
+  "buildings": {
+    "interplane_research_hub": {
+      "assetId": "interplane_research_hub",
+      "name": "跨位面中枢",
+      "assetClass": "future_academic_coordination_hub",
+      "foundationStyle": "precast_concrete",
+      "footprintCells": 4,
+      "logicalFootprintProjection": [512, 256],
+      "bodyDepthExclude": [
+        "InterplaneResearchHub_Foundation_Base",
+        "InterplaneResearchHub_Foundation_InsetPad",
+        "InterplaneResearchHub_Foundation_CurbFrontBack_-1",
+        "InterplaneResearchHub_Foundation_CurbFrontBack_1",
+        "InterplaneResearchHub_Foundation_CurbLeftRight_-1",
+        "InterplaneResearchHub_Foundation_CurbLeftRight_1"
+      ],
+      "dimensions": {
+        "foundation": [900, 830, 28],
+        "foundationInset": 30,
+        "foundationPadHeight": 14,
+        "centralLevels": 6,
+        "centralCore": [372, 326, 612],
+        "centralCenterY": 92,
+        "wingLevels": 5,
+        "wing": [300, 380, 450],
+        "wingCenterX": 292,
+        "wingCenterY": 28,
+        "entranceAtrium": [280, 196, 226],
+        "entranceCenterY": -238,
+        "entranceDoor": [136, 142],
+        "coordinationDrumRadius": 138,
+        "coordinationDrumHeight": 146,
+        "coordinationRingRadius": 150
+      },
+      "structuralIdentity": [
+        "one full clean 4x4 precast-concrete foundation with no baked road",
+        "one centered six-storey academic coordination core with independently editable bearing shells",
+        "exactly two attached symmetric five-storey data and archive wings",
+        "one centered glazed entrance with a dark recess, solid canopy and broad backed stairs",
+        "one roof-integrated decagonal coordination chamber",
+        "one detailed physically supported five-node coordination crown with regulators, yokes and conduits representing five controlled planes",
+        "exactly two low roof-attached archive nodes linked into the central chamber",
+        "one wordless five-node hub emblem above the entrance",
+        "no portal, observation dish, three-ring interferometer, antenna tower, detached annex, floating component, road, vehicle, person or readable text"
+      ],
+      "researchChainRole": {
+        "researchTier": 5,
+        "previous": "planar_observation_array",
+        "globalBuildLimit": 1,
+        "visualIntent": "the unique terminal coordination hub, substantially taller, broader and more vertically authoritative than Tier 4 while remaining a connected academic building rather than an office tower"
+      }
+    }
+  }
+}

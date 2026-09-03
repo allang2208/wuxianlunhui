@@ -1,0 +1,47 @@
+{
+  "source": "tools/ai-gen/_interplane_research_hub_20260901/shadow_soften_v01/interplane_research_hub_before_shadow.png",
+  "method": "alpha-locked low-frequency luma lift",
+  "candidates": {
+    "light": {
+      "amount": 0.07,
+      "sourceSize": [
+        888,
+        914
+      ],
+      "alphaExact": true,
+      "changedOpaquePixels": 420968,
+      "meanOpaqueLumaBefore": 0.41455376148223877,
+      "meanOpaqueLumaAfter": 0.4498777389526367,
+      "transparentPixelsWithDirtyRgb": 0
+    },
+    "medium": {
+      "amount": 0.105,
+      "sourceSize": [
+        888,
+        914
+      ],
+      "alphaExact": true,
+      "changedOpaquePixels": 422101,
+      "meanOpaqueLumaBefore": 0.41455376148223877,
+      "meanOpaqueLumaAfter": 0.4675397276878357,
+      "transparentPixelsWithDirtyRgb": 0
+    },
+    "strong": {
+      "amount": 0.14,
+      "sourceSize": [
+        888,
+        914
+      ],
+      "alphaExact": true,
+      "changedOpaquePixels": 422809,
+      "meanOpaqueLumaBefore": 0.41455376148223877,
+      "meanOpaqueLumaAfter": 0.48520174622535706,
+      "transparentPixelsWithDirtyRgb": 0
+    }
+  },
+  "selected": "interplane_research_hub_shadow_tone_strong.png",
+  "selectedSha256": "520F93151D54E6A3584FBA036BEA8236D4F32320F1B8B0771B245F1471E97AC5",
+  "runtimeAsset": "assets/terrain/interplane_research_hub.png",
+  "runtimeIntegrated": true,
+  "runtimeTested": false
+}

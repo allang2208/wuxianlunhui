@@ -1,0 +1,147 @@
+{
+  "assetId": "planar_observation_array",
+  "status": "installed_static_runtime_assets_complete",
+  "date": "2026-09-01",
+  "purpose": "Replace the Tier-4 planar observation array placeholder while preserving the existing runtime building contract.",
+  "sourceBuilding": "high_energy_research_laboratory",
+  "direction": {
+    "camera": "World-122 orthographic 2.5D, elevation 30 degrees, model root rotation Z 44.8 degrees",
+    "entrance": "local -Y, visible toward the lower-right/front side after the standard model rotation",
+    "visualProgression": "Tier 3 modern academic laboratory -> Tier 4 planar observatory array -> Tier 5 interplane hub",
+    "identity": "central observation rotunda and supported planar interferometer plus exactly two symmetric roof dishes; no portal or standalone communications tower"
+  },
+  "styleVersion": "world122-building-v5",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 938,
+    "topMargin": 20,
+    "widthMargin": 0.94
+  },
+  "palette": {
+    "foundation": [0.39, 0.41, 0.41, 1],
+    "stone": [0.60, 0.59, 0.54, 1],
+    "plaster": [0.70, 0.69, 0.64, 1],
+    "timber": [0.12, 0.10, 0.08, 1],
+    "roof": [0.13, 0.18, 0.20, 1],
+    "thatch": [0.35, 0.30, 0.22, 1],
+    "iron": [0.045, 0.06, 0.065, 1],
+    "brass": [0.43, 0.32, 0.17, 1],
+    "glass": [0.045, 0.24, 0.31, 1],
+    "glow": [0.18, 0.60, 0.72, 1],
+    "straw": [0.36, 0.31, 0.22, 1],
+    "concrete": [0.46, 0.48, 0.48, 1],
+    "brick": [0.48, 0.45, 0.39, 1],
+    "ceramic": [0.68, 0.68, 0.65, 1],
+    "conductor": [0.44, 0.23, 0.10, 1],
+    "machine": [0.13, 0.17, 0.18, 1],
+    "interior": [0.025, 0.035, 0.045, 1]
+  },
+  "structureGeneration": {
+    "model": "FLUX.2 Dev Depth",
+    "steps": 12,
+    "seedBase": 109101,
+    "candidateCount": 3,
+    "selected": "selected/structure_v02_raw.png",
+    "generationRecord": "selected/structure_v02_generation.json",
+    "prompt": "selected/structure_prompt.txt",
+    "selectionReason": "Best match to the approved Blender structure: two attached wings, two roof dishes, centered entrance, compact three-ring instrument, and no large cast shadow beyond the foundation."
+  },
+  "refineGeneration": {
+    "model": "FLUX.2 Dev Depth",
+    "steps": 48,
+    "denoise": 0.3,
+    "depthStrength": 0.75,
+    "seedBase": 109201,
+    "candidateCount": 2,
+    "selected": "selected/refine_v01_raw.png",
+    "generationRecord": "selected/refine_v01_generation.json",
+    "prompt": "selected/refine_prompt.txt",
+    "selectionReason": "Retains the complete centered entrance, stronger supported ring structure, exactly two dishes, and the selected massing without structural drift."
+  },
+  "finalization": {
+    "directAlphaSource": "accepted/planar_observation_array_greenfix_03.png",
+    "runtimeAsset": "assets/terrain/planar_observation_array.png",
+    "runtimeMetadata": "accepted/planar_observation_array_runtime_metadata.json",
+    "runtimePreview": "accepted/planar_observation_array_runtime_preview.png",
+    "thumbnail": "assets/ui/building-thumbnails/planar_observation_array.png",
+    "lightingAssets": [
+      "assets/terrain/lighting/planar_observation_array_silhouette.png",
+      "assets/terrain/lighting/planar_observation_array_projection.png",
+      "assets/terrain/lighting/planar_observation_array_height.png",
+      "assets/terrain/lighting/planar_observation_array_normal.png"
+    ]
+  },
+  "runtime": {
+    "sourceSize": [932, 722],
+    "displaySize": [516, 400],
+    "footOffsetY": 198,
+    "logicalFootprint": [512, 256],
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.67313,
+      "widthRatio": 0.991416,
+      "depthRatio": 0.639889,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "AC5D1011E92C562BE0C94A9FCCD3F2569F7DDF1826AA2125BE08215A83DDA11A"
+  },
+  "cleanup": "cleanup-manifest-20260901.json",
+  "buildings": {
+    "planar_observation_array": {
+      "assetId": "planar_observation_array",
+      "name": "位面观测阵列",
+      "assetClass": "modern_planar_observatory",
+      "foundationStyle": "precast_concrete",
+      "footprintCells": 4,
+      "logicalFootprintProjection": [512, 256],
+      "bodyDepthExclude": [
+        "PlanarObservationArray_Foundation_Base",
+        "PlanarObservationArray_Foundation_InsetPad",
+        "PlanarObservationArray_Foundation_CurbFrontBack_-1",
+        "PlanarObservationArray_Foundation_CurbFrontBack_1",
+        "PlanarObservationArray_Foundation_CurbLeftRight_-1",
+        "PlanarObservationArray_Foundation_CurbLeftRight_1",
+        "PlanarObservationArray_Entrance_Step_1",
+        "PlanarObservationArray_Entrance_Step_2",
+        "PlanarObservationArray_Entrance_Step_3"
+      ],
+      "dimensions": {
+        "foundation": [820, 760, 24],
+        "foundationInset": 28,
+        "foundationPadHeight": 10,
+        "centralBlock": [310, 300, 246],
+        "centralCenterY": 88,
+        "wing": [245, 330, 174],
+        "wingCenterX": 273,
+        "wingCenterY": 31,
+        "entranceAtrium": [238, 178, 166],
+        "entranceCenterY": -220,
+        "entranceDoor": [112, 108],
+        "rotundaRadius": 104,
+        "rotundaHeight": 102,
+        "instrumentRadius": 84,
+        "dishRadius": 66
+      },
+      "structuralIdentity": [
+        "one full clean 4x4 precast-concrete foundation with no baked road",
+        "one connected modern academic observatory with a three-storey central control hall",
+        "exactly two attached symmetric two-storey research wings",
+        "one centered glazed entrance with a dark recess, solid canopy and broad backed stairs",
+        "one roof-integrated cylindrical observation rotunda",
+        "one physically supported three-ring planar interferometer with a restrained luminous lens",
+        "exactly two symmetric shallow observation dishes mounted on the wing roofs",
+        "one wordless orbital-lens emblem above the entrance",
+        "no portal, standalone antenna tower, floating component, detached annex, road, vehicle or person"
+      ],
+      "researchChainRole": {
+        "researchTier": 4,
+        "previous": "high_energy_research_laboratory",
+        "next": "interplane_research_hub",
+        "visualIntent": "a connected modern planar observatory more advanced and taller than the high-energy laboratory, but not yet the unique vertical interplane coordination hub"
+      }
+    }
+  }
+}

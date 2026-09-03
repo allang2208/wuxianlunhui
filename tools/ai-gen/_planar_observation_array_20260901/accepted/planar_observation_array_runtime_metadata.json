@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_planar_observation_array_20260901\\accepted\\planar_observation_array_greenfix_03.png",
+  "output": "assets\\terrain\\planar_observation_array.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    0,
+    0,
+    932,
+    722
+  ],
+  "fileSize": [
+    932,
+    722
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    928,
+    718
+  ],
+  "displayW": 516,
+  "displayH": 400,
+  "footOffsetY": 198,
+  "scaleX": 0.5536480686695279,
+  "scaleY": 0.554016620498615
+}

@@ -1,0 +1,117 @@
+[
+  {
+    "id": "interplane_topic_convergence",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-e6f1d48c-407b-4fc0-8e90-477a91b24caa.png",
+    "raw": "raw/interplane-topic-convergence-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/interplane-topic-convergence.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/interplane-topic-convergence.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      7,
+      250,
+      249
+    ]
+  },
+  {
+    "id": "interplane_coordination_automation",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-8928dec6-c8f9-4b0d-9910-8e5a23311d3a.png",
+    "raw": "raw/interplane-coordination-automation-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/interplane-coordination-automation.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/interplane-coordination-automation.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      6,
+      250,
+      249
+    ]
+  },
+  {
+    "id": "interplane_archive_backbone",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-5f3b32f3-285f-44b7-b005-81e5be08e40c.png",
+    "raw": "raw/interplane-archive-backbone-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/interplane-archive-backbone.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/interplane-archive-backbone.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      7,
+      250,
+      249
+    ]
+  },
+  {
+    "id": "interplane_protocol_orchestration",
+    "kind": "upgrade",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-7d4781ba-1368-43d7-bba3-9b990634279e.png",
+    "raw": "raw/interplane-protocol-orchestration-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/building-upgrades/interplane-protocol-orchestration.png",
+    "runtimeLightweight": "assets/ui/runtime-icons/ui/building-upgrades/interplane-protocol-orchestration.png",
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      8,
+      250,
+      248
+    ]
+  },
+  {
+    "id": "interplane_hub_standardization",
+    "kind": "technology",
+    "source": "C:/Users/allan/.codex/generated_images/01a05c07-8f7c-7c50-af6b-77e995be2e4c/exec-30f732c1-799f-47f6-9e2f-5165187f5914.png",
+    "raw": "raw/interplane-hub-standardization-raw.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtime": "assets/ui/technology-icons/interplane_hub_standardization.png",
+    "runtimeLightweight": null,
+    "outputSize": [
+      1024,
+      1024
+    ],
+    "alphaBBox": [
+      79,
+      12,
+      944,
+      1012
+    ]
+  }
+]
