@@ -22,9 +22,11 @@
 
 - `scene8~scene12`是地貌模板的运行时加载器和开发预览入口，不再作为正式剧情中的唯一世界身份；模板登记在双份`world-system.json.templates`，固定世界项必须标`templatePreviewOnly:true`，不得进入正常传送或建门候选。
 - 正式剧情推进通过`WorldProgressionSystem.createStoryWorldInstance()`或`createRandomStoryWorldInstance()`创建持久实例。实例至少持有`instanceId/templateId/runtimeSceneId/seed/kind/strategicCellId`；随机选择只能取`storyEnabled:true`且已有运行场景的模板。
+- `strategicCellId`必须作为剧情提交幂等键；事件重试应复用原实例，禁止重复抽模板或以`replace:true`覆盖已游玩快照。战略地图模块未接入时，可用配置化初始实例补位，但已有正式实例后不得再次补建。
 - 运行时场景ID决定加载器、尺寸、美术、BGM和模板专属效果；逻辑世界ID决定传送门、快照、迷雾、兵线、天气、入侵、建筑和玩家位置。业务系统读取当前世界必须用`SceneManager.getCurrentWorldId()`，需要加载器身份时才用`currentScene/getCurrentRuntimeSceneId()`。
-- 开发工具通过`WorldInstanceSystem.createDevPreviewInstance()`生成一次性实例，可指定seed复现布局；它不写主存档、不参与后台结算/入侵，离开后立即释放。禁止直接修改`SceneManager.currentScene`假装生成了新位面。
+- 开发工具通过`WorldInstanceSystem.createDevPreviewInstance()`生成一次性实例，可指定seed复现布局；它不写主存档、不参与后台结算/入侵，离开后立即释放。测试实例内禁止保存；读档必须先安全离场并清理当前实例ID、玩家落点和兵线瞬态状态。禁止直接修改`SceneManager.currentScene`假装生成了新位面。
 - 模板加载器内所有随机流都必须从逻辑世界ID派生；正式实例首世代直接使用实例seed，重建世代再由`instanceId + seed + epoch`派生。持久状态、实体ID和缓存键不得只用`sceneN`，否则多个同模板位面会串档。
+- 读档恢复顺序必须是实例注册表→位面进度→天气/快照→进入保存时所在世界；后台模拟中凡按位面模板读取倍率或专属配置的逻辑，必须先把逻辑实例ID解析为`runtimeSceneId`，但快照、奖励和状态键仍保留逻辑ID。
 - 新模板仍按下方“生成世界标准工作流”完成地板、边界、环境和加载器，但正常入口改为创建实例；尚未合入运行场景的模板必须在开发工具禁用，并设`storyEnabled:false`，不得进入正式随机池。
 
 ### ⭐ 生成世界标准工作流（2026-08-19 定稿，2026-09-03实例化修订）

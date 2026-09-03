@@ -236,7 +236,9 @@ export const WorldProgressionSystem = {
         WorldInstanceSystem.reset();
         state = initialState();
         for (const sceneId of Object.keys(state.portals)) resetWorldSnapshot(sceneId);
+        const initialInstance = this.ensureInitialStoryWorldInstance();
         this.ensureConstructedWorldSnapshots();
+        return initialInstance;
     },
 
     serialize() {
@@ -280,7 +282,9 @@ export const WorldProgressionSystem = {
         }
         state = next;
         for (const sceneId of Object.keys(state.portals)) refreshAvailability(sceneId);
+        const initialInstance = this.ensureInitialStoryWorldInstance();
         this.ensureConstructedWorldSnapshots();
+        return initialInstance;
     },
 
     /** 已建传送门必须始终拥有后台可结算的基础或完整快照。 */
@@ -368,17 +372,40 @@ export const WorldProgressionSystem = {
             .map((instance) => instance.instanceId);
     },
 
-    createStoryWorldInstance(options = {}) {
-        const result = WorldInstanceSystem.createStoryInstance(options);
+    /**
+     * 当前战略地图模块尚未落地主调用点时，为新局/旧档提供一个可游玩的正式位面。
+     * 后续战略格事件创建任意正式实例后，本入口自动停止补位。
+     */
+    ensureInitialStoryWorldInstance() {
+        const bootstrap = worldSystemConfig.storyGeneration?.initialInstance || {};
+        if (bootstrap.enabled === false) return { ok: true, skipped: true, reason: '初始剧情位面已禁用' };
+        const existing = WorldInstanceSystem.listInstances({ persistentOnly: true });
+        if (existing.length) {
+            return {
+                ok: true,
+                skipped: true,
+                reused: true,
+                worldId: existing[0].instanceId,
+                instance: existing[0],
+            };
+        }
+        return this.createRandomStoryWorldInstance({
+            templateIds: Array.isArray(bootstrap.templateIds) ? bootstrap.templateIds : null,
+            strategicCellId: bootstrap.strategicCellId || 'story:initial-plane',
+            source: 'story_bootstrap',
+        });
+    },
+
+    _finalizeStoryWorldInstance(result) {
         if (!result.ok) return result;
         const worldId = result.instance.instanceId;
         const portal = portalState(worldId);
-        setPortalProtection(portal, worldId);
+        if (!result.reused) setPortalProtection(portal, worldId);
         ensureWorldBaseSnapshot(worldId, {
             portalHp: portal.hp,
             worldEpoch: portal.worldEpoch,
             generation: this.getWorldGenerationContext(worldId),
-            replace: true,
+            replace: !result.reused,
             includeInitialFeatureBuilding: !!this.getWorldConfig(worldId)?.featureBuilding,
         });
         return {
@@ -388,24 +415,16 @@ export const WorldProgressionSystem = {
         };
     },
 
+    createStoryWorldInstance(options = {}) {
+        return this._finalizeStoryWorldInstance(
+            WorldInstanceSystem.createStoryInstance(options)
+        );
+    },
+
     createRandomStoryWorldInstance(options = {}) {
-        const result = WorldInstanceSystem.createRandomStoryInstance(options);
-        if (!result.ok) return result;
-        const worldId = result.instance.instanceId;
-        const portal = portalState(worldId);
-        setPortalProtection(portal, worldId);
-        ensureWorldBaseSnapshot(worldId, {
-            portalHp: portal.hp,
-            worldEpoch: portal.worldEpoch,
-            generation: this.getWorldGenerationContext(worldId),
-            replace: true,
-            includeInitialFeatureBuilding: !!this.getWorldConfig(worldId)?.featureBuilding,
-        });
-        return {
-            ...result,
-            worldId,
-            portal: this.getPortalState(worldId),
-        };
+        return this._finalizeStoryWorldInstance(
+            WorldInstanceSystem.createRandomStoryInstance(options)
+        );
     },
 
     canPersistWorld(worldId) {

@@ -27,6 +27,7 @@ import { TechnologySystem } from './technology-system.js';
 import { routeBakeryPlantTributes } from './bakery-tribute-routing.js';
 import { routeArmoryEnhancementStones } from './armory-reward-routing.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
+import { WorldInstanceSystem } from './world-instance-system.js';
 import {
     ensureWorldBackgroundLedger,
     invalidateWorldBackgroundLedger,
@@ -174,6 +175,7 @@ export const WorldSimDriver = {
                 commit: true,
                 skipWaves: true,
                 sceneId,
+                runtimeSceneId: WorldInstanceSystem.resolveRuntimeSceneId(sceneId),
                 includePassiveEnergy: sceneId === passiveTarget,
                 gameTimeMs: nowGame,
                 isRecruitmentTierUnlocked: (id) =>

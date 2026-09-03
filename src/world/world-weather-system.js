@@ -71,10 +71,11 @@ function isRainTarget(worldId) {
 }
 
 function targetWorldIds() {
-    const fixed = targetSceneIds().filter((sceneId) =>
+    const rainRuntimeSceneIds = new Set(targetSceneIds());
+    const fixed = [...rainRuntimeSceneIds].filter((sceneId) =>
         WorldInstanceSystem.config.worlds?.[sceneId]?.templatePreviewOnly !== true);
     const instances = WorldInstanceSystem.listInstances({ persistentOnly: true })
-        .filter((instance) => fixed.includes(instance.runtimeSceneId))
+        .filter((instance) => rainRuntimeSceneIds.has(instance.runtimeSceneId))
         .map((instance) => instance.instanceId);
     return [...fixed, ...instances];
 }

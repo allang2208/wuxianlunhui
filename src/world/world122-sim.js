@@ -1099,7 +1099,7 @@ function _createSettlementReport(elapsedMs) {
  * 后台结算主入口。
  * @param {object} snap 快照（commit 时原地修改）
  * @param {number} elapsedMs 离场时长
- * @param {{commit?:boolean, grant?:(reward:{gold?:number,energy?:number,tributeItemIds?:string[]})=>void}} [opts]
+ * @param {{commit?:boolean, sceneId?:string, runtimeSceneId?:string, grant?:(reward:{gold?:number,energy?:number,tributeItemIds?:string[]})=>void}} [opts]
  * @returns 结算报告（世界切换面板预览/回场播报共用）
  */
 export function settleWorld122(snap, elapsedMs, opts = {}) {
@@ -1141,6 +1141,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
 
 function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     const commit = opts.commit !== false;
+    const runtimeSceneId = opts.runtimeSceneId || opts.sceneId || 'scene8';
     const report = _createSettlementReport(elapsedMs);
     let t = elapsedMs / 1000; // 秒
     const cfg = target.config || {};
@@ -1511,7 +1512,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         } else if (economyType === 'windmill') {
             const windmillCfg = populationEconomyConfig.windmill || {};
             const configuredPlaneMultiplier = Number(
-                windmillCfg.planeOutputMultipliers?.[opts.sceneId || 'scene8']
+                windmillCfg.planeOutputMultipliers?.[runtimeSceneId]
             );
             const planeMultiplier = Number.isFinite(configuredPlaneMultiplier)
                 ? Math.max(0, configuredPlaneMultiplier) : 1;
@@ -1701,7 +1702,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                     Number(bakeryCfg.droughtFoodMultiplierFloor) || 1)
                 : foodWeatherMultiplier;
             const planeOutputMultipliers = bakeryCfg.planeOutputMultipliers || {};
-            const exactPlaneMultiplier = Number(planeOutputMultipliers[opts.sceneId || 'scene8']);
+            const exactPlaneMultiplier = Number(planeOutputMultipliers[runtimeSceneId]);
             const defaultPlaneMultiplier = Number(planeOutputMultipliers.default);
             const processorPlaneMultiplier = isSmokehouse
                 ? (Number.isFinite(exactPlaneMultiplier) && exactPlaneMultiplier >= 0

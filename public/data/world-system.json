@@ -1,5 +1,12 @@
 {
-  "version": 3,
+  "version": 4,
+  "storyGeneration": {
+    "initialInstance": {
+      "enabled": true,
+      "strategicCellId": "story:initial-plane",
+      "templateIds": ["desert", "snowfield", "forest", "ruins"]
+    }
+  },
   "resetPolicyDefaults": {
     "policyVersion": 1,
     "baseTemplate": "portal_only_v1",

@@ -26,7 +26,11 @@ if (created.ok) {
 
 需要指定模板时改用`createStoryWorldInstance({ templateId, strategicCellId, seed })`。正式API会建立传送门生命周期、首世代生成上下文和基础快照，并随主存档恢复。
 
-开发预览由开发工具调用`WorldInstanceSystem.createDevPreviewInstance({ templateId, seed })`后进入。预览实例不序列化，不进入世界面板、后台经济或入侵候选；离开后清理。
+`strategicCellId`是剧情提交的幂等键：相同战略格重复调用会返回原实例并标记`reused:true`，不会重复抽取模板或重置已有快照。战略地图模块接入前，新游戏和没有实例的旧存档由`world-system.json.storyGeneration.initialInstance`补建一个随机正式位面；一旦已有任意正式实例，该补位入口自动停止。
+
+开发预览由开发工具调用`WorldInstanceSystem.createDevPreviewInstance({ templateId, seed })`后进入。预览实例不序列化，不进入世界面板、后台经济或入侵候选；离开后清理。测试位面中禁止保存，读档会先安全返回主神空间再恢复正式注册表，避免玩家落点、兵线或当前实例ID泄漏进存档。
+
+主存档同时保存当前正式逻辑世界和各持久世界落点；恢复顺序固定为实例注册表、位面进度、天气/快照，最后再进入保存时所在的正式实例。后台结算需要模板差异时必须显式传入实例解析后的`runtimeSceneId`，不能直接拿`world-instance:*`查询`sceneN`配置表。
 
 ## 模板状态
 
@@ -42,4 +46,4 @@ if (created.ok) {
 
 ## 后续接线边界
 
-战略剧情事件应在业务提交成功后创建正式实例并保存返回的`worldId`，UI只消费该ID，不能自行抽取模板。沙尘暴、干旱和死寂雾潮目前仍按模板共享时间线，后续应改为持久实例分槽；该项与`scene12`启用记录在`TODO.md`。
+战略剧情事件应在业务提交成功后创建正式实例并保存返回的`worldId`，UI只消费该ID，不能自行抽取模板。当前初始随机位面只是战略模块落地前的可游玩补位，不替代未来的剧情格事件。沙尘暴、干旱和死寂雾潮目前仍按模板共享时间线，后续应改为持久实例分槽；该项与`scene12`启用记录在`TODO.md`。

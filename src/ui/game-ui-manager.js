@@ -484,14 +484,26 @@ export const GameUIManager = {
             return;
         }
         if (!this.player) return;
-        const positionBeforeLoad = { x: this.player.x, y: this.player.y };
-        // 恢复玩家数据与位置
-        if (data.player) Object.assign(this.player.data, data.player);
-        if (data.position && Number.isFinite(data.position.x) && Number.isFinite(data.position.y)) {
-            this.player.x = data.position.x;
-            this.player.y = data.position.y;
+        const { SceneManager } = await import('../world/scene-manager.js');
+        const currentWorldId = SceneManager.getCurrentWorldId?.() || SceneManager.currentScene;
+        const currentWorldConfig = window.WorldProgressionSystem?.getWorldConfig?.(currentWorldId);
+        const inWorldInstance = String(currentWorldId || '').startsWith('world-instance:');
+        if (inWorldInstance || currentWorldConfig?.templatePreviewOnly) {
+            const switched = await SceneManager.switchScene('main', this.player);
+            if (switched !== true) {
+                alert('读档前无法安全退出当前位面，请返回主神空间后重试');
+                return;
+            }
         }
+        const positionBeforeLoad = { x: this.player.x, y: this.player.y };
+        const requestedWorldId = typeof data.worlds?.currentWorldId === 'string'
+            ? data.worlds.currentWorldId : null;
+        // 玩家落点要等位面注册表和目标场景恢复后再应用，避免把实例坐标写进主神空间。
+        if (data.player) Object.assign(this.player.data, data.player);
         EnvironmentLightingSystem.restoreTime(data.gameTime);
+        // 位面注册表必须先于进度、天气和快照恢复；这些系统都需要用实例ID解析模板。
+        window.WorldInstanceSystem?.restore?.(data.worlds?.instances);
+        window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
         window.World122SandstormSystem?.restore?.(data.worlds?.sandstorm ?? data.world122?.sandstorm);
         window.World122DroughtSystem?.restore?.(data.worlds?.drought);
         window.World125FogTideSystem?.restore?.(data.worlds?.fogTide);
@@ -506,8 +518,6 @@ export const GameUIManager = {
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
         World122TributeSystem.restore(data.world122?.tributeBuffs);
-        window.WorldInstanceSystem?.restore?.(data.worlds?.instances);
-        window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
         if (data.worlds?.scenes) restoreWorldScenes(data.worlds.scenes);
         else restoreWorld122Scene(data.world122?.scene);
         window.WorldProgressionSystem?.ensureConstructedWorldSnapshots?.();
@@ -542,13 +552,48 @@ export const GameUIManager = {
         const curWeapon = (this.player.equipments && this.player.weaponMode) ? this.player.equipments[this.player.weaponMode] : null;
         if (this.player._applySkillOverrides) this.player._applySkillOverrides(curWeapon);
         if (this.player._initAmmoForSlot && this.player.weaponMode) this.player._initAmmoForSlot(this.player.weaponMode);
+        const restoredWorldPositions = {};
+        for (const [worldId, position] of Object.entries(data.worlds?.playerPositions || {})) {
+            const mayPersist = worldId === 'main'
+                || window.WorldInstanceSystem?.isPersistentInstance?.(worldId);
+            if (!mayPersist || !Number.isFinite(position?.x) || !Number.isFinite(position?.y)) continue;
+            restoredWorldPositions[worldId] = { x: position.x, y: position.y };
+        }
+        const legacyPosition = data.position
+            && Number.isFinite(data.position.x) && Number.isFinite(data.position.y)
+            ? { x: data.position.x, y: data.position.y }
+            : null;
+        const targetWorldExists = requestedWorldId === 'main'
+            || window.WorldInstanceSystem?.isPersistentInstance?.(requestedWorldId);
+        const targetWorldId = targetWorldExists ? requestedWorldId : 'main';
+        if (!restoredWorldPositions[targetWorldId] && legacyPosition) {
+            restoredWorldPositions[targetWorldId] = legacyPosition;
+        }
+        Game._worldPlayerPos = restoredWorldPositions;
+        let restoredPersistentWorld = false;
+        if (targetWorldId !== 'main') {
+            const mainPosition = restoredWorldPositions.main;
+            if (mainPosition) {
+                this.player.x = mainPosition.x;
+                this.player.y = mainPosition.y;
+            }
+            const switched = await SceneManager.enterWorldInstance(targetWorldId, this.player);
+            if (switched !== true) {
+                alert('存档数据已恢复，但保存时所在位面无法重新进入，已停留在主神空间');
+            } else {
+                restoredPersistentWorld = true;
+            }
+        } else {
+            const mainPosition = restoredWorldPositions.main || legacyPosition || positionBeforeLoad;
+            this.player.x = mainPosition.x;
+            this.player.y = mainPosition.y;
+        }
         // 任务实例中的原地读档必须重建裂隙/返回门实体；若存档没有活动会话则安全退回主城。
         // 非任务场景读到活动会话时不强制传送，仍由小鼠侍从入口继续该任务。
         try {
-            const { SceneManager } = await import('../world/scene-manager.js');
             const restoredQuestId = QuestStore.getActiveQuestId();
             const inQuestInstance = SceneManager.isQuestInstance();
-            if (restoredQuestId && !inQuestInstance) {
+            if (restoredQuestId && !inQuestInstance && !restoredPersistentWorld) {
                 // 任务中保存的坐标属于瞬态雪原；在主城/永久世界读档时保留当前落点，等待侍从续接。
                 this.player.x = positionBeforeLoad.x;
                 this.player.y = positionBeforeLoad.y;
@@ -573,6 +618,29 @@ export const GameUIManager = {
     },
     save() {
         if (!this.player) return;
+        const sceneManager = globalThis.SceneManager;
+        const currentWorldId = sceneManager?.getCurrentWorldId?.() || sceneManager?.currentScene;
+        if (window.WorldInstanceSystem?.isDevPreview?.(currentWorldId)
+            || window.WorldProgressionSystem?.getWorldConfig?.(currentWorldId)?.templatePreviewOnly) {
+            alert('测试位面不写入正式存档，请先返回主神空间');
+            return;
+        }
+        const serializableWorldPositions = {};
+        for (const [worldId, position] of Object.entries(Game._worldPlayerPos || {})) {
+            const mayPersist = worldId === 'main'
+                || window.WorldInstanceSystem?.isPersistentInstance?.(worldId);
+            if (!mayPersist || !Number.isFinite(position?.x) || !Number.isFinite(position?.y)) continue;
+            serializableWorldPositions[worldId] = { x: position.x, y: position.y };
+        }
+        const persistentCurrentWorldId = currentWorldId === 'main'
+            || window.WorldInstanceSystem?.isPersistentInstance?.(currentWorldId)
+            ? currentWorldId : null;
+        if (persistentCurrentWorldId) {
+            serializableWorldPositions[persistentCurrentWorldId] = {
+                x: this.player.x,
+                y: this.player.y,
+            };
+        }
         // 存档是后台账本的权威读取边界：先一次性结算连续资源与到期队列，再序列化。
         window.WorldSimDriver?.flushAll?.({ notify: false, reason: 'save' });
         window.WorldInvasionSystem?.settleBackgroundNow?.();
@@ -597,6 +665,8 @@ export const GameUIManager = {
                 scene: serializeWorld122Scene(),
             },
             worlds: {
+                currentWorldId: persistentCurrentWorldId,
+                playerPositions: serializableWorldPositions,
                 instances: window.WorldInstanceSystem?.serialize?.() || null,
                 progression: window.WorldProgressionSystem?.serialize?.() || null,
                 troopLines: TroopLineSystem.serialize(),
@@ -609,7 +679,7 @@ export const GameUIManager = {
                 scenes: serializeWorldScenes(),
             },
         };
-        try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
+        try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('游戏已保存'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
     _formatEconomyCompactNumber(valueRaw) {

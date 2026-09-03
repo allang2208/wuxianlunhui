@@ -192,7 +192,7 @@ export const WorldSwitchPanel = {
             ? `<b style="color:#ff775f">入侵第 ${invasion.waveIndex}/${invasion.waveCount} 波</b> · `
             : '';
         let html = `<span>${protectionText}${invasionText}建筑 ${buildings} 座${lost ? `（损 ${lost}）` : ''} · 仓库能源 ${Math.round(energy)}</span>`;
-        const preview = sceneId === 'scene8' ? previewWorld122Report() : null;
+        const preview = previewWorld122Report(sceneId);
         if (preview) {
             const parts = [];
             if (preview.defeated) parts.push('<b style="color:#ff5555">⚠ 预估已失守</b>');

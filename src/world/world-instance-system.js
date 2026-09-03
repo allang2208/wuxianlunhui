@@ -13,8 +13,17 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 
 function normalizeSeed(value, fallback = 1) {
     const numeric = Number(value);
-    if (!Number.isFinite(numeric)) return fallback >>> 0;
+    const fallbackNumeric = Number(fallback);
+    const fallbackValue = Number.isFinite(fallbackNumeric) && fallbackNumeric >= 1
+        ? Math.max(1, Math.floor(fallbackNumeric) >>> 0) : 1;
+    if (!Number.isFinite(numeric) || numeric < 1) return fallbackValue;
     return Math.max(1, Math.floor(numeric) >>> 0);
+}
+
+function normalizeStrategicCellId(value) {
+    if (value == null) return null;
+    const normalized = String(value).trim();
+    return normalized || null;
 }
 
 function randomSeed() {
@@ -23,7 +32,7 @@ function randomSeed() {
         globalThis.crypto.getRandomValues(values);
         return normalizeSeed(values[0]);
     }
-    return normalizeSeed(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
+    return normalizeSeed((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
 }
 
 function normalizeTemplate(templateId) {
@@ -53,7 +62,7 @@ function normalizeInstance(raw) {
         kind,
         persistent: kind === WORLD_INSTANCE_KIND.STORY && raw.persistent !== false,
         source: String(raw.source || kind),
-        strategicCellId: raw.strategicCellId == null ? null : String(raw.strategicCellId),
+        strategicCellId: normalizeStrategicCellId(raw.strategicCellId),
         createdAt: Math.max(0, Number(raw.createdAt) || Date.now()),
     };
 }
@@ -156,15 +165,40 @@ export const WorldInstanceSystem = {
     },
 
     createStoryInstance(options = {}) {
+        const strategicCellId = normalizeStrategicCellId(options.strategicCellId);
+        const existing = this.findStoryInstanceByStrategicCellId(strategicCellId);
+        if (existing) {
+            return {
+                ok: true,
+                reused: true,
+                instance: existing,
+                template: this.getTemplate(existing.templateId),
+            };
+        }
         const template = this.getTemplate(options.templateId);
         if (!template || template.storyEnabled === false
             || !worldSystemConfig.worlds?.[template.runtimeSceneId]) {
             return { ok: false, reason: '该位面模板尚未开放正式剧情生成' };
         }
-        return this.createInstance({ ...options, kind: WORLD_INSTANCE_KIND.STORY, persistent: true });
+        return this.createInstance({
+            ...options,
+            strategicCellId,
+            kind: WORLD_INSTANCE_KIND.STORY,
+            persistent: true,
+        });
     },
 
     createRandomStoryInstance({ templateIds = null, random = Math.random, ...options } = {}) {
+        const strategicCellId = normalizeStrategicCellId(options.strategicCellId);
+        const existing = this.findStoryInstanceByStrategicCellId(strategicCellId);
+        if (existing) {
+            return {
+                ok: true,
+                reused: true,
+                instance: existing,
+                template: this.getTemplate(existing.templateId),
+            };
+        }
         const candidates = (Array.isArray(templateIds) && templateIds.length
             ? templateIds.map((id) => this.getTemplate(id))
             : this.listTemplates())
@@ -175,7 +209,11 @@ export const WorldInstanceSystem = {
         const roll = typeof random === 'function' ? random() : Math.random();
         const index = Math.min(candidates.length - 1,
             Math.floor(Math.max(0, Number(roll) || 0) * candidates.length));
-        return this.createStoryInstance({ ...options, templateId: candidates[index].id });
+        return this.createStoryInstance({
+            ...options,
+            strategicCellId,
+            templateId: candidates[index].id,
+        });
     },
 
     createDevPreviewInstance({ templateId, seed = null } = {}) {
@@ -198,6 +236,16 @@ export const WorldInstanceSystem = {
             .filter((instance) => (!persistentOnly || instance.persistent)
                 && (!kind || instance.kind === kind))
             .map((instance) => clone(instance));
+    },
+
+    findStoryInstanceByStrategicCellId(strategicCellId) {
+        const normalized = normalizeStrategicCellId(strategicCellId);
+        if (!normalized) return null;
+        const instance = Object.values(state.instances).find((candidate) =>
+            candidate.kind === WORLD_INSTANCE_KIND.STORY
+            && candidate.persistent
+            && candidate.strategicCellId === normalized);
+        return instance ? clone(instance) : null;
     },
 
     removeInstance(instanceId) {

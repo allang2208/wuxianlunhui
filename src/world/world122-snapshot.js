@@ -1014,10 +1014,10 @@ export function hasBackgroundContinuousUpgrade(category, excludeSceneId = null) 
 
 /** 世界切换面板预览：不回写快照、无全局副作用（commit=false）；
  *  玩家在 122 内或无快照时返回 null。 */
-export function previewWorld122Report() {
-    const stored = _storedByWorld.scene8;
-    if (!stored || !isWorldSnapshotCurrent('scene8', stored)) return null;
-    if (isWorld122Live()) return null;
+export function previewWorld122Report(worldId = 'scene8') {
+    const stored = _storedByWorld[worldId];
+    if (!stored || !isWorldSnapshotCurrent(worldId, stored)) return null;
+    if (isWorldLive(worldId)) return null;
     const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
     const capturedGameTimeMs = Number(stored.capturedGameTimeMs);
     const elapsed = Math.max(0, nowGame - (
@@ -1027,6 +1027,8 @@ export function previewWorld122Report() {
     return settleWorld122(stored, elapsed, {
         commit: false,
         skipWaves: true,
+        sceneId: worldId,
+        runtimeSceneId: WorldInstanceSystem.resolveRuntimeSceneId(worldId),
         isRecruitmentTierUnlocked: (id) =>
             TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
         isUnitUnlocked: (id) => TechnologySystem?.isUnlocked?.('unit', id) === true,
@@ -1480,6 +1482,7 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             commit: true,
             skipWaves: DefenseSystem._managedExternally === true,
             sceneId,
+            runtimeSceneId: WorldInstanceSystem.resolveRuntimeSceneId(sceneId),
             gameTimeMs: nowGame,
             isRecruitmentTierUnlocked: (id) =>
                 TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
