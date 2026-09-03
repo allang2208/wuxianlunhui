@@ -523,9 +523,38 @@
  },
  "frozenDungeonBeginner": {
   "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 2048,
+   "bossSize": 2304,
    "wallConstruction": "worldBlock1x1",
+   "entryEdge": "BL",
    "gateCells": 6,
-   "passageCells": 12
+   "passageCells": 12,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "horizontal",
+    "maxAttempts": 32,
+    "sizeJitterCells": 2,
+    "doorEndClearanceCells": 1,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "horizontalStagger"
+    ]
+   },
+   "proceduralTerrain": {
+    "enabled": true,
+    "kind": "frozenAbyss",
+    "minPits": 1,
+    "maxPits": 2
+   }
   },
   "combatArena": {
    "enabled": true
@@ -649,12 +678,7 @@
   },
   "minRoomsToBoss": 7,
   "floor": {
-   "tiles": [
-    "floor_snow_fresh_seamless"
-   ],
-   "glow": false,
-   "continuous": true,
-   "textureScaleY": 0.5774
+   "terrainProfile": "frozenTerrain"
   },
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie",
@@ -663,9 +687,19 @@
  },
  "frozenDungeonMid": {
   "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 2048,
+   "bossSize": 2304,
    "wallConstruction": "worldBlock1x1",
+   "entryEdge": "BL",
    "gateCells": 6,
-   "passageCells": 12
+   "passageCells": 12,
+   "proceduralTerrain": {
+    "enabled": true,
+    "kind": "frozenAbyss",
+    "minPits": 1,
+    "maxPits": 2
+   }
   },
   "combatArena": {
    "enabled": true,
@@ -785,12 +819,7 @@
   },
   "minRoomsToBoss": 8,
   "floor": {
-   "tiles": [
-    "floor_snow_fresh_seamless"
-   ],
-   "glow": false,
-   "continuous": true,
-   "textureScaleY": 0.5774
+   "terrainProfile": "frozenTerrain"
   },
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie",
@@ -799,9 +828,19 @@
  },
  "frozenDungeon": {
   "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 2048,
+   "bossSize": 2304,
    "wallConstruction": "worldBlock1x1",
+   "entryEdge": "BL",
    "gateCells": 6,
-   "passageCells": 12
+   "passageCells": 12,
+   "proceduralTerrain": {
+    "enabled": true,
+    "kind": "frozenAbyss",
+    "minPits": 1,
+    "maxPits": 2
+   }
   },
   "combatArena": {
    "enabled": true,
@@ -921,12 +960,7 @@
   },
   "minRoomsToBoss": 9,
   "floor": {
-   "tiles": [
-    "floor_snow_fresh_seamless"
-   ],
-   "glow": false,
-   "continuous": true,
-   "textureScaleY": 0.5774
+   "terrainProfile": "frozenTerrain"
   },
   "mapBackground": "assets/scenes/dungeon-map-bg.png",
   "family": "zombie",

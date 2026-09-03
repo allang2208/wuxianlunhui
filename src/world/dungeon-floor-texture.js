@@ -18,6 +18,9 @@ const DEFAULT_PROFILE = { tiles: ['blackbrick5'], glow: true };
 
 // 场地四周边缘黑→透明渐变宽度
 const FLOOR_EDGE_FADE = 64;
+const FROZEN_ABYSS_TILE_KEY = 'frozen_abyss_autotile';
+const FROZEN_ABYSS_TILE_W = 128;
+const FROZEN_ABYSS_TILE_H = 64;
 
 // 回退网格地板默认样式（调用方未提供时使用）
 const DEFAULT_FALLBACK_TERRAIN = {
@@ -82,7 +85,7 @@ function _inDecoClearZone(gx, gy) {
 
 /**
  * 设置当前地板配置
- * @param {{tiles:string[], glow?:boolean, overlapX?:number, overlapY?:number, backgroundColor?:string, deco?:object}|null} profile null 恢复默认
+ * @param {{tiles:string[], glow?:boolean, overlapX?:number, overlapY?:number, backgroundColor?:string, deco?:object, corridorToneAlpha?:number}|null} profile null 恢复默认
  */
 export function setDungeonFloorProfile(profile) {
     _floorProfile = (profile && Array.isArray(profile.tiles) && profile.tiles.length > 0)
@@ -98,6 +101,7 @@ export function setDungeonFloorProfile(profile) {
             sandPatches: profile.sandPatches || null,
             surfacePatches: Array.isArray(profile.surfacePatches) ? profile.surfacePatches : null,
             cellDetails: profile.cellDetails || null,
+            corridorToneAlpha: Math.max(0, Math.min(0.35, Number(profile.corridorToneAlpha) || 0)),
         }
         : null;
 }
@@ -513,10 +517,34 @@ function _floorRegionEdgeDistance(gx, gy, region) {
     let best = -Infinity;
     for (const diamond of diamonds) {
         if (!diamond) continue;
-        const inside = Math.abs(gx - diamond.cx) / Math.max(1, diamond.rx)
-            + Math.abs(gy - diamond.cy) / Math.max(1, diamond.ry) <= 1;
+        const polygon = diamond.floorPolygon;
+        let inside;
+        let edgeDistance;
+        if (Array.isArray(polygon) && polygon.length >= 3) {
+            inside = false;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const a = polygon[i], b = polygon[j];
+                const crosses = ((a.y > gy) !== (b.y > gy))
+                    && (gx < (b.x - a.x) * (gy - a.y) / ((b.y - a.y) || 0.000001) + a.x);
+                if (crosses) inside = !inside;
+            }
+            edgeDistance = Infinity;
+            for (let i = 0; i < polygon.length; i++) {
+                const a = polygon[i], b = polygon[(i + 1) % polygon.length];
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const len2 = dx * dx + dy * dy;
+                const t = len2 > 0 ? Math.max(0, Math.min(1,
+                    ((gx - a.x) * dx + (gy - a.y) * dy) / len2)) : 0;
+                edgeDistance = Math.min(edgeDistance,
+                    Math.hypot(gx - (a.x + dx * t), gy - (a.y + dy * t)));
+            }
+        } else {
+            inside = Math.abs(gx - diamond.cx) / Math.max(1, diamond.rx)
+                + Math.abs(gy - diamond.cy) / Math.max(1, diamond.ry) <= 1;
+            edgeDistance = _minDistToDiamond(gx, gy, diamond);
+        }
         if (!inside) continue;
-        best = Math.max(best, _minDistToDiamond(gx, gy, diamond));
+        best = Math.max(best, edgeDistance);
     }
     return best;
 }
@@ -1045,8 +1073,9 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
  * @param {Array} [corridors] 通道地板平行四边形数组（points: [a1+, a2+, a2-, a1-]）
  * @param {Array} [patches] 门口门槛地板矩形数组
  * @param {object} [fallbackTerrain] 回退网格地板样式
+ * @param {object} [terrainOptions] 竞技场附加地形（当前仅冰原 cutouts）
  */
-export function applyArenaFloor(width, height, diamonds, corridors = [], patches = [], fallbackTerrain) {
+export function applyArenaFloor(width, height, diamonds, corridors = [], patches = [], fallbackTerrain, terrainOptions = {}) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -1064,27 +1093,37 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
         else console.warn('[DungeonFloor] 地砖纹理缺失（已从池中剔除）:', key);
     }
 
+    const roomPoints = (room) => {
+        if (Array.isArray(room?.floorPolygon) && room.floorPolygon.length >= 3) {
+            return room.floorPolygon;
+        }
+        return [
+            { x: room.cx, y: room.cy - room.ry },
+            { x: room.cx + room.rx, y: room.cy },
+            { x: room.cx, y: room.cy + room.ry },
+            { x: room.cx - room.rx, y: room.cy },
+        ];
+    };
+    const appendPolygon = (rawPoints) => {
+        let points = rawPoints;
+        let area2 = 0;
+        for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+            area2 += points[j].x * points[i].y - points[i].x * points[j].y;
+        }
+        if (area2 < 0) points = [...points].reverse();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+        ctx.closePath();
+    };
     const arenaPath = () => {
         ctx.beginPath();
         for (const d of diamonds) {
-            ctx.moveTo(d.cx, d.cy - d.ry);
-            ctx.lineTo(d.cx + d.rx, d.cy);
-            ctx.lineTo(d.cx, d.cy + d.ry);
-            ctx.lineTo(d.cx - d.rx, d.cy);
-            ctx.closePath();
+            appendPolygon(roomPoints(d));
         }
         // 统一多边形绕向与菱形一致（shoelace 正号）：nonzero 裁剪下绕向相反的子路径
         // 会在与菱形/其他补丁的重叠区抵消成洞（地板纯黑平行四边形缺口的根因）
         for (const q of [...corridors, ...patches]) {
-            let pts = q.points;
-            let area2 = 0;
-            for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-                area2 += pts[j].x * pts[i].y - pts[i].x * pts[j].y;
-            }
-            if (area2 < 0) pts = [...pts].reverse();
-            ctx.moveTo(pts[0].x, pts[0].y);
-            for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-            ctx.closePath();
+            appendPolygon(q.points);
         }
     };
 
@@ -1116,28 +1155,57 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
         }
         ctx.restore();
 
+        // 房间与通道共用同一连续纹理。冰原房间的整圈墙脚暗化会让未经过
+        // 同等综合色调的通道显得更亮；配置化补偿只压通道，不改变贴图或相位。
+        const corridorToneAlpha = Math.max(0, Math.min(0.35, Number(profile.corridorToneAlpha) || 0));
+        if (corridorToneAlpha > 0 && corridors.length > 0) {
+            ctx.save();
+            ctx.beginPath();
+            for (const q of corridors) appendPolygon(q.points);
+            ctx.clip();
+            ctx.fillStyle = `rgba(0,0,0,${corridorToneAlpha.toFixed(3)})`;
+            ctx.fillRect(0, 0, width, height);
+            ctx.restore();
+        }
+
         // 18种无碰撞小物只进入房间菱形，不进入狭窄通道；通道继续保持清晰通行轮廓。
         _drawFloorCellDetails(ctx, profile, 0, 0, width, height, diamonds);
         _drawFloorDecoChunk(ctx, profile, 0, 0, width, height, diamonds);
 
         // 3. 墙脚接触阴影（与 E/F 单房间 applyDiamondFloor 同口径的连续渐变带）：
-        //    - 房间菱形：整圈内缩渐变描边（含门口，老代码原文，门洞处不断头）；
+        //    - 规则房保持原内缩描边；凹凸房在房型裁剪内叠加宽度递减的边界描边；
         //    - 走廊：只描两条长边（通道侧墙墙脚），不描端帽/补丁轮廓——
         //      描补丁轮廓会在门口画出尖锐黑三角边框（线上教训）
         const fade = FLOOR_EDGE_FADE;
-        for (let i = 0; i < fade; i += 2) {
-            ctx.beginPath();
-            for (const d of diamonds) {
+        for (const d of diamonds) {
+            if (Array.isArray(d.floorPolygon) && d.floorPolygon.length >= 3) {
+                ctx.save();
+                ctx.beginPath();
+                appendPolygon(d.floorPolygon);
+                ctx.clip();
+                ctx.lineJoin = 'round';
+                for (let i = 0; i < fade; i += 2) {
+                    ctx.beginPath();
+                    appendPolygon(d.floorPolygon);
+                    ctx.strokeStyle = 'rgba(0,0,0,0.014)';
+                    ctx.lineWidth = Math.max(2, (fade - i) * 2);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            } else {
+                for (let i = 0; i < fade; i += 2) {
+                    ctx.beginPath();
                 const irx = d.rx - i, iry = d.ry - i * (d.ry / d.rx);
                 ctx.moveTo(d.cx, d.cy - iry);
                 ctx.lineTo(d.cx + irx, d.cy);
                 ctx.lineTo(d.cx, d.cy + iry);
                 ctx.lineTo(d.cx - irx, d.cy);
                 ctx.closePath();
+                    ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                }
             }
-            ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
         }
         for (const q of corridors) {
             // 平行四边形 points: [a1+, a2+, a2-, a1-] —— 长边 = 0→1 与 3→2
@@ -1159,6 +1227,80 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
         ctx.strokeStyle = (fallbackTerrain && fallbackTerrain.edgeHighlight) || 'rgba(120, 80, 60, 0.6)';
         ctx.lineWidth = 2;
         ctx.stroke();
+    }
+
+    // 冰原第一阶段深渊：最后覆盖地砖/小物/墙脚阴影。正式图集逐格消费
+    // frozen-arena-terrain.js 的 +u/+v/-u/-v 邻接掩码；视觉仍烘进地板，
+    // 不创建墙件，不改变既有碰撞、寻路或 depth 仲裁。
+    if (terrainOptions.cutoutStyle === 'frozenAbyss' && Array.isArray(terrainOptions.cutouts)) {
+        const atlas = _getSourceImage(FROZEN_ABYSS_TILE_KEY);
+        for (const cutout of terrainOptions.cutouts) {
+            const cells = cutout?.grid?.cells;
+            if (atlas && Array.isArray(cells) && cells.length > 0) {
+                ctx.save();
+                for (const cell of [...cells].sort((a, b) => a.y - b.y || a.x - b.x)) {
+                    const frame = (Number(cell.neighborMask) || 0) & 0x0f;
+                    const sourceX = (frame % 4) * FROZEN_ABYSS_TILE_W;
+                    const sourceY = Math.floor(frame / 4) * FROZEN_ABYSS_TILE_H;
+                    ctx.drawImage(
+                        atlas,
+                        sourceX, sourceY, FROZEN_ABYSS_TILE_W, FROZEN_ABYSS_TILE_H,
+                        Math.round(cell.x - FROZEN_ABYSS_TILE_W / 2),
+                        Math.round(cell.y - FROZEN_ABYSS_TILE_H / 2),
+                        FROZEN_ABYSS_TILE_W, FROZEN_ABYSS_TILE_H,
+                    );
+                }
+                ctx.restore();
+                continue;
+            }
+
+            // 资源缺失或旧数据没有格网时保留既有矢量表现，避免地面直接出现透明洞。
+            const points = cutout?.points;
+            if (!Array.isArray(points) || points.length < 3) continue;
+            const path = () => {
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+                ctx.closePath();
+            };
+            ctx.save();
+            ctx.lineJoin = 'round';
+            path();
+            const glow = ctx.createRadialGradient(
+                cutout.cx, cutout.cy, 8,
+                cutout.cx, cutout.cy, Math.max(24, cutout.radiusX || 180),
+            );
+            glow.addColorStop(0, '#00030a');
+            glow.addColorStop(0.65, '#020817');
+            glow.addColorStop(1, '#071629');
+            ctx.fillStyle = glow;
+            ctx.fill();
+            for (const [lineWidth, color] of [
+                [26, 'rgba(4, 13, 25, 0.88)'],
+                [14, 'rgba(79, 135, 173, 0.48)'],
+                [5, 'rgba(181, 226, 244, 0.72)'],
+                [2, 'rgba(235, 250, 255, 0.92)'],
+            ]) {
+                path();
+                ctx.lineWidth = lineWidth;
+                ctx.strokeStyle = color;
+                ctx.stroke();
+            }
+            // 从破口尖点向冰面延伸短裂纹；坐标完全由已生成多边形决定，不引入新随机源。
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(179, 224, 241, 0.48)';
+            for (let i = 0; i < points.length; i += 2) {
+                const p = points[i];
+                const dx = p.x - cutout.cx;
+                const dy = p.y - cutout.cy;
+                const len = Math.hypot(dx, dy) || 1;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + dx / len * 28, p.y + dy / len * 16);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
     }
 
     // 3. 同步世界尺寸与渲染器

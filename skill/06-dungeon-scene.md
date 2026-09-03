@@ -205,6 +205,21 @@
 > 菱形墙 → 通道预制放置 → 门墙/封口/补缝 → 波次门控。后续新增地牢、改布局、加
 > 通道方向，一律以本节为唯一参考；先读「铁律」再动手。
 
+- **初级雪原随机房方向合同（2026-08-29）**：`frozenDungeonBeginner.combatRoom.randomRooms`
+  使用 `passageGateAxis:'horizontal'`，房间间固定 `TR → BL` 水平墙线门；随机门位负责形成横向错位，
+  当前单段直廊构造器不得生成需要 `RB/LT` 竖直门的 U 向连接。32次凹凸模板尝试全部失败时优先回退
+  同方向矩形房；若再进入 `computeGridMazeLayout`，也必须继续透传 `passageGateAxis:'horizontal'`，禁止使用默认双轴参数。
+  待引入可验证的转角通道预制后，才允许恢复双轴拓扑。
+- **地牢边界隔离合同（2026-08-29）**：进入战斗房前须备份并从 `WallSystem.isoSegments` 移除
+  位面自管的 `_boundary/_iceWall/_gateZoneBoundary` 与门段，地牢移动范围只由当前房间几何决定；
+  离场时先恢复这些自管段，再 `rebuildIsoCollision()` 重建原场景墙碰撞。Boss 独立竞技场必须同口径处理。
+- **房间/通道地板同源合同（2026-08-29）**：`applyArenaFloor()` 必须先把房间多边形、通道和门前补片组成
+  同一个裁剪并集，再以世界原点一次性铺设连续纹理，禁止为通道另起相位或单独缩放。观感亮度不一致时先检查
+  房间墙脚暗化、小物缺失和后处理差异；主题确需补偿时使用 profile 级 `corridorToneAlpha`，不得重做第二张通道地板。
+- **长门端墙遮挡合同（2026-08-29）**：当六格门叶贴图跨越多个等距深度时，`depthSlices` 至少按逻辑门格切片；
+  端部仍压住相邻墙时，只由该门型显式启用 `tuckEndSlices`，首尾片分别取外端点深度并比同线端墙退0.1。
+  入口/出口、房间间门和宝箱房门必须消费同一切片语义。先核对贴图 alpha 与 `base/gateX`，不得用整体下移掩盖错层。
+
 #### 0. 架构与文件地图
 - `src/world/combat-arena-layout.js`：**纯函数**布局（无 Phaser 依赖，可单测）。
   - `diamondRadii(size)`：rx = size×1.2，ry = rx×0.5774（30° 等距投影）。
@@ -438,11 +453,15 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    `frozen_gate` 是 4×4、单帧
    640×640 的16帧冰锥门，帧0完全升起、帧15沉入地面；`ISO_WALL_GEO.frozen_gate` 的 `base/gateX`
    必须与 `tools/ai-gen/frozen-icicle-gate-geometry.json` 一致，正式贴图由
-   `tools/ai-gen/build-frozen-icicle-gate.py` 确定性重建。该长门运行时必须把同一帧按门线等分裁成
-   浅/中/深三段，各自以段底边 `maxY+3.9` 排序（同线冰墙为 `maxY+4`），遮挡面线缓存也按三段注册；
-   禁止恢复整门单一中心 depth，否则浅端长门会覆盖相邻墙块。各地牢继续使用自己的
-   `ISO_WALL_STYLES.block/gate`；门体用 `depthSlices` 配置浅/中/深切片，禁止横向拉伸普通拱门填满6格门洞。
-   布局必须走 `computeGridMazeLayout`，`passageCells` 是门边到门边的整数格心距离；末房宝箱事件传
+   `tools/ai-gen/build-frozen-icicle-gate.py` 确定性重建。该长门运行时必须把同一帧按六格门线逐格裁成
+   6段；首尾段分别以门洞外端点 `Y+3.9` 排序，保证低于同线端墙的 `Y+4`，中间段以本段底边
+   `maxY+3.9` 排序，遮挡面线缓存也按6段注册。禁止恢复整门单一中心 depth 或3段粗切，
+   否则首尾冰锥会覆盖相邻墙块。各地牢继续使用自己的 `ISO_WALL_STYLES.block/gate`；门体用
+   `depthSlices/tuckEndSlices` 配置切片，禁止横向拉伸普通拱门填满6格门洞。冰门底线与贴图 alpha
+   已有少量入地，不得用整体下移掩盖图层错误。
+   规则布局走 `computeGridMazeLayout`；初级雪原可由 `computeFrozenRandomRoomLayout` 在相同整数格合同上
+   生成模板池/程序切角混合房型，且必须有有界重试、占格不重叠、六格直墙门位和
+   `computeGridMazeLayout` 失败兜底。两者的 `passageCells` 都是门边到门边的整数格心距离；末房宝箱事件传
    `openArena:true`，只生成宝箱、倒计时和排除区，禁止再套用含 `frozen_straight` 的历史宝箱房预制。
 7. **僵尸地牢单格黑砖标准（2026-08-27）**：初/中/高级僵尸配置统一
    `wallConstruction:"worldBlock1x1" + gateCells:6 + passageCells:8 + wallStyle:"zombie"`；

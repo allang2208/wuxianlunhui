@@ -1,0 +1,236 @@
+{
+  "version": 1,
+  "stage": "user-approved Dev candidates installed for scene9 and all three frozen dungeon tiers",
+  "camera": {
+    "projection": "orthographic",
+    "elevationDegrees": 30.0,
+    "modelRootRotationZDegrees": 44.8,
+    "propOrthoScale": 6.4,
+    "propBottomRatio": 0.875,
+    "resolution": [
+      256,
+      256
+    ]
+  },
+  "sharedUse": {
+    "scene9FrozenPlane": "natural props use higher weights; human remnants remain rare",
+    "frozenDungeons": "human remnants and broken equipment use higher weights",
+    "collision": "none; visual-only floor-baked decoration",
+    "runtimeGate": "approved by user and integrated on 2026-08-29"
+  },
+  "props": [
+    {
+      "key": "frozen_prop_snow_clods",
+      "labelZh": "积雪团",
+      "planeWeight": 1.3,
+      "dungeonWeight": 0.82,
+      "modelRender": "model-renders/frozen_prop_snow_clods.png",
+      "bodyDepth": "body-depth/frozen_prop_snow_clods_depth.png",
+      "devCandidate": "candidates/frozen_prop_snow_clods.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_snow_clods_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_ice_pebbles",
+      "labelZh": "冰砾散落",
+      "planeWeight": 1.25,
+      "dungeonWeight": 0.9,
+      "modelRender": "model-renders/frozen_prop_ice_pebbles.png",
+      "bodyDepth": "body-depth/frozen_prop_ice_pebbles_depth.png",
+      "devCandidate": "candidates/frozen_prop_ice_pebbles.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_ice_pebbles_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_frost_stones",
+      "labelZh": "霜覆石簇",
+      "planeWeight": 1.2,
+      "dungeonWeight": 1.0,
+      "modelRender": "model-renders/frozen_prop_frost_stones.png",
+      "bodyDepth": "body-depth/frozen_prop_frost_stones_depth.png",
+      "devCandidate": "candidates/frozen_prop_frost_stones.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_frost_stones_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_broken_ice_slab",
+      "labelZh": "破裂冰板",
+      "planeWeight": 1.1,
+      "dungeonWeight": 1.05,
+      "modelRender": "model-renders/frozen_prop_broken_ice_slab.png",
+      "bodyDepth": "body-depth/frozen_prop_broken_ice_slab_depth.png",
+      "devCandidate": "candidates/frozen_prop_broken_ice_slab.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_broken_ice_slab_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_wind_snow_ridge",
+      "labelZh": "风蚀雪脊",
+      "planeWeight": 1.1,
+      "dungeonWeight": 0.78,
+      "modelRender": "model-renders/frozen_prop_wind_snow_ridge.png",
+      "bodyDepth": "body-depth/frozen_prop_wind_snow_ridge_depth.png",
+      "devCandidate": "candidates/frozen_prop_wind_snow_ridge.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_wind_snow_ridge_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_refrozen_shards",
+      "labelZh": "再冻冰片",
+      "planeWeight": 1.0,
+      "dungeonWeight": 1.1,
+      "modelRender": "model-renders/frozen_prop_refrozen_shards.png",
+      "bodyDepth": "body-depth/frozen_prop_refrozen_shards_depth.png",
+      "devCandidate": "candidates/frozen_prop_refrozen_shards.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_refrozen_shards_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_frozen_grass",
+      "labelZh": "冻枯草丛",
+      "planeWeight": 1.05,
+      "dungeonWeight": 0.62,
+      "modelRender": "model-renders/frozen_prop_frozen_grass.png",
+      "bodyDepth": "body-depth/frozen_prop_frozen_grass_depth.png",
+      "devCandidate": "candidates/frozen_prop_frozen_grass.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_frozen_grass_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_frost_heather",
+      "labelZh": "霜封矮灌木",
+      "planeWeight": 0.92,
+      "dungeonWeight": 0.58,
+      "modelRender": "model-renders/frozen_prop_frost_heather.png",
+      "bodyDepth": "body-depth/frozen_prop_frost_heather_depth.png",
+      "devCandidate": "candidates/frozen_prop_frost_heather.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_frost_heather_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_twig_bundle",
+      "labelZh": "冻枝束",
+      "planeWeight": 0.92,
+      "dungeonWeight": 0.92,
+      "modelRender": "model-renders/frozen_prop_twig_bundle.png",
+      "bodyDepth": "body-depth/frozen_prop_twig_bundle_depth.png",
+      "devCandidate": "candidates/frozen_prop_twig_bundle.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_twig_bundle_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_dead_root",
+      "labelZh": "冻裂枯根",
+      "planeWeight": 0.82,
+      "dungeonWeight": 0.86,
+      "modelRender": "model-renders/frozen_prop_dead_root.png",
+      "bodyDepth": "body-depth/frozen_prop_dead_root_depth.png",
+      "devCandidate": "candidates/frozen_prop_dead_root.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_dead_root_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_bark_pinecones",
+      "labelZh": "树皮与松果",
+      "planeWeight": 0.78,
+      "dungeonWeight": 0.52,
+      "modelRender": "model-renders/frozen_prop_bark_pinecones.png",
+      "bodyDepth": "body-depth/frozen_prop_bark_pinecones_depth.png",
+      "devCandidate": "candidates/frozen_prop_bark_pinecones.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_bark_pinecones_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_animal_bones",
+      "labelZh": "小兽遗骨",
+      "planeWeight": 0.62,
+      "dungeonWeight": 0.86,
+      "modelRender": "model-renders/frozen_prop_animal_bones.png",
+      "bodyDepth": "body-depth/frozen_prop_animal_bones_depth.png",
+      "devCandidate": "candidates/frozen_prop_animal_bones.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_animal_bones_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_antler_fragment",
+      "labelZh": "断角残片",
+      "planeWeight": 0.55,
+      "dungeonWeight": 0.82,
+      "modelRender": "model-renders/frozen_prop_antler_fragment.png",
+      "bodyDepth": "body-depth/frozen_prop_antler_fragment_depth.png",
+      "devCandidate": "candidates/frozen_prop_antler_fragment.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_antler_fragment_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_frozen_tracks",
+      "labelZh": "冻结足迹",
+      "planeWeight": 0.86,
+      "dungeonWeight": 0.5,
+      "modelRender": "model-renders/frozen_prop_frozen_tracks.png",
+      "bodyDepth": "body-depth/frozen_prop_frozen_tracks_depth.png",
+      "devCandidate": "candidates/frozen_prop_frozen_tracks.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_frozen_tracks_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_broken_chain",
+      "labelZh": "断裂铁链",
+      "planeWeight": 0.38,
+      "dungeonWeight": 1.18,
+      "modelRender": "model-renders/frozen_prop_broken_chain.png",
+      "bodyDepth": "body-depth/frozen_prop_broken_chain_depth.png",
+      "devCandidate": "candidates/frozen_prop_broken_chain.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_broken_chain_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_rope_coil",
+      "labelZh": "冻硬绳圈",
+      "planeWeight": 0.4,
+      "dungeonWeight": 1.05,
+      "modelRender": "model-renders/frozen_prop_rope_coil.png",
+      "bodyDepth": "body-depth/frozen_prop_rope_coil_depth.png",
+      "devCandidate": "candidates/frozen_prop_rope_coil.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_rope_coil_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_torn_cloth",
+      "labelZh": "冻结破布",
+      "planeWeight": 0.42,
+      "dungeonWeight": 0.98,
+      "modelRender": "model-renders/frozen_prop_torn_cloth.png",
+      "bodyDepth": "body-depth/frozen_prop_torn_cloth_depth.png",
+      "devCandidate": "candidates/frozen_prop_torn_cloth.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_torn_cloth_dev_raw.png"
+    },
+    {
+      "key": "frozen_prop_broken_lantern",
+      "labelZh": "破损提灯",
+      "planeWeight": 0.32,
+      "dungeonWeight": 1.12,
+      "modelRender": "model-renders/frozen_prop_broken_lantern.png",
+      "bodyDepth": "body-depth/frozen_prop_broken_lantern_depth.png",
+      "devCandidate": "candidates/frozen_prop_broken_lantern.png",
+      "devRawCell": "dev-raw-cells/frozen_prop_broken_lantern_dev_raw.png"
+    }
+  ],
+  "blend": "tools/ai-gen/_frozen_environment_props_20260829/frozen_environment_props.blend",
+  "generator": "tools/ai-gen/build-frozen-environment-props.py",
+  "devGeneration": {
+    "model": "flux2-dev-depth",
+    "batchLayout": [
+      6,
+      3
+    ],
+    "cellSize": [
+      256,
+      256
+    ],
+    "controlStrength": 0.82,
+    "denoise": 0.28,
+    "steps": 24,
+    "background": "#FF00FF",
+    "raw": "tools/ai-gen/_frozen_environment_props_20260829/generation/frozen-props-dev-depth-v01-raw.png",
+    "approvalContactSheet": "tools/ai-gen/_frozen_environment_props_20260829/review/frozen-props-dev-contact-sheet.png"
+  },
+  "runtimeIntegration": {
+    "status": "active",
+    "approvedByUser": true,
+    "installedOn": "2026-08-29",
+    "assetDirectory": "assets/terrain/frozen-props",
+    "config": "data/frozen-terrain.json",
+    "targets": [
+      "scene9",
+      "frozenBeginner",
+      "frozenMid",
+      "frozen"
+    ],
+    "visualOnly": true
+  }
+}

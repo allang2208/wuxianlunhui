@@ -19,6 +19,7 @@ import swampDungeonTerrainConfig from '../../../data/swamp-dungeon-terrain.json'
 import abandonedMineTerrainConfig from '../../../data/abandoned-mine-terrain.json';
 import mineWallDecorConfig from '../../../data/abandoned-mine-wall-decor.json';
 import swampWallPlantConfig from '../../../data/swamp-wall-plants.json';
+import { getFrozenTerrainAssets } from '../../config/frozen-terrain.js';
 import roadsideDecorationConfig from '../../../data/roadside-decorations.json';
 import enemyConfigData from '../../../data/enemy-config.json';
 import {
@@ -243,8 +244,11 @@ export class BootScene extends Scene {
             this.load.image(`obstacle_snow_pine_${id}`, `assets/terrain/obstacle_snow_pine_${id}.png`);
             this.load.image(`obstacle_forest_pine_${id}`, `assets/terrain/obstacle_forest_pine_${id}.png`);
         }
-        for (let i = 1; i <= 5; i++) {
-            this.load.image(`deco_snow_${i}`, `assets/terrain/deco_snow_${i}.png`);
+        const loadedFrozenDeco = new Set();
+        for (const asset of getFrozenTerrainAssets()) {
+            if (!asset?.key || !asset?.src || loadedFrozenDeco.has(asset.key)) continue;
+            loadedFrozenDeco.add(asset.key);
+            this.load.image(asset.key, asset.src);
         }
         for (let i = 1; i <= 4; i++) {
             this.load.image(`deco_forest_grass_${i}`, `assets/terrain/deco_forest_grass_${i}.png`);
@@ -319,6 +323,11 @@ export class BootScene extends Scene {
         this.load.image('frozen_wall_straight', 'assets/terrain/frozen_wall_straight.png');
         this.load.image('frozen_wall_block', 'assets/terrain/frozen_wall_block.png');
         this.load.spritesheet('frozen_gate', 'assets/terrain/frozen_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
+        this.load.spritesheet('frozen_abyss_autotile', 'assets/terrain/frozen_abyss_autotile.png', {
+            frameWidth: 128,
+            frameHeight: 64,
+            endFrame: 15,
+        });
         // 僵尸地牢：Blender 黑方砖单格墙 + 16 帧锈铁升降闸（冰封整数格墙合同）。
         this.load.image('zombie_wall_block', 'assets/terrain/zombie_wall_block.png');
         this.load.spritesheet('zombie_gate', 'assets/terrain/zombie_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
