@@ -1,0 +1,257 @@
+{
+  "revision": "v01",
+  "status": "both_food_processors_runtime_integrated",
+  "scope": "Two new tier-3 food processors parallel to the bakery; existing cannery and chain restaurant are out of scope",
+  "builder": "tools/ai-gen/_food_processors_20260902/build-models.py",
+  "componentSource": "tools/ai-gen/building-component-kit.py",
+  "renderSource": "tools/ai-gen/settlement-building-pack-blender.py",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "cleanup": {
+    "date": "2026-09-03",
+    "removedFiles": 93,
+    "removedBytes": 59218681,
+    "removedCategories": [
+      "unselected 12-step and 48-step candidates",
+      "regenerable keyed, cleaned, anchored and preview images",
+      "threshold comparison sheets",
+      "duplicate model previews"
+    ],
+    "retainedPolicy": "editable model and builder, current Depth pair and approval preview, selected structure/refine raw with prompts and generation metadata, accepted cutout with direct alpha source and review, shadow proxy, runtime metadata and production record"
+  },
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 922,
+    "topMargin": 40,
+    "widthMargin": 0.86
+  },
+  "palette": {
+    "foundation": [0.28, 0.27, 0.24, 1],
+    "stone": [0.34, 0.33, 0.29, 1],
+    "plaster": [0.56, 0.51, 0.41, 1],
+    "timber": [0.16, 0.09, 0.045, 1],
+    "roof": [0.31, 0.12, 0.06, 1],
+    "thatch": [0.38, 0.25, 0.08, 1],
+    "iron": [0.07, 0.075, 0.07, 1],
+    "brass": [0.4, 0.23, 0.055, 1],
+    "glass": [0.34, 0.17, 0.045, 1],
+    "glow": [0.95, 0.28, 0.025, 1],
+    "straw": [0.54, 0.38, 0.12, 1],
+    "snow": [0.76, 0.8, 0.8, 1]
+  },
+  "buildings": {
+    "desert_cookhouse": {
+      "name": "沙地炊坊",
+      "tier": 3,
+      "era": "settlement",
+      "footprintCells": 2,
+      "runtimeIntegrationActive": true,
+      "modelApproval": "User approved the displayed desert-cookhouse Blender whitebox on 2026-09-02.",
+      "structureGeneration": {
+        "pipeline": "generate-world122-building-candidates.py",
+        "manifest": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/structure-candidate-manifest.json",
+        "model": "flux2-dev-depth",
+        "stage": "structure",
+        "steps": 12,
+        "depthStrength": 0.78,
+        "cfg": 3.5,
+        "sampler": "euler",
+        "scheduler": "simple",
+        "reviewAuthority": "raw_green_screen",
+        "selectedRaw": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/candidates_dev_s12_v01/desert_cookhouse/desert_cookhouse_structure_v03_raw.png",
+        "discardedSiblingCount": 2,
+        "selection": "structure_v03 selected by the user on 2026-09-02",
+        "derivedPreviewStatus": "rejected_for_review: default threshold misclassified shadowed sand-colored facade pixels; raw candidates remain complete and authoritative"
+      },
+      "refineGeneration": {
+        "pipeline": "generate-world122-building-candidates.py",
+        "source": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/candidates_dev_s12_v01/desert_cookhouse/desert_cookhouse_structure_v03_raw.png",
+        "model": "flux2-dev-depth",
+        "stage": "refine",
+        "steps": 48,
+        "depthStrength": 0.75,
+        "denoise": 0.3,
+        "cfg": 3.5,
+        "sampler": "euler",
+        "scheduler": "simple",
+        "reviewAuthority": "raw_green_screen",
+        "selectedRaw": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/candidates_dev_s12_v01/desert_cookhouse/desert_cookhouse_refine_v01_raw.png",
+        "discardedSiblingCount": 1,
+        "selection": "refine_v01 selected by the user on 2026-09-03",
+        "derivedPreviewStatus": "not_for_review: final cutout will be rebuilt from the user-selected complete raw refine image"
+      },
+      "acceptedCutout": {
+        "builder": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/build_cutout.py",
+        "record": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/production-record.json",
+        "texture": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/desert_cookhouse_cutout.png",
+        "alphaReview": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/desert_cookhouse_alpha_review.png",
+        "shadowHandling": "remove generated external cast shadow and green shadow tail with the authored full-depth silhouette; retain narrow internal contact occlusion",
+        "alphaAuthority": "full Depth, edge-pad 0; no broad HSV alpha deletion",
+        "runtimeIntegration": {
+          "texture": "assets/terrain/desert_cookhouse.png",
+          "thumbnail": "assets/ui/building-thumbnails/desert_cookhouse.png",
+          "technologyIcon": "assets/ui/technology-icons/desert_cooking.png",
+          "technologyAndUpgradeIconManifest": "tools/ai-gen/_desert_cookhouse_icons_20260903/manifest.json",
+          "lightingManifest": "data/environment-lighting-assets.json#desert_cookhouse",
+          "shadowCasterManifest": "data/structure-shadow-casters.json#desert_cookhouse",
+          "groundFitManifest": "data/structure-ground-fits.json#desert_cookhouse",
+          "runtimeMetadata": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/desert_cookhouse_runtime_metadata.json",
+          "technology": "desert_cooking",
+          "upgradeProject": "desert_cookhouse_economy",
+          "integratedOn": "2026-09-03"
+        }
+      },
+      "technology": "沙炉烹调",
+      "technologyPeers": ["面包烘焙", "寒地熏制"],
+      "gameplayIdentity": {
+        "inputFoodPerBatch": 45,
+        "baseProcessTimeMs": 11000,
+        "baseOutputMultiplier": 4.6,
+        "baseMoveSpeed": 82,
+        "planeSpecialty": "世界-122沙漠",
+        "specialRule": "干旱期间粮食天气倍率最低为1.0；其他天气仍按统一天气倍率结算"
+      },
+      "paletteOverrides": {
+        "foundation": [0.34, 0.29, 0.21, 1],
+        "stone": [0.48, 0.38, 0.25, 1],
+        "plaster": [0.63, 0.47, 0.28, 1],
+        "timber": [0.21, 0.105, 0.045, 1],
+        "roof": [0.42, 0.20, 0.08, 1],
+        "brass": [0.46, 0.29, 0.08, 1],
+        "glass": [0.46, 0.18, 0.03, 1],
+        "glow": [1.0, 0.31, 0.02, 1]
+      },
+      "bodyDepthExclude": ["DesertCookhouse_Foundation_Base"],
+      "dimensions": {
+        "foundation": [430, 350, 16],
+        "mainBody": [302, 214, 150],
+        "roofDeck": [326, 238, 18],
+        "ovenCenters": [[-142, -58], [-142, 12], [-142, 82]],
+        "ovenRadius": 39,
+        "canopy": [188, 78, 12]
+      },
+      "identity": [
+        "one compact adobe-and-stone cookhouse on a complete 2x2 base",
+        "three attached dome ovens sharing the visible side wall",
+        "deep fixed shade canopy with clay jars and a wall-bound drying rack",
+        "one broad integrated heat chimney and a text-free bowl-and-flame badge"
+      ],
+      "forbidden": [
+        "detached oven huts",
+        "open restaurant seating",
+        "second building",
+        "loose market stalls",
+        "text signage"
+      ]
+    },
+    "frost_smokehouse": {
+      "name": "雪原熏制坊",
+      "tier": 3,
+      "era": "settlement",
+      "footprintCells": 2,
+      "runtimeIntegrationActive": true,
+      "modelApproval": "User approved the displayed frost-smokehouse Blender whitebox and requested image generation on 2026-09-03.",
+      "structureGeneration": {
+        "pipeline": "generate-world122-building-candidates.py",
+        "manifest": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/structure-candidate-manifest.json",
+        "model": "flux2-dev-depth",
+        "stage": "structure",
+        "steps": 12,
+        "depthStrength": 0.78,
+        "cfg": 3.5,
+        "sampler": "euler",
+        "scheduler": "simple",
+        "reviewAuthority": "raw_green_screen",
+        "selectedRaw": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/candidates_dev_s12_v01/frost_smokehouse/frost_smokehouse_structure_v02_raw.png",
+        "discardedSiblingCount": 2,
+        "selection": "structure_v02 selected by the user on 2026-09-03",
+        "generatedOn": "2026-09-03"
+      },
+      "refineGeneration": {
+        "pipeline": "generate-world122-building-candidates.py",
+        "source": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/candidates_dev_s12_v01/frost_smokehouse/frost_smokehouse_structure_v02_raw.png",
+        "model": "flux2-dev-depth",
+        "stage": "refine",
+        "steps": 48,
+        "denoise": 0.3,
+        "depthStrength": 0.75,
+        "cfg": 3.5,
+        "sampler": "euler",
+        "scheduler": "simple",
+        "reviewAuthority": "raw_green_screen",
+        "selectedRaw": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/candidates_dev_s12_v01/frost_smokehouse/frost_smokehouse_refine_v01_raw.png",
+        "discardedSiblingCount": 1,
+        "selection": "refine_v01 accepted from the assistant recommendation by the user on 2026-09-03",
+        "generatedOn": "2026-09-03"
+      },
+      "acceptedCutout": {
+        "builder": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/build_cutout.py",
+        "record": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/production-record.json",
+        "texture": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/frost_smokehouse_cutout.png",
+        "alphaReview": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/frost_smokehouse_alpha_review.png",
+        "shadowHandling": "remove only the edge-connected green-screen backdrop; the selected raw contains no external cast shadow",
+        "alphaAuthority": "RGB-distance edge-connected chroma key with enclosed-key removal; Depth is review-only so accepted roof, snow, porch and foundation corners are never clipped",
+        "runtimeIntegration": {
+          "texture": "assets/terrain/frost_smokehouse.png",
+          "thumbnail": "assets/ui/building-thumbnails/frost_smokehouse.png",
+          "technologyIcon": "assets/ui/technology-icons/cold_smoking.png",
+          "technologyIconManifest": "tools/ai-gen/_frost_smokehouse_technology_icon_20260903/manifest.json",
+          "upgradeIconManifest": "tools/ai-gen/_frost_smokehouse_icons_20260903/manifest.json",
+          "lightingManifest": "data/environment-lighting-assets.json#frost_smokehouse",
+          "shadowCasterManifest": "data/structure-shadow-casters.json#frost_smokehouse",
+          "groundFitManifest": "data/structure-ground-fits.json#frost_smokehouse",
+          "runtimeMetadata": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/frost_smokehouse_runtime_metadata.json",
+          "technology": "cold_smoking",
+          "upgradeProject": "frost_smokehouse_economy",
+          "integratedOn": "2026-09-03"
+        }
+      },
+      "technology": "寒地熏制",
+      "technologyPeers": ["沙炉烹调", "面包烘焙"],
+      "gameplayIdentity": {
+        "inputFoodPerBatch": 60,
+        "baseProcessTimeMs": 12500,
+        "baseOutputMultiplier": 4.4,
+        "baseMoveSpeed": 78,
+        "planeSpecialty": "世界-123雪原",
+        "planeOutputMultipliers": {"scene9": 1.35, "default": 0.85}
+      },
+      "paletteOverrides": {
+        "foundation": [0.25, 0.27, 0.27, 1],
+        "stone": [0.37, 0.40, 0.40, 1],
+        "plaster": [0.47, 0.46, 0.40, 1],
+        "timber": [0.105, 0.075, 0.055, 1],
+        "roof": [0.16, 0.12, 0.105, 1],
+        "iron": [0.065, 0.075, 0.08, 1],
+        "brass": [0.34, 0.24, 0.12, 1],
+        "glass": [0.16, 0.29, 0.32, 1],
+        "glow": [0.82, 0.24, 0.04, 1],
+        "snow": [0.74, 0.79, 0.80, 1]
+      },
+      "bodyDepthExclude": ["FrostSmokehouse_Foundation_Base"],
+      "dimensions": {
+        "foundation": [440, 360, 16],
+        "body": [310, 220, 168],
+        "roof": [368, 282, 112],
+        "curingPorch": [176, 82, 12]
+      },
+      "identity": [
+        "one stone-and-heavy-timber smokehouse on a complete 2x2 base",
+        "single steep snow-shedding roof with restrained snow cap",
+        "one broad attached smoke chimney with a real dark mouth",
+        "enclosed slatted curing porch attached to the front wall",
+        "text-free smoke-ring food badge"
+      ],
+      "forbidden": [
+        "detached curing shed",
+        "separate tower",
+        "loose snow piles outside the base",
+        "modern refrigeration equipment",
+        "text signage"
+      ]
+    }
+  }
+}

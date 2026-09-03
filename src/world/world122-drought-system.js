@@ -48,9 +48,9 @@ function initialState() {
 
 let state = initialState();
 
-function notify(text, color, duration = 5600) {
+function notify(text, tone = 'warning', duration = 5600) {
     if (typeof window === 'undefined' || !window.SceneManager?.showTopNotification) return;
-    window.SceneManager.showTopNotification(text, { color, fontSize: '30px', duration });
+    window.SceneManager.showTopNotification(text, { tone, emphasis: 'headline', duration });
 }
 
 function warningHours(config) {
@@ -95,16 +95,17 @@ function beginDrought(startAtGameTimeMs, { source = 'random', notifyPlayer = tru
     state.durationDays = durationDays;
     if (notifyPlayer) {
         const prefix = source === 'dev' ? '开发面板已触发：' : '';
+        const worldName = GAME_CONFIG.scenes?.[TARGET_SCENE_ID]?.name || '世界122';
         notify(
-            `☀ ${prefix}世界122进入干旱，预计持续 ${durationDays.toFixed(1)} 天；粮食产量降低50%`,
-            '#ffad4d',
+            `☀ ${prefix}${worldName}，因水源短缺，导致所有粮食生产建筑减产50%（预计持续 ${durationDays.toFixed(1)} 天）`,
+            'warning',
             6200
         );
     }
 }
 
 function endDrought(endedAtGameTimeMs, notifyPlayer = true) {
-    if (notifyPlayer) notify('✓ 世界122干旱结束，粮食生产恢复', '#b9e7b0', 4800);
+    if (notifyPlayer) notify('✓ 世界122干旱结束，粮食生产恢复', 'success', 4800);
     scheduleNext(endedAtGameTimeMs);
 }
 
@@ -130,7 +131,7 @@ export const World122DroughtSystem = {
                 if (notifyPlayer) {
                     notify(
                         `⚠ 世界122高温预警：约 ${warningHours(config).toFixed(0)} 游戏小时后将进入干旱`,
-                        '#ffd166',
+                        'warning',
                         6000
                     );
                 }

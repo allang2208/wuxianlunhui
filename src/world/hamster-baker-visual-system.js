@@ -9,11 +9,14 @@ import { CivilianVisualSettings } from './civilian-visual-runtime.js';
 
 function isFoodProcessor(building) {
     return building?._economyType === 'bakery'
+        || building?._economyType === 'desert_cookhouse'
+        || building?._economyType === 'frost_smokehouse'
         || building?._economyType === 'chain_restaurant';
 }
 
 function bakerVisualConfig(building) {
-    return populationEconomyConfig[building?._economyType]?.workerVisual || null;
+    return populationEconomyConfig[building?._economyType]?.workerVisual
+        || (isFoodProcessor(building) ? populationEconomyConfig.bakery?.workerVisual : null);
 }
 
 function animationKey(building, state) {

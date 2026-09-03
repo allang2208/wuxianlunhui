@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: World-122 game building upgrade icon, square 1:1
+Primary request: Create a dedicated icon for 沙地炊坊 upgrade 驼队快运 (caravan fast transport). Show a compact wooden-and-brass desert handcart or pack-sled with two bundled clay food jars, leather straps, and strong forward speed streaks over stone paving; emphasize logistics speed without depicting a full animal or person.
+Input images: Image 1 is the strict cold-steel clipped-square frame and rendering-style reference; Image 2 is the desert cookhouse material and architectural identity reference.
+Style/medium: polished low-saturation game PBR icon, crisp readable silhouette at 128px, dark blue-black inset panel, thick weathered cold-steel square frame with clipped corners and four brass rivets, matching Image 1 exactly in presentation.
+Color palette: cold steel and charcoal frame, weathered wood, brass, muted terracotta, restrained warm highlights.
+Composition/framing: centered single transport object, generous safe margin, no cropped frame.
+Constraints: no text, no letters, no numerals, no watermark, no extra building, no people, no checkerboard; transparent outside the complete clipped-square frame.

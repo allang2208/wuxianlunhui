@@ -1,0 +1,58 @@
+{
+  "asset": "frost_smokehouse",
+  "displayName": "雪原熏制坊",
+  "selection": "refine_v01 accepted from the assistant recommendation by the user on 2026-09-03",
+  "source": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/candidates_dev_s12_v01/frost_smokehouse/frost_smokehouse_refine_v01_raw.png",
+  "depthReference": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/frost_smokehouse_depth.png",
+  "output": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/frost_smokehouse_cutout.png",
+  "review": "tools/ai-gen/_food_processors_20260902/frost_smokehouse/accepted_refine_v01_20260903/frost_smokehouse_alpha_review.png",
+  "shadowPolicy": {
+    "removed": "green-screen backdrop only; the accepted raw contains no external cast shadow",
+    "retained": "complete roof and snow edges, chimney, curing porch, four-corner foundation and internal contact occlusion",
+    "alphaAuthority": "48 RGB-distance edge-connected chroma key; Depth is review-only and never clips accepted pixels"
+  },
+  "pipeline": [
+    {
+      "tool": "key-world122-building-body.py",
+      "threshold": 48,
+      "removeEnclosedKey": true,
+      "nearestOpaqueEdgeRgb": true
+    },
+    {
+      "tool": "repair-local-green-spill.py",
+      "rgbOnly": true,
+      "maxEdgeDistance": 4
+    },
+    {
+      "tool": "finalize-building-runtime.py",
+      "displayWidth": 768,
+      "padding": 4,
+      "preserveAlphaExact": true,
+      "defringeInnerPixels": 6
+    }
+  ],
+  "staticAlphaInspection": {
+    "mode": "RGBA",
+    "fileSize": [
+      850,
+      735
+    ],
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "alphaBBox": [
+      4,
+      4,
+      846,
+      731
+    ],
+    "visiblePixels": 358414,
+    "transparentPixels": 266336,
+    "connectedComponents": 1,
+    "largestComponentPixels": 358414,
+    "transparentPixelsWithRgb": 0
+  },
+  "runtimeIntegrationActive": true,
+  "validationBoundary": "offline cutout and alpha inspection only; no game/runtime test"
+}

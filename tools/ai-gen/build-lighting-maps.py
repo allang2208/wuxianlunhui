@@ -82,6 +82,8 @@ ASSETS = [
     "market",
     "royal_mint",
     "bakery",
+    "desert_cookhouse",
+    "frost_smokehouse",
     "steam_power_plant",
     "solar_power_plant",
     "deep_drill",

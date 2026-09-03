@@ -922,6 +922,7 @@ export const PopulationEconomySystem = {
                 staffCapacity: 0, staffedCount: 0, configuredFoodPerSecond: 0,
                 actualFoodPerSecond: 0, laborEfficiency: 0, workshopMultiplier: 0,
                 weatherMultiplier: 1, weatherLabel: '正常天气',
+                planeMultiplier: 1, planeLabel: '无位面修正',
             };
         }
         const cfg = populationEconomyConfig.windmill || {};
@@ -941,11 +942,15 @@ export const PopulationEconomySystem = {
         const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier('windmill');
         const weatherEffect = getFoodProductionWeatherEffect();
+        const sceneId = globalThis.SceneManager?.currentScene;
+        const configuredPlaneMultiplier = Number(cfg.planeOutputMultipliers?.[sceneId]);
+        const planeMultiplier = Number.isFinite(configuredPlaneMultiplier)
+            ? Math.max(0, configuredPlaneMultiplier) : 1;
         const configuredFoodPerSecond = staffCapacity * foodPerWorker
             * driveMultiplier * fieldMultiplier;
         const actualFoodPerSecond = staffedCount * foodPerWorker
             * driveMultiplier * fieldMultiplier * laborEfficiency * workshopMultiplier
-            * tavernMultiplier * weatherEffect.multiplier;
+            * tavernMultiplier * weatherEffect.multiplier * planeMultiplier;
         return {
             foodPerWorker,
             driveMultiplier,
@@ -959,6 +964,9 @@ export const PopulationEconomySystem = {
             tavernMultiplier,
             weatherMultiplier: weatherEffect.multiplier,
             weatherLabel: weatherEffect.label,
+            planeMultiplier,
+            planeLabel: sceneId === 'scene9' && planeMultiplier < 1
+                ? '世界-123·雪原初级农业' : '无位面修正',
         };
     },
 
@@ -1826,7 +1834,9 @@ export const PopulationEconomySystem = {
             }
             return;
         }
-        if (building._economyType === 'bakery' || building._economyType === 'chain_restaurant'
+        if (building._economyType === 'bakery' || building._economyType === 'desert_cookhouse'
+            || building._economyType === 'frost_smokehouse'
+            || building._economyType === 'chain_restaurant'
             || building._economyType === 'cheese_farm'
             || building._economyType === 'steam_power_plant'
             || building._economyType === 'deep_drill' || building._economyType === 'tavern') return;

@@ -2213,17 +2213,21 @@ class ProducerBuildingPanel extends BasePanel {
                 } else if (el.querySelector('[data-resonator-upgrading="true"]')) {
                     this.refresh();
                 }
-            } else if (b._economyType === 'bakery') {
+            } else if (['bakery', 'desert_cookhouse', 'frost_smokehouse'].includes(b._economyType)) {
                 const snapshot = BakeryEconomySystem.getSnapshot(b);
                 const values = {
                     pbBakeryStatus: snapshot.status,
+                    pbBakeryInput: `${snapshot.inputFood} 粮食`,
                     pbBakeryProcess: `${(snapshot.processTimeMs / 1000).toFixed(1)} 秒`,
                     pbBakeryMultiplier: `${snapshot.outputMultiplier.toFixed(1)} 倍`,
+                    pbBakeryWorker: `${Math.round(snapshot.workerOutputFactor * 100)}%`,
                     pbBakeryWeather: `${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}`,
+                    pbBakeryPlane: `${snapshot.planeLabel} ×${snapshot.planeMultiplier.toFixed(2)}`,
                     pbBakeryOutput: `${snapshot.outputFood} 粮食`,
                     pbBakeryTributeChance: `${(snapshot.plantTributeChance * 100).toFixed(1)}%`,
                     pbBakeryMoveSpeed: `${snapshot.moveSpeed.toFixed(0)}px/s`,
                     pbBakeryBatches: `${snapshot.completedBatches}`,
+                    pbBakeryPending: `${snapshot.pendingFood}`,
                     pbBakeryPendingTributes: `${snapshot.pendingTributes}`,
                     pbEconomyFood: `${Math.floor(PopulationEconomySystem.getFoodStored())}`,
                 };
@@ -2232,10 +2236,13 @@ class ProducerBuildingPanel extends BasePanel {
                     if (node) node.textContent = value;
                 });
                 const status = el.querySelector('#pbBakeryStatus');
-                status?.classList.toggle('is-blocked', !snapshot.roadConnected
+                status?.classList.toggle('is-blocked', (b._assignedWorkers || 0) <= 0
+                    || !snapshot.roadConnected
                     || snapshot.phase === 'idle' || snapshot.phase === 'waiting_deposit');
                 const roadWarning = el.querySelector('#pbBakeryRoadWarning');
                 if (roadWarning) roadWarning.hidden = snapshot.roadConnected;
+                const efficiencyWarning = el.querySelector('#pbBakeryEfficiencyWarning');
+                if (efficiencyWarning) efficiencyWarning.hidden = !snapshot.isLowEfficiencyLoss;
                 const upgrade = b._bakeryUpgrade;
                 if (upgrade) {
                     const pct = Math.max(0, Math.min(100,
@@ -2601,11 +2608,13 @@ class ProducerBuildingPanel extends BasePanel {
                 const perWorker = el.querySelector('#pbWindmillPerWorker');
                 const multipliers = el.querySelector('#pbWindmillMultipliers');
                 const weather = el.querySelector('#pbFoodWeather');
+                const plane = el.querySelector('#pbWindmillPlane');
                 if (output) output.textContent = `${snapshot.actualFoodPerSecond.toFixed(2)} 粮食/秒`;
                 if (configured) configured.textContent = `${snapshot.configuredFoodPerSecond.toFixed(2)} 粮食/秒`;
                 if (perWorker) perWorker.textContent = `${snapshot.foodPerWorker.toFixed(2)}/秒`;
                 if (multipliers) multipliers.textContent = `×${snapshot.driveMultiplier.toFixed(2)} / ×${snapshot.fieldMultiplier.toFixed(2)}`;
                 if (weather) weather.textContent = `${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}`;
+                if (plane) plane.textContent = `${snapshot.planeLabel} ×${snapshot.planeMultiplier.toFixed(2)}`;
                 if (food) food.textContent = `${Math.floor(PopulationEconomySystem.getFoodStored())}`;
                 const upgrade = b._windmillUpgrade;
                 if (upgrade) {
@@ -2953,6 +2962,8 @@ class ProducerBuildingPanel extends BasePanel {
             armory: '军械维护与募兵减耗',
             field_hospital: '医护岗位、范围分诊与友军治疗',
             bakery: '面包师粮食加工与返仓',
+            desert_cookhouse: '沙炉伙计取粮、耐旱烹调与成品返仓',
+            frost_smokehouse: '熏制工取粮、雪原冷熏与成品返仓',
             chain_restaurant: '外卖员取粮、中央厨房加工与成品返仓',
             steam_power_plant: '道路取粮与蒸汽能源生产',
             wind_power_plant: '无燃料风力能源生产',
@@ -3876,28 +3887,42 @@ class ProducerBuildingPanel extends BasePanel {
                 modBox.querySelector('[data-house-row]')?.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
                 modBox.querySelector('[data-house-row]')?.addEventListener('mouseleave', () => this._hideAbilityTip());
                 TechnologyGate.bindTree(modBox);
-            } else if (cfg.economyType === 'bakery') {
+            } else if (['bakery', 'desert_cookhouse', 'frost_smokehouse'].includes(cfg.economyType)) {
                 const snapshot = BakeryEconomySystem.getSnapshot(b);
+                const isBakery = cfg.economyType === 'bakery';
+                const isCookhouse = cfg.economyType === 'desert_cookhouse';
+                const buildingIcon = isBakery ? '🍞' : (isCookhouse ? '🏺' : '🥩');
+                const workerLabel = isBakery ? '面包师' : (isCookhouse ? '沙炉伙计' : '熏制工');
+                const processLabel = isBakery ? '烘焙加工' : (isCookhouse ? '沙炉烹调' : '冷熏加工');
+                const technologyName = TechnologySystem.getUnlockRequirementLabel('building', cfg.id)
+                    || (isBakery ? '面包烘焙' : (isCookhouse ? '沙炉烹调' : '寒地熏制'));
+                const workerSlots = Math.max(0,
+                    Math.floor(Number(populationEconomyConfig[cfg.economyType]?.workerSlots) || 0));
                 const operating = (b._assignedWorkers || 0) > 0
                     && snapshot.roadConnected
                     && snapshot.phase !== 'idle' && snapshot.phase !== 'waiting_deposit';
                 st.innerHTML = `
-                    <div class="economy-panel-heading"><span>🍞 面包屋生产档案</span><span class="economy-panel-badge ${operating ? '' : 'is-blocked'}" id="pbBakeryStatus">${snapshot.status}</span></div>
+                    <div class="economy-panel-heading"><span>${buildingIcon} ${cfg.name}生产档案</span><span class="economy-panel-badge ${operating ? '' : 'is-blocked'}" id="pbBakeryStatus">${snapshot.status}</span></div>
                     <div class="economy-stat-grid">
-                        <div><span>每批投入</span><b>${snapshot.inputFood} 粮食</b></div>
+                        <div><span>${workerLabel}</span><b>${b._assignedWorkers || 0}/${workerSlots}</b></div>
+                        <div><span>每批投入</span><b id="pbBakeryInput">${snapshot.inputFood} 粮食</b></div>
                         <div><span>处理时间</span><b id="pbBakeryProcess">${(snapshot.processTimeMs / 1000).toFixed(1)} 秒</b></div>
                         <div><span>产出倍率</span><b id="pbBakeryMultiplier">${snapshot.outputMultiplier.toFixed(1)} 倍</b></div>
+                        <div><span>岗位效率</span><b id="pbBakeryWorker">${Math.round(snapshot.workerOutputFactor * 100)}%</b></div>
                         <div><span>天气影响</span><b id="pbBakeryWeather">${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}</b></div>
+                        <div><span>位面环境</span><b id="pbBakeryPlane">${snapshot.planeLabel} ×${snapshot.planeMultiplier.toFixed(2)}</b></div>
                         <div><span>每批产出</span><b id="pbBakeryOutput" class="economy-unit-food">${snapshot.outputFood} 粮食</b></div>
-                        <div><span>植物祭品概率</span><b id="pbBakeryTributeChance">${(snapshot.plantTributeChance * 100).toFixed(1)}%</b></div>
-                        <div><span>面包师移速</span><b id="pbBakeryMoveSpeed">${snapshot.moveSpeed.toFixed(0)}px/s</b></div>
+                        ${isBakery ? `<div><span>植物祭品概率</span><b id="pbBakeryTributeChance">${(snapshot.plantTributeChance * 100).toFixed(1)}%</b></div>` : ''}
+                        <div><span>${workerLabel}移速</span><b id="pbBakeryMoveSpeed">${snapshot.moveSpeed.toFixed(0)}px/s</b></div>
                         <div><span>已完成批次</span><b id="pbBakeryBatches">${snapshot.completedBatches}</b></div>
-                        <div><span>待入主神仓库祭品</span><b id="pbBakeryPendingTributes">${snapshot.pendingTributes}</b></div>
+                        <div><span>待返仓成品</span><b id="pbBakeryPending" class="economy-unit-food">${snapshot.pendingFood}</b></div>
+                        ${isBakery ? `<div><span>待入主神仓库祭品</span><b id="pbBakeryPendingTributes">${snapshot.pendingTributes}</b></div>` : ''}
                         <div><span>位面粮食</span><b id="pbEconomyFood" class="economy-unit-food">${Math.floor(PopulationEconomySystem.getFoodStored())}</b></div>
                         <div><span>位面人口</span><b id="pbEconomyPopulation">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>
                     </div>
-                    <p class="economy-panel-note is-danger" id="pbBakeryRoadWarning" ${snapshot.roadConnected ? 'hidden' : ''}>需要道路连接：面包屋必须通过连续道路连接到至少一座仓库。</p>
-                    <p class="economy-panel-note">面包师从真实仓库取出 50 粮食，返回面包屋加工，再把成品搬回有空位的仓库；缺粮或满仓时等待，不会凭空结算。</p>
+                    <p class="economy-panel-note is-danger" id="pbBakeryRoadWarning" ${snapshot.roadConnected ? 'hidden' : ''}>需要道路连接：${cfg.name}必须通过连续道路连接到至少一座仓库。</p>
+                    <p class="economy-panel-note is-danger" id="pbBakeryEfficiencyWarning" ${snapshot.isLowEfficiencyLoss ? '' : 'hidden'}>当前岗位过少，本批成品少于投入粮食；继续补员可提高最终产出。</p>
+                    <p class="economy-panel-note">${workerLabel}从真实仓库取出粮食，返回${cfg.name}进行${processLabel}，再把成品搬回有空位的仓库；缺粮或满仓时等待，不会凭空结算。</p>
                     <p class="economy-panel-note">道路只决定工作资格；关闭居民动画不会停止生产。</p>`;
                 const upgrade = b._bakeryUpgrade;
                 const rows = Object.entries(cfg.modules || {}).map(([moduleId, module]) => {
@@ -3924,7 +3949,7 @@ class ProducerBuildingPanel extends BasePanel {
                         `class="building-upgrade-card" data-bakery-upgrading="${inProgress}"`);
                 }).join('');
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
-                    <div class="economy-panel-heading"><span>面包屋升级项目</span><span class="economy-panel-meta">研究“面包烘焙”即解锁</span></div>${rows}`;
+                    <div class="economy-panel-heading"><span>${cfg.name}升级项目</span><span class="economy-panel-meta">研究“${technologyName}”即解锁</span></div>${rows}`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelectorAll('[data-bakery-upgrade]').forEach((button) => {
                     button.addEventListener('click', () => this._upgradeBakery(button.dataset.bakeryUpgrade));
@@ -4499,11 +4524,12 @@ class ProducerBuildingPanel extends BasePanel {
                     <div><span>单人基础产量</span><b id="pbWindmillPerWorker" class="economy-unit-food">${snapshot.foodPerWorker.toFixed(2)}/秒</b></div>
                     <div><span>传动 / 轮作</span><b id="pbWindmillMultipliers">×${snapshot.driveMultiplier.toFixed(2)} / ×${snapshot.fieldMultiplier.toFixed(2)}</b></div>
                     <div><span>天气影响</span><b id="pbFoodWeather">${snapshot.weatherLabel} ×${snapshot.weatherMultiplier.toFixed(2)}</b></div>
+                    <div><span>位面环境</span><b id="pbWindmillPlane">${snapshot.planeLabel} ×${snapshot.planeMultiplier.toFixed(2)}</b></div>
                     <div><span>位面库存</span><b id="pbEconomyFood" class="economy-unit-food">${Math.floor(PopulationEconomySystem.getFoodStored())}</b></div>
                     <div><span>位面人口</span><b id="pbEconomyPopulation">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>
                     <div><span>占地</span><b>2×2（外围 12 格为田地占位符）</b></div>
                 </div>
-                <p class="economy-panel-note">满员配置产量不含人口超额减益、经济工坊增效、天气和祭品倍率；实际产量已计人口、工坊与天气影响，祭品倍率在最终入库结算时额外生效。</p>`;
+                <p class="economy-panel-note">满员配置产量不含人口超额减益、经济工坊增效、天气、位面环境和祭品倍率；实际产量已计人口、工坊、天气与位面环境影响，祭品倍率在最终入库结算时额外生效。</p>`;
                 const upgrade = b._windmillUpgrade;
                 const rows = Object.entries(cfg.modules || {}).map(([moduleId, module]) => {
                     const level = PopulationEconomySystem.getWindmillModuleLevel(b, moduleId);
@@ -4996,14 +5022,16 @@ class ProducerBuildingPanel extends BasePanel {
                 : 0;
             return { label: '粮食产量', pct, text: `${pct}% · ${actual.toFixed(2)} 粮食/秒` };
         }
-        if (building._economyType === 'bakery') {
+        if (['bakery', 'desert_cookhouse', 'frost_smokehouse'].includes(building._economyType)) {
             const snapshot = BakeryEconomySystem.getSnapshot(building);
             const pct = Math.round(snapshot.progress * 100);
+            const isCookhouse = building._economyType === 'desert_cookhouse';
+            const isSmokehouse = building._economyType === 'frost_smokehouse';
             const phaseLabel = {
                 idle: '批次待命',
                 to_pickup: '取粮路程',
                 to_bakery: '返店路程',
-                processing: '烘焙加工',
+                processing: isCookhouse ? '沙炉烹调' : (isSmokehouse ? '冷熏加工' : '烘焙加工'),
                 waiting_deposit: '成品待存',
                 to_deposit: '送仓路程',
             }[snapshot.phase] || '当前阶段';
@@ -5553,11 +5581,14 @@ class ProducerBuildingPanel extends BasePanel {
         const maxed = level >= module.maxLevel;
         const valueAt = (atLevel) => (Number(module.base) || 0) + (Number(module.per) || 0) * atLevel;
         const format = (value) => {
-            if (module.effect === 'bakeryProcessTimeMs') return `${(value / 1000).toFixed(1)} 秒/批`;
-            if (module.effect === 'bakeryOutputMultiplier') return `${value.toFixed(1)} 倍产出`;
+            const effect = String(module.effect || '');
+            if (effect.endsWith('ProcessTimeMs')) return `${(value / 1000).toFixed(1)} 秒/批`;
+            if (effect.endsWith('OutputMultiplier')) return `${value.toFixed(2)} 倍产出`;
+            if (effect.endsWith('InputFoodPerBatch')) return `${Math.round(value)} 粮食/批`;
             if (module.effect === 'bakeryPlantTributeChance') return `${(value * 100).toFixed(1)}%/批`;
-            if (module.effect === 'bakeryMoveSpeedMultiplier') {
-                const baseSpeed = Math.max(1, Number(populationEconomyConfig.bakery?.baseMoveSpeed) || 80);
+            if (effect.endsWith('MoveSpeedMultiplier')) {
+                const baseSpeed = Math.max(1,
+                    Number(populationEconomyConfig[this.building._economyType]?.baseMoveSpeed) || 80);
                 return `${Math.round(baseSpeed * value)}px/s（+${Math.round((value - 1) * 100)}%）`;
             }
             return `${value}`;
@@ -5565,10 +5596,11 @@ class ProducerBuildingPanel extends BasePanel {
         const cost = BakeryEconomySystem.getUpgradeCost(this.building, moduleId);
         const unlocked = TechnologySystem.isUnlocked('upgrade', moduleId);
         const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+        const buildingName = this.building?._cfg?.name || '粮食加工建筑';
         showBuildingUpgradeTooltip(`
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
-            <div style="margin-top:4px;color:#5a4a2a;">本栋面包屋独立升级；出售或被毁后不保留等级</div>
+            <div style="margin-top:4px;color:#5a4a2a;">本栋${buildingName}独立升级；出售或被毁后不保留等级</div>
             <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '面包烘焙'}`}</div>
             <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }

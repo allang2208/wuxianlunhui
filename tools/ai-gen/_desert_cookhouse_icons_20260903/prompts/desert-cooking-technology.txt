@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: World-122 technology-tree icon, square 1:1
+Primary request: Create a dedicated technology badge for 沙炉烹调 (desert oven cooking). Show the same compact desert cookhouse identity as Image 2: adobe-and-stone flat-roof building, three attached glowing dome ovens, one broad chimney, shaded front canopy with clay jars. Make the three ovens, heat management, and stored-water desert resilience immediately readable. This is a technology emblem, not a cropped building thumbnail.
+Input images: Image 1 is the strict complete cold-steel pointed-hex technology frame and presentation reference; Image 2 is the exact desert cookhouse architectural identity reference.
+Style/medium: polished low-saturation game PBR technology emblem, dark blue-black gridded inset, thick weathered cold-steel pointed hexagon with restrained cyan edge lights matching Image 1.
+Color palette: cold steel and charcoal frame; sandstone, muted terracotta, restrained brass, warm orange oven glow, one small cool cyan water accent.
+Composition/framing: entire pointed-hex frame visible with safe margin; centered isometric building; complete base and all corners visible.
+Constraints: preserve the desert cookhouse identity; no snow, no meat racks, no text, no letters, no numerals, no watermark, no extra buildings, no people, no checkerboard; transparent outside the complete pointed hexagonal frame.

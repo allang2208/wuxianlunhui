@@ -1,0 +1,27 @@
+{
+  "assetId": "cold_smoking",
+  "displayName": "寒地熏制",
+  "date": "2026-09-03",
+  "generator": "built-in image_gen",
+  "useCase": "stylized-concept",
+  "references": [
+    {
+      "path": "assets/ui/technology-icons/geothermal_power.png",
+      "role": "strict cold-steel technology badge frame and presentation reference"
+    },
+    {
+      "path": "assets/terrain/frost_smokehouse.png",
+      "role": "strict building identity reference"
+    }
+  ],
+  "prompt": "prompt.txt",
+  "selectedRaw": "raw/cold_smoking.png",
+  "finalizer": "finalize_icon.py",
+  "runtime": "assets/ui/technology-icons/cold_smoking.png",
+  "target": {
+    "size": [1024, 1024],
+    "mode": "RGBA",
+    "visibleFrame": 1000,
+    "shape": "pointed hexagon"
+  }
+}

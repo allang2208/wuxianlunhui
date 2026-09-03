@@ -1,0 +1,33 @@
+{
+  "assetId": "cold_smoking",
+  "source": "raw/cold_smoking.png",
+  "sourceMode": "RGB",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "backgroundHandling": "deterministic pointed-hex geometry mask over baked checkerboard",
+  "runtime": "assets/ui/technology-icons/cold_smoking.png",
+  "runtimeMode": "RGBA",
+  "runtimeSize": [
+    1024,
+    1024
+  ],
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "alphaBBox": [
+    44,
+    12,
+    980,
+    1012
+  ],
+  "cornerAlpha": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "transparentPixelsWithRgb": 0
+}

@@ -11833,6 +11833,8 @@ export class GameScene extends Scene {
      */
     _syncBuildingStaffingWarning(entity, data, sprite) {
         const roadBlocked = ((entity?._economyType === 'bakery'
+            || entity?._economyType === 'desert_cookhouse'
+            || entity?._economyType === 'frost_smokehouse'
             || entity?._economyType === 'chain_restaurant')
             && BakeryEconomySystem.getSnapshot(entity).roadConnected === false)
             || (entity?._economyType === 'cheese_farm'

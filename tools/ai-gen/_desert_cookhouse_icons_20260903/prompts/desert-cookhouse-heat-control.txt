@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: World-122 game building upgrade icon, square 1:1
+Primary request: Create a dedicated icon for 沙地炊坊 upgrade 聚热烟道 (heat-concentrating flue). Show a compact adobe dome oven cross-section with a strong copper-and-iron chimney draft hood concentrating orange fire heat upward; one clear mechanism only.
+Input images: Image 1 is the strict cold-steel clipped-square frame and rendering-style reference; Image 2 is the desert cookhouse material and architectural identity reference.
+Style/medium: polished low-saturation game PBR icon, crisp readable silhouette at 128px, dark blue-black inset panel, thick weathered cold-steel square frame with clipped corners and four brass rivets, matching Image 1 exactly in presentation.
+Color palette: cold steel and charcoal frame, sand adobe, restrained copper, warm orange fire.
+Composition/framing: centered single mechanism, generous safe margin, no cropped frame.
+Constraints: no text, no letters, no numerals, no watermark, no extra building, no people, no checkerboard; transparent outside the complete clipped-square frame.

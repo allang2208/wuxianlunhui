@@ -529,6 +529,10 @@ export class BootScene extends Scene {
         this.load.image('armory', buildingArtUrl('armory', 'assets/terrain/armory.png'));
         this.load.image('field_hospital', 'assets/terrain/field_hospital.png');
         this.load.image('bakery', buildingArtUrl('bakery', 'assets/terrain/bakery.png'));
+        this.load.image('desert_cookhouse', buildingArtUrl('desert_cookhouse',
+            'assets/terrain/desert_cookhouse.png'));
+        this.load.image('frost_smokehouse', buildingArtUrl('frost_smokehouse',
+            'assets/terrain/frost_smokehouse.png'));
         this.load.image('chain_restaurant', 'assets/terrain/chain_restaurant.png');
         this.load.image('cheese_farm', 'assets/terrain/cheese_farm.png');
         this.load.image('cheese_farm_structure_occluder', 'assets/terrain/cheese_farm_structure_occluder.png');

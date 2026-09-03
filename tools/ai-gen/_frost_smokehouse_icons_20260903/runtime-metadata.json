@@ -1,0 +1,82 @@
+[
+  {
+    "id": "smokehouse_draft_control",
+    "raw": "raw/smokehouse-draft-control.png",
+    "runtime": "assets/ui/building-upgrades/smokehouse-draft-control.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      12,
+      250,
+      244
+    ]
+  },
+  {
+    "id": "smokehouse_curing_recipe",
+    "raw": "raw/smokehouse-curing-recipe.png",
+    "runtime": "assets/ui/building-upgrades/smokehouse-curing-recipe.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      6,
+      250,
+      250
+    ]
+  },
+  {
+    "id": "smokehouse_curing_racks",
+    "raw": "raw/smokehouse-curing-racks.png",
+    "runtime": "assets/ui/building-upgrades/smokehouse-curing-racks.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      6,
+      9,
+      250,
+      246
+    ]
+  },
+  {
+    "id": "smokehouse_sled_runners",
+    "raw": "raw/smokehouse-sled-runners.png",
+    "runtime": "assets/ui/building-upgrades/smokehouse-sled-runners.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1024,
+      1024
+    ],
+    "outputSize": [
+      256,
+      256
+    ],
+    "alphaBBox": [
+      9,
+      6,
+      247,
+      250
+    ]
+  }
+]

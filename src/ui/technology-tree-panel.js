@@ -30,10 +30,10 @@ const MILITARY_SUB_BRANCH_ROWS = Object.freeze([
 ]);
 const ECONOMY_SUB_BRANCH_ROWS = Object.freeze([
     Object.freeze({ label: '住房', lane: 0, span: 1 }),
-    Object.freeze({ label: '农业', lane: 1, span: 2 }),
-    Object.freeze({ label: '金币', lane: 3, span: 2 }),
-    Object.freeze({ label: '能源', lane: 5, span: 3 }),
-    Object.freeze({ label: '仓储', lane: 8, span: 1 }),
+    Object.freeze({ label: '农业', lane: 1, span: 3 }),
+    Object.freeze({ label: '金币', lane: 4, span: 2 }),
+    Object.freeze({ label: '能源', lane: 6, span: 3 }),
+    Object.freeze({ label: '仓储', lane: 9, span: 1 }),
 ]);
 const PREREQUISITE_ROUTE_COLORS = Object.freeze([
     '#69d4dc',

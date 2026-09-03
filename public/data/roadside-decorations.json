@@ -31,6 +31,8 @@
     "windmill": "agriculture",
     "wheat_windmill": "agriculture",
     "bakery": "agriculture",
+    "desert_cookhouse": "agriculture",
+    "frost_smokehouse": "agriculture",
     "cheese_farm": "agriculture",
     "miner_camp": "agriculture",
     "bank": "gold",

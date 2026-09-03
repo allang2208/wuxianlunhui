@@ -269,6 +269,7 @@
     "workerSlotsModule": "windmill_field_expansion",
     "workerLabel": "农夫",
     "foodPerWorkerPerSecond": 1.5,
+    "planeOutputMultipliers": { "scene9": 0.2 },
     "visualWorkerCap": 4,
     "visualMode": "field_harvest",
     "workerVisual": {
@@ -646,6 +647,40 @@
       "strawberry", "grape", "watermelon", "chili", "matsutake",
       "blueberry", "dragonFruit", "snowLotus", "ginseng", "flatPeach"
     ]
+  },
+  "desert_cookhouse": {
+    "workerSlots": 10,
+    "workerLabel": "炊坊伙计",
+    "workerOutputEfficiencyShare": 0.1,
+    "fullEfficiencyWorkerCount": 10,
+    "visualWorkerCap": 1,
+    "visualMode": "bakery_logistics",
+    "inputFoodPerBatch": 45,
+    "baseProcessTimeMs": 11000,
+    "baseOutputMultiplier": 4.6,
+    "baseMoveSpeed": 82,
+    "arrivalDistance": 40,
+    "cookhouseServiceRadius": 200,
+    "warehouseServiceRadius": 180,
+    "moveGraceMs": 5000,
+    "droughtFoodMultiplierFloor": 1
+  },
+  "frost_smokehouse": {
+    "workerSlots": 10,
+    "workerLabel": "熏制坊伙计",
+    "workerOutputEfficiencyShare": 0.1,
+    "fullEfficiencyWorkerCount": 10,
+    "visualWorkerCap": 1,
+    "visualMode": "bakery_logistics",
+    "inputFoodPerBatch": 60,
+    "baseProcessTimeMs": 12500,
+    "baseOutputMultiplier": 4.4,
+    "baseMoveSpeed": 78,
+    "arrivalDistance": 40,
+    "smokehouseServiceRadius": 200,
+    "warehouseServiceRadius": 180,
+    "moveGraceMs": 5000,
+    "planeOutputMultipliers": { "scene9": 1.35, "default": 0.85 }
   },
   "chain_restaurant": {
     "workerSlots": 1,

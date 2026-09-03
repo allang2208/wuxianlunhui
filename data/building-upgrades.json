@@ -258,6 +258,24 @@
       "bakery_quick_steps": { "name": "小步快跑", "icon": "👟", "effect": "bakeryMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "面包师移动速度 +{pct}%（每级 +5%）" }
     }
   },
+  "desert_cookhouse_economy": {
+    "moduleUpgrade": { "goldByLevel": [300, 420, 560, 740, 960, 1250, 1620, 2100, 2700, 3450], "energyByLevel": [650, 800, 980, 1200, 1460, 1760, 2120, 2540, 3040, 3620], "timeBaseMs": 35000, "timeGrowthMs": 5000 },
+    "modules": {
+      "cookhouse_heat_control": { "name": "聚热烟道", "icon": "🔥", "iconImage": "assets/ui/building-upgrades/desert-cookhouse-heat-control.png", "effect": "cookhouseProcessTimeMs", "mode": "add", "base": 11000, "per": -300, "maxLevel": 10, "desc": "每批沙炉加工时间 {seconds} 秒（每级 -0.3 秒）" },
+      "cookhouse_spice_blending": { "name": "香料调和", "icon": "🫙", "iconImage": "assets/ui/building-upgrades/desert-cookhouse-spice-blending.png", "effect": "cookhouseOutputMultiplier", "mode": "add", "base": 4.6, "per": 0.22, "maxLevel": 10, "desc": "每批产出为投入食物的 {multiplier} 倍（每级 +0.22 倍）" },
+      "cookhouse_water_storage": { "name": "蓄水陶缸", "icon": "🏺", "iconImage": "assets/ui/building-upgrades/desert-cookhouse-water-storage.png", "effect": "cookhouseInputFoodPerBatch", "mode": "add", "base": 45, "per": 2, "maxLevel": 10, "desc": "每批领取 {value} 食物；蓄水保障使干旱粮食天气倍率最低保持100%" },
+      "cookhouse_caravan_steps": { "name": "驼队快运", "icon": "🐪", "iconImage": "assets/ui/building-upgrades/desert-cookhouse-caravan-steps.png", "effect": "cookhouseMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.04, "maxLevel": 10, "desc": "炊坊伙计移动速度 +{pct}%（每级 +4%）" }
+    }
+  },
+  "frost_smokehouse_economy": {
+    "moduleUpgrade": { "goldByLevel": [320, 450, 600, 790, 1030, 1340, 1740, 2250, 2900, 3700], "energyByLevel": [680, 840, 1030, 1260, 1530, 1840, 2210, 2640, 3150, 3750], "timeBaseMs": 35000, "timeGrowthMs": 5000 },
+    "modules": {
+      "smokehouse_draft_control": { "name": "寒烟导流", "icon": "💨", "iconImage": "assets/ui/building-upgrades/smokehouse-draft-control.png", "effect": "smokehouseProcessTimeMs", "mode": "add", "base": 12500, "per": -350, "maxLevel": 10, "desc": "每批冷熏加工时间 {seconds} 秒（每级 -0.35 秒）" },
+      "smokehouse_curing_recipe": { "name": "盐木熏配", "icon": "🥩", "iconImage": "assets/ui/building-upgrades/smokehouse-curing-recipe.png", "effect": "smokehouseOutputMultiplier", "mode": "add", "base": 4.4, "per": 0.26, "maxLevel": 10, "desc": "每批产出为投入食物的 {multiplier} 倍（每级 +0.26 倍）" },
+      "smokehouse_curing_racks": { "name": "分层熏架", "icon": "🪵", "iconImage": "assets/ui/building-upgrades/smokehouse-curing-racks.png", "effect": "smokehouseInputFoodPerBatch", "mode": "add", "base": 60, "per": 3, "maxLevel": 10, "desc": "每批领取 {value} 食物，以更多熏架同步扩大单批成品" },
+      "smokehouse_sled_runners": { "name": "雪橇滑轨", "icon": "🛷", "iconImage": "assets/ui/building-upgrades/smokehouse-sled-runners.png", "effect": "smokehouseMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.045, "maxLevel": 10, "desc": "熏制坊伙计移动速度 +{pct}%（每级 +4.5%）" }
+    }
+  },
   "chain_restaurant_economy": {
     "moduleUpgrade": { "goldByLevel": [600, 850, 1150, 1500, 1950, 2500, 3200, 4100, 5200, 6600], "energyByLevel": [900, 1200, 1550, 2000, 2550, 3250, 4100, 5200, 6550, 8200], "timeBaseMs": 45000, "timeGrowthMs": 5000 },
     "modules": {

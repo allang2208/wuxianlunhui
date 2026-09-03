@@ -1,0 +1,50 @@
+{
+  "assetFamily": "desert_cookhouse_ui",
+  "displayName": "沙地炊坊专属图标",
+  "date": "2026-09-03",
+  "generator": "built-in image_gen",
+  "useCase": "stylized-concept",
+  "references": {
+    "upgradeFrame": "assets/ui/building-upgrades/smokehouse-draft-control.png",
+    "technologyFrame": "assets/ui/technology-icons/cold_smoking.png",
+    "buildingIdentity": "assets/terrain/desert_cookhouse.png"
+  },
+  "upgrades": [
+    {
+      "id": "cookhouse_heat_control",
+      "prompt": "prompts/desert-cookhouse-heat-control.txt",
+      "raw": "raw/desert-cookhouse-heat-control.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-heat-control.png"
+    },
+    {
+      "id": "cookhouse_spice_blending",
+      "prompt": "prompts/desert-cookhouse-spice-blending.txt",
+      "raw": "raw/desert-cookhouse-spice-blending.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-spice-blending.png"
+    },
+    {
+      "id": "cookhouse_water_storage",
+      "prompt": "prompts/desert-cookhouse-water-storage.txt",
+      "raw": "raw/desert-cookhouse-water-storage.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-water-storage.png"
+    },
+    {
+      "id": "cookhouse_caravan_steps",
+      "prompt": "prompts/desert-cookhouse-caravan-steps.txt",
+      "raw": "raw/desert-cookhouse-caravan-steps.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-caravan-steps.png"
+    }
+  ],
+  "technology": {
+    "id": "desert_cooking",
+    "prompt": "prompts/desert-cooking-technology.txt",
+    "raw": "raw/desert_cooking.png",
+    "runtime": "assets/ui/technology-icons/desert_cooking.png"
+  },
+  "finalizer": "finalize_icons.py",
+  "targets": {
+    "upgrade": { "size": [256, 256], "visibleFrame": 244, "shape": "clipped-square" },
+    "upgradeMirror": { "size": [128, 128] },
+    "technology": { "size": [1024, 1024], "visibleFrame": 1000, "shape": "pointed-hexagon" }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "upgrades": [
+    {
+      "id": "cookhouse_heat_control",
+      "raw": "raw/desert-cookhouse-heat-control.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-heat-control.png",
+      "runtimeMirror": "assets/ui/runtime-icons/ui/building-upgrades/desert-cookhouse-heat-control.png",
+      "sourceMode": "RGB",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBBox": [
+        6,
+        11,
+        250,
+        245
+      ]
+    },
+    {
+      "id": "cookhouse_spice_blending",
+      "raw": "raw/desert-cookhouse-spice-blending.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-spice-blending.png",
+      "runtimeMirror": "assets/ui/runtime-icons/ui/building-upgrades/desert-cookhouse-spice-blending.png",
+      "sourceMode": "RGB",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBBox": [
+        6,
+        10,
+        250,
+        246
+      ]
+    },
+    {
+      "id": "cookhouse_water_storage",
+      "raw": "raw/desert-cookhouse-water-storage.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-water-storage.png",
+      "runtimeMirror": "assets/ui/runtime-icons/ui/building-upgrades/desert-cookhouse-water-storage.png",
+      "sourceMode": "RGB",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBBox": [
+        6,
+        10,
+        250,
+        245
+      ]
+    },
+    {
+      "id": "cookhouse_caravan_steps",
+      "raw": "raw/desert-cookhouse-caravan-steps.png",
+      "runtime": "assets/ui/building-upgrades/desert-cookhouse-caravan-steps.png",
+      "runtimeMirror": "assets/ui/runtime-icons/ui/building-upgrades/desert-cookhouse-caravan-steps.png",
+      "sourceMode": "RGB",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "runtimeSize": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "alphaBBox": [
+        6,
+        11,
+        250,
+        245
+      ]
+    }
+  ],
+  "technology": {
+    "id": "desert_cooking",
+    "raw": "raw/desert_cooking.png",
+    "runtime": "assets/ui/technology-icons/desert_cooking.png",
+    "sourceMode": "RGB",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "runtimeSize": [
+      1024,
+      1024
+    ],
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "alphaBBox": [
+      47,
+      12,
+      976,
+      1012
+    ],
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "transparentPixelsWithRgb": 0
+  }
+}

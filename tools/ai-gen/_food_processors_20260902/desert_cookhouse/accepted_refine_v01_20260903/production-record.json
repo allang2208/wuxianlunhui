@@ -1,0 +1,64 @@
+{
+  "asset": "desert_cookhouse",
+  "displayName": "沙地炊坊",
+  "selection": "refine_v01 selected by the user on 2026-09-03",
+  "source": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/candidates_dev_s12_v01/desert_cookhouse/desert_cookhouse_refine_v01_raw.png",
+  "depthAuthority": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/desert_cookhouse_depth.png",
+  "output": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/desert_cookhouse_cutout.png",
+  "review": "tools/ai-gen/_food_processors_20260902/desert_cookhouse/accepted_refine_v01_20260903/desert_cookhouse_alpha_review.png",
+  "shadowPolicy": {
+    "removed": "generated external cast shadow and green shadow tail outside the authored full-depth silhouette",
+    "retained": "narrow internal contact occlusion beneath eaves, ovens, canopy posts and the foundation",
+    "alphaAuthority": "edge-pad 0 full-depth silhouette; no broad HSV alpha deletion"
+  },
+  "pipeline": [
+    {
+      "tool": "key-world122-building-body.py",
+      "softKey": [
+        45,
+        105
+      ],
+      "nearestOpaqueEdgeRgb": true
+    },
+    {
+      "tool": "mask-world122-building-body.py",
+      "edgePad": 0
+    },
+    {
+      "tool": "repair-local-green-spill.py",
+      "rgbOnly": true,
+      "maxEdgeDistance": 4
+    },
+    {
+      "tool": "finalize-building-runtime.py",
+      "displayWidth": 768,
+      "padding": 4,
+      "preserveAlphaExact": true,
+      "defringeInnerPixels": 6
+    }
+  ],
+  "staticAlphaInspection": {
+    "mode": "RGBA",
+    "fileSize": [
+      856,
+      663
+    ],
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "alphaBBox": [
+      4,
+      4,
+      852,
+      659
+    ],
+    "visiblePixels": 331069,
+    "transparentPixels": 236459,
+    "connectedComponents": 1,
+    "largestComponentPixels": 331069,
+    "transparentPixelsWithRgb": 0
+  },
+  "runtimeIntegrationActive": true,
+  "validationBoundary": "offline cutout and alpha inspection only; no game/runtime test"
+}

@@ -237,6 +237,8 @@ function _economyModuleValue(structure, economyType, moduleId) {
         bank: structure?.bankModules,
         grand_mall: structure?.grandMallModules,
         bakery: structure?.bakeryModules,
+        desert_cookhouse: structure?.desertCookhouseModules,
+        frost_smokehouse: structure?.frostSmokehouseModules,
         chain_restaurant: structure?.chainRestaurantModules,
         cheese_farm: structure?.cheeseFarmModules,
         steam_power_plant: structure?.steamModules,
@@ -271,6 +273,14 @@ function _grandMallModuleValue(structure, moduleId) {
 
 function _bakeryModuleValue(structure, moduleId) {
     return _economyModuleValue(structure, 'bakery', moduleId);
+}
+
+function _desertCookhouseModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'desert_cookhouse', moduleId);
+}
+
+function _frostSmokehouseModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'frost_smokehouse', moduleId);
 }
 
 function _chainRestaurantModuleValue(structure, moduleId) {
@@ -341,6 +351,16 @@ function _economyWorkerSlots(structure, economyType) {
     return Math.max(0, Math.floor(Number(cfg.workerSlots) || 0));
 }
 
+function _processorWorkerOutputFactor(structure, config) {
+    const share = Number(config?.workerOutputEfficiencyShare);
+    if (!(share > 0)) return 1;
+    const fullCount = Math.max(1, Math.floor(Number(config.fullEfficiencyWorkerCount)
+        || Number(config.workerSlots) || 1));
+    const assigned = Math.max(0, Math.min(fullCount,
+        Math.floor(Number(structure?.assignedWorkers) || 0)));
+    return Math.max(0, Math.min(1, assigned * share));
+}
+
 function _researchFacilityType(structure) {
     const buildingCfg = producerBuildingsJson[structure?.cfgKey] || {};
     const economyType = buildingCfg.economyType;
@@ -390,7 +410,7 @@ function _workshopEfficiencyMultiplier(target, economyStructures) {
 }
 
 const TAVERN_OUTPUT_TARGETS = new Set([
-    'windmill', 'bakery', 'chain_restaurant', 'cheese_farm',
+    'windmill', 'bakery', 'desert_cookhouse', 'frost_smokehouse', 'chain_restaurant', 'cheese_farm',
     'miner_camp', 'deep_drill', 'steam_power_plant', 'wind_power_plant', 'solar_power_plant', 'planar_resonator',
     'bank', 'royal_mint', 'grand_mall',
     'research', 'weather_forecast', 'advanced_research',
@@ -991,6 +1011,8 @@ const LOCAL_MODULE_UPGRADES = [
     ['bank', 'bank_economy'],
     ['grandMall', 'grand_mall_economy'],
     ['bakery', 'bakery_economy'],
+    ['desertCookhouse', 'desert_cookhouse_economy'],
+    ['frostSmokehouse', 'frost_smokehouse_economy'],
     ['chainRestaurant', 'chain_restaurant_economy'],
     ['cheeseFarm', 'cheese_farm_economy'],
     ['steam', 'steam_power_plant_economy'],
@@ -1202,9 +1224,10 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         tavernWeightedMultiplier = Math.max(tavernWeightedMultiplier, 1 + weightedBonus);
     }
     target.tavernLastWeightedMultiplier = tavernWeightedMultiplier;
-    const foodWeatherMultiplier = getFoodProductionWeatherEffect(
+    const foodWeatherEffect = getFoodProductionWeatherEffect(
         opts.sceneId || 'scene8', opts.gameTimeMs
-    ).multiplier;
+    );
+    const foodWeatherMultiplier = foodWeatherEffect.multiplier;
     for (const structure of economyStructures) {
         const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
         const assigned = Math.max(0, Number(structure.assignedWorkers) || 0);
@@ -1487,6 +1510,11 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             }
         } else if (economyType === 'windmill') {
             const windmillCfg = populationEconomyConfig.windmill || {};
+            const configuredPlaneMultiplier = Number(
+                windmillCfg.planeOutputMultipliers?.[opts.sceneId || 'scene8']
+            );
+            const planeMultiplier = Number.isFinite(configuredPlaneMultiplier)
+                ? Math.max(0, configuredPlaneMultiplier) : 1;
             const foodRate = Math.max(0,
                 _economyModuleValue(structure, economyType, 'windmill_seed_selection')
                     || Number(windmillCfg.foodPerWorkerPerSecond) || 0);
@@ -1499,7 +1527,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
                 + staffedCount * foodRate * driveMultiplier * fieldMultiplier * laborEfficiency
                     * _workshopEfficiencyMultiplier(structure, economyStructures)
-                    * tavernWeightedMultiplier * foodWeatherMultiplier * t
+                    * tavernWeightedMultiplier * foodWeatherMultiplier * planeMultiplier * t
                     * getProductionResourceMul();
             const produced = Math.floor(total);
             structure.workProductionRemainder = total - produced;
@@ -1616,18 +1644,23 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             structure.deepDrillMinedTotal = Math.max(0,
                 Number(structure.deepDrillMinedTotal) || 0) + stored;
             report.deepDrillEnergyMined += stored;
-        } else if (economyType === 'bakery' || economyType === 'chain_restaurant') {
+        } else if (economyType === 'bakery' || economyType === 'desert_cookhouse'
+            || economyType === 'frost_smokehouse' || economyType === 'chain_restaurant') {
             const isRestaurant = economyType === 'chain_restaurant';
+            const isCookhouse = economyType === 'desert_cookhouse';
+            const isSmokehouse = economyType === 'frost_smokehouse';
             const bakeryCfg = populationEconomyConfig[economyType] || {};
-            const jobField = isRestaurant ? 'chainRestaurantJob' : 'bakeryJob';
-            const remainderField = isRestaurant
-                ? 'chainRestaurantOutputRemainder'
-                : 'bakeryOutputRemainder';
+            const jobField = isRestaurant ? 'chainRestaurantJob'
+                : (isCookhouse ? 'desertCookhouseJob'
+                    : (isSmokehouse ? 'frostSmokehouseJob' : 'bakeryJob'));
+            const remainderField = isRestaurant ? 'chainRestaurantOutputRemainder'
+                : (isCookhouse ? 'desertCookhouseOutputRemainder'
+                    : (isSmokehouse ? 'frostSmokehouseOutputRemainder' : 'bakeryOutputRemainder'));
             const job = structure[jobField] && typeof structure[jobField] === 'object'
                 ? structure[jobField]
                 : {};
             structure[jobField] = job;
-            if (!isRestaurant) {
+            if (economyType === 'bakery') {
                 structure.bakeryPendingTributeIds = Array.isArray(structure.bakeryPendingTributeIds)
                     ? structure.bakeryPendingTributeIds : [];
             }
@@ -1639,20 +1672,44 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             const bakeryWarehouses = reachableWarehouseRoutes.map((entry) => entry.warehouse);
             // 断路期间完整冻结粮食加工任务；不累积离线补偿时间，也不转移资源。
             if (bakeryWarehouses.length <= 0) continue;
-            const moduleValue = isRestaurant ? _chainRestaurantModuleValue : _bakeryModuleValue;
-            const inputFood = Math.max(1, Math.floor(isRestaurant
-                ? (moduleValue(structure, 'restaurant_bulk_supply')
-                    || Number(bakeryCfg.inputFoodPerBatch) || 80)
-                : (Number(bakeryCfg.inputFoodPerBatch) || 50)));
-            const processMs = Math.max(100, moduleValue(structure,
-                isRestaurant ? 'restaurant_central_kitchen' : 'bakery_quick_cooking')
+            const moduleValue = isRestaurant ? _chainRestaurantModuleValue
+                : (isCookhouse ? _desertCookhouseModuleValue
+                    : (isSmokehouse ? _frostSmokehouseModuleValue : _bakeryModuleValue));
+            const inputModule = isRestaurant ? 'restaurant_bulk_supply'
+                : (isCookhouse ? 'cookhouse_water_storage'
+                    : (isSmokehouse ? 'smokehouse_curing_racks' : ''));
+            const processModule = isRestaurant ? 'restaurant_central_kitchen'
+                : (isCookhouse ? 'cookhouse_heat_control'
+                    : (isSmokehouse ? 'smokehouse_draft_control' : 'bakery_quick_cooking'));
+            const outputModule = isRestaurant ? 'restaurant_signature_menu'
+                : (isCookhouse ? 'cookhouse_spice_blending'
+                    : (isSmokehouse ? 'smokehouse_curing_recipe' : 'bakery_gourmet'));
+            const moveModule = isRestaurant ? 'restaurant_express_delivery'
+                : (isCookhouse ? 'cookhouse_caravan_steps'
+                    : (isSmokehouse ? 'smokehouse_sled_runners' : 'bakery_quick_steps'));
+            const inputFood = Math.max(1, Math.floor((inputModule
+                ? moduleValue(structure, inputModule) : 0)
+                || Number(bakeryCfg.inputFoodPerBatch) || (isRestaurant ? 80 : 50)));
+            const processMs = Math.max(100, moduleValue(structure, processModule)
                 || Number(bakeryCfg.baseProcessTimeMs) || 10000);
-            const outputMultiplier = Math.max(1, moduleValue(structure,
-                isRestaurant ? 'restaurant_signature_menu' : 'bakery_gourmet')
+            const outputMultiplier = Math.max(1, moduleValue(structure, outputModule)
                 || Number(bakeryCfg.baseOutputMultiplier) || 5);
             const moveSpeed = Math.max(1, (Number(bakeryCfg.baseMoveSpeed) || 80)
-                * (moduleValue(structure,
-                    isRestaurant ? 'restaurant_express_delivery' : 'bakery_quick_steps') || 1));
+                * (moduleValue(structure, moveModule) || 1));
+            const processorWeatherMultiplier = isCookhouse && foodWeatherEffect.droughtActive
+                ? Math.max(foodWeatherMultiplier,
+                    Number(bakeryCfg.droughtFoodMultiplierFloor) || 1)
+                : foodWeatherMultiplier;
+            const planeOutputMultipliers = bakeryCfg.planeOutputMultipliers || {};
+            const exactPlaneMultiplier = Number(planeOutputMultipliers[opts.sceneId || 'scene8']);
+            const defaultPlaneMultiplier = Number(planeOutputMultipliers.default);
+            const processorPlaneMultiplier = isSmokehouse
+                ? (Number.isFinite(exactPlaneMultiplier) && exactPlaneMultiplier >= 0
+                    ? exactPlaneMultiplier
+                    : (Number.isFinite(defaultPlaneMultiplier) && defaultPlaneMultiplier >= 0
+                        ? defaultPlaneMultiplier : 1))
+                : 1;
+            const workerOutputFactor = _processorWorkerOutputFactor(structure, bakeryCfg);
             const nearestDistance = Math.max(
                 0,
                 (reachableWarehouseRoutes[0]?.route?.length - 1) * 64 || 0
@@ -1681,8 +1738,9 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                     const consumedFood = Math.max(1,
                         Math.floor(Number(job.cargoFood) || inputFood));
                     const exactOutput = Math.max(0, Number(structure[remainderField]) || 0)
-                        + consumedFood * outputMultiplier * tavernWeightedMultiplier
-                            * foodWeatherMultiplier
+                        + consumedFood * outputMultiplier * workerOutputFactor
+                            * tavernWeightedMultiplier * processorWeatherMultiplier
+                            * processorPlaneMultiplier
                             * getProductionResourceMul();
                     const produced = Math.max(1, Math.floor(exactOutput));
                     structure[remainderField] = exactOutput - produced;
@@ -1691,10 +1749,11 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                     job.pendingFood = Math.max(0, produced - stored);
                     job.cargoFood = 0;
                     job.completedBatches = Math.max(0, Math.floor(Number(job.completedBatches) || 0)) + 1;
-                    const tributeChance = isRestaurant ? 0 : Math.max(0, Math.min(1,
-                        moduleValue(structure, 'bakery_ingredient_processing') || 0.01));
-                    const tributeIds = isRestaurant ? [] : (bakeryCfg.plantTributeItemIds || []);
-                    if (!isRestaurant && tributeIds.length > 0 && Math.random() < tributeChance) {
+                    const tributeChance = economyType === 'bakery' ? Math.max(0, Math.min(1,
+                        moduleValue(structure, 'bakery_ingredient_processing') || 0.01)) : 0;
+                    const tributeIds = economyType === 'bakery'
+                        ? (bakeryCfg.plantTributeItemIds || []) : [];
+                    if (tributeIds.length > 0 && Math.random() < tributeChance) {
                         const tributeId = tributeIds[Math.floor(Math.random() * tributeIds.length)];
                         const routed = commit && typeof opts.grant === 'function'
                             ? opts.grant({ tributeItemIds: [tributeId] }) || {}
@@ -1717,8 +1776,9 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                 if (!_deductFoodFromWarehouses(bakeryWarehouses, inputFood)) break;
                 availableMs -= cycleMs;
                 const exactOutput = Math.max(0, Number(structure[remainderField]) || 0)
-                    + inputFood * outputMultiplier * tavernWeightedMultiplier
-                        * foodWeatherMultiplier
+                    + inputFood * outputMultiplier * workerOutputFactor
+                        * tavernWeightedMultiplier * processorWeatherMultiplier
+                        * processorPlaneMultiplier
                         * getProductionResourceMul();
                 const produced = Math.max(1, Math.floor(exactOutput));
                 structure[remainderField] = exactOutput - produced;
@@ -1726,10 +1786,11 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
                 report.foodProduced += stored;
                 job.pendingFood = Math.max(0, produced - stored);
                 job.completedBatches = Math.max(0, Math.floor(Number(job.completedBatches) || 0)) + 1;
-                const tributeChance = isRestaurant ? 0 : Math.max(0, Math.min(1,
-                    moduleValue(structure, 'bakery_ingredient_processing') || 0.01));
-                const tributeIds = isRestaurant ? [] : (bakeryCfg.plantTributeItemIds || []);
-                if (!isRestaurant && tributeIds.length > 0 && Math.random() < tributeChance) {
+                const tributeChance = economyType === 'bakery' ? Math.max(0, Math.min(1,
+                    moduleValue(structure, 'bakery_ingredient_processing') || 0.01)) : 0;
+                const tributeIds = economyType === 'bakery'
+                    ? (bakeryCfg.plantTributeItemIds || []) : [];
+                if (tributeIds.length > 0 && Math.random() < tributeChance) {
                     const tributeId = tributeIds[Math.floor(Math.random() * tributeIds.length)];
                     const routed = commit && typeof opts.grant === 'function'
                         ? opts.grant({ tributeItemIds: [tributeId] }) || {}

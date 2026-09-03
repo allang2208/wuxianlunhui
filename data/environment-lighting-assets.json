@@ -36268,6 +36268,30 @@
       },
       "projectionSource": "full-alpha"
     },
+    "desert_cookhouse": {
+      "source": "assets/terrain/desert_cookhouse.png",
+      "silhouette": "assets/terrain/lighting/desert_cookhouse_silhouette.png",
+      "projection": "assets/terrain/lighting/desert_cookhouse_projection.png",
+      "height": "assets/terrain/lighting/desert_cookhouse_height.png",
+      "normal": "assets/terrain/lighting/desert_cookhouse_normal.png",
+      "size": { "width": 856, "height": 663 },
+      "alphaBBox": { "x0": 4, "y0": 4, "x1": 852, "y1": 659 },
+      "normalKind": "alpha-height-gradient",
+      "shadow": { "anchorMode": "footprint_center" },
+      "projectionSource": "full-alpha"
+    },
+    "frost_smokehouse": {
+      "source": "assets/terrain/frost_smokehouse.png",
+      "silhouette": "assets/terrain/lighting/frost_smokehouse_silhouette.png",
+      "projection": "assets/terrain/lighting/frost_smokehouse_projection.png",
+      "height": "assets/terrain/lighting/frost_smokehouse_height.png",
+      "normal": "assets/terrain/lighting/frost_smokehouse_normal.png",
+      "size": { "width": 850, "height": 735 },
+      "alphaBBox": { "x0": 4, "y0": 4, "x1": 846, "y1": 731 },
+      "normalKind": "alpha-height-gradient",
+      "shadow": { "anchorMode": "footprint_center" },
+      "projectionSource": "full-alpha"
+    },
     "steam_power_plant": {
       "source": "assets/terrain/steam_power_plant.png",
       "silhouette": "assets/terrain/lighting/steam_power_plant_silhouette.png",

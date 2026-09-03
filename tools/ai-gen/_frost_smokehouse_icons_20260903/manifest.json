@@ -1,0 +1,48 @@
+{
+  "generator": "ComfyUI FLUX.2 Dev",
+  "date": "2026-09-03",
+  "style": "World-122 cold-steel clipped-square upgrade badges",
+  "generation": {
+    "host": "user-owned RTX 5080 ComfyUI",
+    "model": "flux2-dev-fp8",
+    "size": [1024, 1024],
+    "steps": 32,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple"
+  },
+  "icons": [
+    {
+      "id": "smokehouse_draft_control",
+      "seed": 122090331,
+      "promptFile": "prompts/smokehouse-draft-control.txt",
+      "raw": "raw/smokehouse-draft-control.png",
+      "runtime": "assets/ui/building-upgrades/smokehouse-draft-control.png",
+      "background": "black"
+    },
+    {
+      "id": "smokehouse_curing_recipe",
+      "seed": 122090332,
+      "promptFile": "prompts/smokehouse-curing-recipe.txt",
+      "raw": "raw/smokehouse-curing-recipe.png",
+      "runtime": "assets/ui/building-upgrades/smokehouse-curing-recipe.png",
+      "background": "black"
+    },
+    {
+      "id": "smokehouse_curing_racks",
+      "seed": 122090333,
+      "promptFile": "prompts/smokehouse-curing-racks.txt",
+      "raw": "raw/smokehouse-curing-racks.png",
+      "runtime": "assets/ui/building-upgrades/smokehouse-curing-racks.png",
+      "background": "black"
+    },
+    {
+      "id": "smokehouse_sled_runners",
+      "seed": 122090334,
+      "promptFile": "prompts/smokehouse-sled-runners.txt",
+      "raw": "raw/smokehouse-sled-runners.png",
+      "runtime": "assets/ui/building-upgrades/smokehouse-sled-runners.png",
+      "background": "black"
+    }
+  ]
+}

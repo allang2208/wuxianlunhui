@@ -18,10 +18,44 @@ import {
 } from './civilian-visual-utils.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const floorProductionOutput = (value) => Math.floor(Math.max(0, Number(value) || 0) + 1e-9);
+
+const PROCESSOR_PROFILES = Object.freeze({
+    bakery: Object.freeze({
+        label: '面包屋', modulesField: 'bakeryModules', upgradeField: 'bakeryUpgrade',
+        jobField: 'bakeryJob', remainderField: 'bakeryOutputRemainder',
+        processModule: 'bakery_quick_cooking', outputModule: 'bakery_gourmet',
+        inputModule: '', moveModule: 'bakery_quick_steps', serviceRadiusKey: 'bakeryServiceRadius',
+    }),
+    desert_cookhouse: Object.freeze({
+        label: '沙地炊坊', modulesField: 'desertCookhouseModules', upgradeField: 'desertCookhouseUpgrade',
+        jobField: 'desertCookhouseJob', remainderField: 'desertCookhouseOutputRemainder',
+        processModule: 'cookhouse_heat_control', outputModule: 'cookhouse_spice_blending',
+        inputModule: 'cookhouse_water_storage', moveModule: 'cookhouse_caravan_steps',
+        serviceRadiusKey: 'cookhouseServiceRadius',
+    }),
+    frost_smokehouse: Object.freeze({
+        label: '雪原熏制坊', modulesField: 'frostSmokehouseModules', upgradeField: 'frostSmokehouseUpgrade',
+        jobField: 'frostSmokehouseJob', remainderField: 'frostSmokehouseOutputRemainder',
+        processModule: 'smokehouse_draft_control', outputModule: 'smokehouse_curing_recipe',
+        inputModule: 'smokehouse_curing_racks', moveModule: 'smokehouse_sled_runners',
+        serviceRadiusKey: 'smokehouseServiceRadius',
+    }),
+    chain_restaurant: Object.freeze({
+        label: '连锁餐馆', modulesField: 'chainRestaurantModules', upgradeField: 'chainRestaurantUpgrade',
+        jobField: 'chainRestaurantJob', remainderField: 'chainRestaurantOutputRemainder',
+        processModule: 'restaurant_central_kitchen', outputModule: 'restaurant_signature_menu',
+        inputModule: 'restaurant_bulk_supply', moveModule: 'restaurant_express_delivery',
+        serviceRadiusKey: 'restaurantServiceRadius',
+    }),
+});
+
+function processorProfile(building) {
+    return PROCESSOR_PROFILES[building?._economyType] || null;
+}
 
 function isFoodProcessor(building) {
-    return building?._economyType === 'bakery'
-        || building?._economyType === 'chain_restaurant';
+    return !!processorProfile(building);
 }
 
 function processorConfig(building) {
@@ -29,11 +63,47 @@ function processorConfig(building) {
 }
 
 function processorLabel(building) {
-    return building?._economyType === 'chain_restaurant' ? '连锁餐馆' : '面包屋';
+    return processorProfile(building)?.label || '粮食加工建筑';
 }
 
-function processorModuleId(building, bakeryId, restaurantId) {
-    return building?._economyType === 'chain_restaurant' ? restaurantId : bakeryId;
+function processorWorkerOutputFactor(building) {
+    const config = processorConfig(building);
+    const share = Number(config.workerOutputEfficiencyShare);
+    if (!(share > 0)) return 1;
+    const fullCount = Math.max(1, Math.floor(Number(config.fullEfficiencyWorkerCount)
+        || Number(config.workerSlots) || 1));
+    const assigned = clamp(Math.floor(Number(building?._assignedWorkers) || 0), 0, fullCount);
+    return clamp(assigned * share, 0, 1);
+}
+
+function processorWeatherEffect(building) {
+    const weatherEffect = getFoodProductionWeatherEffect();
+    const floor = Number(processorConfig(building).droughtFoodMultiplierFloor);
+    const mitigated = weatherEffect.droughtActive && Number.isFinite(floor)
+        && weatherEffect.multiplier < floor;
+    return {
+        ...weatherEffect,
+        baseMultiplier: weatherEffect.multiplier,
+        multiplier: mitigated ? floor : weatherEffect.multiplier,
+        mitigated,
+        label: mitigated ? `${weatherEffect.label}（蓄水保障）` : weatherEffect.label,
+    };
+}
+
+function processorPlaneEffect(building, sceneId = null) {
+    const multipliers = processorConfig(building).planeOutputMultipliers;
+    if (!multipliers || typeof multipliers !== 'object') {
+        return { multiplier: 1, label: '无位面修正' };
+    }
+    const resolvedId = sceneId || globalThis.SceneManager?.currentScene;
+    const exact = Number(multipliers[resolvedId]);
+    const fallback = Number(multipliers.default);
+    const multiplier = Number.isFinite(exact) && exact >= 0
+        ? exact : (Number.isFinite(fallback) && fallback >= 0 ? fallback : 1);
+    return {
+        multiplier,
+        label: resolvedId === 'scene9' ? '世界-123·雪原专精' : '非雪原环境',
+    };
 }
 
 function structureServiceRadius(structure, configuredRadius, fallbackRadius) {
@@ -109,7 +179,7 @@ function normalizeJob(building, saved) {
 }
 
 /**
- * 面包屋/连锁餐馆离散生产真源。岗位只是一条挂在建筑上的经济记录，不进入
+ * 面包屋及同级位面食物加工建筑的离散生产真源。岗位只是一条挂在建筑上的经济记录，不进入
  * Game.entities、物理、战斗或独立存档；Sprite 只读取这条记录的位置和阶段。
  */
 export const BakeryEconomySystem = {
@@ -117,10 +187,8 @@ export const BakeryEconomySystem = {
 
     initializeBuilding(building, saved = {}) {
         if (!isFoodProcessor(building)) return;
-        const isRestaurant = building._economyType === 'chain_restaurant';
-        building.modules = { ...((isRestaurant
-            ? saved.chainRestaurantModules
-            : saved.bakeryModules) || saved.modules || {}) };
+        const profile = processorProfile(building);
+        building.modules = { ...(saved[profile.modulesField] || saved.modules || {}) };
         for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
             building.modules[moduleId] = clamp(
                 Math.floor(Number(building.modules[moduleId]) || 0),
@@ -128,19 +196,15 @@ export const BakeryEconomySystem = {
                 Math.max(0, Math.floor(Number(module.maxLevel) || 0))
             );
         }
-        const savedUpgrade = isRestaurant ? saved.chainRestaurantUpgrade : saved.bakeryUpgrade;
+        const savedUpgrade = saved[profile.upgradeField];
         building._bakeryUpgrade = savedUpgrade ? {
             moduleId: savedUpgrade.moduleId,
             totalMs: Math.max(1, Number(savedUpgrade.totalMs) || 1),
             remainMs: Math.max(0, Number(savedUpgrade.remainMs) || 0),
         } : null;
-        building._bakeryJob = normalizeJob(building,
-            isRestaurant ? saved.chainRestaurantJob : saved.bakeryJob);
-        building._bakeryOutputRemainder = Math.max(0,
-            Number(isRestaurant
-                ? saved.chainRestaurantOutputRemainder
-                : saved.bakeryOutputRemainder) || 0);
-        building._bakeryPendingTributeIds = !isRestaurant
+        building._bakeryJob = normalizeJob(building, saved[profile.jobField]);
+        building._bakeryOutputRemainder = Math.max(0, Number(saved[profile.remainderField]) || 0);
+        building._bakeryPendingTributeIds = building._economyType === 'bakery'
             && Array.isArray(saved.bakeryPendingTributeIds)
             ? saved.bakeryPendingTributeIds.filter((id) => typeof id === 'string')
             : [];
@@ -201,25 +265,28 @@ export const BakeryEconomySystem = {
     },
 
     getProcessTimeMs(building) {
+        const profile = processorProfile(building);
         return Math.max(100, moduleValue(
             building,
-            processorModuleId(building, 'bakery_quick_cooking', 'restaurant_central_kitchen'),
+            profile?.processModule,
             Number(processorConfig(building).baseProcessTimeMs) || 10000
         ));
     },
 
     getOutputMultiplier(building) {
+        const profile = processorProfile(building);
         return Math.max(1, moduleValue(
             building,
-            processorModuleId(building, 'bakery_gourmet', 'restaurant_signature_menu'),
+            profile?.outputModule,
             Number(processorConfig(building).baseOutputMultiplier) || 5
         ));
     },
 
     getInputFood(building) {
+        const profile = processorProfile(building);
         return Math.max(1, Math.floor(moduleValue(
             building,
-            processorModuleId(building, '', 'restaurant_bulk_supply'),
+            profile?.inputModule,
             Number(processorConfig(building).inputFoodPerBatch) || 50
         )));
     },
@@ -230,10 +297,11 @@ export const BakeryEconomySystem = {
     },
 
     getMoveSpeed(building) {
+        const profile = processorProfile(building);
         const base = Math.max(1, Number(processorConfig(building).baseMoveSpeed) || 80);
         return base * Math.max(0.01, moduleValue(
             building,
-            processorModuleId(building, 'bakery_quick_steps', 'restaurant_express_delivery'),
+            profile?.moveModule,
             1
         ));
     },
@@ -271,12 +339,18 @@ export const BakeryEconomySystem = {
     getSnapshot(building) {
         const job = building?._bakeryJob || defaultJob(building);
         const isRestaurant = building?._economyType === 'chain_restaurant';
+        const isCookhouse = building?._economyType === 'desert_cookhouse';
+        const isSmokehouse = building?._economyType === 'frost_smokehouse';
         const roadState = this.getRoadState(building);
         const phaseText = {
             idle: '等待仓库粮食',
             to_pickup: '前往仓库取粮',
-            to_bakery: isRestaurant ? '携带食材返回餐馆' : '携带食材返回面包屋',
-            processing: isRestaurant ? '中央厨房加工中' : '加工烘焙中',
+            to_bakery: isRestaurant ? '携带食材返回餐馆'
+                : (isCookhouse ? '携带食材返回炊坊'
+                    : (isSmokehouse ? '携带食材返回熏制坊' : '携带食材返回面包屋')),
+            processing: isRestaurant ? '中央厨房加工中'
+                : (isCookhouse ? '沙炉加工中'
+                    : (isSmokehouse ? '冷熏加工中' : '加工烘焙中')),
             waiting_deposit: '等待仓库空位',
             to_deposit: '运送成品回仓库',
         }[job.phase] || '待命';
@@ -286,8 +360,13 @@ export const BakeryEconomySystem = {
                 ? clamp(1 - job.phaseRemainMs / job.phaseTotalMs, 0, 1)
                 : 0);
         const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier(building?._economyType);
-        const weatherEffect = getFoodProductionWeatherEffect();
+        const weatherEffect = processorWeatherEffect(building);
+        const planeEffect = processorPlaneEffect(building);
         const inputFood = this.getInputFood(building);
+        const workerOutputFactor = processorWorkerOutputFactor(building);
+        const outputFood = floorProductionOutput(inputFood * this.getOutputMultiplier(building)
+            * workerOutputFactor * tavernMultiplier * weatherEffect.multiplier
+            * planeEffect.multiplier);
         return {
             status: roadState.roadConnected ? phaseText : '需要道路连接',
             phase: job.phase,
@@ -295,12 +374,17 @@ export const BakeryEconomySystem = {
             inputFood,
             processTimeMs: this.getProcessTimeMs(building),
             outputMultiplier: this.getOutputMultiplier(building),
+            workerOutputFactor,
             tavernMultiplier,
             weatherMultiplier: weatherEffect.multiplier,
+            baseWeatherMultiplier: weatherEffect.baseMultiplier,
+            weatherMitigated: weatherEffect.mitigated,
             weatherLabel: weatherEffect.label,
-            outputFood: Math.floor(inputFood
-                * this.getOutputMultiplier(building) * tavernMultiplier
-                * weatherEffect.multiplier),
+            planeMultiplier: planeEffect.multiplier,
+            planeLabel: planeEffect.label,
+            outputFood,
+            netFoodPerBatch: outputFood - inputFood,
+            isLowEfficiencyLoss: outputFood < inputFood,
             plantTributeChance: this.getPlantTributeChance(building),
             moveSpeed: this.getMoveSpeed(building),
             cargoFood: job.cargoFood,
@@ -365,7 +449,7 @@ export const BakeryEconomySystem = {
     _bakeryServiceRadius(building) {
         const config = processorConfig(building);
         return structureServiceRadius(building,
-            config.restaurantServiceRadius ?? config.bakeryServiceRadius, 200);
+            config[processorProfile(building)?.serviceRadiusKey], 200);
     },
 
     _clearMoveRoute(job) {
@@ -573,9 +657,11 @@ export const BakeryEconomySystem = {
         this._updateUpgrade(building, dt);
         this._flushPendingTributes(building);
         const roadState = this.getRoadState(building);
-        if (!roadState.roadConnected) return;
-        if (Math.max(0, Math.floor(Number(building._assignedWorkers) || 0)) <= 0) return;
         const job = building._bakeryJob;
+        const staffed = Math.max(0, Math.floor(Number(building._assignedWorkers) || 0)) > 0;
+        building._economyWorking = roadState.roadConnected && staffed
+            && job.phase !== 'idle' && job.phase !== 'waiting_deposit';
+        if (!roadState.roadConnected || !staffed) return;
         if (job.phase === 'idle') {
             this._beginPickup(building);
             return;
@@ -632,15 +718,19 @@ export const BakeryEconomySystem = {
             if (job.processRemainMs > 0) return;
             const consumedFood = Math.max(1,
                 Math.floor(Number(job.cargoFood) || this.getInputFood(building)));
-            const weatherMultiplier = getFoodProductionWeatherEffect().multiplier;
+            const weatherMultiplier = processorWeatherEffect(building).multiplier;
+            const planeMultiplier = processorPlaneEffect(building).multiplier;
+            const workerOutputFactor = processorWorkerOutputFactor(building);
             const exactOutput = building._bakeryOutputRemainder
                 + consumedFood
                     * this.getOutputMultiplier(building)
+                    * workerOutputFactor
                     * TavernEconomySystem.getPlaneOutputMultiplier(building._economyType)
                     * weatherMultiplier
+                    * planeMultiplier
                     * getProductionResourceMul();
-            job.pendingFood = Math.max(1, Math.floor(exactOutput));
-            building._bakeryOutputRemainder = exactOutput - job.pendingFood;
+            job.pendingFood = Math.max(1, floorProductionOutput(exactOutput));
+            building._bakeryOutputRemainder = Math.max(0, exactOutput - job.pendingFood);
             job.cargoFood = 0;
             this._rollPlantTribute(building);
             this._beginDeposit(building);

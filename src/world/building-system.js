@@ -305,7 +305,7 @@ const ECONOMY_BUILD_SECTIONS = Object.freeze([
     { label: '', itemIds: ['warehouse', 'house'] },
     {
         label: '农业建筑',
-        itemIds: ['wheat_windmill', 'cheese_farm', 'bakery', 'chain_restaurant', 'tavern'],
+        itemIds: ['wheat_windmill', 'cheese_farm', 'bakery', 'desert_cookhouse', 'frost_smokehouse', 'chain_restaurant', 'tavern'],
     },
     {
         label: '能源建筑',

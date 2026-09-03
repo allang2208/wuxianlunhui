@@ -617,6 +617,52 @@ export function captureWorld(sceneId = 'scene8') {
                 ? [...(p._bakeryPendingTributeIds || [])] : undefined,
             bakeryOutputRemainder: p._economyType === 'bakery'
                 ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
+            desertCookhouseModules: p._economyType === 'desert_cookhouse'
+                ? { ...(p.modules || {}) } : undefined,
+            desertCookhouseUpgrade: p._economyType === 'desert_cookhouse' && p._bakeryUpgrade ? {
+                moduleId: p._bakeryUpgrade.moduleId,
+                totalMs: p._bakeryUpgrade.totalMs,
+                remainMs: p._bakeryUpgrade.remainMs,
+            } : null,
+            desertCookhouseJob: p._economyType === 'desert_cookhouse' ? {
+                phase: p._bakeryJob?.phase,
+                x: p._bakeryJob?.x,
+                y: p._bakeryJob?.y,
+                targetWarehouseId: p._bakeryJob?.targetWarehouseId ?? null,
+                cargoFood: p._bakeryJob?.cargoFood || 0,
+                pendingFood: p._bakeryJob?.pendingFood || 0,
+                processRemainMs: p._bakeryJob?.processRemainMs || 0,
+                processTotalMs: p._bakeryJob?.processTotalMs || 0,
+                phaseRemainMs: p._bakeryJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
+                completedBatches: p._bakeryJob?.completedBatches || 0,
+                offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+            } : undefined,
+            desertCookhouseOutputRemainder: p._economyType === 'desert_cookhouse'
+                ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
+            frostSmokehouseModules: p._economyType === 'frost_smokehouse'
+                ? { ...(p.modules || {}) } : undefined,
+            frostSmokehouseUpgrade: p._economyType === 'frost_smokehouse' && p._bakeryUpgrade ? {
+                moduleId: p._bakeryUpgrade.moduleId,
+                totalMs: p._bakeryUpgrade.totalMs,
+                remainMs: p._bakeryUpgrade.remainMs,
+            } : null,
+            frostSmokehouseJob: p._economyType === 'frost_smokehouse' ? {
+                phase: p._bakeryJob?.phase,
+                x: p._bakeryJob?.x,
+                y: p._bakeryJob?.y,
+                targetWarehouseId: p._bakeryJob?.targetWarehouseId ?? null,
+                cargoFood: p._bakeryJob?.cargoFood || 0,
+                pendingFood: p._bakeryJob?.pendingFood || 0,
+                processRemainMs: p._bakeryJob?.processRemainMs || 0,
+                processTotalMs: p._bakeryJob?.processTotalMs || 0,
+                phaseRemainMs: p._bakeryJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
+                completedBatches: p._bakeryJob?.completedBatches || 0,
+                offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+            } : undefined,
+            frostSmokehouseOutputRemainder: p._economyType === 'frost_smokehouse'
+                ? Math.max(0, Number(p._bakeryOutputRemainder) || 0) : undefined,
             chainRestaurantModules: p._economyType === 'chain_restaurant'
                 ? { ...(p.modules || {}) } : undefined,
             chainRestaurantUpgrade: p._economyType === 'chain_restaurant' && p._bakeryUpgrade ? {
@@ -1205,6 +1251,14 @@ function _restoreProducer(s, sceneId) {
         bakeryJob: s.bakeryJob,
         bakeryPendingTributeIds: s.bakeryPendingTributeIds,
         bakeryOutputRemainder: s.bakeryOutputRemainder,
+        desertCookhouseModules: s.desertCookhouseModules,
+        desertCookhouseUpgrade: s.desertCookhouseUpgrade,
+        desertCookhouseJob: s.desertCookhouseJob,
+        desertCookhouseOutputRemainder: s.desertCookhouseOutputRemainder,
+        frostSmokehouseModules: s.frostSmokehouseModules,
+        frostSmokehouseUpgrade: s.frostSmokehouseUpgrade,
+        frostSmokehouseJob: s.frostSmokehouseJob,
+        frostSmokehouseOutputRemainder: s.frostSmokehouseOutputRemainder,
         chainRestaurantModules: s.chainRestaurantModules,
         chainRestaurantUpgrade: s.chainRestaurantUpgrade,
         chainRestaurantJob: s.chainRestaurantJob,
@@ -1410,6 +1464,7 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
         report = settleWorld122(snap, elapsed, {
             commit: true,
             skipWaves: DefenseSystem._managedExternally === true,
+            sceneId,
             gameTimeMs: nowGame,
             isRecruitmentTierUnlocked: (id) =>
                 TechnologySystem?.isUnlocked?.('recruitmentTier', id) === true,
