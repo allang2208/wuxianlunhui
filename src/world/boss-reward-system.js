@@ -656,7 +656,8 @@ export class RewardNodeManager {
                         const scrolls = EnchantConfig.getAllScrolls().filter(s => s.grade === reward.grade);
                         if (scrolls.length > 0) {
                             const scroll = scrolls[Math.floor(Math.random() * scrolls.length)];
-                            const item = EnchantScrollItems ? EnchantScrollItems[`enchant_scroll_${scroll.id}`] : null;
+                            const item = EnchantScrollItems
+                                ? Object.values(EnchantScrollItems).find(entry => entry.scrollId === scroll.id) : null;
                             if (item) this._addToBackpackOrDrop({ ...item, stack: reward.count });
                         }
                     }
