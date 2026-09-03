@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T06:59:56.704023+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\videos\\knell-attack-h3-v01.mp4",
+    "bytes": 376328,
+    "sha256": "496fe37f86ed7ba5f2c1d58a2741eb4f937c64d48894e72e6f122227a1cfede7"
+  },
+  "promptId": "4364379f-df29-467a-992d-1039c1acec87",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 202608302,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A single original eldritch game creature, realistic PBR materials and subdued natural wear, exactly matching the supplied first frame. Locked camera, constant orthographic-looking three-quarter view facing screen right. One continuous 5.17-second shot. Preserve the provided actor scale, body proportions, material colors and limb count. The whole actor stays fully inside the frame with wide clear margins; do not zoom to fill the blank space. Feet remain anchored to the same central ground position except for the specified in-place steps or collapse. Flat uniform pure white background identical to the first frame, with no set, horizon, shadow, reflection, particles, captions or other characters. Preserve rigid equipment and coherent fingers. No audio is needed.\n\nThe same hunched creature with a single dark weathered bronze bell-shaped torso, an open hollow bell mouth, small hooded wrapped head, two thin arms and two bent legs. The bronze bell is a rigid integral part of its body. Preserve the short ivory bone striker in its original hand, which is the hand initially on SCREEN LEFT at the bell rim. The other hand hangs empty on SCREEN RIGHT. Do not swap hands, detach the bell, add chains or deform the shell.\nPerform ONE deliberate strike against its own bronze bell rim. From 0 to 1.3 seconds, stand firmly and lift the original striker hand slightly outward and back. From 1.3 to 2.2 seconds, bring the bone striker inward to make one clear contact with the outer lower rim of the same bell at about 2 seconds. The empty hand stays relaxed. From 2.2 to 2.8 seconds, show only a small whole-body recoil; the bell remains rigid. From 2.8 to 4.4 seconds, recover the striker to the original low grip. From 4.4 to 5.17 seconds, settle in the supplied ready stance. No second hit, no attack against an off-screen target, no visible sound waves, aura or new object.",
+  "effectivePrompt": "A single original eldritch game creature, realistic PBR materials and subdued natural wear, exactly matching the supplied first frame. Locked camera, constant orthographic-looking three-quarter view facing screen right. One continuous 5.17-second shot. Preserve the provided actor scale, body proportions, material colors and limb count. The whole actor stays fully inside the frame with wide clear margins; do not zoom to fill the blank space. Feet remain anchored to the same central ground position except for the specified in-place steps or collapse. Flat uniform pure white background identical to the first frame, with no set, horizon, shadow, reflection, particles, captions or other characters. Preserve rigid equipment and coherent fingers. No audio is needed.\n\nThe same hunched creature with a single dark weathered bronze bell-shaped torso, an open hollow bell mouth, small hooded wrapped head, two thin arms and two bent legs. The bronze bell is a rigid integral part of its body. Preserve the short ivory bone striker in its original hand, which is the hand initially on SCREEN LEFT at the bell rim. The other hand hangs empty on SCREEN RIGHT. Do not swap hands, detach the bell, add chains or deform the shell.\nPerform ONE deliberate strike against its own bronze bell rim. From 0 to 1.3 seconds, stand firmly and lift the original striker hand slightly outward and back. From 1.3 to 2.2 seconds, bring the bone striker inward to make one clear contact with the outer lower rim of the same bell at about 2 seconds. The empty hand stays relaxed. From 2.2 to 2.8 seconds, show only a small whole-body recoil; the bell remains rigid. From 2.8 to 4.4 seconds, recover the striker to the original low grip. From 4.4 to 5.17 seconds, settle in the supplied ready stance. No second hit, no attack against an off-screen target, no visible sound waves, aura or new object.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] A single original eldritch game creature, realistic PBR materials and subdued natural wear, exactly matching the supplied first frame. Locked camera, constant orthographic-looking three-quarter view facing screen right. One continuous 5.17-second shot. Preserve the provided actor scale, body proportions, material colors and limb count. The whole actor stays fully inside the frame with wide clear margins; do not zoom to fill the blank space. Feet remain anchored to the same central ground position except for the specified in-place steps or collapse. Flat uniform pure white background identical to the first frame, with no set, horizon, shadow, reflection, particles, captions or other characters. Preserve rigid equipment and coherent fingers. No audio is needed.\n\nThe same hunched creature with a single dark weathered bronze bell-shaped torso, an open hollow bell mouth, small hooded wrapped head, two thin arms and two bent legs. The bronze bell is a rigid integral part of its body. Preserve the short ivory bone striker in its original hand, which is the hand initially on SCREEN LEFT at the bell rim. The other hand hangs empty on SCREEN RIGHT. Do not swap hands, detach the bell, add chains or deform the shell.\nPerform ONE deliberate strike against its own bronze bell rim. From 0 to 1.3 seconds, stand firmly and lift the original striker hand slightly outward and back. From 1.3 to 2.2 seconds, bring the bone striker inward to make one clear contact with the outer lower rim of the same bell at about 2 seconds. The empty hand stays relaxed. From 2.2 to 2.8 seconds, show only a small whole-body recoil; the bell remains rigid. From 2.8 to 4.4 seconds, recover the striker to the original low grip. From 4.4 to 5.17 seconds, settle in the supplied ready stance. No second hit, no attack against an off-screen target, no visible sound waves, aura or new object. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "802f76c1483f69067fb8c4608e696bbafc8a0c0e7175d8dac8e2a35ea70ceb3a",
+  "effectivePromptSha256": "802f76c1483f69067fb8c4608e696bbafc8a0c0e7175d8dac8e2a35ea70ceb3a",
+  "finalPromptSha256": "81f8cd34d2dea9f9edf49abc0d262ab28ba5fa2844b35cea8da11164cc3d4df2",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\prompts\\knell-attack.txt",
+      "bytes": 1882,
+      "sha256": "a6b90e4d15822284e1c8d8ac8a9562817e623765645705f4eec0213b002acb8c"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\references\\04-knell-attendant-v01.png",
+      "bytes": 224439,
+      "sha256": "d86182e094574ce072335b33234086e0f361977bf483314998fbb0eb6e9c8492"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\h3-completion-v01\\videos\\knell-attack-h3-v01_contact.png",
+    "bytes": 267584,
+    "sha256": "0cec9698f4598e6d4a60c3e9d6af6ef9df28263b3f9ffe5fc6c988302ffaaf74"
+  },
+  "elapsedSeconds": 936.459
+}

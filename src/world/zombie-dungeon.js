@@ -12,6 +12,10 @@ import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDog
 import { DeepVeinMother } from '../entities/enemy-types/deep-vein-mother.js';
 import { UIState } from '../ui/ui-state.js';
 import { CoreDrillLarva, OreShardling } from '../entities/enemy-types/mine-small-monsters.js';
+import { CoffinWard } from '../entities/enemy-types/coffin-ward.js';
+import { ShroudThrall } from '../entities/enemy-types/shroud-thrall.js';
+import { OssuaryCaster } from '../entities/enemy-types/ossuary-caster.js';
+import { KnellAttendant } from '../entities/enemy-types/knell-attendant.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
 import { DungeonConfig } from '../config/dungeon-config.js';
@@ -294,6 +298,24 @@ export function createCoreDrillLarva(x, y) {
     return new CoreDrillLarva(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 },
     });
+}
+
+export function createCoffinWard(x, y) {
+    return new CoffinWard(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 },
+    });
+}
+
+export function createShroudThrall(x, y) {
+    return new ShroudThrall(x, y, { ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 } });
+}
+
+export function createOssuaryCaster(x, y) {
+    return new OssuaryCaster(x, y, { ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 } });
+}
+
+export function createKnellAttendant(x, y) {
+    return new KnellAttendant(x, y, { ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 } });
 }
 
 export function createOreShardling(x, y) {
@@ -687,6 +709,10 @@ export const ZOMBIE_FACTORY_MAP = {
     supportBeamBrute: createSupportBeamBrute,
     coreDrillWorm: createCoreDrillWorm,
     coreDrillLarva: createCoreDrillLarva,
+    coffinWard: createCoffinWard,
+    shroudThrall: createShroudThrall,
+    ossuaryCaster: createOssuaryCaster,
+    knellAttendant: createKnellAttendant,
     oreShardling: createOreShardling,
     brokenCableGaoler: createBrokenCableGaoler,
     blackLungLampKeeper: createBlackLungLampKeeper,

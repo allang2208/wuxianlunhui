@@ -1078,6 +1078,32 @@ export class BootScene extends Scene {
             }
         }
 
+        // 棺板卫尸：稳定目录族供 RuntimeAssetManager 按需预取，不额外常驻。
+        for (const [state, layout] of Object.entries(enemyConfigData.coffinWard.textures.frameLayouts)) {
+            this.load.spritesheet(`enemy_coffin_ward_${state}`, enemyConfigData.coffinWard.textures[state], {
+                frameWidth: layout.frameWidth,
+                frameHeight: layout.frameHeight,
+                endFrame: layout.frameCount - 1,
+            });
+        }
+
+        // 恐怖地牢普通怪：按配置登记目录族，交给现有驻留管理器按需加载。
+        for (const [type, family] of [
+            ['shroudThrall', 'shroud_thrall'],
+            ['ossuaryCaster', 'ossuary_caster'],
+            ['knellAttendant', 'knell_attendant'],
+        ]) {
+            const textures = enemyConfigData[type].textures;
+            for (const [state, layout] of Object.entries(textures.frameLayouts)) {
+                this.load.spritesheet(`enemy_${family}_${state}`, textures[state], {
+                    frameWidth: layout.frameWidth,
+                    frameHeight: layout.frameHeight,
+                    endFrame: layout.frameCount - 1,
+                });
+            }
+        }
+        this.load.image('enemy_ossuary_caster_projectile', enemyConfigData.ossuaryCaster.textures.projectile);
+
         // 岩芯钻虫（废弃矿洞专属精英）：同一源像素比例，跨动作画布宽度由实体动态换算。
         const coreDrillWormLayouts = enemyConfigData.coreDrillWorm?.textures?.frameLayouts || {};
         const loadCoreDrillWormSheet = (state, layoutKey, filename) => {
@@ -2463,6 +2489,14 @@ export class BootScene extends Scene {
                     repeat: layout.repeat,
                 });
             }
+        }
+
+        // 棺板卫尸登记原始逐帧时长；实体自身选帧，死亡末帧保留半帧时长。
+        for (const [state, layout] of Object.entries(enemyConfigData.coffinWard.textures.frameLayouts)) {
+            const key = `enemy_coffin_ward_${state}`;
+            const frames = this.anims.generateFrameNumbers(key, { start: 0, end: layout.frameCount - 1 });
+            frames.forEach((frame, index) => { frame.duration = layout.frameDurations[index]; });
+            this.anims.create({ key, frames, duration: layout.duration, repeat: layout.repeat });
         }
 
         // ---- 岩芯钻虫动画（研磨/入土/破土均为一次性状态） ----

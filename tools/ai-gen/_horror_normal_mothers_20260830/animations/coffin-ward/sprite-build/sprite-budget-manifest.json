@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "id": "coffin-ward",
+  "profile": "crowd",
+  "runtimeIntegrationActive": true,
+  "dependencies": [],
+  "sheets": [
+    {
+      "textureKey": "enemy_coffin_ward_idle",
+      "path": "assets/enemies/coffin_ward/idle.png",
+      "frameWidth": 194,
+      "frameHeight": 233,
+      "frameCount": 24,
+      "endFrame": 23,
+      "footX": 97.0,
+      "footY": 221.99999999999997
+    },
+    {
+      "textureKey": "enemy_coffin_ward_walk",
+      "path": "assets/enemies/coffin_ward/walk.png",
+      "frameWidth": 204,
+      "frameHeight": 247,
+      "frameCount": 46,
+      "endFrame": 45,
+      "footX": 102.0,
+      "footY": 225.99999999999997
+    },
+    {
+      "textureKey": "enemy_coffin_ward_attack",
+      "path": "assets/enemies/coffin_ward/attack.png",
+      "frameWidth": 256,
+      "frameHeight": 239,
+      "frameCount": 121,
+      "endFrame": 120,
+      "footX": 128.0,
+      "footY": 220.99999999999997
+    },
+    {
+      "textureKey": "enemy_coffin_ward_death",
+      "path": "assets/enemies/coffin_ward/death.png",
+      "frameWidth": 262,
+      "frameHeight": 242,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 131.0,
+      "footY": 220.99999999999997
+    }
+  ]
+}

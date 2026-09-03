@@ -1,0 +1,122 @@
+{
+  "provider": "minimax-h3-local",
+  "authorization": "User explicitly switched from exhausted Doubao quota to MiniMax H3",
+  "host": "192.168.3.142:8188",
+  "parameters": {
+    "size": "1024x576",
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "candidates": 1,
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "scope": "source candidates only; no sprite processing or game integration",
+  "references": {
+    "03-ossuary-caster-v02.png": {
+      "source": "mother\\03-ossuary-caster-v02.png",
+      "output": "references\\03-ossuary-caster-v02.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "canvasSize": [
+        1024,
+        576
+      ],
+      "uniformScale": 0.3674641148325359,
+      "scaledSize": [
+        461,
+        461
+      ],
+      "pasteOffset": [
+        281,
+        57
+      ],
+      "operation": "uniform resize and white letterbox; no redesign or nonuniform stretch"
+    },
+    "04-knell-attendant-v01.png": {
+      "source": "mother\\04-knell-attendant-v01.png",
+      "output": "references\\04-knell-attendant-v01.png",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "canvasSize": [
+        1024,
+        576
+      ],
+      "uniformScale": 0.3674641148325359,
+      "scaledSize": [
+        461,
+        461
+      ],
+      "pasteOffset": [
+        281,
+        57
+      ],
+      "operation": "uniform resize and white letterbox; no redesign or nonuniform stretch"
+    }
+  },
+  "jobs": [
+    {
+      "id": "ossuary-attack",
+      "asset": "ossuary-caster",
+      "action": "attacking",
+      "mode": "recover",
+      "reference": "references\\03-ossuary-caster-v02.png",
+      "prompt": "prompts\\ossuary-attack.txt",
+      "video": "videos/ossuary-attack-h3-v01.mp4",
+      "status": "downloaded_candidate_awaiting_user_review",
+      "seed": 202608300,
+      "startedAt": "2026-08-30T06:25:45.064401+00:00",
+      "log": "logs/ossuary-attack.log",
+      "preview": "previews/ossuary-attack-source.gif",
+      "reviewStatus": "rejected_by_user",
+      "reviewReason": "Throw lacks force and looks like a casual toss. User explicitly requested another version."
+    },
+    {
+      "id": "knell-walk",
+      "asset": "knell-attendant",
+      "action": "walking",
+      "mode": "loop",
+      "reference": "references\\04-knell-attendant-v01.png",
+      "prompt": "prompts\\knell-walk.txt",
+      "video": "videos/knell-walk-h3-v01.mp4",
+      "status": "downloaded_candidate_awaiting_user_review",
+      "seed": 202608301,
+      "startedAt": "2026-08-30T06:33:03.934802+00:00",
+      "log": "logs/knell-walk.log",
+      "preview": "previews/knell-walk-source.gif"
+    },
+    {
+      "id": "knell-attack",
+      "asset": "knell-attendant",
+      "action": "attacking",
+      "mode": "recover",
+      "reference": "references\\04-knell-attendant-v01.png",
+      "prompt": "prompts\\knell-attack.txt",
+      "video": "videos/knell-attack-h3-v01.mp4",
+      "status": "downloaded_candidate_awaiting_user_review",
+      "seed": 202608302,
+      "startedAt": "2026-08-30T06:44:18.895984+00:00",
+      "log": "logs/knell-attack.log",
+      "preview": "previews/knell-attack-source.gif"
+    },
+    {
+      "id": "knell-death",
+      "asset": "knell-attendant",
+      "action": "dying",
+      "mode": "one-way",
+      "reference": "references\\04-knell-attendant-v01.png",
+      "prompt": "prompts\\knell-death.txt",
+      "video": "videos/knell-death-h3-v01.mp4",
+      "status": "downloaded_candidate_awaiting_user_review",
+      "seed": 202608303,
+      "startedAt": "2026-08-30T06:59:58.784456+00:00",
+      "log": "logs/knell-death.log",
+      "preview": "previews/knell-death-source.gif"
+    }
+  ],
+  "downloadedCount": 4
+}

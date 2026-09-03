@@ -1,0 +1,55 @@
+{
+  "id": "ossuary-caster",
+  "profile": "crowd",
+  "runtimeIntegrationActive": true,
+  "estimatedRgbaMiB": 55.54948425292969,
+  "dependencies": [],
+  "sheets": [
+    {
+      "textureKey": "enemy_ossuary_caster_idle",
+      "path": "assets/enemies/ossuary_caster/idle.png",
+      "frameWidth": 128,
+      "frameHeight": 224,
+      "frameCount": 24,
+      "endFrame": 23,
+      "footX": 64.75338345864662,
+      "footY": 215.193984962406
+    },
+    {
+      "textureKey": "enemy_ossuary_caster_walk",
+      "path": "assets/enemies/ossuary_caster/walk.png",
+      "frameWidth": 146,
+      "frameHeight": 232,
+      "frameCount": 40,
+      "endFrame": 39,
+      "footX": 73.75338345864662,
+      "footY": 218.193984962406
+    },
+    {
+      "textureKey": "enemy_ossuary_caster_attack",
+      "path": "assets/enemies/ossuary_caster/attack.png",
+      "frameWidth": 312,
+      "frameHeight": 259,
+      "frameCount": 109,
+      "endFrame": 108,
+      "footX": 156.53395784543324,
+      "footY": 248.5854800936768
+    },
+    {
+      "textureKey": "enemy_ossuary_caster_death",
+      "path": "assets/enemies/ossuary_caster/death.png",
+      "frameWidth": 246,
+      "frameHeight": 230,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 123.75338345864662,
+      "footY": 216.193984962406
+    },
+    {
+      "kind": "image",
+      "textureKey": "enemy_ossuary_caster_projectile",
+      "path": "assets/enemies/ossuary_caster/projectile.png"
+    }
+  ],
+  "version": 1
+}

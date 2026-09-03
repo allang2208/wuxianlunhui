@@ -328,7 +328,9 @@ class RuntimeAssetManagerImpl {
         const keys = [];
         for (const entity of entities || []) {
             if (typeof entity?._getTextureKey !== 'function') continue;
-            if (entity.active === false && entity?._phaserSprite?.active !== true) continue;
+            const preservedCorpse = entity._preserveCorpse
+                && (entity._deathAnimTimer > 0 || entity._corpseTimer > 0 || entity._fadeTimer > 0);
+            if (entity.active === false && !preservedCorpse && entity?._phaserSprite?.active !== true) continue;
             const key = entity._getTextureKey();
             if (key) keys.push(key);
         }

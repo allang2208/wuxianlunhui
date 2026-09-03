@@ -23,6 +23,8 @@ class Projectile {
         this.traveled = 0; this.active = true; this.hitTargets = new Set(); this.image = image;
         this._candidateEntities = [];
         this.textureKey = textureKey; // 显式 Phaser 纹理键（优先于 image 的箭头回退）
+        this.rotateWithVelocity = false;
+        this.displaySize = null;
         this.isTracer = isTracer; // 是否为曳光弹（G18手枪）
         this.isSpit = isSpit || false; // 是否为毒液投射物（SpitterZombie）
         this.isGold = isGold; // 是否为亮金色曳光弹（PKM）
@@ -535,8 +537,8 @@ class Projectile {
     _updatePhaserSprite() {
         if (!this._phaserSprite || !this._phaserSprite.active) return;
         this._phaserSprite.setPosition(this.x, this.y - this.z);
-        // 显式纹理键投射物不随弹道旋转（球体光照贴图旋转会丢失光照方向）
-        this._phaserSprite.setRotation(this.textureKey ? 0 : (this.visualAngle ?? this.angle));
+        // 球体保留光照方向；骨镖等定向贴图显式开启随弹道旋转。
+        this._phaserSprite.setRotation(this.textureKey && !this.rotateWithVelocity ? 0 : (this.visualAngle ?? this.angle));
         this._phaserSprite.setDepth(this._projectileRenderDepth());
         if (this._noRender) {
             this._phaserSprite.setVisible(false);
@@ -544,8 +546,8 @@ class Projectile {
         }
         this._phaserSprite.setVisible(true);
         if (this.textureKey) {
-            // 显式纹理键投射物：按 size 方形显示（如毒蛆绿色毒球）
-            const s = this.size * 2;
+            // 定向贴图可独立配置画布大小；未配置时保留原显示尺寸。
+            const s = this.displaySize ?? this.size * 2;
             this._phaserSprite.setDisplaySize(s, s);
         } else if (this.isSpit) {
             const s = this.size * 2.5;
@@ -582,6 +584,8 @@ class Projectile {
         this.source = null;
         this.entities = null;
         this.image = null;
+        this.rotateWithVelocity = false;
+        this.displaySize = null;
         this.hitTargets.clear();
         this._candidateEntities.length = 0;
         this._embeddedWalls = null;

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "1:1",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\mother\\02-coffin-ward-v02-head-wrap.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_normal_mothers_20260830\\animations\\coffin-ward\\prompts\\idle-v01.txt",
+  "promptChars": 652,
+  "promptSha256": "b15689c51ee251030dd1e74fa967b7b86f644513f3bfacc1901c455b5e8bb1c8",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-30T04:57:01.007Z",
+  "sourceUrlScheme": "https"
+}

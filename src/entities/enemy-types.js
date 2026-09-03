@@ -60,6 +60,10 @@ export { CoreDrillLarva, OreShardling } from './enemy-types/mine-small-monsters.
 import { BrokenCableGaoler } from './enemy-types/broken-cable-gaoler.js';
 import { BlackLungLampKeeper } from './enemy-types/black-lung-lamp-keeper.js';
 import { SealedShaftRockWraith } from './enemy-types/sealed-shaft-rock-wraith.js';
+export { CoffinWard } from './enemy-types/coffin-ward.js';
+export { ShroudThrall } from './enemy-types/shroud-thrall.js';
+export { OssuaryCaster } from './enemy-types/ossuary-caster.js';
+export { KnellAttendant } from './enemy-types/knell-attendant.js';
 import { ForemanZombie } from './enemy-types/foreman-zombie.js';
 import { MineCave } from './enemy-types/mine-cave.js';
 import { Tombstone } from './enemy-types/tombstone.js';

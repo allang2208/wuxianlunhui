@@ -1452,8 +1452,7 @@ export class GameScene extends Scene {
         const apply = (entity) => {
             if (!entity || seen.has(entity) || entity === _game.player) return;
             seen.add(entity);
-            const isCorpse = entity._preserveCorpse && !entity.active
-                && (entity._deathAnimTimer > 0 || entity._corpseTimer > 0);
+            const isCorpse = _game.isPreservedCorpse(entity);
             if (!entity.active && !isCorpse) {
                 this._setViewportEntityHidden(entity, true);
                 return;
@@ -3212,8 +3211,7 @@ export class GameScene extends Scene {
             // 掉落物：位置/深度由 DropItem._syncPhaserSprite 自管（上下浮动 bob），
             // 此处每帧强写 (x, y - displayHeight/2) 会冲掉 bob 并抬高贴图——跳过
             if (entity.itemData && entity.noCollision) return;
-            const isCorpse = entity._preserveCorpse && !entity.active &&
-                (entity._deathAnimTimer > 0 || entity._corpseTimer > 0);
+            const isCorpse = Game.isPreservedCorpse(entity);
             if (!entity.active && !isCorpse) return;
             const inViewport = this._isEntityInRenderViewport(entity);
             entity._viewportRenderVisible = inViewport;
@@ -3406,8 +3404,7 @@ export class GameScene extends Scene {
                 // 静态结构已由 _syncStructureRenderOrder 按完整 footprint 拓扑落深度；
                 // 禁止再按动态单位的脚点 Y 覆写，否则房屋/官邸等高体量建筑会整栋错误压住单位。
                 if (e._structureDepthMode || e._isDefenseStructure || usesBuildingFootprintVolume(e)) return;
-                const isCorpse = e._preserveCorpse && !e.active &&
-                    (e._deathAnimTimer > 0 || e._corpseTimer > 0);
+                const isCorpse = Game.isPreservedCorpse(e);
                 if (!e.active && !isCorpse) return;
                 if (e._viewportRenderVisible === false) return;
                 const sprite = e._phaserSprite;

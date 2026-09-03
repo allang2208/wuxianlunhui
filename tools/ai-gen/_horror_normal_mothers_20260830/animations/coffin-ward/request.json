@@ -1,0 +1,73 @@
+{
+  "date": "2026-08-30",
+  "status": "installed_pending_user_runtime_test",
+  "creature": "棺板卫尸",
+  "reference": "../../mother/02-coffin-ward-v02-head-wrap.png",
+  "provider": "doubao",
+  "requestedModel": "Seedance 2.0 Mini",
+  "durationSeconds": 5,
+  "ratio": "1:1",
+  "candidateCountPerAction": 1,
+  "actions": [
+    {
+      "id": "idle",
+      "loop": true,
+      "prompt": "prompts/idle-v01.txt",
+      "video": "videos/idle-doubao-v01.mp4",
+      "status": "source_and_sprite_approved_runtime_installed_pending_user_test",
+      "previewGif": "sprite-build/previews/final/idle.gif",
+      "sourceMetadata": "videos/idle-doubao-v01.mp4.json",
+      "spriteSheet": "../../../../../assets/enemies/coffin_ward/idle.png",
+      "spriteGif": "sprite-build/previews/final/idle.gif"
+    },
+    {
+      "id": "walking",
+      "loop": true,
+      "prompt": "prompts/walking-v01.txt",
+      "video": "videos/walking-doubao-v01.mp4",
+      "status": "source_and_sprite_approved_runtime_installed_pending_user_test",
+      "previewGif": "sprite-build/previews/final/walking.gif",
+      "sourceMetadata": "videos/walking-doubao-v01.mp4.json",
+      "spriteSheet": "../../../../../assets/enemies/coffin_ward/walk.png",
+      "spriteGif": "sprite-build/previews/final/walking.gif"
+    },
+    {
+      "id": "attacking",
+      "loop": false,
+      "prompt": "prompts/attacking-v01.txt",
+      "video": "videos/attacking-doubao-v01.mp4",
+      "status": "source_and_sprite_approved_runtime_installed_pending_user_test",
+      "previewGif": "sprite-build/previews/final/attacking.gif",
+      "sourceMetadata": "videos/attacking-doubao-v01.mp4.json",
+      "spriteSheet": "../../../../../assets/enemies/coffin_ward/attack.png",
+      "spriteGif": "sprite-build/previews/final/attacking.gif"
+    },
+    {
+      "id": "dying",
+      "loop": false,
+      "prompt": "prompts/dying-v01.txt",
+      "video": "videos/dying-doubao-v01.mp4",
+      "status": "source_and_sprite_approved_runtime_installed_pending_user_test",
+      "previewGif": "sprite-build/previews/final/dying.gif",
+      "sourceMetadata": "videos/dying-doubao-v01.mp4.json",
+      "resumedAfterUserAccountSwitch": true,
+      "modelSelection": "explicit",
+      "conversation": "chrome://doubao-chat/chat/38439512418916610",
+      "previousAttempt": "No video generated because the prior account exhausted its free quota. User switched accounts and explicitly requested continuation.",
+      "spriteSheet": "../../../../../assets/enemies/coffin_ward/death.png",
+      "spriteGif": "sprite-build/previews/final/dying.gif"
+    }
+  ],
+  "scope": "Coffin ward integrated; all four normal horror monsters are installed, pending user runtime test.",
+  "productionTier": "crowd",
+  "futureRuntimeTargetMiB": 32,
+  "paidQuotaAuthorized": false,
+  "actualModelConfirmed": false,
+  "modelNote": "Requested Seedance 2.0 Mini. Idle provenance records modelSelection=managed, so its actual model is unconfirmed. Walking, attacking and dying provenance record modelSelection=explicit. Consult each original MP4 JSON.",
+  "sourceApproval": "User: 可用。生成先精灵图。",
+  "spriteManifest": "sprite-build/sprite-manifest.json",
+  "spriteOverview": "sprite-build/previews/final/four-actions-overview.gif",
+  "runtimeIntegrationActive": true,
+  "runtimeManifest": "runtime/manifest.json",
+  "archiveNote": "Selected MP4/provenance/prompts and source sheets retained; earlier logs/cutouts/duplicate production previews are reproducible history and are not Git inputs."
+}
