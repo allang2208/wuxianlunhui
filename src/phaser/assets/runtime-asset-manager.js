@@ -70,7 +70,9 @@ class RuntimeAssetManagerImpl {
         if (!this.networkHandlersInstalled && typeof window !== 'undefined') {
             this.networkHandlersInstalled = true;
             window.addEventListener('online', () => this._markNetworkSuccess());
-            window.addEventListener('offline', () => this._markNetworkFailure(null, 'browser-offline'));
+            window.addEventListener('offline', () => {
+                if (this._isOfflineForUrl()) this._markNetworkFailure(null, 'browser-offline');
+            });
         }
     }
 
@@ -92,8 +94,19 @@ class RuntimeAssetManagerImpl {
         else release();
     }
 
+    _isOfflineForUrl(url = globalThis.location?.href) {
+        if (typeof navigator === 'undefined' || navigator.onLine !== false) return false;
+        try {
+            const source = new URL(url, globalThis.location?.href);
+            // EXE 包内文件和本机 Vite 不依赖互联网；离线不能拦截本地资源。
+            if (['file:', 'wl-test:', 'blob:', 'data:'].includes(source.protocol)) return false;
+            if (['localhost', '127.0.0.1', '[::1]'].includes(source.hostname)) return false;
+        } catch { /* 无来源信息时保留远程加载的离线保护。 */ }
+        return true;
+    }
+
     _isNetworkLoadBlocked(now = Date.now()) {
-        if (typeof navigator !== 'undefined' && navigator.onLine === false) return true;
+        if (this._isOfflineForUrl()) return true;
         return this.networkFailedUntil > now;
     }
 
@@ -104,7 +117,7 @@ class RuntimeAssetManagerImpl {
     }
 
     _isTransportFailure(file) {
-        if (typeof navigator !== 'undefined' && navigator.onLine === false) return true;
+        if (this._isOfflineForUrl(file?.url || file?.src || file?.xhrLoader?.url || globalThis.location?.href)) return true;
         const xhr = file?.xhrLoader;
         return !!xhr && Number(xhr.status) === 0;
     }
@@ -1028,7 +1041,7 @@ class RuntimeAssetManagerImpl {
         if (this.contextLost || this.safeMode || this.hotCacheTtlMs <= 0
             || typeof setTimeout !== 'function') return;
         if (this.reapTimer) return;
-        if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+        if (this._isOfflineForUrl()) return;
         const now = Date.now();
         if (this.networkFailedUntil > now) {
             this.reapTimer = setTimeout(() => {

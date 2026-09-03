@@ -124,8 +124,8 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                 });
                 window.addEventListener('mouseup', e => { if (e.button === 0) this.mouse.leftDown = false; if (e.button === 2) this.mouse.rightDown = false; });
                 window.addEventListener('contextmenu', e => e.preventDefault());
-                // Electron 打包版：主进程 ESC 全局快捷键转发（globalShortcut 拦截系统级 ESC，
-                // keydown 到不了渲染进程）——等效于本地按 ESC，走完整 MENU 键处理链
+                // Electron 打包版：主进程只转发本窗口 ESC；已拦截对应 keydown，
+                // 这里单次进入完整 MENU 键处理链，不占用系统全局快捷键。
                 window.addEventListener('electron-esc', () => this.handleKey(CONFIG.KEYS.MENU));
             },
     _isPlayerActionCode(code) {

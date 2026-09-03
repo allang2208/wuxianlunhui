@@ -96,7 +96,9 @@ const saveJsonPlugin = {
           const { config } = JSON.parse(body);
           if (!config || typeof config !== 'object') throw new Error('invalid config');
           const cfgPath = path.join('public', 'data', 'weapon-anim-config.json');
-          fs.copyFileSync(cfgPath, path.join('weapon-frames', 'weapon-anim-config.backup.json'));
+          const backupPath = path.join('weapon-frames', 'weapon-anim-config.backup.json');
+          fs.mkdirSync(path.dirname(backupPath), { recursive: true });
+          fs.copyFileSync(cfgPath, backupPath);
           fs.mkdirSync(path.dirname(cfgPath), { recursive: true });
           fs.writeFileSync(cfgPath, JSON.stringify(config, null, 2), 'utf8');
           res.setHeader('content-type', 'application/json');
