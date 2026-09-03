@@ -28,6 +28,15 @@ import { WarehouseSystem } from './warehouse-system.js';
 import { QuestStore } from '../quest/quest-store.js';
 import { MilitaryPopulationSystem } from '../world/military-population-system.js';
 import { EconomyHudSystem } from '../world/economy-hud-system.js';
+import { isGunWeapon } from '../config/gun-ammo.js';
+
+function getDisplayAttackKey(item) {
+    if (item?.attackKey) return item.attackKey;
+    if (item?.weaponType === 'pistol' || item?.rangedType === 'pistol') return 'pistol';
+    if (item?.weaponType === 'shotgun') return 'super90';
+    if (isGunWeapon(item)) return item.weaponType || 'pistol';
+    return item?.weaponType === 'bow' ? 'ranged' : 'melee';
+}
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -302,12 +311,7 @@ export const GameUIManager = {
 
             // 攻击冷却指示器
         const currentItem = p.equipments[p.weaponMode];
-        let attackType = 'melee';
-        if (currentItem) {
-            if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') attackType = 'pistol';
-            else if (currentItem.weaponType === 'bow') attackType = 'ranged';
-        }
-        const currentAttack = p.attacks[attackType];
+        const currentAttack = p.attacks[getDisplayAttackKey(currentItem)] || p.attacks.melee;
         const attackCD = currentAttack.getCooldownPercent();
         const cdOverlay = getElementIfExists('cdAttackOverlay');
         if (cdOverlay) cdOverlay.style.height = (attackCD * 100) + '%';
@@ -315,7 +319,7 @@ export const GameUIManager = {
         if (cdAttack) cdAttack.classList.toggle('ready', attackCD <= 0);
         let attackIcon = '⚔';
         if (currentItem) {
-            if (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol') attackIcon = '🔫';
+            if (isGunWeapon(currentItem)) attackIcon = '🔫';
             else if (currentItem.weaponType === 'bow') attackIcon = '🏹';
         }
         const attackLabel = p.weaponMode === 'weapon' ? '武器栏1' : '武器栏2';
@@ -397,16 +401,15 @@ export const GameUIManager = {
             } else if (item.id === 'combatAspd') {
                 // 攻击间隔：根据当前武器显示实际毫秒数
                 const currentWpn = p.equipments[p.weaponMode];
-                let cd = p.attacks.melee.maxCooldown; // 默认近战
-                if (currentWpn) {
-                    if (currentWpn.weaponType === 'pistol' || currentWpn.rangedType === 'pistol') cd = p.attacks.pistol.maxCooldown;
-                    else if (currentWpn.weaponType === 'bow') cd = p.attacks.ranged.maxCooldown;
-                }
+                const attackKey = getDisplayAttackKey(currentWpn);
+                const attack = p.attacks[attackKey] || p.attacks.melee;
+                const cd = isGunWeapon(currentWpn) && p._getEffectiveGunAttackInterval
+                    ? p._getEffectiveGunAttackInterval(currentWpn, attackKey) : attack.maxCooldown;
                 el.textContent = Math.round(cd) + 'ms';
             } else if (item.id === 'combatSpd') {
                 // 移动速度：使用实际最大移动速度（px/s）
                 const speed = p.maxSpeed || p.data.speed || 0;
-                el.textContent = (speed * 60).toFixed(0) + 'px/s';
+                el.textContent = speed.toFixed(0) + 'px/s';
             } else {
                 el.textContent = item.suffix ? d[item.key] + item.suffix : (item.fixed ? d[item.key].toFixed(item.fixed) : d[item.key]);
             }
@@ -420,12 +423,7 @@ export const GameUIManager = {
             const el = getElementIfExists(item.id);
             if (!el) return;
             const currentWpn = p.equipments[p.weaponMode];
-            let paType = 'melee';
-            if (currentWpn) {
-                if (currentWpn.weaponType === 'pistol' || currentWpn.rangedType === 'pistol') paType = 'pistol';
-                else if (currentWpn.weaponType === 'bow') paType = 'ranged';
-            }
-            const pa = p.attacks[paType];
+            const pa = p.attacks[getDisplayAttackKey(currentWpn)] || p.attacks.melee;
             switch (item.id) {
                 case 'detailStaminaRegen': {
                     const staminaBase = CONFIG.STAMINA_REGEN || 1;
@@ -443,7 +441,7 @@ export const GameUIManager = {
                 case 'detailCollisionRadius': el.textContent = (p.collisionRadius || 10) + item.unit; break;
                 case 'detailMoveSpeed': {
                     const speed = p.maxSpeed || CONFIG.PLAYER_SPEED || 0;
-                    el.textContent = (speed * 60).toFixed(0) + item.unit;
+                    el.textContent = speed.toFixed(0) + item.unit;
                     break;
                 }
                 case 'detailDodgeCooldown': el.textContent = CONFIG.DODGE_COOLDOWN + item.unit; break;

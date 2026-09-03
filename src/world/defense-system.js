@@ -6902,7 +6902,7 @@ export const DefenseSystem = {
             ));
         }
         if (SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile('assets/sounds/ui/levelup.wav');
+            SoundManager.playFile('assets/sounds/ui/levelup_cyber_5s.wav');
         }
     },
 
