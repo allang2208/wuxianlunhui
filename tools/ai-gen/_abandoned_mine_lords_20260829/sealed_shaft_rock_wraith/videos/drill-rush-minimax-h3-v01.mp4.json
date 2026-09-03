@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T12:28:01.640176+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\drill-rush-minimax-h3-v01.mp4",
+    "bytes": 607972,
+    "sha256": "d68c58da785c3e209fd3702c8a4595ed9d28f43bdd830f92f29ab77057d59852"
+  },
+  "promptId": "2001e35b-b082-4854-b643-26271b01d39e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082925,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless purple-crystal humanoid with exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel conical mining drill mounted vertically upward in the shoulder collar as the whole head replacement. No face, head, eyes, helmet or neck exists. Preserve all crystal topology, rigid parts, materials, colors, proportions and scale.\n\nCreate exactly one high-speed spinning Drill Rush attack toward screen-right over 5.17 seconds. Anticipation: plant both feet, crouch deeply, brace both long arms behind and beside the torso, and accelerate the single upward drill into a visibly fast stable spin. Aim: pivot the shoulder bearing and lean the complete torso forward so the spinning drill lowers from vertical into a clear forward-right charge line; the drill remains attached and rigid. Charge: launch the whole connected body in one short explosive straight rush toward screen-right, drill tip leading, legs driving powerfully and no skating. Impact peak: reach one unmistakable full-extension piercing pose with strong body compression and forward momentum. Recovery: recoil, step back into the original screen position, raise the drill to vertical and settle into the opening guard. One rush only; never repeat or reverse-play.\n\nPreserve the natural forward root trajectory with a wider safe frame; do not recenter the charging body. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the full drill tip, forward lunge, hands and feet visible throughout. No target, impact victim, sparks, debris, motion-blur smear, floor, shadow, scenery, camera tracking, zoom, crop, extra drill, extra limb, text, logo or watermark.",
+  "effectivePrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless purple-crystal humanoid with exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel conical mining drill mounted vertically upward in the shoulder collar as the whole head replacement. No face, head, eyes, helmet or neck exists. Preserve all crystal topology, rigid parts, materials, colors, proportions and scale.\n\nCreate exactly one high-speed spinning Drill Rush attack toward screen-right over 5.17 seconds. Anticipation: plant both feet, crouch deeply, brace both long arms behind and beside the torso, and accelerate the single upward drill into a visibly fast stable spin. Aim: pivot the shoulder bearing and lean the complete torso forward so the spinning drill lowers from vertical into a clear forward-right charge line; the drill remains attached and rigid. Charge: launch the whole connected body in one short explosive straight rush toward screen-right, drill tip leading, legs driving powerfully and no skating. Impact peak: reach one unmistakable full-extension piercing pose with strong body compression and forward momentum. Recovery: recoil, step back into the original screen position, raise the drill to vertical and settle into the opening guard. One rush only; never repeat or reverse-play.\n\nPreserve the natural forward root trajectory with a wider safe frame; do not recenter the charging body. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the full drill tip, forward lunge, hands and feet visible throughout. No target, impact victim, sparks, debris, motion-blur smear, floor, shadow, scenery, camera tracking, zoom, crop, extra drill, extra limb, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless purple-crystal humanoid with exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one dark-steel conical mining drill mounted vertically upward in the shoulder collar as the whole head replacement. No face, head, eyes, helmet or neck exists. Preserve all crystal topology, rigid parts, materials, colors, proportions and scale.\n\nCreate exactly one high-speed spinning Drill Rush attack toward screen-right over 5.17 seconds. Anticipation: plant both feet, crouch deeply, brace both long arms behind and beside the torso, and accelerate the single upward drill into a visibly fast stable spin. Aim: pivot the shoulder bearing and lean the complete torso forward so the spinning drill lowers from vertical into a clear forward-right charge line; the drill remains attached and rigid. Charge: launch the whole connected body in one short explosive straight rush toward screen-right, drill tip leading, legs driving powerfully and no skating. Impact peak: reach one unmistakable full-extension piercing pose with strong body compression and forward momentum. Recovery: recoil, step back into the original screen position, raise the drill to vertical and settle into the opening guard. One rush only; never repeat or reverse-play.\n\nPreserve the natural forward root trajectory with a wider safe frame; do not recenter the charging body. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the full drill tip, forward lunge, hands and feet visible throughout. No target, impact victim, sparks, debris, motion-blur smear, floor, shadow, scenery, camera tracking, zoom, crop, extra drill, extra limb, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "2e1c5642c70dcaebafd08059123220100e7216cda67a19416d7517735444d605",
+  "effectivePromptSha256": "9db85e277fee4264e5ba5835537814920f365a60f09e0b5ee65e5e8ac1991c9d",
+  "finalPromptSha256": "3824f3f84b9403ecfc9619c944b48574ea927cd168c437daba2646c754af00d8",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\drill-rush-minimax-h3-v01.txt",
+      "bytes": 1792,
+      "sha256": "6e2e5e3c09a3b49838b01a90ce5806d148df43ddefec223663be03061efdfb91"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\mother-v04.png",
+      "bytes": 1186475,
+      "sha256": "dd2adfca87abebeeaf49d97406026a8bcb1e0b53aa5996cea9a55a3709f9b97f"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\drill-rush-minimax-h3-v01_contact.png",
+    "bytes": 334295,
+    "sha256": "c85383b9487fae760d029acf083de69fb99f5ffb614b9e99f5670956ca9c7f08"
+  },
+  "elapsedSeconds": 911.28
+}

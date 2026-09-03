@@ -1,0 +1,19 @@
+Use case: precise-object-edit
+Asset type: animation-safe production mother-frame direction and framing correction
+Edit target: mothers/sealed-shaft-rock-wraith-mother-v03.png
+
+Primary request: change only the orientation of the single mining drill that replaces the head. Rotate the complete drill cone and its collar bearing so the drill points clearly upward toward the top of the canvas, approximately vertical, rising from the center of the shoulders. The pointed tip must be above the bearing and unmistakably aimed upward, not forward, downward or sideways.
+
+Mechanical integration: keep exactly one conical spiral drill and one circular bearing housing. The bearing remains embedded in the open collar between the shoulders. Re-seat the bearing naturally for the vertical orientation; retain the same worn dark steel, rusted rings, spiral cutting flutes, violet ore deposits and coal dust. The drill remains the anatomical head replacement.
+
+Absolute headless constraint: no head, face, eyes, mouth, mask, helmet, skull, neck or hidden person may appear beneath, behind or beside the upward drill. The drill is not a hat or handheld tool.
+
+Preserve invariants exactly: same purple crystal torso, chest, shoulders, back timbers, braces, arms, hands, legs, feet, neutral pose, proportions, body position, camera angle, lighting, material style, colors and canvas size. Change only the drill orientation and the minimum collar geometry required to mount it upward.
+
+Framing correction: after rotating the drill, uniformly scale down the entire unchanged subject, including the full drill, so the complete silhouette occupies approximately 60 to 62 percent of canvas height and no more than 50 percent width. Center it horizontally, preserve both feet on one baseline, and leave generous visually white margin above the drill tip and around all sides.
+
+Background: preserve the visually white empty background with no floor, shadow, gradient, horizon, reflection, fog or scenery. Do not apply destructive RGB threshold cleanup over the subject.
+
+Constraints: exactly one headless subject, exactly one upward-pointing drill, two arms, two hands, two legs and two feet; complete silhouette uncropped; no held weapon; no text, logo or watermark.
+
+Avoid: forward, downward, horizontal or sideways drill; any face or head; multiple drills; drill helmet; handheld drill; drill arm; changed body or pose; cropped drill tip; reframing that fills the canvas; extra limbs; particles; shadow; cartoon or style drift.

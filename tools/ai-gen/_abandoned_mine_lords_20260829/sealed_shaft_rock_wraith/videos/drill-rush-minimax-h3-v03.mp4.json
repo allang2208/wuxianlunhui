@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T13:57:27.398849+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\drill-rush-minimax-h3-v03.mp4",
+    "bytes": 533578,
+    "sha256": "53f965b6cf350a6f6d6ab575d8e50d6d5f1c9daa12abb431781a9a7259099e96"
+  },
+  "promptId": "a28dc6fc-957d-4c30-bbbe-d5121ed9eeb6",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082936,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "raw",
+  "authoredPrompt": "Use the supplied correctly letterboxed 16:9 first frame as the exact character design and exact visual scale. It is one tall headless humanoid mine wraith made of muted-purple crystal and coal-black seams, with two arms, two long legs, sealing timbers, rusted braces, and one dark-steel conical mining drill pointing upward in place of the entire head.\n\nCreate one 5.17-second in-place Drill Rush combat animation. The character's planted root stays over the same fixed center point of the white frame for the entire shot, like a game sprite running on a treadmill. Keep one fixed orthographic camera and a constant character scale.\n\nMotion timing: 0.00-1.50 seconds, lower into a compact brace while the upward drill accelerates into a rapid spin. 1.50-2.60 seconds, pivot the spinning drill forward-right and perform one forceful running-in-place drive cycle, ending in a readable piercing pose while the hips remain on the fixed center point. 2.60-5.17 seconds, decelerate, lift the drill back upward, and recover to the exact opening stance and size.\n\nMaintain the same torso width, limb length, drill length, and apparent distance from camera throughout. Keep the complete silhouette visible against a clean pure-white background. The game supplies all forward world translation, so the animation shows only the pose and leg drive. One character, one drill, one action, no target or effects.",
+  "effectivePrompt": "Use the supplied correctly letterboxed 16:9 first frame as the exact character design and exact visual scale. It is one tall headless humanoid mine wraith made of muted-purple crystal and coal-black seams, with two arms, two long legs, sealing timbers, rusted braces, and one dark-steel conical mining drill pointing upward in place of the entire head.\n\nCreate one 5.17-second in-place Drill Rush combat animation. The character's planted root stays over the same fixed center point of the white frame for the entire shot, like a game sprite running on a treadmill. Keep one fixed orthographic camera and a constant character scale.\n\nMotion timing: 0.00-1.50 seconds, lower into a compact brace while the upward drill accelerates into a rapid spin. 1.50-2.60 seconds, pivot the spinning drill forward-right and perform one forceful running-in-place drive cycle, ending in a readable piercing pose while the hips remain on the fixed center point. 2.60-5.17 seconds, decelerate, lift the drill back upward, and recover to the exact opening stance and size.\n\nMaintain the same torso width, limb length, drill length, and apparent distance from camera throughout. Keep the complete silhouette visible against a clean pure-solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. The game supplies all forward world translation, so the animation shows only the pose and leg drive. One character, one drill, one action, no target or effects.",
+  "finalPrompt": "Use the supplied correctly letterboxed 16:9 first frame as the exact character design and exact visual scale. It is one tall headless humanoid mine wraith made of muted-purple crystal and coal-black seams, with two arms, two long legs, sealing timbers, rusted braces, and one dark-steel conical mining drill pointing upward in place of the entire head.\n\nCreate one 5.17-second in-place Drill Rush combat animation. The character's planted root stays over the same fixed center point of the white frame for the entire shot, like a game sprite running on a treadmill. Keep one fixed orthographic camera and a constant character scale.\n\nMotion timing: 0.00-1.50 seconds, lower into a compact brace while the upward drill accelerates into a rapid spin. 1.50-2.60 seconds, pivot the spinning drill forward-right and perform one forceful running-in-place drive cycle, ending in a readable piercing pose while the hips remain on the fixed center point. 2.60-5.17 seconds, decelerate, lift the drill back upward, and recover to the exact opening stance and size.\n\nMaintain the same torso width, limb length, drill length, and apparent distance from camera throughout. Keep the complete silhouette visible against a clean pure-solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. The game supplies all forward world translation, so the animation shows only the pose and leg drive. One character, one drill, one action, no target or effects.",
+  "authoredPromptSha256": "4c83297dbb5eeb72825063939d05099d45bb156962126389e39f4ead0a976267",
+  "effectivePromptSha256": "df0867b66aface76b47552b44ecd25da4bfc8429c0a3f0898235115fc3d0fbf2",
+  "finalPromptSha256": "df0867b66aface76b47552b44ecd25da4bfc8429c0a3f0898235115fc3d0fbf2",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\drill-rush-minimax-h3-v03.txt",
+      "bytes": 1397,
+      "sha256": "1d5bd1a6a3f5b59c57235f5e22a65851f26793373ef07c947717d3b66631ae44"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\crystal-bore-video-safe-v02.png",
+      "bytes": 175279,
+      "sha256": "0fb9895af093936c48c7042589ca9fbb42e2f5a35d1160195a988ec20bf7b4e9"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\drill-rush-minimax-h3-v03_contact.png",
+    "bytes": 267530,
+    "sha256": "597e41f2b87fd4fcff4454a037598c128043b9e426e3d5cdd7daa7784549f6bc"
+  },
+  "elapsedSeconds": 425.656
+}

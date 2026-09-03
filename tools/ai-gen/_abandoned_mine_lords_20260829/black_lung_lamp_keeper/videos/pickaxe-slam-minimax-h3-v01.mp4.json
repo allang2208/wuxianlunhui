@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T10:54:34.816166+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\videos\\pickaxe-slam-minimax-h3-v01.mp4",
+    "bytes": 570925,
+    "sha256": "0d8045ae2f1ed81956678debb15a7c997cf025bc475cbaf41d442937f1d49cee"
+  },
+  "promptId": "17df6ced-7057-4de8-b439-b502df376bf3",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082912,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. The pick, respirator, filters, and lantern are rigid objects and must never bend, melt, multiply, disappear, or change design.\n\nCreate one readable heavy pickaxe slam attack over 5.17 seconds. Begin in the supplied neutral stance. The monster plants both boots, draws the short pick back and upward with the same hand while the free arm balances the body, pauses briefly at the telegraph apex, then drives one forceful diagonal downward strike toward the ground on screen-right. The impact is conveyed only by body mechanics: a deep knee bend, shoulder drop, coat inertia, and a brief heavy follow-through. Do not generate impact particles or a ground mark. The monster then pulls the same pick free, straightens, and returns fully to the supplied opening stance before the end.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Keep the complete body, both boots, coat hem, chest lantern, respirator filters, and entire pick visible with generous attack clearance. No camera motion, locomotion, smoke, dust, sparks, glow bloom, floor, shadow, scenery, extra weapon, extra limb, text, logo, or watermark.",
+  "effectivePrompt": "The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. The pick, respirator, filters, and lantern are rigid objects and must never bend, melt, multiply, disappear, or change design.\n\nCreate one readable heavy pickaxe slam attack over 5.17 seconds. Begin in the supplied neutral stance. The monster plants both boots, draws the short pick back and upward with the same hand while the free arm balances the body, pauses briefly at the telegraph apex, then drives one forceful diagonal downward strike toward the ground on screen-right. The impact is conveyed only by body mechanics: a deep knee bend, shoulder drop, coat inertia, and a brief heavy follow-through. Do not generate impact particles or a ground mark. The monster then pulls the same pick free, straightens, and returns fully to the supplied opening stance before the end.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Keep the complete body, both boots, coat hem, chest lantern, respirator filters, and entire pick visible with generous attack clearance. No camera motion, locomotion, smoke, dust, sparks, glow bloom, floor, shadow, scenery, extra weapon, extra limb, text, logo, or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. The pick, respirator, filters, and lantern are rigid objects and must never bend, melt, multiply, disappear, or change design.\n\nCreate one readable heavy pickaxe slam attack over 5.17 seconds. Begin in the supplied neutral stance. The monster plants both boots, draws the short pick back and upward with the same hand while the free arm balances the body, pauses briefly at the telegraph apex, then drives one forceful diagonal downward strike toward the ground on screen-right. The impact is conveyed only by body mechanics: a deep knee bend, shoulder drop, coat inertia, and a brief heavy follow-through. Do not generate impact particles or a ground mark. The monster then pulls the same pick free, straightens, and returns fully to the supplied opening stance before the end.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Keep the complete body, both boots, coat hem, chest lantern, respirator filters, and entire pick visible with generous attack clearance. No camera motion, locomotion, smoke, dust, sparks, glow bloom, floor, shadow, scenery, extra weapon, extra limb, text, logo, or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "114dba10f056579d8b1d562863962dfbeebe934e783f649d1173324018e3a950",
+  "effectivePromptSha256": "0747f1b631a5cbec3f17c576d83d841e4b6df64a4e8695bff8e2ae027a7451b7",
+  "finalPromptSha256": "da0ace4133e1bfe0f198c1308fe579c86733d4753f53774c5be7b2e288efe0c8",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\prompts\\pickaxe-slam-minimax-h3-v01.txt",
+      "bytes": 1552,
+      "sha256": "1dd7fcc30ad29575a0253a1802e76f1c68f71969d01724e5e8c455f81be4d6e6"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\references\\idle-jimeng-v01.png",
+      "bytes": 149932,
+      "sha256": "b33c1a7be238aa42d71a1c19d0384e62b90cf54b85bdf397c736afaf2614f5ca"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\videos\\pickaxe-slam-minimax-h3-v01_contact.png",
+    "bytes": 262623,
+    "sha256": "4a37d5cd80d8f8c6faa8a620323396b9f27220363c07c3a88407c33023817548"
+  },
+  "elapsedSeconds": 876.468
+}

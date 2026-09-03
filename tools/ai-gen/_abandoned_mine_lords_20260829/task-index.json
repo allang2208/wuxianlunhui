@@ -1,0 +1,42 @@
+{
+  "task": "abandoned-mine-lord-mother-images",
+  "date": "2026-08-29",
+  "generator": "built-in imagegen",
+  "status": "three-lords-approved-and-runtime-integrated",
+  "candidates": [
+    {
+      "key": "brokenCableGaoler",
+      "name": "断索狱监",
+      "image": "mothers/broken-cable-gaoler-mother-v01.png",
+      "prompt": "prompts/broken-cable-gaoler-mother-v01.txt",
+      "backgroundCorrection": true,
+      "approved": true
+    },
+    {
+      "key": "blackLungLampKeeper",
+      "name": "黑肺提灯长",
+      "image": "mothers/black-lung-lamp-keeper-mother-v03.png",
+      "prompt": "prompts/black-lung-lamp-keeper-mother-v03.txt",
+      "identitySource": "mothers/black-lung-lamp-keeper-mother-v01.png",
+      "framingSource": "mothers/black-lung-lamp-keeper-mother-v02.png",
+      "backgroundCorrection": true,
+      "status": "approved-and-runtime-integrated",
+      "runtimeManifest": "../../../assets/enemies/black_lung_lamp_keeper/spritesheet-manifest.json",
+      "approved": true
+    },
+    {
+      "key": "sealedShaftRockWraith",
+      "name": "封井岩魇",
+      "image": "mothers/sealed-shaft-rock-wraith-mother-v04.png",
+      "prompt": "prompts/sealed-shaft-rock-wraith-mother-v04.txt",
+      "previousImage": "mothers/sealed-shaft-rock-wraith-mother-v03.png",
+      "materialReference": "references/ore-spider-purple-mineral-reference.png",
+      "backgroundCorrection": false,
+      "headReplacement": "single-integrated-upward-mining-drill",
+      "animationTask": "sealed_shaft_rock_wraith/task-index.json",
+      "status": "approved-minimax-h3-six-actions-rife-runtime-integrated",
+      "runtimeManifest": "../../../assets/enemies/sealed_shaft_rock_wraith/spritesheet-manifest.json",
+      "approved": true
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T10:39:32.312484+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\videos\\walking-minimax-h3-v01.mp4",
+    "bytes": 513621,
+    "sha256": "2c415a957e8dcfc608fe98301ab9298b993ad33be60f08c157f02f3eb258b23c"
+  },
+  "promptId": "19964cc4-c40e-4b18-9d2b-52979b7e9938",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082911,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. Keep the realistic restrained PBR game-asset look and muted charcoal, brown, brass, and rust palette throughout.\n\nCreate one heavy in-place walking cycle over 5.17 seconds. The monster performs two slow deliberate marching steps while remaining centered: one boot lifts only a small distance, plants with weight, then the other boot repeats. The knees and hips carry believable mass, the shoulders counter-sway slightly, the coat and apron respond with restrained inertia, and the fixed chest lantern makes only a short controlled pendulum motion. The pick remains rigid and secure in the same hand, points downward, and is never swung as an attack. Finish in precisely the supplied opening stance and gait phase for a seamless loop.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Keep the full character, both boots, coat hem, lantern, respirator filters, and complete pick visible with safe margins throughout. No camera movement, translation across the frame, attack, cough, smoke, dust, sparks, glow bloom, shadow, floor, scenery, extra object, text, logo, or watermark.",
+  "effectivePrompt": "The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. Keep the realistic restrained PBR game-asset look and muted charcoal, brown, brass, and rust palette throughout.\n\nCreate one heavy in-place walking cycle over 5.17 seconds. The monster performs two slow deliberate marching steps while remaining centered: one boot lifts only a small distance, plants with weight, then the other boot repeats. The knees and hips carry believable mass, the shoulders counter-sway slightly, the coat and apron respond with restrained inertia, and the fixed chest lantern makes only a short controlled pendulum motion. The pick remains rigid and secure in the same hand, points downward, and is never swung as an attack. Finish in precisely the supplied opening stance and gait phase for a seamless loop.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Keep the full character, both boots, coat hem, lantern, respirator filters, and complete pick visible with safe margins throughout. No camera movement, translation across the frame, attack, cough, smoke, dust, sparks, glow bloom, shadow, floor, scenery, extra object, text, logo, or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact supplied first frame defines one original dark-fantasy game monster and every material. Preserve the same gaunt undead miner identity, soot-gray necrotic skin, bald head, aged-brass respirator with exactly two short filters, one fixed chest safety lantern with one tiny amber wick, one short mining pick held in the screen-left hand, dark long miner coat, leather apron, trousers, and heavy mine boots. Keep the realistic restrained PBR game-asset look and muted charcoal, brown, brass, and rust palette throughout.\n\nCreate one heavy in-place walking cycle over 5.17 seconds. The monster performs two slow deliberate marching steps while remaining centered: one boot lifts only a small distance, plants with weight, then the other boot repeats. The knees and hips carry believable mass, the shoulders counter-sway slightly, the coat and apron respond with restrained inertia, and the fixed chest lantern makes only a short controlled pendulum motion. The pick remains rigid and secure in the same hand, points downward, and is never swung as an attack. Finish in precisely the supplied opening stance and gait phase for a seamless loop.\n\nUse one fixed orthographic 16:9 camera and a uniform pure white studio background. Keep the full character, both boots, coat hem, lantern, respirator filters, and complete pick visible with safe margins throughout. No camera movement, translation across the frame, attack, cough, smoke, dust, sparks, glow bloom, shadow, floor, scenery, extra object, text, logo, or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "58c895c80015bc9af023f8eedd1f812e5d661c0864ec0763fab893271377a92c",
+  "effectivePromptSha256": "8c874ab0873abeddd695524b7caf56a348448c68dd60cc3c1eb33efd8569ca24",
+  "finalPromptSha256": "10646c1a6b5b6794a67a3bca65a22845990ab15c5777032960605eabe0376931",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\prompts\\walking-minimax-h3-v01.txt",
+      "bytes": 1525,
+      "sha256": "328a36e509f9d50d559c4b8b8f0a632c96e7f9d27f5c869d2670081355962671"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\references\\idle-jimeng-v01.png",
+      "bytes": 149932,
+      "sha256": "b33c1a7be238aa42d71a1c19d0384e62b90cf54b85bdf397c736afaf2614f5ca"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\references\\idle-jimeng-v01.png",
+      "bytes": 149932,
+      "sha256": "b33c1a7be238aa42d71a1c19d0384e62b90cf54b85bdf397c736afaf2614f5ca"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\black_lung_lamp_keeper\\videos\\walking-minimax-h3-v01_contact.png",
+    "bytes": 235752,
+    "sha256": "eee8de555af94b894ce8a60f9191550949b2363a9aa344c74d68740908bda822"
+  },
+  "elapsedSeconds": 716.142
+}

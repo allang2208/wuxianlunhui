@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T12:20:39.820372+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\idle-minimax-h3-v01.mp4",
+    "bytes": 657645,
+    "sha256": "4c67ce261f388133e7a16202ab8624024aa14cdd47e67fd2b873bd4798a4291c"
+  },
+  "promptId": "4f01a3d1-993f-479e-93d4-3db4346f2b8a",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082921,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless humanoid made from dusty muted-purple ore clusters and coal-black stone seams, exactly two arms, two hands, two legs and two feet, broken sealing timbers and short rusted braces embedded across its upper back, and exactly one dark-steel conical mining drill mounted vertically upward in the shoulder collar as the complete head replacement. There is no face, head, eye, mouth, mask, helmet or neck. Preserve every crystal cluster, timber, brace, body proportion, material and color.\n\nCreate one calm heavy idle cycle over 5.17 seconds. Both feet remain planted on one baseline and the root stays fixed. The torso compresses and rises only a few pixels under immense weight, the shoulders settle asymmetrically, fingers flex once, and loose crystal plates make tiny restrained secondary motions. The single vertical drill rotates slowly through one smooth controlled revolution while remaining perfectly upright and rigid in its bearing. No attack, stepping or large gesture. Return naturally to the exact opening pose, drill phase, position and scale for a seamless loop.\n\nUse one fixed orthographic 16:9 camera and the same visually white empty studio background. Keep the full upward drill tip, body, hands and both feet visible with generous safe margins. No camera movement, zoom, reframing, root drift, floor, shadow, scenery, dust, sparks, detached crystal, extra object, text, logo or watermark.",
+  "effectivePrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless humanoid made from dusty muted-purple ore clusters and coal-black stone seams, exactly two arms, two hands, two legs and two feet, broken sealing timbers and short rusted braces embedded across its upper back, and exactly one dark-steel conical mining drill mounted vertically upward in the shoulder collar as the complete head replacement. There is no face, head, eye, mouth, mask, helmet or neck. Preserve every crystal cluster, timber, brace, body proportion, material and color.\n\nCreate one calm heavy idle cycle over 5.17 seconds. Both feet remain planted on one baseline and the root stays fixed. The torso compresses and rises only a few pixels under immense weight, the shoulders settle asymmetrically, fingers flex once, and loose crystal plates make tiny restrained secondary motions. The single vertical drill rotates slowly through one smooth controlled revolution while remaining perfectly upright and rigid in its bearing. No attack, stepping or large gesture. Return naturally to the exact opening pose, drill phase, position and scale for a seamless loop.\n\nUse one fixed orthographic 16:9 camera and the same visually white empty studio background. Keep the full upward drill tip, body, hands and both feet visible with generous safe margins. No camera movement, zoom, reframing, root drift, floor, shadow, scenery, dust, sparks, detached crystal, extra object, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless humanoid made from dusty muted-purple ore clusters and coal-black stone seams, exactly two arms, two hands, two legs and two feet, broken sealing timbers and short rusted braces embedded across its upper back, and exactly one dark-steel conical mining drill mounted vertically upward in the shoulder collar as the complete head replacement. There is no face, head, eye, mouth, mask, helmet or neck. Preserve every crystal cluster, timber, brace, body proportion, material and color.\n\nCreate one calm heavy idle cycle over 5.17 seconds. Both feet remain planted on one baseline and the root stays fixed. The torso compresses and rises only a few pixels under immense weight, the shoulders settle asymmetrically, fingers flex once, and loose crystal plates make tiny restrained secondary motions. The single vertical drill rotates slowly through one smooth controlled revolution while remaining perfectly upright and rigid in its bearing. No attack, stepping or large gesture. Return naturally to the exact opening pose, drill phase, position and scale for a seamless loop.\n\nUse one fixed orthographic 16:9 camera and the same visually white empty studio background. Keep the full upward drill tip, body, hands and both feet visible with generous safe margins. No camera movement, zoom, reframing, root drift, floor, shadow, scenery, dust, sparks, detached crystal, extra object, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "919aa8c665264fc52be2e52a9eda4262dca206fcf5a69bbaf1d2ba124d47b7bb",
+  "effectivePromptSha256": "79d4f4e2160518f8c01bd14af19160b8d2dcb0669c9769f437f92b9b41d9c876",
+  "finalPromptSha256": "b0a5d0b839f8eb2b5f67f0aba310b6ff3f3b3a1d86be52f877eb4c0603ab10ef",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\idle-minimax-h3-v01.txt",
+      "bytes": 1493,
+      "sha256": "3c80df52bf74f8314122d505adff60d6c491782c6a3c4ebef3a71e28c86dcf41"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\mother-v04.png",
+      "bytes": 1186475,
+      "sha256": "dd2adfca87abebeeaf49d97406026a8bcb1e0b53aa5996cea9a55a3709f9b97f"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\mother-v04.png",
+      "bytes": 1186475,
+      "sha256": "dd2adfca87abebeeaf49d97406026a8bcb1e0b53aa5996cea9a55a3709f9b97f"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\idle-minimax-h3-v01_contact.png",
+    "bytes": 472600,
+    "sha256": "f0291ecb7691b02980f232b8fa19aa3d27565f3fa84382e4c0bc3d3579fc6dbe"
+  },
+  "elapsedSeconds": 470.721
+}

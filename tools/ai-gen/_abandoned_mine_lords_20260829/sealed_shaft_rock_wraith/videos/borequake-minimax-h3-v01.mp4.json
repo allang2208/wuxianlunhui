@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T12:49:45.229448+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\borequake-minimax-h3-v01.mp4",
+    "bytes": 541391,
+    "sha256": "1d5e0578f7c48b09424344c08da44f835e0e74986ad03f9f3c12ea6f3ed05bf2"
+  },
+  "promptId": "39a4fe34-4d4c-4a00-9e03-b90ef091b7cf",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082924,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one vertical upward dark-steel mining drill replacing the entire head. No face, eyes, mouth, helmet, skull or neck exists. Preserve the complete identity, crystal layout, equipment, materials, colors and scale.\n\nCreate exactly one planted Borequake action over 5.17 seconds. Anticipation: spread the feet, lower the center of mass and brace both arms outward with open heavy hands. Charge: the single vertical drill accelerates from slow rotation to a visibly fast stable spin while the bearing and upper torso vibrate under torque. Peak: stamp both feet down together once and compress the entire body into one powerful seismic release pose, drill still pointing straight upward. Recovery: the vibration decays, drill returns to slow rotation, arms lower and the body settles back into the opening stance. One seismic release only; no repeated stomps.\n\nThe root remains centered and no crystal or debris detaches. Use one fixed orthographic 16:9 camera and visually white empty background. Keep full drill tip, arms, hands and feet visible with safe margins. No visible shockwave, smoke, sparks, ground cracks, floor, scenery, camera movement, zoom, crop, extra drill, extra limb, text, logo or watermark.",
+  "effectivePrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one vertical upward dark-steel mining drill replacing the entire head. No face, eyes, mouth, helmet, skull or neck exists. Preserve the complete identity, crystal layout, equipment, materials, colors and scale.\n\nCreate exactly one planted Borequake action over 5.17 seconds. Anticipation: spread the feet, lower the center of mass and brace both arms outward with open heavy hands. Charge: the single vertical drill accelerates from slow rotation to a visibly fast stable spin while the bearing and upper torso vibrate under torque. Peak: stamp both feet down together once and compress the entire body into one powerful seismic release pose, drill still pointing straight upward. Recovery: the vibration decays, drill returns to slow rotation, arms lower and the body settles back into the opening stance. One seismic release only; no repeated stomps.\n\nThe root remains centered and no crystal or debris detaches. Use one fixed orthographic 16:9 camera and visually white empty background. Keep full drill tip, arms, hands and feet visible with safe margins. No visible shockwave, smoke, sparks, ground cracks, floor, scenery, camera movement, zoom, crop, extra drill, extra limb, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one headless humanoid of dusty muted-purple crystal and coal-black seams, exactly two arms, two hands, two legs and two feet, embedded sealing timbers and rusted braces, and exactly one vertical upward dark-steel mining drill replacing the entire head. No face, eyes, mouth, helmet, skull or neck exists. Preserve the complete identity, crystal layout, equipment, materials, colors and scale.\n\nCreate exactly one planted Borequake action over 5.17 seconds. Anticipation: spread the feet, lower the center of mass and brace both arms outward with open heavy hands. Charge: the single vertical drill accelerates from slow rotation to a visibly fast stable spin while the bearing and upper torso vibrate under torque. Peak: stamp both feet down together once and compress the entire body into one powerful seismic release pose, drill still pointing straight upward. Recovery: the vibration decays, drill returns to slow rotation, arms lower and the body settles back into the opening stance. One seismic release only; no repeated stomps.\n\nThe root remains centered and no crystal or debris detaches. Use one fixed orthographic 16:9 camera and visually white empty background. Keep full drill tip, arms, hands and feet visible with safe margins. No visible shockwave, smoke, sparks, ground cracks, floor, scenery, camera movement, zoom, crop, extra drill, extra limb, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "c7f79ba770d39aeeb15a8497ee7b68fdeb2ed92e125bf957b2e05fb69ab1ffc7",
+  "effectivePromptSha256": "e42c9d88eed662623a0a4b318b48d5a24078553abdf5e8586b61513fafe583e1",
+  "finalPromptSha256": "af6cc58354f0b52a6bad907a207819b1d9c69259bc55877d230669c5e3b7cd09",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\borequake-minimax-h3-v01.txt",
+      "bytes": 1458,
+      "sha256": "cbf884c107a8635d29b444454f805e27cb4b4217c68427dff2d2e2be69b6e4e0"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\mother-v04.png",
+      "bytes": 1186475,
+      "sha256": "dd2adfca87abebeeaf49d97406026a8bcb1e0b53aa5996cea9a55a3709f9b97f"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\borequake-minimax-h3-v01_contact.png",
+    "bytes": 325081,
+    "sha256": "6c34129ac51a40aaa30d95eb9fb9b31878d4364d0e417896a72417d9223778c6"
+  },
+  "elapsedSeconds": null,
+  "recovery": {
+    "reason": "local polling client interrupted after remote queue submission",
+    "historyVerified": true
+  }
+}

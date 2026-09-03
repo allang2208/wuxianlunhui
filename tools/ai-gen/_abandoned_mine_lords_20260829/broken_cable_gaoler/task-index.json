@@ -1,0 +1,247 @@
+{
+  "task": "broken-cable-gaoler-animation",
+  "date": "2026-08-29",
+  "characterKey": "brokenCableGaoler",
+  "characterName": "断索狱监",
+  "providers": [
+    "doubao-desktop",
+    "minimax-h3"
+  ],
+  "models": [
+    "Seedance 2.0 Mini",
+    "MiniMax H3"
+  ],
+  "status": "runtime-integrated",
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "runtimeBuildScript": "build-runtime-sheets.py",
+  "runtimeManifest": "../../../../assets/enemies/broken_cable_gaoler/spritesheet-manifest.json",
+  "identityLocks": [
+    "one shoulder winch drum",
+    "one continuous steel cable",
+    "one right-hand hook",
+    "one left short chain",
+    "one empty prison cage",
+    "damaged miner protective gear"
+  ],
+  "actions": {
+    "idle": {
+      "status": "runtime-integrated",
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "reference": "references/broken-cable-gaoler-cycle-ref-v01.png",
+      "sourceVideo": "candidates/idle-doubao-v01.mp4",
+      "sourceProvenance": "candidates/idle-doubao-v01.mp4.json",
+      "cycle": {
+        "sourceStart": 66,
+        "duplicateEndpoint": 114,
+        "sampleStep": 2
+      },
+      "baseSheet": "previews/idle-rebuild-v01/broken-cable-gaoler-idle-base-v01.png",
+      "baseReport": "previews/idle-rebuild-v01/broken-cable-gaoler-idle-base-v01_report.json",
+      "finalSheet": "candidates/broken-cable-gaoler-idle-rife-v01.png",
+      "finalReport": "candidates/broken-cable-gaoler-idle-rife-v01-report.json",
+      "previewGif": "previews/idle-rife-v01/brokenCableGaolerIdle-interpolated.gif",
+      "contactSheet": "previews/idle-rife-v01/brokenCableGaolerIdle-interpolated-contact.png",
+      "layout": {
+        "frameWidth": 640,
+        "frameHeight": 640,
+        "columns": 8,
+        "rows": 6,
+        "frameCount": 48,
+        "frameRate": 24,
+        "repeat": -1,
+        "footY": 599
+      },
+      "userApproved": true
+    },
+    "walking": {
+      "status": "runtime-integrated",
+      "prompt": "prompts/walking-doubao-v02.txt",
+      "reference": "references/broken-cable-gaoler-walking-ref-v02.png",
+      "sourceVideo": "candidates/walking-doubao-v02.mp4",
+      "sourceProvenance": "candidates/walking-doubao-v02.mp4.json",
+      "rejectedCandidates": [
+        {
+          "removedSourceVideo": "candidates/walking-doubao-v01.mp4",
+          "sourceProvenance": "candidates/walking-doubao-v01.mp4.json",
+          "reason": "winch cable became a ground-trailing chain extending beyond the left video edge"
+        }
+      ],
+      "cycle": {
+        "sourceStart": 42,
+        "duplicateEndpoint": 79,
+        "sampleStep": 2
+      },
+      "baseSheet": "previews/walking-rebuild-v02/broken-cable-gaoler-walking-base-v02.png",
+      "baseReport": "previews/walking-rebuild-v02/broken-cable-gaoler-walking-base-v02_report.json",
+      "finalSheet": "candidates/broken-cable-gaoler-walking-rife-v02.png",
+      "finalReport": "candidates/broken-cable-gaoler-walking-rife-v02-report.json",
+      "previewGif": "previews/walking-rife-v02/brokenCableGaolerWalking-interpolated.gif",
+      "contactSheet": "previews/walking-rife-v02/brokenCableGaolerWalking-interpolated-contact.png",
+      "layout": {
+        "frameWidth": 640,
+        "frameHeight": 640,
+        "columns": 8,
+        "rows": 5,
+        "frameCount": 38,
+        "frameRate": 24,
+        "repeat": -1,
+        "footY": 599
+      },
+      "userApproved": true
+    },
+    "chainSweep": {
+      "status": "runtime-integrated",
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "prompt": "prompts/chain-sweep-doubao-v01.txt",
+      "reference": "references/broken-cable-gaoler-attack-ref-v01.png",
+      "sourceVideo": "candidates/chain-sweep-doubao-v01.mp4",
+      "sourceProvenance": "candidates/chain-sweep-doubao-v01.mp4.json",
+      "window": {
+        "sourceStart": 0,
+        "sourceEndExclusive": 109,
+        "sampleStep": 4
+      },
+      "baseSheet": "previews/chain-sweep-rebuild-v01/broken-cable-gaoler-chain-sweep-base-v01.png",
+      "baseReport": "previews/chain-sweep-rebuild-v01/broken-cable-gaoler-chain-sweep-base-v01_report.json",
+      "finalSheet": "candidates/broken-cable-gaoler-chain-sweep-rife-v01.png",
+      "finalReport": "candidates/broken-cable-gaoler-chain-sweep-rife-v01-report.json",
+      "previewGif": "previews/chain-sweep-rife-v01/brokenCableGaolerChainSweep-interpolated.gif",
+      "contactSheet": "previews/chain-sweep-rife-v01/brokenCableGaolerChainSweep-interpolated-contact.png",
+      "phaseMarkers": {
+        "contactPeakFrame": 26
+      },
+      "layout": {
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "columns": 6,
+        "rows": 10,
+        "frameCount": 55,
+        "frameRate": 12,
+        "repeat": 0,
+        "footY": 599
+      },
+      "userApproved": true
+    },
+    "hookWinch": {
+      "status": "runtime-integrated",
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "prompt": "prompts/hook-winch-doubao-v02.txt",
+      "reference": "references/broken-cable-gaoler-hook-winch-ref-v02.png",
+      "sourceVideo": "candidates/hook-winch-doubao-v02.mp4",
+      "sourceProvenance": "candidates/hook-winch-doubao-v02.mp4.json",
+      "rejectedCandidates": [
+        {
+          "removedSourceVideo": "candidates/hook-winch-doubao-v01.mp4",
+          "sourceProvenance": "candidates/hook-winch-doubao-v01.mp4.json",
+          "reason": "the fully extended cable reached the right source-video edge and clipped the hook"
+        }
+      ],
+      "window": {
+        "sourceStart": 0,
+        "sourceEndExclusive": 105,
+        "sampleStep": 4
+      },
+      "baseSheet": "previews/hook-winch-rebuild-v02/broken-cable-gaoler-hook-winch-base-v02.png",
+      "baseReport": "previews/hook-winch-rebuild-v02/broken-cable-gaoler-hook-winch-base-v02_report.json",
+      "finalSheet": "candidates/broken-cable-gaoler-hook-winch-rife-v02.png",
+      "finalReport": "candidates/broken-cable-gaoler-hook-winch-rife-v02-report.json",
+      "previewGif": "previews/hook-winch-rife-v02/brokenCableGaolerHookWinch-interpolated.gif",
+      "contactSheet": "previews/hook-winch-rife-v02/brokenCableGaolerHookWinch-interpolated-contact.png",
+      "phaseMarkers": {
+        "maxExtensionStartFrame": 18,
+        "winchReturnStartFrame": 42
+      },
+      "layout": {
+        "frameWidth": 1536,
+        "frameHeight": 640,
+        "columns": 4,
+        "rows": 14,
+        "frameCount": 53,
+        "frameRate": 12,
+        "repeat": 0,
+        "footY": 599
+      },
+      "userApproved": true
+    },
+    "cageSlam": {
+      "status": "runtime-integrated",
+      "provider": "doubao-desktop",
+      "model": "Seedance 2.0 Mini",
+      "prompt": "prompts/cage-slam-doubao-v01.txt",
+      "reference": "references/broken-cable-gaoler-attack-ref-v01.png",
+      "sourceVideo": "candidates/cage-slam-doubao-v01.mp4",
+      "sourceProvenance": "candidates/cage-slam-doubao-v01.mp4.json",
+      "window": {
+        "sourceStart": 0,
+        "sourceEndExclusive": 109,
+        "sampleStep": 4
+      },
+      "baseSheet": "previews/cage-slam-rebuild-v01/broken-cable-gaoler-cage-slam-base-v01.png",
+      "baseReport": "previews/cage-slam-rebuild-v01/broken-cable-gaoler-cage-slam-base-v01_report.json",
+      "finalSheet": "candidates/broken-cable-gaoler-cage-slam-rife-v01.png",
+      "finalReport": "candidates/broken-cable-gaoler-cage-slam-rife-v01-report.json",
+      "previewGif": "previews/cage-slam-rife-v01/brokenCableGaolerCageSlam-interpolated.gif",
+      "contactSheet": "previews/cage-slam-rife-v01/brokenCableGaolerCageSlam-interpolated-contact.png",
+      "phaseMarkers": {
+        "impactFrame": 38
+      },
+      "layout": {
+        "frameWidth": 1024,
+        "frameHeight": 640,
+        "columns": 6,
+        "rows": 10,
+        "frameCount": 55,
+        "frameRate": 12,
+        "repeat": 0,
+        "footY": 599
+      },
+      "userApproved": true
+    },
+    "dying": {
+      "status": "runtime-integrated",
+      "provider": "minimax-h3",
+      "model": "MiniMax H3",
+      "prompt": "prompts/dying-minimax-h3-v02.txt",
+      "reference": "references/broken-cable-gaoler-death-ref-v01.png",
+      "sourceVideo": "candidates/dying-minimax-h3-v02.mp4",
+      "sourceProvenance": "candidates/dying-minimax-h3-v02.mp4.json",
+      "rejectedCandidates": [
+        {
+          "removedSourceVideo": "candidates/dying-minimax-h3-v01.mp4",
+          "sourceProvenance": "candidates/dying-minimax-h3-v01.mp4.json",
+          "reason": "reference mode redesigned the monster as a bright yellow cartoon miner"
+        }
+      ],
+      "window": {
+        "sourceStart": 0,
+        "sourceEndExclusive": 81,
+        "sampleStep": 4,
+        "anchorMode": "source"
+      },
+      "baseSheet": "previews/dying-rebuild-v02/broken-cable-gaoler-dying-base-v02.png",
+      "baseReport": "previews/dying-rebuild-v02/broken-cable-gaoler-dying-base-v02_report.json",
+      "finalSheet": "candidates/broken-cable-gaoler-dying-rife-v02.png",
+      "finalReport": "candidates/broken-cable-gaoler-dying-rife-v02-report.json",
+      "previewGif": "previews/dying-rife-v02/brokenCableGaolerDying-interpolated.gif",
+      "contactSheet": "previews/dying-rife-v02/brokenCableGaolerDying-interpolated-contact.png",
+      "phaseMarkers": {
+        "corpseSettledFrame": 32
+      },
+      "layout": {
+        "frameWidth": 896,
+        "frameHeight": 640,
+        "columns": 5,
+        "rows": 9,
+        "frameCount": 41,
+        "frameRate": 12,
+        "repeat": 0,
+        "alphaBottomMin": 595,
+        "alphaBottomMax": 616
+      },
+      "userApproved": true
+    }
+  }
+}

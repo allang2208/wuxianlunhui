@@ -1,0 +1,26 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Primary request: Create exactly one giant undead abandoned-mine lamp keeper, the Black-Lung Lamp Keeper, in a calm animation-friendly neutral idle pose.
+
+Subject identity: a tall broad bipedal undead senior miner with believable human anatomy and heavy body weight; swollen chest and throat but still clearly humanoid; desaturated soot-gray dead skin; worn dark brown and charcoal mine coat with a stained leather apron, heavy work trousers and mining boots. His face wears one rigid old brass respirator mask covering nose and mouth, with exactly two short cylindrical cracked filter canisters symmetrically attached to the mask. One single reinforced safety lantern is mounted firmly at the center of his chest on a leather harness; its small enclosed wick glows a restrained dirty amber, with no large aura. He holds exactly one short-handled mining pick low in his right hand; left hand empty and relaxed. No backpack, no explosives, no second lantern.
+
+Identity anchors: one brass respirator with two filter canisters; one chest-mounted safety lantern; one short mining pick; swollen soot-blackened throat and chest; long dark mine coat and leather apron; heavy miner boots.
+
+Anatomy and materials: physically plausible bipedal anatomy, correct joints and hands, both boots firmly contacting one baseline; realistic aged brass, scratched glass, soot, cracked leather, dirty wool and canvas, rusted steel pick head, dead skin with restrained discoloration; high-detail realistic PBR materials, no glossy plastic.
+
+Style/medium: high-detail realistic PBR 3D game character render, grounded dark-fantasy production asset, matching a serious abandoned-mine zombie roster; controlled low saturation, clear readable silhouette, not a photograph and not cartoon art.
+
+Pose: calm neutral idle, slight forward hunch, shoulders heavy, right arm lowered holding the pick safely away from the body, left hand open and visible, no attack motion, closed mouth behind the respirator, no gas discharge.
+
+Composition/framing: locked orthographic-style low three-quarter side view facing right, complete full body visible, character uses about 62% of canvas height and at most 55% of canvas width, centered with generous margin on every side, both feet on the same baseline.
+
+Scene/backdrop: perfectly flat solid pure white #FFFFFF background, no horizon, no floor, no cast shadow, no contact shadow, no reflection, no scenery.
+
+Lighting: soft flat diffuse studio light only, neutral material readability; chest lantern only a tiny contained amber wick, no bloom or surrounding haze.
+
+Constraints: exactly one subject; exactly two arms, two legs, one head; one respirator, two filters, one lantern, one mining pick; full silhouette and all equipment uncropped; no text, logo, watermark, particles, fog, gas, flames or blood spray.
+
+Avoid: extra or missing limbs, duplicated mask, extra filters, extra lanterns, handheld lantern, large magical glow, visible gas cloud, tubes merging into flesh, fused hands, extra tools, explosives, backpack, cropped boots or pick, front view, top view, perspective distortion, cinematic background, ground plane, shadows, fog, sparks, cartoon, anime, chibi, low-poly toy, glossy plastic.
+
+Background correction applied after generation: change only the background to uniform pure white #FFFFFF while preserving the subject and every identity anchor.

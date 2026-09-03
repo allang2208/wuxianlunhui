@@ -1094,6 +1094,71 @@ export class BootScene extends Scene {
         loadCoreDrillWormSheet('burrow_enter', 'burrowEnter', 'burrow_enter');
         loadCoreDrillWormSheet('burrow_exit', 'burrowExit', 'burrow_exit');
         loadCoreDrillWormSheet('death', 'death', 'dying');
+        // 断索狱监（废弃矿洞专属领主）：RIFE 正式表经逐动作统一裁边，
+        // 非方形宽格保留钩索/囚笼完整轨迹，实体侧按主体高度动态归一显示。
+        const brokenCableGaolerLayouts = enemyConfigData.brokenCableGaoler?.textures?.frameLayouts || {};
+        const loadBrokenCableGaolerSheet = (state, filename) => {
+            const layout = brokenCableGaolerLayouts[state] || {};
+            this.load.spritesheet(
+                `enemy_broken_cable_gaoler_${state}`,
+                `assets/enemies/broken_cable_gaoler/${filename}.png`,
+                {
+                    frameWidth: layout.frameWidth || 640,
+                    frameHeight: layout.frameHeight || 448,
+                    endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+                }
+            );
+        };
+        loadBrokenCableGaolerSheet('idle', 'idle');
+        loadBrokenCableGaolerSheet('walking', 'walking');
+        loadBrokenCableGaolerSheet('chainSweep', 'chain_sweep');
+        loadBrokenCableGaolerSheet('hookWinch', 'hook_winch');
+        loadBrokenCableGaolerSheet('cageSlam', 'cage_slam');
+        loadBrokenCableGaolerSheet('dying', 'dying');
+
+        // 黑肺提灯长（废弃矿洞专属领主）：各动作无损裁边，但共享同一
+        // 460px authoredBodyHeight；实体侧统一换算为260px游戏内主体高度。
+        const blackLungLampKeeperLayouts = enemyConfigData.blackLungLampKeeper?.textures?.frameLayouts || {};
+        const loadBlackLungLampKeeperSheet = (state, filename) => {
+            const layout = blackLungLampKeeperLayouts[state] || {};
+            this.load.spritesheet(
+                `enemy_black_lung_lamp_keeper_${state}`,
+                `assets/enemies/black_lung_lamp_keeper/${filename}.png`,
+                {
+                    frameWidth: layout.frameWidth || 320,
+                    frameHeight: layout.frameHeight || 544,
+                    endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+                }
+            );
+        };
+        loadBlackLungLampKeeperSheet('idle', 'idle');
+        loadBlackLungLampKeeperSheet('walking', 'walking');
+        loadBlackLungLampKeeperSheet('pickaxeSlam', 'pickaxe_slam');
+        loadBlackLungLampKeeperSheet('blackLungCough', 'black_lung_cough');
+        loadBlackLungLampKeeperSheet('lanternOverload', 'lantern_overload');
+        loadBlackLungLampKeeperSheet('dying', 'dying');
+
+        // 封井岩魇（废弃矿洞专属领主）：动作按统一460px有效主体高度标定；
+        // 钻头旋冲仅保留居中的前倾驱动姿态，实际位移完全由实体状态机负责。
+        const sealedShaftRockWraithLayouts = enemyConfigData.sealedShaftRockWraith?.textures?.frameLayouts || {};
+        const loadSealedShaftRockWraithSheet = (state, filename) => {
+            const layout = sealedShaftRockWraithLayouts[state] || {};
+            this.load.spritesheet(
+                `enemy_sealed_shaft_rock_wraith_${state}`,
+                `assets/enemies/sealed_shaft_rock_wraith/${filename}.png`,
+                {
+                    frameWidth: layout.frameWidth || 320,
+                    frameHeight: layout.frameHeight || 544,
+                    endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+                }
+            );
+        };
+        loadSealedShaftRockWraithSheet('idle', 'idle');
+        loadSealedShaftRockWraithSheet('walking', 'walking');
+        loadSealedShaftRockWraithSheet('crystalArmSmash', 'crystal_arm_smash');
+        loadSealedShaftRockWraithSheet('borequake', 'borequake');
+        loadSealedShaftRockWraithSheet('drillRush', 'drill_rush');
+        loadSealedShaftRockWraithSheet('dying', 'dying');
 
         // 深脉之母：布局/有效帧数由最终制作 manifest 派生到配置；八张图同属一资源族。
         const deepVeinMotherTextures = enemyConfigData.deepVeinMother.textures;
@@ -2433,6 +2498,60 @@ export class BootScene extends Scene {
                 frames: this.anims.generateFrameNumbers(key, { start: 0, end: layout.frameCount - 1 }),
                 duration: layout.duration, repeat: layout.repeat,
             });
+        }
+
+        // ---- 断索狱监动画（技能时钟、帧布局与最终 RIFE 表同源） ----
+        const brokenCableGaolerLayouts = enemyConfigData.brokenCableGaoler?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'walking', 'chainSweep', 'hookWinch', 'cageSlam', 'dying']) {
+            const layout = brokenCableGaolerLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_broken_cable_gaoler_${state}`,
+                frames: this.anims.generateFrameNumbers(`enemy_broken_cable_gaoler_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walking' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 12;
+            this.anims.create(animation);
+        }
+
+        // ---- 黑肺提灯长动画（最终RIFE帧、技能接触帧与状态机共用配置时钟） ----
+        const blackLungLampKeeperLayouts = enemyConfigData.blackLungLampKeeper?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'walking', 'pickaxeSlam', 'blackLungCough', 'lanternOverload', 'dying']) {
+            const layout = blackLungLampKeeperLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_black_lung_lamp_keeper_${state}`,
+                frames: this.anims.generateFrameNumbers(`enemy_black_lung_lamp_keeper_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walking' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 12;
+            this.anims.create(animation);
+        }
+
+        // ---- 封井岩魇动画（最终RIFE帧、冲锋窗口与状态机共用配置时钟） ----
+        const sealedShaftRockWraithLayouts = enemyConfigData.sealedShaftRockWraith?.textures?.frameLayouts || {};
+        for (const state of ['idle', 'walking', 'crystalArmSmash', 'borequake', 'drillRush', 'dying']) {
+            const layout = sealedShaftRockWraithLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_sealed_shaft_rock_wraith_${state}`,
+                frames: this.anims.generateFrameNumbers(`enemy_sealed_shaft_rock_wraith_${state}`, {
+                    start: 0,
+                    end: frameCount - 1,
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walking' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 12;
+            this.anims.create(animation);
         }
 
         // ---- 巫婆动画 ----

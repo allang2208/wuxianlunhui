@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\references\\broken-cable-gaoler-cycle-ref-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\prompts\\idle-doubao-v01.txt",
+  "promptChars": 594,
+  "promptSha256": "5344644500f3d3c32769942ce6a21ba2483e4a7a481d7ca3d4e74d37d8b21d03",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T06:39:11.366Z",
+  "sourceUrlScheme": "https"
+}

@@ -1,0 +1,19 @@
+Use case: precise-object-edit
+Asset type: animation-safe production mother-frame character edit
+Edit target: mothers/sealed-shaft-rock-wraith-mother-v02.png
+
+Primary request: remove the creature's entire existing head, face, eyes, hood-like stone crown and neck-head silhouette. Replace that whole head region with exactly one integrated industrial mining drill assembly mounted directly in the open collar between the shoulders.
+
+Drill design: one large compact conical spiral mining drill bit made of worn dark steel and rusted iron, with a heavy circular bearing housing embedded into the upper torso. The single drill cone points clearly forward toward the viewer's right with a slight downward angle, so its spiral cutting flutes and pointed tip are readable in silhouette. Add restrained violet ore deposits and coal dust around the bearing where it joins the purple crystal body. The drill mechanism itself replaces the head anatomically; it is not a hat, helmet, face mask, handheld weapon or tool attached to a hidden person.
+
+Absolute headless constraint: no skull, face, eyes, mouth, mask, helmet, humanoid head, stone head, crystal head or visible neck remains anywhere behind, below or inside the drill. No glowing eyes. Exactly one drill bit and one drill housing.
+
+Preserve invariants exactly: keep the complete purple crystal torso, shoulders, back timbers, rusty braces, both arms, both hands, both legs, both feet, pose, proportions, framing, camera angle, lighting, materials, color palette, baseline and canvas size unchanged. Change only the original head/neck region and the minimum adjacent collar area required to integrate the drill housing. Do not enlarge or move the body.
+
+Background: preserve the existing visually white background with no floor, shadow, gradient, horizon, reflection, fog or scenery. Do not apply destructive RGB threshold cleanup over the subject after generation.
+
+Composition: preserve the centered full-body framing and generous margins; complete silhouette uncropped and both feet on the same baseline.
+
+Constraints: exactly one subject; a headless body with exactly one integrated mining drill replacing the head; two arms, two hands, two legs and two feet; no held weapon; no text, logo or watermark.
+
+Avoid: any remaining face or head, drill helmet, drill nose on a face, drill mounted on top of a head, multiple drills, drill arms, handheld drill, drill emerging from the chest center, oversized drill obscuring both shoulders, extra limbs, changed body anatomy, changed pose, reframing, crop, background change, shadow, particles, cartoon or style drift.

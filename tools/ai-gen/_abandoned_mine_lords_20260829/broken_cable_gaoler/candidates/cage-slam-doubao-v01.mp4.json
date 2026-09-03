@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\references\\broken-cable-gaoler-attack-ref-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\broken_cable_gaoler\\prompts\\cage-slam-doubao-v01.txt",
+  "promptChars": 606,
+  "promptSha256": "f2cde2ed14e85145ca58d961157785ceb75e09cdfc77dac6fe8692432c756202",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-29T08:06:57.331Z",
+  "sourceUrlScheme": "https"
+}

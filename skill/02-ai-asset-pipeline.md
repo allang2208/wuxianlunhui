@@ -608,6 +608,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 - 运行时接通后，任务索引、最终 `spritesheet-manifest.json` 及生成该清单的脚本必须同时写 `assetOnly:false`、`runtimeIntegrationActive:true`。只手改生成结果会在重跑插帧时退回“仅资产”状态，属于不可复现交付。
 - 已有 RIFE 正式表只调整播放节奏时，不重新抽帧、插帧或重采样可见像素；只同步双份运行时配置的 `frameRate`、发布脚本中的布局真源和最终运行时时钟预览。GIF 只有 10ms 时间粒度，高于 50 FPS 时必须用分布式 10/20ms 帧时长逼近目标总时长，并在报告中同时写明游戏内精确帧率与 GIF 量化后的实际循环时长；世界移动速度、碰撞和战斗时钟保持独立不变。
 - 超宽多动作表的显存核算以实际 PNG 整图 `width × height × 4` 为准，不能用 `frameWidth × frameHeight × frameCount × 4` 代替；末行空格和行列重排仍会完整上传 GPU。单个需要强驻留的资源族必须独立落在软预算内，每张表还必须低于目标 WebGL 最大纹理边长。
+- 用户已确认逐帧自然轨迹后，运行时瘦身只允许逐动作统一裁透明边：横向裁框关于旧格中心对称，纵向裁框同步换算 `footY`，可重新选择列数，但不得重采样可见像素或逐帧重新拉直。正式归档保留获准母图/源视频/提示词/provenance、最终 GIF、运行时表、裁剪布局与可复现脚本；逐帧 PNG、重复源表、接触表和视频级重复预览属于可重建中间物，可恢复清理后不进 Git。
 
 #### 已批准动画的重采样与最小源集
 
@@ -774,6 +775,8 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
   completely uniform white, no ground, no shadow, no reflection`。
 
 #### 3. 镜头/构图（防"超出显示区域"）
+- **方形母图禁止直接拉伸成 H3 的 16:9 首帧**：必须先等比缩放后放进目标分辨率画布，四周补纯色背景；
+  任何直接 `resize(width, height)` 都会把角色横向拉宽，而且后续透明表的统一比例无法逆转源视频形变。
 - **首帧角色高度占画布 70~75%、四周留 ≥10% 安全边距**；顶天立地（100%）时实测
   56 帧里 45 帧贴边、头脚被裁。
 - 提示词：`static camera locked in place, no camera movement, no pan, no zoom,
@@ -783,6 +786,8 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
   with generous empty margin on all sides, nothing is cropped or touches the frame edges`。
 - 验收量化：逐帧主体 bbox 贴边帧数必须 = 0；水平中心漂移初始 206px → 缩 75% + 强化
   静态镜头后 35px（可接受，拼图时逐帧居中可消）。
+- **尺寸验收要在原视频中先做**：以首帧或中立姿态的粗壮躯干 bbox 为基准，比较宽高比、面积与中心轨迹；
+  若非姿态伸展即可解释的面积增长、宽高比突变或镜头推近已经发生，必须重生视频，不能靠逐帧缩放或居中掩盖。
 
 #### 4. 无缝循环生成（首帧=尾帧）
 - `--first-frame` 与 `--last-frame` 传**同一张图**：结尾姿势/位置强制回到首帧

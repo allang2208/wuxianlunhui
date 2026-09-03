@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T12:45:39.022584+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\crystal-arm-smash-minimax-h3-v01.mp4",
+    "bytes": 590826,
+    "sha256": "a683343259341211857c67236447815339a3e545ec4c4362a41518f33ba43754"
+  },
+  "promptId": "39209dae-f59b-472f-a22e-468a5ab10c7d",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2026082923,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless purple-ore humanoid with exactly two arms, two hands, two legs, two feet, embedded timbers and braces, and exactly one dark-steel mining drill mounted vertically upward as its complete head replacement. No face, head, eyes, helmet or neck exists. Preserve every identity anchor, rigid part, material, color and scale.\n\nCreate exactly one close-range crystal-arm smash toward screen-right over 5.17 seconds. Anticipation: plant both feet and twist the torso slightly left while drawing the screen-left massive crystal forearm back. Power: drive weight through the hips and shoulders, then swing that single forearm down and forward in one heavy hammering arc. Contact: the knuckles and forearm reach one clear low forward impact pose near the ground to screen-right while the opposite hand counterbalances. Recovery: recoil from the impact and return naturally to the stable opening guard. The upward drill stays vertical and attached throughout, rotating only slightly and never becoming the striking part. One strike only; no second swing.\n\nKeep the root nearly fixed and preserve natural arm trajectory rather than recentering each moment. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the complete drill tip, full arm arc, hands and feet visible. No shockwave, rubble, particles, weapon, camera move, zoom, crop, extra limb, extra drill, detached crystal, floor, shadow, text, logo or watermark.",
+  "effectivePrompt": "The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless purple-ore humanoid with exactly two arms, two hands, two legs, two feet, embedded timbers and braces, and exactly one dark-steel mining drill mounted vertically upward as its complete head replacement. No face, head, eyes, helmet or neck exists. Preserve every identity anchor, rigid part, material, color and scale.\n\nCreate exactly one close-range crystal-arm smash toward screen-right over 5.17 seconds. Anticipation: plant both feet and twist the torso slightly left while drawing the screen-left massive crystal forearm back. Power: drive weight through the hips and shoulders, then swing that single forearm down and forward in one heavy hammering arc. Contact: the knuckles and forearm reach one clear low forward impact pose near the ground to screen-right while the opposite hand counterbalances. Recovery: recoil from the impact and return naturally to the stable opening guard. The upward drill stays vertical and attached throughout, rotating only slightly and never becoming the striking part. One strike only; no second swing.\n\nKeep the root nearly fixed and preserve natural arm trajectory rather than recentering each moment. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the complete drill tip, full arm arc, hands and feet visible. No shockwave, rubble, particles, weapon, camera move, zoom, crop, extra limb, extra drill, detached crystal, floor, shadow, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The supplied first frame defines the exact Sealed-Shaft Rock Wraith: one massive headless purple-ore humanoid with exactly two arms, two hands, two legs, two feet, embedded timbers and braces, and exactly one dark-steel mining drill mounted vertically upward as its complete head replacement. No face, head, eyes, helmet or neck exists. Preserve every identity anchor, rigid part, material, color and scale.\n\nCreate exactly one close-range crystal-arm smash toward screen-right over 5.17 seconds. Anticipation: plant both feet and twist the torso slightly left while drawing the screen-left massive crystal forearm back. Power: drive weight through the hips and shoulders, then swing that single forearm down and forward in one heavy hammering arc. Contact: the knuckles and forearm reach one clear low forward impact pose near the ground to screen-right while the opposite hand counterbalances. Recovery: recoil from the impact and return naturally to the stable opening guard. The upward drill stays vertical and attached throughout, rotating only slightly and never becoming the striking part. One strike only; no second swing.\n\nKeep the root nearly fixed and preserve natural arm trajectory rather than recentering each moment. Use one fixed orthographic 16:9 camera and visually white empty background. Keep the complete drill tip, full arm arc, hands and feet visible. No shockwave, rubble, particles, weapon, camera move, zoom, crop, extra limb, extra drill, detached crystal, floor, shadow, text, logo or watermark, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "b49bc29a9c84bb845749c7a9d8c265df3f762655892a11b64a132e98333164d4",
+  "effectivePromptSha256": "2e359a700ad926f18230a1781efe64ddde9dc5a90af079e147ebbcf68e57626f",
+  "finalPromptSha256": "e8fad026fb79202da559ecf4829828c248da5be4ee405523a678bd762e5bf91c",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\prompts\\crystal-arm-smash-minimax-h3-v01.txt",
+      "bytes": 1524,
+      "sha256": "573347690447acf3826456328e95a25c5827965c166aa1980077d3aa94295110"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\references\\mother-v04.png",
+      "bytes": 1186475,
+      "sha256": "dd2adfca87abebeeaf49d97406026a8bcb1e0b53aa5996cea9a55a3709f9b97f"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_abandoned_mine_lords_20260829\\sealed_shaft_rock_wraith\\videos\\crystal-arm-smash-minimax-h3-v01_contact.png",
+    "bytes": 348743,
+    "sha256": "f6701be477f868e64531c01940c2767115cc616b9d61240ec6ae207e9152c7fa"
+  },
+  "elapsedSeconds": null,
+  "recovery": {
+    "reason": "local polling client interrupted after remote queue submission",
+    "historyVerified": true
+  }
+}
