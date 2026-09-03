@@ -713,7 +713,7 @@
             "stats": [{ "name": "物理攻击", "value": "7+敏捷×0.35+精神×0.3" }, { "name": "射程", "value": "800" }],
             "desc": "经典大口径军用半自动手枪；7发弹匣、单发扎实但射速偏慢，可双持，适合作为低稀有度可靠副武器。", "equipSlot": "weapon",
             "attack": { "range": 800, "knockback": 5, "attackInterval": 420, "hitType": ".45口径铜色曳光弹（直线弹道）", "damageType": "物理", "projectileSpeed": 960, "damageFalloff": { "start": 520, "minMultiplier": 0.45 } },
-            "attackKey": "m1911a1", "offhandAttackKey": "m1911a1Offhand", "animConfigKey": "m1911a1", "fireSound": "assets/sounds/weapons/cs_deagle_35_80.wav", "equipSound": "assets/sounds/weapons/revolver357_equip.wav", "canvasImageProp": "m1911a1Image",
+            "attackKey": "m1911a1", "offhandAttackKey": "m1911a1Offhand", "animConfigKey": "m1911a1", "fireSound": "assets/sounds/weapons/m1911_fire.mp3", "equipSound": "assets/sounds/weapons/revolver357_equip.wav", "canvasImageProp": "m1911a1Image",
             "ammoConfig": { "max": 7, "reloadTime": 1450 }, "fireMode": "semiAuto",
             "attackFormula": { "base": 7, "enhanceFlat": 0.45, "attrs": [{ "key": "dex", "base": 0.35, "perEnhance": 0.05 }, { "key": "wis", "base": 0.3, "perEnhance": 0.04 }] },
             "spreadParams": { "startShots": 1, "maxShots": 4, "recoveryMs": 480, "maxAngle": 8 }
@@ -727,7 +727,7 @@
             "stats": [{ "name": "物理攻击", "value": "9+敏捷×0.55+精神×0.45" }, { "name": "射程", "value": "900" }],
             "desc": "稳定耐用的战术半自动手枪；12发弹匣、后坐恢复快且有效射程更远，可双持，主打持续精准输出。", "equipSlot": "weapon",
             "attack": { "range": 900, "knockback": 3, "attackInterval": 300, "hitType": ".45口径淡金曳光弹（直线弹道）", "damageType": "物理", "projectileSpeed": 1100, "damageFalloff": { "start": 600, "minMultiplier": 0.48 } },
-            "attackKey": "usp45", "offhandAttackKey": "usp45Offhand", "animConfigKey": "usp45", "fireSound": "assets/sounds/weapons/beretta93r_fire.mp3", "equipSound": "assets/sounds/weapons/revolver357_equip.wav", "canvasImageProp": "usp45Image",
+            "attackKey": "usp45", "offhandAttackKey": "usp45Offhand", "animConfigKey": "usp45", "fireSound": "assets/sounds/weapons/usp45_fire.mp3", "equipSound": "assets/sounds/weapons/revolver357_equip.wav", "canvasImageProp": "usp45Image",
             "ammoConfig": { "max": 12, "reloadTime": 1300 }, "fireMode": "semiAuto",
             "attackFormula": { "base": 9, "enhanceFlat": 0.75, "attrs": [{ "key": "dex", "base": 0.55, "perEnhance": 0.13 }, { "key": "wis", "base": 0.45, "perEnhance": 0.13 }] },
             "spreadParams": { "startShots": 1, "maxShots": 5, "recoveryMs": 360, "maxAngle": 4 }
@@ -741,7 +741,7 @@
             "stats": [{ "name": "物理攻击", "value": "6+敏捷×0.55+精神×0.25" }, { "name": "射程", "value": "1050" }, { "name": "弹药特性", "value": "轻度贯穿" }],
             "desc": "高速小口径战术手枪；20发弹匣、低后坐与高弹速，弹丸可贯穿一个目标，可双持，擅长中距离连续点射。", "equipSlot": "weapon",
             "attack": { "range": 1050, "knockback": 1, "attackInterval": 260, "hitType": "5.7毫米高速曳光弹（轻度贯穿）", "damageType": "物理", "projectileSpeed": 1500, "damageFalloff": { "start": 720, "minMultiplier": 0.52 } },
-            "attackKey": "fiveSeven", "offhandAttackKey": "fiveSevenOffhand", "animConfigKey": "fiveSeven", "fireSound": "assets/sounds/weapons/p4040_hammer_fire.mp3", "equipSound": "assets/sounds/weapons/revolver357_equip.wav", "canvasImageProp": "fiveSevenImage",
+            "attackKey": "fiveSeven", "offhandAttackKey": "fiveSevenOffhand", "animConfigKey": "fiveSeven", "fireSound": "assets/sounds/weapons/fn57_fire.mp3", "equipSound": "assets/sounds/weapons/revolver357_equip.wav", "canvasImageProp": "fiveSevenImage",
             "ammoConfig": { "max": 20, "reloadTime": 1200 }, "fireMode": "semiAuto",
             "attackFormula": { "base": 6, "enhanceFlat": 0.5, "attrs": [{ "key": "dex", "base": 0.55, "perEnhance": 0.06 }, { "key": "wis", "base": 0.25, "perEnhance": 0.04 }] },
             "spreadParams": { "startShots": 1, "maxShots": 7, "recoveryMs": 300, "maxAngle": 2.5 }
@@ -987,6 +987,13 @@
             ],
             "desc": "AKM自动步枪，600发/分钟，亮金色曳光弹，可靠耐用的经典步枪",
             "equipSlot": "weapon",
+            "fireSound": "assets/sounds/weapons/akm_burst.mp3",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
+            "ammoConfig": {
+                "max": 30,
+                "reloadTime": 1250,
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
+            },
             "attack": {
                 "range": 1200,
                 "knockback": 2,
@@ -1247,6 +1254,13 @@
             ],
             "desc": "M416自动步枪，约550发/分钟，亮金色曳光弹，均衡可靠的模块化步枪",
             "equipSlot": "weapon",
+            "fireSound": "assets/sounds/weapons/m416_fire.mp3",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
+            "ammoConfig": {
+                "max": 30,
+                "reloadTime": 1300,
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
+            },
             "attack": {
                 "range": 1150,
                 "knockback": 2,
@@ -1315,6 +1329,13 @@
             ],
             "desc": "QBZ-191自动步枪，850发/分钟，亮金色曳光弹，新一代国产步枪",
             "equipSlot": "weapon",
+            "fireSound": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
+            "ammoConfig": {
+                "max": 30,
+                "reloadTime": 1150,
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
+            },
             "attack": {
                 "range": 1200,
                 "knockback": 2,
@@ -1427,6 +1448,7 @@
             "desc": "经典上下双管猎枪；两发高爆发后必须折管装填，节奏鲜明，适合中近距离精确截杀。",
             "equipSlot": "weapon",
             "attack": { "range": 560, "knockback": 16, "attackInterval": 900, "hitType": "双管鹿弹（7发弹丸）", "damageType": "物理", "projectileSpeed": 1248 },
+            "fireSound": "assets/sounds/weapons/s686_fire.mp3",
             "animation": { "type": "recoil（后坐力抖动）", "totalMs": "900ms", "timingMul": "0.5x", "recoilAmount": "0.15rad", "description": "S686 单发节奏较慢，但双扳机改造后可快速衔接第二根枪管。" }
         },
         "m870_breacher": {
@@ -1451,6 +1473,7 @@
             "desc": "短管泵动破门枪；射程与收束有限，但近距离击退极强，逐发装填允许随时中断投入战斗。",
             "equipSlot": "weapon",
             "attack": { "range": 420, "knockback": 24, "attackInterval": 720, "hitType": "破门鹿弹（6发弹丸）", "damageType": "物理", "projectileSpeed": 1180 },
+            "fireSound": "assets/sounds/weapons/m870_fire.wav",
             "animation": { "type": "recoil（后坐力抖动）", "totalMs": "720ms", "timingMul": "0.5x", "recoilAmount": "0.15rad", "description": "M870 短管型以泵动节奏射击，强调近距击退与逐发补弹。" }
         },
         "ksg12": {
@@ -5333,13 +5356,13 @@
             },
             "attackKey": "stg44",
             "animConfigKey": "stg44",
-            "fireSound": "assets/sounds/weapons/stg44_fire.wav",
-            "equipSound": "assets/sounds/weapons/stg44_equip.wav",
+            "fireSound": "assets/sounds/weapons/stg44_fire.mp3",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "stg44Image",
             "ammoConfig": {
                 "max": 30,
                 "reloadTime": 1600,
-                "reloadSound": "assets/sounds/weapons/stg44_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "fullAuto",
             "attackFormula": {
@@ -5424,13 +5447,13 @@
             },
             "attackKey": "qbz95",
             "animConfigKey": "qbz95",
-            "fireSound": "assets/sounds/weapons/qbz95_fire.wav",
-            "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+            "fireSound": "assets/sounds/weapons/qbz95_fire.mp3",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "qbz95Image",
             "ammoConfig": {
                 "max": 30,
                 "reloadTime": 1250,
-                "reloadSound": "assets/sounds/weapons/qbz95_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "fullAuto",
             "attackFormula": {
@@ -5515,13 +5538,13 @@
             },
             "attackKey": "frontier_rifle",
             "animConfigKey": "frontier_rifle",
-            "fireSound": "assets/sounds/weapons/m416_fire.wav",
-            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "fireSound": "assets/sounds/weapons/frontier_rifle_fire.mp3",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "frontierRifleImage",
             "ammoConfig": {
                 "max": 32,
                 "reloadTime": 1150,
-                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "fullAuto",
             "attackFormula": {
@@ -5607,12 +5630,12 @@
             "attackKey": "vengeance_rifle",
             "animConfigKey": "vengeance_rifle",
             "fireSound": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
-            "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "vengeanceRifleImage",
             "ammoConfig": {
                 "max": 24,
                 "reloadTime": 1450,
-                "reloadSound": "assets/sounds/weapons/qbz95_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "semiAuto",
             "attackFormula": {
@@ -5699,12 +5722,12 @@
             "attackKey": "astral_tide_rifle",
             "animConfigKey": "astral_tide_rifle",
             "fireSound": "assets/sounds/weapons/m416_fire.wav",
-            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "astralTideRifleImage",
             "ammoConfig": {
                 "max": 36,
                 "reloadTime": 1100,
-                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "fullAuto",
             "attackFormula": {
@@ -5796,12 +5819,12 @@
             "attackKey": "zero_point_rifle",
             "animConfigKey": "zero_point_rifle",
             "fireSound": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
-            "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "zeroPointRifleImage",
             "ammoConfig": {
                 "max": 30,
                 "reloadTime": 1100,
-                "reloadSound": "assets/sounds/weapons/qbz95_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "fullAuto",
             "attackFormula": {
@@ -5892,12 +5915,12 @@
             "attackKey": "corona_cadence_rifle",
             "animConfigKey": "corona_cadence_rifle",
             "fireSound": "assets/sounds/weapons/m416_fire.wav",
-            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "coronaCadenceRifleImage",
             "ammoConfig": {
                 "max": 32,
                 "reloadTime": 1100,
-                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "fullAuto",
             "attackFormula": {
@@ -5989,12 +6012,12 @@
             "attackKey": "terminal_echo_rifle",
             "animConfigKey": "terminal_echo_rifle",
             "fireSound": "assets/sounds/weapons/m416_fire.wav",
-            "equipSound": "assets/sounds/weapons/m416_equip.wav",
+            "equipSound": "assets/sounds/weapons/rifle_equip.mp3",
             "canvasImageProp": "terminalEchoRifleImage",
             "ammoConfig": {
                 "max": 34,
                 "reloadTime": 1250,
-                "reloadSound": "assets/sounds/weapons/m416_reload.wav"
+                "reloadSound": "assets/sounds/weapons/rifle_reload.mp3"
             },
             "fireMode": "fullAuto",
             "attackFormula": {
@@ -6331,7 +6354,7 @@
             },
             "attackKey": "mg42",
             "animConfigKey": "mg42",
-            "fireSound": "assets/sounds/weapons/mg42_fire.wav",
+            "fireSound": "assets/sounds/weapons/mg42_fire.mp3",
             "equipSound": "assets/sounds/weapons/mg42_equip.wav",
             "canvasImageProp": "mg42Image",
             "ammoConfig": {

@@ -217,9 +217,15 @@ export const ProjectileFactory = {
             // 构造函数内已创建 Sprite（depthBonus 尚未生效），立即同步一次深度/尺寸
             p.syncPhaserSprite();
         }
-        // 快照发射瞬间武器的附魔/改造效果：命中时按快照判定，防止弹道飞行中切枪改变命中效果
+        // 快照发射瞬间武器身份及附魔/改造效果：命中时按快照判定，
+        // 防止弹道飞行中切枪改变枪械分类或命中效果。
         const snapWeapon = effectWeapon || (source ? (source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null)) : null);
         p._effectSnapshot = {
+            weaponId: snapWeapon?.weaponId ?? null,
+            name: snapWeapon?.name ?? null,
+            weaponType: snapWeapon?.weaponType ?? null,
+            rangedType: snapWeapon?.rangedType ?? null,
+            ammoConfig: snapWeapon?.ammoConfig ? { ...snapWeapon.ammoConfig } : null,
             enchant: snapWeapon && snapWeapon._enchantEffects ? { ...snapWeapon._enchantEffects } : null,
             craft: snapWeapon && snapWeapon._craftEffects ? { ...snapWeapon._craftEffects } : null
         };

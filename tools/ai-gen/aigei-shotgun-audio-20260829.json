@@ -1,0 +1,62 @@
+{
+  "date": "2026-08-29",
+  "sourceSite": "https://www.aigei.com/",
+  "selectionRule": "one candidate per real in-game model; exact model match and an explicit commercial-use license are both required; generic sounds, game-extracted audio, unclear licenses, noncommercial items and paid previews are rejected",
+  "runtimeScope": "player and defense-tower shotgun fire paths",
+  "accepted": {
+    "s686": {
+      "realModelMatch": "Beretta 686 Silver Pigeon",
+      "itemId": "35690072",
+      "title": "猎枪贝雷塔_686_银鸽_1_射击_01",
+      "creatorCredit": "TheRealMattix",
+      "uploader": "维我所享",
+      "uploaderSpace": "https://www.aigei.com/space/1102508",
+      "itemUrl": "https://www.aigei.com/item/shotgun_beretta_4.html",
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=Beretta%20686%20shotgun&dim=is_vip_false",
+      "siteLicenseLabel": "CC协议(可商用,署名)",
+      "attributionRequired": true,
+      "listedDurationMs": 970,
+      "listedMaster": "44.1kHz stereo WAV, 1411kbps",
+      "downloadedVariant": "free HQ MP3, 40KB",
+      "downloadedFilename": "猎枪贝雷塔_686_银鸽_1_射击_01(SHOTGUN_B_爱给网_aigei_com.mp3",
+      "processing": "none; the selected source is already a single 970ms firing event, so the downloaded MP3 is copied byte-for-byte",
+      "runtimePath": "assets/sounds/weapons/s686_fire.mp3",
+      "attributionFile": "assets/sounds/weapons/ATTRIBUTION.md"
+    }
+  },
+  "rejectedOrUnresolved": {
+    "m870Breacher": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=M870%E6%95%A3%E5%BC%B9%E6%9E%AA&dim=is_vip_false",
+      "exactItems": ["105422431", "140717410", "62320359"],
+      "reason": "free exact-model uploads do not show an explicit commercial-use license; the licensed exact recording requires purchase"
+    },
+    "ksg12": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=KSG12%20shotgun&dim=is_vip_false",
+      "reason": "no exact-model result; the commercially usable result is a generic shotgun recording"
+    },
+    "spas12": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=SPAS12%20shotgun&dim=is_vip_false",
+      "exactItems": ["60472765", "31411112"],
+      "reason": "the explicitly licensed exact item is noncommercial; other exact recordings do not show a commercial-use grant"
+    },
+    "aa12": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=AA12%20shotgun&dim=is_vip_false",
+      "exactItems": ["140334520", "143248338"],
+      "reason": "exact-model results do not show an explicit commercial-use license"
+    },
+    "winchester1887": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=Winchester%201887%E6%95%A3%E5%BC%B9%E6%9E%AA&dim=is_vip_false",
+      "exactItems": ["140521233", "140521236", "140521229"],
+      "reason": "exact-model results are uploaded as third-party library material and do not show an explicit commercial-use grant on Aigei"
+    },
+    "super90": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=Benelli%20Super%2090%20shotgun&dim=is_vip_false",
+      "reason": "Benelli-family results do not show an explicit commercial-use license"
+    },
+    "saiga12k": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=Saiga12K%20shotgun&dim=is_vip_false",
+      "exactItem": "73588509",
+      "reason": "the exact-model result does not show an explicit commercial-use license; game-extracted S12K results are also rejected"
+    }
+  }
+}

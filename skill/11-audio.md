@@ -17,6 +17,15 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
 ```
 2026-07-21 已完成存量迁移（根目录音效全部入子目录，引用同步更新）。新增音效一律入对应子目录，路径写进配置（enemy-config.json sounds / weapon-fx-config.js 等），不在代码里写死。
 
+#### 玩家/防御塔枪械命中僵尸与动物（2026-08-27）
+- 用户素材 `打击音效/枪械击中.mp3` 入库为 `assets/sounds/weapons/gun_hit.mp3`，路径登记在
+  `data/audio-config.json#combatCues.gunHitZombieAnimal`；跨实体共用命中声不得写死在怪物配置或单把武器中。
+- 触发点必须位于 `DamagePipeline.applyHit()` 的实际伤害结算之后，并确认未被盾牌弹反；只接受
+  “玩家（`faction=player` 且非防御结构）或 `_isDefenseTower` 防御塔 + `isGunWeapon()` 枪械 +
+  `_faction=enemy` 且 `hasEnemyFamily('僵尸'/'动物')` 目标”。仓鼠士兵为 `companion` 阵营，明确不触发。
+- 投射物必须快照发射瞬间的武器身份，不得在命中时读取玩家已经切换后的武器；命中声使用
+  `SoundManager.playWorld(path, target.collider.x/y)`，沿用全局同路径重复保护，散弹同时命中不另叠爆音。
+
 #### 场景 BGM 映射（2026-08-22）
 - BGM 素材统一存放在 `assets/sounds/music/`，场景映射只写入
   `data/audio-config.json#bgm`，由 `SoundManager.playBgmForScene(sceneId)` 负责循环、音量和切场淡入淡出；禁止在场景类中硬编码音乐路径。
@@ -26,6 +35,11 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
 - `scene7` 是普通僵尸地牢（初级/中级/高级共用场景），继续使用
   `dungeon_echo.mp3`；`scene11` 是位面僵尸地牢世界，独立使用用户素材
   `幽洞回声.wav`。两者不可因题材相同而复用映射。
+- `scene9` 雪原位面使用用户素材 `雪原回声.mp3`。雪原初/中/高级地牢仍共享运行时场景
+  `scene7`，不得直接覆盖 `bgm.scene7`；由 `audio-config.json#dungeonBgm` 将
+  `frozenBeginner/frozenMid/frozen` 映射到独立 `bgm.frozenDungeon`。`ExpeditionSystem.depart()`、
+  `SceneManager.switchScene()` 与回滚恢复都必须向 `playBgmForScene(sceneId, { dungeonType })`
+  传入当前地牢类型，确保首次进入、观察模式返回和失败回滚不会误播普通僵尸地牢音轨。
 
 #### 全屏序章音效生命周期与公开素材归档（2026-09-03）
 
@@ -160,6 +174,55 @@ _playSound(key) {
   枪口瞬态，同时避免无限叠加 Web Audio 节点。
 - `rapidFireRepeatGuardMs` 默认0，射速和双持同帧击发均不得被通用35ms重复保护吞掉；
   普通 UI、环境、命中和怪物事件音仍保留原重复保护。
+
+#### 自动步枪统一换弹与空仓闭锁声（2026-08-27）
+- 自动步枪范围以`gun-ammo.js#WEAPON_CATEGORIES.rifle`为唯一分类，不按武器名逐把硬编码。所有步枪装备/切枪
+  统一播放`assets/sounds/weapons/rifle_equip.mp3`，普通换弹统一播放`rifle_reload.mp3`；权威EDM、双份装备模板、
+  `getEquipSound/getAmmoConfig`旧档回退必须保持一致。
+- `_startReload`必须记录本次换弹是否从`current===0`开始。只有打空弹匣触发的换弹在一次性装填完成后，
+  才额外播放一次`getEquipSound(item)`作为枪机闭锁声；剩余弹药大于0时主动换弹不得播放该收尾声。
+  判定跟随换弹会话，禁止在逐帧更新中仅凭完成时弹量猜测。
+- STG-44、QBZ-95、边境突击步枪与M416（素材来源HK416）分别使用自己的`fire.mp3`；玩家分支音色表、
+  `GUN_FIRE_SOUND`回退、防御塔世界枪声和`audio-config.json#gunshotPreloadPaths`必须同步，继续走
+  `playGunshot/playGunshotAt`低延迟通道。
+
+#### 外部网站枪声筛选与来源建档（2026-08-29）
+- 现实枪械只能采用“型号精确匹配 + 来源页明确允许商用”的单个候选；通用机枪声、游戏提取音频、
+  授权不明条目和付费素材预览都不能通过录制或截取绕过授权。无合格结果时保留现状并如实记录缺口。
+- 下载优先于浏览器录音，避免系统混音、二次压缩和截断尾音；来源已经是一次完整短促开火时，允许
+  原文件直接入库，不为满足“截取”形式而二次编码。若来源含连发，仍按动作音频规则裁出单次瞬态、
+  保留自然尾音并写明裁切窗口。
+- 每批在`tools/ai-gen/`保存来源清单，至少记录搜索页、作品ID/直达页、作者、网站许可原文、下载规格、
+  处理方式、运行时路径及拒绝原因。玩家、防御塔、旧档回退、装备模板、枪声映射和预载表必须同步。
+- 2026-08-29 机枪批次仅MG42通过：爱给网作品A62931215标注“原创、CCE协议(CCE0,可商用)”，
+  680ms单次开火的免费HQ MP3原样入库为`assets/sounds/weapons/mg42_fire.mp3`；其余型号的审核结论见
+  `tools/ai-gen/aigei-machine-gun-audio-20260829.json`。
+- 2026-08-29机枪免费来源补检新增M249：Freesound作品568010为Baelphazoar在靶场录制的M249点射，
+  标注CC BY 4.0；从44.202秒原始96kHz/16-bit立体声WAV的26.69496875—27.55秒提取一段点射最后一发
+  与自然尾响，只做20ms淡出，原路径`m249_fire.wav`不变，因此玩家、塔、旧档回退、双份装备数据和
+  预载表无需重复改线。商业发行必须保留`assets/sounds/weapons/ATTRIBUTION.md`中的Baelphazoar署名。
+- 2026-08-29 散弹枪批次仅S686通过：规范实枪匹配为Beretta 686 Silver Pigeon，作品A35690072标注
+  `CC协议(可商用,署名)`；970ms免费HQ MP3原样入库为`assets/sounds/weapons/s686_fire.mp3`，署名
+  `TheRealMattix`必须随商业发行保留在`assets/sounds/weapons/ATTRIBUTION.md`或等效游戏鸣谢中。其余
+  七把现实型号的审核结论见`tools/ai-gen/aigei-shotgun-audio-20260829.json`。
+- 免费来源补检固定按`OpenGameArt/CC0 → Freesound/CC0 → Freesound/CC BY → Sonniss GDC`逐级推进；
+  每把武器仍最多保留一个精确型号候选。Sonniss 只允许从官网主下载、官网明确列出的镜像或官方种子
+  获取，第三方目录镜像不得作为入库来源；其许可素材不得作为独立音效、素材包或AI训练数据再分发。
+- 2026-08-29补检接入SPAS-12与M870：SPAS-12从Sonniss官网列出的2016 Mirror #1第4卷分段提取
+  Pole Position近距96kHz/24bit实枪双连发，只保留第二次直接枪口爆音及其完整尾响为
+  `spas12_fire.wav`；M870使用areniporgen的Freesound CC0精确实枪原始48kHz/32-bit立体声WAV，
+  不转码原样入库为`m870_fire.wav`。M870的玩家、塔、双份装备模板和预载表同步；Sonniss许可禁止
+  原始/可独立提取音效再分发，因此SPAS-12成品不得提交到公开源码仓库，公开分支必须保留原通用枪声，
+  只保存来源记录与可复现提取脚本。SAIGA-12K虽找到精确CC0候选，但用户决定不更换；Super90也由
+  用户明确决定不更换，两者继续保留现有运行时音效。
+
+#### 三把基础手枪独立开火声（2026-08-29）
+- 用户素材分别入库为 `m1911_fire.mp3`、`fn57_fire.mp3`、`usp45_fire.mp3`，对应
+  M1911A1、FN Five-seveN、USP .45；USP.45 素材文件夹只有一个时间戳命名 MP3，正式入库时改为稳定英文名。
+- 三把手枪的权威 EDM、双份装备模板和 `GUN_FIRE_SOUND` 回退必须一致；玩家 `_playFireSound`
+  通过 `getFireSound(item)` 读取当前权威配置，使旧存档实例中历史 `fireSound` 不会覆盖新版枪声。
+- 三条正式路径加入 `audio-config.json#gunshotPreloadPaths`，继续走 `playGunshot` 低延迟通道；
+  本轮只替换音色，不改变射速、弹匣、伤害、散布、双持或投射物行为。
 
 #### 步骤5: 程序化合成音效（numpy 管线，2026-08-16 铁闸门开/关）
 > 素材优先级 = **用户提供 > 合成兜底**：世界-122 铁闸门音效一轮用合成（

@@ -65,6 +65,10 @@ export const isPistolCategory = (weaponType) => WEAPON_CATEGORIES.pistol.include
 export const isShotgunCategory = (weaponType) => WEAPON_CATEGORIES.shotgun.includes(weaponType);
 export const isSwordCategory = (weaponType) => WEAPON_CATEGORIES.sword.includes(weaponType);
 
+// 自动步枪统一机械音：权威分类来自 WEAPON_CATEGORIES.rifle，覆盖旧存档中残留的逐枪占位路径。
+export const RIFLE_EQUIP_SOUND = 'assets/sounds/weapons/rifle_equip.mp3';
+export const RIFLE_RELOAD_SOUND = 'assets/sounds/weapons/rifle_reload.mp3';
+
 // ===== 射击模式分类（兼容旧接口；内容由权威武器定义派生） =====
 export const FIRE_MODES = Object.freeze({
     semiAuto: CANONICAL_WEAPONS.filter((weapon) => weapon.fireMode === 'semiAuto').map((weapon) => weapon.weaponId),
@@ -115,33 +119,45 @@ export function getGunAmmoCapacity(weaponId) {
 export const getAmmoConfig = (item) => {
     if (!item) return null;
     const fallback = getGunAmmoCapacity(item.weaponId);
+    const canonical = findWeaponConfig(item.weaponId, item.name);
+    let resolved = null;
     if (item.ammoConfig) {
         // 实例 ammoConfig 经 JSON 克隆后 Infinity 会变 null（如能量轻机枪 max: Infinity → null），
         // max 缺失时回退 GUN_AMMO_CAP 默认值，其余字段保持实例优先
         if (item.ammoConfig.max == null && fallback) {
-            return { ...fallback, ...item.ammoConfig, max: fallback.max };
+            resolved = { ...fallback, ...item.ammoConfig, max: fallback.max };
+        } else {
+            resolved = item.ammoConfig;
         }
-        return item.ammoConfig;
+    } else {
+        resolved = fallback || null;
     }
-    return fallback || null;
+    const weaponType = item.weaponType || canonical?.weaponType;
+    return resolved && isRifle(weaponType)
+        ? { ...resolved, reloadSound: RIFLE_RELOAD_SOUND }
+        : resolved;
 };
 
 // 装备音效回退表（与 GUN_AMMO_CAP 同模式：实例缺 equipSound 时按 weaponId 回退）
 export const GUN_EQUIP_SOUND = {
     weapon12: 'assets/sounds/weapons/bolt_pull_1s_clean.wav', // Super90 枪栓音效
-    weapon21: 'assets/sounds/weapons/m416_equip.wav', // M416 装备音效
+    weapon7: RIFLE_EQUIP_SOUND, // AKM
+    weapon8: RIFLE_EQUIP_SOUND, // QBZ-191
+    weapon21: RIFLE_EQUIP_SOUND, // M416 / HK416 机械音
     weapon22: 'assets/sounds/weapons/revolver357_equip.wav', // .357麦格农左轮装备音效
-    weapon23: 'assets/sounds/weapons/stg44_equip.wav', // STG-44 装备音效
-    weapon24: 'assets/sounds/weapons/qbz95_equip.wav', // QBZ-95 装备音效
-    weapon25: 'assets/sounds/weapons/m416_equip.wav', // 边境突击步枪（临时占位）
-    weapon26: 'assets/sounds/weapons/qbz95_equip.wav', // 复仇之神（临时占位）
-    weapon27: 'assets/sounds/weapons/m416_equip.wav', // 星潮协议（临时占位）
-    weapon28: 'assets/sounds/weapons/qbz95_equip.wav', // 零点仲裁（临时占位）
-    weapon29: 'assets/sounds/weapons/m416_equip.wav', // 日冕裁律（临时占位）
-    weapon30: 'assets/sounds/weapons/m416_equip.wav', // 终末回声（临时占位）
+    weapon23: RIFLE_EQUIP_SOUND, // STG-44
+    weapon24: RIFLE_EQUIP_SOUND, // QBZ-95
+    weapon25: RIFLE_EQUIP_SOUND, // 边境突击步枪
+    weapon26: RIFLE_EQUIP_SOUND, // 复仇之神
+    weapon27: RIFLE_EQUIP_SOUND, // 星潮协议
+    weapon28: RIFLE_EQUIP_SOUND, // 零点仲裁
+    weapon29: RIFLE_EQUIP_SOUND, // 日冕裁律
+    weapon30: RIFLE_EQUIP_SOUND, // 终末回声
 };
 export const getEquipSound = (item) => {
     if (!item) return null;
+    const canonical = findWeaponConfig(item.weaponId, item.name);
+    if (isRifle(item.weaponType || canonical?.weaponType)) return RIFLE_EQUIP_SOUND;
     return item.equipSound || GUN_EQUIP_SOUND[item.weaponId] || null;
 };
 
@@ -154,20 +170,23 @@ export const GUN_FIRE_SOUND = {
     revolver: 'assets/sounds/weapons/revolver357_fire.mp3',
     p4040: 'assets/sounds/weapons/apex2_shot_1s.wav',
     beretta93r: 'assets/sounds/weapons/beretta93r_fire.mp3',
+    m1911a1: 'assets/sounds/weapons/m1911_fire.mp3',
+    usp45: 'assets/sounds/weapons/usp45_fire.mp3',
+    fiveSeven: 'assets/sounds/weapons/fn57_fire.mp3',
     pkm: 'assets/sounds/weapons/pkm_half_sec.wav',
     rpd: 'assets/sounds/weapons/rpd_fire.wav',
     m249: 'assets/sounds/weapons/m249_fire.wav',
     ultimax100: 'assets/sounds/weapons/ultimax100_fire.wav',
-    mg42: 'assets/sounds/weapons/mg42_fire.wav',
+    mg42: 'assets/sounds/weapons/mg42_fire.mp3',
     fusion_core_lmg: 'assets/sounds/weapons/fusion_core_lmg_fire.wav',
     singularity_loom_lmg: 'assets/sounds/weapons/singularity_loom_lmg_fire.wav',
     celestial_cartographer_lmg: 'assets/sounds/weapons/celestial_cartographer_lmg_fire.wav',
     grave_covenant_cantor_lmg: 'assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav',
     akm: 'assets/sounds/weapons/akm_burst.mp3',
-    stg44: 'assets/sounds/weapons/stg44_fire.wav',
-    m416: 'assets/sounds/weapons/m416_fire.wav',
-    qbz95: 'assets/sounds/weapons/qbz95_fire.wav',
-    frontier_rifle: 'assets/sounds/weapons/m416_fire.wav',
+    stg44: 'assets/sounds/weapons/stg44_fire.mp3',
+    m416: 'assets/sounds/weapons/m416_fire.mp3',
+    qbz95: 'assets/sounds/weapons/qbz95_fire.mp3',
+    frontier_rifle: 'assets/sounds/weapons/frontier_rifle_fire.mp3',
     vengeance_rifle: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
     astral_tide_rifle: 'assets/sounds/weapons/m416_fire.wav',
     zero_point_rifle: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
@@ -180,7 +199,10 @@ export const GUN_FIRE_SOUND = {
 };
 export const getFireSound = (item) => {
     if (!item) return null;
-    if (item.fireSound && item.fireSound.startsWith('assets/')) return item.fireSound;
+    // 当前权威配置优先于存档实例，确保旧存档不会继续播放已替换的历史枪声。
+    const canonical = findWeaponConfig(item.weaponId, item.name);
+    const configured = canonical?.fireSound || item.fireSound;
+    if (configured && configured.startsWith('assets/')) return configured;
     // 优先 animConfigKey（左轮等独立动画键），再按 weaponType 回退
     return GUN_FIRE_SOUND[item.animConfigKey] || GUN_FIRE_SOUND[item.weaponType] || null;
 };

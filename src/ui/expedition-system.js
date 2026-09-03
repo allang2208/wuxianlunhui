@@ -475,10 +475,10 @@ export const ExpeditionSystem = {
             if (player) syncTributeBuffs(player);
             await SceneManager.prepareRuntimeVisualAssets?.({ startProgress: 80, endProgress: 92 });
             SceneManager.setProgress(92);
-            // BGM 场景切换：depart 绕开 switchScene（switchScene 尾部的 playBgmForScene
-            // 不会执行）——手动补发；data/audio-config.json bgm.scene7 = 僵尸地牢共用音轨
+            // BGM 场景切换：depart 绕开 switchScene（其尾部不会执行），需手动补发；
+            // scene7 按 dungeonType 选子类型音轨，未配置类型继续回退普通地牢音轨。
             if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
-                SoundManager.playBgmForScene('scene7');
+                SoundManager.playBgmForScene('scene7', { dungeonType });
             }
         }
         if (SceneManager?.waitForMinimumLoadingDuration) {

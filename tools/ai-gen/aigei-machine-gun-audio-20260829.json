@@ -1,0 +1,50 @@
+{
+  "date": "2026-08-29",
+  "sourceSite": "https://www.aigei.com/",
+  "selectionRule": "real firearm model must match the in-game weapon, and the source page must explicitly permit commercial use; generic machine-gun sounds, game-extracted sounds, unclear licenses and paid previews are rejected",
+  "runtimeScope": "player and defense-tower machine-gun fire paths",
+  "accepted": {
+    "mg42": {
+      "itemId": "62931215",
+      "title": "MG42开火",
+      "author": "松紧带_1",
+      "authorSpace": "https://www.aigei.com/space/4815078",
+      "itemUrl": "https://www.aigei.com/item/mg42_kai_huo.html",
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=MG42&dim=is_vip_false",
+      "siteLabels": ["原创", "CCE协议(CCE0,可商用)"],
+      "listedDurationMs": 680,
+      "listedMaster": "44.1kHz stereo WAV, 1411kbps",
+      "downloadedVariant": "free HQ MP3",
+      "downloadedFilename": "MG42开火_爱给网_aigei_com.mp3",
+      "processing": "none; the selected source is already a single 680ms firing event, so the downloaded MP3 is copied byte-for-byte without trimming or re-encoding",
+      "runtimePath": "assets/sounds/weapons/mg42_fire.mp3"
+    }
+  },
+  "rejectedOrUnresolved": {
+    "pkm": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=PKM%E6%9C%BA%E6%9E%AA&dim=is_vip_false",
+      "exactItems": ["62319745", "62319748"],
+      "reason": "exact PKM recordings are marked copyright and require purchasing a license; the CCE0 result is generic rather than PKM"
+    },
+    "qjb201": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=QJB-201%E6%9C%BA%E6%9E%AA&dim=is_vip_false",
+      "reason": "no exact QJB-201 result; only generic machine-gun material"
+    },
+    "rpd": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=RPD%E6%9C%BA%E6%9E%AA&dim=is_vip_false",
+      "exactItem": "88075739",
+      "exactItemUrl": "https://www.aigei.com/item/ji_qiang_rpd_x.html",
+      "reason": "the exact item is listed under copyright sounds and does not show an explicit commercial-use grant"
+    },
+    "m249": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=M249%E6%9C%BA%E6%9E%AA&dim=is_vip_false",
+      "exactItems": ["62319734", "62319731"],
+      "reason": "exact Aigei M249 recordings are marked copyright and require purchasing a license; unlicensed/free uploads are not accepted",
+      "laterResolution": "a separate exact Freesound CC BY recording was accepted; see tools/ai-gen/free-machine-gun-audio-20260829.json"
+    },
+    "ultimax100Mk8": {
+      "searchUrl": "https://www.aigei.com/s?type=sound&q=Ultimax%20100%20Mk8&dim=is_vip_false",
+      "reason": "no exact Ultimax 100 Mk8 result; returned material is for unrelated MK-series firearms"
+    }
+  }
+}
