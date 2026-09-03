@@ -525,12 +525,17 @@ export function getMilitaryUnitProfile(kind) {
             * Math.max(0, Number(patch.attackDamageMult) || 1);
         dps += rocketDamage * 1000 / Math.max(1000, Number(base.ai?.rocketCooldownMs) || 8000);
     }
-    if (kind === 'special_forces' || kind === 'trench_assault') {
+    if (kind === 'warrior' || kind === 'special_forces' || kind === 'trench_assault') {
         const ability = getBuildingUpgradeAbility('sweep_aoe');
         const level = getAbilityLevel('sweep_aoe');
         const baseAoeMul = Math.max(0, Number(base.ai?.baseAoeDamageMultiplier) || 0);
         const upgradeAoeBonus = ability && level > 0 ? getAbilityValue(ability, level) : 0;
-        const expectedExtraTargets = Math.max(0, Number(base.ai?.expectedExtraTargets) || 0);
+        const configuredExpectedExtraTargets = Number(
+            base.ai?.expectedExtraTargets ?? ability?.expectedExtraTargets
+        );
+        const expectedExtraTargets = Number.isFinite(configuredExpectedExtraTargets)
+            ? Math.max(0, configuredExpectedExtraTargets)
+            : 0;
         dps += dps * baseAoeMul * (1 + upgradeAoeBonus) * expectedExtraTargets;
     }
     return {

@@ -2380,6 +2380,14 @@
   单位 DPS（`_unitsDps` 读 AI 实参）；怪物输出按接触系数 0.5 依「墙/门→建筑→基地」承伤；
   胜利奖励能源直接写入快照仓库（恢复时物化）、金币走 grant 回调（此时建筑未物化，
   EnergyManager 无法承接）。
+
+#### 玩家兵种固有扇形 AOE 与侦察视野合同
+
+- **主目标与次目标分区**：普攻锁定的主目标只结算一次完整伤害；扇区循环必须排除或识别主目标，只有其他命中目标按 `baseAoeDamageMultiplier` 结算 AOE，禁止把主伤害与 AOE 再叠加。仓鼠特战和战壕突击兵的扇区目标数继续服从各自配置；没有配置固有 AOE 的旧单位保留原攻击口径。
+- **升级只放大 AOE**：固有扇形的基础倍率、角度和范围写在兵种 `ai` 配置；铁匠铺 `sweep_aoe` 只乘算次目标伤害，不提高主目标伤害，也不负责解锁基础扇形。需要 Lv.0 真正为零且面板显示 `0 → 25%` 时必须使用 `firstLevel`，不能用 Lv.0 已返回非零值的 `base` 语义。
+- **前后台同源**：`world122-sim._unitDps()` 与 `producer-building-system.getMilitaryUnitProfile()` 必须读取同一兵种基础 AOE、当前全局能力等级和 `expectedExtraTargets`。该字段是后台抱团期望值，不是前台目标上限；不能只改实体 AI，导致休眠位面或兵线驻军漏算战力。
+- **侦察视野继承**：斥候、游侠、狙击手共享显式最远视野，但攻击距离仍按近、近、远分级。复用 `HamsterScout` 的弩手、长弓等子类不得因基类合并配置而意外继承斥候视野；基类只在直接斥候或子类显式提供 `fogVisionProfile / fogSightRadius` 时赋值。
+
 - **恢复补员铁律**：出口槽位预约窗口 750ms，恢复时爆发生成会互撞——首只立即生成，
   缺额挂 `_restoreTopUp`，各系统 update 里按 800ms/个 快速补齐（兵营/产兵/矿场同口径）。
 - **世界切换面板 `src/ui/world-switch-panel.js`**：BasePanel 复用；`init()` 往 `.side-menu`
