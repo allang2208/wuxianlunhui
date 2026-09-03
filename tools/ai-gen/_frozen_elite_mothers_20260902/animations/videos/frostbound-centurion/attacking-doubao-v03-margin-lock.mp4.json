@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\frostbound-centurion-attacking-keyframe-v03-margin-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\frostbound-centurion\\attacking-doubao-v03-margin-lock.txt",
+  "promptChars": 379,
+  "promptSha256": "e49fe170fad92718cb6a6867f2992d9ca4346f3e1d05e37e0f80e98749230025",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T07:09:27.265Z",
+  "sourceUrlScheme": "https"
+}

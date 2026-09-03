@@ -1,0 +1,10 @@
+Use case: identity-preserve edit.
+Asset type: a same-identity game-character running keyframe used only as a Doubao video reference.
+Input roles: the first image is the approved Polar Night High Priest and is the only identity/design source. The second image is an already accepted same-family humanoid running pose and is pose/camera guidance only; do not copy its costume, staff, bell, body proportions, colors, or materials.
+Primary request: Put the exact approved High Priest into one natural mid-stride in-place run toward screen-right.
+Identity invariants from the first image: preserve the exact stitched faceless hood and narrow eye slit; layered engraved black robes; cracked frost-metal mantle; the one huge asymmetrical blade-and-crescent ritual crown/fan rising behind the left-back shoulder; wrapped black boots; exactly one complete tall crescent-and-crystal staff in the right hand; exactly one large square reliquary bell in the left hand.
+Structure invariants: exactly two arms, two hands, two legs, two boots, one rear crown/fan, one staff and one bell. Props remain in their original hands, remain rigid and fully visible, and never merge with the crown or body.
+Pose: one boot strides forward-right and the other extends back-left; both boot toes and the stride axis point to screen-right; robe panels separate enough to read both legs and boots; the torso leans only slightly into the run; this is locomotion, not casting or ringing.
+Project-standard camera: full body, orthographic-like slightly elevated right-facing three-quarter game view matching the first image and the accepted same-family reference. Keep a readable portion of the chest, front robe panels and top planes of both boots. It must not become a pure side profile, frontal view, or dramatic perspective view.
+Framing: pure white studio background, fixed character scale, generous margin around the entire tall staff, rear crown/fan, bell and both boots.
+Avoid: pure profile, frontal/left/back view, casting, attack, ringing, magic or VFX, missing/duplicated/changed prop, extra limb, crop, zoom, shadow, scenery, text or watermark.

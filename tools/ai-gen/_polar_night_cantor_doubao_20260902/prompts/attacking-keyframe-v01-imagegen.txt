@@ -1,0 +1,8 @@
+Use case: identity-preserve
+Asset type: game-character melee contact keyframe used as a Doubao video reference
+Primary request: Edit the exact character from the approved mother into the single peak-contact pose of one ordinary short-staff forward strike toward screen-right.
+Identity invariants: preserve the exact hood, stitched veil, eye slit, frost-crusted mantle, black-gray layered robes, anatomy, body proportions, materials and colors.
+Structure invariants: exactly two arms, two hands, two legs, two boots, one cracked iron handbell held in the left hand, and one complete bone-and-wood ritual staff held in the right hand. The staff tip is the only contact front; the bell is not a weapon.
+Camera and pose: full body, slightly elevated side-dominant low-three-quarter orthographic-like game camera; feet planted with a small forward weight shift; all parts and equipment inside frame.
+Backdrop: pure white, no floor, horizon or contact shadow.
+Avoid: spell, aura, projectile, trail, impact effect, second strike, frontal/left/back-facing pose, mirrored anatomy, extra or missing limbs, missing/swapped staff or bell, crop, text, watermark, environment or multiple figures.

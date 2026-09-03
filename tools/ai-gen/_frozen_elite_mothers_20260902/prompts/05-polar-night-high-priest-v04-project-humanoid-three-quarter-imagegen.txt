@@ -1,0 +1,46 @@
+Use case: identity-preserve
+Asset type: full-body elite humanoid enemy mother image for the project's 2D animation pipeline
+
+Input image roles:
+- Image 1 is the ONLY identity, costume, material, elite ornament and prop source. Preserve this exact Polar Night High Priest.
+- Image 2 is the PRIMARY camera and neutral-pose reference from the same normal-monster family. Copy only its slightly elevated screen-right three-quarter presentation and front/side visibility balance.
+- Image 3 is a SUPPORTING project humanoid-angle reference. Copy only its readable chest width, two-leg separation and non-profile presentation. Do not copy zombie identity, clothing or mining equipment.
+
+Primary request:
+Re-camera and repose the exact character from Image 1 into the same project-standard right-facing three-quarter view seen in Images 2 and 3. Correct only camera and pose. Do not redesign or simplify the elite character.
+
+Camera and orientation:
+- Slightly elevated, orthographic-like game camera.
+- Clear screen-right three-quarter view, side-dominant but NOT a strict side profile and NOT a frontal hero portrait.
+- Keep a visible portion of the chest, abdomen, belt and front robe panels. The near shoulder is fully readable and the far shoulder remains narrower but visible.
+- The hood eye slit and overall movement intention point right. The chest and pelvis form a rightward three-quarter diagonal rather than facing the viewer or collapsing into a thin side silhouette.
+- Neutral animation-friendly stance with one leg slightly forward and one slightly back. Both knees and boots follow the rightward diagonal. Both boot toes generally point right, while enough boot top/front surface remains visible to match the project's humanoid monsters.
+- Both soles share one stable ground line; root is the midpoint between them.
+
+Identity invariants from Image 1:
+- Preserve the stitched black hood and narrow eye slit.
+- Preserve the dense layered black ritual robes, chains, engraved panels and cracked icy dark-metal shoulder mantle.
+- Preserve the same huge rigid crescent-and-blade ritual crown/fan with all distinctive major spikes readable.
+- Preserve exactly one complete crescent staff with central dark faceted crystal in the right hand.
+- Preserve exactly one large reliquary bell in the left hand.
+- Preserve the same realistic low-saturation frost-worn elite material language and body proportions.
+
+Prop and framing contract:
+- Staff is complete on the screen-right side with safe margins.
+- Bell hangs low on the near/back side, visibly separated from the robe.
+- Crown/fan stays fully visible behind the torso and does not merge with staff or bell.
+- Exactly two arms, two hands, two legs, two boots, one staff, one bell and one crown/fan.
+- Full body and all props inside the canvas with generous margins.
+- Pure white seamless studio background with only a soft contact shadow.
+- No text, watermark, border, VFX, aura, particles or environment.
+
+Avoid:
+- strict 85-90 percent profile or paper-thin chest/pelvis;
+- frontal chest, frontal pelvis, opposing boot directions or an eye-level portrait;
+- copying any identity, armor, tool or anatomy from Images 2 or 3.
+
+Iteration and selection record:
+- First output `exec-c5db8ce3-00fb-4a37-8b4b-777ed8be4817.png` was rejected offline because it remained too close to the frontal v02 pose; the chest, pelvis and near boot still faced the viewer.
+- The targeted pass rotated the whole figure modestly farther right to match the same-family Polar Night Cantor, while treating v03 as the too-side boundary.
+- Selected output: `exec-5faea88f-f256-4b77-97d2-30c5f566e0cf.png`.
+- Project candidate: `../mother/05-polar-night-high-priest-v04-project-three-quarter-candidate.png`.

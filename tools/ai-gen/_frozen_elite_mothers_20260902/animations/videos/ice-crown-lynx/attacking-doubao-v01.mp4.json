@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\ice-crown-lynx-attacking-keyframe-v01-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\ice-crown-lynx\\attacking-doubao-v01-keyframe.txt",
+  "promptChars": 431,
+  "promptSha256": "73b666dc94a6838d1b41c5e0f13893c2e1617734a12d09969fd73a450e11e1bf",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T04:22:55.231Z",
+  "sourceUrlScheme": "https"
+}

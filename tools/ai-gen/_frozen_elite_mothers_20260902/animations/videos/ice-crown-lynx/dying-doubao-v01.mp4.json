@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\ice-crown-lynx-mother-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\ice-crown-lynx\\dying-doubao-v01.txt",
+  "promptChars": 372,
+  "promptSha256": "1cd988846473aa1f18a721d631080173cdecf35c3135cd5a4342c276aacb10a8",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T04:25:18.806Z",
+  "sourceUrlScheme": "https"
+}

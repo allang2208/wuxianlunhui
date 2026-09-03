@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\ice-crown-lynx-mother-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\ice-crown-lynx\\idle-doubao-v01.txt",
+  "promptChars": 548,
+  "promptSha256": "97e24e139a3d1cd0f3a044409f2d6026aa5fbd53c1a8945536ece6cf83028ddf",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T04:17:06.852Z",
+  "sourceUrlScheme": "https"
+}

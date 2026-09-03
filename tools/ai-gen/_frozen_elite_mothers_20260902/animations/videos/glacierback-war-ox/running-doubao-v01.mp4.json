@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\glacierback-war-ox-running-keyframe-v01-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\glacierback-war-ox\\running-doubao-v01-keyframe.txt",
+  "promptChars": 518,
+  "promptSha256": "2a3646a18bdebc7214e20bc6ce6cda1bb032fc75e5f3cb717d77f8f0b73f11a8",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T04:35:00.564Z",
+  "sourceUrlScheme": "https"
+}

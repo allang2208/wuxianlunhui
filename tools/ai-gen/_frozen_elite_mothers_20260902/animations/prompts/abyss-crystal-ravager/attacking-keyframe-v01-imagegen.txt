@@ -1,0 +1,7 @@
+Use case: identity-preserve
+Asset type: game-monster attack contact keyframe used as a Doubao video reference
+Primary request: Edit the exact approved Abyss Crystal Ravager into the single peak-contact pose of one rightward jaw snap.
+Identity invariants: preserve the exact wedge skull, sealed dark eyes, charcoal pebbled hide, asymmetric cheek/shoulder crystal scutes, one long unbranched tail and exactly six individually countable smoky-violet dorsal spikes.
+Structure/pose: exactly four coherent grounded legs, one head, one tail and six main dorsal spikes; neck thrusts once toward screen-right, jaw fully open at the unique contact peak, limbs brace the body, no second bite.
+Camera/framing: same side-dominant slightly elevated orthographic-like game view; full tail, feet, open jaw and all six spikes visible on pure white with generous margins.
+Avoid: extra legs, extra/missing spikes, split tail, magic, projectile, impact effect, left/front/back view, crop, shadow, scenery, text or watermark.

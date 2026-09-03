@@ -1,0 +1,7 @@
+Use case: identity-preserve
+Asset type: game-monster running keyframe used as a Doubao video reference
+Primary request: Edit the exact approved Ice-Crown Lynx into one natural mid-stride in-place fast-run keyframe toward screen-right.
+Identity invariants: preserve the exact adult lynx face, cyan eyes, black ear tufts, short black-tipped tail, gray rosette coat, pale jagged ice-crown mane, oversized forepaws, frost claws, body proportions, materials and colors.
+Structure invariants: exactly four coherent feline legs and one short tail; all paws and the full ice mane visible.
+Pose/camera: side-dominant slightly elevated orthographic-like game view; head, chest, pelvis, knees, paws and stride axis face screen-right; one foreleg and opposite hind leg forward, the other pair back; full body with generous margins on pure white.
+Avoid: attack, pounce, open-mouth roar, left/front/back view, extra limbs, long wolf tail, missing mane, crop, shadow, scenery, text, watermark or multiple figures.

@@ -1,0 +1,20 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser snow-dungeon elite monster animation pipeline
+
+Reference role: Image 1 is the approved normal Abyss Rime Beast family reference. Preserve its low six-limbed-looking silhouette only insofar as the reference actually has exactly four weight-bearing reptilian legs, one long tail, one elongated wedge skull, sealed dark eyes, narrow toothed mouth, charcoal-blue hide, and exactly six dorsal spikes. Preserve the screen-right identity, camera elevation, restrained PBR rendering and production-asset clarity. Create a recognizable elite evolution, not a dragon or dinosaur and not a mere recolor.
+
+Primary request: Create exactly one elite Abyss Crystal Ravager, a dense armored deep-rime predator, holding a calm animation-friendly neutral crouch.
+
+Elite design: a broader, heavier version of the same abyss beast with a reinforced wedge skull and powerful forelimbs; exactly six dorsal spikes remain, but each is a larger chipped smoky-violet rime crystal emerging from a continuous armored ridge; the shoulders, forearms and cheek plates carry asymmetric cracked frost-crystal scutes fused into the dark pebbled hide; subtle pale blue fissures are visible only inside the cracks, not glowing; long interlocking teeth remain contained within the narrow jaw; the tail stays muscular and unbranched. No horns on the head, no wings, no tentacles, no external magic effects.
+
+Anatomy and material: coherent fantasy quadruped anatomy with exactly four legs, one head and one tail, correct connected shoulders and hips, five grounded claws per broad forefoot only where anatomically readable, believable low center of gravity, heavy pebbled skin, matte keratin claws and rough smoky frost crystal; no glass toy surface.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, low saturation, readable silhouette, physically believable weight and materials; elite-scale but not a boss.
+
+Pose: strict screen-right body axis; skull, chest, pelvis, knees and claws all support rightward locomotion; calm low neutral crouch with four feet on one baseline, limbs separated and readable, tail fully visible, mouth closed or slightly parted, no attack.
+
+Composition and camera: side-dominant low three-quarter view matching Image 1, orthographic-style locked camera with slight elevation; complete single subject occupying about 72% canvas width and 58% height; centered with generous margins; full tail, all six dorsal spikes, jaw and claws visible.
+
+Scene and lighting: flat pure white #FFFFFF studio background, no horizon or floor, soft flat diffuse light, at most faint neutral contact occlusion beneath feet, no cast shadow.
+
+Avoid: extra legs, six actual legs, extra heads, extra eyes, split tail, wings, dragon horns, dinosaur anatomy, more or fewer than six dorsal spikes, excessive spikes, bright neon glow, transparent body, scenery, particles, mist, aura, dramatic lighting, cropping, front view, text, logo, watermark, cartoon, anime, chibi, low-poly toy.

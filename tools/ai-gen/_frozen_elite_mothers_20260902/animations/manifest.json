@@ -1,0 +1,226 @@
+{
+  "task": "frozen-dungeon-elite-monster-source-videos",
+  "date": "2026-09-02",
+  "provider": "doubao-desktop-with-minimax-h3-death-override",
+  "requestedModel": "Seedance 2.0 Mini; MiniMax H3 for Polar Night High Priest dying",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "canvas": "1024x576",
+  "candidateCountPerAction": 1,
+  "status": "all_twenty_source_videos_and_formal_sprites_complete_static",
+  "acceptedSourceVideos": 20,
+  "rejectedDownloadedVideos": 5,
+  "rejectedBinaryCleanup": {
+    "date": "2026-09-02",
+    "policy": "keep prompts and rejection reasons; delete rejected videos, sidecars and previews",
+    "removedArtifactCount": 20
+  },
+  "requiredSourceVideos": 20,
+  "blockers": [],
+  "highPriestDyingH3": {
+    "durationSeconds": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "candidateCount": 1,
+    "motionMode": "one-way",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset",
+    "seed": 902054,
+    "outputSha256": "e77307620bdc0cd422ac4c1ccaf50a00b794f1bc3a24ff578d7ecda221f7542f",
+    "elapsedSeconds": 430.761
+  },
+  "accountSwitch": {
+    "userRequestedAt": "during Glacierback War Ox idle generation",
+    "oldAccountWaitStopped": true,
+    "newAccountConfirmed": true,
+    "restartBoundary": "glacierback-war-ox idle",
+    "alreadyDownloadedIceCrownLynxVideosWereNotRegenerated": true,
+    "currentAccountFreeQuotaExhaustedAtHighPriestDying": true,
+    "paidConfirmationNotAuthorizedOrClicked": true
+  },
+  "units": {
+    "iceCrownLynx": {
+      "status": "four_source_videos_accepted_offline",
+      "accepted": {
+        "idle": "videos/ice-crown-lynx/idle-doubao-v01.mp4",
+        "running": "videos/ice-crown-lynx/running-doubao-v01.mp4",
+        "attacking": "videos/ice-crown-lynx/attacking-doubao-v01.mp4",
+        "dying": "videos/ice-crown-lynx/dying-doubao-v01.mp4"
+      },
+      "review": "right-facing structure retained; one running cycle family, one foreclaw contact passage, one irreversible collapse; no persistent x/y drift or erroneous scale change seen in twelve-frame contact sheets"
+    },
+    "glacierbackWarOx": {
+      "status": "four_source_videos_accepted_offline",
+      "accepted": {
+        "idle": "videos/glacierback-war-ox/idle-doubao-v01.mp4",
+        "running": "videos/glacierback-war-ox/running-doubao-v01.mp4",
+        "attacking": "videos/glacierback-war-ox/attacking-doubao-v02.mp4",
+        "dying": "videos/glacierback-war-ox/dying-doubao-v01.mp4"
+      },
+      "rejected": {
+        "attacking-v01": {
+          "removedArtifacts": [
+            "videos/glacierback-war-ox/attacking-doubao-v01.mp4",
+            "videos/glacierback-war-ox/attacking-doubao-v01.mp4.json",
+            "previews/glacierback-war-ox/attacking-doubao-v01-preview.gif",
+            "previews/glacierback-war-ox/attacking-doubao-v01-contact.png"
+          ],
+          "reason": "horns scraped the floor and the generated frames contained red blood/ground marks"
+        }
+      },
+      "review": "accepted v02 attack has one clean horn dip/contact passage and recovery; four dorsal plates, two horns and four-legged body remain readable"
+    },
+    "abyssCrystalRavager": {
+      "status": "four_source_videos_accepted_offline",
+      "accepted": {
+        "idle": "videos/abyss-crystal-ravager/idle-doubao-v01.mp4",
+        "running": "videos/abyss-crystal-ravager/running-doubao-v04.mp4",
+        "attacking": "videos/abyss-crystal-ravager/attacking-doubao-v03.mp4",
+        "dying": "videos/abyss-crystal-ravager/dying-doubao-v08-folding-form.mp4"
+      },
+      "rejected": {
+        "dying-v05": {
+          "removedArtifacts": [
+            "videos/abyss-crystal-ravager/dying-doubao-v05-new-account.mp4",
+            "videos/abyss-crystal-ravager/dying-doubao-v05-new-account.mp4.json",
+            "previews/abyss-crystal-ravager/dying-doubao-v05-new-account-preview.gif",
+            "previews/abyss-crystal-ravager/dying-doubao-v05-new-account-contact.png"
+          ],
+          "reason": "single stable collapse was present, but the camera pushed in and enlarged the subject from the opening size to near full width"
+        }
+      },
+      "refusedWithoutQuotaCharge": [
+        "neutral side-lying and sleeping-pose topics on the previous account",
+        "dying-doubao-v06-size-lock prompt topic",
+        "dying-doubao-v07-display-model prompt topic"
+      ],
+      "review": "accepted videos preserve the right-facing low quadruped, one unbranched tail and six readable primary dorsal spikes; accepted dying v08 uses the neutral armored-form folding topic, performs one continuous collapse, holds from about frame 76 through frame 120, and avoids the v05 camera zoom"
+    },
+    "frostboundCenturion": {
+      "status": "four_source_videos_accepted_offline_after_side_profile_rebuild",
+      "accepted": {
+        "idle": "videos/frostbound-centurion/idle-doubao-v02-side-lock.mp4",
+        "running": "videos/frostbound-centurion/running-doubao-v02-side-lock.mp4",
+        "attacking": "videos/frostbound-centurion/attacking-doubao-v03-margin-lock.mp4",
+        "dying": "videos/frostbound-centurion/dying-doubao-v03-folding-form.mp4"
+      },
+      "rejected": {
+        "idle-v01": {
+          "removedArtifacts": [
+            "videos/frostbound-centurion/idle-doubao-v01.mp4",
+            "videos/frostbound-centurion/idle-doubao-v01.mp4.json",
+            "previews/frostbound-centurion/idle-doubao-v01-preview.gif",
+            "previews/frostbound-centurion/idle-doubao-v01-contact.png"
+          ],
+          "reason": "torso and pelvis rotate toward a frontal pose during the action"
+        },
+        "running-v01": {
+          "removedArtifacts": [
+            "videos/frostbound-centurion/running-doubao-v01.mp4",
+            "videos/frostbound-centurion/running-doubao-v01.mp4.json",
+            "previews/frostbound-centurion/running-doubao-v01-preview.gif",
+            "previews/frostbound-centurion/running-doubao-v01-contact.png"
+          ],
+          "reason": "body and foot axis repeatedly front-face even though the spear continues to point right"
+        },
+        "attacking-v02": {
+          "removedArtifacts": [
+            "videos/frostbound-centurion/attacking-doubao-v02-side-lock.mp4",
+            "videos/frostbound-centurion/attacking-doubao-v02-side-lock.mp4.json",
+            "previews/frostbound-centurion/attacking-doubao-v02-side-lock-preview.gif",
+            "previews/frostbound-centurion/attacking-doubao-v02-side-lock-contact.png"
+          ],
+          "reason": "the only thrust was readable, but the spearhead crossed the right canvas edge during frames 65-76 and the farthest passage occurred later than requested"
+        }
+      },
+      "review": "v02 identity keyframes corrected mask, chest, pelvis, knees and both boot toes to one true right-facing side axis; accepted idle and running keep scale/root stable; accepted attack v03 keeps the complete spear in frame and has one farthest extension passage around frames 44-65 (1.83-2.71 seconds); accepted dying v03 is one irreversible kneeling freeze with a stable final pose from about frame 87"
+    },
+    "polarNightHighPriest": {
+      "status": "four_source_videos_accepted_offline_mixed_provider",
+      "motherCandidate": "../mother/05-polar-night-high-priest-v04-project-three-quarter-candidate.png",
+      "prompt": "../prompts/05-polar-night-high-priest-v04-project-humanoid-three-quarter-imagegen.txt",
+      "userApproved": true,
+      "offlineDirectionReview": "passed against existing humanoid monsters: slightly elevated right-facing three-quarter body with readable chest/front robe and boot tops; v03 pure-profile over-correction rejected; crown, one staff and one bell remain complete and separated",
+      "keyframes": {
+        "running": {
+          "source": "references/polar-night-high-priest-running-keyframe-v01-source.png",
+          "sourceGeneration": "exec-b6d82833-b1c9-4e3e-a558-b21b662d8cfc.png",
+          "status": "offline_direction_passed"
+        },
+        "attacking": {
+          "source": "references/polar-night-high-priest-attacking-keyframe-v01-source.png",
+          "sourceGeneration": "exec-e4855ea6-b368-4424-8f79-1faea4e4d381.png",
+          "status": "offline_direction_and_release_pose_passed"
+        }
+      },
+      "actions": {
+        "idle": {
+          "reference": "references/polar-night-high-priest-mother-video-safe-1024x576.png",
+          "prompt": "prompts/polar-night-high-priest/idle-doubao-v01.txt",
+          "video": "videos/polar-night-high-priest/idle-doubao-v01.mp4",
+          "loop": true,
+          "status": "source-video-accepted-offline",
+          "startedAt": "2026-09-02T16:19:18.687445+08:00",
+          "downloadedAt": "2026-09-02T16:21:49.693877+08:00",
+          "provenance": "videos/polar-night-high-priest/idle-doubao-v01.mp4.json",
+          "gif": "previews/polar-night-high-priest/idle-doubao-v01-preview.gif",
+          "contact": "previews/polar-night-high-priest/idle-doubao-v01-contact.png",
+          "review": "stable right-facing three-quarter idle; crown, complete staff, bell and both boots remain in frame; no erroneous scale change, horizontal drift or vertical root jump seen in the 24-sample whole-source contact sheet"
+        },
+        "running": {
+          "reference": "references/polar-night-high-priest-running-keyframe-v01-video-safe-1024x576.png",
+          "prompt": "prompts/polar-night-high-priest/running-doubao-v01-keyframe.txt",
+          "video": "videos/polar-night-high-priest/running-doubao-v01.mp4",
+          "loop": true,
+          "status": "source-video-accepted-offline",
+          "startedAt": "2026-09-02T16:22:14.603889+08:00",
+          "downloadedAt": "2026-09-02T16:24:46.073595+08:00",
+          "provenance": "videos/polar-night-high-priest/running-doubao-v01.mp4.json",
+          "gif": "previews/polar-night-high-priest/running-doubao-v01-preview.gif",
+          "contact": "previews/polar-night-high-priest/running-doubao-v01-contact.png",
+          "review": "multiple alternating right-axis steps while the logical root stays in place; project-standard three-quarter chest/front robe visibility retained; no erroneous scale change or persistent x/y drift seen"
+        },
+        "attacking": {
+          "reference": "references/polar-night-high-priest-attacking-keyframe-v01-video-safe-1024x576.png",
+          "prompt": "prompts/polar-night-high-priest/attacking-doubao-v01-keyframe.txt",
+          "video": "videos/polar-night-high-priest/attacking-doubao-v01.mp4",
+          "loop": false,
+          "reuse": "shared attack/cast animation for all three novice spells",
+          "status": "source-video-accepted-offline",
+          "startedAt": "2026-09-02T16:25:02.028957+08:00",
+          "downloadedAt": "2026-09-02T16:27:29.961277+08:00",
+          "provenance": "videos/polar-night-high-priest/attacking-doubao-v01.mp4.json",
+          "gif": "previews/polar-night-high-priest/attacking-doubao-v01-preview.gif",
+          "contact": "previews/polar-night-high-priest/attacking-doubao-v01-contact.png",
+          "review": "one staff-forward ritual release with synchronized bell lift and full recovery; readable extension begins about 1.3 seconds and recovers from about 3.3 seconds; shared visual action for all three novice spells; no second release, VFX, zoom or root drift seen"
+        },
+        "dying": {
+          "reference": "references/polar-night-high-priest-mother-video-safe-1024x576.png",
+          "prompt": "prompts/polar-night-high-priest/dying-h3-v01.txt",
+          "video": "videos/polar-night-high-priest/dying-h3-v01.mp4",
+          "loop": false,
+          "provider": "minimax-h3-local",
+          "motionMode": "one-way",
+          "status": "source-video-accepted-offline",
+          "provenance": "videos/polar-night-high-priest/dying-h3-v01.mp4.json",
+          "gif": "previews/polar-night-high-priest/dying-h3-v01-preview.gif",
+          "contact": "previews/polar-night-high-priest/dying-h3-v01-contact.png",
+          "review": "one irreversible knee-buckle and rightward side collapse; no recovery, second fall, zoom, crop or edge contact; crown, staff and bell descend with the body; final f93/f123 bboxes are 474x198 and 475x197 with centers differing by only 0.5px, so the final pose is stable",
+          "priorDoubaoStartedAt": "2026-09-02T16:28:03.077022+08:00",
+          "priorDoubaoStoppedAt": "2026-09-02T16:58:31.214456+08:00",
+          "priorDoubaoConversation": "chrome://doubao-chat/chat/38439804399159810",
+          "priorDoubaoResult": "submitted once but not generated because free quota was exhausted; paid confirmation was not clicked; user switched provider to MiniMax H3"
+        }
+      }
+    }
+  },
+  "validationBoundary": {
+    "contactSheetsGeneratedForEveryDownloadedVideo": true,
+    "previewGifsGeneratedForEveryAcceptedVideo": true,
+    "runtimeTested": false,
+    "spritesheetsGenerated": true,
+    "formalSpriteManifest": "formal-sprite-manifest.json",
+    "gameIntegrated": true,
+    "sourceVideoDeliveryComplete": true
+  }
+}

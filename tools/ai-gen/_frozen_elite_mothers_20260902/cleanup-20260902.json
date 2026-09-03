@@ -1,0 +1,64 @@
+{
+  "task": "frozen-elite-monsters-final-cleanup",
+  "date": "2026-09-02",
+  "removed": [
+    {
+      "kind": "rejected-source-videos-and-derived-previews",
+      "candidates": [
+        "glacierback-war-ox attacking v01",
+        "abyss-crystal-ravager dying v05",
+        "frostbound-centurion idle v01",
+        "frostbound-centurion running v01",
+        "frostbound-centurion attacking v02"
+      ],
+      "fileCount": 20,
+      "reason": "the retained task manifest preserves each prompt lineage and rejection reason; the binaries were not part of the accepted reconstruction chain"
+    },
+    {
+      "kind": "superseded-mother-candidates",
+      "files": [
+        "mother/03-abyss-crystal-ravager-v01-five-spines.png",
+        "mother/05-polar-night-high-priest-v01.png",
+        "mother/05-polar-night-high-priest-v02-elite-crown-candidate.png",
+        "mother/05-polar-night-high-priest-v03-right-profile-candidate.png"
+      ],
+      "fileCount": 4,
+      "removedBytes": 7702079,
+      "reason": "the six-spine ravager v02 and project-view high-priest v04 are the accepted mothers; prompts and rejection lineage remain in task-index.json"
+    },
+    {
+      "kind": "refused-request-cache-downloads",
+      "files": [
+        "animations/videos/abyss-crystal-ravager/dying-doubao-v06-size-lock.mp4",
+        "animations/videos/abyss-crystal-ravager/dying-doubao-v06-size-lock.mp4.json",
+        "animations/videos/abyss-crystal-ravager/dying-doubao-v07-display-model.mp4",
+        "animations/videos/abyss-crystal-ravager/dying-doubao-v07-display-model.mp4.json"
+      ],
+      "fileCount": 4,
+      "removedBytes": 2015324,
+      "reason": "both refused requests downloaded identical cached binaries instead of new generations; accepted death source is v08-folding-form"
+    },
+    {
+      "kind": "duplicate-normal-reference-copies",
+      "files": [
+        "references/01-snow-mane-lynx-normal.png",
+        "references/02-frostback-musk-ox-normal.png",
+        "references/03-abyss-rime-beast-normal.png",
+        "references/04-frostbound-spearman-normal.png",
+        "references/05-polar-night-cantor-normal.png"
+      ],
+      "fileCount": 5,
+      "removedBytes": 8491944,
+      "reason": "task-index.json now references the existing runtime sprites or the tracked approved cantor mother instead of keeping duplicate binaries"
+    }
+  ],
+  "totalRemovedFilesAcrossFrozenEliteTask": 37,
+  "totalRemovedBytesAcrossFrozenEliteTask": 57773136,
+  "retained": [
+    "approved mother frames and direct edit ancestors",
+    "prompts, provider metadata and task manifests",
+    "twenty accepted source videos and their direct previews",
+    "formal spritesheets, RIFE reports, GIFs and contact sheets",
+    "runtime PNG files and reconstruction scripts"
+  ]
+}

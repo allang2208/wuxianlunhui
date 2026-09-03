@@ -1,0 +1,182 @@
+{
+  "task": "polar-night-cantor-four-action-doubao-v01",
+  "date": "2026-09-02",
+  "status": "formal-four-action-runtime-and-three-basic-spells-integrated-static-only",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "durationSeconds": 5,
+  "size": "1024x576",
+  "candidatesPerAction": 1,
+  "paidQuotaAuthorized": false,
+  "identitySource": "../_frozen_normal_mothers_20260901/mother/05-polar-night-cantor-v03-structure-fixed.png",
+  "reference": "references/polar-night-cantor-v03-video-safe-1024x576.png",
+  "directionRecord": "direction-reference.md",
+  "budgetTier": "crowd",
+  "runtimeIntegrationActive": true,
+  "actions": {
+    "idle": {
+      "prompt": "prompts/idle-doubao-v01.txt",
+      "video": "videos/polar-night-cantor-idle-doubao-v01.mp4",
+      "loop": true,
+      "status": "formal-accepted",
+      "formalFrames": 16,
+      "durationMs": 5042,
+      "startedAt": "2026-09-02T08:48:50.874659+08:00",
+      "downloadedAt": "2026-09-02T08:50:55.544934+08:00",
+      "provenance": "videos/polar-night-cantor-idle-doubao-v01.mp4.json",
+      "gif": "previews/polar-night-cantor-idle-doubao-v01.gif",
+      "contact": "previews/polar-night-cantor-idle-doubao-v01-contact.png"
+    },
+    "running": {
+      "reference": "references/polar-night-cantor-running-keyframe-v02-1024x576.png",
+      "prompt": "prompts/running-doubao-v02-keyframe.txt",
+      "video": "videos/polar-night-cantor-running-doubao-v02.mp4",
+      "loop": true,
+      "status": "formal-accepted",
+      "formalFrames": 28,
+      "durationMs": 1167,
+      "sourceWindow": [21, 49],
+      "keyframeSource": "references/polar-night-cantor-running-keyframe-v02-source.png",
+      "keyframePrompt": "prompts/running-keyframe-v02-imagegen.txt",
+      "rejectedCandidates": [
+        {
+          "removedArtifacts": [
+            "videos/polar-night-cantor-running-doubao-v01.mp4",
+            "videos/polar-night-cantor-running-doubao-v01.mp4.json",
+            "previews/polar-night-cantor-running-doubao-v01.gif",
+            "previews/polar-night-cantor-running-doubao-v01-contact.png"
+          ],
+          "cleanupDate": "2026-09-02",
+          "reason": "short ritual staff missing from the first frame onward"
+        }
+      ],
+      "startedAt": "2026-09-02T08:57:13.916590+08:00",
+      "downloadedAt": "2026-09-02T08:59:22.540539+08:00",
+      "provenance": "videos/polar-night-cantor-running-doubao-v02.mp4.json",
+      "gif": "previews/polar-night-cantor-running-doubao-v02.gif",
+      "contact": "previews/polar-night-cantor-running-doubao-v02-contact.png"
+    },
+    "attacking": {
+      "reference": "references/polar-night-cantor-attacking-keyframe-v01-1024x576.png",
+      "prompt": "prompts/attacking-doubao-v01-keyframe.txt",
+      "video": "videos/polar-night-cantor-attacking-doubao-v01.mp4",
+      "loop": false,
+      "status": "formal-accepted",
+      "formalFrames": 33,
+      "sourceWindow": [47, 95],
+      "excludedInvalidLeadRange": [0, 46],
+      "sourceWallClockMs": 2000,
+      "durationMs": 1500,
+      "runtimeTimeScale": 0.75,
+      "contactFrame": 2,
+      "activeFrames": [2, 10],
+      "keyframeSource": "references/polar-night-cantor-attacking-keyframe-v01-source.png",
+      "keyframePrompt": "prompts/attacking-keyframe-v01-imagegen.txt",
+      "startedAt": "2026-09-02T09:01:09.807862+08:00",
+      "downloadedAt": "2026-09-02T09:03:23.214658+08:00",
+      "provenance": "videos/polar-night-cantor-attacking-doubao-v01.mp4.json",
+      "gif": "previews/polar-night-cantor-attacking-doubao-v01.gif",
+      "contact": "previews/polar-night-cantor-attacking-doubao-v01-contact.png"
+    },
+    "dying": {
+      "prompt": "prompts/dying-doubao-v01.txt",
+      "video": "videos/polar-night-cantor-dying-doubao-v01.mp4",
+      "loop": false,
+      "status": "formal-accepted",
+      "formalFrames": 41,
+      "sourceWindow": [12, 72],
+      "durationMs": 2500,
+      "settledFromSourceFrame": 64,
+      "startedAt": "2026-09-02T09:04:00.811627+08:00",
+      "downloadedAt": "2026-09-02T09:06:41.886335+08:00",
+      "provenance": "videos/polar-night-cantor-dying-doubao-v01.mp4.json",
+      "gif": "previews/polar-night-cantor-dying-doubao-v01.gif",
+      "contact": "previews/polar-night-cantor-dying-doubao-v01-contact.png"
+    }
+  },
+  "runtimeContract": {
+    "family": [
+      "类人形",
+      "深渊"
+    ],
+    "rank": "normal",
+    "attack": "one directed single-target staff strike plus three basic spells reusing the same attack action",
+    "runtimeMirror": "screen-left is horizontal mirror of right-facing sheets"
+  },
+  "spriteSheetManifest": "sprite-sheet-manifest.json",
+  "spriteBudgetManifest": "sprite-budget-manifest.json",
+  "runtimeAssets": "assets/enemies/polar_night_cantor",
+  "runtimeConfigId": "polarNightCantor",
+  "offlineValidation": {
+    "facing": "passed after action-keyframe review; attacking source f0-f46 excluded",
+    "identityProps": "passed; one handbell and one short ritual staff retained",
+    "singleAttack": "passed; one rightward staff thrust retained and reused unchanged by spell casts",
+    "singleDeath": "passed; one irreversible collapse with stable corpse retained",
+    "interpolationPasses": 1,
+    "decodedRgbaMiB": 29.5039,
+    "crowdBudgetTargetMiB": 32,
+    "emptyFrames": 0,
+    "touchingFrames": 0,
+    "nonzeroRgbInTransparentPixels": 0,
+    "originalKeysPreservedAtEvenIndices": true
+  },
+  "alignmentAudit": {
+    "runtimePixelScale": 0.6640625,
+    "runtimeDisplaySize": {
+      "idle": [170, 138.125],
+      "running": [170, 138.125],
+      "attack": [191.25, 138.125],
+      "death": [233.75, 138.125]
+    },
+    "scaleContract": "all states use one source-pixel scale (170/256); wider attack/death cells expand width only and do not zoom or stretch the body",
+    "horizontalRoot": "explicit center anchors idle/running/attack/death = 128/128/144/176; no runtime X offset and no whole-frame translation table",
+    "computedFootOffsetY": 55.78125,
+    "verticalRoot": "idle/running/attack support line y187-188 against footY188; death preserves the authored collapse",
+    "attackCalibration": {
+      "visualTipMaxSourceX": 269,
+      "visualTipReachWorld": 83.0078,
+      "approachReach": 78,
+      "impactReach": 78,
+      "width": 30,
+      "durationMs": 1500,
+      "contactFrame": 2,
+      "activeFrames": [2, 10],
+      "resolver": "directed single-target basic melee enabled"
+    },
+    "spellCalibration": {
+      "visualAction": "same attack sheet, same 1500ms manual frame clock and same fixed root; no spell-only scale or position override",
+      "releaseFrame": 2,
+      "releaseAtMs": 90.9091,
+      "releaseArcDegrees": 120,
+      "releaseRevalidation": "alive, hittable, hostile faction, per-spell cast range, line of sight and locked facing arc"
+    }
+  },
+  "magicCombat": {
+    "baseMagicAttack": 20,
+    "sharedCooldownMs": 3500,
+    "initialCooldownMs": 900,
+    "cycle": ["iceSpike", "fireball", "lightningStrike"],
+    "iceSpike": {
+      "damagePerSpikeAtBaseStats": 35,
+      "spikeCount": 2,
+      "castRange": 520,
+      "maxRange": 600,
+      "cooldownSeconds": 7
+    },
+    "fireball": {
+      "centerDamageAtBaseStats": 63,
+      "explosionRadius": 70,
+      "castRange": 560,
+      "maxRange": 640,
+      "cooldownSeconds": 9
+    },
+    "lightningStrike": {
+      "damageAtBaseStats": 52,
+      "stunMs": 350,
+      "chainTargets": 1,
+      "castRange": 480,
+      "cooldownSeconds": 10
+    }
+  },
+  "validationBoundary": "source videos, formal spritesheets, crowd budget, three-spell wiring, animation scale/root math and attack geometry reviewed offline; no game, browser, build or runtime validation was run"
+}

@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_polar_night_cantor_doubao_20260902\\references\\polar-night-cantor-attacking-keyframe-v01-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_polar_night_cantor_doubao_20260902\\prompts\\attacking-doubao-v01-keyframe.txt",
+  "promptChars": 565,
+  "promptSha256": "5e4bec1ea29d9d8502765013e8a5635dd731486b0d5546618116e4a81fea0b81",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T01:03:19.384Z",
+  "sourceUrlScheme": "https"
+}

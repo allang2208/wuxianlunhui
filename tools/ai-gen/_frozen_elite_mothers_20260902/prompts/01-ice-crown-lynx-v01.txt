@@ -1,0 +1,20 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser snow-dungeon elite monster animation pipeline
+
+Reference role: Image 1 is the approved normal Snow-Mane Lynx family reference. Preserve its adult lynx body plan, screen-right identity, realistic gray winter coat, black ear tufts, short black-tipped tail, feline face, camera elevation, restrained PBR rendering and production-asset clarity. Create a recognizable elite evolution of that same monster family, not a different species and not a mere recolor.
+
+Primary request: Create exactly one elite Ice-Crown Lynx, a veteran snowfield ambush predator, holding a calm animation-friendly neutral standing pose.
+
+Elite design: a larger, leaner adult lynx with a powerful shoulder line and oversized forepaws; a dense pale-silver neck ruff rises into five or six natural jagged frost-stiffened fur crests like an organic ice crown, never a worn metal crown; dark slate rosettes; cold cyan eyes; one small scar across the muzzle; long visible but anatomically plausible ivory canines; black foreclaws lightly crusted with opaque blue-white rime. The elite silhouette comes from the raised crown-mane, heavier forequarters and longer claws. No armor, harness, jewelry, horns, antlers, wings or magic aura.
+
+Anatomy and material: physically plausible quadruped lynx anatomy, exactly four legs and one short tail, correct feline joints and paws, believable weight distribution, high-detail layered winter fur, matte frost crust only on mane tips and foreclaws, restrained cold color variation, no plastic surface.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, low saturation, readable silhouette, physically believable fur and frost; not a photograph, not an illustration, not a boss.
+
+Pose: strict screen-right body axis; head, chest, pelvis and paws all support rightward locomotion; calm alert neutral idle with all four paws on one baseline, forelegs readable and not crossed, tail fully visible, mouth closed or only slightly parted.
+
+Composition and camera: side-dominant low three-quarter view matching Image 1, orthographic-style locked camera with slight elevation; complete single subject occupying about 70% canvas width and 55% height; centered with generous margins; full ears, mane, tail and paws visible.
+
+Scene and lighting: flat pure white #FFFFFF studio background, no horizon or floor, soft flat diffuse light, at most a faint neutral contact occlusion directly beneath paws, no cast shadow.
+
+Avoid: extra or missing limbs, duplicated paws, long wolf tail, tiger stripes, saber-tooth exaggeration, literal crown, metal armor, saddle, scenery, snow particles, mist, glow, runes, halo, dramatic lighting, cropping, front view, text, logo, watermark, cartoon, anime, chibi, low-poly toy.

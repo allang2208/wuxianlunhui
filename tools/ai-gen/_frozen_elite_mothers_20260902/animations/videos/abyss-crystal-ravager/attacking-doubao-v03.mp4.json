@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\references\\abyss-crystal-ravager-mother-video-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_frozen_elite_mothers_20260902\\animations\\prompts\\abyss-crystal-ravager\\attacking-doubao-v03-minimal.txt",
+  "promptChars": 132,
+  "promptSha256": "2c70112e70bc2c7a0ad4c22c5347034c0fb85b62d4367991def73faa8f7a7e78",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-02T05:25:50.698Z",
+  "sourceUrlScheme": "https"
+}
