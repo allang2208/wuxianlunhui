@@ -1705,11 +1705,13 @@
   },
   "specialItems": {
    "enhancement_stone": {
+    "maxStack": 9999,
     "name": "强化石",
     "icon": "💎",
     "category": "enhancement"
    },
    "reforge_ticket": {
+    "maxStack": 9999,
     "name": "改造券",
     "icon": "🎫",
     "category": "enhancement"

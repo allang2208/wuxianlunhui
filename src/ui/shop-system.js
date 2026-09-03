@@ -13,6 +13,7 @@ import { EquipManager } from './equip-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { SystemUI } from './system-ui.js';
 import { ItemDatabase } from '../items/item-database.js';
+import { TopNotificationQueue } from './top-notification-queue.js';
 
 // 稀有度标准价（common/uncommon/rare/epic/mythic/legendary = 100/200/400/800/1600/3200）。
 // 注：代码里没有现成的稀有度定价函数（历史价格逐件手写），此表与 SKILL.md
@@ -215,6 +216,14 @@ const ShopSystem = {
         return item ? (item.shopPrice ?? item.price ?? 0) : 0;
     },
 
+    _sellQuantity(item) {
+        return Math.max(1, Math.floor(Number(item?.stack) || 1));
+    },
+
+    _sellPriceOf(item) {
+        return Math.max(1, Math.floor((Number(item?.price) || 50) * 0.5)) * this._sellQuantity(item);
+    },
+
     open(npc) {
         UIState.open('shop');
         this._isOpen = true;
@@ -342,18 +351,27 @@ const ShopSystem = {
 
     // 关闭时归还所有出售栏物品
     _returnAllSellItems() {
-        for (const sel of this._selectedSellItems) {
-            const usedSlots = new Set((EquipManager.backpackItems || []).map(i => i.slot));
+        if (!this._selectedSellItems.length) return;
+        const backpack = EquipManager.backpackItems ||= [];
+        const usedSlots = new Set(backpack.map(item => item.slot));
+        const remaining = [];
+        // 每件完整转移后才移出售栏；满包时保留原物，不进入副本战利品结算。
+        for (const selected of this._selectedSellItems) {
             let slot = 0;
             while (usedSlots.has(slot) && slot < EquipManager.maxBackpackSlots) slot++;
-            if (slot >= EquipManager.maxBackpackSlots) continue;
-            const clone = JSON.parse(JSON.stringify(sel.item));
-            clone.slot = slot;
-            if (!EquipManager.backpackItems) EquipManager.backpackItems = [];
-            EquipManager.backpackItems.push(clone);
+            if (slot >= EquipManager.maxBackpackSlots) {
+                remaining.push(selected);
+                continue;
+            }
+            selected.item.slot = slot;
+            backpack.push(selected.item);
+            usedSlots.add(slot);
         }
-        this._selectedSellItems = [];
+        this._selectedSellItems = remaining;
         EquipManager.updateInventorySlots();
+        if (remaining.length) {
+            TopNotificationQueue.show(`背包已满，${remaining.length} 格物品仍保留在商店出售栏，腾出空间后可重新打开取回`, { tone: 'warning' });
+        }
     },
 
     confirmSell() {
@@ -363,17 +381,20 @@ const ShopSystem = {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '出售栏为空！', '#ff4444'));
             return;
         }
-        let totalGold = 0;
-        for (const sel of this._selectedSellItems) {
-            const sellPrice = Math.max(1, Math.floor((sel.item.price || 50) * 0.5));
-            totalGold += sellPrice;
+        const totalGold = this._selectedSellItems.reduce((sum, sel) => sum + this._sellPriceOf(sel.item), 0);
+        const quantity = this._selectedSellItems.reduce((sum, sel) => sum + this._sellQuantity(sel.item), 0);
+        // addGold 允许部分入包；必须先确认能完整收款，避免失败后丢物或重复收款。
+        if (!Number.isSafeInteger(totalGold) || totalGold <= 0
+                || GoldManager.getRemainingCapacity() < totalGold) {
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, '金币无法全部放入背包，请先腾出空间；待售物品已保留', '#ff4444'));
+            return;
         }
-        this._addGold(totalGold);
-        EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `卖出 ${this._selectedSellItems.length} 件物品，获得 ${totalGold} 金币`, '#ffd700'));
+        if (!this._addGold(totalGold)) return;
+        this._selectedSellItems = [];
+        EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, `卖出 ${quantity} 件物品，获得 ${totalGold} 金币`, '#ffd700'));
         if (SoundManager) {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
-        this._selectedSellItems = [];
         this._updateUI();
     },
 
@@ -492,14 +513,14 @@ const ShopSystem = {
                     cell.className = 'shop-sell-cell has-item';
                     const rarityKey = item.rarity || 'common';
                     const rarityLabel = RARITY_LABELS[rarityKey] || rarityKey;
-                    const sellPrice = Math.max(1, Math.floor((item.price || 50) * 0.5));
+                    const sellPrice = this._sellPriceOf(item);
                     const iconHtml = item.iconImage
                         ? `<img src="${item.iconImage}" alt="${item.icon}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon}';">`
                         : (item.icon || '❓');
                     cell.innerHTML = `
                         <div class="sell-cell-rarity rarity-${rarityKey}">${rarityLabel}</div>
                         <div class="sell-cell-icon">${iconHtml}</div>
-                        <div class="sell-cell-name">${item.name}</div>
+                        <div class="sell-cell-name">${item.name}${this._sellQuantity(item) > 1 ? ` ×${this._sellQuantity(item)}` : ''}</div>
                         <div class="sell-cell-price">💰 ${sellPrice}</div>
                     `;
                     cell.ondblclick = () => this.removeFromSellGrid(index);

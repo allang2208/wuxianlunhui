@@ -165,6 +165,7 @@ const EnchantScrollItems = {
 
 // 魔法粉尘物品（与地牢事件奖励的 magic_dust 为同一物品，名称必须一致）
 const MagicDustItem = {
+    id: 'magic_dust',
     name: '魔法粉尘',
     type: '材料',
     icon: '✨',
@@ -173,6 +174,7 @@ const MagicDustItem = {
     rarity: 'mythic',
     desc: '用于附魔的魔法粉尘',
     stack: 999,
+    maxStack: 9999,
     price: 10,
 };
 

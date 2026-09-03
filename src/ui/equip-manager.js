@@ -22,7 +22,7 @@ import { QuickBar } from './quick-bar.js';
 import { createDragDropManager } from './equip/drag-drop-manager.js';
 import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInventorySlots } from './equip/slot-renderer.js';
 import { canEquipSlot, isOffhandSupportItem } from './equip/equip-rules.js';
-import { isGoldItem } from '../items/item-stack-rules.js';
+import { getItemMaxStack, isGoldItem } from '../items/item-stack-rules.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;
@@ -389,7 +389,7 @@ import { isGoldItem } from '../items/item-stack-rules.js';
                     return EnergyManager.mergeEnergy(item);
                 }
                 // 可堆叠物品（强化石、改造券等）：合并到已有堆叠，堆叠未满时不占新格子
-                const maxStack = item.maxStack || 1;
+                const maxStack = getItemMaxStack(item);
                 if (maxStack > 1 && item.stack) {
                     let amount = item.stack;
                     for (const existing of this.backpackItems) {
