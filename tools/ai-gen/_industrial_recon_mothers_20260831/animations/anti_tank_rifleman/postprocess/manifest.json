@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "anti_tank_rifleman",
+  "unitName": "反坦克枪兵（波波沙）",
+  "stage": "approved_animation_bundle_runtime_integrated",
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "bodyStandard": {
+    "cellSize": [
+      512,
+      512
+    ],
+    "effectiveBodyHeightPixels": 129,
+    "groundedFeetY": [
+      350,
+      351
+    ],
+    "scale": 0.21044045676998369,
+    "direction": "略俯视、面向屏幕右侧的三分之四步兵视角"
+  },
+  "actions": {
+    "idle": {
+      "sheet": "sheets-rife/idle.png",
+      "preview": "previews/rife/anti-tank-rifleman-idle-interpolated.gif",
+      "contactSheet": "previews/rife/anti-tank-rifleman-idle-interpolated-contact.png",
+      "sourceKeyframes": 19,
+      "frameCount": 38,
+      "frameRate": 24,
+      "repeat": -1
+    },
+    "running": {
+      "sheet": "sheets-rife/running.png",
+      "preview": "previews/rife/anti-tank-rifleman-running-interpolated.gif",
+      "contactSheet": "previews/rife/anti-tank-rifleman-running-interpolated-contact.png",
+      "sourceKeyframes": 24,
+      "frameCount": 48,
+      "frameRate": 48,
+      "repeat": -1
+    },
+    "attacking": {
+      "sheet": "sheets-rife/attacking.png",
+      "preview": "previews/rife/anti-tank-rifleman-attacking-interpolated.gif",
+      "contactSheet": "previews/rife/anti-tank-rifleman-attacking-interpolated-contact.png",
+      "sourceKeyframes": 36,
+      "frameCount": 71,
+      "frameRate": 24,
+      "repeat": 0,
+      "gameplayNote": "短点射中的数个可见枪口火焰属于一次批准的视觉动作；运行时伤害仍按一个攻击包设计。"
+    },
+    "grenade_throw": {
+      "sheet": "sheets-rife/grenade_throw.png",
+      "preview": "previews/rife/anti-tank-rifleman-grenade-throw-interpolated.gif",
+      "contactSheet": "previews/rife/anti-tank-rifleman-grenade-throw-interpolated-contact.png",
+      "sourceKeyframes": 40,
+      "frameCount": 79,
+      "frameRate": 24,
+      "repeat": 0,
+      "releaseMapping": {
+        "rawVideoFrame0Based": 72,
+        "rawVideoTimeSeconds": 3.0,
+        "sourceSheetFrame0Based": 22,
+        "finalRifeFrame0Based": 44
+      },
+      "gameplayNote": "最终图集第44帧生成独立投射物；脱手后飞行弹体已从人物图集中移除。"
+    },
+    "dying": {
+      "sheet": "sheets-rife/dying.png",
+      "preview": "previews/rife/anti-tank-rifleman-dying-interpolated.gif",
+      "contactSheet": "previews/rife/anti-tank-rifleman-dying-interpolated-contact.png",
+      "sourceKeyframes": 24,
+      "frameCount": 47,
+      "frameRate": 24,
+      "repeat": 0,
+      "alignment": "保留原始单向倒地的垂直运动与最终尸体姿态"
+    }
+  },
+  "projectile": {
+    "path": "projectile/anti-tank-grenade-clean-512x256.png",
+    "report": "projectile/report.json",
+    "size": [
+      512,
+      256
+    ],
+    "alphaBBox": [
+      26,
+      44,
+      485,
+      211
+    ],
+    "rotationPivotPixels": [
+      302,
+      131
+    ],
+    "orientation": "metal warhead right; wooden handle left",
+    "runtimeIntegrationActive": true
+  },
+  "processing": {
+    "sourceReport": "approved-source-report.json",
+    "rifeReport": "rife-report.json",
+    "sourceSheets": "source-sheets-pre-rife/",
+    "selectedCutouts": "selected-cutouts/",
+    "tailDiagnostics": "tail-diagnostics-v02/",
+    "backgroundRemoval": "BiRefNet",
+    "interpolation": "one 2x RIFE pass with original keyframes preserved at even indices",
+    "tailCleanup": "v02 warm-seed plus protected-core rule removed the generated exposed tail without deleting boots or trouser legs"
+  },
+  "offlineGates": {
+    "emptyFrames": 0,
+    "edgeTouchingFrames": 0,
+    "transparentRgbDirtyPixels": 0,
+    "sourceKeyframesPreserved": true,
+    "visibleBlockArtifacts": false,
+    "directionPassed": true,
+    "runtimeVerified": false
+  },
+  "testsRun": false,
+  "approvalEvidence": "用户查看五段动作与独立手榴弹候选后回复：没问题，下一个单位。"
+}

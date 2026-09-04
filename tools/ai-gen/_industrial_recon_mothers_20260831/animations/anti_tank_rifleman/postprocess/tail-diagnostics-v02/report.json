@@ -1,0 +1,240 @@
+{
+  "idle-f52": {
+    "alphaBBox": [
+      326,
+      63,
+      926,
+      672
+    ],
+    "openedBodyBBox": [
+      372,
+      63,
+      925,
+      672
+    ],
+    "candidatePixels": 1746,
+    "candidateBBox": [
+      326,
+      610,
+      434,
+      638
+    ]
+  },
+  "idle-f60": {
+    "alphaBBox": [
+      333,
+      60,
+      924,
+      672
+    ],
+    "openedBodyBBox": [
+      372,
+      60,
+      924,
+      672
+    ],
+    "candidatePixels": 1585,
+    "candidateBBox": [
+      333,
+      615,
+      433,
+      639
+    ]
+  },
+  "running-f39": {
+    "alphaBBox": [
+      230,
+      73,
+      774,
+      692
+    ],
+    "openedBodyBBox": [
+      231,
+      73,
+      774,
+      691
+    ],
+    "candidatePixels": 0,
+    "candidateBBox": null
+  },
+  "running-f51": {
+    "alphaBBox": [
+      217,
+      71,
+      748,
+      704
+    ],
+    "openedBodyBBox": [
+      218,
+      71,
+      748,
+      703
+    ],
+    "candidatePixels": 0,
+    "candidateBBox": null
+  },
+  "attack-f8": {
+    "alphaBBox": [
+      332,
+      67,
+      868,
+      657
+    ],
+    "openedBodyBBox": [
+      333,
+      67,
+      867,
+      657
+    ],
+    "candidatePixels": 0,
+    "candidateBBox": null
+  },
+  "attack-f35": {
+    "alphaBBox": [
+      322,
+      83,
+      1001,
+      654
+    ],
+    "openedBodyBBox": [
+      360,
+      83,
+      1001,
+      654
+    ],
+    "candidatePixels": 1875,
+    "candidateBBox": [
+      321,
+      576,
+      519,
+      619
+    ]
+  },
+  "attack-f60": {
+    "alphaBBox": [
+      304,
+      83,
+      991,
+      654
+    ],
+    "openedBodyBBox": [
+      355,
+      84,
+      991,
+      654
+    ],
+    "candidatePixels": 2241,
+    "candidateBBox": [
+      303,
+      576,
+      520,
+      622
+    ]
+  },
+  "grenade-f70": {
+    "alphaBBox": [
+      294,
+      71,
+      934,
+      649
+    ],
+    "openedBodyBBox": [
+      296,
+      71,
+      933,
+      649
+    ],
+    "candidatePixels": 0,
+    "candidateBBox": null
+  },
+  "grenade-f74": {
+    "alphaBBox": [
+      368,
+      71,
+      972,
+      649
+    ],
+    "openedBodyBBox": [
+      369,
+      71,
+      971,
+      649
+    ],
+    "candidatePixels": 0,
+    "candidateBBox": null
+  },
+  "grenade-f76": {
+    "alphaBBox": [
+      342,
+      76,
+      971,
+      649
+    ],
+    "openedBodyBBox": [
+      345,
+      76,
+      970,
+      649
+    ],
+    "candidatePixels": 2555,
+    "candidateBBox": [
+      342,
+      482,
+      408,
+      579
+    ]
+  },
+  "grenade-f77": {
+    "alphaBBox": [
+      325,
+      78,
+      969,
+      649
+    ],
+    "openedBodyBBox": [
+      333,
+      79,
+      968,
+      649
+    ],
+    "candidatePixels": 2971,
+    "candidateBBox": [
+      325,
+      480,
+      408,
+      580
+    ]
+  },
+  "dying-f62": {
+    "alphaBBox": [
+      212,
+      240,
+      993,
+      683
+    ],
+    "openedBodyBBox": [
+      212,
+      240,
+      992,
+      683
+    ],
+    "candidatePixels": 0,
+    "candidateBBox": null
+  },
+  "dying-f78": {
+    "alphaBBox": [
+      112,
+      355,
+      993,
+      683
+    ],
+    "openedBodyBBox": [
+      113,
+      357,
+      993,
+      683
+    ],
+    "candidatePixels": 0,
+    "candidateBBox": null
+  }
+}

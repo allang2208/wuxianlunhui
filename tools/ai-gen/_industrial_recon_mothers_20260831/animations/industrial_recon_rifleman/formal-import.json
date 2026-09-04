@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "industrial_recon_rifleman",
+  "unitName": "近代侦察射手（莫辛纳甘）",
+  "status": "user_approved_formal_assets_runtime_integrated",
+  "approvalEvidence": "用户查看射击与死亡v03后回复：射击音效都可以导入替换。结合当轮两段预览，按射击、死亡及其射击音效均可导入执行。",
+  "animationImport": {
+    "operation": "从获准512格RIFE图集统一裁除透明边并重新排版；角色像素不缩放、不重绘、不逐帧居中",
+    "sourceCell": [512, 512],
+    "cropBox": [88, 208, 424, 368],
+    "runtimeCell": [336, 160],
+    "commonFootY": 143,
+    "report": "runtime-sheet-report.json",
+    "decodedMiB": 42.246,
+    "crowdAdmissionMiB": 64,
+    "admissionPassed": true,
+    "maximumTextureDimension": 3696,
+    "actions": {
+      "idle": {
+        "path": "assets/companions/industrial_recon_rifleman/idle.png",
+        "frameCount": 40,
+        "frameRate": 24,
+        "cols": 8,
+        "rows": 5,
+        "repeat": -1,
+        "sha256": "58492448d2fa10ab6237e390aac43bff9915abe483b013ed6edb3ffb916aa3dd"
+      },
+      "running": {
+        "path": "assets/companions/industrial_recon_rifleman/running.png",
+        "frameCount": 34,
+        "frameRate": 48,
+        "cols": 7,
+        "rows": 5,
+        "repeat": -1,
+        "sha256": "e901ef41925ba9595bac8472e9eb136776360d0db20ca2ef7b069a5a27c67e2e"
+      },
+      "attacking": {
+        "path": "assets/companions/industrial_recon_rifleman/attacking.png",
+        "frameCount": 77,
+        "frameRate": 24,
+        "cols": 11,
+        "rows": 7,
+        "repeat": 0,
+        "launchFrame0Based": 22,
+        "sha256": "8e60e545705b8584d8d2e033cc760e589cbab3782f9f198b2ddd4d0b37e2ac80"
+      },
+      "dying": {
+        "path": "assets/companions/industrial_recon_rifleman/dying.png",
+        "frameCount": 53,
+        "frameRate": 24,
+        "cols": 9,
+        "rows": 6,
+        "repeat": 0,
+        "sha256": "4f9a1c2a7acec892d90349ac287434c807e41a79abfcf62d71287c00caf06058"
+      }
+    }
+  },
+  "audioImport": {
+    "source": "tools/ai-gen/_industrial_recon_mothers_20260831/animations/industrial_recon_rifleman/videos/attacking-doubao-v03-receiver-visible.mp4",
+    "sourceTrack": "AAC stereo",
+    "windowSeconds": [1.68, 4.12],
+    "content": "单发步枪枪声加完整开栓、后拉、前推、闭锁机械声；排除前后低电平动作杂音",
+    "pipeline": "12ms边缘淡化、直流偏移清除、峰值限制；44.1kHz双声道160kbps MP3",
+    "output": "assets/sounds/friendly/industrial_recon_rifleman_attack_video.mp3",
+    "durationSeconds": 2.44,
+    "peakDbfs": -1.0,
+    "rmsDbfs": -18.97,
+    "sha256": "2b99db5dbe19035afe84b440d850bf308f34ceb37e258a4d1736d30b9a156f36",
+    "playbackContract": "在最终攻击图集0-based第22帧成功释放弹丸时通过SoundManager.playGunshotAt播放，并已登记audio-config gunshotPreloadPaths"
+  },
+  "producerPlaceholderUntouched": false,
+  "formalConfigWritten": true,
+  "audioPreloadRegistered": true,
+  "runtimeIntegrationActive": true,
+  "testsRun": false
+}

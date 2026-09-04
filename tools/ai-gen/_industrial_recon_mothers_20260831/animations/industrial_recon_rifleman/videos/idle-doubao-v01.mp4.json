@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\mother\\industrial_recon_rifleman-mother-v02-soviet-mosin.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\prompts\\idle-doubao-v01.txt",
+  "promptChars": 666,
+  "promptSha256": "fbc5c0af9d9c4987a8b10a81eeca6f3656a858dccd32b92ecaaa2ef8d05365f7",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T02:57:54.910Z",
+  "sourceUrlScheme": "https"
+}

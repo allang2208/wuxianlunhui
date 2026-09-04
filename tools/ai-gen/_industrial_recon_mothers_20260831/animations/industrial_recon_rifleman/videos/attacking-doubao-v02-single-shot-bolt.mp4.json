@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\references\\industrial-recon-rifleman-video-safe-16x9-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\prompts\\attacking-doubao-v02-single-shot-bolt.txt",
+  "promptChars": 769,
+  "promptSha256": "0c7eae39ce95c841f83c0ef23932cab1351d91453603cd34caeabc153489fb31",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T04:36:43.971Z",
+  "sourceUrlScheme": "https"
+}

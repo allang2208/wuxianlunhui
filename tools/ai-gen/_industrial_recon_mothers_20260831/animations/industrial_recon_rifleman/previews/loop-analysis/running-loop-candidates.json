@@ -1,0 +1,284 @@
+{
+  "video": "tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\videos\\running-doubao-v01.mp4",
+  "fps": 24.0,
+  "sourceFrames": 121,
+  "search": {
+    "start": 8,
+    "endExclusive": 113,
+    "minPeriod": 12,
+    "maxPeriod": 32
+  },
+  "method": "largest non-white subject component normalized to fixed height and footline; lower-body IoU weighted above whole-subject IoU and visible RGB delta",
+  "topCandidates": [
+    {
+      "start": 46,
+      "endpoint": 63,
+      "period": 17,
+      "overallIou": 0.9335766194712442,
+      "lowerBodyIou": 0.9377255535987528,
+      "visibleDelta": 5.903547286987305,
+      "score": 3.118522978252836
+    },
+    {
+      "start": 47,
+      "endpoint": 63,
+      "period": 16,
+      "overallIou": 0.9317004016696857,
+      "lowerBodyIou": 0.9364738643615478,
+      "visibleDelta": 6.2892913818359375,
+      "score": 3.109356660783668
+    },
+    {
+      "start": 45,
+      "endpoint": 61,
+      "period": 16,
+      "overallIou": 0.9383711270422449,
+      "lowerBodyIou": 0.9293425762827433,
+      "visibleDelta": 6.127231597900391,
+      "score": 3.1007129590330464
+    },
+    {
+      "start": 27,
+      "endpoint": 43,
+      "period": 16,
+      "overallIou": 0.9398621382699766,
+      "lowerBodyIou": 0.9283772842933148,
+      "visibleDelta": 6.650599002838135,
+      "score": 3.0940720760979525
+    },
+    {
+      "start": 29,
+      "endpoint": 45,
+      "period": 16,
+      "overallIou": 0.9362645657404349,
+      "lowerBodyIou": 0.9243160916173628,
+      "visibleDelta": 5.936049938201904,
+      "score": 3.08866707519764
+    },
+    {
+      "start": 54,
+      "endpoint": 71,
+      "period": 17,
+      "overallIou": 0.9328263010867284,
+      "lowerBodyIou": 0.9327103937867848,
+      "visibleDelta": 7.633537292480469,
+      "score": 3.086514165147451
+    },
+    {
+      "start": 28,
+      "endpoint": 44,
+      "period": 16,
+      "overallIou": 0.9345067218849514,
+      "lowerBodyIou": 0.9207320610244214,
+      "visibleDelta": 5.525415420532227,
+      "score": 3.082870163670982
+    },
+    {
+      "start": 41,
+      "endpoint": 57,
+      "period": 16,
+      "overallIou": 0.9347673602992752,
+      "lowerBodyIou": 0.9193744569939183,
+      "visibleDelta": 6.023557662963867,
+      "score": 3.074337638607303
+    },
+    {
+      "start": 40,
+      "endpoint": 56,
+      "period": 16,
+      "overallIou": 0.9345388788426763,
+      "lowerBodyIou": 0.924759658987847,
+      "visibleDelta": 7.377106666564941,
+      "score": 3.071994208562787
+    },
+    {
+      "start": 60,
+      "endpoint": 77,
+      "period": 17,
+      "overallIou": 0.9327405794471663,
+      "lowerBodyIou": 0.9227898490628629,
+      "visibleDelta": 7.027797698974609,
+      "score": 3.0693495760983187
+    },
+    {
+      "start": 31,
+      "endpoint": 47,
+      "period": 16,
+      "overallIou": 0.9334651809689193,
+      "lowerBodyIou": 0.9283770191112952,
+      "visibleDelta": 8.38057804107666,
+      "score": 3.068452493046287
+    },
+    {
+      "start": 43,
+      "endpoint": 59,
+      "period": 16,
+      "overallIou": 0.9298288285549239,
+      "lowerBodyIou": 0.9184076557153588,
+      "visibleDelta": 6.042356967926025,
+      "score": 3.066869902628162
+    },
+    {
+      "start": 58,
+      "endpoint": 76,
+      "period": 18,
+      "overallIou": 0.9373572398966902,
+      "lowerBodyIou": 0.9289402173913044,
+      "visibleDelta": 9.006424903869629,
+      "score": 3.066742373815047
+    },
+    {
+      "start": 59,
+      "endpoint": 76,
+      "period": 17,
+      "overallIou": 0.9400717039437169,
+      "lowerBodyIou": 0.9300813896323811,
+      "visibleDelta": 9.532703399658203,
+      "score": 3.066348112398562
+    },
+    {
+      "start": 54,
+      "endpoint": 70,
+      "period": 16,
+      "overallIou": 0.9258987058635565,
+      "lowerBodyIou": 0.9273406002687771,
+      "visibleDelta": 7.963253021240234,
+      "score": 3.06303555738373
+    },
+    {
+      "start": 28,
+      "endpoint": 43,
+      "period": 15,
+      "overallIou": 0.934906045110895,
+      "lowerBodyIou": 0.9203898094329256,
+      "visibleDelta": 7.369315147399902,
+      "score": 3.061960308334362
+    },
+    {
+      "start": 26,
+      "endpoint": 42,
+      "period": 16,
+      "overallIou": 0.9349295291014376,
+      "lowerBodyIou": 0.9188436584945743,
+      "visibleDelta": 7.4141316413879395,
+      "score": 3.0577750690285495
+    },
+    {
+      "start": 55,
+      "endpoint": 72,
+      "period": 17,
+      "overallIou": 0.933630115842662,
+      "lowerBodyIou": 0.9340655997079048,
+      "visibleDelta": 10.615878105163574,
+      "score": 3.0574333539731495
+    },
+    {
+      "start": 48,
+      "endpoint": 64,
+      "period": 16,
+      "overallIou": 0.9325522078750199,
+      "lowerBodyIou": 0.932733844661906,
+      "visibleDelta": 10.231951713562012,
+      "score": 3.057425082690683
+    },
+    {
+      "start": 43,
+      "endpoint": 60,
+      "period": 17,
+      "overallIou": 0.9290882778581766,
+      "lowerBodyIou": 0.9207245485548163,
+      "visibleDelta": 7.3823041915893555,
+      "score": 3.0568015922609653
+    },
+    {
+      "start": 59,
+      "endpoint": 77,
+      "period": 18,
+      "overallIou": 0.9329431110172433,
+      "lowerBodyIou": 0.9215459575522339,
+      "visibleDelta": 7.9591169357299805,
+      "score": 3.056218776523383
+    },
+    {
+      "start": 44,
+      "endpoint": 60,
+      "period": 16,
+      "overallIou": 0.9269970774476376,
+      "lowerBodyIou": 0.9161679995525978,
+      "visibleDelta": 6.331040382385254,
+      "score": 3.055455383236258
+    },
+    {
+      "start": 35,
+      "endpoint": 51,
+      "period": 16,
+      "overallIou": 0.9321750697553696,
+      "lowerBodyIou": 0.9129318676008698,
+      "visibleDelta": 6.116107940673828,
+      "score": 3.055254797101081
+    },
+    {
+      "start": 32,
+      "endpoint": 48,
+      "period": 16,
+      "overallIou": 0.9289544454404693,
+      "lowerBodyIou": 0.9186273626010397,
+      "visibleDelta": 7.112916469573975,
+      "score": 3.054627710465476
+    },
+    {
+      "start": 31,
+      "endpoint": 46,
+      "period": 15,
+      "overallIou": 0.9287102529790352,
+      "lowerBodyIou": 0.9250447910241725,
+      "visibleDelta": 8.625772476196289,
+      "score": 3.0529758350348684
+    },
+    {
+      "start": 47,
+      "endpoint": 64,
+      "period": 17,
+      "overallIou": 0.9353547546816182,
+      "lowerBodyIou": 0.9353164187809857,
+      "visibleDelta": 11.465043067932129,
+      "score": 3.052724792334516
+    },
+    {
+      "start": 33,
+      "endpoint": 49,
+      "period": 16,
+      "overallIou": 0.9348410718335871,
+      "lowerBodyIou": 0.9204007792930698,
+      "visibleDelta": 8.247896194458008,
+      "score": 3.0521596510874214
+    },
+    {
+      "start": 25,
+      "endpoint": 41,
+      "period": 16,
+      "overallIou": 0.9328699996797233,
+      "lowerBodyIou": 0.9132501127989171,
+      "visibleDelta": 6.604180812835693,
+      "score": 3.051290483587839
+    },
+    {
+      "start": 54,
+      "endpoint": 72,
+      "period": 18,
+      "overallIou": 0.935796025545434,
+      "lowerBodyIou": 0.9359056414007497,
+      "visibleDelta": 11.840497016906738,
+      "score": 3.050408486941603
+    },
+    {
+      "start": 42,
+      "endpoint": 59,
+      "period": 17,
+      "overallIou": 0.9308548605099701,
+      "lowerBodyIou": 0.9176620569243134,
+      "visibleDelta": 7.456112861633301,
+      "score": 3.0503980986657298
+    }
+  ]
+}

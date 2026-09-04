@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "anti_tank_rifleman",
+  "assetRole": "anti_tank_grenade_projectile",
+  "status": "user_approved_cleaned_asset_only",
+  "provider": "built-in image_gen",
+  "model": "not_exposed_by_tool",
+  "seed": null,
+  "identityReferences": [
+    "../../../mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+    "../previews/grenade-throw-doubao-v01-release-f68-f80.png"
+  ],
+  "source": {
+    "path": "anti-tank-grenade-source-v01.png",
+    "externalSourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-be3a4066-2d6a-4878-b2f5-d736d6f0e7eb.png",
+    "prompt": "projectile-imagegen-v01.txt",
+    "background": "black/brown gradient generated despite transparent request",
+    "role": "preserved generation source, not a runtime asset"
+  },
+  "candidate": {
+    "path": "anti-tank-grenade-projectile-v01.png",
+    "externalSourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-1856ca67-bf6b-4a9b-bab3-c4a61cfc582c.png",
+    "prompt": "projectile-transparent-edit-v01.txt",
+    "operation": "imagegen edit of source to remove background without redesign",
+    "size": [
+      1672,
+      941
+    ],
+    "mode": "RGBA",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "alphaBBoxAbove16": [
+      31,
+      208,
+      1634,
+      793
+    ],
+    "trueAlphaVerified": true,
+    "finalAlphaGatePassed": false,
+    "alphaNote": "主体完整，但画布上方存在少量alpha 1至16的不可见残留；正式缩放前需清零并复查连通域。",
+    "orientation": "metal warhead leads toward screen right; wooden handle trails left",
+    "visual": "muted dark olive cylindrical metal head, brown wooden handle, worn PBR finish"
+  },
+  "derivedAsset": {
+    "path": "../postprocess/projectile/anti-tank-grenade-clean-512x256.png",
+    "report": "../postprocess/projectile/report.json",
+    "size": [
+      512,
+      256
+    ],
+    "alphaBBox": [
+      26,
+      44,
+      485,
+      211
+    ],
+    "rotationPivotPixels": [
+      302,
+      131
+    ],
+    "transparentRgbDirtyPixels": 0,
+    "finalAlphaGatePassed": true,
+    "role": "approved normalized runtime projectile"
+  },
+  "runtimePlan": {
+    "actorReleaseFrame0Based": 72,
+    "actorReleaseTimeSeconds": 3.0,
+    "actorSourceSheetReleaseFrame0Based": 22,
+    "actorFinalRifeReleaseFrame0Based": 44,
+    "spawnAsIndependentProjectile": true,
+    "removePostReleaseFlightPixelsFromActorSheet": true,
+    "flight": "parabolic trajectory with end-over-end runtime rotation",
+    "rotationPivot": "use normalized asset pixel (302,131), near the metal-head/wood-handle junction; do not use the transparent canvas center blindly",
+    "impactExplosion": "separate effect, not baked into projectile image"
+  },
+  "runtimeIntegrationActive": true,
+  "testsRun": false,
+  "userApproved": true,
+  "approvalEvidence": "用户在查看动作源与手榴弹投射物后回复：没问题，下一个单位。"
+}

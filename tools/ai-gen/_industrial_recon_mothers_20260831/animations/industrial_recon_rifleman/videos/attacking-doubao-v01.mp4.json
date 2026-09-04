@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\mother\\industrial_recon_rifleman-mother-v02-soviet-mosin.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\prompts\\attacking-doubao-v01.txt",
+  "promptChars": 691,
+  "promptSha256": "a3a79a8d77184a873ae2307aa984f4cedb664089f59daf3835ec95bdf31cad94",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T03:03:25.990Z",
+  "sourceUrlScheme": "https"
+}

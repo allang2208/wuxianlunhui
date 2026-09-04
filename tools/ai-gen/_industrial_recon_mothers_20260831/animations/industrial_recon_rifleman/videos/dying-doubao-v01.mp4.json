@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\mother\\industrial_recon_rifleman-mother-v02-soviet-mosin.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\prompts\\dying-doubao-v01.txt",
+  "promptChars": 587,
+  "promptSha256": "d2fdb62ec7ae68faa39acb36c1b0047ab6466d2d618e1731f158d7eaddbd359b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T03:05:51.676Z",
+  "sourceUrlScheme": "https"
+}

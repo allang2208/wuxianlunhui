@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "anti_tank_rifleman",
+  "assetOnly": true,
+  "runtimeIntegration": false,
+  "source": "projectile/anti-tank-grenade-projectile-v01.png",
+  "output": "postprocess/projectile/anti-tank-grenade-clean-512x256.png",
+  "sourceAlphaBBoxAfterCleanup": [
+    31,
+    208,
+    1633,
+    792
+  ],
+  "lowAlphaPixelsClearedAtOrBelow16": 8395,
+  "detachedPixelsRemoved": 0,
+  "canvasSize": [
+    512,
+    256
+  ],
+  "objectSize": [
+    460,
+    168
+  ],
+  "objectAlphaBBox": [
+    26,
+    44,
+    485,
+    211
+  ],
+  "rotationPivotPx": [
+    302,
+    131
+  ],
+  "rotationPivotBasis": "visible metal-head/wood-handle joint at approximately 60% of the cleaned silhouette length",
+  "orientation": "metal head points screen right; wooden handle trails left",
+  "nonzeroRgbInTransparentPixels": 0,
+  "alphaExtrema": [
+    0,
+    255
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "idle-f52": {
+    "alphaBBox": [
+      326,
+      63,
+      926,
+      672
+    ],
+    "openedBodyBBox": [
+      372,
+      63,
+      925,
+      672
+    ],
+    "candidatePixels": 17799
+  },
+  "running-f39": {
+    "alphaBBox": [
+      230,
+      73,
+      774,
+      692
+    ],
+    "openedBodyBBox": [
+      231,
+      73,
+      774,
+      691
+    ],
+    "candidatePixels": 16833
+  },
+  "attack-f8": {
+    "alphaBBox": [
+      332,
+      67,
+      868,
+      657
+    ],
+    "openedBodyBBox": [
+      333,
+      67,
+      867,
+      657
+    ],
+    "candidatePixels": 14552
+  },
+  "grenade-f70": {
+    "alphaBBox": [
+      294,
+      71,
+      934,
+      649
+    ],
+    "openedBodyBBox": [
+      296,
+      71,
+      933,
+      649
+    ],
+    "candidatePixels": 10840
+  },
+  "dying-f62": {
+    "alphaBBox": [
+      212,
+      240,
+      993,
+      683
+    ],
+    "openedBodyBBox": [
+      212,
+      240,
+      992,
+      683
+    ],
+    "candidatePixels": 13371
+  }
+}

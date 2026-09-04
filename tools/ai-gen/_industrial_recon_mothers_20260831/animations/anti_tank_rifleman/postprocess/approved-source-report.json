@@ -1,0 +1,1070 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "anti_tank_rifleman",
+  "assetOnly": true,
+  "runtimeIntegration": false,
+  "bodyScaleReference": "hamster ranger/sniper/industrial recon route standard",
+  "frameHeight": 512,
+  "feetY": 351,
+  "targetEffectiveBodyHeight": 129,
+  "referenceIdleBodyHeightMedian": 613.0,
+  "fixedScaleAcrossAllActions": 0.21044045676998369,
+  "tailCleanupPolicy": "tail-colored thin segments are eligible only when an exposed tail tip exists; the morphologically opened thick body/clothing/boot core plus a 3px edge guard is never removed; no broad body wedge is used",
+  "grenadeReleaseRawFrame": 72,
+  "actions": {
+    "idle": {
+      "status": "user_approved_source_postprocessed_pre_rife",
+      "source": "videos/idle-doubao-v02-no-fire.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        52,
+        54,
+        56,
+        58,
+        60,
+        62,
+        64,
+        66,
+        68,
+        70,
+        72,
+        74,
+        76,
+        78,
+        80,
+        82,
+        84,
+        86,
+        88
+      ],
+      "frameCount": 19,
+      "endFrame": 18,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameRate": 12.0,
+      "repeat": -1,
+      "mode": "loop",
+      "horizontalMode": "center-body",
+      "verticalMode": "body-feet",
+      "cleanupByRawSourceFrame": {
+        "52": {
+          "tailPixelsRemoved": 1746,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "54": {
+          "tailPixelsRemoved": 1703,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "56": {
+          "tailPixelsRemoved": 1684,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "58": {
+          "tailPixelsRemoved": 1607,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "60": {
+          "tailPixelsRemoved": 1585,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "62": {
+          "tailPixelsRemoved": 1591,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "64": {
+          "tailPixelsRemoved": 1575,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "66": {
+          "tailPixelsRemoved": 1537,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "68": {
+          "tailPixelsRemoved": 1517,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "70": {
+          "tailPixelsRemoved": 1491,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "72": {
+          "tailPixelsRemoved": 1476,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "74": {
+          "tailPixelsRemoved": 1502,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "76": {
+          "tailPixelsRemoved": 1519,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "78": {
+          "tailPixelsRemoved": 1539,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "80": {
+          "tailPixelsRemoved": 1595,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "82": {
+          "tailPixelsRemoved": 1617,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "84": {
+          "tailPixelsRemoved": 1601,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "86": {
+          "tailPixelsRemoved": 1621,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "88": {
+          "tailPixelsRemoved": 1616,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        }
+      },
+      "sheet": "postprocess/source-sheets-pre-rife/idle.png",
+      "preview": "postprocess/previews/source/idle.gif",
+      "contactSheet": "postprocess/previews/source/idle-contact.png",
+      "validation": {
+        "alphaPixelsMin": 7246,
+        "alphaPixelsMax": 7316,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 5.377498255835639,
+        "loopSeamDelta": 8.094450950622559,
+        "effectiveBodyHeightMin": 128,
+        "effectiveBodyHeightMedian": 129.0,
+        "effectiveBodyHeightMax": 130,
+        "effectiveBodyBottomMin": 350,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    },
+    "running": {
+      "status": "user_approved_source_postprocessed_pre_rife",
+      "source": "videos/running-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62
+      ],
+      "frameCount": 24,
+      "endFrame": 23,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameRate": 24.0,
+      "repeat": -1,
+      "mode": "loop",
+      "horizontalMode": "center-body",
+      "verticalMode": "body-feet",
+      "cleanupByRawSourceFrame": {
+        "39": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "40": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "41": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "42": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "43": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "44": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "45": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "46": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "47": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "48": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "49": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "50": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "51": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "52": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "53": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "54": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "55": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "56": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "57": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "58": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "59": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "60": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "61": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "62": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        }
+      },
+      "sheet": "postprocess/source-sheets-pre-rife/running.png",
+      "preview": "postprocess/previews/source/running.gif",
+      "contactSheet": "postprocess/previews/source/running-contact.png",
+      "validation": {
+        "alphaPixelsMin": 7009,
+        "alphaPixelsMax": 8131,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 19.751420808875043,
+        "loopSeamDelta": 19.62467384338379,
+        "effectiveBodyHeightMin": 130,
+        "effectiveBodyHeightMedian": 133.0,
+        "effectiveBodyHeightMax": 137,
+        "effectiveBodyBottomMin": 349,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    },
+    "attacking": {
+      "status": "user_approved_source_postprocessed_pre_rife",
+      "source": "videos/attacking-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        8,
+        10,
+        12,
+        14,
+        15,
+        16,
+        17,
+        19,
+        21,
+        28,
+        31,
+        34,
+        35,
+        36,
+        40,
+        47,
+        50,
+        54,
+        58,
+        59,
+        60,
+        62,
+        68,
+        76,
+        79,
+        81,
+        82,
+        84,
+        87,
+        94,
+        96,
+        97,
+        100,
+        102,
+        105,
+        109
+      ],
+      "frameCount": 36,
+      "endFrame": 35,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameRate": 12.0,
+      "repeat": 0,
+      "mode": "one-shot",
+      "horizontalMode": "center-body",
+      "verticalMode": "body-feet",
+      "cleanupByRawSourceFrame": {
+        "8": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "10": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "12": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "14": {
+          "tailPixelsRemoved": 1085,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "15": {
+          "tailPixelsRemoved": 1155,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "16": {
+          "tailPixelsRemoved": 1100,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "17": {
+          "tailPixelsRemoved": 990,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "19": {
+          "tailPixelsRemoved": 1469,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "21": {
+          "tailPixelsRemoved": 1545,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "28": {
+          "tailPixelsRemoved": 1875,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "31": {
+          "tailPixelsRemoved": 1878,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "34": {
+          "tailPixelsRemoved": 1872,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "35": {
+          "tailPixelsRemoved": 1875,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 822
+        },
+        "36": {
+          "tailPixelsRemoved": 1870,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 3778
+        },
+        "40": {
+          "tailPixelsRemoved": 2125,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "47": {
+          "tailPixelsRemoved": 2048,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "50": {
+          "tailPixelsRemoved": 2188,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "54": {
+          "tailPixelsRemoved": 2115,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "58": {
+          "tailPixelsRemoved": 2122,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "59": {
+          "tailPixelsRemoved": 2120,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 1868
+        },
+        "60": {
+          "tailPixelsRemoved": 2241,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 3568
+        },
+        "62": {
+          "tailPixelsRemoved": 921,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "68": {
+          "tailPixelsRemoved": 2059,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "76": {
+          "tailPixelsRemoved": 2014,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "79": {
+          "tailPixelsRemoved": 2006,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "81": {
+          "tailPixelsRemoved": 1939,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "82": {
+          "tailPixelsRemoved": 1895,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "84": {
+          "tailPixelsRemoved": 1846,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "87": {
+          "tailPixelsRemoved": 1796,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "94": {
+          "tailPixelsRemoved": 1716,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "96": {
+          "tailPixelsRemoved": 1866,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "97": {
+          "tailPixelsRemoved": 931,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "100": {
+          "tailPixelsRemoved": 1005,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "102": {
+          "tailPixelsRemoved": 987,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "105": {
+          "tailPixelsRemoved": 1044,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "109": {
+          "tailPixelsRemoved": 1414,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        }
+      },
+      "sheet": "postprocess/source-sheets-pre-rife/attacking.png",
+      "preview": "postprocess/previews/source/attacking.gif",
+      "contactSheet": "postprocess/previews/source/attacking-contact.png",
+      "validation": {
+        "alphaPixelsMin": 6669,
+        "alphaPixelsMax": 7844,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 18.741174227850777,
+        "effectiveBodyHeightMin": 120,
+        "effectiveBodyHeightMedian": 121.0,
+        "effectiveBodyHeightMax": 126,
+        "effectiveBodyBottomMin": 350,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    },
+    "grenade_throw": {
+      "status": "user_approved_source_postprocessed_pre_rife",
+      "source": "videos/grenade-throw-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        0,
+        6,
+        9,
+        13,
+        22,
+        29,
+        34,
+        35,
+        39,
+        43,
+        45,
+        48,
+        49,
+        53,
+        58,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        80,
+        82,
+        86,
+        88,
+        89,
+        90,
+        93,
+        95,
+        97,
+        100,
+        101,
+        117
+      ],
+      "frameCount": 40,
+      "endFrame": 39,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameRate": 12.0,
+      "repeat": 0,
+      "mode": "one-shot",
+      "horizontalMode": "center-body",
+      "verticalMode": "body-feet",
+      "cleanupByRawSourceFrame": {
+        "0": {
+          "tailPixelsRemoved": 2253,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "6": {
+          "tailPixelsRemoved": 2273,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "9": {
+          "tailPixelsRemoved": 2242,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "13": {
+          "tailPixelsRemoved": 2203,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "22": {
+          "tailPixelsRemoved": 1858,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "29": {
+          "tailPixelsRemoved": 1759,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "34": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "35": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "39": {
+          "tailPixelsRemoved": 2023,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "43": {
+          "tailPixelsRemoved": 1714,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "45": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "48": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "49": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "53": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "58": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "65": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "66": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "67": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "68": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "69": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "70": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "71": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "72": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "73": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "74": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "75": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "76": {
+          "tailPixelsRemoved": 2555,
+          "detachedGrenadePixelsRemoved": 176,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "77": {
+          "tailPixelsRemoved": 2971,
+          "detachedGrenadePixelsRemoved": 213,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "80": {
+          "tailPixelsRemoved": 3354,
+          "detachedGrenadePixelsRemoved": 230,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "82": {
+          "tailPixelsRemoved": 3462,
+          "detachedGrenadePixelsRemoved": 221,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "86": {
+          "tailPixelsRemoved": 3232,
+          "detachedGrenadePixelsRemoved": 187,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "88": {
+          "tailPixelsRemoved": 3283,
+          "detachedGrenadePixelsRemoved": 188,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "89": {
+          "tailPixelsRemoved": 3237,
+          "detachedGrenadePixelsRemoved": 192,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "90": {
+          "tailPixelsRemoved": 3328,
+          "detachedGrenadePixelsRemoved": 199,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "93": {
+          "tailPixelsRemoved": 3211,
+          "detachedGrenadePixelsRemoved": 171,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "95": {
+          "tailPixelsRemoved": 2889,
+          "detachedGrenadePixelsRemoved": 138,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "97": {
+          "tailPixelsRemoved": 2699,
+          "detachedGrenadePixelsRemoved": 116,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "100": {
+          "tailPixelsRemoved": 2319,
+          "detachedGrenadePixelsRemoved": 128,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "101": {
+          "tailPixelsRemoved": 2154,
+          "detachedGrenadePixelsRemoved": 119,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "117": {
+          "tailPixelsRemoved": 1802,
+          "detachedGrenadePixelsRemoved": 96,
+          "muzzleEffectPixelsRestored": 0
+        }
+      },
+      "sheet": "postprocess/source-sheets-pre-rife/grenade_throw.png",
+      "preview": "postprocess/previews/source/grenade_throw.gif",
+      "contactSheet": "postprocess/previews/source/grenade_throw-contact.png",
+      "validation": {
+        "alphaPixelsMin": 6479,
+        "alphaPixelsMax": 8009,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 21.98546742170285,
+        "effectiveBodyHeightMin": 119,
+        "effectiveBodyHeightMedian": 122.0,
+        "effectiveBodyHeightMax": 127,
+        "effectiveBodyBottomMin": 350,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      },
+      "releaseRawSourceFrame": 72,
+      "releaseSourceSheetIndex": 22,
+      "releaseRifeOutputIndex": 44
+    },
+    "dying": {
+      "status": "user_approved_source_postprocessed_pre_rife",
+      "source": "videos/dying-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        8,
+        9,
+        12,
+        15,
+        19,
+        23,
+        29,
+        33,
+        35,
+        37,
+        41,
+        49,
+        50,
+        54,
+        57,
+        59,
+        61,
+        62,
+        65,
+        67,
+        70,
+        72,
+        74,
+        80
+      ],
+      "frameCount": 24,
+      "endFrame": 23,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameRate": 12.0,
+      "repeat": 0,
+      "mode": "one-shot",
+      "horizontalMode": "preserve-source",
+      "verticalMode": "content-ground",
+      "cleanupByRawSourceFrame": {
+        "8": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "9": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "12": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "15": {
+          "tailPixelsRemoved": 1876,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "19": {
+          "tailPixelsRemoved": 1596,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "23": {
+          "tailPixelsRemoved": 1541,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "29": {
+          "tailPixelsRemoved": 1496,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "33": {
+          "tailPixelsRemoved": 1268,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "35": {
+          "tailPixelsRemoved": 1072,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "37": {
+          "tailPixelsRemoved": 1173,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "41": {
+          "tailPixelsRemoved": 1287,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "49": {
+          "tailPixelsRemoved": 1049,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "50": {
+          "tailPixelsRemoved": 881,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "54": {
+          "tailPixelsRemoved": 606,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "57": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "59": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "61": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "62": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "65": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "67": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "70": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "72": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "74": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        },
+        "80": {
+          "tailPixelsRemoved": 0,
+          "detachedGrenadePixelsRemoved": 0,
+          "muzzleEffectPixelsRestored": 0
+        }
+      },
+      "sheet": "postprocess/source-sheets-pre-rife/dying.png",
+      "preview": "postprocess/previews/source/dying.gif",
+      "contactSheet": "postprocess/previews/source/dying-contact.png",
+      "validation": {
+        "alphaPixelsMin": 6488,
+        "alphaPixelsMax": 7517,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 29.080564353777014,
+        "effectiveBodyHeightMin": 68,
+        "effectiveBodyHeightMedian": 111.0,
+        "effectiveBodyHeightMax": 126,
+        "effectiveBodyBottomMin": 347,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    }
+  }
+}

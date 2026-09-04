@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "managed",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\references\\industrial-recon-rifleman-running-keyframe-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\prompts\\running-doubao-v01.txt",
+  "promptChars": 720,
+  "promptSha256": "ad483ea17a58f7bb5231898814ba864eb5223846020ec339611f2a10259d69b7",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T03:01:13.508Z",
+  "sourceUrlScheme": "https"
+}

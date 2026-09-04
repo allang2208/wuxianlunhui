@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\mother\\anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\anti_tank_rifleman\\prompts\\idle-doubao-v02-no-fire.txt",
+  "promptChars": 774,
+  "promptSha256": "07517b9c751d176b9714a4ccf6fde4895ed7ad3464c2dadfab64137bbd8c851c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T01:38:50.619Z",
+  "sourceUrlScheme": "https"
+}

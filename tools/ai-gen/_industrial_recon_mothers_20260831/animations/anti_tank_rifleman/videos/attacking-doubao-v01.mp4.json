@@ -1,0 +1,22 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\mother\\anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\anti_tank_rifleman\\prompts\\attacking-doubao-v01.txt",
+  "promptChars": 527,
+  "promptSha256": "0546f55707651e0776e57c71ea6b26c0ede330b2cb8002164b0df35f608b247c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "recoveredFromFilledComposer": true,
+  "confirmationPrompt": "确认生成",
+  "confirmationPromptChars": 4,
+  "confirmationPromptSha256": "a83a7f718ea725ddd9d67eca4de54bbb0aa1be8c252441d28c0db6d8a77b3939",
+  "generationNote": "首次正式动作提示词已提交，豆包要求确认；随后在同一已填会话发送确认生成并下载成片。promptChars与promptSha256记录首次正式动作提示词，confirmation字段记录后续确认语。",
+  "generatedAt": "2026-09-01T01:32:08.642Z",
+  "sourceUrlScheme": "https"
+}

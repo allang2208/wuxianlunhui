@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\references\\industrial-recon-rifleman-video-safe-16x9-v01.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\prompts\\dying-doubao-v02-safe-framing.txt",
+  "promptChars": 737,
+  "promptSha256": "f36e5c4f28a051532be2e60ddce25b7674855229d565e94214ac995574568072",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T04:42:47.543Z",
+  "sourceUrlScheme": "https"
+}

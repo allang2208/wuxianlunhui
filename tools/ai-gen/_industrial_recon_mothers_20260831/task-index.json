@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-31",
+  "title": "近代侦察营地 III级母图定稿",
+  "batch": 1,
+  "scope": "两种近代单位母图与既有II/IV级身份对照已完成；后续按用户授权追加反坦克枪兵五动作/投射物和侦察射手四动作素材包，不制作运行时接线。",
+  "status": "both_units_animation_assets_ready_recon_formal_installed_runtime_not_integrated",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": false,
+  "provider": "built-in image_gen",
+  "animationProvider": "Doubao Seedance 2.0 Mini via programmatic CDP attach-only pipeline",
+  "model": "not_exposed_by_tool",
+  "seed": null,
+  "requestedCanvas": {
+    "width": 1536,
+    "height": 1024
+  },
+  "background": "white (not a transparent spritesheet)",
+  "camera": "slightly elevated orthographic-like three-quarter, facing screen right",
+  "acceptedPreview": "comparison.html",
+  "approvedAt": "2026-08-31",
+  "approvalEvidence": "用户：可用，继续下两个士兵的生图。两张v02母图选定；不代表动画或运行时验收。",
+  "pendingPreview": null,
+  "productionPlan": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "bodyReference": "skill/09-monsters-npc.md: 步兵与施法友军默认体量（仓鼠牧师基准）",
+    "worldBodyReferencePixels": 75.684,
+    "sourceSampling": "动画阶段按正常/最大镜头登记；母图画布不作为runtime格子或身高标定。",
+    "runtimeBudgetMeasured": false,
+    "testsRun": false
+  },
+  "units": [
+    {
+      "unitKey": "anti_tank_rifleman",
+      "name": "反坦克枪兵",
+      "slot": "spearman",
+      "tier": 3,
+      "fromUnitKey": "halberd",
+      "toUnitKey": "anti_vehicle",
+      "output": "mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+      "prompt": "prompts/anti_tank_rifleman-v02-soviet.txt",
+      "sourceOutput": "mother/anti_tank_rifleman-mother-v01.png",
+      "sourcePrompt": "prompts/anti_tank_rifleman-v01.txt",
+      "revisionRequest": "苏联风格仓鼠士兵，使用波波沙冲锋枪，周期性投掷反坦克手榴弹；取代v01重型反坦克步枪方案。",
+      "plannedCombat": {
+        "status": "design_only_not_implemented",
+        "primaryWeapon": "PPSh-41 波波沙冲锋枪",
+        "periodicAttack": "投掷反坦克手榴弹",
+        "periodMs": null,
+        "damage": null,
+        "range": null,
+        "requiredAdditionalAction": "豆包投弹v01源片已获用户批准并完成透明图集；动作包含取弹、举臂、原片0-based第72帧脱手、重新持枪。最终RIFE图集映射为第44帧，运行时接入时在第44帧生成独立弹体。",
+        "visualGrenadeCountIsAmmoCapacity": false
+      },
+      "referenceInputs": [
+        "references/halberdII.png",
+        "references/antiVehicleIV.png"
+      ],
+      "accepted": true,
+      "status": "animation_bundle_postprocessed_asset_only",
+      "identityAnchors": [
+        "金橙毛、白颊短吻、粉鼻与圆黑眼",
+        "普通仓鼠步兵体型",
+        "红星钢盔、苏式卡其军服与帆布装具",
+        "波波沙木托、散热护筒与圆弹鼓",
+        "腰侧反坦克手榴弹携行外观；非投掷姿态"
+      ],
+      "forbidden": [
+        "火箭筒",
+        "旧版重型反坦克步枪",
+        "AK或其他现代冲锋枪",
+        "数码迷彩",
+        "夜视/电子附件"
+      ],
+      "animationSourceReview": "animations/anti_tank_rifleman/source-review.json",
+      "animationPostprocessManifest": "animations/anti_tank_rifleman/postprocess/manifest.json",
+      "projectileAsset": "animations/anti_tank_rifleman/projectile/manifest.json",
+      "runtimeIntegrationActive": false
+    },
+    {
+      "unitKey": "industrial_recon_rifleman",
+      "name": "近代侦察射手",
+      "slot": "scout",
+      "tier": 3,
+      "fromUnitKey": "ranger",
+      "toUnitKey": "sniper",
+      "output": "mother/industrial_recon_rifleman-mother-v02-soviet-mosin.png",
+      "prompt": "prompts/industrial_recon_rifleman-v02-soviet.txt",
+      "sourceOutput": "mother/industrial_recon_rifleman-mother-v01.png",
+      "sourcePrompt": "prompts/industrial_recon_rifleman-v01.txt",
+      "revisionRequest": "使用莫辛纳甘，调整侦察兵装束。",
+      "plannedCombat": {
+        "status": "design_only_not_implemented",
+        "primaryWeapon": "莫辛纳甘长步枪（机械瞄具）",
+        "damage": null,
+        "range": null
+      },
+      "referenceInputs": [
+        "references/rangerII.png",
+        "references/sniperIV.png"
+      ],
+      "accepted": true,
+      "status": "four_action_and_attack_audio_user_approved_formal_assets_installed_runtime_not_integrated",
+      "identityAnchors": [
+        "金橙毛、白颊短吻、粉鼻与圆黑眼",
+        "普通仓鼠步兵体型",
+        "苏式船形帽、轻装迷彩罩衫及收下的兜帽",
+        "望远镜、地图包和紧凑弹药袋",
+        "莫辛纳甘长木托步枪、皮革枪带与机械瞄具"
+      ],
+      "forbidden": [
+        "现代长瞄准镜",
+        "消音器",
+        "夜视仪",
+        "全身吉利服",
+        "反坦克重枪"
+      ],
+      "runtimeIntegrationActive": false,
+      "animationSourceReview": "animations/industrial_recon_rifleman/source-review.json",
+      "animationPostprocessManifest": "animations/industrial_recon_rifleman/postprocess/manifest.json",
+      "formalImport": "animations/industrial_recon_rifleman/formal-import.json",
+      "userApprovedAnimationActions": ["idle", "running", "attacking", "dying"],
+      "assistantOfflineReviewPassedActions": ["attacking", "dying"],
+      "formalAttackAudio": "assets/sounds/friendly/industrial_recon_rifleman_attack_video.mp3"
+    }
+  ],
+  "provenance": [
+    {
+      "path": "mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-8c5bb93d-ef11-4a0f-b725-d9044cda8b16.png",
+      "editInputs": [
+        "mother/anti_tank_rifleman-mother-v01.png"
+      ],
+      "prompt": "prompts/anti_tank_rifleman-v02-soviet.txt",
+      "provider": "built-in image_gen",
+      "operation": "imagegen_edit_then_copy_without_additional_pixel_edits",
+      "role": "current_generated_candidate"
+    },
+    {
+      "path": "mother/industrial_recon_rifleman-mother-v02-soviet-mosin.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-5530bacb-667d-4b82-85de-b0f85fa9e3a6.png",
+      "editInputs": [
+        "mother/industrial_recon_rifleman-mother-v01.png"
+      ],
+      "prompt": "prompts/industrial_recon_rifleman-v02-soviet.txt",
+      "provider": "built-in image_gen",
+      "operation": "imagegen_edit_then_copy_without_additional_pixel_edits",
+      "role": "current_generated_candidate"
+    },
+    {
+      "path": "mother/anti_tank_rifleman-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-a4757811-bede-403c-aea4-8dbef6c5a5e3.png",
+      "operation": "copied_without_pixel_edits",
+      "role": "generated_candidate"
+    },
+    {
+      "path": "mother/industrial_recon_rifleman-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-806bde56-48dc-4077-bd7d-0a54a2ce1316.png",
+      "operation": "copied_without_pixel_edits",
+      "role": "generated_candidate"
+    },
+    {
+      "path": "references/halberdII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_halberd_20260825/mother/hamster-halberdier-mother-v04-ear-armor-plume.png",
+      "operation": "copied_without_pixel_edits",
+      "role": "lineage_reference"
+    },
+    {
+      "path": "references/antiVehicleIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_anti_vehicle_20260826/h3/references/hamster-anti-vehicle-mother-v02-rgba.png",
+      "operation": "copied_without_pixel_edits",
+      "role": "lineage_reference"
+    },
+    {
+      "path": "references/rangerII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_ranger_20260826/mother/hamster-ranger-mother-v01.png",
+      "operation": "copied_without_pixel_edits",
+      "role": "lineage_reference"
+    },
+    {
+      "path": "references/sniperIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_sniper_20260826/mother/hamster-sniper-mother-v02.png",
+      "operation": "copied_without_pixel_edits",
+      "role": "lineage_reference"
+    }
+  ],
+  "reviewBoundary": "已直接查看母图、豆包源片联系图和最终透明/RIFE联系图，并执行资产门禁；未运行游戏、构建、lint、类型检查或运行时验证。"
+}
