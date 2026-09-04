@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_03\\model_plus_original_36\\grand_mall\\grand_mall_refine_v01_notext_body.png",
+  "output": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_03\\formal_runtime\\grand_mall.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 8,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    212,
+    133,
+    829,
+    926
+  ],
+  "fileSize": [
+    617,
+    793
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    613,
+    789
+  ],
+  "displayW": 300,
+  "displayH": 386,
+  "footOffsetY": 191,
+  "scaleX": 0.4862236628849271,
+  "scaleY": 0.48675914249684743
+}

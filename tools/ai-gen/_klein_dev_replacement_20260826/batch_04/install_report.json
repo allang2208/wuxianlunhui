@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "batch": 4,
+  "approvedByUser": "2026-08-27",
+  "workflow": "Klein model plus accepted FLUX Dev original, 36 steps, Depth 0.90, denoise 0.20",
+  "runtimeContract": "display width preserved; display height and foot offset derived from each final tight RGBA canvas; logical footprint, collision and gameplay behavior unchanged",
+  "assets": [
+    {
+      "id": "computing_center",
+      "runtime": "assets/terrain/computing_center.png",
+      "source": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/manual_cutout_handoff/01_computing_center/manual_body.png",
+      "display": [512, 453],
+      "footOffsetY": 224,
+      "repair": "user-supplied manual transparent cutout"
+    },
+    {
+      "id": "university",
+      "runtime": "assets/terrain/university.png",
+      "source": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/review_selected/02_university/selected_body.png",
+      "display": [512, 353],
+      "footOffsetY": 174
+    },
+    {
+      "id": "planar_resonator",
+      "runtime": "assets/terrain/planar_resonator.png",
+      "source": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/review_selected/07_planar_resonator/selected_body.png",
+      "display": [556, 447],
+      "footOffsetY": 221
+    },
+    {
+      "id": "portal",
+      "runtime": "assets/terrain/portal.png",
+      "source": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/manual_cutout_handoff/02_portal/manual_body.png",
+      "display": [512, 452],
+      "footOffsetY": 224,
+      "repair": "user-supplied manual transparent cutout"
+    },
+    {
+      "id": "jungle_temple",
+      "runtime": "assets/terrain/jungle_temple.png",
+      "source": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/review_selected/10_jungle_temple/selected_body.png",
+      "display": [512, 545],
+      "footOffsetY": 270
+    }
+  ],
+  "excluded": [
+    { "id": "church", "reason": "excluded by user" },
+    { "id": "research_institute", "reason": "excluded by user" },
+    { "id": "research_institute_lv2", "reason": "excluded by user" },
+    { "id": "research_institute_lv3", "reason": "excluded by user" },
+    { "id": "weather_forecast_tower", "reason": "preserved original texture per prior explicit user instruction" }
+  ],
+  "derivedAssets": {
+    "thumbnails": "assets/ui/building-thumbnails/*.png for the four configured panel thumbnails; portal remains non-buildable and has no panel thumbnail",
+    "lighting": "four lighting maps per installed asset under assets/terrain/lighting",
+    "groundFits": "data/structure-ground-fits.json",
+    "lightingManifest": "data/environment-lighting-assets.json"
+  },
+  "finalRuntimeReviewSheet": "tools/ai-gen/_klein_dev_replacement_20260826/batch_04/formal_runtime/contact_sheets/page_01.png"
+}

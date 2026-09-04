@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_03\\model_plus_original_36\\deep_drill\\deep_drill_refine_v01_body.png",
+  "output": "tools\\ai-gen\\_klein_dev_replacement_20260826\\batch_03\\formal_runtime\\deep_drill.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 8,
+  "removedComponents": 1,
+  "removedComponentPixels": 2,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    138,
+    147,
+    874,
+    922
+  ],
+  "fileSize": [
+    736,
+    775
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    732,
+    771
+  ],
+  "displayW": 300,
+  "displayH": 316,
+  "footOffsetY": 156,
+  "scaleX": 0.4076086956521739,
+  "scaleY": 0.40774193548387094
+}

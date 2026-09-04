@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "batch": 3,
+  "approvedByUser": "2026-08-27",
+  "workflow": "Klein model plus accepted FLUX Dev original, 36 steps, Depth 0.90, denoise 0.20",
+  "runtimeContract": "display width preserved; display height and foot offset derived from each final tight RGBA canvas; logical footprint and collision unchanged",
+  "assets": [
+    { "id": "solar_power_plant", "runtime": "assets/terrain/solar_power_plant.png", "display": [512, 411], "footOffsetY": 203, "repair": "edge-only chroma cleanup preserving glazing" },
+    { "id": "tavern", "runtime": "assets/terrain/tavern.png", "display": [300, 337], "footOffsetY": 167 },
+    { "id": "chain_restaurant", "runtime": "assets/terrain/chain_restaurant.png", "display": [300, 318], "footOffsetY": 158 },
+    { "id": "grand_mall", "runtime": "assets/terrain/grand_mall.png", "display": [300, 386], "footOffsetY": 191, "repair": "deterministic no-text three-coin sign replacement" },
+    { "id": "stock_exchange", "runtime": "assets/terrain/stock_exchange.png", "display": [512, 542], "footOffsetY": 269 },
+    { "id": "market", "runtime": "assets/terrain/market.png", "display": [276, 206], "footOffsetY": 102 },
+    { "id": "field_hospital", "runtime": "assets/terrain/field_hospital.png", "display": [300, 254], "footOffsetY": 126 },
+    { "id": "cheese_farm", "runtime": "assets/terrain/cheese_farm.png", "display": [512, 292], "footOffsetY": 144, "repair": "enclosed green cleanup and remapped layered occluders" },
+    { "id": "mine", "runtime": "assets/terrain/mine.png", "display": [277, 208], "footOffsetY": 103, "repair": "yellow matte defringe" },
+    { "id": "deep_drill", "runtime": "assets/terrain/deep_drill.png", "display": [300, 316], "footOffsetY": 156 }
+  ],
+  "derivedAssets": {
+    "thumbnails": "assets/ui/building-thumbnails/*.png for the nine configured panel thumbnails",
+    "cheeseFarmLayers": [
+      "assets/terrain/cheese_farm_base.png",
+      "assets/terrain/cheese_farm_structure_occluder.png",
+      "assets/terrain/cheese_farm_foreground_occluder.png"
+    ],
+    "lighting": "four lighting maps per asset under assets/terrain/lighting",
+    "groundFits": "data/structure-ground-fits.json"
+  },
+  "reviewSheets": [
+    "tools/ai-gen/_klein_dev_replacement_20260826/batch_03/review_selected/contact_sheets/page_01.png",
+    "tools/ai-gen/_klein_dev_replacement_20260826/batch_03/review_selected/contact_sheets/page_02.png"
+  ],
+  "finalRuntimeReviewSheets": [
+    "tools/ai-gen/_klein_dev_replacement_20260826/batch_03/formal_runtime/contact_sheets/page_01.png",
+    "tools/ai-gen/_klein_dev_replacement_20260826/batch_03/formal_runtime/contact_sheets/page_02.png"
+  ]
+}
