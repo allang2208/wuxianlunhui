@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "task": "燃油发电厂、罐头加工厂、贸易公司纯视觉员工状态机动画",
+  "status": "complete_nine_actions_integrated",
+  "provider": "MiniMax H3",
+  "scope": "nine H3 actions, transparent sprite production and pure-visual economy-worker runtime integration",
+  "workflow": {
+    "skillIndex": "SKILL.md",
+    "orientationContract": "skill/16b-animation-alignment-and-timing.md#1.1",
+    "videoContract": "tools/ai-gen/WORKFLOW.md#3.6",
+    "entrypoint": "tools/ai-gen/ai-asset.py video generate --provider h3"
+  },
+  "orientationCheck": {
+    "status": "checked_by_assistant_before_video_submission",
+    "camera": "slightly elevated, side-dominant three-quarter civilian camera with narrow front-chest visibility",
+    "targetFacing": "nose, chest, pelvis, knees and toes remain coherently toward screen-right",
+    "motionAxis": "screen-horizontal leg alternation with slight natural gait depth",
+    "rootMotion": "in-place video root; future civilian visual state machine owns world position",
+    "referenceEvidence": "references/existing-hamster-direction-contact.png",
+    "sharedH3Evidence": "h3-references/h3-reference-contact.png",
+    "referencePreparation": "reference-preparation.json",
+    "sourceReferences": [
+      {
+        "worker": "oil-technician",
+        "config": "data/population-economy.json#steam_power_plant.workerVisual",
+        "asset": "assets/companions/hamster_boiler_worker/empty_running.png",
+        "frameIndices": [0, 4, 8],
+        "role": "industrial civilian camera, facing and gait"
+      },
+      {
+        "worker": "cannery-worker",
+        "config": "data/population-economy.json#bakery.workerVisual",
+        "asset": "assets/companions/hamster_baker/empty_running.png",
+        "frameIndices": [0, 7, 14],
+        "role": "food worker camera, facing and gait"
+      },
+      {
+        "worker": "trade-clerk",
+        "config": "data/population-economy.json#bank.workerVisual",
+        "asset": "assets/companions/hamster_banker/running.png",
+        "frameIndices": [0, 6, 12],
+        "role": "commercial worker camera, facing and gait"
+      }
+    ],
+    "conclusion": "All selected movement and occupational keyframes keep the intended right-facing body and isolated white-background production layout. The rejected oil maintaining v01 turned chest and pelvis too frontally and was not copied into the task directory."
+  },
+  "stateMachines": {
+    "oil_power_plant": {
+      "visualWorker": "hamster_oil_technician",
+      "states": ["idle", "walking", "maintaining"],
+      "meaning": "wander near the plant and perform isolated handheld maintenance; no resource logistics implied"
+    },
+    "cannery": {
+      "visualWorker": "hamster_cannery_worker",
+      "states": ["idle", "walking", "inspecting"],
+      "meaning": "wander and inspect one sealed can; no warehouse transfer or extra production cycle implied"
+    },
+    "trading_company": {
+      "visualWorker": "hamster_trade_clerk",
+      "states": ["idle", "walking", "negotiating"],
+      "meaning": "wander and perform a document negotiation gesture; no banker money animation or cargo delivery implied"
+    }
+  },
+  "generation": {
+    "size": "1024x576",
+    "requestedDurationSeconds": 5.17,
+    "expectedSourceFrames": 124,
+    "sourceFps": 24,
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset",
+    "background": "#FFFFFF"
+  },
+  "submissionBlock": {
+    "occurredAt": "2026-09-01",
+    "destination": "http://192.168.3.142:8188",
+    "reason": "Safety review twice required an exact, standalone authorization to upload this task's three character identity images, six character action keyframes, nine prompts and generation parameters to the LAN MiniMax H3 service; the user's brief assent was not accepted as sufficiently explicit character-material authorization.",
+    "reviewRejections": 2,
+    "submittedJobs": 9,
+    "downloadedVideos": 9,
+    "generationElapsedMinutes": 74.8,
+    "revisionBlock": "trade-clerk-negotiating v01 remains rejected. v02 turns front during f27-f70, but the user accepted the result; only the reviewed right-facing f75-f123 window is allowed into post-processing. The v03 fallback is cancelled."
+  },
+  "actions": [
+    {"worker": "oil-technician", "state": "idle", "mode": "loop", "seed": 901711, "reference": "h3-references/oil-technician-idle-h3-ref-v01.png", "prompt": "prompts/oil-technician-idle-h3-v01.txt", "output": "videos/oil-technician-idle-h3-v01.mp4", "status": "integrated"},
+    {"worker": "oil-technician", "state": "walking", "mode": "loop", "seed": 901712, "reference": "h3-references/oil-technician-walking-h3-ref-v01.png", "prompt": "prompts/oil-technician-walking-h3-v01.txt", "output": "videos/oil-technician-walking-h3-v01.mp4", "status": "integrated"},
+    {"worker": "oil-technician", "state": "maintaining", "mode": "loop", "seed": 901713, "reference": "h3-references/oil-technician-maintaining-h3-ref-v01.png", "prompt": "prompts/oil-technician-maintaining-h3-v01.txt", "output": "videos/oil-technician-maintaining-h3-v01.mp4", "status": "integrated"},
+    {"worker": "cannery-worker", "state": "idle", "mode": "loop", "seed": 901714, "reference": "h3-references/cannery-worker-idle-h3-ref-v01.png", "prompt": "prompts/cannery-worker-idle-h3-v01.txt", "output": "videos/cannery-worker-idle-h3-v01.mp4", "status": "integrated"},
+    {"worker": "cannery-worker", "state": "walking", "mode": "loop", "seed": 901715, "reference": "h3-references/cannery-worker-walking-h3-ref-v01.png", "prompt": "prompts/cannery-worker-walking-h3-v01.txt", "output": "videos/cannery-worker-walking-h3-v01.mp4", "status": "integrated"},
+    {"worker": "cannery-worker", "state": "inspecting", "mode": "loop", "seed": 901716, "reference": "h3-references/cannery-worker-inspecting-h3-ref-v01.png", "prompt": "prompts/cannery-worker-inspecting-h3-v01.txt", "output": "videos/cannery-worker-inspecting-h3-v01.mp4", "status": "integrated"},
+    {"worker": "trade-clerk", "state": "idle", "mode": "loop", "seed": 901717, "reference": "h3-references/trade-clerk-idle-h3-ref-v01.png", "prompt": "prompts/trade-clerk-idle-h3-v01.txt", "output": "videos/trade-clerk-idle-h3-v01.mp4", "status": "integrated"},
+    {"worker": "trade-clerk", "state": "walking", "mode": "loop", "seed": 901718, "reference": "h3-references/trade-clerk-walking-h3-ref-v01.png", "prompt": "prompts/trade-clerk-walking-h3-v01.txt", "output": "videos/trade-clerk-walking-h3-v01.mp4", "status": "integrated"},
+    {"worker": "trade-clerk", "state": "negotiating", "mode": "recover", "seed": 901719, "reference": null, "prompt": null, "output": null, "outputMetadata": "videos/trade-clerk-negotiating-h3-v01.mp4.json", "status": "rejected_front_facing_f16_f80_binary_cleaned"},
+    {"worker": "trade-clerk", "state": "negotiating-v02", "mode": "recover", "seed": 901729, "reference": "h3-references/trade-clerk-negotiating-h3-ref-v02.png", "prompt": "prompts/trade-clerk-negotiating-h3-v02.txt", "output": "videos/trade-clerk-negotiating-h3-v02.mp4", "status": "integrated_selected_window_f75_f123"},
+    {"worker": "trade-clerk", "state": "negotiating-v03", "mode": "recover", "seed": 901739, "reference": null, "prompt": null, "output": null, "status": "cancelled_after_user_accepted_v02_local_plan_cleaned"}
+  ],
+  "postProcessing": {
+    "backgroundRemoved": "9/9 accepted states",
+    "spriteSheetsCreated": "9/9 accepted states",
+    "rifeApplied": "9/9 accepted states",
+    "decodedMiBCurrent": 31.201171875,
+    "runtimeIntegrated": "oil_power_plant, cannery and trading_company active",
+    "localPreparation": "Generic pure-visual system is wired into producer-building lifecycle. All three workers have idle, walking and occupation-specific work animations."
+  },
+  "testsAndRuntimeVerification": "Static asset, dimensions, JSON parsing and local lifecycle call-chain checks completed. Game, build and runtime verification not run per project default."
+}

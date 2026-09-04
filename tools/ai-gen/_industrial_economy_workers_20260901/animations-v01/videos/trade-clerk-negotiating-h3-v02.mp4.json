@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T04:59:21.570321+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-negotiating-h3-v02.mp4",
+    "bytes": 295443,
+    "sha256": "a41a1cf36830a94a6412dd4d3533a2663aa9f815b07d84440dc9f7125253175e"
+  },
+  "promptId": "203c00fe-5857-46e3-bcda-1a1236b6cbda",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901729,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second single restrained trade-negotiation gesture with recovery by the exact trade company clerk in the first image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, closed ledger and one fountain pen. The first image is the strict orientation contract: keep the shoulder line, narrow chest, ribcage, pelvis, knees and both boot toes side-dominant toward screen-right at all times. The far shoulder stays mostly hidden. Never rotate the torso, pelvis or face toward the viewer.\n\nBegin in the shown planted staggered stance. The clerk makes one small pen point toward an off-screen partner on the right, lowers the pen to tap the ledger once, nods slightly while still looking right, then makes one restrained concluding pen gesture toward the right. Both boots stay planted, the ledger stays close along the near side of the torso, and the satchel stays at the hip. Finish by recovering to a calm side-dominant right-facing stance.\n\nFixed slightly elevated camera, zoom, body scale and pure white background. Keep the complete character inside frame. Preserve face, fur, clothing and prop topology. No broad or symmetrical chest, no front-facing interval, no walking, no partner, coins, cargo, desk, scenery, captions, extra documents, extra pens or extra anatomy.",
+  "effectivePrompt": "A 5.17-second single restrained trade-negotiation gesture with recovery by the exact trade company clerk in the first image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, closed ledger and one fountain pen. The first image is the strict orientation contract: keep the shoulder line, narrow chest, ribcage, pelvis, knees and both boot toes side-dominant toward screen-right at all times. The far shoulder stays mostly hidden. Never rotate the torso, pelvis or face toward the viewer.\n\nBegin in the shown planted staggered stance. The clerk makes one small pen point toward an off-screen partner on the right, lowers the pen to tap the ledger once, nods slightly while still looking right, then makes one restrained concluding pen gesture toward the right. Both boots stay planted, the ledger stays close along the near side of the torso, and the satchel stays at the hip. Finish by recovering to a calm side-dominant right-facing stance.\n\nFixed slightly elevated camera, zoom, body scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete character inside frame. Preserve face, fur, clothing and prop topology. No broad or symmetrical chest, no front-facing interval, no walking, no partner, coins, cargo, desk, scenery, captions, extra documents, extra pens or extra anatomy.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second single restrained trade-negotiation gesture with recovery by the exact trade company clerk in the first image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, closed ledger and one fountain pen. The first image is the strict orientation contract: keep the shoulder line, narrow chest, ribcage, pelvis, knees and both boot toes side-dominant toward screen-right at all times. The far shoulder stays mostly hidden. Never rotate the torso, pelvis or face toward the viewer.\n\nBegin in the shown planted staggered stance. The clerk makes one small pen point toward an off-screen partner on the right, lowers the pen to tap the ledger once, nods slightly while still looking right, then makes one restrained concluding pen gesture toward the right. Both boots stay planted, the ledger stays close along the near side of the torso, and the satchel stays at the hip. Finish by recovering to a calm side-dominant right-facing stance.\n\nFixed slightly elevated camera, zoom, body scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete character inside frame. Preserve face, fur, clothing and prop topology. No broad or symmetrical chest, no front-facing interval, no walking, no partner, coins, cargo, desk, scenery, captions, extra documents, extra pens or extra anatomy. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "c682a321f31f8e9cfaa88c6b6583614e54f92fd6bc99da9ff4ddc6717835622c",
+  "effectivePromptSha256": "fae4a5381863e7908dc4bddfa35010516ea56e0e7acd9a110bade4db124d2de8",
+  "finalPromptSha256": "5b594c9820dd5d2396057c443a7f73b7ee4522ea0ebb0f6e1c440b057779daa1",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\trade-clerk-negotiating-h3-v02.txt",
+      "bytes": 1387,
+      "sha256": "d44b55a7ce799f1b8b93788060e04a49399b81c89a9ca3bf8d21c643b1a81030"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\trade-clerk-negotiating-h3-ref-v02.png",
+      "bytes": 239947,
+      "sha256": "ff1fab871579daf7980d8fdb2b49d73e224e27c0b742280c74e18ed0033f7f91"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-negotiating-h3-v02_contact.png",
+    "bytes": 237869,
+    "sha256": "79b5a5b2dbb7dc09c7385e0852e5ec356d9f1511b91bde4a94ab035371668162"
+  },
+  "elapsedSeconds": 430.742
+}

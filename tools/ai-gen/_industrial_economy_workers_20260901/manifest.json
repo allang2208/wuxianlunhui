@@ -1,0 +1,44 @@
+{
+  "task": "modern-economy-building-civilian-worker-mother-images",
+  "createdAt": "2026-09-01",
+  "generator": "OpenAI built-in imagegen",
+  "stage": {
+    "identityMotherGenerated": true,
+    "userApproved": false,
+    "animationDirectionApproved": false,
+    "cutoutComplete": false,
+    "runtimeIntegrated": false
+  },
+  "sharedContract": {
+    "characterType": "pure-visual hamster civilian worker",
+    "style": "detailed semi-realistic 3D game character",
+    "camera": "slightly top-down three-quarter view",
+    "identityPose": "neutral full-body standing pose facing screen-right",
+    "background": "seamless white with no floor, scenery, text, or watermark",
+    "animationNote": "These images establish identity only. Movement animation requires separate right-facing action keyframe review before video or sprite-sheet work."
+  },
+  "styleReference": "tools/ai-gen/_hamster_boiler_worker_20260825/mothers/hamster-boiler-worker-v2-transparent.png",
+  "assets": [
+    {
+      "id": "hamster_oil_technician",
+      "building": "oil_power_plant",
+      "file": "mothers/hamster-oil-technician-mother-v01.png",
+      "identity": "olive hard hat, charcoal/navy industrial workwear, gloves, tool pouch, small brass wrench",
+      "exclusions": "no smoke, machinery, oil drum, reflective vest, firefighter gear, or combat equipment"
+    },
+    {
+      "id": "hamster_cannery_worker",
+      "building": "cannery",
+      "file": "mothers/hamster-cannery-worker-mother-v01.png",
+      "identity": "sanitary cloth cap, cream work coat, blue-green apron, rubber boots, sealed can, inspection clipboard",
+      "exclusions": "no chef hat, bread, vegetables, kitchen utensils, conveyor, or stacked cans"
+    },
+    {
+      "id": "hamster_trade_clerk",
+      "building": "trading_company",
+      "file": "mothers/hamster-trade-clerk-mother-v01.png",
+      "identity": "dark teal commercial jacket and flat cap, waistcoat, burgundy tie, document satchel, ledger, pen and shipping paper",
+      "exclusions": "no top hat, coins, money bag, pocket watch, yellow courier uniform, cargo crate, or combat equipment"
+    }
+  ]
+}

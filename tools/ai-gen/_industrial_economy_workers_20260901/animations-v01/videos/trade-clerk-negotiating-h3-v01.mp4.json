@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T04:14:32.921734+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-negotiating-h3-v01.mp4",
+    "bytes": 417426,
+    "sha256": "606f6507fabf63baef357128b67c4187e24ba1019183f3cb6c685e53ac400b88"
+  },
+  "promptId": "3e6c7d79-1a12-410a-be13-4be0ec1b4481",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901719,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second single trade-negotiation gesture with recovery by the exact trade company clerk in the first image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, opened ledger, fountain pen and shipping paper. Keep the side-dominant right-facing body and slightly elevated three-quarter camera.\n\nBegin in the shown planted explanatory pose. The clerk gives one friendly sentence toward an off-screen partner to the right, tracing a small point in the air with the pen. The forward paw lowers to indicate one line in the ledger; the eyes follow, then the clerk nods once and makes a restrained concluding outward gesture. The ledger stays supported against the torso, the shipping paper remains inside it, the satchel stays at the hip and both boots remain planted. Finish by naturally recovering to a calm right-facing document-holding stance without an abrupt freeze.\n\nFixed camera, zoom, body scale and pure white background. Keep the complete character and documents inside frame. Preserve face, fur, clothing and prop topology throughout. No walking, partner entering frame, coins, cargo, desk, scenery, captions, extra documents or extra anatomy.",
+  "effectivePrompt": "A 5.17-second single trade-negotiation gesture with recovery by the exact trade company clerk in the first image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, opened ledger, fountain pen and shipping paper. Keep the side-dominant right-facing body and slightly elevated three-quarter camera.\n\nBegin in the shown planted explanatory pose. The clerk gives one friendly sentence toward an off-screen partner to the right, tracing a small point in the air with the pen. The forward paw lowers to indicate one line in the ledger; the eyes follow, then the clerk nods once and makes a restrained concluding outward gesture. The ledger stays supported against the torso, the shipping paper remains inside it, the satchel stays at the hip and both boots remain planted. Finish by naturally recovering to a calm right-facing document-holding stance without an abrupt freeze.\n\nFixed camera, zoom, body scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete character and documents inside frame. Preserve face, fur, clothing and prop topology throughout. No walking, partner entering frame, coins, cargo, desk, scenery, captions, extra documents or extra anatomy.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second single trade-negotiation gesture with recovery by the exact trade company clerk in the first image. Preserve the golden-brown hamster, dark teal flat cap and jacket, navy waistcoat, cream shirt, burgundy tie, brown trousers, dark boots, leather document satchel, opened ledger, fountain pen and shipping paper. Keep the side-dominant right-facing body and slightly elevated three-quarter camera.\n\nBegin in the shown planted explanatory pose. The clerk gives one friendly sentence toward an off-screen partner to the right, tracing a small point in the air with the pen. The forward paw lowers to indicate one line in the ledger; the eyes follow, then the clerk nods once and makes a restrained concluding outward gesture. The ledger stays supported against the torso, the shipping paper remains inside it, the satchel stays at the hip and both boots remain planted. Finish by naturally recovering to a calm right-facing document-holding stance without an abrupt freeze.\n\nFixed camera, zoom, body scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete character and documents inside frame. Preserve face, fur, clothing and prop topology throughout. No walking, partner entering frame, coins, cargo, desk, scenery, captions, extra documents or extra anatomy. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "45f7256bf196162dc037970543096a227bfd63b402ca5546d2cbc65270668acf",
+  "effectivePromptSha256": "10b62e413b703308234e0c52dc8f0cf3c22f79c55767a54b1c8e41d148507481",
+  "finalPromptSha256": "563b66ec7a9f2dcdf9a863fe757084b316f16f3631ab159a4759fcc63fe32b21",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\trade-clerk-negotiating-h3-v01.txt",
+      "bytes": 1267,
+      "sha256": "5dde02fca7acbd3dd68d20685a14ac8e29cf53e535fd933551186f20be6974f6"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\trade-clerk-negotiating-h3-ref-v01.png",
+      "bytes": 241931,
+      "sha256": "57cfbf9ad52de5b73fa374cf27b3d6d83b5f84bbb5f0098ada2972ce67c7cb9f"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\trade-clerk-negotiating-h3-v01_contact.png",
+    "bytes": 336074,
+    "sha256": "88ccf15aa43652588c21c0a704c87b79ed9170aef54259c4cef3d763e1f8930e"
+  },
+  "elapsedSeconds": 425.71
+}

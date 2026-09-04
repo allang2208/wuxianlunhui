@@ -1,0 +1,284 @@
+{
+  "version": 1,
+  "sharedTransform": {
+    "sourceCanvas": [
+      1536,
+      1536
+    ],
+    "outputSize": [
+      1024,
+      576
+    ],
+    "sourceToOutputScale": 0.375,
+    "description": "All states use the same centered 1536-square pad, uniform resize to 576 square, then centered placement on 1024x576. No per-state fit or non-uniform scaling."
+  },
+  "references": {
+    "oil-technician": {
+      "idle": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/mothers/hamster-oil-technician-mother-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          359,
+          32,
+          872,
+          1225
+        ],
+        "sourceContentHeight": 1193,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/oil-technician-idle-h3-ref-v01.png"
+      },
+      "walking": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/oil-technician-walking-keyframe-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          333,
+          57,
+          937,
+          1176
+        ],
+        "sourceContentHeight": 1119,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/oil-technician-walking-h3-ref-v01.png"
+      },
+      "maintaining": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/oil-technician-maintaining-keyframe-v02.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          359,
+          59,
+          911,
+          1196
+        ],
+        "sourceContentHeight": 1137,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/oil-technician-maintaining-h3-ref-v01.png"
+      }
+    },
+    "cannery-worker": {
+      "idle": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/mothers/hamster-cannery-worker-mother-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          365,
+          36,
+          981,
+          1222
+        ],
+        "sourceContentHeight": 1186,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/cannery-worker-idle-h3-ref-v01.png"
+      },
+      "walking": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/cannery-worker-walking-keyframe-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          293,
+          60,
+          960,
+          1161
+        ],
+        "sourceContentHeight": 1101,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/cannery-worker-walking-h3-ref-v01.png"
+      },
+      "inspecting": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/cannery-worker-inspecting-keyframe-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          385,
+          47,
+          901,
+          1211
+        ],
+        "sourceContentHeight": 1164,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/cannery-worker-inspecting-h3-ref-v01.png"
+      }
+    },
+    "trade-clerk": {
+      "idle": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/mothers/hamster-trade-clerk-mother-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          362,
+          29,
+          969,
+          1228
+        ],
+        "sourceContentHeight": 1199,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/trade-clerk-idle-h3-ref-v01.png"
+      },
+      "walking": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/trade-clerk-walking-keyframe-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          326,
+          68,
+          982,
+          1188
+        ],
+        "sourceContentHeight": 1120,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/trade-clerk-walking-h3-ref-v01.png"
+      },
+      "negotiating": {
+        "source": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/trade-clerk-negotiating-keyframe-v01.png",
+        "sourceSize": [
+          1254,
+          1254
+        ],
+        "sourceContentBbox": [
+          312,
+          35,
+          1094,
+          1228
+        ],
+        "sourceContentHeight": 1193,
+        "sharedSourceCanvas": [
+          1536,
+          1536
+        ],
+        "sourceOffset": [
+          141,
+          141
+        ],
+        "outputSize": [
+          1024,
+          576
+        ],
+        "sourceToOutputScale": 0.375,
+        "nonUniformScaling": false,
+        "output": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/trade-clerk-negotiating-h3-ref-v01.png"
+      }
+    }
+  }
+}

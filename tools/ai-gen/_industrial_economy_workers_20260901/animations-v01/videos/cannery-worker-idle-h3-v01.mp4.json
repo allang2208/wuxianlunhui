@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T03:36:56.982804+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\cannery-worker-idle-h3-v01.mp4",
+    "bytes": 268864,
+    "sha256": "cf19ffc4b575754d4b10bca70cd7379a47448d7cd83297d9b76fc7297ced840d"
+  },
+  "promptId": "f90f457e-f7a1-44f5-9aa8-36161d65554b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901714,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second seamless idle loop of the exact cannery quality worker in the first and last image. Preserve the golden-brown hamster, off-white sanitary factory cap, cream work coat, sage shirt, blue-green apron, brown trousers, tan gloves, dark green rubber boots, one sealed unlabeled metal can and one compact inspection clipboard. Keep the slightly elevated three-quarter camera and right-facing identity pose.\n\nBegin in the shown planted stance. The worker breathes gently, blinks once and makes a small attentive head movement toward the can. The can remains securely held at waist height while the clipboard stays stable in the other paw. The sanitary cap, coat and apron follow only subtle breathing motion. The body root and both boots remain fixed. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform pure white background. Keep the complete cap, boots, can and clipboard inside the frame. Preserve garment colors, face markings, fur and prop topology throughout. No walking, cooking gestures, camera motion, conveyor, food, scenery, captions or additional cans.",
+  "effectivePrompt": "A 5.17-second seamless idle loop of the exact cannery quality worker in the first and last image. Preserve the golden-brown hamster, off-white sanitary factory cap, cream work coat, sage shirt, blue-green apron, brown trousers, tan gloves, dark green rubber boots, one sealed unlabeled metal can and one compact inspection clipboard. Keep the slightly elevated three-quarter camera and right-facing identity pose.\n\nBegin in the shown planted stance. The worker breathes gently, blinks once and makes a small attentive head movement toward the can. The can remains securely held at waist height while the clipboard stays stable in the other paw. The sanitary cap, coat and apron follow only subtle breathing motion. The body root and both boots remain fixed. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete cap, boots, can and clipboard inside the frame. Preserve garment colors, face markings, fur and prop topology throughout. No walking, cooking gestures, camera motion, conveyor, food, scenery, captions or additional cans.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second seamless idle loop of the exact cannery quality worker in the first and last image. Preserve the golden-brown hamster, off-white sanitary factory cap, cream work coat, sage shirt, blue-green apron, brown trousers, tan gloves, dark green rubber boots, one sealed unlabeled metal can and one compact inspection clipboard. Keep the slightly elevated three-quarter camera and right-facing identity pose.\n\nBegin in the shown planted stance. The worker breathes gently, blinks once and makes a small attentive head movement toward the can. The can remains securely held at waist height while the clipboard stays stable in the other paw. The sanitary cap, coat and apron follow only subtle breathing motion. The body root and both boots remain fixed. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete cap, boots, can and clipboard inside the frame. Preserve garment colors, face markings, fur and prop topology throughout. No walking, cooking gestures, camera motion, conveyor, food, scenery, captions or additional cans. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "134b13db888c849c8b628fd9ecdc4bc14a1712e2b02da7c021068e003bf81656",
+  "effectivePromptSha256": "67d52fa1efde435a8b5fbd4865921007cb77219a352ceff221668efb0699c6ad",
+  "finalPromptSha256": "919a230729a27ec121335e4d2d8e954f76a8ed506aee066fc00a9476598809b8",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\cannery-worker-idle-h3-v01.txt",
+      "bytes": 1148,
+      "sha256": "d02f4963992f1946466aa088a980a797244209664be8e7201e323c0b96e5f130"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\cannery-worker-idle-h3-ref-v01.png",
+      "bytes": 193900,
+      "sha256": "f4a09f6ea68fbce17f7f6d2bc84f2edef5bafbab90d47dd0bf6b02f9b42da807"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\cannery-worker-idle-h3-ref-v01.png",
+      "bytes": 193900,
+      "sha256": "f4a09f6ea68fbce17f7f6d2bc84f2edef5bafbab90d47dd0bf6b02f9b42da807"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\cannery-worker-idle-h3-v01_contact.png",
+    "bytes": 294442,
+    "sha256": "685ab9542eb17c8bffc767509c5fafcd3a6d582385fac349af2cc3a25b732029"
+  },
+  "elapsedSeconds": 455.797
+}

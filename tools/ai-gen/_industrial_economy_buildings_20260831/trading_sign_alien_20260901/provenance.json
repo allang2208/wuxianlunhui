@@ -1,0 +1,25 @@
+{
+  "source": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_candidates_dev_s12_20260901/trading_company/trading_company_structure_v02_raw.png",
+  "generatedImage": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/trading_company/trading_company_refine_v01_raw.png",
+  "output": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/trading_company_alien_sign_raw.png",
+  "mask": "tools/ai-gen/_industrial_economy_buildings_20260831/trading_sign_alien_20260901/sign-mask.png",
+  "operation": "PIL.Image.composite generated sign over immutable source02 using the authored sign-face mask",
+  "changedPixelCount": 2423,
+  "changedBBox": [
+    720,
+    591,
+    789,
+    657
+  ],
+  "outsideMaskChangedPixels": 0,
+  "sourceMode": "RGB",
+  "outputMode": "RGB",
+  "size": [
+    1024,
+    1024
+  ],
+  "transparentFinishingPerformed": false,
+  "runtimeInstalled": false,
+  "sourceOutsideSignRestoredExactly": true,
+  "generationMetadata": "trading_company/trading_company_refine_v01_generation.json"
+}

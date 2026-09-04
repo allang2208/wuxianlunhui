@@ -1,0 +1,75 @@
+{
+  "oil-technician/idle": {
+    "video": "videos/oil-technician-idle-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [79, 82, 85, 88, 91, 94],
+    "duplicateEndpoint": 97,
+    "keyframeFps": 8,
+    "frameRate": 16
+  },
+  "oil-technician/walking": {
+    "video": "videos/oil-technician-walking-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [18, 22, 26, 30, 34, 38, 42, 46],
+    "duplicateEndpoint": 49,
+    "keyframeFps": 6,
+    "frameRate": 12
+  },
+  "oil-technician/maintaining": {
+    "video": "videos/oil-technician-maintaining-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [62, 65, 68, 71, 74, 77],
+    "duplicateEndpoint": 80,
+    "keyframeFps": 8,
+    "frameRate": 16
+  },
+  "cannery-worker/idle": {
+    "video": "videos/cannery-worker-idle-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [33, 37, 41, 45, 49, 53, 57, 61, 65],
+    "duplicateEndpoint": 67,
+    "keyframeFps": 6,
+    "frameRate": 12
+  },
+  "cannery-worker/walking": {
+    "video": "videos/cannery-worker-walking-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [18, 22, 26, 30, 34, 38, 42, 46, 50, 54],
+    "duplicateEndpoint": 56,
+    "keyframeFps": 6,
+    "frameRate": 12
+  },
+  "cannery-worker/inspecting": {
+    "video": "videos/cannery-worker-inspecting-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [56, 59, 62, 65, 68, 71],
+    "duplicateEndpoint": 74,
+    "keyframeFps": 8,
+    "frameRate": 16
+  },
+  "trade-clerk/idle": {
+    "video": "videos/trade-clerk-idle-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [30, 34, 38, 42, 46, 50],
+    "duplicateEndpoint": 54,
+    "keyframeFps": 6,
+    "frameRate": 12
+  },
+  "trade-clerk/walking": {
+    "video": "videos/trade-clerk-walking-h3-v01.mp4",
+    "mode": "loop",
+    "indices": [48, 52, 56, 60, 64, 68, 72, 76, 80, 84],
+    "duplicateEndpoint": 88,
+    "keyframeFps": 6,
+    "frameRate": 12
+  },
+  "trade-clerk/negotiating": {
+    "enabled": true,
+    "video": "videos/trade-clerk-negotiating-h3-v02.mp4",
+    "mode": "one-shot",
+    "indices": [75, 80, 86, 91, 96, 102, 107, 112, 118, 123],
+    "keyframeFps": 8,
+    "frameRate": 16,
+    "selectionReason": "User accepted v02; only the reviewed right-facing f75-f123 negotiation-and-recovery window enters the sprite pipeline."
+  }
+}

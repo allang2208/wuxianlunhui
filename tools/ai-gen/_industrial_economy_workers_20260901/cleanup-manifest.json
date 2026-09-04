@@ -1,0 +1,109 @@
+{
+  "date": "2026-09-01",
+  "scope": "industrial economy worker animations",
+  "policy": "Retain nine accepted actions, selected MP4/provenance/prompts/source sheets/runtime sheets/GIFs/reports; retain rejected generation JSON only.",
+  "deletedFileCount": 20,
+  "deletedBytes": 4226760,
+  "entries": [
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/__pycache__/prepare-h3-references.cpython-311.pyc",
+      "bytes": 8553,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/trade-clerk-negotiating-h3-ref-v01.png",
+      "bytes": 241931,
+      "reason": "rejected front-facing animation source or review binary; JSON generation metadata retained"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/h3-references/trade-clerk-negotiating-h3-ref-v03.png",
+      "bytes": 239947,
+      "reason": "cancelled fallback never submitted"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/prompts/trade-clerk-negotiating-h3-v01.txt",
+      "bytes": 1267,
+      "reason": "rejected front-facing animation source or review binary; JSON generation metadata retained"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/prompts/trade-clerk-negotiating-h3-v03.txt",
+      "bytes": 1610,
+      "reason": "cancelled fallback never submitted"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/trade-clerk-negotiating-keyframe-v01.png",
+      "bytes": 1430737,
+      "reason": "rejected front-facing animation source or review binary; JSON generation metadata retained"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/references/trade-clerk-negotiating-keyframe-v03.png",
+      "bytes": 1520739,
+      "reason": "cancelled fallback never submitted"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/cannery-worker/idle/rife.log",
+      "bytes": 3059,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/cannery-worker/inspecting/rife.log",
+      "bytes": 2650,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/cannery-worker/walking/rife.log",
+      "bytes": 3222,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/oil-technician/idle/rife.log",
+      "bytes": 2633,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/oil-technician/maintaining/rife.log",
+      "bytes": 2652,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/oil-technician/walking/rife.log",
+      "bytes": 2926,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/trade-clerk/idle/rife.log",
+      "bytes": 2623,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/trade-clerk/negotiating/rife.log",
+      "bytes": 3086,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/runtime/trade-clerk/walking/rife.log",
+      "bytes": 3213,
+      "reason": "rebuildable interpolation log or interpreter cache"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/videos/trade-clerk-negotiating-h3-v01_contact.png",
+      "bytes": 336074,
+      "reason": "rejected front-facing animation source or review binary; JSON generation metadata retained"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/videos/trade-clerk-negotiating-h3-v01.mp4",
+      "bytes": 417426,
+      "reason": "rejected front-facing animation source or review binary; JSON generation metadata retained"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/windows.template.json",
+      "bytes": 1334,
+      "reason": "obsolete preselection window template"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_economy_workers_20260901/animations-v01/generate-negotiating-v03.ps1",
+      "bytes": 1078,
+      "reason": "cancelled fallback launcher after user accepted v02"
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "id": "cannery",
+  "label": "罐头加工厂",
+  "selected48Variant": 1,
+  "seed": 133211,
+  "sourceRaw": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/cannery/cannery_refine_v01_raw.png",
+  "sourceGenerationMetadata": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/cannery/cannery_refine_v01_generation.json",
+  "source48Manifest": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/manifest.json",
+  "previousAcceptedInput": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/cannery/cannery_refine_v02_raw.png",
+  "sourceModel": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_model.blend",
+  "sourceDepth": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/cannery/cannery_body_depth.png",
+  "measuredKeyRGB": [
+    83.0,
+    214.0,
+    57.0
+  ],
+  "edgeConnectedKeyThreshold": 80,
+  "removeAllGreen": false,
+  "removeEnclosedKey": false,
+  "depthAlphaPolicy": "Full Depth viewed for structure reference only. Selected raw has accepted roof, plinth and equipment contour differences; no Depth mask, dilation or alpha restoration.",
+  "shadowCleanup": "Edge-connected RGB key removed exterior backdrop and cast shadow; no broad HSV, outside polygon or alpha-hole filling needed.",
+  "edgeRepair": {
+    "maxEdgeDistance": 2,
+    "minGreen": 90,
+    "greenMargin": 35,
+    "additionalFoundationPass": null,
+    "changedRGBPixels": 645,
+    "changedAlphaPixels": 0
+  },
+  "final": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/cannery.png",
+  "fullCanvasAlphaMaster": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/edge-clean.png",
+  "metadata": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/export-metadata.json",
+  "cropBox": [
+    67,
+    317,
+    958,
+    936
+  ],
+  "fileSize": [
+    891,
+    619
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    887,
+    615
+  ],
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "transparentRGBNonzeroPixels": 0,
+  "exportChangedAlphaPixels": 0,
+  "nominalDisplay": {
+    "width": 512,
+    "height": 356,
+    "footOffsetY": 176,
+    "referenceOnly": true,
+    "runtimeCalibrationPerformed": false,
+    "pngResized": false
+  },
+  "commands": [
+    {
+      "tool": "tools/ai-gen/key-world122-building-body.py",
+      "args": [
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/cannery/cannery_refine_v01_raw.png",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/keyed.png",
+        "--threshold",
+        "80"
+      ],
+      "stdout": "key=(83.0, 214.0, 57.0) transparent=70.3% global_removed=0 protected_pixels=0 -> tools\\ai-gen\\_industrial_economy_buildings_20260831\\v02\\transparent_final_20260901\\cannery\\keyed.png",
+      "stderr": ""
+    },
+    {
+      "tool": "tools/ai-gen/repair-local-green-spill.py",
+      "args": [
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/keyed.png",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/edge-clean.png",
+        "--rect",
+        "0,0,1024,1024",
+        "--max-edge-distance",
+        "2",
+        "--min-green",
+        "90",
+        "--green-margin",
+        "35"
+      ],
+      "stdout": "repaired_pixels=645 bbox=(71,321)-(953,931) alpha_preserved=true -> tools\\ai-gen\\_industrial_economy_buildings_20260831\\v02\\transparent_final_20260901\\cannery\\edge-clean.png",
+      "stderr": ""
+    },
+    {
+      "tool": "tools/ai-gen/finalize-building-runtime.py",
+      "args": [
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/edge-clean.png",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/cannery.png",
+        "--display-width",
+        "512",
+        "--padding",
+        "4",
+        "--preserve-alpha-exact",
+        "--nearest-opaque-edge-rgb",
+        "--metadata",
+        "tools/ai-gen/_industrial_economy_buildings_20260831/v02/transparent_final_20260901/cannery/export-metadata.json"
+      ],
+      "stdout": "{\n  \"source\": \"tools\\\\ai-gen\\\\_industrial_economy_buildings_20260831\\\\v02\\\\transparent_final_20260901\\\\cannery\\\\edge-clean.png\",\n  \"output\": \"tools\\\\ai-gen\\\\_industrial_economy_buildings_20260831\\\\v02\\\\transparent_final_20260901\\\\cannery\\\\cannery.png\",\n  \"sourceMode\": \"RGBA\",\n  \"background\": null,\n  \"matteColor\": null,\n  \"matteEdgeWidth\": null,\n  \"matteTolerance\": null,\n  \"nearestOpaqueEdgeRgb\": true,\n  \"nearestOpaqueAlpha\": 0.98,\n  \"defringeInnerPixels\": 0,\n  \"minComponentPixels\": 0,\n  \"removedComponents\": 0,\n  \"removedComponentPixels\": 0,\n  \"preserveAlphaExact\": true,\n  \"maskImage\": null,\n  \"maskDilate\": null,\n  \"fillAlphaHoles\": false,\n  \"fillHoleMatteDistance\": null,\n  \"removeEnclosedMatte\": false,\n  \"enclosedMatteChromaDistance\": null,\n  \"maskAddRects\": [],\n  \"restoreAlphaRects\": [],\n  \"removeMatteRects\": [],\n  \"clearMatteOutsidePolygons\": [],\n  \"clearGreenRects\": [],\n  \"clearAlphaRects\": [],\n  \"clearAlphaPolygons\": [],\n  \"greenHueRange\": null,\n  \"greenSaturationMin\": null,\n  \"greenValueMin\": null,\n  \"cropBox\": [\n    67,\n    317,\n    958,\n    936\n  ],\n  \"fileSize\": [\n    891,\n    619\n  ],\n  \"alphaBBox\": [\n    4,\n    4,\n    887,\n    615\n  ],\n  \"displayW\": 512,\n  \"displayH\": 356,\n  \"footOffsetY\": 176,\n  \"scaleX\": 0.574635241301908,\n  \"scaleY\": 0.5751211631663974\n}",
+      "stderr": ""
+    }
+  ]
+}

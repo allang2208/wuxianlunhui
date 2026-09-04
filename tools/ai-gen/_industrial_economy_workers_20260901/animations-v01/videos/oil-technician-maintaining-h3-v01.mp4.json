@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T03:29:19.890034+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\oil-technician-maintaining-h3-v01.mp4",
+    "bytes": 327045,
+    "sha256": "70ef6ca87158a41642937324565f84bfc966c71b7513186baa26536d494bf78c"
+  },
+  "promptId": "9dfd7bc2-586a-4563-bc7a-909143f02a1b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901713,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second seamless maintenance loop of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark industrial workwear, brown gloves, belt pouch, dark boots, the same brass adjustable wrench and the same palm-sized brass pipe coupling. Keep the side-dominant right-facing body and slightly elevated three-quarter camera.\n\nBegin in the shown mid-tightening pose. Both boots stay planted and the body root remains fixed. The left paw supports the coupling at waist height while the right paw turns the wrench through a short controlled quarter-turn. The technician pauses to inspect the nut, adjusts the wrench jaw once, completes a second small tightening motion and returns the wrench and coupling to the exact first arrangement. Use restrained shoulder and elbow movement with a slight concentrated head dip; the coupling never leaves the paw and the wrench remains engaged as one rigid tool.\n\nFixed camera, zoom, scale and pure white background. Keep the whole character and both handheld parts inside frame. Preserve face, fur, clothing seams and equipment topology. No walking, tool morphing, loose parts, wall pipes, machinery, smoke, scenery, captions or additional objects.",
+  "effectivePrompt": "A 5.17-second seamless maintenance loop of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark industrial workwear, brown gloves, belt pouch, dark boots, the same brass adjustable wrench and the same palm-sized brass pipe coupling. Keep the side-dominant right-facing body and slightly elevated three-quarter camera.\n\nBegin in the shown mid-tightening pose. Both boots stay planted and the body root remains fixed. The left paw supports the coupling at waist height while the right paw turns the wrench through a short controlled quarter-turn. The technician pauses to inspect the nut, adjusts the wrench jaw once, completes a second small tightening motion and returns the wrench and coupling to the exact first arrangement. Use restrained shoulder and elbow movement with a slight concentrated head dip; the coupling never leaves the paw and the wrench remains engaged as one rigid tool.\n\nFixed camera, zoom, scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the whole character and both handheld parts inside frame. Preserve face, fur, clothing seams and equipment topology. No walking, tool morphing, loose parts, wall pipes, machinery, smoke, scenery, captions or additional objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second seamless maintenance loop of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark industrial workwear, brown gloves, belt pouch, dark boots, the same brass adjustable wrench and the same palm-sized brass pipe coupling. Keep the side-dominant right-facing body and slightly elevated three-quarter camera.\n\nBegin in the shown mid-tightening pose. Both boots stay planted and the body root remains fixed. The left paw supports the coupling at waist height while the right paw turns the wrench through a short controlled quarter-turn. The technician pauses to inspect the nut, adjusts the wrench jaw once, completes a second small tightening motion and returns the wrench and coupling to the exact first arrangement. Use restrained shoulder and elbow movement with a slight concentrated head dip; the coupling never leaves the paw and the wrench remains engaged as one rigid tool.\n\nFixed camera, zoom, scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the whole character and both handheld parts inside frame. Preserve face, fur, clothing seams and equipment topology. No walking, tool morphing, loose parts, wall pipes, machinery, smoke, scenery, captions or additional objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "dee993aa3d23d6c48ed32dd9611c6a711cda1965118a5b0b021a90ebfeadd5a1",
+  "effectivePromptSha256": "902e360adbc7415995e38f4858575070badbc24d8b1b57a2289a478a54bffc2f",
+  "finalPromptSha256": "9b2adb6dd9a84186e55a01d3f534989d30f12d985f7ab796fbfed9292e053c3f",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\oil-technician-maintaining-h3-v01.txt",
+      "bytes": 1247,
+      "sha256": "7029f1ab646bb81b62f89f58a7c63ecf28074c25da2e151f2d0ae95f3c080f30"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\oil-technician-maintaining-h3-ref-v01.png",
+      "bytes": 227766,
+      "sha256": "4cb8c89232d6d288fdd8ac83754e88a99b182a5644d81cf9be5d1e141e65a60c"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\oil-technician-maintaining-h3-ref-v01.png",
+      "bytes": 227766,
+      "sha256": "4cb8c89232d6d288fdd8ac83754e88a99b182a5644d81cf9be5d1e141e65a60c"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\oil-technician-maintaining-h3-v01_contact.png",
+    "bytes": 287499,
+    "sha256": "6a3af8d47c1d49e0ffa817b747ea39b695651ae8a4ebbcff1999d4504aafe6a8"
+  },
+  "elapsedSeconds": 455.984
+}

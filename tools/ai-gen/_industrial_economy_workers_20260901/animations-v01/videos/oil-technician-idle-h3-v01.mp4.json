@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T03:14:05.529228+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\oil-technician-idle-h3-v01.mp4",
+    "bytes": 283454,
+    "sha256": "b47ce012fdfb2a82bc47f9c85584118c955577fef11131df4ec3c46466362aec"
+  },
+  "promptId": "a6881108-f543-4b95-a373-df779d546886",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901711,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second seamless idle loop of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark charcoal and navy industrial jacket and overalls, brown gloves, tool pouch, dark boots and the same small brass adjustable wrench. Keep the slightly elevated three-quarter camera and the character's right-facing identity pose.\n\nBegin in the shown planted stance. The chest breathes gently, the head makes one small attentive scan toward screen-right, one ear twitches and the eyes blink once. The wrench remains securely held low beside the body, the tool pouch stays attached to the belt and all clothing follows only subtle breathing motion. The body root and both boots remain fixed at the same screen position. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform pure white background. Keep the complete hard hat, boots, wrench and silhouette inside the frame. Preserve the connected clothing, tool topology, facial markings and fur detail throughout. No walking, large gestures, camera motion, scenery, smoke, machinery, captions or additional objects.",
+  "effectivePrompt": "A 5.17-second seamless idle loop of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark charcoal and navy industrial jacket and overalls, brown gloves, tool pouch, dark boots and the same small brass adjustable wrench. Keep the slightly elevated three-quarter camera and the character's right-facing identity pose.\n\nBegin in the shown planted stance. The chest breathes gently, the head makes one small attentive scan toward screen-right, one ear twitches and the eyes blink once. The wrench remains securely held low beside the body, the tool pouch stays attached to the belt and all clothing follows only subtle breathing motion. The body root and both boots remain fixed at the same screen position. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete hard hat, boots, wrench and silhouette inside the frame. Preserve the connected clothing, tool topology, facial markings and fur detail throughout. No walking, large gestures, camera motion, scenery, smoke, machinery, captions or additional objects.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second seamless idle loop of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark charcoal and navy industrial jacket and overalls, brown gloves, tool pouch, dark boots and the same small brass adjustable wrench. Keep the slightly elevated three-quarter camera and the character's right-facing identity pose.\n\nBegin in the shown planted stance. The chest breathes gently, the head makes one small attentive scan toward screen-right, one ear twitches and the eyes blink once. The wrench remains securely held low beside the body, the tool pouch stays attached to the belt and all clothing follows only subtle breathing motion. The body root and both boots remain fixed at the same screen position. Return naturally to the exact first pose and expression at the end without a pause.\n\nFixed camera, zoom and body scale. Uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete hard hat, boots, wrench and silhouette inside the frame. Preserve the connected clothing, tool topology, facial markings and fur detail throughout. No walking, large gestures, camera motion, scenery, smoke, machinery, captions or additional objects. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "1c1d8d876fb6e74f6b262663a841980ab79936a241bc092f6c9102e88a91e61f",
+  "effectivePromptSha256": "a87f07bf87272731666b7f8889b88ef0774af164679320caaa0d6162d17d7f64",
+  "finalPromptSha256": "fc3cfef214a3e033f7f4880fe813b1e0efd07770f5b3ae1c503a56feeb504e81",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\oil-technician-idle-h3-v01.txt",
+      "bytes": 1192,
+      "sha256": "427c6e5ba20ffeee1dda601326db12918ff4d4c3bdc0275faf8c2ceb5cc8ff9d"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\oil-technician-idle-h3-ref-v01.png",
+      "bytes": 211674,
+      "sha256": "9628126dcb4c565b240b2abad0fa93aa3c53fbfaaead89067edc1c70d307753c"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\oil-technician-idle-h3-ref-v01.png",
+      "bytes": 211674,
+      "sha256": "9628126dcb4c565b240b2abad0fa93aa3c53fbfaaead89067edc1c70d307753c"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\oil-technician-idle-h3-v01_contact.png",
+    "bytes": 296582,
+    "sha256": "7911b806ca81b1afb58a2739f72849e8a499c310ce582d1fae29b43ac4800fb6"
+  },
+  "elapsedSeconds": 856.292
+}

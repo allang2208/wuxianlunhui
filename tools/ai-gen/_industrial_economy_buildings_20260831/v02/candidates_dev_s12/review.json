@@ -1,0 +1,80 @@
+{
+  "stage": "structure",
+  "steps": 12,
+  "model": "flux2-dev-depth",
+  "status": "original01_selected_for_correction",
+  "modelRevision": "v02",
+  "modelApprovalUserReply": "可用，进行12步生图",
+  "outputCount": 6,
+  "rawOnly": true,
+  "userSelectedCandidates": {
+    "oil_power_plant": 1,
+    "cannery": 1
+  },
+  "approvedForRefinement": false,
+  "runtimeInstalled": false,
+  "visualReview": "All six complete 1024 raw images were opened individually. Contact sheets only scale and lay out the raw images; no crop, keying, pixel retouching or Depth mask was used.",
+  "recommendationPurpose": "correction_reference_only",
+  "recommendedCorrectionReferences": {
+    "oil_power_plant": 1,
+    "cannery": 1
+  },
+  "summary": "本批主轮廓可辨，但未达到直接48步精修准入。燃油厂普遍油罐过亮、表面噪点和地台外投影，徽记/门洞偏离；罐头厂三张均丢失立体罐头门标且生成文字，02/03还改动产品或添加结构。只建议01/01作为修正参考，最终选稿由用户决定。",
+  "assets": {
+    "oil_power_plant": [
+      {
+        "variant": 1,
+        "seed": 133111,
+        "reportedGenerationSeconds": 48.3,
+        "findings": "两层、敞口高烟囱和双油罐保留，入口较接近敞开状态；油滴与闪电被拆分到两处立面，油罐过亮偏金黄，材料颗粒与地台外投影明显。",
+        "eligibleForDirectRefinement": false,
+        "raw": "oil_power_plant/oil_power_plant_structure_v01_raw.png"
+      },
+      {
+        "variant": 2,
+        "seed": 133112,
+        "reportedGenerationSeconds": 60.4,
+        "findings": "敞口烟囱与两层体量保留；入口变成关闭拱门，组合徽记移到另一立面，屋瓦纹理过密，油罐偏亮且地台外有投影。",
+        "eligibleForDirectRefinement": false,
+        "raw": "oil_power_plant/oil_power_plant_structure_v02_raw.png"
+      },
+      {
+        "variant": 3,
+        "seed": 133113,
+        "reportedGenerationSeconds": 60.3,
+        "findings": "两层和烟囱开口保留；门变关闭，门标缺少闪电，另一立面新增圆窗；表面磨损和细瓦纹理偏密，油罐偏亮，地台外有投影。",
+        "eligibleForDirectRefinement": false,
+        "raw": "oil_power_plant/oil_power_plant_structure_v03_raw.png"
+      }
+    ],
+    "cannery": [
+      {
+        "variant": 1,
+        "seed": 133121,
+        "reportedGenerationSeconds": 50.4,
+        "findings": "拱顶、罐形原料塔、杀菌釜和外露封罐线保留；立体罐头门标变成带伪文字的平面广告牌，番茄与立柱颜色偏艳，原料塔增加金黄卷边和拉环，流水线罐数增加。",
+        "eligibleForDirectRefinement": false,
+        "raw": "cannery/cannery_structure_v01_raw.png"
+      },
+      {
+        "variant": 2,
+        "seed": 133122,
+        "reportedGenerationSeconds": 62.3,
+        "findings": "原料塔和拱顶体量保留；新增三组屋顶天窗、多个文字广告牌和额外蔬果箱，立体罐头门标丢失，输送线上的罐头被改为蔬果。结构偏离较多，不建议作为修正底图。",
+        "eligibleForDirectRefinement": false,
+        "raw": "cannery/cannery_structure_v02_raw.png"
+      },
+      {
+        "variant": 3,
+        "seed": 133123,
+        "reportedGenerationSeconds": 60.3,
+        "findings": "拱顶与原料塔保留，整体银灰色比01克制；但立体罐头门标仍变成蔬果平面牌，额外增加流水线文字牌与印字箱，成品罐改成蔬果，地台外有明显投影。",
+        "eligibleForDirectRefinement": false,
+        "raw": "cannery/cannery_structure_v03_raw.png"
+      }
+    ]
+  },
+  "selectionUserReply": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+  "selectionPurpose": "correction_reference_only",
+  "nextStage": "../corrections_01_dev_s12/review.json"
+}

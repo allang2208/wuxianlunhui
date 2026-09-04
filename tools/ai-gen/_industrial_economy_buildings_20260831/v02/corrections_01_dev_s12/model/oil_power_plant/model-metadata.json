@@ -1,0 +1,54 @@
+{
+  "assetId": "oil_power_plant",
+  "name": "燃油发电厂",
+  "revision": "v02-ladder-front",
+  "status": "accepted_ladder_front_source_standard48_candidates_delivered",
+  "revisionReason": "Turn chimney ladder onto solid camera-facing wall to avoid green through rungs",
+  "model": "oil_power_plant_model.blend",
+  "preview": "oil_power_plant_model_approval_preview.png",
+  "bodyDepth": "oil_power_plant_body_depth.png",
+  "bodyDepthIncludesFoundation": true,
+  "proposedFootprintCells": 4,
+  "foundationCornersPx": [
+    [
+      510.429,
+      935.28
+    ],
+    [
+      962.122,
+      711.005
+    ],
+    [
+      513.571,
+      485.159
+    ],
+    [
+      61.878,
+      709.434
+    ]
+  ],
+  "mainStoreys": 2,
+  "cameraElevation": 30,
+  "rootRotationZ": 44.8,
+  "objectCount": 220,
+  "runtimeInstalled": false,
+  "aiGenerationStarted": true,
+  "userApproved": true,
+  "builder": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/corrections_01_dev_s12/adjust-oil-model.py",
+  "baseBuilder": "tools/ai-gen/_industrial_economy_buildings_20260831/build-models.py",
+  "componentSource": "tools/ai-gen/building-component-kit.py",
+  "priorModel": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/oil_power_plant/oil_power_plant_model.blend",
+  "ladderRadialLocal": [
+    -0.7046341896057129,
+    -0.7095707654953003,
+    0.0
+  ],
+  "cameraAndFoundationUnchanged": true,
+  "userDirectedChange": "按你建议继续，但是考虑到抠图，尽量不要把楼梯跟绿幕重叠，记住这个",
+  "inheritedModelApprovalUserReply": "可用，进行12步生图",
+  "finalArtApproved": false,
+  "approvalUserReply": "可用继续",
+  "approvalDate": "2026-09-01",
+  "approvalContext": "User accepted oilC rendered from this ladder-front model for standard48",
+  "refinementManifest": "tools/ai-gen/_industrial_economy_buildings_20260831/v02/refinement_dev_s48_20260901/manifest.json"
+}

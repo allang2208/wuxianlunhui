@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T03:21:42.549419+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\oil-technician-walking-h3-v01.mp4",
+    "bytes": 480361,
+    "sha256": "e312079b428024b9289a8308ff5852bb17dce722f312a9a4365b171003a60611"
+  },
+  "promptId": "06fbe6ef-1409-4024-b43c-1c7b1cff988f",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 901712,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A 5.17-second seamless ordinary walking loop in place of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark charcoal and navy workwear, brown gloves, tool pouch, dark boots and the same small brass adjustable wrench. Match the reference's side-dominant right-facing body and slightly elevated three-quarter camera. Nose, chest, pelvis, knees and boot toes keep pointing screen-right together, with only narrow front-chest visibility.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants to the right, weight rolls over it, and the rear boot lifts and swings forward along the screen-horizontal axis. Alternate legs through several steady worker walking cycles with modest stride, natural arm counter-swing and gentle torso bob. The wrench stays low in one paw and moves as one rigid tool; the pouch remains secured. The body root stays at the same screen location. Continue stepping to the final moment and return to the exact initial moving phase without stopping.\n\nFixed camera, zoom, scale and pure white background. Keep the entire hard hat, boots and wrench inside the frame. Preserve identity and equipment throughout. No turn toward camera, running, hopping, canvas travel, smoke, scenery, captions, extra anatomy or extra tools.",
+  "effectivePrompt": "A 5.17-second seamless ordinary walking loop in place of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark charcoal and navy workwear, brown gloves, tool pouch, dark boots and the same small brass adjustable wrench. Match the reference's side-dominant right-facing body and slightly elevated three-quarter camera. Nose, chest, pelvis, knees and boot toes keep pointing screen-right together, with only narrow front-chest visibility.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants to the right, weight rolls over it, and the rear boot lifts and swings forward along the screen-horizontal axis. Alternate legs through several steady worker walking cycles with modest stride, natural arm counter-swing and gentle torso bob. The wrench stays low in one paw and moves as one rigid tool; the pouch remains secured. The body root stays at the same screen location. Continue stepping to the final moment and return to the exact initial moving phase without stopping.\n\nFixed camera, zoom, scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the entire hard hat, boots and wrench inside the frame. Preserve identity and equipment throughout. No turn toward camera, running, hopping, canvas travel, smoke, scenery, captions, extra anatomy or extra tools.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A 5.17-second seamless ordinary walking loop in place of the exact oil power plant technician in the first and last image. Preserve the golden-brown hamster, olive hard hat, dark charcoal and navy workwear, brown gloves, tool pouch, dark boots and the same small brass adjustable wrench. Match the reference's side-dominant right-facing body and slightly elevated three-quarter camera. Nose, chest, pelvis, knees and boot toes keep pointing screen-right together, with only narrow front-chest visibility.\n\nBegin immediately in the shown mid-stride phase. The forward boot plants to the right, weight rolls over it, and the rear boot lifts and swings forward along the screen-horizontal axis. Alternate legs through several steady worker walking cycles with modest stride, natural arm counter-swing and gentle torso bob. The wrench stays low in one paw and moves as one rigid tool; the pouch remains secured. The body root stays at the same screen location. Continue stepping to the final moment and return to the exact initial moving phase without stopping.\n\nFixed camera, zoom, scale and solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the entire hard hat, boots and wrench inside the frame. Preserve identity and equipment throughout. No turn toward camera, running, hopping, canvas travel, smoke, scenery, captions, extra anatomy or extra tools. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "330b268dca33df0ef1ca118ea18f152a26bb2c06dc54b87960f004529a907359",
+  "effectivePromptSha256": "8aa61fbf6c17f5b929c80a3a2d3b3c21b31e41f96be182901930208ebfe86083",
+  "finalPromptSha256": "6a3d233d34caaf66cd028330492f06863c810e707f0eae345404e3ffe8435887",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\prompts\\oil-technician-walking-h3-v01.txt",
+      "bytes": 1329,
+      "sha256": "29b91a75e3acd772b2f6de18df59d3d3aabd0f9248a36a58fc78e87b6246bdbc"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\oil-technician-walking-h3-ref-v01.png",
+      "bytes": 260568,
+      "sha256": "7b91fd9301f265e711e6632c23b501ee28baf1cf7e4ab1032be1d92371d1fdcc"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\h3-references\\oil-technician-walking-h3-ref-v01.png",
+      "bytes": 260568,
+      "sha256": "7b91fd9301f265e711e6632c23b501ee28baf1cf7e4ab1032be1d92371d1fdcc"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_economy_workers_20260901\\animations-v01\\videos\\oil-technician-walking-h3-v01_contact.png",
+    "bytes": 272530,
+    "sha256": "3c9f2dbfeab9a4021e52f1336cb6c100f07b610e8a666c23e94e9f63fdb0783d"
+  },
+  "elapsedSeconds": 455.709
+}
