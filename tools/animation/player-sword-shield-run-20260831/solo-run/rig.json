@@ -1,0 +1,26 @@
+{
+  "variant": "single-sword-empty-offhand-run",
+  "sourceRig": "../rig-export.json",
+  "frameCount": 8,
+  "fps": 10,
+  "offForearmPart": {
+    "file": "fist/offForearm-fist.png",
+    "palm": [325, 263]
+  },
+  "offUpperDegrees": [49.1, 41.1, 31.5, 23.5, 26.7, 36.3, 45.9, 51.5],
+  "offForearmDegrees": [-31.9, -38.9, -50.5, -60.5, -59.3, -50.7, -40.1, -31.5],
+  "gaitPhases": ["rear-release", "swing-front", "front-arrival", "front-turn", "front-release", "swing-back", "rear-arrival", "rear-turn"],
+  "layerOrder": ["offUpper", "offForearm", "body", "mainUpper", "mainForearm", "sword", "mainHand"],
+  "notes": [
+    "Reuse the approved sword hand, shoulders, body, original leg frames and 10 FPS clock.",
+    "Only the free hand is loosely closed. The solo-only part preserves the source wrist and forearm; the palm reference moves to the center of the compact fist.",
+    "Keep the empty elbow bent near 90 degrees; move the elbow behind the torso without throwing or straightening the palm far behind the hip.",
+    "The palm stays near the lower ribs and waist, with a compact sagittal swing instead of the previous wide reaching arc.",
+    "Phase reference is the visible near-side hip-knee chain in ../transitions/transition-config.json#runBodyPoints, opposite the free far arm: advance near frames 2-4, retract near 6-0. These are authored 2D landmarks, not measured 3D anatomy.",
+    "Shoulder-driven upper-arm swing is reduced by 20 percent around the previous 37.5-degree midpoint (35-degree span to 28). Apply the same per-frame angular delta to the forearm to preserve the accepted elbow bend.",
+    "Upper-arm rotation changes by at most 9.6 degrees per source frame; forearm rotation changes by at most 11.6. Shoulder attachment points, fist art and phase order are unchanged.",
+    "Eight source frames remain one 800 ms source cycle; no independent clock, half-speed arm playback, added swing, or change to the native leg sequence.",
+    "Both off-arm pieces stay behind the torso; do not paint the far hand across the chest.",
+    "Runtime scope is running only, with a real one-handed sword and an empty active offhand slot."
+  ]
+}

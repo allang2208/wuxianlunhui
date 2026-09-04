@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "date": "2026-08-31",
+  "status": "transparent_art_package_not_installed",
+  "provenance": "production.json",
+  "preview": "preview.html",
+  "note": "PNG保留内置image_gen原始尺寸和Alpha。背包、装备槽共用同一正面图，使用不同显示尺寸；不将品质边框烘焙进贴图。未写入游戏资源注册。握点为人工图内候选，未完成游戏内绑定验收。",
+  "boundsConvention": "[left,top,rightExclusive,bottomExclusive], alpha >= 128, source pixels",
+  "previewProfiles": {
+    "backpack": {
+      "cellSizePx": 44,
+      "visibleLongestEdgePx": 38
+    },
+    "equipment": {
+      "cellSizePx": 64,
+      "visibleLongestEdgePx": 56
+    },
+    "referenceBodyHeightPx": 144,
+    "referenceWoodShieldVisibleHeightPx": 60.48
+  },
+  "futureExports": {
+    "status": "not_exported",
+    "iconCanvasPx": 128,
+    "equipCanvasPx": 512,
+    "note": "本包保留高分辨率透明母图；128/512资源压缩版在正式接入时生成，不能把预览显示尺寸当成PNG像素尺寸。"
+  },
+  "items": [
+    {
+      "key": "forged_duelist_buckler",
+      "name": "锻钢拳盾",
+      "rarity": "uncommon",
+      "icon": {
+        "path": "forged-duelist-buckler-icon.png",
+        "size": [
+          1295,
+          1214
+        ],
+        "mode": "RGBA",
+        "bounds": [
+          68,
+          3,
+          1199,
+          1166
+        ],
+        "usage": [
+          "backpack",
+          "equipment_slot"
+        ]
+      },
+      "equip": {
+        "path": "forged-duelist-buckler-equip.png",
+        "size": [
+          1023,
+          1538
+        ],
+        "mode": "RGBA",
+        "bounds": [
+          5,
+          5,
+          1020,
+          1521
+        ],
+        "gripCandidatePixels": [
+          669,
+          795
+        ],
+        "gripCandidateNormalized": [
+          0.6539589442815249,
+          0.5169050715214565
+        ],
+        "gripBasis": "中央盾脐后方短握柄的投影候选；非骨骼自动检测结果",
+        "gripStatus": "requires_ingame_calibration",
+        "bodyHeightRatio": 0.34,
+        "visibleHeightPxAtReference": 48.96,
+        "faceDirection": "screen_right",
+        "thicknessEdge": "screen_left"
+      }
+    },
+    {
+      "key": "oak_garrison_shield",
+      "name": "橡木卫戍盾",
+      "rarity": "uncommon",
+      "icon": {
+        "path": "oak-garrison-shield-icon.png",
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGBA",
+        "bounds": [
+          250,
+          38,
+          1017,
+          1217
+        ],
+        "usage": [
+          "backpack",
+          "equipment_slot"
+        ]
+      },
+      "equip": {
+        "path": "oak-garrison-shield-equip.png",
+        "size": [
+          1024,
+          1536
+        ],
+        "mode": "RGBA",
+        "bounds": [
+          232,
+          7,
+          764,
+          1517
+        ],
+        "gripCandidatePixels": [
+          286,
+          352
+        ],
+        "gripCandidateNormalized": [
+          0.279296875,
+          0.22916666666666666
+        ],
+        "gripBasis": "背面上侧承带内握持位置的投影候选；非骨骼自动检测结果",
+        "gripStatus": "requires_ingame_calibration",
+        "bodyHeightRatio": 0.57,
+        "visibleHeightPxAtReference": 82.08,
+        "faceDirection": "screen_right",
+        "thicknessEdge": "screen_left"
+      }
+    }
+  ],
+  "runtime": {
+    "installed": false,
+    "weaponIdsAssigned": false,
+    "statsChanged": false,
+    "craftDataChanged": false,
+    "gameScreenshotsCaptured": false,
+    "runtimeVerified": false
+  }
+}

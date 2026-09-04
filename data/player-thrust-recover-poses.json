@@ -1,0 +1,24 @@
+{
+  "source": "assets/player/dash_recover_thrust.png",
+  "width": 512,
+  "height": 512,
+  "frames": [
+    {"main": [459,184], "off": [474,186], "swordAngle": 90, "shieldAngle": 6},
+    {"main": [455,191], "off": [471,195], "swordAngle": 90, "shieldAngle": 6},
+    {"main": [432,204], "off": [449,217], "swordAngle": 92, "shieldAngle": 6},
+    {"main": [402,226], "off": [430,229], "swordAngle": 94, "shieldAngle": 6},
+    {"main": [365,237], "off": [411,234], "swordAngle": 98, "shieldAngle": 4},
+    {"main": [331,234], "off": [393,232], "swordAngle": 104, "shieldAngle": 2},
+    {"main": [289,244], "off": [369,236], "swordAngle": 112, "shieldAngle": 0},
+    {"main": [269,262], "off": [355,257], "swordAngle": 121, "shieldAngle": -2},
+    {"main": [226,261], "off": [332,264], "swordAngle": 122, "shieldAngle": -4},
+    {"main": [218,263], "off": [315,258], "swordAngle": 118, "shieldAngle": -6},
+    {"main": [212,262], "off": [313,262], "swordAngle": 112, "shieldAngle": -7},
+    {"main": [208,273], "off": [313,264], "swordAngle": 108, "shieldAngle": -7},
+    {"main": [210,282], "off": [312,273], "swordAngle": 106, "shieldAngle": -7},
+    {"main": [217,283], "off": [320,274], "swordAngle": 105, "shieldAngle": -7}
+  ],
+  "idle": {"source": "assets/player/idle.png", "width": 516, "height": 516,
+    "main": [210,269], "off": [327,268], "swordAngle": 105, "shieldAngle": -6.875494},
+  "note": "Source pixel palm pivots. Native recovery uses displayed texture/frame, never a separate position Bezier. Idle binding is scoped to the end of this thrust recovery."
+}

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>剑盾低持奔跑 · 分层候选</title>
+<style>
+:root{color-scheme:dark;--paper:#1d2228;--panel:#252c33;--line:#48515b;--ink:#e2e3df;--muted:#a9b1b8;--gold:#e5b15b;--teal:#65c9c4}
+*{box-sizing:border-box}body{margin:0;background:#14191e;color:var(--ink);font:14px/1.6 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1420px;margin:auto;padding:26px}h1{font-size:24px;margin:0 0 4px;font-weight:600}p{margin:0 0 18px;color:var(--muted)}.tag{color:var(--gold);font-size:12px;letter-spacing:.12em}.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px}.stage,.panel{border:1px solid var(--line);background:var(--paper);border-radius:8px}.stage{overflow:hidden}canvas{display:block;width:100%;height:auto;background:radial-gradient(ellipse at 50% 65%,#303a43,#1d2228 70%)}.toolbar{padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line)}button,select,input[type=number]{background:#303942;color:var(--ink);border:1px solid #65707a;border-radius:4px;padding:6px 10px;font:inherit}button{cursor:pointer}button:hover{background:#414d59}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}button.primary{background:#c5974c;color:#171b20;border-color:#c5974c;font-weight:600}input[type=range]{accent-color:var(--gold);min-width:0}input[type=checkbox]{accent-color:var(--teal)}.panel{padding:18px}.panel h2{font-size:16px;margin:0 0 12px}.control{display:grid;grid-template-columns:1fr 64px;gap:5px 8px;margin:12px 0}.control input[type=range]{width:100%;grid-column:1/-1}.control input[type=number]{width:64px;padding:2px 5px}.section{border-top:1px solid var(--line);padding-top:14px;margin-top:18px}.checks{display:flex;gap:14px;flex-wrap:wrap}.hint{font-size:12px;color:var(--muted);margin:10px 0}.gold{color:var(--gold)}.teal{color:var(--teal)}.status{font-size:12px;min-height:24px;color:var(--teal)}.framebar{flex:1;display:flex;align-items:center;gap:8px;min-width:220px}.framebar input{flex:1}.links{padding:14px;border-top:1px solid var(--line);display:flex;gap:20px;flex-wrap:wrap}a{color:var(--gold)}footer{padding-top:18px;color:var(--muted);font-size:12px}@media(max-width:900px){main{padding:14px}.layout{grid-template-columns:1fr}.panel{max-width:none}}
+</style>
+<main>
+  <div class="tag">PIXEL CUTOUT / 2D JOINTS / CANDIDATE</div>
+  <h1>剑盾低持奔跑</h1>
+  <p>保留原8帧跑姿与步频，双臂独立调节。此页面是离线美术候选，不连接游戏，也不会写入正式配置。</p>
+  <div class="layout">
+    <section class="stage" aria-label="动画预览">
+      <canvas id="stage" width="960" height="650" aria-label="剑盾角色奔跑分层预览"></canvas>
+      <div class="toolbar">
+        <button id="play" type="button">暂停</button>
+        <div class="framebar"><label for="frame">源帧</label><input id="frame" type="range" min="0" max="7" value="0" step="1"><output id="frameLabel">0 / 7</output></div>
+        <label>速度 <select id="speed"><option value="1">原速 10FPS</option><option value="0.5">半速 5FPS</option><option value="0.25">慢放 2.5FPS</option></select></label>
+      </div>
+      <div class="toolbar checks">
+        <label><input id="mirror" type="checkbox">朝左</label>
+        <label><input id="bones" type="checkbox">关节点</label>
+        <label><input id="equipment" type="checkbox" checked>装备</label>
+        <label><input id="arms" type="checkbox" checked>双臂</label>
+        <label>显示倍率 <select id="scale"><option value="0.28125">游戏基准 144px</option><option value="0.6">0.6×源图</option><option value="1" selected>1×源图</option></select></label>
+      </div>
+      <div class="links"><a href="previews/four-swords-both-directions.gif">四剑／双朝向循环</a><a href="previews/knights-cycle-contact.png">完整8帧</a><a href="rig-export.json">分层与关节数据</a><a href="README.md">来源及边界</a></div>
+    </section>
+    <aside class="panel">
+      <h2>姿态编辑</h2>
+      <label for="weapon">预览武器</label> <select id="weapon"></select>
+      <p class="hint">移动滑条会暂停，修改当前帧。勾选“整循环联动”后，角度增量同时应用到8帧。</p>
+      <label><input id="allFrames" type="checkbox">整循环联动</label>
+      <div id="controls"></div>
+      <div class="section">
+        <div><span class="gold">● 主臂：肩 → 肘 → 腕 → 握点</span><br><span class="teal">● 副臂：肩 → 肘 → 腕 → 握点</span></div>
+        <p class="hint">角度相对各臂源图定义；前臂角是相对画面的角度，不再次叠加上臂角。装备始终读取同一关节变换。</p>
+        <button id="export" class="primary" type="button">导出姿态 JSON</button>
+        <button id="reset" type="button">重置候选</button>
+        <div id="status" class="status" role="status"></div>
+      </div>
+      <div class="section hint">未接入正式奔跑。前臂含手掌，额外手掌层用于盖住剑柄；本版尚未实现独立腕部旋转。源图256行以下直接保留原像素。</div>
+    </aside>
+  </div>
+  <footer><a href="transitions/preview.html">查看奔跑→冲刺/突击→收势回跑候选</a><br>没有调用MiniMax或生图模型。局部腰腹采用同一原跑姿第6帧补片，来源与范围见rig.json。原动画、攻击轨迹、防御参数与战斗数值保持不变。</footer>
+</main>
+<script src="preview-data.js"></script>
+<script src="preview.js"></script>
+</html>
