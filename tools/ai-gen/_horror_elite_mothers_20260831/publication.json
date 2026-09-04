@@ -1,9 +1,9 @@
 {
   "date": "2026-08-31",
-  "publicationScope": "approved_asset_archive_only",
+  "publicationScope": "approved_assets_and_runtime_integration",
   "localIntegration": "implemented_pending_user_runtime_acceptance",
-  "remoteRuntimeIntegration": "withheld_until_shared_dependencies_are_published",
+  "remoteRuntimeIntegration": "included_in_horror_dungeon_feature_branch",
   "runtimeCodeChangedByCleanup": false,
   "cleanup": "cleanup-manifest.json",
-  "dependenciesReport": "../../../docs/animation-publication-2026-08-31.md"
+  "dependenciesReport": "../../../docs/horror-elites-animation-review-2026-08-31.md"
 }

@@ -11,10 +11,11 @@ import { AmalgamZombie } from '../entities/enemy-types.js';
 import enemyConfigData from '../../data/enemy-config.json';
 import { applyDiamondFloor } from './dungeon-floor-texture.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
-import { getDungeonCompletionGold, getDungeonRewardRule, rollDungeonBossGold } from '../config/dungeon-rewards.js';
+import { getDungeonCompletionGold, getDungeonRewardProfile, getDungeonRewardRule, rollDungeonBossGold } from '../config/dungeon-rewards.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { WallGate } from './wall-gate.js';
+import { DungeonWallTorchSystem } from './dungeon-wall-torch-system.js';
 import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
 /**
  * BossRewardSystem — Boss战与奖励系统（地牢模式重构 Stage 4）
@@ -32,6 +33,7 @@ import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
 
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { RewardSystem } from '../ui/reward-system.js';
+import { getRarityLabel } from '../config/rarity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
@@ -236,6 +238,18 @@ export class BossBattleManager {
         // 生成 Boss（上方中心，与玩家镜像对齐）
         this._spawnBoss(player);
 
+        this._hasHorrorWallDecor = _arenaDungeonType === 'zombie';
+        if (this._hasHorrorWallDecor) {
+            DungeonWallTorchSystem.spawn({
+                rooms: [this._diamond],
+                gates: WallGate._seg ? [WallGate._seg] : [],
+                avoidPoints: [
+                    { x: player.x, y: player.y, r: 180 },
+                    ...(this.boss ? [{ x: this.boss.x, y: this.boss.y, r: 180 }] : []),
+                ],
+            });
+        }
+
         // 恢复相机跟随
         Camera.follow = this._backupCameraFollow;
         if (player) Camera.follow(player);
@@ -372,6 +386,8 @@ export class BossBattleManager {
     update(dt) {
         if (!this.active) return;
 
+        if (this._hasHorrorWallDecor) DungeonWallTorchSystem.update();
+
         // 检查 Boss 是否死亡
         this._combatCheckTimer += dt;
         if (this._combatCheckTimer >= 500) {
@@ -465,6 +481,8 @@ export class BossBattleManager {
 
     cleanup() {
         if (!this.active) return;
+        if (this._hasHorrorWallDecor) DungeonWallTorchSystem.clear();
+        this._hasHorrorWallDecor = false;
         _arenaDungeonType = null;
 
         // 删除 Boss 实体
@@ -559,11 +577,14 @@ export class RewardNodeManager {
         this._isShowingReward = true;
 
         // 使用现有的 RewardSystem，但替换为 Boss 奖励卡牌
-        this._setupBossRewardCards();
+        this._setupBossRewardCards(dungeonType);
 
         try {
             if (!RewardSystem?.open) throw new Error('RewardSystem 不可用');
-            const opened = RewardSystem.open({ baseGold: getDungeonCompletionGold(dungeonType) });
+            const opened = RewardSystem.open({
+                baseGold: getDungeonCompletionGold(dungeonType),
+                weaponRarities: getDungeonRewardProfile(dungeonType)?.weaponRarities,
+            });
             if (opened === false) throw new Error('奖励面板 DOM 未就绪');
             // 仅在面板成功打开后监听关闭，避免 open 异常把 _isShowingReward 永久卡住。
             this._waitForRewardClose(onComplete);
@@ -577,13 +598,27 @@ export class RewardNodeManager {
         
     }
 
-    _setupBossRewardCards() {
+    _setupBossRewardCards(dungeonType) {
         // 保存原始卡牌
         this._originalCards = RewardSystem.CARDS ? [...RewardSystem.CARDS] : null;
 
-        // 复用剧情模式 RewardSystem 的原始卡牌（不追加额外卡牌）
-        // 复用剧情任务完成后的通用奖励界面
-        // 因此不修改 CARDS，直接使用 RewardSystem 原有的三张卡牌
+        const rewards = getDungeonRewardProfile(dungeonType)?.completionCards;
+        if (!rewards || !this._originalCards) return;
+        const byId = {
+            card1: {
+                rewards: [{ type: 'scroll', grade: rewards.scrollGrade, count: 1 }, { type: 'dust', count: rewards.dust }],
+                desc: `获得随机${getRarityLabel(rewards.scrollGrade)}附魔卷轴 ×1 和 ${rewards.dust} 魔法粉尘`,
+            },
+            card2: {
+                rewards: [{ type: 'stone', count: rewards.stone }, { type: 'gold', count: rewards.gold }],
+                desc: `获得强化石 ×${rewards.stone} 和 ${rewards.gold} 金币`,
+            },
+            card3: {
+                rewards: [{ type: 'ticket', count: rewards.ticket }, { type: 'gold', count: rewards.gold }],
+                desc: `获得改造券 ×${rewards.ticket} 和 ${rewards.gold} 金币`,
+            },
+        };
+        RewardSystem.CARDS = this._originalCards.map(card => ({ ...card, ...(byId[card.id] || {}) }));
     }
 
     _waitForRewardClose(onComplete) {

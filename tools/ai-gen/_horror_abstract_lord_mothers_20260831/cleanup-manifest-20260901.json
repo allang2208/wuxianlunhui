@@ -1,0 +1,2449 @@
+{
+  "task": "恐怖地牢抽象领主正式素材清理",
+  "createdDate": "2026-09-01",
+  "mode": "applied",
+  "root": "tools/ai-gen/_horror_abstract_lord_mothers_20260831",
+  "safety": "所有目标在删除前均经过绝对路径前缀校验；不触碰任务目录以外文件。",
+  "retained": [
+    "获准母图及其直接编辑祖先、参考图和提示词",
+    "每个正式动作使用的源视频与来源 JSON",
+    "结构安全派生视频及逐帧操作来源",
+    "未插帧关键图集 keys、最终透明图集 final、最终 GIF/联系图/总览",
+    "生产脚本、参数、透明/RIFE 报告、运行时登记与设计报告"
+  ],
+  "deletedFileCount": 486,
+  "deletedBytes": 277224509,
+  "deletedMiB": 264.38,
+  "files": [
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-000.png",
+      "bytes": 166030,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-019.png",
+      "bytes": 164698,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-021.png",
+      "bytes": 164445,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-022.png",
+      "bytes": 167425,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-047.png",
+      "bytes": 178580,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-052.png",
+      "bytes": 176395,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-066.png",
+      "bytes": 177570,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-069.png",
+      "bytes": 173474,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-075.png",
+      "bytes": 177166,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/hover-motion-adjusted-v03-frame-123.png",
+      "bytes": 180651,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-000.png",
+      "bytes": 165514,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-012.png",
+      "bytes": 167787,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-016.png",
+      "bytes": 169126,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-028.png",
+      "bytes": 179862,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-073.png",
+      "bytes": 167212,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-075.png",
+      "bytes": 168646,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-077.png",
+      "bytes": 168294,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-078.png",
+      "bytes": 169695,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-103.png",
+      "bytes": 176257,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-116.png",
+      "bytes": 171923,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-118.png",
+      "bytes": 174105,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-122.png",
+      "bytes": 173837,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/adjusted/keyframes/shell-pulse-adjusted-v02-frame-123.png",
+      "bytes": 174492,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-000.png",
+      "bytes": 163892,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-001.png",
+      "bytes": 162148,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-035.png",
+      "bytes": 166686,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-064.png",
+      "bytes": 166546,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-088.png",
+      "bytes": 168576,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-093.png",
+      "bytes": 171515,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-115.png",
+      "bytes": 174246,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/collapse-frame-123.png",
+      "bytes": 174189,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-000.png",
+      "bytes": 166972,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-008.png",
+      "bytes": 167669,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-020.png",
+      "bytes": 160435,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-021.png",
+      "bytes": 158046,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-048.png",
+      "bytes": 178498,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-051.png",
+      "bytes": 178105,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-063.png",
+      "bytes": 163859,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-074.png",
+      "bytes": 165574,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/hover_motion-frame-123.png",
+      "bytes": 184293,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-000.png",
+      "bytes": 166321,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-019.png",
+      "bytes": 162271,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-020.png",
+      "bytes": 166014,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-023.png",
+      "bytes": 167490,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-047.png",
+      "bytes": 172705,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-079.png",
+      "bytes": 172480,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-087.png",
+      "bytes": 171291,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/idle-frame-123.png",
+      "bytes": 177997,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-000.png",
+      "bytes": 164450,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-027.png",
+      "bytes": 128685,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-028.png",
+      "bytes": 124400,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-030.png",
+      "bytes": 102825,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-042.png",
+      "bytes": 232707,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-044.png",
+      "bytes": 236978,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-059.png",
+      "bytes": 135115,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/shell_pulse-frame-123.png",
+      "bytes": 172206,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-000.png",
+      "bytes": 165784,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-030.png",
+      "bytes": 180159,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-033.png",
+      "bytes": 181977,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-060.png",
+      "bytes": 204139,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-062.png",
+      "bytes": 200461,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-064.png",
+      "bytes": 204744,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-079.png",
+      "bytes": 188791,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-119.png",
+      "bytes": 167239,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-121.png",
+      "bytes": 168603,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/keyframes/vacuum_draw-frame-123.png",
+      "bytes": 167475,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-000.png",
+      "bytes": 164372,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-030.png",
+      "bytes": 166097,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-033.png",
+      "bytes": 165635,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-041.png",
+      "bytes": 161597,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-052.png",
+      "bytes": 167130,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-064.png",
+      "bytes": 169392,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-068.png",
+      "bytes": 171294,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-074.png",
+      "bytes": 163910,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-078.png",
+      "bytes": 164850,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-094.png",
+      "bytes": 166442,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-107.png",
+      "bytes": 170386,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-108.png",
+      "bytes": 173727,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-109.png",
+      "bytes": 165562,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/audit/regeneration/keyframes/hover-motion-v02-frame-123.png",
+      "bytes": 176434,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-collapse-v01.gif",
+      "bytes": 1943754,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-hover-motion-adjusted-v03.gif",
+      "bytes": 1337623,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-hover-motion-v01.gif",
+      "bytes": 1961956,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-hover-motion-v02.gif",
+      "bytes": 1962390,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-idle-v01.gif",
+      "bytes": 1922399,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-shell-pulse-adjusted-v02.gif",
+      "bytes": 1315101,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-shell-pulse-v01.gif",
+      "bytes": 2080996,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/previews/hollow-ovum-vacuum-draw-v02.gif",
+      "bytes": 2072610,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/contacts/death-selected-source.png",
+      "bytes": 900085,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/contacts/idle-selected-source.png",
+      "bytes": 692767,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/contacts/pulse-selected-source.png",
+      "bytes": 667601,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/contacts/vacuum-selected-source.png",
+      "bytes": 1039606,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/contacts/walk-selected-source.png",
+      "bytes": 774033,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f000.png",
+      "bytes": 152893,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f003.png",
+      "bytes": 153071,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f006.png",
+      "bytes": 153378,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f009.png",
+      "bytes": 153506,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f012.png",
+      "bytes": 157853,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f015.png",
+      "bytes": 153965,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f018.png",
+      "bytes": 156051,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f021.png",
+      "bytes": 155992,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f024.png",
+      "bytes": 160409,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f027.png",
+      "bytes": 157209,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f030.png",
+      "bytes": 157884,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f033.png",
+      "bytes": 157572,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f036.png",
+      "bytes": 159464,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f039.png",
+      "bytes": 158397,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f042.png",
+      "bytes": 157755,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f045.png",
+      "bytes": 157262,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f048.png",
+      "bytes": 161265,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f051.png",
+      "bytes": 157566,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f054.png",
+      "bytes": 156239,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f057.png",
+      "bytes": 153245,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f060.png",
+      "bytes": 153093,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f063.png",
+      "bytes": 148921,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f066.png",
+      "bytes": 150132,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f069.png",
+      "bytes": 148202,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f072.png",
+      "bytes": 153292,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f075.png",
+      "bytes": 152768,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f078.png",
+      "bytes": 153614,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f081.png",
+      "bytes": 153554,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f084.png",
+      "bytes": 155376,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f087.png",
+      "bytes": 154120,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f090.png",
+      "bytes": 155599,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f093.png",
+      "bytes": 155700,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f096.png",
+      "bytes": 155895,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f099.png",
+      "bytes": 155966,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f102.png",
+      "bytes": 156146,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f105.png",
+      "bytes": 156263,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f108.png",
+      "bytes": 156627,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f111.png",
+      "bytes": 156658,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f114.png",
+      "bytes": 156824,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f117.png",
+      "bytes": 156770,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f120.png",
+      "bytes": 156579,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/death/f123.png",
+      "bytes": 156466,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f000.png",
+      "bytes": 156008,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f004.png",
+      "bytes": 156762,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f008.png",
+      "bytes": 156837,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f012.png",
+      "bytes": 157506,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f016.png",
+      "bytes": 157650,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f020.png",
+      "bytes": 156786,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f024.png",
+      "bytes": 159994,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f028.png",
+      "bytes": 160352,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f032.png",
+      "bytes": 160492,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f036.png",
+      "bytes": 158630,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f040.png",
+      "bytes": 161519,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f044.png",
+      "bytes": 161569,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f048.png",
+      "bytes": 161536,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f052.png",
+      "bytes": 160974,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f056.png",
+      "bytes": 160483,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f060.png",
+      "bytes": 159639,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f064.png",
+      "bytes": 159211,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f068.png",
+      "bytes": 158035,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f072.png",
+      "bytes": 157633,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f076.png",
+      "bytes": 159491,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f080.png",
+      "bytes": 157903,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f084.png",
+      "bytes": 161334,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f088.png",
+      "bytes": 160404,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f092.png",
+      "bytes": 164948,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f096.png",
+      "bytes": 164889,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f100.png",
+      "bytes": 165111,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f104.png",
+      "bytes": 165483,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f108.png",
+      "bytes": 166258,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f112.png",
+      "bytes": 166405,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f116.png",
+      "bytes": 166353,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/idle/f120.png",
+      "bytes": 166099,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f000.png",
+      "bytes": 153862,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f002.png",
+      "bytes": 153845,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f004.png",
+      "bytes": 153590,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f006.png",
+      "bytes": 153098,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f008.png",
+      "bytes": 154784,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f010.png",
+      "bytes": 153700,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f012.png",
+      "bytes": 156487,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f014.png",
+      "bytes": 155661,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f016.png",
+      "bytes": 157941,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f018.png",
+      "bytes": 155944,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f020.png",
+      "bytes": 159676,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f022.png",
+      "bytes": 161603,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f024.png",
+      "bytes": 165940,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f026.png",
+      "bytes": 167207,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f028.png",
+      "bytes": 171743,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f030.png",
+      "bytes": 167184,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f032.png",
+      "bytes": 166189,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f034.png",
+      "bytes": 161808,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f036.png",
+      "bytes": 161371,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f038.png",
+      "bytes": 158119,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f040.png",
+      "bytes": 162583,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f042.png",
+      "bytes": 159844,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f044.png",
+      "bytes": 162495,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f046.png",
+      "bytes": 159265,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f048.png",
+      "bytes": 163334,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f050.png",
+      "bytes": 160982,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f052.png",
+      "bytes": 163343,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f054.png",
+      "bytes": 163491,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f056.png",
+      "bytes": 162818,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f058.png",
+      "bytes": 163764,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/pulse/f060.png",
+      "bytes": 163716,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f000.png",
+      "bytes": 154173,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f003.png",
+      "bytes": 154101,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f006.png",
+      "bytes": 153311,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f009.png",
+      "bytes": 152860,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f012.png",
+      "bytes": 156147,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f015.png",
+      "bytes": 154481,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f018.png",
+      "bytes": 156023,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f021.png",
+      "bytes": 157729,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f024.png",
+      "bytes": 165603,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f027.png",
+      "bytes": 165671,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f030.png",
+      "bytes": 171600,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f033.png",
+      "bytes": 173189,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f036.png",
+      "bytes": 177180,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f039.png",
+      "bytes": 179042,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f042.png",
+      "bytes": 180317,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f045.png",
+      "bytes": 181767,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f048.png",
+      "bytes": 188543,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f051.png",
+      "bytes": 184643,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f054.png",
+      "bytes": 184540,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f057.png",
+      "bytes": 190186,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f060.png",
+      "bytes": 195676,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f063.png",
+      "bytes": 193430,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f066.png",
+      "bytes": 194721,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f069.png",
+      "bytes": 189872,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f072.png",
+      "bytes": 193133,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f075.png",
+      "bytes": 188971,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f078.png",
+      "bytes": 186673,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f081.png",
+      "bytes": 181025,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f084.png",
+      "bytes": 183337,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f087.png",
+      "bytes": 171950,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f090.png",
+      "bytes": 174424,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f093.png",
+      "bytes": 170829,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f096.png",
+      "bytes": 171161,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f099.png",
+      "bytes": 163457,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f102.png",
+      "bytes": 162009,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f105.png",
+      "bytes": 158094,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f108.png",
+      "bytes": 163967,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f111.png",
+      "bytes": 161895,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f114.png",
+      "bytes": 158847,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f117.png",
+      "bytes": 159280,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f120.png",
+      "bytes": 161932,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/vacuum/f123.png",
+      "bytes": 160106,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f000.png",
+      "bytes": 154717,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f004.png",
+      "bytes": 155770,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f008.png",
+      "bytes": 155296,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f012.png",
+      "bytes": 154139,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f016.png",
+      "bytes": 154503,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f020.png",
+      "bytes": 154112,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f024.png",
+      "bytes": 158453,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f028.png",
+      "bytes": 159236,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f032.png",
+      "bytes": 158783,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f036.png",
+      "bytes": 156816,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f040.png",
+      "bytes": 159680,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f044.png",
+      "bytes": 162621,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f048.png",
+      "bytes": 163484,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f052.png",
+      "bytes": 160984,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f056.png",
+      "bytes": 161656,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f060.png",
+      "bytes": 160861,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f064.png",
+      "bytes": 160913,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f068.png",
+      "bytes": 159119,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f072.png",
+      "bytes": 158714,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f076.png",
+      "bytes": 160634,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f080.png",
+      "bytes": 159380,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f084.png",
+      "bytes": 163730,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f088.png",
+      "bytes": 162931,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f092.png",
+      "bytes": 165817,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f096.png",
+      "bytes": 165663,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f100.png",
+      "bytes": 163686,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f104.png",
+      "bytes": 164217,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f108.png",
+      "bytes": 166924,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f112.png",
+      "bytes": 165999,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f116.png",
+      "bytes": 164842,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/cutouts/walk/f120.png",
+      "bytes": 165033,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-death-interpolated-contact.png",
+      "bytes": 2374355,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-death-interpolated.gif",
+      "bytes": 6716337,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-idle-interpolated-contact.png",
+      "bytes": 2848279,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-idle-interpolated.gif",
+      "bytes": 7742480,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-pulse-interpolated-contact.png",
+      "bytes": 2341914,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-pulse-interpolated.gif",
+      "bytes": 6461118,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-vacuum-interpolated-contact.png",
+      "bytes": 2887564,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-vacuum-interpolated.gif",
+      "bytes": 7558802,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-walk-interpolated-contact.png",
+      "bytes": 2919792,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/previews/rife-default-clock/hollow-ovum-walk-interpolated.gif",
+      "bytes": 7728115,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/references/death-f000.png",
+      "bytes": 163892,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/references/idle-f000.png",
+      "bytes": 166321,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/references/pulse-f000.png",
+      "bytes": 165514,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/references/vacuum-f000.png",
+      "bytes": 165784,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/sprite-production-v01/references/walk-f000.png",
+      "bytes": 166030,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-collapse-v01_contact.png",
+      "bytes": 362974,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-hover-motion-adjusted-v03_contact.png",
+      "bytes": 784904,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-hover-motion-v01_contact.png",
+      "bytes": 374493,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-hover-motion-v01.mp4",
+      "bytes": 634578,
+      "reason": "空腔之卵已判退 H3 原片；保留提示词、供应方 JSON、逐帧统计和判退原因"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-hover-motion-v02_contact.png",
+      "bytes": 375721,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-hover-motion-v02.mp4",
+      "bytes": 693519,
+      "reason": "空腔之卵已判退 H3 原片；保留提示词、供应方 JSON、逐帧统计和判退原因"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-idle-v01_contact.png",
+      "bytes": 354011,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-shell-pulse-adjusted-v02_contact.png",
+      "bytes": 776988,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-shell-pulse-v01_contact.png",
+      "bytes": 423734,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-shell-pulse-v01.mp4",
+      "bytes": 663085,
+      "reason": "空腔之卵已判退 H3 原片；保留提示词、供应方 JSON、逐帧统计和判退原因"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-vacuum-draw-v01_contact.png",
+      "bytes": 364006,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-vacuum-draw-v01.mp4",
+      "bytes": 597727,
+      "reason": "空腔之卵已判退 H3 原片；保留提示词、供应方 JSON、逐帧统计和判退原因"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/hollow-ovum-vacuum-draw-v02_contact.png",
+      "bytes": 410191,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/collapse-frame-096.png",
+      "bytes": 172190,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/collapse-frame-112.png",
+      "bytes": 174065,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/collapse-frame-123.png",
+      "bytes": 174189,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/shell-pulse-frame-032.png",
+      "bytes": 170781,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/shell-pulse-frame-043.png",
+      "bytes": 233524,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/shell-pulse-frame-053.png",
+      "bytes": 135233,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/vacuum-frame-064.png",
+      "bytes": 156881,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/vacuum-frame-075.png",
+      "bytes": 151243,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/vacuum-frame-080.png",
+      "bytes": 159175,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/vacuum-v02-frame-064.png",
+      "bytes": 204744,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/vacuum-v02-frame-075.png",
+      "bytes": 193817,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-hollow-v01-20260901/videos/keyframes/vacuum-v02-frame-080.png",
+      "bytes": 192964,
+      "reason": "原视频联系图和抽帧副本；审核概览、JSON 与最终动作联系图已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v01-contact.png",
+      "bytes": 1159958,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v01.gif",
+      "bytes": 11405964,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v02-contact.png",
+      "bytes": 993886,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v02.gif",
+      "bytes": 9741689,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v03-contact.png",
+      "bytes": 1046320,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v03.gif",
+      "bytes": 10609026,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v04-contact.png",
+      "bytes": 1140746,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/attack-v04.gif",
+      "bytes": 11184487,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/crawling-v01-contact.png",
+      "bytes": 1139880,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/crawling-v01.gif",
+      "bytes": 10842327,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/dying-v02-fold-settle-contact.png",
+      "bytes": 1103064,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/dying-v02-fold-settle.gif",
+      "bytes": 10798538,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/idle-v01-contact.png",
+      "bytes": 971537,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/idle-v01.gif",
+      "bytes": 10019348,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/previews/preview-report.json",
+      "bytes": 3184,
+      "reason": "原视频重复 GIF/联系图；正式源片、最终透明 GIF 与审核文字均已保留"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/__pycache__/runtime_publication.cpython-311.pyc",
+      "bytes": 2766,
+      "reason": "Python 字节码缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/contacts/attack-source-detail.png",
+      "bytes": 1198975,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/contacts/crawling-cycle-candidates.png",
+      "bytes": 762991,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/contacts/dying-source-detail.png",
+      "bytes": 1164672,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/contacts/idle-cycle-candidates.png",
+      "bytes": 629631,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f000.png",
+      "bytes": 345698,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f003.png",
+      "bytes": 352606,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f006.png",
+      "bytes": 353919,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f009.png",
+      "bytes": 400944,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f012.png",
+      "bytes": 404073,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f015.png",
+      "bytes": 383915,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f018.png",
+      "bytes": 388241,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f021.png",
+      "bytes": 383737,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f024.png",
+      "bytes": 403252,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f027.png",
+      "bytes": 398086,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f030.png",
+      "bytes": 403286,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f033.png",
+      "bytes": 393545,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f036.png",
+      "bytes": 390698,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f039.png",
+      "bytes": 337083,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f042.png",
+      "bytes": 379138,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f045.png",
+      "bytes": 380637,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f048.png",
+      "bytes": 388164,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f051.png",
+      "bytes": 388724,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f054.png",
+      "bytes": 388689,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f057.png",
+      "bytes": 388992,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f060.png",
+      "bytes": 428342,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f063.png",
+      "bytes": 390018,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f066.png",
+      "bytes": 392479,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f069.png",
+      "bytes": 391537,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f072.png",
+      "bytes": 392096,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f075.png",
+      "bytes": 377930,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f078.png",
+      "bytes": 379917,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f081.png",
+      "bytes": 378442,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f084.png",
+      "bytes": 377666,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f087.png",
+      "bytes": 381740,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f090.png",
+      "bytes": 382406,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f093.png",
+      "bytes": 382264,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f096.png",
+      "bytes": 381867,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f099.png",
+      "bytes": 382929,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f102.png",
+      "bytes": 382929,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f105.png",
+      "bytes": 382659,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f108.png",
+      "bytes": 395575,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f111.png",
+      "bytes": 413566,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f114.png",
+      "bytes": 400680,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f117.png",
+      "bytes": 400178,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/attack/f120.png",
+      "bytes": 400046,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f000.png",
+      "bytes": 341851,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f055.png",
+      "bytes": 392185,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f057.png",
+      "bytes": 383873,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f059.png",
+      "bytes": 429229,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f061.png",
+      "bytes": 411727,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f063.png",
+      "bytes": 396454,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f065.png",
+      "bytes": 392221,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f067.png",
+      "bytes": 396356,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f069.png",
+      "bytes": 387528,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f071.png",
+      "bytes": 393036,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f073.png",
+      "bytes": 381689,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f075.png",
+      "bytes": 388993,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f077.png",
+      "bytes": 375758,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f079.png",
+      "bytes": 386946,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f081.png",
+      "bytes": 375095,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f083.png",
+      "bytes": 384947,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f085.png",
+      "bytes": 381039,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f087.png",
+      "bytes": 385535,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f089.png",
+      "bytes": 381955,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f091.png",
+      "bytes": 386580,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f093.png",
+      "bytes": 379213,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f095.png",
+      "bytes": 381878,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f097.png",
+      "bytes": 369113,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f099.png",
+      "bytes": 379023,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f101.png",
+      "bytes": 371573,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f103.png",
+      "bytes": 386811,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/crawling/f105.png",
+      "bytes": 376364,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f000.png",
+      "bytes": 341948,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f003.png",
+      "bytes": 348997,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f006.png",
+      "bytes": 350857,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f009.png",
+      "bytes": 406085,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f012.png",
+      "bytes": 402886,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f015.png",
+      "bytes": 388708,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f018.png",
+      "bytes": 392557,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f021.png",
+      "bytes": 380990,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f024.png",
+      "bytes": 379511,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f027.png",
+      "bytes": 372784,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f030.png",
+      "bytes": 380267,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f033.png",
+      "bytes": 366528,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f036.png",
+      "bytes": 367961,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f039.png",
+      "bytes": 361633,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f042.png",
+      "bytes": 371275,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f045.png",
+      "bytes": 356720,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f048.png",
+      "bytes": 358154,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f051.png",
+      "bytes": 352094,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f054.png",
+      "bytes": 359437,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f057.png",
+      "bytes": 345792,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f060.png",
+      "bytes": 377663,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f063.png",
+      "bytes": 343752,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f066.png",
+      "bytes": 351930,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f069.png",
+      "bytes": 341775,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f072.png",
+      "bytes": 339325,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f075.png",
+      "bytes": 341116,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f078.png",
+      "bytes": 346737,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f081.png",
+      "bytes": 339938,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f084.png",
+      "bytes": 338366,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f087.png",
+      "bytes": 340304,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f090.png",
+      "bytes": 343086,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f093.png",
+      "bytes": 342193,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f096.png",
+      "bytes": 341328,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f099.png",
+      "bytes": 341743,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f102.png",
+      "bytes": 343743,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f105.png",
+      "bytes": 341870,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f108.png",
+      "bytes": 354763,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f111.png",
+      "bytes": 364319,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f114.png",
+      "bytes": 358242,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f117.png",
+      "bytes": 356665,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/dying/f120.png",
+      "bytes": 357611,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f000.png",
+      "bytes": 360641,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f019.png",
+      "bytes": 361655,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f022.png",
+      "bytes": 364577,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f025.png",
+      "bytes": 378128,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f028.png",
+      "bytes": 373004,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f031.png",
+      "bytes": 378276,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f034.png",
+      "bytes": 377651,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f037.png",
+      "bytes": 393229,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f040.png",
+      "bytes": 388287,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f043.png",
+      "bytes": 392143,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f046.png",
+      "bytes": 395504,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f049.png",
+      "bytes": 408783,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f052.png",
+      "bytes": 403584,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f055.png",
+      "bytes": 406792,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f058.png",
+      "bytes": 409357,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f061.png",
+      "bytes": 410083,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f064.png",
+      "bytes": 406323,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f067.png",
+      "bytes": 403588,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f070.png",
+      "bytes": 399878,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f073.png",
+      "bytes": 406716,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f076.png",
+      "bytes": 395489,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f079.png",
+      "bytes": 392269,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f082.png",
+      "bytes": 390754,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f085.png",
+      "bytes": 399059,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f088.png",
+      "bytes": 389439,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f091.png",
+      "bytes": 387252,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f094.png",
+      "bytes": 383426,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f097.png",
+      "bytes": 391679,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f100.png",
+      "bytes": 384489,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f103.png",
+      "bytes": 382276,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/cutouts/idle/f106.png",
+      "bytes": 378439,
+      "reason": "可由保留的源片、选段和生产脚本重建的逐帧 BiRefNet 缓存"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-attack-interpolated-contact.png",
+      "bytes": 757728,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-attack-interpolated.gif",
+      "bytes": 2477419,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-crawling-interpolated-contact.png",
+      "bytes": 564850,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-crawling-interpolated.gif",
+      "bytes": 1690198,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-dying-interpolated-contact.png",
+      "bytes": 1018118,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-dying-interpolated.gif",
+      "bytes": 3044269,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-idle-interpolated-contact.png",
+      "bytes": 933705,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/previews/rife-default-clock/pleat-devourer-idle-interpolated.gif",
+      "bytes": 2797336,
+      "reason": "已被当前定稿 GIF 和图集取代的默认时钟 RIFE 预览"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/references/attack-f000.png",
+      "bytes": 379150,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/references/crawling-f000.png",
+      "bytes": 371469,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/references/dying-f000.png",
+      "bytes": 385551,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/references/idle-f000-alpha.png",
+      "bytes": 11951,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/sprite-production-v01/references/idle-f000.png",
+      "bytes": 380860,
+      "reason": "与最终预览重复的生产中间联系图和源帧快照"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/videos/attack-v01.mp4",
+      "bytes": 952988,
+      "reason": "百褶噬团已判退攻击原片；保留不可变提示词、供应方 JSON 和判退原因"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/videos/attack-v02.mp4",
+      "bytes": 1200219,
+      "reason": "百褶噬团已判退攻击原片；保留不可变提示词、供应方 JSON 和判退原因"
+    },
+    {
+      "path": "animations-pleat-v03-20260831/videos/attack-v03.mp4",
+      "bytes": 947268,
+      "reason": "百褶噬团已判退攻击原片；保留不可变提示词、供应方 JSON 和判退原因"
+    }
+  ]
+}

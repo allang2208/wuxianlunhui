@@ -18,6 +18,7 @@ export const RewardSystem = {
     _isGranting: false,
     _closeTimer: null,
     _baseGoldReward: 500,
+    _weaponRarities: ['rare', 'epic'],
     _defaultSubtitle: '从三份结算档案中选择一项额外奖励，确认后立即发放',
 
     // 卡牌数据
@@ -71,6 +72,8 @@ export const RewardSystem = {
         this._isGranting = false;
         const configuredBase = Number(options.baseGold);
         this._baseGoldReward = Number.isFinite(configuredBase) ? Math.max(0, Math.floor(configuredBase)) : 500;
+        this._weaponRarities = Array.isArray(options.weaponRarities) && options.weaponRarities.length
+            ? [...options.weaponRarities] : ['rare', 'epic'];
         panel.style.display = 'flex';
         panel.classList.add('active');
         this._setStatus(this._defaultSubtitle, false);
@@ -264,7 +267,7 @@ export const RewardSystem = {
         const items = ItemDatabase.items || {};
         const keys = Object.keys(items).filter(k => {
             const it = items[k];
-            return it && (it.rarity === 'rare' || it.rarity === 'epic') &&
+            return it && this._weaponRarities.includes(it.rarity) &&
                 it.category && String(it.category).startsWith('weapon');
         });
         if (keys.length === 0) return false;

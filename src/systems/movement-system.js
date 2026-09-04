@@ -1,5 +1,6 @@
 import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
+import { waxSealSpeedMultiplier } from '../combat/wax-seal-status.js';
 /**
  * MovementSystem — 敌人移动AI子系统
  * 处理所有敌人的移动逻辑：寻路、路径跟随、墙壁碰撞、击退、闪避、战术移动
@@ -744,7 +745,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 friendlyMul *= 1 + aura.moveSpeedPercent / 100;
             }
         }
-        return base * chillMul * inspireMul * friendlyMul;
+        return base * chillMul * inspireMul * friendlyMul * waxSealSpeedMultiplier(enemy);
     },
 
     /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */

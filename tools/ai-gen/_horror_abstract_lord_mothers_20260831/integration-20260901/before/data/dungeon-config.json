@@ -1,0 +1,3160 @@
+{
+ "dungeonList": {
+  "abandonedMine": {
+   "name": "⛏ 废弃矿洞-高级",
+   "series": "abandonedMine",
+   "seriesName": "废弃矿洞",
+   "seriesIcon": "⛏",
+   "seriesOrder": 5,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "abandonedMineMid",
+   "nodeCount": "45~50",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "1500金币",
+   "grade": "D",
+   "recLevel": "25~40级"
+  },
+  "abandonedMineBeginner": {
+   "name": "⛏ 废弃矿洞-初级",
+   "series": "abandonedMine",
+   "seriesName": "废弃矿洞",
+   "seriesIcon": "⛏",
+   "seriesOrder": 5,
+   "tier": "初级",
+   "tierOrder": 1,
+   "nodeCount": "22~27",
+   "battleRatio": "40%",
+   "level": "1级",
+   "reward": "800金币",
+   "grade": "F",
+   "recLevel": "1~10级"
+  },
+  "abandonedMineMid": {
+   "name": "⛏ 废弃矿洞-中级",
+   "series": "abandonedMine",
+   "seriesName": "废弃矿洞",
+   "seriesIcon": "⛏",
+   "seriesOrder": 5,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "abandonedMineBeginner",
+   "nodeCount": "30~35",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "1200金币",
+   "grade": "E",
+   "recLevel": "10~25级"
+  },
+  "zombie": {
+   "name": "☠ 恐怖地牢-高级",
+   "series": "zombie",
+   "seriesName": "恐怖地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 10,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "zombieMid",
+   "nodeCount": "45~50",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "20000金币",
+   "grade": "A",
+   "recLevel": "70~85级",
+   "monsterStatProfile": "horror"
+  },
+  "zombieBeginner": {
+   "name": "☠ 恐怖地牢-初级",
+   "series": "zombie",
+   "seriesName": "恐怖地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 10,
+   "tier": "初级",
+   "tierOrder": 1,
+   "nodeCount": "22~27",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "8000金币",
+   "grade": "C",
+   "recLevel": "40~55级",
+   "monsterStatProfile": "horror"
+  },
+  "frozenBeginner": {
+   "name": "❄ 冰封世界-初级",
+   "series": "frozen",
+   "seriesName": "冰封世界",
+   "seriesIcon": "❄",
+   "seriesOrder": 20,
+   "tier": "初级",
+   "tierOrder": 1,
+   "nodeCount": "55~60",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "8000金币",
+   "grade": "C",
+   "recLevel": "40~55级"
+  },
+  "frozenMid": {
+   "name": "❄ 冰封世界-中级",
+   "series": "frozen",
+   "seriesName": "冰封世界",
+   "seriesIcon": "❄",
+   "seriesOrder": 20,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "frozenBeginner",
+   "nodeCount": "60~65",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "13000金币",
+   "grade": "B",
+   "recLevel": "55~70级"
+  },
+  "frozen": {
+   "name": "❄ 冰封世界-高级",
+   "series": "frozen",
+   "seriesName": "冰封世界",
+   "seriesIcon": "❄",
+   "seriesOrder": 20,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "frozenMid",
+   "nodeCount": "65~70",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "20000金币",
+   "grade": "A",
+   "recLevel": "70~85级"
+  },
+  "zombieMid": {
+   "name": "☠ 恐怖地牢-中级",
+   "series": "zombie",
+   "seriesName": "恐怖地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 10,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "zombieBeginner",
+   "nodeCount": "30~35",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "13000金币",
+   "grade": "B",
+   "recLevel": "55~70级",
+   "monsterStatProfile": "horror"
+  },
+  "swamp": {
+   "name": "☠ 沼泽地牢-高级",
+   "series": "swamp",
+   "seriesName": "沼泽地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 30,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "swampMid",
+   "nodeCount": "55~60",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "8000金币",
+   "grade": "C",
+   "recLevel": "40~55级"
+  },
+  "swampBeginner": {
+   "name": "☠ 沼泽地牢-初级",
+   "series": "swamp",
+   "seriesName": "沼泽地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 30,
+   "tier": "初级",
+   "tierOrder": 1,
+   "nodeCount": "30~35",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "3000金币",
+   "grade": "E",
+   "recLevel": "10~25级"
+  },
+  "swampMid": {
+   "name": "☠ 沼泽地牢-中级",
+   "series": "swamp",
+   "seriesName": "沼泽地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 30,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "swampBeginner",
+   "nodeCount": "45~50",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "5000金币",
+   "grade": "D",
+   "recLevel": "25~40级"
+  },
+  "demonCavern": {
+   "name": "☠ 恶魔洞窟",
+   "series": "demon",
+   "seriesName": "恶魔洞窟",
+   "seriesIcon": "☠",
+   "seriesOrder": 40,
+   "tier": "标准",
+   "tierOrder": 1,
+   "nodeCount": "55~60",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "2000金币",
+   "grade": "C",
+   "recLevel": "40~55级"
+  }
+ },
+ "zombieDungeon": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror/horror-banner-01-moonlit-citadel.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-02-quarantine-street.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-03-weeping-abbey.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-04-ossuary-vault.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-05-chained-cellblock.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-06-coffin-workshop.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-07-bell-courtyard.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-08-necropolis-bridge.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-09-abandoned-infirmary.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-10-sealed-throne-hall.png"
+  ],
+  "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 1920,
+   "bossSize": 2304,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 40,
+    "sizeJitterCells": 2,
+    "branchChance": 0.32,
+    "maxBranchPassages": 1,
+    "loopChance": 0.22,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.32,
+    "maxRoomGraphBranches": 1,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "nodeCount": {
+   "min": 45,
+   "max": 50
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.45,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "terrainProfile": "zombieDungeonStone"
+  },
+  "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
+  "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-03-necropolis.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-04-quarantine-foundry.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
+  ],
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "exploration",
+  "traps": {
+   "count": 3,
+   "lineSpacing": 180,
+   "triggerRadius": 45,
+   "delayMs": 250,
+   "animMs": 500,
+   "reverseMs": 500,
+   "cooldownMs": 2000,
+   "damagePercent": 0.1,
+   "hitFrame": 6
+  },
+  "family": "zombie",
+  "wallStyle": "zombie",
+  "arenaLastWaveNormals": 10
+ },
+ "zombieDungeonBeginner": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror/horror-banner-01-moonlit-citadel.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-02-quarantine-street.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-03-weeping-abbey.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-04-ossuary-vault.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-05-chained-cellblock.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-06-coffin-workshop.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-07-bell-courtyard.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-08-necropolis-bridge.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-09-abandoned-infirmary.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-10-sealed-throne-hall.png"
+  ],
+  "combatRoom": {
+   "normalSize": 1152,
+   "eliteSize": 1664,
+   "bossSize": 2048,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 40,
+    "sizeJitterCells": 1,
+    "branchChance": 0.22,
+    "maxBranchPassages": 1,
+    "loopChance": 0.12,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.22,
+    "maxRoomGraphBranches": 1,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "nodeCount": {
+   "min": 22,
+   "max": 27
+  },
+  "shortestCombatPath": 4,
+  "mainRowMinCombat": 3,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "lord": 1,
+    "normal": 4
+   },
+   "poolKeys": [
+    "zombieDog",
+    "fatZombie",
+    "coffinWard",
+    "shroudThrall",
+    "ossuaryCaster",
+    "knellAttendant",
+    "stitchfaceHeadsman",
+    "waxfaceMourner",
+    "flySwarm",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand"
+   ],
+   "matchPoolRanks": true,
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "lord": 1,
+     "normal": 4
+    }
+   ]
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "terrainProfile": "zombieDungeonStone"
+  },
+  "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
+  "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-03-necropolis.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-04-quarantine-foundry.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
+  ],
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "exploration",
+  "family": "zombie",
+  "wallStyle": "zombie",
+  "arenaLastWaveNormals": 10
+ },
+ "frozenDungeonBeginner": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/snowfield-1.png",
+   "assets/scenes/loading/snowfield-2.png"
+  ],
+  "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 2048,
+   "bossSize": 2304,
+   "wallConstruction": "worldBlock1x1",
+   "entryEdge": "BL",
+   "gateCells": 6,
+   "passageCells": 12,
+    "randomRooms": {
+     "enabled": true,
+     "mode": "hybrid",
+     "passageGateAxis": "dual",
+    "maxAttempts": 32,
+    "sizeJitterCells": 2,
+     "doorEndClearanceCells": 1,
+     "turnLegCells": 7,
+     "branchLegCells": 8,
+     "branchChance": 0.28,
+     "maxBranchPassages": 1,
+     "loopChance": 0.18,
+     "maxLoopPassages": 1,
+     "roomGraphBranchChance": 0.32,
+     "maxRoomGraphBranches": 1,
+     "loopEndClearanceCells": 7,
+     "loopSpanCells": 14,
+     "loopOffsetCells": 12,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+     "topologyPool": [
+      "straight",
+      "elbow",
+      "zigzag",
+      "snake",
+      "staircase"
+     ],
+     "passageShapePool": [
+      "straight",
+      "elbow",
+      "zigzag",
+      "branch",
+      "loop"
+     ]
+   },
+   "combatTemplates": {
+    "enabled": true,
+    "chance": 0.35,
+    "maxPerArena": 2,
+    "templates": [
+     {
+      "id": "rangedCover",
+      "label": "远程掩体",
+      "warning": "远程掩体：毒液僵尸据守冰墙，绕侧翼或借墙逼近",
+      "chance": 0.35,
+      "eligibleStages": [2],
+      "disableTerrainCutouts": true,
+      "poolKeys": ["blackWolf"],
+      "forceMonsters": ["spitterZombie", "spitterZombie"],
+      "worldBlocks": [
+       { "offsetUCells": 0, "offsetVCells": 0, "axis": "entry" }
+      ]
+     },
+     {
+      "id": "meleeRing",
+      "label": "近战环道",
+      "warning": "近战环道：狼群正从环道两翼合围，保持移动，突破一侧",
+      "chance": 0.35,
+      "eligibleStages": [2],
+      "disableTerrainCutouts": true,
+      "poolKeys": ["blackWolf"],
+      "worldBlockLoops": [
+       { "radiusCells": 1, "filled": true }
+      ],
+      "spawnPattern": {
+       "roles": ["clockwise", "counterClockwise"]
+      },
+      "spawnAnchors": [
+       { "role": "clockwise", "forwardCells": 0, "rightCells": -3, "jitterCells": 0.45 },
+       { "role": "counterClockwise", "forwardCells": 0, "rightCells": 3, "jitterCells": 0.45 }
+      ]
+     },
+     {
+      "id": "elitePincer",
+      "label": "精英夹击",
+      "warning": "精英夹击：雪原精英压住正面，狼群从两翼合围，先击破一侧",
+      "chance": 0.35,
+      "eligibleStages": [4],
+      "requiresElite": true,
+      "disableTerrainCutouts": true,
+      "poolKeys": ["blackWolf"],
+      "worldBlockLines": [
+       { "axis": "forward", "forwardStartCells": -1, "rightCells": -2, "lengthCells": 3 },
+       { "axis": "forward", "forwardStartCells": -1, "rightCells": 2, "lengthCells": 3 }
+      ],
+      "spawnPattern": {
+       "roles": ["left", "right"],
+       "eliteRole": "elite",
+       "eliteModifier": {
+        "label": "雪原精英·黑狼",
+        "hpMultiplier": 1.75,
+        "attackMultiplier": 1.25,
+        "speedMultiplier": 1.05
+       }
+      },
+      "spawnAnchors": [
+       { "role": "elite", "forwardCells": 3, "rightCells": 0, "jitterCells": 0.2 },
+       { "role": "left", "forwardCells": 1, "rightCells": -4, "jitterCells": 0.4 },
+       { "role": "right", "forwardCells": 1, "rightCells": 4, "jitterCells": 0.4 }
+      ]
+     }
+    ]
+   },
+   "proceduralTerrain": {
+    "enabled": true,
+    "kind": "frozenAbyss",
+    "minPits": 1,
+    "maxPits": 2,
+    "fallRescue": {
+     "enabled": true,
+     "fallDelayMs": 650,
+     "damageMaxHpRatio": 0.25,
+     "nonLethal": true,
+     "rescueGraceMs": 1250,
+     "safeSampleIntervalMs": 120,
+     "contactPadding": 3
+    }
+   }
+  },
+  "combatArena": {
+   "enabled": true
+  },
+  "nodeCount": {
+   "min": 55,
+   "max": 60
+  },
+  "shortestCombatPath": 5,
+  "mainRowMinCombat": 4,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false
+   },
+   "elite": {
+    "combatWaves": 1,
+    "monstersPerWave": 6,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false
+   }
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 5
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "elite": 1
+    }
+   ]
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "terrainProfile": "frozenTerrain"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "frozen",
+  "wallStyle": "frozen"
+ },
+ "frozenDungeonMid": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/snowfield-1.png",
+   "assets/scenes/loading/snowfield-2.png"
+  ],
+  "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 2048,
+   "bossSize": 2304,
+   "wallConstruction": "worldBlock1x1",
+   "entryEdge": "BL",
+   "gateCells": 6,
+   "passageCells": 12,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 32,
+    "sizeJitterCells": 2,
+    "doorEndClearanceCells": 1,
+    "turnLegCells": 7,
+    "branchLegCells": 8,
+    "branchChance": 0.28,
+    "maxBranchPassages": 1,
+    "loopChance": 0.18,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.32,
+    "maxRoomGraphBranches": 1,
+    "loopEndClearanceCells": 7,
+    "loopSpanCells": 14,
+    "loopOffsetCells": 12,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   },
+   "combatTemplates": {
+    "inheritFrom": "frozenBeginner"
+   },
+   "proceduralTerrain": {
+    "enabled": true,
+    "kind": "frozenAbyss",
+    "minPits": 1,
+    "maxPits": 2,
+    "fallRescue": {
+     "enabled": true,
+     "fallDelayMs": 650,
+     "damageMaxHpRatio": 0.25,
+     "nonLethal": true,
+     "rescueGraceMs": 1250,
+     "safeSampleIntervalMs": 120,
+     "contactPadding": 3
+    }
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 5,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "arenaLastWaveNormals": 5,
+  "nodeCount": {
+   "min": 60,
+   "max": 65
+  },
+  "shortestCombatPath": 6,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false
+   }
+  },
+  "grid": {
+   "rows": 5,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 2
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 4
+   }
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 8,
+  "floor": {
+   "terrainProfile": "frozenTerrain"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "frozen",
+  "wallStyle": "frozen"
+ },
+ "frozenDungeon": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/loading/snowfield-1.png",
+   "assets/scenes/loading/snowfield-2.png"
+  ],
+  "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 2048,
+   "bossSize": 2304,
+   "wallConstruction": "worldBlock1x1",
+   "entryEdge": "BL",
+   "gateCells": 6,
+   "passageCells": 12,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 32,
+    "sizeJitterCells": 2,
+    "doorEndClearanceCells": 1,
+    "turnLegCells": 7,
+    "branchLegCells": 8,
+    "branchChance": 0.28,
+    "maxBranchPassages": 1,
+    "loopChance": 0.18,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.32,
+    "maxRoomGraphBranches": 1,
+    "loopEndClearanceCells": 7,
+    "loopSpanCells": 14,
+    "loopOffsetCells": 12,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   },
+   "combatTemplates": {
+    "inheritFrom": "frozenBeginner"
+   },
+   "proceduralTerrain": {
+    "enabled": true,
+    "kind": "frozenAbyss",
+    "minPits": 1,
+    "maxPits": 2,
+    "fallRescue": {
+     "enabled": true,
+     "fallDelayMs": 650,
+     "damageMaxHpRatio": 0.25,
+     "nonLethal": true,
+     "rescueGraceMs": 1250,
+     "safeSampleIntervalMs": 120,
+     "contactPadding": 3
+    }
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 5,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "arenaLastWaveNormals": 5,
+  "nodeCount": {
+   "min": 65,
+   "max": 70
+  },
+  "shortestCombatPath": 7,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.4,
+  "encounters": {
+   "normal": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false
+   }
+  },
+  "grid": {
+   "rows": 5,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 2
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 4
+   }
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 9,
+  "floor": {
+   "terrainProfile": "frozenTerrain"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "frozen",
+  "wallStyle": "frozen"
+ },
+ "zombieDungeonMid": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror/horror-banner-01-moonlit-citadel.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-02-quarantine-street.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-03-weeping-abbey.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-04-ossuary-vault.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-05-chained-cellblock.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-06-coffin-workshop.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-07-bell-courtyard.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-08-necropolis-bridge.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-09-abandoned-infirmary.png",
+   "assets/scenes/dungeon-exploration-horror/horror-banner-10-sealed-throne-hall.png"
+  ],
+  "combatRoom": {
+   "normalSize": 1280,
+   "eliteSize": 1792,
+   "bossSize": 2176,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 40,
+    "sizeJitterCells": 2,
+    "branchChance": 0.28,
+    "maxBranchPassages": 1,
+    "loopChance": 0.18,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.28,
+    "maxRoomGraphBranches": 1,
+    "templatePool": [
+     "rect",
+     "notched",
+     "doubleNotch",
+     "cross",
+     "stepped",
+     "procedural"
+    ],
+    "topologyPool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "snake",
+     "staircase"
+    ],
+    "passageShapePool": [
+     "straight",
+     "elbow",
+     "zigzag",
+     "branch",
+     "loop"
+    ]
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "nodeCount": {
+   "min": 30,
+   "max": 35
+  },
+  "shortestCombatPath": 4,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.4,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombieDog",
+     "fatZombie",
+     "coffinWard",
+     "shroudThrall",
+     "ossuaryCaster",
+     "knellAttendant",
+     "stitchfaceHeadsman",
+     "waxfaceMourner",
+     "flySwarm",
+     "poisonMaggot",
+     "zombieWizard",
+     "mutant3",
+     "witch",
+     "shounao",
+     "flyHand"
+    ],
+    "matchPoolRanks": true,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "lord": 1,
+    "normal": 4
+   },
+   "poolKeys": [
+    "zombieDog",
+    "fatZombie",
+    "coffinWard",
+    "shroudThrall",
+    "ossuaryCaster",
+    "knellAttendant",
+    "stitchfaceHeadsman",
+    "waxfaceMourner",
+    "flySwarm",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand"
+   ],
+   "matchPoolRanks": true,
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "lord": 1,
+     "normal": 4
+    }
+   ]
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "terrainProfile": "zombieDungeonStone"
+  },
+  "mapBackground": "assets/scenes/dungeon-exploration-horror-v9.png",
+  "mapDossierImage": "assets/ui/dungeon-map/exploration-doorway-v9.png",
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-01-citadel.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-02-flooded-cathedral.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-03-necropolis.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-04-quarantine-foundry.png",
+   "assets/scenes/dungeon-map-horror-landmarks/horror-landmark-05-plague-ramparts.png"
+  ],
+  "mapBackgroundFullPlate": true,
+  "mapPresentation": "exploration",
+  "family": "zombie",
+  "wallStyle": "zombie",
+  "arenaLastWaveNormals": 10
+ },
+ "swampDungeon": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-01-drowned-gate.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-02-deadwood-channel.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-03-reed-ferry.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-04-sunken-chapel.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-05-witch-stilts.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-06-root-cellar.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-07-ghost-fungus-pool.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-08-broken-sluice.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-09-graveyard-isle.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-10-abandoned-watermill.png"
+  ],
+  "combatRoom": {
+   "bossSize": 1024,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "nodeCount": {
+   "min": 55,
+   "max": 60
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "evilTreant",
+     "carnivorousPitcher",
+     "brownSnake",
+     "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
+     "reedShadowSickleMantis",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
+    ],
+    "matchPoolRanks": true,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "evilTreant",
+     "carnivorousPitcher",
+     "brownSnake",
+     "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing",
+     "blackKingCobra",
+     "medusa",
+     "blackBear",
+     "purpleBlightAncient"
+    ],
+    "matchPoolRanks": true,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
+     }
+    ]
+   }
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf",
+    "brownBear",
+    "evilTreant",
+    "carnivorousPitcher",
+    "brownSnake",
+    "swampVampireMosquito",
+    "smallRotbogRhinocerosBeetle",
+    "reedShadowSickleMantis",
+    "blackKingCobra",
+    "medusa",
+    "rotTideToadAncestor"
+   ],
+   "matchPoolRanks": true,
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "boss": 1
+    }
+   ]
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "terrainProfile": "swampDungeonWetland"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
+  "family": "zombie",
+  "eventScope": "swamp",
+  "wallStyle": "swampStone",
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5
+  },
+  "arenaLastWaveNormals": 10
+ },
+ "swampDungeonBeginner": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-01-drowned-gate.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-02-deadwood-channel.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-03-reed-ferry.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-04-sunken-chapel.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-05-witch-stilts.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-06-root-cellar.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-07-ghost-fungus-pool.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-08-broken-sluice.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-09-graveyard-isle.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-10-abandoned-watermill.png"
+  ],
+  "combatRoom": {
+   "bossSize": 1024,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "nodeCount": {
+   "min": 30,
+   "max": 35
+  },
+  "shortestCombatPath": 4,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.4,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "evilTreant",
+     "carnivorousPitcher",
+     "brownSnake",
+     "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
+     "reedShadowSickleMantis",
+     "blackKingCobra"
+    ],
+    "matchPoolRanks": true,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "evilTreant",
+     "carnivorousPitcher",
+     "brownSnake",
+     "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
+     "reedShadowSickleMantis",
+     "blackKingCobra"
+    ],
+    "matchPoolRanks": true,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf",
+    "brownBear",
+    "evilTreant",
+    "brownSnake",
+    "swampVampireMosquito",
+    "smallRotbogRhinocerosBeetle",
+    "redWolfKing",
+    "carnivorousPitcher",
+    "reedShadowSickleMantis",
+    "blackKingCobra"
+   ],
+   "matchPoolRanks": true,
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "elite": 1,
+     "normal": 4
+    }
+   ]
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "terrainProfile": "swampDungeonWetland"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
+  "family": "zombie",
+  "eventScope": "swamp",
+  "wallStyle": "swampStone",
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 1,
+   "eliteRoomCount": 3
+  },
+  "arenaLastWaveNormals": 10
+ },
+ "swampDungeonMid": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-01-drowned-gate.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-02-deadwood-channel.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-03-reed-ferry.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-04-sunken-chapel.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-05-witch-stilts.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-06-root-cellar.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-07-ghost-fungus-pool.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-08-broken-sluice.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-09-graveyard-isle.png",
+   "assets/scenes/dungeon-exploration-swamp/swamp-banner-10-abandoned-watermill.png"
+  ],
+  "combatRoom": {
+   "bossSize": 1024,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "nodeCount": {
+   "min": 45,
+   "max": 50
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "evilTreant",
+     "carnivorousPitcher",
+     "brownSnake",
+     "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
+     "reedShadowSickleMantis",
+     "blackKingCobra",
+     "medusa",
+     "blackBear"
+    ],
+    "matchPoolRanks": true,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "evilTreant",
+     "carnivorousPitcher",
+     "brownSnake",
+     "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing",
+     "blackKingCobra",
+     "medusa",
+     "blackBear"
+    ],
+    "matchPoolRanks": true,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 4
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "elite": 1,
+      "normal": 4
+     },
+     {
+      "lord": 1,
+      "normal": 4
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf",
+    "brownBear",
+    "evilTreant",
+    "brownSnake",
+    "swampVampireMosquito",
+    "smallRotbogRhinocerosBeetle",
+    "medusa",
+    "blackBear",
+    "rotbogRhinocerosBeetleKing"
+   ],
+   "matchPoolRanks": true,
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "lord": 1,
+     "normal": 4
+    }
+   ]
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "terrainProfile": "swampDungeonWetland"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
+  "family": "zombie",
+  "eventScope": "swamp",
+  "wallStyle": "swampStone",
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5
+  },
+  "arenaLastWaveNormals": 10
+ },
+ "combatRoom": {
+  "normalSize": 1024,
+  "eliteSize": 1792,
+  "bossSize": 2048,
+  "wallThickness": 20,
+  "spawn": {
+   "playerOffsetFromEdge": 60,
+   "monsterSpawnDepth": 120,
+   "monsterMargin": 40,
+   "minWallDistance": 150
+  },
+  "obstacles": false
+ },
+ "combatArena": {
+  "roomCountByGrade": {
+   "F": {
+    "normal": 1,
+    "elite": 1
+   },
+   "E": {
+    "normal": 1,
+    "elite": 3
+   },
+   "D": {
+    "normal": 3,
+    "elite": 5
+   },
+   "C": {
+    "normal": 3,
+    "elite": 5
+   },
+   "B": {
+    "normal": 3,
+    "elite": 5
+   },
+   "A": {
+    "normal": 3,
+    "elite": 5
+   }
+  },
+  "passagePrefabs": {
+   "default": {
+    "v1": "左右通道",
+    "v2": "上下通道"
+   },
+   "swamp": {
+    "v1": "左右通道·沼泽",
+    "v2": "上下通道·沼泽"
+   }
+  },
+  "passageGap": 0,
+  "maze": {
+   "enabled": true,
+   "roomCount": 5,
+   "rows": 2
+  }
+ },
+ "events": {
+  "eventWeights": {
+   "goddessStatue": 1,
+   "trap": 1,
+   "supplyPile": 1,
+   "treasureChest": 1,
+   "demonStatue": 1
+  },
+  "attributeCheck": {
+   "baseSuccessRate": 20,
+   "attrMultiplier": 1,
+   "maxSuccessRate": 95,
+   "minSuccessRate": 5,
+   "softMaxStart": 80,
+   "softMinStart": 20
+  },
+  "goddessStatue": {
+   "title": "古老女神像",
+   "description": "你拨开垂落的藤蔓，一座被岁月侵蚀却依然圣洁的女神像出现在眼前。她的双眼由两颗失去光泽的蓝宝石镶嵌而成，但当你靠近时，水滴状的水晶开始泛起柔和的乳白色光芒。空气中弥漫着净化的气息，你感到疲惫的身躯正在渴望这份神圣的馈赠。石台边缘刻着古老的符文：「祈求者，择一而受。」",
+   "choices": [
+    {
+     "id": "heal",
+     "label": "祈求恢复",
+     "description": "女神的光芒将治愈所有伤痛，恢复全部生命值与魔法值",
+     "type": "heal"
+    },
+    {
+     "id": "bless",
+     "label": "请求祝福",
+     "description": "获得女神祝福：物攻/魔攻 +15%，持续 3 场战斗",
+     "type": "bless"
+    },
+    {
+     "id": "reward",
+     "label": "接受馈赠",
+     "description": "女神像底座开启，获得强化石、改造券与魔法粉尘",
+     "type": "reward"
+    }
+   ],
+   "healPercent": 100,
+   "blessAtkPercent": 15,
+   "blessDuration": 3,
+   "reward": {
+    "items": [
+     {
+      "type": "enhancement_stone",
+      "count": 1
+     },
+     {
+      "type": "reforge_ticket",
+      "count": 1
+     },
+     {
+      "type": "magic_dust",
+      "count": 200
+     }
+    ]
+   }
+  },
+  "trap": {
+   "title": "古老陷阱",
+   "description": "通道在这里骤然变窄，地面上的石板有几处微微下沉。你敏锐地注意到几根几乎透明的丝线横亘在脚踝高度，连接着两侧墙缝中锈迹斑斑的金属机关。一阵微风从深处吹来，丝线发出几乎不可闻的颤动声。你可以选择小心解除这些致命装置，或者赌上体魄强行冲过去。",
+   "choices": {
+    "disarm": {
+     "id": "disarm",
+     "label": "解除陷阱",
+     "attribute": "dex",
+     "baseRate": 25,
+     "successText": "你屏住呼吸，用匕首挑开最后一根触发线。机关发出沉闷的咔哒声，彻底哑火了。",
+     "failText": "你的手指刚碰到丝线，机关便轰然启动！锋利的刀片从墙壁射出，在你身上留下数道血痕。"
+    },
+    "cross": {
+     "id": "cross",
+     "label": "强行跨越",
+     "attribute": "con",
+     "baseRate": 30,
+     "successText": "你护住要害，以最快的速度冲过陷阱区域。几支毒箭擦过铠甲，但终究是过来了。",
+     "failText": "你低估了陷阱的密集程度。毒箭深深刺入你的肩膀，剧痛让你眼前发黑，几乎跪倒在地。"
+    }
+   },
+   "failDamagePercent": 25
+  },
+  "supplyPile": {
+   "title": "冒险者遗物",
+   "description": "角落的阴影中散落着一只破损的皮背包、半卷绳索和一件被撕裂的链甲。从装备上看，这曾是一位经验丰富的冒险者，但现在只剩下无声的遗物。血迹已经发黑，延伸向另一条通道。也许补给品还藏在背包夹层里，或者你可以搜索周围寻找他留下的路线线索——但要小心，地牢从不放过粗心的人。",
+   "choices": {
+    "search": {
+     "id": "search",
+     "label": "仔细搜寻",
+     "attribute": "wis",
+     "baseRate": 40,
+     "successText": "你耐心地翻找每一处夹层，终于在背包底部发现了一瓶尚未开封的药水。",
+     "failText": "你把背包翻了个底朝天，只找到一些发霉的干粮和一张被虫蛀坏的地图残片。"
+    },
+    "inspect": {
+     "id": "inspect",
+     "label": "探查四周",
+     "attribute": "dex",
+     "baseRate": 35,
+     "successText": "你压低身形，借着微弱的火光检查地面与墙壁。一处被碎石遮掩的暗格引起了你的注意。",
+     "failText": "你仔细检查了每一个角落，但暗格里的东西早已被搜刮一空，只剩下一层薄薄的灰尘。",
+     "revealDepth": 2
+    }
+   },
+   "searchReward": {
+    "type": "potion",
+    "count": 1,
+    "hpChance": 0.5,
+    "mpChance": 0.5
+   },
+   "failReward": {
+    "type": "none"
+   }
+  },
+  "treasureChest": {
+   "title": "神秘宝箱",
+   "description": "石室的中央突兀地立着一口宝箱，胡桃木的外壳上镶嵌着仍在微微发光的银色符文。锁扣已经锈蚀，但箱盖缝隙中透出温暖的金色光芒，伴随着金属碰撞般的轻响。你隐约记得老冒险者的警告：「地牢里的每一口宝箱都在等待贪婪者。」然而那光芒实在太过诱人……",
+   "outcomes": [
+    {
+     "type": "gold",
+     "chance": 0.5,
+     "amount": 500
+    },
+    {
+     "type": "materials",
+     "chance": 0.25,
+     "items": [
+      {
+       "type": "enhancement_stone",
+       "count": 1
+      },
+      {
+       "type": "reforge_ticket",
+       "count": 1
+      },
+      {
+       "type": "magic_dust",
+       "count": 200
+      }
+     ]
+    },
+    {
+     "type": "combat",
+     "chance": 0.25
+    }
+   ],
+   "combatText": "宝箱突然张开，里面钻出了一只宝箱怪！"
+  },
+  "demonStatue": {
+   "title": "恶魔雕像",
+   "description": "空气变得灼热而粘稠，一尊由黑曜石雕琢而成的恶魔雕像踞坐在血红色的基座上。它的双眼是两枚不断转动的暗红宝石，仿佛能直视你灵魂最深处的欲望。雕像底座刻着一行小字：「以血与魔为祭，换取深渊的馈赠。」你感到一种古老而邪恶的力量正在邀请你进行一场危险的交易。",
+   "choices": {
+    "pray": {
+     "id": "pray",
+     "label": "向恶魔祈祷",
+     "description": "失去50%当前生命值和魔法值，获得物理攻击/魔法攻击+33%的buff",
+     "type": "sacrifice",
+     "sacrificeHpPercent": 50,
+     "sacrificeMpPercent": 50,
+     "buff": {
+      "atkPercent": 33
+     }
+    },
+    "reward": {
+     "id": "reward",
+     "label": "恶魔祈求奖励",
+     "description": "失去50%当前生命值和魔法值，获得2颗强化石、2张改造券、400魔法粉尘",
+     "type": "sacrifice",
+     "sacrificeHpPercent": 50,
+     "sacrificeMpPercent": 50,
+     "items": [
+      {
+       "type": "enhancement_stone",
+       "count": 2
+      },
+      {
+       "type": "reforge_ticket",
+       "count": 2
+      },
+      {
+       "type": "magic_dust",
+       "count": 400
+      }
+     ]
+    }
+   }
+  },
+  "specialItems": {
+   "enhancement_stone": {
+    "maxStack": 9999,
+    "name": "强化石",
+    "icon": "💎",
+    "category": "enhancement"
+   },
+   "reforge_ticket": {
+    "maxStack": 9999,
+    "name": "改造券",
+    "icon": "🎫",
+    "category": "enhancement"
+   },
+   "magic_dust": {
+    "name": "魔法粉尘",
+    "icon": "✨",
+    "category": "material"
+   },
+   "hp_potion": {
+    "name": "治疗药水",
+    "icon": "🧪",
+    "category": "consumable"
+   },
+   "mp_potion": {
+    "name": "魔力药水",
+    "icon": "💧",
+    "category": "consumable"
+   }
+  }
+ },
+ "swamp": {},
+ "abandonedMineDungeonBeginner": {
+  "arenaLastWaveNormals": 6,
+  "combatRoom": {
+   "normalSize": 896,
+   "eliteSize": 1280,
+   "bossSize": 1536,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 32,
+    "sizeJitterCells": 1,
+    "branchChance": 0.22,
+    "maxBranchPassages": 1,
+    "loopChance": 0.12,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.22,
+    "maxRoomGraphBranches": 1,
+    "templatePool": ["rect", "notched", "doubleNotch", "cross", "stepped", "procedural"],
+    "topologyPool": ["straight", "elbow", "zigzag", "snake", "staircase"],
+    "passageShapePool": ["straight", "elbow", "zigzag", "branch", "loop"]
+   },
+   "combatTemplates": {
+    "inheritFrom": "abandonedMineMid",
+    "normalOnly": true,
+    "maxPerArena": 1
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 3,
+   "maze": {
+    "enabled": false,
+    "roomCount": 3,
+    "rows": 1
+   }
+  },
+  "nodeCount": {
+   "min": 22,
+   "max": 27
+  },
+  "shortestCombatPath": 4,
+  "mainRowMinCombat": 3,
+  "typeRatios": {
+   "combat": 0.4,
+   "event": 0.6
+  },
+  "eliteCombatChance": 0,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "coreDrillLarva",
+     "oreShardling",
+     "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
+    "foremanZombie",
+    "oreSpider"
+    ],
+    "matchPoolRanks": true
+   },
+   "elite": {
+    "combatWaves": 3,
+    "monstersPerWave": 6,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "coreDrillLarva",
+     "oreShardling",
+     "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
+     "foremanZombie",
+     "oreSpider"
+    ],
+    "matchPoolRanks": true
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 5
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "elite": 1
+    }
+   ],
+   "poolKeys": [
+    "zombie",
+    "spitterZombie",
+    "minerZombie",
+    "coreDrillLarva",
+    "oreShardling",
+    "lanternMinerZombie",
+    "bombZombie",
+    "supportBeamBrute",
+    "coreDrillWorm",
+     "foremanZombie",
+     "oreSpider"
+   ],
+   "matchPoolRanks": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "terrainProfile": "abandonedMine"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-03-ore-station.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-04-chain-prison.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-05-buried-crypt.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-06-flooded-pumpworks.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-07-fungal-grotto.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-08-forgotten-forge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-09-sealed-sanctum.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-10-subterranean-harbor.png"
+  ],
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-03-pump-hall.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-04-slate-quarry.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-05-crushing-works.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-06-mineral-gallery.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-07-supply-depot.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-08-collapse-bypass.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-09-excavated-vault.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
+  ],
+  "mapBackgroundSelection": "weighted-terrain",
+  "mapBackgroundFullPlate": false,
+  "mapPresentation": "exploration",
+  "family": "zombie",
+  "eventScope": "abandonedMine",
+  "enemyPreloadTypes": ["mineCave"],
+  "wallStyle": "abandonedMine"
+ },
+ "abandonedMineDungeonMid": {
+  "combatRoom": {
+   "normalSize": 1024,
+   "eliteSize": 1536,
+   "bossSize": 1792,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 32,
+    "sizeJitterCells": 1,
+    "branchChance": 0.22,
+    "maxBranchPassages": 1,
+    "loopChance": 0.12,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.22,
+    "maxRoomGraphBranches": 1,
+    "templatePool": ["rect", "notched", "doubleNotch", "cross", "stepped", "procedural"],
+    "topologyPool": ["straight", "elbow", "zigzag", "snake", "staircase"],
+    "passageShapePool": ["straight", "elbow", "zigzag", "branch", "loop"]
+   },
+   "combatTemplates": {
+    "enabled": true,
+    "chance": 0.4,
+    "maxPerArena": 2,
+    "templates": [
+     {
+      "id": "mineShortDetour",
+      "label": "支护短墙",
+      "warning": "支护短墙：中央短墙分开接敌路线，留意两侧来敌",
+      "chance": 0.2,
+      "eligibleStages": [2],
+      "requiresNormal": true,
+      "worldBlockLines": [
+       { "axis": "right", "forwardCells": 0, "rightStartCells": -1, "lengthCells": 2 }
+      ],
+      "spawnPattern": { "roles": ["leftCrew", "rightCrew"] },
+      "spawnAnchors": [
+       { "role": "leftCrew", "forwardCells": 2, "rightCells": -2, "jitterCells": 0.2 },
+       { "role": "rightCrew", "forwardCells": 2, "rightCells": 2, "jitterCells": 0.2 }
+      ]
+     },
+     {
+      "id": "mineOffsetPosts",
+      "label": "错位矿柱",
+      "warning": "错位矿柱：两段单格矿墙错位，绕墙推进时留意射线变化",
+      "chance": 0.2,
+      "eligibleStages": [2],
+      "requiresNormal": true,
+      "worldBlockLines": [
+       { "axis": "right", "forwardCells": -1, "rightStartCells": -1, "lengthCells": 1 },
+       { "axis": "right", "forwardCells": 1, "rightStartCells": 1, "lengthCells": 1 }
+      ],
+      "spawnPattern": { "roles": ["leftCrew", "rightCrew"] },
+      "spawnAnchors": [
+       { "role": "leftCrew", "forwardCells": 2, "rightCells": -2, "jitterCells": 0.2 },
+       { "role": "rightCrew", "forwardCells": 2, "rightCells": 3, "jitterCells": 0.2 }
+      ]
+     },
+     {
+      "id": "mineBlastGallery",
+      "label": "爆破折巷",
+      "warning": "爆破折巷：炸药工正隔着错位支护墙逼近，穿过折线前先处理引信",
+      "chance": 0.42,
+      "eligibleStages": [2],
+      "requiresElite": true,
+      "poolKeys": ["minerZombie", "bombZombie"],
+      "worldBlockLines": [
+       { "axis": "right", "forwardCells": -1, "rightStartCells": -3, "lengthCells": 3 },
+       { "axis": "right", "forwardCells": 2, "rightStartCells": 0, "lengthCells": 3 }
+      ],
+      "spawnPattern": { "roles": ["crewLeft", "crewRight"], "eliteRole": "demolition" },
+      "spawnAnchors": [
+       { "role": "demolition", "forwardCells": 3, "rightCells": 0, "jitterCells": 0.2 },
+       { "role": "crewLeft", "forwardCells": 2, "rightCells": -3, "jitterCells": 0.35 },
+       { "role": "crewRight", "forwardCells": 2, "rightCells": 3, "jitterCells": 0.35 }
+      ]
+     },
+     {
+      "id": "mineSupportLockdown",
+      "label": "断梁封锁",
+      "warning": "断梁封锁：支护梁巨尸压住中央巷道，矿工正从两侧木撑后包抄",
+      "chance": 0.34,
+      "eligibleStages": [2],
+      "requiresElite": true,
+      "poolKeys": ["minerZombie", "supportBeamBrute"],
+      "worldBlockLines": [
+       { "axis": "forward", "forwardStartCells": -1, "rightCells": -2, "lengthCells": 3 },
+       { "axis": "forward", "forwardStartCells": -1, "rightCells": 2, "lengthCells": 3 }
+      ],
+      "spawnPattern": { "roles": ["leftCrew", "rightCrew"], "eliteRole": "brute" },
+      "spawnAnchors": [
+       { "role": "brute", "forwardCells": 3, "rightCells": 0, "jitterCells": 0.2 },
+       { "role": "leftCrew", "forwardCells": 1, "rightCells": -4, "jitterCells": 0.4 },
+       { "role": "rightCrew", "forwardCells": 1, "rightCells": 4, "jitterCells": 0.4 }
+      ]
+     },
+     {
+      "id": "mineOreSpiderNest",
+      "label": "矿蛛巢道",
+      "warning": "矿蛛巢道：矿石蜘蛛守住中央巢口，矿工将从两侧短墙后同时推进",
+      "chance": 0.38,
+      "eligibleStages": [4],
+      "requiresElite": true,
+      "poolKeys": ["minerZombie", "oreSpider"],
+      "worldBlockLines": [
+       { "axis": "right", "forwardCells": 0, "rightStartCells": -3, "lengthCells": 2 },
+       { "axis": "right", "forwardCells": 0, "rightStartCells": 2, "lengthCells": 2 }
+      ],
+      "spawnPattern": { "roles": ["broodLeft", "broodRight"], "eliteRole": "spider" },
+      "spawnAnchors": [
+       { "role": "spider", "forwardCells": 3, "rightCells": 0, "jitterCells": 0.15 },
+       { "role": "broodLeft", "forwardCells": 1, "rightCells": -4, "jitterCells": 0.35 },
+       { "role": "broodRight", "forwardCells": 1, "rightCells": 4, "jitterCells": 0.35 }
+      ]
+     }
+    ]
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 3,
+   "maze": {
+    "enabled": false,
+    "roomCount": 3,
+    "rows": 1
+   }
+  },
+  "nodeCount": {
+   "min": 30,
+   "max": 35
+  },
+  "shortestCombatPath": 4,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.4,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "coreDrillLarva",
+     "oreShardling",
+     "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+   "coreDrillWorm",
+   "foremanZombie",
+   "oreSpider"
+    ],
+    "matchPoolRanks": true
+   },
+   "elite": {
+    "combatWaves": 1,
+    "monstersPerWave": 6,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "coreDrillLarva",
+     "oreShardling",
+     "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
+     "foremanZombie",
+     "oreSpider"
+    ],
+    "matchPoolRanks": true
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "lord": 1
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "lord": 1
+    }
+   ],
+   "poolKeys": [
+    "zombie",
+    "spitterZombie",
+    "minerZombie",
+    "coreDrillLarva",
+    "oreShardling",
+    "lanternMinerZombie",
+    "bombZombie",
+    "supportBeamBrute",
+   "coreDrillWorm",
+   "foremanZombie",
+   "brokenCableGaoler",
+   "blackLungLampKeeper",
+   "sealedShaftRockWraith",
+   "oreSpider"
+   ],
+   "matchPoolRanks": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "terrainProfile": "abandonedMine"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-03-ore-station.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-04-chain-prison.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-05-buried-crypt.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-06-flooded-pumpworks.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-07-fungal-grotto.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-08-forgotten-forge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-09-sealed-sanctum.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-10-subterranean-harbor.png"
+  ],
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-03-pump-hall.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-04-slate-quarry.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-05-crushing-works.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-06-mineral-gallery.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-07-supply-depot.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-08-collapse-bypass.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-09-excavated-vault.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
+  ],
+  "mapBackgroundSelection": "weighted-terrain",
+  "mapBackgroundFullPlate": false,
+  "mapPresentation": "exploration",
+  "family": "zombie",
+  "eventScope": "abandonedMine",
+  "enemyPreloadTypes": ["mineCave"],
+  "wallStyle": "abandonedMine"
+ },
+ "abandonedMineDungeon": {
+  "combatRoom": {
+   "normalSize": 1152,
+   "eliteSize": 1664,
+   "bossSize": 2048,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8,
+   "randomRooms": {
+    "enabled": true,
+    "mode": "hybrid",
+    "passageGateAxis": "dual",
+    "maxAttempts": 40,
+    "sizeJitterCells": 2,
+    "branchChance": 0.3,
+    "maxBranchPassages": 1,
+    "loopChance": 0.2,
+    "maxLoopPassages": 1,
+    "roomGraphBranchChance": 0.32,
+    "maxRoomGraphBranches": 1,
+    "templatePool": ["rect", "notched", "doubleNotch", "cross", "stepped", "procedural"],
+    "topologyPool": ["straight", "elbow", "zigzag", "snake", "staircase"],
+    "passageShapePool": ["straight", "elbow", "zigzag", "branch", "loop"]
+   },
+   "combatTemplates": {
+    "inheritFrom": "abandonedMineMid"
+   }
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
+  },
+  "nodeCount": {
+   "min": 45,
+   "max": 50
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ],
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "coreDrillLarva",
+     "oreShardling",
+     "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
+     "foremanZombie",
+     "oreSpider"
+    ],
+    "matchPoolRanks": true
+   },
+   "elite": {
+    "combatWaves": 5,
+    "monstersPerWave": 5,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 4,
+      "elite": 1
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     },
+     {
+      "normal": 4,
+      "lord": 1
+     }
+    ],
+    "poolKeys": [
+     "zombie",
+     "spitterZombie",
+     "minerZombie",
+     "coreDrillLarva",
+     "oreShardling",
+     "lanternMinerZombie",
+     "bombZombie",
+     "supportBeamBrute",
+     "coreDrillWorm",
+     "foremanZombie",
+     "brokenCableGaoler",
+     "blackLungLampKeeper",
+     "sealedShaftRockWraith",
+     "oreSpider"
+    ],
+    "matchPoolRanks": true
+   }
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "monsterComposition": {
+    "boss": 1,
+    "normal": 4
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "boss": 1
+    }
+   ],
+   "poolKeys": [
+    "zombie",
+    "spitterZombie",
+    "minerZombie",
+    "coreDrillLarva",
+    "oreShardling",
+    "lanternMinerZombie",
+    "bombZombie",
+    "supportBeamBrute",
+    "coreDrillWorm",
+    "foremanZombie",
+    "brokenCableGaoler",
+    "blackLungLampKeeper",
+    "sealedShaftRockWraith",
+    "oreSpider",
+    "deepVeinMother"
+   ],
+   "matchPoolRanks": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "terrainProfile": "abandonedMine"
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-03-ore-station.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-04-chain-prison.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-05-buried-crypt.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-06-flooded-pumpworks.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-07-fungal-grotto.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-08-forgotten-forge.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-09-sealed-sanctum.png",
+   "assets/scenes/dungeon-exploration-mine/mine-banner-10-subterranean-harbor.png"
+  ],
+  "mapBackgroundVariants": [
+   "assets/scenes/dungeon-map-mine-landmarks/mine-01-rail-junction.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-02-winding-shaft.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-03-pump-hall.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-04-slate-quarry.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-05-crushing-works.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-06-mineral-gallery.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-07-supply-depot.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-08-collapse-bypass.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-09-excavated-vault.png",
+   "assets/scenes/dungeon-map-mine-landmarks/mine-10-deep-smelter.png"
+  ],
+  "mapBackgroundSelection": "weighted-terrain",
+  "mapBackgroundFullPlate": false,
+  "mapPresentation": "exploration",
+  "family": "zombie",
+  "eventScope": "abandonedMine",
+  "enemyPreloadTypes": ["mineCave"],
+  "wallStyle": "abandonedMine"
+ },
+ "demonCavern": {
+  "mapLayout": "exploration",
+  "mapExplorationBackgroundVariants": [
+   "assets/scenes/dungeon-exploration-horror-v9.png"
+  ],
+  "combatRoom": {
+   "bossSize": 1024
+  },
+  "nodeCount": {
+   "min": 55,
+   "max": 60
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "lord": 1
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "tiles": [
+    "demonbrick1"
+   ],
+   "glow": false,
+   "overlapX": 6,
+   "overlapY": 3
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie"
+ },
+ "monsterStatProfiles": {
+  "horror": {
+   "comment": "恐怖C/B/A专属出生倍率，通用等级成长后仅应用一次；白名单含事件怪和召唤物，不影响低级矿洞、其他位面或时空特工。六维/暴击/移速/控制时钟不变。",
+   "enemyKeys": [
+    "zombieDog",
+    "fatZombie",
+    "coffinWard",
+    "shroudThrall",
+    "ossuaryCaster",
+    "knellAttendant",
+    "flySwarm",
+    "stitchfaceHeadsman",
+    "waxfaceMourner",
+    "poisonMaggot",
+    "zombieWizard",
+    "mutant3",
+    "witch",
+    "shounao",
+    "flyHand",
+    "amalgamZombie",
+    "armoredKnight",
+    "zombie",
+    "spitterZombie",
+    "tombstone",
+    "cauldron"
+   ],
+   "byGrade": {
+    "C": {
+     "hp": 1.5,
+     "attack": 1.25,
+     "defense": 1.1
+    },
+    "B": {
+     "hp": 1.7,
+     "attack": 1.4,
+     "defense": 1.15
+    },
+    "A": {
+     "hp": 2.0,
+     "attack": 1.55,
+     "defense": 1.2
+    }
+   }
+  }
+ }
+}

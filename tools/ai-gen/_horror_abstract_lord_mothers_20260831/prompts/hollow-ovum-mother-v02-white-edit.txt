@@ -1,0 +1,5 @@
+Edit the supplied Hollow Ovum mother image. Make ONLY a presentation/background change.
+
+Preserve the creature exactly: same asymmetrical hollow egg silhouette, same shell plates and their positions, same black stretched membranes, same large completely empty through-hole, same perspective, pose, proportions, surface materials and lighting. Do not redesign, add anatomy, add an eye, fill the hole, add gore or add any objects.
+
+Replace ALL transparent background with one flat, completely OPAQUE pure white (#FFFFFF) studio background. The outside background, all visible openings between membranes, and especially the central through-hole must show this same pure white background. This is an opaque white reference image, NOT a transparent cutout and NOT a black background. Retain a very soft natural gray hovering shadow just beneath the creature. Slightly increase blank white margins above and below if needed so neither the creature nor its shadow approaches the image edge. Keep one full centered creature, single square image, no text.

@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "density": 0.56,
+  "spacing": 240,
+  "torchClearance": 155,
+  "repeatDistance": 520,
+  "maxPerRoom": 4,
+  "maxPerPassage": 1,
+  "maxTotal": 20,
+  "mountHeight": 66,
+  "faceOffset": {
+    "x": 40,
+    "y": 20
+  },
+  "assets": [
+    {
+      "id": "shackles",
+      "labelZh": "锈铁镣铐",
+      "weight": 1.0,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_shackles_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_shackles_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_shackles_down.png"
+        },
+        "up": {
+          "key": "horror_wall_decor_shackles_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_shackles_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_shackles_up.png"
+        }
+      }
+    },
+    {
+      "id": "mourning_banner",
+      "labelZh": "破损丧幡",
+      "weight": 0.8,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_mourning_banner_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_mourning_banner_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_mourning_banner_down.png"
+        },
+        "up": {
+          "key": "horror_wall_decor_mourning_banner_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_mourning_banner_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_mourning_banner_up.png"
+        }
+      }
+    },
+    {
+      "id": "bone_reliquary",
+      "labelZh": "封骨匣",
+      "weight": 0.65,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_bone_reliquary_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_bone_reliquary_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_bone_reliquary_down.png"
+        },
+        "up": {
+          "key": "horror_wall_decor_bone_reliquary_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_bone_reliquary_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_bone_reliquary_up.png"
+        }
+      }
+    },
+    {
+      "id": "broken_bell",
+      "labelZh": "残钟挂架",
+      "weight": 0.55,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_broken_bell_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_broken_bell_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_broken_bell_down.png"
+        },
+        "up": {
+          "key": "horror_wall_decor_broken_bell_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_broken_bell_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_broken_bell_up.png"
+        }
+      }
+    }
+  ]
+}

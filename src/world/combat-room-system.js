@@ -46,7 +46,8 @@ import {
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
 import { DungeonWallTorchSystem } from './dungeon-wall-torch-system.js';
 import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
-import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites, finishGateSprites, prepareGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
+import { bindGateSourceCrop, bindGateLeafMotion, updateGateSprites,
+    finishGateSprites, prepareGateSprites, setGateSpritesVisible } from './gate-visual-state.js';
 import {
     buildFrozenArenaTerrain,
     findFrozenTerrainSafePoint,
@@ -1466,7 +1467,7 @@ export const CombatRoomSystem = {
         if (worldBlockArena) {
             const sizes = [];
             for (let i = 0; i < roomCount; i++) sizes.push(i === roomCount - 1 ? eliteSize : normalSize);
-            if (options.dungeonType === 'frozenBeginner' && roomProfile.randomRooms?.enabled === true) {
+            if (roomProfile.randomRooms?.enabled === true) {
                 try {
                     layout = computeFrozenRandomRoomLayout({
                         sizes,
@@ -1493,8 +1494,7 @@ export const CombatRoomSystem = {
                 cellW: ONE_CELL_BUILDING_FOOT.w,
                 cellD: ONE_CELL_BUILDING_FOOT.d,
                 entryEdge: this._resolveWorldBlockEntryEdge(roomProfile)?.name || 'LT',
-                passageGateAxis: options.dungeonType === 'frozenBeginner'
-                    ? roomProfile.randomRooms?.passageGateAxis : null,
+                passageGateAxis: roomProfile.randomRooms?.passageGateAxis || null,
             });
         } else if (roomCount <= 3 || !analysisV2) {
             // 三房直线串联（历史行为）：房间 1/2 normal、房间 3 elite
@@ -1622,7 +1622,6 @@ export const CombatRoomSystem = {
 
         WallSystem.rebuildIsoCollision();
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
-
         // 6. 竞技场状态（_diamond 固定指向最后一房：出口门/白区/离场判定都以其为准；
         //    _roomBounds 指向当前战斗房间，随 stage 切换——刷怪/墓碑共用现有逻辑）
         const rLast = layout.rooms[layout.rooms.length - 1];
@@ -1757,7 +1756,10 @@ export const CombatRoomSystem = {
                 ...(entryGate ? [[entryGate.baseA, entryGate.baseB]] : []),
                 ...(WallGate._seg ? [WallGate._seg] : []),
             ],
-            avoidPoints: [{ x: spawnX, y: spawnY, r: 150 }],
+            avoidPoints: [
+                { x: spawnX, y: spawnY, r: 150 },
+                ...(exitInfo?.center ? [{ x: exitInfo.center.x, y: exitInfo.center.y, r: 220 }] : []),
+            ],
         });
 
         // 9. 玩家生成：房间 1 中心偏上（防嵌墙兜底）
@@ -2667,7 +2669,7 @@ export const CombatRoomSystem = {
         const from = fullLeaf ? inst.sprite._gateVisualFrame : (open ? 0 : inst.frames - 1);
         const to = open ? inst.frames - 1 : 0;
         const sprites = inst.sprites || [inst.sprite];
-        // 矿洞关门先淡入再落下；中途反向从当前进度返回。
+        // 完整门叶关门时先淡入再落下；中途反向则从当前进度返回。
         prepareGateSprites(sprites, from);
         if (!scene) {
             finishGateSprites(sprites, to, open, inst.hideWhenOpen);
@@ -2679,9 +2681,7 @@ export const CombatRoomSystem = {
             onUpdate: (tw) => {
                 updateGateSprites(sprites, tw.getValue());
             },
-            onComplete: () => {
-                finishGateSprites(sprites, to, open, inst.hideWhenOpen);
-            },
+            onComplete: () => finishGateSprites(sprites, to, open, inst.hideWhenOpen),
         });
     },
 

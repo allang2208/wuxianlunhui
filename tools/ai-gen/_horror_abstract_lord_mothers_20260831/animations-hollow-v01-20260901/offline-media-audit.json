@@ -1,0 +1,71 @@
+{
+  "hollow-ovum-idle-v01.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 1.146,
+    "late112to123MAE": 0.083
+  },
+  "hollow-ovum-hover-motion-v01.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 1.346,
+    "late112to123MAE": 0.073
+  },
+  "hollow-ovum-hover-motion-v02.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 1.27,
+    "late112to123MAE": 0.21,
+    "status": "rejected_geometry"
+  },
+  "hollow-ovum-hover-motion-adjusted-v03.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 1.384,
+    "late112to123MAE": 1.84,
+    "status": "accepted_adjusted"
+  },
+  "hollow-ovum-vacuum-draw-v02.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 1.62,
+    "late112to123MAE": 3.494
+  },
+  "hollow-ovum-shell-pulse-v01.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 1.465,
+    "late112to123MAE": 2.403
+  },
+  "hollow-ovum-shell-pulse-adjusted-v02.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 7.279,
+    "late112to123MAE": 4.083,
+    "recoveryToIdleJoin56to57MAE": 1.905,
+    "maxAdjacentMAE": 2.451,
+    "status": "accepted_adjusted"
+  },
+  "hollow-ovum-collapse-v01.mp4": {
+    "decodedFrames": 124,
+    "width": 1024,
+    "height": 576,
+    "fps": 24.0,
+    "firstLastMAE": 20.636,
+    "late112to123MAE": 0.127
+  }
+}

@@ -45,7 +45,7 @@ function isStructure(target) {
 }
 
 /** 可净化的负面状态清单（每跳最多移除 1 个；数值走配置不改这里） */
-const CLEANSE_TYPES = ['poison', 'bleed', 'fear', 'chill', 'frozen', 'slow', 'bind',
+const CLEANSE_TYPES = ['poison', 'bleed', 'fear', 'chill', 'frozen', 'slow', 'waxSealSlow', 'bind',
     'magicVulnerability', 'droneVulnerability', 'electrified'];
 
 /**

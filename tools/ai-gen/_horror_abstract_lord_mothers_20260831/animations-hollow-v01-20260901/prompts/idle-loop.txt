@@ -1,0 +1,7 @@
+Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. The single hollow egg organism remains centered at a stable scale on the plain background, hovering above its shadow. It has no anatomical front, face, limbs, or travel heading.
+
+0.0-1.2 seconds: the calcified shell plates hold their asymmetric egg-shaped arrangement while the suspended body rises only a few pixels. The black membrane bridges tighten subtly around the large empty through-hole.
+1.2-3.9 seconds: one slow quiet suspension cycle. The upper plates lag slightly behind the lower plates, then settle; the empty aperture changes width only minimally and always remains visibly open to the background.
+3.9-5.17 seconds: the body eases back to the exact opening height, tilt, silhouette, plate spacing, membrane tension, and shadow relationship for a clean continuous loop.
+
+Keep all shell plates attached and preserve their count and placement. Preserve the central cavity as a true empty hole. No eye, core, mouth, added anatomy, detached fragments, liquid, particles, aura, camera motion, rotation around the vertical axis, or translation across the frame.

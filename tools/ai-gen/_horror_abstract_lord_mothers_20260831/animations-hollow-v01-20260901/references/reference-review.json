@@ -1,0 +1,67 @@
+{
+  "mother": "tools/ai-gen/_horror_abstract_lord_mothers_20260831/mother/hollow-ovum-mother-v02-white.png",
+  "safeReference": "tools/ai-gen/_horror_abstract_lord_mothers_20260831/animations-hollow-v01-20260901/references/hollow-ovum-h3-reference-1024x576.png",
+  "safeReferenceTransform": {
+    "sourceCanvas": [
+      1254,
+      1254
+    ],
+    "targetCanvas": [
+      1024,
+      576
+    ],
+    "resize": [
+      480,
+      480
+    ],
+    "pasteXY": [
+      272,
+      48
+    ],
+    "scaleMode": "equal-scale",
+    "background": "#FFFFFF"
+  },
+  "reviewPlate": "tools/ai-gen/_horror_abstract_lord_mothers_20260831/animations-hollow-v01-20260901/references/accepted-horror-frame-review.png",
+  "actualFrameReferences": [
+    {
+      "name": "shounao walk",
+      "sheet": "assets/enemies/shounao/walking.png",
+      "indices": [
+        0,
+        5,
+        11
+      ],
+      "cell": 512
+    },
+    {
+      "name": "shounao slam",
+      "sheet": "assets/enemies/shounao/attacking.png",
+      "indices": [
+        0,
+        14,
+        25
+      ],
+      "cell": 512
+    },
+    {
+      "name": "flyhand walk",
+      "sheet": "assets/enemies/flyhand/walking.png",
+      "indices": [
+        0,
+        7,
+        15
+      ],
+      "cell": 512
+    },
+    {
+      "name": "flyhand hammer",
+      "sheet": "assets/enemies/flyhand/attacking.png",
+      "indices": [
+        0,
+        3,
+        15
+      ],
+      "cell": 512
+    }
+  ]
+}

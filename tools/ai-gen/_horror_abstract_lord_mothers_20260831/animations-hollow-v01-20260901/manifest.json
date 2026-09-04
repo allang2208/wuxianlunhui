@@ -1,0 +1,368 @@
+{
+  "task": "空腔之卵 MiniMax H3 动画候选",
+  "createdDate": "2026-09-01",
+  "status": "runtime_integrated_pending_user_validation",
+  "userRequest": "接下来使用MiniMax H3管线继续对空腔之卵生成各种需要的视频动画",
+  "authorization": {
+    "providerExplicitlyRequested": true,
+    "provider": "MiniMax H3",
+    "identityContinuationAuthorized": true,
+    "candidateCountPerAction": 1
+  },
+  "identity": {
+    "unitKey": "hollow_ovum",
+    "name": "空腔之卵",
+    "mother": "../mother/hollow-ovum-mother-v02-white.png",
+    "motherPrompt": "../prompts/hollow-ovum-mother-v02-white-edit.txt",
+    "sourceMother": "../references/hollow-ovum-mother-v01-generated.png",
+    "sourcePrompt": "../prompts/hollow-ovum-mother-v01.txt",
+    "generationId": "exec-46d7332d-b6f8-4e1a-853c-5055cdf8973a",
+    "sourceGenerationId": "exec-e3bbd2a3-486d-4b4a-8ef1-7ae11f2d1ea2",
+    "designLock": "单个非人形悬浮卵环；灰白钙化壳片由黑色活膜相连；中央为可见背景的真实贯穿空洞，绝无眼、核心、口或类人解剖。"
+  },
+  "cameraAndDirectionReview": {
+    "camera": "沿母图固定略俯视三分之四镜头，中央空腔持续朝向镜头。",
+    "anatomicalHeading": "无头胸胯、膝脚和左右行进朝向；以壳片外轮廓、中央空腔和黑膜张力作为动作轴。",
+    "directionDecision": "采用全向悬浮体设计，不伪造侧向身体。移动视频保持屏幕根点居中，未来由游戏碰撞体提供世界位移。",
+    "rootMotion": "保留轻微自然上下悬浮；禁止横向跨屏位移和绕竖轴整圈旋转。",
+    "attackReadability": "空腔牵引用慢速内向张力与恢复；壳震脉冲用快速压缩、径向释放与回弹；外部范围、伤害和特效留给游戏逻辑。"
+  },
+  "actualAnimationReferences": {
+    "plate": "references/accepted-horror-frame-review.png",
+    "record": "references/reference-review.json",
+    "references": [
+      {
+        "unit": "手脑",
+        "action": "walking",
+        "path": "../../../../assets/enemies/shounao/walking.png",
+        "indices": [
+          0,
+          5,
+          11
+        ],
+        "purpose": "恐怖领主体积、略俯视感和循环幅度"
+      },
+      {
+        "unit": "手脑",
+        "action": "slam",
+        "path": "../../../../assets/enemies/shounao/attacking.png",
+        "indices": [
+          0,
+          14,
+          25
+        ],
+        "purpose": "起手、峰值、回位三阶段可读性"
+      },
+      {
+        "unit": "蝇手",
+        "action": "walking",
+        "path": "../../../../assets/enemies/flyhand/walking.png",
+        "indices": [
+          0,
+          7,
+          15
+        ],
+        "purpose": "非标准生物的稳定轮廓与循环回位"
+      },
+      {
+        "unit": "蝇手",
+        "action": "hammer",
+        "path": "../../../../assets/enemies/flyhand/attacking.png",
+        "indices": [
+          0,
+          3,
+          15
+        ],
+        "purpose": "清晰爆发峰值与完整恢复"
+      }
+    ],
+    "scope": "这些实际帧只校准相机、动作幅度和阶段节奏，不把手脑/蝇手的类人侧向解剖复制给空腔之卵。"
+  },
+  "safeReference": {
+    "path": "references/hollow-ovum-h3-reference-1024x576.png",
+    "sourceCanvas": [
+      1254,
+      1254
+    ],
+    "targetCanvas": [
+      1024,
+      576
+    ],
+    "resize": [
+      480,
+      480
+    ],
+    "pasteXY": [
+      272,
+      48
+    ],
+    "scaleMode": "equal-scale",
+    "background": "#FFFFFF",
+    "note": "等比缩放并补白到16:9，未横向拉伸母图，保留上下形变和坍塌余量。"
+  },
+  "generation": {
+    "entrypoint": "tools/ai-gen/ai-asset.py video generate",
+    "provider": "h3",
+    "referenceMode": "first-frame",
+    "refSize": "max",
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset",
+    "durationSeconds": 5.17,
+    "resolution": "1024x576",
+    "fps": 24,
+    "expectedFrames": 124,
+    "steps": 20,
+    "background": "#FFFFFF",
+    "actions": [
+      {
+        "key": "idle",
+        "motionMode": "loop",
+        "seed": 902101,
+        "prompt": "prompts/idle-loop.txt",
+        "output": "videos/hollow-ovum-idle-v01.mp4"
+      },
+      {
+        "key": "hover_motion",
+        "motionMode": "loop",
+        "seed": 902122,
+        "prompt": "prompts/hover-motion-loop-v02.txt",
+        "output": null,
+        "outputRemovedDuringCleanup": null,
+        "outputRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-v02.mp4"
+      },
+      {
+        "key": "vacuum_draw",
+        "motionMode": "recover",
+        "seed": 902113,
+        "prompt": "prompts/vacuum-draw-recover-v02.txt",
+        "output": "videos/hollow-ovum-vacuum-draw-v02.mp4"
+      },
+      {
+        "key": "shell_pulse",
+        "motionMode": "recover",
+        "seed": 902104,
+        "prompt": "prompts/shell-pulse-recover.txt",
+        "output": null,
+        "outputRemovedDuringCleanup": null,
+        "outputRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-shell-pulse-v01.mp4"
+      },
+      {
+        "key": "collapse",
+        "motionMode": "one-way",
+        "seed": 902105,
+        "prompt": "prompts/collapse-one-way.txt",
+        "output": "videos/hollow-ovum-collapse-v01.mp4"
+      }
+    ]
+  },
+  "regeneration": {
+    "requestedDate": "2026-09-01",
+    "userRequest": "继续重抽或者是调整。",
+    "status": "completed_with_structure_safe_derivation",
+    "decision": "悬浮移动H3 v02仍出现明显透视压扁，停止继续重抽同类提示词；最终移动和壳震均从已通过的H3源帧做不改变几何的离线调整。",
+    "derivationScript": "derive-structure-safe-variants.py",
+    "derivationProvenance": "videos/structure-safe-derived-videos.json",
+    "actions": [
+      {
+        "action": "hover_motion",
+        "sourceRejectedVideo": null,
+        "sourceAudit": "audit/report.md",
+        "h3Retry": {
+          "prompt": "prompts/hover-motion-loop-v02.txt",
+          "seed": 902122,
+          "output": null,
+          "status": "rejected",
+          "reason": "中央孔保持，但第68帧高度降至77.61%、第52帧宽度增至113.70%，竖直卵体被压成圆团，比v01更差。",
+          "outputRemovedDuringCleanup": null,
+          "outputRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-v02.mp4"
+        },
+        "adjustment": "复用已通过的待机H3全部124帧，只做整帧0至-8px的整数垂直位移；不缩放、不旋转、不插值、不生成重绘。",
+        "output": "videos/hollow-ovum-hover-motion-adjusted-v03.mp4",
+        "status": "accepted",
+        "sourceRejectedVideoRemovedDuringCleanup": null,
+        "sourceRejectedVideoRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-v01.mp4"
+      },
+      {
+        "action": "shell_pulse",
+        "sourceRejectedVideo": null,
+        "sourceAudit": "audit/report.md",
+        "unsubmittedPrompt": "prompts/shell-pulse-recover-v02.txt",
+        "correction": "不再提交高风险壳震重绘；取已通过牵引v02的0至28帧小幅开壳，沿原帧轨迹精确反放恢复，再接待机1至67帧。",
+        "output": "videos/hollow-ovum-shell-pulse-adjusted-v02.mp4",
+        "status": "accepted",
+        "sourceRejectedVideoRemovedDuringCleanup": null,
+        "sourceRejectedVideoRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-shell-pulse-v01.mp4"
+      }
+    ]
+  },
+  "rejectedCandidates": [
+    {
+      "action": "vacuum_draw",
+      "version": "v01",
+      "video": null,
+      "contactSheet": null,
+      "prompt": "prompts/vacuum-draw-recover.txt",
+      "seed": 902103,
+      "reason": "峰值约64至80帧时黑膜跨过并封住中央贯穿孔，违反空腔始终为空的身份门槛。",
+      "decision": "保留原片与来源，不进入后续精灵图制作；v02改为壳片外掀、空洞扩大。",
+      "videoRemovedDuringCleanup": null,
+      "contactSheetRemovedDuringCleanup": null,
+      "videoRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-vacuum-draw-v01.mp4",
+      "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-vacuum-draw-v01_contact.png"
+    },
+    {
+      "action": "hover_motion",
+      "version": "v01",
+      "video": null,
+      "contactSheet": null,
+      "prompt": "prompts/hover-motion-loop.txt",
+      "seed": 902102,
+      "reason": "中央孔保持，但高度最低79.20%、宽度最高110.74%，常驻移动出现明显俯仰压扁。",
+      "decision": "保留来源证据，不进入精灵图制作。",
+      "videoRemovedDuringCleanup": null,
+      "contactSheetRemovedDuringCleanup": null,
+      "videoRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-v01.mp4",
+      "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-v01_contact.png"
+    },
+    {
+      "action": "hover_motion",
+      "version": "v02",
+      "video": null,
+      "contactSheet": null,
+      "prompt": "prompts/hover-motion-loop-v02.txt",
+      "seed": 902122,
+      "reason": "提示词锁定刚性位移后仍在第68帧压矮至77.61%，第52帧增宽至113.70%，竖直卵形转为圆团。",
+      "decision": "判退并停止同类H3重抽；改用已通过H3待机帧做整帧位移。",
+      "videoRemovedDuringCleanup": null,
+      "contactSheetRemovedDuringCleanup": null,
+      "videoRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-v02.mp4",
+      "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-v02_contact.png"
+    },
+    {
+      "action": "shell_pulse",
+      "version": "v01",
+      "video": null,
+      "contactSheet": null,
+      "prompt": "prompts/shell-pulse-recover.txt",
+      "seed": 902104,
+      "reason": "第27帧中央贯穿孔完全封闭；第42帧主体宽度与前景面积均约为首帧1.65倍，并由竖直卵环变成横向近圆环，属于过度缩放和结构形变。",
+      "decision": "判退，不进入精灵图制作；后续需固定竖直卵形、限制宽高变化并禁止蓄压阶段封孔。",
+      "videoRemovedDuringCleanup": null,
+      "contactSheetRemovedDuringCleanup": null,
+      "videoRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-shell-pulse-v01.mp4",
+      "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-shell-pulse-v01_contact.png"
+    }
+  ],
+  "offlineReview": {
+    "h3GeneratedCandidateCount": 7,
+    "derivedCandidateCount": 2,
+    "acceptedCandidateCount": 5,
+    "needsRevisionActionCount": 0,
+    "rejectedH3CandidateCount": 4,
+    "acceptedBytes": 2938132,
+    "totalRemoteElapsedSeconds": 3074.882,
+    "mediaAudit": "offline-media-audit.json",
+    "mediaAuditSummary": "最终五条均解码为1024×576、24fps、124帧。调整移动首末帧MAE为1.384；壳震恢复到待机的56至57帧接点MAE为1.905，低于全片相邻帧最大2.451，没有额外接片跳变。",
+    "orientationSizeDeformationAudit": "audit/orientation-size-deformation-audit.json",
+    "orientationSizeDeformationReport": "audit/report.md",
+    "orientationSizeDeformationOverview": "audit/orientation-size-deformation-overview.png",
+    "auditSupersedesInitialContactSheetPass": true,
+    "adjustedAuditDirectory": "audit/adjusted",
+    "needsRevisionActions": [],
+    "contactSheetMethod": "原始和调整MP4均由ComfyUI Python 18.0.0的PyAV解码，每条均匀抽取24点；H3原片保持不变，调整片来源与逐帧操作另存provenance。",
+    "candidates": [
+      {
+        "action": "idle",
+        "status": "accepted",
+        "video": "videos/hollow-ovum-idle-v01.mp4",
+        "provenance": "videos/hollow-ovum-idle-v01.mp4.json",
+        "contactSheet": null,
+        "preview": null,
+        "review": "逐帧宽度变化不超过0.4%，水平中心漂移不超过0.6px，贯穿孔面积保持在首帧99.97%至100.66%；高度最低为91.59%，属于可见但可接受的纵向悬浮收缩，没有朝向或拓扑断裂。",
+        "contactSheetRemovedDuringCleanup": null,
+        "previewRemovedDuringCleanup": null,
+        "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-idle-v01_contact.png",
+        "previewRemovedDuringCleanupRemovedDuringCleanup": "previews/hollow-ovum-idle-v01.gif"
+      },
+      {
+        "action": "hover_motion",
+        "status": "accepted_adjusted",
+        "video": "videos/hollow-ovum-hover-motion-adjusted-v03.mp4",
+        "provenance": "videos/structure-safe-derived-videos.json",
+        "contactSheet": null,
+        "preview": null,
+        "audit": "audit/adjusted/hover-motion-adjusted-v03-audit.json",
+        "review": "宽度全程100%，水平中心漂移不超过0.5px，主轴3.73至5.63度，孔洞99.94%至100.69%；高度91.59%至101.33%完全继承已通过待机H3的自然收缩，新增移动仅为0至-8px整帧位移。",
+        "contactSheetRemovedDuringCleanup": null,
+        "previewRemovedDuringCleanup": null,
+        "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-hover-motion-adjusted-v03_contact.png",
+        "previewRemovedDuringCleanupRemovedDuringCleanup": "previews/hollow-ovum-hover-motion-adjusted-v03.gif"
+      },
+      {
+        "action": "vacuum_draw",
+        "status": "accepted",
+        "video": "videos/hollow-ovum-vacuum-draw-v02.mp4",
+        "provenance": "videos/hollow-ovum-vacuum-draw-v02.mp4.json",
+        "contactSheet": null,
+        "preview": null,
+        "peakKeyframes": [],
+        "review": "水平中心漂移不超过2.1px，主轴角稳定在3.45至4.18度，高度保持96.46%至100.44%；宽度最大129.26%和孔洞最大312.82%来自设计中的横向开壳，不是镜头推近或整体换模。",
+        "contactSheetRemovedDuringCleanup": null,
+        "previewRemovedDuringCleanup": null,
+        "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-vacuum-draw-v02_contact.png",
+        "previewRemovedDuringCleanupRemovedDuringCleanup": "previews/hollow-ovum-vacuum-draw-v02.gif"
+      },
+      {
+        "action": "shell_pulse",
+        "status": "accepted_adjusted",
+        "video": "videos/hollow-ovum-shell-pulse-adjusted-v02.mp4",
+        "provenance": "videos/structure-safe-derived-videos.json",
+        "contactSheet": null,
+        "preview": null,
+        "audit": "audit/adjusted/shell-pulse-adjusted-v02-audit.json",
+        "review": "峰值宽度111.11%、面积104.90%，主轴3.81至5.62度，中央孔全程不低于99.48%且峰值扩大至168.06%；第28帧达到峰值，第56帧恢复，第57帧接入待机的MAE为1.905，低于片内相邻帧最大2.451。",
+        "contactSheetRemovedDuringCleanup": null,
+        "previewRemovedDuringCleanup": null,
+        "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-shell-pulse-adjusted-v02_contact.png",
+        "previewRemovedDuringCleanupRemovedDuringCleanup": "previews/hollow-ovum-shell-pulse-adjusted-v02.gif"
+      },
+      {
+        "action": "collapse",
+        "status": "accepted",
+        "video": "videos/hollow-ovum-collapse-v01.mp4",
+        "provenance": "videos/hollow-ovum-collapse-v01.mp4.json",
+        "contactSheet": null,
+        "preview": null,
+        "finalKeyframes": [],
+        "review": "宽度最高122.96%、高度最低73.67%和主轴偏转50.73度均对应设计中的单向落地；前景面积始终在92.70%至100.65%，孔洞最低98.52%，说明不是整体缩放或结构丢失。末姿稳定。",
+        "contactSheetRemovedDuringCleanup": null,
+        "previewRemovedDuringCleanup": null,
+        "contactSheetRemovedDuringCleanupRemovedDuringCleanup": "videos/hollow-ovum-collapse-v01_contact.png",
+        "previewRemovedDuringCleanupRemovedDuringCleanup": "previews/hollow-ovum-collapse-v01.gif"
+      }
+    ],
+    "scopeDecision": "待机、调整移动v03、空腔牵引v02、调整壳震v02、失能坍塌五条视频均可进入后续截段与透明精灵图阶段。未生成召唤、投射物或额外阶段动作。"
+  },
+  "qualityGates": [
+    "先审原始MP4自动联系图，再决定是否进入抠图、截段、插帧和精灵图阶段。",
+    "空腔始终为空且贯穿，不得变成眼球、嘴、核心或门户特效。",
+    "壳片数量和非对称布局保持稳定，动作峰值不得散架或长出肢体。",
+    "循环动作首尾同姿；恢复动作只做一次并回到准备姿；坍塌动作不得回弹站起。",
+    "不把离线视频候选描述为游戏运行时通过。"
+  ],
+  "runtimeIntegrationActive": true,
+  "testsRun": false,
+  "runtimeValidationRun": false,
+  "verificationBoundary": "五动作正式图集、HollowOvum状态机、双份配置、Boot登记和恐怖地牢候选池已接入；未运行测试、构建、浏览器或游戏验证。",
+  "spriteProduction": {
+    "path": "sprite-production-v01",
+    "status": "runtime_integrated_pending_user_validation",
+    "manifest": "sprite-production-v01/sprite-manifest.json",
+    "overview": "sprite-production-v01/previews/all-actions-fixed-root.png",
+    "runtimeIntegration": "sprite-production-v01/runtime-integration.json",
+    "totalDecodedMiB": 54.8119,
+    "runtimeIntegrated": true
+  },
+  "cleanupManifest": "../cleanup-manifest-20260901.json"
+}

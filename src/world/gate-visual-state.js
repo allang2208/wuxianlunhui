@@ -53,7 +53,7 @@ export function bindGateLeafMotion(sprite, geo, initialFrame) {
     sprite.setFrame(initialFrame);
 }
 
-/** 矿洞位移/淡化消费连续时间，其它门保留各调用方原有的离散帧。 */
+/** 独立门叶位移/淡化消费连续时间，其它门保留各调用方原有的离散帧。 */
 export function updateGateSprites(sprites, frame, quantize = Math.round) {
     for (const sprite of sprites || []) {
         if (!sprite || !sprite.active) continue;

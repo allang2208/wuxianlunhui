@@ -17,6 +17,7 @@ import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier, getTributeSta
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
 import { BuildingRoadSystem } from '../../world/building-road-system.js';
+import { waxSealSpeedMultiplier } from '../../combat/wax-seal-status.js';
 
 const updateMixin = {
 update(dt, entities) {
@@ -380,6 +381,8 @@ update(dt, entities) {
                             targetSpeed = this.maxSpeed;
                         }
                     }
+                    // 封蜡减速在持枪走/跑速度确定后统一乘算，切换奔跑状态也不会覆盖。
+                    targetSpeed *= waxSealSpeedMultiplier(this);
                     // 冲刺攻击动画期间：移动速度为0.1px/帧（结束后恢复）
                     if (this._isDashing) targetSpeed = 0.1;
                     // 冲刺末帧定格期：同普通攻击不可移动（输入无效，动画播完前不许动）

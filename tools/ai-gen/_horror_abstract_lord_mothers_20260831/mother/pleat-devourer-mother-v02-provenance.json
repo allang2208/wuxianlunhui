@@ -1,0 +1,48 @@
+{
+  "unitKey": "pleat_devourer",
+  "name": "百褶噬团",
+  "status": "candidate",
+  "approved": false,
+  "output": "mother/pleat-devourer-mother-v02-dungeon-family-white.png",
+  "prompt": "prompts/pleat-devourer-mother-v02-dungeon-family.txt",
+  "sourceOutput": "mother/pleat-devourer-mother-v01-white.png",
+  "sourcePrompt": "prompts/pleat-devourer-mother-v01.txt",
+  "generationId": "exec-a5b3b3a2-5d85-4545-8797-94cf5c4bd1e9",
+  "sourceGenerationId": "exec-b921bde4-5576-4946-8aa5-6504d6037f43",
+  "revisionRequest": "参考现在恐怖地牢里的其他怪物，重新设计百褶噬团；延续非人形方向，只改母图候选。",
+  "design": "非人形匍匐噬囊；灰褐干皮与脏白殓布融合、粗缝线和稀疏锈铁固定件、非对称大折瓣和前右方内陷暗缝。去除原黑亮胶质和红色湿膜，仍无头部、眼睛或四肢。",
+  "referenceScope": "参考现有地牢怪物的材质、配色、殓葬元素和镜头观感，不继承其人形解剖、武器或钟体。",
+  "inputReferences": [
+    {
+      "order": 1,
+      "role": "edit_target",
+      "path": "mother/pleat-devourer-mother-v01-white.png",
+      "prompt": "prompts/pleat-devourer-mother-v01.txt"
+    },
+    {
+      "order": 2,
+      "role": "style_material_reference",
+      "name": "裹尸囚徒",
+      "path": "references/style-shroud-thrall-v01.png",
+      "sourcePath": "../_horror_normal_mothers_20260830/mother/01-shroud-thrall-v01.png",
+      "sourceProvenance": "../_horror_normal_mothers_20260830/manifest.json#candidates/01-shroud-thrall"
+    },
+    {
+      "order": 3,
+      "role": "style_material_reference",
+      "name": "棺板卫尸",
+      "path": "references/style-coffin-ward-v02-head-wrap.png",
+      "sourcePath": "../_horror_normal_mothers_20260830/mother/02-coffin-ward-v02-head-wrap.png",
+      "sourceProvenance": "../_horror_normal_mothers_20260830/manifest.json#candidates/02-coffin-ward"
+    },
+    {
+      "order": 4,
+      "role": "style_material_reference",
+      "name": "缚钟侍者",
+      "path": "references/style-knell-attendant-v01.png",
+      "sourcePath": "../_horror_normal_mothers_20260830/mother/04-knell-attendant-v01.png",
+      "sourceProvenance": "../_horror_normal_mothers_20260830/manifest.json#candidates/04-knell-attendant"
+    }
+  ],
+  "runtimeIntegrationActive": false
+}

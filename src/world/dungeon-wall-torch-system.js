@@ -1,6 +1,7 @@
 import { WallSystem, ISO_WALL_GEO } from './wall-system.js';
 import mineWallDecorConfig from '../../data/abandoned-mine-wall-decor.json';
 import swampWallPlantConfig from '../../data/swamp-wall-plants.json';
+import horrorWallDecorConfig from '../../data/horror-wall-decor.json';
 
 // 旧 obstacle_torch 原图 144×278：金属背板挂点与燃烧杯中心，不能把画布中心当火源。
 const MOUNT = { x: 120, y: 128 };
@@ -96,7 +97,7 @@ export const DungeonWallTorchSystem = {
         const seen = new Set();
         for (const wall of walls) {
             const { piece, center, axis } = wall;
-            if (!axis || cfg.skipBlocks.includes(piece._gridBlockVariant)) continue;
+            if (!axis || (cfg.skipBlocks || []).includes(piece._gridBlockVariant)) continue;
             const key = coordinateKey(center);
             if (seen.has(key)) continue;
             seen.add(key);
@@ -126,7 +127,12 @@ export const DungeonWallTorchSystem = {
             }
         }
         // 火把先完成，挂饰仅填剩余净空，保持已有火把的位置和数量。
-        if (style.wallDecorations) this._placeDecorations(candidates, plantCfg || mineWallDecorConfig);
+        if (style.wallDecorations) {
+            const decorCfg = style.wallDecorations === 'horrorRelics'
+                ? horrorWallDecorConfig
+                : plantCfg || mineWallDecorConfig;
+            this._placeDecorations(candidates, decorCfg);
+        }
         return this._records.length;
     },
 

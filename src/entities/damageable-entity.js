@@ -643,6 +643,9 @@ export function isFriendlyFire(source, target) {
             removeStatusEffect(type) {
                 const idx = this.statusEffects.findIndex(e => e.type === type);
                 if (idx >= 0) this.statusEffects.splice(idx, 1);
+                if (type === 'waxSealSlow' && this._faction === 'player') {
+                    StatusBar.removeEffectByType(type);
+                }
             }
             /**
              * 更新所有状态效果计时器

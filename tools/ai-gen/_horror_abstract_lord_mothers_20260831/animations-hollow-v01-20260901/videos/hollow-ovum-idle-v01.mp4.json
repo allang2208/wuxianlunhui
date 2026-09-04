@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T01:27:58.431142+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\videos\\hollow-ovum-idle-v01.mp4",
+    "bytes": 491308,
+    "sha256": "74ffadd5619bd7adbfa2f1099cc9d91768de9dc4c581eeed9ca17cbff6abacbd"
+  },
+  "promptId": "ac197e95-2fa2-4a1e-8ab1-4588dc644ed3",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 902101,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. The single hollow egg organism remains centered at a stable scale on the plain background, hovering above its shadow. It has no anatomical front, face, limbs, or travel heading.\n\n0.0-1.2 seconds: the calcified shell plates hold their asymmetric egg-shaped arrangement while the suspended body rises only a few pixels. The black membrane bridges tighten subtly around the large empty through-hole.\n1.2-3.9 seconds: one slow quiet suspension cycle. The upper plates lag slightly behind the lower plates, then settle; the empty aperture changes width only minimally and always remains visibly open to the background.\n3.9-5.17 seconds: the body eases back to the exact opening height, tilt, silhouette, plate spacing, membrane tension, and shadow relationship for a clean continuous loop.\n\nKeep all shell plates attached and preserve their count and placement. Preserve the central cavity as a true empty hole. No eye, core, mouth, added anatomy, detached fragments, liquid, particles, aura, camera motion, rotation around the vertical axis, or translation across the frame.",
+  "effectivePrompt": "Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. The single hollow egg organism remains centered at a stable scale on the plain background, hovering above its shadow. It has no anatomical front, face, limbs, or travel heading.\n\n0.0-1.2 seconds: the calcified shell plates hold their asymmetric egg-shaped arrangement while the suspended body rises only a few pixels. The black membrane bridges tighten subtly around the large empty through-hole.\n1.2-3.9 seconds: one slow quiet suspension cycle. The upper plates lag slightly behind the lower plates, then settle; the empty aperture changes width only minimally and always remains visibly open to the background.\n3.9-5.17 seconds: the body eases back to the exact opening height, tilt, silhouette, plate spacing, membrane tension, and shadow relationship for a clean continuous loop.\n\nKeep all shell plates attached and preserve their count and placement. Preserve the central cavity as a true empty hole. No eye, core, mouth, added anatomy, detached fragments, liquid, particles, aura, camera motion, rotation around the vertical axis, or translation across the frame, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. The single hollow egg organism remains centered at a stable scale on the plain background, hovering above its shadow. It has no anatomical front, face, limbs, or travel heading.\n\n0.0-1.2 seconds: the calcified shell plates hold their asymmetric egg-shaped arrangement while the suspended body rises only a few pixels. The black membrane bridges tighten subtly around the large empty through-hole.\n1.2-3.9 seconds: one slow quiet suspension cycle. The upper plates lag slightly behind the lower plates, then settle; the empty aperture changes width only minimally and always remains visibly open to the background.\n3.9-5.17 seconds: the body eases back to the exact opening height, tilt, silhouette, plate spacing, membrane tension, and shadow relationship for a clean continuous loop.\n\nKeep all shell plates attached and preserve their count and placement. Preserve the central cavity as a true empty hole. No eye, core, mouth, added anatomy, detached fragments, liquid, particles, aura, camera motion, rotation around the vertical axis, or translation across the frame, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "ddd606592584e166fa89f70beb4eb80736992050c16f919f44d86a8aff13cff8",
+  "effectivePromptSha256": "ca8388e6497604245423caf8a5c99f0861103d8bd7aabe8935749aff8dadbfc7",
+  "finalPromptSha256": "873141e0e9339a80528eaec5a86f1581831471b50cd56690dff3021d14c3ddda",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\prompts\\idle-loop.txt",
+      "bytes": 1228,
+      "sha256": "83be01d8846bc489c75700f1ad733e9e4ad60483ece7183b94478ba22e6d53f0"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 460.692
+}

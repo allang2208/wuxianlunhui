@@ -1,0 +1,233 @@
+{
+  "stage": "native modeled wall props",
+  "runtimeInstalled": true,
+  "generator": "tools/ai-gen/build-horror-wall-decor.py",
+  "blend": "horror_wall_decor.blend",
+  "materialLibrary": "tools/ai-gen/environment-prop-materials.py",
+  "materialVersion": "environment-prop-pbr-v1",
+  "sharedHelpers": [
+    "build-mine-wall-decor.py",
+    "build-mine-props-model-review.py",
+    "build-abandoned-mine-terrain.py",
+    "build-world122-street-decor.py",
+    "mine-prop-render-contract.py"
+  ],
+  "camera": {
+    "elevation": 30.0,
+    "rootDirections": [
+      -44.8,
+      44.8
+    ],
+    "orthoScale": 6.4,
+    "bottomRatio": 0.875,
+    "resolution": [
+      512,
+      512
+    ]
+  },
+  "mountAnchorLocal": [
+    0,
+    0,
+    0.95
+  ],
+  "worldPixelsPerModelUnit": 48,
+  "policy": "Native RGBA, fixed camera and lighting, two modeled wall axes; no ground plane, cast shadow, collision, interaction, sound or glow",
+  "aiGeneration": false,
+  "assets": [
+    {
+      "id": "shackles",
+      "labelZh": "锈铁镣铐",
+      "weight": 1.0,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_shackles_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_shackles_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_shackles_down.png",
+          "alphaBounds": [
+            211,
+            323,
+            286,
+            434
+          ],
+          "visibleWorldPx": [
+            45.0,
+            66.6
+          ]
+        },
+        "up": {
+          "key": "horror_wall_decor_shackles_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_shackles_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_shackles_up.png",
+          "alphaBounds": [
+            226,
+            323,
+            301,
+            434
+          ],
+          "visibleWorldPx": [
+            45.0,
+            66.6
+          ]
+        }
+      }
+    },
+    {
+      "id": "mourning_banner",
+      "labelZh": "破损丧幡",
+      "weight": 0.8,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_mourning_banner_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_mourning_banner_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_mourning_banner_down.png",
+          "alphaBounds": [
+            210,
+            309,
+            292,
+            440
+          ],
+          "visibleWorldPx": [
+            49.2,
+            78.6
+          ]
+        },
+        "up": {
+          "key": "horror_wall_decor_mourning_banner_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_mourning_banner_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_mourning_banner_up.png",
+          "alphaBounds": [
+            220,
+            309,
+            302,
+            442
+          ],
+          "visibleWorldPx": [
+            49.2,
+            79.8
+          ]
+        }
+      }
+    },
+    {
+      "id": "bone_reliquary",
+      "labelZh": "封骨匣",
+      "weight": 0.65,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_bone_reliquary_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_bone_reliquary_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_bone_reliquary_down.png",
+          "alphaBounds": [
+            207,
+            318,
+            295,
+            448
+          ],
+          "visibleWorldPx": [
+            52.8,
+            78.0
+          ]
+        },
+        "up": {
+          "key": "horror_wall_decor_bone_reliquary_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_bone_reliquary_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_bone_reliquary_up.png",
+          "alphaBounds": [
+            217,
+            318,
+            305,
+            448
+          ],
+          "visibleWorldPx": [
+            52.8,
+            78.0
+          ]
+        }
+      }
+    },
+    {
+      "id": "broken_bell",
+      "labelZh": "残钟挂架",
+      "weight": 0.55,
+      "views": {
+        "down": {
+          "key": "horror_wall_decor_broken_bell_down",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_broken_bell_down.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_broken_bell_down.png",
+          "alphaBounds": [
+            190,
+            320,
+            268,
+            441
+          ],
+          "visibleWorldPx": [
+            46.8,
+            72.6
+          ]
+        },
+        "up": {
+          "key": "horror_wall_decor_broken_bell_up",
+          "src": "assets/terrain/horror-wall-decor/horror_wall_decor_broken_bell_up.png",
+          "origin": [
+            0.5,
+            0.7464495
+          ],
+          "displayWidth": 307.2,
+          "source": "horror_wall_decor_broken_bell_up.png",
+          "alphaBounds": [
+            244,
+            320,
+            322,
+            441
+          ],
+          "visibleWorldPx": [
+            46.8,
+            72.6
+          ]
+        }
+      }
+    }
+  ],
+  "installationRecord": {
+    "date": "2026-08-31",
+    "authorization": "User requested new horror wall decorations generated in the dungeon",
+    "config": "data/horror-wall-decor.json",
+    "runtimeValidated": false
+  },
+  "calibration": "512 source canvas at displayWidth=307.2; fixed 48 world px/model unit, no per-prop scale normalization"
+}

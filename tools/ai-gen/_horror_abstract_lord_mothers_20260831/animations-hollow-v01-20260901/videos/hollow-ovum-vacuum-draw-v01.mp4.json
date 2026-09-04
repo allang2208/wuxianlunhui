@@ -1,0 +1,58 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T01:44:12.777679+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\videos\\hollow-ovum-vacuum-draw-v01.mp4",
+    "bytes": 597727,
+    "sha256": "79e3926cbf26345ae3c8a558bb4176b509416dc00125c591752fc61cce549248"
+  },
+  "promptId": "5570c5c5-5e52-483c-a3f2-b5ea40961fb5",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 902103,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied Hollow Ovum as the exact opening identity. The locked camera retains the same slightly elevated three-quarter view and stable game-sprite scale. The organism stays centered; this attack is communicated only by shell and membrane mechanics, with no external effect.\n\n0.0-0.9 seconds: the hovering body lowers a little in anticipation. The outer calcified plates draw closer to the central opening and the black membrane bridges become visibly taut.\n0.9-3.2 seconds: the upper and side plates pull outward in a slow controlled sequence while the inner shell walls and membranes strain inward toward the empty cavity. The aperture narrows vertically but never closes or gains contents. The motion builds like a sustained inward pressure field, reaching one readable held peak near 3.2 seconds.\n3.2-5.17 seconds: tension releases in reverse order. The plates reconnect to their original spacing, the aperture returns to its original shape, and the body settles back into the stable hovering ready pose. Do not repeat the action.\n\nPreserve every plate, membrane bridge, shell material, and the true empty through-hole. No eye, core, face, mouth, added anatomy, suction vortex, smoke, dust, debris, beams, projectiles, detached pieces, camera shake, zoom, or lateral translation.",
+  "effectivePrompt": "Use the supplied Hollow Ovum as the exact opening identity. The locked camera retains the same slightly elevated three-quarter view and stable game-sprite scale. The organism stays centered; this attack is communicated only by shell and membrane mechanics, with no external effect.\n\n0.0-0.9 seconds: the hovering body lowers a little in anticipation. The outer calcified plates draw closer to the central opening and the black membrane bridges become visibly taut.\n0.9-3.2 seconds: the upper and side plates pull outward in a slow controlled sequence while the inner shell walls and membranes strain inward toward the empty cavity. The aperture narrows vertically but never closes or gains contents. The motion builds like a sustained inward pressure field, reaching one readable held peak near 3.2 seconds.\n3.2-5.17 seconds: tension releases in reverse order. The plates reconnect to their original spacing, the aperture returns to its original shape, and the body settles back into the stable hovering ready pose. Do not repeat the action.\n\nPreserve every plate, membrane bridge, shell material, and the true empty through-hole. No eye, core, face, mouth, added anatomy, suction vortex, smoke, dust, debris, beams, projectiles, detached pieces, camera shake, zoom, or lateral translation, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied Hollow Ovum as the exact opening identity. The locked camera retains the same slightly elevated three-quarter view and stable game-sprite scale. The organism stays centered; this attack is communicated only by shell and membrane mechanics, with no external effect.\n\n0.0-0.9 seconds: the hovering body lowers a little in anticipation. The outer calcified plates draw closer to the central opening and the black membrane bridges become visibly taut.\n0.9-3.2 seconds: the upper and side plates pull outward in a slow controlled sequence while the inner shell walls and membranes strain inward toward the empty cavity. The aperture narrows vertically but never closes or gains contents. The motion builds like a sustained inward pressure field, reaching one readable held peak near 3.2 seconds.\n3.2-5.17 seconds: tension releases in reverse order. The plates reconnect to their original spacing, the aperture returns to its original shape, and the body settles back into the stable hovering ready pose. Do not repeat the action.\n\nPreserve every plate, membrane bridge, shell material, and the true empty through-hole. No eye, core, face, mouth, added anatomy, suction vortex, smoke, dust, debris, beams, projectiles, detached pieces, camera shake, zoom, or lateral translation, isolated on a perfectly uniform solid pure white background (#FFFFFF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "c339c09fad1a78430c75a2410d2919f441b0f78de72183d68db7cef6d9ae23e3",
+  "effectivePromptSha256": "d68d3890dd880961b1a641af188f2873f1def25d83176a742f3c04649a927218",
+  "finalPromptSha256": "c8aedbc9ab3679f960102f94aa221bb03b87167a25b566503fa8049c6ef922fb",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\prompts\\vacuum-draw-recover.txt",
+      "bytes": 1291,
+      "sha256": "3b1602e7c78ca83e8221d5a69b10f5201f91ef38b0425b3a47f2cdef18b45ea8"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 425.582
+}

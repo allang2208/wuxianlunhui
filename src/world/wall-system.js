@@ -38,8 +38,13 @@ const ISO_WALL_GEO = {
     // 僵尸地牢战斗房：Blender 黑方砖单格墙 + 仅含移动门叶的锈铁升降栅栏。
     // 门洞两端继续用 zombie_block 作同材质墙柱，不在 gate 内重复门柱/横梁；
     // 与冰封门共享精确六格底线、13px 碰撞半厚和浅/中/深分层合同。
-    zombie_block: { tex: 'zombie_wall_block', w: 1024, h: 1024, groundCenter: [512, 761.9959], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, editor: '僵尸黑砖单格墙' },
-    zombie_gate: { tex: 'zombie_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 225.7447, slope: 0.5, halfThick: 13, depthSlices: 3, editor: '僵尸六格锈铁升降栅栏', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
+    zombie_block: { tex: 'zombie_wall_block', w: 1024, h: 1024, groundCenter: [512, 761.9959], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, footprint: [128, 64], editor: '僵尸黑砖单格墙' },
+    zombie_gate: { tex: 'zombie_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 225.7447, slope: 0.5, halfThick: 13, depthSlices: 3, hideWhenOpen: true,
+        leafMotion: { fadeFraction: 0.2, liftPixels: Array.from({ length: 16 }, (_, i) => {
+            const t = i / 15;
+            return Math.round(t * t * (3 - 2 * t) * 348);
+        }) },
+        editor: '僵尸六格锈铁升降栅栏', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
     // 恶魔洞窟铁闸门（路线 B：岩壁单块 + 铁栅独立渲染 → 程序化 16 帧升起；compose-demon-gate-B.py 标定：
     // 门洞平行四边形，底边与墙同斜率 0.6347，wallH 291；gateX = 门洞 [159,481]）
     demon_gate: { tex: 'demon_gate', w: 640, h: 576, frames: 16, base: [[0, 228], [639, 634]], face: [[77, 277], [563, 586]], gateX: [159, 481], wallH: 291, slope: 0.6347, editor: '恶魔铁闸', states: { open: { hole: [159, 481] }, closed: { hole: null } } },
@@ -121,6 +126,13 @@ const ISO_WALL_STYLES = {
     zombie: {
         straight: 'straight', block: 'zombie_block', gate: 'zombie_gate', chestPrefab: '宝箱房',
         gateSound: 'assets/sounds/environment/gate.mp3',
+        wallTorches: {
+            enabled: true, scale: 0.30, mountHeight: 66, faceOffset: 18,
+            spacing: 380, gateClearance: 150, cornerClearance: 100,
+            maxPerRoom: 5, maxPerPassage: 1, maxTotal: 26,
+            lightRadius: 88, lightAlpha: 0.14, skipBlocks: [],
+        },
+        wallDecorations: 'horrorRelics',
     },
     swamp: {
         straight: 'swamp_straight', gate: 'swamp_gate', chestPrefab: '沼泽宝箱房', gateSound: 'assets/sounds/environment/swamp_gate.mp3',

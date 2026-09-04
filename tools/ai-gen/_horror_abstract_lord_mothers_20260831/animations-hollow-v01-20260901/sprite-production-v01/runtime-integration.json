@@ -1,0 +1,139 @@
+{
+  "date": "2026-09-01",
+  "unitKey": "hollowOvum",
+  "status": "integrated_pending_user_validation",
+  "authorization": {
+    "userRequest": "导入游戏设计状态机和数值；继续对空腔之卵生成并按动画标准工作流处理。",
+    "scope": "空腔之卵五动作入库、双技能状态机、数值、恐怖地牢领主池；不包括测试或EXE发布。"
+  },
+  "entity": "src/entities/enemy-types/hollow-ovum.js",
+  "config": "data/enemy-config.json#hollowOvum",
+  "assets": "assets/enemies/hollow_ovum",
+  "orientation": {
+    "orientationInvariant": true,
+    "flipX": false,
+    "camera": "固定略俯视三分之四镜头；无头胸胯、面部或左右行进轴。",
+    "root": "共同中心悬浮根点；世界移动由Collider负责，素材保留自然升降。"
+  },
+  "displaySize": {
+    "referenceCell": 512,
+    "spriteSize": 432,
+    "bodyDisplayHeight": 181
+  },
+  "collision": {
+    "radius": 74,
+    "width": 164,
+    "height": 178
+  },
+  "actions": {
+    "idle": {
+      "textureKey": "enemy_hollow_ovum_idle",
+      "texture": "assets/enemies/hollow_ovum/idle.png",
+      "frameCount": 62,
+      "durationMs": 5166.666667,
+      "frameWidth": 151,
+      "frameHeight": 230,
+      "footX": 75.5,
+      "footY": 222.5
+    },
+    "walk": {
+      "textureKey": "enemy_hollow_ovum_walk",
+      "texture": "assets/enemies/hollow_ovum/walk.png",
+      "frameCount": 62,
+      "durationMs": 5166.666667,
+      "frameWidth": 151,
+      "frameHeight": 234,
+      "footX": 75.5,
+      "footY": 226.5
+    },
+    "vacuum": {
+      "textureKey": "enemy_hollow_ovum_vacuum",
+      "texture": "assets/enemies/hollow_ovum/vacuum.png",
+      "frameCount": 83,
+      "durationMs": 5166.666667,
+      "frameWidth": 191,
+      "frameHeight": 230,
+      "footX": 95.5,
+      "footY": 215.5
+    },
+    "pulse": {
+      "textureKey": "enemy_hollow_ovum_pulse",
+      "texture": "assets/enemies/hollow_ovum/pulse.png",
+      "frameCount": 61,
+      "durationMs": 2541.666667,
+      "frameWidth": 167,
+      "frameHeight": 228,
+      "footX": 83.5,
+      "footY": 214.5
+    },
+    "death": {
+      "textureKey": "enemy_hollow_ovum_death",
+      "texture": "assets/enemies/hollow_ovum/death.png",
+      "frameCount": 83,
+      "durationMs": 5166.666667,
+      "frameWidth": 195,
+      "frameHeight": 236,
+      "footX": 97.5,
+      "footY": 214.5
+    }
+  },
+  "skills": {
+    "vacuum": {
+      "initialCooldownMs": 3000,
+      "triggerRange": 480,
+      "radius": 480,
+      "duration": 5166.666667,
+      "frames": 83,
+      "pullFrames": [
+        16,
+        24,
+        32,
+        40
+      ],
+      "pullDistance": 34,
+      "eventFrame": 40,
+      "eventMs": 2500,
+      "damageMul": 1.25,
+      "damageType": "magic",
+      "cooldown": 10500,
+      "targets": "allHostile",
+      "requiresSameSurface": true,
+      "requiresLos": true,
+      "comment": "正式f16/24/32/40各向空腔牵引34px；f40空腔完全张开时再结算一次魔攻×1.25。四次牵引和伤害均按同层、墙体与范围复查。"
+    },
+    "pulse": {
+      "initialCooldownMs": 1500,
+      "triggerRange": 270,
+      "radius": 270,
+      "duration": 2541.666667,
+      "frames": 61,
+      "eventFrame": 28,
+      "eventMs": 1166.666667,
+      "damageMul": 2,
+      "damageType": "magic",
+      "knockback": 115,
+      "stunMs": 650,
+      "cooldown": 6500,
+      "targets": "allHostile",
+      "requiresSameSurface": true,
+      "requiresLos": true,
+      "comment": "源f28即正式f28；脉冲峰值在1166.667ms对270px地面椭圆各结算一次魔攻×2，向外击退115并短眩晕650ms。"
+    }
+  },
+  "dungeonRegistration": {
+    "pools": 5,
+    "statProfile": "horror",
+    "invasionEnabled": false
+  },
+  "dependencyNote": "Five unique animation textures, 54.8119 MiB decoded. No summons, projectiles or separate VFX textures; this is not a scene-performance measurement.",
+  "cleanupManifest": "../../cleanup-manifest-20260901.json",
+  "userFinalRuntimeAcceptance": false,
+  "testsRun": false,
+  "runtimeValidationRun": false,
+  "pending": [
+    "C/B/A体量、碰撞和同级战斗手感",
+    "真空牵引多阈值、同层、墙体遮挡与目标离开范围",
+    "壳脉冲击退/眩晕、控制打断和石化姿态",
+    "死亡动画、留尸和淡出"
+  ]
+}

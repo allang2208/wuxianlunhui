@@ -55,3 +55,9 @@ export function rollDungeonBossGold(dungeonType) {
 export function getDungeonCompletionGold(dungeonType) {
     return getDungeonRewardRule(dungeonType).completionGold;
 }
+
+/** 系列专属奖励；没有配置时保留任务卡和原经验口径。 */
+export function getDungeonRewardProfile(dungeonType) {
+    const dungeon = dungeonConfigData.dungeonList?.[dungeonType];
+    return COMBAT_FORMULAS.dungeonRewardProfiles?.[dungeon?.series]?.[dungeon?.grade] || null;
+}

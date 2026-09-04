@@ -44,7 +44,7 @@ export const WallGate = {
         return ISO_WALL_GEO[key] || ISO_WALL_GEO.gate;
     },
 
-    /** 矿洞升降门完全升起后不保留顶部残影；下落前再整体显现。 */
+    /** 完整门叶升起后不保留顶部残影；下落前再整体显现。 */
     _setVisualVisible(visible) {
         setGateSpritesVisible(this.sprites, visible);
         if (!visible) {
@@ -83,28 +83,38 @@ export const WallGate = {
         // 僵尸素材恰好自洽（此尺度 == 旧线段反推值），行为不变
         const s = ISO_WALL_HEIGHT / g.wallH;
         const fitSpan = options.fitSpan === true;
-        const sx = fitSpan
-            ? Math.abs(B.x - A.x) / Math.max(1, Math.abs(g.base[1][0] - g.base[0][0]))
-            : s;
-        const sy = fitSpan
-            ? Math.abs(B.y - A.y) / Math.max(1, Math.abs(g.base[1][1] - g.base[0][1]))
-            : s * slopeFixOf(g);
-        let x0, y0;
-        if (!flip) {
-            x0 = A.x - p0[0] * sx;
-            y0 = A.y - p0[1] * sy;
+        let start = { x: A.x, y: A.y };
+        let end = { x: B.x, y: B.y };
+        if (fitSpan) {
+            const piece = WallSystem._buildGateSpanPiece(start, end, geoKey, depth);
+            if (!piece) return false;
+            start = piece._gateSpan.a;
+            end = piece._gateSpan.b;
+            flip = piece._gateSpan.flip;
+            this._flip = !!piece.flipX;
+            this._scale = { sx: piece.scaleX, sy: piece.scaleY };
+            this._cx = piece.x;
+            this._cy = piece.y;
         } else {
-            // flip（"/" 方向）：flipX 为 quad 内镜像，p0→A、p1→B
-            x0 = A.x - (g.w - p0[0]) * sx;
-            y0 = A.y - p0[1] * sy;
+            const sx = s;
+            const sy = s * slopeFixOf(g);
+            let x0, y0;
+            if (!flip) {
+                x0 = start.x - p0[0] * sx;
+                y0 = start.y - p0[1] * sy;
+            } else {
+                // flip（"/" 方向）：flipX 为 quad 内镜像，p0→A、p1→B
+                x0 = start.x - (g.w - p0[0]) * sx;
+                y0 = start.y - p0[1] * sy;
+            }
+            this._flip = !!flip;
+            this._scale = { sx: Math.abs(sx), sy };
+            this._cx = x0 + g.w * Math.abs(sx) / 2;
+            this._cy = y0 + g.h * sy / 2;
         }
-        this._flip = !!flip;
-        this._scale = { sx: Math.abs(sx), sy };
-        this._cx = x0 + g.w * Math.abs(sx) / 2;
-        this._cy = y0 + g.h * sy / 2;
-        this._seg = [{ x: A.x, y: A.y }, { x: B.x, y: B.y }];
+        this._seg = [start, end];
         // 归属深度（门洞中心规则，见下方 _gateCenter 计算后修正）
-        this._homeDepth = depth ?? Math.max(A.y, B.y);
+        this._homeDepth = depth ?? Math.max(start.y, end.y);
 
         for (const oldSprite of new Set([...(this.sprites || []), this.sprite].filter(Boolean))) {
             oldSprite.destroy();
@@ -200,7 +210,7 @@ export const WallGate = {
         this.state = 'closing';
         this._onDone = onDone || null;
         this.setPassable(false);
-        // 矿洞完整门叶先在顶部淡入，再沿原轨迹落下。
+        // 完整门叶先在顶部淡入，再沿原轨迹落下。
         this._setVisualVisible(true);
         if (SoundManager && typeof SoundManager.playWorld === 'function') {
             // 世界音效（2026-08-11 距离衰减）：关门声按门闸位置衰减

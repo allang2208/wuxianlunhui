@@ -1,0 +1,7 @@
+Use the supplied Hollow Ovum as the exact first-frame identity. The camera stays locked in the same orthographic-like, slightly elevated three-quarter view. This is an in-place hovering travel cycle for a game sprite: gameplay will move the collider, so the organism remains near the same screen position and does not choose a left or right heading.
+
+0.0-1.0 seconds: the lower half lifts with a restrained upward impulse while the top shell plates trail behind by a few pixels; the whole ovoid tilts about three degrees.
+1.0-3.9 seconds: the body completes one smooth buoyant travel rhythm, drifting slightly down and back up. Opposing shell plates make small delayed counter-motions and the taut black membranes flex without stretching across the cavity. The motion feels deliberate and heavier than the idle cycle.
+3.9-5.17 seconds: the tilt and vertical offset ease back to the exact opening pose and screen position without a hold or frozen seam.
+
+Keep the large through-hole empty and continuously visible. Preserve the asymmetric plate topology and stable scale. No walking anatomy, wings, tentacles, eye, core, mouth, detached shell, full spin, lateral screen travel, particles, aura, motion trails, or camera movement.

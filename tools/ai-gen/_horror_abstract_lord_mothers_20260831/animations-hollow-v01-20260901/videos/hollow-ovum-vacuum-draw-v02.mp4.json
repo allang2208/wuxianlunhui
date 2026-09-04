@@ -1,0 +1,58 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T01:52:45.878355+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\videos\\hollow-ovum-vacuum-draw-v02.mp4",
+    "bytes": 631265,
+    "sha256": "fa7e546e170a96347438bba6adccb3470d7aeca307c71755db17d4b9dd1529e6"
+  },
+  "promptId": "20c6db55-df8e-4e52-ab79-ae006570029b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 902113,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Use the supplied Hollow Ovum as the exact opening identity. The camera stays locked in the same slightly elevated three-quarter view and stable game-sprite scale. The organism remains centered. The attack is shown as the existing empty opening expanding into a stronger hollow intake; the white background must remain plainly visible through the center at every moment.\n\n0.0-0.9 seconds: the hovering body lowers slightly and the neighboring shell plates tense around the already open cavity. Every black membrane bridge stays attached only along the cavity perimeter.\n0.9-3.2 seconds: the side and upper calcified plates hinge outward and slightly backward in a slow connected sequence. The inner shell walls flare apart, making the empty white through-hole visibly wider and taller than at the opening pose. The perimeter membranes stretch only between neighboring shell edges and frame the enlarged white opening without crossing its center. The outward opening reaches one clear sustained peak near 3.2 seconds.\n3.2-5.17 seconds: the connected plates ease inward in reverse order until the original wide empty cavity, plate spacing, hover height, and ready pose return naturally. Do not repeat the action.\n\nThe central white window never becomes narrower than its opening size and is never covered by black tissue. Preserve every original plate and the asymmetric egg silhouette. No eye, core, face, mouth, added anatomy, membrane sheet across the hole, vortex, smoke, debris, beams, projectiles, detached pieces, camera movement, or lateral translation.",
+  "effectivePrompt": "Use the supplied Hollow Ovum as the exact opening identity. The camera stays locked in the same slightly elevated three-quarter view and stable game-sprite scale. The organism remains centered. The attack is shown as the existing empty opening expanding into a stronger hollow intake; thesolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow must remain plainly visible through the center at every moment.\n\n0.0-0.9 seconds: the hovering body lowers slightly and the neighboring shell plates tense around the already open cavity. Every black membrane bridge stays attached only along the cavity perimeter.\n0.9-3.2 seconds: the side and upper calcified plates hinge outward and slightly backward in a slow connected sequence. The inner shell walls flare apart, making the empty white through-hole visibly wider and taller than at the opening pose. The perimeter membranes stretch only between neighboring shell edges and frame the enlarged white opening without crossing its center. The outward opening reaches one clear sustained peak near 3.2 seconds.\n3.2-5.17 seconds: the connected plates ease inward in reverse order until the original wide empty cavity, plate spacing, hover height, and ready pose return naturally. Do not repeat the action.\n\nThe central white window never becomes narrower than its opening size and is never covered by black tissue. Preserve every original plate and the asymmetric egg silhouette. No eye, core, face, mouth, added anatomy, membrane sheet across the hole, vortex, smoke, debris, beams, projectiles, detached pieces, camera movement, or lateral translation.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Use the supplied Hollow Ovum as the exact opening identity. The camera stays locked in the same slightly elevated three-quarter view and stable game-sprite scale. The organism remains centered. The attack is shown as the existing empty opening expanding into a stronger hollow intake; thesolid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow must remain plainly visible through the center at every moment.\n\n0.0-0.9 seconds: the hovering body lowers slightly and the neighboring shell plates tense around the already open cavity. Every black membrane bridge stays attached only along the cavity perimeter.\n0.9-3.2 seconds: the side and upper calcified plates hinge outward and slightly backward in a slow connected sequence. The inner shell walls flare apart, making the empty white through-hole visibly wider and taller than at the opening pose. The perimeter membranes stretch only between neighboring shell edges and frame the enlarged white opening without crossing its center. The outward opening reaches one clear sustained peak near 3.2 seconds.\n3.2-5.17 seconds: the connected plates ease inward in reverse order until the original wide empty cavity, plate spacing, hover height, and ready pose return naturally. Do not repeat the action.\n\nThe central white window never becomes narrower than its opening size and is never covered by black tissue. Preserve every original plate and the asymmetric egg silhouette. No eye, core, face, mouth, added anatomy, membrane sheet across the hole, vortex, smoke, debris, beams, projectiles, detached pieces, camera movement, or lateral translation. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "06e908b5679dfd09fce2148229b4ee3640b6f55e113f95ec267b828f476cfc11",
+  "effectivePromptSha256": "dbea621dcb84b1ea6cbd2280b7c2c051514f51080578fbf6898e76166286c1a2",
+  "finalPromptSha256": "06d11ed207ff1202ced4c9bd9e7529e7539f2bf1484761450f16127feae0a7ea",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\prompts\\vacuum-draw-recover-v02.txt",
+      "bytes": 1559,
+      "sha256": "91d29c22513329738046da4212dc9239e2e7fe53b3faf886a7dfc7bcc36acc40"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_horror_abstract_lord_mothers_20260831\\animations-hollow-v01-20260901\\references\\hollow-ovum-h3-reference-1024x576.png",
+      "bytes": 257810,
+      "sha256": "0f2527176fe08092256e40c26e78e95187e21f7587d442208a81441bec282c12"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 425.665
+}

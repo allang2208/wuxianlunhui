@@ -22,6 +22,7 @@ import swampWallPlantConfig from '../../../data/swamp-wall-plants.json';
 import { getFrozenTerrainAssets } from '../../config/frozen-terrain.js';
 import roadsideDecorationConfig from '../../../data/roadside-decorations.json';
 import enemyConfigData from '../../../data/enemy-config.json';
+import horrorWallDecorConfig from '../../../data/horror-wall-decor.json';
 import {
     queueCivilianVisualAssets,
     registerCivilianVisualAnimations,
@@ -355,6 +356,11 @@ export class BootScene extends Scene {
         // 僵尸地牢：Blender 黑方砖单格墙 + 16 帧锈铁升降闸（冰封整数格墙合同）。
         this.load.image('zombie_wall_block', 'assets/terrain/zombie_wall_block.png');
         this.load.spritesheet('zombie_gate', 'assets/terrain/zombie_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
+        for (const asset of horrorWallDecorConfig.assets || []) {
+            for (const view of Object.values(asset.views || {})) {
+                this.load.image(view.key, view.src);
+            }
+        }
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）
@@ -1275,6 +1281,26 @@ export class BootScene extends Scene {
         // 煮锅（其他，静态贴图，巫婆伴生）
         this.load.image('enemy_cauldron', 'assets/enemies/cauldron/bowl.png');
 
+        // 恐怖地牢专属普通、精英和领主：布局、帧数与脚点均由配置真源给出。
+        for (const [type, family] of [
+            ['coffinWard', 'coffin_ward'], ['shroudThrall', 'shroud_thrall'],
+            ['ossuaryCaster', 'ossuary_caster'], ['knellAttendant', 'knell_attendant'],
+            ['stitchfaceHeadsman', 'stitchface_headsman'], ['waxfaceMourner', 'waxface_mourner'],
+            ['pleatDevourer', 'pleat_devourer'], ['hollowOvum', 'hollow_ovum'],
+        ]) {
+            const textures = enemyConfigData[type]?.textures;
+            for (const [state, layout] of Object.entries(textures?.frameLayouts || {})) {
+                this.load.spritesheet(`enemy_${family}_${state}`, textures[state], {
+                    frameWidth: layout.frameWidth,
+                    frameHeight: layout.frameHeight,
+                    endFrame: layout.frameCount - 1,
+                });
+            }
+        }
+        if (enemyConfigData.ossuaryCaster?.textures?.projectile) {
+            this.load.image('enemy_ossuary_caster_projectile', enemyConfigData.ossuaryCaster.textures.projectile);
+        }
+
         // ---- 环境资源 ----
 
         // ---- 特效资源 ----
@@ -1298,6 +1324,23 @@ export class BootScene extends Scene {
         loadObstacleDefaults();
         // 预载墙体几何覆盖层（碰撞编辑器保存的墙/门/障碍物判定；合并进 ISO_WALL_GEO）
         WallSystem.loadGeoOverrides();
+
+        for (const [type, family] of [
+            ['coffinWard', 'coffin_ward'], ['shroudThrall', 'shroud_thrall'],
+            ['ossuaryCaster', 'ossuary_caster'], ['knellAttendant', 'knell_attendant'],
+            ['stitchfaceHeadsman', 'stitchface_headsman'], ['waxfaceMourner', 'waxface_mourner'],
+            ['pleatDevourer', 'pleat_devourer'], ['hollowOvum', 'hollow_ovum'],
+        ]) {
+            for (const [state, layout] of Object.entries(enemyConfigData[type]?.textures?.frameLayouts || {})) {
+                const key = `enemy_${family}_${state}`;
+                if (this.anims.exists(key)) continue;
+                const frames = this.anims.generateFrameNumbers(key, { start: 0, end: layout.frameCount - 1 });
+                if (Array.isArray(layout.frameDurations)) {
+                    frames.forEach((frame, index) => { frame.duration = layout.frameDurations[index]; });
+                }
+                this.anims.create({ key, frames, duration: layout.duration, repeat: layout.repeat });
+            }
+        }
 
         // 创建玩家动画（配置驱动；repeat -1 循环 / 0 播放一次，帧区间由 frames 指定）
         for (const [animKey, def] of Object.entries(PLAYER_ANIMS)) {

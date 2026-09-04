@@ -1,0 +1,46 @@
+{
+  "idle": {
+    "video": "../videos/idle-v01.mp4",
+    "provenance": "../videos/idle-v01.mp4.json",
+    "frameCount": 121,
+    "fps": 24.0,
+    "durationMs": 5041.666666666667,
+    "size": [
+      1280,
+      720
+    ]
+  },
+  "crawling": {
+    "video": "../videos/crawling-v01.mp4",
+    "provenance": "../videos/crawling-v01.mp4.json",
+    "frameCount": 121,
+    "fps": 24.0,
+    "durationMs": 5041.666666666667,
+    "size": [
+      1280,
+      720
+    ]
+  },
+  "attack": {
+    "video": "../videos/attack-v04.mp4",
+    "provenance": "../videos/attack-v04.mp4.json",
+    "frameCount": 121,
+    "fps": 24.0,
+    "durationMs": 5041.666666666667,
+    "size": [
+      1280,
+      720
+    ]
+  },
+  "dying": {
+    "video": "../videos/dying-v02-fold-settle.mp4",
+    "provenance": "../videos/dying-v02-fold-settle.mp4.json",
+    "frameCount": 121,
+    "fps": 24.0,
+    "durationMs": 5041.666666666667,
+    "size": [
+      1280,
+      720
+    ]
+  }
+}

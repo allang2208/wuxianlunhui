@@ -1,6 +1,27 @@
 import { WallSystem } from '../world/wall-system.js';
 import { canMeleeShareSurface } from './melee-surface.js';
 
+/** 可供锁定落点的弹体快照使用；只豁免来源承托面和被攻击结构自身。 */
+export function getAttackLineOfSightIgnore(source, target) {
+    const surfaceIgnore = WallSystem.ignoreForEntity(source);
+    const segs = new Set(surfaceIgnore?.segs || []);
+    const rects = new Set(surfaceIgnore?.rects || []);
+    if (target?._coverSeg) segs.add(target._coverSeg);
+    if (target?._gateSeg) segs.add(target._gateSeg);
+    if (target?._wallRect) rects.add(target._wallRect);
+    return { ...surfaceIgnore, segs, rects };
+}
+
+/** 从实际命中原点检查遮挡；结构目标只豁免自身，不豁免它前面的墙。 */
+export function hasAttackLineOfSight(source, target,
+    originX = source?.collider?.x ?? source?.x,
+    originY = source?.collider?.y ?? source?.y) {
+    if (!target) return false;
+    return !WallSystem.blocked(originX, originY,
+        target.collider?.x ?? target.x, target.collider?.y ?? target.y,
+        getAttackLineOfSightIgnore(source, target));
+}
+
 /** 普攻停步、起手与命中共用；距离仍由兵种原有范围判断，不用于范围技能选敌。 */
 export function canMeleeReachTarget(source, target) {
     if (!canMeleeShareSurface(source, target)) return false;

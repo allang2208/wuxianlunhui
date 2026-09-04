@@ -4,7 +4,7 @@
 
 用户要求：移动动画保持原视角，稍微调整朝右。本次仅处理刽子手walking，不改原母图、待机、攻击、死亡、另一只怪物或游戏代码。
 
-历史候选（经人形移动对照后淘汰）：[v04源视频](../../../../.trash-horror-elites-20260831/videos/walking-doubao-v04.mp4)、[v04原速GIF](../../../../.trash-horror-elites-20260831/previews/walking-doubao-v04-source.gif)、[24点关键帧](../../../../.trash-horror-elites-20260831/previews/walking-doubao-v04-contact.png)。旧版视频、GIF与提示词均保留。
+历史候选（经人形移动对照后淘汰）：v04源视频、原速GIF与24点关键帧已按归档清单清理，不纳入Git；提示词、评审结论和清理证据保留。
 
 ## 本次动作标准
 

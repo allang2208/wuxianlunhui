@@ -13252,6 +13252,7 @@ export class GameScene extends Scene {
         const sprite = enemy._phaserSprite;
         if (!sprite || !sprite.active) return;
         if (enemy.hasStatusEffect?.('petrified') || this._petrifyFx?.has(enemy)) {
+            enemy._syncPetrifiedBodyAnchor?.(sprite);
             return;
         }
         const options = (typeof enemy._getPhaserOptions === 'function') ? enemy._getPhaserOptions() : {};
@@ -13284,7 +13285,12 @@ export class GameScene extends Scene {
         if (options.flipX !== undefined) {
             sprite.setFlipX(options.flipX);
         }
+        if (Number.isFinite(options.frameAnchorX) && sprite.texture?.key === wanted) {
+            sprite.x += (sprite.frame.width / 2 - options.frameAnchorX)
+                * Math.abs(sprite.scaleX) * (sprite.flipX ? -1 : 1);
+        }
         if (options.frame !== undefined) {
+            if (options.manualFrame && sprite.anims.currentAnim) sprite.anims.stop();
             let frame = options.frame;
             // 帧索引防越界：眩晕/冰冻时纹理切到单帧 idle 图，但 _animFrame 仍指向原动画帧号
             // （如 run 2 / attack 5），setFrame 会在 1 帧贴图上刷 "has no frame" 错误——
@@ -13315,6 +13321,7 @@ export class GameScene extends Scene {
                 sprite.x -= Math.round(offset.x * scale * mirrorX);
             }
         }
+        if (options.manualFrame) return;
         const animState = options.animState;
         if (!animState) return;
         let animKey = options.animKey || ('zombie_dog_' + animState);
