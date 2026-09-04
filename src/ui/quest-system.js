@@ -1,4 +1,8 @@
 
+import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
+import { mailId } from '../systems/mail-store.js';
+import { createGoldItem } from '../world/economy-gold-routing.js';
+
 import { ItemDatabase } from '../items/item-database.js';
 import { Game } from '../game.js';
 import { SceneManager } from '../world/scene-manager.js';
@@ -8,10 +12,8 @@ import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { queryAllElements } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { DropItem } from '../entities/drop-item.js';
 import { NPCDialogue } from './npc-dialogue.js';
 import { RewardSystem } from './reward-system.js';
-import { EquipManager } from './equip-manager.js';
 import { GameUIManager } from './game-ui-manager.js';
 import { BasePanel } from './panels/base-panel.js';
 import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
@@ -450,10 +452,13 @@ export const QuestState = {
     finishQuest() {
         const questId = QuestStore.getActiveQuestId();
         if (!questId || !QuestStore.completeQuest(questId)) return false;
+        this._rewardSourceId = `quest:${questId}`;
+        this._fallbackRewardItems = null;
         // 打开奖励结算界面（三选一）
         if (RewardSystem && RewardSystem.open) {
             // 延迟打开，确保场景切换完成
-            TimerManager.setTimeout(() => RewardSystem.open(), 800);
+            const sourceId = this._rewardSourceId;
+            TimerManager.setTimeout(() => RewardSystem.open({ sourceId }), 800);
         } else {
             // 后备：直接发放奖励
             this._grantRewards();
@@ -465,6 +470,16 @@ export const QuestState = {
     _grantRewards() {
         if (!Game.player) return;
         const p = Game.player;
+        if (!this._fallbackRewardItems) {
+            const weapon = this._createRewardWeapon();
+            this._fallbackRewardItems = [createGoldItem(500), ...(weapon ? [weapon] : [])];
+        }
+        this._rewardSourceId ||= mailId('quest-fallback');
+        const delivery = PlayerRewardDelivery.deliver(this._fallbackRewardItems, {
+            sourceId: this._rewardSourceId,
+            title: '任务结算奖励',
+        });
+        if (delivery.duplicate) return;
 
         // 1. 提升一级（保留经验值）
         if (LevelUpSystem) {
@@ -478,46 +493,20 @@ export const QuestState = {
             p.data.attrPoints += 2;
         }
 
-        // 2. 500金币
-        p.data.money = (p.data.money || 0) + 500;
-
-        // 3. 随机优质武器
-        this._grantRandomWeapon(p);
-
         // 显示完成提示
         EffectManager.add(new FloatingTextEffect(p.x, p.y - 50, '任务完成！', '#ffd700'));
         if (GameUIManager) GameUIManager.updateUI();
     },
 
-    // 发放随机高品质武器（ItemDatabase 键创建，禁止从无 id 的模板对象直接实例化）
-    _grantRandomWeapon(player) {
+    _createRewardWeapon() {
         const weaponKeys = Object.keys(ItemDatabase.items || {}).filter(key => {
             const item = ItemDatabase.items[key];
             return item && (item.rarity === 'rare' || item.rarity === 'epic')
                 && String(item.category || '').startsWith('weapon');
         });
-        if (weaponKeys.length === 0) return;
+        if (weaponKeys.length === 0) return null;
         const key = weaponKeys[Math.floor(Math.random() * weaponKeys.length)];
-        const instance = ItemDatabase.createInstance(key);
-        if (!instance) return;
-
-        // 尝试放入背包
-        const maxSlots = EquipManager.maxBackpackSlots || 36;
-        const backpack = EquipManager.backpackItems || (EquipManager.backpackItems = []);
-        const usedSlots = new Set(backpack.map(i => i.slot));
-        let slot = 0;
-        while (usedSlots.has(slot) && slot < maxSlots) slot++;
-        if (slot < maxSlots) {
-            instance.slot = slot;
-            backpack.push(instance);
-            EquipManager.updateInventorySlots();
-        } else {
-            // 背包满，放在地上
-            if (DropItem) {
-                DropItem.create(player.x + 20, player.y, instance);
-            }
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，武器已放在地上', '#ff6666'));
-        }
+        return ItemDatabase.createInstance(key);
     }
 };
 

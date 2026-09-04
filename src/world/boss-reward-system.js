@@ -38,8 +38,9 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { CONFIG } from '../config/config.js';
 import { EnhancementItems } from '../ui/reward-system.js';
-import { EquipManager } from '../ui/equip-manager.js';
-import { createGoldItem, routeProducedGold } from './economy-gold-routing.js';
+import { createGoldItem } from './economy-gold-routing.js';
+import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
+import { mailId } from '../systems/mail-store.js';
 
 // ==================== 配置对象 ====================
 
@@ -54,27 +55,14 @@ function _safeBossFloatingText(x, y, text, color) {
     }
 }
 
-/** Boss 金币优先入背包、再入主神仓库；两者都满时保留为场内可拾取金币。 */
-function _grantBossGold(amount, player) {
+/** Boss 击杀不是通关，溢出仍属于本次探险暂存。 */
+function _grantBossGold(amount, player, sourceId) {
     const requested = Math.max(0, Math.floor(Number(amount) || 0));
-    let routed;
-    try {
-        routed = routeProducedGold(requested);
-    } catch (err) {
-        // 金币UI刷新等外围异常不得截断 Boss 出口开启；此处不重复落地，避免已部分入库时复制金币。
-        console.error('[BossReward] 金币路由异常，已保留出口流程:', err);
-        return { requested, backpack: 0, warehouse: 0, remaining: requested, dropped: 0, unresolved: requested };
-    }
-    let dropped = 0;
-    if (routed.remaining > 0 && player && typeof Game.dropItem === 'function') {
-        try {
-            Game.dropItem(player.x, player.y, createGoldItem(routed.remaining));
-            dropped = routed.remaining;
-        } catch (err) {
-            console.error('[BossReward] 金币溢出落地失败:', err);
-        }
-    }
-    return { ...routed, dropped, unresolved: Math.max(0, routed.remaining - dropped) };
+    if (requested) PlayerRewardDelivery.deliver([createGoldItem(requested)], {
+        title: '首领战利品',
+        sourceId,
+    });
+    return { requested, unresolved: 0 };
 }
 
 export const BOSS_REWARD_CONFIG = {
@@ -196,6 +184,7 @@ export class BossBattleManager {
         this._exitPortal = null;
         this._exitPortalKey = null;
         this._waitingForExit = false;
+        this._mailGoldReward = null;
     }
 
     /**
@@ -405,19 +394,18 @@ export class BossBattleManager {
 
     _onBossDefeated() {
         if (this._waitingForExit) return; // 已开门/已生成传送门，避免重复触发
-        this._waitingForExit = true;
 
         // 发放基础奖励
-        const gold = rollDungeonBossGold(_arenaDungeonType);
+        this._mailGoldReward ||= { amount: rollDungeonBossGold(_arenaDungeonType), id: mailId('boss') };
+        const gold = this._mailGoldReward.amount;
         const player = Game.player;
-        const routedGold = _grantBossGold(gold, player);
+        const routedGold = _grantBossGold(gold, player, this._mailGoldReward.id);
+        this._waitingForExit = true;
         if (routedGold.unresolved > 0) {
             console.error(`[BossReward] ${routedGold.unresolved} 金币未能完成结算`);
         }
         if (player) {
-            const stored = routedGold.backpack + routedGold.warehouse;
-            const suffix = routedGold.dropped > 0 ? `，${routedGold.dropped} 金币落在场内` : '';
-            _safeBossFloatingText(player.x, player.y - 40, `🎉 击败 Boss！入库 ${stored} 金币${suffix}`, '#ffd700');
+            _safeBossFloatingText(player.x, player.y - 40, `🎉 击败 Boss！获得 ${routedGold.requested} 金币（溢出按探险规则暂存）`, '#ffd700');
         }
 
         // 门闸化：开大门等玩家走出白区（与普通战斗房同机制）；
@@ -466,6 +454,7 @@ export class BossBattleManager {
         this._exitPortal = null;
         this._exitPortalKey = null;
         this._waitingForExit = false;
+        this._mailGoldReward = null;
 
         // 先取出完成回调，再清理场地（cleanup 会清空回调引用）
         const onComplete = this._onCompleteCallback;
@@ -504,6 +493,7 @@ export class BossBattleManager {
         this._exitPortal = null;
         this._exitPortalKey = null;
         this._waitingForExit = false;
+        this._mailGoldReward = null;
 
         // 门闸与门外白区清理（Boss 房复用 CombatRoomSystem 门闸机制，须先摘门段再恢复墙）
         CombatRoomSystem.cleanupGate();
@@ -714,12 +704,7 @@ export class RewardNodeManager {
 
     _addToBackpackOrDrop(item) {
         if (!item) return false;
-        if (EquipManager?.addToBackpack?.(item)) return true;
-        if (Game.player && typeof Game.dropItem === 'function') {
-            Game.dropItem(Game.player.x, Game.player.y, item);
-            return true;
-        }
-        return false;
+        return PlayerRewardDelivery.deliver([item], { title: '首领战利品' }).ok;
     }
 
     _giveRandomWeapon(rarity) {
