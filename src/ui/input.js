@@ -29,6 +29,14 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
             _holyChargeKeyHeldCode: null, // 正在按住圣光审判蓄力键的 keyCode（长按蓄力检测）
             init() {
     window.addEventListener('keydown', e => {
+        if (UIState.isOpen('mailbox') || window.MailboxPanel?.isOrganizing) {
+            this.keys.delete(e.code);
+            if (e.code === CONFIG.KEYS.MENU) {
+                e.preventDefault();
+                this.handleKey(e.code);
+            }
+            return;
+        }
         if (e.target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
             && e.code !== CONFIG.KEYS.MENU) {
             this.keys.delete(e.code);
@@ -173,6 +181,10 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                 if (player?.shieldSystem?.defending) player.shieldSystem.exitDefense?.();
             },
     handleKey(code, altKey = false) {
+                if (UIState.isOpen('mailbox') || window.MailboxPanel?.isOrganizing) {
+                    if (code === CONFIG.KEYS.MENU) window.MailboxPanel?.reset();
+                    return;
+                }
                 if (this._playerControlLocked && this._isPlayerActionCode(code)) return;
                 // Electron ESC 可能直接调用 handleKey；保证科技树开启期间仍只有 ESC 能关闭，
                 // 其他全局快捷键一律不穿透到背包、任务、队伍或世界栏目。

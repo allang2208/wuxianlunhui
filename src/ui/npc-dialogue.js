@@ -13,6 +13,8 @@ import { FusionSystem } from './fusion-system.js';
 import { Input } from './input.js';
 import { SystemUI } from './system-ui.js';
 import { TypewriterText } from './typewriter-text.js';
+import { MailboxPanel } from './mailbox-panel.js';
+import { MailStore } from '../systems/mail-store.js';
 
 const NPCDialogue = {
     _active: false,
@@ -113,6 +115,8 @@ const NPCDialogue = {
                 <button class="npc-option-btn" id="npcOptionFusion" onclick="NPCDialogue.openFusion()">🔮 祭品合成</button>
             `;
             closeText = '👋 退出';
+        } else if (npcType === 'ruler' && npc.id === 'npc_mouse_king') {
+            typeButtons = `<button type="button" class="npc-option-btn" id="npcOptionMailbox" onclick="NPCDialogue.openMailbox()">查看信箱（待领 ${MailStore.pendingCount} 封）</button>`;
         } else if (npcType === 'blacksmith') {
             typeButtons = `
                 <button class="npc-option-btn" id="npcOptionShop" onclick="NPCDialogue.openShop()">🏪 商店</button>
@@ -189,6 +193,13 @@ const NPCDialogue = {
     // 对话是否处于打开状态（供外部系统查询，避免直接访问 _active）
     isActive() {
         return this._active;
+    },
+
+    openMailbox() {
+        const npc = this._currentNPC;
+        if (!npc || npc.id !== 'npc_mouse_king') return;
+        this.close(); // 先结束旧对话，避免其延迟回调随后关闭信箱。
+        MailboxPanel.open(npc);
     },
 
     // 关闭对话界面
