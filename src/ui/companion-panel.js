@@ -243,8 +243,12 @@ export const CompanionPanel = {
             .map(b => {
                 const eff = getConsumableEffect(b);
                 const parts = [];
-                if (eff && eff.hp) parts.push(`HP+${eff.hp}`);
-                if (eff && eff.mp) parts.push(`MP+${eff.mp}`);
+                if (eff && (eff.hp || eff.maxHpPercent)) {
+                    parts.push(`HP+${eff.hp || 0}${eff.maxHpPercent ? `+上限${eff.maxHpPercent}%` : ''}`);
+                }
+                if (eff && (eff.mp || eff.maxMpPercent)) {
+                    parts.push(`MP+${eff.mp || 0}${eff.maxMpPercent ? `+上限${eff.maxMpPercent}%` : ''}`);
+                }
                 return `${b.icon || '🧪'} ${b.name}${parts.length ? `（${parts.join(' ')}）` : ''} ×${b.stack || 1}`;
             })
             .join('<br>');

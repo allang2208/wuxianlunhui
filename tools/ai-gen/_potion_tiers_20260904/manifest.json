@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-09-04",
+  "generationMode": "Codex built-in imagegen",
+  "referenceAssets": [
+    "assets/items/health_potion.png",
+    "assets/items/mana_potion.png"
+  ],
+  "sharedPrompt": "Single low-poly faceted potion bottle, polished game UI icon, front three-quarter view, transparent background, no text or scene, centered with a clear silhouette. Health uses ruby red; mana uses sapphire/cyan. Each HP/MP pair shares geometry and differs only in resource color identity.",
+  "tiers": {
+    "medium": "Broad reinforced angular bottle, silver-steel collar, brass cap, small matching crystal inset.",
+    "high": "Compact thick hexagonal bottle, dark gunmetal double collar, gold trim, large matching crystal clasp and faceted stopper.",
+    "special": "Regal tapered crystal vessel, white-gold crown frame, three integrated shoulder prongs and a central matching heart crystal."
+  },
+  "icons": [
+    {
+      "id": "hp_potion_medium",
+      "raw": "raw/health_potion_medium_raw.png",
+      "runtime": "assets/items/health_potion_medium.png"
+    },
+    {
+      "id": "mp_potion_medium",
+      "raw": "raw/mana_potion_medium_raw.png",
+      "runtime": "assets/items/mana_potion_medium.png"
+    },
+    {
+      "id": "hp_potion_high",
+      "raw": "raw/health_potion_high_raw.png",
+      "runtime": "assets/items/health_potion_high.png"
+    },
+    {
+      "id": "mp_potion_high",
+      "raw": "raw/mana_potion_high_raw.png",
+      "runtime": "assets/items/mana_potion_high.png"
+    },
+    {
+      "id": "hp_potion_special",
+      "raw": "raw/health_potion_special_raw.png",
+      "runtime": "assets/items/health_potion_special.png"
+    },
+    {
+      "id": "mp_potion_special",
+      "raw": "raw/mana_potion_special_raw.png",
+      "runtime": "assets/items/mana_potion_special.png"
+    }
+  ]
+}

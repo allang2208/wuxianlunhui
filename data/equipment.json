@@ -931,6 +931,8 @@
             "name": "治疗药水",
             "type": "消耗品",
             "icon": "🧪",
+            "iconImage": "assets/items/health_potion.png",
+            "dropImage": "assets/items/health_potion.png",
             "category": "consumable",
             "rarity": "common",
             "useEffect": {
@@ -943,14 +945,18 @@
                     "value": "+30"
                 }
             ],
-            "desc": "一瓶红色的药水，味道有点甜",
+            "desc": "一瓶红色的基础药水。饮用后恢复30点生命值。",
             "stack": 5,
+            "maxStack": 99,
+            "price": 100,
             "equipSlot": ""
         },
         "mp_potion": {
             "name": "魔力药水",
             "type": "消耗品",
             "icon": "💧",
+            "iconImage": "assets/items/mana_potion.png",
+            "dropImage": "assets/items/mana_potion.png",
             "category": "consumable",
             "useEffect": {
                 "mp": 25
@@ -963,8 +969,156 @@
                     "value": "+25"
                 }
             ],
-            "desc": "一瓶蓝色的药水，冒着冷气",
+            "desc": "一瓶蓝色的基础药水。饮用后恢复25点魔法值。",
             "stack": 3,
+            "maxStack": 99,
+            "price": 100,
+            "equipSlot": ""
+        },
+        "hp_potion_medium": {
+            "name": "中级生命药水",
+            "type": "消耗品",
+            "icon": "🧪",
+            "iconImage": "assets/items/health_potion_medium.png",
+            "dropImage": "assets/items/health_potion_medium.png",
+            "category": "consumable",
+            "rarity": "uncommon",
+            "useEffect": {
+                "hp": 80
+            },
+            "level": 10,
+            "stats": [
+                {
+                    "name": "恢复生命",
+                    "value": "+80"
+                }
+            ],
+            "desc": "加厚棱面瓶中封存着浓缩生命药剂。饮用后恢复80点生命值。",
+            "stack": 1,
+            "maxStack": 99,
+            "price": 200,
+            "equipSlot": ""
+        },
+        "mp_potion_medium": {
+            "name": "中级魔法药水",
+            "type": "消耗品",
+            "icon": "💧",
+            "iconImage": "assets/items/mana_potion_medium.png",
+            "dropImage": "assets/items/mana_potion_medium.png",
+            "category": "consumable",
+            "rarity": "uncommon",
+            "useEffect": {
+                "mp": 60
+            },
+            "level": 10,
+            "stats": [
+                {
+                    "name": "恢复魔法",
+                    "value": "+60"
+                }
+            ],
+            "desc": "加厚棱面瓶中流动着浓缩魔力药剂。饮用后恢复60点魔法值。",
+            "stack": 1,
+            "maxStack": 99,
+            "price": 200,
+            "equipSlot": ""
+        },
+        "hp_potion_high": {
+            "name": "高级生命药水",
+            "type": "消耗品",
+            "icon": "🧪",
+            "iconImage": "assets/items/health_potion_high.png",
+            "dropImage": "assets/items/health_potion_high.png",
+            "category": "consumable",
+            "rarity": "rare",
+            "useEffect": {
+                "hp": 150
+            },
+            "level": 20,
+            "stats": [
+                {
+                    "name": "恢复生命",
+                    "value": "+150"
+                }
+            ],
+            "desc": "由深钢瓶箍保护的高纯生命药剂。饮用后恢复150点生命值。",
+            "stack": 1,
+            "maxStack": 99,
+            "price": 400,
+            "equipSlot": ""
+        },
+        "mp_potion_high": {
+            "name": "高级魔法药水",
+            "type": "消耗品",
+            "icon": "💧",
+            "iconImage": "assets/items/mana_potion_high.png",
+            "dropImage": "assets/items/mana_potion_high.png",
+            "category": "consumable",
+            "rarity": "rare",
+            "useEffect": {
+                "mp": 120
+            },
+            "level": 20,
+            "stats": [
+                {
+                    "name": "恢复魔法",
+                    "value": "+120"
+                }
+            ],
+            "desc": "由深钢瓶箍保护的高纯魔力药剂。饮用后恢复120点魔法值。",
+            "stack": 1,
+            "maxStack": 99,
+            "price": 400,
+            "equipSlot": ""
+        },
+        "hp_potion_special": {
+            "name": "特级生命药水",
+            "type": "消耗品",
+            "icon": "🧪",
+            "iconImage": "assets/items/health_potion_special.png",
+            "dropImage": "assets/items/health_potion_special.png",
+            "category": "consumable",
+            "rarity": "epic",
+            "useEffect": {
+                "hp": 180,
+                "maxHpPercent": 20
+            },
+            "level": 30,
+            "stats": [
+                {
+                    "name": "恢复生命",
+                    "value": "+180 + 最大生命值20%"
+                }
+            ],
+            "desc": "白金冠架封存的特级生命精华。饮用后恢复180点生命值，并额外恢复最大生命值的20%。",
+            "stack": 1,
+            "maxStack": 99,
+            "price": 800,
+            "equipSlot": ""
+        },
+        "mp_potion_special": {
+            "name": "特级魔法药水",
+            "type": "消耗品",
+            "icon": "💧",
+            "iconImage": "assets/items/mana_potion_special.png",
+            "dropImage": "assets/items/mana_potion_special.png",
+            "category": "consumable",
+            "rarity": "epic",
+            "useEffect": {
+                "mp": 150,
+                "maxMpPercent": 20
+            },
+            "level": 30,
+            "stats": [
+                {
+                    "name": "恢复魔法",
+                    "value": "+150 + 最大魔法值20%"
+                }
+            ],
+            "desc": "白金冠架封存的特级魔力精华。饮用后恢复150点魔法值，并额外恢复最大魔法值的20%。",
+            "stack": 1,
+            "maxStack": 99,
+            "price": 800,
             "equipSlot": ""
         },
         "akm": {

@@ -129,14 +129,19 @@ export class CompanionAI {
         const d = c.data;
         let used = false;
         const pick = (need) => {
+            const percentKey = need === 'hp' ? 'maxHpPercent' : 'maxMpPercent';
+            const maxValue = need === 'hp' ? d.maxHp : d.maxMp;
+            const recovery = (item) => {
+                const eff = getConsumableEffect(item) || {};
+                return (Number(eff[need]) || 0) + (Number(maxValue) || 0) * (Number(eff[percentKey]) || 0) / 100;
+            };
             const items = (c.backpack || []).filter(b => {
                 if (!b || b.category !== 'consumable') return false;
-                const eff = getConsumableEffect(b);
-                return eff && (eff[need] || 0) > 0;
+                return recovery(b) > 0;
             });
             // 低级→高级：level 升序，同级按恢复量升序（后续新增更高级消耗品自动排后）
             items.sort((a, b) => (a.level || 1) - (b.level || 1)
-                || ((getConsumableEffect(a)[need] || 0) - (getConsumableEffect(b)[need] || 0)));
+                || recovery(a) - recovery(b));
             return items[0] || null;
         };
         if (d.maxHp > 0 && d.hp / d.maxHp < (st.hpThreshold ?? 0.3)) {

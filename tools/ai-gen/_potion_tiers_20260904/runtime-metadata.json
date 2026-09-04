@@ -1,0 +1,158 @@
+[
+  {
+    "id": "hp_potion_medium",
+    "raw": "raw/health_potion_medium_raw.png",
+    "runtime": "assets/items/health_potion_medium.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceAlphaBBox": [
+      291,
+      49,
+      964,
+      1167
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "outputAlphaBBox": [
+      352,
+      77,
+      1184,
+      1459
+    ]
+  },
+  {
+    "id": "mp_potion_medium",
+    "raw": "raw/mana_potion_medium_raw.png",
+    "runtime": "assets/items/mana_potion_medium.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceAlphaBBox": [
+      289,
+      46,
+      966,
+      1167
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "outputAlphaBBox": [
+      350,
+      77,
+      1185,
+      1459
+    ]
+  },
+  {
+    "id": "hp_potion_high",
+    "raw": "raw/health_potion_high_raw.png",
+    "runtime": "assets/items/health_potion_high.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceAlphaBBox": [
+      287,
+      71,
+      967,
+      1180
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "outputAlphaBBox": [
+      344,
+      77,
+      1191,
+      1459
+    ]
+  },
+  {
+    "id": "mp_potion_high",
+    "raw": "raw/mana_potion_high_raw.png",
+    "runtime": "assets/items/mana_potion_high.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceAlphaBBox": [
+      281,
+      66,
+      971,
+      1186
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "outputAlphaBBox": [
+      342,
+      77,
+      1193,
+      1459
+    ]
+  },
+  {
+    "id": "hp_potion_special",
+    "raw": "raw/health_potion_special_raw.png",
+    "runtime": "assets/items/health_potion_special.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceAlphaBBox": [
+      274,
+      57,
+      975,
+      1196
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "outputAlphaBBox": [
+      342,
+      77,
+      1193,
+      1459
+    ]
+  },
+  {
+    "id": "mp_potion_special",
+    "raw": "raw/mana_potion_special_raw.png",
+    "runtime": "assets/items/mana_potion_special.png",
+    "sourceMode": "RGBA",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceAlphaBBox": [
+      258,
+      34,
+      989,
+      1224
+    ],
+    "outputSize": [
+      1536,
+      1536
+    ],
+    "outputAlphaBBox": [
+      343,
+      77,
+      1192,
+      1459
+    ]
+  }
+]

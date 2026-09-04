@@ -8,10 +8,12 @@ import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
+import { createPotionReward } from '../config/potion-rewards.js';
 import { rollTributeDrop } from '../config/tribute-effects.js';
+import { ItemDatabase } from '../items/item-database.js';
 import { TypewriterText } from '../ui/typewriter-text.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, EVENT_BG_IMAGES, POTION_HEAL, POTION_MP, handleNewDungeonEvent, RESTRICTED_EVENT_META, GRADE_ORDER, UNIVERSAL_EVENT_TYPES, UNIVERSAL_EVENT_CHANCE } from './dungeon-event-definitions.js';
+import { NEW_EVENT_CONFIGS, NEW_EVENT_WEIGHTS, EVENT_BG_IMAGES, handleNewDungeonEvent, RESTRICTED_EVENT_META, GRADE_ORDER, UNIVERSAL_EVENT_TYPES, UNIVERSAL_EVENT_CHANCE } from './dungeon-event-definitions.js';
 /**
  * ============================================================
  * DungeonEventSystem — 地牢随机事件系统
@@ -38,6 +40,13 @@ const SPECIAL_ITEM_KEY_MAP = {
     reforge_ticket: 'reforgeTicket',
     magic_dust: 'magicDust',
 };
+
+function appendPotionReward(rewards, kind, grade, count = 1) {
+    const potion = createPotionReward(kind, { grade, count });
+    if (!(potion.count > 0)) return null;
+    rewards.potionItems = [...(rewards.potionItems || []), potion];
+    return potion;
+}
 
 function deepMerge(target, source) {
     if (!source || typeof source !== 'object') return target;
@@ -230,7 +239,7 @@ function getUniversalEventConfig(type) {
         }
         cfg._tributeChance = g.tributeChance || 0;
     } else if (type === 'supplyPile') {
-        cfg.searchReward = { ...(cfg.searchReward || {}), count: g.potions, _hpAmount: g.hp, _mpAmount: g.mp };
+        cfg.searchReward = { ...(cfg.searchReward || {}), count: g.potions };
         if (g.inspectGold && Array.isArray(cfg.successRewards?.inspect)) {
             cfg.successRewards.inspect = cfg.successRewards.inspect.map((reward) => (
                 reward?.type === 'gold'
@@ -626,6 +635,7 @@ function handleTrap(player, choiceId) {
 function handleSupplyPile(player, choiceId, dungeonMapSystem) {
     const config = getUniversalEventConfig('supplyPile');
     const choice = config.choices.find(c => c.id === choiceId);
+    const dungeonGrade = DungeonConfig.getDungeonGrade(dungeonMapSystem?.dungeonType);
 
     if (!choice) return { type: 'none', text: '无效选择', rewards: {} };
 
@@ -636,19 +646,17 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
         const rewards = {};
         let text = choice.successText;
 
-        // 搜寻补给：按配置给予药水（瓶数 × 单瓶恢复量；与旧 successRewards 不叠加）
+        // 搜寻补给：按当前地牢等级给予真实药水物品；与旧 successRewards 不叠加。
         if (choice.id === 'search' && config.searchReward) {
             const reward = config.searchReward;
             const count = reward.count || 1;
-            const hpAmount = reward._hpAmount || POTION_HEAL;
-            const mpAmount = reward._mpAmount || POTION_MP;
             const roll = Math.random();
             if (roll < (reward.hpChance || 0)) {
-                rewards.hpPotion = count * hpAmount;
-                text += `\n获得治疗药水 x${count}（恢复 ${rewards.hpPotion} HP）！`;
+                const potion = appendPotionReward(rewards, 'hp', dungeonGrade, count);
+                if (potion) text += `\n获得 ${potion.name} x${potion.count}！`;
             } else if (roll < (reward.hpChance || 0) + (reward.mpChance || 0)) {
-                rewards.mpPotion = count * mpAmount;
-                text += `\n获得魔力药水 x${count}（恢复 ${rewards.mpPotion} MP）！`;
+                const potion = appendPotionReward(rewards, 'mp', dungeonGrade, count);
+                if (potion) text += `\n获得 ${potion.name} x${potion.count}！`;
             }
         }
 
@@ -664,11 +672,11 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
                         rewards.gold = amount;
                         text += `\n获得 ${amount} 金币！`;
                     } else if (reward.type === 'hpPotion') {
-                        rewards.hpPotion = amount;
-                        text += `\n获得治疗药水（恢复${amount}HP）！`;
+                        const potion = appendPotionReward(rewards, 'hp', dungeonGrade, reward.count || 1);
+                        if (potion) text += `\n获得 ${potion.name} x${potion.count}！`;
                     } else if (reward.type === 'mpPotion') {
-                        rewards.mpPotion = amount;
-                        text += `\n获得魔法药水（恢复${amount}MP）！`;
+                        const potion = appendPotionReward(rewards, 'mp', dungeonGrade, reward.count || 1);
+                        if (potion) text += `\n获得 ${potion.name} x${potion.count}！`;
                     } else if (reward.type === 'material') {
                         const materialType = DUNGEON_EVENT_CONFIG.materialTypes[
                             Math.floor(Math.random() * DUNGEON_EVENT_CONFIG.materialTypes.length)
@@ -1110,14 +1118,6 @@ export const DungeonEventSystem = {
         const items = [];
         if (rewards.gold > 0) items.push(createGoldItem(rewards.gold));
 
-        // 药水正式物品在后续批次接入前维持现行即时恢复语义。
-        if (rewards.hpPotion && player && player.data) {
-            player.data.hp = Math.min(player.data.maxHp, player.data.hp + rewards.hpPotion);
-        }
-        if (rewards.mpPotion && player && player.data) {
-            player.data.mp = Math.min(player.data.maxMp, player.data.mp + rewards.mpPotion);
-        }
-
         if (rewards.material) {
             const { type, count } = rewards.material;
             items.push({
@@ -1141,6 +1141,25 @@ export const DungeonEventSystem = {
             if (count > 0 && template) {
                 items.push({ ...template, id: alt, stack: count, maxStack: template.maxStack || 9999 });
             }
+        }
+
+        const potionRewards = [...(rewards.potionItems || [])];
+        // 兼容未迁移的旧事件结果：旧数值只表示曾经命中一瓶，不再直接恢复属性。
+        const rewardGrade = RESTRICTED_EVENT_META[result.eventType]?.grade || this._currentGrade || 'D';
+        if (rewards.hpPotion) potionRewards.push(createPotionReward('hp', { grade: rewardGrade, count: 1 }));
+        if (rewards.mpPotion) potionRewards.push(createPotionReward('mp', { grade: rewardGrade, count: 1 }));
+        for (const potionReward of potionRewards) {
+            const template = ItemDatabase.get(potionReward.itemId);
+            if (!template || !(potionReward.count > 0)) {
+                console.error('[DungeonEvent] 药水奖励模板缺失', potionReward);
+                continue;
+            }
+            items.push({
+                ...template,
+                id: potionReward.itemId,
+                stack: potionReward.count,
+                maxStack: template.maxStack || 99,
+            });
         }
 
         if (rewards.tributeItem) items.push(rewards.tributeItem);

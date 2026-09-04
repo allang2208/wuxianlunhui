@@ -12,6 +12,7 @@
 
 import { AttributeCheckSystem } from './attribute-check-system.js';
 import { StatusBar } from '../ui/status-bar.js';
+import { createPotionReward } from '../config/potion-rewards.js';
 
 // 与 dungeon-event-system.js 保持一致的特殊道具映射
 const SPECIAL_ITEM_KEY_MAP = {
@@ -28,9 +29,9 @@ const SPECIAL_ITEM_CONFIG = {
 
 const MATERIAL_TYPES = ['铁矿石', '皮革碎片', '魔法粉尘', '古老木材', '精金碎片'];
 
-// 一瓶标准药水恢复的数值（事件奖励里用 HP/MP 数值代替“瓶数”）
-export const POTION_HEAL = 30;
-export const POTION_MP = 25;
+// 药水奖励字段表达“获得一瓶”；具体品级由事件自身 F-A 等级统一解析。
+export const POTION_HEAL = true;
+export const POTION_MP = true;
 
 // ============================================================
 // 事件权重
@@ -1700,20 +1701,21 @@ export function handleNewDungeonEvent(player, choiceId, eventType, dungeonMapSys
     if (!choice) {
         return { type: 'none', text: '无效选择', rewards: {}, eventType, choiceId };
     }
+    const eventGrade = RESTRICTED_EVENT_META[eventType]?.grade || 'D';
 
     // 无属性检定的确定性选择
     if (!choice.attribute) {
         const outcome = choice.outcome || {};
-        return _applyOutcome(player, outcome, dungeonMapSystem, null, true, choice, config, goldMultiplier);
+        return _applyOutcome(player, outcome, dungeonMapSystem, null, true, choice, config, goldMultiplier, eventGrade);
     }
 
     const checkResult = AttributeCheckSystem.check(player, choice.attribute, choice.baseRate);
     const success = checkResult.success;
     const outcome = success ? (choice.success || {}) : (choice.fail || {});
-    return _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config, goldMultiplier);
+    return _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config, goldMultiplier, eventGrade);
 }
 
-function _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config, goldMultiplier) {
+function _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, choice, config, goldMultiplier, eventGrade) {
     const rewards = {};
     const textParts = [];
     let resultType = success ? 'success' : 'fail';
@@ -1740,19 +1742,21 @@ function _applyOutcome(player, outcome, dungeonMapSystem, checkResult, success, 
         }
     }
 
-    // 治疗药水 / 魔法药水（数值代表恢复量）
+    // 限定事件药水按事件自身等级落为真实背包物品；字段值只表示瓶数。
     if (outcome.hpPotion !== undefined) {
-        const amount = _resolveValue(outcome.hpPotion);
-        if (amount > 0) {
-            rewards.hpPotion = amount;
-            textParts.push(`获得治疗药水（恢复 ${amount} 点生命值）。`);
+        const count = outcome.hpPotion === true ? 1 : _resolveValue(outcome.hpPotion);
+        if (count > 0) {
+            const potion = createPotionReward('hp', { grade: eventGrade, count });
+            rewards.potionItems = [...(rewards.potionItems || []), potion];
+            textParts.push(`获得 ${potion.name} x${potion.count}。`);
         }
     }
     if (outcome.mpPotion !== undefined) {
-        const amount = _resolveValue(outcome.mpPotion);
-        if (amount > 0) {
-            rewards.mpPotion = amount;
-            textParts.push(`获得魔法药水（恢复 ${amount} 点魔法值）。`);
+        const count = outcome.mpPotion === true ? 1 : _resolveValue(outcome.mpPotion);
+        if (count > 0) {
+            const potion = createPotionReward('mp', { grade: eventGrade, count });
+            rewards.potionItems = [...(rewards.potionItems || []), potion];
+            textParts.push(`获得 ${potion.name} x${potion.count}。`);
         }
     }
 
