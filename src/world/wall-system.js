@@ -1148,7 +1148,11 @@ const WallSystem = {
         structureCandidates = null
     ) {
         this._getFaceSegCache();
-        const faceCandidates = this._faceSegCandidatesAtX(x);
+        const entitySideRange = Math.max(0, Number(sideRange) || 0);
+        const faceCandidates = this._faceSegCandidatesInXRange(
+            x - entitySideRange,
+            x + entitySideRange
+        );
         let occluderDepth = Infinity, frontDepth = -Infinity;
         const collectRelation = (segDepth, inFront) => {
             if (inFront) {
@@ -1159,10 +1163,13 @@ const WallSystem = {
         };
         const applySeg = (A, B, segDepth) => {
                 const minX = Math.min(A.x, B.x) - 8, maxX = Math.max(A.x, B.x) + 8;
-                if (x < minX || x > maxX) return;
+                const overlapMinX = Math.max(minX, x - entitySideRange);
+                const overlapMaxX = Math.min(maxX, x + entitySideRange);
+                if (overlapMinX > overlapMaxX) return;
                 // 8px 是接缝横向容差，不代表面线可以无限外推；夹紧 t 后转角/门柱
                 // 外侧不会采到虚构的延长线 Y，避免前后关系在端点附近翻转。
-                const rawT = (x - A.x) / ((B.x - A.x) || 1e-6);
+                const sampleX = Math.max(overlapMinX, Math.min(overlapMaxX, x));
+                const rawT = (sampleX - A.x) / ((B.x - A.x) || 1e-6);
                 const t = Math.max(0, Math.min(1, rawT));
                 const yLine = A.y + (B.y - A.y) * t;
                 // 门墙面线 depth = 门洞中心底边 y，比深端浅（亏空 = 深端 y − depth，可达 ~119px）：
@@ -1208,11 +1215,10 @@ const WallSystem = {
                 applySeg(s.A, s.B, s.depth);
             }
         }
-        // 遮挡源只在比所有前墙都深时才压制：浅遮挡源的贴图本身画在深前墙之下，
-        // 实体在深前墙之前不可能被它真正遮挡（门口 X 形楔形区误压修复）
-        if (occluderDepth !== Infinity && occluderDepth >= frontDepth) return Math.min(depth, occluderDepth - 0.5);
+        // 衔接处遵循“被任一真实墙面遮挡即遮挡”：只要身体范围与一条遮挡面相交，
+        // 就必须压到最浅遮挡面之下，不能再被另一条前墙抬回墙顶。
+        if (occluderDepth !== Infinity) return Math.min(depth, occluderDepth - 0.5);
         if (frontDepth !== -Infinity) return Math.max(depth, frontDepth + 0.5);
-        if (occluderDepth !== Infinity) return Math.min(depth, occluderDepth - 0.5); // 无前墙时遮挡源兜底
         return depth;
     },
 
@@ -1287,6 +1293,23 @@ const WallSystem = {
         const index = this._faceSegColumnIndex;
         if (!index) return [];
         return index.columns.get(Math.floor(x / index.cellSize)) || [];
+    },
+
+    _faceSegCandidatesInXRange(minX, maxX) {
+        const index = this._faceSegColumnIndex;
+        if (!index) return [];
+        const start = Math.floor(Math.min(minX, maxX) / index.cellSize);
+        const end = Math.floor(Math.max(minX, maxX) / index.cellSize);
+        const out = [];
+        const seen = new Set();
+        for (let column = start; column <= end; column++) {
+            for (const entry of index.columns.get(column) || []) {
+                if (seen.has(entry)) continue;
+                seen.add(entry);
+                out.push(entry);
+            }
+        }
+        return out;
     },
 
     /** 建筑可见 AABB 的二维可复用索引；同 X 但上下不相交的密集建筑不再参加仲裁。 */
