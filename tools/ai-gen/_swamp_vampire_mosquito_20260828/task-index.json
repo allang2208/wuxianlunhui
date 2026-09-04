@@ -39,7 +39,12 @@
     }
   },
   "sourceSheet": "spritesheets/source-pre-rife/idle.png",
-  "sourceFrames": [6, 8, 10, 12],
+  "sourceFrames": [
+    6,
+    8,
+    10,
+    12
+  ],
   "finalSheet": "spritesheets/final/idle.png",
   "finalFrameCount": 8,
   "finalFrameRate": 24,
@@ -55,7 +60,11 @@
       "grid": "4x2",
       "cell": "640x640",
       "report": "reports/sprites/final/idle-rife.json",
-      "previewGif": "previews/sprites/final/idle/swamp-vampire-mosquito-idle-interpolated.gif"
+      "previewGif": "previews/sprites/final/idle/swamp-vampire-mosquito-idle-interpolated.gif",
+      "revision": "v04-calibrated-chroma-20260830",
+      "preserveVerticalMotion": true,
+      "comparisonGif": "alpha-repair-20260830/idle/before-after.gif",
+      "lightGreenPreviewGif": "alpha-repair-20260830/idle/fixed-light-green.gif"
     },
     "walking": {
       "sheet": "spritesheets/final/walking.png",
@@ -64,7 +73,11 @@
       "grid": "4x2",
       "cell": "640x640",
       "report": "reports/sprites/final/walking-rife.json",
-      "previewGif": "previews/sprites/final/walking/swamp-vampire-mosquito-walking-interpolated.gif"
+      "previewGif": "previews/sprites/final/walking/swamp-vampire-mosquito-walking-interpolated.gif",
+      "revision": "v04-calibrated-chroma-20260830",
+      "preserveVerticalMotion": true,
+      "comparisonGif": "alpha-repair-20260830/walking/before-after.gif",
+      "lightGreenPreviewGif": "alpha-repair-20260830/walking/fixed-light-green.gif"
     },
     "attacking": {
       "sheet": "spritesheets/final/attacking.png",
@@ -72,11 +85,13 @@
       "frameRate": 20,
       "grid": "5x6",
       "cell": "1280x640",
-      "revision": "v03-wide-safety-frame-despill",
+      "revision": "v04-calibrated-chroma-20260830",
       "preserveVerticalMotion": true,
       "blueSpillPixelsRemaining": 0,
       "report": "reports/sprites/final/attacking-rife.json",
-      "previewGif": "previews/sprites/final/attacking/swamp-vampire-mosquito-attacking-interpolated.gif"
+      "previewGif": "previews/sprites/final/attacking/swamp-vampire-mosquito-attacking-interpolated.gif",
+      "comparisonGif": "alpha-repair-20260830/attacking/before-after.gif",
+      "lightGreenPreviewGif": "alpha-repair-20260830/attacking/fixed-light-green.gif"
     },
     "dying": {
       "sheet": "spritesheets/final/dying.png",
@@ -85,7 +100,11 @@
       "grid": "4x8",
       "cell": "640x640",
       "report": "reports/sprites/final/dying-rife.json",
-      "previewGif": "previews/sprites/final/dying/swamp-vampire-mosquito-dying-interpolated.gif"
+      "previewGif": "previews/sprites/final/dying/swamp-vampire-mosquito-dying-interpolated.gif",
+      "revision": "v04-calibrated-chroma-20260830",
+      "preserveVerticalMotion": true,
+      "comparisonGif": "alpha-repair-20260830/dying/before-after.gif",
+      "lightGreenPreviewGif": "alpha-repair-20260830/dying/fixed-light-green.gif"
     }
   },
   "runtimeAssets": {
@@ -102,7 +121,23 @@
   "attackRepair": {
     "issue": "v01 cleared the rightmost 30 percent of every frame and clipped the forward lunge",
     "sourceVideoIntact": true,
-    "sourceFrames": [38, 44, 50, 56, 62, 68, 74, 80, 86, 92, 98, 104, 110, 116, 120],
+    "sourceFrames": [
+      38,
+      44,
+      50,
+      56,
+      62,
+      68,
+      74,
+      80,
+      86,
+      92,
+      98,
+      104,
+      110,
+      116,
+      120
+    ],
     "cell": "1280x640",
     "supportAlphaThreshold": 60,
     "supportDilate": 24,
@@ -134,5 +169,24 @@
       "rebuild candidate cache",
       "source-sheet-only preview derivatives"
     ]
+  },
+  "alphaRepair": {
+    "date": "2026-08-30",
+    "status": "runtime-assets-replaced-awaiting-user-test",
+    "actions": [
+      "idle",
+      "walking",
+      "attacking",
+      "dying"
+    ],
+    "frameCount": 76,
+    "method": "BiRefNet support + decoded blue-plate calibration + RGB-only fringe cleanup + RIFE RGB/alpha split",
+    "placementAndTimingPreserved": true,
+    "inspection": "alpha-repair-20260830/inspection.json",
+    "beforeArchive": "alpha-repair-20260830/before",
+    "rebuildScript": "rebuild-alpha.py",
+    "inspectionScript": "inspect-alpha.py",
+    "runtimeTestsRun": false,
+    "fixedExeUpdated": false
   }
 }

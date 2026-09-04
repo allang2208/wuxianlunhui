@@ -1,0 +1,79 @@
+{
+  "name": "swamp-vampire-mosquito-walking",
+  "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\walking\\source.png",
+  "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\walking\\final.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+  "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+  "mode": "loop",
+  "loopStartSourceIndex": 0,
+  "sourceFrameCount": 4,
+  "outputFrameCount": 8,
+  "frameWidth": 640,
+  "frameHeight": 640,
+  "cols": 4,
+  "rows": 2,
+  "sourceFrameRate": 12.0,
+  "outputFrameRate": 24.0,
+  "durationPreserved": true,
+  "middleFrameBottomAlignment": false,
+  "middleFrameBlueSpillRepair": true,
+  "blueSpillThreshold": 18,
+  "blueSpillPixelsRepaired": [
+    0,
+    15,
+    0,
+    5,
+    0,
+    13,
+    0,
+    16
+  ],
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 464,
+    "alphaBottomMax": 465,
+    "middleFrameFootShifts": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameVisibleRedPixelsRepaired": [
+      0,
+      1,
+      0,
+      0
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "visibleRedOutlierFrames": {},
+    "visibleBlueSpillFrames": {},
+    "visibleCyanSpillFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 28.18013286590576,
+    "adjacentDeltaMeanAfter": 16.531583994627
+  },
+  "postprocess": {
+    "type": "green-yellow RGB fringe repair on generated middle frames only",
+    "alphaPreserved": true,
+    "recoloredPixels": [
+      0,
+      20,
+      0,
+      8,
+      0,
+      7,
+      0,
+      31
+    ]
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "video": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\video\\swamp-mosquito-attack-hanging-v01.mp4",
+  "decodedFrameCount": 121,
+  "sourceFrames": [
+    38,
+    44,
+    50,
+    56,
+    62,
+    68,
+    74,
+    80,
+    86,
+    92,
+    98,
+    104,
+    110,
+    116,
+    120
+  ],
+  "background": "#0000FF",
+  "calibratedChroma": true,
+  "sampledBackgrounds": [
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      3.0,
+      220.0
+    ],
+    [
+      0.0,
+      5.0,
+      217.0
+    ],
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      3.0,
+      220.0
+    ],
+    [
+      0.0,
+      2.0,
+      221.0
+    ],
+    [
+      0.0,
+      3.0,
+      218.0
+    ],
+    [
+      0.0,
+      2.0,
+      220.0
+    ],
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      2.0,
+      218.0
+    ],
+    [
+      0.0,
+      3.0,
+      214.0
+    ],
+    [
+      0.0,
+      3.0,
+      217.0
+    ],
+    [
+      0.0,
+      3.0,
+      217.0
+    ],
+    [
+      0.0,
+      1.0,
+      221.0
+    ]
+  ],
+  "placementReport": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\before\\attacking-source.json",
+  "clearRect": null,
+  "supportAlphaThreshold": 16,
+  "supportDilate": 8,
+  "blueSpillRadius": 10,
+  "blueSpillThreshold": 18,
+  "magentaSpillRadius": 10,
+  "magentaSpillThreshold": 18,
+  "blueSpillPixels": {
+    "detected": 176781,
+    "recolored": 96456,
+    "cleared": 80325,
+    "blueCapped": 35991,
+    "disconnectedCleared": 9809,
+    "magentaDetected": 37816,
+    "magentaRecolored": 37816,
+    "magentaCleared": 0,
+    "greenYellowRecolored": 26086
+  },
+  "clearOutputRect": null,
+  "clearOutputRectStart": 0,
+  "clearOutputRectsAt": {},
+  "cell": 640,
+  "cellWidth": 1280,
+  "cellHeight": 640,
+  "cols": 5,
+  "rows": 3,
+  "frameRate": 10.0,
+  "scale": 0.6685,
+  "fitScale": 0.9065849923430321,
+  "targetCore": [
+    720.0,
+    256.0
+  ],
+  "anchorMode": "first-frame",
+  "coreCenters": [
+    [
+      564.927,
+      357.113
+    ],
+    [
+      534.629,
+      343.401
+    ],
+    [
+      502.372,
+      325.976
+    ],
+    [
+      491.634,
+      317.864
+    ],
+    [
+      698.332,
+      316.821
+    ],
+    [
+      717.291,
+      321.882
+    ],
+    [
+      732.845,
+      322.756
+    ],
+    [
+      738.094,
+      327.773
+    ],
+    [
+      735.451,
+      332.43
+    ],
+    [
+      698.74,
+      353.65
+    ],
+    [
+      641.461,
+      350.151
+    ],
+    [
+      610.528,
+      348.293
+    ],
+    [
+      591.2,
+      350.134
+    ],
+    [
+      584.503,
+      349.129
+    ],
+    [
+      584.887,
+      352.332
+    ]
+  ],
+  "semiTransparentPixels": [
+    26963,
+    26401,
+    27281,
+    23782,
+    32073,
+    27085,
+    33317,
+    28153,
+    15287,
+    25361,
+    26422,
+    25957,
+    25433,
+    25881,
+    25960
+  ],
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\attacking\\source.png"
+}

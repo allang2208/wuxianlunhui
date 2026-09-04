@@ -19,29 +19,114 @@
     120
   ],
   "background": "#0000FF",
+  "calibratedChroma": true,
+  "sampledBackgrounds": [
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      3.0,
+      220.0
+    ],
+    [
+      0.0,
+      5.0,
+      217.0
+    ],
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      3.0,
+      220.0
+    ],
+    [
+      0.0,
+      2.0,
+      221.0
+    ],
+    [
+      0.0,
+      3.0,
+      218.0
+    ],
+    [
+      0.0,
+      2.0,
+      220.0
+    ],
+    [
+      0.0,
+      4.0,
+      218.0
+    ],
+    [
+      0.0,
+      2.0,
+      218.0
+    ],
+    [
+      0.0,
+      3.0,
+      214.0
+    ],
+    [
+      0.0,
+      3.0,
+      217.0
+    ],
+    [
+      0.0,
+      3.0,
+      217.0
+    ],
+    [
+      0.0,
+      1.0,
+      221.0
+    ]
+  ],
+  "placementReport": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\before\\attacking-source.json",
   "clearRect": null,
-  "supportAlphaThreshold": 60,
-  "supportDilate": 24,
+  "supportAlphaThreshold": 16,
+  "supportDilate": 8,
   "blueSpillRadius": 10,
   "blueSpillThreshold": 18,
+  "magentaSpillRadius": 10,
+  "magentaSpillThreshold": 18,
   "blueSpillPixels": {
-    "detected": 1942535,
-    "recolored": 856015,
-    "cleared": 1086520,
-    "blueCapped": 43954,
-    "disconnectedCleared": 13889
+    "detected": 176781,
+    "recolored": 96456,
+    "cleared": 80325,
+    "blueCapped": 35991,
+    "disconnectedCleared": 9809,
+    "magentaDetected": 37816,
+    "magentaRecolored": 37816,
+    "magentaCleared": 0,
+    "greenYellowRecolored": 26086
   },
   "clearOutputRect": null,
   "clearOutputRectStart": 0,
   "clearOutputRectsAt": {},
-  "cell": 512,
+  "cell": 640,
   "cellWidth": 1280,
   "cellHeight": 640,
   "cols": 5,
   "rows": 3,
   "frameRate": 10.0,
   "scale": 0.6685,
-  "fitScale": 0.8654970760233918,
+  "fitScale": 0.9065849923430321,
   "targetCore": [
     720.0,
     256.0
@@ -110,21 +195,21 @@
     ]
   ],
   "semiTransparentPixels": [
-    48339,
-    42503,
-    44276,
-    37755,
-    53951,
-    45996,
-    56148,
-    49021,
-    49159,
-    49891,
-    55208,
-    54961,
-    70797,
-    56599,
-    62356
+    26963,
+    26401,
+    27281,
+    23782,
+    32073,
+    27085,
+    33317,
+    28153,
+    15287,
+    25361,
+    26422,
+    25957,
+    25433,
+    25881,
+    25960
   ],
-  "output": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\rebuild-candidates\\attack-1280-despill10-v2\\attacking.png"
+  "output": "tools/ai-gen/_swamp_vampire_mosquito_20260828/spritesheets/source-pre-rife/attacking.png"
 }

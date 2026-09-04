@@ -8,18 +8,64 @@
     12
   ],
   "background": "#0000FF",
+  "calibratedChroma": true,
+  "sampledBackgrounds": [
+    [
+      0.0,
+      1.0,
+      221.0
+    ],
+    [
+      0.0,
+      2.0,
+      219.0
+    ],
+    [
+      0.0,
+      3.0,
+      220.0
+    ],
+    [
+      0.0,
+      3.0,
+      218.0
+    ]
+  ],
+  "placementReport": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\before\\idle-source.json",
   "clearRect": [
     0.7,
     0.0,
     1.0,
     1.0
   ],
+  "supportAlphaThreshold": 16,
+  "supportDilate": 8,
+  "blueSpillRadius": 10,
+  "blueSpillThreshold": 18,
+  "magentaSpillRadius": 10,
+  "magentaSpillThreshold": 18,
+  "blueSpillPixels": {
+    "detected": 45321,
+    "recolored": 23817,
+    "cleared": 21504,
+    "blueCapped": 9909,
+    "disconnectedCleared": 4647,
+    "magentaDetected": 15809,
+    "magentaRecolored": 15809,
+    "magentaCleared": 0,
+    "greenYellowRecolored": 3898
+  },
+  "clearOutputRect": null,
+  "clearOutputRectStart": 0,
+  "clearOutputRectsAt": {},
   "cell": 640,
+  "cellWidth": 640,
+  "cellHeight": 640,
   "cols": 4,
   "rows": 1,
   "frameRate": 12.0,
   "scale": 0.6685,
-  "fitScale": 0.6692851733675603,
+  "fitScale": 0.9899665551839465,
   "targetCore": [
     400.0,
     256.0
@@ -44,10 +90,10 @@
     ]
   ],
   "semiTransparentPixels": [
-    266498,
-    267789,
-    266759,
-    267919
+    26575,
+    30025,
+    27311,
+    27186
   ],
-  "output": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\spritesheets\\source-pre-rife\\idle.png"
+  "output": "tools/ai-gen/_swamp_vampire_mosquito_20260828/spritesheets/source-pre-rife/idle.png"
 }

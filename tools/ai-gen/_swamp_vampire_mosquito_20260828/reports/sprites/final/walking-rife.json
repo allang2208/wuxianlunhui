@@ -1,9 +1,9 @@
 {
   "name": "swamp-vampire-mosquito-walking",
-  "sourceSheet": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\spritesheets\\source-pre-rife\\walking.png",
-  "outputSheet": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\spritesheets\\final\\walking.png",
+  "sourceSheet": "tools/ai-gen/_swamp_vampire_mosquito_20260828/spritesheets/source-pre-rife/walking.png",
+  "outputSheet": "tools/ai-gen/_swamp_vampire_mosquito_20260828/spritesheets/final/walking.png",
   "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
-  "pipelineVersion": "rife-v4.6-rgba-v3-temporal-chroma-repair",
+  "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
   "mode": "loop",
   "loopStartSourceIndex": 0,
   "sourceFrameCount": 4,
@@ -15,15 +15,28 @@
   "sourceFrameRate": 12.0,
   "outputFrameRate": 24.0,
   "durationPreserved": true,
+  "middleFrameBottomAlignment": false,
+  "middleFrameBlueSpillRepair": true,
+  "blueSpillThreshold": 18,
+  "blueSpillPixelsRepaired": [
+    0,
+    15,
+    0,
+    5,
+    0,
+    13,
+    0,
+    16
+  ],
   "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
   "validation": {
     "emptyFrames": [],
     "touchingFrames": [],
-    "alphaBottomMin": 497,
-    "alphaBottomMax": 500,
+    "alphaBottomMin": 464,
+    "alphaBottomMax": 465,
     "middleFrameFootShifts": [
-      1,
-      -1,
+      0,
+      0,
       0,
       0
     ],
@@ -35,16 +48,32 @@
     ],
     "middleFrameVisibleRedPixelsRepaired": [
       0,
-      0,
+      1,
       0,
       0
     ],
     "middleFrameHeldSourceKeyFallbacks": [],
     "visibleDarkOutlierFrames": {},
     "visibleRedOutlierFrames": {},
+    "visibleBlueSpillFrames": {},
+    "visibleCyanSpillFrames": {},
     "originalKeyFramesPreservedAtEvenIndices": true,
     "nonzeroRgbInTransparentPixels": 0,
-    "adjacentDeltaMeanBefore": 7.111591577529907,
-    "adjacentDeltaMeanAfter": 4.340233013033867
+    "adjacentDeltaMeanBefore": 28.18013286590576,
+    "adjacentDeltaMeanAfter": 16.531583994627
+  },
+  "postprocess": {
+    "type": "green-yellow RGB fringe repair on generated middle frames only",
+    "alphaPreserved": true,
+    "recoloredPixels": [
+      0,
+      20,
+      0,
+      8,
+      0,
+      7,
+      0,
+      31
+    ]
   }
 }

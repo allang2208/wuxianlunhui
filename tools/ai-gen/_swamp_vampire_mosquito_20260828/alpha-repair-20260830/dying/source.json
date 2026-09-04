@@ -1,0 +1,236 @@
+{
+  "video": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\video\\swamp-mosquito-dying-hanging-v01.mp4",
+  "decodedFrameCount": 121,
+  "sourceFrames": [
+    0,
+    12,
+    18,
+    24,
+    30,
+    36,
+    42,
+    48,
+    54,
+    60,
+    66,
+    72,
+    84,
+    96,
+    108,
+    120
+  ],
+  "background": "#0000FF",
+  "calibratedChroma": true,
+  "sampledBackgrounds": [
+    [
+      0.0,
+      0.0,
+      218.0
+    ],
+    [
+      0.0,
+      0.0,
+      220.0
+    ],
+    [
+      0.0,
+      0.0,
+      222.0
+    ],
+    [
+      0.0,
+      0.0,
+      220.0
+    ],
+    [
+      0.0,
+      0.0,
+      222.0
+    ],
+    [
+      0.0,
+      0.0,
+      220.0
+    ],
+    [
+      0.0,
+      0.0,
+      222.0
+    ],
+    [
+      0.0,
+      0.0,
+      220.0
+    ],
+    [
+      0.0,
+      0.0,
+      222.0
+    ],
+    [
+      0.0,
+      0.0,
+      220.0
+    ],
+    [
+      0.0,
+      0.0,
+      222.0
+    ],
+    [
+      0.0,
+      0.0,
+      222.0
+    ],
+    [
+      0.0,
+      0.0,
+      224.0
+    ],
+    [
+      0.0,
+      0.0,
+      224.0
+    ],
+    [
+      0.0,
+      0.0,
+      224.0
+    ],
+    [
+      0.0,
+      0.0,
+      224.0
+    ]
+  ],
+  "placementReport": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\before\\dying-source.json",
+  "clearRect": [
+    0.7,
+    0.0,
+    1.0,
+    1.0
+  ],
+  "supportAlphaThreshold": 16,
+  "supportDilate": 8,
+  "blueSpillRadius": 10,
+  "blueSpillThreshold": 18,
+  "magentaSpillRadius": 10,
+  "magentaSpillThreshold": 18,
+  "blueSpillPixels": {
+    "detected": 49462,
+    "recolored": 35970,
+    "cleared": 13492,
+    "blueCapped": 34640,
+    "disconnectedCleared": 4213,
+    "magentaDetected": 45340,
+    "magentaRecolored": 45340,
+    "magentaCleared": 0,
+    "greenYellowRecolored": 12585
+  },
+  "clearOutputRect": [
+    0.0,
+    0.0,
+    0.36,
+    0.2
+  ],
+  "clearOutputRectStart": 14,
+  "clearOutputRectsAt": {},
+  "cell": 640,
+  "cellWidth": 640,
+  "cellHeight": 640,
+  "cols": 4,
+  "rows": 4,
+  "frameRate": 6.0,
+  "scale": 0.6685,
+  "fitScale": 0.965742251223491,
+  "targetCore": [
+    400.0,
+    256.0
+  ],
+  "anchorMode": "first-frame",
+  "coreCenters": [
+    [
+      584.379,
+      347.979
+    ],
+    [
+      591.486,
+      352.831
+    ],
+    [
+      596.991,
+      372.352
+    ],
+    [
+      600.708,
+      395.271
+    ],
+    [
+      602.71,
+      436.208
+    ],
+    [
+      608.459,
+      474.241
+    ],
+    [
+      616.537,
+      515.265
+    ],
+    [
+      619.883,
+      539.344
+    ],
+    [
+      621.234,
+      572.398
+    ],
+    [
+      617.224,
+      592.03
+    ],
+    [
+      608.724,
+      607.881
+    ],
+    [
+      604.985,
+      610.332
+    ],
+    [
+      599.177,
+      610.486
+    ],
+    [
+      599.606,
+      610.678
+    ],
+    [
+      597.236,
+      609.897
+    ],
+    [
+      597.565,
+      610.362
+    ]
+  ],
+  "semiTransparentPixels": [
+    22998,
+    27340,
+    25306,
+    21395,
+    15413,
+    13209,
+    18896,
+    23465,
+    25670,
+    20887,
+    16570,
+    10920,
+    4646,
+    4515,
+    4523,
+    4554
+  ],
+  "output": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\dying\\source.png"
+}

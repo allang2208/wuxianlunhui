@@ -1,9 +1,9 @@
 {
   "name": "swamp-vampire-mosquito-idle",
-  "sourceSheet": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\spritesheets\\source-pre-rife\\idle.png",
-  "outputSheet": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\spritesheets\\final\\idle.png",
+  "sourceSheet": "tools/ai-gen/_swamp_vampire_mosquito_20260828/spritesheets/source-pre-rife/idle.png",
+  "outputSheet": "tools/ai-gen/_swamp_vampire_mosquito_20260828/spritesheets/final/idle.png",
   "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
-  "pipelineVersion": "rife-v4.6-rgba-v3-temporal-chroma-repair",
+  "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
   "mode": "loop",
   "loopStartSourceIndex": 0,
   "sourceFrameCount": 4,
@@ -15,21 +15,34 @@
   "sourceFrameRate": 12.0,
   "outputFrameRate": 24.0,
   "durationPreserved": true,
+  "middleFrameBottomAlignment": false,
+  "middleFrameBlueSpillRepair": true,
+  "blueSpillThreshold": 18,
+  "blueSpillPixelsRepaired": [
+    0,
+    29,
+    0,
+    24,
+    0,
+    14,
+    0,
+    75
+  ],
   "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
   "validation": {
     "emptyFrames": [],
     "touchingFrames": [],
-    "alphaBottomMin": 500,
-    "alphaBottomMax": 501,
+    "alphaBottomMin": 463,
+    "alphaBottomMax": 463,
     "middleFrameFootShifts": [
       0,
-      -1,
+      0,
       0,
       0
     ],
     "middleFrameVisibleDarkPixelsRepaired": [
-      0,
-      0,
+      8,
+      35,
       0,
       0
     ],
@@ -42,9 +55,25 @@
     "middleFrameHeldSourceKeyFallbacks": [],
     "visibleDarkOutlierFrames": {},
     "visibleRedOutlierFrames": {},
+    "visibleBlueSpillFrames": {},
+    "visibleCyanSpillFrames": {},
     "originalKeyFramesPreservedAtEvenIndices": true,
     "nonzeroRgbInTransparentPixels": 0,
-    "adjacentDeltaMeanBefore": 9.69170093536377,
-    "adjacentDeltaMeanAfter": 5.613078072667122
+    "adjacentDeltaMeanBefore": 41.56394004821777,
+    "adjacentDeltaMeanAfter": 26.246475219726562
+  },
+  "postprocess": {
+    "type": "green-yellow RGB fringe repair on generated middle frames only",
+    "alphaPreserved": true,
+    "recoloredPixels": [
+      0,
+      20,
+      0,
+      20,
+      0,
+      5,
+      0,
+      20
+    ]
   }
 }

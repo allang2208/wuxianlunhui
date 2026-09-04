@@ -8,18 +8,64 @@
     12
   ],
   "background": "#0000FF",
+  "calibratedChroma": true,
+  "sampledBackgrounds": [
+    [
+      0.0,
+      1.0,
+      221.0
+    ],
+    [
+      0.0,
+      1.0,
+      221.0
+    ],
+    [
+      0.0,
+      1.0,
+      223.0
+    ],
+    [
+      0.0,
+      1.0,
+      221.0
+    ]
+  ],
+  "placementReport": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\alpha-repair-20260830\\before\\walking-source.json",
   "clearRect": [
     0.7,
     0.0,
     1.0,
     1.0
   ],
+  "supportAlphaThreshold": 16,
+  "supportDilate": 8,
+  "blueSpillRadius": 10,
+  "blueSpillThreshold": 18,
+  "magentaSpillRadius": 10,
+  "magentaSpillThreshold": 18,
+  "blueSpillPixels": {
+    "detected": 7882,
+    "recolored": 7882,
+    "cleared": 0,
+    "blueCapped": 10352,
+    "disconnectedCleared": 1483,
+    "magentaDetected": 22542,
+    "magentaRecolored": 22542,
+    "magentaCleared": 0,
+    "greenYellowRecolored": 3400
+  },
+  "clearOutputRect": null,
+  "clearOutputRectStart": 0,
+  "clearOutputRectsAt": {},
   "cell": 640,
+  "cellWidth": 640,
+  "cellHeight": 640,
   "cols": 4,
   "rows": 1,
   "frameRate": 12.0,
   "scale": 0.6685,
-  "fitScale": 0.6690043703759304,
+  "fitScale": 0.9836272584380928,
   "targetCore": [
     400.0,
     256.0
@@ -44,10 +90,10 @@
     ]
   ],
   "semiTransparentPixels": [
-    267512,
-    266303,
-    267378,
-    266583
+    28324,
+    24224,
+    26428,
+    24296
   ],
-  "output": "tools\\ai-gen\\_swamp_vampire_mosquito_20260828\\spritesheets\\source-pre-rife\\walking.png"
+  "output": "tools/ai-gen/_swamp_vampire_mosquito_20260828/spritesheets/source-pre-rife/walking.png"
 }
