@@ -116,7 +116,7 @@ export class DungeonExplorationConsole {
         this.$('#dungeonRouteEnter').addEventListener('click', () => {
             const node = system.nodes.find(candidate => candidate.id === this.selectedId);
             // 每次点击都重查真实邻接关系，不能使用创建按钮时的可走快照。
-            if (this.canInteract() && node && system.isNodeClickable(node)) system._enterNode(node);
+            if (this.canInteract() && !this.revealPulse && node && system.isNodeClickable(node)) system._enterNode(node);
         });
         // 操作规划台不穿透到角色攻击、RTS 或全局空格/方向键控制。
         for (const type of ['pointerdown', 'mousedown', 'click']) {
@@ -494,10 +494,20 @@ export class DungeonExplorationConsole {
     }
 
     select(node, locate = false) {
-        if (!this.canInteract()) return;
+        if (!this.canInteract() || this.revealPulse) return;
         if (locate) this.system._focusRouteSector(this.system._getSectorIndexForNode(node), { focusNodeId: node.id });
         this.selectedId = node.id;
         this.refresh();
+    }
+
+    isRevealTargetPending(nodeId) {
+        const pulse = this.revealPulse;
+        return !!pulse?.targetNodeIds.has(nodeId) && !pulse.arrivedTargetNodeIds.has(nodeId);
+    }
+
+    getNodeDetail(node) {
+        // 事件结果已经写入迷雾状态，但路线脉冲抵达前，规划台仍按未知房间展示。
+        return this.describeNode(node, { forceHidden: this.isRevealTargetPending(node.id) });
     }
 
     refresh() {
@@ -508,7 +518,9 @@ export class DungeonExplorationConsole {
             this.selectedId = system.currentNodeId;
         }
         this.startPendingRevealPulse();
-        this.available = new Set(system.getAvailableNodes().map(node => node.id));
+        const availableNodes = system.getAvailableNodes()
+            .filter(node => !this.isRevealTargetPending(node.id));
+        this.available = new Set(availableNodes.map(node => node.id));
         this.syncZoomControls();
         this.$('#dungeonRouteHeaderProgress').textContent = `探索进度 ${system.visitedNodeIds.size} / ${system.nodes.length}`;
         const progress = this.$('progress');
@@ -517,10 +529,11 @@ export class DungeonExplorationConsole {
         idle.textContent = !this.invasion.eligible ? '本级无特工入侵' : '';
         idle.hidden = !idle.textContent;
         const choices = this.$('.dxc-destinations');
+        choices.disabled = !!this.revealPulse;
         this.$('.dxc-available-count').textContent = `${this.available.size} 处可前往`;
         choices.replaceChildren(new Option('选择目标房间', ''));
-        for (const node of system.getAvailableNodes()) {
-            const detail = this.describeNode(node);
+        for (const node of availableNodes) {
+            const detail = this.getNodeDetail(node);
             choices.add(new Option(`${detail.number} · ${detail.title}`, String(node.id)));
         }
         choices.value = this.available.has(this.selectedId) ? String(this.selectedId) : '';
@@ -532,7 +545,7 @@ export class DungeonExplorationConsole {
     }
 
     refreshDossier(node) {
-        const detail = this.describeNode(node);
+        const detail = this.getNodeDetail(node);
         this.$('.dxc-dossier h3').textContent = detail.title;
         this.$('.dxc-node-state').textContent = `节点 ${detail.number} · ${detail.state}`;
         this.$('.dxc-clue').textContent = detail.clue;
@@ -544,11 +557,14 @@ export class DungeonExplorationConsole {
         const canEnter = this.available.has(node.id);
         const current = node.id === this.system.currentNodeId;
         const enter = this.$('#dungeonRouteEnter');
-        enter.disabled = !canEnter;
-        const enterLabel = canEnter ? `进入 · ${detail.title}` : current ? '选择一个房间' : '当前不可前往';
+        const revealActive = !!this.revealPulse;
+        enter.disabled = !canEnter || revealActive;
+        const enterLabel = revealActive ? '线索传导中'
+            : canEnter ? `进入 · ${detail.title}` : current ? '选择一个房间' : '当前不可前往';
         this.$('.dxc-enter-label').textContent = enterLabel;
-        enter.setAttribute('aria-label', canEnter ? `进入节点 ${detail.number}：${detail.title}` : enterLabel);
-        this.$('.dxc-enter-hint').textContent = canEnter ? `目标 ${detail.number} · ${detail.risk}`
+        enter.setAttribute('aria-label', canEnter && !revealActive ? `进入节点 ${detail.number}：${detail.title}` : enterLabel);
+        this.$('.dxc-enter-hint').textContent = revealActive ? '等待光脉冲抵达目标房间'
+            : canEnter ? `目标 ${detail.number} · ${detail.risk}`
             : current ? '在路线图或上方列表选择相邻房间' : '此处仅供查看，请选择相邻可前往房间';
     }
 
@@ -564,28 +580,32 @@ export class DungeonExplorationConsole {
                 button.type = 'button'; button.className = 'dxc-node';
                 button.innerHTML = '<img alt=""><span class="dxc-node-number" aria-hidden="true"></span><span class="dxc-node-label"></span><span class="dxc-agent" hidden>入侵者</span>';
                 button.addEventListener('click', () => this.select(node));
+                button.addEventListener('animationend', event => {
+                    if (event.animationName === 'dxc-clue-reveal') button.classList.remove('is-clue-revealed');
+                });
                 this.nodeLayer.appendChild(button);
                 this.nodeButtons.set(node.id, button);
             }
-            const detail = this.describeNode(node);
+            const detail = this.getNodeDetail(node);
             button.querySelector('img').src = detail.icon;
             button.setAttribute('aria-label', `节点${detail.number}，${detail.title}，${detail.state}`);
             button.title = `节点 ${detail.number} · ${detail.title} · ${detail.state}`;
             button.querySelector('.dxc-node-number').textContent = detail.number;
             button.setAttribute('aria-pressed', String(node.id === this.selectedId));
             button.classList.toggle('is-current', node.id === this.system.currentNodeId);
+            button.setAttribute('aria-disabled', String(!!this.revealPulse));
             button.classList.toggle('is-available', this.available.has(node.id));
             button.classList.toggle('is-unknown', !detail.revealed);
-            button.classList.toggle('is-complete', !!node.completed);
-            button.classList.toggle('is-clue-revealed', !!this.revealPulse?.targetNodeIds.has(node.id));
+            button.classList.toggle('is-complete', detail.revealed && !!node.completed);
             button.querySelector('.dxc-node-label').textContent = node.id === this.system.currentNodeId
-                ? '当前位置' : this.available.has(node.id) ? (node.id === this.selectedId ? '已选择 · 可前往' : '可前往') : node.completed ? '已完成' : '';
+                ? '当前位置' : this.available.has(node.id) ? (node.id === this.selectedId ? '已选择 · 可前往' : '可前往')
+                    : detail.revealed && node.completed ? '已完成' : '';
         }
     }
 
     startPendingRevealPulse() {
         const pending = this.system._pendingRouteRevealPulse;
-        if (!pending || this.system.state !== 'map') return;
+        if (!pending || this.revealPulse || this.system.state !== 'map') return;
         this.system._pendingRouteRevealPulse = null;
         const layout = this.system._getExpeditionLayout();
         const targets = new Set(pending.targetNodeIds || []);
@@ -635,10 +655,12 @@ export class DungeonExplorationConsole {
             if (points.length > 1 && length > 0) paths.push({ targetId, points, length });
         }
         if (!paths.length) return;
+        const animatedTargets = new Set(paths.map(path => path.targetId));
         const reduceMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
         this.revealPulse = {
             paths,
-            targetNodeIds: targets,
+            targetNodeIds: animatedTargets,
+            arrivedTargetNodeIds: new Set(),
             maxLength: Math.max(...paths.map(path => path.length)),
             startedAt: performance.now(),
             durationMs: reduceMotion ? 1 : 1450,
@@ -671,6 +693,7 @@ export class DungeonExplorationConsole {
         ctx.save();
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+        const newlyArrived = [];
         for (const path of pulse.paths) {
             const points = path.points.map(screen);
             const scaledTravel = travel * this.system.mapScale;
@@ -685,7 +708,8 @@ export class DungeonExplorationConsole {
             ctx.lineWidth = 2;
             ctx.shadowBlur = 5;
             ctx.stroke();
-            if (scaledTravel < path.length * this.system.mapScale) {
+            const reachedTarget = scaledTravel >= path.length * this.system.mapScale;
+            if (!reachedTarget) {
                 ctx.beginPath();
                 ctx.fillStyle = '#fff7cf';
                 ctx.shadowColor = '#74eaff';
@@ -702,14 +726,29 @@ export class DungeonExplorationConsole {
                 ctx.shadowBlur = 10;
                 ctx.arc(end.x, end.y, 25 + ringProgress * 24, 0, Math.PI * 2);
                 ctx.stroke();
+                if (!pulse.arrivedTargetNodeIds.has(path.targetId)) {
+                    pulse.arrivedTargetNodeIds.add(path.targetId);
+                    newlyArrived.push(path.targetId);
+                }
             }
         }
         ctx.restore();
-        if (progress >= 1) {
-            for (const button of this.nodeButtons.values()) button.classList.remove('is-clue-revealed');
-            this.revealPulse = null;
+        const completed = progress >= 1;
+        if (completed) this.revealPulse = null;
+        if (newlyArrived.length || completed) {
+            // 一帧只刷新一次：抵达后才开放档案、图标、下拉入口，并从此刻播放节点揭示动画。
+            this.refresh();
+            for (const nodeId of newlyArrived) {
+                const button = this.nodeButtons.get(nodeId);
+                if (!button) continue;
+                button.classList.remove('is-clue-revealed');
+                void button.offsetWidth;
+                button.classList.add('is-clue-revealed');
+            }
+        }
+        if (completed) {
             this.drawKey = null;
-            return false;
+            return !!this.revealPulse;
         }
         return true;
     }
@@ -777,9 +816,10 @@ export class DungeonExplorationConsole {
             const iconVisible = point.x + radius > 0 && point.x - radius < view.width
                 && point.y + radius > 0 && point.y - radius < view.height;
             if (!iconVisible && this.available.has(id)) offscreenChoices++;
-            button.tabIndex = iconVisible ? 0 : -1;
+            button.tabIndex = iconVisible && !this.revealPulse ? 0 : -1;
             button.style.left = `${point.x}px`; button.style.top = `${point.y}px`;
-            button.querySelector('.dxc-agent').hidden = !(this.invasion.triggered && this.invasion.agentNodeId === id);
+            button.querySelector('.dxc-agent').hidden = this.isRevealTargetPending(id)
+                || !(this.invasion.triggered && this.invasion.agentNodeId === id);
         }
         // 仍保留真实完整路线；有限窗口放不下分岔时明确告知，不让消失的徽记冒充断路。
         const hint = revealActive

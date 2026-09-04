@@ -1059,7 +1059,7 @@ export const DungeonMapSystem = {
             getElementIfExists('dungeonRouteTopHud')?.remove();
             this._explorationConsole = new DungeonExplorationConsole(this, {
                 invasion: AgentInvasionSystem,
-                describeNode: node => this._getExplorationNodeDetails(node),
+                describeNode: (node, options) => this._getExplorationNodeDetails(node, options),
                 isCurrentScene: () => SceneManager.currentScene === this.sceneId && !SceneManager.isLoading,
                 grade: DungeonConfig.getDungeonGrade(this.dungeonType) || 'F',
             });
@@ -2486,13 +2486,13 @@ export const DungeonMapSystem = {
     },
 
     /** 固定档案只使用迷雾已经允许的情报；未知事件不虚构低风险或保底奖励。 */
-    _getExplorationNodeDetails(node) {
-        const available = this.isNodeClickable(node);
-        const current = node.id === this.currentNodeId;
-        const visited = this.visitedNodeIds.has(node.id);
+    _getExplorationNodeDetails(node, { forceHidden = false } = {}) {
+        const available = !forceHidden && this.isNodeClickable(node);
+        const current = !forceHidden && node.id === this.currentNodeId;
+        const visited = !forceHidden && this.visitedNodeIds.has(node.id);
         const visibility = this.fogOfWar?.getNodeVisibility(node.id);
-        const revealed = !this.fogOfWar || this.fogOfWar.enabled === false || current || available || visited
-            || visibility === 'revealed' || visibility === 'visited';
+        const revealed = !forceHidden && (!this.fogOfWar || this.fogOfWar.enabled === false || current || available || visited
+            || visibility === 'revealed' || visibility === 'visited');
         const type = revealed ? node.type : 'unknown';
         const elite = revealed && type === 'combat' && node.isElite;
         const iconKey = elite ? 'elite' : type === 'empty' ? 'start' : type;
