@@ -35,7 +35,7 @@ DEFAULT_RIFE = (
     / "rife-ncnn-vulkan.exe"
 )
 MODEL = "rife-v4.6"
-PIPELINE_VERSION = "rife-v4.6-rgba-v3-temporal-chroma-repair"
+PIPELINE_VERSION = "rife-v4.6-rgba-v8-exact-half-step"
 VISIBLE_DARK_ALPHA = 96
 VISIBLE_DARK_MAX_RGB = 24
 VISIBLE_DARK_DILATION = 12
@@ -46,6 +46,9 @@ VISIBLE_RED_EXCESS = 55
 VISIBLE_RED_NEIGHBOURHOOD = 31
 VISIBLE_RED_EXCESS_MARGIN = 20
 VISIBLE_RED_REPAIR_MIN_PIXELS = 6
+VISIBLE_MAGENTA_MIN_CHANNEL = 70
+VISIBLE_MAGENTA_EXCESS = 45
+VISIBLE_MAGENTA_EXCESS_MARGIN = 20
 LARGE_DARK_REPAIR_HOLD_PIXELS = 1000
 LARGE_RED_REPAIR_HOLD_PIXELS = 100
 
@@ -111,6 +114,51 @@ def repair_blue_spill(frame: np.ndarray, threshold: int = 18) -> tuple[np.ndarra
         ).astype(np.uint8)
     result[result[..., 3] == 0, :3] = 0
     return result, int((cyan | blue_excess).sum())
+
+
+def visible_blue_spill(frame: np.ndarray, threshold: int) -> tuple[int, int]:
+    """Count remaining blue-only and cyan pixels that still carry visible alpha."""
+    rgb = frame[..., :3].astype(np.int16)
+    alpha = frame[..., 3]
+    red, green, blue = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    blue_only = (alpha > 3) & (blue > np.maximum(red, green) + threshold)
+    cyan = (
+        (alpha > 3)
+        & (green > red + threshold)
+        & (blue > red + threshold)
+    )
+    return int(blue_only.sum()), int(cyan.sum())
+
+
+def repair_large_magenta_components(
+    frame: np.ndarray, minimum_component_pixels: int = 64
+) -> tuple[np.ndarray, int]:
+    """Replace large generated purple blocks while retaining tiny source details."""
+    result = frame.copy()
+    rgb = result[..., :3].astype(np.int16)
+    alpha = result[..., 3]
+    suspect = (
+        (alpha > VISIBLE_RED_ALPHA)
+        & (rgb[..., 0] > VISIBLE_MAGENTA_MIN_CHANNEL)
+        & (rgb[..., 2] > VISIBLE_MAGENTA_MIN_CHANNEL)
+        & (np.minimum(rgb[..., 0], rgb[..., 2]) - rgb[..., 1] > 35)
+    )
+    labels, component_count = ndimage.label(suspect)
+    repair = np.zeros_like(suspect)
+    for label_index in range(1, component_count + 1):
+        component = labels == label_index
+        if int(component.sum()) >= minimum_component_pixels:
+            repair |= component
+    count = int(repair.sum())
+    if count == 0:
+        return result, 0
+    valid = (alpha > 8) & ~suspect
+    if not valid.any():
+        return result, 0
+    _, indices = ndimage.distance_transform_edt(~valid, return_indices=True)
+    ys, xs = np.where(repair)
+    result[ys, xs, :3] = result[indices[0, ys, xs], indices[1, ys, xs], :3]
+    return result, count
 
 
 def run_rife(rife: Path, first: Path, second: Path, output: Path) -> None:
@@ -237,6 +285,12 @@ def red_excess(frame: np.ndarray) -> np.ndarray:
     return rgb[..., 0] - np.maximum(rgb[..., 1], rgb[..., 2])
 
 
+def magenta_excess(frame: np.ndarray) -> np.ndarray:
+    """How strongly red and blue jointly exceed green at each pixel."""
+    rgb = frame[..., :3].astype(np.int16)
+    return np.minimum(rgb[..., 0], rgb[..., 2]) - rgb[..., 1]
+
+
 def temporal_red_outlier_mask(
     middle: np.ndarray, first: np.ndarray, second: np.ndarray
 ) -> np.ndarray:
@@ -248,12 +302,27 @@ def temporal_red_outlier_mask(
         ndimage.maximum_filter(second_excess, size=VISIBLE_RED_NEIGHBOURHOOD),
     )
     middle_excess = red_excess(middle)
-    return (
+    red_outlier = (
         (middle[..., 3] > VISIBLE_RED_ALPHA)
         & (middle[..., 0] > VISIBLE_RED_MIN_R)
         & (middle_excess > VISIBLE_RED_EXCESS)
         & (middle_excess > allowed_excess + VISIBLE_RED_EXCESS_MARGIN)
     )
+    first_magenta = np.where(first[..., 3] > 8, magenta_excess(first), 0)
+    second_magenta = np.where(second[..., 3] > 8, magenta_excess(second), 0)
+    allowed_magenta = np.maximum(
+        ndimage.maximum_filter(first_magenta, size=VISIBLE_RED_NEIGHBOURHOOD),
+        ndimage.maximum_filter(second_magenta, size=VISIBLE_RED_NEIGHBOURHOOD),
+    )
+    middle_magenta = magenta_excess(middle)
+    magenta_outlier = (
+        (middle[..., 3] > VISIBLE_RED_ALPHA)
+        & (middle[..., 0] > VISIBLE_MAGENTA_MIN_CHANNEL)
+        & (middle[..., 2] > VISIBLE_MAGENTA_MIN_CHANNEL)
+        & (middle_magenta > VISIBLE_MAGENTA_EXCESS)
+        & (middle_magenta > allowed_magenta + VISIBLE_MAGENTA_EXCESS_MARGIN)
+    )
+    return red_outlier | magenta_outlier
 
 
 def repair_temporal_red_outliers(
@@ -379,7 +448,12 @@ def interpolate(
         Image.fromarray(original[..., 3], "L").save(
             alpha_input / f"{index:08d}.png"
         )
-    sequence_count = len(originals) * 2 - 1
+    # ncnn directory mode samples at i * input_count / output_count, NOT
+    # i * (input_count - 1) / (output_count - 1). Request 2N so even filenames
+    # are exact t=0.5 half-steps. 2N-1 drifts toward t=1 and causes late stutter.
+    # Ignore its duplicate tail; one-shots still assemble 2N-1 real frames,
+    # while loops generate their final wrap midpoint separately below.
+    sequence_count = len(originals) * 2
     run_rife_sequence(rife, rgb_input, rgb_output, sequence_count)
     run_rife_sequence(rife, alpha_input, alpha_output, sequence_count)
 
@@ -388,7 +462,7 @@ def interpolate(
         if next_index >= len(originals):
             next_index = loop_start_index
         if index < len(originals) - 1:
-            # Directory mode numbers outputs from 1. With 2N-1 outputs, even
+            # Directory mode numbers outputs from 1. With 2N outputs, even
             # filenames are the half-step frames between adjacent source keys.
             output_number = index * 2 + 2
             middle, dy, repaired_dark_pixels, repaired_red_pixels, held_source_key = assemble_middle(
@@ -517,7 +591,7 @@ def validate(
     originals: list[np.ndarray], frames: list[np.ndarray], mode: str,
     shifts: list[int], dark_repairs: list[int], red_repairs: list[int],
     held_source_keys: list[bool], repair_red_outliers: bool,
-    loop_start_index: int,
+    loop_start_index: int, validate_blue_spill: bool, blue_spill_threshold: int,
 ) -> dict[str, object]:
     bboxes = [alpha_bbox(frame) for frame in frames]
     empty = [index for index, bbox in enumerate(bboxes) if bbox is None]
@@ -542,6 +616,15 @@ def validate(
     )
     remaining_dark_outliers: dict[int, int] = {}
     remaining_red_outliers: dict[int, int] = {}
+    remaining_blue_spill: dict[int, int] = {}
+    remaining_cyan_spill: dict[int, int] = {}
+    if validate_blue_spill:
+        for index, frame in enumerate(frames):
+            blue_count, cyan_count = visible_blue_spill(frame, blue_spill_threshold)
+            if blue_count:
+                remaining_blue_spill[index] = blue_count
+            if cyan_count:
+                remaining_cyan_spill[index] = cyan_count
     pair_count = len(originals) if mode == "loop" else len(originals) - 1
     for index in range(pair_count):
         next_index = index + 1
@@ -575,6 +658,8 @@ def validate(
         ],
         "visibleDarkOutlierFrames": remaining_dark_outliers,
         "visibleRedOutlierFrames": remaining_red_outliers,
+        "visibleBlueSpillFrames": remaining_blue_spill,
+        "visibleCyanSpillFrames": remaining_cyan_spill,
         "originalKeyFramesPreservedAtEvenIndices": originals_preserved,
         "nonzeroRgbInTransparentPixels": transparent_rgb,
         "adjacentDeltaMeanBefore": adjacent_mean(
@@ -604,6 +689,8 @@ def main() -> None:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--rife", type=Path, default=DEFAULT_RIFE)
     parser.add_argument("--repair-red-outliers", action="store_true")
+    parser.add_argument("--repair-magenta-middle", action="store_true",
+                        help="remove purple/magenta codec blocks from generated odd frames only")
     parser.add_argument("--hold-large-repair", action="store_true")
     parser.add_argument("--preserve-vertical-motion", action="store_true",
                         help="disable grounded alpha-bottom correction for flying/falling actions")
@@ -638,6 +725,49 @@ def main() -> None:
             frames[index], blue_spill_repairs[index] = repair_blue_spill(
                 frames[index], args.blue_spill_threshold,
             )
+            # Despill can turn unsupported blue/cyan codec residue into an
+            # opaque near-black block.  The first dark pass happens before
+            # despill, so repeat the temporal gate on the actual final colour.
+            pair_index = (index - 1) // 2
+            next_index = pair_index + 1
+            if next_index >= len(originals):
+                next_index = args.loop_start_index
+            frames[index], repaired_after_despill, _ = repair_temporal_dark_outliers(
+                frames[index], originals[pair_index], originals[next_index]
+            )
+            dark_repairs[pair_index] += repaired_after_despill
+            repaired_large_magenta = 0
+            if args.repair_magenta_middle:
+                frames[index], repaired_large_magenta = repair_large_magenta_components(
+                    frames[index], minimum_component_pixels=64
+                )
+                red_repairs[pair_index] += repaired_large_magenta
+                frames[index], repaired_magenta = repair_large_magenta_components(
+                    frames[index], minimum_component_pixels=1
+                )
+                red_repairs[pair_index] += repaired_magenta
+            if args.repair_red_outliers:
+                frames[index], repaired_chroma_after_despill = repair_temporal_red_outliers(
+                    frames[index], originals[pair_index], originals[next_index]
+                )
+                red_repairs[pair_index] += repaired_chroma_after_despill
+            residual_dark = int(
+                temporal_dark_outlier_mask(
+                    frames[index], originals[pair_index], originals[next_index]
+                ).sum()
+            )
+            if args.hold_large_repair and residual_dark >= VISIBLE_DARK_REPAIR_MIN_PIXELS:
+                # This fallback is deliberately opt-in and pair-local.  It is
+                # used only after local reconstruction still fails the black
+                # flash gate, never as a blanket interpolation substitute.
+                frames[index] = originals[pair_index].copy()
+                held_source_keys[pair_index] = True
+            elif (
+                args.hold_large_repair
+                and repaired_large_magenta >= LARGE_RED_REPAIR_HOLD_PIXELS
+            ):
+                frames[index] = originals[pair_index].copy()
+                held_source_keys[pair_index] = True
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(compose(frames, args.out_cols), "RGBA").save(
@@ -666,10 +796,13 @@ def main() -> None:
         "blueSpillThreshold": args.blue_spill_threshold if args.despill_blue_middle else None,
         "blueSpillPixelsRepaired": blue_spill_repairs,
         "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "middleFrameTimestep": 0.5,
+        "directoryOutputCount": len(originals) * 2,
         "validation": validate(
             originals, frames, args.mode, shifts, dark_repairs,
             red_repairs, held_source_keys, args.repair_red_outliers,
-            args.loop_start_index,
+            args.loop_start_index, args.despill_blue_middle,
+            args.blue_spill_threshold,
         ),
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
