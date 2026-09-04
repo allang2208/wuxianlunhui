@@ -265,6 +265,7 @@ export function finishRtsCommandAtHold(entity) {
     entity._tacticalTarget = null;
     clearRtsSurfaceRoute(entity);
     entity._pathManager?._clearPath?.();
+    delete entity._rtsFormationSettle;
     entity.vx = 0;
     entity.vy = 0;
     entity.isMoving = false;

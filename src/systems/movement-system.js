@@ -26,7 +26,13 @@ import {
     verticalRangesOverlap,
 } from '../physics/elevation.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
-import { resolveRtsMoveDestination, finishRtsCommandAtHold, getRtsFormationGroundPoint, RTS_FORMATION_ARRIVE_DISTANCE } from '../ai/rts-command-utils.js';
+import {
+    resolveRtsMoveDestination,
+    finishRtsCommandAtHold,
+    getRtsFormationGroundPoint,
+    RTS_FORMATION_ARRIVE_DISTANCE,
+    RTS_FORMATION_SLOT_CLEARANCE,
+} from '../ai/rts-command-utils.js';
 import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../config/tribute-effects.js';
 import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 import performanceConfig from '../../data/performance-config.json';
@@ -40,6 +46,7 @@ import {
     basicMeleeApproachRange,
     distanceToMeleeTarget,
 } from '../combat/melee-attack-resolver.js';
+import { hasAttackLineOfSight } from '../combat/melee-reach.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -276,12 +283,16 @@ const MovementSystem = {
         // 士兵决策通常每120ms才执行；到槽检查必须逐帧，否则高速单位会越过精确终点。
         // 仅地面编队 move 生效，且排在控制状态/击退之后，不替代墙碰撞或高架 FIFO。
         const formationPoint = getRtsFormationGroundPoint(enemy);
+        const formationDistance = formationPoint
+            ? Math.hypot(formationPoint.x - enemy.x, formationPoint.y - enemy.y)
+            : Infinity;
         if (formationPoint
-            && Math.hypot(formationPoint.x - enemy.x, formationPoint.y - enemy.y)
-                <= RTS_FORMATION_ARRIVE_DISTANCE) {
+            && (formationDistance <= RTS_FORMATION_ARRIVE_DISTANCE
+                || this._shouldSoftSettleFormation(enemy, formationPoint, formationDistance, dt, entities))) {
             finishRtsCommandAtHold(enemy);
             return;
         }
+        if (!formationPoint) delete enemy._rtsFormationSettle;
 
         // [ENHANCE] 初始化 PathManager（懒加载）
         if (!enemy._pathManager) {
@@ -886,6 +897,59 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         }
     },
 
+    /**
+     * 编队终点被友军碰撞体占住时采用“软到位”语义：单位已进入自己的小范围
+     * 槽位、静态路线畅通且连续短暂无进展，就在当前位置站定。墙体或其它阵营
+     * 造成的阻挡仍交给寻路，不能借此把不可达命令误报为完成。
+     */
+    _shouldSoftSettleFormation(enemy, point, distance, dt, entities) {
+        const radius = Math.max(8, Number(enemy.groundRadius || enemy.collisionRadius) || 20);
+        const settleRadius = Math.min(28, Math.max(12,
+            radius * 0.5 + RTS_FORMATION_SLOT_CLEARANCE));
+        const command = enemy._command;
+        if (distance > settleRadius
+            || WallSystem.blocked(enemy.x, enemy.y, point.x, point.y,
+                WallSystem.ignoreForEntity(enemy))) {
+            delete enemy._rtsFormationSettle;
+            return false;
+        }
+
+        const friendlyFactions = new Set(['player', 'companion', 'ally', 'friendly']);
+        const sourceFaction = enemy._faction;
+        const sameSide = (other) => sourceFaction === other?._faction
+            || (friendlyFactions.has(sourceFaction) && friendlyFactions.has(other?._faction));
+        const iter = entities?.values ? entities.values() : (entities || []);
+        let blockedByFriendly = false;
+        for (const other of iter) {
+            if (!other || other === enemy || !other.active || !sameSide(other)) continue;
+            const otherRadius = Math.max(6,
+                Number(other.groundRadius || other.collisionRadius) || 16);
+            const centerDistance = Math.hypot(other.x - enemy.x, other.y - enemy.y);
+            if (centerDistance <= radius + otherRadius + RTS_FORMATION_SLOT_CLEARANCE) {
+                blockedByFriendly = true;
+                break;
+            }
+        }
+        if (!blockedByFriendly) {
+            delete enemy._rtsFormationSettle;
+            return false;
+        }
+
+        let settle = enemy._rtsFormationSettle;
+        if (!settle || settle.command !== command) {
+            settle = enemy._rtsFormationSettle = {
+                command,
+                lastDistance: distance,
+                stalledMs: 0,
+            };
+            return false;
+        }
+        if (distance < settle.lastDistance - 0.75) settle.stalledMs = 0;
+        else settle.stalledMs += Math.max(0, Number(dt) || 0);
+        settle.lastDistance = Math.min(settle.lastDistance, distance);
+        return settle.stalledMs >= 400;
+    },
+
     _getGatePursuitCache(now = Date.now()) {
         const source = Game?.entities || null;
         const size = source?.size ?? -1;
@@ -1022,13 +1086,23 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _retargetBlockingCover(enemy) {
         if (!WallSystem || !WallSystem.isoSegments) return;
-        // 当前目标已在攻击距离内（正在打/马上能打）时不抢目标
+        // 当前目标只有在真实攻击距离内且确实可直达时才保留；结构中心距离额外放宽
+        // 会让隔墙玩家提前占住目标，怪物随后只能在墙脚踏步。
         if (enemy.target && enemy.target.active) {
-            const reach = enemy.attackDistance !== undefined ? enemy.attackDistance : (enemy.attackRange || 70) * 1.15;
-            const td = Math.sqrt((enemy.target.x - enemy.x) ** 2 + (enemy.target.y - enemy.y) ** 2);
-            // 结构目标 footprint 较大，中心距离放宽一个墙厚量级
-            const slack = enemy.target._isDefenseStructure ? 120 : 0;
-            if (td <= reach + slack) return;
+            const wantsRanged = !!enemy._isHumanoid || !!enemy.attacks?.ranged;
+            const usesDirectedBasicMelee = !wantsRanged
+                && enemy._usesDirectedBasicMelee !== false
+                && !!enemy.attacks?.melee;
+            const attackConfig = enemy.attacks?.melee?.config || {};
+            const reach = usesDirectedBasicMelee
+                ? basicMeleeApproachRange(enemy, attackConfig)
+                : (enemy.attackDistance !== undefined
+                    ? enemy.attackDistance
+                    : (enemy.attackRange || 70) * 1.15);
+            const targetDistance = usesDirectedBasicMelee
+                ? distanceToMeleeTarget(enemy, enemy.target)
+                : distanceToEntityShape(enemy.target, enemy.x, enemy.y);
+            if (targetDistance <= reach && hasAttackLineOfSight(enemy, enemy.target)) return;
         }
         const touch = (enemy.groundRadius || 20) + 26 + 12; // 半径 + 墙半厚 + 余量
         let best = null, bestD = Infinity;

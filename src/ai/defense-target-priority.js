@@ -107,6 +107,8 @@ export function pickDefensePriorityTarget(enemy, entities, {
         if (entity === enemy || entity === exclude || !isDefenseTargetEligible(entity)) continue;
         const meta = defenseTargetMeta(enemy, entity);
         if (meta.distance > alertRange) continue;
+        // 隔墙单位不能占住本地池，否则怪物既不会回退到挡路结构，也无法出手。
+        if (!isReachable(entity)) continue;
         if (meta.distance <= localRange) local.push(meta);
         else if (entity._isDefenseStructure) strategic.push(meta);
         else farUnits.push(meta);
@@ -126,12 +128,10 @@ export function pickDefensePriorityTarget(enemy, entities, {
 
     pool.sort(compareDefenseTargetMeta);
     const occ = occupancy || new Map();
-    // 结构候选优先选择未超容量者；若全部超容量，仍回退排序第一项，保证永远有目标。
+    // 候选已统一通过可达性过滤；容量只负责分散围攻。
     const hasCapacity = (meta) => !meta.target._isDefenseStructure
         || (occ.get(meta.target) || 0) < attackSlotsOf(meta.target);
-    const chosen = pool.find((meta) => hasCapacity(meta)
-        && (!meta.target._isDefenseStructure || isReachable(meta.target)))
-        || pool.find(hasCapacity)
+    const chosen = pool.find(hasCapacity)
         || pool[0];
     return { ...chosen, scope };
 }
