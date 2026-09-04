@@ -8216,7 +8216,7 @@ body.dungeon-route-landmark-mode .dungeon-route-dossier-enter {
     white-space: pre-line;
     overflow-wrap: anywhere;
     pointer-events: none;
-    z-index: 5000;
+    z-index: 90000;
     animation: sceneLabelFade var(--bp-notice-duration, 3000ms) ease-out forwards;
 }
 

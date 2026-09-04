@@ -43,6 +43,7 @@ import {
     rollbackLegendaryShotgunBlast,
 } from '../combat/legendary-shotgun.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { TopNotificationQueue } from '../ui/top-notification-queue.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
@@ -3787,6 +3788,11 @@ class DefenseTowerPanel extends BasePanel {
     }
 
     _notify(text, color) {
+        const normalizedColor = String(color || '').toLowerCase();
+        if (['#ff5555', '#ff4444', '#ff3d3d', '#ff6655', '#ff7755', '#ff7766'].includes(normalizedColor)) {
+            TopNotificationQueue.show(text, { tone: 'danger' });
+            return;
+        }
         const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
         if (player) {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 40, text, color || '#d4c5a9'));
