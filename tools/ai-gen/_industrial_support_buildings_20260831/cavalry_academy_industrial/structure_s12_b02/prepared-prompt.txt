@@ -1,0 +1,34 @@
+Use case: stylized-concept
+Asset type: industrial-era cat-mount cavalry academy with one low hall and a broad fenced training court, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: A low industrial training yard. At the near-right fence edge, the two simple timber gate leaves are swung OUTWARD to either side, leaving a wide EMPTY WALK-THROUGH GAP between the two posts, exactly as in the depth drawing. One low brick hall and precisely THREE padded open-front cat resting bays share a SINGLE INCLINED ROOF PLANE with four straight outer edges. The roof carries one small flat paw emblem. Preserve the broad hall side window. The open court contains THREE timber agility jumps. Along the near-left service edge keep TWO racks holding THREE short cavalry carbines EACH, TWO harness racks, TWO low care stations, five feed sacks and two crates, in their depth-defined positions. Keep the continuous shallow stone footing and plain sand training floor.
+Generation stage: structural industrial-era open cat-cavalry academy
+Use the supplied Depth as the assembly drawing. Apply the asset materials without redesigning its components; assess the three open bays and the unobstructed gate passage before adding surface detail.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: rubble_stone
+Foundation contract — Isometric Rubble Stone Plinth for Game Assets:
+Use one low integrated medieval irregular dry-stacked rubble foundation, fully visible and completely contained inside the authored footprint. Build the surface from irregular hand-cut rubble slabs with varied stone sizing, randomized worn and beveled corners, natural filled-joint texture and a deliberately non-industrial hand-laid paving character. Give the complete outer perimeter one consistent isometric chamfer so equal-footprint assets align cleanly. Keep the plinth continuous, game-readable and materially distinct from the more regular masonry of the building body; no marble skirt, monolithic polished slab, oversized podium, detached platform or terrain patch.
+Canonical World-122 industrial-era cat-cavalry academy subset:
+Quiet gray-beige brick, muted gray-green painted sheet metal, worn dark timber, small matte steel joints and khaki cloth. Use broad material fields with sparse seams.
+
+Composition/framing: follow the complete authored 4x4 foundation and fixed orthographic view; preserve the projected positions and dimensions of every component
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: no added architecture, objects, characters, animals, text or watermark; no cast or backdrop shadow
+Asset-specific absolute exclusions: Closed gate, fence across entrance, arched gate, roof ridge, opposite roof slope, second roof, dormer, fourth bay, extra hurdle, extra weapon rack, extra supply objects, dense corrugations or dense brick texture. No animals, people, vehicle or detached shadow.

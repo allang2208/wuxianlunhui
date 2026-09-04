@@ -1,0 +1,74 @@
+{
+  "status": "three_transparent_artworks_accepted_not_installed",
+  "recordedAt": "2026-08-31T15:53:11.989489+08:00",
+  "userContinuationStatement": "继续",
+  "destination": "http://192.168.3.142:8188",
+  "assets": [
+    {
+      "id": "cavalry_academy_industrial",
+      "name": "近代骑兵学院",
+      "depth": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_depth.png",
+      "modelPreview": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/cavalry_academy_industrial_model_approval_preview.png",
+      "manifest": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b01/manifest.json",
+      "prompt": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/structure_s12_b01/prepared-prompt.txt",
+      "submitted": true,
+      "generatedCandidates": 8,
+      "localEditImages": 4,
+      "selectedRefine": 1,
+      "delivery": "tools/ai-gen/_industrial_support_buildings_20260831/cavalry_academy_industrial/refine_s48_b01/cutout/transparent.png",
+      "status": "artwork_accepted_not_installed",
+      "size": [
+        887,
+        590
+      ]
+    },
+    {
+      "id": "artillery_workshop_industrial",
+      "name": "近代炮兵工坊",
+      "depth": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_depth.png",
+      "modelPreview": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/artillery_workshop_industrial_model_approval_preview.png",
+      "manifest": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/structure_s12_b01/manifest.json",
+      "prompt": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/structure_s12_b01/prepared-prompt.txt",
+      "submitted": true,
+      "generatedCandidates": 5,
+      "selectedStructure": 3,
+      "status": "artwork_accepted_not_installed",
+      "selectedRefine": 1,
+      "delivery": "tools/ai-gen/_industrial_support_buildings_20260831/artillery_workshop_industrial/refine_s48_b01/cutout/transparent.png",
+      "size": [
+        875,
+        688
+      ],
+      "localEditImages": 0
+    },
+    {
+      "id": "steam_arsenal_industrial",
+      "name": "蒸汽军工厂",
+      "depth": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_depth.png",
+      "modelPreview": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/steam_arsenal_industrial_model_approval_preview.png",
+      "manifest": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/structure_s12_b01/manifest.json",
+      "prompt": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/structure_s12_b01/prepared-prompt.txt",
+      "submitted": true,
+      "generatedCandidates": 5,
+      "status": "artwork_accepted_not_installed",
+      "selectedRefine": 1,
+      "delivery": "tools/ai-gen/_industrial_support_buildings_20260831/steam_arsenal_industrial/refine_s48_b01/cutout/transparent.png",
+      "size": [
+        855,
+        845
+      ],
+      "localEditImages": 1
+    }
+  ],
+  "workflow": "Sequential 12-step x3, viewed assistant selection, 48-step x2, local transparent delivery.",
+  "requestedPayloadScope": "Only these three buildings: original Depth PNGs, prepared prompts and standard parameters; later selected original 12-step raws and, only when necessary to preserve the already modeled structure, documented local corrections of the same building raws.",
+  "excluded": "Blender models, project source, saves, unrelated images or buildings, other endpoints, model redesign and runtime installation.",
+  "approvalQuestion": "是否允许把近代骑兵学院、近代炮兵工坊、蒸汽军工厂这三栋的Depth、提示词、参数，以及本轮选中的12步原图或仅用于保持既定结构的局部修正版，发送到同一192.168.3.142:8188，按顺序完成12/48步与透明处理？",
+  "bypassAttempted": false,
+  "authorizationRecord": "tools/ai-gen/_industrial_support_buildings_20260831/external-payload-authorization.json",
+  "blockResolution": "User explicitly approved the preceding exact three-building payload question.",
+  "completedAt": "2026-08-31T19:35:04.127012+08:00",
+  "historicalBlock": "Cavalry submission rejected before process launch; no upload or generation occurred.",
+  "runtimeIntegrationActive": false,
+  "artAcceptanceRecord": "tools/ai-gen/_industrial_support_buildings_20260831/art-acceptance.json"
+}

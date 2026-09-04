@@ -1,0 +1,14 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 48,
+  "center_on_origin": true,
+  "footprint_fit_scale": 1.42,
+  "structural_overlap": {
+    "extendedPrimitiveCount": 0,
+    "overlapZ": 8.0
+  }
+}

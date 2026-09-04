@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-08-31T19:19:40.379570+08:00",
+  "destination": "http://192.168.3.142:8188",
+  "firstRefinePromptId": "31cc3c0f-b9e4-4b3e-b686-98ee6f72f620",
+  "lastObservedState": "pending",
+  "lastObservedJobsAhead": 2,
+  "originalProcessSession": 68458,
+  "secondRefineSubmission": "Not submitted until the standard generator receives the first result.",
+  "resumeRule": "Keep the original generator running. If this task is interrupted, inspect this exact prompt in the existing service before resubmitting; do not duplicate queued requests. Do not cancel unrelated queued or running jobs.",
+  "firstRefineStatus": "completed_downloaded_and_viewed",
+  "secondRefineStatus": {
+    "checkedAt": "2026-08-31T19:33:02",
+    "thisArsenalJob": [
+      {
+        "state": "running",
+        "jobsAhead": 0,
+        "promptId": "6de0d65e-4167-4887-9709-83131366bb7c"
+      }
+    ]
+  },
+  "firstCandidateCutout": "cutout/transparent.png",
+  "firstCandidateCutoutSize": [
+    855,
+    845
+  ],
+  "status": "both_refine_candidates_completed_downloaded_viewed",
+  "completedAt": "2026-08-31T19:35:04.121356+08:00"
+}

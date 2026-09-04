@@ -1,0 +1,43 @@
+{
+  "stage": "model-proposals-awaiting-review",
+  "era": "近代工业时代",
+  "styleReference": "tools/ai-gen/prompts/world122-building-style.md",
+  "policy": "Three intermediate-era models only. Retain family identity, source foundations, orthographic cameras and editable components. No runtime integration, units baked into buildings, vehicles, new gameplay or replacement of accepted modern assets.",
+  "buildings": [
+    {
+      "id": "cavalry_academy_industrial",
+      "name": "近代骑兵学院",
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv2/cavalry_school_lv2_model.blend",
+      "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv2/cavalry_school_lv2_model_approval_preview.png",
+      "modernPreview": "tools/ai-gen/_settlement_building_pack_20260821/cavalry_school_lv3/cavalry_school_lv3_model_approval_preview.png",
+      "foundationObject": "CavalrySchoolLV2_OpenTrainingGround",
+      "foundationModelSize": [820, 680, 14],
+      "materialBrief": "灰米砖、灰绿金属单坡顶、木栏与钢连接件、卡其鞍垫。",
+      "designBrief": "保留同一开放训练场、唯一连续单坡顶、三座共顶猫窝与三组障碍；长矛架改为六支近代骑枪的固定架，增加侧窗，保留猫爪、挽具、护理点与猫粮。无马厩、车辆库、塔楼或动物烘图。"
+    },
+    {
+      "id": "artillery_workshop_industrial",
+      "name": "近代炮兵工坊",
+      "source": "tools/ai-gen/_engineer_branch_20260830/engineering_workshop/engineering_workshop_model.blend",
+      "sourcePreview": "tools/ai-gen/_engineer_branch_20260830/engineering_workshop/engineering_workshop_model_approval_preview.png",
+      "modernPreview": "tools/ai-gen/_engineer_branch_20260830/vehicle_factory/vehicle_factory_model_approval_preview.png",
+      "foundationObject": "EngineerLV2_Foundation_Base",
+      "foundationModelSize": [400, 400, 14],
+      "materialBrief": "暖灰砖墙、灰蓝金属坡顶、暗钢吊架、克制黄铜齿轮。",
+      "designBrief": "沿用前开装配入口、可见侧墙齿轮、左吊架与右工具台；吊架强化为有翼缘的钢梁，坡顶增加两片贴合式采光窗，入口设短装配导轨。保留轮轴料件，不烘入火炮或工程师；不提前使用现代三级三组屋顶采光监控顶。"
+    },
+    {
+      "id": "steam_arsenal_industrial",
+      "name": "蒸汽军工厂",
+      "revision": 3,
+      "revisionBrief": "按用户反馈，装卸门双扇向内打开90度；原实心墙切出真实凹入门洞，暗面与门内工具架后移。保留上一版材料箱、工具、加工机和其他主体。",
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv2/blacksmith_lv2_model.blend",
+      "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv2/blacksmith_lv2_model_approval_preview.png",
+      "modernPreview": "tools/ai-gen/_settlement_building_pack_20260821/blacksmith_lv3/blacksmith_lv3_model_approval_preview.png",
+      "foundationObject": "BlacksmithLV2_Foundation_Base",
+      "foundationModelSize": [430, 350, 16],
+      "materialBrief": "棕灰砖墙、灰蓝金属坡顶、单座砖烟囱、黑铁机械与克制炉火。",
+      "designBrief": "左侧装卸双门向内打开90度，露出有深度的门内空间；保留右炉膛、单烟囱与齿轮锤徽记；侧面长柄兵器架换为附墙蒸汽传动飞轮，前方铁砧位改为机械锻锤；桌子及台钳替换为材料箱、坯料、手工具与齿轮加工机。无现代感应炉、数控柜、第二厂房或电站设备。"
+    }
+  ]
+}
