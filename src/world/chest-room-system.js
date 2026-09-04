@@ -596,7 +596,7 @@ export const ChestRoomSystem = {
         const drop = (template) => {
             // 围绕宝箱散开（避免多件重叠在同一像素）
             const a = (dropIdx * 2.1) + Math.random() * 0.6;
-            Game.dropItem(cx + Math.cos(a) * 46, cy + Math.sin(a) * 34, template);
+            Game.dropItem(cx + Math.cos(a) * 46, cy + Math.sin(a) * 34, template, { rewardSource: true });
             dropIdx++;
         };
         const goldTemplate = () => ({ name: '金币', category: 'gold', stack: g.gold, rarity: 'mythic' });

@@ -421,12 +421,12 @@ export function isFriendlyFire(source, target) {
                     }
 
                     const goldItem = { name: '金币', category: 'gold', stack: goldAmount, rarity: 'mythic' };
-                    Game.dropItem(this.x, this.y, goldItem);
+                    Game.dropItem(this.x, this.y, goldItem, { rewardSource: true });
 
                     // 祭品掉落：按地牢难度分级掉落表（精英/首领必掉分表，普通怪按概率；稀有度封顶）
                     const tributeDrop = rollTributeDrop(this.rank, getCurrentDungeonType());
                     if (tributeDrop) {
-                        Game.dropItem(this.x, this.y, tributeDrop);
+                        Game.dropItem(this.x, this.y, tributeDrop, { rewardSource: true });
                     }
 
                     // 祭品效果（数据驱动）：千年人参 - 击杀后1秒内回复最大魔法值

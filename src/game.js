@@ -68,6 +68,8 @@ import { Cauldron } from './entities/enemy-types/cauldron.js';
 import { TimeAgentAssault } from './entities/enemy-types/time-agent-assault.js';
 import { TimeAgentShield } from './entities/enemy-types/time-agent-shield.js';
 import { WarehouseSystem } from './ui/warehouse-system.js';
+import { PlayerRewardDelivery } from './systems/player-reward-delivery.js';
+import { mailId } from './systems/mail-store.js';
 import { hasOreUpgrade, applyOreUpgradeOnPickup } from './config/tribute-effects.js';
 import enemyConfigData from '../data/enemy-config.json';
 import { DropItem } from './entities/drop-item.js';
@@ -158,6 +160,7 @@ export const Game = {
         RTSCommand.init();
         FlatViewSystem.init();
         this.EquipManager = EquipManager; // 供侍从面板背包拖动交换访问
+        this.PlayerRewardDelivery = PlayerRewardDelivery; // 战略军团结算复用同一背包→仓库→信箱事务
         this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
         this.RecruitUI = RecruitUI;       // 招募界面（单一模块实例，调试/外部调用用 window.Game.RecruitUI）
         this.CompanionPanel = CompanionPanel;
@@ -1071,10 +1074,13 @@ export const Game = {
             this.entities.set(`test_target_${i}`, target);
         }
     },
-    dropItem(x, y, itemTemplate) {
+    dropItem(x, y, itemTemplate, { rewardSource = false } = {}) {
         // 通过 ItemFactory 创建独立物品实例
         const itemInstance = completeWeaponFields(ItemFactory.create(itemTemplate));
         const drop = new DropItem(x, y, itemInstance);
+        // Eligibility belongs to this drop creation, never to a reusable item template.
+        // All personal-item returns/player discards keep the default ineligible origin.
+        drop._rewardSource = { id: mailId('drop'), kind: rewardSource ? 'loot' : 'player_drop' };
         this.entities.set('drop_' + Date.now() + '_' + Math.floor(Math.random() * 1000), drop);
     },
     _showDungeonEntryConfirm(entity) {
@@ -1226,7 +1232,7 @@ export const Game = {
                             }
                         }
                     }
-                    if (!canStack && EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots) {
+                    if (!canStack && EquipManager.backpackItems.length >= EquipManager.maxBackpackSlots && !PlayerRewardDelivery.canMailDrop(entity)) {
                         BackpackDialogManager._showBackpackFullNotice();
                         return false;
                     }
@@ -1234,7 +1240,7 @@ export const Game = {
                     if (entity.itemData && entity.itemData.category === 'tribute' && hasOreUpgrade()) {
                         applyOreUpgradeOnPickup(entity.itemData, this.player);
                     }
-                    const added = EquipManager.addToBackpack(entity.itemData);
+                    const added = PlayerRewardDelivery.pickup(entity);
                     if (added) {
                         entity.active = false;
                         if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
@@ -1499,7 +1505,7 @@ if (Input.mouse.leftPressed) {
                     const mx = Input.mouse.x, my = Input.mouse.y;
                     const hover = Math.sqrt((mx - pos.x) * (mx - pos.x) + (my - (pos.y + bobY)) * (my - (pos.y + bobY))) < pickupHoverDist;
                     if (hover) {
-                        const added = EquipManager.addToBackpack(entity.itemData);
+                        const added = PlayerRewardDelivery.pickup(entity);
                         if (added) {
                             entity.active = false;
                             if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
@@ -1676,7 +1682,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                     if (!entity.itemData._wasOutOfRange) {
                         // still in throw-out range, skip
                     } else if (distSq <= goldAutoRangeSq) {
-                        if (EquipManager.addToBackpack(entity.itemData)) {
+                        if (PlayerRewardDelivery.pickup(entity)) {
                             entity.active = false;
                             if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                             this.entities.delete(key);
@@ -1687,7 +1693,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                         }
                     }
                 } else if (distSq <= goldAutoRangeSq) {
-                    if (EquipManager.addToBackpack(entity.itemData)) {
+                    if (PlayerRewardDelivery.pickup(entity)) {
                         entity.active = false;
                         if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
@@ -1899,7 +1905,7 @@ EffectManager.update(dt);
             if (entity instanceof DropItem && entity.active) {
                 const dx = entity.x - px, dy = entity.y - py;
                 if (Math.sqrt(dx * dx + dy * dy) <= range) {
-                    const added = EquipManager.addToBackpack(entity.itemData);
+                    const added = PlayerRewardDelivery.pickup(entity);
                     if (added) {
                         entity.active = false;
                         if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
