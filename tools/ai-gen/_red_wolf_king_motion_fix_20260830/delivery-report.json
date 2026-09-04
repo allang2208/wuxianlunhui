@@ -1,0 +1,331 @@
+{
+  "kind": "offline sprite production",
+  "runtimeTestsRun": false,
+  "rgbaMiBBefore": 544.703125,
+  "rgbaMiBAfter": 201.85073852539062,
+  "actions": {
+    "pounce": {
+      "layout": {
+        "cols": 4,
+        "rows": 13,
+        "frames": 49,
+        "frameWidth": 852,
+        "frameHeight": 306,
+        "footY": 301,
+        "footX": 310
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_style_refresh_20260827\\videos\\red-wolf-pounce-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 262,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        3408,
+        3978
+      ]
+    },
+    "werewolfAttack": {
+      "layout": {
+        "cols": 6,
+        "rows": 7,
+        "frames": 41,
+        "frameWidth": 488,
+        "frameHeight": 298,
+        "footY": 293,
+        "footX": 144
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_werewolf_doubao_20260827\\videos\\werewolf-attack-h3-v02.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 290,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        2928,
+        2086
+      ]
+    },
+    "idle": {
+      "layout": {
+        "cols": 4,
+        "rows": 6,
+        "frames": 24,
+        "frameWidth": 474,
+        "frameHeight": 272,
+        "footY": 266,
+        "footX": 237
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_style_refresh_20260827\\videos\\red-wolf-idle-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 262,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {
+        "1": 1
+      },
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1896,
+        1632
+      ]
+    },
+    "run": {
+      "layout": {
+        "cols": 4,
+        "rows": 8,
+        "frames": 32,
+        "frameWidth": 614,
+        "frameHeight": 277,
+        "footY": 267,
+        "footX": 307
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_style_refresh_20260827\\videos\\red-wolf-running-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 262,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {
+        "3": 2,
+        "7": 6,
+        "11": 1,
+        "13": 4,
+        "15": 3,
+        "19": 4,
+        "21": 1,
+        "23": 4,
+        "27": 15,
+        "29": 1,
+        "31": 6
+      },
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        2456,
+        2216
+      ]
+    },
+    "attack": {
+      "layout": {
+        "cols": 3,
+        "rows": 7,
+        "frames": 21,
+        "frameWidth": 622,
+        "frameHeight": 271,
+        "footY": 265,
+        "footX": 291
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_style_refresh_20260827\\videos\\red-wolf-attack-bite-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 262,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {
+        "5": 6,
+        "9": 2,
+        "17": 5,
+        "19": 2
+      },
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1866,
+        1897
+      ]
+    },
+    "howl": {
+      "layout": {
+        "cols": 4,
+        "rows": 6,
+        "frames": 23,
+        "frameWidth": 510,
+        "frameHeight": 313,
+        "footY": 307,
+        "footX": 255
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_style_refresh_20260827\\videos\\red-wolf-howl-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 262,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {
+        "3": 19,
+        "9": 2,
+        "11": 3,
+        "17": 3
+      },
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        2040,
+        1878
+      ]
+    },
+    "dying": {
+      "layout": {
+        "cols": 4,
+        "rows": 6,
+        "frames": 23,
+        "frameWidth": 522,
+        "frameHeight": 270,
+        "footY": 265,
+        "footX": 241
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_style_refresh_20260827\\videos\\red-wolf-dying-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 262,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        2088,
+        1620
+      ]
+    },
+    "werewolfIdle": {
+      "layout": {
+        "cols": 5,
+        "rows": 4,
+        "frames": 20,
+        "frameWidth": 200,
+        "frameHeight": 296,
+        "footY": 291,
+        "footX": 100
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_werewolf_doubao_20260827\\videos\\werewolf-howl-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 288,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1000,
+        1184
+      ]
+    },
+    "transform": {
+      "layout": {
+        "cols": 3,
+        "rows": 7,
+        "frames": 21,
+        "frameWidth": 428,
+        "frameHeight": 299,
+        "footY": 294,
+        "footX": 214
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_werewolf_doubao_20260827\\videos\\transform-h3-v02.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 262,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1284,
+        2093
+      ]
+    },
+    "werewolfRun": {
+      "layout": {
+        "cols": 4,
+        "rows": 5,
+        "frames": 20,
+        "frameWidth": 292,
+        "frameHeight": 283,
+        "footY": 278,
+        "footX": 146
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_werewolf_doubao_20260827\\videos\\werewolf-run-h3-v02.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 253,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1168,
+        1415
+      ]
+    },
+    "werewolfHowl": {
+      "layout": {
+        "cols": 7,
+        "rows": 3,
+        "frames": 21,
+        "frameWidth": 206,
+        "frameHeight": 333,
+        "footY": 328,
+        "footX": 103
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_werewolf_doubao_20260827\\videos\\werewolf-howl-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 290,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1442,
+        999
+      ]
+    },
+    "werewolfDying": {
+      "layout": {
+        "cols": 3,
+        "rows": 7,
+        "frames": 21,
+        "frameWidth": 354,
+        "frameHeight": 303,
+        "footY": 298,
+        "footX": 177
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_werewolf_doubao_20260827\\videos\\werewolf-dying-h3-v01.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 292,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1062,
+        2121
+      ]
+    },
+    "werewolfPounce": {
+      "layout": {
+        "cols": 3,
+        "rows": 9,
+        "frames": 27,
+        "frameWidth": 554,
+        "frameHeight": 317,
+        "footY": 312,
+        "footX": 122
+      },
+      "sourceVideo": "tools\\ai-gen\\_red_wolf_king_werewolf_doubao_20260827\\videos\\werewolf-pounce-v06-scale-fixed.mp4",
+      "sourceVideoExists": true,
+      "emptyFrames": [],
+      "framesTouchingCellEdge": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "firstPoseAlphaHeight": 290,
+      "visibleDarkOutlierPixelsInGeneratedMiddles": {},
+      "keysPreservedAfterCrop": true,
+      "sheetPixels": [
+        1662,
+        2853
+      ]
+    }
+  }
+}
