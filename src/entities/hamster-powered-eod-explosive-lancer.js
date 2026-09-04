@@ -43,6 +43,32 @@ export class HamsterPoweredEodExplosiveLancer extends HamsterWingedHussar {
         super._startDying();
     }
 
+    getAnimationVisualScale(textureKey, frameName) {
+        const inheritedScale = super.getAnimationVisualScale(textureKey, frameName);
+        const prefix = `companion_${this.animId}_`;
+        const action = String(textureKey || '').startsWith(prefix)
+            ? String(textureKey).slice(prefix.length) : '';
+        const frame = Math.max(0, Math.floor(Number(frameName) || 0));
+        const correction = Number(this.animations?.[action]?.frameScales?.[frame]);
+        return inheritedScale * (correction > 0 ? correction : 1);
+    }
+
+    /**
+     * 正式 running 表在 WebGL 安全宽度重排时产生了少量逐帧主体横移。
+     * 这里只抵消打包锚点误差；实体坐标、碰撞和源动作轨迹保持不变。
+     */
+    getAnimationVisualOffset(textureKey, frameName) {
+        const prefix = `companion_${this.animId}_`;
+        const action = String(textureKey || '').startsWith(prefix)
+            ? String(textureKey).slice(prefix.length) : '';
+        const animation = this.animations?.[action];
+        const frame = Math.max(0, Math.floor(Number(frameName) || 0));
+        return {
+            x: Number(animation?.frameOffsetsX?.[frame]) || 0,
+            y: Number(animation?.frameOffsetsY?.[frame]) || 0,
+        };
+    }
+
     /**
      * 由 HamsterKnightAI 在直击结算后调用。主目标不重复吃爆炸伤害；
      * 其他同承载面的敌人按中心 100% → 边缘 50% 衰减，明确不传 melee、不施加眩晕。

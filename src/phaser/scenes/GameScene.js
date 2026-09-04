@@ -2065,7 +2065,8 @@ export class GameScene extends Scene {
                 this._companionSprites[member.id] = sprite;
             }
             if (member.hasStatusEffect?.('petrified') || this._petrifyFx?.has(member)) {
-                const normS = size / 512;
+                const normS = size / 512
+                    * (member.getAnimationVisualScale?.(sprite.texture?.key, sprite.frame?.name) ?? 1);
                 const frameW = sprite.frame?.width || 512;
                 const frameH = sprite.frame?.height || 512;
                 const feetCorr = this._companionFrameFootCorrection(member, sprite, normS);
@@ -2620,9 +2621,16 @@ export class GameScene extends Scene {
             // 竖直补 -(格高-512)×0.4375×normS 让脚底在所有动作下贴同一世界线。
             // 旧实现只在创建时按 walk 帧格设置一次，帧格规格不同的动作会整体缩放/漂移
             // （上一次重建"大小无法统一"的渲染侧根因）。
-            const normS = size / 512;
+            const normS = size / 512
+                * (member.getAnimationVisualScale?.(sprite.texture?.key, sprite.frame?.name) ?? 1);
             const frameW = (sprite.frame && sprite.frame.width) || 512;
             const frameH = (sprite.frame && sprite.frame.height) || 512;
+            const animationVisualOffset = member.getAnimationVisualOffset?.(
+                sprite.texture?.key, sprite.frame?.name
+            ) || {};
+            const animationOffsetX = (Number(animationVisualOffset.x) || 0)
+                * normS * (sprite.flipX ? -1 : 1);
+            const animationOffsetY = (Number(animationVisualOffset.y) || 0) * normS;
             // 待机呼吸（2026-08-21 零素材微动）：静止 idle 且未播动画（单帧待机）时，
             // 纵向 ±1.8% 正弦缩放 + 横向 ∓0.6% 保体积补偿，脚底锚定（修正 displayHeight/2）；
             // 相位按成员 id 打散，避免全员同步呼吸；多帧 idle 动画（如斥候）与移动/攻击/施法不叠加。
@@ -2652,10 +2660,12 @@ export class GameScene extends Scene {
             const feetCorr = this._companionFrameFootCorrection(member, sprite, normS)
                 - frameH * normS * (breatheH - 1) / 2;
             if (aiMode) {
-                sprite.setPosition(member.x + idleOffsetX, member.y + spriteOffY - elevationZ + feetCorr);
+                sprite.setPosition(member.x + idleOffsetX + animationOffsetX,
+                    member.y + spriteOffY - elevationZ + feetCorr + animationOffsetY);
             } else {
                 const offX = facingRight ? -150 : 150;
-                sprite.setPosition(player.x + offX + idleOffsetX, player.y + 34 + spriteOffY - elevationZ + feetCorr);
+                sprite.setPosition(player.x + offX + idleOffsetX + animationOffsetX,
+                    player.y + 34 + spriteOffY - elevationZ + feetCorr + animationOffsetY);
             }
             sprite.setVisible(true);
             const stealthAlpha = Number(member.aiConfig?.stealth?.alpha);
@@ -2665,7 +2675,8 @@ export class GameScene extends Scene {
             this._syncNinjaArmGlow(member, sprite);
             this._syncDesertPriestStaffFx(member, sprite, anims, dt);
             // 动作切换残影（零素材过渡）：贴图键变化 = 动作切换——旧帧残影 110ms 淡出消顿挫
-            if (prevTexKey && sprite.texture?.key !== prevTexKey) {
+            if (prevTexKey && sprite.texture?.key !== prevTexKey
+                && member.config?.render?.actionTransitionGhost !== false) {
                 this._spawnCompanionGhost(member.id, prevTexKey, prevFrameName,
                     prevDispW, prevDispH, sprite);
             }
