@@ -1,0 +1,20 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Primary request: Create exactly one SMALL subordinate adult rhinoceros beetle minion for the Rotbog Rhinoceros Beetle King. Image 1 is a bloodline and material reference only, not an edit target: create a distinct smaller minion identity from the same species line, not a scaled copy and not a larva.
+
+Subject identity: a low, compact, sturdy fantasy swamp rhinoceros beetle; exactly one short, thick central cephalic horn rooted continuously in the head and curving slightly upward-forward; the horn is clearly shorter and less regal than the king's. Two short segmented antennae, compact mandibles, closed paired elytra, no exposed wings. Preserve the king bloodline anchors: peat-black and deep bog-brown weathered chitin, restrained moss-olive patina in shell seams, fine pits, layered plate seams, dried mud and scratches. The minion has a slightly rounder abdomen, slimmer thorax plates and lighter wear so it reads as a lesser small beetle, while remaining dangerous and grounded.
+
+STRICT ANATOMY: exactly six and only six complete insect legs in three pairs attached to the thorax, all six attachment joints readable. Near-side front/middle/rear legs and far-side front/middle/rear legs must be separated by visible white gaps. Each leg has complete upper segment, angular joint, spined shin, segmented foot and claw. Exactly six feet meet one shared horizontal baseline. No leg attached to abdomen; no hidden, fused, cropped, duplicated, vestigial, extra or missing legs.
+
+Style and medium: high-detail realistic PBR 3D dark-fantasy game monster render, grounded swamp bestiary production asset, believable insect anatomy and weight, rough natural chitin with restrained color variation, controlled saturation, clean readable silhouette; not a photograph, not a cartoon, not a toy.
+
+Pose: calm animation-friendly neutral idle, body horizontal and close to the ground, facing right; all six legs naturally load-bearing and ready for walk/attack animation; closed shell; no action pose.
+
+Composition and camera: slightly elevated right-facing three-quarter side view matching Image 1, locked orthographic-style camera around 20 degrees elevation, no perspective distortion. Full horn, full body, all six feet and antennae visible. Subject occupies about 58% of canvas width and 48% of canvas height, centered slightly left, generous safe margins on every side with at least 16% empty space ahead of the horn.
+
+Scene and lighting: flat pure white #FFFFFF background, no floor, horizon, contact shadow, cast shadow, reflection, vignette, gradient, scenery or particles. Soft flat diffuse ambient studio light only.
+
+Identity locks: exactly one subject; same species lineage and material family as Image 1; exactly one shorter horn; exactly six distinct thoracic legs; two antennae; closed elytra; right-facing low three-quarter view; pure white shadowless background; complete clean silhouette.
+
+Avoid: adult king scale or regal boss proportions, exact scaled copy, larva, grub, generic stag beetle mandibles, antlers, paired horns, extra horn, armor, crown, weapon, runes, crystals, glow, vegetation growing from body, open wings, extra or missing limbs, fused anatomy, cropping, front view, top view, dramatic lighting, rim halo, text, logo, watermark, anime, chibi, flat illustration, low-poly or glossy plastic.

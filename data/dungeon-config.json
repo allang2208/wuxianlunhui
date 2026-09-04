@@ -1405,6 +1405,7 @@
      "carnivorousPitcher",
      "brownSnake",
      "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
      "reedShadowSickleMantis",
      "blackKingCobra",
      "medusa",
@@ -1441,6 +1442,7 @@
      "carnivorousPitcher",
      "brownSnake",
      "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
      "reedShadowSickleMantis",
      "rotbogRhinocerosBeetleKing",
      "blackKingCobra",
@@ -1495,9 +1497,10 @@
     "medusa",
     "redWolfKing",
     "swampVampireMosquito",
+    "smallRotbogRhinocerosBeetle",
     "reedShadowSickleMantis",
     "blackBear",
-    "purpleBlightAncient"
+    "rotTideToadAncestor"
    ],
    "matchPoolRanks": true,
    "waveComposition": [
@@ -1586,6 +1589,7 @@
      "brownSnake",
      "blackKingCobra",
      "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
      "reedShadowSickleMantis",
      "medusa",
      "blackBear",
@@ -1622,6 +1626,7 @@
      "brownSnake",
      "blackKingCobra",
      "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
      "reedShadowSickleMantis",
      "rotbogRhinocerosBeetleKing",
      "medusa",
@@ -1681,6 +1686,7 @@
     "carnivorousPitcher",
     "blackKingCobra",
     "swampVampireMosquito",
+    "smallRotbogRhinocerosBeetle",
     "reedShadowSickleMantis",
     "medusa",
     "blackBear",
@@ -1759,6 +1765,7 @@
      "medusa",
      "blackBear",
      "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
      "reedShadowSickleMantis",
      "purpleBlightAncient"
     ],
@@ -1795,6 +1802,7 @@
      "medusa",
      "blackBear",
      "swampVampireMosquito",
+     "smallRotbogRhinocerosBeetle",
      "reedShadowSickleMantis",
      "rotbogRhinocerosBeetleKing",
      "purpleBlightAncient"
@@ -1862,6 +1870,7 @@
     "redWolfKing",
     "carnivorousPitcher",
     "swampVampireMosquito",
+    "smallRotbogRhinocerosBeetle",
     "reedShadowSickleMantis",
     "blackKingCobra",
     "purpleBlightAncient"

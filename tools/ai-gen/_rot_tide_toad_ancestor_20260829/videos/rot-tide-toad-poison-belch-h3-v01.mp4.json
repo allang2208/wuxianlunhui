@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T02:56:09.510084+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-poison-belch-h3-v01.mp4",
+    "bytes": 1063980,
+    "sha256": "ca67cff8d54d1ce41fcf8c2f932581361825925ceafb22a21032f51435707f1e"
+  },
+  "promptId": "5ec06a69-c2b9-49ba-a49c-e14d4f205b49",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 829107,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.4 seconds: the toad braces all four webbed feet, raises its head slightly, and its broad gray-yellow throat sac visibly swells as the chest draws in one heavy breath.\n1.4-3.4 seconds: it performs exactly one forward poison-belch release pose. The swollen throat sac contracts strongly, the mouth opens toward screen-right, and the head, neck and shoulders recoil once as if expelling a forceful cone. This animation contains only the creature's physical release motion; nothing is emitted from the mouth.\n3.4-5.17 seconds: the mouth closes, the throat sac relaxes to its original size, and the toad returns once to its low crouch and holds.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless. Do not create smoke, fog, liquid, saliva, bubbles, projectiles, ground effects, or extra creatures.",
+  "effectivePrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.4 seconds: the toad braces all four webbed feet, raises its head slightly, and its broad gray-yellow throat sac visibly swells as the chest draws in one heavy breath.\n1.4-3.4 seconds: it performs exactly one forward poison-belch release pose. The swollen throat sac contracts strongly, the mouth opens toward screen-right, and the head, neck and shoulders recoil once as if expelling a forceful cone. This animation contains only the creature's physical release motion; nothing is emitted from the mouth.\n3.4-5.17 seconds: the mouth closes, the throat sac relaxes to its original size, and the toad returns once to its low crouch and holds.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless. Do not create smoke, fog, liquid, saliva, bubbles, projectiles, ground effects, or extra creatures.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.4 seconds: the toad braces all four webbed feet, raises its head slightly, and its broad gray-yellow throat sac visibly swells as the chest draws in one heavy breath.\n1.4-3.4 seconds: it performs exactly one forward poison-belch release pose. The swollen throat sac contracts strongly, the mouth opens toward screen-right, and the head, neck and shoulders recoil once as if expelling a forceful cone. This animation contains only the creature's physical release motion; nothing is emitted from the mouth.\n3.4-5.17 seconds: the mouth closes, the throat sac relaxes to its original size, and the toad returns once to its low crouch and holds.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless. Do not create smoke, fog, liquid, saliva, bubbles, projectiles, ground effects, or extra creatures. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "fb31c408d8f2830db1b2c3f75ecfabcfdab1c1019c8a246d93594455dfff3fa9",
+  "effectivePromptSha256": "fb31c408d8f2830db1b2c3f75ecfabcfdab1c1019c8a246d93594455dfff3fa9",
+  "finalPromptSha256": "bf3aaba8fbfd8618658834b29d7fc2e91ad89b96e1e745060fac74a421ab6b58",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\prompts\\poison-belch-h3-v01.txt",
+      "bytes": 1217,
+      "sha256": "d7d9d0365b3cd7d5b58e7d0db41bd0c7d32bdcfbc6b04f0b2e7202651a289c14"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-attack-safe-white-1024x576.png",
+      "bytes": 402693,
+      "sha256": "e7ba6f39448a29d233b1a157fa770cebaab4186e691d86b7cb7b9d226ca8f1f0"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-poison-belch-h3-v01_contact.png",
+    "bytes": 619814,
+    "sha256": "defb5a67b3f9f1e0188d413bc22b08c3be0042f3174c19dc16b02f05be137ffb"
+  },
+  "elapsedSeconds": 425.534
+}

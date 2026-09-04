@@ -1,0 +1,7 @@
+One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.
+
+0.0-1.4 seconds: the toad braces all four webbed feet, raises its head slightly, and its broad gray-yellow throat sac visibly swells as the chest draws in one heavy breath.
+1.4-3.4 seconds: it performs exactly one forward poison-belch release pose. The swollen throat sac contracts strongly, the mouth opens toward screen-right, and the head, neck and shoulders recoil once as if expelling a forceful cone. This animation contains only the creature's physical release motion; nothing is emitted from the mouth.
+3.4-5.17 seconds: the mouth closes, the throat sac relaxes to its original size, and the toad returns once to its low crouch and holds.
+
+Keep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless. Do not create smoke, fog, liquid, saliva, bubbles, projectiles, ground effects, or extra creatures.

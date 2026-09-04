@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T01:10:32.852808+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-idle-h3-v01.mp4",
+    "bytes": 892632,
+    "sha256": "4b45fce204c3fb91966dd4fc3de5b9a80816d07a4bbd52c469f4f62e25fe2c87"
+  },
+  "promptId": "03db5a8c-b562-4ed1-b2cb-9ccc49cb95e4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 829101,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.0 seconds: the enormous toad holds its low, broad neutral crouch with all four webbed feet planted on one baseline; its peat-black, mud-brown and dark-olive warted skin, amber eye, paired parotoid glands and relaxed gray-yellow throat sac remain unchanged.\n1.0-3.8 seconds: it completes one restrained breathing cycle. The throat sac slowly swells a little and relaxes, the abdomen rises and falls with heavy weight, one eyelid closes in a slow blink, and the front toes make one tiny natural adjustment. The torso and feet remain grounded with no locomotion.\n3.8-5.17 seconds: the breathing motion settles smoothly back into the exact opening crouch for a seamless loop.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, right-facing silhouette and surface details throughout. The camera is static. The background stays flat white and shadowless.",
+  "effectivePrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the enormous toad holds its low, broad neutral crouch with all four webbed feet planted on one baseline; its peat-black, mud-brown and dark-olive warted skin, amber eye, paired parotoid glands and relaxed gray-yellow throat sac remain unchanged.\n1.0-3.8 seconds: it completes one restrained breathing cycle. The throat sac slowly swells a little and relaxes, the abdomen rises and falls with heavy weight, one eyelid closes in a slow blink, and the front toes make one tiny natural adjustment. The torso and feet remain grounded with no locomotion.\n3.8-5.17 seconds: the breathing motion settles smoothly back into the exact opening crouch for a seamless loop.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, right-facing silhouette and surface details throughout. The camera is static. The background stays flat white and shadowless.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the enormous toad holds its low, broad neutral crouch with all four webbed feet planted on one baseline; its peat-black, mud-brown and dark-olive warted skin, amber eye, paired parotoid glands and relaxed gray-yellow throat sac remain unchanged.\n1.0-3.8 seconds: it completes one restrained breathing cycle. The throat sac slowly swells a little and relaxes, the abdomen rises and falls with heavy weight, one eyelid closes in a slow blink, and the front toes make one tiny natural adjustment. The torso and feet remain grounded with no locomotion.\n3.8-5.17 seconds: the breathing motion settles smoothly back into the exact opening crouch for a seamless loop.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, right-facing silhouette and surface details throughout. The camera is static. The background stays flat white and shadowless. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "de99daf43e02790e7037a50d75a9b7bb84bf4d758e85f79420ba9d1f16dc33ac",
+  "effectivePromptSha256": "f336227ba6a6af668d02969e17cd9ca25ea00b1761847cb143cea1feee5406bb",
+  "finalPromptSha256": "64a32214728c8c2e6f7c73136fc941136a52fe31e35fa982a408953a27270baf",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\prompts\\idle-h3-v01.txt",
+      "bytes": 1107,
+      "sha256": "e370815a999c391beebb79f63130aeecdce23e3927764feae761ed294af6b80c"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-general-safe-white-1024x576.png",
+      "bytes": 403471,
+      "sha256": "0791d3aef70e8fac32871e432b5c4e3e0d6805fdbfa648b2158d5e9d0d017066"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-general-safe-white-1024x576.png",
+      "bytes": 403471,
+      "sha256": "0791d3aef70e8fac32871e432b5c4e3e0d6805fdbfa648b2158d5e9d0d017066"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-idle-h3-v01_contact.png",
+    "bytes": 595472,
+    "sha256": "b896d7862b579123e7d4885016b88db8b8c25edfc9b47b54d54727880e5f1154"
+  },
+  "elapsedSeconds": 470.941
+}

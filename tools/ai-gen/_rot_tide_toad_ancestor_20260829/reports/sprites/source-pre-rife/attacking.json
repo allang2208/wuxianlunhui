@@ -1,0 +1,260 @@
+{
+  "video": "videos/rot-tide-toad-attacking-h3-v01.mp4",
+  "sourceFrameCount": 124,
+  "selectedFrames": [
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    96,
+    102,
+    110
+  ],
+  "frameCount": 22,
+  "frameRate": 12.0,
+  "frameWidth": 1152,
+  "frameHeight": 640,
+  "cols": 8,
+  "footY": 560,
+  "targetHeight": 360.0,
+  "fixedScale": 0.8737864077669902,
+  "mode": "one-shot",
+  "anchor": "source-motion",
+  "frames": [
+    {
+      "slot": 0,
+      "sourceFrame": 20,
+      "alphaBBox": [
+        133,
+        200,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 1,
+      "sourceFrame": 24,
+      "alphaBBox": [
+        133,
+        200,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 2,
+      "sourceFrame": 28,
+      "alphaBBox": [
+        133,
+        200,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 3,
+      "sourceFrame": 32,
+      "alphaBBox": [
+        133,
+        200,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 4,
+      "sourceFrame": 36,
+      "alphaBBox": [
+        133,
+        201,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 5,
+      "sourceFrame": 40,
+      "alphaBBox": [
+        133,
+        201,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 6,
+      "sourceFrame": 44,
+      "alphaBBox": [
+        133,
+        200,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 7,
+      "sourceFrame": 48,
+      "alphaBBox": [
+        133,
+        200,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 8,
+      "sourceFrame": 52,
+      "alphaBBox": [
+        133,
+        199,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 9,
+      "sourceFrame": 56,
+      "alphaBBox": [
+        133,
+        199,
+        668,
+        560
+      ]
+    },
+    {
+      "slot": 10,
+      "sourceFrame": 60,
+      "alphaBBox": [
+        133,
+        197,
+        694,
+        560
+      ]
+    },
+    {
+      "slot": 11,
+      "sourceFrame": 64,
+      "alphaBBox": [
+        133,
+        197,
+        780,
+        560
+      ]
+    },
+    {
+      "slot": 12,
+      "sourceFrame": 68,
+      "alphaBBox": [
+        133,
+        197,
+        879,
+        560
+      ]
+    },
+    {
+      "slot": 13,
+      "sourceFrame": 72,
+      "alphaBBox": [
+        133,
+        197,
+        975,
+        560
+      ]
+    },
+    {
+      "slot": 14,
+      "sourceFrame": 76,
+      "alphaBBox": [
+        133,
+        197,
+        975,
+        560
+      ]
+    },
+    {
+      "slot": 15,
+      "sourceFrame": 80,
+      "alphaBBox": [
+        133,
+        197,
+        975,
+        560
+      ]
+    },
+    {
+      "slot": 16,
+      "sourceFrame": 84,
+      "alphaBBox": [
+        133,
+        197,
+        975,
+        560
+      ]
+    },
+    {
+      "slot": 17,
+      "sourceFrame": 88,
+      "alphaBBox": [
+        132,
+        197,
+        786,
+        532
+      ]
+    },
+    {
+      "slot": 18,
+      "sourceFrame": 92,
+      "alphaBBox": [
+        132,
+        198,
+        785,
+        518
+      ]
+    },
+    {
+      "slot": 19,
+      "sourceFrame": 96,
+      "alphaBBox": [
+        132,
+        198,
+        775,
+        518
+      ]
+    },
+    {
+      "slot": 20,
+      "sourceFrame": 102,
+      "alphaBBox": [
+        133,
+        197,
+        668,
+        519
+      ]
+    },
+    {
+      "slot": 21,
+      "sourceFrame": 110,
+      "alphaBBox": [
+        133,
+        197,
+        668,
+        519
+      ]
+    }
+  ]
+}

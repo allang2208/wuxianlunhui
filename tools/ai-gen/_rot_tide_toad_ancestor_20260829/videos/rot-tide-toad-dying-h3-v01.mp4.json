@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T01:35:14.441098+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-dying-h3-v01.mp4",
+    "bytes": 997116,
+    "sha256": "6e2068c5a7a6769a53f9031c855ccb4a675c3225fc5dd55af4b8a40d74414624"
+  },
+  "promptId": "a6406427-1106-42b5-ae8c-bbd5b8324000",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 829104,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.0 seconds: the enormous toad recoils weakly, its throat sac deflates, its amber eye loses focus and its planted forelegs begin to buckle while the hindlegs can no longer support the broad torso.\n1.0-3.8 seconds: it completes one irreversible heavy death collapse. The chest and belly sink onto the baseline, the head rolls slightly forward and down, both forelegs fold and slide outward, and the powerful hindlegs relax into a natural splayed position. The full body remains intact and grounded inside the frame.\n3.8-5.17 seconds: a small final settling motion passes through the abdomen and toes, then the complete corpse remains motionless in the final low pose.\n\nKeep one continuous body at a stable screen scale and preserve the same complete four-limbed anatomy, paired parotoid glands and mottled warted skin. There is no recovery, rebound or return to the opening pose. The camera is static. The background stays flat white and shadowless.",
+  "effectivePrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the enormous toad recoils weakly, its throat sac deflates, its amber eye loses focus and its planted forelegs begin to buckle while the hindlegs can no longer support the broad torso.\n1.0-3.8 seconds: it completes one irreversible heavy death collapse. The chest and belly sink onto the baseline, the head rolls slightly forward and down, both forelegs fold and slide outward, and the powerful hindlegs relax into a natural splayed position. The full body remains intact and grounded inside the frame.\n3.8-5.17 seconds: a small final settling motion passes through the abdomen and toes, then the complete corpse remains motionless in the final low pose.\n\nKeep one continuous body at a stable screen scale and preserve the same complete four-limbed anatomy, paired parotoid glands and mottled warted skin. There is no recovery, rebound or return to the opening pose. The camera is static. The background stays flat white and shadowless.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the enormous toad recoils weakly, its throat sac deflates, its amber eye loses focus and its planted forelegs begin to buckle while the hindlegs can no longer support the broad torso.\n1.0-3.8 seconds: it completes one irreversible heavy death collapse. The chest and belly sink onto the baseline, the head rolls slightly forward and down, both forelegs fold and slide outward, and the powerful hindlegs relax into a natural splayed position. The full body remains intact and grounded inside the frame.\n3.8-5.17 seconds: a small final settling motion passes through the abdomen and toes, then the complete corpse remains motionless in the final low pose.\n\nKeep one continuous body at a stable screen scale and preserve the same complete four-limbed anatomy, paired parotoid glands and mottled warted skin. There is no recovery, rebound or return to the opening pose. The camera is static. The background stays flat white and shadowless. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "cf72876197128214a30f0aaf1711ec1df9f2555c6395554efef540142c15875b",
+  "effectivePromptSha256": "92a022e279e57f1a86d3da3ce6e1fb6fbc7a568de12d7673392f3bf5a5b837bb",
+  "finalPromptSha256": "b355aa4707c0e4e0b21fbbb7ab5d788c1b05afd0741ae6b1180942adcdf689c7",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\prompts\\dying-h3-v01.txt",
+      "bytes": 1164,
+      "sha256": "036cb368a98cb9e4cd26a0a07273648d5320c3d58c255ed734d80b2c5ea1243a"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-general-safe-white-1024x576.png",
+      "bytes": 403471,
+      "sha256": "0791d3aef70e8fac32871e432b5c4e3e0d6805fdbfa648b2158d5e9d0d017066"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-dying-h3-v01_contact.png",
+    "bytes": 562174,
+    "sha256": "64b4e939919ec6a146eed2cc1c63dd539e03a3a3668770e4db5c8212b0f4143b"
+  },
+  "elapsedSeconds": 425.708
+}

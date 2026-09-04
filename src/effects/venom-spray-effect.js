@@ -1,3 +1,5 @@
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+
 /**
  * One-shot king-cobra venom cone. Damage is resolved by the enemy; this class is
  * visual-only and deliberately shares the same origin, direction, range and arc.
@@ -7,6 +9,7 @@ class VenomSprayEffect {
         x,
         y,
         angle,
+        perspective = false,
         range,
         arcDegrees,
         durationMs = 1000,
@@ -18,6 +21,7 @@ class VenomSprayEffect {
         this.x = x;
         this.y = y;
         this.angle = angle;
+        this.perspective = perspective === true;
         this.range = Math.max(1, Number(range) || 420);
         this.arc = Math.max(1, Number(arcDegrees) || 82) * Math.PI / 180;
         this.maxLife = Math.max(100, Number(durationMs) || 1000);
@@ -65,6 +69,10 @@ class VenomSprayEffect {
     getFogPosition() { return { x: this.x, y: this.y }; }
     getFogVisuals() { return this._graphics; }
 
+    _projectY(value) {
+        return value * (this.perspective ? PERSPECTIVE_SCALE_Y : 1);
+    }
+
     update(dt = 16.67) {
         this.life = Math.max(0, this.life - Math.max(0, Number(dt) || 0));
         this._ensureGraphics();
@@ -94,10 +102,16 @@ class VenomSprayEffect {
         g.fillStyle(this._hazeColor, 0.055 * globalFade);
         g.beginPath();
         g.moveTo(this.x, this.y);
-        g.lineTo(this.x + Math.cos(left) * this.range, this.y + Math.sin(left) * this.range);
+        g.lineTo(
+            this.x + Math.cos(left) * this.range,
+            this.y + this._projectY(Math.sin(left) * this.range)
+        );
         for (let i = 1; i <= 12; i++) {
             const a = left + (right - left) * i / 12;
-            g.lineTo(this.x + Math.cos(a) * this.range, this.y + Math.sin(a) * this.range);
+            g.lineTo(
+                this.x + Math.cos(a) * this.range,
+                this.y + this._projectY(Math.sin(a) * this.range)
+            );
         }
         g.closePath();
         g.fillPath();
@@ -111,7 +125,10 @@ class VenomSprayEffect {
             const dist = particle.distance * eased;
             const px = this.x + Math.cos(particle.angle) * dist
                 + Math.cos(particle.angle + Math.PI / 2) * particle.drift * settle;
-            const py = this.y + Math.sin(particle.angle) * dist - settle * 8;
+            const py = this.y + this._projectY(
+                Math.sin(particle.angle) * dist
+                    + Math.sin(particle.angle + Math.PI / 2) * particle.drift * settle
+            ) - settle * 8;
             const alpha = particle.alpha * globalFade * (0.75 + 0.25 * (1 - travel));
             const size = particle.size * (0.65 + travel * 0.7 + settle * 0.25);
             g.fillStyle(particle.color, alpha * 0.18);

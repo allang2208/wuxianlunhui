@@ -1,0 +1,272 @@
+{
+  "video": "videos/rot-tide-toad-poison-belch-h3-v01.mp4",
+  "sourceFrameCount": 124,
+  "selectedFrames": [
+    12,
+    18,
+    24,
+    30,
+    36,
+    42,
+    48,
+    52,
+    56,
+    58,
+    60,
+    62,
+    64,
+    66,
+    70,
+    76,
+    82,
+    90,
+    100,
+    112,
+    123
+  ],
+  "frameCount": 21,
+  "frameRate": 12.0,
+  "frameWidth": 1152,
+  "frameHeight": 640,
+  "cols": 8,
+  "footY": 560,
+  "targetHeight": 360.0,
+  "fixedScale": 1.0140845070422535,
+  "mode": "one-shot",
+  "anchor": "source-motion",
+  "removedForwardEmissionPixels": [
+    25,
+    27,
+    8,
+    17,
+    152,
+    132,
+    58,
+    43,
+    1749,
+    53742,
+    19266,
+    1040,
+    28,
+    80,
+    61,
+    37,
+    3,
+    0,
+    27,
+    79,
+    84
+  ],
+  "frames": [
+    {
+      "slot": 0,
+      "sourceFrame": 12,
+      "alphaBBox": [
+        161,
+        200,
+        780,
+        560
+      ]
+    },
+    {
+      "slot": 1,
+      "sourceFrame": 18,
+      "alphaBBox": [
+        161,
+        198,
+        778,
+        552
+      ]
+    },
+    {
+      "slot": 2,
+      "sourceFrame": 24,
+      "alphaBBox": [
+        161,
+        188,
+        778,
+        552
+      ]
+    },
+    {
+      "slot": 3,
+      "sourceFrame": 30,
+      "alphaBBox": [
+        161,
+        180,
+        778,
+        552
+      ]
+    },
+    {
+      "slot": 4,
+      "sourceFrame": 36,
+      "alphaBBox": [
+        163,
+        178,
+        780,
+        552
+      ]
+    },
+    {
+      "slot": 5,
+      "sourceFrame": 42,
+      "alphaBBox": [
+        163,
+        171,
+        780,
+        552
+      ]
+    },
+    {
+      "slot": 6,
+      "sourceFrame": 48,
+      "alphaBBox": [
+        162,
+        167,
+        780,
+        552
+      ]
+    },
+    {
+      "slot": 7,
+      "sourceFrame": 52,
+      "alphaBBox": [
+        163,
+        162,
+        779,
+        551
+      ]
+    },
+    {
+      "slot": 8,
+      "sourceFrame": 56,
+      "alphaBBox": [
+        163,
+        167,
+        821,
+        552
+      ]
+    },
+    {
+      "slot": 9,
+      "sourceFrame": 58,
+      "alphaBBox": [
+        170,
+        189,
+        821,
+        552
+      ]
+    },
+    {
+      "slot": 10,
+      "sourceFrame": 60,
+      "alphaBBox": [
+        179,
+        211,
+        821,
+        552
+      ]
+    },
+    {
+      "slot": 11,
+      "sourceFrame": 62,
+      "alphaBBox": [
+        178,
+        213,
+        821,
+        552
+      ]
+    },
+    {
+      "slot": 12,
+      "sourceFrame": 64,
+      "alphaBBox": [
+        176,
+        211,
+        814,
+        552
+      ]
+    },
+    {
+      "slot": 13,
+      "sourceFrame": 66,
+      "alphaBBox": [
+        177,
+        208,
+        812,
+        552
+      ]
+    },
+    {
+      "slot": 14,
+      "sourceFrame": 70,
+      "alphaBBox": [
+        175,
+        211,
+        818,
+        552
+      ]
+    },
+    {
+      "slot": 15,
+      "sourceFrame": 76,
+      "alphaBBox": [
+        174,
+        211,
+        816,
+        552
+      ]
+    },
+    {
+      "slot": 16,
+      "sourceFrame": 82,
+      "alphaBBox": [
+        170,
+        211,
+        798,
+        552
+      ]
+    },
+    {
+      "slot": 17,
+      "sourceFrame": 90,
+      "alphaBBox": [
+        165,
+        211,
+        775,
+        552
+      ]
+    },
+    {
+      "slot": 18,
+      "sourceFrame": 100,
+      "alphaBBox": [
+        163,
+        210,
+        773,
+        552
+      ]
+    },
+    {
+      "slot": 19,
+      "sourceFrame": 112,
+      "alphaBBox": [
+        163,
+        209,
+        779,
+        552
+      ]
+    },
+    {
+      "slot": 20,
+      "sourceFrame": 123,
+      "alphaBBox": [
+        163,
+        209,
+        779,
+        552
+      ]
+    }
+  ]
+}

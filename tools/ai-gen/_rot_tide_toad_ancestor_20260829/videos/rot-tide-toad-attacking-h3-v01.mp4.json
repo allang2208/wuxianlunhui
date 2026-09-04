@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-29T01:28:07.387667+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-attacking-h3-v01.mp4",
+    "bytes": 1024644,
+    "sha256": "a136598f629400a9e60570c901484160132c28f7d9ec8aeaf4dfb403804927a0"
+  },
+  "promptId": "f51edc69-dad8-487a-8f77-540642f580ff",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 829103,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.\n\n0.0-1.0 seconds: the toad drops its chest, braces all four webbed feet, compresses the throat sac and opens its broad mouth while fixing its amber eye on a target directly to screen-right.\n1.0-3.2 seconds: it performs exactly one decisive tongue-lash attack. The shoulders and whole torso lunge forward with visible weight as one long wet muscular tongue shoots straight from the center of the mouth toward screen-right, reaches one clear maximum extension, then immediately retracts completely back into the mouth. The tongue remains anatomically attached throughout and never touches the frame edge.\n3.2-5.17 seconds: the mouth closes, the forelegs push the torso back, and the toad makes one stable recovery into its original low crouch, then holds still.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, paired parotoid glands, mottled warted skin and right-facing silhouette. Only one tongue and one attack occur. The camera is static. The background stays flat white and shadowless.",
+  "effectivePrompt": "One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the toad drops its chest, braces all four webbed feet, compresses the throat sac and opens its broad mouth while fixing its amber eye on a target directly to screen-right.\n1.0-3.2 seconds: it performs exactly one decisive tongue-lash attack. The shoulders and whole torso lunge forward with visible weight as one long wet muscular tongue shoots straight from the center of the mouth toward screen-right, reaches one clear maximum extension, then immediately retracts completely back into the mouth. The tongue remains anatomically attached throughout and never touches the frame edge.\n3.2-5.17 seconds: the mouth closes, the forelegs push the torso back, and the toad makes one stable recovery into its original low crouch, then holds still.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, paired parotoid glands, mottled warted skin and right-facing silhouette. Only one tongue and one attack occur. The camera is static. The background stays flat white and shadowless.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow without any floor or shadow.\n\n0.0-1.0 seconds: the toad drops its chest, braces all four webbed feet, compresses the throat sac and opens its broad mouth while fixing its amber eye on a target directly to screen-right.\n1.0-3.2 seconds: it performs exactly one decisive tongue-lash attack. The shoulders and whole torso lunge forward with visible weight as one long wet muscular tongue shoots straight from the center of the mouth toward screen-right, reaches one clear maximum extension, then immediately retracts completely back into the mouth. The tongue remains anatomically attached throughout and never touches the frame edge.\n3.2-5.17 seconds: the mouth closes, the forelegs push the torso back, and the toad makes one stable recovery into its original low crouch, then holds still.\n\nKeep the body at a stable screen scale and preserve the same complete four-limbed anatomy, paired parotoid glands, mottled warted skin and right-facing silhouette. Only one tongue and one attack occur. The camera is static. The background stays flat white and shadowless. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "4e4797564602ae9d9f05120cc5046a727186afcf2b4bf9f45220e77c03d5940f",
+  "effectivePromptSha256": "8ef55e5f5922a53fa98bbab79d78a467274ae124abec0e89bb7284ba5c93c88e",
+  "finalPromptSha256": "0af9f41bae4d5aeef8325e5b8ea17bd126f576d160ff21edcbeaa55bf36e8594",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\prompts\\attacking-h3-v01.txt",
+      "bytes": 1243,
+      "sha256": "7c261c9107b4ed6434a9534c4fde95fe24e6539d2a2e501e1be3edaab71bf054"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\references\\rot-tide-toad-attack-safe-white-1024x576.png",
+      "bytes": 402693,
+      "sha256": "e7ba6f39448a29d233b1a157fa770cebaab4186e691d86b7cb7b9d226ca8f1f0"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\videos\\rot-tide-toad-attacking-h3-v01_contact.png",
+    "bytes": 602948,
+    "sha256": "290ff5ff741f39cbe32eaf1fdfbbb2301496cd2839e9c335ca83ce6215b59b41"
+  },
+  "elapsedSeconds": 510.737
+}

@@ -1,0 +1,7 @@
+One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.
+
+0.0-1.2 seconds: the toad plants all four webbed feet, straightens its forelegs, raises its head and chest, and draws one deep breath while the broad gray-yellow throat sac begins to expand.
+1.2-3.8 seconds: it performs one deliberate summoning croak sequence. The throat sac becomes large and round, then pulses visibly two times while the mouth stays mostly closed; the head and shoulders lift with each pulse and the body remains firmly planted. The two pulses belong to one continuous command action rather than repeated attacks.
+3.8-5.17 seconds: the throat sac deflates fully, the head lowers, and the toad returns once to its original low crouch and holds.
+
+Keep the body at a stable screen scale and preserve the same complete four-limbed anatomy, amber eyes, paired parotoid glands, mottled wet warted skin, and right-facing silhouette. The camera remains static. The background remains flat white and shadowless, with no sound-wave graphics, runes, glow, particles, fog, summoned creatures, or environmental effects.

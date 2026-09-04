@@ -1,0 +1,3248 @@
+{
+  "pipeline": "approved MiniMax H3 white background -> BiRefNet plus white-distance detail retention -> fixed scale and action-specific root anchor -> RIFE v4.6 RGBA 2x",
+  "referenceCell": 640,
+  "footY": 560,
+  "targetHeight": 360.0,
+  "actions": {
+    "idle": {
+      "source": {
+        "video": "videos/rot-tide-toad-idle-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112
+        ],
+        "frameCount": 15,
+        "frameRate": 6.0,
+        "frameWidth": 768,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 1.005586592178771,
+        "mode": "loop",
+        "anchor": "stabilized",
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 0,
+            "alphaBBox": [
+              76,
+              200,
+              692,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 8,
+            "alphaBBox": [
+              76,
+              200,
+              691,
+              560
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 16,
+            "alphaBBox": [
+              76,
+              200,
+              691,
+              560
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 24,
+            "alphaBBox": [
+              76,
+              200,
+              691,
+              560
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 32,
+            "alphaBBox": [
+              76,
+              196,
+              691,
+              560
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 40,
+            "alphaBBox": [
+              75,
+              191,
+              693,
+              560
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 48,
+            "alphaBBox": [
+              75,
+              189,
+              692,
+              560
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 56,
+            "alphaBBox": [
+              75,
+              161,
+              693,
+              560
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 64,
+            "alphaBBox": [
+              75,
+              165,
+              693,
+              560
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 72,
+            "alphaBBox": [
+              75,
+              187,
+              692,
+              560
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 80,
+            "alphaBBox": [
+              74,
+              174,
+              694,
+              560
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 88,
+            "alphaBBox": [
+              75,
+              194,
+              692,
+              559
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 96,
+            "alphaBBox": [
+              75,
+              201,
+              693,
+              560
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 104,
+            "alphaBBox": [
+              76,
+              198,
+              692,
+              560
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 112,
+            "alphaBBox": [
+              76,
+              199,
+              691,
+              560
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-idle",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\idle.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\idle.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "loop",
+        "loopStartSourceIndex": 0,
+        "sourceFrameCount": 15,
+        "outputFrameCount": 30,
+        "frameWidth": 768,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 4,
+        "sourceFrameRate": 6.0,
+        "outputFrameRate": 12.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": true,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 527,
+          "alphaBottomMax": 559,
+          "middleFrameFootShifts": [
+            1,
+            0,
+            0,
+            1,
+            0,
+            1,
+            5,
+            -1,
+            -4,
+            6,
+            -7,
+            0,
+            -1,
+            0,
+            1
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            26,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 31.38194179534912,
+          "adjacentDeltaMeanAfter": 21.19115076462428
+        }
+      }
+    },
+    "moving": {
+      "source": {
+        "video": "videos/rot-tide-toad-moving-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          11,
+          16,
+          21,
+          26,
+          31,
+          36,
+          41,
+          46,
+          51,
+          56,
+          61,
+          66,
+          71,
+          76,
+          81,
+          86,
+          91
+        ],
+        "frameCount": 17,
+        "frameRate": 10.0,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 0.989010989010989,
+        "mode": "loop",
+        "anchor": "torso-stabilized",
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 11,
+            "alphaBBox": [
+              264,
+              200,
+              870,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 16,
+            "alphaBBox": [
+              267,
+              194,
+              873,
+              554
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 21,
+            "alphaBBox": [
+              268,
+              188,
+              875,
+              548
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 26,
+            "alphaBBox": [
+              267,
+              184,
+              874,
+              563
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 31,
+            "alphaBBox": [
+              273,
+              187,
+              881,
+              566
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 36,
+            "alphaBBox": [
+              266,
+              197,
+              888,
+              585
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 41,
+            "alphaBBox": [
+              254,
+              208,
+              890,
+              619
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 46,
+            "alphaBBox": [
+              224,
+              216,
+              911,
+              627
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 51,
+            "alphaBBox": [
+              179,
+              211,
+              977,
+              592
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 56,
+            "alphaBBox": [
+              133,
+              198,
+              949,
+              609
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 61,
+            "alphaBBox": [
+              107,
+              193,
+              914,
+              604
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 66,
+            "alphaBBox": [
+              84,
+              201,
+              915,
+              612
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 71,
+            "alphaBBox": [
+              97,
+              208,
+              943,
+              618
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 76,
+            "alphaBBox": [
+              188,
+              209,
+              880,
+              618
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 81,
+            "alphaBBox": [
+              217,
+              205,
+              863,
+              612
+            ]
+          },
+          {
+            "slot": 15,
+            "sourceFrame": 86,
+            "alphaBBox": [
+              243,
+              201,
+              860,
+              608
+            ]
+          },
+          {
+            "slot": 16,
+            "sourceFrame": 91,
+            "alphaBBox": [
+              259,
+              201,
+              865,
+              561
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-moving",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\moving.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\moving.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "loop",
+        "loopStartSourceIndex": 0,
+        "sourceFrameCount": 17,
+        "outputFrameCount": 34,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 5,
+        "sourceFrameRate": 10.0,
+        "outputFrameRate": 20.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": false,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 538,
+          "alphaBottomMax": 607,
+          "middleFrameFootShifts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 34.367535422830024,
+          "adjacentDeltaMeanAfter": 20.981837374322556
+        }
+      }
+    },
+    "attacking": {
+      "source": {
+        "video": "videos/rot-tide-toad-attacking-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60,
+          64,
+          68,
+          72,
+          76,
+          80,
+          84,
+          88,
+          92,
+          96,
+          102,
+          110
+        ],
+        "frameCount": 22,
+        "frameRate": 12.0,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 0.8737864077669902,
+        "mode": "one-shot",
+        "anchor": "source-motion",
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 20,
+            "alphaBBox": [
+              133,
+              200,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 24,
+            "alphaBBox": [
+              133,
+              200,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 28,
+            "alphaBBox": [
+              133,
+              200,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 32,
+            "alphaBBox": [
+              133,
+              200,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 36,
+            "alphaBBox": [
+              133,
+              201,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 40,
+            "alphaBBox": [
+              133,
+              201,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 44,
+            "alphaBBox": [
+              133,
+              200,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 48,
+            "alphaBBox": [
+              133,
+              200,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 52,
+            "alphaBBox": [
+              133,
+              199,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 56,
+            "alphaBBox": [
+              133,
+              199,
+              668,
+              560
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 60,
+            "alphaBBox": [
+              133,
+              197,
+              694,
+              560
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 64,
+            "alphaBBox": [
+              133,
+              197,
+              780,
+              560
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 68,
+            "alphaBBox": [
+              133,
+              197,
+              879,
+              560
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 72,
+            "alphaBBox": [
+              133,
+              197,
+              975,
+              560
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 76,
+            "alphaBBox": [
+              133,
+              197,
+              975,
+              560
+            ]
+          },
+          {
+            "slot": 15,
+            "sourceFrame": 80,
+            "alphaBBox": [
+              133,
+              197,
+              975,
+              560
+            ]
+          },
+          {
+            "slot": 16,
+            "sourceFrame": 84,
+            "alphaBBox": [
+              133,
+              197,
+              975,
+              560
+            ]
+          },
+          {
+            "slot": 17,
+            "sourceFrame": 88,
+            "alphaBBox": [
+              132,
+              197,
+              786,
+              532
+            ]
+          },
+          {
+            "slot": 18,
+            "sourceFrame": 92,
+            "alphaBBox": [
+              132,
+              198,
+              785,
+              518
+            ]
+          },
+          {
+            "slot": 19,
+            "sourceFrame": 96,
+            "alphaBBox": [
+              132,
+              198,
+              775,
+              518
+            ]
+          },
+          {
+            "slot": 20,
+            "sourceFrame": 102,
+            "alphaBBox": [
+              133,
+              197,
+              668,
+              519
+            ]
+          },
+          {
+            "slot": 21,
+            "sourceFrame": 110,
+            "alphaBBox": [
+              133,
+              197,
+              668,
+              519
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-attacking",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\attacking.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\attacking.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "one-shot",
+        "loopStartSourceIndex": null,
+        "sourceFrameCount": 22,
+        "outputFrameCount": 43,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 6,
+        "sourceFrameRate": 12.0,
+        "outputFrameRate": 24.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": true,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 509,
+          "alphaBottomMax": 559,
+          "middleFrameFootShifts": [
+            0,
+            4,
+            0,
+            4,
+            24,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            23,
+            0,
+            0,
+            -1,
+            2
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            1861,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2106,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 21.103949393544877,
+          "adjacentDeltaMeanAfter": 19.06131085895357
+        }
+      }
+    },
+    "dying": {
+      "source": {
+        "video": "videos/rot-tide-toad-dying-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          0,
+          8,
+          16,
+          24,
+          30,
+          36,
+          42,
+          48,
+          54,
+          58,
+          62,
+          66,
+          70,
+          84,
+          123
+        ],
+        "frameCount": 15,
+        "frameRate": 8.0,
+        "frameWidth": 896,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 0.9917355371900827,
+        "mode": "one-shot",
+        "anchor": "source-motion",
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 0,
+            "alphaBBox": [
+              145,
+              200,
+              752,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 8,
+            "alphaBBox": [
+              145,
+              200,
+              750,
+              560
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 16,
+            "alphaBBox": [
+              146,
+              200,
+              749,
+              560
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 24,
+            "alphaBBox": [
+              145,
+              203,
+              752,
+              608
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 30,
+            "alphaBBox": [
+              157,
+              211,
+              751,
+              608
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 36,
+            "alphaBBox": [
+              157,
+              213,
+              751,
+              608
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 42,
+            "alphaBBox": [
+              157,
+              216,
+              750,
+              608
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 48,
+            "alphaBBox": [
+              158,
+              222,
+              751,
+              608
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 54,
+            "alphaBBox": [
+              145,
+              227,
+              752,
+              608
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 58,
+            "alphaBBox": [
+              145,
+              243,
+              754,
+              608
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 62,
+            "alphaBBox": [
+              116,
+              257,
+              837,
+              608
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 66,
+            "alphaBBox": [
+              94,
+              259,
+              837,
+              608
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 70,
+            "alphaBBox": [
+              95,
+              259,
+              841,
+              608
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 84,
+            "alphaBBox": [
+              94,
+              286,
+              839,
+              607
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 123,
+            "alphaBBox": [
+              88,
+              195,
+              839,
+              560
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-dying",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\dying.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\dying.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "one-shot",
+        "loopStartSourceIndex": null,
+        "sourceFrameCount": 15,
+        "outputFrameCount": 29,
+        "frameWidth": 896,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 4,
+        "sourceFrameRate": 8.0,
+        "outputFrameRate": 16.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": false,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 548,
+          "alphaBottomMax": 574,
+          "middleFrameFootShifts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 28.54254981449672,
+          "adjacentDeltaMeanAfter": 17.059313046080725
+        }
+      }
+    },
+    "tongue_sweep": {
+      "source": {
+        "video": "videos/rot-tide-toad-tongue-sweep-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          24,
+          30,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60,
+          64,
+          68,
+          72,
+          76,
+          80,
+          84,
+          88,
+          92,
+          96,
+          102,
+          110,
+          118,
+          123
+        ],
+        "frameCount": 22,
+        "frameRate": 12.0,
+        "frameWidth": 1280,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 1.0140845070422535,
+        "mode": "one-shot",
+        "anchor": "source-motion",
+        "removedForwardEmissionPixels": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 24,
+            "alphaBBox": [
+              75,
+              200,
+              765,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 30,
+            "alphaBBox": [
+              61,
+              210,
+              787,
+              580
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 36,
+            "alphaBBox": [
+              59,
+              226,
+              787,
+              592
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 40,
+            "alphaBBox": [
+              60,
+              224,
+              787,
+              615
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 44,
+            "alphaBBox": [
+              60,
+              224,
+              787,
+              615
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 48,
+            "alphaBBox": [
+              60,
+              224,
+              787,
+              615
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 52,
+            "alphaBBox": [
+              70,
+              224,
+              787,
+              615
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 56,
+            "alphaBBox": [
+              69,
+              222,
+              787,
+              615
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 60,
+            "alphaBBox": [
+              67,
+              221,
+              788,
+              615
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 64,
+            "alphaBBox": [
+              58,
+              218,
+              788,
+              616
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 68,
+            "alphaBBox": [
+              60,
+              218,
+              787,
+              616
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 72,
+            "alphaBBox": [
+              58,
+              219,
+              788,
+              616
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 76,
+            "alphaBBox": [
+              55,
+              219,
+              806,
+              616
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 80,
+            "alphaBBox": [
+              54,
+              219,
+              977,
+              590
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 84,
+            "alphaBBox": [
+              58,
+              219,
+              1064,
+              584
+            ]
+          },
+          {
+            "slot": 15,
+            "sourceFrame": 88,
+            "alphaBBox": [
+              60,
+              217,
+              1064,
+              584
+            ]
+          },
+          {
+            "slot": 16,
+            "sourceFrame": 92,
+            "alphaBBox": [
+              59,
+              217,
+              987,
+              585
+            ]
+          },
+          {
+            "slot": 17,
+            "sourceFrame": 96,
+            "alphaBBox": [
+              58,
+              217,
+              789,
+              585
+            ]
+          },
+          {
+            "slot": 18,
+            "sourceFrame": 102,
+            "alphaBBox": [
+              58,
+              216,
+              788,
+              585
+            ]
+          },
+          {
+            "slot": 19,
+            "sourceFrame": 110,
+            "alphaBBox": [
+              80,
+              209,
+              777,
+              583
+            ]
+          },
+          {
+            "slot": 20,
+            "sourceFrame": 118,
+            "alphaBBox": [
+              88,
+              208,
+              716,
+              561
+            ]
+          },
+          {
+            "slot": 21,
+            "sourceFrame": 123,
+            "alphaBBox": [
+              87,
+              196,
+              747,
+              561
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-tongue-sweep",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\tongue_sweep.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\tongue_sweep.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "one-shot",
+        "loopStartSourceIndex": null,
+        "sourceFrameCount": 22,
+        "outputFrameCount": 43,
+        "frameWidth": 1280,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 6,
+        "sourceFrameRate": 12.0,
+        "outputFrameRate": 24.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": false,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 558,
+          "alphaBottomMax": 607,
+          "middleFrameFootShifts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            12,
+            10,
+            213,
+            325,
+            72,
+            0,
+            0,
+            0,
+            30,
+            156,
+            95,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 33.86139724368141,
+          "adjacentDeltaMeanAfter": 20.70413879553477
+        }
+      }
+    },
+    "body_slam": {
+      "source": {
+        "video": "videos/rot-tide-toad-body-slam-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60,
+          62,
+          64,
+          66,
+          68,
+          70,
+          72,
+          76,
+          80,
+          84,
+          88,
+          92,
+          96,
+          102,
+          110,
+          118,
+          123
+        ],
+        "frameCount": 27,
+        "frameRate": 12.0,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 0.989010989010989,
+        "mode": "one-shot",
+        "anchor": "source-motion",
+        "removedForwardEmissionPixels": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 20,
+            "alphaBBox": [
+              270,
+              200,
+              881,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 24,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 28,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 32,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 36,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 40,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 44,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 48,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 52,
+            "alphaBBox": [
+              270,
+              196,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 56,
+            "alphaBBox": [
+              270,
+              197,
+              876,
+              607
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 60,
+            "alphaBBox": [
+              270,
+              197,
+              879,
+              607
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 62,
+            "alphaBBox": [
+              270,
+              196,
+              880,
+              607
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 64,
+            "alphaBBox": [
+              270,
+              151,
+              880,
+              608
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 66,
+            "alphaBBox": [
+              270,
+              151,
+              880,
+              608
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 68,
+            "alphaBBox": [
+              270,
+              125,
+              887,
+              608
+            ]
+          },
+          {
+            "slot": 15,
+            "sourceFrame": 70,
+            "alphaBBox": [
+              270,
+              108,
+              934,
+              607
+            ]
+          },
+          {
+            "slot": 16,
+            "sourceFrame": 72,
+            "alphaBBox": [
+              270,
+              107,
+              951,
+              607
+            ]
+          },
+          {
+            "slot": 17,
+            "sourceFrame": 76,
+            "alphaBBox": [
+              191,
+              109,
+              972,
+              607
+            ]
+          },
+          {
+            "slot": 18,
+            "sourceFrame": 80,
+            "alphaBBox": [
+              190,
+              101,
+              972,
+              607
+            ]
+          },
+          {
+            "slot": 19,
+            "sourceFrame": 84,
+            "alphaBBox": [
+              190,
+              101,
+              972,
+              607
+            ]
+          },
+          {
+            "slot": 20,
+            "sourceFrame": 88,
+            "alphaBBox": [
+              190,
+              109,
+              972,
+              607
+            ]
+          },
+          {
+            "slot": 21,
+            "sourceFrame": 92,
+            "alphaBBox": [
+              190,
+              109,
+              972,
+              607
+            ]
+          },
+          {
+            "slot": 22,
+            "sourceFrame": 96,
+            "alphaBBox": [
+              189,
+              109,
+              982,
+              607
+            ]
+          },
+          {
+            "slot": 23,
+            "sourceFrame": 102,
+            "alphaBBox": [
+              187,
+              109,
+              998,
+              607
+            ]
+          },
+          {
+            "slot": 24,
+            "sourceFrame": 110,
+            "alphaBBox": [
+              187,
+              108,
+              967,
+              607
+            ]
+          },
+          {
+            "slot": 25,
+            "sourceFrame": 118,
+            "alphaBBox": [
+              270,
+              109,
+              966,
+              607
+            ]
+          },
+          {
+            "slot": 26,
+            "sourceFrame": 123,
+            "alphaBBox": [
+              270,
+              109,
+              967,
+              607
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-body-slam",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\body_slam.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\body_slam.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "one-shot",
+        "loopStartSourceIndex": null,
+        "sourceFrameCount": 27,
+        "outputFrameCount": 53,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 7,
+        "sourceFrameRate": 12.0,
+        "outputFrameRate": 24.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": false,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 550,
+          "alphaBottomMax": 606,
+          "middleFrameFootShifts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            146,
+            0,
+            0,
+            11,
+            1007,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 26.473035225501427,
+          "adjacentDeltaMeanAfter": 15.932017700030254
+        }
+      }
+    },
+    "poison_belch": {
+      "source": {
+        "video": "videos/rot-tide-toad-poison-belch-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          12,
+          18,
+          24,
+          30,
+          36,
+          42,
+          48,
+          52,
+          56,
+          58,
+          60,
+          62,
+          64,
+          66,
+          70,
+          76,
+          82,
+          90,
+          100,
+          112,
+          123
+        ],
+        "frameCount": 21,
+        "frameRate": 12.0,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 1.0140845070422535,
+        "mode": "one-shot",
+        "anchor": "source-motion",
+        "removedForwardEmissionPixels": [
+          25,
+          27,
+          8,
+          17,
+          152,
+          132,
+          58,
+          43,
+          1749,
+          53742,
+          19266,
+          1040,
+          28,
+          80,
+          61,
+          37,
+          3,
+          0,
+          27,
+          79,
+          84
+        ],
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 12,
+            "alphaBBox": [
+              161,
+              200,
+              780,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 18,
+            "alphaBBox": [
+              161,
+              198,
+              778,
+              552
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 24,
+            "alphaBBox": [
+              161,
+              188,
+              778,
+              552
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 30,
+            "alphaBBox": [
+              161,
+              180,
+              778,
+              552
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 36,
+            "alphaBBox": [
+              163,
+              178,
+              780,
+              552
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 42,
+            "alphaBBox": [
+              163,
+              171,
+              780,
+              552
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 48,
+            "alphaBBox": [
+              162,
+              167,
+              780,
+              552
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 52,
+            "alphaBBox": [
+              163,
+              162,
+              779,
+              551
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 56,
+            "alphaBBox": [
+              163,
+              167,
+              821,
+              552
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 58,
+            "alphaBBox": [
+              170,
+              189,
+              821,
+              552
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 60,
+            "alphaBBox": [
+              179,
+              211,
+              821,
+              552
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 62,
+            "alphaBBox": [
+              178,
+              213,
+              821,
+              552
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 64,
+            "alphaBBox": [
+              176,
+              211,
+              814,
+              552
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 66,
+            "alphaBBox": [
+              177,
+              208,
+              812,
+              552
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 70,
+            "alphaBBox": [
+              175,
+              211,
+              818,
+              552
+            ]
+          },
+          {
+            "slot": 15,
+            "sourceFrame": 76,
+            "alphaBBox": [
+              174,
+              211,
+              816,
+              552
+            ]
+          },
+          {
+            "slot": 16,
+            "sourceFrame": 82,
+            "alphaBBox": [
+              170,
+              211,
+              798,
+              552
+            ]
+          },
+          {
+            "slot": 17,
+            "sourceFrame": 90,
+            "alphaBBox": [
+              165,
+              211,
+              775,
+              552
+            ]
+          },
+          {
+            "slot": 18,
+            "sourceFrame": 100,
+            "alphaBBox": [
+              163,
+              210,
+              773,
+              552
+            ]
+          },
+          {
+            "slot": 19,
+            "sourceFrame": 112,
+            "alphaBBox": [
+              163,
+              209,
+              779,
+              552
+            ]
+          },
+          {
+            "slot": 20,
+            "sourceFrame": 123,
+            "alphaBBox": [
+              163,
+              209,
+              779,
+              552
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-poison-belch",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\poison_belch.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\poison_belch.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "one-shot",
+        "loopStartSourceIndex": null,
+        "sourceFrameCount": 21,
+        "outputFrameCount": 41,
+        "frameWidth": 1152,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 6,
+        "sourceFrameRate": 12.0,
+        "outputFrameRate": 24.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": false,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 550,
+          "alphaBottomMax": 558,
+          "middleFrameFootShifts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            83,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 24.02760136127472,
+          "adjacentDeltaMeanAfter": 15.648705843091012
+        }
+      }
+    },
+    "summon_croak": {
+      "source": {
+        "video": "videos/rot-tide-toad-summon-croak-h3-v01.mp4",
+        "sourceFrameCount": 124,
+        "selectedFrames": [
+          16,
+          20,
+          24,
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52,
+          56,
+          60,
+          64,
+          68,
+          72,
+          76,
+          80,
+          84,
+          88,
+          92,
+          96,
+          100,
+          104,
+          112,
+          120,
+          123
+        ],
+        "frameCount": 26,
+        "frameRate": 8.0,
+        "frameWidth": 896,
+        "frameHeight": 640,
+        "cols": 8,
+        "footY": 560,
+        "targetHeight": 360.0,
+        "fixedScale": 0.9809264305177112,
+        "mode": "one-shot",
+        "anchor": "source-motion",
+        "removedForwardEmissionPixels": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "frames": [
+          {
+            "slot": 0,
+            "sourceFrame": 16,
+            "alphaBBox": [
+              147,
+              200,
+              748,
+              560
+            ]
+          },
+          {
+            "slot": 1,
+            "sourceFrame": 20,
+            "alphaBBox": [
+              147,
+              200,
+              748,
+              560
+            ]
+          },
+          {
+            "slot": 2,
+            "sourceFrame": 24,
+            "alphaBBox": [
+              147,
+              186,
+              751,
+              592
+            ]
+          },
+          {
+            "slot": 3,
+            "sourceFrame": 28,
+            "alphaBBox": [
+              147,
+              176,
+              753,
+              592
+            ]
+          },
+          {
+            "slot": 4,
+            "sourceFrame": 32,
+            "alphaBBox": [
+              147,
+              133,
+              761,
+              592
+            ]
+          },
+          {
+            "slot": 5,
+            "sourceFrame": 36,
+            "alphaBBox": [
+              147,
+              126,
+              767,
+              560
+            ]
+          },
+          {
+            "slot": 6,
+            "sourceFrame": 40,
+            "alphaBBox": [
+              147,
+              124,
+              767,
+              559
+            ]
+          },
+          {
+            "slot": 7,
+            "sourceFrame": 44,
+            "alphaBBox": [
+              147,
+              124,
+              769,
+              559
+            ]
+          },
+          {
+            "slot": 8,
+            "sourceFrame": 48,
+            "alphaBBox": [
+              147,
+              124,
+              769,
+              559
+            ]
+          },
+          {
+            "slot": 9,
+            "sourceFrame": 52,
+            "alphaBBox": [
+              147,
+              123,
+              767,
+              558
+            ]
+          },
+          {
+            "slot": 10,
+            "sourceFrame": 56,
+            "alphaBBox": [
+              147,
+              123,
+              770,
+              559
+            ]
+          },
+          {
+            "slot": 11,
+            "sourceFrame": 60,
+            "alphaBBox": [
+              147,
+              123,
+              767,
+              559
+            ]
+          },
+          {
+            "slot": 12,
+            "sourceFrame": 64,
+            "alphaBBox": [
+              147,
+              123,
+              770,
+              559
+            ]
+          },
+          {
+            "slot": 13,
+            "sourceFrame": 68,
+            "alphaBBox": [
+              147,
+              123,
+              772,
+              559
+            ]
+          },
+          {
+            "slot": 14,
+            "sourceFrame": 72,
+            "alphaBBox": [
+              147,
+              123,
+              768,
+              559
+            ]
+          },
+          {
+            "slot": 15,
+            "sourceFrame": 76,
+            "alphaBBox": [
+              147,
+              123,
+              768,
+              559
+            ]
+          },
+          {
+            "slot": 16,
+            "sourceFrame": 80,
+            "alphaBBox": [
+              147,
+              123,
+              769,
+              559
+            ]
+          },
+          {
+            "slot": 17,
+            "sourceFrame": 84,
+            "alphaBBox": [
+              147,
+              124,
+              769,
+              559
+            ]
+          },
+          {
+            "slot": 18,
+            "sourceFrame": 88,
+            "alphaBBox": [
+              147,
+              124,
+              768,
+              559
+            ]
+          },
+          {
+            "slot": 19,
+            "sourceFrame": 92,
+            "alphaBBox": [
+              147,
+              124,
+              769,
+              561
+            ]
+          },
+          {
+            "slot": 20,
+            "sourceFrame": 96,
+            "alphaBBox": [
+              147,
+              124,
+              769,
+              561
+            ]
+          },
+          {
+            "slot": 21,
+            "sourceFrame": 100,
+            "alphaBBox": [
+              147,
+              125,
+              767,
+              561
+            ]
+          },
+          {
+            "slot": 22,
+            "sourceFrame": 104,
+            "alphaBBox": [
+              147,
+              128,
+              757,
+              561
+            ]
+          },
+          {
+            "slot": 23,
+            "sourceFrame": 112,
+            "alphaBBox": [
+              147,
+              169,
+              751,
+              577
+            ]
+          },
+          {
+            "slot": 24,
+            "sourceFrame": 120,
+            "alphaBBox": [
+              147,
+              200,
+              751,
+              561
+            ]
+          },
+          {
+            "slot": 25,
+            "sourceFrame": 123,
+            "alphaBBox": [
+              147,
+              200,
+              751,
+              561
+            ]
+          }
+        ]
+      },
+      "final": {
+        "name": "rot-tide-toad-summon-croak",
+        "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\source-pre-rife\\summon_croak.png",
+        "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rot_tide_toad_ancestor_20260829\\spritesheets\\final\\summon_croak.png",
+        "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed and optional temporal chroma repair",
+        "pipelineVersion": "rife-v4.6-rgba-v7-explicit-magenta-gate",
+        "mode": "one-shot",
+        "loopStartSourceIndex": null,
+        "sourceFrameCount": 26,
+        "outputFrameCount": 51,
+        "frameWidth": 896,
+        "frameHeight": 640,
+        "cols": 8,
+        "rows": 7,
+        "sourceFrameRate": 8.0,
+        "outputFrameRate": 16.0,
+        "durationPreserved": true,
+        "middleFrameBottomAlignment": false,
+        "middleFrameBlueSpillRepair": false,
+        "blueSpillThreshold": null,
+        "blueSpillPixelsRepaired": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+        "validation": {
+          "emptyFrames": [],
+          "touchingFrames": [],
+          "alphaBottomMin": 551,
+          "alphaBottomMax": 558,
+          "middleFrameFootShifts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleDarkPixelsRepaired": [
+            0,
+            0,
+            55,
+            97,
+            8,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameVisibleRedPixelsRepaired": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "middleFrameHeldSourceKeyFallbacks": [],
+          "visibleDarkOutlierFrames": {},
+          "visibleRedOutlierFrames": {},
+          "visibleBlueSpillFrames": {},
+          "visibleCyanSpillFrames": {},
+          "originalKeyFramesPreservedAtEvenIndices": true,
+          "nonzeroRgbInTransparentPixels": 0,
+          "adjacentDeltaMeanBefore": 15.197101383209228,
+          "adjacentDeltaMeanAfter": 9.317435094118117
+        }
+      }
+    }
+  }
+}

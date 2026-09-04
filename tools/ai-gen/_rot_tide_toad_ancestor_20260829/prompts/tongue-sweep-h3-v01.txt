@@ -1,0 +1,7 @@
+One original giant swamp toad final boss matching the supplied identity reference remains fully visible in a locked right-facing side-view camera on a uniform pure white background without any floor or shadow.
+
+0.0-1.0 seconds: the toad lowers its chest, spreads and braces all four webbed feet, turns its head slightly toward screen-right, and opens its broad mouth in a clear anticipation pose.
+1.0-3.3 seconds: it performs exactly one powerful tongue sweep. One long wet muscular tongue shoots from the center of the mouth toward screen-right, reaches a clear forward extension, then the head and neck drive the attached tongue through one broad horizontal sweeping arc across the space in front of the toad. The tongue remains a single continuous organ attached to the mouth and stays fully inside the frame.
+3.3-5.17 seconds: the tongue retracts completely, the mouth closes, and the toad returns once to its original low crouch and holds.
+
+Keep the body at a stable screen scale and preserve the same four-limbed anatomy, amber eyes, paired parotoid glands, gray-yellow throat sac, mottled wet warted skin, and right-facing silhouette. The camera remains static. Only the head, torso and single tongue perform the action. The background remains flat white and shadowless, with no particles or impact effects.

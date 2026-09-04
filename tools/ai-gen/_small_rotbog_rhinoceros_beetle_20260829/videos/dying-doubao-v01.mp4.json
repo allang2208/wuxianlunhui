@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_small_rotbog_rhinoceros_beetle_20260829\\references\\small-rotbog-rhinoceros-beetle-safe-blue-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_small_rotbog_rhinoceros_beetle_20260829\\prompts\\dying-doubao-v01.txt",
+  "promptChars": 1765,
+  "promptSha256": "daee73d8322bb94562486e682c1b89122e666706a52d741462f4b422a0a38dd8",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-28T23:51:11.942Z",
+  "sourceUrlScheme": "https"
+}
