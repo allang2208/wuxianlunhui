@@ -1,7 +1,6 @@
 import { findWeaponConfig } from '../../../ui/equip-data-manager.js';
 import { WEAPON_ATTACK_CONFIG, createAttackFromConfig } from '../../../config/weapon-attack-config.js';
 import { EffectFactory } from '../../../utils/effect-factory.js';
-import { WallSystem } from '../../../world/wall-system.js';
 import { isFacingLeftFrom } from './enemy-utils.js';
 
 /**
@@ -9,7 +8,7 @@ import { isFacingLeftFrom } from './enemy-utils.js';
  *
  * setupGun：给怪物装备一件枪械——实例化装备、绑定攻击配置、伤害/击退覆盖、AI 散布；
  * tryEnemyFireGun：开火一体化——枪口点计算（上移/左右偏移/防御姿态下移）、
- *   墙体回退（防子弹出生即消失）、瞄准目标矩形上方区域、临时移位出膛、
+ *   瞄准目标矩形上方区域、显式枪口出膛、
  *   枪口火焰 + 开火火光 + 弹壳。
  */
 
@@ -60,21 +59,19 @@ export function tryEnemyFireGun(host, t, entities, cfg = {}) {
     if (cfg.defendActive) {
         my += cfg.defendMuzzleDownY ?? 0;
     }
-    // 枪口点落进墙内时（贴墙站位）回退到可达点，防止子弹出生即撞墙消失
-    if (WallSystem && typeof WallSystem.resolve === 'function') {
-        const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
-        mx = resolved.x;
-        my = resolved.y;
-    }
     // 瞄准点：目标绿色矩形判定上方 25% 区域中心（aimHeightRatio 默认 0.875）
     const targetH = t.collisionHeight || t.config?.render?.collisionHeight || 60;
     const footY = t.collider ? t.collider.y : t.y;
     const aimX = t.x;
     const aimY = footY - targetH * (cfg.aimHeightRatio ?? 0.875);
-    // 子弹从枪口射出：fireProjectile 固定从 this.x/y 生成，临时移位后还原
-    host.x = mx; host.y = my;
-    const fired = host.fireProjectile(aimX, aimY, entities, { slot: cfg.slot || 'weapon' });
-    host.x = ox; host.y = oy;
+    // Combatant 已支持显式 spawnX/Y。旧实现临时改写实体脚点，并把视觉枪口当成
+    // 地面移动交给 WallSystem.resolve，贴墙时会把出膛点推离枪管；还会污染同步回调读数。
+    // 弹体工厂本身已有“嵌墙只出不进”合同，因此保持真实枪口，不再改写 host。
+    const fired = host.fireProjectile(aimX, aimY, entities, {
+        slot: cfg.slot || 'weapon',
+        spawnX: mx,
+        spawnY: my,
+    });
     if (!fired) return false;
     // 枪口火焰 + 开火火光 + 弹壳
     const angle = Math.atan2(aimY - my, aimX - mx);

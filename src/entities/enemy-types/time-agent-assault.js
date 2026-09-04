@@ -633,7 +633,8 @@ export class TimeAgentAssault extends Enemy {
 
     _tryFireGun(t, entities) {
         const skills = this._getSkillConfigs().shoot;
-        // 共享开火一体化：枪口偏移/墙体回退/瞄准上方 25%/临时移位出膛/火焰+火光+弹壳
+        // 共享开火一体化：枪口偏移/瞄准高度/显式 spawnX、spawnY 出膛/火焰+火光+弹壳。
+        // 禁止为避墙回退枪口或临时改写实体坐标，否则视觉枪口与子弹出生点会再次分离。
         tryEnemyFireGun(this, t, entities, {
             muzzleUpY: skills.muzzleUpY ?? 75,
             muzzleSideX: skills.muzzleSideX ?? 15,
