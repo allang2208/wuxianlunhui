@@ -61,6 +61,7 @@
     "collisionWidth": 72,
     "collisionHeight": 100,
     "corpseHoldMs": 1500,
+    "actionTransitionGhost": false,
     "projectileReleaseOffsetX": 175.55,
     "projectileReleaseHeight": 210.0,
     "projectileDisplaySize": 25.650000000000002,

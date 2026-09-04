@@ -5326,8 +5326,8 @@
      "max": 30,
      "reloadTime": 3000
     },
-    "muzzleUpY": 85,
-    "muzzleSideX": 65,
+    "muzzleUpY": 103,
+    "muzzleSideX": 54,
     "aimHeightRatio": 0.875
    },
    "flashbang": {
@@ -5456,11 +5456,11 @@
     "knockback": 0,
     "spreadFactor": 0.1,
     "spreadMaxAngle": 8,
-    "muzzleUpY": 85,
-    "muzzleSideX": 65,
+    "muzzleUpY": 105,
+    "muzzleSideX": 53,
     "muzzleScale": 1.2,
     "aimHeightRatio": 0.875,
-    "defendMuzzleDownY": 45
+    "defendMuzzleDownY": 8
    },
    "bash": {
     "cooldown": 10000,

@@ -110,8 +110,9 @@ export class HamsterCatapultCrewAI extends HamsterScoutAI {
         const m = this.m;
         const origin = this._origin(faceRight);
         const range = this._effectiveAttackRange();
-        const distance = Math.hypot(target.x - m.x, target.y - m.y);
-        const durationMs = Math.max(500, Math.min(1600, distance / this._projectileSpeed * 1000));
+        const initialDistance = Math.hypot(target.x - origin.x, target.y - origin.y);
+        let durationMs = Math.max(500, Math.min(1600,
+            initialDistance / this._projectileSpeed * 1000));
         let tx = target.x + (predict ? (target.vx || 0) * durationMs / 1000 : 0);
         let ty = target.y + (predict ? (target.vy || 0) * durationMs / 1000 : 0);
         const leadDistance = Math.hypot(tx - m.x, ty - m.y);
@@ -119,6 +120,10 @@ export class HamsterCatapultCrewAI extends HamsterScoutAI {
             tx = m.x + (tx - m.x) * range / leadDistance;
             ty = m.y + (ty - m.y) * range / leadDistance;
         }
+        // 预判和射程夹紧会改变实际落点；飞行时间必须按“离勺点→最终落点”重算，
+        // 不能继续使用单位脚点到旧目标的距离，否则同一石弹会出现忽快忽慢的非匀速横移。
+        durationMs = Math.max(500, Math.min(1600,
+            Math.hypot(tx - origin.x, ty - origin.y) / this._projectileSpeed * 1000));
         return { ...origin, origin, tx, ty, targetZ: Number(target.z) || 0,
             durationMs, elapsedMs: 0, arcHeight: this.cfg.arcHeight,
             wallContext: projectileWallContext(m, null, origin) };
