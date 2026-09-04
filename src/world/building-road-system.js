@@ -378,6 +378,44 @@ export const BuildingRoadSystem = {
         return restored;
     },
 
+    /**
+     * 旧快照可能同时保存同格道路与矿脉。矿脉恢复并完成合法性清理后，以资源格为准移除道路，
+     * 同步修剪自动道路 owner 的布局/预约；兼容修复不退款，也不删除整栋建筑的其他道路。
+     */
+    removeRoadCells(cells) {
+        const dirtyKeys = [];
+        for (const cell of cells || []) {
+            const i = Number(cell?.i);
+            const j = Number(cell?.j);
+            if (!Number.isInteger(i) || !Number.isInteger(j)) continue;
+            const key = cellKey(i, j);
+            const tile = this._roadTiles.get(key);
+            const hadManualRoad = this._manualRoadCells.delete(key);
+            if (!tile || tile.kind !== 'road') {
+                if (hadManualRoad) dirtyKeys.push(key);
+                continue;
+            }
+            for (const owner of Array.from(tile.owners || [])) {
+                const record = this._owners.get(owner);
+                if (record?.layout) {
+                    record.layout.roadCells = (record.layout.roadCells || [])
+                        .filter((entry) => entry.key !== key);
+                    record.layout.reservationCells = (record.layout.reservationCells || [])
+                        .filter((entry) => entry.key !== key);
+                }
+                const owners = this._cellOwners.get(key);
+                owners?.delete(owner);
+                if (owners?.size === 0) this._cellOwners.delete(key);
+                if (owner) owner._buildingRoadInfoCache = null;
+            }
+            if (tile.sprite?.active) tile.sprite.destroy();
+            this._roadTiles.delete(key);
+            dirtyKeys.push(key);
+        }
+        if (dirtyKeys.length > 0) this._markTopologyChanged(dirtyKeys);
+        return dirtyKeys.length;
+    },
+
     canAttach(entity) {
         if (!entity) return false;
         const layout = buildingRoadLayout(

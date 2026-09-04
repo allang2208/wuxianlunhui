@@ -4012,12 +4012,21 @@ export const BuildingSystem = {
         const checkedCells = includeRoadRing ? layout.reservationCells : layout.buildingCells;
         const placementIgnoreEntities = ignoreEntities || new Set(ignoreEntity ? [ignoreEntity] : []);
         const placementIgnoreSegs = ignoreSegs || new Set();
+        const producerCfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+        const allowsBuildingEnergyNodeOverlap = producerCfg?.allowsEnergyNodeOverlap === true;
         for (const cell of checkedCells) {
             const canShareManualRoad = cell.road && perimeterKind === 'road';
+            const cellProbe = this._roadCellProbe(cell);
+            const overlapsEnergyNode = hasEnergyVeinFootprintOverlap(cellProbe);
+            // 矿脉是零碰撞资源点，不会进入下方防御结构遍历，必须在格网层显式互斥。
+            // 深钻井只允许主体格压矿；任何外围道路/田地仍不得覆盖普通或高能矿脉。
+            const energyNodeCompatible = !overlapsEnergyNode
+                || (!cell.road && allowsBuildingEnergyNodeOverlap);
             const valid = !BuildingRoadSystem.isReservedCell(cell.i, cell.j, ignoreEntity)
                 && (canShareManualRoad || !BuildingRoadSystem.isManualRoadCell(cell.i, cell.j))
+                && energyNodeCompatible
                 && this._roadCellFitsBounds(cell)
-                && this._canPlaceIsoBuildingFootprint(this._roadCellProbe(cell), {
+                && this._canPlaceIsoBuildingFootprint(cellProbe, {
                     centerSampleRadius: 4,
                     edgeSampleRadius: 0,
                     ignoreEntities: placementIgnoreEntities,
@@ -4155,6 +4164,9 @@ export const BuildingSystem = {
         if (this._violatesPlacementUnitRules(item, x, y)) return false;
         const [i, j] = this._blockCellOf(x, y);
         if (!BuildingRoadSystem.canPlaceManualRoadCell(i, j)) return false;
+        const [roadX, roadY] = this._blockCellCenter(i, j);
+        const roadProbe = this._roadCellProbe({ x: roadX, y: roadY });
+        if (hasEnergyVeinFootprintOverlap(roadProbe)) return false;
         // 方块墙的面线穿过格心；道路与墙相邻时，单格菱形的边中点会恰落在该面线上。
         // 道路本身没有碰撞，故仅忽略方块墙的线段阻挡。墙的 iso footprint 仍参与下方
         // _canPlaceIsoBuildingFootprint 的实体重叠检查，保证不能把道路铺到墙所在格。
@@ -4162,7 +4174,7 @@ export const BuildingSystem = {
         for (const e of Game.entities.values()) {
             if (e?.active && e._isBlockCover && e._coverSeg) ignoreSegs.add(e._coverSeg);
         }
-        return this._canPlaceIsoBuildingFootprint(this._roadCellProbe({ x, y }), {
+        return this._canPlaceIsoBuildingFootprint(roadProbe, {
             ignoreSegs,
             centerSampleRadius: 4,
             edgeSampleRadius: 0,

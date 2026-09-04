@@ -1573,6 +1573,14 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             EnergyNodeSystem.sweepStacked();
         }
     }
+    // 兼容旧档：历史版本允许手铺/建筑外围道路与零碰撞矿脉同格。
+    // 必须等存档矿点覆盖初始布局并完成合法性清理后，才按最终存活矿脉删除冲突道路。
+    BuildingRoadSystem.removeRoadCells?.((EnergyNodeSystem?.nodes || [])
+        .filter((node) => node?.active !== false && !node._depleted && Number(node.hp) > 0)
+        .map((node) => {
+            const [i, j] = blockCellOf(node.x, node.y);
+            return { i, j };
+        }));
 
     // 研究 HP 对新建结构兜底刷新（构造时已各自 applyResearchHp，这里防漏）
     if (ResearchSystem && typeof ResearchSystem.refreshWorld === 'function') {

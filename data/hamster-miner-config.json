@@ -32,7 +32,7 @@
     "attackRange": 48,
     "attackInterval": 2000,
     "attackDamage": 100,
-    "energyGatherRatio": 0.125,
+    "energyGatherRatio": 1.0,
     "expectedCritChance": 0.07,
     "backpackCapacity": 300,
     "decisionMs": 120,
