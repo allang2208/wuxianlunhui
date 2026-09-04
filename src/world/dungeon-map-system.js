@@ -105,6 +105,7 @@ export const DungeonMapSystem = {
     _observerSuspended: false,
     _observerHiddenUi: null,
     _mapAnimT: 0, // 地图动画时钟（ms 累计：流动虚线/呼吸环/脉冲）
+    _pendingRouteRevealPulse: null,
 
     // 地图缩放范围与初始倍数（路线栏的全图/聚焦操作共用，勿再散落硬编码）
     MIN_MAP_SCALE: 0.3,
@@ -403,6 +404,7 @@ export const DungeonMapSystem = {
         setCurrentDungeonType(null);
         this.nodes = [];
         this.edges = [];
+        this._pendingRouteRevealPulse = null;
         this._expeditionLayoutCache = null;
         this._activeLandmarkBackgroundPath = null;
         this._activeExplorationBackgroundPath = null;
@@ -671,6 +673,24 @@ export const DungeonMapSystem = {
 
     getCurrentNode() {
         return this.nodes.find(n => n.id === this.currentNodeId);
+    },
+
+    /** 事件线索真正写入迷雾状态，并把一次性扩散表现交给路线界面消费。 */
+    revealRouteClues(nodeIds, { originId = this.currentNodeId } = {}) {
+        if (!this.fogOfWar || !Array.isArray(nodeIds)) return [];
+        const validIds = nodeIds.filter((id, index) => this.nodes.some(node => node.id === id)
+            && nodeIds.indexOf(id) === index && id !== originId);
+        const newlyRevealed = validIds.filter(id =>
+            this.fogOfWar.getNodeVisibility(id) === 'hidden');
+        for (const id of validIds) this.fogOfWar.revealedNodeIds.add(id);
+        if (newlyRevealed.length) {
+            this._pendingRouteRevealPulse = {
+                originId,
+                routeNodeIds: validIds,
+                targetNodeIds: newlyRevealed,
+            };
+        }
+        return newlyRevealed;
     },
 
     getAvailableNodes() {

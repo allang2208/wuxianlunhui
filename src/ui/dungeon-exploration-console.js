@@ -507,6 +507,7 @@ export class DungeonExplorationConsole {
             this.currentId = system.currentNodeId;
             this.selectedId = system.currentNodeId;
         }
+        this.startPendingRevealPulse();
         this.available = new Set(system.getAvailableNodes().map(node => node.id));
         this.syncZoomControls();
         this.$('#dungeonRouteHeaderProgress').textContent = `探索进度 ${system.visitedNodeIds.size} / ${system.nodes.length}`;
@@ -576,9 +577,141 @@ export class DungeonExplorationConsole {
             button.classList.toggle('is-available', this.available.has(node.id));
             button.classList.toggle('is-unknown', !detail.revealed);
             button.classList.toggle('is-complete', !!node.completed);
+            button.classList.toggle('is-clue-revealed', !!this.revealPulse?.targetNodeIds.has(node.id));
             button.querySelector('.dxc-node-label').textContent = node.id === this.system.currentNodeId
                 ? '当前位置' : this.available.has(node.id) ? (node.id === this.selectedId ? '已选择 · 可前往' : '可前往') : node.completed ? '已完成' : '';
         }
+    }
+
+    startPendingRevealPulse() {
+        const pending = this.system._pendingRouteRevealPulse;
+        if (!pending || this.system.state !== 'map') return;
+        this.system._pendingRouteRevealPulse = null;
+        const layout = this.system._getExpeditionLayout();
+        const targets = new Set(pending.targetNodeIds || []);
+        const adjacency = new Map();
+        for (const edge of this.system.edges) {
+            if (!adjacency.has(edge.from)) adjacency.set(edge.from, []);
+            if (!adjacency.has(edge.to)) adjacency.set(edge.to, []);
+            adjacency.get(edge.from).push(edge.to);
+            adjacency.get(edge.to).push(edge.from);
+        }
+        const parents = new Map([[pending.originId, null]]);
+        const queue = [pending.originId];
+        while (queue.length) {
+            const id = queue.shift();
+            for (const next of adjacency.get(id) || []) {
+                if (parents.has(next)) continue;
+                parents.set(next, id);
+                queue.push(next);
+            }
+        }
+        const paths = [];
+        for (const targetId of targets) {
+            if (!parents.has(targetId)) continue;
+            const ids = [];
+            for (let cursor = targetId; cursor != null; cursor = parents.get(cursor)) ids.push(cursor);
+            ids.reverse();
+            const points = [];
+            for (let index = 1; index < ids.length; index++) {
+                const fromId = ids[index - 1], toId = ids[index];
+                const edgeKey = [fromId, toId].sort().join('::');
+                let segment = (layout.edgePaths.get(edgeKey) || []).map(point => ({ ...point }));
+                const from = layout.points.get(fromId);
+                if (segment.length && from
+                    && Math.hypot(segment[segment.length - 1].x - from.x,
+                        segment[segment.length - 1].y - from.y)
+                    < Math.hypot(segment[0].x - from.x, segment[0].y - from.y)) {
+                    segment = segment.reverse();
+                }
+                if (points.length && segment.length) segment.shift();
+                points.push(...segment);
+            }
+            let length = 0;
+            for (let index = 1; index < points.length; index++) {
+                length += Math.hypot(points[index].x - points[index - 1].x,
+                    points[index].y - points[index - 1].y);
+            }
+            if (points.length > 1 && length > 0) paths.push({ targetId, points, length });
+        }
+        if (!paths.length) return;
+        const reduceMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+        this.revealPulse = {
+            paths,
+            targetNodeIds: targets,
+            maxLength: Math.max(...paths.map(path => path.length)),
+            startedAt: performance.now(),
+            durationMs: reduceMotion ? 1 : 1450,
+        };
+        this.drawKey = null;
+    }
+
+    drawRevealPulse(ctx, screen, now) {
+        const pulse = this.revealPulse;
+        if (!pulse) return false;
+        const elapsed = now - pulse.startedAt;
+        const progress = Math.max(0, Math.min(1, elapsed / pulse.durationMs));
+        const travel = pulse.maxLength * (1 - Math.pow(1 - progress, 2));
+        const tracePartial = (points, distance) => {
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            let remaining = distance;
+            let head = points[0];
+            for (let index = 1; index < points.length && remaining > 0; index++) {
+                const a = points[index - 1], b = points[index];
+                const length = Math.hypot(b.x - a.x, b.y - a.y);
+                const amount = Math.min(length, remaining);
+                const ratio = length > 0 ? amount / length : 0;
+                head = { x: a.x + (b.x - a.x) * ratio, y: a.y + (b.y - a.y) * ratio };
+                ctx.lineTo(head.x, head.y);
+                remaining -= amount;
+            }
+            return head;
+        };
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        for (const path of pulse.paths) {
+            const points = path.points.map(screen);
+            const scaledTravel = travel * this.system.mapScale;
+            const head = tracePartial(points, scaledTravel);
+            ctx.strokeStyle = 'rgba(75, 210, 235, 0.28)';
+            ctx.lineWidth = 8;
+            ctx.shadowColor = 'rgba(113, 235, 255, 0.95)';
+            ctx.shadowBlur = 14;
+            ctx.stroke();
+            tracePartial(points, scaledTravel);
+            ctx.strokeStyle = 'rgba(239, 252, 255, 0.94)';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 5;
+            ctx.stroke();
+            if (scaledTravel < path.length * this.system.mapScale) {
+                ctx.beginPath();
+                ctx.fillStyle = '#fff7cf';
+                ctx.shadowColor = '#74eaff';
+                ctx.shadowBlur = 16;
+                ctx.arc(head.x, head.y, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                const end = points[points.length - 1];
+                const ringProgress = Math.min(1,
+                    (scaledTravel - path.length * this.system.mapScale + 1) / 90);
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(142, 238, 255, ${0.8 * (1 - ringProgress)})`;
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 10;
+                ctx.arc(end.x, end.y, 25 + ringProgress * 24, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+        if (progress >= 1) {
+            for (const button of this.nodeButtons.values()) button.classList.remove('is-clue-revealed');
+            this.revealPulse = null;
+            this.drawKey = null;
+            return false;
+        }
+        return true;
     }
 
     render() {
@@ -591,8 +724,12 @@ export class DungeonExplorationConsole {
         }
         if (!this.view) return;
         const system = this.system, view = this.view;
+        const pulseFrame = this.revealPulse
+            ? Math.floor((now - this.revealPulse.startedAt) / 16)
+            : -1;
         const key = [system.mapOffsetX, system.mapOffsetY, system.mapScale, this.selectedId,
-            this.invasion.triggered, this.invasion.agentNodeId, view.left, view.top, view.width, view.height].join('|');
+            this.invasion.triggered, this.invasion.agentNodeId, view.left, view.top, view.width, view.height,
+            pulseFrame].join('|');
         if (key === this.drawKey) return;
         this.drawKey = key;
         const layout = system._getExpeditionLayout();
@@ -629,6 +766,7 @@ export class DungeonExplorationConsole {
             ctx.globalAlpha = 1;
         }
         ctx.setLineDash([]);
+        const revealActive = this.drawRevealPulse(ctx, screen, now);
         const nodeScale = Math.min(1, system.mapScale / 0.8);
         const radius = (this.nodeLayer.firstElementChild?.offsetWidth || 48) * nodeScale / 2;
         let offscreenChoices = 0;
@@ -644,7 +782,9 @@ export class DungeonExplorationConsole {
             button.querySelector('.dxc-agent').hidden = !(this.invasion.triggered && this.invasion.agentNodeId === id);
         }
         // 仍保留真实完整路线；有限窗口放不下分岔时明确告知，不让消失的徽记冒充断路。
-        const hint = offscreenChoices
+        const hint = revealActive
+            ? '线索脉冲正在从当前位置沿路线扩散'
+            : offscreenChoices
             ? `${offscreenChoices} 处可前往房间在视野外，可从上方列表定位`
             : system.mapScale < 0.6 ? '全图概览 · 点击“当前位置”恢复可读视角'
                 : '单击房间查看档案 · 拖动或滚轮平移';
@@ -668,6 +808,7 @@ export class DungeonExplorationConsole {
     }
 
     destroy() {
+        this.revealPulse = null;
         this.setMenuOpen(false);
         if (this.sideMenu) {
             this.sideMenu.removeEventListener('click', this.onMenuClick);

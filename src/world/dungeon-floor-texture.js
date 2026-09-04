@@ -382,7 +382,6 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
                 if (rand() >= density) continue;
                 const px = (column + jitterMin + rand() * (jitterMax - jitterMin)) * cellSize;
                 const py = (row + jitterMin + rand() * (jitterMax - jitterMin)) * cellSize;
-                if (diamond && _floorRegionEdgeDistance(px, py, diamond) < edgeInset) continue;
                 if (_decoClearZones.length && _inDecoClearZone(px, py)) continue;
                 const asset = _weightedAsset(assets, rand());
                 if (!asset) continue;
@@ -390,6 +389,15 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
                 const height = Math.max(1, (Number(asset.size) || 100) * jitter);
                 const width = asset.img.width * (height / asset.img.height);
                 const originY = Math.max(0, Math.min(1, Number(asset.originY) || 0.5));
+                // 不只检查锚点：以整张小物的保守外接圆内缩房间边界，任何像素都不能
+                // 越到房间外的黑色背景或狭窄通道中。
+                const safetyInset = Math.max(
+                    edgeInset,
+                    width / 2,
+                    height * originY,
+                    height * (1 - originY)
+                );
+                if (diamond && _floorRegionEdgeDistance(px, py, diamond) < safetyInset) continue;
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, Math.min(1, Number(asset.alpha) || 1));
                 ctx.translate(px - ox, py - oy);
@@ -409,9 +417,9 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
     const minDist = deco.minDist ?? 120;
     // deco.seed 由场景入场时生成：同一次入场的分块重烘焙稳定复现，重新进入场景才换布局。
     const rand = _seededRand(((ox * 73856093) ^ (oy * 19349663) ^ entrySeed) >>> 0);
-    const inDiamond = (gx, gy) => {
+    const inDiamond = (gx, gy, safetyInset = 24) => {
         if (!diamond) return true;
-        return _floorRegionEdgeDistance(gx, gy, diamond) >= 24;
+        return _floorRegionEdgeDistance(gx, gy, diamond) >= safetyInset;
     };
     const placed = [];
     let guard = 0;
@@ -421,21 +429,24 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
         const px = pad + rand() * (cw - pad * 2);
         const py = pad + rand() * (ch - pad * 2);
         if (px < pad || px > cw - pad || py < pad || py > ch - pad) continue;
-        if (!inDiamond(ox + px, oy + py)) continue;
+        const asset = _weightedAsset(assets, rand());
+        if (!asset) continue;
+        const img = asset.img;
+        const jitter = 0.85 + rand() * 0.3;
+        const h = size * jitter;
+        const w = img.width * (h / img.height);
+        const originY = Math.max(0, Math.min(1, Number(asset.originY) || 0.5));
+        const safetyInset = Math.max(24, w / 2, h * originY, h * (1 - originY));
+        if (!inDiamond(ox + px, oy + py, safetyInset)) continue;
         if (placed.some((q) => Math.hypot(q[0] - px, q[1] - py) < minDist)) continue;
         // 建筑建造清除区：草/装饰不画在已建建筑上（2026-08-17；不消耗 rand，
         // 其余草位置与清除前一致，重烘焙跨块无缝）
         if (_decoClearZones.length && _inDecoClearZone(ox + px, oy + py)) continue;
         placed.push([px, py]);
-        const asset = _weightedAsset(assets, rand());
-        const img = asset.img;
-        const jitter = 0.85 + rand() * 0.3;
-        const h = size * jitter;
-        const w = img.width * (h / img.height);
         ctx.save();
         ctx.translate(px, py);
         if (rand() < 0.5) ctx.scale(-1, 1);
-        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        ctx.drawImage(img, -w / 2, -h * originY, w, h);
         ctx.restore();
     }
 }

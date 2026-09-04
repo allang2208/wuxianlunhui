@@ -690,9 +690,15 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
 
         // 探查巡逻：显示相邻节点及其再下一层节点的内容
         if (choice.id === 'inspect' && dungeonMapSystem) {
-            const revealedInfo = getRevealedNodeInfo(dungeonMapSystem);
-            if (revealedInfo) {
-                text += `\n\n${choice.revealNodes?.description || '你还发现了周围道路的线索：'}\n${revealedInfo}`;
+            const reveal = getRevealedNodeInfo(
+                dungeonMapSystem,
+                choice.revealNodes?.depth ?? choice.revealDepth ?? config.inspectRevealDepth ?? 2
+            );
+            if (reveal) {
+                dungeonMapSystem.revealRouteClues?.(reveal.nodeIds, {
+                    originId: dungeonMapSystem.currentNodeId,
+                });
+                text += `\n\n${choice.revealNodes?.description || '你还发现了周围道路的线索：'}\n${reveal.text}`;
             }
         }
 
@@ -728,9 +734,9 @@ function handleSupplyPile(player, choiceId, dungeonMapSystem) {
  * 获取探查巡逻揭示的节点信息
  * 显示相邻前后左右节点及其再之后两个节点的内容
  * @param {Object} dungeonMapSystem - 地牢地图系统实例
- * @returns {string|null} 节点信息文本
+ * @returns {{ text: string, nodeIds: string[] }|null} 节点信息与被揭示节点
  */
-function getRevealedNodeInfo(dungeonMapSystem) {
+function getRevealedNodeInfo(dungeonMapSystem, revealDepth = 2) {
     if (!dungeonMapSystem || !dungeonMapSystem.nodes || !dungeonMapSystem.edges || !dungeonMapSystem.currentNodeId) {
         return null;
     }
@@ -738,36 +744,30 @@ function getRevealedNodeInfo(dungeonMapSystem) {
     const currentNode = dungeonMapSystem.nodes.find(n => n.id === dungeonMapSystem.currentNodeId);
     if (!currentNode) return null;
 
-    // 获取相邻节点（直接连接的节点）
-    const adjacentIds = new Set();
-    const adjacentEdges = dungeonMapSystem.edges.filter(e => e.from === currentNode.id || e.to === currentNode.id);
-    for (const edge of adjacentEdges) {
-        const adjacentId = edge.from === currentNode.id ? edge.to : edge.from;
-        adjacentIds.add(adjacentId);
-    }
-
-    // 获取再下一层节点（相邻节点的相邻节点，排除当前节点和已访问的）
-    const secondLayerIds = new Set();
-    for (const adjId of adjacentIds) {
-        const adjNode = dungeonMapSystem.nodes.find(n => n.id === adjId);
-        if (!adjNode) continue;
-
-        const deeperEdges = dungeonMapSystem.edges.filter(e => e.from === adjId || e.to === adjId);
-        for (const edge of deeperEdges) {
-            const deeperId = edge.from === adjId ? edge.to : edge.from;
-            // 排除当前节点和第一层相邻节点
-            if (deeperId !== currentNode.id && !adjacentIds.has(deeperId)) {
-                secondLayerIds.add(deeperId);
-            }
+    const maxDepth = Math.max(1, Math.min(4, Math.floor(Number(revealDepth) || 2)));
+    const buckets = Array.from({ length: maxDepth + 1 }, () => []);
+    const seen = new Set([currentNode.id]);
+    const queue = [{ id: currentNode.id, depth: 0 }];
+    while (queue.length) {
+        const current = queue.shift();
+        if (current.depth >= maxDepth) continue;
+        const adjacentEdges = dungeonMapSystem.edges.filter(edge =>
+            edge.from === current.id || edge.to === current.id);
+        for (const edge of adjacentEdges) {
+            const nextId = edge.from === current.id ? edge.to : edge.from;
+            if (seen.has(nextId)) continue;
+            seen.add(nextId);
+            const depth = current.depth + 1;
+            buckets[depth].push(nextId);
+            queue.push({ id: nextId, depth });
         }
     }
 
     // 限制最多显示6个节点（4个相邻 + 2个再下一层）
-    const allRevealedIds = [...adjacentIds].slice(0, 4);
+    const allRevealedIds = buckets[1].slice(0, 4);
     const remainingSlots = 6 - allRevealedIds.length;
     if (remainingSlots > 0) {
-        const secondLayerArray = [...secondLayerIds].slice(0, remainingSlots);
-        allRevealedIds.push(...secondLayerArray);
+        allRevealedIds.push(...buckets.slice(2).flat().slice(0, remainingSlots));
     }
 
     // 生成节点信息文本
@@ -789,7 +789,7 @@ function getRevealedNodeInfo(dungeonMapSystem) {
     }
 
     if (lines.length === 0) return null;
-    return lines.join('\n');
+    return { text: lines.join('\n'), nodeIds: allRevealedIds };
 }
 
 /**

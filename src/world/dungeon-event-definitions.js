@@ -1892,6 +1892,15 @@ function _revealNodesByDepth(dungeonMapSystem, depth) {
         frontier = nextFrontier;
     }
 
+    // visit() 还会揭示每个目标节点的相邻房间。先按旧规则算出最终可见集合并排队脉冲，
+    // 再执行原 visit 写入，既覆盖全部新事件的 revealNodes，也不改变既有揭示范围/状态。
+    const revealIds = new Set(visited);
+    for (const edge of dungeonMapSystem.edges) {
+        if (visited.has(edge.from)) revealIds.add(edge.to);
+        if (visited.has(edge.to)) revealIds.add(edge.from);
+    }
+    dungeonMapSystem.revealRouteClues?.([...revealIds], { originId: current });
+
     for (const nodeId of visited) {
         if (nodeId === current) continue;
         dungeonMapSystem.fogOfWar.visit(nodeId, dungeonMapSystem.nodes, dungeonMapSystem.edges);
