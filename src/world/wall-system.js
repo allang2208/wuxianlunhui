@@ -80,6 +80,13 @@ const ISO_WALL_GEO = {
     orepile: { tex: 'obstacle_orepile', w: 512, h: 397, category: 'obstacle', foot: { w: 400, d: 120 }, obstacleH: 119, editor: '铁矿堆' },
     sandbag: { tex: 'obstacle_sandbag', w: 1224, h: 974, category: 'obstacle', foot: { w: 1100, d: 250 }, obstacleH: 140, editor: '沙袋' },
     barricade: { tex: 'obstacle_barricade', w: 1086, h: 1099, category: 'obstacle', foot: { w: 980, d: 160 }, obstacleH: 140, editor: '木制拒马' },
+    // World-126 废弃矿洞路径障碍：V2 白模锁 30° 正交视角/44.8° 模型根，Klein 仅做低重绘材质；
+    // w/h 为 BiRefNet 真透明紧裁尺寸，foot 取接地带实测并按 displayH 等比映射到碰撞矩形。
+    mine_collapsed_support: { tex: 'abandoned_mine_obstacle_collapsed_support', w: 345, h: 525, category: 'obstacle', foot: { w: 313, d: 121 }, obstacleH: 252, editor: '矿洞障碍·坍塌木支护' },
+    mine_derailed_cart: { tex: 'abandoned_mine_obstacle_derailed_cart', w: 458, h: 450, category: 'obstacle', foot: { w: 386, d: 132 }, obstacleH: 205, editor: '矿洞障碍·脱轨满载矿车' },
+    mine_stone_pillar: { tex: 'abandoned_mine_obstacle_stone_pillar', w: 294, h: 444, category: 'obstacle', foot: { w: 266, d: 112 }, obstacleH: 246, editor: '矿洞障碍·天然岩柱簇' },
+    mine_hand_winch: { tex: 'abandoned_mine_obstacle_hand_winch', w: 447, h: 460, category: 'obstacle', foot: { w: 353, d: 133 }, obstacleH: 215, editor: '矿洞障碍·手摇卷扬机' },
+    mine_sorting_hopper: { tex: 'abandoned_mine_obstacle_sorting_hopper', w: 402, h: 517, category: 'obstacle', foot: { w: 354, d: 148 }, obstacleH: 245, editor: '矿洞障碍·矿石分选料斗' },
     // 世界-122 掩体（F→A 六档 × 水平摆(_h)/垂直摆(_v)，2026-08-04 dev+mesh 生图入库；
     // foot=底部 15% 带实测，obstacleH=默认显示高度（掩体≈260 宽等比、塔=262））
     cover_F_h: { tex: 'obstacle_cover_F_h', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·F级·水平' },

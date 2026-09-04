@@ -36,5 +36,21 @@
       {"key": "abandoned_mine_prop_minecart_wheel", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_minecart_wheel.png", "weight": 0.48, "size": 275.692, "originY": 0.875},
       {"key": "abandoned_mine_prop_ore_sack", "src": "assets/terrain/abandoned-mine-props/abandoned_mine_prop_ore_sack.png", "weight": 0.42, "size": 327.111, "originY": 0.875}
     ]
+  },
+  "obstacles": {
+    "count": 50,
+    "edgeInset": 220,
+    "playerExclusion": 520,
+    "portalExclusion": 440,
+    "minDist": 360,
+    "footprintGap": 56,
+    "maxAttemptsPerObstacle": 90,
+    "assets": [
+      { "key": "abandoned_mine_obstacle_collapsed_support", "src": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_collapsed_support_cutout.png", "displayH": 252, "weight": 1, "authoredFootprint": [2.7, 1.55] },
+      { "key": "abandoned_mine_obstacle_derailed_cart", "src": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_derailed_cart_cutout.png", "displayH": 205, "weight": 1, "authoredFootprint": [3.15, 1.55] },
+      { "key": "abandoned_mine_obstacle_stone_pillar", "src": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_stone_pillar_cutout.png", "displayH": 246, "weight": 1, "authoredFootprint": [1.9, 1.65] },
+      { "key": "abandoned_mine_obstacle_hand_winch", "src": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_hand_winch_cutout.png", "displayH": 215, "weight": 1, "authoredFootprint": [2.6, 1.65] },
+      { "key": "abandoned_mine_obstacle_sorting_hopper", "src": "assets/terrain/abandoned-mine-obstacles/mine_obstacle_sorting_hopper_cutout.png", "displayH": 245, "weight": 1, "authoredFootprint": [2.35, 1.85] }
+    ]
   }
 }

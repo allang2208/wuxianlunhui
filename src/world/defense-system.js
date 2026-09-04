@@ -4117,7 +4117,7 @@ export const DefenseSystem = {
         this.staircases = [];
         this.base = options.targetEntity || null;
         if (this._managedExternally) {
-            // scene8~scene11 共用“世界模式”献祭 Buff；离开常驻世界后由 teardown 停用。
+            // scene8~scene12 共用“世界模式”献祭 Buff；离开常驻世界后由 teardown 停用。
             World122TributeSystem.setup(player);
             return;
         }

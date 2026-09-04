@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "enabledScenes": ["scene8", "scene9", "scene10", "scene11"],
+  "enabledScenes": ["scene8", "scene9", "scene10", "scene11", "scene12"],
   "cellSize": 128,
   "updateIntervalMs": 100,
   "visibilitySyncIntervalMs": 100,

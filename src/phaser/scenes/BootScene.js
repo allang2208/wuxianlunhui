@@ -223,6 +223,12 @@ export class BootScene extends Scene {
             loadedAbandonedMineDeco.add(asset.key);
             this.load.image(asset.key, asset.src);
         }
+        const loadedAbandonedMineObstacles = new Set();
+        for (const asset of abandonedMineTerrainConfig.obstacles?.assets || []) {
+            if (!asset?.key || !asset?.src || loadedAbandonedMineObstacles.has(asset.key)) continue;
+            loadedAbandonedMineObstacles.add(asset.key);
+            this.load.image(asset.key, asset.src);
+        }
         const desertDetailLayer = desertTerrainConfig.detailLayer || {};
         if (desertDetailLayer.key && desertDetailLayer.src) {
             this.load.spritesheet(desertDetailLayer.key, desertDetailLayer.src, {

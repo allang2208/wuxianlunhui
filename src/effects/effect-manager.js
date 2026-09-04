@@ -34,7 +34,7 @@ const CAMERA_SWEEP_LOOK_AHEAD_MS = Math.max(
 );
 const EMPTY_COSMETIC_BUDGET = Object.freeze({ maxPerFrame: 0, maxActive: 0 });
 const COSMETIC_PROFILE_NAMES = Object.freeze(['default', 'dungeon', 'plane']);
-const PLANE_SCENE_IDS = Object.freeze(new Set(['scene8', 'scene9', 'scene10', 'scene11']));
+const PLANE_SCENE_IDS = Object.freeze(new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']));
 const COSMETIC_BUDGET_PROFILES = Object.freeze(Object.fromEntries(
     COSMETIC_PROFILE_NAMES.map((profileName) => {
         const rawProfile = COSMETIC_PROFILE_CONFIG[profileName] || {};

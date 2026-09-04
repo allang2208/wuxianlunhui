@@ -5179,7 +5179,7 @@ if (typeof window !== 'undefined') {
         if (e.code !== 'KeyB') return;
         if (!Game || !Game.isRunning || !Game.player) return;
         if (Game._wallEditMode || Game._collisionEditMode) return;
-        if (!SceneManager || !['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)) return;
+        if (!SceneManager || !['scene8', 'scene9', 'scene10', 'scene11', 'scene12'].includes(SceneManager.currentScene)) return;
         if (UIState && Object.values(UIState._state).some(Boolean)) return; // 其他面板打开时不抢键
         e.preventDefault();
         BuildingSystem.toggle();

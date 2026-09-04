@@ -84,7 +84,8 @@
     "scene8": "assets/sounds/music/旷野慢风.mp3",
     "scene9": "assets/sounds/music/雪原回声.mp3",
     "frozenDungeon": "assets/sounds/music/雪原回声.mp3",
-    "scene11": "assets/sounds/music/幽洞回声.wav"
+    "scene11": "assets/sounds/music/幽洞回声.wav",
+    "scene12": "assets/sounds/music/幽洞回声.wav"
   },
   "dungeonBgm": {
     "comment": "scene7 地牢子类型 → bgm 键；未列出的地牢继续回退到 bgm.scene7",

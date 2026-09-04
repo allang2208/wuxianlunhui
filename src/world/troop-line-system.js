@@ -22,7 +22,7 @@ const MILITARY_KINDS = new Set([
     'jungle_priest',
     'desert_priest',
 ]);
-const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']);
 const PORTAL_ARRIVE_DISTANCE = 82;
 const RALLY_ARRIVE_DISTANCE = 58;
 const UNIT_RADIUS = 24;

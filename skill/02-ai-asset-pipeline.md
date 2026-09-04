@@ -276,6 +276,8 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 本类障碍物若首轮候选由写实漂移成卡通、手绘或塑料质感，应停止沿用该候选作为下一阶段 init，回到获批的带材质 Blender 渲染和对应 Body Depth。2026-08-29 任务在玩家逐项确认后采用显式 Klein 例外：`flux2-klein-4b-depth`、48步、Depth 0.82、`denoise=0.30`，直接从 V2 `*_textured_init_green.png` 低重绘，每件只保留获批 V01；它不改变项目全局 Dev 默认路由。禁止把 Dev/12步或已卡通化中间稿串进此链，因为更多步数只会精修既有风格偏差。候选阶段只证明模型/材质方向，仍标记 `candidate-only; not promoted`；真透明、底边紧裁、运行时 footprint/collider 与地牢接线必须在玩家批准入库后另行完成。归档保留 `.blend`、模型预览、Body Depth、带材质 init、获批 raw、提示词/生成元数据、manifest 与最终总览，未选 seed、A/B 对照、联系表、`.blend1` 和可再生中间物移出仓库或做可恢复清理。
 
+批准入库后，获批 raw 统一经 `finalize-isometric-obstacle-imagegen.py` 做 BiRefNet 真透明和紧裁；绿幕源若在不透明轮廓残留绿色污染，显式加 `--despill-green`，只处理中性边缘带，禁止全图改色。随后按紧裁真实 `w/h` 登记 `ISO_WALL_GEO`，以 `displayH/geo.h` 等比换算接地带 footprint；运行时锚点要从 footprint 中心反推贴图中心，`depth = obstacleFootprintDepthOf(piece)` 且 `depthManual=true`。正式元数据至少保留 accepted raw、cutout 路径、源尺寸、显示高、源 footprint、世界 footprint 与深度规则，避免后续换图只改贴图不改碰撞。
+
 **复合运动建筑的人工主体回灌合同**：玩家交回已修正主体时，该 RGBA 文件立即成为主体唯一真源；只允许清零透明像素 RGB、按 Alpha 紧裁和等比缩放，禁止再次绿幕抠图、修补或生成式重绘。正式资产必须拆成静态主体、独立运动层 spritesheet 和静态面板图，分别保存来源、裁剪框、显示尺寸、脚点、源轴心、偏移、帧数与帧率；运行时合成图只作为预览，不能反向覆盖主体。入库脚本应显式要求该人工主体存在，不再保留已作废的自动去部件/inpaint 回退；定稿瘦身保留人工主体、叶轮源帧、接受的结构/精修源、模型/Depth、最终预览和元数据，未选 seed、inpaint 蒙版/提示/结果、联系表、可再生中间层和 `.blend1` 应移出仓库或可恢复清理。
 
 **复合运动建筑的整图候选拆层合同（风力电站）**：玩家确认的整图候选只负责面板图和材质身份，不能直接覆盖场景主体。必须用 Blender 中独立命名的叶轮枢轴与几何蒙版从整图生成无叶轮静态主体，并把同一接受 raw 投影回叶片几何，按原 `sourceHub` 重渲完整 24 帧；运行时 `offsetX/offsetY` 必须由新主体紧裁框与源轴心重新计算，不能沿用旧贴图常数。去叶轮时若 authored mask 只覆盖叶片核心而留下固定残影，应扩大叶轮安全区或在枢轴上方使用受限圆形清除区，再以旧的已接受无叶轮主体仅填补该小区域；不得抹除屋顶、塔架或把整栋旧主体回灌。交付前至少查看静态 body（不得残留任何固定叶片）、四相位合成图和可直接播放的循环 GIF。

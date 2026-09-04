@@ -34,7 +34,7 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
 import { RTS_ORDER_UI, rtsOrderIcon } from './rts-command-presentation.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
-const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']);
 const QUEUED_MODES = new Set(['move', 'attack', 'attack_move', 'patrol']);
 const ORDER_HOTKEYS = GAME_CONFIG.rtsCommand?.hotkeys || {
     attack_move: 'KeyA', patrol: 'KeyP', stop: 'KeyS', hold: 'KeyH',

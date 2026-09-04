@@ -5,7 +5,7 @@ import {
 } from '../physics/iso-footprint.js';
 import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
-const SUPPORTED_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+const SUPPORTED_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']);
 
 const STYLE = Object.freeze({
     building: { fill: 0x42576b, line: 0x9fc6df, alpha: 0.28 },

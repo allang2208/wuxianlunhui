@@ -543,6 +543,29 @@
         "x": 6144,
         "y": 4096
       }
+    },
+    "scene12": {
+      "name": "世界-126·废弃矿洞",
+      "type": "instance",
+      "label": "场景十二",
+      "width": 12288,
+      "height": 8192,
+      "background": "#0b0a09",
+      "diamondFloor": {
+        "enabled": true
+      },
+      "mineObstacleScatter": {
+        "enabled": true
+      },
+      "environmentEffects": {
+        "rain": {
+          "enabled": false
+        }
+      },
+      "origin": {
+        "x": 6144,
+        "y": 4096
+      }
     }
   },
   "loot": {

@@ -160,9 +160,9 @@ const setVisualDepthIfChanged = (visual, depth, stats) => {
     return true;
 };
 
-// 世界-122~125 共用大世界尺寸与广角镜头。集中登记，避免新位面已按
+// 世界-122~126 共用大世界尺寸与广角镜头。集中登记，避免新位面已按
 // 12288×8192 构建却遗漏相机名单、仍以 1:1 放大显示。
-const ZOOMED_OUT_WORLD_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+const ZOOMED_OUT_WORLD_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11', 'scene12']);
 const COMMAND_CURSOR_STYLES = Object.freeze({
     move: 'crosshair',
     gather: 'crosshair',
