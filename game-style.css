@@ -3830,13 +3830,14 @@
 }
 
 /* ===== 地图选择界面：统一隐藏 HUD（body.map-mode 驱动，防覆盖遗漏） ===== */
+/* 探索台保留正常模式同一组经济面板/时钟，只豁免隐藏；原布局、样式与交互不变。 */
+body.map-mode:not(.dungeon-exploration-mode) .top-right-hud,
 body.map-mode :is(
   .bottom-bar,
   .top-bar,
   .controls-hint-left,
   #weaponInfo,
   .back-menu-btn,
-  .top-right-hud,
   .attack-indicator-left,
   .attack-range-toggle,
   .dev-tool-trigger,

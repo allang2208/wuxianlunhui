@@ -1,0 +1,23 @@
+{
+  "removed_duplicates": [
+    {
+      "path": "tools/ai-gen/_abandoned_mine_banners_20260830/mine-banner-01-rail-gallery.png",
+      "bytes": 2518015,
+      "retained": "assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png"
+    },
+    {
+      "path": "tools/ai-gen/_abandoned_mine_banners_20260830/mine-banner-02-broken-bridge.png",
+      "bytes": 2236713,
+      "retained": "assets/scenes/dungeon-exploration-mine/mine-banner-02-broken-bridge.png"
+    },
+    {
+      "path": "tools/ai-gen/_abandoned_mine_banners_20260830/mine-banner-03-ore-station.png",
+      "bytes": 2359912,
+      "retained": "assets/scenes/dungeon-exploration-mine/mine-banner-03-ore-station.png"
+    }
+  ],
+  "date": "2026-08-30",
+  "retained_concept_chain": "tools/ai-gen/_dungeon_console_concepts_20260830/README.md",
+  "prior_rejected_cleanup": "tools/ai-gen/_dungeon_console_concepts_20260830/cleanup-manifest.json",
+  "reason": "Remove byte-identical source copies; keep official PNG and prompts/provenance."
+}

@@ -236,6 +236,7 @@ export const DungeonMapSystem = {
     _routeNodeIconImages: null,
     _landmarkProjectionCache: null,
     _activeLandmarkBackgroundPath: null,
+    _activeExplorationBackgroundPath: null,
     _mineRouteLayoutCache: null,
     _showAllRouteEdges: false,
     _routeColorCache: null,
@@ -305,6 +306,7 @@ export const DungeonMapSystem = {
         this._expeditionLayoutCache = null;
         this._landmarkProjectionCache = null;
         this._activeLandmarkBackgroundPath = null;
+        this._activeExplorationBackgroundPath = null;
         this._mineRouteLayoutCache = null;
         this._preloadRouteNodeIcons();
         this._combatMonsters = [];
@@ -347,6 +349,7 @@ export const DungeonMapSystem = {
         loadWallPrefabs();
 
         this.generateMap();
+        this._selectExplorationBackground();
         this._selectLandmarkRouteBackground();
         this._centerRouteMap();
         this.isDragging = false;
@@ -399,6 +402,7 @@ export const DungeonMapSystem = {
         this.edges = [];
         this._expeditionLayoutCache = null;
         this._activeLandmarkBackgroundPath = null;
+        this._activeExplorationBackgroundPath = null;
         this._mineRouteLayoutCache = null;
         this._landmarkProjectionCache = null;
         this._cleanupEventUI();
@@ -483,6 +487,8 @@ export const DungeonMapSystem = {
                 this._observerHiddenUi.set(el, el.style.display);
                 el.style.display = 'none';
             });
+            // 探索台背景在无ID的stage里；通过组件一并隐藏，并释放拖动和栏目悬停状态。
+            this._explorationConsole?.setVisible(false);
             return;
         }
         if (this._observerHiddenUi) {
@@ -696,31 +702,33 @@ export const DungeonMapSystem = {
     },
 
     /**
-     * 完整背景始终等比 cover：地标模式把场景作为全屏路线承载层，旧 full-plate
-     * 仍兼容 40/60 探索底板；其余地牢继续 contain 在上方区域。
+     * 探索台在DOM内铺原图，此处只绘制冷钢底色；地标/full-plate沿用原cover，
+     * 其它布局保留各自的背景绘制规则。
      * @param {number} topH 上方背景区高度（地图区域 top 边界）
      */
     _renderBackground(ctx, viewW, viewH, topH) {
+        const exploration = this._usesExplorationConsole();
+        const colors = exploration ? this._explorationConsole?.colors : null;
+        // 探索台与主菜单消费同一冷钢底色；其它路线模式保留原黑底。
+        // 颜色在探索台创建时读取，不在逐帧背景绘制中查询DOM样式。
+        if (colors) {
+            const backdrop = ctx.createLinearGradient(0, 0, viewW, viewH);
+            backdrop.addColorStop(0, colors.backdropTop);
+            backdrop.addColorStop(0.55, colors.ink);
+            backdrop.addColorStop(1, colors.backdropBottom);
+            ctx.fillStyle = backdrop;
+        } else {
+            ctx.fillStyle = '#000000';
+        }
+        ctx.fillRect(0, 0, viewW, viewH);
+        // 探索背景由同一Grid的首行铺满，分界线就是台面上沿，没有独立空白区。
+        if (exploration) return;
         const bgPath = this._getMapBackgroundPath();
         if (!this._bgImg || this._bgImgPath !== bgPath) {
             this._bgImgPath = bgPath;
             this._bgImg = loadImage(bgPath);
         }
-        // 先铺纯黑底（图片未加载时兜底；下方地图区域也为纯黑）
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, viewW, viewH);
         const img = this._bgImg;
-        if (this._usesExplorationConsole()) {
-            // contain 完整显示母图；可用高度取实际台面顶部，不让底部阶梯被台面遮住。
-            const bannerH = this._explorationConsole?.bannerBottom ?? Math.round(viewH * 0.30);
-            if (img?.complete && img.naturalWidth > 0) {
-                const scale = Math.min(Math.max(1, viewW - 24) / img.naturalWidth,
-                    Math.max(1, bannerH - 16) / img.naturalHeight);
-                ctx.drawImage(img, (viewW - img.naturalWidth * scale) / 2,
-                    (bannerH - img.naturalHeight * scale) / 2, img.naturalWidth * scale, img.naturalHeight * scale);
-            }
-            return;
-        }
         if (this._usesSplitRouteMap()) {
             // 上方只承担环境展示：图片等比裁切，路线拖动不会移动背景。
             const view = this._getMapViewRect(viewW, viewH);
@@ -865,10 +873,24 @@ export const DungeonMapSystem = {
     /** 当前地牢的路线选择界面背景图路径（配置驱动，含兜底） */
     _getMapBackgroundPath() {
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
+        if (this._activeExplorationBackgroundPath && this._usesExplorationConsole()) {
+            return this._activeExplorationBackgroundPath;
+        }
         if (this._activeLandmarkBackgroundPath && this._usesLandmarkMap()) {
             return this._activeLandmarkBackgroundPath;
         }
         return (cfg && cfg.mapBackground) || 'assets/scenes/dungeon-map-bg.png';
+    },
+
+    /** 探索横幅每局等概率抽取一次；独立于旧地标母图，不影响路线拓扑。 */
+    _selectExplorationBackground() {
+        if (!this._usesExplorationConsole()) return;
+        const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
+        const candidates = Array.isArray(cfg?.mapExplorationBackgroundVariants)
+            ? cfg.mapExplorationBackgroundVariants.filter(path => typeof path === 'string' && path.length > 0)
+            : [];
+        if (!candidates.length) return;
+        this._activeExplorationBackgroundPath = candidates[Math.floor(Math.random() * candidates.length)];
     },
 
     /** 静态母图只在单次路线生成后选择一次；同一局往返地图不会跳图。 */
@@ -1011,13 +1033,11 @@ export const DungeonMapSystem = {
         if (!this._explorationConsole?.root.isConnected) {
             this._explorationConsole?.destroy();
             getElementIfExists('dungeonRouteTopHud')?.remove();
-            const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);
             this._explorationConsole = new DungeonExplorationConsole(this, {
                 invasion: AgentInvasionSystem,
                 describeNode: node => this._getExplorationNodeDetails(node),
                 isCurrentScene: () => SceneManager.currentScene === this.sceneId && !SceneManager.isLoading,
                 grade: DungeonConfig.getDungeonGrade(this.dungeonType) || 'F',
-                dossierImage: cfg.mapDossierImage || cfg.mapBackground || 'assets/scenes/dungeon-map-bg.png',
             });
         }
         return this._explorationConsole;
@@ -1804,6 +1824,15 @@ export const DungeonMapSystem = {
             .map(node => Number(node.col))
             .filter(Number.isFinite))]
             .sort((a, b) => a - b);
+        // 探索台是一张连续房图，不再按视口宽度拆成互相割裂的“阶段”。
+        // 旧布局仍保留分区接口；探索台的聚焦/平移始终使用全部真实节点。
+        if (this._usesExplorationConsole()) {
+            return this.nodes.length ? [{
+                index: 0, startCol: columns[0], endCol: columns[columns.length - 1],
+                columns, nodes: this.nodes,
+                visitedCount: this.nodes.filter(node => this.visitedNodeIds.has(node.id)).length,
+            }] : [];
+        }
         const profile = this._getLandmarkRouteProfile();
         if (profile?.terrainRouting) {
             const capacity = this._getMineRouteLayout().slots.length;
@@ -1901,6 +1930,7 @@ export const DungeonMapSystem = {
     },
 
     _getActiveRouteNodes() {
+        if (this._usesExplorationConsole()) return this.nodes;
         if (this.routeViewMode === 'overview') return this.nodes;
         if (this.routeViewMode !== 'focus' && !this._getLandmarkRouteProfile()?.terrainRouting) return this.nodes;
         return this._getRouteSectorNodes(this.routeSectorIndex, true);
@@ -1947,17 +1977,22 @@ export const DungeonMapSystem = {
         }
         // 钳制区域与初始定位同源（路线图显示窗口），禁止两套区域计算
         const area = this._getMapViewRect();
-        const b = this._getContentBounds();
+        const exploration = this._usesExplorationConsole();
+        // 探索态围绕真实房间钳制；绕线路径与旧80世界单位留白不再把末端按钮推离视窗。
+        const b = exploration ? this._calculateNodeBounds(this._getActiveRouteNodes()) : this._getContentBounds();
         const s = this.mapScale;
-        // 单轴钳制区间：内容覆盖区域（内容小于区域时居中）
-        const axisRange = (minV, maxV, areaStart, areaLen) => {
-            let max = areaStart - minV * s;            // 内容起边贴区域起边
-            let min = areaStart + areaLen - maxV * s;  // 内容终边贴区域终边
+        const nodeScale = Math.min(1, s / 0.8);
+        const padX = exploration ? Math.min(60 * nodeScale, area.width / 4) : 0;
+        const padY = exploration ? Math.min(56 * nodeScale, area.height / 4) : 0;
+        // 单轴钳制区间：内容覆盖区域（内容小于区域时居中），余量按屏幕像素控制。
+        const axisRange = (minV, maxV, areaStart, areaLen, padding) => {
+            let max = areaStart + padding - minV * s;
+            let min = areaStart + areaLen - padding - maxV * s;
             if (min > max) { const mid = (min + max) / 2; min = mid; max = mid; }
             return { min, max };
         };
-        const rx = axisRange(b.minX, b.maxX, area.left, area.width);
-        const ry = axisRange(b.minY, b.maxY, area.top, area.height);
+        const rx = axisRange(b.minX, b.maxX, area.left, area.width, padX);
+        const ry = axisRange(b.minY, b.maxY, area.top, area.height, padY);
         this.mapOffsetX = Math.min(rx.max, Math.max(rx.min, this.mapOffsetX));
         this.mapOffsetY = Math.min(ry.max, Math.max(ry.min, this.mapOffsetY));
     },
@@ -2031,6 +2066,22 @@ export const DungeonMapSystem = {
 
     /** 查看完整路线：只改变路线视图，不改变当前位置、迷雾或可达关系。 */
     _fitRouteMap() {
+        if (this._usesExplorationConsole()) {
+            // 总览也画同一张真实房图，只缩放镜头，不跳转区段卡片或移动玩家。
+            this.routeViewMode = 'focus';
+            this.routeSectorIndex = 0;
+            this._clearRoutePointerSelection();
+            const area = this._getMapViewRect();
+            const bounds = this._getContentBounds();
+            this.mapScale = Math.max(0.1, Math.min(1.2,
+                area.width / Math.max(1, bounds.maxX - bounds.minX),
+                area.height / Math.max(1, bounds.maxY - bounds.minY)));
+            this.mapOffsetX = area.left + area.width / 2 - (bounds.minX + bounds.maxX) / 2 * this.mapScale;
+            this.mapOffsetY = area.top + area.height / 2 - (bounds.minY + bounds.maxY) / 2 * this.mapScale;
+            this._clampMapOffset();
+            this._updateRouteControls();
+            return;
+        }
         this.routeViewMode = 'overview';
         this._clearRoutePointerSelection();
         this._updateRouteControls();
@@ -2543,6 +2594,10 @@ export const DungeonMapSystem = {
     },
 
     _enterNode(node) {
+        // 最终入口也检查当前真实邻接，不能通过过期选中项或外部调用跨房间进入。
+        if (!this.active || this.state !== 'map' || this._observerSuspended || SceneManager.isLoading
+            || SceneManager.currentScene !== this.sceneId || !node || !this.isNodeClickable(node)
+            || getElementIfExists('dungeonVictoryOverlay') || getElementIfExists('dungeonExitConfirm')) return;
         // 进入节点前隐藏地图按钮
         this._removeAbandonButton();
         this._removeRouteControls();
@@ -2595,6 +2650,26 @@ export const DungeonMapSystem = {
     _focusOnCurrentNode({ restoreDefaultZoom = false } = {}) {
         const node = this.getCurrentNode();
         if (!node) { this._centerRouteMap(); return; }
+        if (this._usesExplorationConsole()) {
+            this._clearRoutePointerSelection();
+            this.routeViewMode = 'focus';
+            this.routeSectorIndex = 0;
+            this._explorationConsole?.measure();
+            const area = this._getMapViewRect();
+            // 默认镜头围绕本次实际决策范围，而非只居中当前点、把下方分支推出窗口。
+            // 不改布局坐标或可达判定；返回战斗后保留已有缩放，手动定位才恢复可读比例。
+            const bounds = this._calculateNodeBounds([node, ...this.getAvailableNodes()]);
+            if (restoreDefaultZoom) {
+                this.mapScale = Math.max(0.8, Math.min(1,
+                    Math.max(1, area.width - 112) / Math.max(1, bounds.maxX - bounds.minX),
+                    Math.max(1, area.height - 112) / Math.max(1, bounds.maxY - bounds.minY)));
+            }
+            this.mapOffsetX = area.left + area.width / 2 - bounds.cx * this.mapScale;
+            this.mapOffsetY = area.top + area.height / 2 - bounds.cy * this.mapScale;
+            this._clampMapOffset();
+            this._updateRouteControls();
+            return;
+        }
         const sectorIndex = this._getSectorIndexForNode(node);
         const sectorChanged = this.routeViewMode !== 'focus' || sectorIndex !== this.routeSectorIndex;
         if (restoreDefaultZoom || sectorChanged) {
@@ -4440,6 +4515,7 @@ export const DungeonMapSystem = {
         const existing = getElement('dungeonRewardPanel');
         if (existing) {
             stack.prepend(existing);
+            if (this._usesExplorationConsole()) this._explorationConsole?.refreshRewardSummary();
             return;
         }
         const el = document.createElement('div');
@@ -4475,6 +4551,7 @@ export const DungeonMapSystem = {
             <div class="dungeon-route-reward-row"><span>祭品范围</span><strong>${getRarityLabel(tributeLo)} ~ ${getRarityLabel(tributeHi)}</strong></div>
         `;
         stack.prepend(el);
+        if (this._usesExplorationConsole()) this._explorationConsole?.refreshRewardSummary();
         const invasion = getElementIfExists('invasionChanceLabel');
         if (invasion) (this._usesExplorationConsole() ? this._ensureMapInfoStack() : stack).appendChild(invasion);
     },
@@ -4560,7 +4637,8 @@ export const DungeonMapSystem = {
      */
     _setMapInfoVisibility(visible) {
         const topHud = getElementIfExists('dungeonRouteTopHud');
-        if (topHud) topHud.style.display = visible ? 'grid' : 'none';
+        if (this._explorationConsole) this._explorationConsole.setVisible(visible);
+        else if (topHud) topHud.style.display = visible ? 'grid' : 'none';
         const stack = getElementIfExists('dungeonRouteInfoStack');
         if (stack) {
             stack.style.display = visible ? '' : 'none';
@@ -4579,7 +4657,7 @@ export const DungeonMapSystem = {
             if (existing.parentElement !== actionZone) actionZone.appendChild(existing);
             return;
         }
-        // 挂入路线专用操作区；常规 HUD 在 map-mode 下隐藏，避免与撤离操作争夺右上安全区。
+        // 探索台复用底部操作区；原经济/时钟保留在顶部，旧路线布局仍沿用原显示规则。
         // 使用冷钢通用按钮，不再依赖旧的整板按钮图片。
         const btn = document.createElement('button');
         btn.id = 'abandonButton';
@@ -4725,6 +4803,13 @@ export const DungeonMapSystem = {
     },
 
     _showVictory() {
+        if (!this.active) return;
+        // 重入不得重复结算全清经验，也不能叠出多个锁住选路的模态。
+        const existing = getElementIfExists('dungeonVictoryOverlay');
+        if (existing) {
+            existing.querySelector('button:not(:disabled)')?.focus({ preventScroll: true });
+            return;
+        }
         const player = Game.player || this.player;
 
         // ===== 通关结算数据（单局统计 + 探索完成度 + 全清奖励） =====
@@ -4761,6 +4846,7 @@ export const DungeonMapSystem = {
                     <div class="dungeon-victory-row"><span>探索完成度</span><strong>${clearPct}%（${clearedNodes}/${totalNodes} 节点）</strong></div>
                     ${d ? `<div class="dungeon-victory-row"><span>当前进度</span><strong>Lv.${d.level} · 距下一级 ${expRemain} EXP</strong></div>` : ''}
                 </div>
+                <p class="dungeon-decision-warning" id="dungeonVictoryError" role="status" hidden></p>
                 <button id="dungeonVictoryBtn" type="button" class="bp-button dungeon-victory-button">返回主神空间</button>
             </section>
         `;
@@ -4768,29 +4854,52 @@ export const DungeonMapSystem = {
 
         const btn = getElement("dungeonVictoryBtn");
         requestAnimationFrame(() => btn?.focus({ preventScroll: true }));
+        for (const type of ['pointerdown', 'mousedown', 'click']) {
+            overlay.addEventListener(type, event => event.stopPropagation());
+        }
         overlay.addEventListener('keydown', (event) => {
+            event.stopPropagation();
             if (event.key === 'Tab') {
+                const buttons = Array.from(overlay.querySelectorAll('button:not(:disabled)'));
+                const index = buttons.indexOf(document.activeElement);
                 event.preventDefault();
-                btn?.focus({ preventScroll: true });
+                buttons[(index + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length]?.focus({ preventScroll: true });
             }
         });
+        // 离场清理沿用原入口；切场失败保留本面板供重试，不重复发奖/登记成功。
+        let settled = false;
         btn.onclick = async () => {
-            btn.disabled = true;
-            overlay.remove();
-            this._recordRunResult('success');
-            this.shutdown();
-            const player = Game.player || this.player;
-            if (!player) {
-                console.error('[DungeonMapSystem] No player found, cannot switch scene');
-                alert('无法返回主神空间：玩家数据丢失');
+            if (SceneManager.isLoading || Game._observerMode || this._observerSuspended
+                || SceneManager.currentScene !== this.sceneId || (!this.active && !settled) || btn.disabled) return;
+            const returnPlayer = Game.player || this.player;
+            const errorLabel = overlay.querySelector('#dungeonVictoryError');
+            if (!returnPlayer) {
+                errorLabel.hidden = false;
+                errorLabel.textContent = '无法返回主神空间：玩家数据不可用，请恢复后重试。';
                 return;
             }
+            overlay.querySelectorAll('button').forEach((button) => { button.disabled = true; });
+            errorLabel.hidden = true;
             try {
-                await SceneManager.switchScene("main", player);
-                
+                if (!settled) {
+                    this._recordRunResult('success');
+                    this.shutdown();
+                    settled = true;
+                }
+                const switched = await SceneManager.switchScene("main", returnPlayer);
+                if (!switched || SceneManager.currentScene !== 'main') {
+                    throw new Error('主神空间尚未完成加载');
+                }
+                overlay.remove();
             } catch (err) {
                 console.error('[DungeonMapSystem] Failed to return to main:', err);
-                alert('返回主神空间失败: ' + (err.message || '未知错误'));
+                if (SceneManager.currentScene === this.sceneId) {
+                    document.body.appendChild(overlay);
+                    overlay.querySelectorAll('button').forEach((button) => { button.disabled = false; });
+                    errorLabel.hidden = false;
+                    errorLabel.textContent = `通关奖励已保留，返回失败：${err.message || '未知错误'}。请点击返回重试。`;
+                    btn.focus({ preventScroll: true });
+                }
             }
         };
     },
@@ -4807,19 +4916,92 @@ export const DungeonMapSystem = {
     },
 
     /** 安全撤离：返回主神空间，不丢失背包物品（仅起始点可用，见 _updateSafeEvacButton） */
-    async _safeEvacuate() {
-        this._removeSafeEvacButton();
-        this._recordRunResult('safe_evac');
-        this.shutdown();
-        const player = Game.player || this.player;
-        if (player) {
-            try {
-                await SceneManager.switchScene("main", player);
-            } catch (err) {
-                console.error('[DungeonMapSystem] Safe evacuate failed:', err);
-                alert('返回主神空间失败: ' + (err.message || '未知错误'));
+    _safeEvacuate() {
+        if (this.getCurrentNode()?.type !== 'start') return;
+        return this._returnToMainWithRetry('safe_evac');
+    },
+
+    /** 与通关离场同样保留返回面板；重试只切场，不重复登记或施加放弃惩罚。 */
+    _returnToMainWithRetry(outcome) {
+        if (!this.active || this.state !== 'map' || SceneManager.isLoading || Game._observerMode
+            || this._observerSuspended || SceneManager.currentScene !== this.sceneId
+            || getElementIfExists('dungeonExitConfirm') || getElementIfExists('dungeonVictoryOverlay')) return;
+        const abandoned = outcome === 'abandoned';
+        let settled = false;
+        let busy = false;
+        let modal;
+        const attempt = async () => {
+            if (busy || !modal.overlay.isConnected || SceneManager.isLoading || Game._observerMode
+                || this._observerSuspended || SceneManager.currentScene !== this.sceneId
+                || (!this.active && !settled)) return;
+            const player = Game.player || this.player;
+            const button = modal.buttons[0];
+            const status = modal.overlay.querySelector('.dungeon-decision-description');
+            if (!player) {
+                status.textContent = '玩家数据不可用，本次退出尚未完成。恢复后请点击返回重试。';
+                button.focus({ preventScroll: true });
+                return;
             }
+            busy = true;
+            button.disabled = true;
+            status.textContent = '正在返回主神空间，请稍候……';
+            try {
+                if (!settled) {
+                    if (abandoned) this._clearPlayerBackpack();
+                    this._recordRunResult(outcome);
+                    this.shutdown();
+                    settled = true;
+                    // shutdown会移除同名模态；保留本次返回动作的闭包和重试按钮。
+                    document.body.appendChild(modal.overlay);
+                    modal.overlay.focus({ preventScroll: true });
+                }
+                const switched = await SceneManager.switchScene('main', player);
+                if (!switched || SceneManager.currentScene !== 'main') {
+                    throw new Error('主神空间尚未完成加载');
+                }
+                modal.close({ restoreFocus: false });
+            } catch (err) {
+                console.error('[DungeonMapSystem] Return to main failed:', err);
+                if (SceneManager.currentScene === this.sceneId) {
+                    document.body.appendChild(modal.overlay);
+                    button.disabled = false;
+                    button.textContent = '重试返回主神空间';
+                    button.setAttribute('aria-label', button.textContent);
+                    const result = settled
+                        ? abandoned ? '本次放弃已结算，背包惩罚不会重复执行。' : '本次安全撤离已结算，背包物品保留。'
+                        : '本次退出尚未完成。';
+                    status.textContent = `${result}返回失败：${err.message || '未知错误'}。请点击重试。`;
+                    button.focus({ preventScroll: true });
+                } else {
+                    modal.close({ restoreFocus: false });
+                    SceneManager.showTopNotification('返回主神空间未完成，请通过世界面板返回', { color: '#ff7766' });
+                }
+            } finally {
+                busy = false;
+            }
+        };
+        modal = this._createDecisionModal({
+            id: 'dungeonExitConfirm',
+            eyebrow: 'EXPEDITION ARCHIVE // RETURN',
+            title: abandoned ? '放弃地牢 · 返回主神空间' : '安全撤离 · 返回主神空间',
+            description: '正在准备返回主神空间……',
+            actions: [{ id: 'dungeonExitRetryBtn', label: '返回主神空间', autofocus: true, onSelect: attempt }],
+        });
+        if (!modal) return;
+        modal.overlay.tabIndex = -1;
+        modal.overlay.querySelector('.dungeon-decision-description').setAttribute('role', 'status');
+        for (const type of ['pointerdown', 'mousedown', 'click']) {
+            modal.overlay.addEventListener(type, event => event.stopPropagation());
         }
+        modal.overlay.addEventListener('keydown', event => {
+            event.stopPropagation();
+            if (event.key === 'Tab' || event.key === 'Escape') {
+                event.preventDefault();
+                (modal.buttons[0].disabled ? modal.overlay : modal.buttons[0]).focus({ preventScroll: true });
+            }
+        });
+        modal.overlay.focus({ preventScroll: true });
+        return attempt();
     },
 
     _showExitConfirm() {
@@ -4844,22 +5026,12 @@ export const DungeonMapSystem = {
                     id: 'dungeonExitConfirmBtn',
                     label: '确认放弃',
                     kind: 'danger',
-                    onSelect: async ({ close, overlay }) => {
-                        overlay.querySelectorAll('button').forEach(button => { button.disabled = true; });
+                    onSelect: ({ close }) => {
+                        if (!this.active || this.state !== 'map' || SceneManager.isLoading || Game._observerMode
+                            || this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
                         close({ restoreFocus: false });
                         // 放弃惩罚：丢失背包中所有物品（安全撤离/通关/胜利不触发）
-                        this._clearPlayerBackpack();
-                        this._recordRunResult('abandoned');
-                        this.shutdown();
-                        const player = Game.player || this.player;
-                        if (player) {
-                            try {
-                                await SceneManager.switchScene("main", player);
-                            } catch (err) {
-                                console.error('[DungeonMapSystem] Exit to main failed:', err);
-                                alert('返回主神空间失败: ' + (err.message || '未知错误'));
-                            }
-                        }
+                        this._returnToMainWithRetry('abandoned');
                     },
                 },
             ],

@@ -1,0 +1,80 @@
+{
+  "source": "Codex built-in image_gen; one independent generation per scene",
+  "references": [
+    "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/assets/scenes/dungeon-exploration-horror-v9.png",
+    "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/assets/scenes/dungeon-exploration-mine/mine-banner-01-rail-gallery.png"
+  ],
+  "integration": "Added to the existing three abandoned-mine exploration pools, 10 backgrounds per pool; one uniform draw per new run.",
+  "assets": [
+    {
+      "title": "锁链牢房",
+      "path": "assets/scenes/dungeon-exploration-mine/mine-banner-04-chain-prison.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a0529e-d746-75c1-a316-2b8b2016f4be\\exec-be23bb27-2ddf-4e9f-8d1d-4bde9b5c41c2.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 2503415,
+      "prompt": "mine-banner-04-chain-prison.prompt.txt",
+      "pixel_edits": "none; original output copied unchanged"
+    },
+    {
+      "title": "地下墓室",
+      "path": "assets/scenes/dungeon-exploration-mine/mine-banner-05-buried-crypt.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a0529e-d746-75c1-a316-2b8b2016f4be\\exec-fcff9d4b-ebda-4b15-96da-ac5afa63c2ac.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 2686852,
+      "prompt": "mine-banner-05-buried-crypt.prompt.txt",
+      "pixel_edits": "none; original output copied unchanged"
+    },
+    {
+      "title": "淹水泵房",
+      "path": "assets/scenes/dungeon-exploration-mine/mine-banner-06-flooded-pumpworks.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a0529e-d746-75c1-a316-2b8b2016f4be\\exec-a020e990-aaba-4d35-97e6-394d89362544.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 2443092,
+      "prompt": "mine-banner-06-flooded-pumpworks.prompt.txt",
+      "pixel_edits": "none; original output copied unchanged"
+    },
+    {
+      "title": "幽光菌窟",
+      "path": "assets/scenes/dungeon-exploration-mine/mine-banner-07-fungal-grotto.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a0529e-d746-75c1-a316-2b8b2016f4be\\exec-2a8f134e-9746-4eda-b4f9-3281376e4119.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 2629555,
+      "prompt": "mine-banner-07-fungal-grotto.prompt.txt",
+      "pixel_edits": "none; original output copied unchanged"
+    },
+    {
+      "title": "遗忘熔炉",
+      "path": "assets/scenes/dungeon-exploration-mine/mine-banner-08-forgotten-forge.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a0529e-d746-75c1-a316-2b8b2016f4be\\exec-80f25055-cef5-411f-b4d5-b8deaed017a4.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 2558951,
+      "prompt": "mine-banner-08-forgotten-forge.prompt.txt",
+      "pixel_edits": "none; original output copied unchanged"
+    },
+    {
+      "title": "封印圣所",
+      "path": "assets/scenes/dungeon-exploration-mine/mine-banner-09-sealed-sanctum.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a0529e-d746-75c1-a316-2b8b2016f4be\\exec-a66a51a0-b472-45d3-b941-ded3b95c619e.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 2666308,
+      "prompt": "mine-banner-09-sealed-sanctum.prompt.txt",
+      "pixel_edits": "none; original output copied unchanged"
+    },
+    {
+      "title": "地下湖码头",
+      "path": "assets/scenes/dungeon-exploration-mine/mine-banner-10-subterranean-harbor.png",
+      "source": "C:\\Users\\allan\\.codex\\generated_images\\01a0529e-d746-75c1-a316-2b8b2016f4be\\exec-b2510348-5f71-4099-a959-e7eb2b95a088.png",
+      "width": 2172,
+      "height": 724,
+      "bytes": 2599002,
+      "prompt": "mine-banner-10-subterranean-harbor.prompt.txt",
+      "pixel_edits": "none; original output copied unchanged"
+    }
+  ]
+}
