@@ -1,0 +1,35 @@
+Use case: stylized-concept
+Asset type: World-122 mine-plane mining guild building, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: exactly one mining guild exactly as in the selected image 03, with only the masked surfaces corrected. Roof surfaces become smooth subdued charcoal slate with broad shallow courses and very little texture. Masked wall and foundation stone faces are smooth matte gray, with broad shallow joints and no tiny grit. The existing single gable cloth is dusty gray-plum. Existing small metal fittings are dark matte aged bronze, never bright gold. Purple marks on the existing gray cart rocks are flat muted violet mineral patches with no sparkle or glow. On the existing foreground tabletop, replace the two gold weight-shaped objects with exactly two low irregular gray rock samples, one with a small muted violet mineral face. There are no metal weights, candles, flasks or additional scattered stones. Every masked background pixel is plain uniform #00FF00 with no dark shadow or ground lighting. Keep the open doorway visibly open exactly as in the source; keep all unmasked windows, timber, rails, cart and winch unchanged. No new object anywhere and no alteration to the foundation silhouette.
+Generation stage: refine mining-guild candidate
+Detail budget: retain the authored functional components, open doorway and unlettered guild insignia; materials stay broad and quiet. The asset request below is the topology authority, with no generic tower or ornament additions.
+Local masked-refinement contract: regenerate only the white/red mask regions and preserve every unmasked pixel, silhouette, opening, component position, material value, lighting value and green backdrop exactly. Apply the primary request only inside the mask; do not spread the correction or reinterpret adjacent architecture.
+Palette lock: Preserve the selected color families but lower their saturation and specular intensity: cool neutral medium-gray stone, muted gray-beige plaster, dark brown oak, charcoal blue-gray slate, blackened iron, dark matte brown-bronze hardware. Cloth is low-saturation gray-plum; ore is sparse muted violet on gray rock. All metal remains darker and quieter than the stone, without yellow-gold edging. Windows have dim amber panes.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: rubble_stone
+Foundation contract — Isometric Rubble Stone Plinth for Game Assets:
+Use one low integrated medieval irregular dry-stacked rubble foundation, fully visible and completely contained inside the authored footprint. Build the surface from irregular hand-cut rubble slabs with varied stone sizing, randomized worn and beveled corners, natural filled-joint texture and a deliberately non-industrial hand-laid paving character. Give the complete outer perimeter one consistent isometric chamfer so equal-footprint assets align cleanly. Keep the plinth continuous, game-readable and materially distinct from the more regular masonry of the building body; no marble skirt, monolithic polished slab, oversized podium, detached platform or terrain patch.
+
+
+Composition/framing: follow the supplied full 4x4 foundation Depth and orthographic view; keep the hall and attached shelter aligned, the loading lane open, and the cart and assay table inside the plinth
+Scene/backdrop: Keep the entire empty backdrop a single uniform chroma green #00FF00 right up to the foundation boundary, including its screen-right edge. The green is a flat key color, not a lit ground plane; remove the source image shadow completely while preserving the complete stone perimeter.
+Negative constraints: no tower, extra floor, detached building, mine tunnel, crane, chimney, extra cart, external rails, unmodeled machinery, vegetation, people, readable text or watermark; no cast shadow or background shadow
+Asset-specific absolute exclusions: no photographic grit, micrograin, fine speckle, tiny chipped roof tiles, dense masonry cracks, glossy gold, jewel-like purple, emissive ore, tall crystals, metal assay weights, scales, bottles, candles, extra flags, closed doors, cast shadow, detached shadow or shadow gradient on green

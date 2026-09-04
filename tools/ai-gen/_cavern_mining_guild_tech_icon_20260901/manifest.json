@@ -1,0 +1,42 @@
+{
+  "generator": "Codex built-in image_gen",
+  "date": "2026-09-01",
+  "scope": "Independent technology-tree icon for cavern_mining_guild only",
+  "generatedFile": "exec-5dc7cac0-5a67-4b8b-a992-95c220b94566.png",
+  "raw": "raw/cavern_mining_guild_raw.png",
+  "rawMode": "RGB",
+  "rawSize": [
+    1254,
+    1254
+  ],
+  "sourceHexBounds": [
+    95,
+    0,
+    1166,
+    1235
+  ],
+  "backgroundMode": "black",
+  "alphaMethod": "shared deterministic point-up hex mask, 0.65px feather",
+  "visibleLongEdge": 1000,
+  "styleReference": "assets/ui/technology-icons/thatch_hut_level_1.png",
+  "subjectReference": "assets/terrain/mining_guild.png",
+  "promptSet": "prompt.md",
+  "runtimePath": "assets/ui/technology-icons/cavern_mining_guild.png",
+  "runtimeMode": "RGBA",
+  "runtimeSize": [
+    1024,
+    1024
+  ],
+  "alphaRange": [
+    0,
+    255
+  ],
+  "alphaBBox": [
+    78,
+    12,
+    946,
+    1012
+  ],
+  "preview": "cavern-mining-guild-tech-preview.png",
+  "runtimeValidation": "Not run; user tests under project agreement"
+}

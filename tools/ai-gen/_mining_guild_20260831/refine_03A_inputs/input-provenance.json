@@ -1,0 +1,22 @@
+{
+  "acceptedSource": "tools/ai-gen/_mining_guild_20260831/corrected_03A/mining_guild_03A_candidate.png",
+  "sourceMode": "RGBA",
+  "size": [
+    1024,
+    1024
+  ],
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "sourceCornerAlpha": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "preparedInitImage": "tools/ai-gen/_mining_guild_20260831/refine_03A_inputs/mining_guild_03A_refine_init_green.png",
+  "operation": "Alpha-composite accepted 03A over uniform #00FF00 on the original canvas; no crop, resize, recolor or new geometry",
+  "userReply": "同意，继续",
+  "approvalScope": "Accepted the previous 03A candidate and continued to the standard 48-step refinement candidates; runtime installation not requested"
+}

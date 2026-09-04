@@ -1,0 +1,84 @@
+{
+  "assetId": "mining_guild",
+  "status": "selected02_transparent_artwork_delivered",
+  "userReply": "我觉得2好一些",
+  "selectedVariant": 2,
+  "seed": 132352,
+  "acceptedRaw": "candidates_03A_dev_s48/mining_guild/mining_guild_refine_v02_raw.png",
+  "generationMetadata": "candidates_03A_dev_s48/mining_guild/mining_guild_refine_v02_generation.json",
+  "generationInputProvenance": "refine_03A_inputs/input-provenance.json",
+  "ancestorProvenance": "corrected_03A/provenance.json",
+  "sourceModel": "mining_guild_model.blend",
+  "sourceDepth": "mining_guild_body_depth.png",
+  "authoritativeDetails": "Keep the user-selected02 emblem, pennant, open entrance, cart, stone samples including the cylinder-like sample, surface treatment and palette; no changes toward01",
+  "regenerated": false,
+  "recoloredSubject": false,
+  "runtimeInstalled": false,
+  "key": {
+    "tool": "tools/ai-gen/key-world122-building-body.py",
+    "threshold": 80,
+    "removeEnclosedKey": true,
+    "removeAllGreen": false,
+    "nearestOpaqueEdgeRgb": true,
+    "measuredKeyRGB": [
+      13,
+      247,
+      0
+    ]
+  },
+  "depthAlphaPolicy": "Depth inspected as the original geometry reference only. Use selected02 raw edges as the Alpha authority, preserving accepted fine contour differences; no hard Depth masking, dilation or restoration.",
+  "edgeCleanup": {
+    "tool": "tools/ai-gen/repair-local-green-spill.py",
+    "rect": [
+      0,
+      0,
+      1024,
+      1024
+    ],
+    "maxEdgeDistance": 2,
+    "minGreen": 90,
+    "greenMargin": 35,
+    "repairedPixelsReported": 1078,
+    "alphaPreserved": true
+  },
+  "export": {
+    "tool": "tools/ai-gen/finalize-building-runtime.py",
+    "preserveAlphaExact": true,
+    "nearestOpaqueEdgeRgb": true,
+    "padding": 4,
+    "resizedPNG": false,
+    "cropBox": [
+      74,
+      232,
+      951,
+      923
+    ],
+    "fileSize": [
+      877,
+      691
+    ]
+  },
+  "delivery": "accepted_48_v02/mining_guild.png",
+  "preview": "mining_guild_selected02_preview.png",
+  "technicalMetadata": "accepted_48_v02/export-metadata.json",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "transparentPixelCount": 265967,
+  "transparentRGBNonzeroPixels": 0,
+  "nominalDisplay": {
+    "width": 512,
+    "height": 403,
+    "footOffsetY": 199,
+    "referenceOnly": true,
+    "runtimeCalibrationPerformed": false
+  },
+  "remainingRequestedWork": [],
+  "notIncluded": [
+    "New image generation or design changes",
+    "Runtime building configuration, footprint calibration and lighting maps",
+    "Testing, runtime verification, EXE publication"
+  ],
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement"
+}

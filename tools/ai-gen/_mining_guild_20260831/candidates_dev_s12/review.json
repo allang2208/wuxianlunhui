@@ -1,0 +1,42 @@
+{
+  "assetId": "mining_guild",
+  "stage": "structure",
+  "model": "flux2-dev-depth",
+  "steps": 12,
+  "depthStrength": 0.78,
+  "edgeControl": false,
+  "status": "source_03_selected_for_correction",
+  "sourceModel": "tools/ai-gen/_mining_guild_20260831/mining_guild_model.blend",
+  "sourceDepth": "tools/ai-gen/_mining_guild_20260831/mining_guild_body_depth.png",
+  "contactSheet": "tools/ai-gen/_mining_guild_20260831/mining_guild_dev_s12_candidates.png",
+  "selectedByUser": 3,
+  "recommendedCorrectionCandidate": 3,
+  "approvedForRefinement": false,
+  "runtimeInstalled": false,
+  "visualReview": "Full raw images were opened individually; no alpha processing or pixel retouching was used for review",
+  "candidates": [
+    {
+      "variant": 1,
+      "seed": 132311,
+      "reportedGenerationSeconds": 50.3,
+      "raw": "mining_guild/mining_guild_structure_v01_raw.png",
+      "findings": "Open entrance retained, but the single gable pennant became two front banners. Tall bright-purple crystal, bright-gold insignia and assay weights deviate from the model; material grain is excessive."
+    },
+    {
+      "variant": 2,
+      "seed": 132312,
+      "reportedGenerationSeconds": 62.2,
+      "raw": "mining_guild/mining_guild_structure_v02_raw.png",
+      "findings": "Single gable pennant retained, but entrance is closed. Tall purple crystals and added loose stones deviate from the authored props; material grain remains excessive."
+    },
+    {
+      "variant": 3,
+      "seed": 132313,
+      "reportedGenerationSeconds": 60.3,
+      "raw": "mining_guild/mining_guild_structure_v03_raw.png",
+      "findings": "Closest arrangement: single gable pennant, open entrance and rock-surface ore accents. Still has bright gold weights instead of assay samples, excessive grain and saturated purple, and visible shadow outside the plinth. Recommended only as a correction reference, not refinement acceptance."
+    }
+  ],
+  "selectionUserReply": "按你建议继续，用03继续调整",
+  "selectionPurpose": "correction_reference_only"
+}

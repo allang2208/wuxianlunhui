@@ -1,0 +1,42 @@
+{
+  "assetId": "mining_guild",
+  "name": "矿业工会",
+  "status": "integrated_pending_user_runtime_acceptance",
+  "userAcceptance": "可用，继续",
+  "acceptedArtwork": "cart_purple_crystal_v01/mining_guild.png",
+  "acceptedArtworkProvenance": "cart_purple_crystal_v01/provenance.json",
+  "baseSelectedVariant": 2,
+  "baseSelectedSeed": 132352,
+  "cargoGenerationSeed": 132361,
+  "assetPath": "assets/terrain/mining_guild.png",
+  "thumbnailPath": "assets/ui/building-thumbnails/mining_guild.png",
+  "lightingManifest": "data/environment-lighting-assets.json#assets.mining_guild",
+  "lightingAssetPaths": [
+    "assets/terrain/lighting/mining_guild_silhouette.png",
+    "assets/terrain/lighting/mining_guild_projection.png",
+    "assets/terrain/lighting/mining_guild_height.png",
+    "assets/terrain/lighting/mining_guild_normal.png"
+  ],
+  "exportMetadata": "runtime/mining_guild_runtime_metadata.json",
+  "preparedVisualConfig": "runtime/mining_guild_visual_config.json",
+  "intendedSceneId": "scene12",
+  "modelFootprintCells": 4,
+  "nominalFootprintPx": [
+    512,
+    256
+  ],
+  "visualParameterSource": "Shared strict-visual-footprint formula from final exported displayW/displayH/footOffsetY, following skill/07-world122-defense.md; not an in-game alignment result",
+  "runtimeAssetsInstalled": true,
+  "gameplayIntegrated": true,
+  "producerConfigRegistered": true,
+  "runtimeCalibrationPerformed": false,
+  "preservedAcceptedPixels": true,
+  "sourceChainRetained": true,
+  "pendingGameplayDecisions": [],
+  "pendingIntegration": [],
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement",
+  "gameplayConfig": "data/producer-buildings.json#mining_guild",
+  "workerConfig": "data/hamster-mining-expert-config.json",
+  "integrationDoc": "docs/mining-guild-integration-2026-09-01.md",
+  "groundFitGenerated": true
+}

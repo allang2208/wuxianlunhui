@@ -1,0 +1,31 @@
+{
+  "assetId": "mining_guild",
+  "status": "model_candidate_awaiting_user_review",
+  "nativePreview": "mining_guild_model_approval_preview.png",
+  "bodyDepth": "mining_guild_body_depth.png",
+  "bodyDepthIncludesFoundation": true,
+  "proposedFootprintCells": 4,
+  "foundationCornersPx": [
+    [
+      510.464,
+      923.274
+    ],
+    [
+      952.119,
+      703.983
+    ],
+    [
+      513.536,
+      483.155
+    ],
+    [
+      71.881,
+      702.447
+    ]
+  ],
+  "rootRotationZ": 44.8,
+  "cameraElevation": 30,
+  "objectCount": 254,
+  "runtimeInstalled": false,
+  "aiGenerationStarted": false
+}

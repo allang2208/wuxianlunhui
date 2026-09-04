@@ -1,0 +1,181 @@
+{
+  "assetId": "mining_guild",
+  "candidateId": "03A",
+  "status": "user_accepted_for_standard48_refinement",
+  "isDirectGenerationRaw": false,
+  "sourceGeometry": "original selected structure 03",
+  "directInputs": [
+    "corrected_03A\\source03_alpha_ready.png",
+    "corrections_03_masked_dev_s12\\mining_guild\\mining_guild_refine_v01_raw.png"
+  ],
+  "sourceRaw": "candidates_dev_s12/mining_guild/mining_guild_structure_v03_raw.png",
+  "sourceDepth": "mining_guild_body_depth.png",
+  "assayPatchPolygon": [
+    [
+      646,
+      687
+    ],
+    [
+      704,
+      687
+    ],
+    [
+      708,
+      726
+    ],
+    [
+      667,
+      746
+    ],
+    [
+      645,
+      731
+    ]
+  ],
+  "assayPatchFeatherPixels": 1.25,
+  "adoptedGeneratedRegion": "assay tabletop contents only; extra generated rocks and all other masked-run edits are excluded",
+  "denoise": {
+    "method": "two edge-preserving bilateral RGB passes",
+    "passes": [
+      [
+        9,
+        34,
+        5
+      ],
+      [
+        9,
+        28,
+        4
+      ]
+    ],
+    "blend": 0.85,
+    "alphaEdgeProtectionPixels": 4
+  },
+  "colorEdits": [
+    {
+      "region": "single purple pennant",
+      "rect": [
+        340,
+        403,
+        382,
+        511
+      ],
+      "hue": [
+        255,
+        320
+      ],
+      "saturationScale": 0.4,
+      "valueScale": 0.67
+    },
+    {
+      "region": "violet mineral on cart rocks",
+      "rect": [
+        446,
+        695,
+        555,
+        780
+      ],
+      "hue": [
+        255,
+        325
+      ],
+      "saturationScale": 0.48,
+      "valueScale": 0.68
+    },
+    {
+      "region": "violet assay mineral",
+      "rect": [
+        645,
+        684,
+        710,
+        748
+      ],
+      "hue": [
+        250,
+        325
+      ],
+      "saturationScale": 0.4,
+      "valueScale": 0.66
+    },
+    {
+      "region": "crossed-pickaxe badge",
+      "rect": [
+        605,
+        525,
+        681,
+        609
+      ],
+      "hue": [
+        22,
+        65
+      ],
+      "saturationScale": 0.48,
+      "valueScale": 0.76
+    },
+    {
+      "region": "horizontal winch fittings",
+      "rect": [
+        175,
+        612,
+        291,
+        717
+      ],
+      "hue": [
+        22,
+        65
+      ],
+      "saturationScale": 0.58,
+      "valueScale": 0.82
+    },
+    {
+      "region": "pennant border",
+      "rect": [
+        343,
+        405,
+        382,
+        507
+      ],
+      "hue": [
+        22,
+        65
+      ],
+      "saturationScale": 0.5,
+      "valueScale": 0.79
+    }
+  ],
+  "colorSelection": {
+    "saturationRamp": [
+      0.3,
+      0.6
+    ],
+    "scopeFeatherPixels": 3
+  },
+  "alphaSource": {
+    "keyTool": "tools/ai-gen/key-world122-building-body.py",
+    "threshold": 90,
+    "removeEnclosedKey": true,
+    "removeAllGreen": true,
+    "greenHueMin": 45,
+    "greenHueMax": 80,
+    "greenSaturationMin": 180,
+    "greenValueMin": 20,
+    "greenScopeReason": "Source03 has no authored green material; high-saturation green is backdrop/spill only, lower-saturation gray stone and roof remain protected by the high saturation cutoff",
+    "depthTool": "tools/ai-gen/mask-world122-building-body.py",
+    "edgePad": 12,
+    "RGBProcessingCopiesAlphaUnchanged": true
+  },
+  "candidate": "corrected_03A/mining_guild_03A_candidate.png",
+  "preview": "corrected_03A/mining_guild_03A_checker.png",
+  "comparison": "mining_guild_03A_comparison.png",
+  "remainingLimitations": [
+    "Source roof courses and masonry joint layout remain; this is grain/color correction, not a new broad-panel texture design",
+    "Runtime footprint calibration and installation have not occurred"
+  ],
+  "runtimeInstalled": false,
+  "formal48StepRefinementStarted": true,
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement",
+  "approval": {
+    "userReply": "同意，继续",
+    "scope": "Accepted 03A; continue to standard48 refinement candidates, not runtime installation"
+  }
+}

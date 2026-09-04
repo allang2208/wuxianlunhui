@@ -1,0 +1,57 @@
+{
+  "assetId": "mining_guild",
+  "stage": "refine",
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "steps": 48,
+  "denoise": 0.3,
+  "depthStrength": 0.75,
+  "edgeControl": false,
+  "nonstandardOverride": false,
+  "status": "selected02_transparent_artwork_delivered",
+  "acceptedSource": "corrected_03A/mining_guild_03A_candidate.png",
+  "initImage": "refine_03A_inputs/mining_guild_03A_refine_init_green.png",
+  "inputProvenance": "refine_03A_inputs/input-provenance.json",
+  "sourceModel": "mining_guild_model.blend",
+  "sourceDepth": "mining_guild_body_depth.png",
+  "sourceApprovalUserReply": "同意，继续",
+  "contactSheet": "mining_guild_03A_dev_s48_comparison.png",
+  "selectedByUser": 2,
+  "runtimeInstalled": false,
+  "visualReview": "Viewed both complete raw images individually and the complete-canvas contact sheet. No candidate cutout, pixel retouching or runtime verification.",
+  "candidates": [
+    {
+      "variant": 1,
+      "seed": 132351,
+      "reportedGenerationSeconds": 56.4,
+      "raw": "mining_guild/mining_guild_refine_v01_raw.png",
+      "findings": "Open entrance, single pennant, round pickaxe badge, horizontal winch, short track, cart and two stone samples retained. Materials are more defined than denoised03A without the prior major loose-boulder regression. The violet assay sample became predominantly gray; small fitting/cloth details also differ, so not pixel-identical or automatically accepted.",
+      "selectedByUser": false,
+      "historicalRecommendation": "preferred_for_user_review",
+      "selectionStatus": "not_selected"
+    },
+    {
+      "variant": 2,
+      "seed": 132352,
+      "reportedGenerationSeconds": 70.4,
+      "raw": "mining_guild/mining_guild_refine_v02_raw.png",
+      "findings": "Open entrance and main layout retained, but crossed-pickaxe badge shape and pennant symbol changed more; one assay sample became cylinder-like. Window and surface details differ. Not recommended over01.",
+      "selectedByUser": true,
+      "historicalRecommendation": "less_faithful_than_variant01",
+      "selectionStatus": "user_selected_authority"
+    }
+  ],
+  "remainingWork": [],
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement",
+  "userSelection": {
+    "userReply": "我觉得2好一些",
+    "selectedVariant": 2,
+    "selectedSeed": 132352,
+    "acceptedRaw": "candidates_03A_dev_s48/mining_guild/mining_guild_refine_v02_raw.png",
+    "scope": "Select48-step02 as the artwork authority, preserving its current emblem and assay samples; prepare transparent local artwork only, no regeneration or runtime installation"
+  },
+  "previousAssistantRecommendation": 1,
+  "acceptedArtwork": "accepted_48_v02/mining_guild.png",
+  "acceptedArtworkProvenance": "accepted_48_v02/provenance.json",
+  "runtimeIntegrationStatus": "not_requested_not_performed"
+}

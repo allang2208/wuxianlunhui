@@ -1,0 +1,303 @@
+{
+  "outputRoot": "tools/ai-gen/_mining_guild_20260831/corrections_03_masked_dev_s12",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureSeedBase": 132310,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "authorization": {
+    "userReply": "允许，我能给你一次性授权，以后不用每次都问我是否允许吗",
+    "scope": "User explicitly allowed the requested upload of mining guild Depth, prompt and parameters to the stated LAN ComfyUI destination and asked to reuse authorization for subsequent pipeline work",
+    "inputs": [
+      "original mining guild full Depth",
+      "selected structure 03 PNG",
+      "correction prompt",
+      "workflow parameters",
+      "source03_material_mask.png"
+    ],
+    "destination": "http://192.168.3.142:8188",
+    "destinationUploadAuthorized": true,
+    "status": "standing_authorization_applies_to_user_requested_correction",
+    "generationSubmitted": true,
+    "generationCompleted": true,
+    "standingAuthorizationRecord": "AGENTS.md#建筑管线局域网上传授权（2026-08-31）",
+    "runtimeInstallationRequested": false
+  },
+  "assets": [
+    {
+      "id": "mining_guild",
+      "label": "矿洞位面 · 矿业工会",
+      "assetClass": "mining_guild",
+      "assetType": "World-122 mine-plane mining guild building",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 4,
+      "controlImage": "tools/ai-gen/_mining_guild_20260831/mining_guild_body_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_mining_guild_20260831/mining_guild_body_depth.png",
+      "primaryRequest": "mining guild with one two-storey stone-and-timber hall, a continuous slate gable roof and an attached lower loading shelter",
+      "structureRequest": "mining guild with one two-storey stone-and-timber hall and continuous slate gable roof. Its lower screen-left loading shelter contains a rear horizontal winch and a short track leading to one four-wheel open ore cart. Preserve the open double entrance doors, crossed-pickaxes round badge above them, one short purple gable pennant and the small foreground assay table. The cart holds gray rock with a few purple mineral faces, not a mound of standing crystals",
+      "detailRequest": "mining guild matching the supplied selected image 03. Retain its exact camera, framing, full four-cell stone plinth outline, two-storey hall, continuous gable roof, left attached loading shelter, short rails, one cart, open double doors, crossed-pickaxe round badge, one gable pennant and foreground assay table. Change only surface treatment and the mistaken table contents. The roof uses broad smooth charcoal slate fields with a few shallow wide course seams; remove granular grit, fine chips and tightly repeated small tiles. Lower walls and foundation use broad quiet gray stone faces with reduced fine joints. Timber is dark subdued oak with very little grain. Make the badge and winch fittings matte dark aged bronze with narrow subdued highlights. The single cloth pennant is dusty muted gray-plum. The cart holds solid gray rock lumps with sparse flat dark violet mineral patches, without luminous crystals. On the existing assay tabletop, replace both shiny gold weight-shaped objects with two low irregular gray rock samples, one with a tiny dull violet face; do not change the table or its location. Outside the complete foundation is flat uniform green with no shadow.",
+      "paletteConstraint": "Preserve the selected color families but lower their saturation and specular intensity: cool neutral medium-gray stone, muted gray-beige plaster, dark brown oak, charcoal blue-gray slate, blackened iron, dark matte brown-bronze hardware. Cloth is low-saturation gray-plum; ore is sparse muted violet on gray rock. All metal remains darker and quieter than the stone, without yellow-gold edging. Windows have dim amber panes.",
+      "negativeRequest": "no photographic grit, micrograin, fine speckle, tiny chipped roof tiles, dense masonry cracks, glossy gold, jewel-like purple, emissive ore, tall crystals, metal assay weights, scales, bottles, candles, extra flags, closed doors, cast shadow, detached shadow or shadow gradient on green",
+      "modelApproval": "User accepted the final model preview and requested generation; model geometry, camera and full foundation are unchanged",
+      "selectedStructureCandidate": "tools/ai-gen/_mining_guild_20260831/candidates_dev_s12/mining_guild/mining_guild_structure_v03_raw.png",
+      "recommendedCorrectionCandidate": "tools/ai-gen/_mining_guild_20260831/candidates_dev_s12/mining_guild/mining_guild_structure_v03_raw.png",
+      "reviewStatus": "source_03_selected_for_corrective_img2img",
+      "approvedForRefinement": false,
+      "runtimeInstalled": false,
+      "selectionPurpose": "correction_reference_only",
+      "selectionUserReply": "按你建议继续，用03继续调整",
+      "sceneBackdropRequest": "Keep the entire empty backdrop a single uniform chroma green #00FF00 right up to the foundation boundary, including its screen-right edge. The green is a flat key color, not a lit ground plane; remove the source image shadow completely while preserving the complete stone perimeter.",
+      "maskedRefineRequest": "mining guild exactly as in the selected image 03, with only the masked surfaces corrected. Roof surfaces become smooth subdued charcoal slate with broad shallow courses and very little texture. Masked wall and foundation stone faces are smooth matte gray, with broad shallow joints and no tiny grit. The existing single gable cloth is dusty gray-plum. Existing small metal fittings are dark matte aged bronze, never bright gold. Purple marks on the existing gray cart rocks are flat muted violet mineral patches with no sparkle or glow. On the existing foreground tabletop, replace the two gold weight-shaped objects with exactly two low irregular gray rock samples, one with a small muted violet mineral face. There are no metal weights, candles, flasks or additional scattered stones. Every masked background pixel is plain uniform #00FF00 with no dark shadow or ground lighting. Keep the open doorway visibly open exactly as in the source; keep all unmasked windows, timber, rails, cart and winch unchanged. No new object anywhere and no alteration to the foundation silhouette."
+    }
+  ],
+  "correctionRun": {
+    "purpose": "Bounded masked correction after unmasked experiments closed the doorway or invented loose rocks; return to original 03",
+    "sourceImage": "tools/ai-gen/_mining_guild_20260831/candidates_dev_s12/mining_guild/mining_guild_structure_v03_raw.png",
+    "userReply": "按你建议继续，用03继续调整",
+    "stepsOverride": 12,
+    "denoiseOverride": 0.7,
+    "variants": 1,
+    "seedBase": 132341,
+    "allowNonstandard": true,
+    "reason": "Bounded 12-step corrective img2img experiment. This is not approval of or entry into the standard 48-step final refinement stage.",
+    "geometryChanged": false,
+    "rawOnly": true,
+    "status": "full_raw_not_adopted_only_assay_patch_used_in_03A",
+    "maskImage": "tools/ai-gen/_mining_guild_20260831/corrections_03_masked_dev_s12/source03_material_mask.png",
+    "maskRegions": {
+      "main_roof_near": [
+        [
+          374,
+          380
+        ],
+        [
+          649,
+          257
+        ],
+        [
+          776,
+          394
+        ],
+        [
+          499,
+          516
+        ]
+      ],
+      "main_roof_far": [
+        [
+          237,
+          377
+        ],
+        [
+          544,
+          264
+        ],
+        [
+          624,
+          248
+        ],
+        [
+          360,
+          371
+        ]
+      ],
+      "loading_shelter_roof": [
+        [
+          147,
+          559
+        ],
+        [
+          245,
+          487
+        ],
+        [
+          478,
+          584
+        ],
+        [
+          390,
+          669
+        ]
+      ],
+      "right_foundation": [
+        [
+          780,
+          612
+        ],
+        [
+          934,
+          687
+        ],
+        [
+          924,
+          703
+        ],
+        [
+          734,
+          796
+        ],
+        [
+          727,
+          742
+        ],
+        [
+          715,
+          724
+        ],
+        [
+          773,
+          655
+        ]
+      ],
+      "front_foundation": [
+        [
+          92,
+          691
+        ],
+        [
+          140,
+          675
+        ],
+        [
+          156,
+          714
+        ],
+        [
+          376,
+          824
+        ],
+        [
+          393,
+          802
+        ],
+        [
+          425,
+          826
+        ],
+        [
+          463,
+          859
+        ],
+        [
+          510,
+          879
+        ],
+        [
+          516,
+          898
+        ]
+      ],
+      "stone_above_left_window": [
+        [
+          521,
+          609
+        ],
+        [
+          583,
+          580
+        ],
+        [
+          585,
+          610
+        ],
+        [
+          536,
+          637
+        ]
+      ],
+      "stone_right_of_entrance": [
+        [
+          689,
+          560
+        ],
+        [
+          746,
+          536
+        ],
+        [
+          751,
+          555
+        ],
+        [
+          715,
+          574
+        ],
+        [
+          715,
+          621
+        ],
+        [
+          747,
+          607
+        ],
+        [
+          753,
+          632
+        ],
+        [
+          692,
+          662
+        ]
+      ],
+      "single_pennant_cloth": [
+        [
+          352,
+          417
+        ],
+        [
+          373,
+          428
+        ],
+        [
+          373,
+          487
+        ],
+        [
+          363,
+          499
+        ],
+        [
+          352,
+          478
+        ]
+      ],
+      "assay_contents": [
+        [
+          646,
+          687
+        ],
+        [
+          704,
+          687
+        ],
+        [
+          708,
+          726
+        ],
+        [
+          667,
+          746
+        ],
+        [
+          645,
+          731
+        ]
+      ]
+    },
+    "protectedAreas": "Building silhouette, open doors, windows, framing, cart, rails, table legs and majority of winch. Narrow hardware masks use reduced strength."
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "assetId": "mining_guild",
+  "status": "selected02_purple_crystal_cargo_revision_delivered",
+  "userRequest": "还是有点不对，矿车的矿石能否替换成纯紫色的晶石",
+  "baseSelectedVariant": 2,
+  "baseSelectedSeed": 132352,
+  "acceptedSource": "../accepted_48_v02/mining_guild.png",
+  "directCompositeBase": "../accepted_48_v02/mining_guild.png",
+  "acceptedSourceProvenance": "../accepted_48_v02/provenance.json",
+  "rawGenerationInput": "../candidates_03A_dev_s48/mining_guild/mining_guild_refine_v02_raw.png",
+  "depthInput": "../mining_guild_body_depth.png",
+  "sourceModel": "../mining_guild_model.blend",
+  "modelModified": false,
+  "generationManifest": "manifest.json",
+  "generatedRaw": "candidates/mining_guild/mining_guild_refine_v01_raw.png",
+  "generationMetadata": "candidates/mining_guild/mining_guild_refine_v01_generation.json",
+  "actualPrompt": "candidates/mining_guild/mining_guild_refine_prompt.txt",
+  "crystalToneFinish": {
+    "source": "candidates/mining_guild/mining_guild_refine_v01_raw.png",
+    "output": "cargo_toned_generated.png",
+    "scope": "Only purple-biased cargo pixels and near-white crystal highlights inside the mask; no cart recolor",
+    "hue8bit": "0.5*sourceHue + 0.5*198; near-neutral highlights use sourceHue198",
+    "saturation8bit": "max(sourceSaturation*0.82, 66)",
+    "valueMultiplier": 0.82,
+    "reason": "Keep crystal faces wholly violet while reducing neon saturation and near-white highlights to match the accepted building"
+  },
+  "generationParameters": {
+    "model": "flux2-dev-depth",
+    "seed": 132361,
+    "steps": 48,
+    "denoise": 0.75,
+    "depthStrength": 0.75,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "localMaskedRefine": true,
+    "nonstandardOverride": false
+  },
+  "mask": "cargo_mask.png",
+  "polygonFullCanvas": [
+    [
+      431,
+      737
+    ],
+    [
+      450,
+      723
+    ],
+    [
+      469,
+      708
+    ],
+    [
+      482,
+      697
+    ],
+    [
+      495,
+      698
+    ],
+    [
+      511,
+      708
+    ],
+    [
+      520,
+      723
+    ],
+    [
+      560,
+      747
+    ],
+    [
+      555,
+      756
+    ],
+    [
+      513,
+      779
+    ],
+    [
+      479,
+      765
+    ],
+    [
+      456,
+      754
+    ],
+    [
+      440,
+      743
+    ]
+  ],
+  "composite": {
+    "method": "Generated RGB cargo patch over accepted02, feather0.45px clipped inside cargo mask; original Alpha is copied verbatim",
+    "blendMask": "cargo_composite_mask.png",
+    "fullCanvasMaskBox": [
+      431,
+      697,
+      561,
+      780
+    ],
+    "cropBox": [
+      74,
+      232,
+      951,
+      923
+    ],
+    "outputSize": [
+      877,
+      691
+    ],
+    "outsideMaskPreservedByConstruction": true,
+    "sourceAlphaPreservedByConstruction": true,
+    "subjectWideRecolor": false
+  },
+  "artwork": "mining_guild.png",
+  "preview": "mining_guild_preview.png",
+  "cargoDetail": "cart_after_detail.png",
+  "preserved": [
+    "cart frame and wheels",
+    "rails",
+    "building and foundation",
+    "assay table and its original samples",
+    "emblem and pennant",
+    "accepted02 original files"
+  ],
+  "runtimeInstalled": false,
+  "runtimeCalibrationPerformed": false,
+  "testsAndRuntimeVerification": "Not run; user performs testing per project agreement"
+}

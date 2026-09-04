@@ -1,0 +1,20 @@
+{
+  "assetId": "mining_guild",
+  "purpose": "source03_masked_corrective_experiment",
+  "sourceImage": "candidates_dev_s12/mining_guild/mining_guild_structure_v03_raw.png",
+  "maskImage": "source03_material_mask.png",
+  "steps": 12,
+  "denoise": 0.7,
+  "depthStrength": 0.75,
+  "seed": 132341,
+  "reportedGenerationSeconds": 38.2,
+  "edgeControl": false,
+  "status": "full_raw_not_adopted_only_assay_patch_used_in_03A",
+  "raw": "mining_guild/mining_guild_refine_v01_raw.png",
+  "findings": "Open entrance and source layout retained. Assay table contains rock samples, but extra rock appeared on the right plinth, grain and gold/purple intensity remain excessive and outside shadow persists.",
+  "adoptedRegion": "Only the assay tabletop polygon in corrected_03A/provenance.json; all other changes discarded during composition from original03",
+  "finalReviewCandidate": "corrected_03A/mining_guild_03A_candidate.png",
+  "selectedByUser": null,
+  "approvedForRefinement": false,
+  "runtimeInstalled": false
+}

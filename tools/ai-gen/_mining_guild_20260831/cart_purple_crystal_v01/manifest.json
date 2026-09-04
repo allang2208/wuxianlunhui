@@ -1,0 +1,111 @@
+{
+  "outputRoot": "tools/ai-gen/_mining_guild_20260831/cart_purple_crystal_v01/candidates",
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 1,
+  "refineDenoise": 0.75,
+  "refineDepthStrength": 0.75,
+  "authorization": {
+    "userRequest": "还是有点不对，矿车的矿石能否替换成纯紫色的晶石",
+    "standingAuthorizationRecord": "AGENTS.md#建筑管线局域网上传授权（2026-08-31）",
+    "destination": "http://192.168.3.142:8188",
+    "destinationUploadAuthorized": true,
+    "scope": "Cargo-only Dev masked revision: selected02 image, original Depth, local cargo mask, prompt and parameters; download result",
+    "runtimeInstallationRequested": false
+  },
+  "assets": [
+    {
+      "id": "mining_guild",
+      "label": "矿业工会02 · 纯紫色晶石矿车",
+      "assetClass": "mining_guild",
+      "assetType": "World-122 mine-plane mining guild building",
+      "foundationStyle": "rubble_stone",
+      "footprintCells": 4,
+      "controlImage": "tools/ai-gen/_mining_guild_20260831/mining_guild_body_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_mining_guild_20260831/mining_guild_body_depth.png",
+      "primaryRequest": "mining guild with solid purple crystal cargo inside its wooden cart",
+      "structureRequest": "Inside the existing single wooden mining cart, replace ALL of its gray ore cargo with a compact load of solid PURPLE CRYSTALS. Every cargo piece is wholly violet crystal from base to tip, with angular flat polygonal facets, short chunky prismatic forms and a few short pointed terminations. Rich amethyst-purple faces, deep plum shadow faces and lighter lavender-purple lit facets; the whole load is purple, with absolutely NO gray rocky matrix and NO gray stones with purple spots. Keep the load approximately the original height and volume, clearly inside the cart. Retain the wooden rim, cart boards, wheels, rails and existing occlusion. Preserve the rest of the accepted mining guild exactly, including the assay table and its original samples, open doors, emblem, pennant, walls, roof and foundation. Purple crystals have restrained broad highlights without bloom or emitted light.",
+      "detailRequest": "Inside the existing single wooden mining cart, replace ALL of its gray ore cargo with a compact load of solid PURPLE CRYSTALS. Every cargo piece is wholly violet crystal from base to tip, with angular flat polygonal facets, short chunky prismatic forms and a few short pointed terminations. Rich amethyst-purple faces, deep plum shadow faces and lighter lavender-purple lit facets; the whole load is purple, with absolutely NO gray rocky matrix and NO gray stones with purple spots. Keep the load approximately the original height and volume, clearly inside the cart. Retain the wooden rim, cart boards, wheels, rails and existing occlusion. Preserve the rest of the accepted mining guild exactly, including the assay table and its original samples, open doors, emblem, pennant, walls, roof and foundation. Purple crystals have restrained broad highlights without bloom or emitted light.",
+      "maskedRefineRequest": "Inside the existing single wooden mining cart, replace ALL of its gray ore cargo with a compact load of solid PURPLE CRYSTALS. Every cargo piece is wholly violet crystal from base to tip, with angular flat polygonal facets, short chunky prismatic forms and a few short pointed terminations. Rich amethyst-purple faces, deep plum shadow faces and lighter lavender-purple lit facets; the whole load is purple, with absolutely NO gray rocky matrix and NO gray stones with purple spots. Keep the load approximately the original height and volume, clearly inside the cart. Retain the wooden rim, cart boards, wheels, rails and existing occlusion. Preserve the rest of the accepted mining guild exactly, including the assay table and its original samples, open doors, emblem, pennant, walls, roof and foundation. Purple crystals have restrained broad highlights without bloom or emitted light.",
+      "paletteConstraint": "All cart cargo is solid amethyst purple crystal with violet facets and dark plum recesses. Preserve all existing non-cargo colors and materials.",
+      "negativeRequest": "gray cargo stones, rock matrix, gray rocks with purple spots, white or blue or clear crystal cargo, tall crystal towers, neon bloom, purple wooden cart boards, new props",
+      "sceneBackdropRequest": "Preserve the source solid chroma green backdrop outside the complete building and foundation; no ground shadow.",
+      "approvedForRefinement": true,
+      "runtimeInstalled": false,
+      "selectedRefineCandidate": "tools/ai-gen/_mining_guild_20260831/candidates_03A_dev_s48/mining_guild/mining_guild_refine_v02_raw.png"
+    }
+  ],
+  "localEdit": {
+    "baseSelectedVariant": 2,
+    "baseSelectedSeed": 132352,
+    "source": "tools/ai-gen/_mining_guild_20260831/candidates_03A_dev_s48/mining_guild/mining_guild_refine_v02_raw.png",
+    "mask": "tools/ai-gen/_mining_guild_20260831/cart_purple_crystal_v01/cargo_mask.png",
+    "polygon": [
+      [
+        431,
+        737
+      ],
+      [
+        450,
+        723
+      ],
+      [
+        469,
+        708
+      ],
+      [
+        482,
+        697
+      ],
+      [
+        495,
+        698
+      ],
+      [
+        511,
+        708
+      ],
+      [
+        520,
+        723
+      ],
+      [
+        560,
+        747
+      ],
+      [
+        555,
+        756
+      ],
+      [
+        513,
+        779
+      ],
+      [
+        479,
+        765
+      ],
+      [
+        456,
+        754
+      ],
+      [
+        440,
+        743
+      ]
+    ],
+    "requestedSeed": 132361,
+    "nonstandardReason": "Higher denoise is limited to the cargo mask to replace rock geometry with purple crystal geometry.",
+    "compositionPolicy": "Copy only the local cargo patch into accepted02; preserve all other pixels and original Alpha/crop."
+  }
+}

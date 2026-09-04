@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-01",
+  "authorization": "User requested cleanup of task-produced rejected files before Git update",
+  "removed": [
+    { "path": "candidates_dev_s12/mining_guild/mining_guild_structure_v01_*", "reason": "User selected structure 03" },
+    { "path": "candidates_dev_s12/mining_guild/mining_guild_structure_v02_*", "reason": "User selected structure 03" },
+    { "path": "corrections_03_dev_s12/", "reason": "Unmasked correction batch was not adopted by 03A" },
+    { "path": "correction-manifest.json", "reason": "Only drove the rejected unmasked correction batch" },
+    { "path": "prepare-masked-correction.py", "reason": "One-time preparation script depended on the removed unmasked manifest" },
+    { "path": "candidates_03A_dev_s48/mining_guild/mining_guild_refine_v01_*", "reason": "User selected 48-step variant 02" },
+    { "path": "mining_guild_model.blend1", "reason": "Blender backup cache" }
+  ],
+  "retained": [
+    "mining_guild_model.blend",
+    "mining_guild_body_depth.png",
+    "candidates_dev_s12/mining_guild/mining_guild_structure_v03_raw.png",
+    "corrections_03_masked_dev_s12/",
+    "corrected_03A/",
+    "candidates_03A_dev_s48/mining_guild/mining_guild_refine_v02_raw.png",
+    "accepted_48_v02/",
+    "cart_purple_crystal_v01/",
+    "runtime/"
+  ]
+}
