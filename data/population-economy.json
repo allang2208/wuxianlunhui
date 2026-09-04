@@ -136,8 +136,8 @@
         "tex": "house_lv7",
         "displayW": 360,
         "displayH": 464,
-        "footOffsetY": 230,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8577586206896551, "widthRatio": 0.7111111111111111, "depthRatio": 0.27586206896551724, "scaleMode": "strict" },
+        "footOffsetY": 224,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8448275862068966, "widthRatio": 0.7111111111111111, "depthRatio": 0.27586206896551724, "scaleMode": "strict" },
         "upgradeCost": { "gold": 9600, "energy": 19200, "timeMs": 300000 }
       }
     ]
@@ -224,9 +224,9 @@
         "baseResearchPointsPerSecond": 1,
         "tex": "research_institute",
         "displayW": 256,
-        "displayH": 265,
-        "footOffsetY": 131,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75283, "widthRatio": 1, "depthRatio": 0.483019, "scaleMode": "strict" }
+        "displayH": 204,
+        "footOffsetY": 102,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.686275, "widthRatio": 1, "depthRatio": 0.627451, "scaleMode": "strict" }
       },
       {
         "level": 2,
@@ -234,9 +234,9 @@
         "baseResearchPointsPerSecond": 1.25,
         "tex": "research_institute_lv2",
         "displayW": 256,
-        "displayH": 299,
-        "footOffsetY": 148,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.780936, "widthRatio": 1, "depthRatio": 0.428094, "scaleMode": "strict" },
+        "displayH": 304,
+        "footOffsetY": 150,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.782895, "widthRatio": 1, "depthRatio": 0.421053, "scaleMode": "strict" },
         "upgradeCost": { "gold": 2000, "energy": 4000, "timeMs": 90000 }
       },
       {
@@ -245,9 +245,9 @@
         "baseResearchPointsPerSecond": 1.5,
         "tex": "research_institute_lv3",
         "displayW": 256,
-        "displayH": 337,
-        "footOffsetY": 167,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.805638, "widthRatio": 1, "depthRatio": 0.379822, "scaleMode": "strict" },
+        "displayH": 264,
+        "footOffsetY": 132,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.757576, "widthRatio": 1, "depthRatio": 0.484848, "scaleMode": "strict" },
         "upgradeCost": { "gold": 5000, "energy": 10000, "timeMs": 180000 }
       }
     ]
