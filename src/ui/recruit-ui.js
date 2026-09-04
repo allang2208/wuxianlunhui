@@ -53,6 +53,14 @@ export const RecruitUI = {
                 event.preventDefault(); first?.focus();
             }
         });
+        // EXE 会把当前窗口的 Esc 作为 electron-esc 转发；从属模态需要先于
+        // 全局面板链消费它，避免关闭背后的队员/出征页面而留下招募层。
+        window.addEventListener('electron-esc', event => {
+            if (!this.isOpen) return;
+            event.preventDefault?.();
+            event.stopImmediatePropagation?.();
+            this.close();
+        }, true);
         // 事件委托：点背景关闭；点卡片按钮加入（重建卡片后绑定不丢失）
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) { this.close(); return; }

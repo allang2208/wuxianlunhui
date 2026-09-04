@@ -521,6 +521,11 @@ export const BuildingSystem = {
         this._moveFn = (e) => this._onMouseMove(e);
         this._upFn = (e) => this._onMouseUp(e);
         this._keyFn = (e) => this._onKey(e);
+        this._electronEscFn = (event) => {
+            if (!this.active) return;
+            event.stopImmediatePropagation();
+            this._onKey({ code: 'Escape', preventDefault() {}, stopImmediatePropagation() {} });
+        };
         this._blurFn = () => {
             this._cancelQueuedMouseMove();
             this._cancelDragPlacement();
@@ -529,6 +534,7 @@ export const BuildingSystem = {
         window.addEventListener('mousemove', this._moveFn);
         window.addEventListener('mouseup', this._upFn);
         window.addEventListener('keydown', this._keyFn, true);
+        window.addEventListener('electron-esc', this._electronEscFn, true);
         window.addEventListener('blur', this._blurFn);
         // 面板顶行货币实时刷新（采集能源/击杀金币时数字即时跳动，2026-08-14）
         clearInterval(this._refreshTimer);
@@ -556,8 +562,9 @@ export const BuildingSystem = {
         if (this._moveFn) window.removeEventListener('mousemove', this._moveFn);
         if (this._upFn) window.removeEventListener('mouseup', this._upFn);
         if (this._keyFn) window.removeEventListener('keydown', this._keyFn, true);
+        if (this._electronEscFn) window.removeEventListener('electron-esc', this._electronEscFn, true);
         if (this._blurFn) window.removeEventListener('blur', this._blurFn);
-        this._downFn = this._moveFn = this._upFn = this._keyFn = this._blurFn = null;
+        this._downFn = this._moveFn = this._upFn = this._keyFn = this._electronEscFn = this._blurFn = null;
         if (this._panel) {
             const closingPanel = this._panel;
             const closingDetailPanel = this._detailPanel;

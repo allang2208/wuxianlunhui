@@ -113,6 +113,11 @@ export const NpcPortraitTool = {
                 this.reset();
             }
         });
+        window.addEventListener('electron-esc', (event) => {
+            if (!this._active) return;
+            event.stopImmediatePropagation();
+            this.hide();
+        }, true);
     },
 
     /** 读取 data/npc-portrait-params.json（含旧模型 offsetX→x 迁移） */

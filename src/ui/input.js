@@ -180,6 +180,47 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                 if (player?.droneSystem?.controlling) player.droneSystem._exitControl?.();
                 if (player?.shieldSystem?.defending) player.shieldSystem.exitDefense?.();
             },
+    _closeOtherRightSidebarPanels(except) {
+                if (except !== 'system' && SystemUI.isOpen) SystemUI.close();
+                if (except !== 'quest' && UIState.isOpen('quest')) QuestSystem.close();
+                if (except !== 'party' && CompanionPanel.isOpen) CompanionPanel.close();
+                if (except !== 'world' && UIState.isOpen('worldSwitch')) window.WorldSwitchPanel?.close();
+                if (except !== 'technology' && TechnologyTreePanel.isOpen) TechnologyTreePanel.close();
+            },
+    _handleRightSidebarShortcut(code) {
+                let target = null;
+                let systemTab = null;
+                if (code === CONFIG.KEYS.INVENTORY || code === CONFIG.KEYS.BACKPACK) {
+                    target = 'system'; systemTab = 'equip';
+                } else if (code === CONFIG.KEYS.STATUS) {
+                    target = 'system'; systemTab = 'status';
+                } else if (code === CONFIG.KEYS.SKILL) {
+                    target = 'system'; systemTab = 'skill';
+                } else if (code === CONFIG.KEYS.CODEX) {
+                    target = 'system'; systemTab = 'codex';
+                } else if (code === CONFIG.KEYS.TECHNOLOGY) target = 'technology';
+                else if (code === CONFIG.KEYS.QUEST) target = 'quest';
+                else if (code === CONFIG.KEYS.PARTY) target = 'party';
+                else if (code === CONFIG.KEYS.WORLD) target = 'world';
+                if (!target) return false;
+
+                // 相同快捷键再次按下由各面板自己的 toggle 关闭；切到另一栏目时，
+                // 先收起旧栏目，避免多个右栏仍保持 active、Esc 需要连续关闭。
+                const targetIsOpen = target === 'system'
+                    ? SystemUI.isOpen && SystemUI.currentTab === systemTab
+                    : target === 'technology' ? TechnologyTreePanel.isOpen
+                        : target === 'quest' ? UIState.isOpen('quest')
+                            : target === 'party' ? CompanionPanel.isOpen
+                                : UIState.isOpen('worldSwitch');
+                if (!targetIsOpen) this._closeOtherRightSidebarPanels(target);
+
+                if (target === 'system') SystemUI.toggle(systemTab);
+                else if (target === 'technology') TechnologyTreePanel.toggle();
+                else if (target === 'quest') QuestSystem.toggle();
+                else if (target === 'party') CompanionPanel.toggleManage();
+                else window.WorldSwitchPanel?.toggle();
+                return true;
+            },
     handleKey(code, altKey = false) {
                 if (UIState.isOpen('mailbox') || window.MailboxPanel?.isOrganizing) {
                     if (code === CONFIG.KEYS.MENU) window.MailboxPanel?.reset();
@@ -196,6 +237,12 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                 if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：按键交给编辑器（捕获监听先处理）
                 // 暂停已与菜单整合（Esc 开菜单即暂停，game-menu open/close 双循环+定时器）；P 键让位队员管理（2026-08-19）
                 if (code === CONFIG.KEYS.MENU) {
+                    // 出征准备页会主动关闭 SystemUI，因此必须在通用 SystemUI 分支之前处理；
+                    // 否则 Esc 会漏到暂停菜单。
+                    if (UIState.isOpen('expedition')) {
+                        ExpeditionSystem.returnToMain();
+                        return;
+                    }
                     // 建筑详情面板（出兵/铁匠铺/研究/塔等）Esc 优先关闭，
                     // 不应在同一次按键继续打开暂停菜单；Electron 转发的 ESC 同样走这里。
                     if (closeBasePanels('buildingDetail') > 0) return;
@@ -205,11 +252,6 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                     const companionWasOpen = CompanionPanel.isOpen;
                     if (companionWasOpen) CompanionPanel.close();
                     if (closedRightSidebar > 0 || companionWasOpen) return;
-                    // 任务栏打开时按ESC关闭任务栏
-                    if (UIState.isOpen('quest')) {
-                        QuestSystem.close();
-                        return;
-                    }
                     // 有子页面打开：按 Esc 回到初始对话
                     if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant') || UIState.isOpen('warehouse') || UIState.isOpen('fusion')) {
                         if (UIState.isOpen('shop')) ShopSystem.close();
@@ -228,39 +270,18 @@ import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
                         }
                         return;
                     }
-                    if (SystemUI.isOpen) {
-                    // 如果出征面板打开，ESC返回主城
-                    if (UIState.isOpen('expedition')) {
-                        ExpeditionSystem.returnToMain();
-                        return;
-                    }
-                    SystemUI.close(); return;
-                }
+                    if (SystemUI.isOpen) { SystemUI.close(); return; }
                     if (NPCDialogue._active) { NPCDialogue.goodbye(); return; }
                     if (Game.isRunning) GameMenu.toggle(); return;
                 }
                 if (SystemUI.isOpen) {
-                    // 面板打开时：允许Tab切换快捷键，允许F切换武器，允许Z范围拾取，其他按键拦截
-                    if (code === CONFIG.KEYS.INVENTORY || code === CONFIG.KEYS.BACKPACK) { SystemUI.toggle('equip'); return; }
-                    if (code === CONFIG.KEYS.STATUS) { SystemUI.toggle('status'); return; }
-                    if (code === CONFIG.KEYS.SKILL) { SystemUI.toggle('skill'); return; }
-                    if (code === CONFIG.KEYS.CODEX) { SystemUI.toggle('codex'); return; }
-                    if (code === CONFIG.KEYS.TECHNOLOGY) { TechnologyTreePanel.toggle(); return; }
-                    if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); return; }
-                    if (code === CONFIG.KEYS.PARTY) { CompanionPanel.toggleManage(); return; }
-                    if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); return; }
+                    // 面板打开时：右栏快捷键仍可切换/关闭，F 切换武器，Z 范围拾取；其他按键拦截。
+                    if (this._handleRightSidebarShortcut(code)) return;
                     if (code === 'KeyF' && Game.player) { Game.player.switchWeaponMode(); return; }
                     if (code === 'KeyZ' && Game.isRunning) { Game._pickupNearbyFlag = true; return; }
                     return; // 其他按键在面板打开时忽略
                 }
-                if (code === CONFIG.KEYS.INVENTORY || code === CONFIG.KEYS.BACKPACK) SystemUI.toggle('equip');
-                if (code === CONFIG.KEYS.STATUS) SystemUI.toggle('status');
-                if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
-                if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
-                if (code === CONFIG.KEYS.TECHNOLOGY) TechnologyTreePanel.toggle();
-                if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); }
-                if (code === CONFIG.KEYS.PARTY) { CompanionPanel.toggleManage(); }
-                if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); }
+                if (this._handleRightSidebarShortcut(code)) return;
                 if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) {
                     // 雷枪蓄力键：按下即开始蓄力，松开/满蓄释放（<0.5s 失败不进 CD）
                     if (QuickBar.isThunderLanceKey(code)) {

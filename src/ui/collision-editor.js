@@ -142,6 +142,7 @@ export const CollisionEditor = {
     _moveFn: null,
     _upFn: null,
     _keyFn: null,
+    _electronEscFn: null,
 
     // ==================== 开关 ====================
 
@@ -157,10 +158,16 @@ export const CollisionEditor = {
         this._moveFn = (e) => this._onMouseMove(e);
         this._upFn = (e) => this._onMouseUp(e);
         this._keyFn = (e) => { if (e.code === 'Escape') this.close(); };
+        this._electronEscFn = (event) => {
+            if (!this.active) return;
+            event.stopImmediatePropagation();
+            this.close();
+        };
         window.addEventListener('mousedown', this._downFn);
         window.addEventListener('mousemove', this._moveFn);
         window.addEventListener('mouseup', this._upFn);
         window.addEventListener('keydown', this._keyFn, true);
+        window.addEventListener('electron-esc', this._electronEscFn, true);
         scene.events.on('update', this._redraw, this);
         // 默认选中第一只怪物，立即给出可拖拽的预览
         const firstEnemy = Object.keys(enemyConfigData)[0];
@@ -184,6 +191,10 @@ export const CollisionEditor = {
             this._downFn = this._moveFn = this._upFn = null;
         }
         if (this._keyFn) { window.removeEventListener('keydown', this._keyFn, true); this._keyFn = null; }
+        if (this._electronEscFn) {
+            window.removeEventListener('electron-esc', this._electronEscFn, true);
+            this._electronEscFn = null;
+        }
         if (this._gfx) { this._gfx.destroy(); this._gfx = null; }
         setMotionMeleeDebugEnabled(false);
         setBasicMeleeDebugEnabled(false);

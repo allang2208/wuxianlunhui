@@ -4,6 +4,7 @@ import { EventBus } from '../core/event-bus.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { TechnologySystem } from '../world/technology-system.js';
 import { isInstantTechnologyResearchEnabled } from '../config/dev-cheats.js';
+import { CONFIG } from '../config/config.js';
 import { UIState } from './ui-state.js';
 import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 
@@ -158,10 +159,10 @@ export const TechnologyTreePanel = {
         if (this._initialized) return;
         this._initialized = true;
         window.addEventListener('keydown', (event) => {
-            if (!this.isOpen || event.code !== 'Escape') return;
+            if (!this.isOpen || (event.code !== 'Escape' && event.code !== CONFIG.KEYS.TECHNOLOGY)) return;
             event.preventDefault();
             event.stopImmediatePropagation();
-            this.close();
+            if (!event.repeat) this.close();
         }, true);
         window.addEventListener('electron-esc', (event) => {
             if (!this.isOpen) return;

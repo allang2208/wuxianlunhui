@@ -79,6 +79,7 @@ export const WallEditor = {
     _layerList: null,
     _wheelFn: null,
     _keyFn: null,
+    _electronEscFn: null,
     _placeUpFn: null,
     _commitTimer: 0,
     _blinkT: 0,
@@ -114,6 +115,13 @@ export const WallEditor = {
         window.addEventListener('wheel', this._wheelFn, { passive: false });
         this._keyFn = (e) => this._onKey(e);
         window.addEventListener('keydown', this._keyFn, true);
+        this._electronEscFn = (event) => {
+            if (!this.active) return;
+            event.stopImmediatePropagation();
+            if (this._pendingPiece) this._cancelPlacement();
+            else this.close();
+        };
+        window.addEventListener('electron-esc', this._electronEscFn, true);
     },
 
     close() {
@@ -133,6 +141,7 @@ export const WallEditor = {
         }
         if (this._wheelFn) window.removeEventListener('wheel', this._wheelFn);
         if (this._keyFn) window.removeEventListener('keydown', this._keyFn, true);
+        if (this._electronEscFn) window.removeEventListener('electron-esc', this._electronEscFn, true);
         clearTimeout(this._commitTimer);
         this._setSelection([]);
         this._clearNpcSel();
@@ -143,6 +152,7 @@ export const WallEditor = {
         if (this._obstacleEl) { this._obstacleEl.remove(); this._obstacleEl = null; }
         if (this._layersEl) { this._layersEl.remove(); this._layersEl = null; }
         this._layerList = null;
+        this._electronEscFn = null;
         this._boxMode = false;
         const btn = document.getElementById('wallEditorToggle');
         if (btn) btn.classList.remove('active');
