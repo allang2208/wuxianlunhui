@@ -8429,6 +8429,15 @@ body.dungeon-route-split-mode .dungeon-route-controls button:focus-visible {
 .dxc-node[aria-pressed="true"] .dxc-node-number { background: var(--bp-ui-white-soft); border-color: var(--bp-ui-white-soft); color: var(--bp-ui-text-dark); }
 .dxc-node.is-unknown:not(.is-available):not(.is-current):not([aria-pressed="true"]) { border-style: dashed; border-color: var(--bp-ui-line-strong); }
 .dxc-node.is-unknown img { opacity: .6; }
+.dxc-node.is-clue-revealed { animation: dxc-clue-reveal 900ms cubic-bezier(.16,.8,.24,1) both; }
+@keyframes dxc-clue-reveal {
+    0% { filter: brightness(.72); box-shadow: 0 0 0 0 rgba(116,234,255,0); }
+    42% { filter: brightness(1.5); box-shadow: 0 0 0 7px rgba(116,234,255,.38), 0 0 22px rgba(116,234,255,.72); }
+    100% { filter: brightness(1); box-shadow: 0 0 0 2px rgba(116,234,255,.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .dxc-node.is-clue-revealed { animation-duration: 1ms; }
+}
 .dxc-node-label { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); white-space: nowrap; font-size: var(--bp-type-meta); color: var(--bp-ui-text-muted); }
 .dxc-node.is-available .dxc-node-label { color: var(--dxc-blue); }
 .dxc-node[aria-pressed="true"] .dxc-node-label { color: var(--dxc-cyan); }
