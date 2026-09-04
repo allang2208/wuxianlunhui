@@ -48,6 +48,8 @@ class DashSystem {
         // 攻击动画锁定：任何动画未播完前不触发（近战攻击中/收势中/冲刺恢复定格中/风车/推击均拒绝插队）
         if (this.player.weaponAnim && this.player.weaponAnim.isAttacking) return false;
         if (this.player._attackRecovering || this.player._dashRecoverAt || this.player._isWhirlwind || this.player._isPushStrike) return false;
+        // 与奔跑共用朝向限制，拒绝后退发动；已发动动作仍沿用自己的方向快照。
+        if (!this.player._isSprintDirectionAllowed()) return false;
         // 冲刺方向只读取发动瞬间的移动输入水平分量。斜向吸附为水平；纯纵向/无输入
         // 不发动且必须在任何状态写入、动画切换和体力扣除之前返回。
         const move = Input.getMovement();
