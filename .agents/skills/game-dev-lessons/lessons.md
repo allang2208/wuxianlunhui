@@ -232,8 +232,9 @@ this.ai = config.ai || {};
 - 排查发现：敌人对玩家的攻击原来只判断“中心点距离”，完全没考虑目标体型，导致视觉上明明贴在一起却打不中。
 - 修复方式：
   1. **怪物**：在 `GameScene._configureEnemyBody()` 中把 `collisionShape` 设为 `'rect'`，`collisionWidth/Height` 设为 sprite 显示尺寸，`collisionRadius` 设为半宽作为圆形回退；Phaser 物理体也改为矩形。
-  2. **玩家**：在 `_onPlayerSpawn()` 中通过 `_getFrameVisibleBounds()` 扫描 `player_idle` 帧的不透明像素，得到人物本体的包围盒，再按 sprite scale 换算成世界坐标。这样受击矩形只覆盖人物本体，而不是整个 512×512 的帧。
-  3. 已审阅的单目标原地攻击/连击（如 Mutant-3 五连击、铠甲骑士二连击）走 `melee-attack-resolver.js` 的方向矩形；飞扑、冲锋、范围砸击等位移/范围技能仍使用自己的 `_isTargetInRange(target, range)` 或专用形状，不能机械替换。
+  2. **玩家**：通过 `player_idle` 帧的不透明像素离线测量人物本体包围盒，按 sprite scale 换算后写入显式 `render.projectileHitbox`；运行时不应在 `_onPlayerSpawn()` 重扫 Alpha 或二次覆盖逻辑 Collider。这样受击矩形只覆盖人物本体，而不是整个 512×512 的帧。
+  3. **三维弹体**：躯干矩形属于屏幕空间，弹体与目标脚底都必须先按 `displayY = physicalY - z` 投影；统一调用 `segmentHitsProjectedTorso` / `pointHitsProjectedTorso`，禁止把未减 z 的物理 y 直接送入绿色矩形。
+  4. 已审阅的单目标原地攻击/连击（如 Mutant-3 五连击、铠甲骑士二连击）走 `melee-attack-resolver.js` 的方向矩形；飞扑、冲锋、范围砸击等位移/范围技能仍使用自己的 `_isTargetInRange(target, range)` 或专用形状，不能机械替换。
 - 左下角“范围”开关会同时画玩家和怪物的矩形/圆，保证可视化与实际受击体积一致。
 
 ## 17. 自定义近战攻击也要走盾牌弹反

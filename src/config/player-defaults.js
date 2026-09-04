@@ -7,17 +7,24 @@ export const PLAYER_DEFAULTS = {
     physics: {
         // 玩家贴图显示尺寸（单位：像素），所有显示/碰撞尺寸均由此推导，避免硬编码
         spriteSize: 144, // 2026-07-28：120 → 144（人物贴图放大 20%，武器经 WEAPON_ANIM.size 105→126 同步放大，其他不变）
-        // 玩家碰撞/受击体积：宽度 30、高度 60 的矩形（竖向人物贴图）
-        // 之前 90 过高，导致投射物在玩家头顶/脚下附近也被判定命中
-        // collisionRadius 作为圆形回退和墙壁碰撞的等效半径；
+        // 玩家移动/Arcade 物理矩形；投射物躯干另用 projectileHitbox，禁止混用。
+        // collisionRadius 作为 footprint 圆形回退和墙壁碰撞的等效半径；
         // 2026-07-17：脚下椭圆判定（footprint）缩小 25%（30 → 22.5），
-        // 阴影/分离/墙壁碰撞/被近战与投射物命中均由此值单一驱动，随动缩小
-        collisionWidth: 40,  // 绿色矩形（受击矩形）向左拉伸 10px：宽 30→40 且中心左移 5（右缘不变）
+        // 阴影、单位分离、墙壁碰撞和 footprint 命中由此值驱动；躯干命中独立配置。
+        collisionWidth: 40,
         collisionHeight: 60,
         collisionRadius: 22.5,
-        // 圆柱体（胶囊）碰撞体积整体偏移：上移 5px / 受击矩形左移 5px（配合宽 40 实现向左拉伸 10）
+        // 逻辑 footprint/胶囊中心偏移；projectileHitbox 可用自身 offsetX 单独校准。
         colliderOffsetX: -5,
         colliderOffsetY: -5,
+        // idle.png 可见身体按 144px 显示换算约 44×133；宽度略收窄并由弹体半径外扩，
+        // offsetX 抵消 colliderOffsetX，使受击框稳定居中，不随左右镜像漂移。
+        projectileHitbox: {
+            width: 40,
+            height: 133,
+            offsetX: 5,
+            bottom: 2
+        },
         accel: 0.7,
         friction: 0.82
     },

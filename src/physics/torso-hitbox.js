@@ -2,18 +2,23 @@
  * 投射物躯干矩形（屏幕空间）共享判定模块。
  *
  * 唯一数据来源：entity.config.render.projectileHitbox（width/height/offsetX/bottom，
- * 锚定 collider 脚底中心）；未配置时缺省为 collisionWidth（回退 collider 直径）
- * × collider 身高，新怪物零配置自动获得躯干判定。
+ * 锚定 collider 投影后的脚底中心）；未配置时缺省为 collisionWidth（回退 collider 直径）
+ * × collider 身高，新怪物零配置自动获得躯干判定。物理坐标消费者必须走本模块的
+ * Projected 入口，禁止把未减 z 的 physicalY 直接传给屏幕空间矩形。
  *
  * 消费者：
  * - src/combat/projectile.js（枪械/毒液等投射物，扫掠线段判定）
- * - ice-spike-system / fireball-system / rune-sword-system（技能投射物，逐帧点判定）
+ * - bolt-skill-system / rune-sword-system（技能投射物，逐帧点判定）
  * - GameScene._syncCollisionRadii（绿色调试矩形，同一推导口径）
  *
  * 近战不使用本模块（近战走 skill-shapes.js 的 Z 区间形状判定）。
  */
 import { segmentIntersectsExpandedRect } from './collision-3d.js';
 import { ELEVATION } from './collider.js';
+
+function projectScreenY(physicalY, z = 0) {
+    return (Number(physicalY) || 0) - (Number(z) || 0);
+}
 
 /**
  * 推导实体的躯干矩形（屏幕空间，轴对齐）。
@@ -31,9 +36,10 @@ export function getTorsoRect(entity) {
     if (width <= 0 || height <= 0) return null;
     const offsetX = (hb && hb.offsetX) || 0;
     const bottom = (hb && hb.bottom) || 0;
+    const footScreenY = projectScreenY(c.y, c.z);
     return {
         cx: c.x + offsetX,
-        cy: c.y - bottom - height / 2,
+        cy: footScreenY - bottom - height / 2,
         halfW: width / 2,
         halfH: height / 2,
     };
@@ -51,6 +57,24 @@ export function segmentHitsTorso(entity, x1, y1, x2, y2, expand = 0) {
 }
 
 /**
+ * 物理三维扫掠线段与屏幕躯干矩形相交。
+ * 投射物渲染位置统一为 displayY = physicalY - z，本入口负责同口径投影。
+ */
+export function segmentHitsProjectedTorso(
+    entity,
+    x1, y1, z1,
+    x2, y2, z2,
+    expand = 0
+) {
+    return segmentHitsTorso(
+        entity,
+        x1, projectScreenY(y1, z1),
+        x2, projectScreenY(y2, z2),
+        expand
+    );
+}
+
+/**
  * 点（含半径外扩）与躯干矩形相交（技能投射物逐帧判定用）。
  * 与 GroundCircle 语义对齐：FLYING 单位免疫地面判定。
  * @param {number} expand 投射物半径（矩形四向外扩）
@@ -62,4 +86,9 @@ export function pointHitsTorso(entity, px, py, expand = 0) {
     if (!r) return false;
     return Math.abs(px - r.cx) <= r.halfW + expand &&
            Math.abs(py - r.cy) <= r.halfH + expand;
+}
+
+/** 物理三维点与屏幕躯干矩形相交，用于逐帧更新的技能投射物。 */
+export function pointHitsProjectedTorso(entity, px, py, pz, expand = 0) {
+    return pointHitsTorso(entity, px, projectScreenY(py, pz), expand);
 }

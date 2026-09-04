@@ -1,7 +1,7 @@
 import { WallSystem } from '../world/wall-system.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { segmentIntersectsCapsule } from '../physics/collision-3d.js';
-import { segmentHitsTorso } from '../physics/torso-hitbox.js';
+import { segmentHitsProjectedTorso } from '../physics/torso-hitbox.js';
 import { ELEVATION } from '../physics/collider.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
@@ -398,7 +398,12 @@ class Projectile {
      * 缺省 collisionWidth × 身高）。矩形按投射物半径外扩后做线段相交。
      */
     _hitTorsoRect(entity, prevX, prevY) {
-        return segmentHitsTorso(entity, prevX, prevY, this.x, this.y, this.size / 2);
+        return segmentHitsProjectedTorso(
+            entity,
+            prevX, prevY, this.prevZ,
+            this.x, this.y, this.z,
+            this.size / 2
+        );
     }
 
     /**

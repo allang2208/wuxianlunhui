@@ -4758,14 +4758,9 @@ export class GameScene extends Scene {
             this.playerSprite.setActive(!_isStickFigure);
             this.playerSprite.setTexture(playerTextureKey('idle'));
 
-            // 玩家碰撞/受击体积由配置驱动，保持与 Player 逻辑实体一致
+            // Phaser Arcade 体只负责场景物理同步；逻辑 footprint/胶囊/投射物躯干
+            // 已由 Player 构造函数建立，禁止在出生回调二次覆盖造成双值状态。
             const { collisionWidth, collisionHeight } = PLAYER_DEFAULTS.physics;
-            if (_game && _game.player) {
-                _game.player.collisionShape = 'rect';
-                _game.player.collisionWidth = collisionWidth;
-                _game.player.collisionHeight = collisionHeight;
-                _game.player.collisionRadius = Math.max(collisionWidth, collisionHeight) / 2;
-            }
             if (this.playerSprite.body) {
                 this.playerSprite.body.setSize(collisionWidth, collisionHeight);
             }

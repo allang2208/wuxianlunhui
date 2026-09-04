@@ -12,7 +12,7 @@ import {
     surfaceEffectFromEntity,
     volumeEffectContext,
 } from '../../physics/elevation.js';
-import { pointHitsTorso } from '../../physics/torso-hitbox.js';
+import { pointHitsProjectedTorso } from '../../physics/torso-hitbox.js';
 import {
     applyProjectileWallImpact,
     canUseWallTopModelException,
@@ -179,7 +179,11 @@ export class RuneSwordSystem {
                         || entity._surfaceKind !== 'wall_walk'
                         || !wallHitSupportsTarget(hitWall, entity)
                         || !effectElevationIntersectsEntity(nextElevation, entity)) return;
-                    modelHitThroughSupport = pointHitsTorso(entity, nextX, nextY, 15);
+                    modelHitThroughSupport = pointHitsProjectedTorso(
+                        entity,
+                        nextX, nextY, flyZ,
+                        15
+                    );
                 });
             }
             if (hitWall && !modelHitThroughSupport) {
@@ -227,7 +231,11 @@ export class RuneSwordSystem {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
                 if (!effectElevationIntersectsEntity(hitElevation, entity)) return;
                 // 地面 footprint 或 躯干矩形（投射物贴图身体位置）任一命中即算命中
-                if (!hitShape.intersectsEntity(entity) && !pointHitsTorso(entity, sword.flyX, sword.flyY, 15)) return;
+                if (!hitShape.intersectsEntity(entity) && !pointHitsProjectedTorso(
+                    entity,
+                    sword.flyX, sword.flyY, flyZ,
+                    15
+                )) return;
                 const d = this.player.data;
                 const physAtk = this.player.getCurrentWeaponAtk();
                 const magicAtk = d.matk || 0;

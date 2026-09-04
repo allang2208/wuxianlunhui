@@ -46,12 +46,16 @@ class Player extends Combatant {
             // 胶囊体/受击矩形整体偏移（上移/左移，配置驱动）
             this.colliderOffsetX = defs.physics.colliderOffsetX ?? 0;
             this.colliderOffsetY = defs.physics.colliderOffsetY ?? 0;
-            // 让 Collider 高度与贴图 spriteSize 一致（120），否则只取 collisionHeight=60，
-            // 导致调试胶囊体和受击判定都只有贴图一半高。
+            // 真实 3D Collider 高度保持 144；投射物屏幕躯干使用独立 projectileHitbox，
+            // 不再把移动用 collisionHeight=60 或完整 spriteSize 当作同一受击矩形。
             this.config = {
                 ...(this.config || {}),
                 height: defs.physics.spriteSize,
-                render: { ...(this.config?.render || {}), spriteSize: defs.physics.spriteSize }
+                render: {
+                    ...(this.config?.render || {}),
+                    spriteSize: defs.physics.spriteSize,
+                    projectileHitbox: { ...defs.physics.projectileHitbox }
+                }
             };
             // 根据最终碰撞字段重建统一 3D Collider（地面 footprint 与胶囊体）
             this.rebuildCollider();

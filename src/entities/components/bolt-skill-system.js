@@ -14,7 +14,7 @@ import {
     surfaceEffectFromEntity,
     volumeEffectContext,
 } from '../../physics/elevation.js';
-import { pointHitsTorso } from '../../physics/torso-hitbox.js';
+import { pointHitsProjectedTorso } from '../../physics/torso-hitbox.js';
 import {
     burstParticles,
     resolveSkillEffectDepth,
@@ -366,7 +366,11 @@ export class BoltSkillSystem {
                         && entity._surfaceKind === 'wall_walk'
                         && wallHitSupportsTarget(terminalWallHit, entity)
                         && effectElevationIntersectsEntity(terminalElevation, entity)
-                        && pointHitsTorso(entity, endX, endY, this.kind.hitRadius))
+                        && pointHitsProjectedTorso(
+                            entity,
+                            endX, endY, endZ,
+                            this.kind.hitRadius
+                        ))
                     : null;
                 const targetModelHitThroughSupport = !!terminalModelTarget;
                 if (terminalWallHit && !targetModelHitThroughSupport) {
@@ -438,7 +442,11 @@ export class BoltSkillSystem {
             for (const entity of entityList) {
                 if (!this._isHostile(entity) || !entity.active || !entity.hittable) continue;
                 if (!effectElevationIntersectsEntity(hitElevation, entity)) continue;
-                if (!hitShape.intersectsEntity(entity) && !pointHitsTorso(entity, spike.flyX, spike.flyY, this.kind.hitRadius)) continue;
+                if (!hitShape.intersectsEntity(entity) && !pointHitsProjectedTorso(
+                    entity,
+                    spike.flyX, spike.flyY, spike.flyZ,
+                    this.kind.hitRadius
+                )) continue;
                 const surfaceContext = surfaceEffectFromEntity(entity);
                 this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill, hitEntity: entity, surfaceContext });
             }

@@ -595,9 +595,10 @@ dirs.forEach((p, i) => {
 **方案**：新增屏幕空间**躯干矩形**判定，仅投射物使用；近战判定（attack.js / skill-shapes.js）不变。
 
 **共享模块 `src/physics/torso-hitbox.js`（唯一推导口径，禁止重复编码）**：
-- `getTorsoRect(entity)`：取 `config.render.projectileHitbox`（width/height/offsetX/bottom，锚定 collider 脚底中心）；缺省 = `collisionWidth × 身高`（新怪物零配置自动获得）。
-- `segmentHitsTorso(entity, x1, y1, x2, y2, expand)`：枪械投射物扫掠线段判定。
-- `pointHitsTorso(entity, px, py, expand)`：技能投射物逐帧点判定，FLYING 免疫（与 GroundCircle 语义对齐）。
+- `getTorsoRect(entity)`：取 `config.render.projectileHitbox`（width/height/offsetX/bottom，锚定投影后的 collider 脚底中心）；缺省 = `collisionWidth × 身高`（新怪物零配置自动获得）。目标在高架时必须使用 `screenY = collider.y - collider.z`，不能把物理 y 当屏幕 y。
+- `segmentHitsTorso` / `pointHitsTorso`：只接收已经投影好的屏幕坐标，作为共享底层几何入口。
+- `segmentHitsProjectedTorso` / `pointHitsProjectedTorso`：枪械和技能投射物的正式物理坐标入口，内部统一执行 `displayY = physicalY - z`；业务调用方禁止自行混用 physicalY 和 screenY。
+- 玩家、怪物、友军共用同一入口；差异只来自各自 `render.projectileHitbox`。贴图化单位应离线测量可见主体后写入显式配置，长武器、尾巴和纯特效不计主体体量；未配置者才使用兼容回退。
 
 **判定并集**：
 - 枪械投射物（projectile.js）：footprint 椭圆 ∪ 躯干矩形 ∪ 身体圆柱；飞行目标仍只查 3D 胶囊。

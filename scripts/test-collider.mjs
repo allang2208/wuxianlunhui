@@ -139,7 +139,13 @@ assert(!segmentIntersectsExpandedRect(0, 50, 0, 50, 0, zCy, zHalfW, zHalfH, 2),
     'zero-length segment outside rect misses');
 
 // --- Shared torso-hitbox module (skill projectiles point check) ---
-const { getTorsoRect, pointHitsTorso, segmentHitsTorso } = await import('../src/physics/torso-hitbox.js');
+const {
+    getTorsoRect,
+    pointHitsTorso,
+    pointHitsProjectedTorso,
+    segmentHitsTorso,
+    segmentHitsProjectedTorso,
+} = await import('../src/physics/torso-hitbox.js');
 const zombieLike = {
     collisionWidth: 30,
     config: { render: { projectileHitbox: { width: 31, height: 103, offsetX: 0, bottom: 0 } } },
@@ -153,6 +159,21 @@ assert(pointHitsTorso(zombieLike, 100, 105, 12), 'skill point near head within r
 assert(!pointHitsTorso(zombieLike, 100, 60, 12), 'skill point far above torso misses');
 assert(!pointHitsTorso(zombieLike, 150, 160, 12), 'skill point beside torso misses');
 assert(segmentHitsTorso(zombieLike, 0, 160, 300, 160, 2), 'segment through torso hits');
+assert(!pointHitsProjectedTorso(zombieLike, 100, 140, 80, 2),
+    'projected point visually above torso misses instead of using physical y');
+assert(!segmentHitsProjectedTorso(zombieLike, 90, 140, 80, 110, 140, 80, 2),
+    'projected segment visually above torso misses instead of using physical y');
+assert(segmentHitsProjectedTorso(zombieLike, 90, 240, 80, 110, 240, 80, 2),
+    'projected segment crossing visible torso hits');
+const elevatedLike = {
+    ...zombieLike,
+    collider: { ...zombieLike.collider, z: 80 },
+};
+const elevatedTorso = getTorsoRect(elevatedLike);
+assert(elevatedTorso && Math.abs(elevatedTorso.cy - (200 - 80 - 51.5)) < 1e-9,
+    'elevated torso rect follows projected collider foot');
+assert(pointHitsProjectedTorso(elevatedLike, 100, 150, 80, 2),
+    'projectile and elevated target use the same projection');
 // 缺省推导：无 projectileHitbox 时取 collisionWidth × 身高
 const defaultDerive = {
     collisionWidth: 30,
