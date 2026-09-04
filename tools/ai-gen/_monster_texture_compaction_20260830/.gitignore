@@ -1,0 +1,8 @@
+/approved-runtime-input/
+/runtime/
+/rife/*/*.png
+/rife/*/*.log
+/rife/*/source-clock-previews/
+/previews/*/*-comparison.png
+!/previews/werewolf_king/pounce-transition-comparison.png
+/__pycache__/

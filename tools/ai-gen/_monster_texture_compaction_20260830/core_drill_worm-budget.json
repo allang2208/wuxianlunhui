@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "id": "coreDrillWorm",
+  "profile": "specialist",
+  "sheets": [
+    {
+      "textureKey": "enemy_core_drill_worm_idle",
+      "path": "assets/enemies/core_drill_worm/idle.png",
+      "frameWidth": 478,
+      "frameHeight": 205,
+      "frameCount": 60,
+      "endFrame": 59,
+      "footX": 239.0,
+      "footY": 192.75
+    },
+    {
+      "textureKey": "enemy_core_drill_worm_crawling",
+      "path": "assets/enemies/core_drill_worm/crawling.png",
+      "frameWidth": 482,
+      "frameHeight": 205,
+      "frameCount": 60,
+      "endFrame": 59,
+      "footX": 241.0,
+      "footY": 192.75
+    },
+    {
+      "textureKey": "enemy_core_drill_worm_grinder_attack",
+      "path": "assets/enemies/core_drill_worm/grinder_attack.png",
+      "frameWidth": 576,
+      "frameHeight": 205,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 288.0,
+      "footY": 192.75
+    },
+    {
+      "textureKey": "enemy_core_drill_worm_burrow_enter",
+      "path": "assets/enemies/core_drill_worm/burrow_enter.png",
+      "frameWidth": 368,
+      "frameHeight": 205,
+      "frameCount": 31,
+      "endFrame": 30,
+      "footX": 184.0,
+      "footY": 192.75
+    },
+    {
+      "textureKey": "enemy_core_drill_worm_burrow_exit",
+      "path": "assets/enemies/core_drill_worm/burrow_exit.png",
+      "frameWidth": 394,
+      "frameHeight": 205,
+      "frameCount": 19,
+      "endFrame": 18,
+      "footX": 197.0,
+      "footY": 192.75
+    },
+    {
+      "textureKey": "enemy_core_drill_worm_death",
+      "path": "assets/enemies/core_drill_worm/dying.png",
+      "frameWidth": 390,
+      "frameHeight": 205,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 195.0,
+      "footY": 192.75
+    }
+  ]
+}

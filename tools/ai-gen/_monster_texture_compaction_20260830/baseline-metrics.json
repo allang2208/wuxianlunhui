@@ -1,0 +1,54 @@
+{
+  "werewolfKing": {
+    "idle": {
+      "rgbaBytes": 98304000,
+      "pngBytes": 6506890
+    },
+    "running": {
+      "rgbaBytes": 65536000,
+      "pngBytes": 3865739
+    },
+    "attack": {
+      "rgbaBytes": 114688000,
+      "pngBytes": 7558674
+    },
+    "pounce": {
+      "rgbaBytes": 185794560,
+      "pngBytes": 10127002
+    },
+    "howl": {
+      "rgbaBytes": 131072000,
+      "pngBytes": 9186093
+    },
+    "dying": {
+      "rgbaBytes": 81920000,
+      "pngBytes": 5410948
+    }
+  },
+  "coreDrillWorm": {
+    "idle": {
+      "rgbaBytes": 146800640,
+      "pngBytes": 12582956
+    },
+    "crawling": {
+      "rgbaBytes": 146800640,
+      "pngBytes": 12498605
+    },
+    "grinderAttack": {
+      "rgbaBytes": 167772160,
+      "pngBytes": 12957632
+    },
+    "burrowEnter": {
+      "rgbaBytes": 52428800,
+      "pngBytes": 3958691
+    },
+    "burrowExit": {
+      "rgbaBytes": 47185920,
+      "pngBytes": 3106708
+    },
+    "death": {
+      "rgbaBytes": 125829120,
+      "pngBytes": 9845817
+    }
+  }
+}

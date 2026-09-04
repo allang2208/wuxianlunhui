@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "id": "werewolfKing",
+  "profile": "boss",
+  "sheets": [
+    {
+      "textureKey": "enemy_werewolf_king_idle",
+      "path": "assets/enemies/werewolf_king/idle.png",
+      "frameWidth": 242,
+      "frameHeight": 410,
+      "frameCount": 48,
+      "endFrame": 47,
+      "footX": 121.0,
+      "footY": 382.5
+    },
+    {
+      "textureKey": "enemy_werewolf_king_running",
+      "path": "assets/enemies/werewolf_king/running.png",
+      "frameWidth": 334,
+      "frameHeight": 410,
+      "frameCount": 32,
+      "endFrame": 31,
+      "footX": 167.0,
+      "footY": 382.5
+    },
+    {
+      "textureKey": "enemy_werewolf_king_attack",
+      "path": "assets/enemies/werewolf_king/attack.png",
+      "frameWidth": 552,
+      "frameHeight": 410,
+      "frameCount": 49,
+      "endFrame": 48,
+      "footX": 276.0,
+      "footY": 382.5
+    },
+    {
+      "textureKey": "enemy_werewolf_king_pounce",
+      "path": "assets/enemies/werewolf_king/pounce.png",
+      "frameWidth": 676,
+      "frameHeight": 410,
+      "frameCount": 49,
+      "endFrame": 48,
+      "footX": 338.0,
+      "footY": 382.5
+    },
+    {
+      "textureKey": "enemy_werewolf_king_howl",
+      "path": "assets/enemies/werewolf_king/howl.png",
+      "frameWidth": 284,
+      "frameHeight": 410,
+      "frameCount": 61,
+      "endFrame": 60,
+      "footX": 142.0,
+      "footY": 382.5
+    },
+    {
+      "textureKey": "enemy_werewolf_king_dying",
+      "path": "assets/enemies/werewolf_king/dying.png",
+      "frameWidth": 594,
+      "frameHeight": 410,
+      "frameCount": 37,
+      "endFrame": 36,
+      "footX": 297.0,
+      "footY": 382.5
+    }
+  ]
+}
