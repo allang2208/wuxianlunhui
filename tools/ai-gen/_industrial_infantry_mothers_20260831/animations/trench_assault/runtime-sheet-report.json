@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "operation": "shared transparent-only crop and tighter packing; no resampling, redraw or per-frame recentering",
+  "actions": {
+    "idle": {
+      "source": "tools/ai-gen/_industrial_infantry_mothers_20260831/animations/trench_assault/postprocess/sheets-rife/idle.png",
+      "output": "assets/companions/trench_assault/idle.png",
+      "sourceCell": [
+        512,
+        512
+      ],
+      "cropBox": [
+        88,
+        208,
+        424,
+        368
+      ],
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 26,
+      "endFrame": 25,
+      "cols": 7,
+      "rows": 4,
+      "frameRate": 12.0,
+      "repeat": -1,
+      "footYRange": [
+        142,
+        143
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 571988,
+      "sha256": "97afe6c3bb7a4bad7f7a9b379781bc689b801f7f2f2a93511f4906b5301d87dc",
+      "decodedBytes": 6021120,
+      "decodedMiB": 5.742
+    },
+    "running": {
+      "source": "tools/ai-gen/_industrial_infantry_mothers_20260831/animations/trench_assault/postprocess/sheets-rife/running.png",
+      "output": "assets/companions/trench_assault/running.png",
+      "sourceCell": [
+        512,
+        512
+      ],
+      "cropBox": [
+        88,
+        208,
+        424,
+        368
+      ],
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 36,
+      "endFrame": 35,
+      "cols": 7,
+      "rows": 6,
+      "frameRate": 24.0,
+      "repeat": -1,
+      "footYRange": [
+        142,
+        143
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 768276,
+      "sha256": "cd966fc171bca95ebdba3402384283394541d417a443b433cbebaf6014390146",
+      "decodedBytes": 9031680,
+      "decodedMiB": 8.613
+    },
+    "attacking": {
+      "source": "tools/ai-gen/_industrial_infantry_mothers_20260831/animations/trench_assault/postprocess/sheets-rife/attacking.png",
+      "output": "assets/companions/trench_assault/attacking.png",
+      "sourceCell": [
+        512,
+        512
+      ],
+      "cropBox": [
+        88,
+        208,
+        424,
+        368
+      ],
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 33,
+      "endFrame": 32,
+      "cols": 7,
+      "rows": 5,
+      "frameRate": 22.0,
+      "repeat": 0,
+      "footYRange": [
+        142,
+        143
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 934899,
+      "sha256": "d04d1d418f67f90001c471cfa42d055a0d4da81178c4bfd0df1f3e76a3ca4e85",
+      "decodedBytes": 7526400,
+      "decodedMiB": 7.178
+    },
+    "dying": {
+      "source": "tools/ai-gen/_industrial_infantry_mothers_20260831/animations/trench_assault/postprocess/sheets-rife/dying.png",
+      "output": "assets/companions/trench_assault/dying.png",
+      "sourceCell": [
+        512,
+        512
+      ],
+      "cropBox": [
+        88,
+        208,
+        424,
+        368
+      ],
+      "frameWidth": 336,
+      "frameHeight": 160,
+      "frameCount": 49,
+      "endFrame": 48,
+      "cols": 7,
+      "rows": 7,
+      "frameRate": 24.0,
+      "repeat": 0,
+      "footYRange": [
+        141,
+        144
+      ],
+      "touchingFrames": [],
+      "transparentRgbNonzeroValues": 0,
+      "pixelExactSourceCrop": true,
+      "pngBytes": 1048247,
+      "sha256": "03348723259d198805dc71c84b92a204b922fe0197e60f2e754f4761a809f131",
+      "decodedBytes": 10536960,
+      "decodedMiB": 10.049
+    }
+  },
+  "budget": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "decodedBytes": 33116160,
+    "decodedMiB": 31.582,
+    "targetPassed": true,
+    "admissionPassed": true,
+    "maximumTextureDimension": 2352
+  },
+  "runtimeIntegrationActive": true,
+  "testsRun": false
+}

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T08:00:42.614324+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\dying-h3-v04-first-last-right.mp4",
+    "bytes": 858888,
+    "sha256": "316df6ba1dfd068e1baabf881cef45c58b89413c58ffbd35b32b6755c0f1234e"
+  },
+  "promptId": "55c1ed74-5738-4028-b8a0-c007cea68aa1",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1251986987,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact first frame and exact last frame show the same golden Syrian hamster trench soldier in the same locked slightly elevated three-quarter-right game-sprite camera. Preserve the first frame's identity, scale, armor, quilted uniform, red-star helmet, pouches, backpack roll, concealed tail and complete wooden A10 pump shotgun throughout. The last frame is the required final pose and orientation.\n\nCreate one irreversible silent death collapse with no yaw turn. 0.0-0.4 seconds: begin at the exact first-frame right-facing stride; arrest the stride at the same root without returning to a frontal standing pose. 0.4-1.8 seconds: both knees buckle nearly vertically while the nose, chest, pelvis, knees, boot toes and complete shotgun continue pointing screen right. 1.8-3.8 seconds: the body descends toward screen-left rear and rolls onto its side; change only body height, pitch and side-roll, never rotate the torso toward the camera or toward screen left. Both paws keep the same trigger-wrist and pump-fore-end grips, so the shotgun falls as one connected load with the torso. The shoulder, hip or forearm reaches the ground before the shotgun. 3.8-5.17 seconds: settle exactly into the supplied last frame and remain still without recovery.\n\nThe camera, character scale and root framing remain fixed. Keep the full helmet, body, boots, wooden stock, closed receiver, wooden pump fore-end, upper handguard, tubular magazine and muzzle inside generous margins. Flat uniform pure white background and even shadowless asset light. Exactly one hamster and one shotgun. No visible tail, frontal turn, overhead view, gun pointing left/down-left/toward camera, premature gun drop, firing, recoil, smoke, blood, wound, extra limb, bare hind leg, weapon duplication, ground plane, cast shadow, text, logo, watermark, camera movement, zoom, reversal or standing recovery.",
+  "effectivePrompt": "The exact first frame and exact last frame show the same golden Syrian hamster trench soldier in the same locked slightly elevated three-quarter-right game-sprite camera. Preserve the first frame's identity, scale, armor, quilted uniform, red-star helmet, pouches, backpack roll, concealed tail and complete wooden A10 pump shotgun throughout. The last frame is the required final pose and orientation.\n\nCreate one irreversible silent death collapse with no yaw turn. 0.0-0.4 seconds: begin at the exact first-frame right-facing stride; arrest the stride at the same root without returning to a frontal standing pose. 0.4-1.8 seconds: both knees buckle nearly vertically while the nose, chest, pelvis, knees, boot toes and complete shotgun continue pointing screen right. 1.8-3.8 seconds: the body descends toward screen-left rear and rolls onto its side; change only body height, pitch and side-roll, never rotate the torso toward the camera or toward screen left. Both paws keep the same trigger-wrist and pump-fore-end grips, so the shotgun falls as one connected load with the torso. The shoulder, hip or forearm reaches the ground before the shotgun. 3.8-5.17 seconds: settle exactly into the supplied last frame and remain still without recovery.\n\nThe camera, character scale and root framing remain fixed. Keep the full helmet, body, boots, wooden stock, closed receiver, wooden pump fore-end, upper handguard, tubular magazine and muzzle inside generous margins. Flat uniform pure white background and even shadowless asset light. Exactly one hamster and one shotgun. No visible tail, frontal turn, overhead view, gun pointing left/down-left/toward camera, premature gun drop, firing, recoil, smoke, blood, wound, extra limb, bare hind leg, weapon duplication, ground plane, cast shadow, text, logo, watermark, camera movement, zoom, reversal or standing recovery.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact first frame and exact last frame show the same golden Syrian hamster trench soldier in the same locked slightly elevated three-quarter-right game-sprite camera. Preserve the first frame's identity, scale, armor, quilted uniform, red-star helmet, pouches, backpack roll, concealed tail and complete wooden A10 pump shotgun throughout. The last frame is the required final pose and orientation.\n\nCreate one irreversible silent death collapse with no yaw turn. 0.0-0.4 seconds: begin at the exact first-frame right-facing stride; arrest the stride at the same root without returning to a frontal standing pose. 0.4-1.8 seconds: both knees buckle nearly vertically while the nose, chest, pelvis, knees, boot toes and complete shotgun continue pointing screen right. 1.8-3.8 seconds: the body descends toward screen-left rear and rolls onto its side; change only body height, pitch and side-roll, never rotate the torso toward the camera or toward screen left. Both paws keep the same trigger-wrist and pump-fore-end grips, so the shotgun falls as one connected load with the torso. The shoulder, hip or forearm reaches the ground before the shotgun. 3.8-5.17 seconds: settle exactly into the supplied last frame and remain still without recovery.\n\nThe camera, character scale and root framing remain fixed. Keep the full helmet, body, boots, wooden stock, closed receiver, wooden pump fore-end, upper handguard, tubular magazine and muzzle inside generous margins. Flat uniform pure white background and even shadowless asset light. Exactly one hamster and one shotgun. No visible tail, frontal turn, overhead view, gun pointing left/down-left/toward camera, premature gun drop, firing, recoil, smoke, blood, wound, extra limb, bare hind leg, weapon duplication, ground plane, cast shadow, text, logo, watermark, camera movement, zoom, reversal or standing recovery. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "44ed9a9e72f7241facb2199831b2140f1801bc0b6bf9734829f74360c1d24885",
+  "effectivePromptSha256": "44ed9a9e72f7241facb2199831b2140f1801bc0b6bf9734829f74360c1d24885",
+  "finalPromptSha256": "927f9567e61b7f87e4bdbcaa9dcb00490e8281aaaa466fd35504660e91da39fe",
+  "parameters": {
+    "width": 1344,
+    "height": 768,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\prompts\\dying-h3-v04-first-last-right.txt",
+      "bytes": 1873,
+      "sha256": "4c733e7833683b5c150eb07f704cae5cec0eb8a40c8485f6f4aa61b869ea20cf"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\references\\trench-assault-running-keyframe-video-safe-16x9.png",
+      "bytes": 508798,
+      "sha256": "bf3628b59ef4c35e0286a64eab20a6997078c0372ece9bb00ccd637cc9a0a675"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\references\\trench-assault-dying-end-v03-right-side-video-safe-16x9.png",
+      "bytes": 486835,
+      "sha256": "4168fd9575abe65581516a2b9b04c912a21b68bfa01277ad9d4a6cfc4fff50a4"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\dying-h3-v04-first-last-right_contact.png",
+    "bytes": 666795,
+    "sha256": "5c8800b41896ecb06702b6f5dd40677c684ce70c6dfc178b79d147536da11b3d"
+  },
+  "elapsedSeconds": 961.618
+}

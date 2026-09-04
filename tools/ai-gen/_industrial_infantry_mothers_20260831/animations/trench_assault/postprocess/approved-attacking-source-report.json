@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "action": "attacking",
+  "status": "user_authorized_completion_postprocessed_pre_rife",
+  "assetOnly": true,
+  "runtimeIntegration": true,
+  "source": "videos/attacking-doubao-v04-reference-only.mp4",
+  "sourceSha256": "33645ee3a040df1b31832f5a2c1d36059b1a8eb3c83a6b3b7c149f797ad4fdb1",
+  "sourceFrameRate": 24.0,
+  "sourceIndices": [
+    0,
+    8,
+    16,
+    28,
+    38,
+    42,
+    44,
+    48,
+    56,
+    64,
+    72,
+    80,
+    88,
+    96,
+    104,
+    112,
+    120
+  ],
+  "selectionPolicy": "nonuniform phase keys retain raise, single f42 release, recoil/smoke, one full pump cycle and return while compressing the 5s source to a 1.5s formal action",
+  "sourceFrameCount": 17,
+  "sourceEndFrame": 16,
+  "finalFrameCount": 33,
+  "finalEndFrame": 32,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 3,
+  "sourceSheetFrameRate": 11.0,
+  "finalFrameRate": 22.0,
+  "formalDurationSeconds": 1.5,
+  "repeat": 0,
+  "fixedScale": 0.20673076923076922,
+  "feetY": 351,
+  "targetEffectiveBodyHeight": 129,
+  "horizontalMode": "preserve-source-fixed-anchor",
+  "verticalMode": "body-feet",
+  "releaseRawSourceFrame": 42,
+  "releaseSourceSheetIndex": 5,
+  "releaseRifeOutputIndex": 10,
+  "releaseDelayMs": 454.5454545454545,
+  "pumpPhaseRawFrames": {
+    "start": 56,
+    "rear": 72,
+    "forward": 88,
+    "locked": 96
+  },
+  "effectPolicy": "retain compact flash and nearby smoke; discard screen-wide generated plume",
+  "sheet": "postprocess/source-sheets-pre-rife/attacking.png",
+  "preview": "postprocess/previews/source/attacking.gif",
+  "contactSheet": "postprocess/previews/source/attacking-contact.png",
+  "cleanup": {
+    "38": {
+      "matteAlphaPixelsTrimmed": 3695,
+      "matteEdgePixelsRecolored": 4576,
+      "detachedPixelsRemoved": 14,
+      "compactAttackEffectPixels": 0
+    },
+    "0": {
+      "matteAlphaPixelsTrimmed": 4288,
+      "matteEdgePixelsRecolored": 4618,
+      "detachedPixelsRemoved": 683,
+      "compactAttackEffectPixels": 0
+    },
+    "8": {
+      "matteAlphaPixelsTrimmed": 4298,
+      "matteEdgePixelsRecolored": 6358,
+      "detachedPixelsRemoved": 12,
+      "compactAttackEffectPixels": 0
+    },
+    "16": {
+      "matteAlphaPixelsTrimmed": 3810,
+      "matteEdgePixelsRecolored": 4361,
+      "detachedPixelsRemoved": 8,
+      "compactAttackEffectPixels": 0
+    },
+    "28": {
+      "matteAlphaPixelsTrimmed": 3712,
+      "matteEdgePixelsRecolored": 4552,
+      "detachedPixelsRemoved": 5,
+      "compactAttackEffectPixels": 0
+    },
+    "42": {
+      "matteAlphaPixelsTrimmed": 3552,
+      "matteEdgePixelsRecolored": 5197,
+      "detachedPixelsRemoved": 1,
+      "compactAttackEffectPixels": 50878
+    },
+    "44": {
+      "matteAlphaPixelsTrimmed": 3729,
+      "matteEdgePixelsRecolored": 5315,
+      "detachedPixelsRemoved": 4,
+      "compactAttackEffectPixels": 51778
+    },
+    "48": {
+      "matteAlphaPixelsTrimmed": 3703,
+      "matteEdgePixelsRecolored": 5194,
+      "detachedPixelsRemoved": 1,
+      "compactAttackEffectPixels": 53108
+    },
+    "56": {
+      "matteAlphaPixelsTrimmed": 3910,
+      "matteEdgePixelsRecolored": 5120,
+      "detachedPixelsRemoved": 10,
+      "compactAttackEffectPixels": 0
+    },
+    "64": {
+      "matteAlphaPixelsTrimmed": 4057,
+      "matteEdgePixelsRecolored": 5485,
+      "detachedPixelsRemoved": 10,
+      "compactAttackEffectPixels": 0
+    },
+    "72": {
+      "matteAlphaPixelsTrimmed": 4066,
+      "matteEdgePixelsRecolored": 5506,
+      "detachedPixelsRemoved": 7,
+      "compactAttackEffectPixels": 0
+    },
+    "80": {
+      "matteAlphaPixelsTrimmed": 3905,
+      "matteEdgePixelsRecolored": 5719,
+      "detachedPixelsRemoved": 4,
+      "compactAttackEffectPixels": 0
+    },
+    "88": {
+      "matteAlphaPixelsTrimmed": 3982,
+      "matteEdgePixelsRecolored": 5630,
+      "detachedPixelsRemoved": 4,
+      "compactAttackEffectPixels": 0
+    },
+    "96": {
+      "matteAlphaPixelsTrimmed": 4031,
+      "matteEdgePixelsRecolored": 5170,
+      "detachedPixelsRemoved": 15,
+      "compactAttackEffectPixels": 0
+    },
+    "104": {
+      "matteAlphaPixelsTrimmed": 4307,
+      "matteEdgePixelsRecolored": 5697,
+      "detachedPixelsRemoved": 7,
+      "compactAttackEffectPixels": 0
+    },
+    "112": {
+      "matteAlphaPixelsTrimmed": 4280,
+      "matteEdgePixelsRecolored": 4611,
+      "detachedPixelsRemoved": 23,
+      "compactAttackEffectPixels": 0
+    },
+    "120": {
+      "matteAlphaPixelsTrimmed": 4508,
+      "matteEdgePixelsRecolored": 4733,
+      "detachedPixelsRemoved": 27,
+      "compactAttackEffectPixels": 0
+    }
+  },
+  "groundContactMattePixelsRemovedBySourceSheetFrame": [
+    9,
+    10,
+    19,
+    17,
+    16,
+    49,
+    56,
+    59,
+    21,
+    21,
+    45,
+    24,
+    42,
+    42,
+    13,
+    17,
+    15
+  ],
+  "validation": {
+    "alphaPixelsMin": 8897,
+    "alphaPixelsMax": 11256,
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "feetMin": 350,
+    "feetMax": 351,
+    "adjacentDeltaMean": 28.684731125831604,
+    "effectiveBodyHeightMin": 128,
+    "effectiveBodyHeightMedian": 130.0,
+    "effectiveBodyHeightMax": 132,
+    "effectiveBodyBottomMin": 350,
+    "effectiveBodyBottomMax": 351,
+    "nonzeroRgbInTransparentPixels": 0
+  },
+  "sheetSha256": "5c9215929df6a26d33955f799b00ee10ec20fce90906366968285f654329e150",
+  "testsRun": false
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "action": "idle",
+  "status": "user_authorized_completion_postprocessed_pre_rife",
+  "assetOnly": true,
+  "runtimeIntegration": true,
+  "source": "videos/idle-doubao-v01.mp4",
+  "sourceSha256": "49db97f425aa41c3f61c910646d6e14a0c0299938bc9998ea08995c6b941abd3",
+  "sourceFrameRate": 24.0,
+  "cycleStart": 44,
+  "duplicateEndpoint": 94,
+  "sourceIndices": [
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92
+  ],
+  "sourceFrameStep": 4,
+  "selectionPolicy": "loop-analysis top candidate raw [44,94); quarter-rate keys retain slow breathing while keeping the formal package inside the crowd target",
+  "frameCount": 13,
+  "endFrame": 12,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 2,
+  "frameRate": 6.0,
+  "repeat": -1,
+  "fixedScale": 0.20673076923076922,
+  "feetY": 351,
+  "targetEffectiveBodyHeight": 129,
+  "horizontalMode": "center-body-fixed-anchor",
+  "verticalMode": "body-feet",
+  "sheet": "postprocess/source-sheets-pre-rife/idle.png",
+  "preview": "postprocess/previews/source/idle.gif",
+  "contactSheet": "postprocess/previews/source/idle-contact.png",
+  "cleanup": {
+    "44": {
+      "detachedPixelsRemoved": 0
+    },
+    "48": {
+      "detachedPixelsRemoved": 0
+    },
+    "52": {
+      "detachedPixelsRemoved": 0
+    },
+    "56": {
+      "detachedPixelsRemoved": 0
+    },
+    "60": {
+      "detachedPixelsRemoved": 0
+    },
+    "64": {
+      "detachedPixelsRemoved": 0
+    },
+    "68": {
+      "detachedPixelsRemoved": 0
+    },
+    "72": {
+      "detachedPixelsRemoved": 0
+    },
+    "76": {
+      "detachedPixelsRemoved": 0
+    },
+    "80": {
+      "detachedPixelsRemoved": 0
+    },
+    "84": {
+      "detachedPixelsRemoved": 0
+    },
+    "88": {
+      "detachedPixelsRemoved": 0
+    },
+    "92": {
+      "detachedPixelsRemoved": 0
+    },
+    "94": {
+      "detachedPixelsRemoved": 0
+    }
+  },
+  "validation": {
+    "alphaPixelsMin": 6977,
+    "alphaPixelsMax": 7070,
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "feetMin": 350,
+    "feetMax": 351,
+    "adjacentDeltaMean": 10.101599762837091,
+    "loopSeamDelta": 6.761562824249268,
+    "effectiveBodyHeightMin": 126,
+    "effectiveBodyHeightMedian": 127.0,
+    "effectiveBodyHeightMax": 128,
+    "effectiveBodyBottomMin": 350,
+    "effectiveBodyBottomMax": 351,
+    "nonzeroRgbInTransparentPixels": 0,
+    "firstEndpointFullAlphaIou": 0.9897245611531326,
+    "firstEndpointLowerAlphaIou": 0.9760956175298805,
+    "firstEndpointDelta": 3.6545958518981934
+  },
+  "sheetSha256": "93a07524d69f92da058a7430615e3dbd7258fd5aefeb338c466012646f78081a",
+  "testsRun": false
+}

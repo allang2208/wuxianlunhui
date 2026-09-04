@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "action": "dying",
+  "status": "user_approved_formal_asset_runtime_integrated",
+  "operation": "shared transparent-only crop and tighter sheet packing; no resampling, redraw or per-frame recentering",
+  "source": "tools/ai-gen/_industrial_infantry_mothers_20260831/animations/trench_assault/postprocess/sheets-rife/dying.png",
+  "output": "assets/companions/trench_assault/dying.png",
+  "sourceCell": [
+    512,
+    512
+  ],
+  "cropBox": [
+    88,
+    208,
+    424,
+    368
+  ],
+  "frameWidth": 336,
+  "frameHeight": 160,
+  "frameCount": 49,
+  "endFrame": 48,
+  "cols": 7,
+  "rows": 7,
+  "frameRate": 24.0,
+  "repeat": 0,
+  "footYRange": [
+    141,
+    144
+  ],
+  "touchingFrames": [],
+  "transparentRgbNonzeroValues": 0,
+  "pixelExactSourceCrop": true,
+  "pngBytes": 1048247,
+  "sha256": "03348723259d198805dc71c84b92a204b922fe0197e60f2e754f4761a809f131",
+  "decodedBytes": 10536960,
+  "decodedMiB": 10.049,
+  "runtimeIntegrationActive": true,
+  "testsRun": false
+}

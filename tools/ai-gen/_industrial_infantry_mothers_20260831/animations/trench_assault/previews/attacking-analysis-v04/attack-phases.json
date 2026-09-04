@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "source": "videos/attacking-doubao-v04-reference-only.mp4",
+  "fps": 24.0,
+  "sourceFrameCount": 121,
+  "denseContact": "previews/attacking-analysis-v04/dense-f24-f112-step2.jpg",
+  "flashFramesFromWarmDelta": [
+    42,
+    43
+  ],
+  "selectionStatus": "selected_for_formalization",
+  "selectedSourceIndices": [0, 8, 16, 28, 38, 42, 44, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120],
+  "releaseRawSourceFrame": 42,
+  "pumpPhaseRawFrames": {
+    "start": 56,
+    "rear": 72,
+    "forward": 88,
+    "locked": 96
+  },
+  "formal": {
+    "sourceSheetFrames": 17,
+    "rifeMode": "one-shot",
+    "rifeFrames": 33,
+    "runtimeFrameRate": 22,
+    "durationSeconds": 1.5,
+    "releaseOutputIndex": 10,
+    "releaseDelayMs": 454.5454545454545
+  }
+}

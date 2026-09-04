@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "source": "videos/attacking-doubao-v04-reference-only.mp4",
+  "sourceWindowSeconds": [
+    1.68,
+    2.55
+  ],
+  "sourceShotPeakSeconds": 1.75,
+  "output": "assets/sounds/friendly/trench_assault_attack_video.wav",
+  "format": "pcm_s16le",
+  "channels": 2,
+  "sampleRate": 44100,
+  "durationSeconds": 0.87,
+  "peak": 0.8449916839599609,
+  "sha256": "e476b7b562fe7355c8af8d6637e3fbafe6d03c93dba982b5ff894edd55bd7ddc",
+  "runtimeIntegration": true,
+  "testsRun": false
+}

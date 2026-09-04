@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "source": "videos/running-doubao-v05-reference-only.mp4",
+  "fps": 24.0,
+  "sourceFrameCount": 121,
+  "searchWindow": {
+    "startMin": 8,
+    "endMaxExclusive": 117,
+    "periodFrames": [
+      16,
+      40
+    ]
+  },
+  "candidates": [
+    {
+      "start": 15,
+      "end": 51,
+      "periodFrames": 36,
+      "periodSeconds": 1.5,
+      "fullIou": 0.9663302199457668,
+      "legIou": 0.9542494573384538,
+      "score": 0.9569072251120626
+    },
+    {
+      "start": 51,
+      "end": 86,
+      "periodFrames": 35,
+      "periodSeconds": 1.4583333333333333,
+      "fullIou": 0.9550108362603692,
+      "legIou": 0.9505032172908761,
+      "score": 0.9514948934641646
+    },
+    {
+      "start": 59,
+      "end": 95,
+      "periodFrames": 36,
+      "periodSeconds": 1.5,
+      "fullIou": 0.9567744278968399,
+      "legIou": 0.9478357380688124,
+      "score": 0.9498022498309785
+    },
+    {
+      "start": 95,
+      "end": 114,
+      "periodFrames": 19,
+      "periodSeconds": 0.7916666666666666,
+      "fullIou": 0.9546942040578867,
+      "legIou": 0.9477207523111253,
+      "score": 0.9492549116954128
+    },
+    {
+      "start": 27,
+      "end": 62,
+      "periodFrames": 35,
+      "periodSeconds": 1.4583333333333333,
+      "fullIou": 0.9567164179104478,
+      "legIou": 0.9446138211382114,
+      "score": 0.9472763924281034
+    },
+    {
+      "start": 86,
+      "end": 105,
+      "periodFrames": 19,
+      "periodSeconds": 0.7916666666666666,
+      "fullIou": 0.9550904893125791,
+      "legIou": 0.9429967426710097,
+      "score": 0.9456573669321551
+    },
+    {
+      "start": 42,
+      "end": 77,
+      "periodFrames": 35,
+      "periodSeconds": 1.4583333333333333,
+      "fullIou": 0.9426126724201519,
+      "legIou": 0.943089430894309,
+      "score": 0.9429845440299944
+    },
+    {
+      "start": 50,
+      "end": 68,
+      "periodFrames": 18,
+      "periodSeconds": 0.75,
+      "fullIou": 0.9514858841010401,
+      "legIou": 0.9394547583207894,
+      "score": 0.9421016059924446
+    },
+    {
+      "start": 30,
+      "end": 48,
+      "periodFrames": 18,
+      "periodSeconds": 0.75,
+      "fullIou": 0.9448736998514116,
+      "legIou": 0.9402639087018545,
+      "score": 0.941278062754757
+    },
+    {
+      "start": 82,
+      "end": 101,
+      "periodFrames": 19,
+      "periodSeconds": 0.7916666666666666,
+      "fullIou": 0.9609719626168224,
+      "legIou": 0.9354437133202916,
+      "score": 0.9410599281655284
+    },
+    {
+      "start": 34,
+      "end": 69,
+      "periodFrames": 35,
+      "periodSeconds": 1.4583333333333333,
+      "fullIou": 0.9418450184501845,
+      "legIou": 0.9388045540796964,
+      "score": 0.9394734562412038
+    },
+    {
+      "start": 39,
+      "end": 74,
+      "periodFrames": 35,
+      "periodSeconds": 1.4583333333333333,
+      "fullIou": 0.946284144666565,
+      "legIou": 0.9370556615224553,
+      "score": 0.9390859278141594
+    }
+  ],
+  "selectionStatus": "selected_for_formalization",
+  "selectedCycle": {
+    "startInclusive": 15,
+    "endExclusive": 51,
+    "samePhaseEndpoint": 51,
+    "sourceFramesAt24Fps": 36,
+    "selectedSourceIndices": [15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 49],
+    "sourceSheetFrameRate": 12,
+    "rifeMode": "loop",
+    "rifeFrames": 36,
+    "runtimeFrameRate": 24,
+    "reason": "highest-ranked stable complete two-step cycle; no firing, recoil, pumping or attack pause; f51 is the excluded same-phase endpoint"
+  }
+}

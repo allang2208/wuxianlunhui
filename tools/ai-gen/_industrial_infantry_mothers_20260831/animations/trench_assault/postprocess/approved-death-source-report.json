@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "action": "dying",
+  "status": "user_approved_postprocessed_pre_rife",
+  "assetOnly": true,
+  "runtimeIntegration": true,
+  "approvalEvidence": "用户查看方向修正后的死亡v04后回复：可用，继续。",
+  "source": "videos/dying-h3-v04-first-last-right.mp4",
+  "sourceSha256": "316df6ba1dfd068e1baabf881cef45c58b89413c58ffbd35b32b6755c0f1234e",
+  "sourceFrameRate": 24.0,
+  "sourceIndices": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    83,
+    90,
+    105,
+    123
+  ],
+  "selectionPolicy": "dense four-frame sampling through the right-facing buckle and side fall, then sparse stable-corpse keys; no tail-to-head wrap",
+  "frameCount": 25,
+  "endFrame": 24,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 4,
+  "frameRate": 12.0,
+  "repeat": 0,
+  "mode": "one-shot",
+  "fixedScale": 0.20673076923076922,
+  "feetY": 351,
+  "targetEffectiveBodyHeight": 129,
+  "horizontalMode": "preserve-source",
+  "verticalMode": "content-ground",
+  "sheet": "postprocess/source-sheets-pre-rife/dying.png",
+  "preview": "postprocess/previews/source/dying.gif",
+  "contactSheet": "postprocess/previews/source/dying-contact.png",
+  "cleanup": {
+    "0": {
+      "detachedPixelsRemoved": 0
+    },
+    "4": {
+      "detachedPixelsRemoved": 0
+    },
+    "8": {
+      "detachedPixelsRemoved": 0
+    },
+    "12": {
+      "detachedPixelsRemoved": 0
+    },
+    "16": {
+      "detachedPixelsRemoved": 0
+    },
+    "20": {
+      "detachedPixelsRemoved": 0
+    },
+    "24": {
+      "detachedPixelsRemoved": 0
+    },
+    "28": {
+      "detachedPixelsRemoved": 0
+    },
+    "32": {
+      "detachedPixelsRemoved": 0
+    },
+    "36": {
+      "detachedPixelsRemoved": 0
+    },
+    "40": {
+      "detachedPixelsRemoved": 0
+    },
+    "44": {
+      "detachedPixelsRemoved": 0
+    },
+    "48": {
+      "detachedPixelsRemoved": 0
+    },
+    "52": {
+      "detachedPixelsRemoved": 0
+    },
+    "56": {
+      "detachedPixelsRemoved": 0
+    },
+    "60": {
+      "detachedPixelsRemoved": 0
+    },
+    "64": {
+      "detachedPixelsRemoved": 0
+    },
+    "68": {
+      "detachedPixelsRemoved": 0
+    },
+    "72": {
+      "detachedPixelsRemoved": 0
+    },
+    "76": {
+      "detachedPixelsRemoved": 0
+    },
+    "80": {
+      "detachedPixelsRemoved": 0
+    },
+    "83": {
+      "detachedPixelsRemoved": 0
+    },
+    "90": {
+      "detachedPixelsRemoved": 0
+    },
+    "105": {
+      "detachedPixelsRemoved": 0
+    },
+    "123": {
+      "detachedPixelsRemoved": 0
+    }
+  },
+  "validation": {
+    "alphaPixelsMin": 6992,
+    "alphaPixelsMax": 8060,
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "feetMin": 350,
+    "feetMax": 351,
+    "adjacentDeltaMean": 21.74917309979598,
+    "effectiveBodyHeightMin": 73,
+    "effectiveBodyHeightMedian": 115.0,
+    "effectiveBodyHeightMax": 131,
+    "effectiveBodyBottomMin": 349,
+    "effectiveBodyBottomMax": 351,
+    "nonzeroRgbInTransparentPixels": 0
+  },
+  "sheetSha256": "2242ba84648bb7561a314777436cdad68c4e03d6440690827a29a8b81fab454d",
+  "testsRun": false
+}

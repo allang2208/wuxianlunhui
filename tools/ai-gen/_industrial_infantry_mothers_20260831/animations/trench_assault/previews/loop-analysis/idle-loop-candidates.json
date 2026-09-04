@@ -1,0 +1,284 @@
+{
+  "video": "tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\idle-doubao-v01.mp4",
+  "fps": 24.0,
+  "sourceFrames": 121,
+  "search": {
+    "start": 36,
+    "endExclusive": 121,
+    "minPeriod": 24,
+    "maxPeriod": 60
+  },
+  "method": "largest non-white subject component normalized to fixed height and footline; lower-body IoU weighted above whole-subject IoU and visible RGB delta",
+  "topCandidates": [
+    {
+      "start": 44,
+      "endpoint": 94,
+      "period": 50,
+      "overallIou": 0.9950548581907863,
+      "lowerBodyIou": 0.9864762274677353,
+      "visibleDelta": 1.7135359048843384,
+      "score": 3.343558516281303
+    },
+    {
+      "start": 42,
+      "endpoint": 92,
+      "period": 50,
+      "overallIou": 0.9954766875434934,
+      "lowerBodyIou": 0.9875742364253394,
+      "visibleDelta": 2.001845121383667,
+      "score": 3.343412131393378
+    },
+    {
+      "start": 42,
+      "endpoint": 94,
+      "period": 52,
+      "overallIou": 0.9958649730338073,
+      "lowerBodyIou": 0.9887765366086082,
+      "visibleDelta": 2.449923276901245,
+      "score": 3.34170729115112
+    },
+    {
+      "start": 38,
+      "endpoint": 80,
+      "period": 42,
+      "overallIou": 0.9950121043836295,
+      "lowerBodyIou": 0.9871230932954949,
+      "visibleDelta": 2.341779947280884,
+      "score": 3.3380877511008076
+    },
+    {
+      "start": 40,
+      "endpoint": 92,
+      "period": 52,
+      "overallIou": 0.9927868935512675,
+      "lowerBodyIou": 0.9890271573424094,
+      "visibleDelta": 2.657857656478882,
+      "score": 3.3369203194343955
+    },
+    {
+      "start": 41,
+      "endpoint": 92,
+      "period": 51,
+      "overallIou": 0.9945339962631029,
+      "lowerBodyIou": 0.9850508059796776,
+      "visibleDelta": 1.9911327362060547,
+      "score": 3.336532233545373
+    },
+    {
+      "start": 43,
+      "endpoint": 94,
+      "period": 51,
+      "overallIou": 0.9945105330727734,
+      "lowerBodyIou": 0.9849894926448514,
+      "visibleDelta": 1.9965975284576416,
+      "score": 3.336300898437554
+    },
+    {
+      "start": 43,
+      "endpoint": 92,
+      "period": 49,
+      "overallIou": 0.9951187393558761,
+      "lowerBodyIou": 0.9865561400712046,
+      "visibleDelta": 2.4694113731384277,
+      "score": 3.3354155713807847
+    },
+    {
+      "start": 49,
+      "endpoint": 98,
+      "period": 49,
+      "overallIou": 0.991306327097072,
+      "lowerBodyIou": 0.9844704055341827,
+      "visibleDelta": 1.6962883472442627,
+      "score": 3.3351876520763963
+    },
+    {
+      "start": 46,
+      "endpoint": 74,
+      "period": 28,
+      "overallIou": 0.9965512432007506,
+      "lowerBodyIou": 0.9907108737419139,
+      "visibleDelta": 3.634281635284424,
+      "score": 3.3338764331226276
+    },
+    {
+      "start": 38,
+      "endpoint": 92,
+      "period": 54,
+      "overallIou": 0.9926027639971652,
+      "lowerBodyIou": 0.9885207916939349,
+      "visibleDelta": 2.8759279251098633,
+      "score": 3.3330979093391657
+    },
+    {
+      "start": 44,
+      "endpoint": 92,
+      "period": 48,
+      "overallIou": 0.995385696291467,
+      "lowerBodyIou": 0.9872727594569238,
+      "visibleDelta": 2.89209246635437,
+      "score": 3.332705958250813
+    },
+    {
+      "start": 43,
+      "endpoint": 93,
+      "period": 50,
+      "overallIou": 0.9936785431512273,
+      "lowerBodyIou": 0.9826714673382877,
+      "visibleDelta": 1.7988388538360596,
+      "score": 3.3321029663871613
+    },
+    {
+      "start": 41,
+      "endpoint": 91,
+      "period": 50,
+      "overallIou": 0.9939718177726786,
+      "lowerBodyIou": 0.9834533013418644,
+      "visibleDelta": 2.0293781757354736,
+      "score": 3.331711094596092
+    },
+    {
+      "start": 40,
+      "endpoint": 80,
+      "period": 40,
+      "overallIou": 0.994349205138473,
+      "lowerBodyIou": 0.9852633074109585,
+      "visibleDelta": 2.4621427059173584,
+      "score": 3.331624001747914
+    },
+    {
+      "start": 48,
+      "endpoint": 98,
+      "period": 50,
+      "overallIou": 0.9918178831378892,
+      "lowerBodyIou": 0.9858219732995174,
+      "visibleDelta": 2.4090659618377686,
+      "score": 3.3310232194807554
+    },
+    {
+      "start": 39,
+      "endpoint": 92,
+      "period": 53,
+      "overallIou": 0.992140346432756,
+      "lowerBodyIou": 0.9872163120567375,
+      "visibleDelta": 2.7571887969970703,
+      "score": 3.3308240642911806
+    },
+    {
+      "start": 44,
+      "endpoint": 95,
+      "period": 51,
+      "overallIou": 0.9938655744139376,
+      "lowerBodyIou": 0.9834239467299485,
+      "visibleDelta": 2.112380266189575,
+      "score": 3.330612154719263
+    },
+    {
+      "start": 38,
+      "endpoint": 86,
+      "period": 48,
+      "overallIou": 0.9945987752152249,
+      "lowerBodyIou": 0.9858646033452597,
+      "visibleDelta": 2.724932909011841,
+      "score": 3.3303967909214944
+    },
+    {
+      "start": 42,
+      "endpoint": 93,
+      "period": 51,
+      "overallIou": 0.9933564486738206,
+      "lowerBodyIou": 0.9818050005304665,
+      "visibleDelta": 1.7618129253387451,
+      "score": 3.3301127507765096
+    },
+    {
+      "start": 36,
+      "endpoint": 80,
+      "period": 44,
+      "overallIou": 0.9938284159812882,
+      "lowerBodyIou": 0.9835797844957662,
+      "visibleDelta": 2.2082746028900146,
+      "score": 3.329883514294571
+    },
+    {
+      "start": 44,
+      "endpoint": 96,
+      "period": 52,
+      "overallIou": 0.9946718640249574,
+      "lowerBodyIou": 0.9854426461484036,
+      "visibleDelta": 2.7051427364349365,
+      "score": 3.329677073265182
+    },
+    {
+      "start": 44,
+      "endpoint": 93,
+      "period": 49,
+      "overallIou": 0.9937313206017933,
+      "lowerBodyIou": 0.9827940603182479,
+      "visibleDelta": 2.1386220455169678,
+      "score": 3.328674598193177
+    },
+    {
+      "start": 51,
+      "endpoint": 98,
+      "period": 47,
+      "overallIou": 0.9956824345253522,
+      "lowerBodyIou": 0.987953507240242,
+      "visibleDelta": 3.5050432682037354,
+      "score": 3.3278259266996693
+    },
+    {
+      "start": 39,
+      "endpoint": 80,
+      "period": 41,
+      "overallIou": 0.9937764216013477,
+      "lowerBodyIou": 0.9836601307189542,
+      "visibleDelta": 2.4178378582000732,
+      "score": 3.3276958702357256
+    },
+    {
+      "start": 38,
+      "endpoint": 79,
+      "period": 41,
+      "overallIou": 0.9935069473122446,
+      "lowerBodyIou": 0.9830304104973845,
+      "visibleDelta": 2.2811834812164307,
+      "score": 3.3274334493813407
+    },
+    {
+      "start": 41,
+      "endpoint": 93,
+      "period": 52,
+      "overallIou": 0.9936361446699542,
+      "lowerBodyIou": 0.9826734432755189,
+      "visibleDelta": 2.2401974201202393,
+      "score": 3.327161326085419
+    },
+    {
+      "start": 46,
+      "endpoint": 94,
+      "period": 48,
+      "overallIou": 0.9914306628300268,
+      "lowerBodyIou": 0.9849763939835372,
+      "visibleDelta": 2.5594701766967773,
+      "score": 3.3269354508716624
+    },
+    {
+      "start": 36,
+      "endpoint": 81,
+      "period": 45,
+      "overallIou": 0.9934212617193707,
+      "lowerBodyIou": 0.9825296498828209,
+      "visibleDelta": 2.214036703109741,
+      "score": 3.32689201362581
+    },
+    {
+      "start": 50,
+      "endpoint": 98,
+      "period": 48,
+      "overallIou": 0.9910528939282086,
+      "lowerBodyIou": 0.9837345592363841,
+      "visibleDelta": 2.282433271408081,
+      "score": 3.3266554664132184
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "user_approved_formal_asset_runtime_integrated",
+  "destination": "http://192.168.3.142:8188",
+  "purpose": "战壕突击兵死亡视角与右向动作轴精确重制",
+  "pipelineAuthority": [
+    "SKILL.md 动画索引",
+    "skill/16b-animation-alignment-and-timing.md 1.1",
+    "tools/ai-gen/WORKFLOW.md 3.6"
+  ],
+  "directionAuthority": {
+    "asset": "assets/companions/industrial_recon_rifleman/running.png",
+    "framesZeroBased": [0, 8, 17, 25, 33],
+    "camera": "略俯视三分之四右向",
+    "bodyAxis": "鼻尖、胸腔、骨盆、膝脚和步轴朝屏幕右侧",
+    "root": "原地根点，死亡保留自然下降与侧卧展开"
+  },
+  "uploads": [
+    {
+      "role": "exact_first_frame",
+      "path": "references/trench-assault-running-keyframe-video-safe-16x9.png",
+      "bytes": 508798,
+      "sha256": "bf3628b59ef4c35e0286a64eab20a6997078c0372ece9bb00ccd637cc9a0a675"
+    },
+    {
+      "role": "exact_last_frame",
+      "path": "references/trench-assault-dying-end-v03-right-side-video-safe-16x9.png",
+      "bytes": 486835,
+      "sha256": "4168fd9575abe65581516a2b9b04c912a21b68bfa01277ad9d4a6cfc4fff50a4"
+    }
+  ],
+  "prompt": "prompts/dying-h3-v04-first-last-right.txt",
+  "parameters": {
+    "model": "MiniMax H3 I2V exact first and last frame",
+    "durationSeconds": 5.17,
+    "size": "1344x768",
+    "steps": 20,
+    "candidates": 1,
+    "actionMode": "one-way",
+    "promptFormat": "h3",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset",
+    "contactCount": 32
+  },
+  "output": {
+    "path": "videos/dying-h3-v04-first-last-right.mp4",
+    "bytes": 858888,
+    "sha256": "316df6ba1dfd068e1baabf881cef45c58b89413c58ffbd35b32b6755c0f1234e",
+    "provenance": "videos/dying-h3-v04-first-last-right.mp4.json",
+    "contactSheet": "previews/dying-h3-v04-first-last-right-contact-32.png",
+    "preview": "previews/dying-h3-v04-first-last-right-source.gif",
+    "offlineResult": "passed_direction_and_action",
+    "userApproval": "用户查看v04后回复：可用，继续。",
+    "formalManifest": "postprocess/manifest.json",
+    "formalPreview": "postprocess/previews/rife/trench-assault-dying-interpolated.gif",
+    "runtimeAsset": "assets/companions/trench_assault/dying.png"
+  },
+  "explicitExclusions": [
+    "不上传旧死亡视频或侦察射手死亡参考",
+    "不重用迎面的生成站姿起始帧",
+    "不生成额外候选",
+    "不抠图、RIFE或接入运行时，直到原视频方向核对通过"
+  ]
+}

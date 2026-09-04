@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "user_approved_source_formalized_candidate_review",
+  "unitKey": "steel_shield_assault",
+  "action": "dying",
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "userInstruction": "前序已要求继续完整动画；当前确认攻击烟雾与音效保留，并要求正式切图时提速攻击",
+  "pipelineAuthority": [
+    "SKILL.md 动画索引",
+    "skill/16b-animation-alignment-and-timing.md 1.1",
+    "tools/ai-gen/WORKFLOW.md 3.6"
+  ],
+  "directionAuthority": {
+    "upperConfig": "data/hamster-riot-squad-config.json",
+    "upperAsset": "assets/companions/hamster_riot_squad/dying.png",
+    "upperFramesZeroBased": [0, 8, 16, 24, 30],
+    "lowerConfig": "data/hamster-phalanx-config.json",
+    "lowerActualDeathAsset": "assets/companions/hamster_guard/dying_rife.png",
+    "lowerFramesZeroBased": [0, 7, 14, 21, 28],
+    "target": "略俯视三分之四右向起始；朝画面右侧侧后倒，最终头在左、腿与长钢盾在右；盾牌始终与左前臂连接，短手枪始终由画面左侧持枪手握住；尸体完整静止"
+  },
+  "startKeyframe": {
+    "path": "keyframes/attacking-keyframe-v02-right.png",
+    "bytes": 1835283,
+    "sha256": "fd0c6788daefeaf8d4c9a5e55c3f661d618802a72f02c7db925a7dd23f0c1f0a",
+    "reuseReason": "同角色获准右向低戒备姿态已通过头胸胯、双脚、盾侧、枪侧与长尾方向门槛；死亡首帧无需重新生成身份"
+  },
+  "acceptedVariation": "long tail retained across the unit animation line per user decision",
+  "reference": {
+    "path": "references/steel-shield-assault-dying-start-v01-video-safe-16x9.png",
+    "bytes": 555288,
+    "sha256": "07108e9481207aab9f182dc629afb1a331a72da4e685d0b8cf36c9e25e52decf",
+    "operation": "approved same-character keyframe proportional resize and white 1024x576 padding only"
+  },
+  "prompt": "prompts/dying-doubao-v01.txt",
+  "promptBytes": 1673,
+  "promptSha256": "882222d0360750aec1ba1f155565a9110bcdbf8517b89b5c3d8cfc2cce1c8ce4",
+  "actionTiming": {
+    "motionMode": "one_way_death",
+    "plantedHitReactionSeconds": [0.0, 0.55],
+    "collapseSeconds": [0.55, 2.4],
+    "groundSettleSeconds": [2.4, 3.4],
+    "finalCorpseHoldSeconds": [3.4, 5.0],
+    "recoveryForbidden": true,
+    "loopForbidden": true
+  },
+  "parameters": {
+    "durationSeconds": 5,
+    "size": "1024x576",
+    "candidates": 1,
+    "loopRequested": false,
+    "cdpPort": 9333,
+    "fillOnlyRequired": true
+  },
+  "fillOnly": {
+    "status": "passed_without_upload_or_submission",
+    "modelSelection": "explicit",
+    "parameterSelection": "explicit",
+    "verifiedModel": "Seedance 2.0 Mini",
+    "verifiedRatio": "16:9",
+    "verifiedDurationSeconds": 5,
+    "editorChars": 576,
+    "editorSha256": "b30f3c2edbc1b4eed3ca78021059887a4911a8fa78c4df2b5635c65fb30aecc1"
+  },
+  "submission": {
+    "submittedOnce": true,
+    "conversationUrl": "chrome://doubao-chat/chat/38439744424540162",
+    "conversationTitle": "钢盾仓鼠士兵死亡动作生成",
+    "referencePreviewConfirmed": "steel-shield-assault-dying-start-v01-video-safe-16x9.png 1024x576",
+    "promptEditorChars": 576,
+    "promptSha256": "b30f3c2edbc1b4eed3ca78021059887a4911a8fa78c4df2b5635c65fb30aecc1",
+    "paidQuotaConfirmed": false,
+    "duplicateSubmissionAttempted": false
+  },
+  "backendWait": {
+    "initialWaitSeconds": 120,
+    "initialWaitResult": "timed_out_after_submission_without_failure_quota_or_risk_message",
+    "foregroundCheckAfterTimeout": "scroll-latest plus play-latest completed-offset 0",
+    "foregroundChecksCompleted": 6,
+    "approximateObservedSecondsAfterSubmission": 385,
+    "completedCardsFound": 0,
+    "visibleState": "视频生成已提交",
+    "nextAction": "wait for the same task, then foreground newest completed card before any download; never resubmit"
+  },
+  "completionRecovery": {
+    "priorInspectVisibility": "hidden",
+    "priorCompletedCardsFound": 0,
+    "foregroundOperation": "CDP Page.bringToFront before scroll-latest and play-latest",
+    "foregroundVisibility": "visible",
+    "foregroundHasFocus": true,
+    "completedCardsFound": 1,
+    "visibleForegroundVideoReadyState": 4,
+    "correctRecovery": "activate newest completed card, verify visible non-resource player, then run download-latest separately",
+    "correctFileDistinctFromAllExistingUnitVideos": true,
+    "duplicateSubmissionAttempted": false
+  },
+  "output": {
+    "path": "videos/dying-doubao-v01.mp4",
+    "bytes": 889500,
+    "sha256": "e5c49603b3e776132a37eb837d7caba741ccd03f473278b56882075be3d2be0e",
+    "provenance": "videos/dying-doubao-v01.mp4.json",
+    "provenanceSha256": "9ed0e41ebe91e6efcfe78a9d874d2bd140022f4dace4ed631b287de1783d74ad",
+    "frameCount": 121,
+    "fps": 24,
+    "size": "1280x720",
+    "durationSeconds": 5.041666666666667,
+    "contactSheet": "previews/dying-doubao-v01-contact-32.png",
+    "contactSheetSha256": "e27cde72efbced445e992eb52afc770a72d5f2bae2d613095402aefd402d106b",
+    "collapseReview": "previews/dying-doubao-v01-collapse-f00-f120.png",
+    "collapseReviewSha256": "649294b0f6fa43fb83cfee80dd57a8af4c70bd009841d1f4b7e2d90156c35b25",
+    "preview": "previews/dying-doubao-v01-source.gif",
+    "previewSha256": "1000cdcf44012abc83c7ddb58614e971c80b007eb816567e6b6c90f9a2afaeba",
+    "offlineDirectionResult": "passed_fixed_camera_right_facing_start_controlled_backward_collapse_and_final_head_left_legs_right_corpse_hold",
+    "equipmentContinuityNote": "shield remains on screen-right through collapse but appears no longer visibly forearm-connected from about f78; pistol settles beside the screen-left hand instead of remaining clearly gripped",
+    "userReviewRequired": false,
+    "userDecision": "用户在查看死亡预览并知悉盾牌与手枪落地方式后回复继续；死亡v01及该装备落地方式获准进入正式化"
+  },
+  "submissionPolicy": "run fill-only first, then submit exactly one candidate; quota/auth/risk stops without automatic retry",
+  "runtimeIntegrationActive": false,
+  "testsRun": false
+}

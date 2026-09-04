@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T07:12:06.291941+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\dying-h3-v03-motion-transfer.mp4",
+    "bytes": 856786,
+    "sha256": "2af28323cb72a23611d473faa370b1c3c7c26c39e0015f619c7c8fb601d12a9b"
+  },
+  "promptId": "463be833-5fd6-4744-8c0d-a9eeb7371062",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 2055699646,
+  "mode": "ref2va",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The hamster's compact natural tail remains fully concealed inside the trousers. The shotgun retains one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle.\n\n<Video 1> supplies only the approved collapse mechanics and weapon-retention timing: knees lose strength, the torso falls with the weapon still held, then the weapon settles beside the body after body contact. Do not copy Video 1's rifle identity, clothing, accessories, face, colors, background, watermark or scale.\n\nCreate one irreversible silent death collapse. 0.0-0.8 seconds: both paws hold the shotgun at low ready. 0.8-1.7 seconds: knees buckle while the rear paw keeps the trigger/stock wrist and the forward paw keeps the wooden pump fore-end; the complete shotgun remains held against the torso. 1.7-3.9 seconds: the soldier collapses toward screen-left rear with both arms and the shotgun moving as one connected load. The torso, shoulder or forearm reaches the ground before any part of the shotgun. Only after body contact may the hands relax and let the shotgun settle slowly along the corpse's front side. 3.9-5.17 seconds: the body and complete shotgun remain still in the final side-lying pose without recovery.\n\nLocked slightly elevated three-quarter-right game-asset camera with wide framing and natural collapse displacement preserved. Keep the entire helmet, body, boots, buttstock, receiver, pump fore-end, tubular magazine and muzzle inside generous margins. Flat uniform pure white background and even shadowless light. No firing, recoil, visible tail, premature gun placement, blood, wounds, smoke, ground plane, cast shadow, text, logo, watermark, camera follow, zoom, reversal or standing recovery.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The hamster's compact natural tail remains fully concealed inside the trousers. The shotgun retains one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle.\n\n<Video 1> supplies only the approved collapse mechanics and weapon-retention timing: knees lose strength, the torso falls with the weapon still held, then the weapon settles beside the body after body contact. Do not copy Video 1's rifle identity, clothing, accessories, face, colors, background, watermark or scale.\n\nCreate one irreversible silent death collapse. 0.0-0.8 seconds: both paws hold the shotgun at low ready. 0.8-1.7 seconds: knees buckle while the rear paw keeps the trigger/stock wrist and the forward paw keeps the wooden pump fore-end; the complete shotgun remains held against the torso. 1.7-3.9 seconds: the soldier collapses toward screen-left rear with both arms and the shotgun moving as one connected load. The torso, shoulder or forearm reaches the ground before any part of the shotgun. Only after body contact may the hands relax and let the shotgun settle slowly along the corpse's front side. 3.9-5.17 seconds: the body and complete shotgun remain still in the final side-lying pose without recovery.\n\nLocked slightly elevated three-quarter-right game-asset camera with wide framing and natural collapse displacement preserved. Keep the entire helmet, body, boots, buttstock, receiver, pump fore-end, tubular magazine and muzzle inside generous margins. Flat uniform pure white background and even shadowless light. No firing, recoil, visible tail, premature gun placement, blood, wounds, smoke, ground plane, cast shadow, text, logo, watermark, camera follow, zoom, reversal or standing recovery.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The hamster's compact natural tail remains fully concealed inside the trousers. The shotgun retains one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle.\n\n<Video 1> supplies only the approved collapse mechanics and weapon-retention timing: knees lose strength, the torso falls with the weapon still held, then the weapon settles beside the body after body contact. Do not copy Video 1's rifle identity, clothing, accessories, face, colors, background, watermark or scale.\n\nCreate one irreversible silent death collapse. 0.0-0.8 seconds: both paws hold the shotgun at low ready. 0.8-1.7 seconds: knees buckle while the rear paw keeps the trigger/stock wrist and the forward paw keeps the wooden pump fore-end; the complete shotgun remains held against the torso. 1.7-3.9 seconds: the soldier collapses toward screen-left rear with both arms and the shotgun moving as one connected load. The torso, shoulder or forearm reaches the ground before any part of the shotgun. Only after body contact may the hands relax and let the shotgun settle slowly along the corpse's front side. 3.9-5.17 seconds: the body and complete shotgun remain still in the final side-lying pose without recovery.\n\nLocked slightly elevated three-quarter-right game-asset camera with wide framing and natural collapse displacement preserved. Keep the entire helmet, body, boots, buttstock, receiver, pump fore-end, tubular magazine and muzzle inside generous margins. Flat uniform pure white background and even shadowless light. No firing, recoil, visible tail, premature gun placement, blood, wounds, smoke, ground plane, cast shadow, text, logo, watermark, camera follow, zoom, reversal or standing recovery. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "05d59d9b76263399f28a0898f0510343f0fc4dc21d90eef7a0df8ea9e462f12b",
+  "effectivePromptSha256": "05d59d9b76263399f28a0898f0510343f0fc4dc21d90eef7a0df8ea9e462f12b",
+  "finalPromptSha256": "dc3c941d0c7b1f5a91db6a934c313f90a87c804baee0323def02da8573784203",
+  "parameters": {
+    "width": 1344,
+    "height": 768,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\prompts\\dying-h3-v03-motion-transfer.txt",
+      "bytes": 2174,
+      "sha256": "b266a55f9017fec103bc1b1d7c479507e65cdc112df6cb36b3635981b7bb200d"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\mother\\trench_assault-mother-v03-a10.png",
+        "bytes": 1867115,
+        "sha256": "5427b62d39a176ef535f86ba32c068f4666941d8897ae3b16774f7a7eb908e1a"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recon_mothers_20260831\\animations\\industrial_recon_rifleman\\videos\\dying-doubao-v03-sling-retained.mp4",
+        "bytes": 795311,
+        "sha256": "23b1d5c73d518422659091608c5b8dd7fac1d0a3d1776e75441ed2b8ebfd735b"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\dying-h3-v03-motion-transfer_contact.png",
+    "bytes": 1086316,
+    "sha256": "5494d49e71a3fe009a6078cc655d886f755a604419bf508333b4f0ed68e83377"
+  },
+  "elapsedSeconds": 846.587
+}

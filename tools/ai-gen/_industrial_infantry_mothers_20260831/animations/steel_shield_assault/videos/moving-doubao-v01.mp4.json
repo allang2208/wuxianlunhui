@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\steel_shield_assault\\references\\steel-shield-assault-moving-keyframe-video-safe-16x9.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\steel_shield_assault\\prompts\\moving-doubao-v01.txt",
+  "promptChars": 598,
+  "promptSha256": "bbec439a798a2357cd69cef74bb7b2000e76305cda2b76029ec545a6b2957ad3",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-09-01T09:48:19.507Z",
+  "sourceUrlScheme": "https"
+}

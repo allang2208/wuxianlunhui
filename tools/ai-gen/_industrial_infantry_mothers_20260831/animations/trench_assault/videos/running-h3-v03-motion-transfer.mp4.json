@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T06:36:00.893923+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\running-h3-v03-motion-transfer.mp4",
+    "bytes": 1058115,
+    "sha256": "80585727df0eab3e706c94c455d3f74f7f59c64a520a8f46771a04794d7f16d5"
+  },
+  "promptId": "3e247a9d-8fbc-4f19-be21-7da019e3a14b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1862671272,
+  "mode": "ref2va",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, small rounded hamster proportions, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The shotgun keeps one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle. The hamster has a compact natural tail fully concealed inside the trousers; the lower back remains a smooth closed quilted-cloth silhouette.\n\n<Video 1> supplies only the established right-facing in-place running cadence, alternating leg rhythm and restrained weapon-carry mechanics. Do not copy Video 1's visible long tail, background, shadow, watermark, character rendering or any anatomy not present in Picture 1.\n\nCreate a continuous right-facing in-place tactical run. The nose, gaze, chest, pelvis, knees and boot toes remain aligned toward screen right in a slightly elevated three-quarter game-sprite view. The two legs alternate through at least two readable strides while the root stays inside one small fixed screen area. Both paws continuously keep the shotgun at low ready: rear paw at the trigger and stock wrist, forward paw on the wooden pump fore-end. The pump stays locked during running. The chest armor, backpack roll, pouches and complete shotgun remain rigid and continuous. Begin in an established stride and return near the same stride phase for clean loop extraction.\n\nWide full-body framing with generous margins, constant scale and horizontal center. Flat uniform pure white background and even shadowless asset lighting. Exactly one character and one shotgun. No visible tail, extra limb, weapon duplication, firing, pumping, smoke, ground plane, cast shadow, text, logo, watermark, camera motion or turn toward the viewer.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, small rounded hamster proportions, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The shotgun keeps one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle. The hamster has a compact natural tail fully concealed inside the trousers; the lower back remains a smooth closed quilted-cloth silhouette.\n\n<Video 1> supplies only the established right-facing in-place running cadence, alternating leg rhythm and restrained weapon-carry mechanics. Do not copy Video 1's visible long tail, background, shadow, watermark, character rendering or any anatomy not present in Picture 1.\n\nCreate a continuous right-facing in-place tactical run. The nose, gaze, chest, pelvis, knees and boot toes remain aligned toward screen right in a slightly elevated three-quarter game-sprite view. The two legs alternate through at least two readable strides while the root stays inside one small fixed screen area. Both paws continuously keep the shotgun at low ready: rear paw at the trigger and stock wrist, forward paw on the wooden pump fore-end. The pump stays locked during running. The chest armor, backpack roll, pouches and complete shotgun remain rigid and continuous. Begin in an established stride and return near the same stride phase for clean loop extraction.\n\nWide full-body framing with generous margins, constant scale and horizontal center. Flat uniform pure white background and even shadowless asset lighting. Exactly one character and one shotgun. No visible tail, extra limb, weapon duplication, firing, pumping, smoke, ground plane, cast shadow, text, logo, watermark, camera motion or turn toward the viewer.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, small rounded hamster proportions, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The shotgun keeps one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle. The hamster has a compact natural tail fully concealed inside the trousers; the lower back remains a smooth closed quilted-cloth silhouette.\n\n<Video 1> supplies only the established right-facing in-place running cadence, alternating leg rhythm and restrained weapon-carry mechanics. Do not copy Video 1's visible long tail, background, shadow, watermark, character rendering or any anatomy not present in Picture 1.\n\nCreate a continuous right-facing in-place tactical run. The nose, gaze, chest, pelvis, knees and boot toes remain aligned toward screen right in a slightly elevated three-quarter game-sprite view. The two legs alternate through at least two readable strides while the root stays inside one small fixed screen area. Both paws continuously keep the shotgun at low ready: rear paw at the trigger and stock wrist, forward paw on the wooden pump fore-end. The pump stays locked during running. The chest armor, backpack roll, pouches and complete shotgun remain rigid and continuous. Begin in an established stride and return near the same stride phase for clean loop extraction.\n\nWide full-body framing with generous margins, constant scale and horizontal center. Flat uniform pure white background and even shadowless asset lighting. Exactly one character and one shotgun. No visible tail, extra limb, weapon duplication, firing, pumping, smoke, ground plane, cast shadow, text, logo, watermark, camera motion or turn toward the viewer. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "0b4ccb47145e7508e620cb91bc3d37b182b57cd675429dd032d26ceebe91a362",
+  "effectivePromptSha256": "0b4ccb47145e7508e620cb91bc3d37b182b57cd675429dd032d26ceebe91a362",
+  "finalPromptSha256": "7a1bdc0413564f2749a6bc623b3f04868ba7ca5ec6fdebca5b3291e62bc1625e",
+  "parameters": {
+    "width": 1344,
+    "height": 768,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\prompts\\running-h3-v03-motion-transfer.txt",
+      "bytes": 2050,
+      "sha256": "9607154d1d5203f4632a611013eec656cfd013203dcf88477ad3db8c1600e283"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\keyframes\\running-keyframe-v01.png",
+        "bytes": 1281652,
+        "sha256": "a88ea444ab1f7fa2ed502681a026bd421004fc66210a4b2f2e3a4549771c7321"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\running-doubao-v02-no-tail.mp4",
+        "bytes": 1093867,
+        "sha256": "a2567f41cca730c0535f14f876c02bfc23d2f2a9199f5329989a1a6159475b10"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\running-h3-v03-motion-transfer_contact.png",
+    "bytes": 1058844,
+    "sha256": "2ee6beeb558dd1ed4d6078c05274b58f7e5bdbe2ad740d03e5cdd3ae404624db"
+  },
+  "elapsedSeconds": 836.552
+}

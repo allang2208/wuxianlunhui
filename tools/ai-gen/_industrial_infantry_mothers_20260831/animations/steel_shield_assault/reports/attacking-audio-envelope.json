@@ -1,0 +1,372 @@
+{
+  "source": "videos/attacking-doubao-v01.mp4",
+  "sourceInfo": {
+    "codec": "aac",
+    "sampleRate": 44100,
+    "channels": 2,
+    "layout": "<av.AudioLayout 'stereo'>",
+    "durationSeconds": 5.056009070294785
+  },
+  "decodedSampleRate": 44100,
+  "decodedChannels": 2,
+  "decodedDurationSeconds": 5.061950113378685,
+  "windowMs": 100,
+  "topWindowsByRms": [
+    {
+      "startSeconds": 2.0,
+      "endSeconds": 2.1,
+      "rmsDbfs": -7.682767449871877,
+      "peakDbfs": -0.8542021573807913
+    },
+    {
+      "startSeconds": 2.1,
+      "endSeconds": 2.2,
+      "rmsDbfs": -10.733628198946914,
+      "peakDbfs": -2.1882892525274924
+    },
+    {
+      "startSeconds": 2.2,
+      "endSeconds": 2.3,
+      "rmsDbfs": -14.780084684277169,
+      "peakDbfs": -5.718029417876137
+    },
+    {
+      "startSeconds": 2.3,
+      "endSeconds": 2.4,
+      "rmsDbfs": -22.524390502032354,
+      "peakDbfs": -10.333297162274706
+    },
+    {
+      "startSeconds": 2.4,
+      "endSeconds": 2.5,
+      "rmsDbfs": -27.265668194415944,
+      "peakDbfs": -17.767385995852557
+    },
+    {
+      "startSeconds": 2.5,
+      "endSeconds": 2.6,
+      "rmsDbfs": -31.619007872486144,
+      "peakDbfs": -21.78188023816592
+    },
+    {
+      "startSeconds": 2.6,
+      "endSeconds": 2.7,
+      "rmsDbfs": -36.96386488201923,
+      "peakDbfs": -25.462512460035637
+    },
+    {
+      "startSeconds": 2.7,
+      "endSeconds": 2.8,
+      "rmsDbfs": -40.947110682374806,
+      "peakDbfs": -31.182286834199715
+    }
+  ],
+  "envelope": [
+    {
+      "startSeconds": 0.0,
+      "endSeconds": 0.1,
+      "rmsDbfs": -62.28297571437192,
+      "peakDbfs": -52.07777695189678
+    },
+    {
+      "startSeconds": 0.1,
+      "endSeconds": 0.2,
+      "rmsDbfs": -58.85363470159476,
+      "peakDbfs": -49.19845471858072
+    },
+    {
+      "startSeconds": 0.2,
+      "endSeconds": 0.3,
+      "rmsDbfs": -56.59162053084789,
+      "peakDbfs": -43.689177967050185
+    },
+    {
+      "startSeconds": 0.3,
+      "endSeconds": 0.4,
+      "rmsDbfs": -50.83516785046835,
+      "peakDbfs": -38.095870801421285
+    },
+    {
+      "startSeconds": 0.4,
+      "endSeconds": 0.5,
+      "rmsDbfs": -47.58817115418768,
+      "peakDbfs": -34.80377819394408
+    },
+    {
+      "startSeconds": 0.5,
+      "endSeconds": 0.6,
+      "rmsDbfs": -46.74559232346945,
+      "peakDbfs": -36.07925939138093
+    },
+    {
+      "startSeconds": 0.6,
+      "endSeconds": 0.7,
+      "rmsDbfs": -46.60212025164786,
+      "peakDbfs": -36.12942163165358
+    },
+    {
+      "startSeconds": 0.7,
+      "endSeconds": 0.8,
+      "rmsDbfs": -47.2054894383641,
+      "peakDbfs": -34.750260084761145
+    },
+    {
+      "startSeconds": 0.8,
+      "endSeconds": 0.9,
+      "rmsDbfs": -48.68601919847129,
+      "peakDbfs": -37.7224595318268
+    },
+    {
+      "startSeconds": 0.9,
+      "endSeconds": 1.0,
+      "rmsDbfs": -51.02573051812943,
+      "peakDbfs": -39.30038780003991
+    },
+    {
+      "startSeconds": 1.0,
+      "endSeconds": 1.1,
+      "rmsDbfs": -53.80821228393258,
+      "peakDbfs": -42.81093758293829
+    },
+    {
+      "startSeconds": 1.1,
+      "endSeconds": 1.2,
+      "rmsDbfs": -55.20832907454653,
+      "peakDbfs": -45.84567417485546
+    },
+    {
+      "startSeconds": 1.2,
+      "endSeconds": 1.3,
+      "rmsDbfs": -55.10276439287185,
+      "peakDbfs": -45.30296824617794
+    },
+    {
+      "startSeconds": 1.3,
+      "endSeconds": 1.4,
+      "rmsDbfs": -55.86564594815861,
+      "peakDbfs": -46.53815902036379
+    },
+    {
+      "startSeconds": 1.4,
+      "endSeconds": 1.5,
+      "rmsDbfs": -56.06193431766113,
+      "peakDbfs": -45.813161780909795
+    },
+    {
+      "startSeconds": 1.5,
+      "endSeconds": 1.6,
+      "rmsDbfs": -55.60905319144227,
+      "peakDbfs": -46.98645725474499
+    },
+    {
+      "startSeconds": 1.6,
+      "endSeconds": 1.7,
+      "rmsDbfs": -56.168624844272955,
+      "peakDbfs": -47.329669329081064
+    },
+    {
+      "startSeconds": 1.7,
+      "endSeconds": 1.8,
+      "rmsDbfs": -56.067040684647665,
+      "peakDbfs": -46.301646208517525
+    },
+    {
+      "startSeconds": 1.8,
+      "endSeconds": 1.9,
+      "rmsDbfs": -56.81566039402048,
+      "peakDbfs": -46.83362596737277
+    },
+    {
+      "startSeconds": 1.9,
+      "endSeconds": 2.0,
+      "rmsDbfs": -58.646265786985985,
+      "peakDbfs": -49.41988224553499
+    },
+    {
+      "startSeconds": 2.0,
+      "endSeconds": 2.1,
+      "rmsDbfs": -7.682767449871877,
+      "peakDbfs": -0.8542021573807913
+    },
+    {
+      "startSeconds": 2.1,
+      "endSeconds": 2.2,
+      "rmsDbfs": -10.733628198946914,
+      "peakDbfs": -2.1882892525274924
+    },
+    {
+      "startSeconds": 2.2,
+      "endSeconds": 2.3,
+      "rmsDbfs": -14.780084684277169,
+      "peakDbfs": -5.718029417876137
+    },
+    {
+      "startSeconds": 2.3,
+      "endSeconds": 2.4,
+      "rmsDbfs": -22.524390502032354,
+      "peakDbfs": -10.333297162274706
+    },
+    {
+      "startSeconds": 2.4,
+      "endSeconds": 2.5,
+      "rmsDbfs": -27.265668194415944,
+      "peakDbfs": -17.767385995852557
+    },
+    {
+      "startSeconds": 2.5,
+      "endSeconds": 2.6,
+      "rmsDbfs": -31.619007872486144,
+      "peakDbfs": -21.78188023816592
+    },
+    {
+      "startSeconds": 2.6,
+      "endSeconds": 2.7,
+      "rmsDbfs": -36.96386488201923,
+      "peakDbfs": -25.462512460035637
+    },
+    {
+      "startSeconds": 2.7,
+      "endSeconds": 2.8,
+      "rmsDbfs": -40.947110682374806,
+      "peakDbfs": -31.182286834199715
+    },
+    {
+      "startSeconds": 2.8,
+      "endSeconds": 2.9,
+      "rmsDbfs": -43.53147499101076,
+      "peakDbfs": -33.142842224083154
+    },
+    {
+      "startSeconds": 2.9,
+      "endSeconds": 3.0,
+      "rmsDbfs": -46.070350243309434,
+      "peakDbfs": -36.77892149703795
+    },
+    {
+      "startSeconds": 3.0,
+      "endSeconds": 3.1,
+      "rmsDbfs": -49.160038886830215,
+      "peakDbfs": -38.6818959027051
+    },
+    {
+      "startSeconds": 3.1,
+      "endSeconds": 3.2,
+      "rmsDbfs": -50.158450519498324,
+      "peakDbfs": -39.60626837138199
+    },
+    {
+      "startSeconds": 3.2,
+      "endSeconds": 3.3,
+      "rmsDbfs": -46.98263977068145,
+      "peakDbfs": -36.009917240445375
+    },
+    {
+      "startSeconds": 3.3,
+      "endSeconds": 3.4,
+      "rmsDbfs": -45.17712780966726,
+      "peakDbfs": -33.768980796616425
+    },
+    {
+      "startSeconds": 3.4,
+      "endSeconds": 3.5,
+      "rmsDbfs": -44.936517793293625,
+      "peakDbfs": -33.88813349339935
+    },
+    {
+      "startSeconds": 3.5,
+      "endSeconds": 3.6,
+      "rmsDbfs": -45.07176194067209,
+      "peakDbfs": -34.33269007912764
+    },
+    {
+      "startSeconds": 3.6,
+      "endSeconds": 3.7,
+      "rmsDbfs": -45.71283184114538,
+      "peakDbfs": -32.960593470844216
+    },
+    {
+      "startSeconds": 3.7,
+      "endSeconds": 3.8,
+      "rmsDbfs": -47.7022129938915,
+      "peakDbfs": -35.307000565393075
+    },
+    {
+      "startSeconds": 3.8,
+      "endSeconds": 3.9,
+      "rmsDbfs": -51.48405915572965,
+      "peakDbfs": -37.73379251824211
+    },
+    {
+      "startSeconds": 3.9,
+      "endSeconds": 4.0,
+      "rmsDbfs": -55.463183369849666,
+      "peakDbfs": -45.8293378772745
+    },
+    {
+      "startSeconds": 4.0,
+      "endSeconds": 4.1,
+      "rmsDbfs": -55.226471688957794,
+      "peakDbfs": -46.07239837607696
+    },
+    {
+      "startSeconds": 4.1,
+      "endSeconds": 4.2,
+      "rmsDbfs": -50.0608909611562,
+      "peakDbfs": -38.0554540423972
+    },
+    {
+      "startSeconds": 4.2,
+      "endSeconds": 4.3,
+      "rmsDbfs": -47.03807523214401,
+      "peakDbfs": -36.206431713970076
+    },
+    {
+      "startSeconds": 4.3,
+      "endSeconds": 4.4,
+      "rmsDbfs": -49.60807086517178,
+      "peakDbfs": -38.50585373034053
+    },
+    {
+      "startSeconds": 4.4,
+      "endSeconds": 4.5,
+      "rmsDbfs": -52.43612199602501,
+      "peakDbfs": -40.33576058056185
+    },
+    {
+      "startSeconds": 4.5,
+      "endSeconds": 4.6,
+      "rmsDbfs": -55.293537138208336,
+      "peakDbfs": -45.77475131116638
+    },
+    {
+      "startSeconds": 4.6,
+      "endSeconds": 4.7,
+      "rmsDbfs": -55.44764765378705,
+      "peakDbfs": -46.655615733414294
+    },
+    {
+      "startSeconds": 4.7,
+      "endSeconds": 4.8,
+      "rmsDbfs": -55.44369768785886,
+      "peakDbfs": -45.69420466127208
+    },
+    {
+      "startSeconds": 4.8,
+      "endSeconds": 4.9,
+      "rmsDbfs": -54.58498480480557,
+      "peakDbfs": -45.57137599804034
+    },
+    {
+      "startSeconds": 4.9,
+      "endSeconds": 5.0,
+      "rmsDbfs": -51.03215353792755,
+      "peakDbfs": -39.99105392027506
+    },
+    {
+      "startSeconds": 5.0,
+      "endSeconds": 5.061950113378685,
+      "rmsDbfs": -51.9041391425388,
+      "peakDbfs": -38.42106135812914
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "steel_shield_assault",
+  "assetOnly": true,
+  "runtimeIntegration": false,
+  "source": "videos/attacking-doubao-v01.mp4",
+  "sourceSha256": "31da93955fa78923ccc3e5383392b4f1d12b58090d042e9c7b6a4dc21c2a4294",
+  "windowSeconds": [
+    1.98,
+    2.85
+  ],
+  "operation": "stereo decode, DC removal, 12ms in/out fades, RMS normalization with peak ceiling, MP3 encode",
+  "output": "audio/steel-shield-assault-attack.mp3",
+  "outputBytes": 18853,
+  "outputSha256": "390bda12886332cb37d4ab011e12ec19e30e69757fa1e212a38f25312f5bffbc",
+  "durationSeconds": 0.87,
+  "sampleRate": 44100,
+  "channels": 2,
+  "bitRate": 160000,
+  "peakDbfs": -2.1343813638990867,
+  "rmsDbfs": -16.000000001967503,
+  "plannedRuntimeReleaseFrameZeroBased": 18,
+  "plannedRuntimeReleaseDelayMs": 551.0204081632654
+}

@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T09:17:00.209661+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\steel_shield_assault\\videos\\idle-h3-v01-exact-loop.mp4",
+    "bytes": 1136022,
+    "sha256": "18dfd7e14d57e1d04c5a41a302e91b37afe54d0f78b8a162f35cf281153a357e"
+  },
+  "promptId": "888b549b-a391-4ca2-9ee4-983c98efc74e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1045738515,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact same stylized golden hamster steel-shield assault soldier from the exact first frame performs one restrained seamless idle loop in place. Preserve his short golden-orange fur, white cheeks and chin, pink nose, round black eyes, simple olive pressed-steel helmet with muted red star, khaki padded field coat, short steel chest plate, belt, pouch, puttees and brown ankle boots. Preserve exactly one solid opaque riveted olive steel shield on screen right and exactly one compact dark TT-33-style pistol in the right paw on screen left.\n\nDirection and camera are locked to the exact first frame: fixed slightly elevated three-quarter right-facing game camera. The nose, chest, pelvis, knees and boot toes remain aimed toward screen right throughout. The shield remains upright on screen right with the same visible metal face and edge angle. The pistol remains low-ready outside the shield silhouette, angled down-forward toward screen right. Never yaw the torso toward the camera and never flatten the soldier into a strict side view.\n\nMotion is limited to subtle breathing under the closed coat and chest plate, a tiny natural weight compression, minute ear and whisker movement, and a very small weight-driven shield sway. Both boot soles remain planted at their exact screen coordinates without stepping, sliding, swapping or lifting. The pistol hand remains stable; do not aim, fire, reload or gesture. The shield arm maintains a continuous supported grip; do not raise, lower, rotate, drop or bend the shield. End on the exact first-frame pose, position, scale and breathing phase for a clean loop, with no freeze, slowdown, rewind or corrective snap.\n\nPreserve the ordinary compact hamster infantry proportions and full clothing coverage. No long rat or mouse tail, no exposed belly, no extra limbs, no duplicated paws, no second shield, no extra weapon, no changing pistol model, no transparent shield, no muzzle flash, smoke, shell, recoil, attack, walking, crouching or death motion.\n\nStatic locked camera, fixed exposure and framing. Keep the complete helmet, both ears, full body, both boots, every shield edge and the complete pistol inside generous margins. Flat pure white background with no floor, contact shadow, reflection, scenery, text, logo or watermark.",
+  "effectivePrompt": "The exact same stylized golden hamster steel-shield assault soldier from the exact first frame performs one restrained seamless idle loop in place. Preserve his short golden-orange fur, white cheeks and chin, pink nose, round black eyes, simple olive pressed-steel helmet with muted red star, khaki padded field coat, short steel chest plate, belt, pouch, puttees and brown ankle boots. Preserve exactly one solid opaque riveted olive steel shield on screen right and exactly one compact dark TT-33-style pistol in the right paw on screen left.\n\nDirection and camera are locked to the exact first frame: fixed slightly elevated three-quarter right-facing game camera. The nose, chest, pelvis, knees and boot toes remain aimed toward screen right throughout. The shield remains upright on screen right with the same visible metal face and edge angle. The pistol remains low-ready outside the shield silhouette, angled down-forward toward screen right. Never yaw the torso toward the camera and never flatten the soldier into a strict side view.\n\nMotion is limited to subtle breathing under the closed coat and chest plate, a tiny natural weight compression, minute ear and whisker movement, and a very small weight-driven shield sway. Both boot soles remain planted at their exact screen coordinates without stepping, sliding, swapping or lifting. The pistol hand remains stable; do not aim, fire, reload or gesture. The shield arm maintains a continuous supported grip; do not raise, lower, rotate, drop or bend the shield. End on the exact first-frame pose, position, scale and breathing phase for a clean loop, with no freeze, slowdown, rewind or corrective snap.\n\nPreserve the ordinary compact hamster infantry proportions and full clothing coverage. No long rat or mouse tail, no exposed belly, no extra limbs, no duplicated paws, no second shield, no extra weapon, no changing pistol model, no transparent shield, no muzzle flash, smoke, shell, recoil, attack, walking, crouching or death motion.\n\nStatic locked camera, fixed exposure and framing. Keep the complete helmet, both ears, full body, both boots, every shield edge and the complete pistol inside generous margins. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with no floor, contact shadow, reflection, scenery, text, logo or watermark.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] The exact same stylized golden hamster steel-shield assault soldier from the exact first frame performs one restrained seamless idle loop in place. Preserve his short golden-orange fur, white cheeks and chin, pink nose, round black eyes, simple olive pressed-steel helmet with muted red star, khaki padded field coat, short steel chest plate, belt, pouch, puttees and brown ankle boots. Preserve exactly one solid opaque riveted olive steel shield on screen right and exactly one compact dark TT-33-style pistol in the right paw on screen left.\n\nDirection and camera are locked to the exact first frame: fixed slightly elevated three-quarter right-facing game camera. The nose, chest, pelvis, knees and boot toes remain aimed toward screen right throughout. The shield remains upright on screen right with the same visible metal face and edge angle. The pistol remains low-ready outside the shield silhouette, angled down-forward toward screen right. Never yaw the torso toward the camera and never flatten the soldier into a strict side view.\n\nMotion is limited to subtle breathing under the closed coat and chest plate, a tiny natural weight compression, minute ear and whisker movement, and a very small weight-driven shield sway. Both boot soles remain planted at their exact screen coordinates without stepping, sliding, swapping or lifting. The pistol hand remains stable; do not aim, fire, reload or gesture. The shield arm maintains a continuous supported grip; do not raise, lower, rotate, drop or bend the shield. End on the exact first-frame pose, position, scale and breathing phase for a clean loop, with no freeze, slowdown, rewind or corrective snap.\n\nPreserve the ordinary compact hamster infantry proportions and full clothing coverage. No long rat or mouse tail, no exposed belly, no extra limbs, no duplicated paws, no second shield, no extra weapon, no changing pistol model, no transparent shield, no muzzle flash, smoke, shell, recoil, attack, walking, crouching or death motion.\n\nStatic locked camera, fixed exposure and framing. Keep the complete helmet, both ears, full body, both boots, every shield edge and the complete pistol inside generous margins. Flat solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow with no floor, contact shadow, reflection, scenery, text, logo or watermark. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "efde046c87ca5116385a7ac951bb6dd02e780dc4abc2c167d394d3b0430e6caf",
+  "effectivePromptSha256": "42fcc8c929883a336fcb1b74de545646cacafd1213c3b2b637c4b11775ad63f7",
+  "finalPromptSha256": "df273bdc5fc6b74d788cda02f25fb362eb424ad3cf2a4e695ee034fd7d11aa5c",
+  "parameters": {
+    "width": 1344,
+    "height": 768,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\steel_shield_assault\\prompts\\idle-h3-v01-exact-loop.txt",
+      "bytes": 2284,
+      "sha256": "d90a6bea8b63c8b3b90910f90ecfd82db8b7b55ac0572c176bdbb34893b1a933"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\steel_shield_assault\\references\\steel-shield-assault-idle-keyframe-video-safe-16x9.png",
+      "bytes": 881920,
+      "sha256": "094ffb5dbfb8ae3b70f797daec091dbc67af3ac2bf0e89ae5c546a69527ffaa4"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\steel_shield_assault\\references\\steel-shield-assault-idle-keyframe-video-safe-16x9.png",
+      "bytes": 881920,
+      "sha256": "094ffb5dbfb8ae3b70f797daec091dbc67af3ac2bf0e89ae5c546a69527ffaa4"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\steel_shield_assault\\videos\\idle-h3-v01-exact-loop_contact.png",
+    "bytes": 922147,
+    "sha256": "f6ce4475d1f9041c04f2dbea1dba30f42b9a9bf36e422af168b9e7a68cbfb19b"
+  },
+  "elapsedSeconds": 966.579
+}

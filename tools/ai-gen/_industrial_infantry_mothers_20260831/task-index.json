@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-31",
+  "batch": 2,
+  "title": "近代步兵军营 III级母图定稿",
+  "scope": "母图已定稿；战壕突击兵四动作正式素材包与运行时接入已完成；钢盾突击兵四动作正式素材包已由用户确认完成，仍未接入运行时。",
+  "status": "both_animation_packages_complete_trench_runtime_integrated_steel_shield_asset_only",
+  "futurePlanOnly": false,
+  "runtimeIntegrationActive": true,
+  "provider": "built-in image_gen",
+  "model": "not_exposed_by_tool",
+  "seed": null,
+  "requestedCanvas": {
+    "width": 1536,
+    "height": 1024
+  },
+  "background": "pure white; not a transparent spritesheet",
+  "camera": "slightly elevated orthographic-like three-quarter right-facing infantry view",
+  "styleAuthority": "../_industrial_recon_mothers_20260831/mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+  "styleAuthorityApproval": "2026-08-31 用户：可用，继续下两个士兵的生图。",
+  "acceptedPreview": "comparison.html",
+  "approvedAt": "2026-08-31",
+  "approvalQuote": "同意，继续下两个单位",
+  "approvalScope": "本批母图通过：战壕突击兵A10 v03、钢盾突击兵沿用v01；不代表动画或运行时验收。",
+  "pendingPreview": null,
+  "productionPlan": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "bodyReference": "仓鼠牧师有效身体尺度；金橙毛仓鼠普通步兵血统",
+    "worldBodyReferencePixels": 75.684,
+    "sourceSampling": "后续按实际镜头登记；母图画布不等于精灵格子或运行时身高",
+    "runtimeBudgetMeasured": true,
+    "testsRun": false
+  },
+  "units": [
+    {
+      "unitKey": "trench_assault",
+      "name": "战壕突击兵",
+      "slot": "greatsword",
+      "tier": 3,
+      "fromUnitKey": "champion",
+      "toUnitKey": "special_forces",
+      "output": "mother/trench_assault-mother-v03-a10.png",
+      "prompt": "prompts/trench_assault-v03-a10-receiver.txt",
+      "sourceOutput": "mother/trench_assault-mother-v02-a10.png",
+      "sourcePrompt": "prompts/trench_assault-v02-a10.txt",
+      "revisionRequest": "用户：突击兵调整使用A10堑壕散弹枪。只改本兵武器，钢盾兵不动。",
+      "weaponReference": {
+        "userName": "A10堑壕散弹枪",
+        "visualInterpretation": "Remington Model 10-A / Model 10 trench pump-action shotgun",
+        "sources": [
+          "https://www.remarms.com/firearm-history/model-10",
+          "https://www.americanrifleman.org/content/the-trench-gun-in-world-war-i/"
+        ],
+        "scope": "只查枪型及木护罩/封闭侧机匣的外观，不是工程复刻。未将网页图片用作图像生成输入。"
+      },
+      "referenceInputs": [
+        "references/acceptedSovietIII.png",
+        "references/championII.png",
+        "references/specialForcesIV.png"
+      ],
+      "accepted": true,
+      "status": "runtime_integrated",
+      "identityAnchors": [
+        "金橙毛、白颊短吻、粉鼻圆黑眼",
+        "普通仓鼠步兵体型与右向镜头",
+        "红星钢盔、绗缝棉服、两段钢胸甲",
+        "A10堑壕霰弹枪：木托、木制泵动护木/上护罩、管状弹仓与封闭侧机匣"
+      ],
+      "plannedRole": "A10霰弹枪近距突击；360生命、44派生护甲、80伤害/2.4秒、250射程、26度扇区、最多4目标，副目标45%伤害；不新增反坦克手榴弹专属机制",
+      "runtimeIntegrationActive": true,
+      "animationWork": {
+        "path": "animations/trench_assault",
+        "sourceReview": "animations/trench_assault/source-review.json",
+        "idle": "formal_26_frame_12fps_runtime_integrated",
+        "running": "formal_36_frame_24fps_pure_movement_runtime_integrated_long_tail_retained",
+        "attacking": "formal_33_frame_1500ms_single_shot_single_pump_asset_audio_and_release_timing_runtime_integrated",
+        "dying": "user_approved_49_frame_formal_asset_runtime_integrated",
+        "formalPackage": "animations/trench_assault/postprocess/manifest.json",
+        "decodedMiB": 31.582,
+        "crowdTargetMiB": 32,
+        "doubaoQuota": "available_after_user_switched_account",
+        "h3SubmissionAttempted": true,
+        "h3UploadPermissionRequired": false,
+        "runtimeIntegrationActive": true
+      }
+    },
+    {
+      "unitKey": "steel_shield_assault",
+      "name": "钢盾突击兵",
+      "slot": "shield",
+      "tier": 3,
+      "fromUnitKey": "phalanx",
+      "toUnitKey": "riot_special",
+      "output": "mother/steel_shield_assault-mother-v01.png",
+      "prompt": "prompts/steel_shield_assault-v01.txt",
+      "sourceOutput": null,
+      "sourcePrompt": null,
+      "referenceInputs": [
+        "references/acceptedSovietIII.png",
+        "references/phalanxII.png",
+        "references/riotIV.png"
+      ],
+      "accepted": true,
+      "status": "animation_formal_asset_package_user_confirmed_complete_runtime_not_integrated",
+      "identityAnchors": [
+        "金橙毛、白颊短吻、粉鼻圆黑眼",
+        "普通步兵体型、可见脸与双脚",
+        "红星钢盔、棉服与钢胸甲",
+        "不透明铆接钢盾与托卡列夫风格手枪"
+      ],
+      "plannedRole": "钢盾与短枪的幻想近代前排；不照搬现代防暴队霰弹扇区或伤害",
+      "runtimeIntegrationActive": false,
+      "animationWork": {
+        "path": "animations/steel_shield_assault",
+        "sourceReview": "animations/steel_shield_assault/source-review.json",
+        "idle": "formal_32_frame_user_confirmed_complete",
+        "running": "formal_42_frame_user_confirmed_complete_long_tail_retained",
+        "attacking": "formal_49_frame_1500ms_user_confirmed_complete_flash_smoke_audio_retained",
+        "dying": "formal_45_frame_user_confirmed_complete_final_corpse_hold",
+        "formalPackage": "animations/steel_shield_assault/postprocess/formal-package-manifest.json",
+        "h3UploadAuthorized": true,
+        "runtimeIntegrationActive": false
+      }
+    }
+  ],
+  "provenance": [
+    {
+      "path": "mother/trench_assault-mother-v03-a10.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-31af5356-f1f6-4d62-b253-09222899a93a.png",
+      "role": "approved_mother",
+      "editInputs": ["mother/trench_assault-mother-v02-a10.png"],
+      "prompt": "prompts/trench_assault-v03-a10-receiver.txt",
+      "operation": "imagegen_receiver_edit_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/trench_assault-mother-v02-a10.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-ea64838c-2717-4f45-9c72-4ac4f8832e31.png",
+      "role": "direct_edit_source",
+      "editInputs": ["mother/trench_assault-mother-v01.png"],
+      "prompt": "prompts/trench_assault-v02-a10.txt",
+      "operation": "imagegen_weapon_replacement_then_copy_without_additional_pixel_edits"
+    },
+    {
+      "path": "mother/trench_assault-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-197ddeb4-782a-45e3-9d79-489bf05743b5.png",
+      "role": "generated_candidate",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "mother/steel_shield_assault-mother-v01.png",
+      "sourcePath": "C:/Users/allan/.codex/generated_images/01a057f4-efcd-7440-b029-fb13475952e6/exec-c00a5b51-c4d9-4c7b-bcf7-3cb02663d478.png",
+      "role": "approved_mother",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/championII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_champion_20260826/mother/hamster-champion-mother-v01.png",
+      "role": "reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/specialForcesIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_special_forces_20260826/mother/hamster-special-forces-mother-v01.png",
+      "role": "reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/phalanxII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_phalanx_20260826/mother/hamster-phalanx-mother-v02-double-axe.png",
+      "role": "reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/riotIV.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_hamster_riot_squad_20260826/mother/hamster-riot-squad-mother-v01-rgba.png",
+      "role": "reference",
+      "operation": "copied_without_pixel_edits"
+    },
+    {
+      "path": "references/acceptedSovietIII.png",
+      "sourcePath": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_industrial_recon_mothers_20260831/mother/anti_tank_rifleman-mother-v02-soviet-ppsh.png",
+      "role": "reference",
+      "operation": "copied_without_pixel_edits"
+    }
+  ],
+  "reviewBoundary": "仅直接查看母图及局部配置身份；不宣称具体历史枪型工程复刻、游戏尺度或战斗表现已验证。"
+}

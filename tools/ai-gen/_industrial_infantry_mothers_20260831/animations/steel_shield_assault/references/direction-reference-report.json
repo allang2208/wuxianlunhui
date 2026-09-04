@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "steel_shield_assault",
+  "purpose": "actual approved runtime-frame direction authority",
+  "references": {
+    "riot_idle": {
+      "asset": "assets/companions/hamster_riot_squad/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "framesZeroBased": [
+        0,
+        8,
+        16,
+        23
+      ],
+      "contact": "references/riot_idle-direction-contact.png"
+    },
+    "riot_walk": {
+      "asset": "assets/companions/hamster_riot_squad/walking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "framesZeroBased": [
+        0,
+        8,
+        16,
+        23
+      ],
+      "contact": "references/riot_walk-direction-contact.png"
+    },
+    "riot_attack": {
+      "asset": "assets/companions/hamster_riot_squad/attacking.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "framesZeroBased": [
+        0,
+        8,
+        17,
+        28,
+        40
+      ],
+      "contact": "references/riot_attack-direction-contact.png"
+    },
+    "riot_death": {
+      "asset": "assets/companions/hamster_riot_squad/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "framesZeroBased": [
+        0,
+        8,
+        16,
+        24,
+        30
+      ],
+      "contact": "references/riot_death-direction-contact.png"
+    },
+    "phalanx_current_walk": {
+      "asset": "assets/companions/hamster_guard/running_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "framesZeroBased": [
+        0,
+        8,
+        16,
+        25,
+        33
+      ],
+      "contact": "references/phalanx_current_walk-direction-contact.png"
+    },
+    "phalanx_current_attack": {
+      "asset": "assets/companions/hamster_guard/attacking_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "framesZeroBased": [
+        0,
+        5,
+        11,
+        19,
+        22
+      ],
+      "contact": "references/phalanx_current_attack-direction-contact.png"
+    },
+    "phalanx_current_death": {
+      "asset": "assets/companions/hamster_guard/dying_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "framesZeroBased": [
+        0,
+        7,
+        14,
+        21,
+        28
+      ],
+      "contact": "references/phalanx_current_death-direction-contact.png"
+    }
+  }
+}

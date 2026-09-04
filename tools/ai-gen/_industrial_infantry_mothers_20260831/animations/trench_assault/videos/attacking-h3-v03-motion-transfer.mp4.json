@@ -1,0 +1,70 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-09-01T06:57:30.330242+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\attacking-h3-v03-motion-transfer.mp4",
+    "bytes": 832716,
+    "sha256": "619b970032a381ed4c82ca40d67c89167458354254cb772544dee29834a641b3"
+  },
+  "promptId": "bf778147-5917-4b8f-bee1-5417ea1dffe1",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 125128886,
+  "mode": "ref2va",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The shotgun keeps one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle. The hamster's compact natural tail stays fully concealed inside the trousers; the lower back is a smooth closed cloth silhouette.\n\n<Video 1> supplies only the useful action rhythm: raise the shotgun, one shot, one recoil, one complete pump cycle and recovery. Do not copy Video 1's visible long tail, oversized smoke cloud, background, shadow, watermark or altered anatomy.\n\n0.0-1.2 seconds: raise the same shotgun from low ready to a braced screen-right shoulder aim. Both boots stay planted. 1.2-1.35 seconds: fire exactly one shot with one compact muzzle flash attached to the muzzle and one restrained recoil; a trace of smoke fades immediately. 1.6-3.8 seconds: rear paw stays on the trigger/stock wrist while the forward paw remains wrapped around the wooden pump fore-end, pulls it visibly rearward to the stop, pauses briefly, then pushes it visibly forward to the locked position. 3.8-5.17 seconds: lower the complete shotgun back to stable low ready. One shot and one pump cycle only.\n\nLocked slightly elevated three-quarter-right game-asset camera, fixed feet and root, wide full-body framing, constant scale, pure white background and even shadowless light. The face, armor, roll, hands and complete shotgun remain continuous. No visible tail, second shot, second weapon, box magazine, loose hand gesture, shell loading, large smoke plume, ground plane, cast shadow, text, logo, watermark or camera motion.",
+  "effectivePrompt": "<Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The shotgun keeps one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle. The hamster's compact natural tail stays fully concealed inside the trousers; the lower back is a smooth closed cloth silhouette.\n\n<Video 1> supplies only the useful action rhythm: raise the shotgun, one shot, one recoil, one complete pump cycle and recovery. Do not copy Video 1's visible long tail, oversized smoke cloud, background, shadow, watermark or altered anatomy.\n\n0.0-1.2 seconds: raise the same shotgun from low ready to a braced screen-right shoulder aim. Both boots stay planted. 1.2-1.35 seconds: fire exactly one shot with one compact muzzle flash attached to the muzzle and one restrained recoil; a trace of smoke fades immediately. 1.6-3.8 seconds: rear paw stays on the trigger/stock wrist while the forward paw remains wrapped around the wooden pump fore-end, pulls it visibly rearward to the stop, pauses briefly, then pushes it visibly forward to the locked position. 3.8-5.17 seconds: lower the complete shotgun back to stable low ready. One shot and one pump cycle only.\n\nLocked slightly elevated three-quarter-right game-asset camera, fixed feet and root, wide full-body framing, constant scale, pure white background and even shadowless light. The face, armor, roll, hands and complete shotgun remain continuous. No visible tail, second shot, second weapon, box magazine, loose hand gesture, shell loading, large smoke plume, ground plane, cast shadow, text, logo, watermark or camera motion.",
+  "finalPrompt": "subject_definitions:\n<Subject 1> is the target subject defined by <Picture 1>, including identity, proportions, materials, colors, and equipment.\n<Video 1> is the motion-timing and trajectory reference only; its subject, scene, and style do not define the target video.\n\nsummary:\n[reference generation] The target video preserves <Subject 1> while using <Video 1> only for motion.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, proportions, materials, colors, and rigid equipment remain continuous.\n<Picture 1> (applies to <Subject 1>): fully_preserved - the declared visual traits remain recognizable throughout the target video.\n<Video 1> (motion timing and trajectory): weak_reference - only the action rhythm and path guide [Shot 1]; its subject, scene, and style are not copied.\n\ndetailed_description:\n[Shot 1] <Picture 1> is the sole identity, anatomy, equipment, color, material and scale authority for one golden Syrian hamster trench soldier. Preserve the exact golden-orange and white face, olive red-star steel helmet, quilted khaki uniform, two-piece dark steel chest armor, belt pouches, backpack roll, brown boots, and one complete wooden A10 / Remington Model 10-A style pump-action trench shotgun. The shotgun keeps one wooden buttstock, one closed dark receiver, one wooden pump fore-end, one upper wooden handguard, one tubular magazine and one complete muzzle. The hamster's compact natural tail stays fully concealed inside the trousers; the lower back is a smooth closed cloth silhouette.\n\n<Video 1> supplies only the useful action rhythm: raise the shotgun, one shot, one recoil, one complete pump cycle and recovery. Do not copy Video 1's visible long tail, oversized smoke cloud, background, shadow, watermark or altered anatomy.\n\n0.0-1.2 seconds: raise the same shotgun from low ready to a braced screen-right shoulder aim. Both boots stay planted. 1.2-1.35 seconds: fire exactly one shot with one compact muzzle flash attached to the muzzle and one restrained recoil; a trace of smoke fades immediately. 1.6-3.8 seconds: rear paw stays on the trigger/stock wrist while the forward paw remains wrapped around the wooden pump fore-end, pulls it visibly rearward to the stop, pauses briefly, then pushes it visibly forward to the locked position. 3.8-5.17 seconds: lower the complete shotgun back to stable low ready. One shot and one pump cycle only.\n\nLocked slightly elevated three-quarter-right game-asset camera, fixed feet and root, wide full-body framing, constant scale, pure white background and even shadowless light. The face, armor, roll, hands and complete shotgun remain continuous. No visible tail, second shot, second weapon, box magazine, loose hand gesture, shell loading, large smoke plume, ground plane, cast shadow, text, logo, watermark or camera motion. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "fcfc7553d35ec6da14e74c094581f8635dae2099af1ecb0dfc5b2d60732e714e",
+  "effectivePromptSha256": "fcfc7553d35ec6da14e74c094581f8635dae2099af1ecb0dfc5b2d60732e714e",
+  "finalPromptSha256": "a3d53d0bbde0fffbb37d838ed88dbe8d757cf844fb64874d4c12477930ad2db9",
+  "parameters": {
+    "width": 1344,
+    "height": 768,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_ref2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\prompts\\attacking-h3-v03-motion-transfer.txt",
+      "bytes": 1983,
+      "sha256": "08f78749941b6674dbf6d4aaae1f1faddf103a8601786ffde7b77b5e2b550830"
+    },
+    "firstFrame": null,
+    "lastFrame": null,
+    "referenceImages": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\mother\\trench_assault-mother-v03-a10.png",
+        "bytes": 1867115,
+        "sha256": "5427b62d39a176ef535f86ba32c068f4666941d8897ae3b16774f7a7eb908e1a"
+      }
+    ],
+    "referenceVideos": [
+      {
+        "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\attacking-doubao-v02-mother-tail-concealed.mp4",
+        "bytes": 762252,
+        "sha256": "41aa029ee53e7019c995a4acbf898d2a518bfa53989519f101793ad3b5afcc03"
+      }
+    ]
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_infantry_mothers_20260831\\animations\\trench_assault\\videos\\attacking-h3-v03-motion-transfer_contact.png",
+    "bytes": 1068261,
+    "sha256": "fbb3f7886f947e4daecc3a9bf3b56510545ac72cc0b4fc5852ec86e0c6319c8d"
+  },
+  "elapsedSeconds": 1262.345
+}

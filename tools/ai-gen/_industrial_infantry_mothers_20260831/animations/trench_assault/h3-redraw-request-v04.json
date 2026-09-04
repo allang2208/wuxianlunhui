@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "status": "explicit_user_permission_required_for_two_additional_candidates",
+  "destination": "http://192.168.3.142:8188",
+  "purpose": "不带被污染动作视频的战壕突击兵移动v04与攻击v04重生",
+  "reason": "已授权的移动/攻击H3各1个候选都复制了长尾，攻击还生成裸露鼠类后腿和偏正面身体；原授权限于每动1个候选，本轮是额外的定向重生。",
+  "uploads": [
+    {"action": "running", "role": "identity_and_pose_image", "path": "keyframes/running-keyframe-v01.png", "bytes": 1281652, "sha256": "a88ea444ab1f7fa2ed502681a026bd421004fc66210a4b2f2e3a4549771c7321"},
+    {"action": "attacking", "role": "identity_and_pose_image", "path": "keyframes/attacking-keyframe-v01.png", "bytes": 1436351, "sha256": "c7d0f24ea288bcdd4f9ec0ea24bec0c2f16540092733e8904c2ef23d00e14dd0"}
+  ],
+  "promptFiles": [
+    "prompts/running-h3-v04-image-only.txt",
+    "prompts/attacking-h3-v04-keyframe-only.txt"
+  ],
+  "parameters": {
+    "model": "MiniMax H3 ref2va",
+    "durationSeconds": 5.17,
+    "size": "1344x768",
+    "steps": 20,
+    "candidatesPerAction": 1,
+    "referenceVideos": 0,
+    "refSize": "max",
+    "audioMode": "visual-only",
+    "visualProfile": "character-asset"
+  },
+  "explicitExclusions": [
+    "不上传前两段带长尾的动作视频",
+    "不上传游戏代码、配置、存档、凭据或无关文件",
+    "不清空或抢占共享队列",
+    "不自动追加候选",
+    "不接入运行时"
+  ]
+}

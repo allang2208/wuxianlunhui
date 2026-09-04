@@ -1,0 +1,207 @@
+{
+  "source": "videos\\moving-doubao-v02-coat-covered.mp4",
+  "fps": 24.0,
+  "sourceFrameCount": 121,
+  "searchWindow": {
+    "startMin": 8,
+    "endMaxExclusive": 116,
+    "periodFrames": [
+      14,
+      40
+    ]
+  },
+  "candidates": [
+    {
+      "start": 84,
+      "end": 107,
+      "periodFrames": 23,
+      "periodSeconds": 0.9583333333333334,
+      "fullIou": 0.9849971148297749,
+      "legIou": 0.9807836822329576,
+      "score": 0.9817106374042575
+    },
+    {
+      "start": 89,
+      "end": 113,
+      "periodFrames": 24,
+      "periodSeconds": 1.0,
+      "fullIou": 0.98348151387067,
+      "legIou": 0.9804131435299155,
+      "score": 0.9810881850048815
+    },
+    {
+      "start": 79,
+      "end": 102,
+      "periodFrames": 23,
+      "periodSeconds": 0.9583333333333334,
+      "fullIou": 0.9853019131608115,
+      "legIou": 0.9794347300120972,
+      "score": 0.9807255103048145
+    },
+    {
+      "start": 87,
+      "end": 110,
+      "periodFrames": 23,
+      "periodSeconds": 0.9583333333333334,
+      "fullIou": 0.9827919566898685,
+      "legIou": 0.9768637532133676,
+      "score": 0.9781679579781979
+    },
+    {
+      "start": 77,
+      "end": 99,
+      "periodFrames": 22,
+      "periodSeconds": 0.9166666666666666,
+      "fullIou": 0.9792406047936215,
+      "legIou": 0.9685881558207611,
+      "score": 0.9709316945947905
+    },
+    {
+      "start": 71,
+      "end": 93,
+      "periodFrames": 22,
+      "periodSeconds": 0.9166666666666666,
+      "fullIou": 0.9776155717761558,
+      "legIou": 0.9677872662414874,
+      "score": 0.9699494934591144
+    },
+    {
+      "start": 92,
+      "end": 115,
+      "periodFrames": 23,
+      "periodSeconds": 0.9583333333333334,
+      "fullIou": 0.9765865079752207,
+      "legIou": 0.9674368619022031,
+      "score": 0.969449784038267
+    },
+    {
+      "start": 74,
+      "end": 97,
+      "periodFrames": 23,
+      "periodSeconds": 0.9583333333333334,
+      "fullIou": 0.9759161267988724,
+      "legIou": 0.9610509333947914,
+      "score": 0.9643212759436892
+    },
+    {
+      "start": 62,
+      "end": 78,
+      "periodFrames": 16,
+      "periodSeconds": 0.6666666666666666,
+      "fullIou": 0.9731875445685761,
+      "legIou": 0.9616048317515099,
+      "score": 0.9641530285712645
+    },
+    {
+      "start": 63,
+      "end": 102,
+      "periodFrames": 39,
+      "periodSeconds": 1.625,
+      "fullIou": 0.9691831388425816,
+      "legIou": 0.9610936993407544,
+      "score": 0.9628733760311564
+    },
+    {
+      "start": 40,
+      "end": 61,
+      "periodFrames": 21,
+      "periodSeconds": 0.875,
+      "fullIou": 0.9669609665427509,
+      "legIou": 0.9586794238250447,
+      "score": 0.9605013632229401
+    },
+    {
+      "start": 81,
+      "end": 105,
+      "periodFrames": 24,
+      "periodSeconds": 1.0,
+      "fullIou": 0.9655237734419397,
+      "legIou": 0.9588185475333475,
+      "score": 0.9602936972332378
+    },
+    {
+      "start": 65,
+      "end": 82,
+      "periodFrames": 17,
+      "periodSeconds": 0.7083333333333334,
+      "fullIou": 0.9682187381941821,
+      "legIou": 0.9560680371491183,
+      "score": 0.9587411913790324
+    },
+    {
+      "start": 68,
+      "end": 89,
+      "periodFrames": 21,
+      "periodSeconds": 0.875,
+      "fullIou": 0.9644327429392053,
+      "legIou": 0.9556303227841447,
+      "score": 0.9575668552182581
+    },
+    {
+      "start": 65,
+      "end": 105,
+      "periodFrames": 40,
+      "periodSeconds": 1.6666666666666667,
+      "fullIou": 0.9668443144837995,
+      "legIou": 0.9546118530884808,
+      "score": 0.957302994595451
+    },
+    {
+      "start": 52,
+      "end": 69,
+      "periodFrames": 17,
+      "periodSeconds": 0.7083333333333334,
+      "fullIou": 0.9537373261023343,
+      "legIou": 0.9552933871468487,
+      "score": 0.9549510537170557
+    },
+    {
+      "start": 37,
+      "end": 59,
+      "periodFrames": 22,
+      "periodSeconds": 0.9166666666666666,
+      "fullIou": 0.9626216317365269,
+      "legIou": 0.9525691699604744,
+      "score": 0.954780711551206
+    },
+    {
+      "start": 48,
+      "end": 67,
+      "periodFrames": 19,
+      "periodSeconds": 0.7916666666666666,
+      "fullIou": 0.9558721173031414,
+      "legIou": 0.9519828728718523,
+      "score": 0.952838506646736
+    },
+    {
+      "start": 23,
+      "end": 45,
+      "periodFrames": 22,
+      "periodSeconds": 0.9166666666666666,
+      "fullIou": 0.958534041813577,
+      "legIou": 0.9511515800749866,
+      "score": 0.9527757216574765
+    },
+    {
+      "start": 17,
+      "end": 37,
+      "periodFrames": 20,
+      "periodSeconds": 0.8333333333333334,
+      "fullIou": 0.9551538567683179,
+      "legIou": 0.9489020709751275,
+      "score": 0.9502774638496294
+    }
+  ],
+  "selectionStatus": "selected_for_formalization",
+  "selectedCycle": {
+    "startInclusive": 40,
+    "endExclusive": 61,
+    "sourceFrames": 21,
+    "sourceDurationSeconds": 0.875,
+    "rifeMode": "loop",
+    "rifeFrames": 42,
+    "runtimeFps": 48,
+    "reason": "middle-source complete gait with stable upper body and no late-video slowdown; f61 is seam reference only",
+    "denseContact": "previews/moving-loop-analysis-v02/dense-f40-f61.jpg"
+  }
+}

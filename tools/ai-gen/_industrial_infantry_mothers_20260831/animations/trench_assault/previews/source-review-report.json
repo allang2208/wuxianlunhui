@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "takes": [
+    {
+      "video": "videos/attacking-doubao-v04-reference-only.mp4",
+      "frameCount": 121,
+      "fps": 24.0,
+      "size": [
+        1280,
+        720
+      ],
+      "durationSeconds": 5.041666666666667,
+      "warmFlashPeakFrame": 42,
+      "warmFlashPeakScore": 1862,
+      "warmFlashFramesAboveHalfPeak": [
+        42,
+        43
+      ],
+      "subjectBBoxUnion": [
+        0,
+        0,
+        1279,
+        719
+      ],
+      "edgeMarginPixels": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      },
+      "artifacts": {
+        "contact32": "previews/attacking-doubao-v04-reference-only-contact-32.png",
+        "gif": "previews/attacking-doubao-v04-reference-only-source.gif"
+      }
+    }
+  ]
+}

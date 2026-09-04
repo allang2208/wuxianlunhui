@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "trench_assault",
+  "action": "running",
+  "status": "user_authorized_completion_postprocessed_pre_rife",
+  "assetOnly": true,
+  "runtimeIntegration": true,
+  "source": "videos/running-doubao-v05-reference-only.mp4",
+  "sourceSha256": "2db6bb35508f33adf9233b5814634c24029bbf834b136387ca577d898ad612fb",
+  "sourceFrameRate": 24.0,
+  "cycleStart": 15,
+  "duplicateEndpoint": 51,
+  "sourceIndices": [
+    15,
+    17,
+    19,
+    21,
+    23,
+    25,
+    27,
+    29,
+    31,
+    33,
+    35,
+    37,
+    39,
+    41,
+    43,
+    45,
+    47,
+    49
+  ],
+  "sourceFrameStep": 2,
+  "selectionPolicy": "raw [15,51) is the highest-ranked stable complete two-step cycle; f51 is the same-phase seam reference and is excluded",
+  "frameCount": 18,
+  "endFrame": 17,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 3,
+  "frameRate": 12.0,
+  "repeat": -1,
+  "fixedScale": 0.20673076923076922,
+  "feetY": 351,
+  "targetEffectiveBodyHeight": 129,
+  "horizontalMode": "center-body",
+  "verticalMode": "body-feet",
+  "sheet": "postprocess/source-sheets-pre-rife/running.png",
+  "preview": "postprocess/previews/source/running.gif",
+  "contactSheet": "postprocess/previews/source/running-contact.png",
+  "cleanup": {
+    "15": {
+      "matteAlphaPixelsTrimmed": 2387,
+      "matteEdgePixelsRecolored": 5129,
+      "detachedPixelsRemoved": 7
+    },
+    "17": {
+      "matteAlphaPixelsTrimmed": 2110,
+      "matteEdgePixelsRecolored": 6758,
+      "detachedPixelsRemoved": 276
+    },
+    "19": {
+      "matteAlphaPixelsTrimmed": 2727,
+      "matteEdgePixelsRecolored": 5871,
+      "detachedPixelsRemoved": 612
+    },
+    "21": {
+      "matteAlphaPixelsTrimmed": 2728,
+      "matteEdgePixelsRecolored": 5760,
+      "detachedPixelsRemoved": 983
+    },
+    "23": {
+      "matteAlphaPixelsTrimmed": 2585,
+      "matteEdgePixelsRecolored": 6234,
+      "detachedPixelsRemoved": 0
+    },
+    "25": {
+      "matteAlphaPixelsTrimmed": 2269,
+      "matteEdgePixelsRecolored": 6144,
+      "detachedPixelsRemoved": 2
+    },
+    "27": {
+      "matteAlphaPixelsTrimmed": 2221,
+      "matteEdgePixelsRecolored": 5122,
+      "detachedPixelsRemoved": 2
+    },
+    "29": {
+      "matteAlphaPixelsTrimmed": 2565,
+      "matteEdgePixelsRecolored": 5276,
+      "detachedPixelsRemoved": 36
+    },
+    "31": {
+      "matteAlphaPixelsTrimmed": 2230,
+      "matteEdgePixelsRecolored": 5414,
+      "detachedPixelsRemoved": 6
+    },
+    "33": {
+      "matteAlphaPixelsTrimmed": 2112,
+      "matteEdgePixelsRecolored": 6082,
+      "detachedPixelsRemoved": 1
+    },
+    "35": {
+      "matteAlphaPixelsTrimmed": 2225,
+      "matteEdgePixelsRecolored": 7197,
+      "detachedPixelsRemoved": 5
+    },
+    "37": {
+      "matteAlphaPixelsTrimmed": 2403,
+      "matteEdgePixelsRecolored": 6371,
+      "detachedPixelsRemoved": 0
+    },
+    "39": {
+      "matteAlphaPixelsTrimmed": 2605,
+      "matteEdgePixelsRecolored": 6616,
+      "detachedPixelsRemoved": 3
+    },
+    "41": {
+      "matteAlphaPixelsTrimmed": 2303,
+      "matteEdgePixelsRecolored": 7941,
+      "detachedPixelsRemoved": 0
+    },
+    "43": {
+      "matteAlphaPixelsTrimmed": 2205,
+      "matteEdgePixelsRecolored": 6674,
+      "detachedPixelsRemoved": 2
+    },
+    "45": {
+      "matteAlphaPixelsTrimmed": 1961,
+      "matteEdgePixelsRecolored": 6108,
+      "detachedPixelsRemoved": 4
+    },
+    "47": {
+      "matteAlphaPixelsTrimmed": 2228,
+      "matteEdgePixelsRecolored": 5064,
+      "detachedPixelsRemoved": 1
+    },
+    "49": {
+      "matteAlphaPixelsTrimmed": 2090,
+      "matteEdgePixelsRecolored": 6383,
+      "detachedPixelsRemoved": 2
+    },
+    "51": {
+      "matteAlphaPixelsTrimmed": 2341,
+      "matteEdgePixelsRecolored": 5927,
+      "detachedPixelsRemoved": 8
+    }
+  },
+  "groundContactMattePixelsRemovedBySourceSheetFrame": [
+    14,
+    8,
+    44,
+    49,
+    2,
+    15,
+    49,
+    58,
+    10,
+    7,
+    30,
+    16,
+    34,
+    14,
+    5,
+    59,
+    52,
+    17
+  ],
+  "duplicateEndpointGroundContactMattePixelsRemoved": 2,
+  "validation": {
+    "alphaPixelsMin": 6475,
+    "alphaPixelsMax": 7117,
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "feetMin": 350,
+    "feetMax": 351,
+    "adjacentDeltaMean": 32.51425339193905,
+    "loopSeamDelta": 41.68968963623047,
+    "effectiveBodyHeightMin": 117,
+    "effectiveBodyHeightMedian": 123.0,
+    "effectiveBodyHeightMax": 128,
+    "effectiveBodyBottomMin": 339,
+    "effectiveBodyBottomMax": 351,
+    "nonzeroRgbInTransparentPixels": 0,
+    "firstEndpointFullAlphaIou": 0.9523739742086753,
+    "firstEndpointLowerAlphaIou": 0.934640522875817,
+    "firstEndpointDelta": 14.190089225769043
+  },
+  "sheetSha256": "3c0f329ff5083aac282a5de13eca49884478fd27a6c706a345058fcd6d0500ce",
+  "testsRun": false
+}

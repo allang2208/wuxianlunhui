@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-01",
+  "unitKey": "steel_shield_assault",
+  "unitName": "钢盾突击兵",
+  "status": "formal_asset_package_user_confirmed_runtime_integrated",
+  "userConfirmedCompleteAt": "2026-09-02",
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "targetEffectiveBodyHeight": 129,
+  "scaleContract": "one fixed scale per approved source camera; every action normalized to the same effective upright body height",
+  "actions": {
+    "idle": {
+      "sourceVideo": {
+        "path": "videos/idle-h3-v01-exact-loop.mp4",
+        "bytes": 1136022,
+        "sha256": "18dfd7e14d57e1d04c5a41a302e91b37afe54d0f78b8a162f35cf281153a357e"
+      },
+      "formalSheet": {
+        "path": "postprocess/sheets-rife/idle.png",
+        "bytes": 856548,
+        "sha256": "efc9ea3ef79545faef3115013189118d8bca00b67c095a49371bba040920abf1"
+      },
+      "previewGif": {
+        "path": "postprocess/previews/runtime-clock-exact/idle.gif",
+        "bytes": 2550476,
+        "sha256": "b883a3f328bee25a5b698530970d3ec52732ae52b03c919026800bcf8057fc09"
+      },
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 32,
+      "frameRate": 6.2439024390243905,
+      "durationMs": 5125.0,
+      "repeat": -1,
+      "fixedActionScale": 0.19953596287703015,
+      "fixedSourceAnchor": {
+        "x": 659.0,
+        "y": 721.0
+      },
+      "rifeOriginalKeyFramesPreservedBeforeEdgeCleanup": true,
+      "postRifeEdgeCleanupApplied": true,
+      "postRifeWhitePixelsRecolored": 93,
+      "whiteEdgeMaximumRatioAfterCleanup": 0.0,
+      "emptyFrames": [],
+      "touchingFrames": [],
+      "nonzeroRgbInTransparentPixels": 0
+    },
+    "running": {
+      "sourceVideo": {
+        "path": "videos/moving-doubao-v02-coat-covered.mp4",
+        "bytes": 1053068,
+        "sha256": "5a3e2aef74d0adf9fab44e323516c44fb2c59ef4921cfa4dbe105aae95281239"
+      },
+      "formalSheet": {
+        "path": "postprocess/sheets-rife/running.png",
+        "bytes": 1095488,
+        "sha256": "823e191ecbefa079e365dcbd8df513ac13c566e18a2f15adefdb87679199548d"
+      },
+      "previewGif": {
+        "path": "postprocess/previews/runtime-clock-exact/running.gif",
+        "bytes": 3289944,
+        "sha256": "41d25219ad907d9e23aea87565f89469d4ca522425765ae4a3de61247c4c70ec"
+      },
+      "frameWidth": 192,
+      "frameHeight": 192,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 42,
+      "frameRate": 48.0,
+      "durationMs": 875.0,
+      "repeat": -1,
+      "fixedActionScale": 0.20476190476190476,
+      "fixedSourceAnchor": {
+        "x": 646.0,
+        "y": 686.0
+      },
+      "rifeOriginalKeyFramesPreservedBeforeEdgeCleanup": true,
+      "postRifeEdgeCleanupApplied": true,
+      "postRifeWhitePixelsRecolored": 218,
+      "whiteEdgeMaximumRatioAfterCleanup": 0.0,
+      "emptyFrames": [],
+      "touchingFrames": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "loopSelection": {
+        "startInclusive": 40,
+        "endExclusive": 61,
+        "seamReference": 61,
+        "periodSeconds": 0.875
+      },
+      "groundContactMattePixelsRemoved": 310,
+      "footEdgeContact": {
+        "path": "postprocess/previews/foot-edge-review/running-feet-contact.png",
+        "bytes": 135155,
+        "sha256": "8e1853a12d6a9a5c80c6595cb2baede75ff1e6db9318741087aa73832f5f3592"
+      },
+      "loopSeamContact": {
+        "path": "postprocess/previews/runtime-clock-exact/running-loop-seam-contact.png",
+        "bytes": 288101,
+        "sha256": "681c442b82a51e0093654aa51d0ea2ba311cd1461bafdbc23d54d3eb207fa461"
+      }
+    },
+    "attacking": {
+      "sourceVideo": {
+        "path": "videos/attacking-doubao-v01.mp4",
+        "bytes": 690803,
+        "sha256": "31da93955fa78923ccc3e5383392b4f1d12b58090d042e9c7b6a4dc21c2a4294"
+      },
+      "formalSheet": {
+        "path": "postprocess/sheets-rife/attacking.png",
+        "bytes": 1589174,
+        "sha256": "ad41d81b11bb58ebb61ddbddbbb006df812be69b64b59d174971e765e5a4e8c2"
+      },
+      "previewGif": {
+        "path": "postprocess/previews/runtime-clock-exact/attacking.gif",
+        "bytes": 2585671,
+        "sha256": "3505dd6c2edd169d59d2a90c756c5145ddf55a53afcae1cbdfffe52ffb161b49"
+      },
+      "frameWidth": 288,
+      "frameHeight": 192,
+      "cols": 8,
+      "rows": 7,
+      "frameCount": 49,
+      "frameRate": 32.666666666666664,
+      "durationMs": 1500.0,
+      "repeat": 0,
+      "fixedActionScale": 0.2144638403990025,
+      "fixedSourceAnchor": {
+        "x": 685.0,
+        "y": 668.0
+      },
+      "rifeOriginalKeyFramesPreservedBeforeEdgeCleanup": true,
+      "postRifeEdgeCleanupApplied": true,
+      "postRifeWhitePixelsRecolored": 72,
+      "whiteEdgeMaximumRatioAfterCleanup": 0.0,
+      "emptyFrames": [],
+      "touchingFrames": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "releaseRawSourceFrame": 48,
+      "releaseOutputIndex": 18,
+      "releaseDelayMs": 551.0204081632654,
+      "flashAndSmokeRetained": true,
+      "groundContactMattePixelsRemoved": 509,
+      "footEdgeContact": {
+        "path": "postprocess/previews/foot-edge-review/attacking-feet-contact.png",
+        "bytes": 142566,
+        "sha256": "f00a7fd336d53d174898c0e3da05402306b411787f191e1d65269f51965f3644"
+      },
+      "releaseSmokeContact": {
+        "path": "postprocess/previews/runtime-clock-exact/attacking-release-smoke-contact.png",
+        "bytes": 234548,
+        "sha256": "dd5e3e7c7c5dc2515408afe4ef75c158aa3306e63d82831625c4d9658de18c5d"
+      }
+    },
+    "dying": {
+      "sourceVideo": {
+        "path": "videos/dying-doubao-v01.mp4",
+        "bytes": 889500,
+        "sha256": "e5c49603b3e776132a37eb837d7caba741ccd03f473278b56882075be3d2be0e"
+      },
+      "formalSheet": {
+        "path": "postprocess/sheets-rife/dying.png",
+        "bytes": 1352298,
+        "sha256": "56410a7adbfc4303a26db1d80486675dc8fe839a6985e3d89989d592bb488013"
+      },
+      "previewGif": {
+        "path": "postprocess/previews/runtime-clock-exact/dying.gif",
+        "bytes": 2246330,
+        "sha256": "eb997a01b06c4169bc0dc2f0564e030f4865f3b08b3811b90d688cd8d2104a75"
+      },
+      "frameWidth": 288,
+      "frameHeight": 192,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 45,
+      "frameRate": 12.272727272727273,
+      "durationMs": 3666.6666666666665,
+      "repeat": 0,
+      "fixedActionScale": 0.21287128712871287,
+      "fixedSourceAnchor": {
+        "x": 617.0,
+        "y": 670.0
+      },
+      "rifeOriginalKeyFramesPreservedBeforeEdgeCleanup": true,
+      "postRifeEdgeCleanupApplied": true,
+      "postRifeWhitePixelsRecolored": 217,
+      "whiteEdgeMaximumRatioAfterCleanup": 0.0,
+      "emptyFrames": [],
+      "touchingFrames": [],
+      "nonzeroRgbInTransparentPixels": 0,
+      "finalCorpseOutputIndex": 44,
+      "finalCorpseHoldPolicy": "one-shot freezes on final frame",
+      "finalContact": {
+        "path": "postprocess/previews/runtime-clock-exact/dying-final-contact.png",
+        "bytes": 127455,
+        "sha256": "86607f064559bc54fa57d961d10a206a34b00925cb5993170fc96657c86ede35"
+      }
+    }
+  },
+  "attackAudio": {
+    "path": "audio/steel-shield-assault-attack.mp3",
+    "bytes": 18853,
+    "sha256": "390bda12886332cb37d4ab011e12ec19e30e69757fa1e212a38f25312f5bffbc",
+    "durationSeconds": 0.87,
+    "sampleRate": 44100,
+    "channels": 2,
+    "bitRate": 160000,
+    "peakDbfs": -2.1343813638990867,
+    "rmsDbfs": -16.000000001967503,
+    "plannedReleaseOutputIndex": 18,
+    "plannedReleaseDelayMs": 551.0204081632654
+  },
+  "decodedBudget": {
+    "bytes": 31703040,
+    "miB": 30.234375,
+    "targetMiB": 32,
+    "admissionMiB": 64,
+    "withinTarget": true,
+    "withinAdmission": true
+  },
+  "pipeline": {
+    "cutout": "BiRefNet-general plus white-studio matte cleanup",
+    "interpolation": "one RIFE v4.6 2x pass",
+    "postInterpolationEdgeCleanup": "moving and attack remove the pale connected ground-contact matte below boots/shield; nearest opaque actor colour replaces any remaining RIFE white semi-alpha contamination",
+    "attackTiming": "49 frames / 1500 ms; release at output frame 18 / about 551 ms",
+    "runtimeConfigWritten": true
+  },
+  "whiteEdgeScreen": {
+    "report": {
+      "path": "postprocess/white-edge-report.json",
+      "bytes": 61065,
+      "sha256": "41bdef59957a23ecd212dda8c28bc59328d40803b62653cd72bd31068e09c275"
+    },
+    "passes": true,
+    "failures": [],
+    "maximumRatiosByAction": {
+      "idle": 0.0,
+      "running": 0.0,
+      "attacking": 0.0,
+      "dying": 0.0
+    },
+    "neutralFootMatteMaximumPixelsByFrame": {
+      "running": 0,
+      "attacking": 0
+    },
+    "approvedAttackEffectExcludedByAlignedMask": true
+  },
+  "testsRun": false,
+  "offlineChecks": "sheet geometry, frame counts, alpha empties/touches, transparent RGB, exact-clock preview timing, event contacts, decoded budget, source and post-RIFE white-edge hard screen"
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-02",
+  "unitKey": "trench_assault",
+  "unitName": "战壕突击兵",
+  "stage": "four_action_formal_asset_package_runtime_integrated",
+  "identitySource": "../../mother/trench_assault-mother-v03-a10.png",
+  "directionReview": "direction-review.md",
+  "sourceReviewReport": "previews/source-review-report.json",
+  "actions": {
+    "idle": {
+      "selectedTake": "videos/idle-doubao-v01.mp4",
+      "status": "user_authorized_completion_formal_asset_runtime_integrated",
+      "review": "121帧/24fps/1280x720；原地轻呼吸，无踏步、开火、泵动或转向，A10、胸甲和卷毯保持完整。取raw [44,94)内13个6fps源关键帧，一次2x RIFE后形成26帧/12fps正式资产。"
+    },
+    "running": {
+      "selectedTake": "videos/running-doubao-v05-reference-only.mp4",
+      "status": "user_authorized_completion_formal_asset_runtime_integrated",
+      "review": "用户判退v03边跑边开火后，v05全程只做三分之四右向原地跑步；枪口压低，没有开火、后坐、泵动或攻击停顿。按用户此前长尾可保留的授权，保留随步态出现/遮挡的长尾。选raw [15,51)双步态周期，f51仅作同相位端点；18个12fps源关键帧经一次2x loop RIFE形成36帧/24fps正式资产，并完成白底边缘与脚底残留清理。",
+      "rejected": [
+        {"take": "videos/running-doubao-v01.mp4", "reason": "右向步轴成立，但生成参考图不存在的长尾。"},
+        {"take": "videos/running-doubao-v02-no-tail.mp4", "reason": "加强无尾身份锁后仍生成同样长尾；保留为H3步态弱参考。"},
+        {"take": "videos/running-h3-v03-motion-transfer.mp4", "reason": "H3保留了右向步态和霙弹枪握持，但仍复制长尾；尾部可与主体分离，但未经用户确认不做正式删尾修图。"},
+        {"take": "videos/running-doubao-v03-closed-uniform.mp4", "reason": "用户判定纯移动视频混入边跑边开火；动作状态边界错误，禁止进入抠图、RIFE或正式入库。"},
+        {"take": "videos/running-doubao-v04-movement-only.mp4", "reason": "开火已消除，但长尾在部分帧出现、部分帧消失；程序删除会伤及后腰/后腿交界并产生闪烁。"}
+      ],
+      "prompt": "prompts/running-doubao-v05-reference-only.txt",
+      "loopAnalysis": "previews/running-loop-analysis-v05/same-phase-candidates.json",
+      "formalSourceReport": "postprocess/approved-running-source-report.json",
+      "formalPreview": "postprocess/previews/rife/trench-assault-running-interpolated.gif",
+      "runtimeAsset": "assets/companions/trench_assault/running.png"
+    },
+    "attacking": {
+      "selectedTake": "videos/attacking-doubao-v04-reference-only.mp4",
+      "status": "assistant_offline_passed_formal_asset_runtime_integrated",
+      "review": "121帧/24fps/1280x720；全程原地三分之四右向，f42-f43只有一次枪火，随后一次完整泵动并回到低姿，没有跑步、第二次开火或迎面转向。选17个非均匀动作阶段关键帧，经一次2x one-shot RIFE形成33帧/22fps、1.5秒正式资产；开火事件为输出第10帧/约455ms。保留紧凑枪火和近端烟雾，清除枪管差分伪影；同源射击音效已截取为0.87秒WAV。",
+      "rejected": [
+        {"take": "videos/attacking-doubao-v01.mp4", "reason": "生成长尾，起始瞬间开火且烟团过大。"},
+        {"take": "videos/attacking-h3-v03-motion-transfer.mp4", "reason": "单次开火和恢复节奏成立，但生成长尾、裸露鼠类后腿、偏正面身体与暗色地面，不能用程序删尾解决。"}
+      ],
+      "motionCandidate": {
+        "take": "videos/attacking-doubao-v02-mother-tail-concealed.mp4",
+        "status": "action_path_passed_identity_failed",
+        "review": "约1.46秒单次开火，随后护木后拉、前推并回低戒备；仍从首帧生成长尾，只作为H3动作弱参考。"
+      },
+      "prompt": "prompts/attacking-doubao-v04-reference-only.txt",
+      "phaseAnalysis": "previews/attacking-analysis-v04/attack-phases.json",
+      "formalSourceReport": "postprocess/approved-attacking-source-report.json",
+      "formalPreview": "postprocess/previews/rife/trench-assault-attacking-interpolated.gif",
+      "runtimeAsset": "assets/companions/trench_assault/attacking.png",
+      "audioAsset": "assets/sounds/friendly/trench_assault_attack_video.wav"
+    },
+    "dying": {
+      "selectedTake": "videos/dying-h3-v04-first-last-right.mp4",
+      "status": "user_approved_formal_asset_runtime_integrated",
+      "review": "124帧/24fps/1344x768；精确首帧使用已核对右向跨步，精确尾帧使用右向侧卧关键帧。约f32开始屈膝，f56-f75侧倒时胸胯不转向镜头，枪口只抬向右上而不转左；约f83进入右向侧卧并静止到末帧。无开火、无长尾、无丢枪、无复起。用户回复“可用，继续”后，已从25个未插帧关键帧完成单向2×RIFE，形成49帧/24fps正式透明图集；未接入运行时配置。",
+      "rejected": [
+        {"take": "videos/dying-doubao-v01.mp4", "reason": "无开火、无长尾，但躯干落地前先把枪平放地面；背景出现血点。"},
+        {"take": "videos/dying-h3-v03-motion-transfer.mp4", "reason": "用侦察射手死亡片做动作参考导致屈膝/倒地过程躯干转向镜头、枪口转向左下，用户判定视角不对。"}
+      ],
+      "unsubmitted": {
+        "take": "videos/dying-doubao-v02-grip-retained.mp4",
+        "reason": "豆包明确显示近7天额度用完；未确认付费，文件不存在。"
+      },
+      "contactSheet": "previews/dying-h3-v04-first-last-right-contact-32.png",
+      "preview": "previews/dying-h3-v04-first-last-right-source.gif",
+      "directionReview": "previews/dying-v04-direction-review.png",
+      "redrawManifest": "h3-dying-redraw-v04.json",
+      "formalManifest": "postprocess/manifest.json",
+      "formalPreview": "postprocess/previews/rife/trench-assault-dying-interpolated.gif",
+      "runtimeAsset": "assets/companions/trench_assault/dying.png"
+    }
+  },
+  "doubaoQuota": {
+    "status": "available_after_user_switched_account",
+    "visibleMessage": null,
+    "paidQuotaConfirmed": false,
+    "duplicateSubmissionAttempted": false
+  },
+  "h3UploadRequest": "h3-upload-request.json",
+  "h3SubmissionAttempted": true,
+  "h3BlockedByAutoReview": false,
+  "h3Authorization": "用户在精确上传请求后回复继续，视为授权该清单中移动、攻击、死亡各1个候选。",
+  "runtimeIntegrationActive": true,
+  "formalPackage": "postprocess/manifest.json",
+  "testsRun": false
+}
