@@ -576,7 +576,7 @@
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.790323, "widthRatio": 0.920863, "depthRatio": 0.412903, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "firstWhenNoneCost": 0,
-    "firstWhenNoneGrant": { "energy": 1000, "food": 500 },
+    "firstWhenNoneGrant": { "energy": 3000, "food": 500 },
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
