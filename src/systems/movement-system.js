@@ -47,6 +47,7 @@ import {
     distanceToMeleeTarget,
 } from '../combat/melee-attack-resolver.js';
 import { hasAttackLineOfSight } from '../combat/melee-reach.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -63,6 +64,7 @@ const resolveWallFor = (entity, x, y, nx, ny, radius) => WallSystem.resolve(
 const MovementSystem = {
     _lastObstacleUpdate: 0,
     _gatePursuitCache: { source: null, size: -1, builtAt: 0, gates: [], targets: [], rebuilds: 0 },
+    _meleeApproachHolds: new WeakMap(),
 
     /**
      * [PERF-2026-08-03] 每帧寻路预算重置：由 game.js 主循环每帧调用一次。
@@ -331,8 +333,9 @@ const MovementSystem = {
             }
         }
 
-const moveData = this._computeMoveDirection(enemy, entities);
+        const moveData = this._computeMoveDirection(enemy, entities);
         if (!moveData) {
+            this._meleeApproachHolds.delete(enemy);
             enemy.vx *= enemy.friction || 0.82;
             enemy.vy *= enemy.friction || 0.82;
             enemy.isMoving = false;
@@ -362,6 +365,25 @@ const moveData = this._computeMoveDirection(enemy, entities);
             && !enemy._surfaceNavWaiting
             && enemy._surfaceKind !== 'stairs'
             && enemy._surfaceKind !== 'wall_walk';
+        const meleeProximity = this._getBasicMeleeProximity(enemy, moveData.approachesTarget);
+        const meleeHold = this._shouldHoldMeleeApproach(enemy, meleeProximity);
+        if (meleeHold) {
+            // 进入真实近战起手范围后保留已有路径，仅取消未执行的队列任务；
+            // 目标离开滞回区即可复用旧路径恢复追击，不制造清路/重算循环。
+            if (meleeProximity.holdEntered) {
+                PathWorkScheduler.cancel(enemy._pathManager);
+            }
+            enemy.vx = 0;
+            enemy.vy = 0;
+            enemy.isMoving = false;
+            enemy._stuckTimer = 0;
+            enemy._lastX = enemy.x;
+            enemy._lastY = enemy.y;
+            const target = meleeProximity.target;
+            enemy.rotation = Math.atan2(target.y - enemy.y, target.x - enemy.x);
+            this._updateMovementAnim(enemy, dt);
+            return;
+        }
         if (groundPathAllowed && enemy._pathManager && moveGoal) {
             const targetX = moveGoal.x;
             const targetY = moveGoal.y;
@@ -412,17 +434,17 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 路径跟随（使用 PathManager）
         if (groundPathAllowed && enemy._pathManager && enemy._pathManager.hasValidPath()) {
-            this._followPath(enemy, dt, entities);
+            this._followPath(enemy, dt, entities, meleeProximity);
         } else {
             // 正常移动
-            this._applyNormalMovement(enemy, dt, dx, dy, dist, entities);
+            this._applyNormalMovement(enemy, dt, dx, dy, dist, entities, meleeProximity);
         }
 
         // [ENHANCE] 攻击范围内渐进减速：冲到更近位置再停车，避免前排一进入范围就堵死
         if (enemy.target && enemy.target.active
             && !enemy._surfaceNavCommand
             && !enemy._surfaceRouteActive) {
-            this._applyAttackRangeFriction(enemy, dist);
+            this._applyAttackRangeFriction(enemy, dist, meleeProximity);
         }
 
         // [UNSTUCK] 卡死恢复：长时间未移动时尝试小幅瞬移到合法方向
@@ -464,6 +486,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _computeMoveDirection(enemy, _entities) {
         let tx = 0, ty = 0, hasTarget = false;
+        let approachesTarget = false;
         const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
 
         // 0. 生产建筑离场点：先离开 footprint/出口拥堵区，再接管正常 AI。
@@ -510,6 +533,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             tx = enemy.target.x;
             ty = enemy.target.y;
             hasTarget = true;
+            approachesTarget = true;
         }
         // 5. 最后已知位置（失去目标后搜索）
         else if (!hasTarget && enemy._lastKnownTargetPos) {
@@ -554,7 +578,111 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return null;
         }
 
-        return { dx, dy, dist };
+        return { dx, dy, dist, approachesTarget };
+    },
+
+    /**
+     * 普通近战移动与起手判定共享同一份动态范围和 footprint 边缘距离。
+     * 仅处理正在直接追逐攻击目标的敌方单位；战术点、远程、绕圈和高架通行不接管。
+     */
+    _getBasicMeleeProximity(enemy, approachesTarget) {
+        const target = enemy.target;
+        const wantsRanged = !!enemy._isHumanoid || !!enemy.attacks?.ranged;
+        if (enemy._faction !== 'enemy' || !approachesTarget || wantsRanged || enemy._circleRadius
+            || !target?.active || target.hittable === false
+            || (target.hp !== undefined && target.hp <= 0)) {
+            this._meleeApproachHolds.delete(enemy);
+            return null;
+        }
+
+        const customApproachConfig = typeof enemy.getBasicMeleeApproachConfig === 'function'
+            ? enemy.getBasicMeleeApproachConfig()
+            : null;
+        const directedAttackConfig = customApproachConfig
+            || (enemy._usesDirectedBasicMelee !== false && enemy.attacks?.melee
+                ? (enemy.attacks.melee.config || {})
+                : null);
+        if (!directedAttackConfig) {
+            this._meleeApproachHolds.delete(enemy);
+            return null;
+        }
+
+        const range = basicMeleeApproachRange(enemy, directedAttackConfig);
+        const distance = distanceToMeleeTarget(enemy, target);
+        if (!Number.isFinite(range) || range <= 0 || !Number.isFinite(distance)) {
+            this._meleeApproachHolds.delete(enemy);
+            return null;
+        }
+        return {
+            target,
+            config: directedAttackConfig,
+            range,
+            distance,
+            sameSurface: canMeleeShareSurface(enemy, target),
+            approachClear: false,
+            holdEntered: false,
+        };
+    },
+
+    /**
+     * 进入真实近战起手范围时锁定站位；8~24px 的释放滞回消除边界抖动。
+     * LOS 只在尝试进入时检查，失败后 200ms 再试；持有期间复用感知系统的失视状态，
+     * 避免把每个近战单位变成逐帧墙体射线源。
+     */
+    _shouldHoldMeleeApproach(enemy, proximity) {
+        if (!proximity) return false;
+        const now = Date.now();
+        const previous = this._meleeApproachHolds.get(enemy);
+        const sameTarget = previous?.target === proximity.target;
+        const releaseMargin = Math.max(8, Math.min(24, (enemy.groundRadius || 20) * 0.6));
+        const lostSight = Number(enemy._lostSightTimer) > 0;
+
+        if (sameTarget && previous.holding) {
+            if (proximity.sameSurface && !lostSight
+                && proximity.distance <= proximity.range + releaseMargin) {
+                proximity.approachClear = true;
+                return true;
+            }
+            this._meleeApproachHolds.delete(enemy);
+        }
+
+        if (!proximity.sameSurface || lostSight || proximity.distance > proximity.range) {
+            proximity.approachClear = proximity.sameSurface && !lostSight;
+            if (!sameTarget || proximity.distance > proximity.range + releaseMargin) {
+                this._meleeApproachHolds.delete(enemy);
+            }
+            return false;
+        }
+
+        if (sameTarget && !previous.holding && now < previous.retryAt) return false;
+        proximity.approachClear = hasAttackLineOfSight(enemy, proximity.target);
+        if (!proximity.approachClear) {
+            this._meleeApproachHolds.set(enemy, {
+                target: proximity.target,
+                holding: false,
+                retryAt: now + 200,
+            });
+            return false;
+        }
+
+        proximity.holdEntered = true;
+        this._meleeApproachHolds.set(enemy, {
+            target: proximity.target,
+            holding: true,
+            retryAt: 0,
+        });
+        return true;
+    },
+
+    /** 直冲型在近战起手边缘前平滑收速；无共享近战合同的旧单位保持原倍率。 */
+    _chargeStraightSpeedMultiplier(enemy, proximity, legacyBoost, baseSpeed) {
+        if (!(enemy.ai && enemy.ai.chargeStraight)) return 1;
+        if (!proximity || !proximity.approachClear) return legacyBoost ? 1.3 : 1;
+        const brakeBand = Math.max(18, Math.min(56, baseSpeed * 0.12));
+        const gap = proximity.distance - proximity.range;
+        if (gap >= brakeBand) return 1.3;
+        if (gap <= 0) return 0.35;
+        return 0.35 + 0.95 * (gap / brakeBand);
     },
 
     /**
@@ -1238,7 +1366,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * - 贴身战斗时自动降低分离权重，避免近战抖动
      * - 加入微小随机抖动，打破对称拥堵
      */
-    _computeSeparation(enemy, minDist, entities) {
+    _computeSeparation(enemy, minDist, entities, meleeProximity = null) {
         const separationRadius = minDist > 0
             ? minDist
             : Math.max(24, Math.min(80, (enemy.groundRadius) * 1.8));
@@ -1248,7 +1376,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         // 贴身战斗时降低分离比重，避免围绕玩家抖动
         const target = enemy.target;
         let inCombatRange = false;
-        if (target && target.active) {
+        if (meleeProximity?.target === target) {
+            inCombatRange = meleeProximity.approachClear
+                && meleeProximity.distance <= meleeProximity.range;
+        } else if (target && target.active) {
             const tdx = target.x - enemy.x;
             const tdy = target.y - enemy.y;
             const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
@@ -1371,7 +1502,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     /**
      * 沿路径移动（支持 PathManager 和旧路径兼容）
      */
-    _followPath(enemy, dt, entities) {
+    _followPath(enemy, dt, entities, meleeProximity = null) {
         // [ENHANCE] 优先使用 PathManager
         if (enemy._pathManager && enemy._pathManager.hasValidPath()) {
             const wp = enemy._pathManager.getCurrentWaypoint();
@@ -1430,14 +1561,15 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
             // [ENHANCE] 路径跟随期间也应用单位分离，避免多只怪物沿同一路径堆叠
             const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
-            let repel = this._computeSeparation(enemy, 0, entities);
+            let repel = this._computeSeparation(enemy, 0, entities, meleeProximity);
             if (repel.dx !== 0 || repel.dy !== 0) {
                 // 近战怪物接近目标时，若分离方向会把它们推离目标（反向跑），则极大削弱该力
                 if (enemy.target && enemy.target.active && !enemy._circleRadius) {
-                    const tdx = enemy.target.x - enemy.x;
-                    const tdy = enemy.target.y - enemy.y;
-                    const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
-                    if (tdist <= (enemy.attackRange || 70) * 1.2) {
+                    const nearMeleeApproach = meleeProximity?.target === enemy.target
+                        ? meleeProximity.distance <= meleeProximity.range * 1.2
+                        : Math.hypot(enemy.target.x - enemy.x, enemy.target.y - enemy.y)
+                            <= (enemy.attackRange || 70) * 1.2;
+                    if (nearMeleeApproach) {
                         const tdot = moveX * repel.dx + moveY * repel.dy;
                         if (tdot < 0) {
                             repel = { dx: repel.dx * 0.1, dy: repel.dy * 0.1 };
@@ -1446,7 +1578,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 }
                 // 若分离方向与路径方向反向（>90°），说明前方被同伴堵住，允许更大幅度偏离路径
                 const dot = moveX * repel.dx + moveY * repel.dy;
-                const hasLOS = enemy._perception && enemy._perception.hasLOS;
+                const hasLOS = (meleeProximity?.approachClear
+                    && meleeProximity.distance <= meleeProximity.range * 1.2)
+                    || (enemy._perception && enemy._perception.hasLOS);
                 const separationWeight = chargeStraight
                     ? 0.05
                     : (hasLOS ? 0.2 : (dot < 0 ? 0.9 : 0.45));
@@ -1458,9 +1592,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             }
 
             let maxSpd = this._getEnemyMoveSpeed(enemy, true);
-            if (chargeStraight) {
-                maxSpd *= 1.3;
-            }
+            if (chargeStraight) maxSpd *= this._chargeStraightSpeedMultiplier(
+                enemy, meleeProximity, true, maxSpd
+            );
             enemy.vx += (moveX * maxSpd - enemy.vx) * (enemy.accel || 0.7);
             enemy.vy += (moveY * maxSpd - enemy.vy) * (enemy.accel || 0.7);
             const sc = dt / 1000;
@@ -1521,13 +1655,6 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             enemy.isMoving = Math.abs(enemy.vx) > 0.1 || Math.abs(enemy.vy) > 0.1;
             if (enemy.isMoving) enemy.animTime += 0.15;
 
-            // [ENHANCE] 路径跟随期间也做渐进减速
-            if (enemy.target && enemy.target.active) {
-                const tdx = enemy.target.x - enemy.x;
-                const tdy = enemy.target.y - enemy.y;
-                const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
-                this._applyAttackRangeFriction(enemy, tdist);
-            }
             return;
         }
 
@@ -1542,22 +1669,26 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      * - dist <= effectiveRange * 0.9：线性递增摩擦
      * - dist > effectiveRange * 0.9：不额外摩擦，继续冲锋到更近位置
      */
-    _applyAttackRangeFriction(enemy, dist) {
-        const customApproachConfig = typeof enemy.getBasicMeleeApproachConfig === 'function'
+    _applyAttackRangeFriction(enemy, dist, meleeProximity = null) {
+        const customApproachConfig = !meleeProximity
+            && typeof enemy.getBasicMeleeApproachConfig === 'function'
             ? enemy.getBasicMeleeApproachConfig()
             : null;
-        const directedAttackConfig = customApproachConfig
+        const directedAttackConfig = meleeProximity?.config
+            || customApproachConfig
             || (enemy._usesDirectedBasicMelee !== false && enemy.attacks?.melee
                 ? (enemy.attacks.melee.config || {})
                 : null);
         const usesDirectedBasicMelee = !!directedAttackConfig;
-        const range = usesDirectedBasicMelee
+        const range = meleeProximity?.range ?? (usesDirectedBasicMelee
             ? basicMeleeApproachRange(enemy, directedAttackConfig)
-            : (enemy.attackRange || 70);
+            : (enemy.attackRange || 70));
         // 已迁移的普通近战与起手/命中统一读取目标真实 footprint 边缘距离；
         // 不再让 MovementSystem 单独按中心距离停车。
         if (usesDirectedBasicMelee && enemy.target?.active) {
-            dist = distanceToMeleeTarget(enemy, enemy.target);
+            dist = meleeProximity?.target === enemy.target
+                ? meleeProximity.distance
+                : distanceToMeleeTarget(enemy, enemy.target);
         }
         // 结构目标（掩体/门/基地/塔）：刹车距离改用真实 footprint 形状距离（AABB/圆边距），
         // 中心距离落在墙体后方永远到不了 → 怪沿墙滑行不停车，攻击判定窗口滑过即挥空
@@ -1565,9 +1696,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (enemy.target && enemy.target.active && enemy.target._isDefenseStructure) {
             dist = distanceToEntityShape(enemy.target, enemy.x, enemy.y);
         }
-        // 直冲型怪物：只在极近距离（10px）减速，避免提前刹车导致无法贴近攻击
+        if (meleeProximity && !meleeProximity.approachClear) return;
+        // 已迁移直冲近战由目标速度倍率在起手边缘前制动；旧自管单位保留 10px 摩擦合同。
         if (enemy.ai && enemy.ai.chargeStraight) {
-            if (dist <= 10) {
+            if (!usesDirectedBasicMelee && dist <= 10) {
                 enemy.vx *= enemy.friction || 0.82;
                 enemy.vy *= enemy.friction || 0.82;
             }
@@ -1637,13 +1769,16 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     /**
      * 应用正常移动（加速度 + 摩擦 + 墙壁碰撞）
      */
-    _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
+    _applyNormalMovement(enemy, dt, dx, dy, dist, entities, meleeProximity = null) {
         const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
         let maxSpd = this._getEnemyMoveSpeed(enemy, true);
         // 直冲型怪物在攻击范围外小幅加速，确保能追上高速目标
-        if (chargeStraight && dist > (enemy.attackRange || 70)) {
-            maxSpd *= 1.3;
-        }
+        if (chargeStraight) maxSpd *= this._chargeStraightSpeedMultiplier(
+            enemy,
+            meleeProximity,
+            dist > (enemy.attackRange || 70),
+            maxSpd,
+        );
         let moveX = dx / Math.max(dist, 1);
         let moveY = dy / Math.max(dist, 1);
 
@@ -1671,14 +1806,15 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
           moveY = oreAvoid.moveY;
 
         // [ENHANCE] 单位间排斥：使用动态半径与衰减权重
-        let repel = this._computeSeparation(enemy, 0, entities);
+        let repel = this._computeSeparation(enemy, 0, entities, meleeProximity);
         if (repel.dx !== 0 || repel.dy !== 0) {
             // 近战怪物接近目标时，若分离方向会把它们推离目标（反向跑），则极大削弱该力
             if (enemy.target && enemy.target.active && !enemy._circleRadius) {
-                const tdx = enemy.target.x - enemy.x;
-                const tdy = enemy.target.y - enemy.y;
-                const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
-                if (tdist <= (enemy.attackRange || 70) * 1.2) {
+                const nearMeleeApproach = meleeProximity?.target === enemy.target
+                    ? meleeProximity.distance <= meleeProximity.range * 1.2
+                    : Math.hypot(enemy.target.x - enemy.x, enemy.target.y - enemy.y)
+                        <= (enemy.attackRange || 70) * 1.2;
+                if (nearMeleeApproach) {
                     const dot = moveX * repel.dx + moveY * repel.dy;
                     if (dot < 0) {
                         repel = { dx: repel.dx * 0.1, dy: repel.dy * 0.1 };
@@ -1686,8 +1822,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 }
             }
             // 有清晰视线时降低分离权重，让怪物直线冲锋；否则保持较高权重避免堆叠
-            const hasLOS = enemy._perception && enemy._perception.hasLOS;
-            const inCombatRange = dist <= (enemy.attackRange || 70);
+            const hasLOS = (meleeProximity?.approachClear
+                && meleeProximity.distance <= meleeProximity.range * 1.2)
+                || (enemy._perception && enemy._perception.hasLOS);
+            const inCombatRange = meleeProximity?.target === enemy.target
+                ? meleeProximity.approachClear && meleeProximity.distance <= meleeProximity.range
+                : dist <= (enemy.attackRange || 70);
             const separationWeight = chargeStraight
                 ? (inCombatRange ? 0 : 0.1)
                 : (hasLOS ? 0.25 : 0.7);

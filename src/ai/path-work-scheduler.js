@@ -83,6 +83,14 @@ class PathWorkSchedulerImpl {
         return true;
     }
 
+    cancel(manager) {
+        if (!manager) return;
+        const job = this._recalculations.get(manager);
+        job?.planner?.cancelIncrementalRequest?.(manager.getPathRequestId?.());
+        this._recalculations.delete(manager);
+        this._validations.delete(manager);
+    }
+
     drain() {
         const startedAt = nowMs();
         // 预留一次低成本有效性检查，避免持续重算把 validation 永久挤出共享 3ms 预算。
