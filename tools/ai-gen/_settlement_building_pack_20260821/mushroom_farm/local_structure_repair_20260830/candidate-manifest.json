@@ -1,0 +1,122 @@
+{
+  "outputRoot": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830",
+  "host": "192.168.3.142",
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 3600,
+  "steps": 48,
+  "strength": 0.75,
+  "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "refineEdgeStrength": 0.38,
+  "structuralOverlapZ": 8,
+  "maskEdgePad": 16,
+  "assets": [
+    {
+      "id": "mushroom_farm",
+      "label": "蘑菇农场",
+      "assetClass": "agricultural_compound",
+      "assetType": "World-122 broad 4x4 edible-mushroom farm",
+      "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/mushroom_farm_depth.png",
+      "postprocessDepthImage": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/mushroom_farm_depth.png",
+      "modelApproval": "User approved the displayed Blender model and requested image generation on 2026-08-30; no texture candidate selected yet.",
+      "materialReference": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_v02_raw.png",
+      "correctionApproval": "User accepted the recommended v02 material direction and authorized correcting the model deviations before refinement on 2026-08-30; the original Blender geometry remains authoritative.",
+      "foundationStyle": "none",
+      "footprintCells": 4,
+      "generationFootprintCells": 4,
+      "nominalFootprintWidth": 512,
+      "nominalFootprintHeight": 256,
+      "previewDisplayWidth": 512,
+      "previewDisplayHeight": 512,
+      "removeAllGreen": false,
+      "removeEnclosedKey": true,
+      "maskEdgePad": 32,
+      "primaryRequest": "one practical medieval edible-mushroom farm, matching the scale of the cheese and corn farms",
+      "structureRequest": "complete low 4x4 fenced mushroom farm: six compost beds, three on each side of the central path; front double gate swung open. Rear-left nursery has exactly TWO shelf boards with a large open gap, one upper and one lower, beneath its single cloth canopy. Rear-right sorting house has one continuous gable roof; its broad visible long facade has one centered double door flanked by exactly two small square windows, while its short side wall has no opening. A tiny unframed mushroom-shaped relief sits just above the central door. One water barrel and one harvest table remain at the authored rear positions",
+      "paletteConstraint": "muted cream and chestnut-brown edible caps with ivory stems, dark brown compost, warm gray-brown damp earth, worn dark oak, gray-green cloth canopy and subdued gray-green workshop roof, warm gray fieldstone and aged beige plaster",
+      "styleScopeRequest": "use the shared calm game-PBR style; the continuous soil plane is an agricultural plot, not a stone platform; the nursery fabric remains matte and distinct from the sorting-house roof",
+      "detailRequest": "clarify the existing caps and stems, compost, timber frames, fabric folds, plaster and roof with restrained medium-scale wear; retain the corrected two-shelf nursery, door-between-two-windows facade, small mushroom silhouette and open front entrance",
+      "negativeRequest": "no third shelf, middle shelf, second entrance, side door, round badge, medallion, gold border, lettering, extra barrel, dormer, extra gable, closed gate, corn, wheat, pasture, giant mushroom house, spotted red toadstools, glowing fungi, luminous spores, cave backdrop or sunlight rays",
+      "maskedRefineRequest": "Correct only the three masked regions of this existing mushroom farm, using the supplied Blender Depth. Under the left cloth canopy, replace the THREE-level rack with exactly TWO horizontal wooden shelves, one upper and one lower, with a large clearly open gap between; place modest cream mushrooms on those two shelves only. On the house, remove the extra door from the short screen-left end wall and continue beige plaster and dark timber there. On the long screen-right front wall, place exactly ONE centered rectangular double door between TWO small square windows, one on each side of the door, matching the authored Depth. On the roof, remove the large circular medallion and its entire frame; continue the slate roof behind it, then retain only one small flat ivory mushroom-shaped silhouette, about 24 pixels wide, just above the center door. No circle, disk, ring, gold border, letters or extra ornament. Preserve the unmasked roofs, single barrel, open front entrance, six beds, crop positions, paths, fence, soil, camera, muted palette and background exactly. Do not add masonry under the fence or duplicate any prop.",
+      "repairSource": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_v02_raw.png",
+      "repairMask": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm_repair_mask.png",
+      "repairRegions": {
+        "two_shelf_nursery": [
+          [
+            150,
+            646
+          ],
+          [
+            211,
+            670
+          ],
+          [
+            348,
+            609
+          ],
+          [
+            348,
+            701
+          ],
+          [
+            210,
+            759
+          ],
+          [
+            150,
+            726
+          ]
+        ],
+        "sorting_house_facades": [
+          [
+            376,
+            498
+          ],
+          [
+            456,
+            540
+          ],
+          [
+            619,
+            467
+          ],
+          [
+            619,
+            549
+          ],
+          [
+            478,
+            628
+          ],
+          [
+            376,
+            580
+          ]
+        ],
+        "small_mushroom_emblem": [
+          512,
+          420,
+          574,
+          498
+        ]
+      },
+      "repairPurpose": "Structural correction of user-selected material direction; not an accepted final refinement.",
+      "repairDenoise": 0.7,
+      "repairReason": "Two standard Depth batches retained or introduced local geometry errors; restrict stronger repaint to these three regions and composite original pixels outside."
+    }
+  ]
+}

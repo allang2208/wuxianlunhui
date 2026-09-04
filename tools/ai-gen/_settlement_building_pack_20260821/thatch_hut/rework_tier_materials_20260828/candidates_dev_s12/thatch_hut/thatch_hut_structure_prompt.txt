@@ -1,0 +1,40 @@
+Use case: stylized-concept
+Asset type: World-122 compact 2x2 ancient hamster scout-command compound, previewed above the runtime 2x2 road-tile fill
+Pipeline/style version: world122-building-v5
+Primary request: one compact ancient hamster scout-command compound using the approved structure: one thatched command longhouse, one attached timber lookout tower and one attached thatched supply awning, with the fixed ladder, signal mast, plain pennant and compass crest preserved exactly
+Generation stage: structural scout-command compound draft only
+Structure contract: preserve one complete compact 2x2 foundation, exactly one dominant command longhouse, exactly one physically attached open lookout tower with its observation cabin, deck, railings, fixed ladder, small canopy, connector and single signal mast, plus the one authored attached support zone; every component remains grounded and joined to the same compound
+Detail budget: keep the hall roof, lookout canopy, entrance, windows, compass crest, signal mast and support-zone silhouette broad and readable at RTS scale; omit people, weapons, vehicles, lettering and loose decorative clutter
+Palette lock: low-saturation layered dry straw, weathered dark oak, warm aged lime plaster, cool-gray rubble stone, charcoal iron, restrained old brass and sparse amber utility light. No red clay tile, brick facade, modern camouflage canvas, clean concrete, bright gold, neon, logo or readable text.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: rubble_stone
+Foundation contract — Isometric Rubble Stone Plinth for Game Assets:
+Use one low integrated medieval irregular dry-stacked rubble foundation, fully visible and completely contained inside the authored footprint. Build the surface from irregular hand-cut rubble slabs with varied stone sizing, randomized worn and beveled corners, natural filled-joint texture and a deliberately non-industrial hand-laid paving character. Give the complete outer perimeter one consistent isometric chamfer so equal-footprint assets align cleanly. Keep the plinth continuous, game-readable and materially distinct from the more regular masonry of the building body; no marble skirt, monolithic polished slab, oversized podium, detached platform or terrain patch.
+Canonical World-122 ancient scout-command rendering subset:
+Style/medium: sober semi-realistic handcrafted ancient strategy-game field architecture with physically plausible game-ready PBR materials and slightly stylized robust proportions.
+Material grammar: layered muted dry-straw thatch on every authored roof and canopy, weathered dark oak frames and tower posts, warm aged lime plaster, cool-gray fieldstone, charcoal iron and restrained naturally oxidized brass.
+Shape treatment: preserve one compact connected command longhouse and one attached lookout as an organized reconnaissance compound rather than a domestic cottage.
+Absolute class lock: ancient thatch and old timber only; no clay roof tile, brick facade, modern canvas, concrete military shell, radar, vehicle or weapon.
+Asset-specific style scope: preserve the exact approved ancient 2x2 scout-command model: one dominant command longhouse under one continuous thick thatch gable roof, exactly one attached open lookout tower with observation cabin, deck, railings, fixed ladder and small thatch canopy, one short connector, one signal mast with one plain pennant, one compass crest and one attached thatch-roofed supply awning with an orderly map case and scout pack. Every component stays joined to the same compact compound.
+
+Composition/framing: strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve one dominant command longhouse, one attached lookout tower with its deck, cabin, canopy and fixed ladder, one short connector, one signal mast with only the authored plain pennants, one compass crest and the single authored attached support zone; no perspective convergence
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one connected scout-command compound only; no second main hall, second lookout tower, detached hut, detached tent, perimeter fence, castle, bunker, radar dish, satellite dish, vehicle, turret, firearm, soldier, hamster, person, animal, national flag, insignia, readable text, neon, sci-fi machinery, road, terrain, trees, cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or watermark
+Asset-specific absolute exclusions: no domestic cottage silhouette, chimney, red clay roof tile, brick facade, second hall, second lookout, detached shed, perimeter fence, castle, modern camouflage, concrete bunker, radar, vehicle, weapon, people, hamsters, animals, readable text, logo, cast shadow or watermark

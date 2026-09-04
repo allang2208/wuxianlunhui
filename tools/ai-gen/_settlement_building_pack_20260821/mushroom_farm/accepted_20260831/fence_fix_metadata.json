@@ -1,0 +1,63 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\mushroom_farm\\accepted_20260831\\mushroom_farm_clean.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\mushroom_farm\\accepted_20260831\\mushroom_farm_fence_alpha.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": false,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [
+    "253,127,319,189",
+    "65,274,115,300",
+    "90,265,108,274",
+    "108,269,118,274"
+  ],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [
+    "270,168;280,165;282,169;272,177"
+  ],
+  "greenHueRange": [
+    35.0,
+    75.0
+  ],
+  "greenSaturationMin": 100,
+  "greenValueMin": 20,
+  "cropBox": [
+    0,
+    0,
+    895,
+    544
+  ],
+  "fileSize": [
+    895,
+    544
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    891,
+    540
+  ],
+  "displayW": 512,
+  "displayH": 311,
+  "footOffsetY": 153,
+  "scaleX": 0.5720670391061452,
+  "scaleY": 0.5716911764705882
+}

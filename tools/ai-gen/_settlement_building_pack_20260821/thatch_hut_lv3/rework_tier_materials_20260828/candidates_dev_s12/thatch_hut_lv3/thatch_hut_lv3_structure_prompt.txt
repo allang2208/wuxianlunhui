@@ -1,0 +1,40 @@
+Use case: stylized-concept
+Asset type: World-122 compact 2x2 modern hamster special-operations command base, previewed above the runtime 2x2 road-tile fill
+Pipeline/style version: world122-building-v5
+Primary request: one compact present-day hamster special-operations command base using the approved structure: one olive command hall, one attached taller steel lookout tower, one connected operations wing and one attached camouflage briefing bay, with the fixed ladder, signal mast, three plain pennants and compass crest preserved exactly
+Generation stage: structural scout-command compound draft only
+Structure contract: preserve one complete compact 2x2 foundation, exactly one dominant command longhouse, exactly one physically attached open lookout tower with its observation cabin, deck, railings, fixed ladder, small canopy, connector and single signal mast, plus the one authored attached support zone; every component remains grounded and joined to the same compound
+Detail budget: keep the hall roof, lookout canopy, entrance, windows, compass crest, signal mast and support-zone silhouette broad and readable at RTS scale; omit people, weapons, vehicles, lettering and loose decorative clutter
+Palette lock: low-saturation military olive wall panels, dark forest camouflage canvas, charcoal weathered steel, dusty worn concrete, restrained blue-green glazing, muted khaki webbing and sparse old-brass fittings. No bright toy green, glossy chrome, neon, medieval thatch, red clay tile, national flag, logo or readable text.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: worn_concrete
+Foundation contract — worn plain-concrete industrial plinth:
+Use one low integrated fair-faced concrete hardstand, fully visible and completely contained inside the authored footprint. Preserve formwork seams and fine air pores, then add restrained chipped corners, shallow cracks, dust, rain stains and practical industrial wear without turning the base into rubble. Keep the perimeter uniformly chamfered for clean isometric-grid joining; no medieval stone paving, marble podium, detached platform or terrain patch.
+Canonical World-122 modern special-operations rendering subset:
+Style/medium: sober semi-realistic handcrafted present-day tactical command architecture with physically plausible game-ready PBR materials and clean readable engineering.
+Material grammar: low-saturation olive military wall panels, dark forest camouflage canvas on every authored roof and canopy, charcoal weathered steel framing, worn concrete foundation, restrained blue-green glazing and sparse naturally aged brass fittings.
+Shape treatment: preserve one compact connected modern command hall, one taller attached steel lookout, one connected operations wing and one attached covered briefing bay.
+Absolute class lock: modern camouflage and military construction only; no medieval thatch, red roof tile, castle, bunker complex, radar, vehicle, turret, firearm, national insignia or readable text.
+Asset-specific style scope: preserve the exact approved modern 2x2 special-operations model: one dominant olive command hall under one continuous dark-forest camouflage-canvas gable roof, exactly one attached taller steel lookout tower with observation cabin, deck, railings, fixed ladder and small camouflage canopy, one short connector, one signal mast with three plain pennants, one compass crest, one connected olive operations wing and one attached camouflage-covered briefing bay with its map board and table. Every component stays joined to the same compact base.
+
+Composition/framing: strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve one dominant command longhouse, one attached lookout tower with its deck, cabin, canopy and fixed ladder, one short connector, one signal mast with only the authored plain pennants, one compass crest and the single authored attached support zone; no perspective convergence
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one connected scout-command compound only; no second main hall, second lookout tower, detached hut, detached tent, perimeter fence, castle, bunker, radar dish, satellite dish, vehicle, turret, firearm, soldier, hamster, person, animal, national flag, insignia, readable text, neon, sci-fi machinery, road, terrain, trees, cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or watermark
+Asset-specific absolute exclusions: no chain-link perimeter, barbed wire, obstacle course, training targets, second hall, second lookout, detached tent, bunker complex, radar dish, satellite dish, vehicle, turret, firearm, soldiers, hamsters, people, animals, national insignia, readable text, logo, neon, cast shadow or watermark; preserve exactly one low integrated worn-concrete plinth inside the supplied footprint

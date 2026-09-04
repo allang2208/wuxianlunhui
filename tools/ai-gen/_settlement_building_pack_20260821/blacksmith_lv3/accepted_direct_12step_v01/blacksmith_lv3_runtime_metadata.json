@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\blacksmith_lv3\\accepted_direct_12step_v01\\blacksmith_lv3_v01_full_subject_rgba_defringed.png",
+  "output": "assets\\terrain\\blacksmith_lv3.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    29,
+    84,
+    990,
+    970
+  ],
+  "fileSize": [
+    961,
+    886
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    957,
+    882
+  ],
+  "displayW": 290,
+  "displayH": 267,
+  "footOffsetY": 132,
+  "scaleX": 0.3017689906347555,
+  "scaleY": 0.3013544018058691
+}

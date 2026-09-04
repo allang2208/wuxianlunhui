@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "assetId": "chain_restaurant",
+  "date": "2026-09-02",
+  "status": "runtime_installed",
+  "source": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/refine_48step_seed123380/chain_restaurant/chain_restaurant_refine_v03_raw.png",
+  "method": "edge-connected RGB chroma key followed by alpha-preserving runtime finalization",
+  "backgroundKeyRgb": [32, 192, 18],
+  "thresholdTrials": [40, 60, 80, 100, 128, 144, 160, 176],
+  "selectedThreshold": 128,
+  "removeEnclosedKey": false,
+  "removeAllGreen": false,
+  "depthMaskUsed": false,
+  "depthMaskReason": "The previous Depth-limited cutout removed valid roof pixels around both chimney bases. The accepted raw has a clean edge-connected green backdrop, so the new candidate does not reuse that faulty Alpha limit.",
+  "preservedDetails": [
+    "continuous red tiled roof around both chimney bases",
+    "both chimneys and eaves",
+    "green, turquoise and blue stained glass",
+    "open entrance, serving counter, sign, lanterns and complete stone foundation"
+  ],
+  "candidate": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/recut_20260902/chain_restaurant_recut_candidate.png",
+  "candidateMetadata": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/recut_20260902/chain_restaurant_recut_candidate_metadata.json",
+  "reviewImage": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/recut_20260902/review/page_01.png",
+  "pixelChecks": {
+    "size": [872, 933],
+    "displaySize": [300, 321],
+    "footOffsetY": 159,
+    "singleVisibleComponent": true,
+    "touchesCanvasEdge": false,
+    "strongGreenEdgePixels": 0,
+    "dirtyTransparentRgbPixels": 0
+  },
+  "runtimeInstalled": true,
+  "runtimeAsset": "assets/terrain/chain_restaurant.png",
+  "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/chain_restaurant/chain_restaurant_runtime_metadata.json",
+  "approvedByUser": "2026-09-02"
+}

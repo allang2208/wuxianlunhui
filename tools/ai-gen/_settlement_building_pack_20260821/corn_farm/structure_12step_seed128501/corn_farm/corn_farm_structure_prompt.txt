@@ -1,0 +1,42 @@
+Use case: stylized-concept
+Asset type: World-122 broad 4x4 medieval corn-farm agricultural compound, previewed above the runtime 4x4 isometric footprint
+Pipeline/style version: world122-building-v5
+Primary request: exactly one preserve the exact supplied Blender compound: all four corners of one broad low 4x4 field, one complete continuous wooden perimeter fence, one centered open gate, exactly one small upper-right farmhouse, exactly one continuous farmhouse roof, exactly twelve straight aligned corn rows split six left and six right around one narrow central path, the longer rear-left planting, the shorter right planting below the farmhouse, and one short branch path to the farmhouse; keep the path clear and add no other structure or crop
+Generation stage: structural corn-farm compound draft only
+Structure contract: preserve one complete broad low 4x4 fenced field, one centered open gate, exactly one small farmhouse in the upper-right, exactly one single continuous farmhouse roof, exactly twelve straight aligned corn rows split six on the left and six on the right of one narrow central path, and one short path branch to the farmhouse; extend the left rows into the rear-left while the right rows stop before the farmhouse
+Detail budget: use broad readable soil, muted-green corn, golden ears, weathered timber, fieldstone, cream plaster and dry thatch so the row alignment, single-roof farmhouse and open path can be judged; omit tiny clutter, animals, workers, carts and decorative scenery
+Palette lock: low-saturation cultivated brown earth, muted dusty-green corn leaves, restrained natural golden ears, warm gray weathered fieldstone, aged cream plaster, very dark worn oak, dry golden-brown thatch, charcoal iron and sparse amber window light. No saturated lawn green, bright toy yellow, glossy orange roof, white marble, neon color, blue industrial metal or modern paint.
+Style trigger: wuxianlunhui world122 building style v5.
+Pipeline enforcement: inject this complete contract exactly once into every official structure and refinement candidate. Asset prompts add only identity, authored topology and local material deltas.
+
+Primary visual target: clean semi-realistic strategy-game PBR, simplified for immediate readability at small scale. Match the calm, uncluttered material density of current World-122 production buildings rather than architectural visualization or miniature photography.
+
+Geometry authority: preserve the exact authored Blender geometry, Depth silhouette, component count, floor count and footprint. Architectural vocabulary comes only from the Blender model and asset manifest; the shared style does not invent ornaments or extra structures.
+
+Material scale: organize each surface into large calm material fields with sparse medium-scale wear. Walls read first as broad continuous planes; roofs read first as continuous planes with only a sparse broad course rhythm. Keep wood grain subdued, masonry joints limited to structurally meaningful areas, and metal fittings small, matte and functional. Avoid dense speckle, granular stone, noisy roof tiles, micro-scratches, photographic grime, micro-greebles, oversharpening and uniform edge chipping.
+
+Color treatment: deliberately low saturation, neutral contrast and restrained value separation. Use muted mineral, timber, slate, concrete, glass and metal colors. Any asset-specific accent remains small and functional; no bright gold edging, candy color, neon, bloom or colored haze.
+
+Foundation routing: preserve exactly one selected foundation style supplied by the asset manifest and active foundation contract. Keep its complete boundary inside the authored footprint. The public style does not describe unused foundation subtypes, and foundation texture stays quieter than the building body.
+
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only where attached parts meet. Preserve readable forms without hard contrast, cinematic rim light or dramatic grading. Generate no cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or detached ambient shadow outside the authored body and foundation.
+
+Shape treatment: use crisp readable silhouettes, modest bevels and believable construction thickness. Preserve the orthographic 2.5D game-asset presentation; avoid tilt-shift, painterly brushwork, cel outlines and hyperreal surface dirt.
+
+Consistency rule: large forms and calm color blocks dominate; material detail remains subordinate. At 48-pixel preview size, the building identity must remain clear without relying on grain, ornament or glow.
+Foundation style id: none
+Foundation exception: this asset class is not a medium functional building; preserve its authored ground contact and do not invent a building plinth, slab or pedestal.
+Canonical World-122 corn-farm agricultural-compound rendering subset:
+Style/medium: sober semi-realistic handcrafted medieval strategy-game agricultural compound with physically plausible game-ready PBR materials and slightly stylized readable proportions.
+Material grammar: broad low cultivated earth; muted-green corn leaves and restrained natural golden ears; weathered dark-oak post-and-rail fence; warm gray fieldstone; aged cream mineral plaster; dry golden-brown thatch; charcoal iron and sparse amber interior light.
+Color treatment: deliberately low saturation and controlled neutral contrast; corn green and golden ears remain natural functional crop colors, never neon, glossy or toy-bright.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize the complete fence, open gate, one small upper-right single-roof farmhouse, twelve straight aligned corn rows, the central path and its short farmhouse branch; keep individual stalk groups broad enough to read at RTS scale.
+Shape treatment: preserve the authored low 4x4 field plane, thin continuous fence, exact row spacing and compact farmhouse proportions; every crop row remains grounded and the central path remains visibly open.
+Absolute class lock: this object is one medieval corn-farm compound, not a cheese farm, dairy farm, village cluster, compact single building or scenery illustration. Do not invent a second roof, second building, barn, cowshed, workshop, silo, windmill, animals, workers, vehicles, trees or other crops.
+Asset-specific style scope: apply the shared World-122 material, lighting and edge language to the complete authored corn-farm compound. Keep the fence thin and continuous, the twelve corn rows straight and evenly aligned, the central path visibly open, and the single-roof farmhouse small in the upper-right rather than becoming the dominant mass.
+
+Composition/framing: strictly follow the supplied full-compound depth-control silhouette and orthographic 2.5D isometric view; centered; all four field corners and the complete fence remain visible; the centered gate stays open; exactly one small single-roof farmhouse stays in the upper-right; exactly twelve straight corn rows remain aligned as six left rows and six right rows around one narrow central path, with the left rows extending into the rear-left and the right rows stopping before the farmhouse; no perspective convergence
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one complete medieval corn-farm compound only; no second roof, second house, detached barn, cowshed, dairy workshop, silo, windmill, tower, castle, market stall, cart, wagon, tractor, machinery, extra fence, road, stairs, raised platform, marble plinth, trees, crop type other than corn, people, hamsters, farmers, animals, signs, readable text or watermark; do not block the central path or the short path branch to the farmhouse
+Asset-specific absolute exclusions: preserve exactly twelve authored corn rows split six on the left and six on the right of the narrow central path, with the left rows extending into the rear-left and the right rows stopping before the farmhouse. Preserve exactly one small upper-right farmhouse with exactly one continuous roof and one short branch path. Do not add a second roof, second farmhouse, barn, cowshed, dairy workshop, silo, windmill, tower, other crop, tree, animal, worker, cart, vehicle, road, raised platform, readable text, logo or watermark.

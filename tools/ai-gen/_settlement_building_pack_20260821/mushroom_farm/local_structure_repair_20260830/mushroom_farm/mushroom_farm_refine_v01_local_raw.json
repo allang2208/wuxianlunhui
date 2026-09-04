@@ -1,0 +1,11 @@
+{
+  "purpose": "bounded_structural_correction_pending_review",
+  "source": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/structure_12step_20260830/mushroom_farm/mushroom_farm_structure_v02_raw.png",
+  "generationRaw": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_v01_raw.png",
+  "generationMetadata": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_v01_generation.json",
+  "mask": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm_repair_mask.png",
+  "maskFeatherPixels": 2,
+  "operation": "Composite generated pixels only inside mask; original pixels wherever mask is zero.",
+  "output": "tools/ai-gen/_settlement_building_pack_20260821/mushroom_farm/local_structure_repair_20260830/mushroom_farm/mushroom_farm_refine_v01_local_raw.png",
+  "runtimeIntegrated": false
+}
