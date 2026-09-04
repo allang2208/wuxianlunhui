@@ -864,7 +864,23 @@ import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
                         this.triggerWeaponAnim();
                     }
                 });
-            }            _getTextureKey() {
+            }
+
+            /**
+             * 眩晕后的统一视觉入口：怪物停止当前动作并切回自身 idle。
+             * 特殊形态怪可覆写本方法，选择对应形态的待机状态键。
+             */
+            _enterStunnedIdleAnimation() {
+                if (this._isDead || !this.active || typeof this._animState !== 'string') return;
+                if (this._animState !== 'idle') {
+                    this._animState = 'idle';
+                    if (typeof this._animStateTimer === 'number') this._animStateTimer = 0;
+                    if (typeof this._animFrame === 'number') this._animFrame = 0;
+                    if (typeof this._animTimer === 'number') this._animTimer = 0;
+                }
+            }
+
+            _getTextureKey() {
                 return 'enemy_' + this.name.toLowerCase().replace(/\s+/g, '_');
             }
             _getPhaserOptions() {

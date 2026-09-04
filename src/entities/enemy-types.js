@@ -171,12 +171,18 @@ class BlackWolf extends Enemy {
         if (this._biteCooldown > 0) this._biteCooldown -= dt;
 
         // 眩晕/冰冻：中断攻击、禁止移动（参照 mutant-3）
-        if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
+        const stunned = this.hasStatusEffect && this.hasStatusEffect('stun');
+        const frozen = this.hasStatusEffect && this.hasStatusEffect('frozen');
+        if (stunned || frozen) {
             if (this._usesPounce && this._pounceState !== 'idle') this._endPounce();
             if (this._biteState !== 'idle') this._endBite();
             this.vx = 0;
             this.vy = 0;
             this.isMoving = false;
+            if (stunned) {
+                this._animState = 'idle';
+                this._updateAnimFrame(dt);
+            }
             return;
         }
 
@@ -665,8 +671,8 @@ class BlackWolf extends Enemy {
         return {
             spriteSize: renderCfg.spriteSize ?? 151,
             rotation: 0,
-            // 眩晕/冰冻时纹理切到单帧 idle 图，帧号必须归零，否则 setFrame 在 1 帧贴图上刷 "has no frame"
-            frame: (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) ? 0 : this._animFrame,
+            // 冻结继续定格 idle 首帧；眩晕则由共享状态入口切到 idle 并正常推进待机循环。
+            frame: (this.hasStatusEffect && this.hasStatusEffect('frozen')) ? 0 : this._animFrame,
             flipX: flipX,
             flipY: false,
             textOffsetY: -64,
@@ -1401,7 +1407,7 @@ class RedWolfKing extends BlackWolf {
         // 死亡后状态效果不再更新；若死前处于眩晕/冻结，不能让遗留状态把 dying 永久钉在第 0 帧。
         // 该规则只适用于未变身狼形；狼人冻结改走独立 werewolf idle，不得闪回四足狼。
         const freezeWolfFrame = !this._deathStarted && !this._isTransforming && !this._isTransformed
-            && this._isAnimationFrozen();
+            && this.hasStatusEffect?.('frozen');
         opts.frame = freezeWolfFrame ? 0 : this._animFrame;
         return opts;
     }

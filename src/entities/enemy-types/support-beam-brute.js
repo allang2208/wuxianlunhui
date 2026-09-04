@@ -308,6 +308,15 @@ export class SupportBeamBrute extends Enemy {
         }
     }
 
+    _enterStunnedIdleAnimation() {
+        if (this._isDead || !this.active) return;
+        const idleState = this._beamBroken ? 'unarmed_idle' : 'armed_idle';
+        if (this._animState !== idleState) {
+            this._animState = idleState;
+            this._animStateTimer = 0;
+        }
+    }
+
     _getTextureKey() {
         return `enemy_support_beam_brute_${this._animState}`;
     }

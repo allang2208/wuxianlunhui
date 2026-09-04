@@ -812,6 +812,17 @@ export class TimeAgentAssault extends Enemy {
         }
     }
 
+    _enterStunnedIdleAnimation() {
+        if (this._isDead || !this.active) return;
+        this._formState = 'idle';
+        this._stateTimer = 0;
+        this._attackAnimTimer = 0;
+        this._walkElapsed = 0;
+        this._selfMoving = false;
+        this._axeTarget = null;
+        this._axeSnapshot = null;
+    }
+
     // ========== 动画 ==========
 
     /** 有效移动标记：远程模式 MovementSystem 锁定清零 isMoving，用自驱标记；其余形态用 isMoving */

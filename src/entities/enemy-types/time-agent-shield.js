@@ -375,6 +375,15 @@ export class TimeAgentShield extends Enemy {
         this._hitboxOverride = null;
     }
 
+    _enterStunnedIdleAnimation() {
+        if (this._isDead || !this.active) return;
+        this._clearDefendHitbox();
+        this._formState = 'idle';
+        this._stateTimer = 0;
+        this._attackAnimTimer = 0;
+        this._walkElapsed = 0;
+    }
+
     // ========== 格挡弹反（参考铠甲骑士：防御持续期间全部判定为弹反） ==========
 
     takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {

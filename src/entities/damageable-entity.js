@@ -791,6 +791,7 @@ export function isFriendlyFire(source, target) {
                 this.addStatusEffect('stun', duration);
                 // 眩晕打断：攻击动画/预警/施法冻结全部回 idle
                 this._cancelActionsForStun();
+                this._enterStunnedIdleAnimation?.();
                 // 显示眩晕浮动文字
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '💫 眩晕！', '#9a7a5a'));
@@ -832,6 +833,8 @@ export function isFriendlyFire(source, target) {
                 } else {
                     this.addStatusEffect('stun', baseDuration + extendDuration);
                 }
+                this._cancelActionsForStun();
+                this._enterStunnedIdleAnimation?.();
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, '💫 眩晕！', '#9a7a5a'));
                 }
