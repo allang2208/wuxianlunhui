@@ -1,0 +1,868 @@
+{
+  "source": "tools/animation/player-gun-ergonomics-20260901/gun_aim_frames-original.png",
+  "frameWidth": 512,
+  "frameHeight": 516,
+  "frameCount": 14,
+  "dilationRadius": 4,
+  "frames": [
+    {
+      "frame": 0,
+      "tracked": {
+        "x": 366,
+        "y": 210.5
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 197.3,
+        "y": 93.4
+      },
+      "supportElbow": {
+        "x": 133.6,
+        "y": 167.8
+      },
+      "supportHand": {
+        "x": 251.9,
+        "y": 214.7
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 0,
+          "role": "other",
+          "area": 4263,
+          "bbox": [
+            125,
+            82,
+            263,
+            229
+          ],
+          "centroid": [
+            190.12,
+            171.14
+          ]
+        },
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2969,
+          "bbox": [
+            256,
+            96,
+            392,
+            225
+          ],
+          "centroid": [
+            314.95,
+            179.72
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 1,
+      "tracked": {
+        "x": 367.9,
+        "y": 210.7
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 194.1,
+        "y": 96.3
+      },
+      "supportElbow": {
+        "x": 133.6,
+        "y": 167.7
+      },
+      "supportHand": {
+        "x": 252.6,
+        "y": 214.5
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 0,
+          "role": "other",
+          "area": 3184,
+          "bbox": [
+            125,
+            81,
+            209,
+            227
+          ],
+          "centroid": [
+            171.83,
+            157.7
+          ]
+        },
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2852,
+          "bbox": [
+            262,
+            97,
+            394,
+            224
+          ],
+          "centroid": [
+            318.88,
+            184.47
+          ]
+        },
+        {
+          "id": 2,
+          "role": "other",
+          "area": 947,
+          "bbox": [
+            223,
+            197,
+            264,
+            228
+          ],
+          "centroid": [
+            240.51,
+            212.94
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 2,
+      "tracked": {
+        "x": 368.4,
+        "y": 210.4
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 194.2,
+        "y": 97.2
+      },
+      "supportElbow": {
+        "x": 133.6,
+        "y": 168.5
+      },
+      "supportHand": {
+        "x": 252.8,
+        "y": 214.4
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 0,
+          "role": "other",
+          "area": 3187,
+          "bbox": [
+            125,
+            82,
+            209,
+            227
+          ],
+          "centroid": [
+            171.74,
+            158.11
+          ]
+        },
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2925,
+          "bbox": [
+            262,
+            98,
+            395,
+            224
+          ],
+          "centroid": [
+            319.62,
+            185.06
+          ]
+        },
+        {
+          "id": 2,
+          "role": "other",
+          "area": 936,
+          "bbox": [
+            223,
+            197,
+            264,
+            227
+          ],
+          "centroid": [
+            240.77,
+            213.07
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 3,
+      "tracked": {
+        "x": 369.8,
+        "y": 202.9
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 194.1,
+        "y": 96.2
+      },
+      "supportElbow": {
+        "x": 132.7,
+        "y": 166.3
+      },
+      "supportHand": {
+        "x": 253.8,
+        "y": 210.3
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 0,
+          "role": "other",
+          "area": 3240,
+          "bbox": [
+            124,
+            81,
+            209,
+            227
+          ],
+          "centroid": [
+            172.08,
+            156.97
+          ]
+        },
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2811,
+          "bbox": [
+            262,
+            97,
+            397,
+            216
+          ],
+          "centroid": [
+            320.41,
+            180.62
+          ]
+        },
+        {
+          "id": 2,
+          "role": "other",
+          "area": 1079,
+          "bbox": [
+            222,
+            191,
+            265,
+            226
+          ],
+          "centroid": [
+            240.61,
+            210.03
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 4,
+      "tracked": {
+        "x": 371.9,
+        "y": 189.4
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 194.2,
+        "y": 97.2
+      },
+      "supportElbow": {
+        "x": 132.6,
+        "y": 163.9
+      },
+      "supportHand": {
+        "x": 255,
+        "y": 205.2
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 0,
+          "role": "other",
+          "area": 4855,
+          "bbox": [
+            124,
+            82,
+            266,
+            227
+          ],
+          "centroid": [
+            194.45,
+            173.2
+          ]
+        },
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2634,
+          "bbox": [
+            262,
+            97,
+            399,
+            202
+          ],
+          "centroid": [
+            323.22,
+            173.52
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 5,
+      "tracked": {
+        "x": 371.9,
+        "y": 168.4
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 194.2,
+        "y": 97.7
+      },
+      "supportElbow": {
+        "x": 132.4,
+        "y": 158.8
+      },
+      "supportHand": {
+        "x": 252.3,
+        "y": 202.1
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2607,
+          "bbox": [
+            262,
+            97,
+            399,
+            187
+          ],
+          "centroid": [
+            326.1,
+            162.73
+          ]
+        },
+        {
+          "id": 0,
+          "role": "other",
+          "area": 2602,
+          "bbox": [
+            124,
+            83,
+            209,
+            188
+          ],
+          "centroid": [
+            167.6,
+            141.45
+          ]
+        },
+        {
+          "id": 2,
+          "role": "other",
+          "area": 1482,
+          "bbox": [
+            222,
+            170,
+            267,
+            226
+          ],
+          "centroid": [
+            239.88,
+            197.75
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 6,
+      "tracked": {
+        "x": 366.8,
+        "y": 143.3
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 195.1,
+        "y": 99
+      },
+      "supportElbow": {
+        "x": 131.5,
+        "y": 152.6
+      },
+      "supportHand": {
+        "x": 253.9,
+        "y": 168.2
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2325,
+          "bbox": [
+            260,
+            101,
+            390,
+            180
+          ],
+          "centroid": [
+            326.45,
+            148.4
+          ]
+        },
+        {
+          "id": 0,
+          "role": "other",
+          "area": 2225,
+          "bbox": [
+            123,
+            85,
+            201,
+            170
+          ],
+          "centroid": [
+            165.17,
+            132.36
+          ]
+        },
+        {
+          "id": 2,
+          "role": "other",
+          "area": 773,
+          "bbox": [
+            223,
+            154,
+            264,
+            186
+          ],
+          "centroid": [
+            243.11,
+            168.8
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 7,
+      "tracked": {
+        "x": 360.5,
+        "y": 127.9
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 196.7,
+        "y": 99.7
+      },
+      "supportElbow": {
+        "x": 132.5,
+        "y": 148.2
+      },
+      "supportHand": {
+        "x": 181.2,
+        "y": 152.8
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 2395,
+          "bbox": [
+            244,
+            105,
+            381,
+            175
+          ],
+          "centroid": [
+            317.1,
+            139.46
+          ]
+        },
+        {
+          "id": 0,
+          "role": "other",
+          "area": 2066,
+          "bbox": [
+            124,
+            86,
+            203,
+            161
+          ],
+          "centroid": [
+            165.66,
+            128.66
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 8,
+      "tracked": {
+        "x": 351.1,
+        "y": 117
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 196.7,
+        "y": 100
+      },
+      "supportElbow": {
+        "x": 134.2,
+        "y": 144.2
+      },
+      "supportHand": {
+        "x": 180.5,
+        "y": 142.1
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 1959,
+          "bbox": [
+            259,
+            96,
+            371,
+            171
+          ],
+          "centroid": [
+            320.66,
+            131.6
+          ]
+        },
+        {
+          "id": 0,
+          "role": "other",
+          "area": 1934,
+          "bbox": [
+            126,
+            88,
+            203,
+            155
+          ],
+          "centroid": [
+            166.29,
+            125.63
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 9,
+      "tracked": {
+        "x": 344,
+        "y": 111.9
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 208.7,
+        "y": 96.7
+      },
+      "supportElbow": {
+        "x": 136.1,
+        "y": 142.1
+      },
+      "supportHand": {
+        "x": 181.8,
+        "y": 136.8
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 0,
+          "role": "other",
+          "area": 1866,
+          "bbox": [
+            128,
+            89,
+            214,
+            153
+          ],
+          "centroid": [
+            169.48,
+            122.82
+          ]
+        },
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 1855,
+          "bbox": [
+            258,
+            93,
+            364,
+            167
+          ],
+          "centroid": [
+            317.11,
+            127.72
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 10,
+      "tracked": {
+        "x": 340.5,
+        "y": 109.5
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 208.7,
+        "y": 96.9
+      },
+      "supportElbow": {
+        "x": 138.2,
+        "y": 139.9
+      },
+      "supportHand": {
+        "x": 181.6,
+        "y": 133.1
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 1702,
+          "bbox": [
+            258,
+            94,
+            361,
+            164
+          ],
+          "centroid": [
+            314.52,
+            126.02
+          ]
+        },
+        {
+          "id": 0,
+          "role": "other",
+          "area": 1659,
+          "bbox": [
+            130,
+            91,
+            214,
+            150
+          ],
+          "centroid": [
+            170.2,
+            121.04
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 11,
+      "tracked": {
+        "x": 338.5,
+        "y": 109.7
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 211.6,
+        "y": 97.4
+      },
+      "supportElbow": {
+        "x": 138.3,
+        "y": 140.1
+      },
+      "supportHand": {
+        "x": 182,
+        "y": 132.1
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 0,
+          "role": "other",
+          "area": 1624,
+          "bbox": [
+            130,
+            92,
+            217,
+            150
+          ],
+          "centroid": [
+            171.22,
+            120.69
+          ]
+        },
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 1616,
+          "bbox": [
+            258,
+            95,
+            359,
+            164
+          ],
+          "centroid": [
+            312.67,
+            126.37
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 12,
+      "tracked": {
+        "x": 338.2,
+        "y": 109.8
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 211.7,
+        "y": 97.4
+      },
+      "supportElbow": {
+        "x": 140,
+        "y": 139.7
+      },
+      "supportHand": {
+        "x": 181.7,
+        "y": 132.7
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 1618,
+          "bbox": [
+            258,
+            94,
+            358,
+            164
+          ],
+          "centroid": [
+            313.03,
+            126.17
+          ]
+        },
+        {
+          "id": 0,
+          "role": "other",
+          "area": 1564,
+          "bbox": [
+            132,
+            92,
+            217,
+            150
+          ],
+          "centroid": [
+            171.67,
+            120.45
+          ]
+        }
+      ]
+    },
+    {
+      "frame": 13,
+      "tracked": {
+        "x": 338.3,
+        "y": 109.6
+      },
+      "pivot": {
+        "x": 227,
+        "y": 98
+      },
+      "supportPivot": {
+        "x": 211.7,
+        "y": 97.4
+      },
+      "supportElbow": {
+        "x": 140,
+        "y": 139.7
+      },
+      "supportHand": {
+        "x": 181.7,
+        "y": 132.8
+      },
+      "trackedId": 1,
+      "components": [
+        {
+          "id": 1,
+          "role": "tracked-grip-arm",
+          "area": 1589,
+          "bbox": [
+            258,
+            94,
+            358,
+            164
+          ],
+          "centroid": [
+            312.62,
+            126.24
+          ]
+        },
+        {
+          "id": 0,
+          "role": "other",
+          "area": 1548,
+          "bbox": [
+            132,
+            92,
+            217,
+            150
+          ],
+          "centroid": [
+            171.72,
+            120.5
+          ]
+        }
+      ]
+    }
+  ]
+}

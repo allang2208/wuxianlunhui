@@ -1,0 +1,49 @@
+{
+  "task": "player-gun-locomotion-20260901",
+  "scope": "gun walk/run lower-body crop and splice only",
+  "directionReference": {
+    "source": "assets/character/running.png",
+    "frames": [0, 7],
+    "facing": "screen-right body travel cycle",
+    "camera": "same approved player skeleton camera and body axis",
+    "notes": "Weapon direction is not used as a body-direction reference. Existing approved gun leg trajectory remains authoritative."
+  },
+  "inputs": {
+    "runFullBody": "assets/character/running.png",
+    "approvedRunLegs": "assets/player/gun_run_legs.png",
+    "approvedWalkLegs": "assets/player/gun_walk_legs.png",
+    "torsoPreview": "assets/player/gun_idle_torso.png"
+  },
+  "outputs": {
+    "runLegs": "assets/player/gun_run_legs_v2.png",
+    "walkLegs": "assets/player/gun_walk_legs_v2.png",
+    "runPreview": "tools/animation/player-gun-locomotion-20260901/gun-run-splice-contact.png",
+    "walkTwistPreview": "tools/animation/player-gun-locomotion-20260901/gun-walk-twist-contact.png"
+  },
+  "frameContract": {
+    "run": { "frameWidth": 512, "frameHeight": 512, "frameCount": 8, "frameRate": 10 },
+    "walk": { "frameWidth": 512, "frameHeight": 516, "frameCount": 21, "frameRate": 24 },
+    "cyclePhaseOffset": 0
+  },
+  "operations": {
+    "run": [
+      "preserve the approved discrete leg frames",
+      "shift every frame right by 4 px as one action-wide crop decision",
+      "restore only the missing upper splice band from the matching full-body run frame",
+      "keep the approved leg frame as the topmost source of truth"
+    ],
+    "walk": [
+      "crop the unused 4 px trailing column",
+      "keep the approved foot line, stride, root position and discrete frame timing unchanged",
+      "extend only the upper hip splice band by up to 6 px vertically and 8 px laterally using pixels from the same frame",
+      "require non-zero alpha-128 torso contact for every configured frame at -40, 0 and +40 degrees"
+    ]
+  },
+  "excluded": [
+    "reload animation",
+    "combat values",
+    "movement values",
+    "per-frame recentering",
+    "trajectory smoothing"
+  ]
+}

@@ -103,6 +103,8 @@ onLevelUp(level) {
             },
 
 takeDamage(damage, source, damageType = 'physical', isMelee = false) {
+                // 结果只属于本次受击，不能沿用上一次弹反状态。
+                if (this.shieldSystem) this.shieldSystem._lastParried = false;
                 // 近战最终保险：跨 ground/stairs/wall_walk 平面的直伤、弹反和附带状态全部拒绝。
                 if (isMelee && source && !canMeleeShareSurface(source, this)) return 0;
                 // 闪避无敌期间不受伤害
@@ -152,7 +154,7 @@ takeDamage(damage, source, damageType = 'physical', isMelee = false) {
                     finalDamage = result.damage;
                     if (result.parried) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 20, '🛡️ 弹反！', '#c0a060'));
-                        return;
+                        return 0;
                     }
                 }
                 // 无敌开关（左下「无敌」按钮）：全场景生效（含地牢）
@@ -222,6 +224,7 @@ removeDroneVulnerability() {
             },
 
 onDeath() {
+                this.shieldSystem?.exitDefense();
                 this._isDead = true;
                 this._deathTimer = 3000; // 3秒后重生
                 // 蟠桃续命跟随全场景献祭状态；只有重新献祭/覆盖为蟠桃才刷新使用次数。
@@ -1126,6 +1129,7 @@ switchWeaponMode() {
                     return;
                 }
                 this.weaponMode = nextMode;
+                this.shieldSystem?.checkEquipped();
                 // 法杖魔攻只读取当前启用主手；切换后立即刷新，避免沿用上一武器组的 matk。
                 this.calculateCombatStats();
                 // 切换武器栏：立即中断所有槽位的换弹动作（含 Super90 单发装填）
@@ -2753,6 +2757,7 @@ applyStun(duration) {
 
 // 眩晕时终止所有动作：攻击动画/闪避/技能/特殊攻击/蓄力/换弹/无人机操控全部中断
 _cancelAllActionsForStun() {
+                this.shieldSystem?.exitDefense();
                 // 攻击动画回待机（主手+副手）：强制停止所有攻击 Tween，即使伤害判定尚未发生也中断
                 if (this.weaponAnim && this.weaponAnim.isAttacking) {
                     this.clearAttackTweens();

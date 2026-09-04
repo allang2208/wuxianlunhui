@@ -53,6 +53,9 @@ import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../
 import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, isPlayerRunVisual, nowMs,
     MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageRecoverMs } from '../../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
+import { PLAYER_SHIELD_VISUAL } from '../../config/shield-config.js';
+import { PlayerShieldRig } from '../player-shield-rig.js';
+import { PlayerSwordShieldMotion } from '../player-sword-shield-motion.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
 import { entitySurfaceZ, isEntityStrictlyBelow } from '../../physics/elevation.js';
 import SpatialPartitionSystem from '../../systems/spatial-partition-system.js';
@@ -67,7 +70,7 @@ import { Input } from '../../ui/input.js';
 import { isGameplayPointerEvent } from '../../ui/gameplay-pointer-boundary.js';
 import { RiftSystem } from '../../quest/rift-system.js';
 import { isGunWeapon, isTwoHanded, isRifle } from '../../config/gun-ammo.js';
-import { GUN_FAMILY } from '../../config/weapon-families.js';
+import { GUN_FAMILY, PISTOL_FAMILY } from '../../config/weapon-families.js';
 import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
@@ -556,6 +559,8 @@ export class GameScene extends Scene {
 
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
+        this._swordShieldMotion?.beginFrame();
+        this._playerShieldRig?.beginFrame();
         this._refreshRenderViewport();
         FogOfWarSystem.update(SceneManager.getCurrentWorldId(), _game, Date.now());
         this._syncFogOfWar(_delta);
@@ -598,6 +603,7 @@ export class GameScene extends Scene {
             if (this.fireballSprite) this.fireballSprite.setVisible(false);
             // Phase 3 续：场景六地图模式下隐藏盾牌和飞行投射物
             if (this.shieldSprite) this.shieldSprite.setVisible(false);
+            this._playerShieldRig?.clear();
             if (this.defenseGlow) this.defenseGlow.clear();
             this.iceSpikeFlyGroup.setVisible(false);
             if (this.fireballFlySprite) this.fireballFlySprite.setVisible(false);
@@ -629,7 +635,7 @@ export class GameScene extends Scene {
             // 透视圈/实体克隆（如墙后金币）残留在地图选择界面上
             if (this._xrayMap) {
                 for (const [, cur] of this._xrayMap) {
-                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone', 'shieldUpperClone', 'shieldForearmClone', 'swordShieldHandClone']) {
                         if (cur[k]) cur[k].setVisible(false);
                     }
                 }
@@ -732,14 +738,15 @@ export class GameScene extends Scene {
             this._syncDefenseTowers(_game);
             // 完整建筑贴图按 footprint 拓扑排序；墙/门/建筑共享同一稳定顺序。
             this._syncStructureRenderOrder(_game);
+            // 双槽符文必须等主体均已创建且最终结构深度已落定后再同步。
+            this._syncWallBattlementRuneOverlays();
             this._syncBuildingDamageFx(_game);
             // Phase 3: 同步特效 Sprite
             if (_game && _game.player) {
                 this._syncRuneSwords(_game.player);
                 this._syncIceSpikes(_game.player);
                 this._syncFireball(_game.player);
-                // Phase 3 续：同步盾牌和飞行投射物
-                this._syncShield(_game.player);
+                // 飞行投射物；盾牌在身体/手臂本帧变换落定后同步。
                 this._syncFlyingIceSpikes(_game.player);
                 this._syncFlyingFireball(_game.player);
                 // Phase 续：同步无人机
@@ -777,6 +784,9 @@ export class GameScene extends Scene {
 
         // 先同步 Sprite/物理体位置，再更新相机，避免贴图比相机慢一帧导致抖动
         this._syncBodiesToPhysics();
+        if (_game?.player) this._syncSwordShieldMotion(_game.player);
+        if (_game?.player) this._syncShield(_game.player, worldDelta);
+        if (_game?.player) this._swordShieldMotion?.syncIdleGrip(_game.player);
         // 侍从跟随渲染（露娜等有动作素材的队员：跟随玩家播 walk/run/spell）
         this._syncCompanionSprites(_game, _delta);
         // 侍从普通攻击光球渲染（蓝色光球，CompanionAI 推进）
@@ -3534,8 +3544,12 @@ export class GameScene extends Scene {
             setVisualDepthIfChanged(this.offhandWeaponSprite, playerDepth + offhandOff, depthStats);
         }
         if (this.shieldSprite && this.shieldSprite.active) {
-            setVisualDepthIfChanged(this.shieldSprite, playerDepth + shieldOff, depthStats);
+            // 攻击副手甩到身后时，盾随源帧退到躯干后；仍沿本帧建筑/墙垛深度仲裁。
+            const shieldPoseOffset = this._playerShieldRig?.shieldBehindBody ? -0.01 : shieldOff;
+            setVisualDepthIfChanged(this.shieldSprite, playerDepth + shieldPoseOffset, depthStats);
         }
+        this._playerShieldRig?.syncDepth(playerDepth);
+        this._swordShieldMotion?.syncDepth(playerDepth, weaponOff);
         // 手部分层：恒在武器之上（身体 + 常规偏移之上再 +1）
         if (this.playerHandSprite && this.playerHandSprite.active) {
             const handOff = towerParapetOccluded ? 0.08 : (occluded ? 0.5 : 3);
@@ -3548,6 +3562,14 @@ export class GameScene extends Scene {
         }
         if (this.playerArmSprite?.active && this.playerArmSprite.visible) {
             setVisualDepthIfChanged(this.playerArmSprite, playerDepth + 0.02, depthStats);
+        }
+        if (this.playerSupportArmSprite?.active && this.playerSupportArmSprite.visible) {
+            setVisualDepthIfChanged(this.playerSupportArmSprite, playerDepth + 0.02, depthStats);
+        }
+        if (this.playerFiringHandSprite?.active && this.playerFiringHandSprite.visible) {
+            // 后手指骨必须盖住后握把，才能形成“包握”而不是枪漂在拳头前面。
+            const firingHandOff = towerParapetOccluded ? 0.08 : (occluded ? 0.5 : 3);
+            setVisualDepthIfChanged(this.playerFiringHandSprite, playerDepth + firingHandOff, depthStats);
         }
 
         // 4. 防御光环位于玩家下方
@@ -4282,7 +4304,7 @@ export class GameScene extends Scene {
     _purgeXRayCircles() {
         if (!this._xrayMap) return;
         for (const [, cur] of this._xrayMap) {
-            for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+            for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone', 'shieldUpperClone', 'shieldForearmClone', 'swordShieldHandClone']) {
                 if (cur[k]) cur[k].destroy();
             }
             if (cur.holeKey && this.textures.exists(cur.holeKey)) this.textures.remove(cur.holeKey);
@@ -4379,7 +4401,7 @@ export class GameScene extends Scene {
             this._setViewportVisualRecordHidden(cur0, false);
             if (FogOfWarSystem.shouldHideEntity(SceneManager.getCurrentWorldId(), e)) {
                 if (cur0) {
-                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone', 'shieldUpperClone', 'shieldForearmClone', 'swordShieldHandClone']) {
                         if (cur0[k]) cur0[k].setVisible(false);
                     }
                 }
@@ -4412,7 +4434,7 @@ export class GameScene extends Scene {
             }
             if (wallDepth === -Infinity) {
                 if (cur0) {
-                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone', 'shieldUpperClone', 'shieldForearmClone', 'swordShieldHandClone']) {
                         if (cur0[k]) cur0[k].setVisible(false);
                     }
                 }
@@ -4497,7 +4519,10 @@ export class GameScene extends Scene {
                 };
                 syncAux('weaponClone', this.weaponSprite, 2.2);
                 syncAux('offhandClone', this.offhandWeaponSprite, 2.15);
-                syncAux('shieldClone', this.shieldSprite, 2.1);
+                syncAux('shieldClone', this.shieldSprite, this._playerShieldRig?.shieldBehindBody ? 1.99 : 2.1);
+                syncAux('shieldUpperClone', this._playerShieldRig?.upperSprite, 2.03);
+                syncAux('shieldForearmClone', this._playerShieldRig?.forearmSprite, 2.04);
+                syncAux('swordShieldHandClone', this._swordShieldMotion?.handSprite, 2.21);
             }
         };
 
@@ -4516,7 +4541,7 @@ export class GameScene extends Scene {
         // 清理已移除实体的 X 光对象
         for (const [e, cur] of this._xrayMap) {
             if (!e || !e.active) {
-                for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone', 'shieldUpperClone', 'shieldForearmClone', 'swordShieldHandClone']) {
                     if (cur[k]) cur[k].destroy();
                 }
                 if (cur.holeKey && this.textures.exists(cur.holeKey)) this.textures.remove(cur.holeKey);
@@ -4783,6 +4808,7 @@ export class GameScene extends Scene {
      */
     setPlayerAnimation(key, targetDurationMs = 0) {
         if (!this.playerSprite) return;
+        this._swordShieldMotion?.beforeAnimation(key);
 
         this._lastPlayerAnimKey = key;
         const currentAnim = this.playerSprite.anims.currentAnim?.key;
@@ -4829,6 +4855,8 @@ export class GameScene extends Scene {
         this._frozenAimActive = false;
         if (this.playerTorsoSprite) this.playerTorsoSprite.setVisible(false);
         if (this.playerArmSprite) this.playerArmSprite.setVisible(false);
+        if (this.playerSupportArmSprite) this.playerSupportArmSprite.setVisible(false);
+        if (this.playerFiringHandSprite) this.playerFiringHandSprite.setVisible(false);
 
         // 单帧贴图（如待机）：停止动画并贴纹理
         if (!def || def.type !== 'sheet') {
@@ -5013,6 +5041,7 @@ export class GameScene extends Scene {
         // 清掉可能残留的施法监听/状态（不重置玩家状态，避免打断自身流程）
         this.cancelPlayerCast(false);
         p._castState = 'casting';
+        p.shieldSystem?.exitDefense();
         p._castReleaseDone = false;
         p._castOnRelease = onRelease || null;
         // 施法跨步：前摇沿起手朝向推进 +30px、后摇退回（update.js 每帧 _updateCastStep 驱动）
@@ -5031,6 +5060,8 @@ export class GameScene extends Scene {
         this._twistState = null;
         if (this.playerTorsoSprite) this.playerTorsoSprite.setVisible(false);
         if (this.playerArmSprite) this.playerArmSprite.setVisible(false);
+        if (this.playerSupportArmSprite) this.playerSupportArmSprite.setVisible(false);
+        if (this.playerFiringHandSprite) this.playerFiringHandSprite.setVisible(false);
         if (this.playerSprite.texture.key !== castPlayKey) this.playerSprite.setTexture(castPlayKey);
         this.playerSprite.setFlipX(!this._getVisualFacingRight(p));
         // 手部分层：显示手 sprite（帧/位置/翻转由 _syncPlayerHandLayer 每帧跟随）
@@ -5358,15 +5389,47 @@ export class GameScene extends Scene {
         this.playerArmSprite.setVisible(true);
     }
 
+    _ensureSupportArmSprite(supportKey) {
+        if (!supportKey || !this.textures.exists(supportKey)) return null;
+        if (!this.playerSupportArmSprite) {
+            this.playerSupportArmSprite = this.add.sprite(0, 0, supportKey);
+        } else if (this.playerSupportArmSprite.texture.key !== supportKey) {
+            this.playerSupportArmSprite.setTexture(supportKey);
+        }
+        return this.playerSupportArmSprite;
+    }
+
+    _ensureFiringHandSprite(firingHandKey) {
+        if (!firingHandKey || !this.textures.exists(firingHandKey)) return null;
+        if (!this.playerFiringHandSprite) {
+            this.playerFiringHandSprite = this.add.sprite(0, 0, firingHandKey);
+        } else if (this.playerFiringHandSprite.texture.key !== firingHandKey) {
+            this.playerFiringHandSprite.setTexture(firingHandKey);
+        }
+        return this.playerFiringHandSprite;
+    }
+
     /**
-     * 手臂条层（单骨伪 IK）：肩关节在躯干上随扭转走，每帧旋转 = atan2(枪握把 − 肩) − 自然角。
-     * 只读 _twistState/_gunGripWorld，不影响任何锚点计算；躯干钳制之外的角度由它补。
+     * 双层持枪臂：后手帧只追随主握把；托举臂以躯干肩点为根，独立解到当前武器护木点。
+     * 只读渲染姿态与握点，不改变武器主轴、枪口、命中或任何 gameplay 状态。
      */
     _syncGunArm() {
         const twist = this._twistConfig;
-        if (!twist || !twist.arm || !this.playerArmSprite) return;
+        if (!twist || !twist.arm || !this.playerArmSprite) {
+            if (this.playerSupportArmSprite) this.playerSupportArmSprite.setVisible(false);
+            if (this.playerFiringHandSprite) this.playerFiringHandSprite.setVisible(false);
+            this._gunFiringHandWorld = null;
+            this._gunFiringHandContactError = null;
+            return;
+        }
         if (!this._twistState || !this.playerTorsoSprite || !this.playerTorsoSprite.visible) {
             this.playerArmSprite.setVisible(false);
+            if (this.playerSupportArmSprite) this.playerSupportArmSprite.setVisible(false);
+            if (this.playerFiringHandSprite) this.playerFiringHandSprite.setVisible(false);
+            this._gunFiringHandWorld = null;
+            this._gunFiringHandContactError = null;
+            this._gunSupportContactError = null;
+            this._gunSupportGuardWorld = null;
             return;
         }
         const arm = twist.arm;
@@ -5417,9 +5480,145 @@ export class GameScene extends Scene {
                 this.playerArmSprite.setRotation(rotF);
                 this.playerArmSprite.setDepth(this.playerSprite.depth + 0.02);
                 this.playerArmSprite.setVisible(true);
+
+                // 后手不再烘焙在主臂末端。它以枪械贴图的真实 rear grip 为唯一原点，
+                // 并随枪身旋转/上下翻面：后握把穿过掌指间的留白，指骨叠在武器前景，
+                // 才能在向右以及任意枪管角度都读成“抓住握把”。
+                const firingHandKey = `${this._twistTexKey}_aimfiringhand`;
+                const firingHandSprite = af.firingHandSrc
+                    ? this._ensureFiringHandSprite(firingHandKey)
+                    : null;
+                const firingHandAnchor = af.firingHandAnchor || { x: 64, y: 64 };
+                const firingHandFrameW = af.firingHandFrameWidth || 128;
+                const firingHandFrameH = af.firingHandFrameHeight || 128;
+                if (firingHandSprite && grip && this.weaponSprite?.visible) {
+                    if (firingHandSprite.texture.key !== firingHandKey) firingHandSprite.setTexture(firingHandKey, fi);
+                    else firingHandSprite.setFrame(fi);
+                    firingHandSprite.setOrigin(
+                        firingHandAnchor.x / firingHandFrameW,
+                        firingHandAnchor.y / firingHandFrameH
+                    );
+                    firingHandSprite.setPosition(grip.x, grip.y);
+                    firingHandSprite.setDisplaySize(
+                        dispW * firingHandFrameW / frameW,
+                        dispH * firingHandFrameH / frameH
+                    );
+                    firingHandSprite.setRotation(this.weaponSprite.rotation);
+                    firingHandSprite.setFlipX(false);
+                    firingHandSprite.setFlipY(!!this.weaponSprite.flipY);
+                    firingHandSprite.setDepth(this.playerSprite.depth + 3);
+                    firingHandSprite.setVisible(true);
+                    this._gunFiringHandWorld = { x: grip.x, y: grip.y };
+                    this._gunFiringHandContactError = this._gunRearGripRenderWorld
+                        ? Math.hypot(
+                            this._gunRearGripRenderWorld.x - grip.x,
+                            this._gunRearGripRenderWorld.y - grip.y
+                        )
+                        : null;
+                } else {
+                    if (this.playerFiringHandSprite) this.playerFiringHandSprite.setVisible(false);
+                    this._gunFiringHandWorld = null;
+                    this._gunFiringHandContactError = null;
+                }
+
+                // 托枪臂独立跟随当前武器的真实护木点。主握枪臂仍只绑定后握把；两层分离后，
+                // 精确 ADS 改变枪身角度时不会再把托举掌心留在旧的主臂旋转轴上。
+                const supportVariant = af.supportVariants?.[this._gunAnimConfigKey]
+                    ? this._gunAnimConfigKey
+                    : null;
+                const supportBaseKey = `${this._twistTexKey}_aimsupport${supportVariant ? `_${supportVariant}` : ''}`;
+                const supportFlipKey = `${supportBaseKey}_flip`;
+                const supportKey = useFlipF && this.textures.exists(supportFlipKey)
+                    ? supportFlipKey
+                    : supportBaseKey;
+                const supportSprite = this._ensureSupportArmSprite(supportKey);
+                const supportShoulder = af.supportShoulders?.[fi];
+                const supportHand = af.supportHands?.[fi];
+                const supportContact = (supportVariant
+                    ? af.supportContactVariants?.[supportVariant]
+                    : af.supportContacts)?.[fi] || supportHand;
+                const supportGrip = this.weaponSprite?.visible
+                    ? WeaponTransform.getTextureSupportGrip(this._gunAnimConfigKey, this.weaponSprite.texture.key)
+                    : null;
+                if (supportSprite && supportShoulder && supportContact && supportGrip) {
+                    // 肩点属于躯干：围绕同一腰轴随 torso twist 变换，而不是跟随后手臂旋转。
+                    const dSupportShoulderX = ((supportShoulder.x - twist.pivotX) / frameW) * dispW;
+                    const dSupportShoulderY = ((supportShoulder.y - twist.pivotY) / frameH) * dispH;
+                    const supportShoulderOffsetX = ts.facingRight ? dSupportShoulderX : -dSupportShoulderX;
+                    const supportShoulderWorldX = ts.pivotX + supportShoulderOffsetX * cosT - dSupportShoulderY * sinT;
+                    const supportShoulderWorldY = ts.pivotY + supportShoulderOffsetX * sinT + dSupportShoulderY * cosT;
+
+                    // supportGrip 是未翻转贴图分数坐标；按 Sprite 当前 origin/flip/rotation
+                    // 还原为世界点，因此逐枪缩放、左右镜像和任意瞄准角都共用同一接触口径。
+                    const weaponLocalX = (supportGrip.x - this.weaponSprite.originX)
+                        * this.weaponSprite.displayWidth * (this.weaponSprite.flipX ? -1 : 1);
+                    const weaponLocalY = (supportGrip.y - this.weaponSprite.originY)
+                        * this.weaponSprite.displayHeight * (this.weaponSprite.flipY ? -1 : 1);
+                    const weaponCos = Math.cos(this.weaponSprite.rotation);
+                    const weaponSin = Math.sin(this.weaponSprite.rotation);
+                    const supportTargetX = this.weaponSprite.x + weaponLocalX * weaponCos - weaponLocalY * weaponSin;
+                    const supportTargetY = this.weaponSprite.y + weaponLocalX * weaponSin + weaponLocalY * weaponCos;
+
+                    // supportHands 是解算骨架的掌心端点，卷指姿态里它可能落在掌内空腔。
+                    // supportContact 则是该帧真实可见的下侧掌缘/指缘像素。过渡前段仍保留
+                    // “伸手去托枪”的原动作（若首帧直接锁护木会把手臂拉长到约2.26倍），
+                    // 但接触解算从此以真实像素为端点，完整 ADS 时严格坐在不透明护木下缘。
+                    const sourceVectorX = (useFlipF
+                        ? supportShoulder.x - supportContact.x
+                        : supportContact.x - supportShoulder.x) * dispW / frameW;
+                    const sourceVectorY = (supportContact.y - supportShoulder.y) * dispH / frameH;
+                    const authoredTargetX = supportShoulderWorldX
+                        + sourceVectorX * Math.cos(rotF) - sourceVectorY * Math.sin(rotF);
+                    const authoredTargetY = supportShoulderWorldY
+                        + sourceVectorX * Math.sin(rotF) + sourceVectorY * Math.cos(rotF);
+                    const contactT = Math.max(0, Math.min(1, this._aimEase || 0));
+                    const contactBlend = contactT * contactT * (3 - 2 * contactT);
+                    const currentTargetX = authoredTargetX + (supportTargetX - authoredTargetX) * contactBlend;
+                    const currentTargetY = authoredTargetY + (supportTargetY - authoredTargetY) * contactBlend;
+                    const targetVectorX = currentTargetX - supportShoulderWorldX;
+                    const targetVectorY = currentTargetY - supportShoulderWorldY;
+                    const sourceLength = Math.max(0.001, Math.hypot(sourceVectorX, sourceVectorY));
+                    const targetLength = Math.max(0.001, Math.hypot(targetVectorX, targetVectorY));
+                    const supportScale = targetLength / sourceLength;
+                    const supportRotation = Math.atan2(targetVectorY, targetVectorX)
+                        - Math.atan2(sourceVectorY, sourceVectorX);
+
+                    if (supportSprite.texture.key !== supportKey) supportSprite.setTexture(supportKey, fi);
+                    else supportSprite.setFrame(fi);
+                    supportSprite.setOrigin(
+                        (useFlipF ? frameW - supportShoulder.x : supportShoulder.x) / frameW,
+                        supportShoulder.y / frameH
+                    );
+                    supportSprite.setPosition(supportShoulderWorldX, supportShoulderWorldY);
+                    supportSprite.setDisplaySize(dispW * supportScale, dispH * supportScale);
+                    supportSprite.setRotation(supportRotation);
+                    supportSprite.setDepth(this.playerSprite.depth + 0.02);
+                    supportSprite.setVisible(true);
+
+                    const supportCos = Math.cos(supportRotation);
+                    const supportSin = Math.sin(supportRotation);
+                    const solvedHandX = supportShoulderWorldX
+                        + sourceVectorX * supportScale * supportCos - sourceVectorY * supportScale * supportSin;
+                    const solvedHandY = supportShoulderWorldY
+                        + sourceVectorX * supportScale * supportSin + sourceVectorY * supportScale * supportCos;
+                    this._gunSupportHandWorld = { x: solvedHandX, y: solvedHandY };
+                    this._gunSupportTargetWorld = { x: currentTargetX, y: currentTargetY };
+                    this._gunSupportGuardWorld = { x: supportTargetX, y: supportTargetY };
+                    this._gunSupportContactError = Math.hypot(solvedHandX - currentTargetX, solvedHandY - currentTargetY);
+                } else {
+                    if (this.playerSupportArmSprite) this.playerSupportArmSprite.setVisible(false);
+                    this._gunSupportContactError = null;
+                    this._gunSupportGuardWorld = null;
+                }
                 return;
             }
         }
+        if (this.playerSupportArmSprite) this.playerSupportArmSprite.setVisible(false);
+        if (this.playerFiringHandSprite) this.playerFiringHandSprite.setVisible(false);
+        this._gunFiringHandWorld = null;
+        this._gunFiringHandContactError = null;
+        this._gunSupportContactError = null;
+        this._gunSupportGuardWorld = null;
         // 翻转时用烘焙镜像贴图：其自然角为 π − natural（镜像后手的方向），旋转公式两侧统一
         const naturalEff = ts.facingRight ? natural : Math.PI - natural;
         const rot = aimAng - naturalEff;
@@ -5579,12 +5778,28 @@ export class GameScene extends Scene {
         const gunPose = channel === AnimChannel.GUN_POSE ? animCtx.gunPose : null; // 谓词已解析，复用 ctx 结果（值与 resolveGunPose(player) 相同）
 
 
+        // 长按格挡移动：逻辑层已把 sprint 关掉并把速度降为步行档；表现层固定 idle
+        // 上身交给 PlayerShieldRig 举盾，只让其独立腿层消费现有 walk_body 循环。
+        // 手枪+盾继续走既有 gunPose 躯干/腿分层，不重复建立第二套上身。
+        const shieldWalking = !gunPose && player.shieldSystem?.defending && player.isMoving;
+        if (shieldWalking) {
+            if (this._lastPlayerAnimKey !== 'shield_walk' || this.playerSprite.texture.key !== playerTextureKey('idle')) {
+                this.setPlayerAnimation('idle');
+            }
+            this.playerSprite.setFlipX(!this._getVisualFacingRight(player));
+            this._lastPlayerAnimKey = 'shield_walk';
+            this._playerAnimIdleStart = 0;
+            return;
+        }
+
+
         // 持枪移动：腿层播走路/跑步腿动画（下半身裁片），躯干层保持（扭转继续由 _syncGunTwist 驱动）
         const gunWalkLegsKey = gunPose ? `${playerTextureKey(gunPose.poseKey)}_walklegs` : null;
         const gunRunLegsKey = gunPose ? `${playerTextureKey(gunPose.poseKey)}_runlegs` : null;
         const useRunLegs = isPlayerRunVisual(player) && gunPose && gunPose.def.twist.runLegs
             && gunRunLegsKey && this.anims.exists(gunRunLegsKey);
         const legsAnimKey = useRunLegs ? gunRunLegsKey : gunWalkLegsKey;
+        const previousLegPhase = this._getGunLegCyclePhase();
         if (gunPose && gunPose.def.twist && gunPose.def.twist.walkLegs && player.isMoving && legsAnimKey && this.anims.exists(legsAnimKey)) {
             // 移动中切换武器：姿态键变化时重建分层（躯干/手臂/锚点配置随新姿态切换）
             if (this._twistTexKey !== playerTextureKey(gunPose.poseKey)) {
@@ -5596,8 +5811,7 @@ export class GameScene extends Scene {
             }
             if (this.playerSprite.anims.currentAnim?.key !== legsAnimKey || !this.playerSprite.anims.isPlaying) {
                 // isPlaying 防御：动画被外部停止（贴图切换/场景事件）时自动重播，防"走一段后卡回静态"
-                this.playerSprite.setTexture(legsAnimKey);
-                this.playerSprite.play(legsAnimKey, true);
+                this._playGunLegAnimation(legsAnimKey, previousLegPhase);
             }
             this.playerSprite.anims.timeScale = 1;
             this._lastPlayerAnimKey = 'gun_walk';
@@ -5641,6 +5855,52 @@ export class GameScene extends Scene {
         if (c > 0.05) player._facingRightVisual = true;
         else if (c < -0.05) player._facingRightVisual = false;
         return player._facingRightVisual !== false; // 默认朝右
+    }
+
+    /**
+     * 读取当前持枪腿层的循环相位。walk/run 帧数和帧率不同，切换时不能从 0 重播。
+     * Phaser 帧序号为 1-based；把当前帧内 accumulator 也折进 0~1 相位，减少临界帧跳步。
+     */
+    _getGunLegCyclePhase() {
+        const animState = this.playerSprite?.anims;
+        const currentAnim = animState?.currentAnim;
+        const currentFrame = animState?.currentFrame;
+        const key = currentAnim?.key || '';
+        if ((!key.endsWith('_walklegs') && !key.endsWith('_runlegs')) || !currentFrame) return null;
+        const frameCount = currentAnim.frames?.length || 0;
+        if (frameCount <= 0) return null;
+        const frameIndex = Math.max(0, Math.min(frameCount - 1, currentFrame.index - 1));
+        const frameDuration = Number(animState.nextTick)
+            || Number(currentFrame.duration)
+            || Number(animState.msPerFrame)
+            || 0;
+        const inFrame = frameDuration > 0
+            ? Math.max(0, Math.min(0.999, (Number(animState.accumulator) || 0) / frameDuration))
+            : 0;
+        return (frameIndex + inFrame) / frameCount;
+    }
+
+    _playGunLegAnimation(key, cyclePhase = null) {
+        const targetAnim = this.anims.get(key);
+        const frameCount = targetAnim?.frames?.length || 0;
+        let startFrame = 0;
+        let inFrame = 0;
+        if (cyclePhase !== null && frameCount > 0) {
+            const targetPosition = (((cyclePhase % 1) + 1) % 1) * frameCount;
+            startFrame = Math.min(frameCount - 1, Math.floor(targetPosition));
+            inFrame = targetPosition - startFrame;
+        }
+        // 纹理必须先切再播放，避免 Phaser 在旧纹理帧表上启动新动画。
+        this.playerSprite.setTexture(key);
+        this.playerSprite.play(key, true, startFrame);
+        if (inFrame > 0) {
+            const animState = this.playerSprite.anims;
+            const frameDuration = Number(animState.nextTick)
+                || Number(animState.currentFrame?.duration)
+                || Number(animState.msPerFrame)
+                || 0;
+            if (frameDuration > 0) animState.accumulator = inFrame * frameDuration;
+        }
     }
 
     _playerAnimKeyMatches(actualKey, logicalKey) {
@@ -5708,6 +5968,7 @@ export class GameScene extends Scene {
         const currentItem = player.equipments[player.weaponMode];
         if (!currentItem || !currentItem.name) {
             if (this.weaponSprite) this.weaponSprite.setVisible(false);
+            this._gunAnimConfigKey = null;
             return;
         }
         
@@ -5715,6 +5976,7 @@ export class GameScene extends Scene {
         let texture = getWeaponTextureKey(currentItem);
         // 动画/贴图配置键：animConfigKey 优先（R93 等新枪不再共用 G18 pistol 配置——副手翻转根因）
         const wt = currentItem.animConfigKey || currentItem.weaponType;
+        this._gunAnimConfigKey = GUN_FAMILY.includes(wt) ? wt : null;
         const isMelee = wt === 'sword' || wt === 'bow';
         // staff 也复用 sword 动画配置键；本次 walking 握柄与 running 背负只允许真实剑类进入。
         const isSwordMelee = currentItem.weaponType === 'sword';
@@ -6046,8 +6308,10 @@ export class GameScene extends Scene {
         // 使用 WeaponTransform 统一计算位置和旋转
         // 按玩家状态推断动画状态
         let animState = 'idle';
-        if (isPlayerRunVisual(player)) animState = 'running';
-        else if (player.isMoving) animState = 'walk';
+        // 剑盾格挡步行固定上身，主手武器继续跟 idle 掌点；仅腿层播放 walk。
+        const shieldUpperLocked = !!(isMelee && player.shieldSystem?.defending);
+        if (!shieldUpperLocked && isPlayerRunVisual(player)) animState = 'running';
+        else if (!shieldUpperLocked && player.isMoving) animState = 'walk';
         else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
 
         // ===== 行走逐帧轨迹（walkFrames）：真实剑类按人物当前帧把剑柄钉在手上 =====
@@ -6188,6 +6452,12 @@ export class GameScene extends Scene {
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize 匹配 Canvas 尺寸
         const wSize = WeaponTransform.getWeaponSize(wt, null, animState);
         const isGun = GUN_FAMILY.includes(wt);
+        // 枪械贴图以高度定标并保持源图宽高比；抓握点换算必须使用实际显示宽度，
+        // 不能继续使用 getWeaponSize 的旧理论矩形（手枪 0.275×0.5、长枪 0.75×1）。
+        const gunDisplaySize = isGun ? {
+            width: wSize.height * ((this.weaponSprite.width || 1) / Math.max(1, this.weaponSprite.height || 1)),
+            height: wSize.height,
+        } : wSize;
         // 读取优先级：装备实例字段 > EquipDataManager 标准配置 > anim 配置。
         // 提前解析，供自动步枪的逐枪枪口几何校正与后续贴图偏移共用同一组真值。
         const _wepCfg = isGun ? findWeaponConfig(currentItem.weaponId, currentItem.name) : null;
@@ -6200,44 +6470,48 @@ export class GameScene extends Scene {
         // rotOffset 随 flipY 镜像取反：右 -6° ↔ 左 +6°（否则枪管方向左右不对称，火焰/弹道同偏）
         rot += gunFlipY ? -gunRotOffset : gunRotOffset;
 
+        // 枪械始终以原有主握把为唯一轴心。supportGrip 只描述独立托举臂的接触位置，
+        // 绝不能在 ADS 中替换主握把或平移整把枪。
+        const gripCfg = isGun
+            ? WeaponTransform.getTextureGrip(wt, this.weaponSprite.texture.key, gunDisplaySize)
+            : null;
+
         // 自动步枪及逐枪标记的 ADS：以本枪烘焙枪口点解算贴图角度，使“真实枪口 → 当前有效准星”
         // 与贴图 +X 枪管轴严格共线。按 aimEase 混合，腰射角度不变，抬枪轨迹连续。
         const preciseAds = isRifle(wt) || WeaponAnimConfig[wt]?.preciseAds === true;
         if (isGun && preciseAds && gunAimTarget && this._aimEase > 0) {
             rot = this._resolveRifleAdsRotation({
-                wt, pos, target: gunAimTarget, rot, gunFlipY, wSize,
+                wt, pos, target: gunAimTarget, rot, gunFlipY, wSize: gunDisplaySize,
+                grip: gripCfg,
                 spriteOffX, spriteOffY, aimSprOffY,
                 recoilAngle: weaponAnim.recoilAngle || 0,
             });
         }
 
-        // 记录握把（锚点）世界坐标，供手臂条层追随（下一帧读取）
-        this._gunGripWorld = isGun ? { x: pos.x, y: pos.y } : null;
-
-        // 握把旋转轴心（配置 grip，缺省贴图中心）：锚点=握把点（手上），
-        // 贴图中心随旋转绕握把公转——消除"360 瞄准时握把在手上打滑"
-        const gripCfg = isGun && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].grip;
-        if (gripCfg) {
-            const gcx = (0.5 - (gripCfg.x !== undefined ? gripCfg.x : 0.5)) * wSize.width;
-            const gcyRaw = (0.5 - (gripCfg.y !== undefined ? gripCfg.y : 0.5)) * wSize.height;
-            const gcy = gunFlipY ? -gcyRaw : gcyRaw;
-            pos.x += Math.cos(rot) * gcx - Math.sin(rot) * gcy;
-            pos.y += Math.sin(rot) * gcx + Math.cos(rot) * gcy;
-        }
-
-        // 贴图显示偏移（配置 spriteOffsetX/Y，世界 px，X 随 flipY 镜像）——
-        // 只移动贴图渲染位置：手臂/锚点（_gunGripWorld 已记录）与弹道逻辑不受影响，枪口随贴图走。
+        // 贴图显示偏移：X/Y 是世界轴；aimSpriteOffsetX 沿枪管轴，aimSpriteOffsetY 为世界纵向。
+        // 偏移属于实际渲染枪体，因此后手必须追随偏移后的真实贴图握把；先记录偏移前
+        // 锚点会造成“枪动了、手留在原处”的系统性漂浮。
         if (spriteOffX) pos.x += gunFlipY ? -spriteOffX : spriteOffX;
         if (spriteOffY) pos.y += spriteOffY;
-        // 逐武器瞄准贴图微调（世界 px × _aimEase 混合）：
-        // X 沿枪械当前旋转轴移动，Y 保持世界纵向；只动瞄准态贴图，腰射（ease=0）不变，
-        // 手臂/锚点与弹道同样不受影响。
         if (aimSprOffX) {
             const aimSpriteOffset = aimSprOffX * (this._aimEase || 0);
             pos.x += Math.cos(rot) * aimSpriteOffset;
             pos.y += Math.sin(rot) * aimSpriteOffset;
         }
         if (aimSprOffY) pos.y += aimSprOffY * (this._aimEase || 0);
+
+        // 与近战 weapon-origin 锚手同一契约：_gunGripWorld 永远表示当前画面中
+        // 贴图真实后握把的位置，而不是应用渲染补偿之前的理论位置。
+        this._gunGripWorld = isGun ? { x: pos.x, y: pos.y } : null;
+
+        // 单一主握把轴心：贴图中心随旋转绕握把公转，360° 与左右镜像共用同一口径。
+        if (gripCfg) {
+            const gcx = (0.5 - gripCfg.x) * gunDisplaySize.width;
+            const gcyRaw = (0.5 - gripCfg.y) * gunDisplaySize.height;
+            const gcy = gunFlipY ? -gcyRaw : gcyRaw;
+            pos.x += Math.cos(rot) * gcx - Math.sin(rot) * gcy;
+            pos.y += Math.sin(rot) * gcx + Math.cos(rot) * gcy;
+        }
 
         this.weaponSprite.setPosition(pos.x, pos.y);
         this.weaponSprite.setRotation(rot);
@@ -6253,7 +6527,28 @@ export class GameScene extends Scene {
         if (isGun) {
             this.weaponSprite.setScale(wSize.height / this.weaponSprite.height);
             this.weaponSprite.setFlipY(gunFlipY);
+            if (gripCfg && this._gunGripWorld) {
+                const rearLocalX = (gripCfg.x - this.weaponSprite.originX)
+                    * this.weaponSprite.displayWidth * (this.weaponSprite.flipX ? -1 : 1);
+                const rearLocalY = (gripCfg.y - this.weaponSprite.originY)
+                    * this.weaponSprite.displayHeight * (this.weaponSprite.flipY ? -1 : 1);
+                const rearCos = Math.cos(this.weaponSprite.rotation);
+                const rearSin = Math.sin(this.weaponSprite.rotation);
+                this._gunRearGripRenderWorld = {
+                    x: this.weaponSprite.x + rearLocalX * rearCos - rearLocalY * rearSin,
+                    y: this.weaponSprite.y + rearLocalX * rearSin + rearLocalY * rearCos,
+                };
+                this._gunRearContactError = Math.hypot(
+                    this._gunRearGripRenderWorld.x - this._gunGripWorld.x,
+                    this._gunRearGripRenderWorld.y - this._gunGripWorld.y
+                );
+            } else {
+                this._gunRearGripRenderWorld = null;
+                this._gunRearContactError = null;
+            }
         } else {
+            this._gunRearGripRenderWorld = null;
+            this._gunRearContactError = null;
             this.weaponSprite.setDisplaySize(wSize.width, wSize.height);
             // 近战朝左贴图镜像：旋转码（π−idleRot）恰等于 −R_r（正确镜像角，
             // 关系式 M∘Rot(R)=Rot(−R)∘M），补 flipX 构成绕垂直轴完整镜像；
@@ -6273,11 +6568,11 @@ export class GameScene extends Scene {
      * 局部垂距，再用闭式解求出枪管轴穿过目标点的旋转角。只混合角度差，不改腰射。
      */
     _resolveRifleAdsRotation({
-        wt, pos, target, rot, gunFlipY, wSize,
+        wt, pos, target, rot, gunFlipY, wSize, grip,
         spriteOffX, spriteOffY, aimSprOffY, recoilAngle,
     }) {
         const cfg = WeaponAnimConfig[wt] || {};
-        const grip = cfg.grip || { x: 0.5, y: 0.5 };
+        const rearGrip = grip || WeaponTransform.getTextureGrip(wt, this.weaponSprite.texture.key, wSize);
         const baked = (typeof window !== 'undefined' && window.__weaponMuzzlePoints)
             ? window.__weaponMuzzlePoints[this.weaponSprite.texture.key] : null;
         const muzzle = cfg.muzzle || {};
@@ -6285,7 +6580,7 @@ export class GameScene extends Scene {
             ? (muzzle.y ?? 0.5)
             : (baked ? baked.fy : (muzzle.y ?? 0.5));
         const displayHeight = wSize.height;
-        const gripLocalYRaw = (0.5 - (grip.y ?? 0.5)) * displayHeight;
+        const gripLocalYRaw = (0.5 - (rearGrip.y ?? 0.5)) * displayHeight;
         const muzzleLocalYRaw = (fracY - 0.5) * displayHeight;
         const localY = gunFlipY
             ? -(gripLocalYRaw + muzzleLocalYRaw)
@@ -6366,7 +6661,7 @@ export class GameScene extends Scene {
         }
 
         // aimFrames 锚点（腰射→瞄准帧动画）：锚点 = 肩 + R(世界瞄准角 − 帧自然角) × (帧手 − 肩)——
-        // 与 _syncGunArm 的帧旋转同口径，枪与手臂帧严格一体。按 _aimEase 与旧链锚点混合：
+        // 与 _syncGunArm 的主握枪臂同口径；托举臂另按武器实际护木点解算。按 _aimEase 与旧链锚点混合：
         // ease=0 完全等价旧链（钳制轨道+超出延伸），ease=1 完全帧驱动，过渡平滑无瞬移
         const afCfg = twistCfg && twistCfg.aimFrames;
         if (afCfg && this._aimEase > 0 && twistCfg.arm && afCfg.hands && afCfg.hands.length) {
@@ -6430,6 +6725,35 @@ export class GameScene extends Scene {
             pos.x += this._bobDelta.x * (bobWeaponScale - 1);
             pos.y += this._bobDelta.y * (bobWeaponScale - 1);
         }
+
+        // 手枪主手不是长枪 ADS 的逐帧手位：静态手臂条只会绕肩旋转，不会伸长。
+        // 旧配置把枪的理论锚点放在自然掌心前约 12~15px，因而即使贴图 grip 自身
+        // 数学上零误差，画面仍是“枪浮在指尖前”。这里保留原瞄准方向、双持偏移、
+        // 跑步 bob 与左右镜像，只把主握把的肩距收口到当前姿态的真实肩→掌心长度。
+        // 副手属于 gun_idle_dual 躯干烘焙手位，继续使用独立 offBase，不套主臂长度。
+        if (!isOffhand && PISTOL_FAMILY.includes(wt) && twistCfg && twistCfg.arm) {
+            const arm = twistCfg.arm;
+            const frameW = this.playerSprite.frame.width || 512;
+            const frameH = this.playerSprite.frame.height || 516;
+            const dispW = this.playerSprite.displayWidth;
+            const dispH = this.playerSprite.displayHeight;
+            const shoulderLocalX = ((arm.pivotX - twistCfg.pivotX) / frameW) * dispW;
+            const shoulderLocalY = ((arm.pivotY - twistCfg.pivotY) / frameH) * dispH;
+            const shoulderFacingX = ts.facingRight ? shoulderLocalX : -shoulderLocalX;
+            const shoulderX = ts.pivotX + shoulderFacingX * cosA - shoulderLocalY * sinA;
+            const shoulderY = ts.pivotY + shoulderFacingX * sinA + shoulderLocalY * cosA;
+            const naturalHandX = (arm.handX - arm.pivotX) * (dispW / frameW);
+            const naturalHandY = (arm.handY - arm.pivotY) * (dispH / frameH);
+            const naturalReach = Math.hypot(naturalHandX, naturalHandY);
+            const targetX = pos.x - shoulderX;
+            const targetY = pos.y - shoulderY;
+            const targetReach = Math.hypot(targetX, targetY);
+            if (naturalReach > 0.001 && targetReach > 0.001) {
+                const reachScale = naturalReach / targetReach;
+                pos.x = shoulderX + targetX * reachScale;
+                pos.y = shoulderY + targetY * reachScale;
+            }
+        }
         return pos;
     }
 
@@ -6438,6 +6762,7 @@ export class GameScene extends Scene {
      */
     syncOffhandWeapon(player, weaponAnim = {}) {
         if (!this.playerSprite || !player) return;
+        this._offhandGunGripWorld = null;
         
         const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
         const offhandItem = player.equipments[offhandSlot];
@@ -6542,13 +6867,40 @@ export class GameScene extends Scene {
         }
         
         // 武器缩放：枪械类使用 setScale 保持原始比例，其他武器使用 setDisplaySize
-        const wSize = WeaponTransform.getWeaponSize(wt);
+        const wSize = WeaponTransform.getWeaponSize(wt, null, offhandAnimState);
+        const gunDisplaySizeOff = isGunOff ? {
+            width: wSize.height * ((this.offhandWeaponSprite.width || 1) / Math.max(1, this.offhandWeaponSprite.height || 1)),
+            height: wSize.height,
+        } : wSize;
 
-        // 握把旋转轴心（与主手同口径；配置 grip，缺省贴图中心）
-        const gripCfgOff = isGunOff && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].grip;
+        // 与主手保持同一配置读取与同锚语义。当前双持主要是手枪，但这里不依赖
+        // "手枪恰好没有偏移"这一偶然条件，后续逐枪偏移也不会再次造成副手脱手。
+        const offhandWepCfg = isGunOff ? findWeaponConfig(offhandItem.weaponId, offhandItem.name) : null;
+        const spriteOffXOff = isGunOff && (offhandItem.spriteOffsetX
+            ?? offhandWepCfg?.spriteOffsetX ?? WeaponAnimConfig[wt]?.spriteOffsetX ?? 0);
+        const spriteOffYOff = isGunOff && (offhandItem.spriteOffsetY
+            ?? offhandWepCfg?.spriteOffsetY ?? WeaponAnimConfig[wt]?.spriteOffsetY ?? 0);
+        const aimSprOffXOff = isGunOff && (offhandItem.aimSpriteOffsetX
+            ?? offhandWepCfg?.aimSpriteOffsetX ?? WeaponAnimConfig[wt]?.aimSpriteOffsetX ?? 0);
+        const aimSprOffYOff = isGunOff && (offhandItem.aimSpriteOffsetY
+            ?? offhandWepCfg?.aimSpriteOffsetY ?? WeaponAnimConfig[wt]?.aimSpriteOffsetY ?? 0);
+        if (spriteOffXOff) pos.x += flipY ? -spriteOffXOff : spriteOffXOff;
+        if (spriteOffYOff) pos.y += spriteOffYOff;
+        if (aimSprOffXOff) {
+            const aimOffset = aimSprOffXOff * (this._aimEase || 0);
+            pos.x += Math.cos(rot) * aimOffset;
+            pos.y += Math.sin(rot) * aimOffset;
+        }
+        if (aimSprOffYOff) pos.y += aimSprOffYOff * (this._aimEase || 0);
+        this._offhandGunGripWorld = isGunOff ? { x: pos.x, y: pos.y } : null;
+
+        // 握把旋转轴心（与主手同口径；逐贴图 grip + 真实显示宽高）
+        const gripCfgOff = isGunOff
+            ? WeaponTransform.getTextureGrip(wt, this.offhandWeaponSprite.texture.key, gunDisplaySizeOff)
+            : null;
         if (gripCfgOff) {
-            const gcx = (0.5 - (gripCfgOff.x !== undefined ? gripCfgOff.x : 0.5)) * wSize.width;
-            const gcyRaw = (0.5 - (gripCfgOff.y !== undefined ? gripCfgOff.y : 0.5)) * wSize.height;
+            const gcx = (0.5 - gripCfgOff.x) * gunDisplaySizeOff.width;
+            const gcyRaw = (0.5 - gripCfgOff.y) * gunDisplaySizeOff.height;
             const gcy = flipY ? -gcyRaw : gcyRaw;
             pos.x += Math.cos(rot) * gcx - Math.sin(rot) * gcy;
             pos.y += Math.sin(rot) * gcx + Math.cos(rot) * gcy;
@@ -6877,12 +7229,28 @@ export class GameScene extends Scene {
     /**
      * Phase 3 续：同步盾牌到 Phaser Sprite
      */
-    _syncShield(player) {
-        const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
-        const offhandItem = player.equipments[offhandSlot];
-        
-        if (!offhandItem || offhandItem.weaponType !== 'shield') {
+    _syncSwordShieldMotion(player) {
+        if (!this._swordShieldMotion) {
+            const motion = new PlayerSwordShieldMotion(this);
+            this._swordShieldMotion = motion;
+            this.events.once('shutdown', () => {
+                motion.destroy();
+                if (this._swordShieldMotion === motion) this._swordShieldMotion = null;
+            });
+        }
+        this._swordShieldMotion.sync(player);
+    }
+
+    _syncShield(player, deltaMs = 0) {
+        const offhandItem = player.shieldSystem?.getShieldData();
+        const body = this.playerSprite;
+        const hidden = !offhandItem || !body?.visible || !body.active
+            || player._isDead || player.isDodging || player._frozenAbyssFalling
+            || player._castState === 'casting' || player._castState === 'recover';
+        if (hidden) {
             if (this.shieldSprite) this.shieldSprite.setVisible(false);
+            this._playerShieldRig?.clear();
+            this.defenseGlow?.clear();
             return;
         }
         
@@ -6893,30 +7261,42 @@ export class GameScene extends Scene {
             this.shieldSprite.setTexture(texture);
         }
         
-        const s = player.size;
-        const sw = s * 6.25 * 0.55;
-        const sh = s * 6.25 * 0.7;
-        
-        // 计算盾牌世界位置（基于 player 旋转）
-        const offsetX = 20;
-        const offsetY = -20;
-        const cos = Math.cos(player.rotation);
-        const sin = Math.sin(player.rotation);
-        const worldX = player.x + cos * offsetX - sin * offsetY;
-        const worldY = player.y + sin * offsetX + cos * offsetY;
-        
-        let rot = player.rotation + Math.PI / 2;
-        if (player.shieldSystem && player.shieldSystem.defending) {
-            rot -= 0.3;
+        const visual = PLAYER_SHIELD_VISUAL;
+        const defending = !!player.shieldSystem?.defending;
+        if (!this._playerShieldRig) {
+            const rig = new PlayerShieldRig(this);
+            this._playerShieldRig = rig;
+            this.events.once('shutdown', () => {
+                rig.destroy();
+                if (this._playerShieldRig === rig) this._playerShieldRig = null;
+            });
         }
+        const motionBinding = this._swordShieldMotion?.shieldBinding;
+        if (motionBinding) {
+            this._playerShieldRig.clear();
+            this._playerShieldRig.shieldBehindBody = this._swordShieldMotion.shieldBehindBody;
+        }
+        const binding = motionBinding || this._playerShieldRig.sync(player, deltaMs);
+        const anchor = visual.fallbackAnchor;
+        const facingRight = binding ? binding.facingRight : !body.flipX;
+        const mirror = facingRight ? 1 : -1;
+        const worldX = binding ? binding.x : body.x + (anchor.x - body.originX) * body.displayWidth * mirror;
+        const worldY = binding ? binding.y : body.y + (anchor.y - body.originY) * body.displayHeight;
+        const displayH = PLAYER_DEFAULTS.physics.spriteSize * visual.bodyHeightRatio / visual.visibleHeightRatio;
+        const frame = this.shieldSprite.frame;
+        const displayW = displayH * frame.width / frame.height;
+        const rot = binding ? binding.rotation : (defending ? visual.guardTilt : visual.restTilt) * mirror;
         
         this.shieldSprite.setPosition(worldX, worldY);
+        this.shieldSprite.setOrigin(facingRight ? visual.originX : 1 - visual.originX, visual.originY);
+        this.shieldSprite.setFlipX(!facingRight);
         this.shieldSprite.setRotation(rot);
-        this.shieldSprite.setDisplaySize(sw, sh);
+        this.shieldSprite.setDisplaySize(displayW, displayH);
+        this.shieldSprite.setAlpha(body.alpha);
         this.shieldSprite.setVisible(true);
         
         // 防御红光（用 Phaser 图形或 Sprite）
-        if (player.shieldSystem && player.shieldSystem.defending) {
+        if (defending) {
             // 创建或更新防御光环
             if (!this.defenseGlow) {
                 this.defenseGlow = this.add.graphics();
@@ -7442,7 +7822,15 @@ export class GameScene extends Scene {
             const facingRight = !this.playerSprite.flipX;
             const poseScale = Number(pose.scale) || 1;
             const size = WeaponTransform.getWeaponSize(pushType, null, 'idle');
-            const gripCfg = WeaponAnimConfig[pushType]?.grip || { x: 0.29, y: 0.54 };
+            const pushDisplaySize = {
+                width: size.height * ((this.weaponSprite.width || 1) / Math.max(1, this.weaponSprite.height || 1)),
+                height: size.height,
+            };
+            const gripCfg = WeaponTransform.getTextureGrip(
+                pushType,
+                this.weaponSprite.texture.key,
+                pushDisplaySize,
+            );
             const gripX = Number.isFinite(Number(gripCfg.x)) ? Number(gripCfg.x) : 0.29;
             const gripY = Number.isFinite(Number(gripCfg.y)) ? Number(gripCfg.y) : 0.54;
             const buttContactX = Math.max(0, Math.min(0.2,
@@ -8183,10 +8571,15 @@ export class GameScene extends Scene {
             this.playerSprite,
             this.playerTorsoSprite,
             this.playerArmSprite,
+            this.playerSupportArmSprite,
+            this.playerFiringHandSprite,
             this.playerHandSprite,
             this.weaponSprite,
             this.offhandWeaponSprite,
             this.shieldSprite,
+            this._playerShieldRig?.upperSprite,
+            this._playerShieldRig?.forearmSprite,
+            this._swordShieldMotion?.handSprite,
         ]);
         _game.entities?.forEach?.(entity => process(entity, [entity?._phaserSprite]));
         for (const member of PartySystem?.members || []) {

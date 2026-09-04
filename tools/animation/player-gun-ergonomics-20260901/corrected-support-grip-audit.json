@@ -1,0 +1,1888 @@
+﻿{
+    "referenceFrame":  "gun_aim_arm_frames:13 + gun_aim_firing_hand_frames:13",
+    "rearHand":  {
+                     "x":  338.3,
+                     "y":  109.6
+                 },
+    "supportHand":  {
+                        "x":  454.03,
+                        "y":  119.98
+                    },
+    "supportWorldDelta":  {
+                              "x":  32.549065589904785,
+                              "y":  2.8967455486918605
+                          },
+    "invariant":  "rear grip and support grip must both contact opaque weapon art; rendered rear grip drives the firing hand",
+    "entries":  [
+                    {
+                        "family":  "rifles",
+                        "config":  "akm",
+                        "texture":  "weapon_akm",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.29,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.588,
+                                            "y":  0.52
+                                        },
+                        "alpha":  {
+                                      "x":  23,
+                                      "y":  220,
+                                      "width":  468,
+                                      "height":  114,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.222656,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  28.055,
+                                      "rearNearestAlphaPx":  2.565,
+                                      "supportNearestAlphaPx":  0.246,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  151,
+                                                                    "y":  276,
+                                                                    "fx":  0.294922,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  301,
+                                                                       "y":  266,
+                                                                       "fx":  0.587891,
+                                                                       "fy":  0.519531
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  301,
+                                                                      "y":  253,
+                                                                      "fx":  0.587891,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.444
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  301,
+                                                                        "y":  266,
+                                                                        "fx":  0.587891,
+                                                                        "fy":  0.519531
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.548,
+                        "visibleWorldDy":  -2.52,
+                        "rearAlphaContactPx":  2.565,
+                        "supportAlphaContactPx":  0.246
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "stg44",
+                        "texture":  "weapon_stg44",
+                        "idleScale":  0.9979,
+                        "rearGrip":  {
+                                         "x":  0.33,
+                                         "y":  0.55
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.625,
+                                            "y":  0.479
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  205,
+                                      "width":  469,
+                                      "height":  147,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.287109,
+                                      "effectiveWorldWidth":  115.176,
+                                      "effectiveWorldHeight":  36.1,
+                                      "rearNearestAlphaPx":  0.402,
+                                      "supportNearestAlphaPx":  0.248,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  169,
+                                                                    "y":  282,
+                                                                    "fx":  0.330078,
+                                                                    "fy":  0.550781
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  320,
+                                                                       "y":  245,
+                                                                       "fx":  0.625,
+                                                                       "fy":  0.478516
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  316,
+                                                                      "y":  246,
+                                                                      "fx":  0.617188,
+                                                                      "fy":  0.480469,
+                                                                      "searchDistancePx":  13.182
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  316,
+                                                                        "y":  246,
+                                                                        "fx":  0.617188,
+                                                                        "fy":  0.480469
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.092,
+                        "visibleWorldDy":  -8.927,
+                        "rearAlphaContactPx":  0.402,
+                        "supportAlphaContactPx":  0.248
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "m416",
+                        "texture":  "weapon_m416",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.33,
+                                         "y":  0.55
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.629,
+                                            "y":  0.496
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  207,
+                                      "width":  468,
+                                      "height":  142,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.277344,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  34.945,
+                                      "rearNearestAlphaPx":  0.402,
+                                      "supportNearestAlphaPx":  0.068,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  169,
+                                                                    "y":  282,
+                                                                    "fx":  0.330078,
+                                                                    "fy":  0.550781
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  322,
+                                                                       "y":  254,
+                                                                       "fx":  0.628906,
+                                                                       "fy":  0.496094
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  322,
+                                                                      "y":  254,
+                                                                      "fx":  0.628906,
+                                                                      "fy":  0.496094,
+                                                                      "searchDistancePx":  4.56
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  322,
+                                                                        "y":  254,
+                                                                        "fx":  0.628906,
+                                                                        "fy":  0.496094
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.674,
+                        "visibleWorldDy":  -6.804,
+                        "rearAlphaContactPx":  0.402,
+                        "supportAlphaContactPx":  0.068
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "qbz95",
+                        "texture":  "weapon_qbz95",
+                        "idleScale":  0.9979,
+                        "rearGrip":  {
+                                         "x":  0.44,
+                                         "y":  0.59
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.738,
+                                            "y":  0.523
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  189,
+                                      "width":  470,
+                                      "height":  179,
+                                      "contentWidthRatio":  0.917969,
+                                      "contentHeightRatio":  0.349609,
+                                      "effectiveWorldWidth":  115.421,
+                                      "effectiveWorldHeight":  43.958,
+                                      "rearNearestAlphaPx":  0.291,
+                                      "supportNearestAlphaPx":  0.266,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  225,
+                                                                    "y":  302,
+                                                                    "fx":  0.439453,
+                                                                    "fy":  0.589844
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  378,
+                                                                       "y":  268,
+                                                                       "fx":  0.738281,
+                                                                       "fy":  0.523438
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  378,
+                                                                      "y":  268,
+                                                                      "fx":  0.738281,
+                                                                      "fy":  0.523438,
+                                                                      "searchDistancePx":  11.041
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  378,
+                                                                        "y":  268,
+                                                                        "fx":  0.738281,
+                                                                        "fy":  0.523438
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.469,
+                        "visibleWorldDy":  -8.424,
+                        "rearAlphaContactPx":  0.291,
+                        "supportAlphaContactPx":  0.266
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "frontier_rifle",
+                        "texture":  "weapon_frontier_rifle",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.37,
+                                         "y":  0.6
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.664,
+                                            "y":  0.537
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  200,
+                                      "width":  469,
+                                      "height":  156,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.304688,
+                                      "effectiveWorldWidth":  115.418,
+                                      "effectiveWorldHeight":  38.391,
+                                      "rearNearestAlphaPx":  0.483,
+                                      "supportNearestAlphaPx":  0.064,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  189,
+                                                                    "y":  307,
+                                                                    "fx":  0.369141,
+                                                                    "fy":  0.599609
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  340,
+                                                                       "y":  275,
+                                                                       "fx":  0.664062,
+                                                                       "fy":  0.537109
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  340,
+                                                                      "y":  275,
+                                                                      "fx":  0.664062,
+                                                                      "fy":  0.537109,
+                                                                      "searchDistancePx":  9.16
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  340,
+                                                                        "y":  275,
+                                                                        "fx":  0.664062,
+                                                                        "fy":  0.537109
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.044,
+                        "visibleWorldDy":  -7.938,
+                        "rearAlphaContactPx":  0.483,
+                        "supportAlphaContactPx":  0.064
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "vengeance_rifle",
+                        "texture":  "weapon_vengeance_rifle",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.35,
+                                         "y":  0.59
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.648,
+                                            "y":  0.561
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  211,
+                                      "width":  468,
+                                      "height":  135,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.263672,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  33.223,
+                                      "rearNearestAlphaPx":  0.215,
+                                      "supportNearestAlphaPx":  0.322,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  179,
+                                                                    "y":  302,
+                                                                    "fx":  0.349609,
+                                                                    "fy":  0.589844
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  332,
+                                                                       "y":  287,
+                                                                       "fx":  0.648438,
+                                                                       "fy":  0.560547
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  332,
+                                                                      "y":  279,
+                                                                      "fx":  0.648438,
+                                                                      "fy":  0.544922,
+                                                                      "searchDistancePx":  0.228
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  332,
+                                                                        "y":  287,
+                                                                        "fx":  0.648438,
+                                                                        "fy":  0.560547
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.548,
+                        "visibleWorldDy":  -3.654,
+                        "rearAlphaContactPx":  0.215,
+                        "supportAlphaContactPx":  0.322
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "astral_tide_rifle",
+                        "texture":  "weapon_astral_tide_rifle",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.33,
+                                         "y":  0.59
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.629,
+                                            "y":  0.537
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  199,
+                                      "width":  468,
+                                      "height":  158,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.308594,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  38.883,
+                                      "rearNearestAlphaPx":  0.089,
+                                      "supportNearestAlphaPx":  0.074,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  169,
+                                                                    "y":  302,
+                                                                    "fx":  0.330078,
+                                                                    "fy":  0.589844
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  322,
+                                                                       "y":  275,
+                                                                       "fx":  0.628906,
+                                                                       "fy":  0.537109
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  322,
+                                                                      "y":  275,
+                                                                      "fx":  0.628906,
+                                                                      "fy":  0.537109,
+                                                                      "searchDistancePx":  4.04
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  322,
+                                                                        "y":  275,
+                                                                        "fx":  0.628906,
+                                                                        "fy":  0.537109
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.674,
+                        "visibleWorldDy":  -6.678,
+                        "rearAlphaContactPx":  0.089,
+                        "supportAlphaContactPx":  0.074
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "zero_point_rifle",
+                        "texture":  "weapon_zero_point_rifle",
+                        "idleScale":  0.9957,
+                        "rearGrip":  {
+                                         "x":  0.31,
+                                         "y":  0.6
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.6,
+                                            "y":  0.537
+                                        },
+                        "alpha":  {
+                                      "x":  20,
+                                      "y":  195,
+                                      "width":  472,
+                                      "height":  163,
+                                      "contentWidthRatio":  0.921875,
+                                      "contentHeightRatio":  0.318359,
+                                      "effectiveWorldWidth":  115.657,
+                                      "effectiveWorldHeight":  39.941,
+                                      "rearNearestAlphaPx":  0.344,
+                                      "supportNearestAlphaPx":  0.208,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  159,
+                                                                    "y":  307,
+                                                                    "fx":  0.310547,
+                                                                    "fy":  0.599609
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  307,
+                                                                       "y":  275,
+                                                                       "fx":  0.599609,
+                                                                       "fy":  0.537109
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  303,
+                                                                      "y":  277,
+                                                                      "fx":  0.591797,
+                                                                      "fy":  0.541016,
+                                                                      "searchDistancePx":  8.301
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  303,
+                                                                        "y":  277,
+                                                                        "fx":  0.591797,
+                                                                        "fy":  0.541016
+                                                                    }
+                                  },
+                        "visibleWorldDx":  36.383,
+                        "visibleWorldDy":  -7.904,
+                        "rearAlphaContactPx":  0.344,
+                        "supportAlphaContactPx":  0.208
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "corona_cadence_rifle",
+                        "texture":  "weapon_corona_cadence_rifle",
+                        "idleScale":  0.9936,
+                        "rearGrip":  {
+                                         "x":  0.33,
+                                         "y":  0.59
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.631,
+                                            "y":  0.518
+                                        },
+                        "alpha":  {
+                                      "x":  20,
+                                      "y":  197,
+                                      "width":  472,
+                                      "height":  158,
+                                      "contentWidthRatio":  0.921875,
+                                      "contentHeightRatio":  0.308594,
+                                      "effectiveWorldWidth":  115.413,
+                                      "effectiveWorldHeight":  38.634,
+                                      "rearNearestAlphaPx":  0.089,
+                                      "supportNearestAlphaPx":  0.228,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  169,
+                                                                    "y":  302,
+                                                                    "fx":  0.330078,
+                                                                    "fy":  0.589844
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  323,
+                                                                       "y":  265,
+                                                                       "fx":  0.630859,
+                                                                       "fy":  0.517578
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  323,
+                                                                      "y":  265,
+                                                                      "fx":  0.630859,
+                                                                      "fy":  0.517578,
+                                                                      "searchDistancePx":  14.04
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  323,
+                                                                        "y":  265,
+                                                                        "fx":  0.630859,
+                                                                        "fy":  0.517578
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.683,
+                        "visibleWorldDy":  -9.014,
+                        "rearAlphaContactPx":  0.089,
+                        "supportAlphaContactPx":  0.228
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "terminal_echo_rifle",
+                        "texture":  "weapon_terminal_echo_rifle",
+                        "idleScale":  0.9936,
+                        "rearGrip":  {
+                                         "x":  0.37,
+                                         "y":  0.59
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.682,
+                                            "y":  0.557
+                                        },
+                        "alpha":  {
+                                      "x":  20,
+                                      "y":  204,
+                                      "width":  472,
+                                      "height":  145,
+                                      "contentWidthRatio":  0.921875,
+                                      "contentHeightRatio":  0.283203,
+                                      "effectiveWorldWidth":  115.413,
+                                      "effectiveWorldHeight":  35.455,
+                                      "rearNearestAlphaPx":  0.447,
+                                      "supportNearestAlphaPx":  0.26,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  189,
+                                                                    "y":  302,
+                                                                    "fx":  0.369141,
+                                                                    "fy":  0.589844
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  349,
+                                                                       "y":  285,
+                                                                       "fx":  0.681641,
+                                                                       "fy":  0.556641
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  349,
+                                                                      "y":  279,
+                                                                      "fx":  0.681641,
+                                                                      "fy":  0.544922,
+                                                                      "searchDistancePx":  0.188
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  351,
+                                                                        "y":  287,
+                                                                        "fx":  0.685547,
+                                                                        "fy":  0.560547
+                                                                    }
+                                  },
+                        "visibleWorldDx":  39.06,
+                        "visibleWorldDy":  -4.131,
+                        "rearAlphaContactPx":  0.447,
+                        "supportAlphaContactPx":  0.26
+                    },
+                    {
+                        "family":  "rifles",
+                        "config":  "qbz191",
+                        "texture":  "weapon_qbz191",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.33,
+                                         "y":  0.48
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.629,
+                                            "y":  0.406
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  144,
+                                      "width":  469,
+                                      "height":  168,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.328125,
+                                      "effectiveWorldWidth":  115.418,
+                                      "effectiveWorldHeight":  41.344,
+                                      "rearNearestAlphaPx":  0.243,
+                                      "supportNearestAlphaPx":  0.137,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  169,
+                                                                    "y":  246,
+                                                                    "fx":  0.330078,
+                                                                    "fy":  0.480469
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  322,
+                                                                       "y":  208,
+                                                                       "fx":  0.628906,
+                                                                       "fy":  0.40625
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  322,
+                                                                      "y":  208,
+                                                                      "fx":  0.628906,
+                                                                      "fy":  0.40625,
+                                                                      "searchDistancePx":  14.72
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  322,
+                                                                        "y":  208,
+                                                                        "fx":  0.628906,
+                                                                        "fy":  0.40625
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.674,
+                        "visibleWorldDy":  -9.324,
+                        "rearAlphaContactPx":  0.243,
+                        "supportAlphaContactPx":  0.137
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_super90",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.28,
+                                         "y":  0.56
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.578,
+                                            "y":  0.564
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  238,
+                                      "width":  468,
+                                      "height":  81,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.158203,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  19.934,
+                                      "rearNearestAlphaPx":  0.456,
+                                      "supportNearestAlphaPx":  0.241,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  143,
+                                                                    "y":  287,
+                                                                    "fx":  0.279297,
+                                                                    "fy":  0.560547
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  296,
+                                                                       "y":  289,
+                                                                       "fx":  0.578125,
+                                                                       "fy":  0.564453
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  296,
+                                                                      "y":  264,
+                                                                      "fx":  0.578125,
+                                                                      "fy":  0.515625,
+                                                                      "searchDistancePx":  0.326
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  296,
+                                                                        "y":  289,
+                                                                        "fx":  0.578125,
+                                                                        "fy":  0.564453
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.548,
+                        "visibleWorldDy":  0.504,
+                        "rearAlphaContactPx":  0.456,
+                        "supportAlphaContactPx":  0.241
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_saiga12k",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.34,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.639,
+                                            "y":  0.518
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  191,
+                                      "width":  470,
+                                      "height":  174,
+                                      "contentWidthRatio":  0.917969,
+                                      "contentHeightRatio":  0.339844,
+                                      "effectiveWorldWidth":  115.664,
+                                      "effectiveWorldHeight":  42.82,
+                                      "rearNearestAlphaPx":  0.487,
+                                      "supportNearestAlphaPx":  0.274,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  174,
+                                                                    "y":  276,
+                                                                    "fx":  0.339844,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  327,
+                                                                       "y":  265,
+                                                                       "fx":  0.638672,
+                                                                       "fy":  0.517578
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  326,
+                                                                      "y":  254,
+                                                                      "fx":  0.636719,
+                                                                      "fy":  0.496094,
+                                                                      "searchDistancePx":  1.295
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  327,
+                                                                        "y":  265,
+                                                                        "fx":  0.638672,
+                                                                        "fy":  0.517578
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.674,
+                        "visibleWorldDy":  -2.772,
+                        "rearAlphaContactPx":  0.487,
+                        "supportAlphaContactPx":  0.274
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_s686",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.346,
+                                         "y":  0.539
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.629,
+                                            "y":  0.521
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  231,
+                                      "width":  468,
+                                      "height":  94,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.183594,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  23.133,
+                                      "rearNearestAlphaPx":  0.155,
+                                      "supportNearestAlphaPx":  0.253,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  177,
+                                                                    "y":  276,
+                                                                    "fx":  0.345703,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  322,
+                                                                       "y":  267,
+                                                                       "fx":  0.628906,
+                                                                       "fy":  0.521484
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  322,
+                                                                      "y":  253,
+                                                                      "fx":  0.628906,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.087
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  322,
+                                                                        "y":  267,
+                                                                        "fx":  0.628906,
+                                                                        "fy":  0.521484
+                                                                    }
+                                  },
+                        "visibleWorldDx":  35.658,
+                        "visibleWorldDy":  -2.268,
+                        "rearAlphaContactPx":  0.155,
+                        "supportAlphaContactPx":  0.253
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_m870_breacher",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.21,
+                                         "y":  0.55
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.619,
+                                            "y":  0.549
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  217,
+                                      "width":  468,
+                                      "height":  123,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.240234,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  30.27,
+                                      "rearNearestAlphaPx":  0.768,
+                                      "supportNearestAlphaPx":  0.114,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  108,
+                                                                    "y":  281,
+                                                                    "fx":  0.210938,
+                                                                    "fy":  0.548828
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  317,
+                                                                       "y":  281,
+                                                                       "fx":  0.619141,
+                                                                       "fy":  0.548828
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  317,
+                                                                      "y":  259,
+                                                                      "fx":  0.619141,
+                                                                      "fy":  0.505859,
+                                                                      "searchDistancePx":  0.446
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  317,
+                                                                        "y":  281,
+                                                                        "fx":  0.619141,
+                                                                        "fy":  0.548828
+                                                                    }
+                                  },
+                        "visibleWorldDx":  51.534,
+                        "visibleWorldDy":  -0.126,
+                        "rearAlphaContactPx":  0.768,
+                        "supportAlphaContactPx":  0.114
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_ksg12",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.36,
+                                         "y":  0.55
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.658,
+                                            "y":  0.555
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  189,
+                                      "width":  469,
+                                      "height":  178,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.347656,
+                                      "effectiveWorldWidth":  115.418,
+                                      "effectiveWorldHeight":  43.805,
+                                      "rearNearestAlphaPx":  0.512,
+                                      "supportNearestAlphaPx":  0.191,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  184,
+                                                                    "y":  282,
+                                                                    "fx":  0.359375,
+                                                                    "fy":  0.550781
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  337,
+                                                                       "y":  284,
+                                                                       "fx":  0.658203,
+                                                                       "fy":  0.554688
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  337,
+                                                                      "y":  259,
+                                                                      "fx":  0.658203,
+                                                                      "fy":  0.505859,
+                                                                      "searchDistancePx":  0.452
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  337,
+                                                                        "y":  284,
+                                                                        "fx":  0.658203,
+                                                                        "fy":  0.554688
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.548,
+                        "visibleWorldDy":  0.63,
+                        "rearAlphaContactPx":  0.512,
+                        "supportAlphaContactPx":  0.191
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_spas12",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.29,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.588,
+                                            "y":  0.545
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  227,
+                                      "width":  468,
+                                      "height":  102,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.199219,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  25.102,
+                                      "rearNearestAlphaPx":  0.679,
+                                      "supportNearestAlphaPx":  0.069,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  148,
+                                                                    "y":  276,
+                                                                    "fx":  0.289062,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  301,
+                                                                       "y":  279,
+                                                                       "fx":  0.587891,
+                                                                       "fy":  0.544922
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  301,
+                                                                      "y":  253,
+                                                                      "fx":  0.587891,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.444
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  301,
+                                                                        "y":  279,
+                                                                        "fx":  0.587891,
+                                                                        "fy":  0.544922
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.548,
+                        "visibleWorldDy":  0.63,
+                        "rearAlphaContactPx":  0.679,
+                        "supportAlphaContactPx":  0.069
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_aa12",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.34,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.629,
+                                            "y":  0.52
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  190,
+                                      "width":  468,
+                                      "height":  177,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.345703,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  43.559,
+                                      "rearNearestAlphaPx":  1.038,
+                                      "supportNearestAlphaPx":  0.245,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  175,
+                                                                    "y":  276,
+                                                                    "fx":  0.341797,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  322,
+                                                                       "y":  266,
+                                                                       "fx":  0.628906,
+                                                                       "fy":  0.519531
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  322,
+                                                                      "y":  253,
+                                                                      "fx":  0.628906,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.443
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  322,
+                                                                        "y":  266,
+                                                                        "fx":  0.628906,
+                                                                        "fy":  0.519531
+                                                                    }
+                                  },
+                        "visibleWorldDx":  36.414,
+                        "visibleWorldDy":  -2.52,
+                        "rearAlphaContactPx":  1.038,
+                        "supportAlphaContactPx":  0.245
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_winchester1887",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.34,
+                                         "y":  0.53
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.639,
+                                            "y":  0.51
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  225,
+                                      "width":  470,
+                                      "height":  107,
+                                      "contentWidthRatio":  0.917969,
+                                      "contentHeightRatio":  0.208984,
+                                      "effectiveWorldWidth":  115.664,
+                                      "effectiveWorldHeight":  26.332,
+                                      "rearNearestAlphaPx":  0.369,
+                                      "supportNearestAlphaPx":  0.206,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  174,
+                                                                    "y":  271,
+                                                                    "fx":  0.339844,
+                                                                    "fy":  0.529297
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  327,
+                                                                       "y":  261,
+                                                                       "fx":  0.638672,
+                                                                       "fy":  0.509766
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  327,
+                                                                      "y":  248,
+                                                                      "fx":  0.638672,
+                                                                      "fy":  0.484375,
+                                                                      "searchDistancePx":  0.361
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  327,
+                                                                        "y":  261,
+                                                                        "fx":  0.638672,
+                                                                        "fy":  0.509766
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.674,
+                        "visibleWorldDy":  -2.52,
+                        "rearAlphaContactPx":  0.369,
+                        "supportAlphaContactPx":  0.206
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_terminus_pendulum",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.34,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.639,
+                                            "y":  0.545
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  224,
+                                      "width":  468,
+                                      "height":  109,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.212891,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  26.824,
+                                      "rearNearestAlphaPx":  0.487,
+                                      "supportNearestAlphaPx":  0.173,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  174,
+                                                                    "y":  276,
+                                                                    "fx":  0.339844,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  327,
+                                                                       "y":  279,
+                                                                       "fx":  0.638672,
+                                                                       "fy":  0.544922
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  327,
+                                                                      "y":  253,
+                                                                      "fx":  0.638672,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.471
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  327,
+                                                                        "y":  279,
+                                                                        "fx":  0.638672,
+                                                                        "fy":  0.544922
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.674,
+                        "visibleWorldDy":  0.63,
+                        "rearAlphaContactPx":  0.487,
+                        "supportAlphaContactPx":  0.173
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_void_funeral_tide",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.307,
+                                         "y":  0.541
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.607,
+                                            "y":  0.535
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  229,
+                                      "width":  469,
+                                      "height":  98,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.191406,
+                                      "effectiveWorldWidth":  115.418,
+                                      "effectiveWorldHeight":  24.117,
+                                      "rearNearestAlphaPx":  0.184,
+                                      "supportNearestAlphaPx":  0.23,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  157,
+                                                                    "y":  277,
+                                                                    "fx":  0.306641,
+                                                                    "fy":  0.541016
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  311,
+                                                                       "y":  274,
+                                                                       "fx":  0.607422,
+                                                                       "fy":  0.535156
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  311,
+                                                                      "y":  254,
+                                                                      "fx":  0.607422,
+                                                                      "fy":  0.496094,
+                                                                      "searchDistancePx":  0.221
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  311,
+                                                                        "y":  274,
+                                                                        "fx":  0.607422,
+                                                                        "fy":  0.535156
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.8,
+                        "visibleWorldDy":  -0.756,
+                        "rearAlphaContactPx":  0.184,
+                        "supportAlphaContactPx":  0.23
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_black_sun_verdict",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.3,
+                                         "y":  0.55
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.598,
+                                            "y":  0.539
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  218,
+                                      "width":  468,
+                                      "height":  120,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.234375,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  29.531,
+                                      "rearNearestAlphaPx":  0.566,
+                                      "supportNearestAlphaPx":  0.179,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  154,
+                                                                    "y":  282,
+                                                                    "fx":  0.300781,
+                                                                    "fy":  0.550781
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  306,
+                                                                       "y":  276,
+                                                                       "fx":  0.597656,
+                                                                       "fy":  0.539062
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  306,
+                                                                      "y":  259,
+                                                                      "fx":  0.597656,
+                                                                      "fy":  0.505859,
+                                                                      "searchDistancePx":  0.474
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  306,
+                                                                        "y":  276,
+                                                                        "fx":  0.597656,
+                                                                        "fy":  0.539062
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.548,
+                        "visibleWorldDy":  -1.386,
+                        "rearAlphaContactPx":  0.566,
+                        "supportAlphaContactPx":  0.179
+                    },
+                    {
+                        "family":  "shotguns",
+                        "config":  "shotgun",
+                        "texture":  "weapon_royal_hunt_finale",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.34,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.639,
+                                            "y":  0.52
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  230,
+                                      "width":  469,
+                                      "height":  96,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.1875,
+                                      "effectiveWorldWidth":  115.418,
+                                      "effectiveWorldHeight":  23.625,
+                                      "rearNearestAlphaPx":  0.487,
+                                      "supportNearestAlphaPx":  0.293,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  174,
+                                                                    "y":  276,
+                                                                    "fx":  0.339844,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  327,
+                                                                       "y":  266,
+                                                                       "fx":  0.638672,
+                                                                       "fy":  0.519531
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  327,
+                                                                      "y":  253,
+                                                                      "fx":  0.638672,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.471
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  327,
+                                                                        "y":  266,
+                                                                        "fx":  0.638672,
+                                                                        "fy":  0.519531
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.674,
+                        "visibleWorldDy":  -2.52,
+                        "rearAlphaContactPx":  0.487,
+                        "supportAlphaContactPx":  0.293
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "pkm",
+                        "texture":  "weapon_pkm",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.29,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.619,
+                                            "y":  0.531
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  237,
+                                      "width":  464,
+                                      "height":  83,
+                                      "contentWidthRatio":  0.90625,
+                                      "contentHeightRatio":  0.162109,
+                                      "effectiveWorldWidth":  114.188,
+                                      "effectiveWorldHeight":  20.426,
+                                      "rearNearestAlphaPx":  1.556,
+                                      "supportNearestAlphaPx":  0.147,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  147,
+                                                                    "y":  276,
+                                                                    "fx":  0.287109,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  317,
+                                                                       "y":  272,
+                                                                       "fx":  0.619141,
+                                                                       "fy":  0.53125
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  317,
+                                                                      "y":  255,
+                                                                      "fx":  0.619141,
+                                                                      "fy":  0.498047,
+                                                                      "searchDistancePx":  1.562
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  317,
+                                                                        "y":  272,
+                                                                        "fx":  0.619141,
+                                                                        "fy":  0.53125
+                                                                    }
+                                  },
+                        "visibleWorldDx":  41.454,
+                        "visibleWorldDy":  -1.134,
+                        "rearAlphaContactPx":  1.556,
+                        "supportAlphaContactPx":  0.147
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "rpd",
+                        "texture":  "weapon_rpd",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.264,
+                                         "y":  0.574
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.607,
+                                            "y":  0.521
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  216,
+                                      "width":  468,
+                                      "height":  124,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.242188,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  30.516,
+                                      "rearNearestAlphaPx":  0.202,
+                                      "supportNearestAlphaPx":  0.329,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  135,
+                                                                    "y":  294,
+                                                                    "fx":  0.263672,
+                                                                    "fy":  0.574219
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  311,
+                                                                       "y":  267,
+                                                                       "fx":  0.607422,
+                                                                       "fy":  0.521484
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  311,
+                                                                      "y":  267,
+                                                                      "fx":  0.607422,
+                                                                      "fy":  0.521484,
+                                                                      "searchDistancePx":  3.854
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  311,
+                                                                        "y":  267,
+                                                                        "fx":  0.607422,
+                                                                        "fy":  0.521484
+                                                                    }
+                                  },
+                        "visibleWorldDx":  43.218,
+                        "visibleWorldDy":  -6.678,
+                        "rearAlphaContactPx":  0.202,
+                        "supportAlphaContactPx":  0.329
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "m249",
+                        "texture":  "weapon_m249",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.31,
+                                         "y":  0.57
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.607,
+                                            "y":  0.574
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  208,
+                                      "width":  468,
+                                      "height":  140,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.273438,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  34.453,
+                                      "rearNearestAlphaPx":  1.861,
+                                      "supportNearestAlphaPx":  0.243,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  159,
+                                                                    "y":  290,
+                                                                    "fx":  0.310547,
+                                                                    "fy":  0.566406
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  311,
+                                                                       "y":  294,
+                                                                       "fx":  0.607422,
+                                                                       "fy":  0.574219
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  311,
+                                                                      "y":  269,
+                                                                      "fx":  0.607422,
+                                                                      "fy":  0.525391,
+                                                                      "searchDistancePx":  0.294
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  311,
+                                                                        "y":  294,
+                                                                        "fx":  0.607422,
+                                                                        "fy":  0.574219
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.422,
+                        "visibleWorldDy":  0.504,
+                        "rearAlphaContactPx":  1.861,
+                        "supportAlphaContactPx":  0.243
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "ultimax100",
+                        "texture":  "weapon_ultimax100",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.285,
+                                         "y":  0.551
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.6,
+                                            "y":  0.564
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  219,
+                                      "width":  468,
+                                      "height":  118,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.230469,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  29.039,
+                                      "rearNearestAlphaPx":  0.138,
+                                      "supportNearestAlphaPx":  0.306,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  146,
+                                                                    "y":  282,
+                                                                    "fx":  0.285156,
+                                                                    "fy":  0.550781
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  307,
+                                                                       "y":  289,
+                                                                       "fx":  0.599609,
+                                                                       "fy":  0.564453
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  307,
+                                                                      "y":  259,
+                                                                      "fx":  0.599609,
+                                                                      "fy":  0.505859,
+                                                                      "searchDistancePx":  0.213
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  307,
+                                                                        "y":  284,
+                                                                        "fx":  0.599609,
+                                                                        "fy":  0.554688
+                                                                    }
+                                  },
+                        "visibleWorldDx":  39.69,
+                        "visibleWorldDy":  1.638,
+                        "rearAlphaContactPx":  0.138,
+                        "supportAlphaContactPx":  0.306
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "mg42",
+                        "texture":  "weapon_mg42",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.29,
+                                         "y":  0.56
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.586,
+                                            "y":  0.557
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  238,
+                                      "width":  468,
+                                      "height":  80,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.15625,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  19.688,
+                                      "rearNearestAlphaPx":  0.556,
+                                      "supportNearestAlphaPx":  0.187,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  148,
+                                                                    "y":  287,
+                                                                    "fx":  0.289062,
+                                                                    "fy":  0.560547
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  300,
+                                                                       "y":  285,
+                                                                       "fx":  0.585938,
+                                                                       "fy":  0.556641
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  300,
+                                                                      "y":  264,
+                                                                      "fx":  0.585938,
+                                                                      "fy":  0.515625,
+                                                                      "searchDistancePx":  0.322
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  300,
+                                                                        "y":  285,
+                                                                        "fx":  0.585938,
+                                                                        "fy":  0.556641
+                                                                    }
+                                  },
+                        "visibleWorldDx":  37.296,
+                        "visibleWorldDy":  -0.378,
+                        "rearAlphaContactPx":  0.556,
+                        "supportAlphaContactPx":  0.187
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "fusion_core_lmg",
+                        "texture":  "weapon_fusion_core_lmg",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.32,
+                                         "y":  0.56
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.66,
+                                            "y":  0.564
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  200,
+                                      "width":  468,
+                                      "height":  156,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.304688,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  38.391,
+                                      "rearNearestAlphaPx":  0.322,
+                                      "supportNearestAlphaPx":  0.245,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  164,
+                                                                    "y":  287,
+                                                                    "fx":  0.320312,
+                                                                    "fy":  0.560547
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  338,
+                                                                       "y":  289,
+                                                                       "fx":  0.660156,
+                                                                       "fy":  0.564453
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  338,
+                                                                      "y":  264,
+                                                                      "fx":  0.660156,
+                                                                      "fy":  0.515625,
+                                                                      "searchDistancePx":  0.33
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  338,
+                                                                        "y":  289,
+                                                                        "fx":  0.660156,
+                                                                        "fy":  0.564453
+                                                                    }
+                                  },
+                        "visibleWorldDx":  42.84,
+                        "visibleWorldDy":  0.504,
+                        "rearAlphaContactPx":  0.322,
+                        "supportAlphaContactPx":  0.245
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "singularity_loom_lmg",
+                        "texture":  "weapon_singularity_loom_lmg",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.32,
+                                         "y":  0.56
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.648,
+                                            "y":  0.551
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  221,
+                                      "width":  469,
+                                      "height":  115,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.224609,
+                                      "effectiveWorldWidth":  115.418,
+                                      "effectiveWorldHeight":  28.301,
+                                      "rearNearestAlphaPx":  2.725,
+                                      "supportNearestAlphaPx":  0.25,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  164,
+                                                                    "y":  284,
+                                                                    "fx":  0.320312,
+                                                                    "fy":  0.554688
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  332,
+                                                                       "y":  282,
+                                                                       "fx":  0.648438,
+                                                                       "fy":  0.550781
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  332,
+                                                                      "y":  264,
+                                                                      "fx":  0.648438,
+                                                                      "fy":  0.515625,
+                                                                      "searchDistancePx":  0.391
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  327,
+                                                                        "y":  289,
+                                                                        "fx":  0.638672,
+                                                                        "fy":  0.564453
+                                                                    }
+                                  },
+                        "visibleWorldDx":  41.328,
+                        "visibleWorldDy":  -1.134,
+                        "rearAlphaContactPx":  2.725,
+                        "supportAlphaContactPx":  0.25
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "celestial_cartographer_lmg",
+                        "texture":  "weapon_celestial_cartographer_lmg",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.31,
+                                         "y":  0.56
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.641,
+                                            "y":  0.555
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  212,
+                                      "width":  468,
+                                      "height":  132,
+                                      "contentWidthRatio":  0.914062,
+                                      "contentHeightRatio":  0.257812,
+                                      "effectiveWorldWidth":  115.172,
+                                      "effectiveWorldHeight":  32.484,
+                                      "rearNearestAlphaPx":  0.396,
+                                      "supportNearestAlphaPx":  0.25,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  159,
+                                                                    "y":  287,
+                                                                    "fx":  0.310547,
+                                                                    "fy":  0.560547
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  328,
+                                                                       "y":  284,
+                                                                       "fx":  0.640625,
+                                                                       "fy":  0.554688
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  328,
+                                                                      "y":  264,
+                                                                      "fx":  0.640625,
+                                                                      "fy":  0.515625,
+                                                                      "searchDistancePx":  0.373
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  328,
+                                                                        "y":  284,
+                                                                        "fx":  0.640625,
+                                                                        "fy":  0.554688
+                                                                    }
+                                  },
+                        "visibleWorldDx":  41.706,
+                        "visibleWorldDy":  -0.63,
+                        "rearAlphaContactPx":  0.396,
+                        "supportAlphaContactPx":  0.25
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "grave_covenant_cantor_lmg",
+                        "texture":  "weapon_grave_covenant_cantor_lmg",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.307,
+                                         "y":  0.576
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.641,
+                                            "y":  0.537
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  207,
+                                      "width":  470,
+                                      "height":  142,
+                                      "contentWidthRatio":  0.917969,
+                                      "contentHeightRatio":  0.277344,
+                                      "effectiveWorldWidth":  115.664,
+                                      "effectiveWorldHeight":  34.945,
+                                      "rearNearestAlphaPx":  0.204,
+                                      "supportNearestAlphaPx":  0.2,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  157,
+                                                                    "y":  295,
+                                                                    "fx":  0.306641,
+                                                                    "fy":  0.576172
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  328,
+                                                                       "y":  275,
+                                                                       "fx":  0.640625,
+                                                                       "fy":  0.537109
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  328,
+                                                                      "y":  272,
+                                                                      "fx":  0.640625,
+                                                                      "fy":  0.53125,
+                                                                      "searchDistancePx":  0.231
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  328,
+                                                                        "y":  275,
+                                                                        "fx":  0.640625,
+                                                                        "fy":  0.537109
+                                                                    }
+                                  },
+                        "visibleWorldDx":  42.084,
+                        "visibleWorldDy":  -4.914,
+                        "rearAlphaContactPx":  0.204,
+                        "supportAlphaContactPx":  0.2
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "qjb201",
+                        "texture":  "weapon_qjb201",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.29,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.678,
+                                            "y":  0.52
+                                        },
+                        "alpha":  {
+                                      "x":  21,
+                                      "y":  219,
+                                      "width":  466,
+                                      "height":  118,
+                                      "contentWidthRatio":  0.910156,
+                                      "contentHeightRatio":  0.230469,
+                                      "effectiveWorldWidth":  114.68,
+                                      "effectiveWorldHeight":  29.039,
+                                      "rearNearestAlphaPx":  0.679,
+                                      "supportNearestAlphaPx":  0.276,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  148,
+                                                                    "y":  276,
+                                                                    "fx":  0.289062,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  347,
+                                                                       "y":  266,
+                                                                       "fx":  0.677734,
+                                                                       "fy":  0.519531
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  347,
+                                                                      "y":  253,
+                                                                      "fx":  0.677734,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.461
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  347,
+                                                                        "y":  266,
+                                                                        "fx":  0.677734,
+                                                                        "fy":  0.519531
+                                                                    }
+                                  },
+                        "visibleWorldDx":  48.888,
+                        "visibleWorldDy":  -2.52,
+                        "rearAlphaContactPx":  0.679,
+                        "supportAlphaContactPx":  0.276
+                    },
+                    {
+                        "family":  "machine_guns",
+                        "config":  "energy_lmg",
+                        "texture":  "weapon_energy_lmg",
+                        "idleScale":  1,
+                        "rearGrip":  {
+                                         "x":  0.29,
+                                         "y":  0.54
+                                     },
+                        "supportGrip":  {
+                                            "x":  0.65,
+                                            "y":  0.545
+                                        },
+                        "alpha":  {
+                                      "x":  22,
+                                      "y":  206,
+                                      "width":  469,
+                                      "height":  144,
+                                      "contentWidthRatio":  0.916016,
+                                      "contentHeightRatio":  0.28125,
+                                      "effectiveWorldWidth":  115.418,
+                                      "effectiveWorldHeight":  35.438,
+                                      "rearNearestAlphaPx":  0.679,
+                                      "supportNearestAlphaPx":  0.204,
+                                      "rearNearestAlphaPoint":  {
+                                                                    "x":  148,
+                                                                    "y":  276,
+                                                                    "fx":  0.289062,
+                                                                    "fy":  0.539062
+                                                                },
+                                      "supportNearestAlphaPoint":  {
+                                                                       "x":  333,
+                                                                       "y":  279,
+                                                                       "fx":  0.650391,
+                                                                       "fy":  0.544922
+                                                                   },
+                                      "supportContactCandidate":  {
+                                                                      "x":  333,
+                                                                      "y":  253,
+                                                                      "fx":  0.650391,
+                                                                      "fy":  0.494141,
+                                                                      "searchDistancePx":  0.483
+                                                                  },
+                                      "supportUndersideCandidate":  {
+                                                                        "x":  333,
+                                                                        "y":  279,
+                                                                        "fx":  0.650391,
+                                                                        "fy":  0.544922
+                                                                    }
+                                  },
+                        "visibleWorldDx":  45.36,
+                        "visibleWorldDy":  0.63,
+                        "rearAlphaContactPx":  0.679,
+                        "supportAlphaContactPx":  0.204
+                    }
+                ]
+}

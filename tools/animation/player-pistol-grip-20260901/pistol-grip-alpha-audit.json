@@ -1,0 +1,370 @@
+﻿{
+    "reference":  "Desert Eagle is the accepted runtime placement and scale baseline.",
+    "markerLegend":  {
+                         "green":  "configured grip",
+                         "orange":  "nearest opaque pixel",
+                         "magenta":  "alpha bounds"
+                     },
+    "entries":  [
+                    {
+                        "label":  "G18",
+                        "config":  "pistol",
+                        "texture":  "weapon_g18",
+                        "runtime":  "assets\\weapons\\runtime\\icons\\G18icon.png",
+                        "grip":  {
+                                     "x":  0.3,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  28,
+                                      "y":  97,
+                                      "width":  443,
+                                      "height":  342,
+                                      "centerX":  0.486328,
+                                      "centerY":  0.522461,
+                                      "contentWidthRatio":  0.865234,
+                                      "contentHeightRatio":  0.667969,
+                                      "nearestAlphaPx":  0.431,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  154,
+                                                                "y":  292,
+                                                                "fx":  0.300781,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.412,
+                        "effectiveWorldHeight":  50.498
+                    },
+                    {
+                        "label":  "Desert Eagle",
+                        "config":  "deagle",
+                        "texture":  "weapon_deagle",
+                        "runtime":  "assets\\weapons\\runtime\\icons\\DesertEagle_icon.png",
+                        "grip":  {
+                                     "x":  0.28,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  29,
+                                      "y":  137,
+                                      "width":  441,
+                                      "height":  263,
+                                      "centerX":  0.486328,
+                                      "centerY":  0.523438,
+                                      "contentWidthRatio":  0.861328,
+                                      "contentHeightRatio":  0.513672,
+                                      "nearestAlphaPx":  0.394,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  143,
+                                                                "y":  292,
+                                                                "fx":  0.279297,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.116,
+                        "effectiveWorldHeight":  38.834
+                    },
+                    {
+                        "label":  ".357 Revolver",
+                        "config":  "revolver",
+                        "texture":  "weapon_revolver357",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\revolver357-equip.png",
+                        "grip":  {
+                                     "x":  0.22,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  36,
+                                      "y":  96,
+                                      "width":  440,
+                                      "height":  340,
+                                      "centerX":  0.499023,
+                                      "centerY":  0.518555,
+                                      "contentWidthRatio":  0.859375,
+                                      "contentHeightRatio":  0.664062,
+                                      "nearestAlphaPx":  0.394,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  113,
+                                                                "y":  292,
+                                                                "fx":  0.220703,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  64.969,
+                        "effectiveWorldHeight":  50.203
+                    },
+                    {
+                        "label":  "P4040",
+                        "config":  "p4040",
+                        "texture":  "weapon_p4040",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\P4040-icon.png",
+                        "grip":  {
+                                     "x":  0.19,
+                                     "y":  0.58
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  28,
+                                      "y":  111,
+                                      "width":  443,
+                                      "height":  315,
+                                      "centerX":  0.486328,
+                                      "centerY":  0.523438,
+                                      "contentWidthRatio":  0.865234,
+                                      "contentHeightRatio":  0.615234,
+                                      "nearestAlphaPx":  0.283,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  97,
+                                                                "y":  297,
+                                                                "fx":  0.189453,
+                                                                "fy":  0.580078
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.412,
+                        "effectiveWorldHeight":  46.512
+                    },
+                    {
+                        "label":  "Beretta 93R",
+                        "config":  "beretta93r",
+                        "texture":  "weapon_beretta93r",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\beretta93r.png",
+                        "grip":  {
+                                     "x":  0.18,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  28,
+                                      "y":  98,
+                                      "width":  442,
+                                      "height":  340,
+                                      "centerX":  0.485352,
+                                      "centerY":  0.522461,
+                                      "contentWidthRatio":  0.863281,
+                                      "contentHeightRatio":  0.664062,
+                                      "nearestAlphaPx":  0.226,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  92,
+                                                                "y":  292,
+                                                                "fx":  0.179688,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.264,
+                        "effectiveWorldHeight":  50.203
+                    },
+                    {
+                        "label":  "M1911A1",
+                        "config":  "m1911a1",
+                        "texture":  "weapon_m1911a1",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\m1911a1-equip.png",
+                        "grip":  {
+                                     "x":  0.22,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  28,
+                                      "y":  132,
+                                      "width":  442,
+                                      "height":  272,
+                                      "centerX":  0.485352,
+                                      "centerY":  0.522461,
+                                      "contentWidthRatio":  0.863281,
+                                      "contentHeightRatio":  0.53125,
+                                      "nearestAlphaPx":  0.394,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  113,
+                                                                "y":  292,
+                                                                "fx":  0.220703,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.264,
+                        "effectiveWorldHeight":  40.162
+                    },
+                    {
+                        "label":  "USP .45",
+                        "config":  "usp45",
+                        "texture":  "weapon_usp45",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\usp45-equip.png",
+                        "grip":  {
+                                     "x":  0.23,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  28,
+                                      "y":  114,
+                                      "width":  442,
+                                      "height":  309,
+                                      "centerX":  0.485352,
+                                      "centerY":  0.523438,
+                                      "contentWidthRatio":  0.863281,
+                                      "contentHeightRatio":  0.603516,
+                                      "nearestAlphaPx":  0.288,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  118,
+                                                                "y":  292,
+                                                                "fx":  0.230469,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.264,
+                        "effectiveWorldHeight":  45.626
+                    },
+                    {
+                        "label":  "FN Five-seveN",
+                        "config":  "fiveSeven",
+                        "texture":  "weapon_five_seven",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\five-seven-equip.png",
+                        "grip":  {
+                                     "x":  0.23,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  28,
+                                      "y":  110,
+                                      "width":  442,
+                                      "height":  317,
+                                      "centerX":  0.485352,
+                                      "centerY":  0.523438,
+                                      "contentWidthRatio":  0.863281,
+                                      "contentHeightRatio":  0.619141,
+                                      "nearestAlphaPx":  0.288,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  118,
+                                                                "y":  292,
+                                                                "fx":  0.230469,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.264,
+                        "effectiveWorldHeight":  46.807
+                    },
+                    {
+                        "label":  "Eternal Edict",
+                        "config":  "eternalEdict",
+                        "texture":  "weapon_eternal_edict",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\eternal-edict-equip.png",
+                        "grip":  {
+                                     "x":  0.15,
+                                     "y":  0.56
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  29,
+                                      "y":  153,
+                                      "width":  441,
+                                      "height":  231,
+                                      "centerX":  0.486328,
+                                      "centerY":  0.523438,
+                                      "contentWidthRatio":  0.861328,
+                                      "contentHeightRatio":  0.451172,
+                                      "nearestAlphaPx":  0.344,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  77,
+                                                                "y":  287,
+                                                                "fx":  0.150391,
+                                                                "fy":  0.560547
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.116,
+                        "effectiveWorldHeight":  34.109
+                    },
+                    {
+                        "label":  "Falcon Edict",
+                        "config":  "falconEdict",
+                        "texture":  "weapon_falcon_edict",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\falcon-edict-equip.png",
+                        "grip":  {
+                                     "x":  0.24,
+                                     "y":  0.56
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  35,
+                                      "y":  137,
+                                      "width":  442,
+                                      "height":  238,
+                                      "centerX":  0.499023,
+                                      "centerY":  0.499023,
+                                      "contentWidthRatio":  0.863281,
+                                      "contentHeightRatio":  0.464844,
+                                      "nearestAlphaPx":  0.305,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  123,
+                                                                "y":  287,
+                                                                "fx":  0.240234,
+                                                                "fy":  0.560547
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.264,
+                        "effectiveWorldHeight":  35.142
+                    },
+                    {
+                        "label":  "Crimson Crown",
+                        "config":  "crimsonCrownSettlement",
+                        "texture":  "weapon_crimson_crown_settlement",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\crimson-crown-settlement-equip.png",
+                        "grip":  {
+                                     "x":  0.24,
+                                     "y":  0.56
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  29,
+                                      "y":  140,
+                                      "width":  441,
+                                      "height":  256,
+                                      "centerX":  0.486328,
+                                      "centerY":  0.522461,
+                                      "contentWidthRatio":  0.861328,
+                                      "contentHeightRatio":  0.5,
+                                      "nearestAlphaPx":  0.305,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  123,
+                                                                "y":  287,
+                                                                "fx":  0.240234,
+                                                                "fy":  0.560547
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  65.116,
+                        "effectiveWorldHeight":  37.8
+                    },
+                    {
+                        "label":  "Myriad Corridor",
+                        "config":  "myriadCorridor",
+                        "texture":  "weapon_myriad_corridor",
+                        "runtime":  "assets\\weapons\\runtime\\weapons\\myriad-corridor-equip.png",
+                        "grip":  {
+                                     "x":  0.23,
+                                     "y":  0.57
+                                 },
+                        "idleScale":  0.6,
+                        "alpha":  {
+                                      "x":  30,
+                                      "y":  116,
+                                      "width":  439,
+                                      "height":  311,
+                                      "centerX":  0.486328,
+                                      "centerY":  0.529297,
+                                      "contentWidthRatio":  0.857422,
+                                      "contentHeightRatio":  0.607422,
+                                      "nearestAlphaPx":  0.288,
+                                      "nearestAlphaPoint":  {
+                                                                "x":  118,
+                                                                "y":  292,
+                                                                "fx":  0.230469,
+                                                                "fy":  0.570312
+                                                            }
+                                  },
+                        "effectiveWorldWidth":  64.821,
+                        "effectiveWorldHeight":  45.921
+                    }
+                ]
+}

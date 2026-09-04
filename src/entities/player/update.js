@@ -22,6 +22,7 @@ const updateMixin = {
 update(dt, entities) {
                 // 每帧先清表现标志，防止死亡、眩晕、施法等提前返回时残留奔跑姿态。
                 this._rtsRunVisual = false;
+                this.shieldSystem?.update(dt);
                 // 墙顶/楼梯是窄通道：浏览器偶发长帧不能把约100ms一次积分成数十像素瞬移。
                 // 计时器仍使用真实dt，仅位置积分限制为最多约两帧。
                 const elevatedMoveDt = this._surfaceKind === 'wall_walk'
@@ -267,6 +268,8 @@ update(dt, entities) {
                         y: this.y + Math.sin(this.rotation || 0) * 100,
                     })
                     : directMouseWorld;
+                // 举盾在移动/冲刺/体力恢复之前结算，松键同帧恢复正常状态。
+                this.shieldSystem?.syncInput(secondaryDown && !SystemUI.isOpen);
                 this._surfaceInputIntent = this.isDodging
                     ? { x: this.dodgeDirection.x, y: this.dodgeDirection.y }
                     : { x: move.x, y: move.y };
@@ -274,6 +277,7 @@ update(dt, entities) {
                 const isDroneControlling = this.droneSystem && this.droneSystem.controlling;
                 // 近战攻击期间禁止转向，变量供下方移动/旋转逻辑共享
                 let isMeleeAttacking = false;
+                let resolvedSprint = false;
                 if (this.dodgeCooldown > 0) this.dodgeCooldown -= dt;
                 if (this.weaponSwitchCooldown > 0) this.weaponSwitchCooldown -= dt;
                 if (this.isDodging) {
@@ -432,6 +436,7 @@ update(dt, entities) {
                         }
                     }
                     if (sprint && this.isMoving) { this.data.stamina -= CONFIG.STAMINA_SPRINT_COST * (dt / 1000); if (this.data.stamina < 0) this.data.stamina = 0; }
+                    resolvedSprint = sprint && targetSpeed > 0.1 && this.data.stamina > 0;
                     // 闪避：近战攻击期间按空格可取消攻击动画并闪避
                     // 攻击动画锁定（2026-07-27 用户设定）：任何一段攻击动画未播完前一切输入无效——
                     // 闪避不再取消攻击，攻击期间完全不可闪避
@@ -442,6 +447,7 @@ update(dt, entities) {
                     }
                 }
                 const screenPos = Renderer.worldToScreen(this.x, this.y);
+                this._shieldFacingAngle = Math.atan2(controlAimWorld.y - this.y, controlAimWorld.x - this.x);
                 const aimScreenPos = Renderer.worldToScreen(controlAimWorld.x, controlAimWorld.y);
                 const dx = aimScreenPos.x - screenPos.x, dy = aimScreenPos.y - screenPos.y;
                 if (isMeleeAttacking) {
@@ -466,21 +472,20 @@ update(dt, entities) {
                     this.vy *= this.friction;
                 }
                 this.isMoving = Math.abs(this.vx) > 0.1 || Math.abs(this.vy) > 0.1;
-                // 双手枪械开火/瞄准=非奔跑状态（与上方 sprint 中断同口径）：腿部动画回 walking、脚下不出烟尘。
-                // 此前只把局部 sprint 置 false（减速生效），_isSprinting 未同步导致腿层仍播 runlegs
-                const _thGunEquip = this.equipments[this.weaponMode];
-                const _twoHandedGunCombat = !!(_thGunEquip && isGunWeapon(_thGunEquip) && isTwoHanded(_thGunEquip)
-                    && (primaryDown || secondaryDown)); // 左键开火或右键瞄准
-                const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isSprintDirectionAllowed() && !_twoHandedGunCombat;
-                this._isSprinting = _sprintActive; // 保存供render使用
-                this._rtsRunVisual = !!(rtsEnabled && rtsIntent.runVisual && this.isMoving);
+                // 奔跑状态只认上方已经过举盾、攻击、双手枪开火/瞄准与体力结算的最终 sprint。
+                // 渲染、烟尘和冲刺攻击蓄力共用这一真值，避免各自重算后出现速度与腿层不一致。
+                this._isSprinting = !!(resolvedSprint && this.isMoving && !this.isDodging);
+                // 格挡只允许步行。RTS 跑姿是表现标志而非 sprint 真值，也必须在这里
+                // 读取最终防御状态收口，否则它会绕过上方 sprint=false 重新切回跑步腿层。
+                this._rtsRunVisual = !!(rtsEnabled && rtsIntent.runVisual && this.isMoving
+                    && !(this.shieldSystem && this.shieldSystem.defending));
                 // ===== 行走/奔跑动画已由 Phaser 处理 =====
                 // Phaser 在 GameScene.update() 中自动播放 walk/run/idle 动画
                 if (this.isMoving && !this.isDodging) {
                     this.animTime += 0.15;
                 }
                 const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                    const sprint = Input.isSprint() && this.data.stamina > 0 && this._isSprintDirectionAllowed() && !_twoHandedGunCombat;
+                    const sprint = this._isSprinting;
                     if (speed > 1.0 && sprint) {
                         if (!this.dustTimer) this.dustTimer = 0;
                         this.dustTimer += dt;
@@ -504,8 +509,7 @@ update(dt, entities) {
                         this.dustTimer = 0;
                     }
                 const isAttacking = this.weaponAnim && this.weaponAnim.state !== 'idle';
-                const isSprinting = Input.isSprint() && this.data.stamina > 0 && this.isMoving
-                    && this._isSprintDirectionAllowed() && this._hasHorizontalDashInput();
+                const isSprinting = this._isSprinting && this._hasHorizontalDashInput();
                 // 体力值异常时先复位，防止 NaN 永久阻塞恢复
                 if (!isFinite(this.data.stamina) || this.data.stamina < 0) this.data.stamina = 0;
                 // 冲刺攻击计时：追踪长按Shift持续时间
@@ -529,8 +533,8 @@ update(dt, entities) {
                             this._dashConvergeAuraActive = true;
                         }
                     }
-                } else if (!Input.isSprint()) {
-                    // 仅当Shift松开时重置计数，方向切换不重置
+                } else if (!Input.isSprint() || !this._isSprintDirectionAllowed()) {
+                    // 松开Shift、停步或转为后退时结束蓄势，不能带着就绪状态倒退冲刺。
                     this._sprintDuration = 0;
                     this._dashConvergeShown = false;
                     this._dashConvergeAuraActive = false;
@@ -818,26 +822,6 @@ update(dt, entities) {
                 // 左键拾取地面物品已取消 — 现在仅在鼠标悬停触发金色特效时自动拾取
                 // （逻辑移至 Game.update() 的悬停检测中）
                 if (!this.isDodging && !this._isDashing && !this._isWhirlwind && !this._whirlwindRecovering && !this._isPushStrike && !this._specialAttackActive && !this._isDead) {
-                    // ===== 盾防御状态管理 =====
-                    // 规则（长期）：主手手枪+副手持盾 → 右键只触发盾格挡，无法进入瞄准；
-                    // 主手非手枪枪械 → 右键优先瞄准，不进入盾防御；近战/空手照旧盾防御
-                    const _mainItemShield = this.equipments[this.weaponMode];
-                    const _isMainPistolGun = _mainItemShield && (_mainItemShield.weaponType === 'pistol' || _mainItemShield.rangedType === 'pistol');
-                    const _isMainNonPistolGun = _mainItemShield && isGunWeapon(_mainItemShield) && !_isMainPistolGun;
-                    if (_isMainNonPistolGun && this.shieldSystem && this.shieldSystem.defending) {
-                        this.shieldSystem.exitDefense();
-                    }
-                    if (this.shieldSystem && this.shieldSystem.checkEquipped() && !_isMainNonPistolGun) {
-                        if (secondaryDown) {
-                            if (!this.shieldSystem.defending) {
-                                this.shieldSystem.enterDefense();
-                            }
-                        } else {
-                            if (this.shieldSystem.defending) {
-                                this.shieldSystem.exitDefense();
-                            }
-                        }
-                    }
                     // 游戏开始冷却：防止点击"开始游戏"按钮的鼠标事件携带到游戏中导致自动攻击
                     if (this.gameStartCooldown > 0) {
                         this.gameStartCooldown -= dt;

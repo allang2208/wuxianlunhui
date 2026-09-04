@@ -1,0 +1,59 @@
+{
+  "task": "player-gun-grip-audit-20260901",
+  "scope": "all 46 runtime firearm hold textures; grip anchors, dual wield and locomotion preview",
+  "directionReference": {
+    "textures": "src/config/weapon-texture-map.js runtime load list",
+    "facing": "source firearm art points screen-right; left-facing runtime uses rotation plus flipY",
+    "bodyReference": [
+      "assets/player/gun_idle_torso.png",
+      "assets/player/gun_idle_pistol_torso.png",
+      "assets/player/gun_idle_dual_torso.png"
+    ],
+    "notes": "The approved body layers remain the movement-direction authority. Weapon barrel direction alone was not used to infer body direction."
+  },
+  "artDecision": {
+    "regenerate": false,
+    "reason": "All inspected firearm textures have usable right-facing side-view silhouettes and readable grip geometry; the defects were anchor metadata and inconsistent display-space conversion, not missing gun art."
+  },
+  "resolutionPriority": [
+    "WeaponAnimConfig[configKey].textureGrips[textureKey]",
+    "WeaponAnimConfig[configKey].grip",
+    "legacy gripOffset fallback"
+  ],
+  "newBaseGrips": {
+    "pistol": [0.30, 0.57],
+    "p4040": [0.19, 0.58],
+    "deagle": [0.28, 0.57],
+    "revolver": [0.22, 0.57],
+    "beretta93r": [0.18, 0.57],
+    "m1911a1": [0.22, 0.57],
+    "usp45": [0.23, 0.57],
+    "fiveSeven": [0.23, 0.57],
+    "eternalEdict": [0.15, 0.56],
+    "falconEdict": [0.24, 0.56],
+    "crimsonCrownSettlement": [0.24, 0.56],
+    "myriadCorridor": [0.23, 0.57]
+  },
+  "newTextureGrips": {
+    "weapon_super90": [0.43, 0.57],
+    "weapon_saiga12k": [0.46, 0.56]
+  },
+  "staticCoverage": {
+    "runtimeFirearms": 46,
+    "resolvedExplicitGrip": 46,
+    "missingGrip": 0,
+    "consumers": [
+      "GameScene main-hand sync",
+      "GameScene offhand sync",
+      "precise ADS muzzle alignment",
+      "push-strike mount transition",
+      "T-panel render, hit test, arm IK and dual preview"
+    ]
+  },
+  "excluded": [
+    "reload animation",
+    "fire rate, recoil amount, damage and ammo values",
+    "new firearm texture generation",
+    "runtime acceptance claim"
+  ]
+}

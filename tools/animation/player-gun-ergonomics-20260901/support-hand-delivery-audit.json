@@ -1,0 +1,280 @@
+{
+  "configParity": true,
+  "frameCount": 14,
+  "sheetStats": {
+    "main": {
+      "path": "assets/player/gun_aim_frames.png",
+      "width": 7168,
+      "height": 516,
+      "blankFrames": [],
+      "frames": [
+        {
+          "frame": 0,
+          "alphaPixels": 2969
+        },
+        {
+          "frame": 1,
+          "alphaPixels": 2852
+        },
+        {
+          "frame": 2,
+          "alphaPixels": 2925
+        },
+        {
+          "frame": 3,
+          "alphaPixels": 2811
+        },
+        {
+          "frame": 4,
+          "alphaPixels": 2634
+        },
+        {
+          "frame": 5,
+          "alphaPixels": 2607
+        },
+        {
+          "frame": 6,
+          "alphaPixels": 2325
+        },
+        {
+          "frame": 7,
+          "alphaPixels": 2395
+        },
+        {
+          "frame": 8,
+          "alphaPixels": 1959
+        },
+        {
+          "frame": 9,
+          "alphaPixels": 1855
+        },
+        {
+          "frame": 10,
+          "alphaPixels": 1702
+        },
+        {
+          "frame": 11,
+          "alphaPixels": 1616
+        },
+        {
+          "frame": 12,
+          "alphaPixels": 1618
+        },
+        {
+          "frame": 13,
+          "alphaPixels": 1589
+        }
+      ]
+    },
+    "rifleLmgSupport": {
+      "path": "assets/player/gun_aim_support_frames.png",
+      "width": 7168,
+      "height": 516,
+      "blankFrames": [],
+      "frames": [
+        {
+          "frame": 0,
+          "alphaPixels": 5049
+        },
+        {
+          "frame": 1,
+          "alphaPixels": 5582
+        },
+        {
+          "frame": 2,
+          "alphaPixels": 5649
+        },
+        {
+          "frame": 3,
+          "alphaPixels": 5713
+        },
+        {
+          "frame": 4,
+          "alphaPixels": 5774
+        },
+        {
+          "frame": 5,
+          "alphaPixels": 6123
+        },
+        {
+          "frame": 6,
+          "alphaPixels": 6176
+        },
+        {
+          "frame": 7,
+          "alphaPixels": 6126
+        },
+        {
+          "frame": 8,
+          "alphaPixels": 6177
+        },
+        {
+          "frame": 9,
+          "alphaPixels": 5642
+        },
+        {
+          "frame": 10,
+          "alphaPixels": 5684
+        },
+        {
+          "frame": 11,
+          "alphaPixels": 5738
+        },
+        {
+          "frame": 12,
+          "alphaPixels": 5765
+        },
+        {
+          "frame": 13,
+          "alphaPixels": 5708
+        }
+      ]
+    },
+    "shotgunSupport": {
+      "path": "assets/player/gun_aim_support_frames_shotgun.png",
+      "width": 7168,
+      "height": 516,
+      "blankFrames": [],
+      "frames": [
+        {
+          "frame": 0,
+          "alphaPixels": 4860
+        },
+        {
+          "frame": 1,
+          "alphaPixels": 5398
+        },
+        {
+          "frame": 2,
+          "alphaPixels": 5472
+        },
+        {
+          "frame": 3,
+          "alphaPixels": 5531
+        },
+        {
+          "frame": 4,
+          "alphaPixels": 5585
+        },
+        {
+          "frame": 5,
+          "alphaPixels": 5486
+        },
+        {
+          "frame": 6,
+          "alphaPixels": 5532
+        },
+        {
+          "frame": 7,
+          "alphaPixels": 5256
+        },
+        {
+          "frame": 8,
+          "alphaPixels": 5300
+        },
+        {
+          "frame": 9,
+          "alphaPixels": 5156
+        },
+        {
+          "frame": 10,
+          "alphaPixels": 5191
+        },
+        {
+          "frame": 11,
+          "alphaPixels": 5251
+        },
+        {
+          "frame": 12,
+          "alphaPixels": 5268
+        },
+        {
+          "frame": 13,
+          "alphaPixels": 5212
+        }
+      ]
+    }
+  },
+  "familyFrameDiffs": [
+    {
+      "frame": 0,
+      "differentPixels": 2400
+    },
+    {
+      "frame": 1,
+      "differentPixels": 2516
+    },
+    {
+      "frame": 2,
+      "differentPixels": 2506
+    },
+    {
+      "frame": 3,
+      "differentPixels": 2519
+    },
+    {
+      "frame": 4,
+      "differentPixels": 2506
+    },
+    {
+      "frame": 5,
+      "differentPixels": 3038
+    },
+    {
+      "frame": 6,
+      "differentPixels": 3057
+    },
+    {
+      "frame": 7,
+      "differentPixels": 3000
+    },
+    {
+      "frame": 8,
+      "differentPixels": 2992
+    },
+    {
+      "frame": 9,
+      "differentPixels": 2162
+    },
+    {
+      "frame": 10,
+      "differentPixels": 2162
+    },
+    {
+      "frame": 11,
+      "differentPixels": 2163
+    },
+    {
+      "frame": 12,
+      "differentPixels": 2155
+    },
+    {
+      "frame": 13,
+      "differentPixels": 1996
+    }
+  ],
+  "runtime": {
+    "candidateCounts": {
+      "rifles": 11,
+      "shotguns": 12,
+      "machine_guns": 11
+    },
+    "screenshotCount": 42,
+    "maxRearContactError": 1.016845989170083e-12,
+    "maxSupportContactError": 0,
+    "maxSupportGuardError": 0,
+    "shotgunSamples": 13,
+    "leftMirrorSamples": 6
+  },
+  "failures": {
+    "incompleteAds": [],
+    "hiddenSupport": [],
+    "wrongShotgunVariant": [],
+    "shotgunVariantLeak": [],
+    "wrongLeftMirror": [],
+    "rearContact": [],
+    "contact": [],
+    "guard": []
+  },
+  "pass": true
+}

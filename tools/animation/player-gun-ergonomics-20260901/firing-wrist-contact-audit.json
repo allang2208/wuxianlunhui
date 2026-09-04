@@ -1,0 +1,738 @@
+{
+  "assetRevision": "firing-hand-v5-wrist-bridge-v1",
+  "method": "source-pixel wrist bridge joins the arm component to the exact rear-grip sprite origin; old palm and fingers remain removed",
+  "runtimeTransformReference": "tools/verify-shots/gun-ads-runtime-20260901/runtime-metadata.json",
+  "note": "runtime metadata supplies transforms only; the audited arm and hand pixels are the current rebuilt assets",
+  "frameAudits": [
+    {
+      "frameIndex": 0,
+      "connected": true,
+      "rearGrip": {
+        "x": 366,
+        "y": 210.5
+      },
+      "nearestArmPixel": {
+        "x": 366,
+        "y": 210
+      },
+      "nearestArmPixelDistance": 0.5,
+      "armComponentPixels": 2186,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 1,
+      "connected": true,
+      "rearGrip": {
+        "x": 367.9,
+        "y": 210.7
+      },
+      "nearestArmPixel": {
+        "x": 368,
+        "y": 211
+      },
+      "nearestArmPixelDistance": 0.316,
+      "armComponentPixels": 2090,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 2,
+      "connected": true,
+      "rearGrip": {
+        "x": 368.4,
+        "y": 210.4
+      },
+      "nearestArmPixel": {
+        "x": 368,
+        "y": 210
+      },
+      "nearestArmPixelDistance": 0.566,
+      "armComponentPixels": 2129,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 3,
+      "connected": true,
+      "rearGrip": {
+        "x": 369.8,
+        "y": 202.9
+      },
+      "nearestArmPixel": {
+        "x": 370,
+        "y": 203
+      },
+      "nearestArmPixelDistance": 0.224,
+      "armComponentPixels": 2048,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 4,
+      "connected": true,
+      "rearGrip": {
+        "x": 371.9,
+        "y": 189.4
+      },
+      "nearestArmPixel": {
+        "x": 372,
+        "y": 189
+      },
+      "nearestArmPixelDistance": 0.412,
+      "armComponentPixels": 1886,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 5,
+      "connected": true,
+      "rearGrip": {
+        "x": 371.9,
+        "y": 168.4
+      },
+      "nearestArmPixel": {
+        "x": 372,
+        "y": 168
+      },
+      "nearestArmPixelDistance": 0.412,
+      "armComponentPixels": 1840,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 6,
+      "connected": true,
+      "rearGrip": {
+        "x": 366.8,
+        "y": 143.3
+      },
+      "nearestArmPixel": {
+        "x": 367,
+        "y": 143
+      },
+      "nearestArmPixelDistance": 0.361,
+      "armComponentPixels": 1595,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 7,
+      "connected": true,
+      "rearGrip": {
+        "x": 360.5,
+        "y": 127.9
+      },
+      "nearestArmPixel": {
+        "x": 360,
+        "y": 128
+      },
+      "nearestArmPixelDistance": 0.51,
+      "armComponentPixels": 1436,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 8,
+      "connected": true,
+      "rearGrip": {
+        "x": 351.1,
+        "y": 117
+      },
+      "nearestArmPixel": {
+        "x": 351,
+        "y": 117
+      },
+      "nearestArmPixelDistance": 0.1,
+      "armComponentPixels": 1302,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 9,
+      "connected": true,
+      "rearGrip": {
+        "x": 344,
+        "y": 111.9
+      },
+      "nearestArmPixel": {
+        "x": 344,
+        "y": 112
+      },
+      "nearestArmPixelDistance": 0.1,
+      "armComponentPixels": 1224,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 10,
+      "connected": true,
+      "rearGrip": {
+        "x": 340.5,
+        "y": 109.5
+      },
+      "nearestArmPixel": {
+        "x": 340,
+        "y": 109
+      },
+      "nearestArmPixelDistance": 0.707,
+      "armComponentPixels": 1139,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 11,
+      "connected": true,
+      "rearGrip": {
+        "x": 338.5,
+        "y": 109.7
+      },
+      "nearestArmPixel": {
+        "x": 338,
+        "y": 110
+      },
+      "nearestArmPixelDistance": 0.583,
+      "armComponentPixels": 1083,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 12,
+      "connected": true,
+      "rearGrip": {
+        "x": 338.2,
+        "y": 109.8
+      },
+      "nearestArmPixel": {
+        "x": 338,
+        "y": 110
+      },
+      "nearestArmPixelDistance": 0.283,
+      "armComponentPixels": 1071,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    },
+    {
+      "frameIndex": 13,
+      "connected": true,
+      "rearGrip": {
+        "x": 338.3,
+        "y": 109.6
+      },
+      "nearestArmPixel": {
+        "x": 338,
+        "y": 110
+      },
+      "nearestArmPixelDistance": 0.5,
+      "armComponentPixels": 1062,
+      "reachesSurvivingForearm": true,
+      "firingHandAnchorAlpha": 255
+    }
+  ],
+  "supportFrameAudits": [
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 0,
+      "connected": true,
+      "shoulder": {
+        "x": 197.3,
+        "y": 93.4
+      },
+      "contact": {
+        "x": 240,
+        "y": 221
+      },
+      "shoulderPixelDistance": 0.5,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5045
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 1,
+      "connected": true,
+      "shoulder": {
+        "x": 198.41,
+        "y": 93.71
+      },
+      "contact": {
+        "x": 259,
+        "y": 220
+      },
+      "shoulderPixelDistance": 0.502,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5530
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 2,
+      "connected": true,
+      "shoulder": {
+        "x": 199.52,
+        "y": 94.02
+      },
+      "contact": {
+        "x": 278,
+        "y": 218
+      },
+      "shoulderPixelDistance": 0.48,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5595
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 3,
+      "connected": true,
+      "shoulder": {
+        "x": 200.62,
+        "y": 94.32
+      },
+      "contact": {
+        "x": 298,
+        "y": 213
+      },
+      "shoulderPixelDistance": 0.497,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5662
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 4,
+      "connected": true,
+      "shoulder": {
+        "x": 201.73,
+        "y": 94.63
+      },
+      "contact": {
+        "x": 318,
+        "y": 207
+      },
+      "shoulderPixelDistance": 0.458,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5698
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 5,
+      "connected": true,
+      "shoulder": {
+        "x": 202.84,
+        "y": 94.94
+      },
+      "contact": {
+        "x": 338,
+        "y": 191
+      },
+      "shoulderPixelDistance": 0.171,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 6065
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 6,
+      "connected": true,
+      "shoulder": {
+        "x": 203.95,
+        "y": 95.25
+      },
+      "contact": {
+        "x": 342,
+        "y": 169
+      },
+      "shoulderPixelDistance": 0.255,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 6118
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 7,
+      "connected": true,
+      "shoulder": {
+        "x": 205.05,
+        "y": 95.55
+      },
+      "contact": {
+        "x": 357,
+        "y": 153
+      },
+      "shoulderPixelDistance": 0.453,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 6077
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 8,
+      "connected": true,
+      "shoulder": {
+        "x": 206.16,
+        "y": 95.86
+      },
+      "contact": {
+        "x": 379,
+        "y": 139
+      },
+      "shoulderPixelDistance": 0.213,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 6139
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 9,
+      "connected": true,
+      "shoulder": {
+        "x": 207.27,
+        "y": 96.17
+      },
+      "contact": {
+        "x": 391,
+        "y": 129
+      },
+      "shoulderPixelDistance": 0.319,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5578
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 10,
+      "connected": true,
+      "shoulder": {
+        "x": 208.38,
+        "y": 96.48
+      },
+      "contact": {
+        "x": 404,
+        "y": 121
+      },
+      "shoulderPixelDistance": 0.612,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5637
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 11,
+      "connected": true,
+      "shoulder": {
+        "x": 209.48,
+        "y": 96.78
+      },
+      "contact": {
+        "x": 420,
+        "y": 114
+      },
+      "shoulderPixelDistance": 0.528,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5680
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 12,
+      "connected": true,
+      "shoulder": {
+        "x": 210.59,
+        "y": 97.09
+      },
+      "contact": {
+        "x": 437,
+        "y": 108
+      },
+      "shoulderPixelDistance": 0.42,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5681
+    },
+    {
+      "variant": "rifle_lmg",
+      "frameIndex": 13,
+      "connected": true,
+      "shoulder": {
+        "x": 211.7,
+        "y": 97.4
+      },
+      "contact": {
+        "x": 454,
+        "y": 101
+      },
+      "shoulderPixelDistance": 0.5,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5657
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 0,
+      "connected": true,
+      "shoulder": {
+        "x": 197.3,
+        "y": 93.4
+      },
+      "contact": {
+        "x": 240,
+        "y": 221
+      },
+      "shoulderPixelDistance": 0.5,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 4857
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 1,
+      "connected": true,
+      "shoulder": {
+        "x": 198.41,
+        "y": 93.71
+      },
+      "contact": {
+        "x": 259,
+        "y": 220
+      },
+      "shoulderPixelDistance": 0.502,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5351
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 2,
+      "connected": true,
+      "shoulder": {
+        "x": 199.52,
+        "y": 94.02
+      },
+      "contact": {
+        "x": 278,
+        "y": 218
+      },
+      "shoulderPixelDistance": 0.48,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5415
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 3,
+      "connected": true,
+      "shoulder": {
+        "x": 200.62,
+        "y": 94.32
+      },
+      "contact": {
+        "x": 298,
+        "y": 213
+      },
+      "shoulderPixelDistance": 0.497,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5477
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 4,
+      "connected": true,
+      "shoulder": {
+        "x": 201.73,
+        "y": 94.63
+      },
+      "contact": {
+        "x": 317,
+        "y": 206
+      },
+      "shoulderPixelDistance": 0.458,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5521
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 5,
+      "connected": true,
+      "shoulder": {
+        "x": 202.84,
+        "y": 94.94
+      },
+      "contact": {
+        "x": 337,
+        "y": 191
+      },
+      "shoulderPixelDistance": 0.171,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5452
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 6,
+      "connected": true,
+      "shoulder": {
+        "x": 203.95,
+        "y": 95.25
+      },
+      "contact": {
+        "x": 355,
+        "y": 170
+      },
+      "shoulderPixelDistance": 0.255,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5493
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 7,
+      "connected": true,
+      "shoulder": {
+        "x": 205.05,
+        "y": 95.55
+      },
+      "contact": {
+        "x": 369,
+        "y": 155
+      },
+      "shoulderPixelDistance": 0.453,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5163
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 8,
+      "connected": true,
+      "shoulder": {
+        "x": 206.16,
+        "y": 95.86
+      },
+      "contact": {
+        "x": 381,
+        "y": 144
+      },
+      "shoulderPixelDistance": 0.213,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5237
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 9,
+      "connected": true,
+      "shoulder": {
+        "x": 207.27,
+        "y": 96.17
+      },
+      "contact": {
+        "x": 391,
+        "y": 135
+      },
+      "shoulderPixelDistance": 0.319,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5094
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 10,
+      "connected": true,
+      "shoulder": {
+        "x": 208.38,
+        "y": 96.48
+      },
+      "contact": {
+        "x": 407,
+        "y": 126
+      },
+      "shoulderPixelDistance": 0.612,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5112
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 11,
+      "connected": true,
+      "shoulder": {
+        "x": 209.48,
+        "y": 96.78
+      },
+      "contact": {
+        "x": 421,
+        "y": 120
+      },
+      "shoulderPixelDistance": 0.528,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5143
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 12,
+      "connected": true,
+      "shoulder": {
+        "x": 210.59,
+        "y": 97.09
+      },
+      "contact": {
+        "x": 440,
+        "y": 113
+      },
+      "shoulderPixelDistance": 0.42,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5153
+    },
+    {
+      "variant": "shotgun",
+      "frameIndex": 13,
+      "connected": true,
+      "shoulder": {
+        "x": 211.7,
+        "y": 97.4
+      },
+      "contact": {
+        "x": 454,
+        "y": 107
+      },
+      "shoulderPixelDistance": 0.5,
+      "contactPixelDistance": 0,
+      "armComponentPixels": 5173
+    }
+  ],
+  "transformSamples": 588,
+  "transformFailures": [],
+  "anglePreviewOrder": [
+    {
+      "name": "AKM",
+      "family": "rifles",
+      "pose": "right_up"
+    },
+    {
+      "name": "AKM",
+      "family": "rifles",
+      "pose": "right_level"
+    },
+    {
+      "name": "SAIGA-12K",
+      "family": "shotguns",
+      "pose": "right_level"
+    },
+    {
+      "name": "AKM",
+      "family": "rifles",
+      "pose": "right_down"
+    },
+    {
+      "name": "AKM",
+      "family": "rifles",
+      "pose": "left_up"
+    },
+    {
+      "name": "AKM",
+      "family": "rifles",
+      "pose": "left_level"
+    },
+    {
+      "name": "M416",
+      "family": "rifles",
+      "pose": "left_level"
+    },
+    {
+      "name": "AKM",
+      "family": "rifles",
+      "pose": "left_down"
+    }
+  ],
+  "transitionPreview": {
+    "name": "AKM",
+    "pose": "right_level",
+    "frames": [
+      0,
+      13
+    ]
+  },
+  "outputs": {
+    "angleSheet": "tools/animation/player-gun-ergonomics-20260901/firing-wrist-angle-audit.png",
+    "transitionSheet": "tools/animation/player-gun-ergonomics-20260901/firing-wrist-transition-audit.png"
+  }
+}

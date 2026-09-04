@@ -197,6 +197,9 @@ const baseMixin = {
         for (const slotKey of Object.keys(this.equipments)) {
             const it = this.equipments[slotKey];
             if (!it) continue;
+            // 备用盾与非法主手盾均不提供属性；只计算当前武器组配对副手。
+            if (it.weaponType === 'shield'
+                && slotKey !== (this.weaponMode === 'weapon' ? 'offhand' : 'ring2')) continue;
             const el = it.enhanceLevel || 0;
             const bs = it.bonusStats || {};
             const pe = it.bonusPerEnhance || {};

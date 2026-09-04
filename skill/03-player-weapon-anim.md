@@ -73,6 +73,7 @@
 - **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
 - **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
 - **枪械握把轴心（2026-07-26）**：`WeaponAnimConfig[wt].grip {x, y}`（贴图内握把点 0~1 分数，缺省中心）——游戏内/面板统一以握把为旋转轴与锚点（360 瞄准不滑手）；扭转激活时锚点在躯干空间计算（禁止 localToWorld 按 player.rotation 公转，否则与扭转轨道叠加成双重旋转）。
+- **手枪真实掌心合同（2026-09-01）**：`gun_idle_pistol` / `gun_idle_dual` 的手臂条是绕肩旋转的静态刚体，不会因枪锚点前移而伸长；“贴图 grip 正好落在逻辑锚点”不等于画面中的掌心真的碰到枪把。运行时对 `PISTOL_FAMILY` 主手在 `_computeGunAnchor()` 末端按当前肩点与 `arm.pivot→hand` 原生长度作径向收口，必须保留瞄准射线、左右镜像、双持偏移、aimLift 与 bob；副手仍按双持姿态烘焙手位和独立 `offBase`。验收时同时量 `weapon grip→anchor` 与 `visible palm→grip`，站立掌心误差应 ≤0.05px，移动含帧间 bob 时应 ≤0.75px。
 - **冲刺攻击 Lerp 模式（2026-08-12）**：`sword.dashLerp { type:'lerp', grip:{x,y},
   from:{x,y,rotation}, to:{x,y,rotation}, scale, stretchX/Y, blurPeak }`——剑柄锚手 +
   起始/结束双端点线性插值（位置 + 角度），替代 30 帧 perFrame 手调。铁律：
@@ -167,7 +168,10 @@
 4. **双手枪冲刺开火（V0.262/263）**：开火=非奔跑——`_twoHandedGunFiring` 从 `_isSprinting` 与烟尘门排除（腿回 walklegs、武器回 walking 位、不出烟尘）；**注意第二道闸**：枪开火 `weaponAnim.state='attacking'` 会触发 `_updatePlayerAnimation` 的"攻击不覆盖"early-return 冻结腿层——已加枪械放行（近战守卫不变；枪攻击动画在武器层，playerSprite 只载腿/躯干）。
 5. **武器位置基准（AKM 标准，六双手枪械已逐字段同步）**：holdOffsetX −64 / holdOffsetY −4（top/idle/walk 全状态块）、grip (0.29,0.54)、idleScale/idleRotation 统一；**合理保留的 per-weapon 差异**：muzzle（按各自贴图枪管实测）、recoilAmount/timingMul/renderParams（手感参数）。手枪类基准=沙漠之鹰（另一族，不混）。
 6. **回退路径**：删配置里 aimFrames 节即自动回 Tier1 aimLift 抬升（配置保留休眠）；完整回退点 `backup/2026-07-27-aimanim/`（纯 aimLift）与 `backup/2026-07-27-aimanim-v2/`（重做前快照）。
-7. **步枪 ADS 纵向微调口径（2026-08-26）**：需要让武器与持枪手臂一起升降时，在`public/data/weapon-anim-config.json`对应枪型使用逐武器`aimAdjustY`；正值为下移，运行时在`_computeGunAnchor()`的`aimFrames`分支随`_aimEase`混合，因此腰射保持不变，持枪手臂会追随同一握把锚点。`aimSpriteOffsetY`在记录`_gunGripWorld`后才移动渲染贴图，不会带动手臂，只允许用于贴图自身握点/透明画布偏差。两者不得无意叠加；把旧枪从贴图补偿迁移到手臂联动补偿时，应移除等值`aimSpriteOffsetY`以保持最终武器位置不重复偏移。按整类调整时以`src/config/gun-ammo.js`的`WEAPON_CATEGORIES.rifle`为范围真源，逐项显式落盘并排除机枪、手枪和霰弹枪；当前自动步枪统一基线为`aimAdjustY: 5`。
+7. **步枪 ADS 纵向微调口径（2026-08-26；2026-09-01握把契约修订）**：需要让整套瞄准姿态随抬枪轨迹一起升降时，在`public/data/weapon-anim-config.json`对应枪型使用逐武器`aimAdjustY`；正值为下移，运行时在`_computeGunAnchor()`的`aimFrames`分支随`_aimEase`混合，因此腰射保持不变。`aimSpriteOffsetY`与`spriteOffsetY`只用于修正具体贴图的透明画布/握点布局，但主握枪手不能停在偏移前的理论点：`_gunGripWorld`必须在这些视觉偏移叠加后、贴图中心补偿前记录，托举手则继续从最终Weapon Sprite变换解到逐贴图`supportGrip`，由此保证两只手追随玩家真正看到的枪体。`aimAdjustY`与贴图补偿不得无意叠加；迁移旧参数时应保持最终枪位不重复偏移。按整类调整时以`src/config/gun-ammo.js`的`WEAPON_CATEGORIES.rifle`为范围真源，逐项显式落盘并排除机枪、手枪和霰弹枪；当前自动步枪统一基线为`aimAdjustY: 5`。
+8. **长枪双手接触合同（2026-09-01）**：后握把 `grip` 是枪械唯一旋转/位移轴，`supportGrip` 只驱动托举臂，禁止用双手间距反推或平移枪体。主握枪臂、枪械和独立后手应分层：先画腕部主臂，再画枪，最后把包握手前景钉到应用完 `spriteOffset/aimSpriteOffset` 后的真实后握把；这样握把穿过虎口和回扣手指，而不是漂在张掌上。托举臂以躯干肩点为根，逐武器读取贴图内护木/泵把下缘的 `supportGrip`，再按武器 Sprite 的 origin、实际显示宽高、旋转和镜像解世界点。
+9. **掌缘锚点与 ADS 过渡（2026-09-01）**：`supportHands` 是骨架解算端点，卷指帧中可能落在掌内透明空腔，不能兼任视觉接触点；另存逐帧 `supportContacts`（散弹枪可用 `supportContactVariants.shotgun`），要求锚点本身落在非透明掌缘/指缘。抬枪前段保留素材原生伸手轨迹，使用平滑 `_aimEase` 从 authored contact 混到逐枪护木点；完全 ADS 才严格锁定接触，不能从第0帧强拉到护木导致整臂异常伸长。审计需同时覆盖逐贴图 Alpha、左右镜像、上下瞄准和过渡全帧，不能只看水平末帧。
+10. **持盾步行分层与逐帧副手挂点（2026-09-01）**：长按格挡允许低速步行但禁止奔跑，上身由举盾 Rig 固定、下身单独消费 walk 循环；若旧 walk 图的摆臂像素越过通用髋线，必须先量旧手臂的最深 Alpha，再把腿层裁线下移并保留安全重叠带（当前源图上臂最深约 y=313，`lowerCropY=320`、`upperCutY=336`），不能只按人体理论腰线裁。非格挡持盾行走不叠加随机/墙钟抖动，而是按当前帧读取副手掌点与轻微倾角；普通 walk 与剑类 body 替换入口必须共享同一 `shieldBinding`，盾牌和手臂/手掌使用同一次 flip、origin、rotation、display-size 变换。判断腿层状态要同时检查 `anims.isPlaying`，因为 `stop()` 后 `currentAnim` 仍可能保留旧引用。
 
 ---
 

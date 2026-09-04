@@ -69,6 +69,25 @@ export class BootScene extends Scene {
                         this.load.spritesheet(`${texKey}_aimframes`, af.src, {
                             frameWidth: af.frameWidth, frameHeight: af.frameHeight, endFrame: (af.frameCount || 1) - 1
                         });
+                        // 后手从主臂中拆出：独立贴到每把枪的真实后握把，并在武器前景显示
+                        // 包握轮廓。帧数仍跟随 aimFrames，尺寸可独立于 512×516 主臂。
+                        if (af.firingHandSrc) {
+                            this.load.spritesheet(`${texKey}_aimfiringhand`, af.firingHandSrc, {
+                                frameWidth: af.firingHandFrameWidth || af.frameWidth,
+                                frameHeight: af.firingHandFrameHeight || af.frameHeight,
+                                endFrame: (af.frameCount || 1) - 1
+                            });
+                        }
+                        if (af.supportSrc) {
+                            this.load.spritesheet(`${texKey}_aimsupport`, af.supportSrc, {
+                                frameWidth: af.frameWidth, frameHeight: af.frameHeight, endFrame: (af.frameCount || 1) - 1
+                            });
+                        }
+                        for (const [variant, variantSrc] of Object.entries(af.supportVariants || {})) {
+                            this.load.spritesheet(`${texKey}_aimsupport_${variant}`, variantSrc, {
+                                frameWidth: af.frameWidth, frameHeight: af.frameHeight, endFrame: (af.frameCount || 1) - 1
+                            });
+                        }
                     }
                 }
             } else if (def.type === 'sheet') {
@@ -1541,9 +1560,14 @@ export class BootScene extends Scene {
             // aimFrames 逐帧镜像烘焙（整 sheet 翻转会颠倒帧序，必须按帧槽位逐帧镜像）
             if (def.twist.aimFrames) {
                 const af = def.twist.aimFrames;
-                const afKey = `${playerTextureKey(animKey)}_aimframes`;
-                const afImg = this.textures.get(afKey) && this.textures.get(afKey).getSourceImage();
-                if (afImg && afImg.width) {
+                const aimLayerKeys = [
+                    `${playerTextureKey(animKey)}_aimframes`,
+                    af.supportSrc ? `${playerTextureKey(animKey)}_aimsupport` : null,
+                    ...Object.keys(af.supportVariants || {}).map((variant) => `${playerTextureKey(animKey)}_aimsupport_${variant}`),
+                ].filter(Boolean);
+                for (const afKey of aimLayerKeys) {
+                    const afImg = this.textures.get(afKey) && this.textures.get(afKey).getSourceImage();
+                    if (!afImg || !afImg.width) continue;
                     const count = af.frameCount || 1;
                     const fw = af.frameWidth, fh = af.frameHeight;
                     const canvas = document.createElement('canvas');
