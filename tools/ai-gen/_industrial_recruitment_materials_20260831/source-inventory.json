@@ -1,0 +1,2712 @@
+{
+  "recon_camp": {
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/rework_tier_materials_20260828/thatch_hut_lv2_model.blend",
+    "render": {
+      "engine": "BLENDER_EEVEE",
+      "exposure": -0.25,
+      "transform": "Standard",
+      "camera": "World122_Ortho_Camera_30deg"
+    },
+    "materials": {
+      "MAT_Aged_Brass": [
+        "ThatchHutLV2_CompassCrest_Ring",
+        "ThatchHutLV2_Lookout_SignalPennant_00",
+        "ThatchHutLV2_Lookout_SignalPennant_01"
+      ],
+      "MAT_Blackened_Iron": [
+        "ThatchHutLV2_CommandEntrance_DarkInterior",
+        "ThatchHutLV2_CommandEntrance_Band_-1_-26",
+        "ThatchHutLV2_CommandEntrance_Band_-1_0",
+        "ThatchHutLV2_CommandEntrance_Band_-1_26",
+        "ThatchHutLV2_CommandEntrance_Hinge_-1_-30",
+        "ThatchHutLV2_CommandEntrance_Hinge_-1_30",
+        "ThatchHutLV2_CommandEntrance_Ring_-1",
+        "ThatchHutLV2_CommandEntrance_Band_+1_-26",
+        "ThatchHutLV2_CommandEntrance_Band_+1_0",
+        "ThatchHutLV2_CommandEntrance_Band_+1_26",
+        "ThatchHutLV2_CommandEntrance_Hinge_+1_-30",
+        "ThatchHutLV2_CommandEntrance_Hinge_+1_30",
+        "ThatchHutLV2_CommandEntrance_Ring_+1",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_MullionV",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_MullionH",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_-18",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_+0",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_+18",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_-18",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_+0",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_+18",
+        "ThatchHutLV2_CommandLonghouse_SideWindow_MullionV",
+        "ThatchHutLV2_CommandLonghouse_SideWindow_MullionH",
+        "ThatchHutLV2_CompassCrest_Ray_0",
+        "ThatchHutLV2_CompassCrest_Ray_1",
+        "ThatchHutLV2_CompassCrest_Ray_2",
+        "ThatchHutLV2_CompassCrest_Ray_3",
+        "ThatchHutLV2_CommandLantern_Bracket",
+        "ThatchHutLV2_CommandLantern_Cage",
+        "ThatchHutLV2_CommandLantern_Top",
+        "ThatchHutLV2_CommandLantern_Bottom",
+        "ThatchHutLV2_Lookout_ObservationWindow_MullionV",
+        "ThatchHutLV2_Lookout_ObservationWindow_MullionH",
+        "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_-18",
+        "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_+0",
+        "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_+18",
+        "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_-18",
+        "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_+0",
+        "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_+18"
+      ],
+      "MAT_Dark_Oak": [
+        "ThatchHutLV2_CommandLonghouse_RidgePole",
+        "ThatchHutLV2_CommandLonghouse_FrontBottomBand",
+        "ThatchHutLV2_CommandLonghouse_FrontTopBand",
+        "ThatchHutLV2_CommandLonghouse_FrontPost_00",
+        "ThatchHutLV2_CommandLonghouse_FrontPost_01",
+        "ThatchHutLV2_CommandLonghouse_FrontPost_02",
+        "ThatchHutLV2_CommandLonghouse_FrontPost_03",
+        "ThatchHutLV2_CommandLonghouse_FrontPost_04",
+        "ThatchHutLV2_CommandLonghouse_FrontPost_05",
+        "ThatchHutLV2_CommandLonghouse_RightSidePost_00",
+        "ThatchHutLV2_CommandLonghouse_RightSidePost_01",
+        "ThatchHutLV2_CommandLonghouse_RightSidePost_02",
+        "ThatchHutLV2_CommandLonghouse_RightSideBeam",
+        "ThatchHutLV2_CommandEntrance_Leaf_-1",
+        "ThatchHutLV2_CommandEntrance_Leaf_+1",
+        "ThatchHutLV2_CommandEntrance_Lintel",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_Frame",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_Shutter_-1",
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_Shutter_+1",
+        "ThatchHutLV2_CommandLonghouse_SideWindow_Frame",
+        "ThatchHutLV2_Lookout_LeftFrontPost",
+        "ThatchHutLV2_Lookout_LeftRearPost",
+        "ThatchHutLV2_Lookout_RightFrontPost",
+        "ThatchHutLV2_Lookout_RightRearPost",
+        "ThatchHutLV2_Lookout_ObservationDeck",
+        "ThatchHutLV2_Lookout_ObservationWindow_Frame",
+        "ThatchHutLV2_Lookout_ObservationWindow_Shutter_-1",
+        "ThatchHutLV2_Lookout_ObservationWindow_Shutter_+1",
+        "ThatchHutLV2_Lookout_RidgeFinial",
+        "ThatchHutLV2_Lookout_Railing_Front",
+        "ThatchHutLV2_Lookout_Railing_Back",
+        "ThatchHutLV2_Lookout_Railing_Left",
+        "ThatchHutLV2_Lookout_Railing_Right",
+        "ThatchHutLV2_Lookout_LadderRail_-1",
+        "ThatchHutLV2_Lookout_LadderRail_+1",
+        "ThatchHutLV2_Lookout_LadderRung_00",
+        "ThatchHutLV2_Lookout_LadderRung_01",
+        "ThatchHutLV2_Lookout_LadderRung_02",
+        "ThatchHutLV2_Lookout_LadderRung_03",
+        "ThatchHutLV2_Lookout_LadderRung_04",
+        "ThatchHutLV2_Lookout_LadderRung_05",
+        "ThatchHutLV2_Lookout_CommandConnector",
+        "ThatchHutLV2_Lookout_SignalMast",
+        "ThatchHutLV2_SupplyAwning_Post_+94",
+        "ThatchHutLV2_SupplyAwning_Post_+194",
+        "ThatchHutLV2_SupplyMapCase"
+      ],
+      "MAT_Fieldstone_Foundation": [
+        "ThatchHutLV2_TierCompoundFoundation"
+      ],
+      "MAT_Straw": [
+        "ThatchHutLV2_SupplyScoutPack"
+      ],
+      "MAT_ThatchHutLV2_AgedClayTile": [
+        "ThatchHutLV2_CommandLonghouse_ContinuousCommandRoof",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_01",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_02",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_03",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_04",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_05",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_06",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_07",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_08",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_09",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_10",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_11",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_01",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_02",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_03",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_04",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_05",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_06",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_07",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_08",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_09",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_10",
+        "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_11",
+        "ThatchHutLV2_Lookout_TierCanopy",
+        "ThatchHutLV2_SupplyAwning_ClayTileRoof"
+      ],
+      "MAT_ThatchHutLV2_WeatheredBrick": [
+        "ThatchHutLV2_CommandLonghouse_CommandShell",
+        "ThatchHutLV2_CommandLonghouse_ContinuousCommandRoof",
+        "ThatchHutLV2_Lookout_ObservationCabin"
+      ],
+      "MAT_Warm_Glass": [
+        "ThatchHutLV2_CommandLonghouse_FrontWindow_Glass",
+        "ThatchHutLV2_CommandLonghouse_SideWindow_Glass",
+        "ThatchHutLV2_Lookout_ObservationWindow_Glass"
+      ],
+      "MAT_Warm_Glow": [
+        "ThatchHutLV2_CommandLantern_Glow"
+      ],
+      "MAT_Weathered_Stone": [
+        "ThatchHutLV2_CommandLonghouse_BaseSkirt",
+        "ThatchHutLV2_CommandEntrance_LeftJamb",
+        "ThatchHutLV2_CommandEntrance_RightJamb",
+        "ThatchHutLV2_Lookout_ReinforcedFoot"
+      ]
+    },
+    "objects": [
+      {
+        "name": "ThatchHutLV2_TierCompoundFoundation",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_BaseSkirt",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_CommandShell",
+        "materials": [
+          "MAT_ThatchHutLV2_WeatheredBrick"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_ContinuousCommandRoof",
+        "materials": [
+          "MAT_ThatchHutLV2_WeatheredBrick",
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_01",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_02",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_03",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_04",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_05",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_06",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_07",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_08",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_09",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_10",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S-1_Row_11",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_01",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_02",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_03",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_04",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_05",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_06",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_07",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_08",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_09",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_10",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RoofSurfaceCourse_S+1_Row_11",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RidgePole",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontBottomBand",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontTopBand",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontPost_00",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontPost_01",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontPost_02",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontPost_03",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontPost_04",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontPost_05",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RightSidePost_00",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RightSidePost_01",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RightSidePost_02",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_RightSideBeam",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_DarkInterior",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Leaf_-1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Band_-1_-26",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Band_-1_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Band_-1_26",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Hinge_-1_-30",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Hinge_-1_30",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Ring_-1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Leaf_+1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Band_+1_-26",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Band_+1_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Band_+1_26",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Hinge_+1_-30",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Hinge_+1_30",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Ring_+1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_LeftJamb",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_RightJamb",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandEntrance_Lintel",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_Frame",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_Glass",
+        "materials": [
+          "MAT_Warm_Glass"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_MullionV",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_MullionH",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_Shutter_-1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_-18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_+0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_-1_+18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_Shutter_+1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_-18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_+0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_FrontWindow_ShutterBand_+1_+18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_SideWindow_Frame",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_SideWindow_Glass",
+        "materials": [
+          "MAT_Warm_Glass"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_SideWindow_MullionV",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLonghouse_SideWindow_MullionH",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CompassCrest_Ring",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CompassCrest_Ray_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CompassCrest_Ray_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CompassCrest_Ray_2",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CompassCrest_Ray_3",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLantern_Bracket",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLantern_Cage",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLantern_Glow",
+        "materials": [
+          "MAT_Warm_Glow"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLantern_Top",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_CommandLantern_Bottom",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ReinforcedFoot",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LeftFrontPost",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LeftRearPost",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_RightFrontPost",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_RightRearPost",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationDeck",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationCabin",
+        "materials": [
+          "MAT_ThatchHutLV2_WeatheredBrick"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_Frame",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_Glass",
+        "materials": [
+          "MAT_Warm_Glass"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_MullionV",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_MullionH",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_Shutter_-1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_-18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_+0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_-1_+18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_Shutter_+1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_-18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_+0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_ObservationWindow_ShutterBand_+1_+18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_TierCanopy",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_RidgeFinial",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_Railing_Front",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_Railing_Back",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_Railing_Left",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_Railing_Right",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRail_-1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRail_+1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRung_00",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRung_01",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRung_02",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRung_03",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRung_04",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_LadderRung_05",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_CommandConnector",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_SignalMast",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_SignalPennant_00",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_Lookout_SignalPennant_01",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_SupplyAwning_ClayTileRoof",
+        "materials": [
+          "MAT_ThatchHutLV2_AgedClayTile"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_SupplyAwning_Post_+94",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_SupplyAwning_Post_+194",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_SupplyMapCase",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ThatchHutLV2_SupplyScoutPack",
+        "materials": [
+          "MAT_Straw"
+        ]
+      }
+    ]
+  },
+  "infantry_barracks": {
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/rework_axis_symmetric_20260828/hamster_barracks_lv2_axis_symmetric_model.blend",
+    "render": {
+      "engine": "BLENDER_EEVEE",
+      "exposure": -0.25,
+      "transform": "Standard",
+      "camera": "World122_Ortho_Camera_30deg"
+    },
+    "materials": {
+      "MAT_Aged_Brass": [
+        "BarracksLV2_RomanLeftTower_LegionStandard_Crossbar",
+        "BarracksLV2_RomanLeftTower_LegionStandard_GoldTopTrim",
+        "BarracksLV2_RomanLeftTower_LegionStandard_SpearFinial",
+        "BarracksLV2_RomanRightTower_LegionStandard_Crossbar",
+        "BarracksLV2_RomanRightTower_LegionStandard_GoldTopTrim",
+        "BarracksLV2_RomanRightTower_LegionStandard_SpearFinial",
+        "BarracksLV2_RomanGatehouse_GoldEaglePlaque",
+        "BarracksLV2_RomanGatehouse_PlaqueWingLeft",
+        "BarracksLV2_RomanGatehouse_PlaqueWingRight"
+      ],
+      "MAT_BarracksLV2_LegionCrimson": [
+        "BarracksLV2_RomanLeftTower_LegionStandard_CrimsonCloth",
+        "BarracksLV2_RomanRightTower_LegionStandard_CrimsonCloth"
+      ],
+      "MAT_BarracksLV2_LegionCrimsonDark": [
+        "BarracksLV2_RomanLeftTower_LegionStandard_DarkLowerTrim",
+        "BarracksLV2_RomanRightTower_LegionStandard_DarkLowerTrim",
+        "BarracksLV2_RomanGatehouse_DarkPortal"
+      ],
+      "MAT_Blackened_Iron": [
+        "BarracksLV2_RomanLeftTower_LegionStandard_Pole",
+        "BarracksLV2_RomanRightTower_LegionStandard_Pole"
+      ],
+      "MAT_Fieldstone_Foundation": [
+        "Barracks_Foundation",
+        "BarracksLV2_RomanHall_FlatRoofDeck",
+        "BarracksLV2_RomanHall_FrontMerlon_0",
+        "BarracksLV2_RomanHall_FrontMerlon_1",
+        "BarracksLV2_RomanHall_FrontMerlon_2",
+        "BarracksLV2_RomanHall_FrontMerlon_3",
+        "BarracksLV2_RomanHall_FrontMerlon_4",
+        "BarracksLV2_RomanHall_RearMerlon_0",
+        "BarracksLV2_RomanHall_RearMerlon_1",
+        "BarracksLV2_RomanHall_RearMerlon_2",
+        "BarracksLV2_RomanHall_RearMerlon_3",
+        "BarracksLV2_RomanHall_RearMerlon_4",
+        "BarracksLV2_RomanHall_LeftMerlon_0",
+        "BarracksLV2_RomanHall_LeftMerlon_1",
+        "BarracksLV2_RomanHall_LeftMerlon_2",
+        "BarracksLV2_RomanHall_RightMerlon_0",
+        "BarracksLV2_RomanHall_RightMerlon_1",
+        "BarracksLV2_RomanHall_RightMerlon_2",
+        "BarracksLV2_RomanLeftTower_StonePlinth",
+        "BarracksLV2_RomanLeftTower_CourseBand_0",
+        "BarracksLV2_RomanLeftTower_CourseBand_1",
+        "BarracksLV2_RomanLeftTower_CourseBand_2",
+        "BarracksLV2_RomanLeftTower_ParapetDeck",
+        "BarracksLV2_RomanLeftTower_FrontMerlon_0",
+        "BarracksLV2_RomanLeftTower_RearMerlon_0",
+        "BarracksLV2_RomanLeftTower_FrontMerlon_1",
+        "BarracksLV2_RomanLeftTower_RearMerlon_1",
+        "BarracksLV2_RomanLeftTower_FrontMerlon_2",
+        "BarracksLV2_RomanLeftTower_RearMerlon_2",
+        "BarracksLV2_RomanLeftTower_OuterSideMerlon",
+        "BarracksLV2_RomanLeftTower_InnerSideMerlon",
+        "BarracksLV2_RomanRightTower_StonePlinth",
+        "BarracksLV2_RomanRightTower_CourseBand_0",
+        "BarracksLV2_RomanRightTower_CourseBand_1",
+        "BarracksLV2_RomanRightTower_CourseBand_2",
+        "BarracksLV2_RomanRightTower_ParapetDeck",
+        "BarracksLV2_RomanRightTower_FrontMerlon_0",
+        "BarracksLV2_RomanRightTower_RearMerlon_0",
+        "BarracksLV2_RomanRightTower_FrontMerlon_1",
+        "BarracksLV2_RomanRightTower_RearMerlon_1",
+        "BarracksLV2_RomanRightTower_FrontMerlon_2",
+        "BarracksLV2_RomanRightTower_RearMerlon_2",
+        "BarracksLV2_RomanRightTower_OuterSideMerlon",
+        "BarracksLV2_RomanRightTower_InnerSideMerlon",
+        "BarracksLV2_RomanGatehouse_StoneArch",
+        "BarracksLV2_RomanGatehouse_LeftJamb",
+        "BarracksLV2_RomanGatehouse_RightJamb",
+        "BarracksLV2_RomanGatehouse_WallWalk",
+        "BarracksLV2_RomanGatehouse_FrontMerlon_0",
+        "BarracksLV2_RomanGatehouse_FrontMerlon_1",
+        "BarracksLV2_RomanGatehouse_FrontMerlon_2",
+        "BarracksLV2_RomanGatehouse_FrontMerlon_3",
+        "BarracksLV2_RomanGatehouse_FrontMerlon_4"
+      ],
+      "MAT_Muted_Plaster": [
+        "BarracksLV2_RomanHall_WarmPlaster",
+        "BarracksLV2_RomanGatehouse_LeftPilaster",
+        "BarracksLV2_RomanGatehouse_RightPilaster"
+      ],
+      "MAT_Weathered_Stone": [
+        "BarracksLV2_RomanHall_StoneBase",
+        "BarracksLV2_RomanHall_FrontParapet",
+        "BarracksLV2_RomanHall_RearParapet",
+        "BarracksLV2_RomanHall_LeftParapet",
+        "BarracksLV2_RomanHall_RightParapet",
+        "BarracksLV2_RomanLeftTower_Shaft",
+        "BarracksLV2_RomanRightTower_Shaft",
+        "BarracksLV2_RomanGatehouse_Body"
+      ]
+    },
+    "objects": [
+      {
+        "name": "Barracks_Foundation",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_StoneBase",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_WarmPlaster",
+        "materials": [
+          "MAT_Muted_Plaster"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_FlatRoofDeck",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_FrontParapet",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RearParapet",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_LeftParapet",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RightParapet",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_FrontMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_FrontMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_FrontMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_FrontMerlon_3",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_FrontMerlon_4",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RearMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RearMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RearMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RearMerlon_3",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RearMerlon_4",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_LeftMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_LeftMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_LeftMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RightMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RightMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanHall_RightMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_Shaft",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_StonePlinth",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_CourseBand_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_CourseBand_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_CourseBand_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_ParapetDeck",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_FrontMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_RearMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_FrontMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_RearMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_FrontMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_RearMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_OuterSideMerlon",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_InnerSideMerlon",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_LegionStandard_Pole",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_LegionStandard_Crossbar",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_LegionStandard_CrimsonCloth",
+        "materials": [
+          "MAT_BarracksLV2_LegionCrimson"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_LegionStandard_GoldTopTrim",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_LegionStandard_DarkLowerTrim",
+        "materials": [
+          "MAT_BarracksLV2_LegionCrimsonDark"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanLeftTower_LegionStandard_SpearFinial",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_Shaft",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_StonePlinth",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_CourseBand_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_CourseBand_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_CourseBand_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_ParapetDeck",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_FrontMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_RearMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_FrontMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_RearMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_FrontMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_RearMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_OuterSideMerlon",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_InnerSideMerlon",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_LegionStandard_Pole",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_LegionStandard_Crossbar",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_LegionStandard_CrimsonCloth",
+        "materials": [
+          "MAT_BarracksLV2_LegionCrimson"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_LegionStandard_GoldTopTrim",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_LegionStandard_DarkLowerTrim",
+        "materials": [
+          "MAT_BarracksLV2_LegionCrimsonDark"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanRightTower_LegionStandard_SpearFinial",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_Body",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_DarkPortal",
+        "materials": [
+          "MAT_BarracksLV2_LegionCrimsonDark"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_StoneArch",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_LeftJamb",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_LeftPilaster",
+        "materials": [
+          "MAT_Muted_Plaster"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_RightJamb",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_RightPilaster",
+        "materials": [
+          "MAT_Muted_Plaster"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_WallWalk",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_FrontMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_FrontMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_FrontMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_FrontMerlon_3",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_FrontMerlon_4",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_GoldEaglePlaque",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_PlaqueWingLeft",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "BarracksLV2_RomanGatehouse_PlaqueWingRight",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      }
+    ]
+  },
+  "rifle_range": {
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model.blend",
+    "render": {
+      "engine": "BLENDER_EEVEE",
+      "exposure": -0.25,
+      "transform": "Standard",
+      "camera": "World122_Ortho_Camera_30deg"
+    },
+    "materials": {
+      "MAT_Aged_Brass": [
+        "ShootingRangeLV2_BannerCrossbar",
+        "ShootingRangeLV2_LeftAmmoCrate_Base_Latch",
+        "ShootingRangeLV2_LeftAmmoCrate_Upper_Latch",
+        "ShootingRangeLV2_LeftAmmoCrate_Front_Latch",
+        "ShootingRangeLV2_RightAmmoCrate_Base_Latch",
+        "ShootingRangeLV2_RightAmmoCrate_Upper_Latch",
+        "ShootingRangeLV2_RightAmmoCrate_Front_Latch"
+      ],
+      "MAT_Aged_Roof": [
+        "ShootingRangeLV2_Armory_Roof"
+      ],
+      "MAT_Blackened_Iron": [
+        "ShootingRangeLV2_Armory_Door_Band_-1_-29",
+        "ShootingRangeLV2_Armory_Door_Band_-1_0",
+        "ShootingRangeLV2_Armory_Door_Band_-1_29",
+        "ShootingRangeLV2_Armory_Door_Hinge_-1_-33",
+        "ShootingRangeLV2_Armory_Door_Hinge_-1_33",
+        "ShootingRangeLV2_Armory_Door_Ring_-1",
+        "ShootingRangeLV2_Armory_Door_Band_+1_-29",
+        "ShootingRangeLV2_Armory_Door_Band_+1_0",
+        "ShootingRangeLV2_Armory_Door_Band_+1_29",
+        "ShootingRangeLV2_Armory_Door_Hinge_+1_-33",
+        "ShootingRangeLV2_Armory_Door_Hinge_+1_33",
+        "ShootingRangeLV2_Armory_Door_Ring_+1",
+        "ShootingRangeLV2_Armory_Window_MullionV",
+        "ShootingRangeLV2_Armory_Window_MullionH",
+        "ShootingRangeLV2_Armory_Window_ShutterBand_-1_-18",
+        "ShootingRangeLV2_Armory_Window_ShutterBand_-1_+0",
+        "ShootingRangeLV2_Armory_Window_ShutterBand_-1_+18",
+        "ShootingRangeLV2_Armory_Window_ShutterBand_+1_-18",
+        "ShootingRangeLV2_Armory_Window_ShutterBand_+1_+0",
+        "ShootingRangeLV2_Armory_Window_ShutterBand_+1_+18",
+        "ShootingRangeLV2_Target_0_Center",
+        "ShootingRangeLV2_Target_1_Center",
+        "ShootingRangeLV2_Target_2_Center",
+        "ShootingRangeLV2_WeaponRack_Rail_56",
+        "ShootingRangeLV2_WeaponRack_Rail_114",
+        "ShootingRangeLV2_Matchlock_0_Barrel",
+        "ShootingRangeLV2_Matchlock_1_Barrel",
+        "ShootingRangeLV2_Matchlock_2_Barrel",
+        "ShootingRangeLV2_LeftAmmoCrate_Base_IronBand_0",
+        "ShootingRangeLV2_LeftAmmoCrate_Base_IronBand_1",
+        "ShootingRangeLV2_LeftAmmoCrate_Upper_IronBand_0",
+        "ShootingRangeLV2_LeftAmmoCrate_Upper_IronBand_1",
+        "ShootingRangeLV2_LeftAmmoCrate_Front_IronBand_0",
+        "ShootingRangeLV2_LeftAmmoCrate_Front_IronBand_1",
+        "ShootingRangeLV2_RightAmmoCrate_Base_IronBand_0",
+        "ShootingRangeLV2_RightAmmoCrate_Base_IronBand_1",
+        "ShootingRangeLV2_RightAmmoCrate_Upper_IronBand_0",
+        "ShootingRangeLV2_RightAmmoCrate_Upper_IronBand_1",
+        "ShootingRangeLV2_RightAmmoCrate_Front_IronBand_0",
+        "ShootingRangeLV2_RightAmmoCrate_Front_IronBand_1",
+        "ShootingRangeLV2_PowderKeg_0_Hoop_0",
+        "ShootingRangeLV2_PowderKeg_0_Hoop_1",
+        "ShootingRangeLV2_PowderKeg_1_Hoop_0",
+        "ShootingRangeLV2_PowderKeg_1_Hoop_1",
+        "ShootingRangeLV2_ArrowHead_0_0",
+        "ShootingRangeLV2_ArrowHead_0_1",
+        "ShootingRangeLV2_ArrowHead_0_2",
+        "ShootingRangeLV2_ArrowHead_0_3",
+        "ShootingRangeLV2_ArrowHead_1_0",
+        "ShootingRangeLV2_ArrowHead_1_1",
+        "ShootingRangeLV2_ArrowHead_1_2",
+        "ShootingRangeLV2_ArrowHead_1_3",
+        "ShootingRangeLV2_FiringLantern_Left_Bracket",
+        "ShootingRangeLV2_FiringLantern_Left_Cage",
+        "ShootingRangeLV2_FiringLantern_Left_Top",
+        "ShootingRangeLV2_FiringLantern_Left_Bottom",
+        "ShootingRangeLV2_FiringLantern_Right_Bracket",
+        "ShootingRangeLV2_FiringLantern_Right_Cage",
+        "ShootingRangeLV2_FiringLantern_Right_Top",
+        "ShootingRangeLV2_FiringLantern_Right_Bottom"
+      ],
+      "MAT_Dark_Oak": [
+        "ShootingRangeLV2_Armory_Roof",
+        "ShootingRangeLV2_SingleRoof_Ridge",
+        "ShootingRangeLV2_SingleRoof_FrontFascia",
+        "ShootingRangeLV2_SingleRoof_RearFascia",
+        "ShootingRangeLV2_Armory_Timber_BottomBand",
+        "ShootingRangeLV2_Armory_Timber_TopBand",
+        "ShootingRangeLV2_Armory_Timber_Post_00",
+        "ShootingRangeLV2_Armory_Timber_Post_01",
+        "ShootingRangeLV2_Armory_Timber_Post_02",
+        "ShootingRangeLV2_Armory_Timber_Post_03",
+        "ShootingRangeLV2_Armory_Timber_Post_04",
+        "ShootingRangeLV2_Armory_Timber_Brace_00",
+        "ShootingRangeLV2_Armory_Timber_Brace_01",
+        "ShootingRangeLV2_Armory_Timber_Brace_02",
+        "ShootingRangeLV2_Armory_Timber_Brace_03",
+        "ShootingRangeLV2_Armory_Door_Leaf_-1",
+        "ShootingRangeLV2_Armory_Door_Leaf_+1",
+        "ShootingRangeLV2_Armory_Window_Frame",
+        "ShootingRangeLV2_Armory_Window_Shutter_-1",
+        "ShootingRangeLV2_Armory_Window_Shutter_+1",
+        "ShootingRangeLV2_FiringPost_LeftOuter",
+        "ShootingRangeLV2_FiringPost_LeftOuter_Bracket",
+        "ShootingRangeLV2_FiringPost_LeftInner",
+        "ShootingRangeLV2_FiringPost_LeftInner_Bracket",
+        "ShootingRangeLV2_FiringPost_RightInner",
+        "ShootingRangeLV2_FiringPost_RightInner_Bracket",
+        "ShootingRangeLV2_FiringPost_RightOuter",
+        "ShootingRangeLV2_FiringPost_RightOuter_Bracket",
+        "ShootingRangeLV2_FiringBench_Left",
+        "ShootingRangeLV2_FiringBench_Left_Leg_-32",
+        "ShootingRangeLV2_FiringBench_Left_Leg_+32",
+        "ShootingRangeLV2_FiringBench_Right",
+        "ShootingRangeLV2_FiringBench_Right_Leg_-32",
+        "ShootingRangeLV2_FiringBench_Right_Leg_+32",
+        "ShootingRangeLV2_Target_0_Post",
+        "ShootingRangeLV2_Target_0_Foot",
+        "ShootingRangeLV2_Target_0_MiddleRing",
+        "ShootingRangeLV2_Target_1_Post",
+        "ShootingRangeLV2_Target_1_Foot",
+        "ShootingRangeLV2_Target_1_MiddleRing",
+        "ShootingRangeLV2_Target_2_Post",
+        "ShootingRangeLV2_Target_2_Foot",
+        "ShootingRangeLV2_Target_2_MiddleRing",
+        "ShootingRangeLV2_WeaponRack_Back",
+        "ShootingRangeLV2_Longbow_0_Upper",
+        "ShootingRangeLV2_Longbow_0_Lower",
+        "ShootingRangeLV2_Longbow_1_Upper",
+        "ShootingRangeLV2_Longbow_1_Lower",
+        "ShootingRangeLV2_Matchlock_0_Stock",
+        "ShootingRangeLV2_Matchlock_1_Stock",
+        "ShootingRangeLV2_Matchlock_2_Stock",
+        "ShootingRangeLV2_LeftAmmoCrate_Base",
+        "ShootingRangeLV2_LeftAmmoCrate_Upper",
+        "ShootingRangeLV2_LeftAmmoCrate_Front",
+        "ShootingRangeLV2_RightAmmoCrate_Base",
+        "ShootingRangeLV2_RightAmmoCrate_Upper",
+        "ShootingRangeLV2_RightAmmoCrate_Front",
+        "ShootingRangeLV2_PowderKeg_0",
+        "ShootingRangeLV2_PowderKeg_1",
+        "ShootingRangeLV2_ArrowQuiver_0",
+        "ShootingRangeLV2_ArrowBundle_0_0",
+        "ShootingRangeLV2_ArrowBundle_0_1",
+        "ShootingRangeLV2_ArrowBundle_0_2",
+        "ShootingRangeLV2_ArrowBundle_0_3",
+        "ShootingRangeLV2_ArrowQuiver_1",
+        "ShootingRangeLV2_ArrowBundle_1_0",
+        "ShootingRangeLV2_ArrowBundle_1_1",
+        "ShootingRangeLV2_ArrowBundle_1_2",
+        "ShootingRangeLV2_ArrowBundle_1_3"
+      ],
+      "MAT_Fieldstone_Foundation": [
+        "ShootingRangeLV2_FortifiedFoundation",
+        "ShootingRangeLV2_LeftWallMerlon_0",
+        "ShootingRangeLV2_LeftWallMerlon_1",
+        "ShootingRangeLV2_LeftWallMerlon_2",
+        "ShootingRangeLV2_RightWallMerlon_0",
+        "ShootingRangeLV2_RightWallMerlon_1",
+        "ShootingRangeLV2_RightWallMerlon_2",
+        "ShootingRangeLV2_FrontLeftMerlon_0",
+        "ShootingRangeLV2_FrontLeftMerlon_1",
+        "ShootingRangeLV2_FrontLeftMerlon_2",
+        "ShootingRangeLV2_FrontRightMerlon_0",
+        "ShootingRangeLV2_FrontRightMerlon_1",
+        "ShootingRangeLV2_FrontRightMerlon_2",
+        "ShootingRangeLV2_LeftAmmoCrate_Base_LidRail",
+        "ShootingRangeLV2_LeftAmmoCrate_Upper_LidRail",
+        "ShootingRangeLV2_LeftAmmoCrate_Front_LidRail",
+        "ShootingRangeLV2_RightAmmoCrate_Base_LidRail",
+        "ShootingRangeLV2_RightAmmoCrate_Upper_LidRail",
+        "ShootingRangeLV2_RightAmmoCrate_Front_LidRail"
+      ],
+      "MAT_Muted_Plaster": [
+        "ShootingRangeLV2_Armory_PlasterUpper"
+      ],
+      "MAT_ShootingRangeLV2_Crimson": [
+        "ShootingRangeLV2_CrimsonRangeBanner"
+      ],
+      "MAT_Straw": [
+        "ShootingRangeLV2_Target_0_Outer",
+        "ShootingRangeLV2_Target_1_Outer",
+        "ShootingRangeLV2_Target_2_Outer"
+      ],
+      "MAT_Warm_Glass": [
+        "ShootingRangeLV2_Armory_Window_Glass"
+      ],
+      "MAT_Warm_Glow": [
+        "ShootingRangeLV2_FiringLantern_Left_Glow",
+        "ShootingRangeLV2_FiringLantern_Right_Glow"
+      ],
+      "MAT_Weathered_Stone": [
+        "ShootingRangeLV2_Armory_StoneHall",
+        "ShootingRangeLV2_LeftBoundaryWall",
+        "ShootingRangeLV2_RightBoundaryWall",
+        "ShootingRangeLV2_FrontBoundary_Left",
+        "ShootingRangeLV2_FrontBoundary_Right"
+      ]
+    },
+    "objects": [
+      {
+        "name": "ShootingRangeLV2_FortifiedFoundation",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_StoneHall",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_PlasterUpper",
+        "materials": [
+          "MAT_Muted_Plaster"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Roof",
+        "materials": [
+          "MAT_Dark_Oak",
+          "MAT_Aged_Roof"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_SingleRoof_Ridge",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_SingleRoof_FrontFascia",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_SingleRoof_RearFascia",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_BottomBand",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_TopBand",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Post_00",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Post_01",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Post_02",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Post_03",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Post_04",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Brace_00",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Brace_01",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Brace_02",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Timber_Brace_03",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Leaf_-1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Band_-1_-29",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Band_-1_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Band_-1_29",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Hinge_-1_-33",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Hinge_-1_33",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Ring_-1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Leaf_+1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Band_+1_-29",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Band_+1_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Band_+1_29",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Hinge_+1_-33",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Hinge_+1_33",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Door_Ring_+1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_Frame",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_Glass",
+        "materials": [
+          "MAT_Warm_Glass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_MullionV",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_MullionH",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_Shutter_-1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_ShutterBand_-1_-18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_ShutterBand_-1_+0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_ShutterBand_-1_+18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_Shutter_+1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_ShutterBand_+1_-18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_ShutterBand_+1_+0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Armory_Window_ShutterBand_+1_+18",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftBoundaryWall",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightBoundaryWall",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontBoundary_Left",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontBoundary_Right",
+        "materials": [
+          "MAT_Weathered_Stone"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftWallMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftWallMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftWallMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightWallMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightWallMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightWallMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontLeftMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontLeftMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontLeftMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontRightMerlon_0",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontRightMerlon_1",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FrontRightMerlon_2",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_LeftOuter",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_LeftOuter_Bracket",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_LeftInner",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_LeftInner_Bracket",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_RightInner",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_RightInner_Bracket",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_RightOuter",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringPost_RightOuter_Bracket",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringBench_Left",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringBench_Left_Leg_-32",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringBench_Left_Leg_+32",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringBench_Right",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringBench_Right_Leg_-32",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringBench_Right_Leg_+32",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_0_Post",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_0_Foot",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_0_Outer",
+        "materials": [
+          "MAT_Straw"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_0_MiddleRing",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_0_Center",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_1_Post",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_1_Foot",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_1_Outer",
+        "materials": [
+          "MAT_Straw"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_1_MiddleRing",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_1_Center",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_2_Post",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_2_Foot",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_2_Outer",
+        "materials": [
+          "MAT_Straw"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_2_MiddleRing",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Target_2_Center",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_WeaponRack_Back",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_WeaponRack_Rail_56",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_WeaponRack_Rail_114",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Longbow_0_Upper",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Longbow_0_Lower",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Longbow_1_Upper",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Longbow_1_Lower",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Matchlock_0_Stock",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Matchlock_0_Barrel",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Matchlock_1_Stock",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Matchlock_1_Barrel",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Matchlock_2_Stock",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_Matchlock_2_Barrel",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_CrimsonRangeBanner",
+        "materials": [
+          "MAT_ShootingRangeLV2_Crimson"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_BannerCrossbar",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Base",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Base_IronBand_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Base_IronBand_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Base_LidRail",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Base_Latch",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Upper",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Upper_IronBand_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Upper_IronBand_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Upper_LidRail",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Upper_Latch",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Front",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Front_IronBand_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Front_IronBand_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Front_LidRail",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_LeftAmmoCrate_Front_Latch",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Base",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Base_IronBand_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Base_IronBand_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Base_LidRail",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Base_Latch",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Upper",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Upper_IronBand_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Upper_IronBand_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Upper_LidRail",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Upper_Latch",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Front",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Front_IronBand_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Front_IronBand_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Front_LidRail",
+        "materials": [
+          "MAT_Fieldstone_Foundation"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_RightAmmoCrate_Front_Latch",
+        "materials": [
+          "MAT_Aged_Brass"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_PowderKeg_0",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_PowderKeg_0_Hoop_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_PowderKeg_0_Hoop_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_PowderKeg_1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_PowderKeg_1_Hoop_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_PowderKeg_1_Hoop_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowQuiver_0",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_0_0",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_0_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_0_1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_0_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_0_2",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_0_2",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_0_3",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_0_3",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowQuiver_1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_1_0",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_1_0",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_1_1",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_1_1",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_1_2",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_1_2",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowBundle_1_3",
+        "materials": [
+          "MAT_Dark_Oak"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_ArrowHead_1_3",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Left_Bracket",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Left_Cage",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Left_Glow",
+        "materials": [
+          "MAT_Warm_Glow"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Left_Top",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Left_Bottom",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Right_Bracket",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Right_Cage",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Right_Glow",
+        "materials": [
+          "MAT_Warm_Glow"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Right_Top",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      },
+      {
+        "name": "ShootingRangeLV2_FiringLantern_Right_Bottom",
+        "materials": [
+          "MAT_Blackened_Iron"
+        ]
+      }
+    ]
+  }
+}

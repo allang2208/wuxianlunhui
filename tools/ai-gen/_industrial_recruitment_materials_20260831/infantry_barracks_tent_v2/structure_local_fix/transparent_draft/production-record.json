@@ -1,0 +1,127 @@
+{
+  "recordedAt": "2026-08-31T14:42:14.806860+08:00",
+  "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_raw.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "output": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/transparent_draft/transparent.png",
+  "outputSize": [
+    1156,
+    960
+  ],
+  "outputMode": "RGBA",
+  "alphaExtrema": [
+    0,
+    255
+  ],
+  "keyRgb": [
+    11.0,
+    230.0,
+    19.0
+  ],
+  "softInner": 50,
+  "softOuter": 130,
+  "transparentPixelsWithDirtyRgb": 0,
+  "materialSamples": {
+    "tent_canvas": {
+      "rect": [
+        245,
+        788,
+        325,
+        851
+      ],
+      "pixels": 5040,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 159.48981158682207
+    },
+    "tent_roof": {
+      "rect": [
+        539,
+        620,
+        599,
+        670
+      ],
+      "pixels": 3000,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 160.85707942145413
+    },
+    "tower_roof": {
+      "rect": [
+        780,
+        260,
+        820,
+        300
+      ],
+      "pixels": 1600,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 165.20593209688326
+    },
+    "ground": {
+      "rect": [
+        710,
+        981,
+        765,
+        1000
+      ],
+      "pixels": 1045,
+      "alphaBelow255": 0,
+      "minimumKeyDistance": 183.68179006096386
+    }
+  },
+  "oldDepthUsedForAlpha": false,
+  "removeAllGreen": false,
+  "fillHoles": false,
+  "runtimeIntegrationActive": false,
+  "limitations": "Native pixel crop only; display metadata is not runtime calibration. Offline asset production and previews only, no tests/build/game validation.",
+  "commands": [
+    [
+      "key-world122-building-body.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\barracks_structure_corrected_raw.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\keyed.png",
+      "--soft-key-inner",
+      "50",
+      "--soft-key-outer",
+      "130"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\keyed.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\spatial.png",
+      "--display-width",
+      "1254",
+      "--padding",
+      "1254",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\spatial-metadata.json"
+    ],
+    [
+      "repair-local-green-spill.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\spatial.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\body_full.png",
+      "--rect",
+      "0,0,1254,1254",
+      "--min-green",
+      "30",
+      "--green-margin",
+      "8",
+      "--min-alpha",
+      "1",
+      "--max-edge-distance",
+      "8"
+    ],
+    [
+      "finalize-building-runtime.py",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\body_full.png",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\transparent.png",
+      "--display-width",
+      "1156",
+      "--padding",
+      "4",
+      "--preserve-alpha-exact",
+      "--nearest-opaque-edge-rgb",
+      "--metadata",
+      "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_industrial_recruitment_materials_20260831\\infantry_barracks_tent_v2\\structure_local_fix\\transparent_draft\\crop-metadata.json"
+    ]
+  ]
+}

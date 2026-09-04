@@ -1,0 +1,497 @@
+{
+  "id": "infantry_barracks",
+  "name": "近代军营",
+  "source": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/rework_axis_symmetric_20260828/hamster_barracks_lv2_axis_symmetric_model.blend",
+  "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/rework_axis_symmetric_20260828/hamster_barracks_lv2_axis_symmetric_model_approval_preview.png",
+  "materialDirection": "低饱和棕灰砖墙、灰石压顶、钢制门面、卡其军旗；保留中央拱门、对称双塔、城垛及原有旗形。",
+  "outputBlend": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks/infantry_barracks_material_model.blend",
+  "preview": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks/infantry_barracks_material_approval_preview.png",
+  "assignments": [
+    {
+      "object": "Barracks_Foundation",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Quiet_Fieldstone"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_StoneBase",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_WarmPlaster",
+      "slot": 0,
+      "from": "MAT_Muted_Plaster",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_FlatRoofDeck",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_FrontParapet",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RearParapet",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_LeftParapet",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RightParapet",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_FrontMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_FrontMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_FrontMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_FrontMerlon_3",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_FrontMerlon_4",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RearMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RearMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RearMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RearMerlon_3",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RearMerlon_4",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_LeftMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_LeftMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_LeftMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RightMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RightMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanHall_RightMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_Shaft",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_StonePlinth",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_CourseBand_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_CourseBand_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_CourseBand_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_ParapetDeck",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_FrontMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_RearMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_FrontMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_RearMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_FrontMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_RearMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_OuterSideMerlon",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_InnerSideMerlon",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_LegionStandard_Pole",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_LegionStandard_Crossbar",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_LegionStandard_CrimsonCloth",
+      "slot": 0,
+      "from": "MAT_BarracksLV2_LegionCrimson",
+      "to": "IND_Khaki_Canvas"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_LegionStandard_GoldTopTrim",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_LegionStandard_DarkLowerTrim",
+      "slot": 0,
+      "from": "MAT_BarracksLV2_LegionCrimsonDark",
+      "to": "IND_Portal_Shadow"
+    },
+    {
+      "object": "BarracksLV2_RomanLeftTower_LegionStandard_SpearFinial",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_Shaft",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_StonePlinth",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_CourseBand_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_CourseBand_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_CourseBand_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_ParapetDeck",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_FrontMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_RearMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_FrontMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_RearMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_FrontMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_RearMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_OuterSideMerlon",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_InnerSideMerlon",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_LegionStandard_Pole",
+      "slot": 0,
+      "from": "MAT_Blackened_Iron",
+      "to": "IND_Blackened_Iron"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_LegionStandard_Crossbar",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_LegionStandard_CrimsonCloth",
+      "slot": 0,
+      "from": "MAT_BarracksLV2_LegionCrimson",
+      "to": "IND_Khaki_Canvas"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_LegionStandard_GoldTopTrim",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_LegionStandard_DarkLowerTrim",
+      "slot": 0,
+      "from": "MAT_BarracksLV2_LegionCrimsonDark",
+      "to": "IND_Portal_Shadow"
+    },
+    {
+      "object": "BarracksLV2_RomanRightTower_LegionStandard_SpearFinial",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_Body",
+      "slot": 0,
+      "from": "MAT_Weathered_Stone",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_DarkPortal",
+      "slot": 0,
+      "from": "MAT_BarracksLV2_LegionCrimsonDark",
+      "to": "IND_Matte_Painted_Steel"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_StoneArch",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_LeftJamb",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_LeftPilaster",
+      "slot": 0,
+      "from": "MAT_Muted_Plaster",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_RightJamb",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_RightPilaster",
+      "slot": 0,
+      "from": "MAT_Muted_Plaster",
+      "to": "IND_Industrial_Brick"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_WallWalk",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_FrontMerlon_0",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_FrontMerlon_1",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_FrontMerlon_2",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_FrontMerlon_3",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_FrontMerlon_4",
+      "slot": 0,
+      "from": "MAT_Fieldstone_Foundation",
+      "to": "IND_Grey_CastStone_Trim"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_GoldEaglePlaque",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_PlaqueWingLeft",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    },
+    {
+      "object": "BarracksLV2_RomanGatehouse_PlaqueWingRight",
+      "slot": 0,
+      "from": "MAT_Aged_Brass",
+      "to": "IND_Dull_Oxidized_Brass"
+    }
+  ],
+  "meshCount": 80,
+  "geometryChanged": false,
+  "cameraChanged": false,
+  "lightingChanged": false,
+  "approved": false,
+  "runtimeIntegrated": false
+}

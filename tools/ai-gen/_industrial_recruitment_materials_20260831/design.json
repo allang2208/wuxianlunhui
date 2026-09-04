@@ -1,0 +1,31 @@
+{
+  "stage": "material-model-proposal-not-approved",
+  "era": "近代工业时代",
+  "styleReference": "tools/ai-gen/prompts/world122-building-style.md",
+  "geometryPolicy": "Reuse the archived editable model exactly. Change only material slots and procedural surface shaders; no object, mesh, modifier, transform, camera or light changes.",
+  "runtimeIntegration": false,
+  "buildings": [
+    {
+      "id": "recon_camp",
+      "name": "近代侦察营地",
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/rework_tier_materials_20260828/thatch_hut_lv2_model.blend",
+      "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/rework_tier_materials_20260828/thatch_hut_lv2_model_approval_preview.png",
+      "materialDirection": "灰米砖墙、灰绿金属屋面、暗钢瞭望架、卡其补给包；保留主厅、单塔、梯子、补给棚与罗盘。"
+    },
+    {
+      "id": "infantry_barracks",
+      "name": "近代军营",
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/rework_axis_symmetric_20260828/hamster_barracks_lv2_axis_symmetric_model.blend",
+      "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/rework_axis_symmetric_20260828/hamster_barracks_lv2_axis_symmetric_model_approval_preview.png",
+      "materialDirection": "低饱和棕灰砖墙、灰石压顶、钢制门面、卡其军旗；保留中央拱门、对称双塔、城垛及原有旗形。"
+    },
+    {
+      "id": "rifle_range",
+      "name": "近代靶场",
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model.blend",
+      "sourcePreview": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model_approval_preview.png",
+      "materialDirection": "灰砖围墙、灰蓝金属棚顶、暗钢立柱、保留木质射击台，靶面改为米白黑环；原三靶位置不动。",
+      "sourceCaveat": "Current AI-finished runtime sprite includes a roof tower absent from the archived editable model. This proposal preserves the editable source geometry; it does not claim pixel-identical geometry to the AI-finished runtime image. Existing bow and musket props are retained under the material-only scope."
+    }
+  ]
+}

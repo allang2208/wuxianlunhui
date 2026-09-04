@@ -1,0 +1,14 @@
+{
+  "status": "explicitly_approved_by_user",
+  "recordedAt": "2026-08-31T06:15:11.337Z",
+  "userStatement": "同意",
+  "destination": "http://192.168.3.142:8188",
+  "assets": [
+    "industrial_barracks_tent_v2",
+    "rifle_range_industrial"
+  ],
+  "payload": "Each building's Depth PNG, prepared prompts and generation parameters; at 48-step refinement also its selected 12-step full raw PNG.",
+  "scope": "Sequential standard 12-step and 48-step generation for barracks V2 followed by rifle range, followed by local transparent asset delivery.",
+  "excluded": "Blender models, project source code, saves, unrelated images, other destinations and runtime installation.",
+  "approvedQuestion": "是否允许将这两栋的 Depth、提示词，以及后续选中的12步原图发送到局域网 192.168.3.142:8188，逐栋完成12/48步生图？"
+}

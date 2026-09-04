@@ -1,0 +1,84 @@
+{
+  "host": "192.168.3.142",
+  "port": 8188,
+  "model": "flux2-dev-depth",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "size": "1024x1024",
+  "cfg": 3.5,
+  "sampler": "euler",
+  "scheduler": "simple",
+  "generationTimeout": 1800,
+  "useEdgeControl": false,
+  "maskEdgePad": 16,
+  "stage": "structure",
+  "steps": 12,
+  "structureSteps": 12,
+  "structureVariants": 3,
+  "structureDepthStrength": 0.78,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDepthStrength": 0.75,
+  "refineDenoise": 0.3,
+  "structureSeedBase": 831920,
+  "refineSeedBase": 831930,
+  "batchId": "rifle_range_industrial-structure-b02",
+  "outputRoot": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b02/candidates",
+  "status": "raw_candidates_rejected_for_structure_drift",
+  "runtimeIntegrationActive": false,
+  "continuation": {
+    "recordedAt": "2026-08-31T14:35:59.821231+08:00",
+    "userStatement": "继续，做完以后下一个",
+    "scope": "Proceed building by building through standard 12-step drafts, assistant selection, 48-step refinement and transparent delivery. Preserve models and runtime assets.",
+    "selectionAuthority": "Assistant selection under the latest continuation instruction; not fabricated per-image user acceptance.",
+    "modelRouting": "Continue the established 12/48 Dev Depth workflow of this specific series."
+  },
+  "submission": {
+    "destination": "http://192.168.3.142:8188",
+    "payload": "Only this building Depth PNG, prepared prompt and generation parameters; at refinement, also the selected 12-step raw generated at the same endpoint.",
+    "excluded": "Blender files, source code, saves, unrelated images, other destinations and runtime installation.",
+    "submitted": true,
+    "generatedCandidates": 3,
+    "startedAt": "2026-08-31T14:35:59.832253+08:00",
+    "exitCode": 0,
+    "completedAt": "2026-08-31T14:38:46.393133+08:00"
+  },
+  "assets": [
+    {
+      "id": "rifle_range_industrial",
+      "label": "近代靶场",
+      "assetClass": "industrial_training_range",
+      "model": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/rifle_range_material_model.blend",
+      "modelPreview": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/rifle_range_material_approval_preview.png",
+      "controlImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/rifle_range_depth.png",
+      "foundationStyle": "rubble_stone",
+      "assetType": "industrial-era material evolution of the supplied compact three-target range",
+      "primaryRequest": "industrial-era shooting range with the exact authored single attached storehouse and covered shooting bay, one continuous pitched canopy roof, low gray-brick perimeter with the existing square cap blocks, and exactly three separate round cream target faces with dark concentric rings in their modeled positions. Use calm gray-blue painted sheet metal with sparse seams on the roof, dark steel canopy posts, gray-beige brick walls and weathered wood benches, weapon rack and crates. Preserve the existing bow and musket props without adding weapons. Keep the original open court and complete fieldstone footing. Soft diffuse fill keeps the space under the canopy and courtyard readable; narrow contact occlusion only.",
+      "negativeRequest": "No tower, extra roof, additional target, silhouette target, divided concrete shooting lanes, modern control-room block, new machinery, extra weapon, extra crate, people or flag. Absolutely no cast shadow of any kind, ground shadow, backdrop shadow, green-screen shadow gradient, detached ambient shadow or broad black shadow patch on the footing.",
+      "footprintCells": 2,
+      "footprintMode": "authored",
+      "removeAllGreen": false,
+      "postprocessDepthImage": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/rifle_range_depth.png"
+    }
+  ],
+  "networkAuthorization": {
+    "status": "explicitly_approved_by_user",
+    "recordedAt": "2026-08-31T06:15:11.337Z",
+    "userStatement": "同意",
+    "destination": "http://192.168.3.142:8188",
+    "assets": [
+      "industrial_barracks_tent_v2",
+      "rifle_range_industrial"
+    ],
+    "payload": "Each building's Depth PNG, prepared prompts and generation parameters; at 48-step refinement also its selected 12-step full raw PNG.",
+    "scope": "Sequential standard 12-step and 48-step generation for barracks V2 followed by rifle range, followed by local transparent asset delivery.",
+    "excluded": "Blender models, project source code, saves, unrelated images, other destinations and runtime installation.",
+    "approvedQuestion": "是否允许将这两栋的 Depth、提示词，以及后续选中的12步原图发送到局域网 192.168.3.142:8188，逐栋完成12/48步生图？"
+  },
+  "review": {
+    "selectedCandidate": null,
+    "reason": "Tower removed, but all three raws close the modeled courtyard entrance.",
+    "reviewFile": "tools/ai-gen/_industrial_recruitment_materials_20260831/rifle_range/structure_s12_b02/REVIEW.md",
+    "source": "Full original green raw images and approved model preview, visually inspected by assistant."
+  }
+}

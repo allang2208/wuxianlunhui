@@ -1,0 +1,10 @@
+{
+  "status": "explicitly_approved_by_user",
+  "recordedAt": "2026-08-31T15:30:42.004889+08:00",
+  "userStatement": "同意",
+  "destination": "http://192.168.3.142:8188",
+  "specificAdditionalPayload": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_init_1024.png",
+  "purpose": "The already prepared standard 48-step two-candidate refinement of the corrected barracks image.",
+  "approvedQuestion": "是否允许将这张军营修正版发送至同一192.168.3.142:8188，仅用于48步精修？",
+  "excluded": "No Blender file, code, save, unrelated image, other endpoint or runtime installation."
+}

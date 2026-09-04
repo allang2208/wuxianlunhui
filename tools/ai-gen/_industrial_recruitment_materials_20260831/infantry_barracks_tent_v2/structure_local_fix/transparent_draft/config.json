@@ -1,0 +1,36 @@
+{
+  "label": "军营结构修正版 · 48步前",
+  "source": "tools/ai-gen/_industrial_recruitment_materials_20260831/infantry_barracks_tent_v2/structure_local_fix/barracks_structure_corrected_raw.png",
+  "softInner": 50,
+  "softOuter": 130,
+  "edgeDistance": 8,
+  "edgeGreenMargin": 8,
+  "materialSamples": {
+    "tent_canvas": [
+      245,
+      788,
+      325,
+      851
+    ],
+    "tent_roof": [
+      539,
+      620,
+      599,
+      670
+    ],
+    "tower_roof": [
+      780,
+      260,
+      820,
+      300
+    ],
+    "ground": [
+      710,
+      981,
+      765,
+      1000
+    ]
+  },
+  "stage": "preview_of_corrected_structure_before_48_steps",
+  "runtimeIntegrationActive": false
+}
