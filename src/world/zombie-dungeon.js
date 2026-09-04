@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, PolarNightCantorEnemy, IceCrownLynxEnemy, GlacierbackWarOxEnemy, AbyssCrystalRavagerEnemy, FrostboundCenturionEnemy, PolarNightHighPriestEnemy, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, BrokenCableGaoler, BlackLungLampKeeper, SealedShaftRockWraith, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron, StitchfaceHeadsman, WaxfaceMourner, PleatDevourer, HollowOvum } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, SnowManeLynxEnemy, FrostbackMuskOxEnemy, AbyssRimeBeastEnemy, FrostboundSpearmanEnemy, PolarNightCantorEnemy, IceCrownLynxEnemy, GlacierbackWarOxEnemy, AbyssCrystalRavagerEnemy, FrostboundCenturionEnemy, PolarNightHighPriestEnemy, createEvilTreant as createEvilTreantBase, createPurpleBlightAncient as createPurpleBlightAncientBase, createCarnivorousPitcher as createCarnivorousPitcherBase, createBrownSnake as createBrownSnakeBase, createSwampVampireMosquito as createSwampVampireMosquitoBase, createReedShadowSickleMantis as createReedShadowSickleMantisBase, createBlackKingCobra as createBlackKingCobraBase, createMedusa as createMedusaBase, createRotbogRhinocerosBeetleKing as createRotbogRhinocerosBeetleKingBase, createWerewolfKing as createWerewolfKingBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, BombZombie, SupportBeamBrute, CoreDrillWorm, BrokenCableGaoler, BlackLungLampKeeper, SealedShaftRockWraith, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron, StitchfaceHeadsman, WaxfaceMourner, PleatDevourer, HollowOvum } from '../entities/enemy-types.js';
 import { DeepVeinMother } from '../entities/enemy-types/deep-vein-mother.js';
 import { UIState } from '../ui/ui-state.js';
 import { CoreDrillLarva, OreShardling } from '../entities/enemy-types/mine-small-monsters.js';
@@ -164,6 +164,12 @@ function createSwampVampireMosquito(x, y) {
     });
 }
 
+function createReedShadowSickleMantis(x, y) {
+    return createReedShadowSickleMantisBase(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
+    });
+}
+
 function createBlackKingCobra(x, y) {
     return createBlackKingCobraBase(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
@@ -178,6 +184,12 @@ function createMedusa(x, y) {
 
 function createWerewolfKing(x, y) {
     return createWerewolfKingBase(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
+    });
+}
+
+function createRotbogRhinocerosBeetleKing(x, y) {
+    return createRotbogRhinocerosBeetleKingBase(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
     });
 }
@@ -695,8 +707,10 @@ export const ZOMBIE_FACTORY_MAP = {
     carnivorousPitcher: createCarnivorousPitcher,
     brownSnake: createBrownSnake,
     swampVampireMosquito: createSwampVampireMosquito,
+    reedShadowSickleMantis: createReedShadowSickleMantis,
     blackKingCobra: createBlackKingCobra,
     medusa: createMedusa,
+    rotbogRhinocerosBeetleKing: createRotbogRhinocerosBeetleKing,
     werewolfKing: createWerewolfKing,
     blackBear: createBlackBear,
     zombie: createBasicZombie,

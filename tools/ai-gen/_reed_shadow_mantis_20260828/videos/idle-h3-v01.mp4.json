@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-28T09:03:17.320191+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\idle-h3-v01.mp4",
+    "bytes": 370065,
+    "sha256": "f61554f316490a859be21154ea53ca6b7c2c7c9354419dbc3183c9f13c680336"
+  },
+  "promptId": "fa3fc1d3-1d47-4f35-b431-59f10e4c54ce",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1401180652,
+  "mode": "i2v_firstframe",
+  "actionMode": "loop",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting in every frame.\n\nAnimate one restrained in-place combat idle only. All four walking feet stay planted on one fixed invisible baseline. Add subtle abdominal breathing, a tiny controlled head scan, gentle natural antenna sway, and only a few degrees of guarded opening and closing in the two sickle forelegs. The sickles remain clearly recognizable, connected at the same shoulder joints, and never turn into ordinary walking legs, arms, tools or weapons. The closed wing covers stay folded and rigidly attached.\n\nStatic locked wide camera, fixed scale and position, strict right-facing side view, pure white background, soft even studio light. Begin and finish in exactly the same neutral pose and breathing phase for a seamless loop. Keep the complete antennae, feet, abdomen, folded wings and both full sickle blades safely inside frame with generous margins.\n\nNo walking, translation, sliding, attack, strike, wing opening, flight, jump, turning toward camera, zoom, crop, reframe, tracking, camera motion, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing.",
+  "effectivePrompt": "Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting in every frame.\n\nAnimate one restrained in-place combat idle only. All four walking feet stay planted on one fixed invisible baseline. Add subtle abdominal breathing, a tiny controlled head scan, gentle natural antenna sway, and only a few degrees of guarded opening and closing in the two sickle forelegs. The sickles remain clearly recognizable, connected at the same shoulder joints, and never turn into ordinary walking legs, arms, tools or weapons. The closed wing covers stay folded and rigidly attached.\n\nStatic locked wide camera, fixed scale and position, strict right-facing side view, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even studio light. Begin and finish in exactly the same neutral pose and breathing phase for a seamless loop. Keep the complete antennae, feet, abdomen, folded wings and both full sickle blades safely inside frame with generous margins.\n\nNo walking, translation, sliding, attack, strike, wing opening, flight, jump, turning toward camera, zoom, crop, reframe, tracking, camera motion, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 5.17-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting in every frame.\n\nAnimate one restrained in-place combat idle only. All four walking feet stay planted on one fixed invisible baseline. Add subtle abdominal breathing, a tiny controlled head scan, gentle natural antenna sway, and only a few degrees of guarded opening and closing in the two sickle forelegs. The sickles remain clearly recognizable, connected at the same shoulder joints, and never turn into ordinary walking legs, arms, tools or weapons. The closed wing covers stay folded and rigidly attached.\n\nStatic locked wide camera, fixed scale and position, strict right-facing side view, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even studio light. Begin and finish in exactly the same neutral pose and breathing phase for a seamless loop. Keep the complete antennae, feet, abdomen, folded wings and both full sickle blades safely inside frame with generous margins.\n\nNo walking, translation, sliding, attack, strike, wing opening, flight, jump, turning toward camera, zoom, crop, reframe, tracking, camera motion, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, perform the continuous cyclic action through clear readable phases, then naturally return to the exact opening pose and screen position without freezing or slowing at the seam.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "6d364a79372fe21b8f2ef5d32e480c99485a3e28491b18b302e41aad0889c4a3",
+  "effectivePromptSha256": "a9322b3161ada2f6074672fb7529caa50b953e02ed49db2c27140e54777c8e65",
+  "finalPromptSha256": "fe8f12d7d5b19fb47dc82f727257ada30b2e7701ac46767618cfb95a00efb928",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\prompts\\idle-doubao-v01.txt",
+      "bytes": 1793,
+      "sha256": "de7aa1ae6d183b890767e846364e39d40f863a83ce2c8a8f19987f32572b2370"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\references\\reed-shadow-sickle-mantis-general-safe-white-1024x576.png",
+      "bytes": 284294,
+      "sha256": "16658ca241611c965c5f8eab3f25bd99920ef504b48270bc72378530dfc9ca65"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\references\\reed-shadow-sickle-mantis-general-safe-white-1024x576.png",
+      "bytes": 284294,
+      "sha256": "16658ca241611c965c5f8eab3f25bd99920ef504b48270bc72378530dfc9ca65"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\idle-h3-v01_contact.png",
+    "bytes": 365516,
+    "sha256": "bc9213e6612c3b6d66b6b82ad3e22f9f5b5ccd2a7e6a146a1a52a5dd83269047"
+  },
+  "elapsedSeconds": 460.487
+}

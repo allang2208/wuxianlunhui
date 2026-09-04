@@ -8087,6 +8087,408 @@
    }
   }
  },
+  "reedShadowSickleMantis": {
+    "id": "reedShadowSickleMantis",
+    "name": "芦影镰螳",
+    "hp": 780,
+    "maxHp": 780,
+    "size": 22,
+    "collisionRadius": 48,
+    "speed": 270,
+    "level": 9,
+    "color": "#59633a",
+    "highlightColor": "rgba(117, 128, 66, 0.34)",
+    "str": 54,
+    "dex": 48,
+    "con": 32,
+    "int": 6,
+    "wis": 10,
+    "luck": 9,
+    "rank": "elite",
+    "type": "精英",
+    "category": "monster",
+    "family": "自然",
+    "families": [
+      "自然",
+      "大型",
+      "昆虫"
+    ],
+    "attackRange": 225,
+    "attackDistance": 225,
+    "basicMelee": {
+      "approachReach": 225,
+      "impactReach": 220,
+      "width": 90,
+      "timeline": {
+        "durationMs": 1458,
+        "frameCount": 35,
+        "contactFrame": 10,
+        "activeFrames": [
+          9,
+          12
+        ],
+        "rebaseOnImpact": true
+      }
+    },
+    "aiInterval": 1400,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 240,
+      "loseTimeout": 2000
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 1400,
+      "dynamicRange": 235,
+      "width": 90,
+      "knockback": 18
+    },
+    "attackSkills": {
+      "fanSweep": {
+        "cooldown": 8500,
+        "initialCooldownMs": 3000,
+        "triggerRange": 300,
+        "shape": "sector",
+        "range": 280,
+        "arcDegrees": 120,
+        "damageMultiplier": 1.15,
+        "damageType": "physical",
+        "knockback": 24,
+        "bleedingStacks": 3,
+        "durationMs": 1542,
+        "frameCount": 37,
+        "contactFrame": 20,
+        "effectDurationMs": 360,
+        "effectInnerRadius": 58,
+        "effectBladeWidth": 18
+      }
+    },
+    "description": "芦苇色甲壳覆盖的敏捷大型螳螂精英。它以交错双镰进行单体斩击，并周期性前伸双臂后向左右后方爆发回扫，切开前方整片扇形区域。",
+    "skills": [
+      {
+        "name": "交错镰斩",
+        "desc": "以两把锯齿镰刀交错斩击单一目标；起手后锁定方向，目标及时退出接触区域即可令攻击落空。"
+      },
+      {
+        "name": "双镰裂扇",
+        "desc": "双镰前伸后分别向左右后方快速回扫，对前方120度、280像素扇形内每个可见目标造成物攻×1.15的物理伤害并叠加3层流血，冷却8.5秒。"
+      }
+    ],
+    "attackType": "交错镰斩与双镰裂扇",
+    "render": {
+      "spriteSize": 300,
+      "collisionWidth": 165,
+      "collisionHeight": 115,
+      "footOffsetY": 112.5,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 165,
+        "height": 115,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "height": 115,
+    "deathAnim": {
+      "duration": 1688,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/reed_shadow_sickle_mantis/idle.png",
+      "walk": "assets/enemies/reed_shadow_sickle_mantis/walking.png",
+      "attack": "assets/enemies/reed_shadow_sickle_mantis/attacking.png",
+      "fan_sweep": "assets/enemies/reed_shadow_sickle_mantis/fan_sweep.png",
+      "death": "assets/enemies/reed_shadow_sickle_mantis/dying.png",
+      "referenceCell": 640,
+      "frameLayouts": {
+        "idle": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 30,
+          "footY": 560,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 40,
+          "footY": 560,
+          "frameRate": 16,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 768,
+          "frameHeight": 640,
+          "frameCount": 35,
+          "footY": 560,
+          "duration": 1458,
+          "repeat": 0
+        },
+        "fan_sweep": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 896,
+          "frameHeight": 640,
+          "frameCount": 37,
+          "footY": 560,
+          "duration": 1542,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 27,
+          "footY": 560,
+          "duration": 1688,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "rotbogRhinocerosBeetleKing": {
+    "id": "rotbogRhinocerosBeetleKing",
+    "name": "腐沼独角仙王",
+    "hp": 1900,
+    "maxHp": 1900,
+    "size": 28,
+    "collisionRadius": 62,
+    "speed": 190,
+    "level": 12,
+    "color": "#4f4634",
+    "highlightColor": "rgba(132, 112, 66, 0.36)",
+    "str": 74,
+    "dex": 28,
+    "con": 78,
+    "int": 8,
+    "wis": 18,
+    "luck": 10,
+    "rank": "lord",
+    "type": "领主",
+    "category": "monster",
+    "family": "自然",
+    "families": [
+      "自然",
+      "大型",
+      "昆虫"
+    ],
+    "basicMeleeResolver": true,
+    "attackRange": 260,
+    "attackDistance": 260,
+    "basicMelee": {
+      "approachReach": 260,
+      "impactReach": 260,
+      "forwardOffset": 0,
+      "width": 110,
+      "area": {
+        "shape": "sector",
+        "range": 260,
+        "arcDegrees": 140,
+        "damageMultiplier": 1,
+        "knockback": 42
+      },
+      "timeline": {
+        "durationMs": 1600,
+        "frameCount": 29,
+        "contactFrame": 16,
+        "activeFrames": [
+          15,
+          18
+        ]
+      }
+    },
+    "aiInterval": 2200,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 300,
+      "loseTimeout": 2600,
+      "chargeStraight": true
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 2200,
+      "dynamicRange": 260,
+      "width": 110,
+      "knockback": 42
+    },
+    "attackSkills": {
+      "mudCharge": {
+        "cooldown": 12000,
+        "initialCooldownMs": 3500,
+        "minTriggerRange": 260,
+        "triggerRange": 900,
+        "prepareMs": 900,
+        "chargeMs": 1000,
+        "recoveryMs": 500,
+        "maxDistance": 900,
+        "hitDistance": 145,
+        "damageMultiplier": 1.8,
+        "damageType": "physical",
+        "stunMs": 1250,
+        "knockback": 120,
+        "wallSelfStunMs": 600
+      },
+      "broodCommand": {
+        "cooldown": 18000,
+        "initialCooldownMs": 6000,
+        "triggerRange": 900,
+        "count": 2,
+        "aliveCap": 4,
+        "durationMs": 2200,
+        "frameCount": 39,
+        "releaseFrame": 20,
+        "summonType": "swampVampireMosquito"
+      }
+    },
+    "phase": {
+      "hpThreshold": 0.5,
+      "durationMs": 2200,
+      "speedMultiplier": 1.25,
+      "chargeCooldownMultiplier": 0.7
+    },
+    "description": "栖居腐沼深处的巨型独角仙领主。它以巨角横扫成片目标，蓄力后沿锁定方向冲城，并用虫巢号令召来吸血大蚊；半血时张开鞘翅，显著加快移动与冲锋频率。",
+    "skills": [
+      {
+        "name": "巨颚横扫",
+        "desc": "朝锁定方向横扫前方140度、260像素扇形区域，对范围内全部可见目标造成一次物理伤害并击退。"
+      },
+      {
+        "name": "泥沼冲城",
+        "desc": "蓄力0.9秒并锁定方向，最多直线冲锋900像素。命中首个目标时造成物攻×1.8伤害、眩晕1.25秒并强力击退；撞墙立即停止并自我眩晕0.6秒，冷却12秒。"
+      },
+      {
+        "name": "虫巢号令",
+        "desc": "召唤2只现有沼泽吸血大蚊，场上由它召唤且存活的蚊群上限为4只，冷却18秒；独角仙王死亡不会强制清除召唤物。"
+      },
+      {
+        "name": "开鞘暴行",
+        "desc": "生命首次降至50%时张开鞘翅，移动速度提高25%，泥沼冲城冷却缩短30%，但不获得额外伤害。"
+      }
+    ],
+    "attackType": "扇形巨角AOE、直线冲锋与召唤",
+    "render": {
+      "spriteSize": 420,
+      "collisionWidth": 195,
+      "collisionHeight": 130,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 195,
+        "height": 130,
+        "offsetX": 0,
+        "bottom": 0
+      },
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "height": 130,
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1400
+    },
+    "textures": {
+      "idle": "assets/enemies/rotbog_rhinoceros_beetle_king/idle.png",
+      "walk": "assets/enemies/rotbog_rhinoceros_beetle_king/walking.png",
+      "attack": "assets/enemies/rotbog_rhinoceros_beetle_king/attacking.png",
+      "charge": "assets/enemies/rotbog_rhinoceros_beetle_king/charge.png",
+      "summon": "assets/enemies/rotbog_rhinoceros_beetle_king/summon.png",
+      "phase_open": "assets/enemies/rotbog_rhinoceros_beetle_king/phase_open.png",
+      "enraged_idle": "assets/enemies/rotbog_rhinoceros_beetle_king/enraged_idle.png",
+      "dying": "assets/enemies/rotbog_rhinoceros_beetle_king/dying.png",
+      "referenceCell": 640,
+      "frameLayouts": {
+        "idle": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 30,
+          "footY": 525,
+          "frameRate": 15,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 40,
+          "footY": 534,
+          "frameRate": 20,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 768,
+          "frameHeight": 640,
+          "frameCount": 29,
+          "footY": 526,
+          "duration": 1600,
+          "repeat": 0
+        },
+        "charge": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 768,
+          "frameHeight": 640,
+          "frameCount": 31,
+          "footY": 527,
+          "duration": 2400,
+          "repeat": 0
+        },
+        "summon": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 768,
+          "frameHeight": 640,
+          "frameCount": 39,
+          "footY": 523,
+          "duration": 2200,
+          "repeat": 0
+        },
+        "phase_open": {
+          "columns": 8,
+          "rows": 5,
+          "frameWidth": 896,
+          "frameHeight": 640,
+          "frameCount": 33,
+          "footY": 580,
+          "duration": 2200,
+          "repeat": 0
+        },
+        "enraged_idle": {
+          "columns": 8,
+          "rows": 3,
+          "frameWidth": 896,
+          "frameHeight": 640,
+          "frameCount": 20,
+          "footY": 581,
+          "frameRate": 15,
+          "repeat": -1
+        },
+        "dying": {
+          "columns": 8,
+          "rows": 4,
+          "frameWidth": 896,
+          "frameHeight": 640,
+          "frameCount": 27,
+          "footY": 482,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
  "snowManeLynx": {
   "entityClass": "SnowManeLynxEnemy",
   "invasion": {

@@ -1,0 +1,7 @@
+Asset cleanup edit only. Preserve this exact Rotbog Rhinoceros Beetle King pixel-for-pixel in identity and nearly exactly in shape: the same head, exactly one cephalic horn, both antennae, eyes, mandibles, closed elytra, peat-black/bog-brown chitin, mossy patina, proportions, and the same exactly six distinct legs with the same front/middle/rear ordering on both sides.
+
+Replace the entire dark brown/black studio backdrop with a perfectly flat pure white #FFFFFF background. Remove every vignette, gradient, floor, horizon, halo, contact shadow, cast shadow and reflection. Use soft flat diffuse ambient lighting consistent with a white-background production game asset; preserve detailed PBR chitin without washing it out.
+
+Grounding cleanup: make only minimal natural adjustments to the six lower foot positions so all six claw tips meet one shared horizontal baseline while every leg remains separately readable. Do not crop any foot or the horn. Keep generous clean white margins on every side, especially beyond the horn tip.
+
+Do not add, remove, merge, hide or duplicate any leg. Do not redesign the shell or horn. No scenery, mud patch, plants, particles, text, logo, watermark, glow, armor, crown, weapon, extra horn or open wings.

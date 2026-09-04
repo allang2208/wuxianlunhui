@@ -1,0 +1,83 @@
+{
+  "task": "rotbog-rhinoceros-beetle-king",
+  "displayName": "腐沼独角仙王",
+  "date": "2026-08-28",
+  "status": "spritesheets-built-and-runtime-integrated",
+  "generationMode": "openai-built-in-imagegen",
+  "mother": "mother/rotbog-rhinoceros-beetle-king-mother-v02-white-candidate.png",
+  "motherPrompt": "prompts/mother-v02-white-cleanup-imagegen.txt",
+  "motherApproved": true,
+  "motherApprovedDate": "2026-08-28",
+  "sourceOutput": "mother/rotbog-rhinoceros-beetle-king-mother-v01-six-leg-source-dark.png",
+  "sourcePrompt": "prompts/mother-v01-six-leg-source-imagegen.txt",
+  "sourceRelation": "v02 is a background and grounding cleanup edit of v01; v01 is retained as the direct editable source",
+  "styleReferences": [
+    "../_reed_shadow_mantis_20260828/mother/reed-shadow-sickle-mantis-mother-v02-sharp-sickles-candidate.png",
+    "../_swamp_vampire_mosquito_20260828/mother/swamp-vampire-mosquito-mother-v02-hanging-hover-candidate.png",
+    "../_black_king_cobra_20260825/references/black-king-cobra-mother-accepted.png",
+    "../_carnivorous_pitcher_20260826/mother/carnivorous-pitcher-mother-v03-photorealistic-white.png"
+  ],
+  "identityLocks": [
+    "exactly one broad low male rhinoceros beetle lord",
+    "exactly one continuous forward-upward cephalic horn",
+    "exactly six distinct thoracic legs in three readable pairs",
+    "two short segmented antennae and compact mandibles",
+    "closed paired elytra in the mother frame",
+    "weathered peat-black and bog-brown chitin with restrained moss-olive patina",
+    "right-facing slightly elevated orthographic game-sprite view",
+    "pure white shadowless background with full silhouette and safe margins"
+  ],
+  "plannedClassification": {
+    "level": 12,
+    "type": "领主",
+    "families": ["自然", "昆虫", "大型"]
+  },
+  "futureGameplayIntents": [
+    "巨颚横扫：前方140度、260像素扇形AOE",
+    "泥沼冲城：准备、锁方向、直冲、恢复；首目标重击、眩晕与强击退",
+    "虫巢号令：墙体安全位置召唤现有沼泽吸血大蚊，存活上限4只",
+    "低于50%生命张开鞘翅，提升移速并缩短冲锋冷却，不额外增伤"
+  ],
+  "videoProviders": ["doubao-desktop", "minimax-h3-remote-5080"],
+  "videoModels": ["Seedance 2.0 Mini", "MiniMax H3 fl2va"],
+  "videoSubmissionContract": "tools/ai-gen/ai-asset.py video generate; Doubao used fill-only hash readback and single submit; after the user reported no Doubao quota, remaining actions switched to --provider h3 with 5.17s/124 frames/1024x576/20 steps/one seed",
+  "providerTransition": {
+    "from": "doubao-desktop",
+    "to": "minimax-h3-remote-5080",
+    "reason": "user reported Doubao quota unavailable while summoning was pending",
+    "date": "2026-08-28"
+  },
+  "plannedVideos": [
+    { "motion": "idle", "provider": "doubao-desktop", "prompt": "prompts/idle-doubao-v01.txt", "reference": "references/rotbog-beetle-general-safe-blue-1024x576.png", "actionMode": "loop", "video": "videos/idle-doubao-v01.mp4", "provenance": "videos/idle-doubao-v01.mp4.json", "preview": "previews/idle-doubao-v01.gif", "contact": "previews/idle-doubao-v01-contact.png", "status": "user-approved-and-integrated" },
+    { "motion": "moving", "provider": "doubao-desktop", "prompt": "prompts/moving-doubao-v01.txt", "reference": "references/rotbog-beetle-general-safe-blue-1024x576.png", "actionMode": "loop", "video": "videos/moving-doubao-v01.mp4", "provenance": "videos/moving-doubao-v01.mp4.json", "preview": "previews/moving-doubao-v01.gif", "contact": "previews/moving-doubao-v01-contact.png", "status": "user-approved-and-integrated" },
+    { "motion": "attacking", "provider": "doubao-desktop", "prompt": "prompts/attack-horn-sweep-doubao-v01.txt", "reference": "references/rotbog-beetle-attack-safe-blue-1024x576.png", "actionMode": "recover", "video": "videos/attack-horn-sweep-doubao-v01.mp4", "provenance": "videos/attack-horn-sweep-doubao-v01.mp4.json", "preview": "previews/attack-horn-sweep-doubao-v01.gif", "contact": "previews/attack-horn-sweep-doubao-v01-contact.png", "status": "user-approved-and-integrated" },
+    { "motion": "charging", "provider": "doubao-desktop", "prompt": "prompts/charge-doubao-v03.txt", "reference": "references/rotbog-beetle-charge-safe-blue-1024x576.png", "actionMode": "recover", "video": "videos/charge-doubao-v03.mp4", "provenance": "videos/charge-doubao-v03.mp4.json", "preview": "previews/charge-doubao-v03.gif", "contact": "previews/charge-doubao-v03-contact.png", "status": "user-approved-and-integrated" },
+    { "motion": "summoning", "provider": "minimax-h3-remote-5080", "prompt": "prompts/summon-command-doubao-v01.txt", "reference": "references/rotbog-beetle-general-safe-blue-1024x576.png", "actionMode": "recover", "video": "videos/summon-command-h3-v01.mp4", "provenance": "videos/summon-command-h3-v01.mp4.json", "preview": "previews/summon-command-h3-v01.gif", "contact": "previews/summon-command-h3-v01-contact.png", "status": "user-approved-and-integrated" },
+    { "motion": "phaseOpening", "provider": "minimax-h3-remote-5080", "prompt": "prompts/phase-open-elytra-doubao-v01.txt", "reference": "references/rotbog-beetle-general-safe-blue-1024x576.png", "actionMode": "one-way", "video": "videos/phase-open-elytra-h3-v01.mp4", "provenance": "videos/phase-open-elytra-h3-v01.mp4.json", "preview": "previews/phase-open-elytra-h3-v01.gif", "contact": "previews/phase-open-elytra-h3-v01-contact.png", "status": "user-approved-and-integrated" },
+    { "motion": "dying", "provider": "minimax-h3-remote-5080", "prompt": "prompts/dying-doubao-v01.txt", "reference": "references/rotbog-beetle-death-safe-blue-1024x576.png", "actionMode": "one-way", "video": "videos/dying-h3-v01.mp4", "provenance": "videos/dying-h3-v01.mp4.json", "preview": "previews/dying-h3-v01.gif", "contact": "previews/dying-h3-v01-contact.png", "status": "user-approved-and-integrated" }
+  ],
+  "rejectedVideos": [
+    { "motion": "charging", "version": "v01", "reason": "translated across the canvas twice and the horn approached the right source-video edge", "artifactsRemoved": true },
+    { "motion": "charging", "version": "v02", "reason": "ignored the solid-blue reference and generated a photographic mud environment; motion read as ordinary walking", "artifactsRemoved": true }
+  ],
+  "spritesheetPipeline": {
+    "keyBuilder": "build-rotbog-sheets.py",
+    "alphaRecovery": "pure-blue inverse matte with opaque main-component support",
+    "interpolation": "RIFE v4.6 RGBA 2x",
+    "formalSheets": "spritesheets/final",
+    "runtimeCharge": "spritesheets/runtime/charge.png",
+    "runtimeChargeSourceKey": "spritesheets/key/charge-mosquito-clean-v4.png",
+    "runtimeChargePreview": "previews/charge-runtime-v4.gif",
+    "runtimeChargeContact": "previews/charge-runtime-v4-contact.png",
+    "runtimeAssets": "assets/enemies/rotbog_rhinoceros_beetle_king",
+    "actionCount": 8,
+    "chargeContract": "formal sheet preserves authored horizontal trajectory; runtime source keys receive integer X root-lock before RIFE; source frames 56..80 are sampled at 4-frame intervals so the complete run occupies the 1-second gameplay charge phase",
+    "dyingContract": "approved death keys receive only -3..+5px integer X root correction; authored Y collapse remains unchanged",
+    "artifactGate": "charge v4 is rebuilt from source MP4 with BiRefNet, 10px opaque-insect support, blue/cyan threshold 6, semi-transparent magenta cleanup, alpha<12 haze removal and nearest-opaque edge RGB; RIFE validates blue/cyan/dark/chroma remnants per frame"
+  },
+  "videosGenerated": true,
+  "videosUserApproved": true,
+  "animationsGenerated": true,
+  "runtimeIntegrationActive": true,
+  "nextGate": "user runtime-tests scale, foot alignment, charge collision, summon cap and half-health phase transition"
+}

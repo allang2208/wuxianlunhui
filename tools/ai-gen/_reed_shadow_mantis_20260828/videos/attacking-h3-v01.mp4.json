@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-28T09:18:58.933408+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\attacking-h3-v01.mp4",
+    "bytes": 357431,
+    "sha256": "4f018673793018f68d642c286329fb235528b883337a66a05edaf536740cd2ba"
+  },
+  "promptId": "6b3a8605-ea10-4e49-975e-e65b18ad6a77",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1269210396,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting in every frame.\n\nPerform exactly one complete close-range crossed double-sickle attack toward screen right, then fully recover. Begin in the original guarded pose. First lower the body and draw both sickles tightly back beside the prothorax for a readable anticipation. Then the near-side sickle snaps forward and diagonally downward in one fast razor cut. A fraction later, the far-side sickle follows across the first path in a second opposing diagonal cut, creating one clear crossed scissor-like combination rather than a simultaneous flap. Hold one brief readable impact beat at maximum reach. The four walking legs brace on the fixed baseline; the body may make one short controlled forward lunge, but it must not run or pass through the target. Withdraw both sickles through their natural elbow joints and return to the exact original neutral guard and position. One attack combination only.\n\nBoth sickles remain broad, compact, rigidly connected biological mantis blades with visible serrated inner edges and sharp hooked tips throughout. They never become thin arms, ordinary legs, swords, metal tools, tentacles or duplicated appendages. Preserve the complete six-leg anatomy and closed wing covers.\n\nStatic locked ultra-wide camera, fixed scale, strict right-facing side view, pure white background, soft even studio light. Preserve the deliberately small left-side placement from the reference. Never zoom, crop, reframe, pan or track the lunge. Keep the complete antennae, abdomen, all feet and both fully extended sickle tips safely inside frame with very large forward margin at every moment.\n\nNo second attack, repeated slashing, spin, jump, flight, wing opening, target, blood, gore, impact effect, projectile, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing.",
+  "effectivePrompt": "Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting in every frame.\n\nPerform exactly one complete close-range crossed double-sickle attack toward screen right, then fully recover. Begin in the original guarded pose. First lower the body and draw both sickles tightly back beside the prothorax for a readable anticipation. Then the near-side sickle snaps forward and diagonally downward in one fast razor cut. A fraction later, the far-side sickle follows across the first path in a second opposing diagonal cut, creating one clear crossed scissor-like combination rather than a simultaneous flap. Hold one brief readable impact beat at maximum reach. The four walking legs brace on the fixed baseline; the body may make one short controlled forward lunge, but it must not run or pass through the target. Withdraw both sickles through their natural elbow joints and return to the exact original neutral guard and position. One attack combination only.\n\nBoth sickles remain broad, compact, rigidly connected biological mantis blades with visible serrated inner edges and sharp hooked tips throughout. They never become thin arms, ordinary legs, swords, metal tools, tentacles or duplicated appendages. Preserve the complete six-leg anatomy and closed wing covers.\n\nStatic locked ultra-wide camera, fixed scale, strict right-facing side view, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even studio light. Preserve the deliberately small left-side placement from the reference. Never zoom, crop, reframe, pan or track the lunge. Keep the complete antennae, abdomen, all feet and both fully extended sickle tips safely inside frame with very large forward margin at every moment.\n\nNo second attack, repeated slashing, spin, jump, flight, wing opening, target, blood, gore, impact effect, projectile, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Keep the exact Reed-Shadow Sickle Mantis identity from the reference image: the same strict right-facing side view, wedge-shaped head, two deep burgundy compound eyes, two long threadlike antennae, very long reed-like prothorax, low olive-green and peat-brown abdomen, closed leaf-veined forewings, four slender walking legs, and exactly two large razor-edged biological mantis sickle forelegs. Preserve the same realistic PBR chitin, natural joints, serrated inner cutting edges, sharp hooked tips, proportions, colors, scale and lighting in every frame.\n\nPerform exactly one complete close-range crossed double-sickle attack toward screen right, then fully recover. Begin in the original guarded pose. First lower the body and draw both sickles tightly back beside the prothorax for a readable anticipation. Then the near-side sickle snaps forward and diagonally downward in one fast razor cut. A fraction later, the far-side sickle follows across the first path in a second opposing diagonal cut, creating one clear crossed scissor-like combination rather than a simultaneous flap. Hold one brief readable impact beat at maximum reach. The four walking legs brace on the fixed baseline; the body may make one short controlled forward lunge, but it must not run or pass through the target. Withdraw both sickles through their natural elbow joints and return to the exact original neutral guard and position. One attack combination only.\n\nBoth sickles remain broad, compact, rigidly connected biological mantis blades with visible serrated inner edges and sharp hooked tips throughout. They never become thin arms, ordinary legs, swords, metal tools, tentacles or duplicated appendages. Preserve the complete six-leg anatomy and closed wing covers.\n\nStatic locked ultra-wide camera, fixed scale, strict right-facing side view, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow, soft even studio light. Preserve the deliberately small left-side placement from the reference. Never zoom, crop, reframe, pan or track the lunge. Keep the complete antennae, abdomen, all feet and both fully extended sickle tips safely inside frame with very large forward margin at every moment.\n\nNo second attack, repeated slashing, spin, jump, flight, wing opening, target, blood, gore, impact effect, projectile, floor, shadow, reflection, scenery, particles, text, logo or watermark. Exactly six connected legs total and two antennae; no extra limbs, duplicated sickles, detached parts, deformed joints, soft rounded claws, human hands or weapon morphing. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "d3125fc17a1653d604028a7e5ad7de3eb9be41c79aa14b800bd17c41f0e7a5c3",
+  "effectivePromptSha256": "25cd4af90c845777445bdf477d4f166fb34c209a904a3b51dd7ced8ec8470bad",
+  "finalPromptSha256": "71a843dc77d6a5a89a734da84cde680fb5a994b13684e9591ed4dbebbb1d8fcd",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\prompts\\attacking-doubao-v01.txt",
+      "bytes": 2512,
+      "sha256": "35f87c3d36736e000efa48365133be6afee5ea25e54a3df8d2e3b4aab337f1ba"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\references\\reed-shadow-sickle-mantis-attack-directional-safe-white-1024x576.png",
+      "bytes": 134688,
+      "sha256": "46d418a1b6d771fa7167511d72aa120d8c2c2974ca0ca88bf537c289e3de2dde"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\attacking-h3-v01_contact.png",
+    "bytes": 227494,
+    "sha256": "90e2dc2de3b988ccccc078d06c37cb7ca7d98016222d6d4b2446add1d7ca643c"
+  },
+  "elapsedSeconds": 435.542
+}

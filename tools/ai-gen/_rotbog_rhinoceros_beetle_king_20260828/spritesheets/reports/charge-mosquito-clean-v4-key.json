@@ -1,0 +1,141 @@
+{
+  "video": "tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\charge-doubao-v03.mp4",
+  "decodedFrameCount": 121,
+  "sourceFrames": [
+    0,
+    8,
+    16,
+    24,
+    32,
+    48,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    88,
+    104,
+    120
+  ],
+  "background": "#0000FF",
+  "clearRect": null,
+  "supportAlphaThreshold": 60,
+  "supportDilate": 10,
+  "blueSpillRadius": 6,
+  "blueSpillThreshold": 6,
+  "magentaSpillRadius": 6,
+  "magentaSpillThreshold": 18,
+  "blueSpillPixels": {
+    "detected": 953576,
+    "recolored": 246116,
+    "cleared": 707460,
+    "blueCapped": 0,
+    "disconnectedCleared": 6536,
+    "magentaDetected": 26805,
+    "magentaRecolored": 26677,
+    "magentaCleared": 128
+  },
+  "clearOutputRect": null,
+  "clearOutputRectStart": 0,
+  "clearOutputRectsAt": {},
+  "cell": 640,
+  "cellWidth": 1536,
+  "cellHeight": 640,
+  "cols": 5,
+  "rows": 4,
+  "frameRate": 6.6666667,
+  "scale": 0.717703349282297,
+  "fitScale": 1.521472392638037,
+  "targetCore": [
+    190.0,
+    405.0
+  ],
+  "anchorMode": "first-frame",
+  "coreCenters": [
+    [
+      337.825,
+      420.191
+    ],
+    [
+      331.499,
+      436.62
+    ],
+    [
+      330.537,
+      443.909
+    ],
+    [
+      329.545,
+      443.213
+    ],
+    [
+      329.834,
+      443.2
+    ],
+    [
+      329.741,
+      443.467
+    ],
+    [
+      353.087,
+      438.975
+    ],
+    [
+      620.281,
+      409.094
+    ],
+    [
+      754.121,
+      406.027
+    ],
+    [
+      791.242,
+      407.262
+    ],
+    [
+      807.901,
+      407.688
+    ],
+    [
+      813.978,
+      404.271
+    ],
+    [
+      816.961,
+      420.582
+    ],
+    [
+      680.465,
+      449.096
+    ],
+    [
+      344.966,
+      423.917
+    ],
+    [
+      338.426,
+      423.262
+    ]
+  ],
+  "semiTransparentPixels": [
+    10374,
+    12735,
+    10991,
+    10889,
+    10825,
+    11079,
+    12458,
+    14212,
+    12055,
+    11748,
+    12452,
+    12725,
+    12110,
+    13134,
+    13704,
+    13846
+  ],
+  "output": "tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\spritesheets\\key\\charge-mosquito-clean-v4.png"
+}

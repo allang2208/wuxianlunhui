@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-28T10:09:24.371844+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\attacking-fan-sweep-h3-v04.mp4",
+    "bytes": 149171,
+    "sha256": "d8e198aa74432fed2cc7e25e7665112c538d83e4a7ecb63dfa67009d99bc4319"
+  },
+  "promptId": "3f476ce6-1d9d-4f5c-a7d4-d3cdb6561a1e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 1413926894,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Create one single two-second explosive double-sickle attack by the exact Reed-Shadow Sickle Mantis in the first and final frame. Begin and end in that exact guarded pose.\n\nPreserve the same wedge head, burgundy eyes, two antennae, long prothorax, olive and peat-brown chitin, folded wings, four walking legs, and exactly two broad serrated hooked sickles.\n\nUse this one-way timing once only. From 0.00 to 0.25 seconds, all four feet dig into one baseline, the abdomen anchors, the body compresses, and the thorax coils. From 0.25 to 0.55 seconds, both sickles shoot fully forward toward screen right. Never pause at full extension. From 0.55 to 0.85 seconds, both shoulder joints instantly reverse with explosive angular acceleration: the anatomical left sickle slashes from full reach toward the upper-left rear lateral arc above and beside the head, while the anatomical right sickle slashes toward the lower-left rear lateral arc beside the chest and near flank. Hooked tips lead and serrated edges cut through the complete mirrored horizontal sweep.\n\nFrom 0.85 to 1.10 seconds, show forceful rear follow-through: legs push against the ground, the prothorax whips, the head ducks, the abdomen counter-rotates, and both blades overshoot slightly. Use only a short directional blur behind each readable sharp tip. From 1.10 to 2.00 seconds, the joints brake, rebound once from momentum, and recover directly to the exact final guarded pose.\n\nExactly one forward extension and exactly one backward slash. After the rear follow-through, never extend or slash again. No second cycle, repeated attack, static open pose, long hold, slow stretching or weightless motion.\n\nLocked ultra-wide camera, centered small subject, fixed scale, pure white background. Keep the complete body and both sickles inside frame throughout the forward and rearward arcs.\n\nNo extra limbs, detached blades, wing opening, jump, target, blood, hit effect, floor, scenery, text, watermark, zoom, crop or camera motion. Exactly six connected legs and two antennae.",
+  "effectivePrompt": "Create one single two-second explosive double-sickle attack by the exact Reed-Shadow Sickle Mantis in the first and final frame. Begin and end in that exact guarded pose.\n\nPreserve the same wedge head, burgundy eyes, two antennae, long prothorax, olive and peat-brown chitin, folded wings, four walking legs, and exactly two broad serrated hooked sickles.\n\nUse this one-way timing once only. From 0.00 to 0.25 seconds, all four feet dig into one baseline, the abdomen anchors, the body compresses, and the thorax coils. From 0.25 to 0.55 seconds, both sickles shoot fully forward toward screen right. Never pause at full extension. From 0.55 to 0.85 seconds, both shoulder joints instantly reverse with explosive angular acceleration: the anatomical left sickle slashes from full reach toward the upper-left rear lateral arc above and beside the head, while the anatomical right sickle slashes toward the lower-left rear lateral arc beside the chest and near flank. Hooked tips lead and serrated edges cut through the complete mirrored horizontal sweep.\n\nFrom 0.85 to 1.10 seconds, show forceful rear follow-through: legs push against the ground, the prothorax whips, the head ducks, the abdomen counter-rotates, and both blades overshoot slightly. Use only a short directional blur behind each readable sharp tip. From 1.10 to 2.00 seconds, the joints brake, rebound once from momentum, and recover directly to the exact final guarded pose.\n\nExactly one forward extension and exactly one backward slash. After the rear follow-through, never extend or slash again. No second cycle, repeated attack, static open pose, long hold, slow stretching or weightless motion.\n\nLocked ultra-wide camera, centered small subject, fixed scale, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete body and both sickles inside frame throughout the forward and rearward arcs.\n\nNo extra limbs, detached blades, wing opening, jump, target, blood, hit effect, floor, scenery, text, watermark, zoom, crop or camera motion. Exactly six connected legs and two antennae.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 2.00-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] Create one single two-second explosive double-sickle attack by the exact Reed-Shadow Sickle Mantis in the first and final frame. Begin and end in that exact guarded pose.\n\nPreserve the same wedge head, burgundy eyes, two antennae, long prothorax, olive and peat-brown chitin, folded wings, four walking legs, and exactly two broad serrated hooked sickles.\n\nUse this one-way timing once only. From 0.00 to 0.25 seconds, all four feet dig into one baseline, the abdomen anchors, the body compresses, and the thorax coils. From 0.25 to 0.55 seconds, both sickles shoot fully forward toward screen right. Never pause at full extension. From 0.55 to 0.85 seconds, both shoulder joints instantly reverse with explosive angular acceleration: the anatomical left sickle slashes from full reach toward the upper-left rear lateral arc above and beside the head, while the anatomical right sickle slashes toward the lower-left rear lateral arc beside the chest and near flank. Hooked tips lead and serrated edges cut through the complete mirrored horizontal sweep.\n\nFrom 0.85 to 1.10 seconds, show forceful rear follow-through: legs push against the ground, the prothorax whips, the head ducks, the abdomen counter-rotates, and both blades overshoot slightly. Use only a short directional blur behind each readable sharp tip. From 1.10 to 2.00 seconds, the joints brake, rebound once from momentum, and recover directly to the exact final guarded pose.\n\nExactly one forward extension and exactly one backward slash. After the rear follow-through, never extend or slash again. No second cycle, repeated attack, static open pose, long hold, slow stretching or weightless motion.\n\nLocked ultra-wide camera, centered small subject, fixed scale, solid pure white background (#FFFFFF), flat diffuse ambient lighting, no light source, no directional lighting, no shadows, no drop shadow. Keep the complete body and both sickles inside frame throughout the forward and rearward arcs.\n\nNo extra limbs, detached blades, wing opening, jump, target, blood, hit effect, floor, scenery, text, watermark, zoom, crop or camera motion. Exactly six connected legs and two antennae. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "8dd6cd6a35f8a3c29c2ef4489cad04c90ab612c49573314ecef0a00a161907f2",
+  "effectivePromptSha256": "74fe394eae15cc7d6fbc4acf9c446d78a857b13d842c5f8bc00be85d56d654ea",
+  "finalPromptSha256": "15b018021a25bf646ea859c3bfce545d10ac5c9879362fc486aa215ea368b055",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 2.0,
+    "frames": 56,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\prompts\\attacking-fan-sweep-h3-v04-single-power-backslash-2s.txt",
+      "bytes": 2036,
+      "sha256": "4f12234ff9bf3ecdc31719bded8534b647200a7b9a991bc2df4dbd9ac0b0b749"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\references\\reed-shadow-sickle-mantis-bilateral-sweep-safe-white-1024x576.png",
+      "bytes": 99874,
+      "sha256": "015cc3ff06a159391ed4b36f4df07dec05a9f42081e14185f93e8befec9b6122"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\references\\reed-shadow-sickle-mantis-bilateral-sweep-safe-white-1024x576.png",
+      "bytes": 99874,
+      "sha256": "015cc3ff06a159391ed4b36f4df07dec05a9f42081e14185f93e8befec9b6122"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_reed_shadow_mantis_20260828\\videos\\attacking-fan-sweep-h3-v04_contact.png",
+    "bytes": 158333,
+    "sha256": "fe167ac8699a0b3eda1032fba14170e70a711e4cebd2db5eb89a9688600a14e6"
+  },
+  "elapsedSeconds": 215.315
+}

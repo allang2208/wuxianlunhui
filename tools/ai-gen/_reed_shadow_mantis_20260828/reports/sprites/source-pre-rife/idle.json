@@ -1,0 +1,42 @@
+{
+  "video": "videos\\idle-h3-v01.mp4",
+  "decodedFrameCount": 124,
+  "sourceFrames": [
+    0,
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56,
+    64,
+    72,
+    80,
+    88,
+    96,
+    104,
+    112
+  ],
+  "normalization": "fixed per-action rear-body core width; thin sickles, legs and antennae excluded",
+  "sourceRearBodyWidth": 593,
+  "targetRearBodyWidth": 260.0,
+  "scale": 0.43844856661045534,
+  "anchor": "stabilized",
+  "frameWidth": 640,
+  "frameHeight": 640,
+  "columns": 8,
+  "rows": 2,
+  "frameCount": 15,
+  "sourceFrameRate": 6.0,
+  "footY": 560,
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 559,
+    "alphaBottomMax": 559,
+    "semiTransparentPixels": 332746,
+    "nonzeroRgbInTransparentPixels": 0
+  },
+  "output": "spritesheets\\source-pre-rife\\idle.png"
+}

@@ -1405,6 +1405,7 @@
      "carnivorousPitcher",
      "brownSnake",
      "swampVampireMosquito",
+     "reedShadowSickleMantis",
      "blackKingCobra",
      "medusa",
      "blackBear",
@@ -1440,6 +1441,8 @@
      "carnivorousPitcher",
      "brownSnake",
      "swampVampireMosquito",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing",
      "blackKingCobra",
      "medusa",
      "blackBear",
@@ -1492,6 +1495,7 @@
     "medusa",
     "redWolfKing",
     "swampVampireMosquito",
+    "reedShadowSickleMantis",
     "blackBear",
     "purpleBlightAncient"
    ],
@@ -1582,6 +1586,7 @@
      "brownSnake",
      "blackKingCobra",
      "swampVampireMosquito",
+     "reedShadowSickleMantis",
      "medusa",
      "blackBear",
      "purpleBlightAncient"
@@ -1617,6 +1622,8 @@
      "brownSnake",
      "blackKingCobra",
      "swampVampireMosquito",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing",
      "medusa",
      "blackBear",
      "purpleBlightAncient"
@@ -1674,6 +1681,7 @@
     "carnivorousPitcher",
     "blackKingCobra",
     "swampVampireMosquito",
+    "reedShadowSickleMantis",
     "medusa",
     "blackBear",
     "purpleBlightAncient"
@@ -1751,6 +1759,7 @@
      "medusa",
      "blackBear",
      "swampVampireMosquito",
+     "reedShadowSickleMantis",
      "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
@@ -1786,6 +1795,8 @@
      "medusa",
      "blackBear",
      "swampVampireMosquito",
+     "reedShadowSickleMantis",
+     "rotbogRhinocerosBeetleKing",
      "purpleBlightAncient"
     ],
     "matchPoolRanks": true,
@@ -1851,6 +1862,7 @@
     "redWolfKing",
     "carnivorousPitcher",
     "swampVampireMosquito",
+    "reedShadowSickleMantis",
     "blackKingCobra",
     "purpleBlightAncient"
    ],

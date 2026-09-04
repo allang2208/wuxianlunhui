@@ -1,0 +1,58 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-28T12:16:33.905161+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\summon-command-h3-v01.mp4",
+    "bytes": 718671,
+    "sha256": "625774a9fd1fbe6517fccb2a818b977a3ddc3ad41649248ef32406a3ff63622d"
+  },
+  "promptId": "173722a8-f880-49c6-b00f-2eef28cbc902",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "general",
+  "seed": 928314,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "prompt",
+  "promptFormat": "h3",
+  "authoredPrompt": "The exact Rotbog Rhinoceros Beetle King from the reference image performs exactly one commanding hive-call gesture and then returns to neutral. Action phases: it firmly plants all six feet, lifts the head and single horn in a deliberate dominant rise, opens the compact mandibles, beats the two front feet once against the ground in a synchronized signal, then vibrates the closed elytra and abdomen with a short low-frequency chitin resonance. The two antennae sweep outward once as if broadcasting the command. The shell vibration stops, the horn lowers, and the creature returns completely to the starting idle pose. One command only.\n\nPreserve exactly one beetle, exactly six connected legs, exactly one horn, two antennae, compact mandibles, closed paired elytra, the same body proportions, weathered chitin, moss-olive patina and scale. Do not generate mosquitoes, eggs, larvae, portals, magic circles, glow, sound graphics or external effects; summoned units will be created by gameplay code.\n\nStatic locked orthographic right-facing low three-quarter side camera. Keep the complete silhouette and all feet visible with wide margins. No walking, charge, attack sweep, open wings, camera motion, zoom, crop, scenery, particles, text, logo or watermark. Finish in the original neutral pose and hold naturally.",
+  "effectivePrompt": "The exact Rotbog Rhinoceros Beetle King from the reference image performs exactly one commanding hive-call gesture and then returns to neutral. Action phases: it firmly plants all six feet, lifts the head and single horn in a deliberate dominant rise, opens the compact mandibles, beats the two front feet once against the ground in a synchronized signal, then vibrates the closed elytra and abdomen with a short low-frequency chitin resonance. The two antennae sweep outward once as if broadcasting the command. The shell vibration stops, the horn lowers, and the creature returns completely to the starting idle pose. One command only.\n\nPreserve exactly one beetle, exactly six connected legs, exactly one horn, two antennae, compact mandibles, closed paired elytra, the same body proportions, weathered chitin, moss-olive patina and scale. Do not generate mosquitoes, eggs, larvae, portals, magic circles, glow, sound graphics or external effects; summoned units will be created by gameplay code.\n\nStatic locked orthographic right-facing low three-quarter side camera. Keep the complete silhouette and all feet visible with wide margins. No walking, charge, attack sweep, open wings, camera motion, zoom, crop, scenery, particles, text, logo or watermark. Finish in the original neutral pose and hold naturally, isolated on a perfectly uniform solid pure blue background (#0000FF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] The exact Rotbog Rhinoceros Beetle King from the reference image performs exactly one commanding hive-call gesture and then returns to neutral. Action phases: it firmly plants all six feet, lifts the head and single horn in a deliberate dominant rise, opens the compact mandibles, beats the two front feet once against the ground in a synchronized signal, then vibrates the closed elytra and abdomen with a short low-frequency chitin resonance. The two antennae sweep outward once as if broadcasting the command. The shell vibration stops, the horn lowers, and the creature returns completely to the starting idle pose. One command only.\n\nPreserve exactly one beetle, exactly six connected legs, exactly one horn, two antennae, compact mandibles, closed paired elytra, the same body proportions, weathered chitin, moss-olive patina and scale. Do not generate mosquitoes, eggs, larvae, portals, magic circles, glow, sound graphics or external effects; summoned units will be created by gameplay code.\n\nStatic locked orthographic right-facing low three-quarter side camera. Keep the complete silhouette and all feet visible with wide margins. No walking, charge, attack sweep, open wings, camera motion, zoom, crop, scenery, particles, text, logo or watermark. Finish in the original neutral pose and hold naturally, isolated on a perfectly uniform solid pure blue background (#0000FF), flat solid color backdrop, no gradient, no texture, no light source, no directional lighting, no shadows, no drop shadow, no reflection, no other objects Preserve fine material texture, coherent edges, consistent lighting, and stable small-scale detail across the full shot. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nFollow explicit diegetic sound instructions in the authored description; otherwise use unobtrusive natural sound.\n\nnon_diegetic_music:\nNone unless explicitly requested in the authored description.",
+  "authoredPromptSha256": "1fd301395b54812d8328742394b4f10cca95f01db7fdf712455d9c2882245139",
+  "effectivePromptSha256": "74b47c91094c442ed3f15b7e0855cc2af17c05d4fd9b83acb347f90bf9744576",
+  "finalPromptSha256": "889dc1a90f54b99dc6ac315588ea8288e6c4fcbe545b6db1d195de400e228567",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\prompts\\summon-command-doubao-v01.txt",
+      "bytes": 1315,
+      "sha256": "61044fca1e6a40dc311a72776493933e1ced0b189e14a2b2e37912f233a5c1a6"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\references\\rotbog-beetle-general-safe-blue-1024x576.png",
+      "bytes": 170531,
+      "sha256": "ebf6339ad5cd267f87133d00ad8cff7405563211c78082da9bb5c372422fd22c"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": null,
+  "elapsedSeconds": 430.813
+}
