@@ -1,0 +1,193 @@
+{
+  "unitKey": "industrial_artillery_crew",
+  "scope": "Offline PNG layout, alpha safety, key preservation, timing, RIFE reports and crowd budget only; no game/runtime test.",
+  "runtimeIntegrationActive": true,
+  "testsRun": false,
+  "actions": {
+    "idle": {
+      "frameCount": 50,
+      "endFrame": 49,
+      "activeEmptyFrames": [],
+      "minimumTransparentBorderPx": 6,
+      "paddingCells": 0,
+      "paddingAlphaPixels": 0,
+      "layoutUnusedCellFraction": 0.0,
+      "activeCellTransparentPixelFraction": 0.6137540650406503,
+      "nonzeroRgbValuesInTransparentPixels": 0,
+      "sourceKeyMismatchesAtEvenOutputs": [],
+      "durationMs": 4166.66666666667,
+      "gifDurationMs": 4170,
+      "gifFileFrameCount": 50,
+      "gifFileDurationMs": 4170,
+      "gifFileDurationsMatchManifest": true,
+      "loopSeamRgbaDelta": 0.006958019454032183,
+      "medianAdjacentRgbaDelta": 0.0056245517916977406,
+      "loopSeamToMedianRatio": 1.2370798086174155,
+      "rifeMode": "loop",
+      "rifePipelineVersion": "rife-v4.6-rgba-v8-exact-half-step",
+      "rifeHeldSourceKeyFallbacks": [],
+      "errors": []
+    },
+    "run": {
+      "frameCount": 24,
+      "endFrame": 23,
+      "activeEmptyFrames": [],
+      "minimumTransparentBorderPx": 6,
+      "paddingCells": 0,
+      "paddingAlphaPixels": 0,
+      "layoutUnusedCellFraction": 0.0,
+      "activeCellTransparentPixelFraction": 0.6285710372248834,
+      "nonzeroRgbValuesInTransparentPixels": 0,
+      "sourceKeyMismatchesAtEvenOutputs": [],
+      "durationMs": 1999.9999999999993,
+      "gifDurationMs": 2000,
+      "gifFileFrameCount": 24,
+      "gifFileDurationMs": 2000,
+      "gifFileDurationsMatchManifest": true,
+      "loopSeamRgbaDelta": 0.016189245507121086,
+      "medianAdjacentRgbaDelta": 0.01721862703561783,
+      "loopSeamToMedianRatio": 0.9402169797645654,
+      "rifeMode": "loop",
+      "rifePipelineVersion": "rife-v4.6-rgba-v8-exact-half-step",
+      "rifeHeldSourceKeyFallbacks": [],
+      "errors": []
+    },
+    "attack": {
+      "frameCount": 87,
+      "endFrame": 86,
+      "activeEmptyFrames": [],
+      "minimumTransparentBorderPx": 5,
+      "paddingCells": 0,
+      "paddingAlphaPixels": 0,
+      "layoutUnusedCellFraction": 0.0,
+      "activeCellTransparentPixelFraction": 0.6398351776798392,
+      "nonzeroRgbValuesInTransparentPixels": 0,
+      "sourceKeyMismatchesAtEvenOutputs": [],
+      "durationMs": 5041.666666666665,
+      "gifDurationMs": 5040,
+      "gifFileFrameCount": 87,
+      "gifFileDurationMs": 5040,
+      "gifFileDurationsMatchManifest": true,
+      "loopSeamRgbaDelta": null,
+      "medianAdjacentRgbaDelta": 0.009308729786425829,
+      "loopSeamToMedianRatio": null,
+      "rifeMode": "one-shot",
+      "rifePipelineVersion": "rife-v4.6-rgba-v8-exact-half-step",
+      "rifeHeldSourceKeyFallbacks": [],
+      "errors": []
+    },
+    "die": {
+      "frameCount": 113,
+      "endFrame": 112,
+      "activeEmptyFrames": [],
+      "minimumTransparentBorderPx": 6,
+      "paddingCells": 1,
+      "paddingAlphaPixels": 0,
+      "layoutUnusedCellFraction": 0.008771929824561403,
+      "activeCellTransparentPixelFraction": 0.6546499683944373,
+      "nonzeroRgbValuesInTransparentPixels": 0,
+      "sourceKeyMismatchesAtEvenOutputs": [],
+      "durationMs": 5041.66666666667,
+      "gifDurationMs": 5040,
+      "gifFileFrameCount": 113,
+      "gifFileDurationMs": 5040,
+      "gifFileDurationsMatchManifest": true,
+      "loopSeamRgbaDelta": null,
+      "medianAdjacentRgbaDelta": 0.01180327869951725,
+      "loopSeamToMedianRatio": null,
+      "rifeMode": "one-shot",
+      "rifePipelineVersion": "rife-v4.6-rgba-v8-exact-half-step",
+      "rifeHeldSourceKeyFallbacks": [],
+      "errors": []
+    }
+  },
+  "budgetReport": "sprite-budget-report.json",
+  "budget": {
+    "standardVersion": 1,
+    "id": "industrial_artillery_crew",
+    "profile": "crowd",
+    "textureCount": 5,
+    "closureMiB": 46.212,
+    "limits": {
+      "targetMiB": 32,
+      "reviewLimitMiB": 64
+    },
+    "manifests": [
+      {
+        "id": "industrial_artillery_crew",
+        "profile": "crowd",
+        "directMiB": 46.212
+      }
+    ],
+    "textures": [
+      {
+        "textureKey": "companion_hamster_industrial_artillery_crew_idle",
+        "path": "assets/companions/hamster_industrial_artillery_crew/idle.png",
+        "width": 1600,
+        "height": 1230,
+        "MiB": 7.507
+      },
+      {
+        "textureKey": "companion_hamster_industrial_artillery_crew_walk",
+        "path": "assets/companions/hamster_industrial_artillery_crew/running.png",
+        "width": 1014,
+        "height": 1008,
+        "MiB": 3.899
+      },
+      {
+        "textureKey": "companion_hamster_industrial_artillery_crew_attack",
+        "path": "assets/companions/hamster_industrial_artillery_crew/attacking.png",
+        "width": 1038,
+        "height": 3915,
+        "MiB": 15.502
+      },
+      {
+        "textureKey": "companion_hamster_industrial_artillery_crew_dying",
+        "path": "assets/companions/hamster_industrial_artillery_crew/dying.png",
+        "width": 2016,
+        "height": 2508,
+        "MiB": 19.288
+      },
+      {
+        "textureKey": "companion_hamster_industrial_artillery_crew_projectile",
+        "path": "assets/companions/hamster_industrial_artillery_crew/shell.png",
+        "width": 64,
+        "height": 64,
+        "MiB": 0.016
+      }
+    ],
+    "errors": [],
+    "warnings": [
+      "industrial_artillery_crew: dependency closure exceeds crowd target; review before production"
+    ],
+    "budgetPassed": true,
+    "scope": "PNG headers, declared frame layout and unique texture bytes only; no alpha, motion or runtime validation"
+  },
+  "budgetReview": {
+    "classification": "above_target_within_review_limit",
+    "targetMiB": 32,
+    "reviewLimitMiB": 64,
+    "closureMiB": 46.212,
+    "overTargetMiB": 14.212000000000003,
+    "largestSheets": [
+      {
+        "textureKey": "companion_hamster_industrial_artillery_crew_dying",
+        "path": "assets/companions/hamster_industrial_artillery_crew/dying.png",
+        "width": 2016,
+        "height": 2508,
+        "MiB": 19.288
+      },
+      {
+        "textureKey": "companion_hamster_industrial_artillery_crew_attack",
+        "path": "assets/companions/hamster_industrial_artillery_crew/attacking.png",
+        "width": 1038,
+        "height": 3915,
+        "MiB": 15.502
+      }
+    ],
+    "reason": "The fixed-scale two-crew long gun requires wide cells; attack retains source-native flash/smoke and death retains both separate prone bodies. Layout padding is already minimized, and reducing body scale or deleting native event poses would violate the approved engineering-line scale/action record.",
+    "integrationBoundary": "User explicitly authorized runtime import of the above-target, within-limit crowd asset."
+  },
+  "errors": [],
+  "offlineSpriteChecksPassed": true
+}

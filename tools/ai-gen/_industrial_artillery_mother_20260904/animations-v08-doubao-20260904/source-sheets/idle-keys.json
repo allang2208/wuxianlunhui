@@ -1,0 +1,243 @@
+{
+  "kind": "idle",
+  "manifestAction": "idle",
+  "video": "videos/industrial-artillery-crew-idle-doubao-v02-no-fire.mp4",
+  "sourceSha256": "11A9DD1EA5D650FDB534A790ED966AEB3712B4F2D7D50126B7E4F1DB7AE2059D",
+  "sourceFrames": 121,
+  "sourceFps": 24.0,
+  "sourceStartFrame": 19,
+  "sourceEndFrameExclusive": 119,
+  "sourceFrameIndices": [
+    19,
+    23,
+    27,
+    31,
+    35,
+    39,
+    43,
+    47,
+    51,
+    55,
+    59,
+    63,
+    67,
+    71,
+    75,
+    79,
+    83,
+    87,
+    91,
+    95,
+    99,
+    103,
+    107,
+    111,
+    115
+  ],
+  "sourceDurationsMs": [
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666
+  ],
+  "durationMs": 4166.666666666667,
+  "sourceScale": 0.26,
+  "anchorInVideo": [
+    640,
+    571
+  ],
+  "actionCropInScaledCanvas": [
+    6,
+    32,
+    326,
+    155
+  ],
+  "footX": 160,
+  "footY": 116.46000000000001,
+  "frameWidth": 320,
+  "frameHeight": 123,
+  "sourceKeyCount": 25,
+  "cols": 5,
+  "rows": 5,
+  "loop": true,
+  "sourceSheet": "source-sheets/idle-keys.png",
+  "keyEvents": {},
+  "selectionReason": "4.167s calm interval with a measured near-match between source frames 19 and 119; preserves long-loop feel without the weaker whole-source seam.",
+  "rawAlphaBounds": [
+    [
+      61,
+      156,
+      1220,
+      560
+    ],
+    [
+      61,
+      157,
+      1220,
+      560
+    ],
+    [
+      61,
+      159,
+      1221,
+      560
+    ],
+    [
+      61,
+      158,
+      1221,
+      560
+    ],
+    [
+      61,
+      158,
+      1221,
+      560
+    ],
+    [
+      61,
+      158,
+      1220,
+      560
+    ],
+    [
+      61,
+      157,
+      1220,
+      560
+    ],
+    [
+      61,
+      156,
+      1220,
+      560
+    ],
+    [
+      61,
+      155,
+      1220,
+      560
+    ],
+    [
+      61,
+      154,
+      1220,
+      560
+    ],
+    [
+      61,
+      154,
+      1220,
+      560
+    ],
+    [
+      61,
+      154,
+      1220,
+      560
+    ],
+    [
+      61,
+      155,
+      1220,
+      560
+    ],
+    [
+      61,
+      157,
+      1220,
+      560
+    ],
+    [
+      61,
+      158,
+      1221,
+      560
+    ],
+    [
+      61,
+      158,
+      1220,
+      560
+    ],
+    [
+      61,
+      158,
+      1220,
+      560
+    ],
+    [
+      61,
+      158,
+      1220,
+      560
+    ],
+    [
+      61,
+      157,
+      1220,
+      560
+    ],
+    [
+      61,
+      156,
+      1220,
+      560
+    ],
+    [
+      61,
+      156,
+      1220,
+      560
+    ],
+    [
+      61,
+      155,
+      1220,
+      560
+    ],
+    [
+      61,
+      154,
+      1220,
+      560
+    ],
+    [
+      61,
+      154,
+      1220,
+      560
+    ],
+    [
+      61,
+      155,
+      1220,
+      560
+    ]
+  ],
+  "canvasTransform": "One global scale and one crop per action; no per-frame recentering, fitting, foot locking or alpha-bottom alignment.",
+  "cutout": "Cached ComfyUI-RMBG BiRefNet-general; task-local bottom-right watermark exclusion; local white-edge RGB cleanup.",
+  "muzzleMatteRecovery": null,
+  "runtimeIntegrationActive": false
+}

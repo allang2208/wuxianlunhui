@@ -1,0 +1,139 @@
+{
+  "kind": "run",
+  "manifestAction": "running",
+  "video": "videos/industrial-artillery-crew-running-doubao-v01.mp4",
+  "sourceSha256": "6A24919EA4DFB895E3313EF5F8AB96E8D51164EF6B982DA9BE4C71DC07896E66",
+  "sourceFrames": 121,
+  "sourceFps": 24.0,
+  "sourceStartFrame": 70,
+  "sourceEndFrameExclusive": 118,
+  "sourceFrameIndices": [
+    70,
+    74,
+    78,
+    82,
+    86,
+    90,
+    94,
+    98,
+    102,
+    106,
+    110,
+    114
+  ],
+  "sourceDurationsMs": [
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666,
+    166.66666666666666
+  ],
+  "durationMs": 2000.0,
+  "sourceScale": 0.26,
+  "anchorInVideo": [
+    640,
+    571
+  ],
+  "actionCropInScaledCanvas": [
+    -3,
+    31,
+    335,
+    157
+  ],
+  "footX": 169,
+  "footY": 117.46000000000001,
+  "frameWidth": 338,
+  "frameHeight": 126,
+  "sourceKeyCount": 12,
+  "cols": 2,
+  "rows": 6,
+  "loop": true,
+  "sourceSheet": "source-sheets/run-keys.png",
+  "keyEvents": {},
+  "selectionReason": "One complete 2.000s in-place pushing gait cycle. Frames 70 and 118 are the strongest measured natural seam after confirming multiple cycles in the approved 5s source.",
+  "rawAlphaBounds": [
+    [
+      75,
+      155,
+      1252,
+      571
+    ],
+    [
+      74,
+      156,
+      1252,
+      571
+    ],
+    [
+      71,
+      157,
+      1247,
+      570
+    ],
+    [
+      69,
+      155,
+      1246,
+      571
+    ],
+    [
+      73,
+      156,
+      1252,
+      571
+    ],
+    [
+      74,
+      156,
+      1252,
+      571
+    ],
+    [
+      71,
+      154,
+      1248,
+      571
+    ],
+    [
+      71,
+      159,
+      1249,
+      571
+    ],
+    [
+      74,
+      153,
+      1254,
+      571
+    ],
+    [
+      74,
+      161,
+      1254,
+      571
+    ],
+    [
+      69,
+      153,
+      1250,
+      571
+    ],
+    [
+      70,
+      159,
+      1250,
+      571
+    ]
+  ],
+  "canvasTransform": "One global scale and one crop per action; no per-frame recentering, fitting, foot locking or alpha-bottom alignment.",
+  "cutout": "Cached ComfyUI-RMBG BiRefNet-general; task-local bottom-right watermark exclusion; local white-edge RGB cleanup.",
+  "muzzleMatteRecovery": null,
+  "runtimeIntegrationActive": false
+}

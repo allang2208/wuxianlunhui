@@ -1,0 +1,14 @@
+{
+  "source": "cache/birefnet/industrial-artillery-crew-dying-doubao-v01-0028.png",
+  "sourceFrame": 28,
+  "sourceCrop": [
+    350,
+    500,
+    527,
+    565
+  ],
+  "operation": "alpha crop, trim, Lanczos fit within 54x24, center on transparent 64x64 canvas",
+  "direction": "right",
+  "runtimePath": "assets/companions/hamster_industrial_artillery_crew/shell.png",
+  "sha256": "25DFDB11E799EC31635B533E20553527EC7DD2C60F6878C07EE51F4F759AAF82"
+}

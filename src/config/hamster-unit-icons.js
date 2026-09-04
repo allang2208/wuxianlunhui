@@ -20,6 +20,7 @@ export const HAMSTER_UNIT_ICONS = Object.freeze({
     crossbow: `${UNIT_ICON_ROOT}/hamster-crossbow.png`,
     hamster_catapult_crew: `${UNIT_ICON_ROOT}/hamster-catapult-crew.png`,
     hamster_field_cannon_crew: `${UNIT_ICON_ROOT}/hamster-field-cannon-crew.png`,
+    industrial_artillery_crew: `${UNIT_ICON_ROOT}/hamster-industrial-artillery-crew.png`,
     hamster_howitzer_crew: `${UNIT_ICON_ROOT}/hamster-howitzer-crew.png`,
     longbow: `${UNIT_ICON_ROOT}/hamster-longbow.png`,
     assault: `${UNIT_ICON_ROOT}/hamster-assault.png`,

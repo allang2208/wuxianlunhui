@@ -20,6 +20,7 @@ import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
 import catapultCrewCfg from '../../data/hamster-catapult-crew-config.json';
 import fieldCannonCrewCfg from '../../data/hamster-field-cannon-crew-config.json';
+import industrialArtilleryCrewCfg from '../../data/hamster-industrial-artillery-crew-config.json';
 import howitzerCrewCfg from '../../data/hamster-howitzer-crew-config.json';
 import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
@@ -101,6 +102,7 @@ export const UNIT_KIND_CFG = {
     crossbow: crossbowCfg,
     hamster_catapult_crew: catapultCrewCfg,
     hamster_field_cannon_crew: fieldCannonCrewCfg,
+    industrial_artillery_crew: industrialArtilleryCrewCfg,
     hamster_howitzer_crew: howitzerCrewCfg,
     longbow: longbowCfg,
     assault: assaultCfg,
@@ -159,6 +161,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterRanger) return 'ranger';
     if (unit._isHamsterCrossbow) return 'crossbow';
     if (unit._isHamsterHowitzerCrew) return 'hamster_howitzer_crew';
+    if (unit._isHamsterIndustrialArtilleryCrew) return 'industrial_artillery_crew';
     if (unit._isHamsterFieldCannonCrew) return 'hamster_field_cannon_crew';
     if (unit._isHamsterCatapultCrew) return 'hamster_catapult_crew';
     if (unit._isHamsterLongbow) return 'longbow';

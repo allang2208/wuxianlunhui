@@ -1,0 +1,24 @@
+Use case: precise-object-edit
+Asset type: white-background identity mother image for a 2D game artillery unit
+Input image: edit target
+
+Primary request:
+Correct the field gun's entire perspective construction. The current two trail beams look like two unrelated objects: one appears to emerge from the near wheel and the other starts behind the crew. Rebuild only the lower gun carriage, its split trails, and any tiny necessary boot occlusion so the cannon is a single mechanically coherent object in one mildly elevated orthographic-like three-quarter projection.
+
+Required 3D construction:
+1. Establish one straight cannon longitudinal centerline: muzzle and barrel extend toward screen-right; breech is centered between the two wheels; the trail hinge/apex sits directly behind the breech toward screen-left.
+2. Establish one common transverse axle for both wheels. The near wheel is lower-left and larger; the far wheel is upper-right and slightly smaller. Both wheel hubs must align on the same receding axle line.
+3. EXACTLY TWO split-trail stabilizer legs attach at two adjacent hinges on ONE shared rear carriage directly behind and below the breech. Show the common Y-shaped apex/hinge assembly clearly before the beams separate. No trail may originate from a wheel face, wheel hub, character, or disconnected point.
+4. From that common apex, both legs extend backward toward screen-left on the SAME ground plane and open as a spatially correct V around the gun centerline. The near leg projects toward lower-left; the far leg projects toward upper-left. Their convergence, foreshortening, thickness, top faces, side faces, rivet rows and ground contacts must obey the same vanishing directions as the wheel axle and barrel.
+5. Correct occlusion order: the near trail passes in front of the rear carriage but behind any boot that is physically nearer to camera; the far trail passes behind the crew and carriage, but enough of its beam remains visible to trace continuously from hinge to terminal spade.
+6. Both trail endpoints rest at the same real-world distance behind the axle, transformed by perspective. Each ends in one broad ground spade. The spades lie flat on one shared ground plane; neither floats, points vertically, or appears larger merely because it is farther away.
+7. Leave clear white negative space inside the V so the two beams are unambiguously separate. No central third trail, no parallel rails, no crossed trails, no detached hardware.
+
+Crew placement:
+Exactly two adult hamster crew. Keep the shell loader on the left holding exactly one shell and the gunner at the handwheel. If necessary for truthful geometry, shift either hamster only a small amount sideways so boots stand naturally on open ground beside the carriage and do not conceal the hinge. Do not let any boot stand on, intersect, or fuse with a trail.
+
+Hard invariants:
+Preserve the crew identities, faces, uniforms, red-star helmets, body proportions, roles, palette and expression. Preserve the gun's early-20th-century Soviet-inspired identity, barrel length and direction, muzzle, recoil cylinders, breech, riveted shield and two spoked wheels. Preserve the same overall scale, mildly elevated camera, full-object framing, 1536x1024 landscape canvas, clean pure white background, no cast shadow, no text, no border. Do not add or remove crew, wheels, shells, weapons, props, or decorative objects.
+
+Output intent:
+A mechanically plausible split-trail field gun whose complete perspective reads correctly at first glance, not merely an image containing two trail beams.

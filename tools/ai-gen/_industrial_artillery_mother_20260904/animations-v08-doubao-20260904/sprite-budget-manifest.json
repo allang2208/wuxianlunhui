@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "id": "industrial_artillery_crew",
+  "profile": "crowd",
+  "runtimeIntegrationActive": true,
+  "textureKeysAreProposedOnly": false,
+  "dependencies": [],
+  "sheets": [
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_idle",
+      "path": "assets/companions/hamster_industrial_artillery_crew/idle.png",
+      "kind": "spritesheet",
+      "frameWidth": 320,
+      "frameHeight": 123,
+      "frameCount": 50,
+      "endFrame": 49,
+      "footX": 160,
+      "footY": 116.46000000000001
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_walk",
+      "path": "assets/companions/hamster_industrial_artillery_crew/running.png",
+      "kind": "spritesheet",
+      "frameWidth": 338,
+      "frameHeight": 126,
+      "frameCount": 24,
+      "endFrame": 23,
+      "footX": 169,
+      "footY": 117.46000000000001
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_attack",
+      "path": "assets/companions/hamster_industrial_artillery_crew/attacking.png",
+      "kind": "spritesheet",
+      "frameWidth": 346,
+      "frameHeight": 135,
+      "frameCount": 87,
+      "endFrame": 86,
+      "footX": 173,
+      "footY": 128.46
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_dying",
+      "path": "assets/companions/hamster_industrial_artillery_crew/dying.png",
+      "kind": "spritesheet",
+      "frameWidth": 336,
+      "frameHeight": 132,
+      "frameCount": 113,
+      "endFrame": 112,
+      "footX": 168,
+      "footY": 119.46000000000001
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_projectile",
+      "path": "assets/companions/hamster_industrial_artillery_crew/shell.png",
+      "kind": "image"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "version": 49,
+  "version": 50,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -264,9 +264,14 @@
       "unlocks": [{ "type": "recruitmentTier", "id": "engineer_camp_level_2", "label": "工程工坊 · 仓鼠野战炮组编制" }, { "type": "unit", "id": "hamster_field_cannon_crew", "label": "仓鼠野战炮组" }]
     },
     {
-      "id": "engineer_camp_level_3", "name": "载具工厂", "icon": "🏭", "iconPath": "assets/ui/technology-icons/engineer_camp_level_3.png", "branch": "军事指挥", "subBranch": "工程器械", "column": 6, "lane": 3, "researchCost": 920, "recruitmentTierId": "engineer_camp_level_3",
-      "prerequisites": ["engineer_camp_level_2", "gunpowder", "steam_power"], "description": "完成工程工坊、黑火药与蒸汽动力全部前置后，建立混凝土钢架装配厂房。解锁仓鼠榴弹炮组，后续招募切换为双人现代火炮；已有投石组和野战炮组保留。",
-      "unlocks": [{ "type": "recruitmentTier", "id": "engineer_camp_level_3", "label": "载具工厂 · 仓鼠榴弹炮组编制" }, { "type": "unit", "id": "hamster_howitzer_crew", "label": "仓鼠榴弹炮组" }]
+      "id": "engineer_camp_industrial", "name": "近代炮兵制造", "icon": "🏭", "iconPath": "assets/ui/technology-icons/engineer_camp_industrial.png", "branch": "军事指挥", "subBranch": "工程器械", "column": 5, "lane": 3, "researchCost": 650, "recruitmentTierId": "engineer_camp_industrial",
+      "prerequisites": ["engineer_camp_level_2", "gunpowder", "steam_power"], "description": "进入近代工业阶段，建筑升级为近代炮兵工坊，并将后续招募切换为仓鼠近代炮兵组；已有野战炮组保留。",
+      "unlocks": [{ "type": "recruitmentTier", "id": "engineer_camp_industrial", "label": "近代炮兵工坊 · III级编制" }, { "type": "unit", "id": "industrial_artillery_crew", "label": "仓鼠近代炮兵组" }]
+    },
+    {
+      "id": "engineer_camp_level_3", "name": "载具工厂", "icon": "🏭", "iconPath": "assets/ui/technology-icons/engineer_camp_level_3.png", "branch": "军事指挥", "subBranch": "工程器械", "column": 7, "lane": 3, "researchCost": 1040, "recruitmentTierId": "engineer_camp_level_3",
+      "prerequisites": ["engineer_camp_industrial"], "description": "近代炮兵编制完成后进入现代四级，升级为载具工厂并开放仓鼠榴弹炮组；保留既有单位、人口与编队。",
+      "unlocks": [{ "type": "recruitmentTier", "id": "engineer_camp_level_3", "label": "载具工厂 · IV级编制" }, { "type": "unit", "id": "hamster_howitzer_crew", "label": "仓鼠榴弹炮组" }]
     },
     {
       "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 0, "lane": 4, "researchCost": 140, "militaryTrunk": true,

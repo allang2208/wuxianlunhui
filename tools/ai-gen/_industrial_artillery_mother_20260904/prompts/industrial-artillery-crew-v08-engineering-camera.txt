@@ -1,0 +1,34 @@
+Use case: historical-scene
+Asset type: clean white-background mother image for the next unit in an established 2D RTS engineering-machinery family.
+
+Input image roles:
+- Images 1, 2 and 3 are the AUTHORITATIVE whole-group CAMERA, PERSPECTIVE, SCALE and HORIZONTAL COMPOSITION references from the accepted engineering-machinery line. Match their shared visual camera exactly in qualitative appearance. Image 1 is the closest staging reference; Image 2 is the closest long-barrel carriage reference; Image 3 confirms the same crew scale and camera across a different machine. Do not copy their period-specific cannon, catapult, costumes or equipment.
+- Image 4 is ONLY the approved Soviet hamster face, body proportion, khaki uniform and olive red-star helmet identity reference. Do not copy its firearm or single-character pose.
+- The rejected v07 anti-tank gun image is deliberately absent. Do not invent its elevated view or deep V-shaped foreground trails.
+
+Primary request:
+Create exactly one new full-group mother image: exactly two equal-sized adult golden-orange, white-cheeked Soviet-style hamster artillery crew operating exactly one World War II 57 mm ZiS-2-like anti-tank gun. It must look as if it was photographed in the same mother-frame session as Images 1–3, forming the historical step between the field cannon and the modern howitzer.
+
+Authoritative camera match — highest priority:
+Match the accepted engineering mothers' shallow, mildly elevated, right-facing three-quarter view. The composition is broad and nearly side-on, with only modest depth. The side face of the near wheel is dominant and almost circular; the far wheel is a modestly occluded partner immediately behind it. The axle has very little screen-space depth.
+The carriage, crew and ground line spread mostly left-to-right. Do not look down the gun or along the trails. Do not use a high isometric camera. Do not create a dramatic triangular perspective. Show only a restrained amount of top surface, matching Images 1–3.
+The barrel points generally toward screen-right with the same gentle projected slope as the accepted field cannon/howitzer, not toward the viewer and not steeply into upper-right depth.
+Both hamsters show the same face/front-and-near-side balance as the accepted engineering crews: noses point right, chest fronts and near body sides are both visible, and shoulders, pelvises, knees and boots share that same right-facing three-quarter orientation. Keep both figures nearly the same apparent scale and close to the same foot line.
+
+Split-trail projection:
+Preserve authentic ZiS-2 split-trail construction while fitting the accepted shallow camera. Exactly two tapered trail arms connect continuously to one common carriage hinge behind the axle and extend mostly toward screen-left.
+They form a VERY SHALLOW V in screen projection, nearly overlapping horizontally like the accepted howitzer's trail instead of fanning toward the viewer. The near trail is the main lower horizontal arm; the far trail appears as a separate narrower arm just above/behind it. Keep a small readable gap between them and show both separate earth spades at the left ends, offset only modestly in depth. Both arms remain on one ground plane.
+Do not turn either trail toward the lower foreground. Do not make two long rails dominate the lower half of the image. No disconnected support and no third trail.
+
+Crew staging matching the line:
+Place the loader at screen-left/behind the breech, holding exactly one slim 57 mm shell at waist height with the tip to the right. Place the gunner just left of the shield/breech handwheel. Both stand beside the carriage on visible ground, like Images 1–2, rather than being arranged as foreground and background figures.
+Keep both whole bodies, boots and faces readable. They may naturally overlap a small portion of the shallow trails, but neither stands on a beam or wheel. They face the same screen-right direction and do not face each other.
+
+Gun identity:
+A low-slung WWII ZiS-2-like 57 mm anti-tank gun: very long slender high-velocity barrel, compact breech and recoil cradle, practical angular two-layer shield, exactly two pneumatic wheels, exactly two shallow-projected split trails and two earth spades, olive-drab welded/bolted steel with restrained wear. No oversized muzzle brake, wooden wagon wheels, ornate bronze, fantasy machinery or modern tactical accessories.
+
+Composition and finish:
+Use the same wide horizontal silhouette, crew-to-machine scale, neutral diffuse lighting and generous white margins as Images 1–3. Polished realistic-stylized 3D game render with tactile fur, cloth, leather and wartime steel. Pure white background, no floor, no horizon, no cast/contact shadow, no smoke, no text, no UI, no watermark. Landscape 3:2.
+
+Reject if:
+camera looks from the rear or down the trail; near wheel becomes huge from perspective; trail arms spread toward the viewer; crew are staged at very different depths; either body faces left/inward; only one trail exists; more than two wheels, trails, crew or shells appear.

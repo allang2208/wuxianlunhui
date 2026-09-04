@@ -23,6 +23,7 @@ import { HamsterRanger } from '../entities/hamster-ranger.js';
 import { HamsterCrossbow } from '../entities/hamster-crossbow.js';
 import { HamsterCatapultCrew } from '../entities/hamster-catapult-crew.js';
 import { HamsterFieldCannonCrew } from '../entities/hamster-field-cannon-crew.js';
+import { HamsterIndustrialArtilleryCrew } from '../entities/hamster-industrial-artillery-crew.js';
 import { HamsterHowitzerCrew } from '../entities/hamster-howitzer-crew.js';
 import { HamsterLongbow } from '../entities/hamster-longbow.js';
 import { HamsterAssault } from '../entities/hamster-assault.js';
@@ -98,6 +99,7 @@ import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
 import catapultCrewCfg from '../../data/hamster-catapult-crew-config.json';
 import fieldCannonCrewCfg from '../../data/hamster-field-cannon-crew-config.json';
+import industrialArtilleryCrewCfg from '../../data/hamster-industrial-artillery-crew-config.json';
 import howitzerCrewCfg from '../../data/hamster-howitzer-crew-config.json';
 import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
@@ -218,6 +220,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     crossbow: '仓鼠弩手',
     hamster_catapult_crew: '仓鼠投石组',
     hamster_field_cannon_crew: '仓鼠野战炮组',
+    industrial_artillery_crew: '仓鼠近代炮兵组',
     hamster_howitzer_crew: '仓鼠榴弹炮组',
     longbow: '仓鼠长弓',
     assault: '仓鼠突击',
@@ -342,6 +345,7 @@ const PRODUCER_UNIT_CFG = {
     crossbow: crossbowCfg,
     hamster_catapult_crew: catapultCrewCfg,
     hamster_field_cannon_crew: fieldCannonCrewCfg,
+    industrial_artillery_crew: industrialArtilleryCrewCfg,
     hamster_howitzer_crew: howitzerCrewCfg,
     longbow: longbowCfg,
     assault: assaultCfg,
@@ -390,6 +394,7 @@ const PRODUCER_UNIT_CLASS = {
     crossbow: HamsterCrossbow,
     hamster_catapult_crew: HamsterCatapultCrew,
     hamster_field_cannon_crew: HamsterFieldCannonCrew,
+    industrial_artillery_crew: HamsterIndustrialArtilleryCrew,
     hamster_howitzer_crew: HamsterHowitzerCrew,
     longbow: HamsterLongbow,
     assault: HamsterAssault,
@@ -452,6 +457,7 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     crossbow: 'data/hamster-crossbow-config.json',
     hamster_catapult_crew: 'data/hamster-catapult-crew-config.json',
     hamster_field_cannon_crew: 'data/hamster-field-cannon-crew-config.json',
+    industrial_artillery_crew: 'data/hamster-industrial-artillery-crew-config.json',
     hamster_howitzer_crew: 'data/hamster-howitzer-crew-config.json',
     longbow: 'data/hamster-longbow-config.json',
     assault: 'data/hamster-assault-config.json',
@@ -535,7 +541,8 @@ export function getMilitaryUnitProfile(kind) {
     if (!base) return null;
     const patch = getUnitUpgradePatch(kind, getUpgradeModulesForUnitKind(kind));
     const damage = Math.max(0, Number(patch.attackDamage ?? base.ai?.attackDamage) || 0);
-    const artillery = ['hamster_catapult_crew', 'hamster_field_cannon_crew', 'hamster_howitzer_crew'].includes(kind);
+    const artillery = ['hamster_catapult_crew', 'hamster_field_cannon_crew',
+        'industrial_artillery_crew', 'hamster_howitzer_crew'].includes(kind);
     const interval = Math.max(300, Number(patch.attackInterval ?? base.ai?.attackInterval) || 2000,
         artillery ? base.animations.attack.durationMs : 0);
     let dps = kind === 'explorer' ? 0 : damage * 1000 / interval

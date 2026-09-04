@@ -1,0 +1,16 @@
+Edit this existing mother image conservatively. Correct ONLY the cannon's rear stabilizer/trail topology.
+
+Replace the current single straight box trail extending to screen-left with EXACTLY TWO separate deployed split-trail stabilizer legs belonging to the same field gun.
+
+Required mechanical topology:
+- Both stabilizer legs must visibly and continuously originate from two distinct hinge points at the rear of the same axle/breech carriage.
+- They diverge rearward toward screen-left across the ground plane as a clearly readable open V.
+- The nearer leg runs toward lower-left/front-left and is fully visible as its own riveted steel beam, ending in its own broad earth spade.
+- The farther leg runs toward upper-left/rear-left, remains visibly separate even where it passes behind the hamster crew, and its continuous beam plus its own terminal earth spade/towing hardware must remain visible. Do not hide the entire far leg behind either hamster.
+- The two legs must be comparable in length and construction, visibly separated by white ground between them for most of their length.
+- Each leg has exactly one end spade. No third trail, no single central trail, no merged beam, no detached or floating parts.
+- The hamsters' boots stand on the ground beside the trails, never on top of a trail.
+
+Hard-lock everything else: exactly two adult hamster artillery crew; the left loader still holds exactly one shell; the right gunner still operates the handwheel; preserve their faces, uniforms, Soviet-inspired early-20th-century helmets, proportions and positions as closely as possible. Preserve the entire cannon's barrel, muzzle, recoil cylinders, breech, riveted shield, both spoked wheels, perspective, scale, lighting and warm olive-brown palette. Preserve the clean pure white background with no cast shadow, no text, no border. Keep the same 1536x1024 composition and camera angle.
+
+This is a field-gun split-trail correction, not a redesign of the unit. The final image must make both stabilizer legs unmistakable at first glance.

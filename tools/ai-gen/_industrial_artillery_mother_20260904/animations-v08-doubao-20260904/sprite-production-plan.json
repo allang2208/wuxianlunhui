@@ -1,0 +1,104 @@
+{
+  "unitKey": "industrial_artillery_crew",
+  "profile": "crowd",
+  "sourceManifest": "manifest.json",
+  "sourceAnalysis": "source-analysis.json",
+  "sourceScale": 0.26,
+  "anchorInVideo": [
+    640,
+    571
+  ],
+  "anchorMeaning": "Fixed art-space group ground anchor derived from the approved 1024x576 mother reference after Doubao's 1.25x 1280x720 output scaling; not runtime collision calibration.",
+  "allActionsShareTransform": true,
+  "perFrameRecentering": false,
+  "referenceCell": 512,
+  "runtimeScale": 0.7660323886639676,
+  "viewPlanning": {
+    "referenceUnits": [
+      "hamster_field_cannon_crew",
+      "hamster_howitzer_crew",
+      "hamster_catapult_crew"
+    ],
+    "hamsterBodySourcePixelsApprox": 380,
+    "hamsterBodySpritePixelsApprox": 98.8,
+    "basis": "Single engineer body height, not total gun length; shallow right-facing engineering camera and horizontal group staging remain fixed.",
+    "runtimeCalibrationPending": false
+  },
+  "actions": {
+    "idle": {
+      "manifestAction": "idle",
+      "sourceStartFrame": 19,
+      "sourceEndFrameExclusive": 119,
+      "baseStep": 4,
+      "denseRangesInclusive": [],
+      "loop": true,
+      "selectionReason": "4.167s calm interval with a measured near-match between source frames 19 and 119; preserves long-loop feel without the weaker whole-source seam."
+    },
+    "run": {
+      "manifestAction": "running",
+      "sourceStartFrame": 70,
+      "sourceEndFrameExclusive": 118,
+      "baseStep": 4,
+      "denseRangesInclusive": [],
+      "loop": true,
+      "selectionReason": "One complete 2.000s in-place pushing gait cycle. Frames 70 and 118 are the strongest measured natural seam after confirming multiple cycles in the approved 5s source."
+    },
+    "attack": {
+      "manifestAction": "attacking",
+      "sourceStartFrame": 0,
+      "sourceEndFrameExclusive": 121,
+      "baseStep": 4,
+      "denseRangesInclusive": [
+        [
+          30,
+          46
+        ]
+      ],
+      "loop": false,
+      "selectionReason": "Full wind-up, single discharge and recovery; retain every native source pose around flash and initial recoil, then step4 through smoke dissipation and recovery."
+    },
+    "die": {
+      "manifestAction": "dying",
+      "sourceStartFrame": 0,
+      "sourceEndFrameExclusive": 121,
+      "baseStep": 4,
+      "denseRangesInclusive": [
+        [
+          14,
+          24
+        ],
+        [
+          40,
+          64
+        ]
+      ],
+      "loop": false,
+      "selectionReason": "Full irreversible death action; retain native reserve-shell release and both separate falling phases, ending on the held final prone state without wrap."
+    }
+  },
+  "events": {
+    "attack": {
+      "muzzleFlashSourceFrame": 34
+    },
+    "die": {
+      "shellDroppedSourceFrame": 28,
+      "fallenHoldSourceFrame": 72
+    }
+  },
+  "interpolation": {
+    "engine": "RIFE v4.6",
+    "multiplier": 2,
+    "loopOutputRule": "N source keys become 2N output frames with last-to-first seam interpolation.",
+    "oneShotOutputRule": "N source keys become 2N-1 output frames without last-to-first interpolation.",
+    "sourceKeyMapping": "outputIndex = sourceKeyIndex * 2"
+  },
+  "targetMiB": 32,
+  "admissionLimitMiB": 64,
+  "productionStatus": "runtime_integrated_pending_user_game_validation",
+  "formalBudgetCheckRun": true,
+  "sourceAcceptancePreserved": true,
+  "runtimeIntegrationActive": true,
+  "actualDecodedMiB": 46.211647033691406,
+  "formalBudgetPassed": true,
+  "offlineSpriteChecksPassed": true
+}

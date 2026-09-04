@@ -1386,8 +1386,8 @@
     "thumbnailPath": "assets/ui/building-thumbnails/engineer_camp.png",
     "sellRefundRatio": 0.5,
     "spawnEnabled": true,
-    "buildWarning": "科研依次将后续招募切换为投石组、野战炮组、榴弹炮组；已有低级部队保留。各级器械均占用2军事人口，近身目标进入最小射程时需要后撤展开。",
-    "panelDescription": "工程师营地 → 工程工坊 → 载具工厂，依次招募双人投石机、古典野战炮、现代榴弹炮。提供远程抛射范围火力，无经济岗位与资源产出。",
+    "buildWarning": "科研依次将后续招募切换为投石组、野战炮组、近代炮兵组、榴弹炮组；已有低级部队保留。各级器械均占用2军事人口，近身目标进入最小射程时需要后撤展开。",
+    "panelDescription": "工程师营地 → 工程工坊 → 近代炮兵工坊 → 载具工厂，依次招募双人投石机、古典野战炮、近代高速炮与现代榴弹炮。提供远程抛射范围火力，无经济岗位与资源产出。",
     "spawnIntervalMs": 75000,
     "spawnRadius": 180,
     "defaultUnitType": "hamster_catapult_crew",
@@ -1407,6 +1407,14 @@
         "spawnIntervalMs": 95000,
         "spawnFoodCost": 360,
         "spawnEnergyCost": 170
+      },
+      {
+        "key": "industrial_artillery_crew",
+        "name": "仓鼠近代炮兵组",
+        "roleLabel": "工程器械 · 近代高速炮击",
+        "spawnIntervalMs": 105000,
+        "spawnFoodCost": 410,
+        "spawnEnergyCost": 210
       },
       {
         "key": "hamster_howitzer_crew",
@@ -1480,10 +1488,42 @@
         ]
       },
       {
-        "id": "engineer_camp_level_3",
+        "id": "engineer_camp_industrial",
         "level": 3,
+        "name": "近代炮兵工坊",
+        "plannedEffectiveResearchCost": 1950,
+        "visual": {
+          "tex": "engineer_camp_industrial",
+          "assetPath": "assets/terrain/engineer_camp_industrial.png",
+          "displayW": 517.321016,
+          "displayH": 415.396226,
+          "footOffsetY": 205.283019,
+          "visualFootprint": {
+            "centerXRatio": 0.499428571,
+            "centerYRatio": 0.686046512,
+            "widthRatio": 0.989714286,
+            "depthRatio": 0.61627907,
+            "scaleMode": "strict"
+          },
+          "assetCutoutHash": "CB8ECDAC0B1F921EACEACE30FEE61A856D1E8EB793EC7E150AA230B0B97DA5CA"
+        },
+        "note": "近代建筑与仓鼠近代炮兵组均已完成；科研后切换为本级完整编制。",
+        "lines": [
+          {
+            "slot": "artillery",
+            "role": "工程器械",
+            "fromUnitName": "仓鼠野战炮组",
+            "unitKey": "industrial_artillery_crew",
+            "unitName": "仓鼠近代炮兵组",
+            "profile": "双人近代57毫米高速炮：1080射程、270最小射程、105半径物理范围伤害；低伸弹道于炮口闪光时发射。"
+          }
+        ]
+      },
+      {
+        "id": "engineer_camp_level_3",
+        "level": 4,
         "name": "载具工厂",
-        "plannedEffectiveResearchCost": 4140,
+        "plannedEffectiveResearchCost": 4680,
         "visual": {
           "tex": "vehicle_factory",
           "assetPath": "assets/terrain/vehicle_factory.png",
@@ -1505,7 +1545,7 @@
             "unitKey": "hamster_howitzer_crew",
             "unitName": "仓鼠榴弹炮组",
             "profile": "双人现代榴弹炮：1150射程、250最小射程、125半径范围物理伤害；抬炮开火后退壳装弹。",
-            "fromUnitName": "仓鼠野战炮组"
+            "fromUnitName": "仓鼠近代炮兵组"
           }
         ]
       }

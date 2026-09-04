@@ -1,0 +1,65 @@
+{
+  "date": "2026-09-04",
+  "unitKey": "industrial_artillery_crew",
+  "runtimeUnitId": "hamster_industrial_artillery_crew",
+  "sourceManifest": "spritesheet-manifest.json",
+  "runtimeConfig": "data/hamster-industrial-artillery-crew-config.json",
+  "audioReuse": "approved hamster field-cannon attack/walk audio copied under unit-owned filenames",
+  "files": [
+    {
+      "path": "assets/companions/hamster_industrial_artillery_crew/idle.png",
+      "bytes": 2038515,
+      "sha256": "61252CEFE2E699551EDD8CEFA27FB92EE0C254F274051D890DAAEA190470A1E9"
+    },
+    {
+      "path": "assets/companions/hamster_industrial_artillery_crew/running.png",
+      "bytes": 1049012,
+      "sha256": "1E528CCB266AB16141876F3387120047FBF14DC0300AB2FA56DA3F66D27D5AF1"
+    },
+    {
+      "path": "assets/companions/hamster_industrial_artillery_crew/attacking.png",
+      "bytes": 3959367,
+      "sha256": "6A91B0381FDAE651F3DB24453B2426FFE0CBE780D082457E449532F410EBAD87"
+    },
+    {
+      "path": "assets/companions/hamster_industrial_artillery_crew/dying.png",
+      "bytes": 4424963,
+      "sha256": "27D31FA8D7BA4F5BBE75967801A26C8B5B14DBAF23E8C5C28E4DA122AD07BFAD"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_artillery_mother_20260904/animations-v08-doubao-20260904/final/shell.png",
+      "bytes": 2885,
+      "sha256": "25DFDB11E799EC31635B533E20553527EC7DD2C60F6878C07EE51F4F759AAF82"
+    },
+    {
+      "path": "assets/companions/hamster_industrial_artillery_crew/shell.png",
+      "bytes": 2885,
+      "sha256": "25DFDB11E799EC31635B533E20553527EC7DD2C60F6878C07EE51F4F759AAF82"
+    },
+    {
+      "path": "tools/ai-gen/_industrial_artillery_mother_20260904/animations-v08-doubao-20260904/final/unit-icon.png",
+      "bytes": 30141,
+      "sha256": "D580005E9A6AAE71C81B4E4F4293AC8D54D676B2A470C3A7C9374221CB0A65DB"
+    },
+    {
+      "path": "assets/ui/unit-icons/hamster-industrial-artillery-crew.png",
+      "bytes": 30141,
+      "sha256": "D580005E9A6AAE71C81B4E4F4293AC8D54D676B2A470C3A7C9374221CB0A65DB"
+    },
+    {
+      "path": "assets/sounds/friendly/hamster_industrial_artillery_crew_attack.mp3",
+      "bytes": 40273,
+      "sha256": "8BAEB3CF5021A74D48D5223EA8510B1586761492F84D52389062131D808CE13B"
+    },
+    {
+      "path": "assets/sounds/friendly/hamster_industrial_artillery_crew_walk.mp3",
+      "bytes": 7359,
+      "sha256": "1A4E5F6A397CE65E388D2131D9E0600283A5B80C774F0EF310E7A9DBC6FF6C41"
+    },
+    {
+      "path": "data/hamster-industrial-artillery-crew-config.json",
+      "bytes": 11994,
+      "sha256": "A5675C7BEBCE3A563D60CD3126561763002D01FB7EBBC84761CA263F9C545616"
+    }
+  ]
+}

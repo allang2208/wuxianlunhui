@@ -4,6 +4,7 @@
   "unitCosts": {
     "hamster_catapult_crew": 2,
     "hamster_field_cannon_crew": 2,
+    "industrial_artillery_crew": 2,
     "hamster_howitzer_crew": 2
   }
 }

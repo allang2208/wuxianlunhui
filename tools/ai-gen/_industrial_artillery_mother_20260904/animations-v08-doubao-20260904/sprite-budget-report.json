@@ -1,0 +1,61 @@
+{
+  "standardVersion": 1,
+  "id": "industrial_artillery_crew",
+  "profile": "crowd",
+  "textureCount": 5,
+  "closureMiB": 46.212,
+  "limits": {
+    "targetMiB": 32,
+    "reviewLimitMiB": 64
+  },
+  "manifests": [
+    {
+      "id": "industrial_artillery_crew",
+      "profile": "crowd",
+      "directMiB": 46.212
+    }
+  ],
+  "textures": [
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_idle",
+      "path": "assets/companions/hamster_industrial_artillery_crew/idle.png",
+      "width": 1600,
+      "height": 1230,
+      "MiB": 7.507
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_walk",
+      "path": "assets/companions/hamster_industrial_artillery_crew/running.png",
+      "width": 1014,
+      "height": 1008,
+      "MiB": 3.899
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_attack",
+      "path": "assets/companions/hamster_industrial_artillery_crew/attacking.png",
+      "width": 1038,
+      "height": 3915,
+      "MiB": 15.502
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_dying",
+      "path": "assets/companions/hamster_industrial_artillery_crew/dying.png",
+      "width": 2016,
+      "height": 2508,
+      "MiB": 19.288
+    },
+    {
+      "textureKey": "companion_hamster_industrial_artillery_crew_projectile",
+      "path": "assets/companions/hamster_industrial_artillery_crew/shell.png",
+      "width": 64,
+      "height": 64,
+      "MiB": 0.016
+    }
+  ],
+  "errors": [],
+  "warnings": [
+    "industrial_artillery_crew: dependency closure exceeds crowd target; review before production"
+  ],
+  "budgetPassed": true,
+  "scope": "PNG headers, declared frame layout and unique texture bytes only; no alpha, motion or runtime validation"
+}

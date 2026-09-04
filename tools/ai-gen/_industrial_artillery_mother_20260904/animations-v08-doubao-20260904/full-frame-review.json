@@ -1,0 +1,76 @@
+{
+  "sourceManifest": "spritesheet-manifest.json",
+  "allActiveFramesIncluded": true,
+  "actions": {
+    "idle": {
+      "frameCount": 50,
+      "pages": [
+        {
+          "path": "previews/full-frame-review/idle-page-01.png",
+          "firstFrame": 0,
+          "lastFrame": 29
+        },
+        {
+          "path": "previews/full-frame-review/idle-page-02.png",
+          "firstFrame": 30,
+          "lastFrame": 49
+        }
+      ]
+    },
+    "run": {
+      "frameCount": 24,
+      "pages": [
+        {
+          "path": "previews/full-frame-review/run-page-01.png",
+          "firstFrame": 0,
+          "lastFrame": 23
+        }
+      ]
+    },
+    "attack": {
+      "frameCount": 87,
+      "pages": [
+        {
+          "path": "previews/full-frame-review/attack-page-01.png",
+          "firstFrame": 0,
+          "lastFrame": 29
+        },
+        {
+          "path": "previews/full-frame-review/attack-page-02.png",
+          "firstFrame": 30,
+          "lastFrame": 59
+        },
+        {
+          "path": "previews/full-frame-review/attack-page-03.png",
+          "firstFrame": 60,
+          "lastFrame": 86
+        }
+      ]
+    },
+    "die": {
+      "frameCount": 113,
+      "pages": [
+        {
+          "path": "previews/full-frame-review/die-page-01.png",
+          "firstFrame": 0,
+          "lastFrame": 29
+        },
+        {
+          "path": "previews/full-frame-review/die-page-02.png",
+          "firstFrame": 30,
+          "lastFrame": 59
+        },
+        {
+          "path": "previews/full-frame-review/die-page-03.png",
+          "firstFrame": 60,
+          "lastFrame": 89
+        },
+        {
+          "path": "previews/full-frame-review/die-page-04.png",
+          "firstFrame": 90,
+          "lastFrame": 112
+        }
+      ]
+    }
+  }
+}

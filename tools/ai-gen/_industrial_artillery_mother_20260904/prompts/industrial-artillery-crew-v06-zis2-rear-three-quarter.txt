@@ -1,0 +1,37 @@
+Use case: historical-scene
+Asset type: clean white-background identity mother image for a 2D isometric game unit
+Input image roles:
+- Image 1 is ONLY a character-role, palette, rendering-style and equipment-detail reference. Its cannon geometry and horizontal composition are rejected and must NOT be copied.
+- Image 2 is the approved Soviet hamster identity, face, uniform, helmet, proportions and camera-height reference.
+
+Primary request:
+Create a completely new, mechanically plausible composition of exactly two Soviet-style hamster artillery crew operating exactly one World War II 57 mm anti-tank gun. Base the gun's structural language on the Soviet ZiS-2 Model 1943, cross-checked against period split-trail 57 mm anti-tank guns. This is a fresh reconstruction, not a local repair of Image 1.
+
+Historical gun anchors:
+- low-slung two-wheel carriage;
+- very long, slender high-velocity barrel, no oversized muzzle brake;
+- compact central breech and recoil cradle;
+- practical angular two-layer steel gun shield, not a tall fantasy wall;
+- exactly two simple wartime pneumatic wheels with utilitarian pressed-steel/spoked-metal construction, not ornate wooden wagon wheels;
+- exactly two tapered split-trail legs hinged to one shared carriage immediately behind the breech;
+- one earth spade at the end of each trail;
+- olive-drab welded/bolted wartime steel, restrained wear, no Victorian brass ornament and no oversized decorative rivets.
+
+Composition and camera:
+Use a mildly elevated 25–30 degree orthographic-like REAR-LEFT three-quarter view of the deployed gun. The camera is closest to the split trails and breech; the barrel points diagonally toward screen-right and slightly upward into depth. This diagonal layout must replace the rejected flat side-on horizontal layout.
+Place the shared breech/carriage junction near the visual center. Let the two trails open toward the lower-left and lower-center foreground as a clear, balanced V, with their common hinge/apex fully visible. The barrel, breech center, axle midpoint and trail apex all sit on one coherent longitudinal centerline. Both wheel hubs share one transverse receding axle line. The far wheel is partly occluded naturally by the shield/carriage, never duplicated.
+Use near-orthographic perspective with low lens distortion: no fisheye, no giant foreground spade, no barrel pointing directly into camera. Keep the entire gun, muzzle, both wheels, both trails and both spades inside the canvas with comfortable white margins.
+
+Crew staging:
+Exactly two equal adult golden-orange, white-cheeked hamsters wearing approved khaki Soviet-style WWII uniforms and olive SSh-style helmets with small red stars.
+- Loader stands on clear ground on the left/far side of the breech, holding exactly one slim 57 mm armor-piercing round horizontally at waist height, ready to load.
+- Gunner stands or braces on clear ground on the right/near side of the breech, one paw on the real aiming/elevation handwheel and facing the mechanism.
+- Both full bodies and both pairs of boots remain visible. No boot may stand on, merge into, or be hidden inside a trail or wheel.
+- The crew must frame the breech without blocking the common trail hinge, wheel hubs, or the readable V-shaped negative space.
+
+Visual hierarchy:
+At thumbnail scale the eye should read, in order: two hamster crew -> central breech/shield -> long diagonal barrel -> two foreground split trails. The group should form one compact triangular silhouette rather than an extremely wide banner. Cannon and crew share the same camera, scale, lighting and ground plane.
+
+Style and invariants:
+High-quality polished 3D character render matching the two reference images; warm olive-brown palette; tactile fur, cloth and wartime steel; calm neutral ready-to-fire pose. Pure white background, no cast shadow, no terrain, no smoke, no text, no emblem other than the small helmet stars, no border. 1536x1024 landscape.
+Avoid: side-on catalog view, impossible wheel axle, disconnected or parallel trails, more than two trails, more than two wheels, extra shells, extra crew, ornate field-cannon details, modern tactical gear, huge shield, giant wheel, floating parts, fused boots, crossed beams.

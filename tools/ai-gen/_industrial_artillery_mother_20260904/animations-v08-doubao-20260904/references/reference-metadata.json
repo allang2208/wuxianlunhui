@@ -1,0 +1,30 @@
+{
+  "source": "mother/industrial-artillery-crew-mother-v08-engineering-camera.png",
+  "sourceSha256": "FC1592845F9F2110C747F468AEAC69D005BF5887FCD96FFE6E8E8F79A5EC17E7",
+  "sourceSize": [
+    1536,
+    1024
+  ],
+  "sourceSubjectBbox": [
+    12,
+    198,
+    1510,
+    738
+  ],
+  "output": "references/industrial-artillery-crew-v08-video-safe-1024x576.png",
+  "outputSha256": "253A8C29A629D5CBFC3E2866D6FCD6E9944211DD66D5F424F7EC0726D3EEC7DD",
+  "outputSize": [
+    1024,
+    576
+  ],
+  "uniformScale": 0.6275033377837116,
+  "scaledSize": [
+    940,
+    339
+  ],
+  "pasteOffset": [
+    42,
+    118
+  ],
+  "operation": "non-white bbox plus margin, uniform Lanczos resize and centered white letterbox; no repaint, rotation or non-uniform stretch"
+}

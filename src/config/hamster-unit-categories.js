@@ -32,6 +32,7 @@ export const HAMSTER_UNIT_CATEGORIES = Object.freeze({
     crossbow: HAMSTER_UNIT_CATEGORY.INFANTRY,
     hamster_catapult_crew: HAMSTER_UNIT_CATEGORY.ARTILLERY,
     hamster_field_cannon_crew: HAMSTER_UNIT_CATEGORY.ARTILLERY,
+    industrial_artillery_crew: HAMSTER_UNIT_CATEGORY.ARTILLERY,
     hamster_howitzer_crew: HAMSTER_UNIT_CATEGORY.ARTILLERY,
     longbow: HAMSTER_UNIT_CATEGORY.INFANTRY,
     assault: HAMSTER_UNIT_CATEGORY.INFANTRY,

@@ -1,0 +1,34 @@
+Use case: historical-scene
+Asset type: clean white-background identity mother image for a right-facing 2D isometric game artillery unit.
+
+Input image roles:
+- Image 1 supplies ONLY the World War II ZiS-2-like gun construction, materials, two-person artillery roles, hamster identity and polished 3D rendering. Reject its rear view, foreground-facing trails, inward-facing crew and triangular depth composition.
+- Image 2 is the authoritative camera-and-direction reference. It is an animation contact sheet; do not reproduce the grid, multiple panels, old cannon design or motion phases. Copy only its mildly elevated, broad near-side three-quarter camera, screen-right unit axis and coherent right-facing crew silhouettes.
+- Image 3 supplies the approved Soviet hamster face, proportions, khaki uniform and olive red-star helmet identity. Do not copy its firearm.
+
+Primary request:
+Create one entirely new mother image of exactly two adult golden-orange, white-cheeked Soviet-style hamster artillery crew with exactly one mechanically plausible World War II 57 mm ZiS-2-like anti-tank gun. The image must belong visually and directionally between the accepted field-cannon and howitzer units.
+
+Camera and orientation — highest priority:
+Use the same camera logic as Image 2: mildly elevated, near-side three-quarter, broad side-on presentation. We see mostly the gun's near side with only a restrained amount of top surface. This is NOT a rear view and NOT a front view.
+The unit's shared action axis is screen-right. The long barrel extends mainly horizontally toward screen-right, with only a small natural depth offset. It must not recede steeply toward the upper-right and must not point toward the viewer.
+Both hamsters must face screen-right as complete bodies: noses, chests, pelvises, knees and toes all align to the right. They do not face each other or face the camera. Both stand on clear ground in believable right-facing operating poses.
+
+Split-trail geometry:
+The central breech and carriage sit near canvas center. Exactly two tapered split-trail legs connect visibly to one shared hinge behind the axle and extend toward screen-left, forming a shallow readable V on one ground plane.
+The near trail runs toward lower-left; the far trail runs toward upper-left and remains visibly separate rather than hiding behind the near trail. Each trail ends in exactly one earth spade. Both continuous connections, both full trail arms and both spades must be readable.
+Both wheel hubs share one coherent receding axle. Show exactly two wheels; the far wheel may be partially occluded but remains structurally plausible. No third support, disconnected beam or foreground-facing trail.
+
+Crew placement:
+- Loader stands on the left/rear side of the breech, body fully facing screen-right, holding exactly one slim 57 mm shell horizontally with its tip to the right, ready to load.
+- Gunner stands on the near side of the breech, body fully facing screen-right, one paw on a real elevation/traverse handwheel while looking right along the gun.
+Both full bodies and all boots are visible on the ground. No boot overlaps, rests on or fuses with a wheel or trail. The two crew frame the breech without hiding the shared trail hinge.
+
+Gun identity:
+Low-slung two-wheel carriage; very long slender high-velocity barrel without an oversized muzzle brake; compact breech and recoil cradle; practical angular two-layer wartime steel shield; exactly two pneumatic wheels; exactly two split trails; olive-drab welded and bolted steel with restrained wear. No ornate brass, no wooden wagon wheels, no fantasy machinery.
+
+Composition and style:
+A wide, compact horizontal game-unit silhouette like Image 2, with comfortable white margins around muzzle, boots and both spades. High-quality polished stylized 3D render matching the references; tactile fur, khaki cloth and wartime steel; calm ready-to-fire pose. Pure white background, no terrain, no cast shadow, no smoke, no text, no border, no watermark. Landscape 3:2.
+
+Critical rejection conditions:
+Do not create a rear-three-quarter museum display. Do not aim the trails toward the viewer. Do not make either hamster face left or inward. Do not hide one trail. Do not add people, shells, wheels, legs, props or panels.
