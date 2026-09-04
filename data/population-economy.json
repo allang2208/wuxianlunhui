@@ -964,5 +964,215 @@
         }
       }
     }
+  },
+  "oil_power_plant": {
+    "workerSlots": 3,
+    "workerSlotsModule": "oil_maintenance_staff",
+    "workerLabel": "燃油技师",
+    "workerEfficiencyShare": 0.2,
+    "fullEfficiencyWorkerCount": 5,
+    "visualWorkerCap": 1,
+    "visualMode": "industrial_activity",
+    "workerVisual": {
+      "id": "hamster_oil_technician",
+      "name": "仓鼠燃油技师",
+      "displaySize": 91.6,
+      "originY": 0.920833,
+      "moveSpeed": 58,
+      "wanderRadius": 190,
+      "wanderMinRadius": 72,
+      "idleDurationMs": [
+        900,
+        2200
+      ],
+      "workDurationMs": [
+        1800,
+        3400
+      ],
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_oil_technician/idle.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 12,
+          "frames": [
+            0,
+            11
+          ],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        },
+        "walking": {
+          "src": "assets/companions/hamster_oil_technician/walking.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 16,
+          "frames": [
+            0,
+            15
+          ],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        },
+        "maintaining": {
+          "src": "assets/companions/hamster_oil_technician/maintaining.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 12,
+          "frames": [
+            0,
+            11
+          ],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        }
+      }
+    }
+  },
+  "cannery": {
+    "workerSlots": 6,
+    "workerSlotsModule": "cannery_shift_staff",
+    "workerLabel": "罐装工",
+    "workerEfficiencyShare": 0.1,
+    "fullEfficiencyWorkerCount": 10,
+    "visualWorkerCap": 1,
+    "visualMode": "industrial_activity",
+    "workerVisual": {
+      "id": "hamster_cannery_worker",
+      "name": "仓鼠罐装工",
+      "displaySize": 91.6,
+      "originY": 0.920833,
+      "moveSpeed": 58,
+      "wanderRadius": 190,
+      "wanderMinRadius": 72,
+      "idleDurationMs": [
+        900,
+        2200
+      ],
+      "workDurationMs": [
+        1800,
+        3400
+      ],
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_cannery_worker/idle.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 18,
+          "frames": [
+            0,
+            17
+          ],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        },
+        "walking": {
+          "src": "assets/companions/hamster_cannery_worker/walking.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 20,
+          "frames": [
+            0,
+            19
+          ],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        },
+        "inspecting": {
+          "src": "assets/companions/hamster_cannery_worker/inspecting.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 12,
+          "frames": [
+            0,
+            11
+          ],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        }
+      }
+    }
+  },
+  "trading_company": {
+    "workerSlots": 6,
+    "workerSlotsModule": "trading_staff",
+    "workerLabel": "贸易职员",
+    "workerEfficiencyShare": 0.1,
+    "fullEfficiencyWorkerCount": 10,
+    "visualWorkerCap": 1,
+    "visualMode": "industrial_activity",
+    "workerVisual": {
+      "id": "hamster_trade_clerk",
+      "name": "仓鼠贸易职员",
+      "displaySize": 91.6,
+      "originY": 0.920833,
+      "moveSpeed": 58,
+      "wanderRadius": 190,
+      "wanderMinRadius": 72,
+      "idleDurationMs": [
+        900,
+        2200
+      ],
+      "workDurationMs": [
+        1800,
+        3400
+      ],
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_trade_clerk/idle.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 12,
+          "frames": [
+            0,
+            11
+          ],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        },
+        "walking": {
+          "src": "assets/companions/hamster_trade_clerk/walking.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 20,
+          "frames": [
+            0,
+            19
+          ],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.920833
+        },
+        "negotiating": {
+          "src": "assets/companions/hamster_trade_clerk/negotiating.png",
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 19,
+          "frames": [
+            0,
+            18
+          ],
+          "frameRate": 16,
+          "repeat": 0,
+          "scale": 1,
+          "footRatio": 0.920833
+        }
+      }
+    }
   }
 }

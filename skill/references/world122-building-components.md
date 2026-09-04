@@ -52,6 +52,13 @@
 | `rough_boulder(size, location, mat, rotation, subdivisions)` | 独立可编辑低多边形自然岩块；尺寸、旋转与细分可控，适合重叠成矿堆或自然地基 | 裸露能量矿脉、矿洞 |
 | `faceted_crystal_prism(height, radius, location, mat, highlight_mat, lean, sides, depth_scale, rotation_z)` | 带肩部与尖顶的多棱晶柱；支持水平倾斜、横截面纵深和交替高光分面，根部保持可嵌入结构 | 位面谐振塔；旧能量晶簇模型仅作历史源，不再用于运行时矿脉 |
 | `standard_shell(dims, roof_kind, thatch, bays)` | 组合 foundation、主体灰泥、低石墙、屋顶、正面/侧面木构；返回 frontY/sideX/roofBase 等锚点 | 仓库、铁匠铺、军械库、骑兵学院、茅草屋 |
+| `masonry_plinth(name, size, location, stone_mat, trim_mat, trim_height, bevel_width)` | 带可选收边和倒角的承重石基；统一建筑主体与地面的实体连接 | 燃油发电厂、罐头加工厂、贸易公司 |
+| `entry_bearing_shell(name, size, location, wall_mat, frame_mat, opening_width, opening_height, lintel_height)` | 把暗门洞、两侧承重墙柱和过梁组合成实体入口壳，避免敞门后出现无支撑绿幕缺口 | 燃油发电厂、罐头加工厂、贸易公司 |
+| `banded_storage_tank(name, radius, height, location, shell_mat, band_mat, band_count, cap_style)` | 圆筒储罐、分段箍带和顶盖组合，保留独立可编辑罐体与管线接点 | 燃油发电厂油罐、罐头加工厂压力罐 |
+| `industrial_pipe_path(name, points, radius, pipe_mat, joint_mat, joint_radius_scale)` | 沿明确折线路径生成连续工业管道并在转折/端点加接头，保持与主体真实相接 | 燃油发电厂、罐头加工厂 |
+| `freight_crate(name, size, location, timber_mat, band_mat, cross_braces)` | 参数化货箱、金属包边和可选斜撑，用于有序装卸语义 | 贸易公司货运翼、罐头加工厂装卸区 |
+| `open_tapered_tube(name, base_radius, top_radius, height, location, shell_mat, rim_mat, segments)` | 上下渐缩、顶部真实开口且含内壁暗面的空心筒体；适合必须可见排放口的烟囱 | 燃油发电厂主烟囱 |
+| `roller_conveyor(name, length, width, height, location, frame_mat, roller_mat, roller_count, axis)` | 机架、横梁和独立滚筒组成的短距输送线，保持滚筒方向与物流轴一致 | 罐头加工厂装罐线 |
 
 其中 `hipped_roof`、`cone`、`standard_shell` 当前定义在 `settlement-building-pack-blender.py`。当第二套建筑包也需要这些组件时，应移动到 `building-component-kit.py`，本表路径随代码一起更新。
 
@@ -77,6 +84,9 @@
 
 | 建筑 | 对象前缀/组合件 | 组成与复用方向 | 记录位置 |
 |---|---|---|---|
+| 燃油发电厂 | `OilPowerPlant_*` | 两层承重主楼、顶部真实开口烟囱、贴墙检修梯、燃油储罐与连续管路；梯后必须有实体墙体，烟囱必须保留排放缺口 | `tools/ai-gen/_industrial_economy_buildings_20260831/v02/build-models.py` |
+| 罐头加工厂 | `Cannery_*` | 弧顶加工主厅、压力杀菌罐、短距滚筒装罐线、装卸货箱及无文字罐头徽记；以工业加工设施区分普通面包屋 | `tools/ai-gen/_industrial_economy_buildings_20260831/v02/build-models.py` |
+| 贸易公司 | `TradingCompany_*` | 三层办公主楼与相连单层货运翼、实体门廊、规整货箱和异形无文字贸易徽记；办公与物流体块保持直接连接 | `tools/ai-gen/_industrial_economy_buildings_20260831/build-models.py` |
 | 仓库 | `Warehouse_SecondFloor_*` | 二层正面装卸平台、立柱、双层栏杆、阁楼门 | `build_warehouse()` |
 | 仓库 | `Warehouse_FourthFloor_*` | 与二层垂直方向不同的四层侧阳台、侧门、栏杆 | `build_warehouse()` |
 | 仓库 | `Warehouse_Platform_Crate_*` / `Barrel_*` / `BundledSacks` | 箱子铁/木带、桶箍、袋装物资；适合提炼为 clutter kit | `build_warehouse()` |

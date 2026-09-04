@@ -13,6 +13,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import {
     createGoldItem,
+    deductPlayerGold,
     getPlayerTotalGold,
     routeProducedGold,
 } from './economy-gold-routing.js';
@@ -186,6 +187,7 @@ export const WorldSimDriver = {
                     TechnologySystem.isUnlocked('recruitmentTier', id),
                 isUnitUnlocked: (id) => TechnologySystem.isUnlocked('unit', id),
                 getPlayerTotalGold: () => getPlayerTotalGold(),
+                spendPlayerGold: (amount) => deductPlayerGold(amount),
                 grant: (reward) => this._grantReward(reward),
             });
         } catch (err) {

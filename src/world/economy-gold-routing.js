@@ -35,6 +35,29 @@ export function getPlayerTotalGold() {
     return backpack + warehouse;
 }
 
+/** 统一扣除玩家背包与主神空间仓库中的金币，供持续经济建筑结算。 */
+export function deductPlayerGold(amount) {
+    const requested = Math.max(0, Math.floor(Number(amount) || 0));
+    if (requested <= 0) return true;
+    if (getPlayerTotalGold() < requested) return false;
+
+    const backpackAvailable = Math.max(0, Math.floor(Number(GoldManager?.getGold?.()) || 0));
+    const backpackCost = Math.min(requested, backpackAvailable);
+    if (backpackCost > 0 && !GoldManager?.deductGold?.(backpackCost)) return false;
+
+    const warehouseCost = requested - backpackCost;
+    if (warehouseCost <= 0) return true;
+    const consumed = WarehouseSystem?.consumeMaterial?.(
+        (item) => item?.category === 'gold' || item?.name === '金币',
+        warehouseCost
+    ) || 0;
+    if (consumed === warehouseCost) return true;
+
+    if (backpackCost > 0) GoldManager?.depositGold?.(backpackCost);
+    if (consumed > 0) WarehouseSystem?.depositItemAmount?.(createGoldItem(consumed));
+    return false;
+}
+
 /** 银行产出唯一入库顺序：玩家背包 -> 主人空间仓库 -> 返回剩余量给调用方落地。 */
 export function routeProducedGold(amount) {
     const requested = Math.max(0, Math.floor(Number(amount) || 0));

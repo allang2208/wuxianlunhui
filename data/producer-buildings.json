@@ -809,6 +809,42 @@
     "panelDescription": "覆盖范围内的人口带来商业金币；商场按秒消耗当前位面仓库能源，每名职员固定提供 10% 工作效率。",
     "buildWarning": "每个位面只能建造 1 座；需要职员、范围人口与仓库能源才能按秒营业。"
   },
+  "trading_company": {
+    "id": "trading_company",
+    "buildLimit": 1,
+    "footprintCells": 4,
+    "name": "贸易公司",
+    "cost": 12000,
+    "currency": "energy",
+    "hp": 4500,
+    "radius": 256,
+    "def": 95,
+    "mdef": 105,
+    "tex": "trading_company",
+    "assetPath": "assets/terrain/trading_company.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/trading_company.png",
+    "displayW": 512,
+    "displayH": 433,
+    "footOffsetY": 214,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.676159,
+      "widthRatio": 0.991041,
+      "depthRatio": 0.634437,
+      "scaleMode": "strict"
+    },
+    "shadowCaster": {
+      "height": 370
+    },
+    "perimeterTile": "road",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "trading_company",
+    "upgradeProject": "trading_company_economy",
+    "panelDescription": "贸易职员按批次从本位面仓库采购食物，通过外贸合同结算金币；基础6个岗位可扩编至10个，每人发挥10%配置产能，不新增独立货物资源。",
+    "buildWarning": "占地 4×4，四周自动生成道路；每个位面最多 1 座。需要贸易职员与本位面仓库食物，金币优先进入背包和主神空间仓库。"
+  },
   "stock_exchange": {
     "id": "stock_exchange",
     "buildLimit": 1,
@@ -1148,6 +1184,42 @@
     "panelDescription": "一名熏制坊伙计沿道路完成取粮、冷熏加工和送仓；10个经济岗位各提高10%最终成品效率。雪原位面产出提高35%，其他位面产出降至85%。",
     "buildWarning": "必须通过连续道路连接至少一座仓库；岗位不增加伙计精灵或物流任务数量。"
   },
+  "cannery": {
+    "id": "cannery",
+    "buildLimit": 2,
+    "footprintCells": 4,
+    "name": "罐头加工厂",
+    "cost": 12000,
+    "currency": "energy",
+    "hp": 2800,
+    "radius": 256,
+    "def": 70,
+    "mdef": 75,
+    "tex": "cannery",
+    "assetPath": "assets/terrain/cannery.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/cannery.png",
+    "displayW": 512,
+    "displayH": 356,
+    "footOffsetY": 176,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.610662,
+      "widthRatio": 0.990011,
+      "depthRatio": 0.76252,
+      "scaleMode": "strict"
+    },
+    "shadowCaster": {
+      "height": 270
+    },
+    "perimeterTile": "road",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "cannery",
+    "upgradeProject": "cannery_economy",
+    "panelDescription": "罐装工按批次消耗本位面仓库能源，把工业加工产能转化为现有食物资源；基础6个岗位可扩编至10个，每人发挥10%配置产能，罐头只作为建筑视觉身份。",
+    "buildWarning": "占地 4×4，四周自动生成道路；每个位面最多 2 座。需要罐装工、本位面仓库和足够能源。"
+  },
   "chain_restaurant": {
     "id": "chain_restaurant",
     "name": "连锁餐馆",
@@ -1236,6 +1308,57 @@
     "upgradeProject": "steam_power_plant_economy",
     "panelDescription": "两名锅炉工沿连续道路从仓库领取食物，在电站锅炉内加工后把能源送回可达仓库。",
     "buildWarning": "必须通过连续道路连接至少一座仓库；建筑提供 2 个锅炉工岗位。"
+  },
+  "oil_power_plant": {
+    "id": "oil_power_plant",
+    "buildLimit": 2,
+    "footprintCells": 4,
+    "name": "燃油发电厂",
+    "cost": 7000,
+    "currency": "energy",
+    "hp": 3800,
+    "radius": 256,
+    "def": 95,
+    "mdef": 80,
+    "tex": "oil_power_plant",
+    "assetPath": "assets/terrain/oil_power_plant.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/oil_power_plant.png",
+    "displayW": 512,
+    "displayH": 397,
+    "footOffsetY": 196,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.663324,
+      "widthRatio": 0.991111,
+      "depthRatio": 0.65616,
+      "scaleMode": "strict"
+    },
+    "shadowCaster": {
+      "height": 330
+    },
+    "workingEffect": {
+      "type": "chimney_smoke",
+      "tipXRatio": 0.16,
+      "tipYRatio": 0.045,
+      "radius": 22,
+      "rise": 96,
+      "drift": 24,
+      "cycleMs": 3900,
+      "puffCount": 8,
+      "colors": [
+        "#55575a",
+        "#74777a",
+        "#989a9d"
+      ]
+    },
+    "perimeterTile": "road",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "oil_power_plant",
+    "upgradeProject": "oil_power_plant_economy",
+    "panelDescription": "燃油技师按批次消耗玩家可支配金币作为外购燃油成本，向本位面仓库输出高密度能源；基础3个岗位可扩编至5个，每人发挥20%配置产能，仅在实际发电时从烟囱排放深灰烟。",
+    "buildWarning": "占地 4×4，四周自动生成道路；每个位面最多 2 座。需要燃油技师、可支配金币和本位面仓库空间。"
   },
   "wind_power_plant": {
     "id": "wind_power_plant",

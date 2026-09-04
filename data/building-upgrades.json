@@ -377,5 +377,281 @@
         "desc": "本烛台照明与烛火庇护半径 {value}px"
       }
     }
+  },
+  "oil_power_plant_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [
+        350,
+        500,
+        700,
+        950,
+        1250,
+        1650,
+        2150,
+        2800,
+        3600,
+        4600
+      ],
+      "energyByLevel": [
+        600,
+        800,
+        1050,
+        1350,
+        1750,
+        2250,
+        2850,
+        3600,
+        4500,
+        5600
+      ],
+      "timeBaseMs": 40000,
+      "timeGrowthMs": 5000
+    },
+    "modules": {
+      "oil_combustion_control": {
+        "name": "燃烧调度",
+        "icon": "🔥",
+        "iconImage": "assets/ui/building-upgrades/oil-combustion-control.png",
+        "effect": "oilCycleMs",
+        "mode": "add",
+        "base": 4000,
+        "per": -100,
+        "maxLevel": 10,
+        "desc": "燃油结算周期 {seconds} 秒（每级 -0.1 秒）"
+      },
+      "oil_generator_output": {
+        "name": "重型发电机组",
+        "icon": "⚡",
+        "iconImage": "assets/ui/building-upgrades/oil-generator-output.png",
+        "effect": "oilEnergyPerCycle",
+        "mode": "add",
+        "base": 560,
+        "per": 14,
+        "maxLevel": 10,
+        "desc": "每轮基础产出 {value} 能源（每级 +14）"
+      },
+      "oil_fuel_efficiency": {
+        "name": "燃油雾化",
+        "icon": "🛢️",
+        "iconImage": "assets/ui/building-upgrades/oil-fuel-efficiency.png",
+        "effect": "oilGoldPerCycle",
+        "mode": "add",
+        "base": 60,
+        "per": -1,
+        "maxLevel": 10,
+        "desc": "每轮外购燃油消耗 {value} 金币（每级 -1）"
+      },
+      "oil_maintenance_staff": {
+        "name": "机组编制",
+        "icon": "🐹",
+        "iconImage": "assets/ui/building-upgrades/oil-maintenance-staff.png",
+        "effect": "oilStaffCapacity",
+        "mode": "add",
+        "base": 3,
+        "per": 1,
+        "maxLevel": 2,
+        "goldByLevel": [
+          4200,
+          6800
+        ],
+        "energyByLevel": [
+          3600,
+          6000
+        ],
+        "timeByLevel": [
+          75000,
+          105000
+        ],
+        "desc": "燃油技师岗位 {value} 名；每人发挥 20% 配置产能"
+      }
+    }
+  },
+  "cannery_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [
+        400,
+        550,
+        750,
+        1000,
+        1300,
+        1700,
+        2200,
+        2800,
+        3600,
+        4600
+      ],
+      "energyByLevel": [
+        700,
+        950,
+        1250,
+        1600,
+        2050,
+        2600,
+        3250,
+        4050,
+        5050,
+        6250
+      ],
+      "timeBaseMs": 40000,
+      "timeGrowthMs": 5000
+    },
+    "modules": {
+      "cannery_assembly_line": {
+        "name": "连续罐装线",
+        "icon": "🥫",
+        "iconImage": "assets/ui/building-upgrades/cannery-assembly-line.png",
+        "effect": "canneryCycleMs",
+        "mode": "add",
+        "base": 10000,
+        "per": -150,
+        "maxLevel": 10,
+        "desc": "加工结算周期 {seconds} 秒（每级 -0.15 秒）"
+      },
+      "cannery_food_output": {
+        "name": "高温杀菌",
+        "icon": "🍅",
+        "iconImage": "assets/ui/building-upgrades/cannery-food-output.png",
+        "effect": "canneryFoodPerCycle",
+        "mode": "add",
+        "base": 100,
+        "per": 5,
+        "maxLevel": 10,
+        "desc": "每轮基础产出 {value} 食物（每级 +5）"
+      },
+      "cannery_energy_efficiency": {
+        "name": "余热回收",
+        "icon": "♻️",
+        "iconImage": "assets/ui/building-upgrades/cannery-energy-efficiency.png",
+        "effect": "canneryEnergyPerCycle",
+        "mode": "add",
+        "base": 500,
+        "per": -10,
+        "maxLevel": 10,
+        "desc": "每轮消耗 {value} 能源（每级 -10）"
+      },
+      "cannery_shift_staff": {
+        "name": "轮班扩编",
+        "icon": "🐹",
+        "iconImage": "assets/ui/building-upgrades/cannery-shift-staff.png",
+        "effect": "canneryStaffCapacity",
+        "mode": "add",
+        "base": 6,
+        "per": 1,
+        "maxLevel": 4,
+        "goldByLevel": [
+          2600,
+          3800,
+          5400,
+          7400
+        ],
+        "energyByLevel": [
+          2400,
+          3500,
+          5000,
+          7000
+        ],
+        "timeByLevel": [
+          60000,
+          75000,
+          90000,
+          120000
+        ],
+        "desc": "罐装工岗位 {value} 名；每人发挥 10% 配置产能"
+      }
+    }
+  },
+  "trading_company_economy": {
+    "moduleUpgrade": {
+      "goldByLevel": [
+        700,
+        950,
+        1300,
+        1750,
+        2300,
+        3000,
+        3900,
+        5000,
+        6400,
+        8200
+      ],
+      "energyByLevel": [
+        1100,
+        1450,
+        1900,
+        2450,
+        3150,
+        4000,
+        5050,
+        6350,
+        7950,
+        9900
+      ],
+      "timeBaseMs": 50000,
+      "timeGrowthMs": 5000
+    },
+    "modules": {
+      "trading_contract_cycle": {
+        "name": "合同周转",
+        "icon": "📜",
+        "iconImage": "assets/ui/building-upgrades/trading-contract-cycle.png",
+        "effect": "tradingCycleMs",
+        "mode": "add",
+        "base": 10000,
+        "per": -150,
+        "maxLevel": 10,
+        "desc": "外贸结算周期 {seconds} 秒（每级 -0.15 秒）"
+      },
+      "trading_gold_output": {
+        "name": "海外订单",
+        "icon": "💰",
+        "iconImage": "assets/ui/building-upgrades/trading-gold-output.png",
+        "effect": "tradingGoldPerCycle",
+        "mode": "add",
+        "base": 40,
+        "per": 2,
+        "maxLevel": 10,
+        "desc": "每轮基础结算 {value} 金币（每级 +2）"
+      },
+      "trading_food_efficiency": {
+        "name": "保鲜装运",
+        "icon": "📦",
+        "iconImage": "assets/ui/building-upgrades/trading-food-efficiency.png",
+        "effect": "tradingFoodPerCycle",
+        "mode": "add",
+        "base": 900,
+        "per": -10,
+        "maxLevel": 10,
+        "desc": "每轮消耗 {value} 食物（每级 -10）"
+      },
+      "trading_staff": {
+        "name": "贸易编制",
+        "icon": "🐹",
+        "iconImage": "assets/ui/building-upgrades/trading-staff.png",
+        "effect": "tradingStaffCapacity",
+        "mode": "add",
+        "base": 6,
+        "per": 1,
+        "maxLevel": 4,
+        "goldByLevel": [
+          3000,
+          4400,
+          6200,
+          8500
+        ],
+        "energyByLevel": [
+          2800,
+          4100,
+          5900,
+          8200
+        ],
+        "timeByLevel": [
+          60000,
+          75000,
+          90000,
+          120000
+        ],
+        "desc": "贸易职员岗位 {value} 名；每人发挥 10% 配置产能"
+      }
+    }
   }
 }

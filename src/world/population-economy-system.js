@@ -9,6 +9,7 @@ import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { getProductionResourceMul } from '../config/tribute-effects.js';
 import {
     createGoldItem,
+    deductPlayerGold,
     getPlayerTotalGold,
     routeProducedGold as routeBankGold,
 } from './economy-gold-routing.js';
@@ -107,6 +108,36 @@ function economyEffectValue(building, effect, fallback = 0) {
     const entry = Object.entries(building?._cfg?.modules || {})
         .find(([, module]) => module?.effect === effect);
     return entry ? economyModuleValue(building, entry[0]) : fallback;
+}
+
+const INDUSTRIAL_ECONOMY = {
+    oil_power_plant: {
+        upgradeField: '_oilPowerUpgrade', savedModules: 'oilPowerModules',
+        savedUpgrade: 'oilPowerUpgrade', cycleModule: 'oil_combustion_control',
+        outputModule: 'oil_generator_output', inputModule: 'oil_fuel_efficiency',
+        staffModule: 'oil_maintenance_staff', inputResource: 'gold', outputResource: 'energy',
+        inputLabel: '金币燃料', outputLabel: '能源', workerLabel: '燃油技师',
+    },
+    cannery: {
+        upgradeField: '_canneryUpgrade', savedModules: 'canneryModules',
+        savedUpgrade: 'canneryUpgrade', cycleModule: 'cannery_assembly_line',
+        outputModule: 'cannery_food_output', inputModule: 'cannery_energy_efficiency',
+        staffModule: 'cannery_shift_staff', inputResource: 'energy', outputResource: 'food',
+        inputLabel: '能源', outputLabel: '食物', workerLabel: '罐装工',
+    },
+    trading_company: {
+        upgradeField: '_tradingUpgrade', savedModules: 'tradingModules',
+        savedUpgrade: 'tradingUpgrade', cycleModule: 'trading_contract_cycle',
+        outputModule: 'trading_gold_output', inputModule: 'trading_food_efficiency',
+        staffModule: 'trading_staff', inputResource: 'food', outputResource: 'gold',
+        inputLabel: '食物', outputLabel: '金币', workerLabel: '贸易职员',
+    },
+};
+
+function industrialDefinition(buildingOrType) {
+    const type = typeof buildingOrType === 'string'
+        ? buildingOrType : buildingOrType?._economyType;
+    return INDUSTRIAL_ECONOMY[type] || null;
 }
 
 function isResearchFacility(building) {
@@ -283,6 +314,23 @@ export const PopulationEconomySystem = {
             } : null;
             building._mintGoldRemainder = Math.max(0, Number(saved.mintGoldRemainder) || 0);
         }
+        const industrial = industrialDefinition(building);
+        if (industrial) {
+            building.modules = { ...(saved[industrial.savedModules] || saved.modules || {}) };
+            for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
+                building.modules[moduleId] = clamp(
+                    Math.floor(Number(building.modules[moduleId]) || 0),
+                    0,
+                    Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+                );
+            }
+            const savedUpgrade = saved[industrial.savedUpgrade];
+            building[industrial.upgradeField] = savedUpgrade ? {
+                moduleId: savedUpgrade.moduleId,
+                totalMs: Math.max(1, Number(savedUpgrade.totalMs) || 1),
+                remainMs: Math.max(0, Number(savedUpgrade.remainMs) || 0),
+            } : null;
+        }
         if (building._economyType === 'advanced_research') {
             building.modules = { ...(saved.advancedResearchModules || saved.modules || {}) };
             for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
@@ -310,7 +358,8 @@ export const PopulationEconomySystem = {
                 || saved.resonatorModules || saved.windPowerModules || saved.solarPowerModules
                 || saved.computingCenterModules
                 || saved.hospitalModules || saved.steamModules
-                || saved.tavernModules);
+                || saved.tavernModules || saved.oilPowerModules
+                || saved.canneryModules || saved.tradingModules);
         building._assignedWorkers = workerCfg
             ? clamp(
                 Math.floor(Number(saved.assignedWorkers) || 0),
@@ -933,6 +982,14 @@ export const PopulationEconomySystem = {
         return routeBankGold(amount);
     },
 
+    getPlayerTotalGold() {
+        return getPlayerTotalGold();
+    },
+
+    deductPlayerGold(amount) {
+        return deductPlayerGold(amount);
+    },
+
     getWindmillFoodPerSecond(building = null) {
         if (building) {
             return this.getWindmillSnapshot(building).actualFoodPerSecond;
@@ -1519,6 +1576,142 @@ export const PopulationEconomySystem = {
         return { ok: true, gold, energy, quote: this.getMarketQuote(building) };
     },
 
+    getIndustrialModuleLevel(building, moduleId) {
+        return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
+    },
+
+    getIndustrialUpgradeCost(building, moduleId) {
+        return getBuildingModuleUpgradeCost(
+            building?._cfg,
+            moduleId,
+            this.getIndustrialModuleLevel(building, moduleId)
+        );
+    },
+
+    startIndustrialUpgrade(building, moduleId) {
+        const definition = industrialDefinition(building);
+        if (!definition) return { ok: false, reason: '该建筑不是近代经济建筑' };
+        const module = building?._cfg?.modules?.[moduleId];
+        if (!module) return { ok: false, reason: '未知升级项目' };
+        if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+            return { ok: false, reason: `需要先完成科技：${technologyName || moduleId}` };
+        }
+        const level = this.getIndustrialModuleLevel(building, moduleId);
+        if (level >= (Number(module.maxLevel) || 0)) return { ok: false, reason: '升级项目已满级' };
+        if (building[definition.upgradeField]) return { ok: false, reason: '已有本栋项目正在升级' };
+        const cost = this.getIndustrialUpgradeCost(building, moduleId);
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
+        building[definition.upgradeField] = {
+            moduleId,
+            totalMs: Math.max(1, Number(cost.timeMs) || 1),
+            remainMs: Math.max(1, Number(cost.timeMs) || 1),
+        };
+        return { ok: true, cost, moduleId };
+    },
+
+    _updateIndustrialUpgrade(building, dt) {
+        const definition = industrialDefinition(building);
+        const upgrade = definition ? building?.[definition.upgradeField] : null;
+        if (!upgrade) return;
+        upgrade.remainMs -= Math.max(0, Number(dt) || 0);
+        if (upgrade.remainMs > 0) return;
+        const module = building._cfg.modules?.[upgrade.moduleId];
+        if (module) {
+            building.modules[upgrade.moduleId] = clamp(
+                this.getIndustrialModuleLevel(building, upgrade.moduleId) + 1,
+                0,
+                Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+            );
+        }
+        building[definition.upgradeField] = null;
+    },
+
+    getIndustrialUpgrade(building) {
+        const definition = industrialDefinition(building);
+        return definition ? building?.[definition.upgradeField] || null : null;
+    },
+
+    getIndustrialEconomySnapshot(building) {
+        const definition = industrialDefinition(building);
+        if (!definition) return null;
+        const cfg = populationEconomyConfig[building._economyType] || {};
+        const configuredCycleMs = Math.max(100,
+            economyModuleValue(building, definition.cycleModule) || 10000);
+        const outputPerCycle = Math.max(0,
+            economyModuleValue(building, definition.outputModule));
+        const inputPerCycle = Math.max(0, Math.floor(
+            economyModuleValue(building, definition.inputModule)));
+        const staffCapacity = Math.max(0, Math.floor(
+            economyModuleValue(building, definition.staffModule)
+                || workforceSlots(building, cfg)));
+        const staffedCount = Math.min(staffCapacity,
+            Math.max(0, Math.floor(Number(building?._assignedWorkers) || 0)));
+        const workerEfficiencyShare = Math.max(0,
+            Number(cfg.workerEfficiencyShare) || 0.25);
+        const staffFactor = clamp(staffedCount * workerEfficiencyShare, 0, 1);
+        const laborEfficiency = this.getLaborEfficiency();
+        const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
+        const tavernMultiplier = TavernEconomySystem.getPlaneOutputMultiplier(
+            building._economyType);
+        const productionMultiplier = getProductionResourceMul();
+        // 三栋工业建筑首尾构成资源转换链。全局增益只加快周转，投入频率同步增加，
+        // 避免工坊、酒馆或祭品单方面放大成品后形成无成本资源闭环。
+        const throughputMultiplier = Math.max(0.01,
+            workshopMultiplier * tavernMultiplier * productionMultiplier);
+        const cycleMs = Math.max(100, configuredCycleMs / throughputMultiplier);
+        const actualOutputPerCycle = outputPerCycle * staffFactor * laborEfficiency;
+        const actualOutputPerSecond = cycleMs > 0
+            ? actualOutputPerCycle * 1000 / cycleMs : 0;
+        const inputPerSecond = cycleMs > 0
+            ? inputPerCycle * 1000 / cycleMs : 0;
+        const availableInput = definition.inputResource === 'gold'
+            ? Math.max(0, getPlayerTotalGold())
+            : definition.inputResource === 'energy'
+                ? Math.max(0, Number(EnergyManager?.getEnergy?.()) || 0)
+                : Math.max(0, Number(EnergyManager?.getFood?.()) || 0);
+        const hasWarehouse = !!EnergyManager?.hasWarehouse?.();
+        const outputStorageAvailable = definition.outputResource === 'gold'
+            ? true
+            : (hasWarehouse && !EnergyManager?.isFull?.());
+        const canAffordInput = inputPerCycle <= 0 || availableInput >= inputPerCycle;
+        const canOperate = actualOutputPerCycle > 0 && canAffordInput
+            && outputStorageAvailable;
+        const blockReason = staffedCount <= 0 ? `等待${definition.workerLabel}上岗`
+            : laborEfficiency <= 0 ? '人口容量不足'
+                : !canAffordInput ? `${definition.inputLabel}不足`
+                    : !outputStorageAvailable ? '等待仓库空间'
+                        : '';
+        return {
+            ...definition,
+            configuredCycleMs,
+            cycleMs,
+            outputPerCycle,
+            inputPerCycle,
+            staffCapacity,
+            staffedCount,
+            workerEfficiencyShare,
+            staffFactor,
+            laborEfficiency,
+            workshopMultiplier,
+            tavernMultiplier,
+            productionMultiplier,
+            throughputMultiplier,
+            actualOutputPerCycle,
+            actualOutputPerSecond,
+            inputPerSecond,
+            availableInput,
+            hasWarehouse,
+            outputStorageAvailable,
+            canAffordInput,
+            canOperate,
+            blockReason,
+            pendingOutput: Math.max(0,
+                Math.floor(Number(building?._workProductionRemainder) || 0)),
+        };
+    },
+
     getResonatorModuleLevel(building, moduleId) {
         return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
     },
@@ -1892,6 +2085,81 @@ export const PopulationEconomySystem = {
             if (energy > 0) {
                 const stored = EnergyManager?.depositEnergy?.(energy) || 0;
                 building._workProductionRemainder += Math.max(0, energy - stored);
+            }
+            return;
+        }
+        if (industrialDefinition(building)) {
+            this._updateIndustrialUpgrade(building, elapsedDt);
+            const industrial = industrialDefinition(building);
+            const pendingWhole = Math.floor(Math.max(0,
+                Number(building._workProductionRemainder) || 0));
+            if (pendingWhole > 0 && industrial.outputResource !== 'gold') {
+                const stored = industrial.outputResource === 'energy'
+                    ? (EnergyManager?.depositEnergy?.(pendingWhole) || 0)
+                    : (EnergyManager?.depositFood?.(pendingWhole) || 0);
+                building._workProductionRemainder = Math.max(0,
+                    Number(building._workProductionRemainder) || 0) - stored;
+            }
+            const snapshot = this.getIndustrialEconomySnapshot(building);
+            building._economyWorking = !!snapshot?.canOperate;
+            if (!snapshot?.canOperate) {
+                building._economyTickMs = Math.min(
+                    Math.max(0, Number(building._economyTickMs) || 0),
+                    snapshot?.cycleMs || 0
+                );
+                return;
+            }
+            building._economyTickMs += elapsedDt;
+            const readyCycles = Math.floor(building._economyTickMs / snapshot.cycleMs);
+            if (readyCycles <= 0) return;
+            const affordableCycles = snapshot.inputPerCycle > 0
+                ? Math.floor(snapshot.availableInput / snapshot.inputPerCycle)
+                : readyCycles;
+            const freeCapacity = snapshot.outputResource === 'gold'
+                ? Number.POSITIVE_INFINITY
+                : Math.max(0, Number(EnergyManager?.getFreeCapacity?.()) || 0);
+            const storageCycles = snapshot.outputResource === 'gold'
+                ? readyCycles
+                : (freeCapacity > 0 && snapshot.actualOutputPerCycle > 0
+                    ? Math.max(1, Math.ceil(freeCapacity / snapshot.actualOutputPerCycle))
+                    : 0);
+            const cycles = Math.min(readyCycles, affordableCycles, storageCycles);
+            if (cycles <= 0) {
+                building._economyTickMs = Math.min(building._economyTickMs, snapshot.cycleMs);
+                building._economyWorking = false;
+                return;
+            }
+            const inputCost = cycles * snapshot.inputPerCycle;
+            const paid = snapshot.inputResource === 'gold'
+                ? deductPlayerGold(inputCost)
+                : snapshot.inputResource === 'energy'
+                    ? !!EnergyManager?.deductEnergy?.(inputCost)
+                    : !!EnergyManager?.deductFood?.(inputCost);
+            if (!paid) {
+                building._economyTickMs = Math.min(building._economyTickMs, snapshot.cycleMs);
+                building._economyWorking = false;
+                return;
+            }
+            building._economyTickMs -= cycles * snapshot.cycleMs;
+            if (cycles < readyCycles) {
+                building._economyTickMs = Math.min(building._economyTickMs, snapshot.cycleMs);
+            }
+            const total = Math.max(0, Number(building._workProductionRemainder) || 0)
+                + snapshot.actualOutputPerCycle * cycles;
+            const produced = Math.floor(total);
+            building._workProductionRemainder = total - produced;
+            if (produced <= 0) return;
+            if (snapshot.outputResource === 'energy') {
+                const stored = EnergyManager?.depositEnergy?.(produced) || 0;
+                building._workProductionRemainder += Math.max(0, produced - stored);
+            } else if (snapshot.outputResource === 'food') {
+                const stored = EnergyManager?.depositFood?.(produced) || 0;
+                building._workProductionRemainder += Math.max(0, produced - stored);
+            } else {
+                const routed = routeBankGold(produced);
+                if (routed.remaining > 0 && Game?.dropItem) {
+                    Game.dropItem(building.x, building.y, createGoldItem(routed.remaining));
+                }
             }
             return;
         }
