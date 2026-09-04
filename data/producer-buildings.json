@@ -500,15 +500,17 @@
     "tex": "planar_observation_array",
     "assetPath": "assets/terrain/planar_observation_array.png",
     "thumbnailPath": "assets/ui/building-thumbnails/planar_observation_array.png",
-    "displayW": 512,
-    "displayH": 462,
-    "footOffsetY": 229,
-    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.800117, "widthRatio": 1, "depthRatio": 0.389277, "scaleMode": "strict" },
+    "displayW": 516,
+    "displayH": 400,
+    "footOffsetY": 198,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.67313, "widthRatio": 0.991416, "depthRatio": 0.639889, "scaleMode": "strict" },
+    "assetCutoutHash": "AC5D1011E92C562BE0C94A9FCCD3F2569F7DDF1826AA2125BE08215A83DDA11A",
     "perimeterTile": "none",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
     "economyType": "advanced_research",
+    "upgradeProject": "planar_observation_array_economy",
     "researchFacility": {
       "clusterType": "planar_observation_array",
       "workerSlots": 6,
@@ -516,8 +518,8 @@
       "workerEfficiencyShare": 0.1666666667,
       "baseResearchPointsPerSecond": 3
     },
-    "panelDescription": "六名位面观测员满员时提供3点基础科研/秒；需要共同控制至少3个位面，不复制气象预报功能。",
-    "buildWarning": "占位建筑：标准4×4、每个位面最多1座；数值、岗位、集群、前后台结算与存档链已就绪，后续替换同名贴图即可。"
+    "panelDescription": "六名位面观测员满员时提供3点基础科研/秒；完成位面观测学后，可升级孔径合成、多谱段自动化与科研集群半径；不复制气象预报功能。",
+    "buildWarning": "标准4×4、每个位面最多1座；需要共同控制至少3个位面，与其他已上岗科研设施相邻可形成科研产业集群。"
   },
   "interplane_research_hub": {
     "id": "interplane_research_hub",

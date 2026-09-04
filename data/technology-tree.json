@@ -1,5 +1,5 @@
 {
-  "version": 54,
+  "version": 55,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -93,8 +93,8 @@
     },
     {
       "id": "planar_observation_science", "name": "位面观测学", "icon": "📡", "iconPath": "assets/ui/technology-icons/planar_observation_science.png", "branch": "工程", "column": 5, "lane": 2, "researchCost": 2600,
-      "prerequisites": ["high_energy_laboratory_science", "modern_residential_systems"], "requiredWorldCount": 3, "description": "在至少三个位面的高能实验与观测数据之间建立同步模型，开放每个位面一座位面观测阵列。",
-      "unlocks": [{ "type": "building", "id": "planar_observation_array", "label": "位面观测阵列" }]
+      "prerequisites": ["high_energy_laboratory_science", "modern_residential_systems"], "requiredWorldCount": 3, "description": "在至少三个位面的高能实验与观测数据之间建立同步模型，开放每个位面一座位面观测阵列，并直接开放当前三项科研升级。",
+      "unlocks": [{ "type": "building", "id": "planar_observation_array", "label": "位面观测阵列" }, { "type": "upgrade", "id": "planar_aperture_synthesis", "label": "孔径合成阵列" }, { "type": "upgrade", "id": "planar_multispectral_automation", "label": "多谱段自动观测" }, { "type": "upgrade", "id": "planar_baseline_extension", "label": "阵列基线延展" }]
     },
     {
       "id": "interplane_research_coordination", "name": "跨位面科研协同", "icon": "🧠", "iconPath": "assets/ui/technology-icons/interplane_research_coordination.png", "branch": "工程", "column": 6, "lane": 2, "researchCost": 5200,
