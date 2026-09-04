@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "createdAt": "2026-09-01",
+  "generator": "Codex built-in image_gen",
+  "assetClass": "game UI weather-event icons",
+  "styleContract": "silver beveled cold-steel hexagonal frame, dark inset, one high-contrast weather subject, transparent outside the frame",
+  "sourceSize": [1254, 1254],
+  "runtimeSize": [256, 256],
+  "runtimeResample": "Pillow LANCZOS RGBA",
+  "existingAssetsKept": [
+    "assets/ui/event-icons/rain-light.png",
+    "assets/ui/event-icons/rain-moderate.png",
+    "assets/ui/event-icons/rain-heavy.png",
+    "assets/ui/event-icons/rain-storm.png"
+  ],
+  "assets": [
+    {
+      "id": "sandstorm",
+      "source": "raw/weather-sandstorm-raw.png",
+      "runtime": "assets/ui/event-icons/weather-sandstorm.png",
+      "prompt": "Create one dedicated SANDSTORM event icon for a dark fantasy strategy roguelike UI. Show a powerful ochre-orange spiral of wind carrying sharp sand streaks above a small partially buried dune, unmistakably a sandstorm rather than rain, fire, or a water tornado. Use a polished painted game-UI style with realistic metallic PBR cold-steel finish and crisp contrast at 32-52px. Center the emblem inside a symmetrical silver beveled hexagonal metal frame with a dark gunmetal faceted inset. Use gunmetal, silver, muted desert ochre, and restrained amber glow. Square 1024 PNG, genuinely transparent outside the frame, no text, numbers, badge, watermark, rounded-square background, cartoon emoji, flat clipart, excessive particles, rain, swords, or lightning."
+    },
+    {
+      "id": "drought",
+      "source": "raw/weather-drought-raw.png",
+      "runtime": "assets/ui/event-icons/weather-drought.png",
+      "prompt": "Create one dedicated DROUGHT event icon for a dark fantasy strategy roguelike UI. Show a harsh pale-gold sun disk above deeply cracked dry earth with one curled dead stalk, unmistakably drought rather than ordinary sunny weather or fire. Use a polished painted game-UI style with realistic metallic PBR cold-steel finish and crisp contrast at 32-52px. Center the emblem inside a symmetrical silver beveled hexagonal frame with a dark gunmetal faceted inset. Use gunmetal, silver, muted ochre, burnt umber, and restrained pale-gold heat glow. Square 1024 PNG, genuinely transparent outside the frame, no text, numbers, badge, watermark, rounded-square background, cartoon emoji, lush plants, flames, rain, or lightning."
+    },
+    {
+      "id": "fog_tide",
+      "source": "raw/weather-fog-tide-raw.png",
+      "runtime": "assets/ui/event-icons/weather-fog-tide.png",
+      "prompt": "Create one dedicated DEAD FOG TIDE event icon for a dark fantasy strategy roguelike UI. Show a broad rolling tide of pale blue-gray spectral fog curling around two half-seen skull silhouettes and a thin waning moon, unmistakably an undead fog front rather than poison gas, ocean water, or ordinary mist. Use a polished painted game-UI style with realistic metallic PBR cold-steel finish and crisp contrast at 32-52px. Center the emblem inside a symmetrical silver beveled hexagonal frame with a dark gunmetal inset. Use gunmetal, silver, desaturated blue-gray, muted corpse-green undertone, and restrained cyan glow. Square 1024 PNG, genuinely transparent outside the frame, no text, badge, watermark, rounded-square background, cartoon emoji, bright poison green, gas mask, rain, or lightning."
+    },
+    {
+      "id": "mine_earthquake",
+      "source": "raw/weather-mine-earthquake-raw.png",
+      "runtime": "assets/ui/event-icons/weather-mine-earthquake.png",
+      "prompt": "Create one dedicated MINE EARTHQUAKE event icon for a dark fantasy strategy roguelike UI. Show a massive split through layered underground rock strata with angular falling stones and a bright amber fault-line glow, unmistakably an underground earthquake and cave collapse rather than sky lightning or a surface mountain. Use a polished painted game-UI style with realistic metallic PBR cold-steel finish and crisp contrast at 32-52px. Center the emblem inside a symmetrical silver beveled hexagonal frame with a dark gunmetal inset. Use gunmetal, silver, slate rock, muted rust, and restrained amber fracture glow. Square 1024 PNG, genuinely transparent outside the frame, no text, badge, watermark, rounded-square background, cartoon emoji, volcano, lava flood, or excessive rubble."
+    },
+    {
+      "id": "mine_poisonGas",
+      "source": "raw/weather-mine-poison-gas-raw.png",
+      "runtime": "assets/ui/event-icons/weather-mine-poison-gas.png",
+      "prompt": "Create one dedicated TOXIC GAS SPREAD event icon for an underground mine in a dark fantasy strategy roguelike UI. Show three dense luminous yellow-green poison-gas plumes spreading from cracked mine vents, with one clear skull-shaped negative space in the central cloud, unmistakably toxic gas and distinct from blue-gray undead fog. Use a polished painted game-UI style with realistic metallic PBR cold-steel finish and crisp contrast at 32-52px. Center the emblem inside a symmetrical silver beveled hexagonal frame with a dark gunmetal inset. Use gunmetal, silver, sulfur yellow-green, muted olive, and restrained toxic emerald glow. Square 1024 PNG, genuinely transparent outside the frame, no text, badge, watermark, rounded-square background, cartoon emoji, blue fog, ocean waves, gas mask, radioactive lettering, or rain."
+    },
+    {
+      "id": "mine_resurrection",
+      "source": "raw/weather-mine-resurrection-raw.png",
+      "runtime": "assets/ui/event-icons/weather-mine-resurrection.png",
+      "prompt": "Create one dedicated SLEEPERS RETURN / UNDEAD RESURRECTION event icon for an underground mine in a dark fantasy strategy roguelike UI. Show one armored skeletal hand violently breaking upward through dark mine soil and fractured stone, with a faint crimson-violet necromantic ring behind it, unmistakably corpses rising rather than fog or poison. Use a polished painted game-UI style with realistic metallic PBR cold-steel finish and crisp contrast at 32-52px. Center the emblem inside a symmetrical silver beveled hexagonal frame with a dark gunmetal inset. Use gunmetal, silver, bone ivory, muted rust red, and restrained crimson-violet glow. Square 1024 PNG, genuinely transparent outside the frame, no text, badge, watermark, rounded-square background, cartoon emoji, green poison clouds, blue fog, full portrait, or excessive skeletons."
+    }
+  ],
+  "preview": "weather-event-icons-preview.png"
+}
