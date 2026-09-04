@@ -46,7 +46,7 @@ export class HamsterMiner extends Companion {
         this.hitFlash = 0;
         // 经济背包：矿点产出先进入矿工背包，返回所属营地提交后才进入仓库。
         this._energyCarried = 0;
-        this._energyCapacity = this.aiConfig?.backpackCapacity || 300;
+        this._energyCapacity = this.aiConfig?.backpackCapacity || 100;
         this._miningSwingSeq = 0;
         this._retireRequested = false;
         this._dying = false;

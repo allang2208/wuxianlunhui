@@ -37,7 +37,7 @@ export function getMinerEconomyStats(levels = {}, minerCountOverride = null) {
         : Math.max(0, Math.floor(Number(minerCountOverride) || 0));
     return {
         count,
-        attackDamage: Math.max(1, Math.round((ai.attackDamage ?? 100) * mults.attackDamageMult)),
+        attackDamage: Math.max(1, Math.round((ai.attackDamage ?? 25) * mults.attackDamageMult)),
         attackInterval: Math.max(300, Math.round((ai.attackInterval ?? 2000) * mults.attackIntervalMult)),
         walkSpeed: Math.max(20, Math.round((ai.walkSpeed ?? 80) * mults.moveSpeedMult)),
         miningMult: mults.miningMult,

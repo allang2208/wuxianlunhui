@@ -20,7 +20,7 @@ export class HamsterMinerAI {
         this._decisionTimer = stableAiPhase(miner, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
         this._attackInterval = this.cfg.attackInterval ?? 2000;
-        this._attackDamage = this.cfg.attackDamage ?? 100;
+        this._attackDamage = this.cfg.attackDamage ?? 25;
         this._miningRange = this.cfg.miningRange ?? 80;
         this.miningMult = this.cfg.miningMult ?? 1;        // 采矿效率倍率（小屋升级）
         // 物流：矿点产出先装个人背包；背包满或岗位撤销后返回营地提交。
