@@ -1,0 +1,35 @@
+{
+  "unitKey": "hamster_howitzer_crew",
+  "profile": "crowd",
+  "sourceScale": 0.31,
+  "anchorInVideo": [
+    512,
+    420
+  ],
+  "referenceCell": 512,
+  "allActionsShareTransform": true,
+  "perFrameRecentering": false,
+  "targetMiB": 32,
+  "admissionLimitMiB": 64,
+  "provisionalSheetEstimateMiB": [
+    48,
+    63
+  ],
+  "viewPlanning": {
+    "referenceUnit": "hamster_priest",
+    "normalViewPlannedBodyPixels": 75.684,
+    "maximumViewPlannedBodyPixels": 113.526,
+    "hamsterBodySourcePixelsApprox": 260,
+    "hamsterBodySpritePixelsApprox": 80.6,
+    "runtimeCalibrationPending": false
+  },
+  "sourceSelection": "Full source durations; step4 slow keys, native discharge and fall poses, step2 reload poses.",
+  "sourceAcceptancePreserved": true,
+  "runtimeIntegrationActive": true,
+  "formalBudgetCheckRun": false,
+  "productionStatus": "imported_pending_user_runtime_test",
+  "actualDecodedMiB": 63.602935791015625,
+  "runtimeScale": 0.9390074441687345,
+  "resupplyCompleted": true,
+  "completionRecord": "../_engineering_line_completion_20260830/RESUPPLY-DELIVERY.md"
+}

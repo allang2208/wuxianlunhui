@@ -1,0 +1,4018 @@
+{
+  "scope": "engineering branch owned task folders only",
+  "strategy": "move exact files into ignored recoverable tools/.trash-engineering-20260830, never delete source tree recursively",
+  "entries": [
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-production.log",
+      "bytes": 26936,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0000.png",
+      "bytes": 174483,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0004.png",
+      "bytes": 176656,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0008.png",
+      "bytes": 177496,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0012.png",
+      "bytes": 176304,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0016.png",
+      "bytes": 175893,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0020.png",
+      "bytes": 175746,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0024.png",
+      "bytes": 173112,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0028.png",
+      "bytes": 173874,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0032.png",
+      "bytes": 173740,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0035.png",
+      "bytes": 178351,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0036.png",
+      "bytes": 182585,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0037.png",
+      "bytes": 185913,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0038.png",
+      "bytes": 187610,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0039.png",
+      "bytes": 189268,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0040.png",
+      "bytes": 188402,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0041.png",
+      "bytes": 194467,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0042.png",
+      "bytes": 200535,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0043.png",
+      "bytes": 201218,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0044.png",
+      "bytes": 193533,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0048.png",
+      "bytes": 197299,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0052.png",
+      "bytes": 196349,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0056.png",
+      "bytes": 194573,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0060.png",
+      "bytes": 192655,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0064.png",
+      "bytes": 192750,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0068.png",
+      "bytes": 189311,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0072.png",
+      "bytes": 190449,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0076.png",
+      "bytes": 191649,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0080.png",
+      "bytes": 183284,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0084.png",
+      "bytes": 173635,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0088.png",
+      "bytes": 173610,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0092.png",
+      "bytes": 178365,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0096.png",
+      "bytes": 177833,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0100.png",
+      "bytes": 174027,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0104.png",
+      "bytes": 174734,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0108.png",
+      "bytes": 179252,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0112.png",
+      "bytes": 181957,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0116.png",
+      "bytes": 181740,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0120.png",
+      "bytes": 181458,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/attack-v02-0123.png",
+      "bytes": 181579,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0000.png",
+      "bytes": 297093,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0004.png",
+      "bytes": 300272,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0006.png",
+      "bytes": 296264,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0008.png",
+      "bytes": 299096,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0010.png",
+      "bytes": 311464,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0012.png",
+      "bytes": 314704,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0014.png",
+      "bytes": 322766,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0016.png",
+      "bytes": 328462,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0018.png",
+      "bytes": 329644,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0020.png",
+      "bytes": 333981,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0024.png",
+      "bytes": 340928,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0028.png",
+      "bytes": 339801,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0030.png",
+      "bytes": 335748,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0032.png",
+      "bytes": 326445,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0034.png",
+      "bytes": 312761,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0036.png",
+      "bytes": 302114,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0038.png",
+      "bytes": 301972,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0040.png",
+      "bytes": 307374,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0042.png",
+      "bytes": 304938,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0044.png",
+      "bytes": 287078,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0046.png",
+      "bytes": 283618,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0048.png",
+      "bytes": 283636,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0052.png",
+      "bytes": 286867,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0056.png",
+      "bytes": 289661,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0060.png",
+      "bytes": 290102,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0064.png",
+      "bytes": 289827,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0068.png",
+      "bytes": 289712,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0072.png",
+      "bytes": 289402,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0076.png",
+      "bytes": 289879,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0080.png",
+      "bytes": 289336,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0084.png",
+      "bytes": 289250,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0088.png",
+      "bytes": 288514,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0092.png",
+      "bytes": 288973,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0096.png",
+      "bytes": 288654,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0100.png",
+      "bytes": 288808,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0104.png",
+      "bytes": 288935,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0108.png",
+      "bytes": 288610,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0112.png",
+      "bytes": 288449,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0116.png",
+      "bytes": 288687,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0120.png",
+      "bytes": 288613,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/die-v01-0123.png",
+      "bytes": 288718,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0000.png",
+      "bytes": 317405,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0004.png",
+      "bytes": 321108,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0008.png",
+      "bytes": 323387,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0012.png",
+      "bytes": 323511,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0016.png",
+      "bytes": 322440,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0020.png",
+      "bytes": 322051,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0024.png",
+      "bytes": 323086,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0028.png",
+      "bytes": 321745,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0032.png",
+      "bytes": 322612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0036.png",
+      "bytes": 321760,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0040.png",
+      "bytes": 324366,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0044.png",
+      "bytes": 325170,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0048.png",
+      "bytes": 326896,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0052.png",
+      "bytes": 327575,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0056.png",
+      "bytes": 328315,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0060.png",
+      "bytes": 326825,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0064.png",
+      "bytes": 326677,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0068.png",
+      "bytes": 326073,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0072.png",
+      "bytes": 322552,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0076.png",
+      "bytes": 322769,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0080.png",
+      "bytes": 322001,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0084.png",
+      "bytes": 323084,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0088.png",
+      "bytes": 321693,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0092.png",
+      "bytes": 324658,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0096.png",
+      "bytes": 325711,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0100.png",
+      "bytes": 326003,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0104.png",
+      "bytes": 326340,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0108.png",
+      "bytes": 328266,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0112.png",
+      "bytes": 327612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0116.png",
+      "bytes": 327984,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-0120.png",
+      "bytes": 327425,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0000.png",
+      "bytes": 317405,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0004.png",
+      "bytes": 321108,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0008.png",
+      "bytes": 323387,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0012.png",
+      "bytes": 323511,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0016.png",
+      "bytes": 322440,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0020.png",
+      "bytes": 322051,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0024.png",
+      "bytes": 323086,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0028.png",
+      "bytes": 321745,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0032.png",
+      "bytes": 322612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0036.png",
+      "bytes": 321760,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0040.png",
+      "bytes": 324366,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0044.png",
+      "bytes": 325170,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0048.png",
+      "bytes": 326896,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0052.png",
+      "bytes": 327575,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0056.png",
+      "bytes": 328315,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0060.png",
+      "bytes": 326825,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0064.png",
+      "bytes": 326677,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0068.png",
+      "bytes": 326073,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0072.png",
+      "bytes": 322552,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0076.png",
+      "bytes": 322769,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0080.png",
+      "bytes": 322001,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0084.png",
+      "bytes": 323084,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0088.png",
+      "bytes": 321693,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0092.png",
+      "bytes": 324658,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0096.png",
+      "bytes": 325711,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0100.png",
+      "bytes": 326003,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0104.png",
+      "bytes": 326340,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0108.png",
+      "bytes": 328266,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0112.png",
+      "bytes": 327612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0116.png",
+      "bytes": 327984,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/idle-v01-0120.png",
+      "bytes": 327425,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0000.png",
+      "bytes": 304482,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0004.png",
+      "bytes": 314631,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0008.png",
+      "bytes": 312011,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0012.png",
+      "bytes": 306945,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0016.png",
+      "bytes": 301773,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0020.png",
+      "bytes": 299710,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0024.png",
+      "bytes": 305516,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0028.png",
+      "bytes": 314337,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0032.png",
+      "bytes": 315571,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0036.png",
+      "bytes": 310890,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0040.png",
+      "bytes": 308970,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0044.png",
+      "bytes": 301812,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0048.png",
+      "bytes": 301668,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0052.png",
+      "bytes": 303559,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0056.png",
+      "bytes": 314265,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0060.png",
+      "bytes": 315358,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0064.png",
+      "bytes": 312448,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0068.png",
+      "bytes": 308505,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0072.png",
+      "bytes": 302353,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0076.png",
+      "bytes": 302261,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0080.png",
+      "bytes": 305588,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0084.png",
+      "bytes": 314141,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0088.png",
+      "bytes": 313084,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0092.png",
+      "bytes": 313278,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0096.png",
+      "bytes": 307631,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0100.png",
+      "bytes": 302053,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0104.png",
+      "bytes": 298345,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0108.png",
+      "bytes": 304612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0112.png",
+      "bytes": 318264,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0116.png",
+      "bytes": 318548,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-0120.png",
+      "bytes": 317828,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0000.png",
+      "bytes": 304482,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0004.png",
+      "bytes": 314631,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0008.png",
+      "bytes": 312011,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0012.png",
+      "bytes": 306945,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0016.png",
+      "bytes": 301773,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0020.png",
+      "bytes": 299710,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0024.png",
+      "bytes": 305516,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0028.png",
+      "bytes": 314337,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0032.png",
+      "bytes": 315571,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0036.png",
+      "bytes": 310890,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0040.png",
+      "bytes": 308970,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0044.png",
+      "bytes": 301812,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0048.png",
+      "bytes": 301668,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0052.png",
+      "bytes": 303559,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0056.png",
+      "bytes": 314265,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0060.png",
+      "bytes": 315358,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0064.png",
+      "bytes": 312448,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0068.png",
+      "bytes": 308505,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0072.png",
+      "bytes": 302353,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0076.png",
+      "bytes": 302261,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0080.png",
+      "bytes": 305588,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0084.png",
+      "bytes": 314141,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0088.png",
+      "bytes": 313084,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0092.png",
+      "bytes": 313278,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0096.png",
+      "bytes": 307631,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0100.png",
+      "bytes": 302053,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0104.png",
+      "bytes": 298345,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0108.png",
+      "bytes": 304612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0112.png",
+      "bytes": 318264,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0116.png",
+      "bytes": 318548,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/birefnet/run-v01-0120.png",
+      "bytes": 317828,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/attack/catapult-attack-interpolated-contact.png",
+      "bytes": 583910,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/attack/catapult-attack-interpolated.gif",
+      "bytes": 2113667,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/die/catapult-die-interpolated-contact.png",
+      "bytes": 900971,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/die/catapult-die-interpolated.gif",
+      "bytes": 2752255,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/idle/catapult-idle-interpolated-contact.png",
+      "bytes": 1052937,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/idle/catapult-idle-interpolated.gif",
+      "bytes": 3046258,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/run/catapult-run-interpolated-contact.png",
+      "bytes": 1097104,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/rife-preview/run/catapult-run-interpolated.gif",
+      "bytes": 2874328,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/data/building-upgrades.json",
+      "bytes": 46206,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/data/military-population-costs.json",
+      "bytes": 622,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/data/producer-buildings.json",
+      "bytes": 71668,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/data/technology-tree.json",
+      "bytes": 63517,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/public/data/military-population-costs.json",
+      "bytes": 622,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/src/config/hamster-unit-categories.js",
+      "bytes": 2331,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/src/phaser/assets/friendly-unit-assets.js",
+      "bytes": 10223,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/src/phaser/scenes/GameScene.js",
+      "bytes": 725984,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/src/world/producer-building-system.js",
+      "bytes": 437904,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/src/world/troop-line-system.js",
+      "bytes": 59617,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/src/world/unit-upgrade-store.js",
+      "bytes": 17312,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/cache/runtime-before/src/world/world122-sim.js",
+      "bytes": 167396,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/attack-final-contact.png",
+      "bytes": 521905,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/attack-source.gif",
+      "bytes": 2163537,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/attack-v02-release-source.png",
+      "bytes": 596930,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/die-final-contact.png",
+      "bytes": 466956,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/die-final.gif",
+      "bytes": 5801766,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/die-source.gif",
+      "bytes": 3601369,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/idle-final-contact.png",
+      "bytes": 498273,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/idle-source.gif",
+      "bytes": 3857823,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/run-final-contact.png",
+      "bytes": 491333,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/previews/run-source.gif",
+      "bytes": 4449809,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/attack-v01.mp4",
+      "bytes": 745885,
+      "reason": "superseded or rejected source video"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/attack-v01_contact.png",
+      "bytes": 601781,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/attack-v02_contact.png",
+      "bytes": 351823,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/die-v01_contact.png",
+      "bytes": 633875,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/idle-v01_contact.png",
+      "bytes": 603733,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/videos/run-v01_contact.png",
+      "bytes": 735088,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_catapult_animations_20260830/__pycache__/make_assets.cpython-311.pyc",
+      "bytes": 40023,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0000.png",
+      "bytes": 233168,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0004.png",
+      "bytes": 235148,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0008.png",
+      "bytes": 235590,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0012.png",
+      "bytes": 235847,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0016.png",
+      "bytes": 235677,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0020.png",
+      "bytes": 233820,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0024.png",
+      "bytes": 233400,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0028.png",
+      "bytes": 232438,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0032.png",
+      "bytes": 231863,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0036.png",
+      "bytes": 230477,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0040.png",
+      "bytes": 230151,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0044.png",
+      "bytes": 230315,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0048.png",
+      "bytes": 230329,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0052.png",
+      "bytes": 227310,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0053.png",
+      "bytes": 224535,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0054.png",
+      "bytes": 222430,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0055.png",
+      "bytes": 257603,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0056.png",
+      "bytes": 251705,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0057.png",
+      "bytes": 204920,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0058.png",
+      "bytes": 211398,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0059.png",
+      "bytes": 217105,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0060.png",
+      "bytes": 214746,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0061.png",
+      "bytes": 214857,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0062.png",
+      "bytes": 220692,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0063.png",
+      "bytes": 219266,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0064.png",
+      "bytes": 222778,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0065.png",
+      "bytes": 222175,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0066.png",
+      "bytes": 225040,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0068.png",
+      "bytes": 222667,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0072.png",
+      "bytes": 223240,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0076.png",
+      "bytes": 225908,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0080.png",
+      "bytes": 223714,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0084.png",
+      "bytes": 224133,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0088.png",
+      "bytes": 217918,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0092.png",
+      "bytes": 218277,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0096.png",
+      "bytes": 216591,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0100.png",
+      "bytes": 218309,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0104.png",
+      "bytes": 218968,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0108.png",
+      "bytes": 226056,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0112.png",
+      "bytes": 231330,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0116.png",
+      "bytes": 233335,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0120.png",
+      "bytes": 232850,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/attack-v01-0123.png",
+      "bytes": 232994,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0000.png",
+      "bytes": 229749,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0004.png",
+      "bytes": 232519,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0008.png",
+      "bytes": 232669,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0012.png",
+      "bytes": 232623,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0016.png",
+      "bytes": 232474,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0020.png",
+      "bytes": 232594,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0024.png",
+      "bytes": 232592,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0028.png",
+      "bytes": 232594,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0032.png",
+      "bytes": 232741,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0036.png",
+      "bytes": 211436,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0037.png",
+      "bytes": 210310,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0038.png",
+      "bytes": 212153,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0039.png",
+      "bytes": 213407,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0040.png",
+      "bytes": 220627,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0041.png",
+      "bytes": 220497,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0042.png",
+      "bytes": 225769,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0043.png",
+      "bytes": 227602,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0044.png",
+      "bytes": 214495,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0045.png",
+      "bytes": 215387,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0046.png",
+      "bytes": 210320,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0047.png",
+      "bytes": 212327,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0048.png",
+      "bytes": 202036,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0049.png",
+      "bytes": 201926,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0050.png",
+      "bytes": 196082,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0051.png",
+      "bytes": 198223,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0052.png",
+      "bytes": 189650,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0053.png",
+      "bytes": 187882,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0054.png",
+      "bytes": 189573,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0055.png",
+      "bytes": 190218,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0056.png",
+      "bytes": 196746,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0057.png",
+      "bytes": 194187,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0058.png",
+      "bytes": 195393,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0060.png",
+      "bytes": 197910,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0064.png",
+      "bytes": 197804,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0068.png",
+      "bytes": 198398,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0072.png",
+      "bytes": 198134,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0076.png",
+      "bytes": 199541,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0080.png",
+      "bytes": 199676,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0084.png",
+      "bytes": 199870,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0088.png",
+      "bytes": 200040,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0092.png",
+      "bytes": 200267,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0096.png",
+      "bytes": 200309,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0100.png",
+      "bytes": 200045,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0104.png",
+      "bytes": 199509,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0108.png",
+      "bytes": 199081,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0112.png",
+      "bytes": 198430,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0116.png",
+      "bytes": 198610,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0120.png",
+      "bytes": 198330,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/die-v01-0123.png",
+      "bytes": 198292,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0000.png",
+      "bytes": 232456,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0004.png",
+      "bytes": 233660,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0008.png",
+      "bytes": 234166,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0012.png",
+      "bytes": 233989,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0016.png",
+      "bytes": 234498,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0020.png",
+      "bytes": 234526,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0024.png",
+      "bytes": 237171,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0028.png",
+      "bytes": 237408,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0032.png",
+      "bytes": 237778,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0036.png",
+      "bytes": 237360,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0040.png",
+      "bytes": 238732,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0044.png",
+      "bytes": 238339,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0048.png",
+      "bytes": 238264,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0052.png",
+      "bytes": 235976,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0056.png",
+      "bytes": 235900,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0060.png",
+      "bytes": 234847,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0064.png",
+      "bytes": 235221,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0068.png",
+      "bytes": 235166,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0072.png",
+      "bytes": 235327,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0076.png",
+      "bytes": 236122,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0080.png",
+      "bytes": 236117,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0084.png",
+      "bytes": 236283,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0088.png",
+      "bytes": 236208,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0092.png",
+      "bytes": 237588,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0096.png",
+      "bytes": 236667,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0100.png",
+      "bytes": 236212,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0104.png",
+      "bytes": 235485,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0108.png",
+      "bytes": 237129,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0112.png",
+      "bytes": 236884,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0116.png",
+      "bytes": 236864,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/idle-v01-0120.png",
+      "bytes": 236616,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0000.png",
+      "bytes": 226474,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0004.png",
+      "bytes": 227612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0008.png",
+      "bytes": 225092,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0012.png",
+      "bytes": 224415,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0016.png",
+      "bytes": 221247,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0020.png",
+      "bytes": 225229,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0024.png",
+      "bytes": 220906,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0028.png",
+      "bytes": 223089,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0032.png",
+      "bytes": 224036,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0036.png",
+      "bytes": 221754,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0040.png",
+      "bytes": 224198,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0044.png",
+      "bytes": 219227,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0048.png",
+      "bytes": 222341,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0052.png",
+      "bytes": 219036,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0056.png",
+      "bytes": 225952,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0060.png",
+      "bytes": 221220,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0064.png",
+      "bytes": 222100,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0068.png",
+      "bytes": 223430,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0072.png",
+      "bytes": 221266,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0076.png",
+      "bytes": 223646,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0080.png",
+      "bytes": 220214,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0084.png",
+      "bytes": 222379,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0088.png",
+      "bytes": 219786,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0092.png",
+      "bytes": 225387,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0096.png",
+      "bytes": 222847,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0100.png",
+      "bytes": 222920,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0104.png",
+      "bytes": 223237,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0108.png",
+      "bytes": 224141,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0112.png",
+      "bytes": 232906,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0116.png",
+      "bytes": 233152,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/birefnet/run-v01-0120.png",
+      "bytes": 232428,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/attack/field-cannon-attack-interpolated-contact.png",
+      "bytes": 720535,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/attack/field-cannon-attack-interpolated.gif",
+      "bytes": 2386380,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/die/field-cannon-die-interpolated-contact.png",
+      "bytes": 691080,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/die/field-cannon-die-interpolated.gif",
+      "bytes": 2241272,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/idle/field-cannon-idle-interpolated-contact.png",
+      "bytes": 859703,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/idle/field-cannon-idle-interpolated.gif",
+      "bytes": 2524657,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/run/field-cannon-run-interpolated-contact.png",
+      "bytes": 894080,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/rife-preview/run/field-cannon-run-interpolated.gif",
+      "bytes": 2427854,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0052.png",
+      "bytes": 217087,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0053.png",
+      "bytes": 214357,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0054.png",
+      "bytes": 212207,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0055.png",
+      "bytes": 256148,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0056.png",
+      "bytes": 249965,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0057.png",
+      "bytes": 259519,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0058.png",
+      "bytes": 251765,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0059.png",
+      "bytes": 241483,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0060.png",
+      "bytes": 237626,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0061.png",
+      "bytes": 235662,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0062.png",
+      "bytes": 233042,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0063.png",
+      "bytes": 237349,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/attack-0064.png",
+      "bytes": 240530,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0036.png",
+      "bytes": 236598,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0038.png",
+      "bytes": 237637,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0040.png",
+      "bytes": 244087,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0042.png",
+      "bytes": 238756,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0044.png",
+      "bytes": 217589,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0046.png",
+      "bytes": 215185,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0048.png",
+      "bytes": 209277,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0050.png",
+      "bytes": 208571,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0052.png",
+      "bytes": 203487,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0054.png",
+      "bytes": 209845,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0056.png",
+      "bytes": 222244,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/die-0058.png",
+      "bytes": 223856,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/idle-0000-alpha.png",
+      "bytes": 16267,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/cache/source-frames/idle-0000.png",
+      "bytes": 228226,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/attack-keys-contact.png",
+      "bytes": 379777,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/attack-source-detail.png",
+      "bytes": 623970,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/attack-source-loop-v01.gif",
+      "bytes": 6971661,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/attack-transparent-contact.png",
+      "bytes": 356929,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/attack-transparent-loop-v01.gif",
+      "bytes": 8301139,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/die-keys-contact.png",
+      "bytes": 331676,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/die-source-detail.png",
+      "bytes": 541018,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/die-source-loop-v01.gif",
+      "bytes": 5058265,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/die-transparent-contact.png",
+      "bytes": 327844,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/idle-keys-contact.png",
+      "bytes": 354592,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/idle-source-loop-v01.gif",
+      "bytes": 5357874,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/idle-transparent-contact.png",
+      "bytes": 354819,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/run-keys-contact.png",
+      "bytes": 353556,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/run-source-loop-v01.gif",
+      "bytes": 5217473,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/previews/run-transparent-contact.png",
+      "bytes": 344662,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/attack-v01_contact.png",
+      "bytes": 508073,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/die-v01_contact.png",
+      "bytes": 524144,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/idle-v01_contact.png",
+      "bytes": 477023,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/run-v01_contact.png",
+      "bytes": 519371,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_field_cannon_animations_20260830/__pycache__/make_sprites.cpython-311.pyc",
+      "bytes": 33938,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0000.png",
+      "bytes": 196371,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0004.png",
+      "bytes": 199140,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0008.png",
+      "bytes": 198618,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0012.png",
+      "bytes": 198021,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0016.png",
+      "bytes": 198363,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0020.png",
+      "bytes": 202263,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0024.png",
+      "bytes": 208877,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0028.png",
+      "bytes": 212715,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0032.png",
+      "bytes": 213196,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0036.png",
+      "bytes": 213121,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0040.png",
+      "bytes": 213540,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0044.png",
+      "bytes": 213650,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0048.png",
+      "bytes": 213540,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0050.png",
+      "bytes": 213305,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0051.png",
+      "bytes": 213327,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0052.png",
+      "bytes": 213159,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0053.png",
+      "bytes": 212581,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0054.png",
+      "bytes": 237260,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0055.png",
+      "bytes": 211015,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0056.png",
+      "bytes": 211082,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0057.png",
+      "bytes": 211637,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0058.png",
+      "bytes": 209020,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0059.png",
+      "bytes": 209715,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0060.png",
+      "bytes": 211084,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0061.png",
+      "bytes": 211448,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0062.png",
+      "bytes": 208378,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0063.png",
+      "bytes": 208889,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0064.png",
+      "bytes": 209552,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0065.png",
+      "bytes": 211558,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0066.png",
+      "bytes": 207307,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0067.png",
+      "bytes": 208891,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0068.png",
+      "bytes": 212530,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0069.png",
+      "bytes": 212876,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0070.png",
+      "bytes": 212582,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0071.png",
+      "bytes": 213620,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0072.png",
+      "bytes": 213765,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0076.png",
+      "bytes": 214401,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0080.png",
+      "bytes": 215236,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0084.png",
+      "bytes": 215095,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0088.png",
+      "bytes": 214628,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0092.png",
+      "bytes": 219959,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0096.png",
+      "bytes": 220477,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0100.png",
+      "bytes": 222578,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0104.png",
+      "bytes": 223087,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0108.png",
+      "bytes": 223949,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0112.png",
+      "bytes": 223751,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0116.png",
+      "bytes": 222084,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0120.png",
+      "bytes": 218743,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0122.png",
+      "bytes": 217103,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0124.png",
+      "bytes": 216255,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0126.png",
+      "bytes": 217355,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0128.png",
+      "bytes": 214802,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0130.png",
+      "bytes": 212980,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0132.png",
+      "bytes": 210611,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0134.png",
+      "bytes": 211133,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0136.png",
+      "bytes": 210648,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0138.png",
+      "bytes": 210787,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0140.png",
+      "bytes": 210966,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0142.png",
+      "bytes": 212153,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0144.png",
+      "bytes": 212123,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0146.png",
+      "bytes": 209795,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0148.png",
+      "bytes": 206230,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0150.png",
+      "bytes": 204725,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0152.png",
+      "bytes": 201756,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0154.png",
+      "bytes": 200305,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0156.png",
+      "bytes": 198353,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0158.png",
+      "bytes": 200575,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0160.png",
+      "bytes": 199827,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0162.png",
+      "bytes": 200642,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0164.png",
+      "bytes": 200115,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0166.png",
+      "bytes": 201366,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0168.png",
+      "bytes": 203222,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0170.png",
+      "bytes": 207534,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0172.png",
+      "bytes": 205943,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0174.png",
+      "bytes": 208823,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0176.png",
+      "bytes": 208277,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0180.png",
+      "bytes": 209715,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0184.png",
+      "bytes": 211603,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0188.png",
+      "bytes": 213198,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/attack-v02-0191.png",
+      "bytes": 213465,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0000.png",
+      "bytes": 193041,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0004.png",
+      "bytes": 196082,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0008.png",
+      "bytes": 193437,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0012.png",
+      "bytes": 192116,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0016.png",
+      "bytes": 191422,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0020.png",
+      "bytes": 190728,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0024.png",
+      "bytes": 190409,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0025.png",
+      "bytes": 190312,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0026.png",
+      "bytes": 191643,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0027.png",
+      "bytes": 191730,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0028.png",
+      "bytes": 193702,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0029.png",
+      "bytes": 191232,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0030.png",
+      "bytes": 190755,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0031.png",
+      "bytes": 188947,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0032.png",
+      "bytes": 190423,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0033.png",
+      "bytes": 189235,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0034.png",
+      "bytes": 190484,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0035.png",
+      "bytes": 190704,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0036.png",
+      "bytes": 193957,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0037.png",
+      "bytes": 195259,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0038.png",
+      "bytes": 197958,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0039.png",
+      "bytes": 201754,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0040.png",
+      "bytes": 203394,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0041.png",
+      "bytes": 202987,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0042.png",
+      "bytes": 205116,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0043.png",
+      "bytes": 207501,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0044.png",
+      "bytes": 209680,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0045.png",
+      "bytes": 209579,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0046.png",
+      "bytes": 211568,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0047.png",
+      "bytes": 212467,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0048.png",
+      "bytes": 212297,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0049.png",
+      "bytes": 209065,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0050.png",
+      "bytes": 208012,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0051.png",
+      "bytes": 209419,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0052.png",
+      "bytes": 202599,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0053.png",
+      "bytes": 201517,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0054.png",
+      "bytes": 195180,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0055.png",
+      "bytes": 192394,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0056.png",
+      "bytes": 186176,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0057.png",
+      "bytes": 186640,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0058.png",
+      "bytes": 191948,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0059.png",
+      "bytes": 194858,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0060.png",
+      "bytes": 195446,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0061.png",
+      "bytes": 198159,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0062.png",
+      "bytes": 203843,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0063.png",
+      "bytes": 204303,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0064.png",
+      "bytes": 208268,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0065.png",
+      "bytes": 206529,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0066.png",
+      "bytes": 208288,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0067.png",
+      "bytes": 207019,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0068.png",
+      "bytes": 214372,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0069.png",
+      "bytes": 208226,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0070.png",
+      "bytes": 211535,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0071.png",
+      "bytes": 211914,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0072.png",
+      "bytes": 216677,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0073.png",
+      "bytes": 215138,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0074.png",
+      "bytes": 216667,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0075.png",
+      "bytes": 213641,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0076.png",
+      "bytes": 214328,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0077.png",
+      "bytes": 209007,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0078.png",
+      "bytes": 208447,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0079.png",
+      "bytes": 204911,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0080.png",
+      "bytes": 206986,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0084.png",
+      "bytes": 208065,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0088.png",
+      "bytes": 208073,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0092.png",
+      "bytes": 210898,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0096.png",
+      "bytes": 211277,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0100.png",
+      "bytes": 211153,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0104.png",
+      "bytes": 210625,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0108.png",
+      "bytes": 210641,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0112.png",
+      "bytes": 210452,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0116.png",
+      "bytes": 210584,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0120.png",
+      "bytes": 210269,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/die-v04-0123.png",
+      "bytes": 210294,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0000.png",
+      "bytes": 201138,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0004.png",
+      "bytes": 203872,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0008.png",
+      "bytes": 204242,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0012.png",
+      "bytes": 204846,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0016.png",
+      "bytes": 205043,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0020.png",
+      "bytes": 204541,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0024.png",
+      "bytes": 205769,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0028.png",
+      "bytes": 206254,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0032.png",
+      "bytes": 205693,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0036.png",
+      "bytes": 205193,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0040.png",
+      "bytes": 206945,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0044.png",
+      "bytes": 206687,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0048.png",
+      "bytes": 206427,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0052.png",
+      "bytes": 206702,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0056.png",
+      "bytes": 206198,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0060.png",
+      "bytes": 206080,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0064.png",
+      "bytes": 206270,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0068.png",
+      "bytes": 206425,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0072.png",
+      "bytes": 205977,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0076.png",
+      "bytes": 205849,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0080.png",
+      "bytes": 205329,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0084.png",
+      "bytes": 205214,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0088.png",
+      "bytes": 204871,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0092.png",
+      "bytes": 205886,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0096.png",
+      "bytes": 205952,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0100.png",
+      "bytes": 205896,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0104.png",
+      "bytes": 205035,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0108.png",
+      "bytes": 206669,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0112.png",
+      "bytes": 207027,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0116.png",
+      "bytes": 206674,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/idle-v01-0120.png",
+      "bytes": 206538,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0000.png",
+      "bytes": 191732,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0004.png",
+      "bytes": 196178,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0008.png",
+      "bytes": 194291,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0012.png",
+      "bytes": 193871,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0016.png",
+      "bytes": 196887,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0020.png",
+      "bytes": 199612,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0024.png",
+      "bytes": 199219,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0028.png",
+      "bytes": 198386,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0032.png",
+      "bytes": 194659,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0036.png",
+      "bytes": 194182,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0040.png",
+      "bytes": 197188,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0044.png",
+      "bytes": 199666,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0048.png",
+      "bytes": 199578,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0052.png",
+      "bytes": 196905,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0056.png",
+      "bytes": 194840,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0060.png",
+      "bytes": 195290,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0064.png",
+      "bytes": 196727,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0068.png",
+      "bytes": 200744,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0072.png",
+      "bytes": 198940,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0076.png",
+      "bytes": 197536,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0080.png",
+      "bytes": 194725,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0084.png",
+      "bytes": 195246,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0088.png",
+      "bytes": 197541,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0092.png",
+      "bytes": 201769,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0096.png",
+      "bytes": 201086,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0100.png",
+      "bytes": 198488,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0104.png",
+      "bytes": 192681,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0108.png",
+      "bytes": 195453,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0112.png",
+      "bytes": 198995,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0116.png",
+      "bytes": 201326,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/birefnet/run-v01-0120.png",
+      "bytes": 201840,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/attack/howitzer-attack-interpolated-contact.png",
+      "bytes": 1149315,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/attack/howitzer-attack-interpolated.gif",
+      "bytes": 4094631,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/die/howitzer-die-interpolated-contact.png",
+      "bytes": 1129138,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/die/howitzer-die-interpolated.gif",
+      "bytes": 3417313,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/idle/howitzer-idle-interpolated-contact.png",
+      "bytes": 598142,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/idle/howitzer-idle-interpolated.gif",
+      "bytes": 1816507,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/run/howitzer-run-interpolated-contact.png",
+      "bytes": 633691,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/rife-preview/run/howitzer-run-interpolated.gif",
+      "bytes": 1804501,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0052.png",
+      "bytes": 216740,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0053.png",
+      "bytes": 216940,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0054.png",
+      "bytes": 241767,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0055.png",
+      "bytes": 252036,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0056.png",
+      "bytes": 256293,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0057.png",
+      "bytes": 251538,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0058.png",
+      "bytes": 241112,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0059.png",
+      "bytes": 235387,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0060.png",
+      "bytes": 232087,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0061.png",
+      "bytes": 227596,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0062.png",
+      "bytes": 223332,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0063.png",
+      "bytes": 223287,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0064.png",
+      "bytes": 222134,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0065.png",
+      "bytes": 222525,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0066.png",
+      "bytes": 217422,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/cache/source-frames/attack-0067.png",
+      "bytes": 217556,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-breech-contact-v02.jpg",
+      "bytes": 301533,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-breech-detail-v02.gif",
+      "bytes": 24866371,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-keys-contact.png",
+      "bytes": 285018,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-release-source-contact.png",
+      "bytes": 325438,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-source-contact-v01.jpg",
+      "bytes": 125997,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-source-contact-v02.jpg",
+      "bytes": 132744,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-source-loop-v01.gif",
+      "bytes": 5058780,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-source-loop-v02.gif",
+      "bytes": 12516833,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-transparent-contact.png",
+      "bytes": 272410,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-transparent-edge-refined.gif",
+      "bytes": 11879971,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/attack-transparent-loop-v02.gif",
+      "bytes": 12018516,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-final-pose-v02.png",
+      "bytes": 191903,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-final-pose-v03.png",
+      "bytes": 190536,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-final-pose-v04.png",
+      "bytes": 225813,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-keys-contact.png",
+      "bytes": 276593,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-contact-v01.jpg",
+      "bytes": 124436,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-contact-v02.jpg",
+      "bytes": 129012,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-contact-v03.jpg",
+      "bytes": 127260,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-contact-v04.jpg",
+      "bytes": 130002,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-loop-v01.gif",
+      "bytes": 5250525,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-loop-v02.gif",
+      "bytes": 8978361,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-loop-v03.gif",
+      "bytes": 8505732,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-source-loop-v04.gif",
+      "bytes": 5610782,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-transparent-contact.png",
+      "bytes": 271364,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v03-sequence-1.jpg",
+      "bytes": 315096,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v03-sequence-2.jpg",
+      "bytes": 305055,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v03-sequence-3.jpg",
+      "bytes": 294982,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v03-sequence-4.jpg",
+      "bytes": 282616,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v04-sequence-1.jpg",
+      "bytes": 302375,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v04-sequence-2.jpg",
+      "bytes": 325520,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v04-sequence-3.jpg",
+      "bytes": 320034,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/die-v04-sequence-4.jpg",
+      "bytes": 59053,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/idle-keys-contact.png",
+      "bytes": 263444,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/idle-source-contact-v01.jpg",
+      "bytes": 138295,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/idle-source-loop-v01.gif",
+      "bytes": 5652252,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/idle-transparent-contact.png",
+      "bytes": 261707,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/run-keys-contact.png",
+      "bytes": 264292,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/run-source-contact-v01.jpg",
+      "bytes": 132790,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/run-source-loop-v01.gif",
+      "bytes": 6008911,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/previews/run-transparent-contact.png",
+      "bytes": 259220,
+      "reason": "superseded or duplicate preview; active GIF retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/attack-v01.mp4",
+      "bytes": 480967,
+      "reason": "superseded or rejected source video"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/attack-v02_contact.png",
+      "bytes": 475098,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/die-v01.mp4",
+      "bytes": 427728,
+      "reason": "superseded or rejected source video"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/die-v02.mp4",
+      "bytes": 674972,
+      "reason": "superseded or rejected source video"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/die-v02_contact.png",
+      "bytes": 424690,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/die-v03.mp4",
+      "bytes": 518290,
+      "reason": "superseded or rejected source video"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/die-v03_contact.png",
+      "bytes": 394583,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/die-v04_contact.png",
+      "bytes": 468548,
+      "reason": "duplicate source contact sheet"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_howitzer_animations_20260830/__pycache__/make_sprites.cpython-311.pyc",
+      "bytes": 23386,
+      "reason": "regenerable cutout/interpolation cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/before/field_cannon/attack-keys.json",
+      "bytes": 2677,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/before/field_cannon/attack-keys.png",
+      "bytes": 1692731,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/before/howitzer/attack-keys.json",
+      "bytes": 3927,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/before/howitzer/attack-keys.png",
+      "bytes": 2076049,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0000.png",
+      "bytes": 190751,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0004.png",
+      "bytes": 197393,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0008.png",
+      "bytes": 193744,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0012.png",
+      "bytes": 194135,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0016.png",
+      "bytes": 193340,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0020.png",
+      "bytes": 190618,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0024.png",
+      "bytes": 193095,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0028.png",
+      "bytes": 195632,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0032.png",
+      "bytes": 195280,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0036.png",
+      "bytes": 188890,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0040.png",
+      "bytes": 189579,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0044.png",
+      "bytes": 195026,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0048.png",
+      "bytes": 203465,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0052.png",
+      "bytes": 204035,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0056.png",
+      "bytes": 206029,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0060.png",
+      "bytes": 205975,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0064.png",
+      "bytes": 205738,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0068.png",
+      "bytes": 205931,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/resupply/0072.png",
+      "bytes": 205951,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/rife/howitzer-attack-resupplied-interpolated-contact.png",
+      "bytes": 1428052,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineering_line_completion_20260830/cache/rife/howitzer-attack-resupplied-interpolated.gif",
+      "bytes": 5046403,
+      "reason": "obsolete pre-refinement snapshot or regenerable cache"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v01_raw.png",
+      "bytes": 1212063,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v02_raw.png",
+      "bytes": 1165335,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v02_raw.png",
+      "bytes": 1250149,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v03_raw.png",
+      "bytes": 1257336,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/engineer_camp/engineer_camp_structure_v01_raw.png",
+      "bytes": 1218023,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/engineer_camp/engineer_camp_structure_v02_raw.png",
+      "bytes": 1189004,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/engineer_camp/engineer_camp_structure_v03_raw.png",
+      "bytes": 1144488,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v01_raw.png",
+      "bytes": 1230643,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v02_raw.png",
+      "bytes": 1214509,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/engineering_workshop/engineering_workshop_refine_v02_raw.png",
+      "bytes": 1237061,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v01_raw.png",
+      "bytes": 1140051,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v02_raw.png",
+      "bytes": 1227745,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineering_workshop/engineering_workshop_refine_v01_local_raw.png",
+      "bytes": 1199026,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineering_workshop/engineering_workshop_refine_v01_raw.png",
+      "bytes": 1180659,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v02_local_raw.png",
+      "bytes": 1104072,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineer_camp/engineer_camp_refine_v02_raw.png",
+      "bytes": 1107154,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/vehicle_factory/vehicle_factory_refine_v02_local_raw.png",
+      "bytes": 1186158,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/vehicle_factory/vehicle_factory_refine_v02_raw.png",
+      "bytes": 1056850,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/vehicle_factory/vehicle_factory_refine_v01_local_raw.png",
+      "bytes": 1185559,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+      "bytes": 1054654,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v3_removal/vehicle_factory/vehicle_factory_refine_v01_local_raw.png",
+      "bytes": 1185715,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/local_repair_v3_removal/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+      "bytes": 1055484,
+      "reason": "unselected building candidate raster outside accepted direct-input closure; provenance retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineer-branch-refine-candidates-s48.png",
+      "bytes": 3516261,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineer-branch-structure-candidates-s12.png",
+      "bytes": 3531781,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineering_workshop-local-repair-comparison.png",
+      "bytes": 808816,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineering_workshop-refine-comparison.png",
+      "bytes": 1210488,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineering_workshop-structure-candidates.png",
+      "bytes": 1215084,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineer_camp-local-repair-comparison.png",
+      "bytes": 740016,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineer_camp-refine-comparison.png",
+      "bytes": 1101378,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/engineer_camp-structure-candidates.png",
+      "bytes": 1129857,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/vehicle_factory-local-repair-comparison.png",
+      "bytes": 780026,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/vehicle_factory-refine-comparison.png",
+      "bytes": 1193739,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_engineer_branch_20260830/previews/vehicle_factory-structure-candidates.png",
+      "bytes": 1171176,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_engineering_mothers_20260830/previews/hamster-engineering-line-mothers-v02.png",
+      "bytes": 677518,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_engineering_mothers_20260830/previews/hamster-engineering-line-mothers-v03.png",
+      "bytes": 804036,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_engineering_mothers_20260830/previews/hamster-engineering-line-mothers-v04-right-facing.png",
+      "bytes": 794518,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    },
+    {
+      "path": "tools/ai-gen/_hamster_engineering_mothers_20260830/previews/hamster-engineering-line-mothers-v05-catapult-loading.png",
+      "bytes": 788211,
+      "reason": "superseded candidate overview; selected source images and current preview retained"
+    }
+  ],
+  "count": 765,
+  "bytes": 384442302
+}

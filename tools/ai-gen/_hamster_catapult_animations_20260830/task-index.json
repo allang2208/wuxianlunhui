@@ -1,0 +1,111 @@
+{
+  "unitKey": "hamster_catapult_crew",
+  "unitName": "仓鼠投石组",
+  "date": "2026-08-30",
+  "assetOnly": false,
+  "runtimeIntegrationActive": true,
+  "status": "user_accepted_imported_runtime_untested",
+  "mother": "_hamster_engineering_mothers_20260830/mother/hamster_catapult_crew-mother-v07-infantry-camera-white.png",
+  "approvalScope": "User accepted the four animations and explicitly authorized game import; runtime testing remains pending.",
+  "reference": {
+    "path": "reference/catapult-v07-padded-1024x576.png",
+    "sourceSize": [
+      1536,
+      1024
+    ],
+    "size": [
+      1024,
+      576
+    ],
+    "uniformScale": 0.52734375,
+    "offset": [
+      107,
+      18
+    ],
+    "repainted": false
+  },
+  "viewContract": "Fixed mildly elevated right-facing three-quarter camera; two equally sized hamsters plus one catapult.",
+  "budget": {
+    "profile": "crowd",
+    "targetMiB": 32,
+    "admissionLimitMiB": 64,
+    "runtimeScale": 0.675,
+    "actualDecodedMiB": 61.497520446777344,
+    "formalChecksRun": false
+  },
+  "actions": {
+    "idle": {
+      "prompt": "prompts/idle-v01.txt",
+      "status": "accepted_source_imported_runtime_untested",
+      "loop": true,
+      "sourceVideo": "videos/idle-v01.mp4",
+      "sourceSheet": "source-sheets/idle-keys.png",
+      "finalSheet": "final/idle.png",
+      "preview": "previews/idle-final.gif",
+      "promptId": "c4048361-5bb4-4cfc-9acd-56e9824d88c2",
+      "runtimePath": "assets/companions/hamster_catapult_crew/idle.png"
+    },
+    "run": {
+      "prompt": "prompts/run-v01.txt",
+      "status": "accepted_source_imported_runtime_untested",
+      "loop": true,
+      "sourceVideo": "videos/run-v01.mp4",
+      "sourceSheet": "source-sheets/run-keys.png",
+      "finalSheet": "final/run.png",
+      "preview": "previews/run-final.gif",
+      "promptId": "29579f7d-1bcb-4cc9-97d5-0cac21d62181",
+      "runtimePath": "assets/companions/hamster_catapult_crew/running.png"
+    },
+    "attack": {
+      "prompt": "prompts/attack-v02.txt",
+      "status": "accepted_source_imported_runtime_untested",
+      "loop": false,
+      "sourceVideo": "videos/attack-v02.mp4",
+      "sourceSheet": "source-sheets/attack-keys.png",
+      "finalSheet": "final/attack.png",
+      "preview": "previews/attack-final.gif",
+      "promptId": "63eb0c79-6a81-49d0-bc2c-c68055590a0b",
+      "rejected": {
+        "promptId": "fafdca84-2bfe-4831-8a7b-b4fbdfdd72d6",
+        "reason": "Raised throwing arm/spoon clipped at frame top.",
+        "archivedReferences": {
+          "video": "videos/attack-v01.mp4"
+        }
+      },
+      "runtimePath": "assets/companions/hamster_catapult_crew/attacking.png"
+    },
+    "die": {
+      "prompt": "prompts/die-v01.txt",
+      "status": "accepted_source_imported_runtime_untested",
+      "loop": false,
+      "sourceVideo": "videos/die-v01.mp4",
+      "sourceSheet": "source-sheets/die-keys.png",
+      "finalSheet": "final/die.png",
+      "preview": "previews/die-preview-loop-v02.gif",
+      "promptId": "239879fc-280c-4f50-83a0-65e298ff5e55",
+      "runtimePath": "assets/companions/hamster_catapult_crew/dying.png"
+    }
+  },
+  "runtimeNotes": [
+    "User accepted four animations and authorized import.",
+    "Runtime consumes original per-frame durations; death remains one-shot.",
+    "Gameplay and visual scale await user testing."
+  ],
+  "provider": "h3",
+  "generationGate": {
+    "endpoint": "http://192.168.3.142:8188",
+    "state": "explicit_user_approval_received",
+    "uploaded": true,
+    "submitted": true,
+    "generated": true,
+    "allFourActionsCompleted": true
+  },
+  "finalManifest": "spritesheet-manifest.json",
+  "runtimeConfig": "data/hamster-catapult-crew-config.json",
+  "acceptance": {
+    "date": "2026-08-30",
+    "userInstruction": "可用，导入游戏",
+    "runtimeTested": false
+  },
+  "archivePolicy": "Rejected binaries and superseded previews moved out of active source folders; archivedReferences are historical filenames, not active inputs. Current outputs: spritesheet-manifest.json."
+}

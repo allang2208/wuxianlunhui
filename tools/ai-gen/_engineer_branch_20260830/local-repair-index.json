@@ -1,0 +1,51 @@
+{
+  "status": "accepted_and_imported_to_runtime",
+  "preview": "previews/engineer-branch-local-repair-lineup.png",
+  "comparison": "previews/engineer-branch-local-repair-comparison.png",
+  "entries": [
+    {
+      "assetId": "engineer_camp",
+      "level": 1,
+      "candidate": 1,
+      "source48": "candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v02_raw.png",
+      "correctedRaw": "local_repair_v1/engineer_camp/engineer_camp_refine_v01_finished_raw.png",
+      "localMetadata": "local_repair_v1/engineer_camp/engineer_camp_refine_v01_finished_metadata.json",
+      "selectionReason": "First masked variant restores timber to the beam and left post; retain original gear geometry and finish the remaining gray upright with bounded RGB grading.",
+      "knownLimitations": [
+        "Fine thatch texture and stone hoist feet remain from the selected source."
+      ],
+      "acceptedForRuntime": true,
+      "runtimeAsset": "assets/terrain/engineer_camp.png"
+    },
+    {
+      "assetId": "engineering_workshop",
+      "level": 2,
+      "candidate": 2,
+      "source48": "candidates_dev_s48_v1/engineering_workshop/engineering_workshop_refine_v01_raw.png",
+      "correctedRaw": "local_repair_v1/engineering_workshop/engineering_workshop_refine_v02_finished_raw.png",
+      "localMetadata": "local_repair_v1/engineering_workshop/engineering_workshop_refine_v02_finished_metadata.json",
+      "selectionReason": "Compact straight-sided window retained; isolated removal pass restores uninterrupted masonry beside the main door while preserving the foreground tool rack.",
+      "knownLimitations": [
+        "Ground-plinth rubble and existing roof texture are unchanged."
+      ],
+      "acceptedForRuntime": true,
+      "runtimeAsset": "assets/terrain/engineering_workshop.png"
+    },
+    {
+      "assetId": "vehicle_factory",
+      "level": 3,
+      "candidate": 1,
+      "source48": "candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+      "correctedRaw": "local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_finished_raw.png",
+      "localMetadata": "local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_finished_metadata.json",
+      "selectionReason": "First masked candidate restores the two-pane side window. The persistent extra panel is removed with a bounded same-image concrete texture repair; original gear geometry is retained with local material grading.",
+      "knownLimitations": [
+        "Existing roof and concrete texture, hoist and bench are retained."
+      ],
+      "acceptedForRuntime": true,
+      "runtimeAsset": "assets/terrain/vehicle_factory.png"
+    }
+  ],
+  "runtimeIndex": "runtime/runtime-index.json",
+  "acceptedOn": "2026-08-30"
+}

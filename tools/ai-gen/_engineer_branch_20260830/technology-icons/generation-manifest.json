@@ -1,0 +1,115 @@
+{
+  "generator": "Codex built-in image_gen",
+  "date": "2026-08-30",
+  "scope": "Only engineer_camp_level_1/2/3 technology icon art and iconPath",
+  "styleReference": "assets/ui/technology-icons/thatch_hut_level_1.png",
+  "crystalReference": "assets/ui/technology-icons/cavalry_school_level_3.png",
+  "subjectReferences": [
+    "assets/terrain/engineer_camp.png",
+    "assets/terrain/engineering_workshop.png",
+    "assets/terrain/vehicle_factory.png"
+  ],
+  "promptSet": "prompts.md",
+  "entries": [
+    {
+      "id": "engineer_camp_level_1",
+      "name": "工程师营地",
+      "level": 1,
+      "generatedFile": "exec-02501dca-bd28-45ad-bfde-55fe3d26990b.png",
+      "sourceRaw": "raw/engineer_camp_level_1_raw.png",
+      "sourceMode": "RGB",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "sourceHexBounds": [
+        88,
+        5,
+        1165,
+        1253
+      ],
+      "runtimePath": "assets/ui/technology-icons/engineer_camp_level_1.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "alphaBBox": [
+        80,
+        12,
+        944,
+        1012
+      ],
+      "crystalMarkers": [
+        "center"
+      ]
+    },
+    {
+      "id": "engineer_camp_level_2",
+      "name": "工程工坊",
+      "level": 2,
+      "generatedFile": "exec-3d161107-c22e-4221-810b-229664ce2eb1.png",
+      "sourceRaw": "raw/engineer_camp_level_2_raw.png",
+      "sourceMode": "RGB",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "sourceHexBounds": [
+        104,
+        10,
+        1151,
+        1240
+      ],
+      "runtimePath": "assets/ui/technology-icons/engineer_camp_level_2.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "alphaBBox": [
+        86,
+        12,
+        938,
+        1012
+      ],
+      "crystalMarkers": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "id": "engineer_camp_level_3",
+      "name": "载具工厂",
+      "level": 3,
+      "generatedFile": "exec-e25d8d76-fa42-445b-a58a-193f8812d9a9.png",
+      "sourceRaw": "raw/engineer_camp_level_3_raw.png",
+      "sourceMode": "RGB",
+      "sourceSize": [
+        1254,
+        1254
+      ],
+      "sourceHexBounds": [
+        89,
+        12,
+        1160,
+        1250
+      ],
+      "runtimePath": "assets/ui/technology-icons/engineer_camp_level_3.png",
+      "runtimeSize": [
+        1024,
+        1024
+      ],
+      "alphaBBox": [
+        79,
+        12,
+        944,
+        1012
+      ],
+      "crystalMarkers": [
+        "left",
+        "center",
+        "right"
+      ]
+    }
+  ],
+  "runtimeValidation": "Not run; user tests under project agreement"
+}

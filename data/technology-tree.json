@@ -1,5 +1,5 @@
 {
-  "version": 48,
+  "version": 49,
   "pointsPerInstitutePerSecond": 1,
   "prerequisiteMode": "all",
   "researchCostCurve": {
@@ -135,7 +135,7 @@
       "unlocks": [{ "type": "building", "id": "hamster_barracks", "label": "仓鼠军营" }]
     },
     {
-      "id": "armory_logistics", "name": "军械保障", "icon": "🗡️", "iconPath": "assets/ui/technology-icons/armory_logistics.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 2, "lane": 6, "researchCost": 150,
+      "id": "armory_logistics", "name": "军械保障", "icon": "🗡️", "iconPath": "assets/ui/technology-icons/armory_logistics.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 2, "lane": 7, "researchCost": 150,
       "prerequisites": ["barracks_establishment"], "description": "建立军械保养、归档与前线补给制度，允许建造军械库、安排维护师岗位，并直接开放本栋四项专属升级。",
       "unlocks": [
         { "type": "building", "id": "armory", "label": "军械库" },
@@ -146,22 +146,22 @@
       ]
     },
     {
-      "id": "tactical_command", "name": "战术指挥", "icon": "🎯", "iconPath": "assets/ui/technology-icons/tactical_command.png", "branch": "军事指挥", "subBranch": "指挥", "column": 3, "lane": 5, "researchCost": 70,
+      "id": "tactical_command", "name": "战术指挥", "icon": "🎯", "iconPath": "assets/ui/technology-icons/tactical_command.png", "branch": "军事指挥", "subBranch": "指挥", "column": 3, "lane": 6, "researchCost": 70,
       "prerequisites": ["military_organization"], "description": "开放框选、编队与战场指令。",
       "unlocks": [{ "type": "mechanic", "id": "rts_command", "label": "RTS 指挥模式" }]
     },
     {
-      "id": "standing_orders", "name": "常备军令", "icon": "🚩", "iconPath": "assets/ui/technology-icons/standing_orders.png", "branch": "军事指挥", "subBranch": "指挥", "column": 4, "lane": 5, "researchCost": 90,
+      "id": "standing_orders", "name": "常备军令", "icon": "🚩", "iconPath": "assets/ui/technology-icons/standing_orders.png", "branch": "军事指挥", "subBranch": "指挥", "column": 4, "lane": 6, "researchCost": 90,
       "prerequisites": ["tactical_command"], "description": "允许部队原地驻守，不再自动跟随玩家。",
       "unlocks": [{ "type": "mechanic", "id": "troop_hold", "label": "部队驻守" }]
     },
     {
-      "id": "rally_network", "name": "集结网络", "icon": "📍", "iconPath": "assets/ui/technology-icons/rally_network.png", "branch": "军事指挥", "subBranch": "指挥", "column": 5, "lane": 5, "researchCost": 130,
+      "id": "rally_network", "name": "集结网络", "icon": "📍", "iconPath": "assets/ui/technology-icons/rally_network.png", "branch": "军事指挥", "subBranch": "指挥", "column": 5, "lane": 6, "researchCost": 130,
       "prerequisites": ["standing_orders"], "description": "允许为生产建筑和部队设置集结点。",
       "unlocks": [{ "type": "mechanic", "id": "troop_rally", "label": "集结点" }]
     },
     {
-      "id": "expedition_logistics", "name": "远征后勤", "icon": "🌐", "iconPath": "assets/ui/technology-icons/expedition_logistics.png", "branch": "军事指挥", "subBranch": "指挥", "column": 6, "lane": 5, "researchCost": 220,
+      "id": "expedition_logistics", "name": "远征后勤", "icon": "🌐", "iconPath": "assets/ui/technology-icons/expedition_logistics.png", "branch": "军事指挥", "subBranch": "指挥", "column": 6, "lane": 6, "researchCost": 220,
       "prerequisites": ["rally_network"], "description": "建立跨位面补给体系，使部队能够跨世界增援。",
       "unlocks": [{ "type": "mechanic", "id": "cross_world_reinforcement", "label": "跨世界增援" }]
     },
@@ -254,7 +254,22 @@
       "prerequisites": ["shooting_range_industrial"], "description": "近代射击编制之后进入现代四级，射手与重火力生产槽换代为仓鼠突击与仓鼠重机枪；已经出兵的旧单位不变。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "现代靶场 · IV级编制" }, { "type": "unit", "id": "assault", "label": "仓鼠突击" }, { "type": "unit", "id": "heavy_machine_gunner", "label": "仓鼠重机枪" }]
     },
     {
-      "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 0, "lane": 3, "researchCost": 140, "militaryTrunk": true,
+      "id": "engineer_camp_level_1", "name": "工程师营地", "icon": "⚒️", "iconPath": "assets/ui/technology-icons/engineer_camp_level_1.png", "branch": "军事指挥", "subBranch": "工程器械", "column": 1, "lane": 3, "researchCost": 180, "recruitmentTierId": "engineer_camp_level_1",
+      "prerequisites": ["emplacement_shooting", "fortification_engineering"], "description": "结合阵地射击与城防施工发展出常设工程营地，以皮革茅草棚、工具台和手摇吊架建立工程作业场。解锁工程师营地与仓鼠投石组：两名工程师操作投石机，提供慢速抛射范围火力。",
+      "unlocks": [{ "type": "building", "id": "engineer_camp", "label": "工程师营地" }, { "type": "recruitmentTier", "id": "engineer_camp_level_1", "label": "工程师营地 · 仓鼠投石组编制" }, { "type": "unit", "id": "hamster_catapult_crew", "label": "仓鼠投石组" }]
+    },
+    {
+      "id": "engineer_camp_level_2", "name": "工程工坊", "icon": "⚙️", "iconPath": "assets/ui/technology-icons/engineer_camp_level_2.png", "branch": "军事指挥", "subBranch": "工程器械", "column": 3, "lane": 3, "researchCost": 520, "recruitmentTierId": "engineer_camp_level_2",
+      "prerequisites": ["engineer_camp_level_1", "wall_brickwork"], "description": "在工程营地与烧制砖工艺基础上建立石墙红瓦工坊，引入固定作业间和机械绞盘。研究后全局更新本系列建筑名称与外观，后续招募切换为仓鼠野战炮组；已有投石组保留。",
+      "unlocks": [{ "type": "recruitmentTier", "id": "engineer_camp_level_2", "label": "工程工坊 · 仓鼠野战炮组编制" }, { "type": "unit", "id": "hamster_field_cannon_crew", "label": "仓鼠野战炮组" }]
+    },
+    {
+      "id": "engineer_camp_level_3", "name": "载具工厂", "icon": "🏭", "iconPath": "assets/ui/technology-icons/engineer_camp_level_3.png", "branch": "军事指挥", "subBranch": "工程器械", "column": 6, "lane": 3, "researchCost": 920, "recruitmentTierId": "engineer_camp_level_3",
+      "prerequisites": ["engineer_camp_level_2", "gunpowder", "steam_power"], "description": "完成工程工坊、黑火药与蒸汽动力全部前置后，建立混凝土钢架装配厂房。解锁仓鼠榴弹炮组，后续招募切换为双人现代火炮；已有投石组和野战炮组保留。",
+      "unlocks": [{ "type": "recruitmentTier", "id": "engineer_camp_level_3", "label": "载具工厂 · 仓鼠榴弹炮组编制" }, { "type": "unit", "id": "hamster_howitzer_crew", "label": "仓鼠榴弹炮组" }]
+    },
+    {
+      "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 0, "lane": 4, "researchCost": 140, "militaryTrunk": true,
       "prerequisites": ["emplacement_shooting"], "description": "在靶场体系之后建设骑兵学院并训练轻骑兵。",
       "unlocks": [
         { "type": "building", "id": "cavalry_school", "label": "骑兵学院" },
@@ -262,24 +277,24 @@
       ]
     },
     {
-      "id": "heavy_cavalry", "name": "重骑兵", "icon": "♞", "iconPath": "assets/ui/technology-icons/heavy_cavalry.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 1, "lane": 3, "researchCost": 190,
+      "id": "heavy_cavalry", "name": "重骑兵", "icon": "♞", "iconPath": "assets/ui/technology-icons/heavy_cavalry.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 1, "lane": 4, "researchCost": 190,
       "prerequisites": ["cavalry_training"], "description": "用重甲与冲锋训练打造骑士部队。",
       "unlocks": [{ "type": "unit", "id": "knight", "label": "仓鼠骑士" }]
     },
     {
-      "id": "cavalry_school_level_2", "name": "骑兵学院·II级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_2.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 3, "lane": 3, "researchCost": 520, "recruitmentTierId": "cavalry_school_level_2",
+      "id": "cavalry_school_level_2", "name": "骑兵学院·II级", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_2.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 3, "lane": 4, "researchCost": 520, "recruitmentTierId": "cavalry_school_level_2",
       "prerequisites": ["heavy_cavalry"], "description": "二级编制完成后，轻骑与重骑生产槽自动替换为仓鼠骑兵与仓鼠翼骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_2", "label": "骑兵学院二级编制" }, { "type": "unit", "id": "cavalry", "label": "仓鼠骑兵" }, { "type": "unit", "id": "winged_hussar", "label": "仓鼠翼骑兵" }]
     },
     {
-      "id": "cavalry_school_industrial", "name": "近代骑兵编制", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_industrial.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 3, "researchCost": 650, "recruitmentTierId": "cavalry_school_industrial",
+      "id": "cavalry_school_industrial", "name": "近代骑兵编制", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_industrial.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 5, "lane": 4, "researchCost": 650, "recruitmentTierId": "cavalry_school_industrial",
       "prerequisites": ["cavalry_school_level_2", "gunpowder", "steam_power"], "description": "完成二级骑兵编制、黑火药与蒸汽动力后，骑兵学院升级为近代形态，两条生产槽换代为近代骑枪兵与传统长矛重骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_industrial", "label": "近代骑兵学院 · III级编制" }, { "type": "unit", "id": "industrial_carbine_cavalry", "label": "仓鼠近代骑枪兵" }, { "type": "unit", "id": "gunpowder_explosive_lancer", "label": "仓鼠传统长矛重骑兵" }]
     },
     {
-      "id": "cavalry_school_level_3", "name": "现代骑兵学院", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 7, "lane": 3, "researchCost": 920, "recruitmentTierId": "cavalry_school_level_3",
+      "id": "cavalry_school_level_3", "name": "现代骑兵学院", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_school_level_3.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 7, "lane": 4, "researchCost": 920, "recruitmentTierId": "cavalry_school_level_3",
       "prerequisites": ["cavalry_school_industrial"], "description": "近代骑兵编制之后进入现代四级，轻骑槽换代为仓鼠侦察游骑兵，重骑槽换代为仓鼠动力爆矛重骑兵。", "unlocks": [{ "type": "recruitmentTier", "id": "cavalry_school_level_3", "label": "现代骑兵学院 · IV级编制" }, { "type": "unit", "id": "scout_rifle_skirmisher", "label": "仓鼠侦察游骑兵" }, { "type": "unit", "id": "powered_eod_explosive_lancer", "label": "仓鼠动力爆矛重骑兵" }]
     },
     {
-      "id": "field_theology", "name": "战地神学", "icon": "⛪", "iconPath": "assets/ui/technology-icons/field_theology.png", "branch": "军事指挥", "subBranch": "教堂", "column": 0, "lane": 4, "researchCost": 140, "militaryTrunk": true,
+      "id": "field_theology", "name": "战地神学", "icon": "⛪", "iconPath": "assets/ui/technology-icons/field_theology.png", "branch": "军事指挥", "subBranch": "教堂", "column": 0, "lane": 5, "researchCost": 140, "militaryTrunk": true,
       "prerequisites": ["cavalry_training"], "description": "在骑兵学院体系之后建设教堂，训练承担施法与支援职责的法术单位。",
       "unlocks": [
         { "type": "building", "id": "church", "label": "教堂" },
@@ -287,15 +302,15 @@
       ]
     },
     {
-      "id": "church_level_2", "name": "主教议会", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_2.png", "branch": "军事指挥", "subBranch": "教堂", "column": 3, "lane": 4, "researchCost": 520, "recruitmentTierId": "church_level_2",
+      "id": "church_level_2", "name": "主教议会", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_2.png", "branch": "军事指挥", "subBranch": "教堂", "column": 3, "lane": 5, "researchCost": 520, "recruitmentTierId": "church_level_2",
       "prerequisites": ["field_theology"], "description": "完成后将所有教堂升级为主教议会并切换二级建筑外观；仓鼠牧师继续作为唯一可招募法术支援单位，仓鼠主教留待后续开发。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_2", "label": "主教议会建筑等级" }]
     },
     {
-      "id": "church_level_3", "name": "圣迹大教堂", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_3.png", "branch": "军事指挥", "subBranch": "教堂", "column": 5, "lane": 4, "researchCost": 920, "recruitmentTierId": "church_level_3",
+      "id": "church_level_3", "name": "圣迹大教堂", "icon": "✨", "iconPath": "assets/ui/technology-icons/church_level_3.png", "branch": "军事指挥", "subBranch": "教堂", "column": 5, "lane": 5, "researchCost": 920, "recruitmentTierId": "church_level_3",
       "prerequisites": ["church_level_2", "gunpowder"], "description": "主教议会与黑火药全部完成后，将所有教堂升级为圣迹大教堂并切换三级建筑外观；仓鼠牧师继续作为唯一可招募法术支援单位，仓鼠大主教留待后续开发。", "unlocks": [{ "type": "recruitmentTier", "id": "church_level_3", "label": "圣迹大教堂建筑等级" }]
     },
     {
-      "id": "field_medicine", "name": "战地医疗", "icon": "⚕️", "iconPath": "assets/ui/technology-icons/field_medicine.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 3, "lane": 7, "researchCost": 150,
+      "id": "field_medicine", "name": "战地医疗", "icon": "⚕️", "iconPath": "assets/ui/technology-icons/field_medicine.png", "branch": "军事指挥", "subBranch": "军事支援", "column": 3, "lane": 8, "researchCost": 150,
       "prerequisites": ["shield_formation"], "description": "建立分诊、清创和固定救护设施，允许建造战地医院，并直接开放本栋四项专属升级。",
       "unlocks": [
         { "type": "building", "id": "field_hospital", "label": "战地医院" },

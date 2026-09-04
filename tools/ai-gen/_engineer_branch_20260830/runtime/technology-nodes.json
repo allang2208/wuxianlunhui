@@ -1,0 +1,79 @@
+[
+  {
+    "id": "engineer_camp_level_1",
+    "name": "工程师营地",
+    "icon": "⚒️",
+    "iconPath": "assets/terrain/engineer_camp.png",
+    "branch": "工程",
+    "subBranch": "工程制造",
+    "column": 2,
+    "lane": 4,
+    "researchCost": 180,
+    "recruitmentTierId": "engineer_camp_level_1",
+    "prerequisites": [
+      "fortification_engineering"
+    ],
+    "description": "从城防施工发展出常设工程营地，以皮革茅草棚、工具台和手摇吊架建立工程作业场。 研究后全局更新本系列建筑名称与外观；仓鼠投石组尚未开发，暂不可招募。",
+    "unlocks": [
+      {
+        "type": "building",
+        "id": "engineer_camp",
+        "label": "工程师营地"
+      },
+      {
+        "type": "recruitmentTier",
+        "id": "engineer_camp_level_1",
+        "label": "工程师营地 · 建筑等级（兵种待开发）"
+      }
+    ]
+  },
+  {
+    "id": "engineer_camp_level_2",
+    "name": "工程工坊",
+    "icon": "⚙️",
+    "iconPath": "assets/terrain/engineering_workshop.png",
+    "branch": "工程",
+    "subBranch": "工程制造",
+    "column": 3,
+    "lane": 4,
+    "researchCost": 520,
+    "recruitmentTierId": "engineer_camp_level_2",
+    "prerequisites": [
+      "engineer_camp_level_1",
+      "wall_brickwork"
+    ],
+    "description": "在工程营地与烧制砖工艺基础上建立石墙红瓦工坊，引入固定作业间和机械绞盘。 研究后全局更新本系列建筑名称与外观；仓鼠野战炮组尚未开发，暂不可招募。",
+    "unlocks": [
+      {
+        "type": "recruitmentTier",
+        "id": "engineer_camp_level_2",
+        "label": "工程工坊 · 建筑等级（兵种待开发）"
+      }
+    ]
+  },
+  {
+    "id": "engineer_camp_level_3",
+    "name": "载具工厂",
+    "icon": "🏭",
+    "iconPath": "assets/terrain/vehicle_factory.png",
+    "branch": "工程",
+    "subBranch": "工程制造",
+    "column": 5,
+    "lane": 4,
+    "researchCost": 920,
+    "recruitmentTierId": "engineer_camp_level_3",
+    "prerequisites": [
+      "engineer_camp_level_2",
+      "steam_industry_standardization",
+      "blacksmith_level_3"
+    ],
+    "description": "将工程工坊、动力标准化与现代机械制造汇合，建立混凝土钢架装配厂房；具体载具功能留待独立开发。 研究后全局更新本系列建筑名称与外观；仓鼠榴弹炮组尚未开发，暂不可招募。",
+    "unlocks": [
+      {
+        "type": "recruitmentTier",
+        "id": "engineer_camp_level_3",
+        "label": "载具工厂 · 建筑等级（兵种待开发）"
+      }
+    ]
+  }
+]

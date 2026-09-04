@@ -1,0 +1,22 @@
+[
+  {
+    "path": "assets/ui/unit-icons/hamster-catapult-crew.png",
+    "sourceSheet": "tools/ai-gen/_hamster_catapult_animations_20260830/final/idle.png",
+    "sourceFrame": 0,
+    "size": [
+      256,
+      256
+    ],
+    "usage": "DOM UI only; not a separate Phaser texture."
+  },
+  {
+    "path": "assets/ui/unit-icons/hamster-field-cannon-crew.png",
+    "sourceSheet": "tools/ai-gen/_hamster_field_cannon_animations_20260830/final/idle.png",
+    "sourceFrame": 0,
+    "size": [
+      256,
+      256
+    ],
+    "usage": "DOM UI only; not a separate Phaser texture."
+  }
+]

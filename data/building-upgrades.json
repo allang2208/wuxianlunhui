@@ -1,7 +1,7 @@
 {
   "_comment": "世界-122 建筑升级项目库。建筑通过 producer-buildings.json 或独立经济建筑配置的 upgradeProject 引用本文件；出兵模块未声明 unitKinds 时覆盖引用建筑的全部兵种，声明后只覆盖列出的特殊兵种；模块 effect 决定通用属性补丁，避免在建筑或 AI 中按模块名硬编码。",
   "combat_standard": {
-    "unitKinds": ["militia", "halberd", "anti_tank_rifleman", "scout", "ranger", "industrial_recon_rifleman"],
+    "unitKinds": ["militia", "halberd", "anti_tank_rifleman", "scout", "ranger", "industrial_recon_rifleman", "hamster_catapult_crew", "hamster_field_cannon_crew", "hamster_howitzer_crew"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },

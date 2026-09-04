@@ -1,0 +1,5 @@
+# Rebuildable offline intermediate frames and RIFE tool previews.
+/cache/
+/__pycache__/
+# Rejected clipped-arm video remains locally available; keep its reason/prompt.
+/videos/attack-v01*

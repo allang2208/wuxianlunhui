@@ -1,0 +1,38 @@
+{
+  "input": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/engineering_workshop/engineering_workshop_refine_v02_local_raw.png",
+  "generation": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/engineering_workshop/engineering_workshop_refine_v01_raw.png",
+  "mask": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/engineering_workshop_removal_mask.png",
+  "maskPolygon": [
+    [
+      669,
+      499
+    ],
+    [
+      732,
+      479
+    ],
+    [
+      738,
+      491
+    ],
+    [
+      738,
+      565
+    ],
+    [
+      699,
+      584
+    ],
+    [
+      699,
+      608
+    ],
+    [
+      669,
+      625
+    ]
+  ],
+  "maskFeatherPixels": 2,
+  "operation": "composite only masked pixels over previous accepted local candidate; no alpha processing",
+  "output": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/engineering_workshop/engineering_workshop_refine_v01_local_raw.png"
+}

@@ -149,6 +149,7 @@ def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
     deep_drill = asset.get("id") == "deep_drill"
     solar_power_station = asset.get("assetClass") == "solar_power_station"
     modern_data_center = asset.get("assetClass") == "modern_data_center"
+    engineer_compound = asset.get("assetClass") == "engineer_compound"
     command_building = asset.get("assetClass") == "command_building"
     modern_field_barracks = asset.get("assetClass") == "modern_field_barracks"
     roman_barracks = asset.get("assetClass") == "roman_barracks"
@@ -169,6 +170,10 @@ def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
         stage_contract = """Generation stage: structural command-building candidate
 Structure contract: preserve the authored floor count, connected building masses, entrance porch, compass emblem, pennant, planning table and tier-specific communications equipment in the supplied full-foundation Depth
 Detail budget: establish the specified era materials as broad quiet surfaces; retain the modeled command equipment without inventing additional structures"""
+    elif stage == "structure" and engineer_compound:
+        stage_contract = """Generation stage: structural engineering-compound draft only
+Structure contract: follow the asset-authored hall, roof, open work bay and functional equipment in the supplied full-foundation Depth; preserve open spaces between the hoist posts and around the workbench
+Detail budget: establish the tier-specific broad material fields; keep the authored working equipment and wordless gear emblem readable without inventing decorative machinery"""
     elif stage == "structure" and prop_asset:
         stage_contract = """Generation stage: structural prop draft only
 Structure contract: preserve the supplied treasure-chest body, domed lid, four feet, frame, lock and authored open-or-closed lid state as one portable object; every hardware component remains attached to the same chest
@@ -510,7 +515,7 @@ Absolute class lock: this object is a portable metal treasure chest, not archite
     return f"""Use case: stylized-concept
 Asset type: {asset_type}, previewed above the {footprint_contract}
 Pipeline/style version: {style_version}
-Primary request: {"" if command_building else "exactly one "}{request}
+Primary request: {"" if (command_building or engineer_compound) else "exactly one "}{request}
 {stage_contract}
 {local_refine_contract}{palette_contract}{canonical_style_contract}
 Foundation style id: {foundation_style}

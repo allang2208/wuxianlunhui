@@ -1,0 +1,219 @@
+{
+  "status": "accepted_building_assets_imported",
+  "family": "engineer_camp",
+  "builder": "tools/ai-gen/engineer-building-branch-blender.py",
+  "styleVersion": "world122-building-v5",
+  "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 920,
+    "topMargin": 38,
+    "widthMargin": 0.88
+  },
+  "palette": {
+    "foundation": [
+      0.28,
+      0.27,
+      0.24,
+      1
+    ],
+    "stone": [
+      0.42,
+      0.41,
+      0.37,
+      1
+    ],
+    "plaster": [
+      0.56,
+      0.51,
+      0.41,
+      1
+    ],
+    "timber": [
+      0.16,
+      0.09,
+      0.045,
+      1
+    ],
+    "roof": [
+      0.34,
+      0.12,
+      0.075,
+      1
+    ],
+    "thatch": [
+      0.46,
+      0.34,
+      0.17,
+      1
+    ],
+    "iron": [
+      0.07,
+      0.075,
+      0.07,
+      1
+    ],
+    "brass": [
+      0.4,
+      0.23,
+      0.055,
+      1
+    ],
+    "glass": [
+      0.22,
+      0.29,
+      0.3,
+      1
+    ],
+    "glow": [
+      0.65,
+      0.34,
+      0.1,
+      1
+    ],
+    "straw": [
+      0.54,
+      0.38,
+      0.12,
+      1
+    ],
+    "leather": [
+      0.35,
+      0.22,
+      0.13,
+      1
+    ],
+    "concrete": [
+      0.47,
+      0.49,
+      0.47,
+      1
+    ],
+    "steel": [
+      0.17,
+      0.22,
+      0.23,
+      1
+    ],
+    "accent": [
+      0.51,
+      0.33,
+      0.1,
+      1
+    ],
+    "interior": [
+      0.045,
+      0.035,
+      0.025,
+      1
+    ]
+  },
+  "buildings": {
+    "engineer_camp": {
+      "assetId": "engineer_camp",
+      "label": "工程师营地",
+      "level": 1,
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "body": [
+          262,
+          206,
+          126
+        ],
+        "bodyCenterY": 48,
+        "bayWidth": 110,
+        "bayHeight": 101,
+        "roof": [
+          296,
+          250,
+          73
+        ],
+        "hoist": [
+          -104,
+          -142,
+          112
+        ]
+      },
+      "materialBrief": "皮革围护、茅草坡顶、木桩梁柱与手摇吊架；毛石地台，开放作业入口。",
+      "identity": "同族单主厅、前部作业场、可见侧墙齿轮标识、左吊架与右工具台。"
+    },
+    "engineering_workshop": {
+      "assetId": "engineering_workshop",
+      "label": "工程工坊",
+      "level": 2,
+      "footprintCells": 4,
+      "foundationStyle": "rubble_stone",
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "body": [
+          292,
+          236,
+          164
+        ],
+        "bodyCenterY": 48,
+        "bayWidth": 126,
+        "bayHeight": 132,
+        "roof": [
+          324,
+          266,
+          79
+        ],
+        "hoist": [
+          -104,
+          -142,
+          128
+        ]
+      },
+      "materialBrief": "红砖色陶瓦屋顶、灰石墙、深木门与铁件；毛石地台，升级的绞盘吊架。",
+      "identity": "沿用营地的同向主厅、作业场、齿轮标识、左吊架与右工具台。"
+    },
+    "vehicle_factory": {
+      "assetId": "vehicle_factory",
+      "label": "载具工厂",
+      "level": 3,
+      "footprintCells": 4,
+      "foundationStyle": "worn_concrete",
+      "dimensions": {
+        "foundation": [
+          400,
+          400,
+          14
+        ],
+        "body": [
+          318,
+          258,
+          195
+        ],
+        "bodyCenterY": 46,
+        "bayWidth": 146,
+        "bayHeight": 165,
+        "roof": [
+          338,
+          278,
+          30
+        ],
+        "hoist": [
+          -104,
+          -142,
+          145
+        ]
+      },
+      "materialBrief": "清水混凝土墙、深灰钢架与金属屋面、三条附着采光顶、工业卷帘门；磨损混凝土地台，少量暗黄安全标记。",
+      "identity": "单装配厂房延续同向入口、齿轮标识、左吊架与右工具台；无烘焙人物或完整载具。"
+    }
+  },
+  "runtimeIndex": "runtime/runtime-index.json"
+}

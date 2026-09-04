@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T13:02:36.133191+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\die-v03.mp4",
+    "bytes": 518290,
+    "sha256": "e1e669750831ed34b758b5d98891cd39ccfef8b1400715f00470e631d86986a6"
+  },
+  "promptId": "27c7e24e-59e9-4d29-83bd-51d62286b456",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 830334,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A quiet studio animation of two exhausted hamster mechanics beside a COLD, DISABLED olive-green wheeled machine. Match the supplied opening picture and ending picture. Preserve the two faces, equal body sizes, helmets and uniforms. Locked mildly elevated right-facing camera, fixed scale, flat white background and white floor throughout.\n\nThis is a slow collapse driven only by gravity. Neither character operates the controls. Both gently lose balance; the left mechanic releases his held cartridge, which drops intact and rests on the floor.\nThe long hollow metal tube quietly separates at the middle sleeve. Its forward section with the muzzle brake sags downward under its own weight, leaving a visible fractured rear stub on the carriage. The opening stays dark and empty at all times. The wheels and shield remain in place. There is no sudden outward kick or burst from the tube.\nBoth mechanics then faint FORWARD onto the floor in front of the wheels, one to the left and one to the right. Their entire bodies become relaxed and flat, with both heads, torsos, arms and legs clearly visible, matching the ending reference. Neither remains seated or kneeling.\nComplete the fall by 4 seconds. For the remaining time, hold two motionless prone bodies and the broken tube on the clean white floor. Everything stays down; the metal stays broken.\n\nAll frames are entirely free of firing, light emission, muzzle flashes, flames, sparks, smoke, dust or explosions. Only bodies and metal move gently under gravity. Keep the whole unit in frame and finish in the supplied fallen pose.",
+  "effectivePrompt": "A quiet studio animation of two exhausted hamster mechanics beside a COLD, DISABLED olive-green wheeled machine. Match the supplied opening picture and ending picture. Preserve the two faces, equal body sizes, helmets and uniforms. Locked mildly elevated right-facing camera, fixed scale, flat white background and white floor throughout.\n\nThis is a slow collapse driven only by gravity. Neither character operates the controls. Both gently lose balance; the left mechanic releases his held cartridge, which drops intact and rests on the floor.\nThe long hollow metal tube quietly separates at the middle sleeve. Its forward section with the muzzle brake sags downward under its own weight, leaving a visible fractured rear stub on the carriage. The opening stays dark and empty at all times. The wheels and shield remain in place. There is no sudden outward kick or burst from the tube.\nBoth mechanics then faint FORWARD onto the floor in front of the wheels, one to the left and one to the right. Their entire bodies become relaxed and flat, with both heads, torsos, arms and legs clearly visible, matching the ending reference. Neither remains seated or kneeling.\nComplete the fall by 4 seconds. For the remaining time, hold two motionless prone bodies and the broken tube on the clean white floor. Everything stays down; the metal stays broken.\n\nAll frames are entirely free of firing, light emission, muzzle flashes, flames, sparks, smoke, dust or explosions. Only bodies and metal move gently under gravity. Keep the whole unit in frame and finish in the supplied fallen pose.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 6.60-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A quiet studio animation of two exhausted hamster mechanics beside a COLD, DISABLED olive-green wheeled machine. Match the supplied opening picture and ending picture. Preserve the two faces, equal body sizes, helmets and uniforms. Locked mildly elevated right-facing camera, fixed scale, flat white background and white floor throughout.\n\nThis is a slow collapse driven only by gravity. Neither character operates the controls. Both gently lose balance; the left mechanic releases his held cartridge, which drops intact and rests on the floor.\nThe long hollow metal tube quietly separates at the middle sleeve. Its forward section with the muzzle brake sags downward under its own weight, leaving a visible fractured rear stub on the carriage. The opening stays dark and empty at all times. The wheels and shield remain in place. There is no sudden outward kick or burst from the tube.\nBoth mechanics then faint FORWARD onto the floor in front of the wheels, one to the left and one to the right. Their entire bodies become relaxed and flat, with both heads, torsos, arms and legs clearly visible, matching the ending reference. Neither remains seated or kneeling.\nComplete the fall by 4 seconds. For the remaining time, hold two motionless prone bodies and the broken tube on the clean white floor. Everything stays down; the metal stays broken.\n\nAll frames are entirely free of firing, light emission, muzzle flashes, flames, sparks, smoke, dust or explosions. Only bodies and metal move gently under gravity. Keep the whole unit in frame and finish in the supplied fallen pose. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "a9046340e9da50d1f69aeaa3cabec5329582c0849ce813d36c0eaf0462d5c64c",
+  "effectivePromptSha256": "a9046340e9da50d1f69aeaa3cabec5329582c0849ce813d36c0eaf0462d5c64c",
+  "finalPromptSha256": "029834e5632bf4bf4bb5be79dfb11a5fb5282804dcf9581f14879a644ffeb7f9",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 6.6,
+    "frames": 158,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\prompts\\die-v03.txt",
+      "bytes": 1582,
+      "sha256": "c04e1ee6ca8cd648cd3218d505421a5eac8d1f63fd19f7a30c5d4ce15718d8c5"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\previews\\die-final-pose-v02.png",
+      "bytes": 191903,
+      "sha256": "73d68073268ebf3ae84b9b32b241ad0b16974c0469fcc0a1b0d4b04a0ac8fea9"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\die-v03_contact.png",
+    "bytes": 394583,
+    "sha256": "077dcf4ec367700b2482d75626a01b3d73538d4aae3abd6f5bb10c70a8708476"
+  },
+  "elapsedSeconds": 605.811
+}

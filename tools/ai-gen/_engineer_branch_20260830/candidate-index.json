@@ -1,0 +1,146 @@
+{
+  "stage": "structure",
+  "approvalStatus": "user_selected_recommended_03_01_03_for_48_steps",
+  "entries": [
+    {
+      "assetId": "engineer_camp",
+      "level": 1,
+      "candidate": 1,
+      "metadata": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v01_generation.json",
+      "seed": 123831,
+      "selected": false,
+      "suggestedDirection": false,
+      "review": "structure-review.md",
+      "refineReady": false,
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v01_raw.png"
+      }
+    },
+    {
+      "assetId": "engineer_camp",
+      "level": 1,
+      "candidate": 2,
+      "metadata": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v02_generation.json",
+      "seed": 123832,
+      "selected": false,
+      "suggestedDirection": false,
+      "review": "structure-review.md",
+      "refineReady": false,
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v02_raw.png"
+      }
+    },
+    {
+      "assetId": "engineer_camp",
+      "level": 1,
+      "candidate": 3,
+      "raw": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v03_raw.png",
+      "metadata": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v03_generation.json",
+      "seed": 123833,
+      "selected": true,
+      "suggestedDirection": true,
+      "review": "structure-review.md",
+      "refineReady": true,
+      "approvalScope": "48-step candidate generation only; known deviations remain subject to review"
+    },
+    {
+      "assetId": "engineering_workshop",
+      "level": 2,
+      "candidate": 1,
+      "raw": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v01_raw.png",
+      "metadata": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v01_generation.json",
+      "seed": 122841,
+      "selected": true,
+      "suggestedDirection": true,
+      "review": "structure-review.md",
+      "refineReady": true,
+      "approvalScope": "48-step candidate generation only; known deviations remain subject to review"
+    },
+    {
+      "assetId": "engineering_workshop",
+      "level": 2,
+      "candidate": 2,
+      "metadata": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v02_generation.json",
+      "seed": 122842,
+      "selected": false,
+      "suggestedDirection": false,
+      "review": "structure-review.md",
+      "refineReady": false,
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v02_raw.png"
+      }
+    },
+    {
+      "assetId": "engineering_workshop",
+      "level": 2,
+      "candidate": 3,
+      "metadata": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v03_generation.json",
+      "seed": 122843,
+      "selected": false,
+      "suggestedDirection": false,
+      "review": "structure-review.md",
+      "refineReady": false,
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v03_raw.png"
+      }
+    },
+    {
+      "assetId": "vehicle_factory",
+      "level": 3,
+      "candidate": 1,
+      "metadata": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v01_generation.json",
+      "seed": 122851,
+      "selected": false,
+      "suggestedDirection": false,
+      "review": "structure-review.md",
+      "refineReady": false,
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v01_raw.png"
+      }
+    },
+    {
+      "assetId": "vehicle_factory",
+      "level": 3,
+      "candidate": 2,
+      "metadata": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v02_generation.json",
+      "seed": 122852,
+      "selected": false,
+      "suggestedDirection": false,
+      "review": "structure-review.md",
+      "refineReady": false,
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v02_raw.png"
+      }
+    },
+    {
+      "assetId": "vehicle_factory",
+      "level": 3,
+      "candidate": 3,
+      "raw": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v03_raw.png",
+      "metadata": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v03_generation.json",
+      "seed": 122853,
+      "selected": true,
+      "suggestedDirection": true,
+      "review": "structure-review.md",
+      "refineReady": true,
+      "approvalScope": "48-step candidate generation only; known deviations remain subject to review"
+    }
+  ],
+  "refineIndex": "refine-candidate-index.json",
+  "archivedReferences": {
+    "preview": "previews/engineer-branch-structure-candidates-s12.png"
+  },
+  "archivePolicy": "Current accepted source chain: accepted-source-chain.json. Rejected rasters retained as metadata only; current visual outputs: runtime/runtime-index.json."
+}

@@ -1,0 +1,18 @@
+{
+  "input": "tools/ai-gen/_engineer_branch_20260830/local_repair_v4_wall_pixels/vehicle_factory_wall_repaired_raw.png",
+  "inputMetadata": "tools/ai-gen/_engineer_branch_20260830/local_repair_v4_wall_pixels/vehicle_factory_wall_repair_metadata.json",
+  "original48": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+  "operations": [
+    {
+      "region": "original gear only",
+      "source": "tools/ai-gen/_engineer_branch_20260830/candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+      "mask": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_gear_grade_mask.png",
+      "saturationFactor": 0.65,
+      "brightnessFactor": 0.72,
+      "geometry": "original source gear restored; RGB-only grading"
+    }
+  ],
+  "output": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_finished_raw.png",
+  "alphaProcessing": false,
+  "runtimeIntegrationActive": false
+}

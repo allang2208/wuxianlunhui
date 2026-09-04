@@ -1,0 +1,30 @@
+{
+  "input": "tools/ai-gen/_engineer_branch_20260830/local_repair_v1/vehicle_factory/vehicle_factory_refine_v01_local_raw.png",
+  "generation": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+  "mask": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/vehicle_factory_removal_mask.png",
+  "maskPolygon": [
+    [
+      692,
+      573
+    ],
+    [
+      752,
+      548
+    ],
+    [
+      761,
+      559
+    ],
+    [
+      761,
+      622
+    ],
+    [
+      691,
+      646
+    ]
+  ],
+  "maskFeatherPixels": 2,
+  "operation": "composite only masked pixels over previous accepted local candidate; no alpha processing",
+  "output": "tools/ai-gen/_engineer_branch_20260830/local_repair_v2_removal/vehicle_factory/vehicle_factory_refine_v01_local_raw.png"
+}

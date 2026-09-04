@@ -1,0 +1,240 @@
+{
+  "prompt": [
+    90,
+    "5702da1b-ea06-41c7-bafc-b4e2e93d7a84",
+    {
+      "1": {
+        "class_type": "UNETLoader",
+        "inputs": {
+          "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+          "weight_dtype": "default"
+        }
+      },
+      "2": {
+        "class_type": "CLIPLoader",
+        "inputs": {
+          "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+          "type": "minimax"
+        }
+      },
+      "3": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+        }
+      },
+      "4": {
+        "class_type": "VAELoader",
+        "inputs": {
+          "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+        }
+      },
+      "15": {
+        "class_type": "LoadImage",
+        "inputs": {
+          "image": "howitzer-v06-padded-1024x576.png"
+        }
+      },
+      "5": {
+        "class_type": "MiniMaxH3ImageToVideo",
+        "inputs": {
+          "clip": [
+            "2",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ],
+          "prompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Animate the supplied game-unit reference: exactly TWO equally sized adult golden hamster engineers, ONE modern olive-green towed howitzer, and ONE reserve shell held by the left loader. Preserve their rounded black eyes, cream-white muzzles, combat helmets with ear protection, olive uniforms, tactical gear, gloves, knee pads and boots. Keep the original rigid steel barrel, slotted muzzle brake, recoil housing, shield, rubber tires, metal wheels and rear trails. Preserve the held shell caliber and barrel proportions. Locked mildly elevated right-facing three-quarter camera, fixed framing and scale. Entire crew and weapon remain in frame on a pure white background and white ground; no scenery, text, cast shadows or camera motion.\n\nOne complete 5-second ATTACK from an already loaded gun. At 0-1 seconds both engineers brace; the loader holds the visible reserve shell safely and does NOT insert or release it. At 1-2 seconds the gunner operates the firing control for exactly ONE shot. Emit a tiny, very brief compact muzzle flash directly from the true right-hand muzzle opening, no longer than half the muzzle brake itself, plus two faint side puffs from its brake slots. The flash and smoke remain well inside the frame and clear within half a second. No long flame jet, beam, tracer, visible flying shell, large smoke cloud or explosion. The rigid barrel slides a short distance backward along its existing bore axis into the recoil housing, then returns smoothly; barrel diameter and length never change. The carriage and shield stay planted with only a subtle shock. Both crew flinch and recover. At 2-5 seconds settle back to the original ready pose, the loader still holding the same single reserve shell. No second shot, new ammunition, reloading sequence or weapon transformation. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+          "width": 1024,
+          "height": 576,
+          "length": 124,
+          "first_frame": [
+            "15",
+            0
+          ]
+        }
+      },
+      "6": {
+        "class_type": "BasicGuider",
+        "inputs": {
+          "model": [
+            "1",
+            0
+          ],
+          "conditioning": [
+            "5",
+            0
+          ]
+        }
+      },
+      "7": {
+        "class_type": "RandomNoise",
+        "inputs": {
+          "noise_seed": 830303
+        }
+      },
+      "8": {
+        "class_type": "KSamplerSelect",
+        "inputs": {
+          "sampler_name": "res_multistep"
+        }
+      },
+      "9": {
+        "class_type": "BasicScheduler",
+        "inputs": {
+          "model": [
+            "1",
+            0
+          ],
+          "scheduler": "simple",
+          "steps": 20,
+          "denoise": 1.0
+        }
+      },
+      "10": {
+        "class_type": "SamplerCustomAdvanced",
+        "inputs": {
+          "noise": [
+            "7",
+            0
+          ],
+          "guider": [
+            "6",
+            0
+          ],
+          "sampler": [
+            "8",
+            0
+          ],
+          "sigmas": [
+            "9",
+            0
+          ],
+          "latent_image": [
+            "5",
+            1
+          ]
+        }
+      },
+      "11": {
+        "class_type": "VAEDecode",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "3",
+            0
+          ]
+        }
+      },
+      "12": {
+        "class_type": "VAEDecodeAudio",
+        "inputs": {
+          "samples": [
+            "10",
+            0
+          ],
+          "vae": [
+            "4",
+            0
+          ]
+        }
+      },
+      "13": {
+        "class_type": "CreateVideo",
+        "inputs": {
+          "images": [
+            "11",
+            0
+          ],
+          "fps": 24.0,
+          "audio": [
+            "12",
+            0
+          ],
+          "bit_depth": 8
+        }
+      },
+      "14": {
+        "class_type": "SaveVideo",
+        "inputs": {
+          "video": [
+            "13",
+            0
+          ],
+          "filename_prefix": "video/minimax_h3",
+          "format": "mp4",
+          "codec": "h264"
+        }
+      }
+    },
+    {
+      "create_time": 1788090611713
+    },
+    [
+      "14"
+    ]
+  ],
+  "outputs": {
+    "14": {
+      "images": [
+        {
+          "filename": "minimax_h3_00321_.mp4",
+          "subfolder": "video",
+          "type": "output"
+        }
+      ],
+      "animated": [
+        true
+      ]
+    }
+  },
+  "status": {
+    "status_str": "success",
+    "completed": true,
+    "messages": [
+      [
+        "execution_start",
+        {
+          "prompt_id": "5702da1b-ea06-41c7-bafc-b4e2e93d7a84",
+          "timestamp": 1788091067985
+        }
+      ],
+      [
+        "execution_cached",
+        {
+          "nodes": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "15",
+            "8",
+            "9"
+          ],
+          "prompt_id": "5702da1b-ea06-41c7-bafc-b4e2e93d7a84",
+          "timestamp": 1788091068002
+        }
+      ],
+      [
+        "execution_success",
+        {
+          "prompt_id": "5702da1b-ea06-41c7-bafc-b4e2e93d7a84",
+          "timestamp": 1788091496004
+        }
+      ]
+    ]
+  },
+  "meta": {
+    "14": {
+      "node_id": "14",
+      "display_node": "14",
+      "parent_node": null,
+      "real_node_id": "14"
+    }
+  }
+}

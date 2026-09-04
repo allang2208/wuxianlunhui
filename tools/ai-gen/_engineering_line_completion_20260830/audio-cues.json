@@ -1,0 +1,78 @@
+{
+  "sources": "Actual videos used by runtime sprite manifests.",
+  "method": "100ms level envelope and action timeline; 12ms fades, DC removal, -16dBFS RMS target / -1dBFS ceiling, stereo 44.1kHz MP3.",
+  "listeningOrRuntimeTestPerformed": false,
+  "clips": [
+    {
+      "unit": "hamster_field_cannon_crew",
+      "key": "attack",
+      "source": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/attack-v01.mp4",
+      "trimSeconds": [
+        2.3,
+        4.25
+      ],
+      "output": "assets/sounds/friendly/hamster_field_cannon_crew_attack_video.mp3",
+      "durationSeconds": 1.95,
+      "rmsDbfs": -16.000000139434217,
+      "peakDbfs": -1.686764001199714
+    },
+    {
+      "unit": "hamster_field_cannon_crew",
+      "key": "walk",
+      "source": "tools/ai-gen/_hamster_field_cannon_animations_20260830/videos/run-v01.mp4",
+      "trimSeconds": [
+        0.45,
+        0.76
+      ],
+      "output": "assets/sounds/friendly/hamster_field_cannon_crew_walk_video.mp3",
+      "durationSeconds": 0.31,
+      "rmsDbfs": -26.419191545587534,
+      "peakDbfs": -0.9999997091320568
+    },
+    {
+      "unit": "hamster_howitzer_crew",
+      "key": "attack",
+      "source": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/attack-v02.mp4",
+      "trimSeconds": [
+        2.11,
+        3.85
+      ],
+      "output": "assets/sounds/friendly/hamster_howitzer_crew_attack_video.mp3",
+      "durationSeconds": 1.74,
+      "rmsDbfs": -16.000000139434217,
+      "peakDbfs": -3.3332886521223903
+    },
+    {
+      "unit": "hamster_howitzer_crew",
+      "key": "casing",
+      "source": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/attack-v02.mp4",
+      "trimSeconds": [
+        3.96,
+        4.25
+      ],
+      "output": "assets/sounds/friendly/hamster_howitzer_crew_casing_video.mp3",
+      "durationSeconds": 0.29,
+      "rmsDbfs": -19.276933972322315,
+      "peakDbfs": -0.9999997091320568
+    },
+    {
+      "unit": "hamster_howitzer_crew",
+      "key": "reload",
+      "source": "tools/ai-gen/_hamster_howitzer_animations_20260830/videos/attack-v02.mp4",
+      "trimSeconds": [
+        6.08,
+        7.43
+      ],
+      "output": "assets/sounds/friendly/hamster_howitzer_crew_reload_video.mp3",
+      "durationSeconds": 1.35,
+      "rmsDbfs": -25.608845331584796,
+      "peakDbfs": -0.9999997091320568
+    }
+  ],
+  "excluded": [
+    {
+      "source": "_hamster_howitzer_animations_20260830/videos/run-v01.mp4",
+      "reason": "Continuous sound bed; no isolated movement cue suitable for repeated events."
+    }
+  ]
+}

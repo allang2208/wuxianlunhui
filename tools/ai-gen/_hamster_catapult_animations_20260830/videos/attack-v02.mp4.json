@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T09:48:23.755753+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\videos\\attack-v02.mp4",
+    "bytes": 549465,
+    "sha256": "be0a7e9472d86c888b8873d93051710ca835552270b9ca45fd55fc2a26dddaed"
+  },
+  "promptId": "63eb0c79-6a81-49d0-bc2c-c68055590a0b",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 830203,
+  "mode": "i2v_firstframe",
+  "actionMode": "recover",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Animate the supplied game-unit reference. Exactly TWO equally sized adult golden hamster engineers and ONE wooden wheeled catapult; preserve their black eyes, white muzzles, bronze helmets, olive quilted clothing, leather aprons, gloves and boots. Fixed mildly elevated right-facing three-quarter camera. Pure solid white background and white ground, no scenery, text or cast shadows.\n\nThe reference deliberately leaves LARGE EMPTY HEADROOM and side margins for the throwing arm. Preserve this smaller subject size and lower placement throughout: no zoom, reframing, growth, camera movement or auto-cropping. The full throwing spoon, full arm and both crew must remain visible throughout the swing. Only the launched stone may exit the right edge. Keep the throwing arm a constant rigid length around its original fixed pivot; do not telescope or stretch it.\n\nOne 5-second attack, exactly one stone. 0-1.4s: the left loader puts the stone into the empty lowered spoon and withdraws his hands; the other hamster braces and releases the mechanism. 1.4-2.4s: the same rigid arm swings rapidly upward and right around its axle and releases the stone toward the RIGHT. The cart stays grounded with a small recoil. 2.4-5s: the operator cranks the same arm down to its initial loading position; both hamsters settle. The loader now has EMPTY hands, no replacement stone appears. Keep all timber, ropes, wheels and crew anatomically consistent. No explosions, muzzle flash, duplicate arm or stone, teleportation, disappearing crew or reversed launch.",
+  "effectivePrompt": "Animate the supplied game-unit reference. Exactly TWO equally sized adult golden hamster engineers and ONE wooden wheeled catapult; preserve their black eyes, white muzzles, bronze helmets, olive quilted clothing, leather aprons, gloves and boots. Fixed mildly elevated right-facing three-quarter camera. Pure solid white background and white ground, no scenery, text or cast shadows.\n\nThe reference deliberately leaves LARGE EMPTY HEADROOM and side margins for the throwing arm. Preserve this smaller subject size and lower placement throughout: no zoom, reframing, growth, camera movement or auto-cropping. The full throwing spoon, full arm and both crew must remain visible throughout the swing. Only the launched stone may exit the right edge. Keep the throwing arm a constant rigid length around its original fixed pivot; do not telescope or stretch it.\n\nOne 5-second attack, exactly one stone. 0-1.4s: the left loader puts the stone into the empty lowered spoon and withdraws his hands; the other hamster braces and releases the mechanism. 1.4-2.4s: the same rigid arm swings rapidly upward and right around its axle and releases the stone toward the RIGHT. The cart stays grounded with a small recoil. 2.4-5s: the operator cranks the same arm down to its initial loading position; both hamsters settle. The loader now has EMPTY hands, no replacement stone appears. Keep all timber, ropes, wheels and crew anatomically consistent. No explosions, muzzle flash, duplicate arm or stone, teleportation, disappearing crew or reversed launch.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Animate the supplied game-unit reference. Exactly TWO equally sized adult golden hamster engineers and ONE wooden wheeled catapult; preserve their black eyes, white muzzles, bronze helmets, olive quilted clothing, leather aprons, gloves and boots. Fixed mildly elevated right-facing three-quarter camera. Pure solid white background and white ground, no scenery, text or cast shadows.\n\nThe reference deliberately leaves LARGE EMPTY HEADROOM and side margins for the throwing arm. Preserve this smaller subject size and lower placement throughout: no zoom, reframing, growth, camera movement or auto-cropping. The full throwing spoon, full arm and both crew must remain visible throughout the swing. Only the launched stone may exit the right edge. Keep the throwing arm a constant rigid length around its original fixed pivot; do not telescope or stretch it.\n\nOne 5-second attack, exactly one stone. 0-1.4s: the left loader puts the stone into the empty lowered spoon and withdraws his hands; the other hamster braces and releases the mechanism. 1.4-2.4s: the same rigid arm swings rapidly upward and right around its axle and releases the stone toward the RIGHT. The cart stays grounded with a small recoil. 2.4-5s: the operator cranks the same arm down to its initial loading position; both hamsters settle. The loader now has EMPTY hands, no replacement stone appears. Keep all timber, ropes, wheels and crew anatomically consistent. No explosions, muzzle flash, duplicate arm or stone, teleportation, disappearing crew or reversed launch. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, build through anticipation into one clear peak action, then recover naturally to a stable ready pose. Do not repeat the action.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "ec9f20a30d7ddb84b8580445de3d349c233676195dcf2fd6b49394c169f8d04a",
+  "effectivePromptSha256": "ec9f20a30d7ddb84b8580445de3d349c233676195dcf2fd6b49394c169f8d04a",
+  "finalPromptSha256": "c187132dc8a8e2ab8057b91f797d3b4f5ccd484c095a613dbc2335b06f2d2d50",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 5.17,
+    "frames": 124,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\prompts\\attack-v02.txt",
+      "bytes": 1543,
+      "sha256": "82a4c43b6191f8923474f92c5f4ac657910f4d3b205647aa335fc13112aeb4b6"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\reference\\catapult-attack-v02-headroom.png",
+      "bytes": 253429,
+      "sha256": "38222ab9878b199135cc849c2ba979ff29ce5db943066befdbf9787a044fd4d0"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_catapult_animations_20260830\\videos\\attack-v02_contact.png",
+    "bytes": 351823,
+    "sha256": "07d7f2093831e3d39c8878bec180c769fb517fe37e1352b21f130cd8905bbfd6"
+  },
+  "elapsedSeconds": 836.183
+}

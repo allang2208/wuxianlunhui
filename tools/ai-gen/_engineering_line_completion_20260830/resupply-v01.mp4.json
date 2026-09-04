@@ -1,0 +1,66 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T13:52:51.100060+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_engineering_line_completion_20260830\\resupply-v01.mp4",
+    "bytes": 334754,
+    "sha256": "f1b87c0f61ac476618cec3d9259704dbfbbca23729f0a4c03d4509a6de517154"
+  },
+  "promptId": "12f50365-4dbf-4fa4-9988-1d8d118804a2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 830907,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "A short quiet resupply transition, no firing. Fixed orthographic mildly elevated right-facing three-quarter camera, pure white background, exactly the same two golden hamster engineers wearing olive helmets and uniforms and the same modern olive towed cannon. Preserve their faces, equipment, size and ground positions from the two reference images. Start exactly from the first image: the left loader has empty hands after loading the gun, the spent hollow casing rests on the ground behind the trail. The loader naturally bends knees and torso, reaches down behind his own left hip to an off-screen ammunition stock behind the trail, picks up one fresh olive pointed artillery shell, and lifts it with both hands into the exact cradled ready pose of the final reference. The other hamster subtly turns the elevation handwheel to settle the barrel to the final reference angle and returns to his ready pose. Continuous physically plausible body and arm motion; do not morph ammunition into hands. The loader nudges the empty casing behind the trail during the reach so it disappears through occlusion, not fading. Finish exactly matching the final reference and hold briefly. The cannon chassis and wheels remain planted. No shot, no muzzle flash, no smoke, no recoil, no extra crew, no new cannon parts, no camera movement, no perspective or scale change, no walking away. Natural compact movement suitable for the end of an artillery attack animation.",
+  "effectivePrompt": "A short quiet resupply transition, no firing. Fixed orthographic mildly elevated right-facing three-quarter camera, pure white background, exactly the same two golden hamster engineers wearing olive helmets and uniforms and the same modern olive towed cannon. Preserve their faces, equipment, size and ground positions from the two reference images. Start exactly from the first image: the left loader has empty hands after loading the gun, the spent hollow casing rests on the ground behind the trail. The loader naturally bends knees and torso, reaches down behind his own left hip to an off-screen ammunition stock behind the trail, picks up one fresh olive pointed artillery shell, and lifts it with both hands into the exact cradled ready pose of the final reference. The other hamster subtly turns the elevation handwheel to settle the barrel to the final reference angle and returns to his ready pose. Continuous physically plausible body and arm motion; do not morph ammunition into hands. The loader nudges the empty casing behind the trail during the reach so it disappears through occlusion, not fading. Finish exactly matching the final reference and hold briefly. The cannon chassis and wheels remain planted. No shot, no muzzle flash, no smoke, no recoil, no extra crew, no new cannon parts, no camera movement, no perspective or scale change, no walking away. Natural compact movement suitable for the end of an artillery attack animation.",
+  "finalPrompt": "How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 3.00-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] A short quiet resupply transition, no firing. Fixed orthographic mildly elevated right-facing three-quarter camera, pure white background, exactly the same two golden hamster engineers wearing olive helmets and uniforms and the same modern olive towed cannon. Preserve their faces, equipment, size and ground positions from the two reference images. Start exactly from the first image: the left loader has empty hands after loading the gun, the spent hollow casing rests on the ground behind the trail. The loader naturally bends knees and torso, reaches down behind his own left hip to an off-screen ammunition stock behind the trail, picks up one fresh olive pointed artillery shell, and lifts it with both hands into the exact cradled ready pose of the final reference. The other hamster subtly turns the elevation handwheel to settle the barrel to the final reference angle and returns to his ready pose. Continuous physically plausible body and arm motion; do not morph ammunition into hands. The loader nudges the empty casing behind the trail during the reach so it disappears through occlusion, not fading. Finish exactly matching the final reference and hold briefly. The cannon chassis and wheels remain planted. No shot, no muzzle flash, no smoke, no recoil, no extra crew, no new cannon parts, no camera movement, no perspective or scale change, no walking away. Natural compact movement suitable for the end of an artillery attack animation. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "c03d5263e221f20debbf706628a910282b44a2f6aaab26bb79ad683a7021a4c4",
+  "effectivePromptSha256": "c03d5263e221f20debbf706628a910282b44a2f6aaab26bb79ad683a7021a4c4",
+  "finalPromptSha256": "9d68b890f2eac72e724e27e2c604ffb70fceec95fc8b4ac452ac9d805ee9ab82",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 3.0,
+    "frames": 73,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_engineering_line_completion_20260830\\resupply-prompt.txt",
+      "bytes": 1455,
+      "sha256": "8440e3af83cef6b43dc1abf7749a7e470f49c784de48122d5a5fd1314442c85e"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_engineering_line_completion_20260830\\howitzer-end.png",
+      "bytes": 231940,
+      "sha256": "a31262ce71e206057bf29ce57fd8c873343b8e52d36b8bb99ba33ee1cb285da8"
+    },
+    "lastFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_engineering_line_completion_20260830\\howitzer-idle.png",
+      "bytes": 206524,
+      "sha256": "76ffdb4a258028f3b962abed77142ba8c846ee946a8278f72d712387cf2a7615"
+    },
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_engineering_line_completion_20260830\\resupply-v01_contact.png",
+    "bytes": 403041,
+    "sha256": "466c4e279caf722445a95a4a851f02b867443cd017bbfd16cac0a0a21e16228a"
+  },
+  "elapsedSeconds": 265.44
+}

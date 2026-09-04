@@ -1,0 +1,62 @@
+{
+  "provenanceVersion": 1,
+  "provider": "minimax-h3-local",
+  "createdAt": "2026-08-30T12:50:19.203108+00:00",
+  "output": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\die-v02.mp4",
+    "bytes": 674972,
+    "sha256": "679e9dc1598853f733f3990d574bfddda05fa2a06670cc8ba77e8b63e497b7cb"
+  },
+  "promptId": "5d7d864d-0ca0-495f-99a5-a0f5896f3f7c",
+  "candidate": 1,
+  "candidateCount": 1,
+  "visualProfile": "character-asset",
+  "seed": 830324,
+  "mode": "i2v_firstframe",
+  "actionMode": "one-way",
+  "audioMode": "visual-only",
+  "promptFormat": "h3",
+  "authoredPrompt": "Animate the reference as a 6.6-second non-explosive defeat of this game unit: exactly TWO golden hamster engineers and ONE olive-green modern howitzer. Preserve both faces, equal body sizes, helmets, uniforms, wheels, shield and trails. Fixed mildly elevated right-facing three-quarter camera, fixed scale, plain white background and ground. Keep the whole gun, both complete bodies and the dropped ammunition inside the frame.\n\n0-1 seconds: Both hamsters stagger and lose balance. The right gunner staggers toward the camera around the near side of the wheel, so his silhouette clears the shield. The left loader releases his held shell onto the ground; it remains intact and inert.\n1-3.5 seconds: The long metal barrel visibly FRACTURES at its middle sleeve. Show a jagged broken joint: the forward section with its muzzle brake drops and hangs steeply downward from torn metal, while the rear barrel stub stays on its mounting. This is a broken tube, not the whole intact barrel rotating to aim down. The carriage rocks slightly and settles.\nAt the same time BOTH engineers collapse all the way onto the ground. The loader lies in the foreground-left of the wheel; the gunner falls forward into the foreground-right, in front of the wheel and shield. Keep space between their bodies. Each hamster's helmeted head, torso, arms and legs remain visible in the final pose. Neither stays standing, kneeling, sitting, perched on the carriage or hidden behind the gun.\n3.5-6.6 seconds: Hold the defeated tableau completely still: TWO distinct full-body fallen hamsters, a visibly broken drooping barrel, intact carriage and inert dropped shell. The broken barrel stays broken and both bodies stay down through the last frame.\n\nThe weapon NEVER FIRES. There is NO muzzle flash, smoke, fire, explosion, sparks, projectile, firing recoil or shell ejection at any moment. Show only metal failure and bodies falling. No gore, disappearance, standing back up, barrel repair, extra crew or camera motion.",
+  "effectivePrompt": "Animate the reference as a 6.6-second non-explosive defeat of this game unit: exactly TWO golden hamster engineers and ONE olive-green modern howitzer. Preserve both faces, equal body sizes, helmets, uniforms, wheels, shield and trails. Fixed mildly elevated right-facing three-quarter camera, fixed scale, plain white background and ground. Keep the whole gun, both complete bodies and the dropped ammunition inside the frame.\n\n0-1 seconds: Both hamsters stagger and lose balance. The right gunner staggers toward the camera around the near side of the wheel, so his silhouette clears the shield. The left loader releases his held shell onto the ground; it remains intact and inert.\n1-3.5 seconds: The long metal barrel visibly FRACTURES at its middle sleeve. Show a jagged broken joint: the forward section with its muzzle brake drops and hangs steeply downward from torn metal, while the rear barrel stub stays on its mounting. This is a broken tube, not the whole intact barrel rotating to aim down. The carriage rocks slightly and settles.\nAt the same time BOTH engineers collapse all the way onto the ground. The loader lies in the foreground-left of the wheel; the gunner falls forward into the foreground-right, in front of the wheel and shield. Keep space between their bodies. Each hamster's helmeted head, torso, arms and legs remain visible in the final pose. Neither stays standing, kneeling, sitting, perched on the carriage or hidden behind the gun.\n3.5-6.6 seconds: Hold the defeated tableau completely still: TWO distinct full-body fallen hamsters, a visibly broken drooping barrel, intact carriage and inert dropped shell. The broken barrel stays broken and both bodies stay down through the last frame.\n\nThe weapon NEVER FIRES. There is NO muzzle flash, smoke, fire, explosion, sparks, projectile, firing recoil or shell ejection at any moment. Show only metal failure and bodies falling. No gore, disappearance, standing back up, barrel repair, extra crew or camera motion.",
+  "finalPrompt": "For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.\n\nintegrated_multimodal_description: [Shot 1] Animate the reference as a 6.6-second non-explosive defeat of this game unit: exactly TWO golden hamster engineers and ONE olive-green modern howitzer. Preserve both faces, equal body sizes, helmets, uniforms, wheels, shield and trails. Fixed mildly elevated right-facing three-quarter camera, fixed scale, plain white background and ground. Keep the whole gun, both complete bodies and the dropped ammunition inside the frame.\n\n0-1 seconds: Both hamsters stagger and lose balance. The right gunner staggers toward the camera around the near side of the wheel, so his silhouette clears the shield. The left loader releases his held shell onto the ground; it remains intact and inert.\n1-3.5 seconds: The long metal barrel visibly FRACTURES at its middle sleeve. Show a jagged broken joint: the forward section with its muzzle brake drops and hangs steeply downward from torn metal, while the rear barrel stub stays on its mounting. This is a broken tube, not the whole intact barrel rotating to aim down. The carriage rocks slightly and settles.\nAt the same time BOTH engineers collapse all the way onto the ground. The loader lies in the foreground-left of the wheel; the gunner falls forward into the foreground-right, in front of the wheel and shield. Keep space between their bodies. Each hamster's helmeted head, torso, arms and legs remain visible in the final pose. Neither stays standing, kneeling, sitting, perched on the carriage or hidden behind the gun.\n3.5-6.6 seconds: Hold the defeated tableau completely still: TWO distinct full-body fallen hamsters, a visibly broken drooping barrel, intact carriage and inert dropped shell. The broken barrel stays broken and both bodies stay down through the last frame.\n\nThe weapon NEVER FIRES. There is NO muzzle flash, smoke, fire, explosion, sparks, projectile, firing recoil or shell ejection at any moment. Show only metal failure and bodies falling. No gore, disappearance, standing back up, barrel repair, extra crew or camera motion. Preserve fine material texture, a clean silhouette, stable rigid-equipment topology, consistent facial markings, and temporally coherent fur or cloth detail across every frame. Temporal action path: Begin in the supplied opening state, progress through one clear irreversible action, and settle in the authored final state without returning to the opening pose.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+  "authoredPromptSha256": "4906a21ada2e20e49aae5b86b10e0af0b0964dd3ab9c0f0fbca29c7431d45c5a",
+  "effectivePromptSha256": "4906a21ada2e20e49aae5b86b10e0af0b0964dd3ab9c0f0fbca29c7431d45c5a",
+  "finalPromptSha256": "57a78e4d50b50d5c674d48093946f23e9272489ad74caac8b85eef2718d4790c",
+  "parameters": {
+    "width": 1024,
+    "height": 576,
+    "duration": 6.6,
+    "frames": 158,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "refImageSize": "max"
+  },
+  "models": {
+    "unet": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "clip": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+    "videoVae": "minimax_h3_video_vae_fp16.safetensors",
+    "audioVae": "minimax_h3_audio_vae_fp32.safetensors"
+  },
+  "inputs": {
+    "promptFile": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\prompts\\die-v02.txt",
+      "bytes": 1994,
+      "sha256": "825bb5965ef7ab629d938eb1c5669811a8652038cfdde01a6803af47a835e1fc"
+    },
+    "firstFrame": {
+      "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\reference\\howitzer-v06-padded-1024x576.png",
+      "bytes": 360575,
+      "sha256": "6cba30be0f13fe445a8e541ac572780229e6e8aba741d46373d3f2f060dffd57"
+    },
+    "lastFrame": null,
+    "referenceImages": [],
+    "referenceVideos": []
+  },
+  "contactSheet": {
+    "path": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_howitzer_animations_20260830\\videos\\die-v02_contact.png",
+    "bytes": 424690,
+    "sha256": "88b08d41c9939eac1bfb6326fded31359da58d0b7708756f00eb068281f75132"
+  },
+  "elapsedSeconds": 575.869
+}

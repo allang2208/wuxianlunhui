@@ -1,0 +1,92 @@
+{
+  "stage": "refine",
+  "approvalStatus": "user_selected_02_01_01_for_local_repair",
+  "entries": [
+    {
+      "assetId": "engineer_camp",
+      "level": 1,
+      "candidate": 1,
+      "metadata": "candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v01_generation.json",
+      "sourceStructure": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v03_raw.png",
+      "seed": 124831,
+      "selected": false,
+      "review": "refine-review.md",
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v01_raw.png"
+      }
+    },
+    {
+      "assetId": "engineer_camp",
+      "level": 1,
+      "candidate": 2,
+      "raw": "candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v02_raw.png",
+      "metadata": "candidates_dev_s48_v1/engineer_camp/engineer_camp_refine_v02_generation.json",
+      "sourceStructure": "candidates_dev_s12_camp_v2/engineer_camp/engineer_camp_structure_v03_raw.png",
+      "seed": 124832,
+      "selected": true,
+      "review": "refine-review.md",
+      "approvalScope": "local repair source only; not runtime acceptance"
+    },
+    {
+      "assetId": "engineering_workshop",
+      "level": 2,
+      "candidate": 1,
+      "raw": "candidates_dev_s48_v1/engineering_workshop/engineering_workshop_refine_v01_raw.png",
+      "metadata": "candidates_dev_s48_v1/engineering_workshop/engineering_workshop_refine_v01_generation.json",
+      "sourceStructure": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v01_raw.png",
+      "seed": 124841,
+      "selected": true,
+      "review": "refine-review.md",
+      "approvalScope": "local repair source only; not runtime acceptance"
+    },
+    {
+      "assetId": "engineering_workshop",
+      "level": 2,
+      "candidate": 2,
+      "metadata": "candidates_dev_s48_v1/engineering_workshop/engineering_workshop_refine_v02_generation.json",
+      "sourceStructure": "candidates_dev_s12_v1/engineering_workshop/engineering_workshop_structure_v01_raw.png",
+      "seed": 124842,
+      "selected": false,
+      "review": "refine-review.md",
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s48_v1/engineering_workshop/engineering_workshop_refine_v02_raw.png"
+      }
+    },
+    {
+      "assetId": "vehicle_factory",
+      "level": 3,
+      "candidate": 1,
+      "raw": "candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v01_raw.png",
+      "metadata": "candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v01_generation.json",
+      "sourceStructure": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v03_raw.png",
+      "seed": 124851,
+      "selected": true,
+      "review": "refine-review.md",
+      "approvalScope": "local repair source only; not runtime acceptance"
+    },
+    {
+      "assetId": "vehicle_factory",
+      "level": 3,
+      "candidate": 2,
+      "metadata": "candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v02_generation.json",
+      "sourceStructure": "candidates_dev_s12_v1/vehicle_factory/vehicle_factory_structure_v03_raw.png",
+      "seed": 124852,
+      "selected": false,
+      "review": "refine-review.md",
+      "approvalScope": null,
+      "status": "rejected_archived_metadata_only",
+      "archivedReferences": {
+        "raw": "candidates_dev_s48_v1/vehicle_factory/vehicle_factory_refine_v02_raw.png"
+      }
+    }
+  ],
+  "localRepairIndex": "local-repair-index.json",
+  "archivedReferences": {
+    "preview": "previews/engineer-branch-refine-candidates-s48.png"
+  },
+  "archivePolicy": "Current accepted source chain: accepted-source-chain.json. Rejected rasters retained as metadata only; current visual outputs: runtime/runtime-index.json."
+}
