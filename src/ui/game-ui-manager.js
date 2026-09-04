@@ -1,3 +1,5 @@
+import { GameSaveStorage } from '../systems/game-save-storage.js';
+import { MailStore } from '../systems/mail-store.js';
 import { Game } from '../game.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
@@ -473,18 +475,29 @@ export const GameUIManager = {
         });
     },
     async load() {
+        if (this._saveBusy || this._loadBusy) return;
+        if (window.DungeonMapSystem?.active || MailStore.run?.status === 'active') {
+            alert('请先结束地牢探险再读档；本版本不支持地牢断点续玩');
+            return;
+        }
         if (this.player?.shieldSystem?.hasCausalDebt?.()) {
             alert('逆命劫债尚未结清，不能直接读档清除；请先完成偿还或通过换盾立即结算');
             return;
         }
-        const save = localStorage.getItem('infiniteLoop_save');
-        if (!save) { alert('没有找到存档'); return; }
+        this._loadBusy = true;
+        try {
         let data;
-        try { data = JSON.parse(save); } catch (e) {
-            console.error('Load failed:', e);
-            EffectManager.add(new FloatingTextEffect(this.player ? this.player.x : CONFIG.WORLD_WIDTH/2, this.player ? this.player.y - 20 : CONFIG.WORLD_HEIGHT/2, '读档失败: 存档损坏'));
+        let restoredMail;
+        try {
+            data = await GameSaveStorage.read();
+            if (!data) { alert('没有找到存档'); return; }
+            restoredMail = MailStore.prepareRestore(data.mailbox);
+        } catch (error) {
+            console.error('Load failed:', error);
+            alert(`读档失败，当前进度、背包与信箱未被替换：${error.message || '存档损坏'}`);
             return;
         }
+        window.MailboxPanel?.reset();
         if (!this.player) return;
         const { SceneManager } = await import('../world/scene-manager.js');
         const currentWorldId = SceneManager.getCurrentWorldId?.() || SceneManager.currentScene;
@@ -516,6 +529,7 @@ export const GameUIManager = {
         restoreAbilityLevels(data.world122?.abilityLevels);
         TechnologySystem.restore(data.technologyTree, { legacyUnlockAll: !data.technologyTree });
         WarehouseSystem.restore(data.warehouseStorage);
+        MailStore.restorePrepared(restoredMail);
         QuestStore.restore(data.quests);
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
@@ -617,8 +631,16 @@ export const GameUIManager = {
         }
         if (this.updateUI) this.updateUI();
         alert(`读档成功: ${this.player.data?.name || '未知'} Lv.${this.player.data?.level || 1}`);
+        } finally {
+            this._loadBusy = false;
+        }
     },
-    save() {
+    async save() {
+        if (this._saveBusy || this._loadBusy) return;
+        if (window.DungeonMapSystem?.active || MailStore.run?.status === 'active') {
+            alert('请通关、安全撤离或结束地牢后保存；探险暂存不能脱离本次探险单独存档');
+            return;
+        }
         if (this.player?.shieldSystem?.hasCausalDebt?.()) {
             alert('逆命劫债尚未结清，不能保存并绕过偿还；请先完成偿还或通过换盾立即结算');
             return;
@@ -685,7 +707,16 @@ export const GameUIManager = {
                 scenes: serializeWorldScenes(),
             },
         };
-        try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('游戏已保存'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
+        this._saveBusy = true;
+        try {
+            await GameSaveStorage.write(saveData, MailStore.serialize());
+            alert('已保存至主神空间（含背包、仓库和信箱）');
+        } catch (error) {
+            console.error('Save failed:', error);
+            alert(`保存失败，上一份存档仍保留：${error.message || '存储空间不足'}`);
+        } finally {
+            this._saveBusy = false;
+        }
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
     _formatEconomyCompactNumber(valueRaw) {
