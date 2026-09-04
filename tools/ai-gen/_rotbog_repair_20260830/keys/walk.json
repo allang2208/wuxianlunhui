@@ -1,0 +1,42 @@
+{
+  "columns": 5,
+  "rows": 4,
+  "frameWidth": 384,
+  "frameHeight": 208,
+  "frameCount": 20,
+  "rgbaBytes": 6389760,
+  "crop": [
+    128,
+    336,
+    512,
+    544
+  ],
+  "footY": 198,
+  "originalFrameWidth": 640,
+  "originalFrameHeight": 640,
+  "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\moving-doubao-v01.mp4",
+  "sourceFrames": [
+    0,
+    6,
+    12,
+    18,
+    24,
+    30,
+    36,
+    42,
+    48,
+    54,
+    60,
+    66,
+    72,
+    78,
+    84,
+    90,
+    96,
+    102,
+    108,
+    114
+  ],
+  "scale": 0.5093378607809848,
+  "outColumns": 5
+}

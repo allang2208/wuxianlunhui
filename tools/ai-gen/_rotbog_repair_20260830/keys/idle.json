@@ -1,0 +1,37 @@
+{
+  "columns": 5,
+  "rows": 3,
+  "frameWidth": 352,
+  "frameHeight": 192,
+  "frameCount": 15,
+  "rgbaBytes": 4055040,
+  "crop": [
+    144,
+    344,
+    496,
+    536
+  ],
+  "footY": 181,
+  "originalFrameWidth": 640,
+  "originalFrameHeight": 640,
+  "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\idle-doubao-v01.mp4",
+  "sourceFrames": [
+    0,
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56,
+    64,
+    72,
+    80,
+    88,
+    96,
+    104,
+    112
+  ],
+  "scale": 0.4854368932038835,
+  "outColumns": 5
+}

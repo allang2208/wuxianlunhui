@@ -1,0 +1,32 @@
+{
+  "columns": 4,
+  "rows": 3,
+  "frameWidth": 416,
+  "frameHeight": 320,
+  "frameCount": 10,
+  "rgbaBytes": 6389760,
+  "crop": [
+    240,
+    275,
+    656,
+    595
+  ],
+  "footY": 306,
+  "originalFrameWidth": 896,
+  "originalFrameHeight": 640,
+  "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\phase-open-elytra-h3-v01.mp4",
+  "sourceFrames": [
+    64,
+    70,
+    76,
+    82,
+    88,
+    94,
+    100,
+    106,
+    112,
+    118
+  ],
+  "scale": 0.6437768240343348,
+  "outColumns": 4
+}

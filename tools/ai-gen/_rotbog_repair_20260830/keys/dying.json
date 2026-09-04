@@ -1,0 +1,36 @@
+{
+  "columns": 3,
+  "rows": 5,
+  "frameWidth": 416,
+  "frameHeight": 208,
+  "frameCount": 14,
+  "rgbaBytes": 5191680,
+  "crop": [
+    240,
+    287,
+    656,
+    495
+  ],
+  "footY": 195,
+  "originalFrameWidth": 896,
+  "originalFrameHeight": 640,
+  "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\dying-h3-v01.mp4",
+  "sourceFrames": [
+    0,
+    5,
+    10,
+    15,
+    18,
+    21,
+    24,
+    27,
+    30,
+    36,
+    48,
+    72,
+    96,
+    123
+  ],
+  "scale": 0.7109004739336493,
+  "outColumns": 3
+}

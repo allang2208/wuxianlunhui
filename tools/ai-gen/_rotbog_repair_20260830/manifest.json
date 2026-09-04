@@ -1,0 +1,529 @@
+{
+  "status": "installed-runtime-unverified",
+  "sourceScaleChanged": false,
+  "trajectoryChanged": false,
+  "rgbBleedRadius": 3,
+  "middleRecomposition": "chroma RGB with independent RIFE alpha support (8px)",
+  "pinkWingActions": [
+    "phase_open",
+    "enraged_idle"
+  ],
+  "actions": {
+    "rotbogRhinocerosBeetleKing/idle": {
+      "layout": {
+        "columns": 5,
+        "rows": 6,
+        "frameWidth": 352,
+        "frameHeight": 192,
+        "frameCount": 30,
+        "footY": 181,
+        "frameRate": 15,
+        "repeat": -1
+      },
+      "source": {
+        "columns": 5,
+        "rows": 3,
+        "frameWidth": 352,
+        "frameHeight": 192,
+        "frameCount": 15,
+        "rgbaBytes": 4055040,
+        "crop": [
+          144,
+          344,
+          496,
+          536
+        ],
+        "footY": 181,
+        "originalFrameWidth": 640,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\idle-doubao-v01.mp4",
+        "sourceFrames": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112
+        ],
+        "scale": 0.4854368932038835,
+        "outColumns": 5
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\idle.png",
+      "rgbaBytes": 8110080
+    },
+    "rotbogRhinocerosBeetleKing/walk": {
+      "layout": {
+        "columns": 5,
+        "rows": 8,
+        "frameWidth": 384,
+        "frameHeight": 208,
+        "frameCount": 40,
+        "footY": 198,
+        "frameRate": 20,
+        "repeat": -1
+      },
+      "source": {
+        "columns": 5,
+        "rows": 4,
+        "frameWidth": 384,
+        "frameHeight": 208,
+        "frameCount": 20,
+        "rgbaBytes": 6389760,
+        "crop": [
+          128,
+          336,
+          512,
+          544
+        ],
+        "footY": 198,
+        "originalFrameWidth": 640,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\moving-doubao-v01.mp4",
+        "sourceFrames": [
+          0,
+          6,
+          12,
+          18,
+          24,
+          30,
+          36,
+          42,
+          48,
+          54,
+          60,
+          66,
+          72,
+          78,
+          84,
+          90,
+          96,
+          102,
+          108,
+          114
+        ],
+        "scale": 0.5093378607809848,
+        "outColumns": 5
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\walking.png",
+      "rgbaBytes": 12779520
+    },
+    "rotbogRhinocerosBeetleKing/attack": {
+      "layout": {
+        "columns": 3,
+        "rows": 10,
+        "frameWidth": 544,
+        "frameHeight": 224,
+        "frameCount": 29,
+        "footY": 212,
+        "duration": 1600,
+        "repeat": 0
+      },
+      "source": {
+        "columns": 3,
+        "rows": 5,
+        "frameWidth": 544,
+        "frameHeight": 224,
+        "frameCount": 15,
+        "rgbaBytes": 7311360,
+        "crop": [
+          112,
+          314,
+          656,
+          538
+        ],
+        "footY": 212,
+        "originalFrameWidth": 768,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\attack-horn-sweep-doubao-v01.mp4",
+        "sourceFrames": [
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120
+        ],
+        "scale": 0.6012024048096193,
+        "outColumns": 3
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\attacking.png",
+      "rgbaBytes": 14622720
+    },
+    "rotbogRhinocerosBeetleKing/charge": {
+      "layout": {
+        "columns": 4,
+        "rows": 8,
+        "frameWidth": 448,
+        "frameHeight": 224,
+        "frameCount": 31,
+        "footY": 219,
+        "duration": 2400,
+        "repeat": 0
+      },
+      "source": {
+        "columns": 4,
+        "rows": 4,
+        "frameWidth": 448,
+        "frameHeight": 224,
+        "frameCount": 16,
+        "rgbaBytes": 6422528,
+        "crop": [
+          160,
+          308,
+          608,
+          532
+        ],
+        "footY": 219,
+        "originalFrameWidth": 768,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\charge-doubao-v03.mp4",
+        "sourceFrames": [
+          0,
+          8,
+          16,
+          24,
+          32,
+          48,
+          56,
+          60,
+          64,
+          68,
+          72,
+          76,
+          80,
+          88,
+          104,
+          120
+        ],
+        "scale": 0.7177033492822966,
+        "outColumns": 4
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\charge.png",
+      "rgbaBytes": 12845056
+    },
+    "rotbogRhinocerosBeetleKing/summon": {
+      "layout": {
+        "columns": 3,
+        "rows": 13,
+        "frameWidth": 384,
+        "frameHeight": 272,
+        "frameCount": 39,
+        "footY": 262,
+        "duration": 2200,
+        "repeat": 0
+      },
+      "source": {
+        "columns": 3,
+        "rows": 7,
+        "frameWidth": 384,
+        "frameHeight": 272,
+        "frameCount": 20,
+        "rgbaBytes": 8773632,
+        "crop": [
+          192,
+          261,
+          576,
+          533
+        ],
+        "footY": 262,
+        "originalFrameWidth": 768,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\summon-command-h3-v01.mp4",
+        "sourceFrames": [
+          0,
+          6,
+          12,
+          18,
+          24,
+          30,
+          36,
+          42,
+          48,
+          54,
+          60,
+          66,
+          72,
+          78,
+          84,
+          90,
+          96,
+          102,
+          112,
+          123
+        ],
+        "scale": 0.6437768240343348,
+        "outColumns": 3
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\summon.png",
+      "rgbaBytes": 16293888
+    },
+    "rotbogRhinocerosBeetleKing/phase_open": {
+      "layout": {
+        "columns": 3,
+        "rows": 11,
+        "frameWidth": 416,
+        "frameHeight": 320,
+        "frameCount": 33,
+        "footY": 306,
+        "duration": 2200,
+        "repeat": 0
+      },
+      "source": {
+        "columns": 3,
+        "rows": 6,
+        "frameWidth": 416,
+        "frameHeight": 320,
+        "frameCount": 17,
+        "rgbaBytes": 9584640,
+        "crop": [
+          240,
+          274,
+          656,
+          594
+        ],
+        "footY": 306,
+        "originalFrameWidth": 896,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\phase-open-elytra-h3-v01.mp4",
+        "sourceFrames": [
+          0,
+          6,
+          12,
+          18,
+          24,
+          30,
+          36,
+          42,
+          48,
+          54,
+          60,
+          66,
+          72,
+          84,
+          96,
+          108,
+          123
+        ],
+        "scale": 0.6437768240343348,
+        "outColumns": 3
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\phase_open.png",
+      "rgbaBytes": 17571840
+    },
+    "rotbogRhinocerosBeetleKing/enraged_idle": {
+      "layout": {
+        "columns": 4,
+        "rows": 5,
+        "frameWidth": 416,
+        "frameHeight": 320,
+        "frameCount": 20,
+        "footY": 306,
+        "frameRate": 15,
+        "repeat": -1
+      },
+      "source": {
+        "columns": 4,
+        "rows": 3,
+        "frameWidth": 416,
+        "frameHeight": 320,
+        "frameCount": 10,
+        "rgbaBytes": 6389760,
+        "crop": [
+          240,
+          275,
+          656,
+          595
+        ],
+        "footY": 306,
+        "originalFrameWidth": 896,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\phase-open-elytra-h3-v01.mp4",
+        "sourceFrames": [
+          64,
+          70,
+          76,
+          82,
+          88,
+          94,
+          100,
+          106,
+          112,
+          118
+        ],
+        "scale": 0.6437768240343348,
+        "outColumns": 4
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\enraged_idle.png",
+      "rgbaBytes": 10649600
+    },
+    "rotbogRhinocerosBeetleKing/dying": {
+      "layout": {
+        "columns": 3,
+        "rows": 9,
+        "frameWidth": 416,
+        "frameHeight": 208,
+        "frameCount": 27,
+        "footY": 195,
+        "duration": 1800,
+        "repeat": 0
+      },
+      "source": {
+        "columns": 3,
+        "rows": 5,
+        "frameWidth": 416,
+        "frameHeight": 208,
+        "frameCount": 14,
+        "rgbaBytes": 5191680,
+        "crop": [
+          240,
+          287,
+          656,
+          495
+        ],
+        "footY": 195,
+        "originalFrameWidth": 896,
+        "originalFrameHeight": 640,
+        "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\dying-h3-v01.mp4",
+        "sourceFrames": [
+          0,
+          5,
+          10,
+          15,
+          18,
+          21,
+          24,
+          27,
+          30,
+          36,
+          48,
+          72,
+          96,
+          123
+        ],
+        "scale": 0.7109004739336493,
+        "outColumns": 3
+      },
+      "path": "final\\rotbogRhinocerosBeetleKing\\dying.png",
+      "rgbaBytes": 9345024
+    },
+    "smallRotbogRhinocerosBeetle/idle": {
+      "layout": {
+        "columns": 3,
+        "rows": 6,
+        "frameWidth": 320,
+        "frameHeight": 160,
+        "frameCount": 18,
+        "footY": 142,
+        "frameRate": 8,
+        "repeat": -1
+      },
+      "source": {
+        "crop": [
+          96,
+          288,
+          416,
+          448
+        ],
+        "footY": 142,
+        "originalFrameWidth": 512,
+        "originalFrameHeight": 512
+      },
+      "path": "final\\smallRotbogRhinocerosBeetle\\idle.png",
+      "rgbaBytes": 3686400
+    },
+    "smallRotbogRhinocerosBeetle/walk": {
+      "layout": {
+        "columns": 4,
+        "rows": 10,
+        "frameWidth": 320,
+        "frameHeight": 160,
+        "frameCount": 40,
+        "footY": 144,
+        "frameRate": 20,
+        "repeat": -1
+      },
+      "source": {
+        "crop": [
+          96,
+          288,
+          416,
+          448
+        ],
+        "footY": 144,
+        "originalFrameWidth": 512,
+        "originalFrameHeight": 512
+      },
+      "path": "final\\smallRotbogRhinocerosBeetle\\walking.png",
+      "rgbaBytes": 8192000
+    },
+    "smallRotbogRhinocerosBeetle/attack": {
+      "layout": {
+        "columns": 4,
+        "rows": 8,
+        "frameWidth": 320,
+        "frameHeight": 160,
+        "frameCount": 31,
+        "footY": 143,
+        "duration": 1938,
+        "repeat": 0
+      },
+      "source": {
+        "crop": [
+          96,
+          288,
+          416,
+          448
+        ],
+        "footY": 143,
+        "originalFrameWidth": 512,
+        "originalFrameHeight": 512
+      },
+      "path": "final\\smallRotbogRhinocerosBeetle\\attacking.png",
+      "rgbaBytes": 6553600
+    },
+    "smallRotbogRhinocerosBeetle/death": {
+      "layout": {
+        "columns": 5,
+        "rows": 5,
+        "frameWidth": 320,
+        "frameHeight": 160,
+        "frameCount": 25,
+        "footY": 143,
+        "duration": 1923,
+        "repeat": 0
+      },
+      "source": {
+        "crop": [
+          96,
+          288,
+          416,
+          448
+        ],
+        "footY": 143,
+        "originalFrameWidth": 512,
+        "originalFrameHeight": 512
+      },
+      "path": "final\\smallRotbogRhinocerosBeetle\\dying.png",
+      "rgbaBytes": 5120000
+    }
+  },
+  "rgbaBytes": 125769728
+}

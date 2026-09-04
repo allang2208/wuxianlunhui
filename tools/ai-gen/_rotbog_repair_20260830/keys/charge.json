@@ -1,0 +1,38 @@
+{
+  "columns": 4,
+  "rows": 4,
+  "frameWidth": 448,
+  "frameHeight": 224,
+  "frameCount": 16,
+  "rgbaBytes": 6422528,
+  "crop": [
+    160,
+    308,
+    608,
+    532
+  ],
+  "footY": 219,
+  "originalFrameWidth": 768,
+  "originalFrameHeight": 640,
+  "sourceVideo": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_rotbog_rhinoceros_beetle_king_20260828\\videos\\charge-doubao-v03.mp4",
+  "sourceFrames": [
+    0,
+    8,
+    16,
+    24,
+    32,
+    48,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    88,
+    104,
+    120
+  ],
+  "scale": 0.7177033492822966,
+  "outColumns": 4
+}
