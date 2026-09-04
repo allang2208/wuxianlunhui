@@ -1312,6 +1312,12 @@ export const Game = {
         if (SoundManager && typeof SoundManager.update === 'function') SoundManager.update(dt);
         // 位面献祭是全场景30分钟状态；必须在地牢地图/事件分支提前返回前推进到期结算。
         World122TributeSystem.update(this.player);
+        // 异步加载时冻结旧实体更新，避免 teardown 后的同一帧继续结算并把旧位面视觉
+        // 重新塞回共享管理器。输入仍需收尾，防止按键边沿泄漏到目标场景。
+        if (SceneManager.isLoading) {
+            Input.update();
+            return;
+        }
         const dungeonViewActive = SceneManager.currentScene === 'scene7'
             && DungeonMapSystem && DungeonMapSystem.active;
         // 地牢地图/事件界面会在下方提前返回，因此全局生产与兵线必须先推进一次。

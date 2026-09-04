@@ -103,6 +103,9 @@ export const BuildingRoadSystem = {
     },
 
     reset(scene = null) {
+        // Phaser Scene 对象会跨逻辑世界复用，必须同步清掉旧世界的街景记录；
+        // 不能再用 scene 引用相等来判断是否仍属于同一位面。
+        RoadsideDecorationSystem.reset();
         for (const record of this._roadTiles.values()) {
             if (record.sprite?.active) record.sprite.destroy();
         }
@@ -116,7 +119,8 @@ export const BuildingRoadSystem = {
         this._cellOwners = new Map();
         this._roadTiles = new Map();
         this._manualRoadCells = new Map();
-        this._markTopologyChanged();
+        this._topologyRevision = (Number(this._topologyRevision) || 0) + 1;
+        this._networkCache = null;
     },
 
     _ensureScene(scene) {

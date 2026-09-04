@@ -574,6 +574,7 @@ export const SceneManager = {
             if (HamsterMinerSystem && HamsterMinerSystem.active) {
                 HamsterMinerSystem.teardown();
             }
+            TopNotificationQueue.clear();
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();
             }
@@ -687,6 +688,8 @@ export const SceneManager = {
             // 实体传送门落地后，必须先走出目标场景的门区才能再次触发传送。
             // 主神空间会恢复离城坐标，该坐标常与原入口重合，单靠秒数冷却会自动弹回原世界。
             if (physicalPortalTravel) Game._portalArrivalLock = true;
+            // 清掉加载期间由旧位面墙钟回调补排的提示；毁灭结算的目标场景提示在下行重新入队。
+            TopNotificationQueue.clear();
             if (sceneId === 'main') this._finishWorldDestructionTransactions(opts.worldDestructionTx);
             // 目标场景已经提交：在揭开加载层前同步新 zoom、世界尺寸并绕过小地图节流重画，
             // 避免回城后短暂显示离场位面的缩放/坐标内容。

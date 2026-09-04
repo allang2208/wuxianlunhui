@@ -222,6 +222,7 @@ export const RoadsideDecorationSystem = {
     _records: new Map(),
     _pendingSync: null,
     _syncScheduled: false,
+    _syncGeneration: 0,
     _lastSyncPayload: null,
     _dynamicState: {
         isNight: false,
@@ -232,6 +233,8 @@ export const RoadsideDecorationSystem = {
     _nextActivityRefreshAt: 0,
 
     reset() {
+        this._syncGeneration = (Number(this._syncGeneration) || 0) + 1;
+        this._syncScheduled = false;
         for (const record of this._records.values()) destroyRecord(record);
         this._records.clear();
         this._scene = null;
@@ -246,14 +249,16 @@ export const RoadsideDecorationSystem = {
         this._nextActivityRefreshAt = 0;
     },
 
-    requestSync(payload) {
+    requestSync(payload = {}) {
         this._pendingSync = payload;
         if (this._syncScheduled) return;
         this._syncScheduled = true;
+        const scheduledGeneration = this._syncGeneration;
         const enqueue = typeof queueMicrotask === 'function'
             ? queueMicrotask
             : (callback) => Promise.resolve().then(callback);
         enqueue(() => {
+            if (scheduledGeneration !== this._syncGeneration) return;
             this._syncScheduled = false;
             const pending = this._pendingSync;
             this._pendingSync = null;

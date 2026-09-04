@@ -353,6 +353,15 @@ const EffectManager = {
         PerformanceMonitor.setCounter('fxBudget.spawnedLastFrame', spawnedLastFrame);
     },
     add(effect) {
+        const sceneManager = typeof window !== 'undefined' ? window.SceneManager : null;
+        // 场景加载期间旧位面的最后一帧、延迟伤害或销毁回调仍可能尝试追加特效。
+        // 加载幕下这些视觉没有展示价值，直接拒绝可避免它们落到新位面。
+        if (sceneManager?.isLoading) {
+            effect.active = false;
+            this.destroyEffectVisuals(effect);
+            return effect;
+        }
+        effect._effectSceneId = sceneManager?.currentScene || null;
         if (effect instanceof FloatingTextEffect) {
             const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
             const view = scene?.cameras?.main?.worldView;
@@ -402,7 +411,15 @@ const EffectManager = {
         // 原地清理失效特效，避免每帧创建新数组
         for (let i = this.effects.length - 1; i >= 0; i--) {
             const e = this.effects[i];
-            e.update(dt);
+            const currentSceneId = typeof window !== 'undefined'
+                ? window.SceneManager?.currentScene
+                : null;
+            if (e._effectSceneId && currentSceneId && e._effectSceneId !== currentSceneId) {
+                e.active = false;
+                this.destroyEffectVisuals(e);
+            } else {
+                e.update(dt);
+            }
             if (!e.active) {
                 FogVisualAdapter.unregister(e);
                 this._releaseCosmeticBudget(e);
