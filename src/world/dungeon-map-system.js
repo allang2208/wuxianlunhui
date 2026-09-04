@@ -50,6 +50,7 @@ import { WallSystem } from './wall-system.js';
 import { BossRewardSystem } from './boss-reward-system.js';
 import { MailStore } from '../systems/mail-store.js';
 import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
+import { createGoldItem } from './economy-gold-routing.js';
 import { RARITY_ORDER, getRarityLabel } from '../config/rarity.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -60,7 +61,6 @@ import { DungeonRunStats } from './dungeon-run-stats.js';
 import { isWallPrefabsLoaded, loadWallPrefabs, whenWallPrefabsLoaded } from './wall-prefabs.js';
 import { RuntimeAssetManager } from '../phaser/assets/runtime-asset-manager.js';
 
-import { GoldManager } from '../systems/gold-manager.js';
 import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
 
 const ENEMY_TYPE_BY_FACTORY = new Map(
@@ -2756,15 +2756,18 @@ export const DungeonMapSystem = {
         const currentNode = this.getCurrentNode();
         const isBoss = currentNode && currentNode.type === 'boss';
 
-        // 统一标记当前节点已完成
-        this._markCurrentNodeCompleted();
-
         // 战斗节点清剿奖；独立 bossEncounter 也走同一等级 Boss 金币真源。
-        const gold = CombatRoomSystem.getGoldReward(isBoss, this.dungeonType);
-        if (gold > 0 && GoldManager) {
-            GoldManager.addGold(gold);
+        const gold = currentNode
+            ? (currentNode._mailClearGold ??= CombatRoomSystem.getGoldReward(isBoss, this.dungeonType))
+            : CombatRoomSystem.getGoldReward(isBoss, this.dungeonType);
+        if (gold > 0) {
+            PlayerRewardDelivery.deliver([createGoldItem(gold)], {
+                sourceId: `${MailStore.run?.id}:node:${this.currentNodeId}:clear`,
+                title: '战斗清剿奖励',
+            });
             EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `获得 ${gold} 金币`, '#ffd700'));
         }
+        this._markCurrentNodeCompleted();
 
         // 清理战斗场地（怪物、传送门、掉落物、恢复原始地形）
         this._cleanupCombatScene();

@@ -1,5 +1,9 @@
+import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
+import { mailId } from '../systems/mail-store.js';
+import { createGoldItem } from './economy-gold-routing.js';
 import { StatusBar } from '../ui/status-bar.js';
-import { EquipManager } from '../ui/equip-manager.js';
+import { EnhancementItems } from '../ui/reward-system.js';
+import { MagicDustItem } from '../config/enchant-config.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
@@ -1101,62 +1105,57 @@ export const DungeonEventSystem = {
      * @param {Player} player - 玩家对象
      */
     _applyRewards(result, player) {
-        if (!result.rewards) return;
+        if (!result.rewards || result._mailRewardsApplied) return;
+        const rewards = result.rewards;
+        const items = [];
+        if (rewards.gold > 0) items.push(createGoldItem(rewards.gold));
 
-        // 金币奖励/扣除
-        if (result.rewards.gold !== undefined && result.rewards.gold !== 0 && GoldManager) {
-            if (result.rewards.gold > 0) {
-                GoldManager.addGold(result.rewards.gold);
-            } else {
-                // 扣除量钳制到当前持有量（余额不足时全额扣光，不再静默失效）
-                const amount = Math.min(-result.rewards.gold, GoldManager.getGold());
-                if (amount > 0) GoldManager.deductGold(amount);
-            }
+        // 药水正式物品在后续批次接入前维持现行即时恢复语义。
+        if (rewards.hpPotion && player && player.data) {
+            player.data.hp = Math.min(player.data.maxHp, player.data.hp + rewards.hpPotion);
+        }
+        if (rewards.mpPotion && player && player.data) {
+            player.data.mp = Math.min(player.data.maxMp, player.data.mp + rewards.mpPotion);
         }
 
-        // 治疗药水（直接恢复）
-        if (result.rewards.hpPotion && player && player.data) {
-            player.data.hp = Math.min(player.data.maxHp, player.data.hp + result.rewards.hpPotion);
-        }
-        if (result.rewards.mpPotion && player && player.data) {
-            player.data.mp = Math.min(player.data.maxMp, player.data.mp + result.rewards.mpPotion);
-        }
-
-        // 材料奖励（直接加入背包）
-        if (result.rewards.material && EquipManager && EquipManager.addToBackpack) {
-            const { type, count } = result.rewards.material;
-            const item = {
+        if (rewards.material) {
+            const { type, count } = rewards.material;
+            items.push({
                 name: type,
                 category: 'material',
                 icon: '💎',
                 stack: count || 1,
                 maxStack: 9999,
-            };
-            EquipManager.addToBackpack(item);
+            });
         }
 
-        // 特殊材料奖励：强化石、改造券、魔法粉尘（兼容 camelCase 与 snake_case）
-        const specialRewardEntries = [
-            { key: 'enhancementStone', alt: 'enhancement_stone', configKey: 'enhancement_stone' },
-            { key: 'reforgeTicket', alt: 'reforge_ticket', configKey: 'reforge_ticket' },
-            { key: 'magicDust', alt: 'magic_dust', configKey: 'magic_dust' },
-        ];
-        for (const { key, alt, configKey } of specialRewardEntries) {
-            const count = result.rewards[key] || result.rewards[alt];
-            if (count && EquipManager && EquipManager.addToBackpack) {
-                const item = {
-                    ...DUNGEON_EVENT_CONFIG.specialItems[configKey],
-                    id: configKey,
-                    stack: count,
-                };
-                EquipManager.addToBackpack(item);
+        // 延迟读取正式模板，保持强化/改造/粉尘的图标、售价与堆叠信息一致。
+        const templates = {
+            enhancement_stone: EnhancementItems.enhance_stone,
+            reforge_ticket: EnhancementItems.modify_ticket,
+            magic_dust: MagicDustItem,
+        };
+        for (const [key, alt] of [['enhancementStone', 'enhancement_stone'], ['reforgeTicket', 'reforge_ticket'], ['magicDust', 'magic_dust']]) {
+            const count = rewards[key] || rewards[alt];
+            const template = templates[alt];
+            if (count > 0 && template) {
+                items.push({ ...template, id: alt, stack: count, maxStack: template.maxStack || 9999 });
             }
         }
 
-        // 祭品奖励（宝箱彩蛋等）：直接加入背包
-        if (result.rewards.tributeItem && EquipManager && EquipManager.addToBackpack) {
-            EquipManager.addToBackpack(result.rewards.tributeItem);
+        if (rewards.tributeItem) items.push(rewards.tributeItem);
+        result._mailSourceId ||= mailId('event');
+        if (items.length) {
+            PlayerRewardDelivery.deliver(items, {
+                sourceId: result._mailSourceId,
+                title: '地牢事件奖励',
+            });
         }
+        if (rewards.gold < 0 && GoldManager) {
+            const amount = Math.min(-rewards.gold, GoldManager.getGold());
+            if (amount > 0) GoldManager.deductGold(amount);
+        }
+        result._mailRewardsApplied = true;
     },
 
     /**
