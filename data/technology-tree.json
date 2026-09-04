@@ -30,9 +30,8 @@
     },
     {
       "id": "fortification_engineering", "name": "城防工事", "icon": "🏰", "iconPath": "assets/ui/technology-icons/fortification_engineering.png", "branch": "工程", "column": 1, "lane": 0, "researchCost": 90,
-      "prerequisites": ["engineering_drafting"], "description": "掌握大型城门与城墙楼梯结构，为高低女墙、城墙塔和自动防御工事建立基础。",
+      "prerequisites": ["engineering_drafting"], "description": "城门在初期即可直接建造；本科技掌握城墙楼梯结构与结构耐久研究，为高低女墙、城墙塔和自动防御工事建立基础。",
       "unlocks": [
-        { "type": "building", "id": "gate_4cell", "label": "四格城门" },
         { "type": "building", "id": "wall_staircase", "label": "城墙楼梯" },
         { "type": "upgrade", "id": "research_structure_hp", "label": "结构耐久研究" }
       ]
