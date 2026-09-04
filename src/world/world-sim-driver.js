@@ -16,7 +16,7 @@ import {
     getPlayerTotalGold,
     routeProducedGold,
 } from './economy-gold-routing.js';
-import { WarehouseSystem } from '../ui/warehouse-system.js';
+import { PlayerRewardDelivery } from '../systems/player-reward-delivery.js';
 import {
     getWorldSnapshots, isWorldLive, isWorldSnapshotCurrent,
 } from './world122-snapshot.js';
@@ -36,6 +36,10 @@ import {
 } from './world-background-ledger.js';
 
 const TICK_MS = 1000;
+
+function worldName(sceneId) {
+    return globalThis.window?.WorldProgressionSystem?.getWorldConfig?.(sceneId)?.name || sceneId;
+}
 
 export const WorldSimDriver = {
     _timer: null,
@@ -192,17 +196,22 @@ export const WorldSimDriver = {
         for (const reward of report.explorerRewards || []) {
             const structure = (snap.structures || []).find((entry) =>
                 entry.id === reward.structureId || (entry.x === reward.x && entry.y === reward.y));
-            const pending = structure ? (structure.pendingExplorerDrops ||= []) : null;
-            for (const rewardItem of reward.items || []) {
-                const item = JSON.parse(JSON.stringify(rewardItem));
-                const count = Math.max(0, Math.floor(Number(item.stack) || 0));
-                if (count <= 0) continue;
-                const accepted = WarehouseSystem.depositItemAmount(item);
-                if (pending && accepted < count) pending.push({ ...item, stack: count - accepted });
-            }
             const gold = Math.max(0, Math.floor(Number(reward.gold) || 0));
-            const routed = gold > 0 ? routeProducedGold(gold) : { remaining: 0 };
-            if (pending && routed.remaining > 0) pending.push(createGoldItem(routed.remaining));
+            const items = (reward.items || []).map((item) => JSON.parse(JSON.stringify(item)));
+            if (gold) items.push(createGoldItem(gold));
+            try {
+                const sourceId = `world-explorer:${sceneId}:${snap.worldEpoch || 0}:${reward.structureId || 'camp'}:${reward.sequence ?? 'legacy'}`;
+                PlayerRewardDelivery.deliver(items, {
+                    sourceId,
+                    title: `${worldName(sceneId)} · 探险战利品`,
+                    deferDuringRun: false,
+                });
+            } catch (error) {
+                // 信箱层失败不能吞掉已经结算的战利品；退回原营地暂存合同。
+                console.warn(`[WorldSimDriver] ${sceneId} 探险奖励投递失败，改为营地暂存:`, error);
+                const pending = structure ? (structure.pendingExplorerDrops ||= []) : null;
+                if (pending) pending.push(...items);
+            }
         }
         TroopLineSystem.onBackgroundProduction(sceneId, snap, productionBaseline);
         refreshWorldBackgroundLedger(snap, nowGame, getWorld122ResearchSummary(snap), reason);

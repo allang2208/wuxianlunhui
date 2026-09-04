@@ -2467,11 +2467,13 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             // 四步序列严格形成 50/25/25；祭品池索引用黄金分割小数错开，避免总取同一件。
             const rewardRoll = ((sequence % 4) + 0.5) / 4;
             const poolRoll = (sequence * 0.61803398875) % 1;
+            const rewardSequence = sequence;
             const reward = createExplorerReward(target.sceneId,
                 Math.max(1, Math.floor(Number(run?.playerLevel) || 1)), rewardRoll, poolRoll);
             sequence++;
             report.explorerRewards.push({
                 structureId: s.id, x: s.x, y: s.y,
+                sequence: rewardSequence,
                 kind: reward.kind, label: reward.label,
                 items: reward.items || [], gold: reward.gold || 0,
             });
