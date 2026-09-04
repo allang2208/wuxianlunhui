@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { getWeatherEventIconPath } from './weather-event-icons.js';
 import { WorldInstanceSystem } from './world-instance-system.js';
 
 const VERSION = 1;
@@ -223,6 +224,7 @@ export const World122SandstormSystem = {
             weatherKind: 'special',
             specialWeatherId: 'sandstorm',
             icon: '🌪',
+            iconPath: getWeatherEventIconPath('sandstorm'),
             label: `${worldName(sceneId)} · 沙尘暴`,
             intensityId: 'disaster',
             intensityName: '沙尘暴',

@@ -2,6 +2,7 @@ import { GAME_CONFIG } from '../config/game-config.js';
 import { hasEnemyFamily } from '../config/enemy-family.js';
 import { CandleSanctuarySystem } from './candle-sanctuary-system.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { getWeatherEventIconPath } from './weather-event-icons.js';
 import { WorldInstanceSystem } from './world-instance-system.js';
 
 const VERSION = 2;
@@ -355,6 +356,7 @@ export const World125FogTideSystem = {
             weatherKind: 'special',
             specialWeatherId: 'fog_tide',
             icon: '☣',
+            iconPath: getWeatherEventIconPath('fog_tide'),
             label: `${worldName(sceneId)} · 死寂雾潮`,
             intensityId: 'disaster',
             intensityName: '死寂雾潮',
