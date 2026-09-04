@@ -170,6 +170,8 @@ class BuildingSinkEffect {
                         ...bodySprites,
                         data.groundContactSprite,
                         data.overlaySprite,
+                        data.foregroundSprite,
+                        data.battlementRuneSprite,
                     ].filter((s) => s && s.active))];
                     if (data.workingEffectGraphics?.active) {
                         data.workingEffectGraphics.destroy();
