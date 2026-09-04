@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "status": "installed_and_runtime_visual_accepted",
+  "date": "2026-09-01",
+  "assetId": "high_energy_research_laboratory",
+  "textureKey": "high_energy_laboratory",
+  "assetClass": "modern_academic_laboratory",
+  "builder": "tools/ai-gen/high-energy-research-laboratory-blender.py",
+  "model": {
+    "editableBlend": "tools/ai-gen/_high_energy_research_laboratory_20260901/model_v2/high_energy_research_laboratory_model.blend",
+    "approvalPreview": "tools/ai-gen/_high_energy_research_laboratory_20260901/model_v2/high_energy_research_laboratory_model_approval_preview.png",
+    "fullDepth": "tools/ai-gen/_high_energy_research_laboratory_20260901/model_v2/high_energy_research_laboratory_depth.png",
+    "bodyDepth": "tools/ai-gen/_high_energy_research_laboratory_20260901/model_v2/high_energy_research_laboratory_body_depth.png",
+    "camera": { "elevation": 30, "buildingRotationZ": 44.8, "resolution": 1024 },
+    "identity": "symmetric three-storey academic center, two attached research wings, centered entrance atrium and roof-integrated supported energy pavilion"
+  },
+  "generation": {
+    "model": "flux2-dev-depth",
+    "styleVersion": "world122-building-v5",
+    "resolution": "1024x1024",
+    "structure": {
+      "steps": 12,
+      "seed": 129103,
+      "depthStrength": 0.78,
+      "selectedRaw": "tools/ai-gen/_high_energy_research_laboratory_20260901/candidates_dev_s12_seed129101/high_energy_research_laboratory/high_energy_research_laboratory_structure_v03_raw.png",
+      "generationRecord": "tools/ai-gen/_high_energy_research_laboratory_20260901/candidates_dev_s12_seed129101/high_energy_research_laboratory/high_energy_research_laboratory_structure_v03_generation.json",
+      "prompt": "tools/ai-gen/_high_energy_research_laboratory_20260901/candidates_dev_s12_seed129101/high_energy_research_laboratory/high_energy_research_laboratory_structure_prompt.txt"
+    },
+    "refine": {
+      "steps": 48,
+      "seed": 122201,
+      "depthStrength": 0.75,
+      "denoise": 0.3,
+      "selectedRaw": "tools/ai-gen/_high_energy_research_laboratory_20260901/candidates_dev_s48_from_v03/high_energy_research_laboratory/high_energy_research_laboratory_refine_v01_raw.png",
+      "generationRecord": "tools/ai-gen/_high_energy_research_laboratory_20260901/candidates_dev_s48_from_v03/high_energy_research_laboratory/high_energy_research_laboratory_refine_v01_generation.json",
+      "prompt": "tools/ai-gen/_high_energy_research_laboratory_20260901/candidates_dev_s48_from_v03/high_energy_research_laboratory/high_energy_research_laboratory_refine_prompt.txt"
+    }
+  },
+  "finalization": {
+    "directAlphaSource": "tools/ai-gen/_high_energy_research_laboratory_20260901/accepted/high_energy_research_laboratory_refine_v01_body_edge_repaired_v2.png",
+    "runtimePreview": "tools/ai-gen/_high_energy_research_laboratory_20260901/accepted/high_energy_laboratory_runtime_preview_final.png",
+    "runtimeMetadata": "tools/ai-gen/_high_energy_research_laboratory_20260901/accepted/high_energy_laboratory_runtime_metadata.json",
+    "runtimeAsset": "assets/terrain/high_energy_laboratory.png",
+    "thumbnail": "assets/ui/building-thumbnails/high_energy_laboratory.png",
+    "lightingAssets": [
+      "assets/terrain/lighting/high_energy_laboratory_silhouette.png",
+      "assets/terrain/lighting/high_energy_laboratory_projection.png",
+      "assets/terrain/lighting/high_energy_laboratory_height.png",
+      "assets/terrain/lighting/high_energy_laboratory_normal.png"
+    ]
+  },
+  "runtime": {
+    "sourceSize": [938, 661],
+    "displaySize": [517, 355],
+    "footOffsetY": 175,
+    "logicalFootprint": [512, 256],
+    "visualFootprint": {
+      "centerXRatio": 0.499467,
+      "centerYRatio": 0.632375,
+      "widthRatio": 0.990405,
+      "depthRatio": 0.720121,
+      "scaleMode": "strict"
+    }
+  },
+  "cleanup": "tools/ai-gen/_high_energy_research_laboratory_20260901/cleanup-manifest-20260901.json"
+}

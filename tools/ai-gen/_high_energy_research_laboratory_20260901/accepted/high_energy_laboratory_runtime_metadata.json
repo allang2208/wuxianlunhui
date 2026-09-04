@@ -1,0 +1,53 @@
+{
+  "source": "tools\\ai-gen\\_high_energy_research_laboratory_20260901\\accepted\\high_energy_research_laboratory_refine_v01_body_edge_repaired_v2.png",
+  "output": "assets\\terrain\\high_energy_laboratory.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 6,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    61,
+    277,
+    999,
+    938
+  ],
+  "fileSize": [
+    938,
+    661
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    934,
+    657
+  ],
+  "displayW": 517,
+  "displayH": 355,
+  "footOffsetY": 175,
+  "scaleX": 0.5458422174840085,
+  "scaleY": 0.546142208774584
+}

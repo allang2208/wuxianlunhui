@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-01",
+  "scope": "high_energy_research_laboratory",
+  "retained": [
+    "approved editable V2 blend and matching Depth/Body Depth",
+    "selected 12-step v03 raw, prompt and generation record",
+    "selected 48-step v01 raw, prompt and generation record",
+    "direct final Alpha source, one final preview and runtime metadata",
+    "formal runtime building, thumbnail and four lighting derivatives"
+  ],
+  "removed": [
+    { "category": "rejected model", "reason": "read as an abandoned factory and was not approved" },
+    { "category": "unselected candidates", "reason": "v01/v02 structure and v02 refine were not selected" },
+    { "category": "reproducible derivatives", "reason": "keyed, cleaned, body, anchored, checkerboard and contact-sheet outputs are rebuildable" },
+    { "category": "superseded finalization drafts", "reason": "older Alpha repairs, runtime crops, metadata revisions and duplicate final PNGs were replaced" },
+    { "category": "temporary acceptance output", "reason": "one-off CDP screenshots and the probe are not runtime or rebuild dependencies" },
+    { "category": "Blender backup", "reason": ".blend1 is redundant after the approved .blend was retained" }
+  ]
+}

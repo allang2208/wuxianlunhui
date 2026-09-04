@@ -1,0 +1,56 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-09-01",
+  "icons": [
+    {
+      "id": "high_energy_magnetic_confinement",
+      "label": "磁约束增幅",
+      "shortLabel": "磁约束",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05a8e-beb2-7643-8da7-38494456e8ef/exec-6d0ba8cb-d98d-4ddc-b39a-39f3f8426a27.png",
+      "raw": "raw/high-energy-magnetic-confinement-raw.png",
+      "runtime": "assets/ui/building-upgrades/high-energy-magnetic-confinement.png",
+      "background": "black"
+    },
+    {
+      "id": "high_energy_experiment_automation",
+      "label": "自动化实验台",
+      "shortLabel": "自动化",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05a8e-beb2-7643-8da7-38494456e8ef/exec-084cd8ff-6f6e-48f3-ba70-ab25ebe48b5b.png",
+      "raw": "raw/high-energy-experiment-automation-raw.png",
+      "runtime": "assets/ui/building-upgrades/high-energy-experiment-automation.png",
+      "background": "black"
+    },
+    {
+      "id": "high_energy_detector_network",
+      "label": "探测器网络",
+      "shortLabel": "探测器",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05a8e-beb2-7643-8da7-38494456e8ef/exec-81aadde4-978b-49dc-95ac-2f19bf09115c.png",
+      "raw": "raw/high-energy-detector-network-raw.png",
+      "runtime": "assets/ui/building-upgrades/high-energy-detector-network.png",
+      "background": "checker"
+    },
+    {
+      "id": "high_energy_data_calibration",
+      "label": "数据标定链",
+      "shortLabel": "标定链",
+      "kind": "upgrade",
+      "source": "C:/Users/allan/.codex/generated_images/01a05a8e-beb2-7643-8da7-38494456e8ef/exec-f51aaf36-3420-4b49-883f-066dcb8a74bb.png",
+      "raw": "raw/high-energy-data-calibration-raw.png",
+      "runtime": "assets/ui/building-upgrades/high-energy-data-calibration.png",
+      "background": "checker"
+    },
+    {
+      "id": "high_energy_laboratory_standardization",
+      "label": "高能实验室标准化",
+      "shortLabel": "标准化",
+      "kind": "technology",
+      "source": "C:/Users/allan/.codex/generated_images/01a05a8e-beb2-7643-8da7-38494456e8ef/exec-f981dc43-619b-4b3b-b767-6b182be1fd8b.png",
+      "raw": "raw/high-energy-laboratory-standardization-raw.png",
+      "runtime": "assets/ui/technology-icons/high_energy_laboratory_standardization.png",
+      "background": "checker"
+    }
+  ]
+}
