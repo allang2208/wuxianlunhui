@@ -1,0 +1,7 @@
+{
+  "sourceVideo": "videos/walking-doubao-v01.mp4",
+  "sourceVideoFrame": 51,
+  "outputFrame": 17,
+  "cutout": "local ComfyUI-RMBG BiRefNet-general",
+  "sourceTrajectoryPreserved": true
+}

@@ -1,0 +1,248 @@
+{
+  "id": "deepVeinMother",
+  "name": "深脉之母",
+  "type": "首领",
+  "category": "monster",
+  "family": "僵尸",
+  "families": [
+    "僵尸",
+    "大型"
+  ],
+  "rank": "boss",
+  "poolWhitelistOnly": true,
+  "color": "#785096",
+  "highlightColor": "rgba(188, 120, 240, 0.42)",
+  "size": 34,
+  "collisionRadius": 112,
+  "height": 255,
+  "hp": 4800,
+  "maxHp": 4800,
+  "speed": 105,
+  "level": 12,
+  "str": 92,
+  "dex": 18,
+  "con": 86,
+  "int": 50,
+  "wis": 44,
+  "luck": 10,
+  "attackRange": 255,
+  "attackDistance": 255,
+  "aiInterval": 1500,
+  "decisionIntervalMs": 150,
+  "recoveryPauseMs": 900,
+  "attackSkills": {
+    "stomp": {
+      "triggerRange": 255,
+      "forwardOffset": 85,
+      "radius": 190,
+      "damageMul": 1.65,
+      "damageType": "physical",
+      "knockback": 110,
+      "crippleMs": 1800,
+      "cooldown": 3000,
+      "duration": 1550,
+      "frames": 41,
+      "contactFrame": 24
+    },
+    "pipe_blast": {
+      "minTriggerRange": 220,
+      "triggerRange": 850,
+      "initialCooldownMs": 1800,
+      "impactRadius": 115,
+      "lateralOffsets": [
+        0,
+        -105,
+        105
+      ],
+      "leadMs": 500,
+      "flightMs": 850,
+      "projectileSize": 38,
+      "muzzleForward": 90,
+      "muzzleHeight": 155,
+      "arcHeight": 65,
+      "damageMul": 0.95,
+      "damageType": "physical",
+      "knockback": 45,
+      "cooldown": 10000,
+      "duration": 3000,
+      "frames": 41,
+      "releaseFrames": [
+        10,
+        18,
+        26
+      ]
+    },
+    "vein_resonance": {
+      "triggerRange": 360,
+      "radius": 420,
+      "initialCooldownMs": 6500,
+      "damageMul": 1.8,
+      "damageType": "magic",
+      "knockback": 125,
+      "crippleMs": 2400,
+      "cooldown": 13000,
+      "duration": 2300,
+      "frames": 41,
+      "releaseFrame": 20
+    },
+    "pressure_release": {
+      "attacksPerRelease": 3,
+      "incomingAttackMul": 1.5,
+      "duration": 6000,
+      "frames": 49,
+      "exposedStartFrame": 8,
+      "exposedEndFrame": 33
+    }
+  },
+  "death": {
+    "animMs": 3400,
+    "holdMs": 1800,
+    "fadeMs": 400
+  },
+  "ai": {
+    "aggroRange": 9999,
+    "pacingRange": 240,
+    "loseTimeout": 999999,
+    "alertRange": 9999
+  },
+  "render": {
+    "bodyDisplayHeight": 300,
+    "collisionWidth": 224,
+    "collisionHeight": 255,
+    "footOffsetY": 188.4375,
+    "projectileHitbox": {
+      "width": 224,
+      "height": 255,
+      "offsetX": 0,
+      "bottom": 0
+    },
+    "capsuleHudAnchor": true,
+    "colliderOffsetX": 0,
+    "colliderOffsetY": 0
+  },
+  "textures": {
+    "idle": "assets/enemies/deep_vein_mother/idle.png",
+    "walking": "assets/enemies/deep_vein_mother/walking.png",
+    "stomp": "assets/enemies/deep_vein_mother/stomp.png",
+    "pipe_blast": "assets/enemies/deep_vein_mother/pipe_blast.png",
+    "vein_resonance": "assets/enemies/deep_vein_mother/vein_resonance.png",
+    "pressure_release": "assets/enemies/deep_vein_mother/pressure_release.png",
+    "dying": "assets/enemies/deep_vein_mother/dying.png",
+    "oreFragment": "assets/enemies/deep_vein_mother/ore_fragment.png",
+    "frameLayouts": {
+      "idle": {
+        "frameWidth": 448,
+        "frameHeight": 440,
+        "frameCount": 30,
+        "rows": 6,
+        "footY": 421,
+        "authoredBodyHeight": 320,
+        "frameRate": 6.0,
+        "repeat": -1,
+        "columns": 5,
+        "duration": 5000
+      },
+      "walking": {
+        "frameWidth": 472,
+        "frameHeight": 448,
+        "frameCount": 48,
+        "rows": 8,
+        "footY": 425,
+        "authoredBodyHeight": 320,
+        "frameRate": 12.0,
+        "repeat": -1,
+        "columns": 6,
+        "duration": 4000
+      },
+      "stomp": {
+        "frameWidth": 424,
+        "frameHeight": 448,
+        "frameCount": 41,
+        "rows": 6,
+        "footY": 422,
+        "authoredBodyHeight": 320,
+        "frameRate": 26.451612903225808,
+        "repeat": 0,
+        "columns": 7,
+        "duration": 1550,
+        "contactFrame": 24
+      },
+      "pipe_blast": {
+        "frameWidth": 432,
+        "frameHeight": 440,
+        "frameCount": 41,
+        "rows": 6,
+        "footY": 422,
+        "authoredBodyHeight": 320,
+        "frameRate": 13.666666666666666,
+        "repeat": 0,
+        "columns": 7,
+        "duration": 3000,
+        "releaseFrames": [
+          10,
+          18,
+          26
+        ]
+      },
+      "vein_resonance": {
+        "frameWidth": 432,
+        "frameHeight": 440,
+        "frameCount": 41,
+        "rows": 6,
+        "footY": 423,
+        "authoredBodyHeight": 320,
+        "frameRate": 17.82608695652174,
+        "repeat": 0,
+        "columns": 7,
+        "duration": 2300,
+        "releaseFrame": 20
+      },
+      "pressure_release": {
+        "frameWidth": 448,
+        "frameHeight": 440,
+        "frameCount": 49,
+        "rows": 7,
+        "footY": 422,
+        "authoredBodyHeight": 320,
+        "frameRate": 8.166666666666666,
+        "repeat": 0,
+        "columns": 7,
+        "duration": 6000,
+        "exposedStartFrame": 8,
+        "exposedEndFrame": 33
+      },
+      "dying": {
+        "frameWidth": 552,
+        "frameHeight": 472,
+        "frameCount": 49,
+        "rows": 7,
+        "footY": 421,
+        "authoredBodyHeight": 320,
+        "frameRate": 14.411764705882353,
+        "repeat": 0,
+        "columns": 7,
+        "duration": 3400
+      }
+    }
+  },
+  "description": "高级废弃矿洞尽头的矿压融合体。升降笼、矿工残肢、管道与矿镐不对称嵌入岩体，四条紫晶粗腿支撑主体。三次攻击释放后矿压泄尽，低伏张开核心，进入约三秒易伤窗口。",
+  "skills": [
+    {
+      "name": "矿足重踏",
+      "desc": "1.55秒单次动作，第24/41帧重踏锁定方向前方85像素处的190半径地面椭圆；物攻×1.65、击退110、致残1.8秒，可招架。冷却3秒。"
+    },
+    {
+      "name": "高压喷矿",
+      "desc": "3秒单次动作，第10、18、26/41帧各喷一枚碎矿，飞行0.85秒后落地115半径椭圆爆裂，每发物攻×0.95、击退45。起手锁定预判落点，不追踪，冷却10秒。"
+    },
+    {
+      "name": "绞盘震脉",
+      "desc": "2.3秒单次动作，第20/41帧释放420半径地面椭圆震荡；魔攻×1.8、击退125、致残2.4秒，不可招架。冷却13秒。"
+    },
+    {
+      "name": "矿压泄尽",
+      "desc": "每释放三次攻击动作后低伏6秒，第8至33帧前（49帧）开放核心约3.06秒；承受的输入攻击量×1.5后仍走正常防御与伤害链。期间不攻击、不移动。硬控中断后重新进入泄压，完成后清空矿压。"
+    }
+  ],
+  "attackType": "矿足范围重踏、锁定落点三连喷矿、矿脉范围震荡与泄压易伤"
+}

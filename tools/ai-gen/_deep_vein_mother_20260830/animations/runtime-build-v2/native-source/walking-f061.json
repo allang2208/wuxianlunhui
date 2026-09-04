@@ -1,0 +1,8 @@
+{
+  "sourceVideo": "videos/walking-doubao-v01.mp4",
+  "sourceVideoFrame": 61,
+  "outputFrame": 20,
+  "cutout": "local ComfyUI-RMBG BiRefNet-general",
+  "sourceTrajectoryPreserved": true,
+  "reason": "Avoid source f60 color artifact"
+}
