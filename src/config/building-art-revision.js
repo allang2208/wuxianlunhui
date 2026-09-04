@@ -2,6 +2,12 @@
 // 不污染 data/*.json 中供本地文件工具读取的真实路径。
 const BUILDING_ART_REVISION = '20260828-cavalry-school-alpha-repair';
 
+// 单图修订使用独立版本，避免为了两张新资产让整组建筑贴图失效重载。
+const BUILDING_ART_REVISION_BY_KEY = Object.freeze({
+    church_lv3: '20260904-church-lv3-angle',
+    desert_cookhouse: '20260904-desert-cookhouse-import',
+});
+
 const BUILDING_ART_REVISION_KEYS = new Set([
     'house_lv1',
     'house_lv2',
@@ -19,6 +25,7 @@ const BUILDING_ART_REVISION_KEYS = new Set([
     'church',
     'church_lv2',
     'church_lv3',
+    'desert_cookhouse',
     'cavalry_school',
     'cavalry_school_lv2',
     'cavalry_school_lv3',
@@ -36,5 +43,6 @@ const BUILDING_ART_REVISION_KEYS = new Set([
 export function buildingArtUrl(textureKey, assetPath) {
     if (!assetPath || !BUILDING_ART_REVISION_KEYS.has(textureKey)) return assetPath;
     const separator = assetPath.includes('?') ? '&' : '?';
-    return `${assetPath}${separator}v=${BUILDING_ART_REVISION}`;
+    const revision = BUILDING_ART_REVISION_BY_KEY[textureKey] || BUILDING_ART_REVISION;
+    return `${assetPath}${separator}v=${revision}`;
 }
