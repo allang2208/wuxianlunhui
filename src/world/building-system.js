@@ -169,7 +169,7 @@ function isGridBuildingBuildItem(item) {
 }
 
 function buildItemFootprintCells(item) {
-    if (item?.kind !== 'producer') return 2;
+    if (!['producer', 'hamster_hut'].includes(item?.kind)) return 2;
     return Number(PRODUCER_BUILDINGS[item.id]?.footprintCells) === 4 ? 4 : 2;
 }
 
@@ -184,8 +184,7 @@ function usesBuildingRoads(item) {
     // 误带 perimeterTile，也不能让外围道路预约与“必须贴墙”的建造条件互相冲突。
     if (item.kind === 'producer'
         && PRODUCER_BUILDINGS[item.id]?.wallTowerWalk?.enabled === true) return false;
-    return item.kind !== 'producer'
-        || PRODUCER_BUILDINGS[item.id]?.perimeterTile !== 'none';
+    return PRODUCER_BUILDINGS[item.id]?.perimeterTile !== 'none';
 }
 
 function buildingPerimeterKind(item) {
@@ -198,7 +197,7 @@ function isWallStairBuildItem(item) {
 }
 
 function buildItemRoadLayout(item, x, y, mirror = false) {
-    const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+    const cfg = isProducerKind(item) ? PRODUCER_BUILDINGS[item.id] : null;
     return buildingRoadLayout(x, y, buildItemFootprintCells(item), {
         perimeterTile: cfg?.perimeterTile ?? 'road',
         frontRoadSide: cfg?.frontRoadSide,
@@ -284,7 +283,8 @@ for (const pc of Object.values(PRODUCER_BUILDINGS || {})) {
         tex: pc.tex,
         assetPath: pc.assetPath,
         thumbnailPath: pc.thumbnailPath || pc.assetPath || `assets/ui/building-thumbnails/${pc.id}.png`,
-        kind: 'producer',
+        kind: pc.workerController === 'hamster_miner' ? 'hamster_hut' : 'producer',
+        economyType: pc.economyType || null,
         buildCategory: pc.buildCategory || null,
         currency: pc.currency === 'gold' ? 'gold' : 'energy',
         buildWarning: pc.buildWarning || '',
@@ -310,7 +310,7 @@ const ECONOMY_BUILD_SECTIONS = Object.freeze([
     {
         label: '能源建筑',
         itemIds: [
-            'hamster_hut', 'deep_drill', 'steam_power_plant',
+            'hamster_hut', 'mining_guild', 'deep_drill', 'steam_power_plant',
             'wind_power_plant', 'solar_power_plant', 'planar_resonator',
         ],
     },
@@ -402,7 +402,7 @@ function getLatestRecruitmentBuildingVisual(config, activeTier) {
 }
 
 function getBuildItemProducerVisual(item) {
-    const config = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+    const config = isProducerKind(item) ? PRODUCER_BUILDINGS[item.id] : null;
     if (!config) return null;
     if (config.wallTowerWalk?.enabled === true) return getWallTowerProducerVisual(config);
     const tier = getUnlockedRecruitmentTier(
@@ -689,7 +689,7 @@ export const BuildingSystem = {
     },
 
     _economyWarehouseBlockReason(item) {
-        const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+        const cfg = isProducerKind(item) ? PRODUCER_BUILDINGS[item.id] : null;
         // 仓库是当前位面经济链的冷启动入口，不能被“先有仓库”通用门禁反向锁死。
         if (cfg?.workshopType === 'warehouse') return '';
         const economyType = cfg?.economyType || item?.economyType;
@@ -699,7 +699,7 @@ export const BuildingSystem = {
     },
 
     _featureBuildingBlockReason(item) {
-        const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+        const cfg = isProducerKind(item) ? PRODUCER_BUILDINGS[item.id] : null;
         if (!cfg) return '';
         if (Array.isArray(cfg.allowedSceneIds) && !cfg.allowedSceneIds.includes(SceneManager.currentScene)) {
             const worldName = cfg.featureWorldId
@@ -730,7 +730,9 @@ export const BuildingSystem = {
                 Math.floor(Number(technologyLimit) || 0)));
         }
         if (limit > 0) {
-            const count = (ProducerBuildingSystem?.buildings || []).filter((building) =>
+            const candidates = cfg.workerController === 'hamster_miner'
+                ? HamsterHutSystem.huts : ProducerBuildingSystem?.buildings;
+            const count = (candidates || []).filter((building) =>
                 building?.active !== false && !building?._sinking && building?.cfgKey === item.id).length;
             if (count >= limit) return `${cfg.name}数量已达上限（${limit}）`;
         }
@@ -1209,7 +1211,8 @@ export const BuildingSystem = {
             if (item.kind === 'tower') {
                 this._ghost.setDisplaySize(DEFENSE_TOWER_VISUAL.base.w, DEFENSE_TOWER_VISUAL.base.h);
             } else if (item.kind === 'hamster_hut') {
-                this._ghost.setDisplaySize(HAMSTER_CONFIG.hut.displayW, HAMSTER_CONFIG.hut.displayH);
+                const cfg = PRODUCER_BUILDINGS[item.id] || HAMSTER_CONFIG.hut;
+                this._ghost.setDisplaySize(cfg.displayW, cfg.displayH);
             } else if (item.kind === 'producer') {
                 const pc = getBuildItemProducerVisual(item);
                 this._ghost.setDisplaySize(pc.displayW, pc.displayH);
@@ -1783,7 +1786,7 @@ export const BuildingSystem = {
         if (this._placing.groundFit) return this._placing.groundFit;
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !this._ghost?.texture?.key) return null;
-        const producerCfg = this._placing.item.kind === 'producer'
+        const producerCfg = isProducerKind(this._placing.item)
             ? PRODUCER_BUILDINGS[this._placing.item.id]
             : null;
         const structureCfg = producerCfg || (
@@ -1829,7 +1832,9 @@ export const BuildingSystem = {
             return fit.footOffsetY
                 + (fit.prismConstrained ? 0 : (Number(producerCfg?.anchorAdjustY) || 0));
         }
-        if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
+        if (this._placing.item.kind === 'hamster_hut') {
+            return (PRODUCER_BUILDINGS[this._placing.item.id] || HAMSTER_CONFIG.hut).footOffsetY;
+        }
         if (this._placing.item.kind === 'producer') {
             const pc = PRODUCER_BUILDINGS[this._placing.item.id];
             return pc.footOffsetY;
@@ -5013,10 +5018,11 @@ export const BuildingSystem = {
                 DefenseSystem.towers.push(tower);
                 placedEntity = tower;
             } else if (item.kind === 'hamster_hut') {
-                const hut = this._markBuiltEntity(new HamsterHut(x, y, { id }), item);
+                const hut = this._markBuiltEntity(new HamsterHut(x, y, { id, cfgKey: item.id }), item);
                 hut._facingLeft = mirror;
                 Game.entities.set(id, hut);
                 HamsterHutSystem.huts.push(hut);
+                RuntimeAssetManager.commitBuildingEntities(Game.entities.values());
                 placedEntity = hut;
             } else if (item.kind === 'producer') {
                 const producer = this._markBuiltEntity(

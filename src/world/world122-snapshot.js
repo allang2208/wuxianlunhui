@@ -432,7 +432,23 @@ export function captureWorld(sceneId = 'scene8') {
     for (const h of HamsterHutSystem.huts || []) {
         if (!alive(h)) continue;
         structures.push({
-            kind: 'hut', x: h.x, y: h.y, hp: Math.ceil(h.hp), mirror: !!h._facingLeft,
+            kind: 'hut', id: h.id, cfgKey: h.cfgKey || 'hamster_hut',
+            x: h.x, y: h.y, hp: Math.ceil(h.hp), mirror: !!h._facingLeft,
+            minerWorkers: h._isMiningGuild ? [
+                ...(h.miners || []).filter((miner) => alive(miner) && !miner._dying).map((miner) => ({
+                    x: miner.x, y: miner.y, hp: miner.data.hp,
+                    carried: Math.max(0, Number(miner._energyCarried) || 0),
+                    phase: miner._ai?._phase || 'work',
+                    retiring: !!miner._retireRequested,
+                    attackTimer: Math.max(0, Number(miner._ai?._attackTimer) || 0),
+                    critRemainder: Math.max(0, Number(miner._miningSimCritRemainder) || 0),
+                    targetX: miner.target?._isEnergyNode
+                        ? miner.target.x : (miner._restoredMiningTarget?.x ?? null),
+                    targetY: miner.target?._isEnergyNode
+                        ? miner.target.y : (miner._restoredMiningTarget?.y ?? null),
+                })),
+                ...(h._restoredMinerWorkers || []).map((worker) => ({ ...worker })),
+            ] : undefined,
             modules: { ...(h.modules || {}) },
             upgrade: h._upgrade ? {
                 moduleId: h._upgrade.moduleId,
@@ -1214,11 +1230,14 @@ function _restoreHut(s) {
         : Math.max(0, Math.floor(Number(s.assignedWorkers) || 0));
     const hut = new HamsterHut(s.x, s.y, {
         id: s.id || `built_hut_r${++_seq}`,
+        cfgKey: s.cfgKey,
+        minerWorkers: s.minerWorkers,
         skipInitialSpawn: true,
         modules: s.modules,
         upgrade: s.upgrade,
         storedEnergy: s.storedEnergy,
-        pendingMinerEnergy: s.carriedEnergy,
+        pendingMinerEnergy: s.cfgKey === 'mining_guild' && Array.isArray(s.minerWorkers)
+            ? 0 : s.carriedEnergy,
         minerTavernRemainder: s.minerTavernRemainder,
         assignedWorkers,
     });
@@ -1230,13 +1249,17 @@ function _restoreHut(s) {
     const savedMinerCount = s.miners == null
         ? assignedWorkers
         : Math.max(0, Math.floor(Number(s.miners) || 0));
-    const want = Math.max(0, Math.min(savedMinerCount, hut.minerCount()));
+    const want = hut._isMiningGuild && Array.isArray(s.minerWorkers)
+        ? s.minerWorkers.length
+        : Math.max(0, Math.min(savedMinerCount, hut.minerCount()));
     let spawned = 0;
     for (let i = 0; i < want; i++) if (hut.spawnMiner()) spawned++;
     // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）
     if (spawned < want) { hut._restoreTopUp = want - spawned; hut._respawnTimer = 800; }
     // 仍有缺员时按原剩余时间续跑补员计时
-    if (hut.aliveMinerCount() < hut.minerCount()) hut._respawnTimer = Math.max(0, s.respawnTimer || 0);
+    if (hut.aliveMinerCount() < hut.minerCount() && !(hut._restoreTopUp > 0)) {
+        hut._respawnTimer = Math.max(0, s.respawnTimer || 0);
+    }
 }
 
 function _restoreLegacyBarracks(s, sceneId) {

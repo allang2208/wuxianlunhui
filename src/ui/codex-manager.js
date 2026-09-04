@@ -11,6 +11,7 @@ import { CodexFormulaHelper } from './codex-formula-helper.js';
 import { WEAPON_FX_CONFIG } from '../config/weapon-fx-config.js';
 import { UNIT_KIND_CFG } from '../world/unit-upgrade-store.js';
 import hamsterMinerCfg from '../../data/hamster-miner-config.json';
+import hamsterMiningExpertCfg from '../../data/hamster-mining-expert-config.json';
 import producerBuildingsJson from '../../data/producer-buildings.json';
 import { buildFormulaDisplay, buildEnhancedFormulaDisplay } from '../config/attack-formula.js';
 import { getEnemyFamilies, hasEnemyFamily } from '../config/enemy-family.js';
@@ -236,6 +237,7 @@ const CodexManager = {
     _allyList() {
         const list = Object.values(UNIT_KIND_CFG || {});
         if (hamsterMinerCfg && hamsterMinerCfg.id) list.push(hamsterMinerCfg);
+        if (hamsterMiningExpertCfg && hamsterMiningExpertCfg.id) list.push(hamsterMiningExpertCfg);
         return list.filter((c) => c && c.id);
     },
 
@@ -246,7 +248,9 @@ const CodexManager = {
         const names = [];
         for (const cfg of Object.values(producerBuildingsJson || {})) {
             if (!cfg || typeof cfg !== 'object' || !cfg.id) continue;
-            if ((cfg.unitTypes || []).some((u) => u.key === kind)) names.push(cfg.name);
+            if (cfg.workerUnitId === id || (cfg.unitTypes || []).some((u) => u.key === kind)) {
+                names.push(cfg.name);
+            }
         }
         // 军营（战士/盾卫）与矿场（矿工）不走产兵配置表，属独立系统
         const BARRACKS_UNITS = ['warrior', 'guard'];

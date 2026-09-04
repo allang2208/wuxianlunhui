@@ -332,6 +332,12 @@
     "visualWorkerCap": 3,
     "visualMode": "physical_mining"
   },
+  "miningGuild": {
+    "workerSlotsModule": "guild_staff",
+    "workerLabel": "专家",
+    "visualWorkerCap": 0,
+    "visualMode": "physical_mining"
+  },
   "bank": {
     "workerSlotsModule": "bank_staff",
     "workerLabel": "职员",

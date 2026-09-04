@@ -94,6 +94,16 @@
       "backpack": { "name": "背包扩容", "icon": "🎒", "iconImage": "assets/ui/building-upgrades/miner-backpack-expansion.png", "effect": "backpackCapacityBonus", "mode": "add", "per": 100, "maxLevel": 5, "desc": "每名矿工背包容量 +{value}" }
     }
   },
+  "mining_guild": {
+    "moduleUpgrade": { "goldByLevel": [900, 1300, 1800, 2400, 3200], "energy": 900 },
+    "modules": {
+      "guild_drill": { "name": "合金钻头", "icon": "⛏️", "iconImage": "assets/ui/building-upgrades/guild-alloy-drill.png", "effect": "miningMult", "per": 0.10, "maxLevel": 5, "desc": "采矿攻击力 +{pct}%" },
+      "guild_motor": { "name": "高速电机", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/guild-high-speed-motor.png", "effect": "attackIntervalMult", "per": -0.05, "maxLevel": 5, "desc": "采矿间隔缩短 {pct}%" },
+      "guild_pack": { "name": "晶石背架", "icon": "🎒", "iconImage": "assets/ui/building-upgrades/guild-crystal-pack.png", "effect": "backpackCapacityBonus", "mode": "add", "per": 200, "maxLevel": 5, "desc": "每名专家背包容量 +{value}" },
+      "guild_boots": { "name": "助力矿靴", "icon": "👟", "iconImage": "assets/ui/building-upgrades/guild-powered-boots.png", "effect": "moveSpeedMult", "per": 0.05, "maxLevel": 5, "desc": "移动速度 +{pct}%" },
+      "guild_staff": { "name": "专家扩编", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/guild-expert-staff.png", "effect": "count", "mode": "add", "base": 4, "per": 1, "maxLevel": 2, "energyByLevel": [8000, 12000], "desc": "专家人口岗位 {value}" }
+    }
+  },
   "blacksmith_special": {
     "abilityUpgrade": {
       "goldBase": 250,

@@ -1,10 +1,19 @@
 // 世界-122 自动矿工经济公式。玩家与普通队友不使用本模块，保持各自实机采矿口径。
 import minerCfg from '../../data/hamster-miner-config.json';
 import minerCampCfg from '../../data/hamster-miner-camp-building.json';
+import expertCfg from '../../data/hamster-mining-expert-config.json';
+import producerBuildings from '../../data/producer-buildings.json';
 import { resolveBuildingUpgradeProject } from './building-upgrade-projects.js';
 import { getUpgradeMultsFromLevels } from './unit-upgrade-store.js';
 
 export const MINER_CAMP_CONFIG = resolveBuildingUpgradeProject(minerCampCfg);
+export const MINING_GUILD_CONFIG = resolveBuildingUpgradeProject(producerBuildings.mining_guild);
+
+export function getMiningWorkerProfile(cfgKey) {
+    return cfgKey === 'mining_guild'
+        ? { building: MINING_GUILD_CONFIG, unit: expertCfg }
+        : { building: MINER_CAMP_CONFIG, unit: minerCfg };
+}
 
 function resolveModuleLevel(module, moduleId, levels) {
     if (!module || !moduleId) return 0;
@@ -14,15 +23,17 @@ function resolveModuleLevel(module, moduleId, levels) {
     ));
 }
 
-export function getMinerEconomyStats(levels = {}, minerCountOverride = null) {
-    const ai = minerCfg.ai || {};
-    const mults = getUpgradeMultsFromLevels(MINER_CAMP_CONFIG.modules || {}, levels);
-    const countEntry = Object.entries(MINER_CAMP_CONFIG.modules || {})
+export function getMinerEconomyStats(levels = {}, minerCountOverride = null, cfgKey = 'hamster_hut') {
+    const profile = getMiningWorkerProfile(cfgKey);
+    const ai = profile.unit.ai || {};
+    const modules = profile.building.modules || {};
+    const mults = getUpgradeMultsFromLevels(modules, levels);
+    const countEntry = Object.entries(modules)
         .find(([, module]) => module?.effect === 'count');
     const countModuleId = countEntry?.[0];
     const countModule = countEntry?.[1];
     const countLevel = resolveModuleLevel(countModule, countModuleId, levels);
-    const backpackEntry = Object.entries(MINER_CAMP_CONFIG.modules || {})
+    const backpackEntry = Object.entries(modules)
         .find(([, module]) => module?.effect === 'backpackCapacityBonus');
     const backpackModuleId = backpackEntry?.[0];
     const backpackModule = backpackEntry?.[1];
@@ -48,8 +59,8 @@ export function getMinerEconomyStats(levels = {}, minerCountOverride = null) {
 }
 
 /** 后台每秒期望产能，逐次取整与 EnergyNode 实机结算一致。 */
-export function getMinerEnergyPerSecond(levels = {}, minerCountOverride = null) {
-    const stats = getMinerEconomyStats(levels, minerCountOverride);
+export function getMinerEnergyPerSecond(levels = {}, minerCountOverride = null, cfgKey = 'hamster_hut') {
+    const stats = getMinerEconomyStats(levels, minerCountOverride, cfgKey);
     if (stats.count <= 0 || stats.gatherRatio <= 0) return 0;
     const normalDamage = Math.max(0, Math.round(stats.attackDamage * stats.miningMult));
     const critDamage = Math.max(0, Math.round(normalDamage * 1.5));

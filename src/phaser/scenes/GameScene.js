@@ -2042,7 +2042,10 @@ export class GameScene extends Scene {
             const anims = member.animations || {};
             // 动画键按 animId（仓鼠矿工多只实例共用 'hamster_miner' 素材键）
             const animId = member.animId || member.id;
-            const walkKey = `companion_${animId}_walk`;
+            // 经济状态仍为 walk，负重只选择贴图，不改变 AI/寻路/速度。
+            const loadedWalk = member._isHamsterMiningExpert && member._energyCarried > 0
+                && member.animations?.carryWalk;
+            const walkKey = `companion_${animId}_${loadedWalk ? 'carryWalk' : 'walk'}`;
             const runKey = `companion_${animId}_run`;
             if (!anims.walk) continue;
             if (!this.textures.exists(walkKey)) {
@@ -2164,6 +2167,11 @@ export class GameScene extends Scene {
             if (aiMode) {
                 // AI 状态驱动：dying > mining > spell > run > walk > idle（站立帧 = 待机首帧）
                 const st = member._animState || 'idle';
+                if (member._isHamsterMiningExpert) {
+                    const miningDuration = Number(anims.mining?.durationMs) || 0;
+                    sprite.anims.timeScale = st === 'mining' && miningDuration > 0
+                        ? miningDuration / Math.max(1, member._ai?._attackInterval || 1500) : 1;
+                }
                 const miningKey = `companion_${animId}_mining`;
                 const dyingKey = `companion_${animId}_dying`;
                 const viewingKey = `companion_${animId}_viewing`;
@@ -2699,6 +2707,10 @@ export class GameScene extends Scene {
                 ? (Number.isFinite(stealthAlpha) ? stealthAlpha : 0.42)
                 : 1);
             this._syncNinjaArmGlow(member, sprite);
+            // 专家尚无独立死亡视频：保持自身待机姿势短暂淡出，不借用普通矿工素材。
+            if (member._isHamsterMiningExpert && member._dying) {
+                sprite.setAlpha(Math.max(0, Math.min(1, member._deathTimer / 1060)));
+            }
             this._syncDesertPriestStaffFx(member, sprite, anims, dt);
             // 动作切换残影（零素材过渡）：贴图键变化 = 动作切换——旧帧残影 110ms 淡出消顿挫
             if (prevTexKey && sprite.texture?.key !== prevTexKey

@@ -74,7 +74,13 @@ import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
 import junglePriestCfg from '../../data/jungle-priest-config.json';
 import desertPriestCfg from '../../data/desert-priest-config.json';
-import { MINER_CAMP_CONFIG, getMinerEnergyPerSecond, getMinerEconomyStats } from './miner-economy.js';
+import {
+    MINER_CAMP_CONFIG,
+    getMinerEnergyPerSecond,
+    getMinerEconomyStats,
+    getMiningWorkerProfile,
+} from './miner-economy.js';
+import { simulateMiningGuild } from './mining-guild-simulation.js';
 import populationEconomyConfig from '../../data/population-economy.json';
 import buildingUpgradesJson from '../../data/building-upgrades.json';
 import skillsData from '../../data/skills.json';
@@ -429,7 +435,9 @@ function _snapshotResearchClusterMultiplier(target, economyStructures) {
 }
 
 function _workshopEfficiencyMultiplier(target, economyStructures) {
-    const targetType = producerBuildingsJson[target?.cfgKey]?.economyType;
+    const targetType = producerBuildingsJson[target?.cfgKey]?.economyType
+        || (target?.kind === 'hut'
+            ? getMiningWorkerProfile(target.cfgKey).building.economyType : null);
     if (!targetType || targetType === 'housing' || targetType === 'workshop') return 1;
     let strongest = 0;
     const share = Math.max(0, Number(populationEconomyConfig.workshop?.engineerEfficiencyShare) || 0.2);
@@ -650,7 +658,7 @@ export function getWorld122ResearchSummary(snapshot) {
     }, 0);
     for (const camp of structures) {
         if (camp?.kind !== 'hut' || !(Number(camp.hp ?? 1) > 0)) continue;
-        const slots = getMinerEconomyStats(camp.modules || {}).count;
+        const slots = getMinerEconomyStats(camp.modules || {}, null, camp.cfgKey).count;
         const migrated = camp.assignedWorkers == null ? camp.miners : camp.assignedWorkers;
         assignedPopulation += Math.max(0, Math.min(
             slots,
@@ -1090,7 +1098,8 @@ function _snapshotLocalUpgradeJobs(target) {
     for (const structure of target.structures || []) {
         if (!(Number(structure.hp ?? 1) > 0)) continue;
         if (structure.kind === 'hut') {
-            add(structure, 'upgrade', 'modules', MINER_CAMP_CONFIG.modules);
+            add(structure, 'upgrade', 'modules',
+                getMiningWorkerProfile(structure.cfgKey).building.modules);
             continue;
         }
         if (structure.kind !== 'producer') continue;
@@ -1254,7 +1263,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     }, 0);
     for (const camp of target.structures || []) {
         if (camp.kind !== 'hut' || !(camp.hp > 0)) continue;
-        const slots = getMinerEconomyStats(camp.modules || {}).count;
+        const slots = getMinerEconomyStats(camp.modules || {}, null, camp.cfgKey).count;
         const migrated = camp.assignedWorkers == null ? camp.miners : camp.assignedWorkers;
         camp.assignedWorkers = Math.max(0, Math.min(slots, Math.floor(Number(migrated) || 0)));
         assignedPopulation += camp.assignedWorkers;
@@ -2308,14 +2317,15 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
     const nodes = target.nodes || [];
     for (const s of target.structures || []) {
         if (s.kind !== 'hut') continue;
-        const slotCount = getMinerEconomyStats(s.modules || {}).count;
+        const slotCount = getMinerEconomyStats(s.modules || {}, null, s.cfgKey).count;
         const desiredCount = Math.max(0, Math.min(
             slotCount,
             Math.floor(Number(s.assignedWorkers == null ? s.miners : s.assignedWorkers) || 0)
         ));
         let miners = Math.min(desiredCount, Math.max(0, Math.floor(Number(s.miners) || 0)));
         s.assignedWorkers = desiredCount;
-        const minerOutputMultiplier = tavernWeightedMultiplier * getProductionResourceMul();
+        const minerOutputMultiplier = _workshopEfficiencyMultiplier(s, economyStructures)
+            * tavernWeightedMultiplier * getProductionResourceMul();
         let minerOutputRemainder = Math.max(0, Number(s.minerTavernRemainder) || 0);
         const submitRawMinerEnergy = (rawAmount, countAsMined = true) => {
             const raw = Math.max(0, Number(rawAmount) || 0);
@@ -2334,6 +2344,21 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
             if (countAsMined) report.energyMined += output;
             return { rawAccepted, output };
         };
+        if (s.cfgKey === 'mining_guild') {
+            simulateMiningGuild(s, nodes, elapsedMs, laborEfficiency, (amount) => {
+                // 同前台：只接收能完整入库的整数原矿；满仓留在背包中。
+                let low = 0;
+                let high = Math.max(0, Math.floor(amount));
+                while (low < high) {
+                    const mid = Math.ceil((low + high) / 2);
+                    const output = Math.floor(minerOutputRemainder + mid * minerOutputMultiplier);
+                    if (output > 0 && output <= warehouseFree) low = mid;
+                    else high = mid - 1;
+                }
+                return low > 0 ? submitRawMinerEnergy(low).rawAccepted : 0;
+            });
+            continue;
+        }
         if ((Number(s.carriedEnergy) || 0) > 0 && warehouseFree > 0) {
             const submitted = submitRawMinerEnergy(s.carriedEnergy, false);
             s.carriedEnergy = Math.max(0, Number(s.carriedEnergy) - submitted.rawAccepted);
@@ -2341,7 +2366,7 @@ function _settleWorld122Interval(target, elapsedMs, opts, simulation) {
         const wait = Math.min(Math.max(0, (s.respawnTimer || 0) / 1000), t);
         const mineSegment = (count, seconds) => {
             if (warehouseFree <= 0 || count <= 0 || seconds <= 0) return;
-            const want = getMinerEnergyPerSecond(s.modules || {}, count) * laborEfficiency
+            const want = getMinerEnergyPerSecond(s.modules || {}, count, s.cfgKey) * laborEfficiency
                 * Math.max(0, seconds);
             const capacityRaw = Math.max(0,
                 (warehouseFree + 0.999999 - minerOutputRemainder)

@@ -1,4 +1,5 @@
 import hamsterMinerConfig from '../../../data/hamster-miner-config.json';
+import hamsterMiningExpertConfig from '../../../data/hamster-mining-expert-config.json';
 import hamsterWarriorConfig from '../../../data/hamster-warrior-config.json';
 import hamsterChampionConfig from '../../../data/hamster-champion-config.json';
 import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
@@ -47,6 +48,7 @@ import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-confi
 
 export const FRIENDLY_UNIT_CONFIGS = Object.freeze([
     hamsterMinerConfig,
+    hamsterMiningExpertConfig,
     hamsterWarriorConfig,
     hamsterChampionConfig,
     hamsterShooterConfig,

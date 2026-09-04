@@ -12,6 +12,41 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { pickNearestNode } from './companion-ai-decision.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { stableAiPhase } from './friendly-spatial-query.js';
+import {
+    distanceToIsoFootprint,
+    isoFootprintCenter,
+    isoFootprintHalfExtents,
+    isoLocalToWorldDelta,
+    resolveCircleFromIsoFootprint,
+    worldDeltaToIsoLocal,
+} from '../physics/iso-footprint.js';
+import { WallSystem } from '../world/wall-system.js';
+
+// 营地的 x/y 是菱形前顶点，不能再用旧圆形小屋的64px半径作为返营目标。
+function hutUnloadApproach(miner, hut) {
+    const radius = Math.max(1, Number(miner.groundRadius) || 20);
+    const center = isoFootprintCenter(hut);
+    const { halfU, halfV } = isoFootprintHalfExtents(hut);
+    const local = worldDeltaToIsoLocal(miner.x - center.x, miner.y - center.y);
+    const u = Math.max(-halfU, Math.min(halfU, local.u));
+    const v = Math.max(-halfV, Math.min(halfV, local.v));
+    const distance = Math.hypot(local.u - u, local.v - v);
+    let point;
+    if (distance > 0) {
+        const margin = radius + 12;
+        const delta = isoLocalToWorldDelta(
+            u + (local.u - u) / distance * margin,
+            v + (local.v - v) / distance * margin
+        );
+        point = { x: center.x + delta.x, y: center.y + delta.y };
+    } else {
+        const push = resolveCircleFromIsoFootprint(miner.x, miner.y, radius + 12, hut);
+        point = { x: miner.x + (push?.x || 0), y: miner.y + (push?.y || 0) };
+    }
+    const arrived = distanceToIsoFootprint(miner.x, miner.y, hut) <= radius + 36
+        && !WallSystem.blocked(miner.x, miner.y, point.x, point.y);
+    return { point, arrived };
+}
 
 export class HamsterMinerAI {
     constructor(miner) {
@@ -19,7 +54,11 @@ export class HamsterMinerAI {
         this.cfg = miner.aiConfig || {};
         this._decisionTimer = stableAiPhase(miner, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
-        this._attackInterval = this.cfg.attackInterval ?? 2000;
+        this._baseAttackInterval = this.cfg.attackInterval ?? 2000;
+        this._laborEfficiency = Math.max(0, Math.min(1,
+            Number.isFinite(Number(this.cfg.laborEfficiency))
+                ? Number(this.cfg.laborEfficiency) : 1));
+        this._refreshAttackInterval();
         this._attackDamage = this.cfg.attackDamage ?? 25;
         this._miningRange = this.cfg.miningRange ?? 80;
         this.miningMult = this.cfg.miningMult ?? 1;        // 采矿效率倍率（小屋升级）
@@ -42,9 +81,14 @@ export class HamsterMinerAI {
     /** 仓鼠小屋升级后刷新战斗参数（间隔/伤害/移速/采矿效率） */
     applyUpgrades(u) {
         if (typeof u.attackInterval === 'number' && u.attackInterval > 0) {
-            this._attackInterval = u.attackInterval;
+            this._baseAttackInterval = u.attackInterval;
             this.cfg.attackInterval = u.attackInterval;
         }
+        if (typeof u.laborEfficiency === 'number') {
+            this._laborEfficiency = Math.max(0, Math.min(1, u.laborEfficiency));
+            this.cfg.laborEfficiency = this._laborEfficiency;
+        }
+        this._refreshAttackInterval();
         if (typeof u.attackDamage === 'number' && u.attackDamage > 0) {
             this._attackDamage = u.attackDamage;
             this.cfg.attackDamage = u.attackDamage;
@@ -62,6 +106,13 @@ export class HamsterMinerAI {
                 this.m._energyCarried = this.m._energyCapacity;
             }
         }
+    }
+
+    /** 前台与后台统一按“基础攻击间隔 ÷ 人口效率”结算工作节拍。 */
+    _refreshAttackInterval() {
+        this._attackInterval = this._laborEfficiency > 0
+            ? this._baseAttackInterval / this._laborEfficiency
+            : Number.MAX_SAFE_INTEGER;
     }
 
     /**
@@ -177,20 +228,16 @@ export class HamsterMinerAI {
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
             } else {
-                const dist = Math.hypot(hut.x - m.x, hut.y - m.y);
-                if (dist <= 70) {
+                const approach = hutUnloadApproach(m, hut);
+                m._spawnEgress = null;
+                if (approach.arrived) {
                     this._tryUnloadAtHut();
                     m._tacticalTarget = null;
                     m._animState = 'idle';
                     m.maxSpeed = 0;
                 } else {
                     m.target = null;
-                    // 走到小屋边缘可达点（小屋中心是碰撞体，直接寻路到中心可能失败）
-                    const dx = m.x - hut.x;
-                    const dy = m.y - hut.y;
-                    const d = Math.hypot(dx, dy) || 1;
-                    const approach = 64; // 小屋半径 40 + 矿工半径 26 = 66，取 64 贴近门边
-                    m._tacticalTarget = { x: hut.x + (dx / d) * approach, y: hut.y + (dy / d) * approach };
+                    m._tacticalTarget = approach.point;
                     m._animState = 'walk';
                     m.maxSpeed = this.cfg.walkSpeed ?? 80;
                 }
@@ -212,6 +259,11 @@ export class HamsterMinerAI {
 
         const nodes = this._energyNodes(entities);
         if (nodes.length === 0) {
+            // 工会专家在最后一处矿脉耗尽后也交付未满背包，避免余矿留在野外。
+            if (m._isHamsterMiningExpert && m._energyCarried > 0) {
+                this._startUnloadReturn();
+                return;
+            }
             m.target = null;
             m._tacticalTarget = null;
             m._animState = 'idle';
@@ -220,6 +272,12 @@ export class HamsterMinerAI {
             return;
         }
 
+        if (m._restoredMiningTarget) {
+            const restored = nodes.find((node) =>
+                node.x === m._restoredMiningTarget.x && node.y === m._restoredMiningTarget.y);
+            delete m._restoredMiningTarget;
+            if (restored) m.target = restored;
+        }
         if (!m.target) {
             m.target = pickNearestNode(nodes, m);
             if (!m.target) {
@@ -298,6 +356,7 @@ export class HamsterMinerAI {
         const m = this.m;
         const node = m.target;
         if (!node || !node.active || node.hp <= 0 || node._depleted) return;
+        if (!(this._laborEfficiency > 0)) return;
         if (this._attackTimer > 0) return;
         this._attackTimer = this._attackInterval;
         if (typeof node.takeDamage === 'function') {
@@ -344,6 +403,10 @@ export class HamsterMinerAI {
             this._phase = 'storage_wait';
             return;
         }
+        if (!hutUnloadApproach(m, hut).arrived) {
+            this._phase = 'unload_return';
+            return;
+        }
         hut.unloadMiner(m);
         if (m._energyCarried > 0) {
             this._phase = 'storage_wait';
@@ -354,6 +417,7 @@ export class HamsterMinerAI {
             return;
         }
         this._phase = 'work';
+        if (m._pathManager) m._pathManager._clearPath();
     }
 
     /** 旧调用兼容：统一进入返营提交链。 */

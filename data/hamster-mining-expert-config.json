@@ -1,0 +1,111 @@
+{
+  "id": "hamster_mining_expert",
+  "name": "仓鼠矿业专家",
+  "title": "矿洞晶石工程师",
+  "desc": "由矿业工会人口岗位自动生成的经济单位。手持电钻采集能源矿脉，装入个人背包并返营交付，不接受玩家指挥。",
+  "role": "miner",
+  "growthRule": "balanced",
+  "avatar": "🐹",
+  "weaponType": "drill",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 200,
+  "baseData": {
+    "str": 6,
+    "dex": 6,
+    "int": 5,
+    "con": 10,
+    "wis": 5,
+    "luck": 5
+  },
+  "statFormula": "enemy",
+  "skills": [],
+  "sounds": {
+    "mining": "assets/sounds/friendly/hamster_miner_mining.mp3"
+  },
+  "ai": {
+    "role": "miner",
+    "walkSpeed": 120,
+    "runSpeed": 120,
+    "miningRange": 50,
+    "engageRange": 340,
+    "attackRange": 48,
+    "attackInterval": 1500,
+    "attackDamage": 200,
+    "energyGatherRatio": 1.0,
+    "expectedCritChance": 0.07,
+    "backpackCapacity": 1000,
+    "decisionMs": 120,
+    "followOffset": 150,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 209,
+  "animations": {
+    "idle": {
+      "frameWidth": 272,
+      "frameHeight": 272,
+      "cols": 1,
+      "rows": 1,
+      "frameCount": 1,
+      "frameRate": 1,
+      "durationMs": 1000,
+      "footY": 267.5,
+      "src": "assets/companions/hamster_mining_expert/idle.png",
+      "frames": [
+        0,
+        0
+      ],
+      "repeat": -1
+    },
+    "walk": {
+      "frameWidth": 272,
+      "frameHeight": 272,
+      "cols": 3,
+      "rows": 13,
+      "frameCount": 38,
+      "frameRate": 24,
+      "durationMs": 1583.3333333333333,
+      "footY": 261.5,
+      "src": "assets/companions/hamster_mining_expert/walking.png",
+      "frames": [
+        0,
+        37
+      ],
+      "repeat": -1
+    },
+    "carryWalk": {
+      "frameWidth": 272,
+      "frameHeight": 272,
+      "cols": 4,
+      "rows": 8,
+      "frameCount": 32,
+      "frameRate": 24,
+      "durationMs": 1333.3333333333333,
+      "footY": 260.5,
+      "src": "assets/companions/hamster_mining_expert/carry-walking.png",
+      "frames": [
+        0,
+        31
+      ],
+      "repeat": -1
+    },
+    "mining": {
+      "frameWidth": 272,
+      "frameHeight": 272,
+      "cols": 5,
+      "rows": 7,
+      "frameCount": 35,
+      "frameRate": 24,
+      "durationMs": 1458.3333333333333,
+      "footY": 267.5,
+      "src": "assets/companions/hamster_mining_expert/mining.png",
+      "frames": [
+        0,
+        34
+      ],
+      "repeat": 0,
+      "waitFrame": 0
+    }
+  }
+}
